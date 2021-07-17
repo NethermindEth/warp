@@ -1,0 +1,51 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7 # Cairo was tested with this version
+
+      - name: Cache Cairo build
+        uses: actions/cache@v2
+        id: cache
+        with:
+          path: vendor/cairo-lang/cairo-lang-0.2.0.zip
+          key: cairo-${{ hashFiles('vendor/cairo-lang/**') }}
+
+      - name: Build Cairo
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          cd vendor/cairo-lang
+          docker build --tag cairo .
+          container_id=$(docker create cairo)
+          docker cp ${container_id}:/app/cairo-lang-0.2.0.zip .
+          docker rm -v ${container_id}
+      
+      - name: Install Cairo
+        run: |
+          cd vendor/cairo-lang
+          pip install ./cairo-lang-0.2.0.zip
+          
+      - name: Upload Cairo artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: cairo-lang
+          path: vendor/cairo-lang/cairo-lang-0.2.0.zip
+
+      - name: Setup BATS testing framework
+        uses: mig4/setup-bats@v1.2.0
+
+      - name: Test golden tests
+        run: bats scripts/golden-testing

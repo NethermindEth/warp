@@ -1,0 +1,6 @@
+PUSH9 0x18000000000000000 # [big]
+PUSH1 0x5 # [5, big]
+DUP2 # [big, 5, big]
+PUSH2 0x80 # [0x80, big, 5, big]
+SWAP3 # [big, big, 5, 0x80]
+POP # [big, 5, 0x80]
