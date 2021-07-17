@@ -2,3 +2,4 @@
 *.zip
 vendor/cairo-lang/build
 *.vscode
+/build
