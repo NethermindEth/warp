@@ -1,0 +1,25 @@
+#+title: Golden testing generation
+
+* How it works
+
+[[file:generate-bats.sh][generate-bats.sh]] is a bash script that creates tests out of
+=.template= files. =.template= files are in fact =bats= files that
+form a test group. They must have the following structure. They should
+define:
+- ~WARP_TEST_GROUP_PREFIX~ — each test case in this group will be
+  prefixed with the contents of this variable. For example, if the
+  prefix is "cairo", test names will look like "cairo/test-addition",
+  "cairo/check-memory" etc.
+- ~WARP_TEST_DIR~ — a directory that contains test files for this
+  group.
+- ~WARP_TEST_SUFFIX~ — a suffix of each test file. Only test files
+  with this suffix will be scanned from ~WARP_TEST_DIR~.
+- ~test_case()~ — a function that takes a name of the test file,
+  stripped of the ~WARP_TEST_SUFFIX~, and performs testing.
+
+Based on a =.template=, the script generates a =bats= test group that
+contains tests for all files matching the conditions above. Note that
+the =.template= is pasted as-is into the new =bats= file. That means
+that you can put setup/teardown functions there. Test names are formed
+as ~WARP_TEST_DIR/BASE_NAME~ where ~BASE_NAME~ is a name of the test
+file stripped of the ~WARP_TEST_SUFFIX~.

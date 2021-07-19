@@ -1,0 +1,17 @@
+WARP_TEST_GROUP_PREFIX="transpilation/gen-cairo"
+WARP_TEST_DIR="./tests/transpilation"
+WARP_TEST_SUFFIX=".opcode"
+
+test_case() {
+    local test_file="$WARP_TEST_DIR/$1$WARP_TEST_SUFFIX"
+    printf "checking $test_file\n"
+    local gold_file="${test_file}.gold.cairo"
+    local temp_file="${test_file}.temp.cairo"
+    python src/EvmToCairo.py "$test_file" --dump-all > "$temp_file"
+    diff "$temp_file" "$gold_file" \
+         --ignore-trailing-space \
+         --ignore-blank-lines \
+         --new-file # treat absent files as empty
+
+    rm "$temp_file"
+}

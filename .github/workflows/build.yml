@@ -32,12 +32,12 @@ jobs:
           container_id=$(docker create cairo)
           docker cp ${container_id}:/app/cairo-lang-0.2.0.zip .
           docker rm -v ${container_id}
-      
+
       - name: Install Cairo
         run: |
           cd vendor/cairo-lang
           pip install ./cairo-lang-0.2.0.zip
-          
+
       - name: Upload Cairo artifact
         uses: actions/upload-artifact@v2
         with:
@@ -48,4 +48,4 @@ jobs:
         uses: mig4/setup-bats@v1.2.0
 
       - name: Test golden tests
-        run: bats scripts/golden-testing
+        run: make test
