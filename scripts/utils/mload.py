@@ -52,7 +52,8 @@ def parse_memory(mem: str) -> dict:
             i += 1
         elif mode == "m8":
             k = int(words[i])
-            v = int(words[i + 1])
+            sv = words[i + 1]
+            v = int(sv, 16) if sv.startswith("0x") else int(sv)
             i += 2
             memory[k] = byte_to_hex(v)
         else:

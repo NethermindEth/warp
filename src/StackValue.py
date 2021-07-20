@@ -26,7 +26,7 @@ class Uint256(StackValue):
     def __add__(self, y: int):
         return Uint256((self.x + y) % UINT256_BOUND)
 
-    def __sub__(self, y:int):
+    def __sub__(self, y: int):
         return Uint256((self.x - y) % UINT256_BOUND)
 
     def get_int_repr(self) -> str:
@@ -35,14 +35,6 @@ class Uint256(StackValue):
     def get_low_bits(self):
         high, low = divmod(self.x, UINT128_BOUND)
         return f"{low}"
-
-
-class NullUint256(StackValue):
-    def __str__(self):
-        return f"Uint256(-1, 0)"
-
-
-NULL = NullUint256()
 
 
 class Str(StackValue):
