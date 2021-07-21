@@ -16,15 +16,15 @@ BUILTINS = ["output", "range_check"]
 COMMON_IMPORTS = {
     "starkware.cairo.common.registers": {"get_fp_and_pc"},
     "starkware.cairo.common.serialize": {"serialize_word"},
-    "evm.stack": {"StackItem"},
     "starkware.cairo.common.dict_access": {"DictAccess"},
     "starkware.cairo.common.default_dict": {
         "default_dict_new",
         "default_dict_finalize",
     },
     UINT256_MODULE: {"Uint256", "uint256_eq"},
+    "evm.stack": {"StackItem"},
+    "evm.output": {"Output", "serialize_output"},
 }
-
 
 MAIN_BODY = f"""
    alloc_locals
@@ -38,13 +38,20 @@ MAIN_BODY = f"""
    local stack0 : StackItem
    assert stack0 = StackItem(value=Uint256(-1, 0), next=&stack0)  # Points to itself.
 
-   let (local res) = run_from{{msize=msize, memory_dict=memory_dict}}(Uint256(0, 0), &stack0)
-   default_dict_finalize(memory_start, memory_dict, 0)
+   let (local stack, local output) = run_from{{
+      msize=msize, memory_dict=memory_dict}}(Uint256(0, 0), &stack0)
 
-   serialize_word(res.low)
-   serialize_word(res.high)
+   default_dict_finalize(memory_start, memory_dict, 0)
+   local range_check_ptr = range_check_ptr
+   serialize_word(stack.value.low)
+   serialize_word(stack.value.high)
+   serialize_output(output)
    return ()
 """
+
+
+NO_OUTPUT = "Output(0, cast(0, felt*), 0)"
+EMPTY_OUTPUT = "Output(1, cast(0, felt*), 0)"
 
 
 @dataclass
@@ -61,6 +68,15 @@ class SegmentState:
         self.unreachable = False
         self.msize = 0
         self.cur_evm_pc = cur_evm_pc
+
+    def make_return_instructions(
+        self, pc: StackValue, output: str = NO_OUTPUT
+    ) -> list[str]:
+        build_instructions, stack_ref = self.stack.build_stack_instructions()
+        return [
+            *build_instructions,
+            f"return (stack={stack_ref}, evm_pc={pc}, output={output})",
+        ]
 
 
 class EvmToCairo:
@@ -79,7 +95,8 @@ class EvmToCairo:
             "\n".join(
                 [
                     f"func segment{segment_pc_txt}{self.__make_implicit_args()}"
-                    f"(stack : StackItem*) -> (stack : StackItem*, evm_pc : Uint256):",
+                    f"(stack : StackItem*) -> "
+                    "(stack : StackItem*, evm_pc : Uint256, output: Output):",
                     "alloc_locals",
                     "let stack0 = stack",
                     "let (local __fp__, _) = get_fp_and_pc()",
@@ -110,7 +127,7 @@ class EvmToCairo:
     def construct_run_from_function(self):
         run_from = [
             f"func run_from{self.__make_implicit_args()}"
-            "(evm_pc: Uint256, stack: StackItem*) -> (res: Uint256):"
+            "(evm_pc: Uint256, stack: StackItem*) -> (stack: StackItem*, output: Output):"
         ]
 
         for segment_pc in self.code_segments:
@@ -119,7 +136,10 @@ class EvmToCairo:
                 [
                     f"let (immediate) = uint256_eq(evm_pc, {segment_pc})",
                     f"if immediate == 1:",
-                    f"let (stack, evm_pc) = segment{segment_pc_txt}(stack=stack)",
+                    f"let (stack, evm_pc, output) = segment{segment_pc_txt}(stack=stack)",
+                    "if output.active == 1:",
+                    "return (stack, output)",
+                    "end",
                     f"return run_from(evm_pc=evm_pc, stack=stack)",
                     "end",
                 ]
@@ -127,10 +147,9 @@ class EvmToCairo:
 
         run_from.extend(
             [
-                f"let (immediate) = uint256_eq(evm_pc, {StackValue.NULL})",
+                f"let (immediate) = uint256_eq(evm_pc, Uint256(-1, 0))",
                 f"if immediate == 1:",
-                "let stack0: StackItem* = stack",
-                f"return (res=stack0.value)",
+                f"return (stack, {EMPTY_OUTPUT})",
                 "end",
             ]
         )
@@ -146,7 +165,8 @@ class EvmToCairo:
             insts, new_stack = self.state.stack.build_stack_instructions()
             self.instructions.extend(insts)
             self.instructions.append(
-                f"return (stack={new_stack}, evm_pc={StackValue.NULL})"
+                f"return (stack={new_stack}, "
+                f"evm_pc=Uint256(0, 0), output={EMPTY_OUTPUT})"
             )
         self.finish_segment()
         builtins_line = "%builtins " + " ".join(BUILTINS) if BUILTINS else ""

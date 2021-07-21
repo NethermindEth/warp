@@ -4,11 +4,7 @@ from Operation import Operation
 
 class Jumpdest(Operation):
     def proceed(self, state):
-        build_instructions, stack_ref = state.stack.build_stack_instructions()
-        return [
-            *build_instructions,
-            f"return (stack={stack_ref}, evm_pc={state.cur_evm_pc})",
-        ]
+        return state.make_return_instructions(state.cur_evm_pc)
 
     def process_structural_changes(self, evmToCairo):
         evmToCairo.finish_segment()
@@ -17,25 +13,20 @@ class Jumpdest(Operation):
 
 class Jump(Operation):
     def proceed(self, state):
-        a = state.stack.pop()
-        build_instructions, stack_ref = state.stack.build_stack_instructions()
         state.unreachable = True
-        return [
-            *build_instructions,
-            f"return (stack={stack_ref}, evm_pc={a})",
-        ]
+        a = state.stack.pop()
+        return state.make_return_instructions(a)
 
 
 class JumpI(Operation):
     def proceed(self, state):
         a = state.stack.pop()
         b = state.stack.pop()
-        build_instructions, stack_ref = state.stack.build_stack_instructions()
+        return_instructions = state.make_return_instructions(a)
         return [
             f"let (immediate) = uint256_eq({b}, Uint256(0, 0))",
             f"if immediate == 0:",
-            *build_instructions,
-            f"return (stack={stack_ref}, evm_pc={a})",
+            *return_instructions,
             "end",
         ]
 

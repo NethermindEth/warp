@@ -1,21 +1,26 @@
 %builtins output range_check
 
-from evm.output import Output, serialize_output
+from evm.memory import mstore
+from evm.output import Output, create_from_memory, serialize_output
 from evm.stack import StackItem
+from evm.utils import get_max
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.serialize import serialize_word
-from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_sar
+from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_eq
 
 func segment0{range_check_ptr, msize, memory_dict : DictAccess*}(stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
     alloc_locals
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
-    let (local tmp0 : Uint256) = uint256_sar(Uint256(244, 0), Uint256(3, 0))
-    local newitem0 : StackItem = StackItem(value=tmp0, next=stack0)
-    return (stack=&newitem0, evm_pc=Uint256(0, 0), output=Output(1, cast(0, felt*), 0))
+    let (local tmp0, _) = uint256_add(Uint256(14548715, 0), Uint256(33549997, 0))
+    let (local msize) = get_max(msize, 2 + 32)
+    mstore(offset=2, value=tmp0)
+    local memory_dict : DictAccess* = memory_dict
+    let (output) = create_from_memory(2, 32)
+    return (stack=stack0, evm_pc=Uint256(0, 0), output=output)
 end
 
 func run_from{range_check_ptr, msize, memory_dict : DictAccess*}(
