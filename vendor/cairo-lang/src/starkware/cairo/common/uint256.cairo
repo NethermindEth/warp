@@ -9,8 +9,8 @@ struct Uint256:
     member high : felt
 end
 
-const SHIFT = %[2 ** 128%]
-const HALF_SHIFT = %[2 ** 64%]
+const SHIFT = 2 ** 128
+const HALF_SHIFT = 2 ** 64
 
 # Verifies that the given integer is valid.
 func uint256_check{range_check_ptr}(a : Uint256):
@@ -78,8 +78,8 @@ func uint256_mul{range_check_ptr}(a : Uint256, b : Uint256) -> (low : Uint256, h
     let (res6, carry) = split_64(a3 * b3 + carry)
 
     return (
-        low=cast((low=res0 + HALF_SHIFT * res1, high=res2 + HALF_SHIFT * res3), Uint256),
-        high=cast((low=res4 + HALF_SHIFT * res5, high=res6 + HALF_SHIFT * carry), Uint256))
+        low=Uint256(low=res0 + HALF_SHIFT * res1, high=res2 + HALF_SHIFT * res3),
+        high=Uint256(low=res4 + HALF_SHIFT * res5, high=res6 + HALF_SHIFT * carry))
 end
 
 func uint256_unsigned_div_rem{range_check_ptr}(a : Uint256, div : Uint256) -> (

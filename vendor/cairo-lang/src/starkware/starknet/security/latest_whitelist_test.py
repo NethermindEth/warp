@@ -30,7 +30,7 @@ def run(fix: bool):
 
 
 def test_latest_whitelist():
-    run(fix=True)
+    run(fix=False)
 
 
 if __name__ == '__main__':
