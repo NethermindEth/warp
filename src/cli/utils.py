@@ -120,9 +120,3 @@ def selector_jumpdest(
         idx += 1
     return selector_jumpdests
 
-
-pth = os.path.join(WARP_ROOT, "tests", "utils", "yearn")
-selectors = get_selectors(f"{pth}.abi")
-#dests = selector_jumpdest(selectors, f"{pth}.opcode")
-print(selectors)
-#print(dests)

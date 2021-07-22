@@ -7,7 +7,7 @@ test_case() {
     printf "checking $test_file\n"
     local gold_file="${test_file}.gold.cairo"
     local temp_file="${test_file}.temp.cairo"
-    python src/EvmToCairo.py "$test_file" --dump-all > "$temp_file"
+    python src/transpiler/EvmToCairo.py "$test_file" --dump-all > "$temp_file"
     diff "$temp_file" "$gold_file" \
          --ignore-trailing-space \
          --ignore-blank-lines \
