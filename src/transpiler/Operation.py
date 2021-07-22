@@ -69,7 +69,7 @@ class NoParse(BaseException):
 import importlib
 import os
 
-with os.scandir("src/Operations") as it:
+with os.scandir("src/transpiler/Operations") as it:
     for entry in it:
         if entry.is_file() and entry.name.endswith(".py"):
             importlib.import_module(f".{entry.name[:-3]}", package="Operations")

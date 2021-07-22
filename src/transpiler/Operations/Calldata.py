@@ -1,5 +1,6 @@
 from Imports import UINT256_MODULE
 from Operations.Binary import Binary
+from Operation import Operation
 from Operations.Unary import Unary
 
 
