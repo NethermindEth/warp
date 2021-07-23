@@ -57,14 +57,14 @@ EMPTY_OUTPUT = "Output(1, cast(0, felt*), 0)"
 @dataclass
 class SegmentState:
     stack: EvmStack
-    n_locals: int
+    __n_locals: int
     unreachable: bool
     msize: int
     cur_evm_pc: StackValue.Uint256
 
     def __init__(self, cur_evm_pc: StackValue.Uint256):
         self.stack = EvmStack()
-        self.n_locals = 0
+        self.__n_locals = 0
         self.unreachable = False
         self.msize = 0
         self.cur_evm_pc = cur_evm_pc
@@ -77,6 +77,11 @@ class SegmentState:
             *build_instructions,
             f"return (stack={stack_ref}, evm_pc={pc}, output={output})",
         ]
+
+    def request_fresh_name(self) -> str:
+        var_name = f"tmp{self.__n_locals}"
+        self.__n_locals += 1
+        return var_name
 
 
 class EvmToCairo:

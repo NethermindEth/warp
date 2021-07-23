@@ -81,9 +81,8 @@ class MLoad(MemoryAccess):
         return 32
 
     def _do_memory_access(self, address, state):
-        res_ref_name = f"tmp{state.n_locals}"
+        res_ref_name = state.request_fresh_name()
         state.stack.push_ref(res_ref_name)
-        state.n_locals += 1
         return [
             f"let (local {res_ref_name} : Uint256) = mload({address})",
         ]
@@ -95,9 +94,8 @@ class MLoad(MemoryAccess):
 
 class MSize(Operation):
     def proceed(self, state):
-        res_ref_name = f"tmp{state.n_locals}"
+        res_ref_name = state.request_fresh_name()
         state.stack.push_ref(res_ref_name)
-        state.n_locals += 1
         # the yellow paper defines msize as the memory size in bytes,
         # but rounded to the closest greater word boundary, i.e. a
         # 32-multiple. Also, it's most probably < 2**64.

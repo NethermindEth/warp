@@ -7,10 +7,9 @@ class Binary(Operation):
     def proceed(self, state):
         a = state.stack.pop()
         b = state.stack.pop()
-        res_ref_name = f"tmp{state.n_locals}"
+        res_ref_name = state.request_fresh_name()
         instruction = self.bind_to_res(a, b, res_ref_name)
         state.stack.push_ref(res_ref_name)
-        state.n_locals += 1
         return [instruction]
 
     @abc.abstractmethod
