@@ -25,6 +25,15 @@ func ceil_div{range_check_ptr}(a, b) -> (res):
     end
 end
 
+func update_msize{range_check_ptr}(size, offset, length) -> (result):
+    if length == 0:
+        return (size)
+    end
+
+    let (result) = get_max(size, offset + length)
+    return (result)
+end
+
 func round_down_to_multiple{range_check_ptr}(x, div) -> (y):
     floor_div(x, div)
     return ([ap - 1] * div)
@@ -35,7 +44,7 @@ func round_up_to_multiple{range_check_ptr}(x, div) -> (y):
     return ([ap - 1] * div)
 end
 
-func serialize_array{output_ptr: felt*}(array: felt*, n_elms):
+func serialize_array{output_ptr : felt*}(array : felt*, n_elms):
     if n_elms == 0:
         return ()
     end

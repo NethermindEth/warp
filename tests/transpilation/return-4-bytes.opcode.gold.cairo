@@ -3,7 +3,7 @@
 from evm.memory import mstore
 from evm.output import Output, create_from_memory, serialize_output
 from evm.stack import StackItem
-from evm.utils import get_max
+from evm.utils import update_msize
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_fp_and_pc
@@ -16,7 +16,7 @@ func segment0{range_check_ptr, msize, memory_dict : DictAccess*}(stack : StackIt
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
     let (local tmp0, _) = uint256_add(Uint256(14548715, 0), Uint256(33549997, 0))
-    let (local msize) = get_max(msize, 2 + 32)
+    let (local msize) = update_msize(msize, 2, 32)
     mstore(offset=2, value=tmp0)
     local memory_dict : DictAccess* = memory_dict
     let (output) = create_from_memory(30, 4)
@@ -64,4 +64,3 @@ func main{output_ptr : felt*, range_check_ptr}():
     serialize_output(output)
     return ()
 end
-
