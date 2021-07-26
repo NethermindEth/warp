@@ -13,7 +13,6 @@ class Stop(Operation):
 In the future, when StarkWare implements
 revert semantics in the StarkNet VM, this will change
 to something like:
-
 return [f"[ap -1] = get_memory({offset}, {offset+size})", "assert 0 = 1"]
 """
 

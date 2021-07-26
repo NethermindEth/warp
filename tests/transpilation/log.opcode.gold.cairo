@@ -69,3 +69,4 @@ func main{output_ptr : felt*, range_check_ptr}():
     serialize_output(output)
     return ()
 end
+
