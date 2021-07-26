@@ -13,12 +13,12 @@ class MemoryAccess(Operation):
         address = state.stack.pop().get_low_bits()
         access_operations = self._do_memory_access(address, state)
         return [
-            f"let (local msize) = get_max(msize, {address} + {self.access_width()})",
+            f"let (local msize) = update_msize(msize, {address}, {self.access_width()})",
             *access_operations,
         ]
 
     def required_imports(self):
-        return {"evm.utils": {"get_max"}, **self._memory_access_imports()}
+        return {"evm.utils": {"update_msize"}, **self._memory_access_imports()}
 
     @classmethod
     @abc.abstractmethod
