@@ -7,23 +7,24 @@ from starkware.cairo.lang.compiler.parser import parse_file
 
 from Operation import Operation
 from Imports import UINT256_MODULE, format_imports, merge_imports
+from Operations.Storage import STORAGE_DECLS
 from EvmStack import EvmStack
 import StackValue
 
-
-BUILTINS = ["output", "range_check"]
+LANGUAGE = "%lang starknet"
+BUILTINS = ["pedersen", "range_check"]
 
 COMMON_IMPORTS = {
     "starkware.cairo.common.registers": {"get_fp_and_pc"},
-    "starkware.cairo.common.serialize": {"serialize_word"},
+    "evm.stack": {"StackItem"},
     "starkware.cairo.common.dict_access": {"DictAccess"},
     "starkware.cairo.common.default_dict": {
         "default_dict_new",
-        "default_dict_finalize",
     },
     UINT256_MODULE: {"Uint256", "uint256_eq"},
-    "evm.stack": {"StackItem"},
-    "evm.output": {"Output", "serialize_output"},
+    "starkware.cairo.common.cairo_builtins": {"HashBuiltin"},
+    "starkware.starknet.common.storage": {"Storage"},
+    "evm.output": {"Output"},
 }
 
 MAIN_BODY = f"""
@@ -38,17 +39,13 @@ MAIN_BODY = f"""
    local stack0 : StackItem
    assert stack0 = StackItem(value=Uint256(-1, 0), next=&stack0)  # Points to itself.
 
-   let (local stack, local output) = run_from{{
-      msize=msize, memory_dict=memory_dict}}(Uint256(0, 0), &stack0)
+   let (local res, local output) = run_from{{
+        storage_ptr=storage_ptr, pedersen_ptr=pedersen_ptr,
+        range_check_ptr=range_check_ptr, msize=msize, memory_dict=memory_dict}}(
+        Uint256(0, 0), &stack0)
 
-   default_dict_finalize(memory_start, memory_dict, 0)
-   local range_check_ptr = range_check_ptr
-   serialize_word(stack.value.low)
-   serialize_word(stack.value.high)
-   serialize_output(output)
    return ()
 """
-
 
 NO_OUTPUT = "Output(0, cast(0, felt*), 0)"
 EMPTY_OUTPUT = "Output(1, cast(0, felt*), 0)"
@@ -58,7 +55,6 @@ EMPTY_OUTPUT = "Output(1, cast(0, felt*), 0)"
 class SegmentState:
     stack: EvmStack
     n_locals: int
-    evaluated_locals: Dict[str,str]
     unreachable: bool
     msize: int
     cur_evm_pc: StackValue.Uint256
@@ -102,7 +98,7 @@ class EvmToCairo:
                 [
                     f"func segment{segment_pc_txt}{self.__make_implicit_args()}"
                     f"(stack : StackItem*) -> "
-                    "(stack : StackItem*, evm_pc : Uint256, output: Output):",
+                    "(stack : StackItem*, evm_pc : Uint256, output : Output):",
                     "alloc_locals",
                     "let stack0 = stack",
                     "let (local __fp__, _) = get_fp_and_pc()",
@@ -128,7 +124,7 @@ class EvmToCairo:
         operation.process_structural_changes(self)
 
     def __make_implicit_args(self):
-        return "{range_check_ptr, msize, memory_dict: DictAccess*}"
+        return "{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize, memory_dict: DictAccess*}"
 
     def construct_run_from_function(self):
         run_from = [
@@ -178,8 +174,10 @@ class EvmToCairo:
         builtins_line = "%builtins " + " ".join(BUILTINS) if BUILTINS else ""
         return "\n\n".join(
             [
+                LANGUAGE,
                 builtins_line,
                 format_imports(self.imports),
+                STORAGE_DECLS,
                 *self.text_segments,
                 self.construct_run_from_function(),
                 self.__make_main(),
@@ -187,7 +185,9 @@ class EvmToCairo:
         )
 
     def __make_main(self):
-        header = "func main{output_ptr : felt*, range_check_ptr}():"
+        header = """
+@external
+func main{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}():"""
         return "\n".join([header, MAIN_BODY, "end"])
 
 

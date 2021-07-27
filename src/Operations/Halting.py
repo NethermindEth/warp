@@ -1,7 +1,8 @@
-from EvmToCairo import EMPTY_OUTPUT
+#from EvmToCairo import EMPTY_OUTPUT
 from Operation import Operation
 from StackValue import Uint256
 
+EMPTY_OUTPUT = "Output(1, cast(0, felt*), 0)"
 
 class Stop(Operation):
     def proceed(self, state):
