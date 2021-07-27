@@ -45,7 +45,6 @@ class Operation(abc.ABC):
     def inspect_program(self, code):
         pass
 
-
     @abc.abstractmethod
     def proceed(self, state: "EvmToCairo.SegmentState") -> list[str]:
         pass

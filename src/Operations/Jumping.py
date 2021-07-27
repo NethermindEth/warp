@@ -25,7 +25,7 @@ class JumpI(Operation):
         return_instructions = state.make_return_instructions(a)
         return [
             f"let (immediate) = uint256_eq({b}, Uint256(0, 0))",
-            f"if immediate == 0:",
+            "if immediate == 0:",
             *return_instructions,
             "end",
         ]

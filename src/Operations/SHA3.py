@@ -1,14 +1,10 @@
-from Operation import Operation
+from Operations.Binary import Binary
 
 
-class SHA3(Operation):
-    def proceed(self, state):
-
-        offset = state.stack.pop().get_low_bits()
-        length = state.stack.pop().get_low_bits()
-
-        output = state.request_fresh_name()
-        state.stack.push_ref(output)
+class SHA3(Binary):
+    def generate_cairo_code(self, offset, length, output):
+        offset = offset.get_low_bits()
+        length = length.get_low_bits()
 
         return [
             f"""

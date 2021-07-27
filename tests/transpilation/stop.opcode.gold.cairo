@@ -31,14 +31,14 @@ func segment19{range_check_ptr, msize, memory_dict : DictAccess*}(stack : StackI
     local stack3 : StackItem* = stack2.next
     local stack4 : StackItem* = stack3.next
     local stack5 : StackItem* = stack4.next
-    let (local tmp0 : Uint256) = is_lt(stack0.value, stack4.value)
-    let (local tmp1 : Uint256) = is_zero(tmp0)
+    let (tmp0) = is_lt(stack0.value, stack4.value)
+    let (tmp1) = is_zero(tmp0)
     let (immediate) = uint256_eq(tmp1, Uint256(0, 0))
     if immediate == 0:
         return (stack=stack0, evm_pc=Uint256(52, 0), output=Output(0, cast(0, felt*), 0))
     end
-    let (local tmp2, _) = uint256_add(stack2.value, stack1.value)
-    let (local tmp3, _) = uint256_add(Uint256(1, 0), stack0.value)
+    let (tmp2, _) = uint256_add(stack2.value, stack1.value)
+    let (tmp3, _) = uint256_add(Uint256(1, 0), stack0.value)
     local newitem2 : StackItem = StackItem(value=tmp2, next=stack3)
     local newitem3 : StackItem = StackItem(value=stack2.value, next=&newitem2)
     local newitem4 : StackItem = StackItem(value=tmp3, next=&newitem3)

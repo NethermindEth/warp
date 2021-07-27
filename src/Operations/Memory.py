@@ -1,7 +1,6 @@
 import abc
 
 from Operation import Operation
-from StackValue import UINT256_BOUND, Uint256
 from Imports import Imports
 
 # Important: per yellow paper, the representation of uint256 as bytes
