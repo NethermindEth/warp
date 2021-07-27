@@ -15,9 +15,9 @@ func segment0{range_check_ptr, msize, memory_dict : DictAccess*}(stack : StackIt
     alloc_locals
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
-    let (local tmp0, _) = uint256_add(Uint256(14548715, 0), Uint256(33549997, 0))
+
     let (local msize) = update_msize(msize, 2, 32)
-    mstore(offset=2, value=tmp0)
+    mstore(offset=2, value=Uint256(48098712, 0))
     local memory_dict : DictAccess* = memory_dict
     let (output) = create_from_memory(2, 32)
     return (stack=stack0, evm_pc=Uint256(0, 0), output=output)
@@ -64,3 +64,4 @@ func main{output_ptr : felt*, range_check_ptr}():
     serialize_output(output)
     return ()
 end
+

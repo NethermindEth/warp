@@ -14,9 +14,8 @@ func segment0{range_check_ptr, msize, memory_dict : DictAccess*}(stack : StackIt
     alloc_locals
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
-    let (local tmp0 : Uint256) = is_gt(
-        Uint256(18441940234107023086, 0), Uint256(15991982036817473262, 0))
-    local newitem0 : StackItem = StackItem(value=tmp0, next=stack0)
+
+    local newitem0 : StackItem = StackItem(value=Uint256(1, 0), next=stack0)
     return (stack=&newitem0, evm_pc=Uint256(0, 0), output=Output(1, cast(0, felt*), 0))
 end
 

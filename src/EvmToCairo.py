@@ -57,14 +57,15 @@ EMPTY_OUTPUT = "Output(1, cast(0, felt*), 0)"
 @dataclass
 class SegmentState:
     stack: EvmStack
-    __n_locals: int
+    n_locals: int
+    evaluated_locals: Dict[str,str]
     unreachable: bool
     msize: int
     cur_evm_pc: StackValue.Uint256
 
     def __init__(self, cur_evm_pc: StackValue.Uint256):
         self.stack = EvmStack()
-        self.__n_locals = 0
+        self.n_locals = 0
         self.unreachable = False
         self.msize = 0
         self.cur_evm_pc = cur_evm_pc
@@ -79,8 +80,8 @@ class SegmentState:
         ]
 
     def request_fresh_name(self) -> str:
-        var_name = f"tmp{self.__n_locals}"
-        self.__n_locals += 1
+        var_name = f"tmp{self.n_locals}"
+        self.n_locals += 1
         return var_name
 
 

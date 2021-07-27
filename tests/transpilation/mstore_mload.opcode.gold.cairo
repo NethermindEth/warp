@@ -15,17 +15,17 @@ func segment0{range_check_ptr, msize, memory_dict : DictAccess*}(stack : StackIt
     alloc_locals
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
-    let (local tmp0, _) = uint256_add(Uint256(32, 0), Uint256(16, 0))
+
     let (local msize) = update_msize(msize, 0, 32)
-    mstore(offset=0, value=tmp0)
+    mstore(offset=0, value=Uint256(48, 0))
     local memory_dict : DictAccess* = memory_dict
-    let (local tmp1, _) = uint256_add(Uint256(14548715, 0), Uint256(33549997, 0))
+
     let (local msize) = update_msize(msize, 2, 32)
-    mstore(offset=2, value=tmp1)
+    mstore(offset=2, value=Uint256(48098712, 0))
     local memory_dict : DictAccess* = memory_dict
     let (local msize) = update_msize(msize, 2, 32)
-    let (local tmp2 : Uint256) = mload(2)
-    local newitem0 : StackItem = StackItem(value=tmp2, next=stack0)
+    let (local tmp0 : Uint256) = mload(2)
+    local newitem0 : StackItem = StackItem(value=tmp0, next=stack0)
     return (stack=&newitem0, evm_pc=Uint256(0, 0), output=Output(1, cast(0, felt*), 0))
 end
 

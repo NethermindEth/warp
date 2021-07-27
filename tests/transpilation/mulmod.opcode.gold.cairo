@@ -13,11 +13,8 @@ func segment0{range_check_ptr, msize, memory_dict : DictAccess*}(stack : StackIt
     alloc_locals
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
-    let (local tmp0) = uint256_mulmod(
-        Uint256(13373741879486835245187073, 0),
-        Uint256(18209445157945351944011776, 0),
-        Uint256(75557864570339253563392, 0))
-    local newitem0 : StackItem = StackItem(value=tmp0, next=stack0)
+
+    local newitem0 : StackItem = StackItem(value=Uint256(55585927069534068166656, 0), next=stack0)
     return (stack=&newitem0, evm_pc=Uint256(0, 0), output=Output(1, cast(0, felt*), 0))
 end
 
