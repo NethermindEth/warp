@@ -1,177 +1,65 @@
-from Operations.Binary import Binary
+import operator
+
+from Operations.Binary import Binary, SimpleBinary
 from Operations.Unary import Unary
-from Operations.Arithmetics import Sdiv
 from Imports import UINT256_MODULE
-from utils import bit_not, is_bit_set
+from utils import uint256_to_int256, int256_to_uint256
 
 
-class And(Binary):
-    def bind_to_res(self, op1, op2, res, evaluatable):
-        if evaluatable:
-            evaluated = op1 & op2
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
-        else:
-            return (
-                f"let (local {res} : Uint256) = uint256_and({op1}, {op2})",
-                False,
-                0,
-            )
-
-    @classmethod
-    def required_imports(cls):
-        return {UINT256_MODULE: {"uint256_and"}}
+class And(SimpleBinary):
+    def __init__(self):
+        super().__init__(operator.and_, UINT256_MODULE, "uint256_and")
 
 
-class Or(Binary):
-    def bind_to_res(self, op1, op2, res, evaluatable):
-        if evaluatable:
-            evaluated = op1 | op2
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
-        else:
-            return (
-                f"let (local {res} : Uint256) = uint256_or({op1}, {op2})",
-                False,
-                0,
-            )
-
-    @classmethod
-    def required_imports(cls):
-        return {UINT256_MODULE: {"uint256_or"}}
+class Or(SimpleBinary):
+    def __init__(self):
+        super().__init__(operator.or_, UINT256_MODULE, "uint256_or")
 
 
 class Not(Unary):
-    def bind_to_res(self, op1, res, evaluatable):
-        if evaluatable:
-            evaluated = bit_not(op1)
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
-        else:
-            return (
-                f"let (local {res} : Uint256) = uint256_not({op})",
-                False,
-                0,
-            )
+    def evaluate_eagerly(self, a):
+        return ~a
+
+    def generate_cairo_code(self, op1, res):
+        return [f"let (local {res} : Uint256) = uint256_not({op})"]
 
     @classmethod
     def required_imports(cls):
         return {UINT256_MODULE: {"uint256_not"}}
 
 
-class Xor(Binary):
-    def bind_to_res(self, op1, op2, res, evaluatable):
-        if evaluatable:
-            evaluated = op1 ^ op2
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
-        else:
-            return (
-                f"let (local {res} : Uint256) = uint256_xor({op1}, {op2})",
-                False,
-                0,
-            )
-
-    @classmethod
-    def required_imports(cls):
-        return {UINT256_MODULE: {"uint256_xor"}}
+class Xor(SimpleBinary):
+    def __init__(self):
+        super().__init__(operator.xor, UINT256_MODULE, "uint256_xor")
 
 
-class Shl(Binary):
-    def bind_to_res(self, op1, op2, res, can_eval):
-        if can_eval:
-            evaluated = (op1 << op2) % 2 ** 256
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
-        else:
-            return (
-                f"let (local {res} : Uint256) = uint256_shl({op1}, {op2})",
-                False,
-                0,
-            )
-
-    @classmethod
-    def required_imports(cls):
-        return {UINT256_MODULE: {"uint256_shl"}}
+class Shl(SimpleBinary):
+    def __init__(self):
+        super().__init__(operator.lshift, UINT256_MODULE, "uint256_shl")
 
 
-class Shr(Binary):
-    def bind_to_res(self, op1, op2, res, can_eval):
-        if can_eval:
-            evaluated = op1 >> op2
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
-        else:
-            return (
-                f"let (local {res} : Uint256) = uint256_shr({op1}, {op2})",
-                False,
-                0,
-            )
-
-    @classmethod
-    def required_imports(cls):
-        return {UINT256_MODULE: {"uint256_shr"}}
+class Shr(SimpleBinary):
+    def __init__(self):
+        super().__init__(operator.rshift, UINT256_MODULE, "uint256_shr")
 
 
-class Sar(Binary):
-    def bind_to_res(self, op1, op2, res, can_eval):
-        if can_eval:
-            evaluated = op1 >> op2
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
-        return f"let (local {res} : Uint256) = uint256_sar({op1}, {op2})", False, 0
+def sar(a, b):
+    b = uint256_to_int256(b)  # per yellow paper, only b is treated as signed
+    return int256_to_uint256(a >> b)
 
-    @classmethod
-    def required_imports(cls):
-        return {UINT256_MODULE: {"uint256_sar"}}
+
+class Sar(SimpleBinary):
+    def __init__(self):
+        super().__init__(sar, UINT256_MODULE, "uint256_sar")
 
 
 class Byte(Binary):
-    def bind_to_res(self, th, value, res, can_eval):
-        if can_eval:
-            evaluated = self.eval_byte(th, value)
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
+    def evaluate_eagerly(self, b, x):
+        return (x >> (248 - b * 8)) & 0xFF
 
-        return f"let (local {res} : Uint256) = uint256_byte({op1}, {op2})", False, 0
-
-    def eval_byte(self, th, value):
-        bin_str = bin(value)[2:]
-        bin_str = "0" * (256 - len(bin_str)) + bin_str
-        bit = th * 8
-        return int(bin_str[bit : bit + 8], 2)
+    def generate_cairo_code(self, op1, op2, res):
+        # the reverse order in `uint256_byte` call is intentional
+        return [f"let (local {res} : Uint256) = uint256_byte({op2}, {op1})"]
 
     def required_imports(cls):
         return {UINT256_MODULE: {"uint256_byte"}}

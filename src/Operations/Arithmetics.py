@@ -1,80 +1,38 @@
-import math
+import operator
+
 from Imports import UINT256_MODULE
-from Operations.Binary import Binary
-from utils import is_bit_set, bit_not
+from Operations.Binary import Binary, SimpleBinary
 from Operations.Ternary import Ternary
+from utils import uint256_to_int256, int256_to_uint256, UINT256_HALF_BOUND
 
 
-class Add(Binary):
-    def bind_to_res(self, op1, op2, res, evaluatable):
-        if not evaluatable:
-            return f"let (local {res}, _) = uint256_add({op1}, {op2})", False, 0
-        else:
-            evaluated = (op1 + op2) % 2 ** 256
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
+class Add(SimpleBinary):
+    def __init__(self):
+        super().__init__(operator.add, UINT256_MODULE, "uint256_add")
 
-    @classmethod
-    def required_imports(cls):
-        return {UINT256_MODULE: {"uint256_add"}}
+    def generate_cairo_code(self, op1, op2, res):
+        return [f"let ({res}, _) = {self.function_name}({op1}, {op2})"]
 
 
-class Mul(Binary):
-    def bind_to_res(self, op1, op2, res, evaluatable):
-        if not evaluatable:
-            return f"let (local {res}, _) = uint256_mul({op1}, {op2})", False, 0
-        else:
-            evaluated = (op1 * op2) % 2 ** 256
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
+class Mul(SimpleBinary):
+    def __init__(self):
+        super().__init__(operator.mul, UINT256_MODULE, "uint256_mul")
 
-    @classmethod
-    def required_imports(cls):
-        return {UINT256_MODULE: {"uint256_mul"}}
+    def generate_cairo_code(self, op1, op2, res):
+        return [f"let ({res}, _) = {self.function_name}({op1}, {op2})"]
 
 
-class Sub(Binary):
-    def bind_to_res(self, op1, op2, res, evaluatable):
-        if not evaluatable:
-            return f"let (local {res}) = uint256_sub({op1}, {op2})", False, 0
-        else:
-            evaluated = (op1 - op2) % 2 ** 256
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
-
-    @classmethod
-    def required_imports(cls):
-        return {UINT256_MODULE: {"uint256_sub"}}
+class Sub(SimpleBinary):
+    def __init__(self):
+        super().__init__(operator.sub, UINT256_MODULE, "uint256_sub")
 
 
 class Div(Binary):
-    def bind_to_res(self, op1, op2, res, evaluatable):
-        if not evaluatable:
-            return (
-                f"let (local {res}, _) = uint256_unsigned_div_rem({op1}, {op2})",
-                False,
-                0,
-            )
-        else:
-            evaluated = int(math.floor(op1 / op2))
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
+    def evaluate_eagerly(self, a, b):
+        return a // b if b != 0 else 0
+
+    def generate_cairo_code(self, op1, op2, res):
+        return [f"let ({res}, _) = uint256_unsigned_div_rem({op1}, {op2})"]
 
     @classmethod
     def required_imports(cls):
@@ -82,103 +40,53 @@ class Div(Binary):
 
 
 class Sdiv(Binary):
-    def bind_to_res(self, op1, op2, res, evaluatable):
-        if not evaluatable:
-            return (
-                "",
-                False,
-                0,
-            )
-        else:
-            evaluated = self.sdiv_eval(op1, op2)
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
+    def evaluate_eagerly(self, a, b):
+        a = uint256_to_int256(a)
+        b = uint256_to_int256(b)
+        if a == -UINT256_HALF_BOUND and b == -1:
+            return a
+        return int256_to_uint256(a // b) if b != 0 else 0
 
-    def sdiv_eval(self, op1, op2):
-        op1 = -op1 if op1 > (2 ** 255 - 1) else op1
-        op2 = -op2 if op1 > (2 ** 255 - 1) else op2
-        return int(math.floor(op1 / op2))
+    def generate_cairo_code(self, op1, op2, res):
+        return [f"let ({res}, _) = uint256_signed_div_rem({op1}, {op2})"]
 
     @classmethod
     def required_imports(cls):
         return {UINT256_MODULE: {"uint256_signed_div_rem"}}
 
 
-class Exp(Binary):
-    def bind_to_res(self, op1, op2, res, evaluatable):
-        if not evaluatable:
-            return f"let (local {res}, _) = uint256_exp({op1}, {op2})", False, 0
-        else:
-            evaluated = (op1 ** op2) % 2 ** 256
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
-
-    @classmethod
-    def required_imports(cls):
-        return {UINT256_MODULE: {"uint256_exp"}}
+class Exp(SimpleBinary):
+    def __init__(self):
+        # FIXME we should probably use a fast modular exponentiation algorithm instead
+        super().__init__(operator.pow, UINT256_MODULE, "uint256_exp")
 
 
-class Mod(Binary):
-    def bind_to_res(self, op1, op2, res, evaluatable):
-        if not evaluatable:
-            return f"let (local {res}) = uint256_mod({op1}, {op2})", False, 0
-        else:
-            evaluated = op1 % op2
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
-
-    @classmethod
-    def required_imports(cls):
-        return {UINT256_MODULE: {"uint256_mod"}}
+def mod(a, b):
+    return a % b if b != 0 else 0
 
 
-class SMod(Binary):
-    def bind_to_res(self, op1, op2, res, evaluatable):
-        if not evaluatable:
-            return f"let (local {res}) = smod({op1}, {op2})", False, 0
-        else:
-            evaluated = self.smod_eval(op1, op2)
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
+class Mod(SimpleBinary):
+    def __init__(self):
+        super().__init__(mod, UINT256_MODULE, "uint256_mod")
 
-    def smod_eval(self, op1, op2):
-        op1 = -op1 if op1 > ((2 ** 255) - 1) else op1
-        op2 = -op2 if op2 > ((2 ** 255) - 1) else op2
-        return op1 % op2
 
-    @classmethod
-    def required_imports(cls):
-        return {"evm.uint256": {"smod"}}
+def smod(a, b):
+    a = uint256_to_int256(a)
+    b = uint256_to_int256(b)
+    return int256_to_uint256(a % b) if b != 0 else 0
+
+
+class SMod(SimpleBinary):
+    def __init__(self):
+        super().__init__(smod, "evm.uint256", "smod")
 
 
 class AddMod(Ternary):
-    def bind_to_res(self, op1, op2, op3, res, evaluatable):
-        if not evaluatable:
-            return f"let (local {res}) = uint256_addmod({op1}, {op2}, {op3})", False, 0
-        else:
-            evaluated = (op1 + op2) % op3
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
+    def evaluate_eagerly(self, a, b, c):
+        return (a + b) % c
+
+    def generate_cairo_code(self, op1, op2, op3, res):
+        return [f"let ({res}) = uint256_addmod({op1}, {op2}, {op3})"]
 
     @classmethod
     def required_imports(cls):
@@ -186,21 +94,11 @@ class AddMod(Ternary):
 
 
 class MulMod(Ternary):
-    def bind_to_res(self, op1, op2, op3, res, evaluatable):
-        if not evaluatable:
-            return (
-                "",
-                False,
-                0,
-            )
-        else:
-            evaluated = (op1 * op2) % op3
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
+    def evaluate_eagerly(self, a, b, c):
+        return a * b % c
+
+    def generate_cairo_code(self, op1, op2, op3, res):
+        return [f"let ({res}) = uint256_mulmod({op1}, {op2}, {op3})"]
 
     @classmethod
     def required_imports(cls):
@@ -208,27 +106,18 @@ class MulMod(Ternary):
 
 
 class SignExtend(Binary):
-    def bind_to_res(self, op1, op2, res, evaluatable):
-        if not evaluatable:
-            return f"let (local {res}) = uint256_signextend({op1}, {op2})", False, 0
+    def evaluate_eagerly(self, b, x):
+        bit_place = b * 8 + 7
+        mask = 1 << bit_place
+        if x & mask:  # the bit is set: negative signed number
+            return x | ~(mask - 1)  # mod 2^256, it's correct
         else:
-            evaluated = self.sign_extend_eval(op1, op2)
-            res_high, res_low = divmod(evaluated, 2 ** 128)
-            return (
-                "",
-                True,
-                evaluated,
-            )
+            return x & (mask - 1)
 
-    def sign_extend_eval(self, x, byteNum):
-        if byteNum > 31:
-            return x
-        bit = (byteNum * 8) + 7
-        mask = (1 << bit) - 1
-        if is_bit_set(x, bit):
-            return x | bit_not(mask)
-        else:
-            return x & mask
+    def generate_cairo_code(self, op1, op2, res):
+        # notice, that op1 is the byte position, so it should be the
+        # second arg to uint256_signextend
+        return [f"let ({res}) = uint256_signextend({op2}, {op1})"]
 
     @classmethod
     def required_imports(cls):

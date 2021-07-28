@@ -1,15 +1,19 @@
 import abc
 
-from utils import is_valid_uintN
-
-UINT256_BOUND = 2 ** 256
-UINT128_BOUND = 2 ** 128
+from utils import is_valid_uintN, UINT256_BOUND, UINT128_BOUND
 
 
 class StackValue:
     @abc.abstractmethod
     def __str__(self):
         pass
+
+    @abc.abstractmethod
+    def get_low_high(self):
+        pass
+
+    def get_low_bits(self):
+        return self.get_low_high()[0]
 
 
 # SHOULD BE IMMUTABLE
@@ -32,10 +36,6 @@ class Uint256(StackValue):
     def get_int_repr(self) -> str:
         return repr(self.x)
 
-    def get_low_bits(self):
-        high, low = divmod(self.x, UINT128_BOUND)
-        return f"{low}"
-
     def get_low_high(self):
         high, low = divmod(self.x, UINT128_BOUND)
         return low, high
@@ -48,5 +48,5 @@ class Str(StackValue):
     def __str__(self):
         return self.x
 
-    def get_low_bits(self):
-        return f"{self.x}.low"
+    def get_low_high(self):
+        return f"{self.x}.low", f"{self.x}.high"

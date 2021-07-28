@@ -2,20 +2,16 @@ def is_valid_uintN(n: int, x: int):
     return 0 <= x < 2 ** n
 
 
-def twos_comp(val, bits):
-    """compute the 2's complement of int value val"""
-    if (val & (1 << (bits - 1))) != 0:  # if sign bit is set e.g., 8bit: 128-255
-        val = val - (1 << bits)  # compute negative value
-    return val
+UINT256_BOUND = 2 ** 256
+UINT256_HALF_BOUND = 2 ** 255
+UINT128_BOUND = 2 ** 128
 
 
-# is_bit_set returns true if bit n-th is set, where n = 0 is LSB.
-# The n must be <= 255.
-def is_bit_set(x, n):
-    x_bin_str = bin(x)[2:]
-    x_bin_str = "0b" + "0" * (256 - len(x_bin_str)) + x_bin_str
-    print(x_bin_str)
-    return int(x_bin_str[-n]) != 0
+def int256_to_uint256(x: int) -> int:
+    assert -UINT256_HALF_BOUND <= x < UINT256_HALF_BOUND
+    return UINT256_BOUND + x if x < 0 else x
 
-def bit_not(n, numbits=256):
-    return (1 << numbits) - 1 - n
+
+def uint256_to_int256(x: int) -> int:
+    assert 0 <= x < UINT256_BOUND
+    return x - UINT256_BOUND if x >= UINT256_HALF_BOUND else x

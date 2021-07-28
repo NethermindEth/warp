@@ -33,7 +33,9 @@ class EvmStack:
         self.values.append(StackValue.Str(x))
 
     def push_uint256(self, x: Union[int, StackValue.Uint256]):
-        self.values.append(x if isinstance(x, StackValue.Uint256) else StackValue.Uint256(x))
+        self.values.append(
+            x if isinstance(x, StackValue.Uint256) else StackValue.Uint256(x)
+        )
 
     def pop(self):
         self.pad_up_to(1)

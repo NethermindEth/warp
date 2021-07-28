@@ -1,4 +1,5 @@
-from Operation import Operation
+from Operations.EnforcedStack import EnforcedStack
+from Operations.Unary import Unary
 from StackValue import Uint256
 
 # The view functions get_storage_low/high will are used
@@ -42,42 +43,28 @@ end
 """
 
 
-class SStore(Operation):
-    def proceed(self, state):
-        loc = state.stack.pop()
-        value = state.stack.pop()
-        instruction = self.bind_to_res(loc, value)
+class SStore(EnforcedStack):
+    def __init__(self):
+        super().__init__(n_args=2, has_output=False)
+
+    def generate_cairo_code(self, loc, value):
+        loc_low, loc_high = loc.get_low_high()
+        value_low, value_high = value.get_low_high()
         return [
-            instruction,
+            f"s_store(low={loc_low}, high={loc_high}, "
+            f"value_low={value_low}, value_high={value_high})"
         ]
 
-    def bind_to_res(self, loc, value):
-        loc_low, loc_high = get_var_name(loc)
-        value_low, value_high = get_var_name(value)
-        return f"s_store(low={loc_low}, high={loc_high}, value_low={value_low}, value_high={value_high})"
-        
+    def process_structural_changes(self, evmToCairo):
+        evmToCairo.requires_storage = True
 
 
-class SLoad(Operation):
-    def proceed(self, state):
-        loc = state.stack.pop()
-        res_ref_name = f"tmp{state.n_locals}"
-        instruction = self.bind_to_res(loc, res_ref_name)
-        state.stack.push_ref(res_ref_name)
-        state.n_locals += 1
-        return [
-            instruction,
-        ]
-
+class SLoad(Unary):
     # return zero'd values if we are trying to load from an
     # uninitialized storage slot
-    def bind_to_res(self, loc, res):
-        loc_low, loc_high = get_var_name(loc)
-        return f"let (local {res} : Uint256) = s_load(low={loc_low}, high={loc_high})"
+    def generate_cairo_code(self, loc, res):
+        loc_low, loc_high = loc.get_low_high()
+        return [f"let ({res}) = s_load(low={loc_low}, high={loc_high})"]
 
-
-def get_var_name(loc):
-    if isinstance(loc, Uint256):
-        return loc.get_low_high()
-    else:
-        return f"{loc}.low", f"{loc}.high"
+    def process_structural_changes(self, evmToCairo):
+        evmToCairo.requires_storage = True

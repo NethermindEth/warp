@@ -88,6 +88,7 @@ class EvmToCairo:
         self.state = SegmentState(StackValue.Uint256(cur_evm_pc))
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
+        self.requires_storage = False
 
         self.start_new_segment()
 
@@ -177,7 +178,9 @@ class EvmToCairo:
                 LANGUAGE,
                 builtins_line,
                 format_imports(self.imports),
-                STORAGE_DECLS,
+            ]
+            + ([STORAGE_DECLS] if self.requires_storage else [])
+            + [
                 *self.text_segments,
                 self.construct_run_from_function(),
                 self.__make_main(),
