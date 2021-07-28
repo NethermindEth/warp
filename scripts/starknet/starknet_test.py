@@ -22,7 +22,7 @@ WARP_ROOT = os.path.abspath(os.path.join(__file__, "../../.."))
 sys.path.append(os.path.join(WARP_ROOT, "src"))
 # sys.path.append(os.path.join(WARP_ROOT, "vendor", "cairo-lang"))
 
-from EvmToCairo import EvmToCairo, parse_operations
+from warp.cli.transpiler.EvmToCairo import EvmToCairo, parse_operations
 from starkware.cairo.lang.compiler.parser import parse_file
 
 starknet_dir = os.path.join(WARP_ROOT, "tests", "starknet")
