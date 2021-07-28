@@ -47,5 +47,7 @@ jobs:
       - name: Test golden tests
         env: 
           STARKNET_ENV: ${{ secrets.STARKNET_ENV }}
-        run: python scripts/starknet/starknet_test.py "$STARKNET_ENV"
+        run: |
+          python setup.py install
+          python scripts/starknet/starknet_test.py "$STARKNET_ENV"
         
