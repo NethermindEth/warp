@@ -3,6 +3,9 @@
 vendor/cairo-lang/build
 *.vscode
 /build
+**/artifacts/*.json
+**/artifacts/*.cairo
+**/artifacts/*.opcode
 -i
 dist
 *.egg-info

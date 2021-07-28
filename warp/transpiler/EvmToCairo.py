@@ -42,7 +42,7 @@ MAIN_BODY = f"""
    let (local res, local output) = run_from{{
         storage_ptr=storage_ptr, pedersen_ptr=pedersen_ptr,
         range_check_ptr=range_check_ptr, msize=msize, memory_dict=memory_dict}}(
-        Uint256(0, 0), &stack0)
+        Uint256(0, 0), &stack0, calldata=calldata, calldata_size=calldata_len)
 
    return ()
 """
@@ -138,11 +138,11 @@ class EvmToCairo:
                 [
                     f"let (immediate) = uint256_eq(evm_pc, {segment_pc})",
                     f"if immediate == 1:",
-                    f"let (stack, evm_pc, output) = segment{segment_pc_txt}(stack=stack)",
+                    f"let (stack, evm_pc, output) = segment{segment_pc_txt}(stack=stack, calldata=calldata, calldata_size=calldata_size)",
                     "if output.active == 1:",
                     "return (stack, output)",
                     "end",
-                    f"return run_from(evm_pc=evm_pc, stack=stack)",
+                    f"return run_from(evm_pc=evm_pc, stack=stack, calldata=calldata, calldata_size=calldata_size)",
                     "end",
                 ]
             )

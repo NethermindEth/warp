@@ -19,7 +19,6 @@ from starkware.starknet.services.api.gateway.transaction import Deploy, InvokeFu
 
 
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../../.."))
-print(WARP_ROOT)
 
 from transpiler.EvmToCairo import EvmToCairo, parse_operations
 from starkware.cairo.lang.compiler.parser import parse_file
