@@ -8,7 +8,8 @@ test_case() {
     local gold_file="${test_file}.gold.cairo"
     local temp_file="${test_file}.temp.cairo"
     python src/EvmToCairo.py "$test_file" --dump-all > "$temp_file"
-    diff "$temp_file" "$gold_file" \
+    diff "$gold_file" "$temp_file" \
+         --unified \
          --ignore-trailing-space \
          --ignore-blank-lines \
          --new-file # treat absent files as empty

@@ -4,9 +4,16 @@ TEMPLATES := $(wildcard $(GOLDEN_DIR)/*.template)
 BATS_FILES := $(patsubst $(GOLDEN_DIR)/%.template,$(BATS_DIR)/test-%.bats,$(TEMPLATES))
 TEST_FILES := $(shell find ./tests -type f ! -name '*.temp*') # exclude temporary files
 
-test: $(BATS_FILES)
-	bats $^ $(BATS_ARGS)
+test: test_bats test_starknet
 .PHONY: test
+
+test_bats: $(BATS_FILES)
+	bats $^ $(BATS_ARGS)
+.PHONY: test_bats
+
+test_starknet:
+	python scripts/starknet/starknet_test.py "${STARKNET_ENV}"
+.PHONY: test_starknet
 
 $(BATS_DIR)/test-%.bats: \
 		$(GOLDEN_DIR)/%.template \

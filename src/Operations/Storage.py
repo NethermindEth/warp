@@ -55,6 +55,9 @@ class SStore(EnforcedStack):
             f"value_low={value_low}, value_high={value_high})"
         ]
 
+    def process_structural_changes(self, evmToCairo):
+        evmToCairo.requires_storage = True
+
 
 class SLoad(Unary):
     # return zero'd values if we are trying to load from an
@@ -62,3 +65,6 @@ class SLoad(Unary):
     def generate_cairo_code(self, loc, res):
         loc_low, loc_high = loc.get_low_high()
         return [f"let ({res}) = s_load(low={loc_low}, high={loc_high})"]
+
+    def process_structural_changes(self, evmToCairo):
+        evmToCairo.requires_storage = True

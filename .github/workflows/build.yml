@@ -44,8 +44,13 @@ jobs:
           name: cairo-lang
           path: vendor/cairo-lang/cairo-lang-0.3.0.zip
 
+      - name: Setup BATS testing framework
+        uses: mig4/setup-bats@v1.2.0
+
       - name: Test golden tests
-        env: 
+        run: make test_bats BATS_ARGS="-j 4"
+
+      - name: Test starknet tests
+        env:
           STARKNET_ENV: ${{ secrets.STARKNET_ENV }}
-        run: python scripts/starknet/starknet_test.py "$STARKNET_ENV"
-        
+        run: make test_starknet

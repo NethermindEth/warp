@@ -15,7 +15,7 @@ class MemoryAccess(Operation):
             "local pedersen_ptr : HashBuiltin* = pedersen_ptr",
             "local memory_dict : DictAccess* = memory_dict",
             "local storage_ptr : Storage* = storage_ptr",
-            f"let (local msize) = get_max(msize, {address} + {self.access_width()})",
+            f"let (local msize) = update_msize(msize, {address}, {self.access_width()})",
             *access_operations,
         ]
 
