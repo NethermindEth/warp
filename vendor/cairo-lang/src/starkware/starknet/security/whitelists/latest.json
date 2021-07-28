@@ -29,10 +29,6 @@
         {
             "allowed_expressions": [
                 {
-                    "expr": "[cast(ap + (-1), starkware.cairo.common.dict_access.DictAccess**)]",
-                    "name": "starkware.cairo.common.dict.dict_squash.__temp31"
-                },
-                {
                     "expr": "[cast(fp + (-3), starkware.cairo.common.dict_access.DictAccess**)]",
                     "name": "starkware.cairo.common.dict.dict_squash.dict_accesses_end"
                 },
@@ -112,6 +108,41 @@
                 "        ADDR_BOUND * 2 > PRIME), \\",
                 "    'normalize_address() cannot be used with the current constants.'",
                 "ids.is_small = 1 if ids.addr < ADDR_BOUND else 0"
+            ]
+        },
+        {
+            "allowed_expressions": [
+                {
+                    "expr": "[cast(fp + (-6), starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_unsigned_div_rem.a"
+                },
+                {
+                    "expr": "[cast(fp + (-4), starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_unsigned_div_rem.div"
+                },
+                {
+                    "expr": "[cast(fp, starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_unsigned_div_rem.quot"
+                },
+                {
+                    "expr": "[cast(fp + (-7), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_unsigned_div_rem.range_check_ptr"
+                },
+                {
+                    "expr": "[cast(fp + 2, starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_unsigned_div_rem.rem"
+                }
+            ],
+            "hint_lines": [
+                "a = (ids.a.high<<128)+ids.a.low",
+                "div = (ids.div.high<<128)+ids.div.low",
+                "quot = a // div",
+                "rem = a % div",
+                "",
+                "ids.quot.low = quot & ((1<<128)-1)",
+                "ids.quot.high = quot >> 128",
+                "ids.rem.low = rem & ((1<<128)-1)",
+                "ids.rem.high = rem >> 128"
             ]
         },
         {
@@ -880,6 +911,113 @@
         {
             "allowed_expressions": [
                 {
+                    "expr": "[cast(fp + (-5), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint128_and.a"
+                },
+                {
+                    "expr": "[cast(fp, felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint128_and.a0"
+                },
+                {
+                    "expr": "[cast(fp + (-4), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint128_and.b"
+                },
+                {
+                    "expr": "[cast(fp + 1, felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint128_and.b0"
+                },
+                {
+                    "expr": "[cast(fp + (-3), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint128_and.n"
+                },
+                {
+                    "expr": "[cast(fp + (-6), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint128_and.range_check_ptr"
+                },
+                {
+                    "expr": "[cast(fp + (-5), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint128_xor.a"
+                },
+                {
+                    "expr": "[cast(fp, felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint128_xor.a0"
+                },
+                {
+                    "expr": "[cast(fp + (-4), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint128_xor.b"
+                },
+                {
+                    "expr": "[cast(fp + 1, felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint128_xor.b0"
+                },
+                {
+                    "expr": "[cast(fp + (-3), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint128_xor.n"
+                },
+                {
+                    "expr": "[cast(fp + (-6), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint128_xor.range_check_ptr"
+                }
+            ],
+            "hint_lines": [
+                "ids.a0 = ids.a&1",
+                "ids.b0 = ids.b&1"
+            ]
+        },
+        {
+            "allowed_expressions": [
+                {
+                    "expr": "[cast(fp + (-6), starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_exp128.a"
+                },
+                {
+                    "expr": "[cast(fp + (-4), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_exp128.b"
+                },
+                {
+                    "expr": "[cast(fp, felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_exp128.bit"
+                },
+                {
+                    "expr": "[cast(fp + (-3), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_exp128.n"
+                },
+                {
+                    "expr": "[cast(fp + (-7), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_exp128.range_check_ptr"
+                },
+                {
+                    "expr": "[cast(fp + (-8), starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_mulmod128.a"
+                },
+                {
+                    "expr": "[cast(fp + (-6), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_mulmod128.b"
+                },
+                {
+                    "expr": "[cast(fp, felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_mulmod128.bit"
+                },
+                {
+                    "expr": "[cast(fp + (-5), starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_mulmod128.m"
+                },
+                {
+                    "expr": "[cast(fp + (-3), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_mulmod128.n"
+                },
+                {
+                    "expr": "[cast(fp + (-9), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_mulmod128.range_check_ptr"
+                }
+            ],
+            "hint_lines": [
+                "ids.bit = ids.b&1"
+            ]
+        },
+        {
+            "allowed_expressions": [
+                {
                     "expr": "[cast(fp + (-3), felt*)]",
                     "name": "starkware.starknet.common.storage.storage_read.address"
                 },
@@ -1026,6 +1164,30 @@
             "allowed_expressions": [
                 {
                     "expr": "[cast(fp + (-3), felt*)]",
+                    "name": "starkware.cairo.common.uint256.split_64.a"
+                },
+                {
+                    "expr": "[cast(fp + 1, felt*)]",
+                    "name": "starkware.cairo.common.uint256.split_64.high"
+                },
+                {
+                    "expr": "[cast(fp, felt*)]",
+                    "name": "starkware.cairo.common.uint256.split_64.low"
+                },
+                {
+                    "expr": "[cast(fp + (-4), felt*)]",
+                    "name": "starkware.cairo.common.uint256.split_64.range_check_ptr"
+                }
+            ],
+            "hint_lines": [
+                "ids.low = ids.a & ((1<<64) - 1)",
+                "ids.high = ids.a >> 64"
+            ]
+        },
+        {
+            "allowed_expressions": [
+                {
+                    "expr": "[cast(fp + (-3), felt*)]",
                     "name": "starkware.cairo.common.squash_dict.squash_dict_inner.big_keys"
                 },
                 {
@@ -1114,6 +1276,33 @@
         {
             "allowed_expressions": [
                 {
+                    "expr": "[cast(fp + (-6), starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_mod.a"
+                },
+                {
+                    "expr": "[cast(fp + (-4), starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_mod.m"
+                },
+                {
+                    "expr": "[cast(fp + (-7), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_mod.range_check_ptr"
+                },
+                {
+                    "expr": "[cast(fp, felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_mod.should_reduce"
+                }
+            ],
+            "hint_lines": [
+                "if (ids.m.high == 0 and ids.m.low == 0) or \\",
+                "        (ids.a.high, ids.a.low) >= (ids.m.high, ids.m.low):",
+                "    ids.should_reduce = 1",
+                "else:",
+                "    ids.should_reduce = 0"
+            ]
+        },
+        {
+            "allowed_expressions": [
+                {
                     "expr": "[cast(fp + (-4), felt*)]",
                     "name": "starkware.cairo.common.math_cmp.is_le_felt.a"
                 },
@@ -1168,10 +1357,6 @@
         },
         {
             "allowed_expressions": [
-                {
-                    "expr": "[cast(ap + (-1), felt*)]",
-                    "name": "starkware.cairo.common.memcpy.memcpy.__temp46"
-                },
                 {
                     "expr": "[cast(ap, felt*)]",
                     "name": "starkware.cairo.common.memcpy.memcpy.continue_copying"
@@ -1282,6 +1467,97 @@
         {
             "allowed_expressions": [
                 {
+                    "expr": "[cast(fp + (-4), starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_neg.a"
+                },
+                {
+                    "expr": "[cast(fp + (-5), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_neg.range_check_ptr"
+                }
+            ],
+            "hint_lines": [
+                "print(ids.a.low, ids.a.high)"
+            ]
+        },
+        {
+            "allowed_expressions": [
+                {
+                    "expr": "[cast(fp + (-4), starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_neg.a"
+                },
+                {
+                    "expr": "[cast(ap + (-2), starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_neg.not_num"
+                },
+                {
+                    "expr": "[cast(ap + (-3), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_neg.range_check_ptr"
+                }
+            ],
+            "hint_lines": [
+                "print(ids.not_num.low, ids.not_num.high)"
+            ]
+        },
+        {
+            "allowed_expressions": [
+                {
+                    "expr": "[cast(fp + (-4), starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_neg.a"
+                },
+                {
+                    "expr": "[cast(ap + (-2), starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_neg.not_num"
+                },
+                {
+                    "expr": "[cast(ap + (-4), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_neg.range_check_ptr"
+                },
+                {
+                    "expr": "[cast(ap + (-3), starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_neg.res"
+                }
+            ],
+            "hint_lines": [
+                "print(ids.res.low, ids.res.high)"
+            ]
+        },
+        {
+            "allowed_expressions": [
+                {
+                    "expr": "[cast(fp + (-6), starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_add.a"
+                },
+                {
+                    "expr": "[cast(fp + (-4), starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_add.b"
+                },
+                {
+                    "expr": "[cast(fp + 3, felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_add.carry_high"
+                },
+                {
+                    "expr": "[cast(fp + 2, felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_add.carry_low"
+                },
+                {
+                    "expr": "[cast(fp + (-7), felt*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_add.range_check_ptr"
+                },
+                {
+                    "expr": "[cast(fp, starkware.cairo.common.uint256.Uint256*)]",
+                    "name": "starkware.cairo.common.uint256.uint256_add.res"
+                }
+            ],
+            "hint_lines": [
+                "sum_low = ids.a.low + ids.b.low",
+                "ids.carry_low = 1 if sum_low >= ids.SHIFT else 0",
+                "sum_high = ids.a.high + ids.b.high + ids.carry_low",
+                "ids.carry_high = 1 if sum_high >= ids.SHIFT else 0"
+            ]
+        },
+        {
+            "allowed_expressions": [
+                {
                     "expr": "[cast(fp + (-5), starkware.cairo.common.dict_access.DictAccess**)]",
                     "name": "starkware.cairo.common.squash_dict.squash_dict.dict_accesses"
                 },
@@ -1328,10 +1604,6 @@
         {
             "allowed_expressions": [
                 {
-                    "expr": "[cast(ap + (-1), starkware.cairo.common.dict_access.DictAccess**)]",
-                    "name": "starkware.cairo.common.dict.dict_squash.__temp31"
-                },
-                {
                     "expr": "[cast(fp + (-3), starkware.cairo.common.dict_access.DictAccess**)]",
                     "name": "starkware.cairo.common.dict.dict_squash.dict_accesses_end"
                 },
@@ -1346,10 +1618,6 @@
                 {
                     "expr": "[cast(fp, starkware.cairo.common.dict_access.DictAccess**)]",
                     "name": "starkware.cairo.common.dict.dict_squash.squashed_dict_start"
-                },
-                {
-                    "expr": "[cast(ap + (-1), felt*)]",
-                    "name": "starkware.cairo.common.memcpy.memcpy.__temp46"
                 },
                 {
                     "expr": "[cast(ap, felt*)]",

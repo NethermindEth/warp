@@ -1,9 +1,6 @@
 def is_valid_uintN(n: int, x: int):
     return 0 <= x < 2 ** n
 
-def is_valid_uintN(n: int, x: int):
-    return 0 <= x < 2 ** n
-
 
 def twos_comp(val, bits):
     """compute the 2's complement of int value val"""

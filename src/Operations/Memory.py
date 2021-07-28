@@ -13,7 +13,10 @@ class MemoryAccess(Operation):
         address = state.stack.pop().get_low_bits()
         access_operations = self._do_memory_access(address, state)
         return [
-            f"let (local msize) = update_msize(msize, {address}, {self.access_width()})",
+            "local pedersen_ptr : HashBuiltin* = pedersen_ptr",
+            "local memory_dict : DictAccess* = memory_dict",
+            "local storage_ptr : Storage* = storage_ptr",
+            f"let (local msize) = get_max(msize, {address} + {self.access_width()})",
             *access_operations,
         ]
 
@@ -44,7 +47,6 @@ class MStore(MemoryAccess):
         value = state.stack.pop()
         return [
             f"mstore(offset={address}, value={value})",
-            "local memory_dict: DictAccess* = memory_dict",
         ]
 
     @classmethod
@@ -63,7 +65,7 @@ class MStore8(MemoryAccess):
     def _do_memory_access(self, address, state):
         value = state.stack.pop()
         return [
-            f"let (byte, _) = extract_lowest_byte({value})",
+            f"let (local byte, _) = extract_lowest_byte({value})",
             f"mstore8(offset={address}, byte=byte)",
         ]
 
@@ -100,9 +102,9 @@ class MSize(Operation):
         # but rounded to the closest greater word boundary, i.e. a
         # 32-multiple. Also, it's most probably < 2**64.
         return [
-            "let (immediate) = round_up_to_multiple(msize, 32)",
+            "let (local immediate) = round_up_to_multiple(msize, 32)",
             f"local {res_ref_name} : Uint256 = Uint256(immediate, 0)",
         ]
 
     def required_imports(self):
-        return {"evm.utils": {"round_up_to_multiple"}}
+        return {"evm.utils": {"round_up_to_multiple", "get_max"}}
