@@ -2,6 +2,7 @@ from transpiler.Operation import Operation, NoParse
 
 
 
+
 class Log(Operation):
     def __init__(self, topics_amount: int):
         if not (0 <= topics_amount <= 4):

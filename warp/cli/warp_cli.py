@@ -29,14 +29,14 @@ def transpile(contract_path):
         path = os.path.abspath(click.format_filename(contract_path))
         contract = Vyper(path)
         cairo_str = _transpile(contract.opcodes)
-        with open(f"{path[:-3]}", "w") as f:
+        with open(f"{path[:-3]}.cairo", "w") as f:
             f.write(cairo_str)
     elif contract_path.endswith("sol"):
         path = os.path.abspath(click.format_filename(contract_path))
         filename = os.path.basename(path)
         contract = Solidity(path)
         cairo_str = _transpile(contract.opcodes)
-        with open(f"{path[:-3]}", "w") as f:
+        with open(f"{path[:-4]}.cairo", "w") as f:
             f.write(cairo_str)
 
 
