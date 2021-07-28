@@ -3,3 +3,6 @@
 vendor/cairo-lang/build
 *.vscode
 /build
+-i
+dist
+*.egg-info

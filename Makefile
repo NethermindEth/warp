@@ -5,7 +5,7 @@ BATS_FILES := $(patsubst $(GOLDEN_DIR)/%.template,$(BATS_DIR)/test-%.bats,$(TEMP
 TEST_FILES := $(shell find ./tests -type f ! -name '*.temp*') # exclude temporary files
 
 test: $(BATS_FILES)
-	bats $^ -j 8 $(BATS_ARGS)
+	bats $^ $(BATS_ARGS)
 .PHONY: test
 
 $(BATS_DIR)/test-%.bats: \
