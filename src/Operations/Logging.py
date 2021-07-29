@@ -6,7 +6,7 @@ class Log(EnforcedStack):
     def __init__(self, topics_amount: int):
         if not (0 <= topics_amount <= 4):
             raise ValueError(f"LOG can take from 0 to 4 topics, not {topics_amount}")
-        super().__init__(n_args=2 + topics_amount, has_output=False)
+        super().__init__(args_spec="ll" + "w" * topics_amount, has_output=False)
 
     @classmethod
     def parse_from_words(cls, words, pos):
@@ -25,8 +25,6 @@ class Log(EnforcedStack):
         It has the proper behavior in regards to popping things from stack
         and updating the memory consumption counter
         """
-        offset = offset.get_low_bits()
-        length = length.get_low_bits()
         return [
             "local memory_dict : DictAccess* = memory_dict",
             "local storage_ptr : Storage* = storage_ptr",

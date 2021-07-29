@@ -1,11 +1,11 @@
-from Operations.Binary import Binary
+from Operations.EnforcedStack import EnforcedStack
 
 
-class SHA3(Binary):
+class SHA3(EnforcedStack):
+    def __init__(self):
+        super().__init__(args_spec="ll", has_output=True)
+
     def generate_cairo_code(self, offset, length, output):
-        offset = offset.get_low_bits()
-        length = length.get_low_bits()
-
         return [
             f"""
                 let (local msize) = update_msize(msize, {offset}, {length})

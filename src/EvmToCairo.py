@@ -16,7 +16,6 @@ BUILTINS = ["pedersen", "range_check"]
 
 COMMON_IMPORTS = {
     "starkware.cairo.common.registers": {"get_fp_and_pc"},
-    "evm.stack": {"StackItem"},
     "starkware.cairo.common.dict_access": {"DictAccess"},
     "starkware.cairo.common.default_dict": {
         "default_dict_new",
@@ -24,12 +23,23 @@ COMMON_IMPORTS = {
     UINT256_MODULE: {"Uint256", "uint256_eq"},
     "starkware.cairo.common.cairo_builtins": {"HashBuiltin"},
     "starkware.starknet.common.storage": {"Storage"},
+    "evm.stack": {"StackItem"},
     "evm.output": {"Output"},
+    "evm.exec_env": {"ExecutionEnvironment"},
 }
 
-MAIN_BODY = f"""
+MAIN = """
+@external
+func main{storage_ptr: Storage*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+   unused_bits, payload_len, payload: felt*,
+   ):
    alloc_locals
    let (local __fp__, _) = get_fp_and_pc()
+
+   local exec_env: ExecutionEnvironment = ExecutionEnvironment(
+      payload_len = payload_len,
+      payload = payload,
+   )
 
    let (local memory_dict : DictAccess*) = default_dict_new(0)
    local memory_start : DictAccess* = memory_dict
@@ -39,12 +49,15 @@ MAIN_BODY = f"""
    local stack0 : StackItem
    assert stack0 = StackItem(value=Uint256(-1, 0), next=&stack0)  # Points to itself.
 
-   let (local res, local output) = run_from{{
-        storage_ptr=storage_ptr, pedersen_ptr=pedersen_ptr,
-        range_check_ptr=range_check_ptr, msize=msize, memory_dict=memory_dict}}(
-        Uint256(0, 0), &stack0)
+   let (local stack, local output) = run_from{
+      storage_ptr=storage_ptr,
+      pedersen_ptr=pedersen_ptr,
+      range_check_ptr=range_check_ptr,
+      msize=msize, memory_dict=memory_dict
+      }(&exec_env, Uint256(0, 0), &stack0)
 
    return ()
+end
 """
 
 NO_OUTPUT = "Output(0, cast(0, felt*), 0)"
@@ -98,8 +111,8 @@ class EvmToCairo:
             "\n".join(
                 [
                     f"func segment{segment_pc_txt}{self.__make_implicit_args()}"
-                    f"(stack : StackItem*) -> "
-                    "(stack : StackItem*, evm_pc : Uint256, output : Output):",
+                    "(exec_env: ExecutionEnvironment*, stack : StackItem*) -> "
+                    "(stack : StackItem*, evm_pc : Uint256, output: Output):",
                     "alloc_locals",
                     "let stack0 = stack",
                     "let (local __fp__, _) = get_fp_and_pc()",
@@ -130,7 +143,8 @@ class EvmToCairo:
     def construct_run_from_function(self):
         run_from = [
             f"func run_from{self.__make_implicit_args()}"
-            "(evm_pc: Uint256, stack: StackItem*) -> (stack: StackItem*, output: Output):"
+            "(exec_env: ExecutionEnvironment*, evm_pc: Uint256, stack: StackItem*) "
+            "-> (stack: StackItem*, output: Output):"
         ]
 
         for segment_pc in self.code_segments:
@@ -139,11 +153,11 @@ class EvmToCairo:
                 [
                     f"let (immediate) = uint256_eq(evm_pc, {segment_pc})",
                     f"if immediate == 1:",
-                    f"let (stack, evm_pc, output) = segment{segment_pc_txt}(stack=stack)",
+                    f"let (stack, evm_pc, output) = segment{segment_pc_txt}(exec_env, stack)",
                     "if output.active == 1:",
                     "return (stack, output)",
                     "end",
-                    f"return run_from(evm_pc=evm_pc, stack=stack)",
+                    f"return run_from(exec_env, evm_pc, stack)",
                     "end",
                 ]
             )
@@ -188,10 +202,7 @@ class EvmToCairo:
         )
 
     def __make_main(self):
-        header = """
-@external
-func main{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}():"""
-        return "\n".join([header, MAIN_BODY, "end"])
+        return MAIN
 
 
 def get_subclasses(cls):
