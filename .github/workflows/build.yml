@@ -48,9 +48,13 @@ jobs:
         uses: mig4/setup-bats@v1.2.0
 
       - name: Test golden tests
-        run: make test_bats BATS_ARGS="-j 4"
+        run: |
+          python setup.py install
+          make test_bats BATS_ARGS="-j 4"
 
       - name: Test starknet tests
         env:
           STARKNET_ENV: ${{ secrets.STARKNET_ENV }}
-        run: make test_starknet
+        run: |
+          python setup.py install
+          make test_starknet
