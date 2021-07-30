@@ -2,16 +2,17 @@
 
 %builtins pedersen range_check
 
+from evm.array import copy_to_memory
 from evm.exec_env import ExecutionEnvironment
-from evm.memory import mstore
-from evm.output import Output, create_from_memory
+from evm.memory import mload
+from evm.output import Output
 from evm.stack import StackItem
 from evm.utils import update_msize
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_eq
+from starkware.cairo.common.uint256 import Uint256, uint256_eq
 from starkware.starknet.common.storage import Storage
 
 func segment0{
@@ -24,10 +25,15 @@ func segment0{
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local memory_dict : DictAccess* = memory_dict
     local storage_ptr : Storage* = storage_ptr
-    let (local msize) = update_msize(msize, 2, 32)
-    mstore(offset=2, value=Uint256(48098712, 0))
-    let (output) = create_from_memory(4, 2)
-    return (stack=stack0, evm_pc=Uint256(0, 0), output=output)
+    let (local msize) = update_msize(msize, 0, 8)
+    copy_to_memory(exec_env.input_len, exec_env.input, 0, 43981, 8)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local memory_dict : DictAccess* = memory_dict
+    local storage_ptr : Storage* = storage_ptr
+    let (local msize) = update_msize(msize, 43981, 32)
+    let (local tmp0 : Uint256) = mload(43981)
+    local newitem0 : StackItem = StackItem(value=tmp0, next=stack0)
+    return (stack=&newitem0, evm_pc=Uint256(0, 0), output=Output(1, cast(0, felt*), 0))
 end
 
 func run_from{

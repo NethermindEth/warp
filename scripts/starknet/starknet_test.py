@@ -17,12 +17,13 @@ from starkware.starknet.services.api.gateway.transaction import Transaction
 from starkware.starknet.services.api.contract_definition import ContractDefinition
 from starkware.starknet.services.api.gateway.transaction import Deploy, InvokeFunction
 
-
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../../.."))
 sys.path.append(os.path.join(WARP_ROOT, "src"))
 # sys.path.append(os.path.join(WARP_ROOT, "vendor", "cairo-lang"))
 
 from EvmToCairo import EvmToCairo, parse_operations
+from utils import cairoize_bytes
+
 from starkware.cairo.lang.compiler.parser import parse_file
 
 starknet_dir = os.path.join(WARP_ROOT, "tests", "starknet")
@@ -234,18 +235,20 @@ async def send_req(method, url, tx: Optional[Union[str, Dict[str, Any]]] = None)
 def starknet_compile(contracts):
     processes = []
     for contract in contracts:
-        processes.append(subprocess.Popen(
-            [
-                "starknet-compile",
-                f"{contract}",
-                "--output",
-                f"{contract[:-6]}_compiled.json",
-                "--abi",
-                f"{contract[:-6]}_abi.json",
-                "--cairo_path",
-                f"{WARP_ROOT}/cairo-src",
-            ]
-        ))
+        processes.append(
+            subprocess.Popen(
+                [
+                    "starknet-compile",
+                    f"{contract}",
+                    "--output",
+                    f"{contract[:-6]}_compiled.json",
+                    "--abi",
+                    f"{contract[:-6]}_abi.json",
+                    "--cairo_path",
+                    f"{WARP_ROOT}/cairo-src",
+                ]
+            )
+        )
     output = [p.wait() for p in processes]
     if 1 in output:
         raise Exception("Compilation failed")
@@ -337,22 +340,25 @@ async def invoke_or_call(args, call: bool) -> bool:
         )
         tx_id = json.loads(response)["tx_id"]
         print(
-                f"""\
+            f"""\
 Invoke transaction was sent.
 Contract address: 0x{address:064x}.
 Transaction ID: {tx_id}."""
-            )
+        )
         tx_result = await wait_tx_confirmed(tx_id)
         return True
 
 
 def initialize_entry_args(abis, addresses):
+    bs = b"\x01\x02\x03\x04\x05\x06"
+    payload, unused_bytes = cairoize_bytes(bs)
+    payload_len = len(payload)
     return [
         {
             "abi": abi,
             "address": address,
             "function": "main",
-            "inputs": [],
+            "inputs": [unused_bytes, payload_len, *payload],
         }
         for abi, address in zip(abis, addresses)
     ]

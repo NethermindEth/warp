@@ -6,9 +6,43 @@ from StackValue import Uint256, UINT256_BOUND
 from Operation import Operation
 
 
+def get_arg(state, arg_spec):
+    assert arg_spec == "l" or arg_spec == "w"
+    arg = state.stack.pop()
+    return arg.get_low_bits() if arg_spec == "l" else arg
+
+
 class EnforcedStack(Operation):
-    def __init__(self, n_args: int, has_output: bool):
-        self.n_args = n_args
+    def __init__(
+        self, args_spec: str = None, n_args: int = None, has_output: bool = False
+    ):
+        """Parameters:
+
+        'args_spec' — specifies arguments number and type. It is a
+          string of argument types. Each type is either "w" — *w*hole
+          Uint256, or "l" — just *l*ower 128-bits. It is useful since
+          many EVM values are expected to be less than 2^64 and
+          working with simple felts is more efficient in cairo. By
+          default, if 'n_args' is specified, it is assumed to be a
+          string of "w"s, i.e. all arguments are whole Uin256's.
+
+        'n_args' — a number of arguments. By default, can be inferred
+          from 'args_spec' if it is specified.
+
+        'has_output' — whether the operation has output to put on top
+          of the EVM stack.
+
+        """
+        if args_spec is None:
+            assert (
+                n_args is not None
+            ), "Either supply a number of arguments, or their spec"
+            self.args_spec = "w" * n_args
+        else:
+            assert (n_args is None) or n_args == len(
+                args_spec
+            ), "Arguments number must conform to their spec"
+            self.args_spec = args_spec
         self.has_output = has_output
 
     def __try_eager_evaluation(self, state, args: list[Uint256]):
@@ -22,7 +56,7 @@ class EnforcedStack(Operation):
         return True
 
     def proceed(self, state: "EvmToCairo.SegmentState") -> list[str]:
-        args = [state.stack.pop() for _ in range(self.n_args)]
+        args = [get_arg(state, arg_spec) for arg_spec in self.args_spec]
         if all(isinstance(arg, Uint256) for arg in args):
             if self.__try_eager_evaluation(state, args):
                 return []
@@ -51,8 +85,8 @@ class EnforcedStack(Operation):
         """Generate cairo code that performs this operation.
 
         Parameters:
-          - 'self.n_args' stack values starting with the top ones;
-          - 'self.n_outputs' output variable names starting with the bottom ones;
+          - 'n_args' stack values starting with the top ones;
+          - an output variable name if 'has_output' is True;
 
         Operation results should be bound to the output variable
         names.

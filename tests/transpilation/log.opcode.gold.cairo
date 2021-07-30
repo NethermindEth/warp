@@ -2,6 +2,7 @@
 
 %builtins pedersen range_check
 
+from evm.exec_env import ExecutionEnvironment
 from evm.memory import mstore
 from evm.output import Output
 from evm.stack import StackItem
@@ -15,7 +16,7 @@ from starkware.starknet.common.storage import Storage
 
 func segment0{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
-        memory_dict : DictAccess*}(stack : StackItem*) -> (
+        memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
     alloc_locals
     let stack0 = stack
@@ -42,15 +43,16 @@ end
 
 func run_from{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
-        memory_dict : DictAccess*}(evm_pc : Uint256, stack : StackItem*) -> (
+        memory_dict : DictAccess*}(
+        exec_env : ExecutionEnvironment*, evm_pc : Uint256, stack : StackItem*) -> (
         stack : StackItem*, output : Output):
     let (immediate) = uint256_eq(evm_pc, Uint256(0, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment0(stack=stack)
+        let (stack, evm_pc, output) = segment0(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
-        return run_from(evm_pc=evm_pc, stack=stack)
+        return run_from(exec_env, evm_pc, stack)
     end
     let (immediate) = uint256_eq(evm_pc, Uint256(-1, 0))
     if immediate == 1:
@@ -62,9 +64,15 @@ func run_from{
 end
 
 @external
-func main{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func main{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        unused_bits, payload_len, payload : felt*):
     alloc_locals
     let (local __fp__, _) = get_fp_and_pc()
+
+    local exec_env : ExecutionEnvironment = ExecutionEnvironment(
+        payload_len=payload_len,
+        payload=payload,
+        )
 
     let (local memory_dict : DictAccess*) = default_dict_new(0)
     local memory_start : DictAccess* = memory_dict
@@ -74,12 +82,12 @@ func main{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     local stack0 : StackItem
     assert stack0 = StackItem(value=Uint256(-1, 0), next=&stack0)  # Points to itself.
 
-    let (local res, local output) = run_from{
+    let (local stack, local output) = run_from{
         storage_ptr=storage_ptr,
         pedersen_ptr=pedersen_ptr,
         range_check_ptr=range_check_ptr,
         msize=msize,
-        memory_dict=memory_dict}(Uint256(0, 0), &stack0)
+        memory_dict=memory_dict}(&exec_env, Uint256(0, 0), &stack0)
 
     return ()
 end

@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 def is_valid_uintN(n: int, x: int):
     return 0 <= x < 2 ** n
 
@@ -15,3 +18,13 @@ def int256_to_uint256(x: int) -> int:
 def uint256_to_int256(x: int) -> int:
     assert 0 <= x < UINT256_BOUND
     return x - UINT256_BOUND if x >= UINT256_HALF_BOUND else x
+
+
+def cairoize_bytes(bs: bytes) -> tuple(list[int], int):
+    """Represent bytes as an array of 128-bit big-endian integers and
+    return a number of unused bytes in the last array cell.
+    """
+    unused_bytes = -len(bs) % 16
+    bs = bs.ljust(len(bs) + unused_bytes, b"\x00")
+    arr = [int.from_bytes(bs[i : i + 16], "big") for i in range(0, len(bs), 16)]
+    return (arr, unused_bytes)
