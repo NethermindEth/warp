@@ -1,7 +1,7 @@
 import abc
 
 from transpiler.Operation import Operation
-from transpiler.StackValue import UINT256_BOUND, Uint256
+from transpiler.StackValue import UINT256_BOUND, Uint256, Str
 from transpiler.Imports import Imports
 
 # Important: per yellow paper, the representation of uint256 as bytes
@@ -10,7 +10,10 @@ from transpiler.Imports import Imports
 
 class MemoryAccess(Operation):
     def proceed(self, state):
-        address = state.stack.pop().get_low_bits()
+        try:
+            address = state.stack.pop().get_low_bits()
+        except:
+            address = f"{state.stack.pop()}.low"
         access_operations = self._do_memory_access(address, state)
         return [
             "local pedersen_ptr : HashBuiltin* = pedersen_ptr",

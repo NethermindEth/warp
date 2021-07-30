@@ -2,6 +2,7 @@ from transpiler.Operation import Operation
 from transpiler.StackValue import Uint256
 from transpiler.Operations.EnforcedStack import EnforcedStack
 from transpiler.Operations.Unary import Unary
+from transpiler.utils import get_low_high
 
 # The view functions get_storage_low/high will are used
 # for starknet testing.
@@ -49,8 +50,8 @@ class SStore(EnforcedStack):
         super().__init__(n_args=2, has_output=False)
 
     def generate_cairo_code(self, loc, value):
-        loc_low, loc_high = loc.get_low_high()
-        value_low, value_high = value.get_low_high()
+        loc_low, loc_high = get_low_high(loc)
+        value_low, value_high = get_low_high(value)
         return [
             f"s_store(low={loc_low}, high={loc_high}, "
             f"value_low={value_low}, value_high={value_high})"
@@ -64,7 +65,7 @@ class SLoad(Unary):
     # return zero'd values if we are trying to load from an
     # uninitialized storage slot
     def generate_cairo_code(self, loc, res):
-        loc_low, loc_high = loc.get_low_high()
+        loc_low, loc_high = get_low_high(loc)
         return [f"let ({res}) = s_load(low={loc_low}, high={loc_high})"]
 
     def process_structural_changes(self, evmToCairo):

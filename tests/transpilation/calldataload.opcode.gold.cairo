@@ -23,7 +23,7 @@ func segment0{
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local memory_dict : DictAccess* = memory_dict
     local storage_ptr : Storage* = storage_ptr
-    let (tmp0) = aload(exec_env.input_len, exec_env.input, 0)
+    let (local tmp0 : Uint256) = aload(exec_env.input_len, exec_env.input, 0)
     local newitem0 : StackItem = StackItem(value=Uint256(3, 0), next=stack0)
     local newitem1 : StackItem = StackItem(value=Uint256(65535, 0), next=&newitem0)
     local newitem2 : StackItem = StackItem(value=tmp0, next=&newitem1)

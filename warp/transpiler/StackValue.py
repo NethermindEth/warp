@@ -1,7 +1,14 @@
 import abc
 
 
-from transpiler.utils import is_valid_uintN, UINT256_BOUND, UINT128_BOUND
+
+def is_valid_uintN(n: int, x: int):
+    return 0 <= x < 2 ** n
+
+
+UINT256_BOUND = 2 ** 256
+UINT256_HALF_BOUND = 2 ** 255
+UINT128_BOUND = 2 ** 128
 
 
 class StackValue:
@@ -51,3 +58,6 @@ class Str(StackValue):
 
     def get_low_high(self):
         return f"{self.x}.low", f"{self.x}.high"
+
+    def get_low_bits(self):
+        return f"{self.x}.low"

@@ -40,7 +40,7 @@ class CallDataLoad(EnforcedStack):
             "local pedersen_ptr : HashBuiltin* = pedersen_ptr",
             "local memory_dict : DictAccess* = memory_dict",
             "local storage_ptr : Storage* = storage_ptr",
-            f"let ({res}) = aload(exec_env.input_len, exec_env.input, {byte_pos})",
+            f"let (local {res} : Uint256) = aload(exec_env.input_len, exec_env.input, {byte_pos})",
         ]
 
     @classmethod

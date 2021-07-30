@@ -1,4 +1,6 @@
 from __future__ import annotations
+from transpiler.StackValue import Uint256, Str
+
 
 
 def is_valid_uintN(n: int, x: int):
@@ -9,6 +11,13 @@ UINT256_BOUND = 2 ** 256
 UINT256_HALF_BOUND = 2 ** 255
 UINT128_BOUND = 2 ** 128
 
+def get_low_high(x):
+    if isinstance(x, str):
+        return f"{x}.low", f"{x}.high"
+    elif isinstance(x, Str):
+        return f"{x}.low", f"{x}.high"
+    elif isinstance(x, Uint256):
+        return x.get_low_high()
 
 def int256_to_uint256(x: int) -> int:
     assert -UINT256_HALF_BOUND <= x < UINT256_HALF_BOUND

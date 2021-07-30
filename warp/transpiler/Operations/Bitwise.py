@@ -20,7 +20,7 @@ class Not(Unary):
         return ~a
 
     def generate_cairo_code(self, op1, res):
-        return [f"let (local {res} : Uint256) = uint256_not({op})"]
+        return [f"let (local {res} : Uint256) = uint256_not({op1})"]
 
     @classmethod
     def required_imports(cls):

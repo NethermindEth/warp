@@ -4,7 +4,7 @@ from transpiler.Operation import Operation
 class CallValue(Operation):
     def proceed(self, state):
         res_ref_name = state.request_fresh_name()
-        instruction = self.bind_to_res(self, res_ref_name)
+        instruction = self.bind_to_res(res_ref_name)
         state.stack.push_ref(res_ref_name)
         return [instruction]
 

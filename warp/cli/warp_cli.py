@@ -3,7 +3,7 @@ import click
 from web3 import Web3
 from cli.compilation.Compile import Vyper, Solidity
 from starkware.cairo.lang.compiler.parser import parse_file
-from transpiler.EvmToCairo import EvmToCairo, parse_ops_direct
+from transpiler.EvmToCairo import EvmToCairo, parse_operations
 
 
 @click.group()
@@ -11,14 +11,17 @@ def warp():
     pass
 
 
-def _transpile(opcodes):
+def _transpile(file):
     evm_to_cairo = EvmToCairo(cur_evm_pc=0)
-    operations = parse_ops_direct(tuple(opcodes))
-    for op in operations:
-        op.inspect_program(operations)
+    with open(file, "r") as opcodes_file:
+        operations = list(parse_operations(opcodes_file))
+        for op in operations:
+            op.inspect_program(operations)
 
-    for op in operations:
-        evm_to_cairo.process_operation(op)
+        for op in operations:
+            evm_to_cairo.process_operation(op)
+
+    os.remove(file)
     return parse_file(evm_to_cairo.finish(True)).format()
 
 
@@ -35,7 +38,11 @@ def transpile(contract_path):
         path = os.path.abspath(click.format_filename(contract_path))
         filename = os.path.basename(path)
         contract = Solidity(path)
-        cairo_str = _transpile(contract.opcodes)
+        with open(f"{path[:-4]}.opcode", "w") as f:
+            f.write(contract.opcodes_str)
+
+
+        cairo_str = _transpile(f"{path[:-4]}.opcode",)
         with open(f"{path[:-4]}.cairo", "w") as f:
             f.write(cairo_str)
 

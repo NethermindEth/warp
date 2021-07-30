@@ -154,9 +154,13 @@ class Solidity(Contract):
         self.bytecode = self.get_bytecode(self.compiled, self.version)
         self.abi = self.get_abi(self.code)
         self.opcodes = self.get_opcodes()
+        self.opcodes_str = self.get_opcode_str(self.opcodes)
         self.selectors = get_selectors(self.abi)
         self.selector_jumpdests = get_selector_jumpdests(self)
         self.web3_interface = w3.eth.contract(abi=self.abi, bytecode=self.bytecode)
+
+    def get_opcode_str(self, opcodes):
+        return " ".join(x for x in opcodes)
 
     def get_compiler_dir(self):
         return (
