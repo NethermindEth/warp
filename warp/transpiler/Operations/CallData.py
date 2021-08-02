@@ -28,7 +28,7 @@ class CallDataSize(EnforcedStack):
         super().__init__(n_args=0, has_output=True)
 
     def generate_cairo_code(self, res):
-        return [f"let {res} = exec_env.input_len"]
+        return [f"local {res} : Uint256 = Uint256(exec_env.input_len, 0)"]
 
 
 class CallDataLoad(EnforcedStack):

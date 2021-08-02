@@ -59,7 +59,7 @@ func copy_to_memory{memory_dict: DictAccess*, range_check_ptr}(
     end
 end
 
-func aload{range_check_ptr}(array_length, array: felt*, offset)
+func aload{range_check_ptr}(array_length : felt, array: felt*, offset)
     -> (value: Uint256):
     alloc_locals
     let (local high) = read_uint128(array_length, array, offset)

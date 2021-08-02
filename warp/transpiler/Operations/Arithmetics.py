@@ -11,7 +11,8 @@ class Add(SimpleBinary):
         super().__init__(operator.add, UINT256_MODULE, "uint256_add")
 
     def generate_cairo_code(self, op1, op2, res):
-        return [f"let ({res}, _) = {self.function_name}({op1}, {op2})"]
+        return [
+            f"let (local {res} : Uint256, _) = {self.function_name}({op1}, {op2})"]
 
 
 class Mul(SimpleBinary):
@@ -19,7 +20,8 @@ class Mul(SimpleBinary):
         super().__init__(operator.mul, UINT256_MODULE, "uint256_mul")
 
     def generate_cairo_code(self, op1, op2, res):
-        return [f"let ({res}, _) = {self.function_name}({op1}, {op2})"]
+        return [
+            f"let (local {res} : Uint256, _) = {self.function_name}({op1}, {op2})"]
 
 
 class Sub(SimpleBinary):
@@ -32,7 +34,8 @@ class Div(Binary):
         return a // b if b != 0 else 0
 
     def generate_cairo_code(self, op1, op2, res):
-        return [f"let ({res}, _) = uint256_unsigned_div_rem({op1}, {op2})"]
+        return [
+            f"let (local {res} : Uint256, _) = uint256_unsigned_div_rem({op1}, {op2})"]
 
     @classmethod
     def required_imports(cls):
@@ -48,7 +51,8 @@ class Sdiv(Binary):
         return int256_to_uint256(a // b) if b != 0 else 0
 
     def generate_cairo_code(self, op1, op2, res):
-        return [f"let ({res}, _) = uint256_signed_div_rem({op1}, {op2})"]
+        return [
+            f"let (local {res} : Uint256, _) = uint256_signed_div_rem({op1}, {op2})"]
 
     @classmethod
     def required_imports(cls):
@@ -86,7 +90,8 @@ class AddMod(Ternary):
         return (a + b) % c
 
     def generate_cairo_code(self, op1, op2, op3, res):
-        return [f"let ({res}) = uint256_addmod({op1}, {op2}, {op3})"]
+        return [
+            f"let (local {res} : Uint256) = uint256_addmod({op1}, {op2}, {op3})"]
 
     @classmethod
     def required_imports(cls):
@@ -98,7 +103,8 @@ class MulMod(Ternary):
         return a * b % c
 
     def generate_cairo_code(self, op1, op2, op3, res):
-        return [f"let ({res}) = uint256_mulmod({op1}, {op2}, {op3})"]
+        return [
+            f"let (local {res} : Uint256) = uint256_mulmod({op1}, {op2}, {op3})"]
 
     @classmethod
     def required_imports(cls):
@@ -117,7 +123,8 @@ class SignExtend(Binary):
     def generate_cairo_code(self, op1, op2, res):
         # notice, that op1 is the byte position, so it should be the
         # second arg to uint256_signextend
-        return [f"let ({res}) = uint256_signextend({op2}, {op1})"]
+        return [
+            f"let (local {res} : Uint256) = uint256_signextend({op2}, {op1})"]
 
     @classmethod
     def required_imports(cls):

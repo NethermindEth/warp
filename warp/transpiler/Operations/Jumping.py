@@ -24,7 +24,7 @@ class JumpI(Operation):
         b = state.stack.pop()
         return_instructions = state.make_return_instructions(a)
         return [
-            f"let (immediate) = uint256_eq({b}, Uint256(0, 0))",
+            f"let (immediate) = uint256_eq{{range_check_ptr=range_check_ptr}}({b}, Uint256(0, 0))",
             "if immediate == 0:",
             *return_instructions,
             "end",

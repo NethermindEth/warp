@@ -6,9 +6,8 @@ import json
 import math
 import ntpath
 import os, sys
-import functools
 import subprocess
-from typing import Dict
+from typing import Any, Dict, Optional, Union
 from http import HTTPStatus
 from eth_hash.auto import keccak
 from starkware.starknet.definitions import fields
@@ -265,7 +264,7 @@ async def wait_tx_confirmed(tx_id):
         print(status)
         if status == "REJECTED":
             print("REJECTED")
-            sys.exit(response)
+            sys.exit("Transaction rejected")
         if status == "PENDING":
             return True
         await asyncio.sleep(2)

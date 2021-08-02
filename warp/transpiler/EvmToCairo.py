@@ -31,7 +31,7 @@ COMMON_IMPORTS = {
 MAIN = """
 @external
 func main{storage_ptr: Storage*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-   unused_bits, payload_len, payload: felt*,
+   unused_bits, payload_len, payload: felt*, pc_entry
    ):
    alloc_locals
    let (local __fp__, _) = get_fp_and_pc()
@@ -54,7 +54,7 @@ func main{storage_ptr: Storage*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
       pedersen_ptr=pedersen_ptr,
       range_check_ptr=range_check_ptr,
       msize=msize, memory_dict=memory_dict
-      }(&exec_env, Uint256(0, 0), &stack0)
+      }(&exec_env, Uint256(pc_entry, 0), &stack0)
 
    return ()
 end
@@ -151,7 +151,7 @@ class EvmToCairo:
             segment_pc_txt = segment_pc.get_int_repr()
             run_from.extend(
                 [
-                    f"let (immediate) = uint256_eq(evm_pc, {segment_pc})",
+                    f"let (immediate) = uint256_eq{{range_check_ptr=range_check_ptr}}(evm_pc, {segment_pc})",
                     f"if immediate == 1:",
                     f"let (stack, evm_pc, output) = segment{segment_pc_txt}(exec_env, stack)",
                     "if output.active == 1:",
@@ -164,7 +164,7 @@ class EvmToCairo:
 
         run_from.extend(
             [
-                f"let (immediate) = uint256_eq(evm_pc, Uint256(-1, 0))",
+                f"let (immediate) = uint256_eq{{range_check_ptr=range_check_ptr}}(evm_pc, Uint256(-1, 0))",
                 f"if immediate == 1:",
                 f"return (stack, {EMPTY_OUTPUT})",
                 "end",

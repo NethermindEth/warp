@@ -1,20 +1,44 @@
 from __future__ import annotations
-import asyncio
-import abc
 from collections import OrderedDict
 import os, sys
 import json
 import subprocess
-from semantic_version import SimpleSpec, Version
+from typing import List
+from semantic_version import Version
 from vyper.cli.vyper_compile import compile_files
 from web3 import Web3
 
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../../../.."))
 sys.path.append(os.path.join(WARP_ROOT, "src"))
-from cli.compilation.utils import get_func_sigs, get_selectors, get_selector_jumpdests
+from cli.compilation.utils import get_selectors, get_selector_jumpdests, is_entry_seq, is_payable_check_seq
 from cli.compilation.Disasm import InstructionIterator
 from cli.compilation.Contract import Contract, Language
 import solcx
+
+
+def get_payable_increment(lang):
+    if lang is Language.SOL:
+        return 10
+    else:
+        return 0
+
+
+def optimize_payable(contract):
+    increment = get_payable_increment(contract.lang)
+    idx = 0
+    while True:
+        if idx + increment >= len(contract.opcodes):
+            break
+        seq = contract.opcodes[idx : idx + increment]
+        is_payable_seq = is_payable_check_seq(seq, contract.lang)
+        if is_payable_seq:
+            contract.opcodes[idx : idx + increment] = [
+                "NOOP" for i in range(increment)
+            ]
+            idx += increment
+            continue
+        idx += 1
+    return contract.opcodes
 
 
 class Vyper(Contract):
@@ -29,10 +53,10 @@ class Vyper(Contract):
         self.code = self.get_code(self.source_path)
         self.bytecode = self.get_bytecode(self.source_path)
         self.abi = self.get_abi(self.source_path)
-        self.selectors = get_selectors(self.abi)
+        self.selectors = get_selectors(self.abi, self.source_base_dir)
         self.opcodes = self.get_opcodes()
         self.opcodes_str = self.get_opcode_str(self.opcodes)
-        self.selector_jumpdests = get_selector_jumpdests(self)
+        self.selector_jumpdests = get_selector_jumpdests(self, self.source_base_str)
         self.web3_interface = self.w3.eth.contract(abi=self.abi, bytecode=self.bytecode)
 
     def get_compiler_dir(self) -> str:
@@ -77,6 +101,9 @@ class Vyper(Contract):
         return compiled
 
     def get_bytecode(self, source_path: str) -> str:
+        base_source_dir = os.path.abspath(os.path.join(source_path, "../"))
+        if not os.path.isdir(self.artifacts_dir):
+            os.makedirs(self.artifacts_dir)
         try:
             compiled = self.compile_contract(source_path)
             return compiled[self.source_name]["bytecode_runtime"][2:]
@@ -117,7 +144,7 @@ class Vyper(Contract):
         base_source_dir = os.path.abspath(os.path.join(source_path, "../"))
         os.chdir(base_source_dir)
         try:
-            self.compiled = compile_files([source_path], ["abi"])
+            compiled = compile_files([source_path], ["abi"])
             return compiled
         except:
             compiler_dir = self.get_compiler_dir()
@@ -149,15 +176,17 @@ class Solidity(Contract):
         self.source_path = source_path
         self.source_name = os.path.basename(source_path)
         self.source_base_dir = os.path.dirname(self.source_path)
-        self.code = self.get_code(self.source_path)
+        self.artifacts_dir = os.path.join(os.path.expanduser("~"), ".warp", "artifacts")
+        self.code = self.get_code(source_path)
         self.compiled, self.version = self.compile_contract(self.code)
         self.bytecode = self.get_bytecode(self.compiled, self.version)
         self.abi = self.get_abi(self.code)
         self.opcodes = self.get_opcodes()
-        self.opcodes_str = self.get_opcode_str(self.opcodes)
-        self.selectors = get_selectors(self.abi)
-        self.selector_jumpdests = get_selector_jumpdests(self)
+        self.selectors = get_selectors(self.abi, self.source_base_dir)
+        self.selector_jumpdests = get_selector_jumpdests(self, self.source_base_dir)
         self.web3_interface = w3.eth.contract(abi=self.abi, bytecode=self.bytecode)
+        optimize_payable(self)
+        self.opcodes_str = self.get_opcode_str(self.opcodes)
 
     def get_opcode_str(self, opcodes):
         return " ".join(x for x in opcodes)
@@ -185,6 +214,8 @@ class Solidity(Contract):
         self.verify_source_version(code)
         pwd = os.getcwd()
         base_source_dir = os.path.abspath(os.path.join(self.source_path, "../"))
+        if not os.path.isdir(self.artifacts_dir):
+            os.makedirs(self.artifacts_dir)
         os.chdir(base_source_dir)
         source_version = solcx.set_solc_version_pragma(code)
         if source_version.minor >= 6:
@@ -252,7 +283,7 @@ class Solidity(Contract):
                 metadata = bytecode[idx:]
                 if "5820" in metadata and metadata.endswith("0032"):
                     bytecode = bytecode[:idx]
-                
+
         return bytecode
 
     def get_opcodes(self):

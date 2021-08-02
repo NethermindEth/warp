@@ -2,27 +2,13 @@ import os, sys
 import click
 from web3 import Web3
 from cli.compilation.Compile import Vyper, Solidity
-from starkware.cairo.lang.compiler.parser import parse_file
-from transpiler.EvmToCairo import EvmToCairo, parse_operations
+from cli.commands import _call, _invoke
+from cli.commands import _transpile
 
 
 @click.group()
 def warp():
     pass
-
-
-def _transpile(file):
-    evm_to_cairo = EvmToCairo(cur_evm_pc=0)
-    with open(file, "r") as opcodes_file:
-        operations = list(parse_operations(opcodes_file))
-        for op in operations:
-            op.inspect_program(operations)
-
-        for op in operations:
-            evm_to_cairo.process_operation(op)
-
-    os.remove(file)
-    return parse_file(evm_to_cairo.finish(True)).format()
 
 
 @warp.command()
@@ -41,10 +27,28 @@ def transpile(contract_path):
         with open(f"{path[:-4]}.opcode", "w") as f:
             f.write(contract.opcodes_str)
 
-
-        cairo_str = _transpile(f"{path[:-4]}.opcode",)
+        cairo_str = _transpile(
+            f"{path[:-4]}.opcode",
+        )
         with open(f"{path[:-4]}.cairo", "w") as f:
             f.write(cairo_str)
+
+
+@warp.command()
+@click.option("--address", required=True, type=click.Path(exists=True))
+@click.option("--abi", required=True, type=click.Path(exists=True))
+@click.option("--function", required=True, type=click.Path(exists=True))
+@click.option("--inputs", required=True, type=click.Path(exists=True))
+def invoke(address, abi, function, inputs):
+    _invoke(address, abi, function, inputs)
+
+
+@warp.command()
+@click.option("--address", required=True, type=click.Path(exists=True))
+@click.option("--abi", required=True, type=click.Path(exists=True))
+@click.option("--function", required=True, type=click.Path(exists=True))
+def call(address, abi, function):
+    _call(address, abi, function)
 
 
 cli = click.CommandCollection(sources=[warp])
