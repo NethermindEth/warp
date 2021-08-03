@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os, sys
+from typing import Dict, List, Tuple
 
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../../../.."))
 sys.path.append(os.path.join(WARP_ROOT, "src"))
@@ -39,9 +40,7 @@ class InstructionIterator:
         if push_op:
             u = self.pc + size + 1
             if len(self.bytecode) <= self.pc or len(self.bytecode) < u:
-                self.error = (
-                    f"Incomplete push instruction at {self.pc}\n curr_op: {self.cur_op_str}"
-                )
+                self.error = f"Incomplete push instruction at {self.pc}\n curr_op: {self.cur_op_str}"
             self.arg = self.bytecode[self.pc + 1 : u]
             self.arg_padded = self.pad_arg(self.arg)
         else:
@@ -57,7 +56,7 @@ class InstructionIterator:
                 self.instructions[hex(self.pc)] = f"{self.op_str()}"
         return self.instructions
 
-    def is_push(self, op_str) -> (bool, int):
+    def is_push(self, op_str) -> Tuple[bool, int]:
         if "PUSH" in op_str:
             return True, self.push_arg_size(op_str)
         else:
@@ -92,11 +91,10 @@ class InstructionIterator:
         return arg
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     with open("weth10.bin") as f:
         bytecode = f.read()
-    it = InstructionIterator(bytecode) 
+    it = InstructionIterator(bytecode)
     dis = it.disassemble()
-    with open("weth.json", 'w') as f:
+    with open("weth.json", "w") as f:
         json.dump(dis, f, indent=4)

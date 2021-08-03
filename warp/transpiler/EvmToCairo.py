@@ -17,6 +17,7 @@ BUILTINS = ["pedersen", "range_check"]
 COMMON_IMPORTS = {
     "starkware.cairo.common.registers": {"get_fp_and_pc"},
     "starkware.cairo.common.dict_access": {"DictAccess"},
+    "starkware.cairo.common.math_cmp": {"is_le"},
     "starkware.cairo.common.default_dict": {
         "default_dict_new",
     },
@@ -31,19 +32,19 @@ COMMON_IMPORTS = {
 MAIN = """
 @external
 func main{storage_ptr: Storage*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-   unused_bits, payload_len, payload: felt*,
+   calldata_size, unused_bytes, input_len : felt, input: felt*
    ):
    alloc_locals
    let (local __fp__, _) = get_fp_and_pc()
-
    local exec_env: ExecutionEnvironment = ExecutionEnvironment(
-      payload_len = payload_len,
-      payload = payload,
+      calldata_size = calldata_size,
+      input_len = input_len,
+      input = input,
    )
 
    let (local memory_dict : DictAccess*) = default_dict_new(0)
    local memory_start : DictAccess* = memory_dict
-
+   
    tempvar msize = 0
 
    local stack0 : StackItem
@@ -106,7 +107,11 @@ class EvmToCairo:
         self.start_new_segment()
 
     def finish_segment(self):
-        segment_pc_txt = self.segment_pc.get_int_repr()
+        int_pc = int(self.segment_pc.get_int_repr())
+        if int_pc != 0:
+            segment_pc_txt = int_pc - 1
+        else:
+            segment_pc_txt = self.segment_pc.get_int_repr()
         self.text_segments.append(
             "\n".join(
                 [
@@ -148,10 +153,15 @@ class EvmToCairo:
         ]
 
         for segment_pc in self.code_segments:
-            segment_pc_txt = segment_pc.get_int_repr()
+
+            int_pc = int(segment_pc.get_int_repr())
+            if int_pc != 0:
+                segment_pc_txt = int_pc - 1
+            else:
+                segment_pc_txt = int_pc
             run_from.extend(
                 [
-                    f"let (immediate) = uint256_eq(evm_pc, {segment_pc})",
+                    f"let (immediate) = uint256_eq{{range_check_ptr=range_check_ptr}}(evm_pc, Uint256({segment_pc_txt}, 0))",
                     f"if immediate == 1:",
                     f"let (stack, evm_pc, output) = segment{segment_pc_txt}(exec_env, stack)",
                     "if output.active == 1:",
@@ -164,7 +174,7 @@ class EvmToCairo:
 
         run_from.extend(
             [
-                f"let (immediate) = uint256_eq(evm_pc, Uint256(-1, 0))",
+                f"let (immediate) = uint256_eq{{range_check_ptr=range_check_ptr}}(evm_pc, Uint256(-1, 0))",
                 f"if immediate == 1:",
                 f"return (stack, {EMPTY_OUTPUT})",
                 "end",

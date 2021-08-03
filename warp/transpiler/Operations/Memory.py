@@ -16,10 +16,9 @@ class MemoryAccess(Operation):
             address = f"{state.stack.pop()}.low"
         access_operations = self._do_memory_access(address, state)
         return [
-            "local pedersen_ptr : HashBuiltin* = pedersen_ptr",
+            f"let (local msize) = update_msize{{range_check_ptr=range_check_ptr}}(msize, {address}, {self.access_width()})",
             "local memory_dict : DictAccess* = memory_dict",
-            "local storage_ptr : Storage* = storage_ptr",
-            f"let (local msize) = update_msize(msize, {address}, {self.access_width()})",
+            "local msize = msize",
             *access_operations,
         ]
 
@@ -49,7 +48,8 @@ class MStore(MemoryAccess):
     def _do_memory_access(self, address, state):
         value = state.stack.pop()
         return [
-            f"mstore(offset={address}, value={value})",
+            f"mstore{{memory_dict=memory_dict, range_check_ptr=range_check_ptr}}(offset={address}, value={value})",
+            "local memory_dict : DictAccess* = memory_dict",
         ]
 
     @classmethod
@@ -70,6 +70,7 @@ class MStore8(MemoryAccess):
         return [
             f"let (local byte, _) = extract_lowest_byte({value})",
             f"mstore8(offset={address}, byte=byte)",
+            "local memory_dict : DictAccess* = memory_dict",
         ]
 
     @classmethod
@@ -89,7 +90,8 @@ class MLoad(MemoryAccess):
         res_ref_name = state.request_fresh_name()
         state.stack.push_ref(res_ref_name)
         return [
-            f"let (local {res_ref_name} : Uint256) = mload({address})",
+            f"let (local {res_ref_name} : Uint256) = mload{{memory_dict=memory_dict, range_check_ptr=range_check_ptr}}({address})",
+            "local memory_dict : DictAccess* = memory_dict",
         ]
 
     @classmethod

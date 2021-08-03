@@ -25,7 +25,9 @@ class SimpleBinary(Binary):
         return self.eager_eval(a, b)
 
     def generate_cairo_code(self, op1, op2, res):
-        return [f"let ({res}) = {self.function_name}({op1}, {op2})"]
+        return [
+            f"let (local {res} : Uint256) = {self.function_name}({op1}, {op2})",
+        ]
 
     def required_imports(self):
         return {self.module: {self.function_name}}

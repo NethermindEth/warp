@@ -59,6 +59,8 @@ func put_byte(pos, low, byte, high) -> (x):
 end
 
 func mstore{memory_dict: DictAccess*, range_check_ptr}(offset, value: Uint256):
+    alloc_locals
+    local memory_dict : DictAccess* = memory_dict
     write_uint128(offset, value.high) # big-endian
     write_uint128(offset + 16, value.low)
     return ()

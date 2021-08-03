@@ -7,12 +7,11 @@ class CallDataCopy(EnforcedStack):
 
     def generate_cairo_code(self, dest_offset, offset, length):
         return [
-            "local pedersen_ptr : HashBuiltin* = pedersen_ptr",
-            "local memory_dict : DictAccess* = memory_dict",
-            "local storage_ptr : Storage* = storage_ptr",
             f"let (local msize) = update_msize(msize, {dest_offset}, {length})",
+            "local memory_dict : DictAccess* = memory_dict",
             "copy_to_memory(exec_env.input_len, exec_env.input, ",
             f"   {dest_offset}, {offset}, {length})",
+            "local memory_dict : DictAccess* = memory_dict",
         ]
 
     @classmethod
@@ -28,7 +27,7 @@ class CallDataSize(EnforcedStack):
         super().__init__(n_args=0, has_output=True)
 
     def generate_cairo_code(self, res):
-        return [f"let {res} = exec_env.input_len"]
+        return [f"local {res} : Uint256 = Uint256(exec_env.calldata_size, 0)"]
 
 
 class CallDataLoad(EnforcedStack):
@@ -37,9 +36,6 @@ class CallDataLoad(EnforcedStack):
 
     def generate_cairo_code(self, byte_pos, res):
         return [
-            "local pedersen_ptr : HashBuiltin* = pedersen_ptr",
-            "local memory_dict : DictAccess* = memory_dict",
-            "local storage_ptr : Storage* = storage_ptr",
             f"let (local {res} : Uint256) = aload(exec_env.input_len, exec_env.input, {byte_pos})",
         ]
 

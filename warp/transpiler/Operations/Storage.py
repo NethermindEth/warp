@@ -54,7 +54,9 @@ class SStore(EnforcedStack):
         value_low, value_high = get_low_high(value)
         return [
             f"s_store(low={loc_low}, high={loc_high}, "
-            f"value_low={value_low}, value_high={value_high})"
+            f"value_low={value_low}, value_high={value_high})",
+            "local pedersen_ptr : HashBuiltin* = pedersen_ptr",
+            "local storage_ptr : Storage* = storage_ptr",
         ]
 
     def process_structural_changes(self, evmToCairo):
@@ -66,7 +68,11 @@ class SLoad(Unary):
     # uninitialized storage slot
     def generate_cairo_code(self, loc, res):
         loc_low, loc_high = get_low_high(loc)
-        return [f"let ({res}) = s_load(low={loc_low}, high={loc_high})"]
+        return [
+            f"let (local {res} : Uint256) = s_load(low={loc_low}, high={loc_high})",
+            "local pedersen_ptr : HashBuiltin* = pedersen_ptr",
+            "local storage_ptr : Storage* = storage_ptr",
+            ]
 
     def process_structural_changes(self, evmToCairo):
         evmToCairo.requires_storage = True

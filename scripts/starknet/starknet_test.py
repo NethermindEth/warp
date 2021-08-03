@@ -6,9 +6,8 @@ import json
 import math
 import ntpath
 import os, sys
-import functools
 import subprocess
-from typing import Dict
+from typing import Any, Dict, Optional, Union
 from http import HTTPStatus
 from eth_hash.auto import keccak
 from starkware.starknet.definitions import fields
@@ -237,6 +236,7 @@ def starknet_compile(contracts):
             subprocess.Popen(
                 [
                     "starknet-compile",
+                    "--disable_hint_validation",
                     f"{contract}",
                     "--output",
                     f"{contract[:-6]}_compiled.json",
@@ -265,7 +265,7 @@ async def wait_tx_confirmed(tx_id):
         print(status)
         if status == "REJECTED":
             print("REJECTED")
-            sys.exit(response)
+            sys.exit("Transaction rejected")
         if status == "PENDING":
             return True
         await asyncio.sleep(2)
@@ -356,7 +356,7 @@ def initialize_entry_args(abis, addresses):
             "abi": abi,
             "address": address,
             "function": "main",
-            "inputs": [unused_bytes, payload_len, *payload],
+            "inputs": [3, unused_bytes, payload_len, *payload],
         }
         for abi, address in zip(abis, addresses)
     ]

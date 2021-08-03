@@ -51,20 +51,12 @@ end
 # strict less than. Returns 1 if op1 < op2, and 0 otherwise
 func is_lt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
     alloc_locals
-    let (local eq) = uint256_eq(op1 ,op2)
+    let (local eq) = uint256_eq{range_check_ptr=range_check_ptr}(op1 ,op2)
     if eq == 1:
-        tempvar range_check_ptr = range_check_ptr
         return (result=Uint256(0,0))
     else:
-        tempvar range_check_ptr = range_check_ptr
-        let (local res) = uint256_lt(op1, op2)
-        if res == 0:
-            tempvar range_check_ptr = range_check_ptr
-            return (result=Uint256(0,0))
-        else:
-            tempvar range_check_ptr = range_check_ptr
-            return (result=Uint256(1,0))
-        end
+        let (local res) = uint256_lt{range_check_ptr=range_check_ptr}(op1, op2)
+        return (result=Uint256(res, 0))
     end
 end
 
