@@ -1,4 +1,6 @@
 import json
+from transpiler.utils import cairoize_bytes
+from web3 import Web3
 from typing import Any, Dict, Optional, Union
 import aiohttp
 import asyncio
@@ -8,14 +10,14 @@ from starkware.starknet.services.api.gateway.transaction import (
 )
 from transpiler.EvmToCairo import EvmToCairo, parse_operations
 from eth_hash.auto import keccak
-import os, sys
+import os
 from starkware.cairo.lang.compiler.parser import parse_file
 
 TEST_ENV = ""
 artifacts_dir = os.path.join(os.path.expanduser("~"), ".warp", "artifacts")
 
 
-def get_selector(args: str) -> int:
+def get_selector_cairo(args: str) -> int:
     return int.from_bytes(keccak(args.encode("ascii")), "big") & (2 ** 250 - 1)
 
 
@@ -49,26 +51,32 @@ def _transpile(file):
 
 
 # returns true/false on transaction success/failure
-async def _invoke(address, abi, function, inputs):
+async def _invoke(source_name, address, cairo_abi, function, inputs):
     with open(os.path.join(artifacts_dir, "selector_jumpdests.json")) as f:
         jumpdests = json.load(f)
-    for k, v in jumpdests.items():
-        if function in v["signature"]:
-            jump_dest = v["jumpdest"]
-            break
-    else:
-        sys.exit("You did not enter a correct function name")
+    with open(cairo_abi) as f:
+        cairo_abi = json.load(f)
+    with open(os.path.join(artifacts_dir, f"{source_name[:-4]}_abi.json")) as f:
+        evm_abi = json.load(f)
+    with open(
+        os.path.join(artifacts_dir, f"{source_name[:-4]}_bytecode"),
+        "r",
+    ) as f:
+        bytecode = f.read()
 
-    with open(abi) as f:
-        abi = json.load(f)
-
+    w3 = Web3()
+    evm_contract = w3.eth.contract(abi=evm_abi, bytecode=bytecode)
+    evm_calldata = evm_contract.encodeABI(fn_name=function, args=inputs)
+    cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(evm_calldata[2:]))
+    calldata_size = (len(cairo_input) * 16) - unused_bytes
     try:
         address = int(address, 16)
     except ValueError:
         raise ValueError("Invalid address format.")
 
-    selector = get_selector("main")
-    calldata = inputs
+    selector = get_selector_cairo("main")
+    calldata = [calldata_size, unused_bytes, len(cairo_input)] + cairo_input
+    print(f"calldata: {calldata}")
     tx = InvokeFunction(
         contract_address=address, entry_point_selector=selector, calldata=calldata
     )
@@ -95,7 +103,7 @@ async def _call(address, abi, function, inputs) -> bool:
     except ValueError:
         raise ValueError("Invalid address format.")
 
-    selector = get_selector(function)
+    selector = get_selector_cairo(function)
     calldata = inputs
     tx = InvokeFunction(
         contract_address=address, entry_point_selector=selector, calldata=calldata

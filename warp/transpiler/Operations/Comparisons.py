@@ -20,8 +20,9 @@ class IsZero(Unary):
 
 
 class Eq(Binary):
-    def evaluate_eagerly(self, x):
-        return x == 0
+    @classmethod
+    def evaluate_eagerly(self, x, y):
+        return x == y
 
     def generate_cairo_code(self, op1, op2, res):
         return [

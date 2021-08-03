@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os, sys
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../../../.."))
 sys.path.append(os.path.join(WARP_ROOT, "src"))
@@ -59,16 +59,18 @@ def get_func_sigs(abi: List[Dict[str, str]]) -> Dict[str, int]:
 
 
 # CALLVALUE
-# DUP1
 # ISZERO
-# PUSH2 0x0201
+# PUSH2
+# 0x00b3
 # JUMPI
-# PUSH1 0x00
+# PUSH1
+# 0x00
 # DUP1
 # REVERT
+# JUMPDEST
 def is_payable_check_seq(opcodes: List[str], language: Language):
     if language is Language.SOL:
-        return (
+        is_payable_seq = (
             opcodes[0] == "CALLVALUE"
             and opcodes[1] == "ISZERO"
             and "PUSH" in opcodes[2]
@@ -78,6 +80,19 @@ def is_payable_check_seq(opcodes: List[str], language: Language):
             and opcodes[8] == "REVERT"
             and opcodes[9] == "JUMPDEST"
         )
+        replace_seq = [
+            "PASS",
+            "PASS",
+            "NOOP" + opcodes[2][-1],
+            opcodes[3],
+            "PASS",
+            "NOOP" + opcodes[5][-1],
+            opcodes[6],
+            "PASS",
+            "PASS",
+            "PASS",
+        ]
+        return is_payable_seq, replace_seq
     return False
 
 
@@ -95,7 +110,7 @@ def is_entry_seq(opcodes: List[str], language: Language) -> bool:
         else:
             return (
                 opcodes[0] == "DUP1"
-                and opcodes[1] == "PUSH4"
+                and (opcodes[1] == "PUSH4" or opcodes[1] == "PUSH3")
                 and opcodes[3] == "EQ"
                 and "PUSH" in opcodes[4]
                 and opcodes[6] == "JUMPI"
@@ -114,12 +129,14 @@ def is_entry_seq(opcodes: List[str], language: Language) -> bool:
             )
 
 
-def get_selectors(abi: List[Dict[str, str]], base_source_dir) -> Dict[str, str]:
-    file_name = os.path.join(os.path.expanduser("~"), ".warp", "artifacts", "selectors.json")
+def get_selectors(abi: List[Dict[str, str]]) -> Dict[str, str]:
+    file_name = os.path.join(
+        os.path.expanduser("~"), ".warp", "artifacts", "selectors.json"
+    )
     sigs = get_func_sigs(abi)
     selectors = {}
     for sig in sigs.keys():
-        selector = "0x" + keccak(sig.encode("ascii")).hex()[:8]
+        selector = int("0x" + keccak(sig.encode("ascii")).hex()[:8], 16)
         selectors[selector] = {
             "signature": sig,
             "payable": sigs[sig],
@@ -142,10 +159,10 @@ def get_jumpdest_offset(language):
         print(language)
 
 
-def get_selector_jumpdests(
-    contract: Contract, base_source_dir
-) -> Dict[str, Dict[str, int]]:
-    file_name = os.path.join(os.path.expanduser("~"), ".warp", "artifacts", "selector_jumpdests.json")
+def get_selector_jumpdests(contract: Contract) -> Dict[str, Dict[str, int]]:
+    file_name = os.path.join(
+        os.path.expanduser("~"), ".warp", "artifacts", "selector_jumpdests.json"
+    )
     selector_jumpdests = {}
     selectors = list(contract.selectors.keys())
     jumpdest_pos_offset, increment = get_jumpdest_offset(contract.lang)
@@ -155,9 +172,9 @@ def get_selector_jumpdests(
             break
         seq = contract.opcodes[idx : idx + increment]
         is_entry = is_entry_seq(seq, contract.lang)
-        if is_entry and seq[2] in selectors:
+        if is_entry:
             try:
-                selector = contract.opcodes[idx + 2].lower()
+                selector = int(contract.opcodes[idx + 2], 16)
                 func_sig = contract.selectors[selector]["signature"]
                 selector_jumpdests[selector] = {
                     "signature": func_sig,
@@ -165,13 +182,16 @@ def get_selector_jumpdests(
                     "jumpdest": contract.opcodes[idx + jumpdest_pos_offset],
                 }
                 selectors.remove(selector)
-                contract.opcodes[idx : idx + increment] = [
-                    "NOOP" for i in range(increment)
-                ]
                 idx += increment
                 continue
             except KeyError:
+                # for some reason solidity 4.18 can generate 3-byte function selectors
                 print("Inside key error")
+                selector = contract.opcodes[idx + 2].lower()
+                for sel in selectors:
+                    if int(selector, 16) == int(sel, 16):
+                        print(sel, selector)
+                idx += 1
                 continue
         idx += 1
     with open(file_name, "w") as f:

@@ -2,17 +2,21 @@
 
 %builtins pedersen range_check
 
+from evm.exec_env import ExecutionEnvironment
 from evm.memory import mload, mstore
 from evm.output import Output
 from evm.stack import StackItem
-from evm.uint256 import is_lt, sgt, slt
-from evm.utils import get_max, round_up_to_multiple, update_msize
+from evm.uint256 import sgt, slt, smod
+from evm.utils import update_msize
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
+from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import (
-    Uint256, uint256_add, uint256_eq, uint256_mul, uint256_not, uint256_or, uint256_shl)
+    Uint256, uint256_add, uint256_eq, uint256_mod, uint256_mul, uint256_mulmod, uint256_not,
+    uint256_or, uint256_sar, uint256_shl, uint256_shr, uint256_signed_div_rem, uint256_signextend,
+    uint256_sub, uint256_xor)
 from starkware.starknet.common.storage import Storage
 
 @storage_var
@@ -49,64 +53,92 @@ end
 
 func segment0{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
-        memory_dict : DictAccess*}(stack : StackItem*, calldata : felt*, calldata_size) -> (
+        memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
     alloc_locals
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
-    local memory_dict : DictAccess* = memory_dict
-    local storage_ptr : Storage* = storage_ptr
+    s_store(low=0, high=0, value_low=885443719936105197568, value_high=0)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    let (local msize) = update_msize(msize, 128, 0)
-    let (local immediate) = round_up_to_multiple(msize, 32)
-    local tmp0 : Uint256 = Uint256(immediate, 0)
-    s_store(low=0, high=0, value_low=tmp0.low, value_high=tmp0.high)
-    s_store(low=1, high=0, value_low=0, value_high=0)
-    s_store(low=2, high=0, value_low=1, value_high=0)
-    let (local immediate) = round_up_to_multiple(msize, 32)
-    local tmp1 : Uint256 = Uint256(immediate, 0)
-    s_store(low=3, high=0, value_low=tmp1.low, value_high=tmp1.high)
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local memory_dict : DictAccess* = memory_dict
     local storage_ptr : Storage* = storage_ptr
-    let (local msize) = update_msize(msize, 2, 32)
-    mstore(offset=2, value=Uint256(13486, 0))
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    let (local msize) = update_msize{range_check_ptr=range_check_ptr}(msize, 0, 32)
     local memory_dict : DictAccess* = memory_dict
-    local storage_ptr : Storage* = storage_ptr
-    let (local msize) = update_msize(msize, 2, 32)
-    let (local tmp2 : Uint256) = mload(2)
-    let (local immediate) = round_up_to_multiple(msize, 32)
-    local tmp3 : Uint256 = Uint256(immediate, 0)
-    s_store(low=4, high=0, value_low=tmp3.low, value_high=tmp3.high)
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local msize = msize
+    mstore{memory_dict=memory_dict, range_check_ptr=range_check_ptr}(offset=0, value=Uint256(48, 0))
     local memory_dict : DictAccess* = memory_dict
-    local storage_ptr : Storage* = storage_ptr
-    let (local msize) = update_msize(msize, 0, 32)
-    mstore(offset=0, value=Uint256(48, 0))
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    let (local msize) = update_msize{range_check_ptr=range_check_ptr}(msize, 2, 32)
     local memory_dict : DictAccess* = memory_dict
-    local storage_ptr : Storage* = storage_ptr
-    let (local msize) = update_msize(msize, 2, 32)
-    mstore(offset=2, value=Uint256(48098712, 0))
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local msize = msize
+    mstore{memory_dict=memory_dict, range_check_ptr=range_check_ptr}(
+        offset=2, value=Uint256(48098712, 0))
     local memory_dict : DictAccess* = memory_dict
+    let (local msize) = update_msize{range_check_ptr=range_check_ptr}(msize, 2, 32)
+    local memory_dict : DictAccess* = memory_dict
+    local msize = msize
+    let (local tmp0 : Uint256) = mload{memory_dict=memory_dict, range_check_ptr=range_check_ptr}(2)
+    local memory_dict : DictAccess* = memory_dict
+    s_store(low=1, high=0, value_low=tmp0.low, value_high=tmp0.high)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local storage_ptr : Storage* = storage_ptr
-    let (local msize) = update_msize(msize, 2, 32)
-    let (local tmp4 : Uint256) = mload(2)
-    s_store(low=5, high=0, value_low=tmp4.low, value_high=tmp4.high)
-    s_store(low=6, high=0, value_low=688, value_high=0)
+    s_store(low=2, high=0, value_low=688, value_high=0)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
+    s_store(low=3, high=0, value_low=55585927069534068166656, value_high=0)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
     s_store(
-        low=7,
+        low=4,
         high=0,
         value_low=340282366920938463463374607431768211452,
         value_high=340282366920938463463374607431768211455)
-    s_store(low=8, high=0, value_low=47, value_high=0)
-    s_store(low=9, high=0, value_low=0, value_high=0)
-    s_store(low=10, high=0, value_low=50465865728, value_high=0)
-    s_store(low=11, high=0, value_low=1, value_high=0)
-    s_store(low=12, high=0, value_low=0, value_high=0)
-    s_store(low=13, high=0, value_low=27670116110564327424, value_high=0)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
+    s_store(low=5, high=0, value_low=47, value_high=0)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
+    s_store(low=6, high=0, value_low=30, value_high=0)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
+    s_store(low=7, high=0, value_low=10, value_high=0)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
+    s_store(low=8, high=0, value_low=0, value_high=0)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
+    s_store(low=9, high=0, value_low=50465865728, value_high=0)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
+    s_store(low=10, high=0, value_low=0, value_high=0)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
+    s_store(
+        low=11,
+        high=0,
+        value_low=340282366920938463463374607431767015151,
+        value_high=340282366920938463463374607431768211455)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
+    s_store(low=12, high=0, value_low=1, value_high=0)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
+    s_store(low=13, high=0, value_low=885443719936105197568, value_high=0)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
+    s_store(low=14, high=0, value_low=0, value_high=0)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
+    s_store(low=15, high=0, value_low=27670116110564327424, value_high=0)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
+    s_store(low=16, high=0, value_low=78, value_high=0)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
+    s_store(low=17, high=0, value_low=113427455640312821154458202477256070485, value_high=1)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
+    s_store(low=18, high=0, value_low=49, value_high=0)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local storage_ptr : Storage* = storage_ptr
     local newitem0 : StackItem = StackItem(value=Uint256(13, 0), next=stack0)
     local newitem1 : StackItem = StackItem(value=Uint256(0, 0), next=&newitem0)
     local newitem2 : StackItem = StackItem(value=Uint256(1, 0), next=&newitem1)
@@ -119,18 +151,17 @@ end
 func run_from{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(
-        evm_pc : Uint256, stack : StackItem*, calldata : felt*, calldata_size) -> (
+        exec_env : ExecutionEnvironment*, evm_pc : Uint256, stack : StackItem*) -> (
         stack : StackItem*, output : Output):
-    let (immediate) = uint256_eq(evm_pc, Uint256(0, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(0, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment0(
-            stack=stack, calldata=calldata, calldata_size=calldata_size)
+        let (stack, evm_pc, output) = segment0(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
-        return run_from(evm_pc=evm_pc, stack=stack, calldata=calldata, calldata_size=calldata_size)
+        return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq(evm_pc, Uint256(-1, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(-1, 0))
     if immediate == 1:
         return (stack, Output(1, cast(0, felt*), 0))
     end
@@ -141,9 +172,14 @@ end
 
 @external
 func main{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        calldata_len : felt, calldata : felt*):
+        calldata_size, unused_bytes, input_len : felt, input : felt*):
     alloc_locals
     let (local __fp__, _) = get_fp_and_pc()
+    local exec_env : ExecutionEnvironment = ExecutionEnvironment(
+        calldata_size=calldata_size,
+        input_len=input_len,
+        input=input,
+        )
 
     let (local memory_dict : DictAccess*) = default_dict_new(0)
     local memory_start : DictAccess* = memory_dict
@@ -153,13 +189,12 @@ func main{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     local stack0 : StackItem
     assert stack0 = StackItem(value=Uint256(-1, 0), next=&stack0)  # Points to itself.
 
-    let (local res, local output) = run_from{
+    let (local stack, local output) = run_from{
         storage_ptr=storage_ptr,
         pedersen_ptr=pedersen_ptr,
         range_check_ptr=range_check_ptr,
         msize=msize,
-        memory_dict=memory_dict}(
-        Uint256(0, 0), &stack0, calldata=calldata, calldata_size=calldata_len)
+        memory_dict=memory_dict}(&exec_env, Uint256(0, 0), &stack0)
 
     return ()
 end

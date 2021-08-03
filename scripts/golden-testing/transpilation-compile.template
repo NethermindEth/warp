@@ -5,23 +5,6 @@ WARP_TEST_SUFFIX=".opcode.gold.cairo"
 cairo_src_dir="./cairo-src"
 
 BLACKLISTED=(
-    addmod
-    byte
-    div
-    mod
-    msize-mstore8
-    mstore_mload
-    mulmod
-    return-32-bytes
-    return-32-bytes
-    return-4-bytes
-    return-zeroes
-    sar
-    sdiv
-    sha3
-    shr
-    signextend
-    smod
     )
 
 is_blacklisted() {
@@ -45,6 +28,7 @@ test_case() {
     local compile_file="$opcode_file.temp.json"
 
     starknet-compile \
+        --disable_hint_validation \
         --cairo_path $cairo_src_dir \
         "$cairo_file" > "$compile_file"
 

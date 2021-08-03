@@ -26,10 +26,8 @@ class Log(EnforcedStack):
         and updating the memory consumption counter
         """
         return [
-            "local memory_dict : DictAccess* = memory_dict",
-            "local storage_ptr : Storage* = storage_ptr",
-            "local pedersen_ptr : HashBuiltin* = pedersen_ptr",
             f"let (local msize) = update_msize(msize, {offset}, {length})",
+            "local memory_dict : DictAccess* = memory_dict",
         ]
 
     def required_imports(self):

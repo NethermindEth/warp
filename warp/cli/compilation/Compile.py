@@ -10,35 +10,15 @@ from web3 import Web3
 
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../../../.."))
 sys.path.append(os.path.join(WARP_ROOT, "src"))
-from cli.compilation.utils import get_selectors, get_selector_jumpdests, is_entry_seq, is_payable_check_seq
+from cli.compilation.utils import (
+    get_selectors,
+    get_selector_jumpdests,
+    is_entry_seq,
+    is_payable_check_seq,
+)
 from cli.compilation.Disasm import InstructionIterator
 from cli.compilation.Contract import Contract, Language
 import solcx
-
-
-def get_payable_increment(lang):
-    if lang is Language.SOL:
-        return 10
-    else:
-        return 0
-
-
-def optimize_payable(contract):
-    increment = get_payable_increment(contract.lang)
-    idx = 0
-    while True:
-        if idx + increment >= len(contract.opcodes):
-            break
-        seq = contract.opcodes[idx : idx + increment]
-        is_payable_seq = is_payable_check_seq(seq, contract.lang)
-        if is_payable_seq:
-            contract.opcodes[idx : idx + increment] = [
-                "NOOP" for i in range(increment)
-            ]
-            idx += increment
-            continue
-        idx += 1
-    return contract.opcodes
 
 
 class Vyper(Contract):
@@ -53,10 +33,10 @@ class Vyper(Contract):
         self.code = self.get_code(self.source_path)
         self.bytecode = self.get_bytecode(self.source_path)
         self.abi = self.get_abi(self.source_path)
-        self.selectors = get_selectors(self.abi, self.source_base_dir)
+        self.selectors = get_selectors(self.abi)
         self.opcodes = self.get_opcodes()
         self.opcodes_str = self.get_opcode_str(self.opcodes)
-        self.selector_jumpdests = get_selector_jumpdests(self, self.source_base_str)
+        self.selector_jumpdests = get_selector_jumpdests(self)
         self.web3_interface = self.w3.eth.contract(abi=self.abi, bytecode=self.bytecode)
 
     def get_compiler_dir(self) -> str:
@@ -182,10 +162,9 @@ class Solidity(Contract):
         self.bytecode = self.get_bytecode(self.compiled, self.version)
         self.abi = self.get_abi(self.code)
         self.opcodes = self.get_opcodes()
-        self.selectors = get_selectors(self.abi, self.source_base_dir)
-        self.selector_jumpdests = get_selector_jumpdests(self, self.source_base_dir)
+        self.selectors = get_selectors(self.abi)
+        self.selector_jumpdests = get_selector_jumpdests(self)
         self.web3_interface = w3.eth.contract(abi=self.abi, bytecode=self.bytecode)
-        optimize_payable(self)
         self.opcodes_str = self.get_opcode_str(self.opcodes)
 
     def get_opcode_str(self, opcodes):
@@ -252,6 +231,11 @@ class Solidity(Contract):
             if count > 1:
                 raise Exception("There were more than one non-interface abis")
         os.chdir(pwd)
+        with open(
+            os.path.join(self.artifacts_dir, f"{self.source_name[:-4]}_abi.json"),
+            "w",
+        ) as f:
+            json.dump(abi_succinct, f, indent=4)
         return abi_succinct
 
     def verify_source_version(self, code):
@@ -284,6 +268,11 @@ class Solidity(Contract):
                 if "5820" in metadata and metadata.endswith("0032"):
                     bytecode = bytecode[:idx]
 
+        with open(
+            os.path.join(self.artifacts_dir, f"{self.source_name[:-4]}_bytecode"),
+            "w",
+        ) as f:
+            f.write(bytecode)
         return bytecode
 
     def get_opcodes(self):

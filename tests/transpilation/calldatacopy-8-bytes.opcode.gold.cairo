@@ -11,6 +11,7 @@ from evm.utils import update_msize
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
+from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import Uint256, uint256_eq
 from starkware.starknet.common.storage import Storage
@@ -22,16 +23,16 @@ func segment0{
     alloc_locals
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local memory_dict : DictAccess* = memory_dict
-    local storage_ptr : Storage* = storage_ptr
     let (local msize) = update_msize(msize, 0, 8)
-    copy_to_memory(exec_env.input_len, exec_env.input, 0, 43981, 8)
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local memory_dict : DictAccess* = memory_dict
-    local storage_ptr : Storage* = storage_ptr
-    let (local msize) = update_msize(msize, 43981, 32)
-    let (local tmp0 : Uint256) = mload(43981)
+    copy_to_memory(exec_env.input_len, exec_env.input, 0, 43981, 8)
+    local memory_dict : DictAccess* = memory_dict
+    let (local msize) = update_msize{range_check_ptr=range_check_ptr}(msize, 43981, 32)
+    local memory_dict : DictAccess* = memory_dict
+    local msize = msize
+    let (local tmp0 : Uint256) = mload{memory_dict=memory_dict, range_check_ptr=range_check_ptr}(
+        43981)
+    local memory_dict : DictAccess* = memory_dict
     local newitem0 : StackItem = StackItem(value=tmp0, next=stack0)
     return (stack=&newitem0, evm_pc=Uint256(0, 0), output=Output(1, cast(0, felt*), 0))
 end
@@ -41,7 +42,7 @@ func run_from{
         memory_dict : DictAccess*}(
         exec_env : ExecutionEnvironment*, evm_pc : Uint256, stack : StackItem*) -> (
         stack : StackItem*, output : Output):
-    let (immediate) = uint256_eq(evm_pc, Uint256(0, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(0, 0))
     if immediate == 1:
         let (stack, evm_pc, output) = segment0(exec_env, stack)
         if output.active == 1:
@@ -49,7 +50,7 @@ func run_from{
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq(evm_pc, Uint256(-1, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(-1, 0))
     if immediate == 1:
         return (stack, Output(1, cast(0, felt*), 0))
     end
@@ -60,13 +61,13 @@ end
 
 @external
 func main{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        unused_bits, payload_len, payload : felt*):
+        calldata_size, unused_bytes, input_len : felt, input : felt*):
     alloc_locals
     let (local __fp__, _) = get_fp_and_pc()
-
     local exec_env : ExecutionEnvironment = ExecutionEnvironment(
-        payload_len=payload_len,
-        payload=payload,
+        calldata_size=calldata_size,
+        input_len=input_len,
+        input=input,
         )
 
     let (local memory_dict : DictAccess*) = default_dict_new(0)

@@ -236,6 +236,7 @@ def starknet_compile(contracts):
             subprocess.Popen(
                 [
                     "starknet-compile",
+                    "--disable_hint_validation",
                     f"{contract}",
                     "--output",
                     f"{contract[:-6]}_compiled.json",
@@ -355,7 +356,7 @@ def initialize_entry_args(abis, addresses):
             "abi": abi,
             "address": address,
             "function": "main",
-            "inputs": [unused_bytes, payload_len, *payload],
+            "inputs": [3, unused_bytes, payload_len, *payload],
         }
         for abi, address in zip(abis, addresses)
     ]
