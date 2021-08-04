@@ -243,7 +243,7 @@ def starknet_compile(contracts):
                     "--abi",
                     f"{contract[:-6]}_abi.json",
                     "--cairo_path",
-                    f"{WARP_ROOT}/cairo-src",
+                    f"{WARP_ROOT}/warp/cairo-src",
                 ]
             )
         )
@@ -423,3 +423,4 @@ async def do():
 asyncio.run(do())
 """
     exec(tests)
+

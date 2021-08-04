@@ -7,6 +7,7 @@ sys.path.append(os.path.join(WARP_ROOT, "src"))
 from eth_hash.auto import keccak
 from cli.compilation.Contract import Contract, Language
 import json
+artifacts_dir = os.path.join(os.path.abspath("."), "artifacts")
 
 
 def get_contract_lang(file_path) -> Language:
@@ -57,6 +58,38 @@ def get_func_sigs(abi: List[Dict[str, str]]) -> Dict[str, int]:
                 sigs[name] = 0
     return sigs
 
+#  DUP1
+#  PUSH4 0x47e7ef24
+#  GT
+#  PUSH2 0x0059
+#  JUMPI
+'PASS'
+'NOOP4'
+'0x47e7ef24'
+'PASS'
+'NOOP2'
+'0x0069'
+'PASS'
+def is_gt_seq(opcodes: List[str], language: Language):
+    if language is Language.SOL:
+        is_gt_seq = (
+            opcodes[0] == "DUP1"
+            and opcodes[1] == "PUSH4"
+            and opcodes[3] == "GT"
+            and "PUSH" in opcodes[4]
+            and opcodes[6] == "JUMPI"
+        )
+        replace_seq = [
+            "PASS",
+            "NOOP" + opcodes[1][-1],
+            opcodes[2],
+            "PASS",
+            "NOOP" + opcodes[4][-1],
+            opcodes[5],
+            "PASS",
+        ]
+        return is_gt_seq, replace_seq
+    return False, []
 
 # CALLVALUE
 # ISZERO
@@ -161,7 +194,7 @@ def get_jumpdest_offset(language):
 
 def get_selector_jumpdests(contract: Contract) -> Dict[str, Dict[str, int]]:
     file_name = os.path.join(
-        os.path.expanduser("~"), ".warp", "artifacts", "selector_jumpdests.json"
+        artifacts_dir, f"{contract.source_name}_selector_jumpdests.json"
     )
     selector_jumpdests = {}
     selectors = list(contract.selectors.keys())
@@ -172,6 +205,7 @@ def get_selector_jumpdests(contract: Contract) -> Dict[str, Dict[str, int]]:
             break
         seq = contract.opcodes[idx : idx + increment]
         is_entry = is_entry_seq(seq, contract.lang)
+        is_gt, replace = is_gt_seq(seq, contract.lang)
         if is_entry:
             try:
                 selector = int(contract.opcodes[idx + 2], 16)

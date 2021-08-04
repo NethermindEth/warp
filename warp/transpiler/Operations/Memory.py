@@ -10,13 +10,14 @@ from transpiler.Imports import Imports
 
 class MemoryAccess(Operation):
     def proceed(self, state):
+        address = state.stack.pop()
         try:
-            address = state.stack.pop().get_low_bits()
+            addr = address.get_low_bits()
         except:
-            address = f"{state.stack.pop()}.low"
-        access_operations = self._do_memory_access(address, state)
+            addr = f"{address}.low"
+        access_operations = self._do_memory_access(addr, state)
         return [
-            f"let (local msize) = update_msize{{range_check_ptr=range_check_ptr}}(msize, {address}, {self.access_width()})",
+            f"let (local msize) = update_msize{{range_check_ptr=range_check_ptr}}(msize, {addr}, {self.access_width()})",
             "local memory_dict : DictAccess* = memory_dict",
             "local msize = msize",
             *access_operations,

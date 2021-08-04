@@ -2,7 +2,7 @@ WARP_TEST_GROUP_PREFIX="transpilation/run-cairo"
 WARP_TEST_DIR="./tests/cairo"
 WARP_TEST_SUFFIX=".cairo"
 
-cairo_src_dir="./cairo-src"
+cairo_src_dir="./warp/cairo-src"
 
 make_input_option() {
     input_file="$1.input.json"

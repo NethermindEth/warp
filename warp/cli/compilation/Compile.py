@@ -13,12 +13,11 @@ sys.path.append(os.path.join(WARP_ROOT, "src"))
 from cli.compilation.utils import (
     get_selectors,
     get_selector_jumpdests,
-    is_entry_seq,
-    is_payable_check_seq,
 )
 from cli.compilation.Disasm import InstructionIterator
 from cli.compilation.Contract import Contract, Language
 import solcx
+artifacts_dir = os.path.join(os.path.abspath("."), "artifacts")
 
 
 class Vyper(Contract):
@@ -27,7 +26,7 @@ class Vyper(Contract):
         self.lang = Language.VYPER
         self.compiler_path = self.get_compiler_dir()
         self.source_path = source_path
-        self.source_name = os.path.basename(source_path)
+        self.source_name = os.path.basename(source_path)[:-3]
         self.source_base_dir = os.path.dirname(self.source_path)
         self.version = self.get_compiler_ver(self.compiler_path)
         self.code = self.get_code(self.source_path)
@@ -154,15 +153,14 @@ class Solidity(Contract):
         self.lang = Language.SOL
         self.compiler_path = self.get_compiler_dir()
         self.source_path = source_path
-        self.source_name = os.path.basename(source_path)
+        self.source_name = os.path.basename(source_path)[:-4]
         self.source_base_dir = os.path.dirname(self.source_path)
-        self.artifacts_dir = os.path.join(os.path.expanduser("~"), ".warp", "artifacts")
+        self.artifacts_dir = artifacts_dir
         self.code = self.get_code(source_path)
         self.compiled, self.version = self.compile_contract(self.code)
         self.bytecode = self.get_bytecode(self.compiled, self.version)
         self.abi = self.get_abi(self.code)
         self.opcodes = self.get_opcodes()
-        print(len(self.opcodes))
         self.selectors = get_selectors(self.abi)
         self.selector_jumpdests = get_selector_jumpdests(self)
         self.web3_interface = w3.eth.contract(abi=self.abi, bytecode=self.bytecode)
@@ -202,8 +200,6 @@ class Solidity(Contract):
             compiled = solcx.compile_source(
                 code,
                 metadata_hash="none",
-                optimize=True,
-                optimize_runs=1000,
                 output_values=["bin-runtime"],
                 solc_version=source_version,
             )
@@ -235,7 +231,7 @@ class Solidity(Contract):
                 raise Exception("There were more than one non-interface abis")
         os.chdir(pwd)
         with open(
-            os.path.join(self.artifacts_dir, f"{self.source_name[:-4]}_abi.json"),
+            os.path.join(self.artifacts_dir, f"{self.source_name}_sol_abi.json"),
             "w",
         ) as f:
             json.dump(abi_succinct, f, indent=4)
@@ -272,7 +268,7 @@ class Solidity(Contract):
                     bytecode = bytecode[:idx]
 
         with open(
-            os.path.join(self.artifacts_dir, f"{self.source_name[:-4]}_bytecode"),
+            os.path.join(self.artifacts_dir, f"{self.source_name}_bytecode"),
             "w",
         ) as f:
             f.write(bytecode)

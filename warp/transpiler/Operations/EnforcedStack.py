@@ -5,6 +5,7 @@ import os
 
 from transpiler.StackValue import Uint256, UINT256_BOUND
 from transpiler.Operation import Operation
+
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../../../.."))
 
 
@@ -14,6 +15,9 @@ def get_arg(state, arg_spec):
     try:
         return arg.get_low_bits() if arg_spec == "l" else arg
     except AttributeError:
+        if isinstance(arg, Uint256):
+            low, _ = arg.get_low_high()
+            return f"{low}" if arg_spec == "l" else arg
         return f"{arg}.low" if arg_spec == "l" else arg
 
 
