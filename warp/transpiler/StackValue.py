@@ -48,7 +48,6 @@ class Uint256(StackValue):
         high, low = divmod(self.x, UINT128_BOUND)
         return low, high
 
-
 class Str(StackValue):
     def __init__(self, x: str):
         self.x = x

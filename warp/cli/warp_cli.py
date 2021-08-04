@@ -3,12 +3,14 @@ import asyncio
 import click
 from enum import Enum
 from cli.compilation.Compile import Vyper, Solidity
-from cli.commands import _transpile, _call, _invoke
+from cli.commands import _transpile, _call, _invoke, _deploy, _status
 
 
 class Command(Enum):
     INVOKE = 0
     CALL = 1
+    DEPLOY = 2
+    STATUS = 3
 
 
 @click.group()
@@ -45,16 +47,14 @@ return_args = {}
 @warp.command()
 @click.option("--contract", required=True)
 @click.option("--address", required=True)
-@click.option("--abi", required=True, type=click.Path(exists=True))
 @click.option("--function", required=True)
 @click.option("--inputs", required=True)
-def invoke(contract, address, abi, function, inputs):
+def invoke(contract, address, function, inputs):
     inputs = inputs.split(" ")
     for idx, input in enumerate(inputs):
         if input.isdigit():
             inputs[idx] = int(input)
     return_args["address"] = address
-    return_args["abi"] = abi
     return_args["function"] = function
     return_args["contract"] = contract
     return_args["inputs"] = inputs
@@ -69,12 +69,19 @@ def call(address, abi, function):
     _call(address, abi, function)
 
 
+@warp.command()
+@click.argument("contract", nargs=1, required=True, type=click.Path(exists=True))
+def deploy(contract):
+    return_args["contract"] = contract
+    return_args["type"] = Command.DEPLOY
+
+@warp.command()
+@click.argument("status", nargs=1, required=True)
+def status(status):
+    return_args["id"] = status
+    return_args["type"] = Command.STATUS
+
 cli = click.CommandCollection(sources=[warp])
-
-
-async def test():
-    await asyncio.sleep(1)
-    print("DONE!")
 
 
 def main():
@@ -87,8 +94,11 @@ def main():
                     _invoke(
                         return_args["contract"],
                         return_args["address"],
-                        return_args["abi"],
                         return_args["function"],
                         return_args["inputs"],
                     )
                 )
+            elif return_args["type"] is Command.DEPLOY:
+                asyncio.run(_deploy(return_args["contract"]))
+            elif return_args["type"] is Command.STATUS:
+                asyncio.run(_status(return_args["id"]))

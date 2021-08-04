@@ -4,11 +4,15 @@ TEMPLATES := $(wildcard $(GOLDEN_DIR)/*.template)
 BATS_FILES := $(patsubst $(GOLDEN_DIR)/%.template,$(BATS_DIR)/test-%.bats,$(TEMPLATES))
 TEST_FILES := $(shell find ./tests -type f ! -name '*.temp*') # exclude temporary files
 
+warp:
+	python setup.py install
+.PHONY: warp
+
 test: test_bats test_starknet
 .PHONY: test
 
 test_bats: $(BATS_FILES)
-	bats $^ $(BATS_ARGS)
+	bats -j 8 $^ $(BATS_ARGS)
 .PHONY: test_bats
 
 test_starknet:
