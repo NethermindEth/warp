@@ -45,10 +45,10 @@ return_args = {}
 
 
 @warp.command()
-@click.option("--contract", required=True)
-@click.option("--address", required=True)
-@click.option("--function", required=True)
-@click.option("--inputs", required=True)
+@click.option("--contract", required=True, help="path to transpiled cairo contract")
+@click.option("--address", required=True, help="contract address")
+@click.option("--function", required=True, help="the name of the function to invoke, as defined in the SOLIDITY/VYPER contract")
+@click.option("--inputs", required=True, help="Function Arguments")
 def invoke(contract, address, function, inputs):
     inputs = inputs.split(" ")
     for idx, input in enumerate(inputs):
@@ -72,6 +72,9 @@ def call(address, abi, function):
 @warp.command()
 @click.argument("contract", nargs=1, required=True, type=click.Path(exists=True))
 def deploy(contract):
+    """
+    Name of the Cairo contract to deploy
+    """
     return_args["contract"] = contract
     return_args["type"] = Command.DEPLOY
 
