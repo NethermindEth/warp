@@ -12,7 +12,7 @@ test: test_bats test_starknet
 .PHONY: test
 
 test_bats: $(BATS_FILES)
-	bats -j 20 $^ $(BATS_ARGS)
+	bats -j 8 $^ $(BATS_ARGS)
 .PHONY: test_bats
 
 test_starknet:
