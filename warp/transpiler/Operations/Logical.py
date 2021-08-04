@@ -5,6 +5,7 @@ from transpiler.Operations.Unary import Unary
 
 class IsZero(Unary):
     def bind_to_res(self, operand, res, evaluatable):
+        print("HELLo")
         if not evaluatable:
             return f"let (local {res} : Uint256) = is_zero({operand})", False, 0
         else:
@@ -22,6 +23,7 @@ class IsZero(Unary):
 
 class Eq(Binary):
     def bind_to_res(self, op1, op2, res, evaluatable):
+        print("HELLo")
         if not evaluatable:
             return f"let (local {res} : Uint256) = is_eq({op1}, {op2})", False, 0
         else:
@@ -39,6 +41,7 @@ class Eq(Binary):
 
 class Lt(Binary):
     def bind_to_res(self, op1, op2, res, evaluatable):
+        print("HELLo")
         if not evaluatable:
             return f"let (local {res} : Uint256) = is_lt({op1}, {op2})", False, 0
         else:
@@ -56,6 +59,7 @@ class Lt(Binary):
 
 class Gt(Binary):
     def bind_to_res(self, op1, op2, res, evaluatable):
+        print("HELLo")
         if not evaluatable:
             return f"let (local {res} : Uint256) = is_gt({op1}, {op2})", False, 0
         else:
@@ -73,6 +77,7 @@ class Gt(Binary):
 
 class Slt(Binary):
     def bind_to_res(self, op1, op2, res, evaluatable):
+        print("HELLo")
         if not evaluatable:
             return f"let (local {res} : Uint256) = slt({op1}, {op2})", False, 0
         else:
@@ -95,6 +100,7 @@ class Slt(Binary):
 
 class Sgt(Binary):
     def bind_to_res(self, op1, op2, res, evaluatable):
+        print("HELLo")
         if not evaluatable:
             return f"let (local {res} : Uint256) = sgt({op1}, {op2})", False, 0
         else:
