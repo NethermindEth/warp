@@ -9,6 +9,7 @@ You'll need to install Cairo first. Make sure your using a python venv with pyth
 sh build.sh
 pip install cairo-lang-0.3.0.zip
 ```
+Once that is finished, run `make warp` in the project root directory.
 
 # Usage
 
