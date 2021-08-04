@@ -4,11 +4,16 @@ Warp brings Ethereum Virtual Machine to StarkNet, making it possible to run Ethe
 
 # Installation
 
-You'll need to install Cairo first. Make sure your using a python venv with python 3.7. Cairo depends on GMP, which can be installed with `sudo apt install -y libgmp3-dev` or `brew install gmp` if you're on Mac. Once you've done that, head into vendor/cairo-lang and run:
+You'll need to install Cairo first. Make sure your using a python venv with python 3.7. Cairo depends on GMP, which can be installed with `sudo apt install -y libgmp3-dev` or `brew install gmp` if you're on Mac. You'll need to install the following too:
+```
+pip install ecdsa fastecdsa sympy
+```
+Once you've done that, head into vendor/cairo-lang and run:
 ```
 sh build.sh
 pip install cairo-lang-0.3.0.zip
 ```
+Once that is finished, run `make warp` in the project repo's root directory.
 
 # Usage
 
