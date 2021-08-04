@@ -1,6 +1,6 @@
 # Warp
 
-Warp brings the Ethereum Virtual Machine to StarkNet, making it possible to run Ethereum [Smart Contracts](https://ethereum.org/en/developers/docs/smart-contracts/) as StarkNet contracts.
+Warp brings EVM compatiable languages to StarkNet, making it possible to transpile Ethereum smart contracts to Cario, and use them on StarkNet.
 
 # Installation
 
