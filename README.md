@@ -12,4 +12,4 @@ pip install cairo-lang-0.3.0.zip
 
 # Usage
 
-You can transpile your Solidity/Vyper contracts with `warp transpile CONTRACT`. To deploy the transpiled Cairo contract to Starknet use: `warp deploy CONTRACT.cairo`. To invoke a public/external method use: `warp invoke --contract CONTRACT.cairo --address ADDRESS --function FUNCTION_NAME --inputs "INPUTS"`. The `--inputs` flag requires its argument to be a string and have each value separated by a space. 
+You can transpile your Solidity/Vyper contracts with `warp transpile CONTRACT`. To deploy the transpiled Cairo contract to Starknet use: `warp deploy CONTRACT.cairo`. To invoke a public/external method use: `warp invoke --contract CONTRACT.cairo --address ADDRESS --function FUNCTION_NAME --inputs "INPUTS"`. The `--inputs` flag requires its argument to be a string and have each value separated by a space. You can check the status of your transaction with `warp status TX_ID`.
