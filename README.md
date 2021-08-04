@@ -1,10 +1,10 @@
 # Warp
 
-Warp brings Ethereum Virtual Machine to StarkNet, making it possible to run Ethereum [Smart Contracts](https://ethereum.org/en/developers/docs/smart-contracts/) as StarkNet contracts.
+Warp brings the Ethereum Virtual Machine to StarkNet, making it possible to run Ethereum [Smart Contracts](https://ethereum.org/en/developers/docs/smart-contracts/) as StarkNet contracts.
 
 # Installation
 
-You'll need to install Cairo first. Make sure your using a python venv with python 3.7. Cairo depends on GMP, which can be installed with `sudo apt install -y libgmp3-dev` or `brew install gmp` if you're on Mac. You'll need to install the following too:
+You'll need to install Cairo first. Make sure you're using a python venv with python 3.7. Cairo depends on GMP, which can be installed with `sudo apt install -y libgmp3-dev` or `brew install gmp` if you're on Mac. You'll need to install the following too:
 ```
 pip install ecdsa fastecdsa sympy
 ```
