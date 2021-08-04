@@ -1,9 +1,28 @@
-pragma solidity 0.8.6;
+/**
+ *Submitted for verification at Etherscan.io on 2017-12-12
+*/
 
-contract WARP {
-    string public name        = "Warrpped Ether";
-    string public symbol      = "WARP";
-    uint8  public decimals    = 18;
+// Copyright (C) 2015, 2016, 2017 Dapphub
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+pragma solidity =0.4.18;
+
+contract WETH9 {
+    string public name     = "Wrapped Ether";
+    string public symbol   = "WETH";
+    uint8  public decimals = 18;
     uint256 public totalSupply= 100000000000000000000000000000000000;
 
     mapping (address => uint)                       public  balanceOf;
@@ -17,6 +36,7 @@ contract WARP {
         balanceOf[sender] -= wad;
     }
 
+
     function approve(address guy, uint wad, address sender) public returns (bool) {
         allowance[sender][guy] = wad;
         return true;
@@ -27,7 +47,7 @@ contract WARP {
         returns (bool)
     {
 
-        if (src != sender) {
+        if (src != sender && allowance[src][sender] != uint(-1)) {
             require(allowance[src][sender] >= wad);
             allowance[src][sender] -= wad;
         }

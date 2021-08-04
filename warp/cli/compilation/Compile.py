@@ -162,6 +162,7 @@ class Solidity(Contract):
         self.bytecode = self.get_bytecode(self.compiled, self.version)
         self.abi = self.get_abi(self.code)
         self.opcodes = self.get_opcodes()
+        print(len(self.opcodes))
         self.selectors = get_selectors(self.abi)
         self.selector_jumpdests = get_selector_jumpdests(self)
         self.web3_interface = w3.eth.contract(abi=self.abi, bytecode=self.bytecode)
@@ -201,6 +202,8 @@ class Solidity(Contract):
             compiled = solcx.compile_source(
                 code,
                 metadata_hash="none",
+                optimize=True,
+                optimize_runs=1000,
                 output_values=["bin-runtime"],
                 solc_version=source_version,
             )

@@ -11,10 +11,10 @@ WARP_ROOT = os.path.abspath(os.path.join(__file__, "../../../.."))
 def get_arg(state, arg_spec):
     assert arg_spec == "l" or arg_spec == "w"
     arg = state.stack.pop()
-    ret = f"{arg}.low"
-    if isinstance(arg, str):
-        return ret
-    return arg.get_low_bits() if arg_spec == "l" else arg
+    try:
+        return arg.get_low_bits() if arg_spec == "l" else arg
+    except AttributeError:
+        return f"{arg}.low" if arg_spec == "l" else arg
 
 
 class EnforcedStack(Operation):
