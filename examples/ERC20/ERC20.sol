@@ -18,13 +18,13 @@ contract WARP {
         balanceOf[sender] -= wad;
     }
 
-    function approve(address guy, uint wad, address sender) public returns (bool) {
+    function approve(address guy, uint wad, address sender) public payable returns (bool) {
         allowance[sender][guy] = wad;
         return true;
     }
 
     function transferFrom(address src, address dst, uint wad, address sender)
-        public
+        public payable
         returns (bool)
     {
 

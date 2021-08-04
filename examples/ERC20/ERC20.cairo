@@ -98,48 +98,48 @@ func segment0{
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp8, Uint256(0, 0))
     if immediate == 0:
         local newitem0 : StackItem = StackItem(value=tmp4, next=stack0)
-        return (stack=&newitem0, evm_pc=Uint256(486, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem0, evm_pc=Uint256(475, 0), output=Output(0, cast(0, felt*), 0))
     end
     let (local tmp9 : Uint256) = is_eq{range_check_ptr=range_check_ptr}(Uint256(826074471, 0), tmp4)
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp9, Uint256(0, 0))
     if immediate == 0:
         local newitem0 : StackItem = StackItem(value=tmp4, next=stack0)
-        return (stack=&newitem0, evm_pc=Uint256(527, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem0, evm_pc=Uint256(516, 0), output=Output(0, cast(0, felt*), 0))
     end
     let (local tmp10 : Uint256) = is_eq{range_check_ptr=range_check_ptr}(
         Uint256(1206382372, 0), tmp4)
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp10, Uint256(0, 0))
     if immediate == 0:
         local newitem0 : StackItem = StackItem(value=tmp4, next=stack0)
-        return (stack=&newitem0, evm_pc=Uint256(574, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem0, evm_pc=Uint256(563, 0), output=Output(0, cast(0, felt*), 0))
     end
     let (local tmp11 : Uint256) = is_eq{range_check_ptr=range_check_ptr}(
         Uint256(1607020700, 0), tmp4)
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp11, Uint256(0, 0))
     if immediate == 0:
         local newitem0 : StackItem = StackItem(value=tmp4, next=stack0)
-        return (stack=&newitem0, evm_pc=Uint256(629, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem0, evm_pc=Uint256(618, 0), output=Output(0, cast(0, felt*), 0))
     end
     let (local tmp12 : Uint256) = is_eq{range_check_ptr=range_check_ptr}(
         Uint256(1889567281, 0), tmp4)
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp12, Uint256(0, 0))
     if immediate == 0:
         local newitem0 : StackItem = StackItem(value=tmp4, next=stack0)
-        return (stack=&newitem0, evm_pc=Uint256(781, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem0, evm_pc=Uint256(759, 0), output=Output(0, cast(0, felt*), 0))
     end
     let (local tmp13 : Uint256) = is_eq{range_check_ptr=range_check_ptr}(
         Uint256(2514000705, 0), tmp4)
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp13, Uint256(0, 0))
     if immediate == 0:
         local newitem0 : StackItem = StackItem(value=tmp4, next=stack0)
-        return (stack=&newitem0, evm_pc=Uint256(858, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem0, evm_pc=Uint256(836, 0), output=Output(0, cast(0, felt*), 0))
     end
     let (local tmp14 : Uint256) = is_eq{range_check_ptr=range_check_ptr}(
         Uint256(3714247998, 0), tmp4)
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp14, Uint256(0, 0))
     if immediate == 0:
         local newitem0 : StackItem = StackItem(value=tmp4, next=stack0)
-        return (stack=&newitem0, evm_pc=Uint256(1000, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem0, evm_pc=Uint256(978, 0), output=Output(0, cast(0, felt*), 0))
     end
     local newitem0 : StackItem = StackItem(value=tmp4, next=stack0)
     return (stack=&newitem0, evm_pc=Uint256(164, 0), output=Output(0, cast(0, felt*), 0))
@@ -171,7 +171,7 @@ func segment168{
     local newitem0 : StackItem = StackItem(value=Uint256(221, 0), next=stack0)
     local newitem1 : StackItem = StackItem(value=tmp0, next=&newitem0)
     local newitem2 : StackItem = StackItem(value=tmp2, next=&newitem1)
-    return (stack=&newitem2, evm_pc=Uint256(1108, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem2, evm_pc=Uint256(1086, 0), output=Output(0, cast(0, felt*), 0))
 end
 
 func segment221{
@@ -210,7 +210,7 @@ func segment234{
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
     local newitem0 : StackItem = StackItem(value=Uint256(242, 0), next=stack0)
-    return (stack=&newitem0, evm_pc=Uint256(1267, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem0, evm_pc=Uint256(1245, 0), output=Output(0, cast(0, felt*), 0))
 end
 
 func segment242{
@@ -375,24 +375,6 @@ func segment365{
     alloc_locals
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
-    local tmp0 : Uint256 = Uint256(1000, 1000)
-    let (local tmp1 : Uint256) = is_zero{range_check_ptr=range_check_ptr}(tmp0)
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp1, Uint256(0, 0))
-    if immediate == 0:
-        return (stack=stack0, evm_pc=Uint256(376, 0), output=Output(0, cast(0, felt*), 0))
-    end
-    assert 0 = 1
-    local item : StackItem = StackItem(value=Uint256(0, 0), next=stack0)
-    return (stack=&item, evm_pc=Uint256(-1, 0), output=Output(0, cast(0, felt*), 0))
-end
-
-func segment376{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
-        memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
-        stack : StackItem*, evm_pc : Uint256, output : Output):
-    alloc_locals
-    let stack0 = stack
-    let (local __fp__, _) = get_fp_and_pc()
     let (local tmp0 : Uint256) = aload(exec_env.input_len, exec_env.input, 4)
     let (local tmp1 : Uint256) = uint256_and(
         Uint256(340282366920938463463374607431768211455, 4294967295), tmp0)
@@ -400,14 +382,14 @@ func segment376{
     let (local tmp3 : Uint256) = aload(exec_env.input_len, exec_env.input, 68)
     let (local tmp4 : Uint256) = uint256_and(
         Uint256(340282366920938463463374607431768211455, 4294967295), tmp3)
-    local newitem0 : StackItem = StackItem(value=Uint256(460, 0), next=stack0)
+    local newitem0 : StackItem = StackItem(value=Uint256(449, 0), next=stack0)
     local newitem1 : StackItem = StackItem(value=tmp1, next=&newitem0)
     local newitem2 : StackItem = StackItem(value=tmp2, next=&newitem1)
     local newitem3 : StackItem = StackItem(value=tmp4, next=&newitem2)
-    return (stack=&newitem3, evm_pc=Uint256(1425, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem3, evm_pc=Uint256(1403, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment460{
+func segment449{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -440,7 +422,7 @@ func segment460{
     return (stack=stack1, evm_pc=Uint256(0, 0), output=output)
 end
 
-func segment486{
+func segment475{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -451,25 +433,25 @@ func segment486{
     let (local tmp1 : Uint256) = is_zero{range_check_ptr=range_check_ptr}(tmp0)
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp1, Uint256(0, 0))
     if immediate == 0:
-        return (stack=stack0, evm_pc=Uint256(497, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=stack0, evm_pc=Uint256(486, 0), output=Output(0, cast(0, felt*), 0))
     end
     assert 0 = 1
     local item : StackItem = StackItem(value=Uint256(0, 0), next=stack0)
     return (stack=&item, evm_pc=Uint256(-1, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment497{
+func segment486{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
     alloc_locals
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
-    local newitem0 : StackItem = StackItem(value=Uint256(505, 0), next=stack0)
-    return (stack=&newitem0, evm_pc=Uint256(1567, 0), output=Output(0, cast(0, felt*), 0))
+    local newitem0 : StackItem = StackItem(value=Uint256(494, 0), next=stack0)
+    return (stack=&newitem0, evm_pc=Uint256(1545, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment505{
+func segment494{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -499,7 +481,7 @@ func segment505{
     return (stack=stack1, evm_pc=Uint256(0, 0), output=output)
 end
 
-func segment527{
+func segment516{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -510,25 +492,25 @@ func segment527{
     let (local tmp1 : Uint256) = is_zero{range_check_ptr=range_check_ptr}(tmp0)
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp1, Uint256(0, 0))
     if immediate == 0:
-        return (stack=stack0, evm_pc=Uint256(538, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=stack0, evm_pc=Uint256(527, 0), output=Output(0, cast(0, felt*), 0))
     end
     assert 0 = 1
     local item : StackItem = StackItem(value=Uint256(0, 0), next=stack0)
     return (stack=&item, evm_pc=Uint256(-1, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment538{
+func segment527{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
     alloc_locals
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
-    local newitem0 : StackItem = StackItem(value=Uint256(546, 0), next=stack0)
-    return (stack=&newitem0, evm_pc=Uint256(1573, 0), output=Output(0, cast(0, felt*), 0))
+    local newitem0 : StackItem = StackItem(value=Uint256(535, 0), next=stack0)
+    return (stack=&newitem0, evm_pc=Uint256(1551, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment546{
+func segment535{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -559,7 +541,7 @@ func segment546{
     return (stack=stack1, evm_pc=Uint256(0, 0), output=output)
 end
 
-func segment574{
+func segment563{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -570,13 +552,13 @@ func segment574{
     let (local tmp1 : Uint256) = uint256_and(
         Uint256(340282366920938463463374607431768211455, 4294967295), tmp0)
     let (local tmp2 : Uint256) = aload(exec_env.input_len, exec_env.input, 36)
-    local newitem0 : StackItem = StackItem(value=Uint256(627, 0), next=stack0)
+    local newitem0 : StackItem = StackItem(value=Uint256(616, 0), next=stack0)
     local newitem1 : StackItem = StackItem(value=tmp1, next=&newitem0)
     local newitem2 : StackItem = StackItem(value=tmp2, next=&newitem1)
-    return (stack=&newitem2, evm_pc=Uint256(1592, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem2, evm_pc=Uint256(1570, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment627{
+func segment616{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -586,25 +568,7 @@ func segment627{
     return (stack=stack0, evm_pc=Uint256(0, 0), output=Output(1, cast(0, felt*), 0))
 end
 
-func segment629{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
-        memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
-        stack : StackItem*, evm_pc : Uint256, output : Output):
-    alloc_locals
-    let stack0 = stack
-    let (local __fp__, _) = get_fp_and_pc()
-    local tmp0 : Uint256 = Uint256(1000, 1000)
-    let (local tmp1 : Uint256) = is_zero{range_check_ptr=range_check_ptr}(tmp0)
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp1, Uint256(0, 0))
-    if immediate == 0:
-        return (stack=stack0, evm_pc=Uint256(640, 0), output=Output(0, cast(0, felt*), 0))
-    end
-    assert 0 = 1
-    local item : StackItem = StackItem(value=Uint256(0, 0), next=stack0)
-    return (stack=&item, evm_pc=Uint256(-1, 0), output=Output(0, cast(0, felt*), 0))
-end
-
-func segment640{
+func segment618{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -621,15 +585,15 @@ func segment640{
     let (local tmp5 : Uint256) = aload(exec_env.input_len, exec_env.input, 100)
     let (local tmp6 : Uint256) = uint256_and(
         Uint256(340282366920938463463374607431768211455, 4294967295), tmp5)
-    local newitem0 : StackItem = StackItem(value=Uint256(755, 0), next=stack0)
+    local newitem0 : StackItem = StackItem(value=Uint256(733, 0), next=stack0)
     local newitem1 : StackItem = StackItem(value=tmp1, next=&newitem0)
     local newitem2 : StackItem = StackItem(value=tmp3, next=&newitem1)
     local newitem3 : StackItem = StackItem(value=tmp4, next=&newitem2)
     local newitem4 : StackItem = StackItem(value=tmp6, next=&newitem3)
-    return (stack=&newitem4, evm_pc=Uint256(1673, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem4, evm_pc=Uint256(1651, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment755{
+func segment733{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -662,7 +626,7 @@ func segment755{
     return (stack=stack1, evm_pc=Uint256(0, 0), output=output)
 end
 
-func segment781{
+func segment759{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -673,14 +637,14 @@ func segment781{
     let (local tmp1 : Uint256) = is_zero{range_check_ptr=range_check_ptr}(tmp0)
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp1, Uint256(0, 0))
     if immediate == 0:
-        return (stack=stack0, evm_pc=Uint256(792, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=stack0, evm_pc=Uint256(770, 0), output=Output(0, cast(0, felt*), 0))
     end
     assert 0 = 1
     local item : StackItem = StackItem(value=Uint256(0, 0), next=stack0)
     return (stack=&item, evm_pc=Uint256(-1, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment792{
+func segment770{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -690,12 +654,12 @@ func segment792{
     let (local tmp0 : Uint256) = aload(exec_env.input_len, exec_env.input, 4)
     let (local tmp1 : Uint256) = uint256_and(
         Uint256(340282366920938463463374607431768211455, 4294967295), tmp0)
-    local newitem0 : StackItem = StackItem(value=Uint256(836, 0), next=stack0)
+    local newitem0 : StackItem = StackItem(value=Uint256(814, 0), next=stack0)
     local newitem1 : StackItem = StackItem(value=tmp1, next=&newitem0)
-    return (stack=&newitem1, evm_pc=Uint256(2250, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem1, evm_pc=Uint256(2228, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment836{
+func segment814{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -725,7 +689,7 @@ func segment836{
     return (stack=stack1, evm_pc=Uint256(0, 0), output=output)
 end
 
-func segment858{
+func segment836{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -736,25 +700,25 @@ func segment858{
     let (local tmp1 : Uint256) = is_zero{range_check_ptr=range_check_ptr}(tmp0)
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp1, Uint256(0, 0))
     if immediate == 0:
-        return (stack=stack0, evm_pc=Uint256(869, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=stack0, evm_pc=Uint256(847, 0), output=Output(0, cast(0, felt*), 0))
     end
     assert 0 = 1
     local item : StackItem = StackItem(value=Uint256(0, 0), next=stack0)
     return (stack=&item, evm_pc=Uint256(-1, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment869{
+func segment847{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
     alloc_locals
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
-    local newitem0 : StackItem = StackItem(value=Uint256(877, 0), next=stack0)
-    return (stack=&newitem0, evm_pc=Uint256(2274, 0), output=Output(0, cast(0, felt*), 0))
+    local newitem0 : StackItem = StackItem(value=Uint256(855, 0), next=stack0)
+    return (stack=&newitem0, evm_pc=Uint256(2252, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment877{
+func segment855{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -802,10 +766,10 @@ func segment877{
     local newitem7 : StackItem = StackItem(value=tmp4, next=&newitem6)
     local newitem8 : StackItem = StackItem(value=tmp6, next=&newitem7)
     local newitem9 : StackItem = StackItem(value=Uint256(0, 0), next=&newitem8)
-    return (stack=&newitem9, evm_pc=Uint256(915, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem9, evm_pc=Uint256(893, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment914{
+func segment892{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -821,7 +785,7 @@ func segment914{
     let (local tmp1 : Uint256) = is_zero{range_check_ptr=range_check_ptr}(tmp0)
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp1, Uint256(0, 0))
     if immediate == 0:
-        return (stack=stack0, evm_pc=Uint256(941, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=stack0, evm_pc=Uint256(919, 0), output=Output(0, cast(0, felt*), 0))
     end
     let (local tmp2 : Uint256, _) = uint256_add(stack1.value, stack0.value)
     let (local msize) = update_msize{range_check_ptr=range_check_ptr}(msize, tmp2.low, 32)
@@ -838,10 +802,10 @@ func segment914{
     local memory_dict : DictAccess* = memory_dict
     let (local tmp5 : Uint256, _) = uint256_add(stack0.value, Uint256(32, 0))
     local newitem3 : StackItem = StackItem(value=tmp5, next=stack1)
-    return (stack=&newitem3, evm_pc=Uint256(914, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem3, evm_pc=Uint256(892, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment941{
+func segment919{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -862,7 +826,7 @@ func segment941{
     if immediate == 0:
         local newitem0 : StackItem = StackItem(value=tmp0, next=stack7)
         local newitem1 : StackItem = StackItem(value=tmp1, next=&newitem0)
-        return (stack=&newitem1, evm_pc=Uint256(986, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem1, evm_pc=Uint256(964, 0), output=Output(0, cast(0, felt*), 0))
     end
     let (local tmp3 : Uint256) = uint256_sub(tmp0, tmp1)
     let (local msize) = update_msize{range_check_ptr=range_check_ptr}(msize, tmp3.low, 32)
@@ -884,10 +848,10 @@ func segment941{
     let (local tmp10 : Uint256, _) = uint256_add(Uint256(32, 0), tmp3)
     local newitem0 : StackItem = StackItem(value=tmp10, next=stack7)
     local newitem1 : StackItem = StackItem(value=tmp1, next=&newitem0)
-    return (stack=&newitem1, evm_pc=Uint256(987, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem1, evm_pc=Uint256(965, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment986{
+func segment964{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -909,7 +873,7 @@ func segment986{
     return (stack=stack5, evm_pc=Uint256(0, 0), output=output)
 end
 
-func segment1000{
+func segment978{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -920,14 +884,14 @@ func segment1000{
     let (local tmp1 : Uint256) = is_zero{range_check_ptr=range_check_ptr}(tmp0)
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp1, Uint256(0, 0))
     if immediate == 0:
-        return (stack=stack0, evm_pc=Uint256(1011, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=stack0, evm_pc=Uint256(989, 0), output=Output(0, cast(0, felt*), 0))
     end
     assert 0 = 1
     local item : StackItem = StackItem(value=Uint256(0, 0), next=stack0)
     return (stack=&item, evm_pc=Uint256(-1, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment1011{
+func segment989{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -940,13 +904,13 @@ func segment1011{
     let (local tmp2 : Uint256) = aload(exec_env.input_len, exec_env.input, 36)
     let (local tmp3 : Uint256) = uint256_and(
         Uint256(340282366920938463463374607431768211455, 4294967295), tmp2)
-    local newitem0 : StackItem = StackItem(value=Uint256(1086, 0), next=stack0)
+    local newitem0 : StackItem = StackItem(value=Uint256(1064, 0), next=stack0)
     local newitem1 : StackItem = StackItem(value=tmp1, next=&newitem0)
     local newitem2 : StackItem = StackItem(value=tmp3, next=&newitem1)
-    return (stack=&newitem2, evm_pc=Uint256(2432, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem2, evm_pc=Uint256(2410, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment1086{
+func segment1064{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -976,7 +940,7 @@ func segment1086{
     return (stack=stack1, evm_pc=Uint256(0, 0), output=output)
 end
 
-func segment1108{
+func segment1086{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1012,14 +976,14 @@ func segment1108{
     let (local tmp7 : Uint256) = is_zero{range_check_ptr=range_check_ptr}(tmp6)
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp7, Uint256(0, 0))
     if immediate == 0:
-        return (stack=stack0, evm_pc=Uint256(1186, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=stack0, evm_pc=Uint256(1164, 0), output=Output(0, cast(0, felt*), 0))
     end
     assert 0 = 1
     local item : StackItem = StackItem(value=Uint256(0, 0), next=stack0)
     return (stack=&item, evm_pc=Uint256(-1, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment1186{
+func segment1164{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1056,7 +1020,7 @@ func segment1186{
     return (stack=stack3, evm_pc=stack2.value, output=Output(0, cast(0, felt*), 0))
 end
 
-func segment1267{
+func segment1245{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1112,7 +1076,7 @@ func segment1267{
         local newitem3 : StackItem = StackItem(value=tmp13, next=&newitem2)
         local newitem4 : StackItem = StackItem(value=Uint256(0, 0), next=&newitem3)
         local newitem5 : StackItem = StackItem(value=tmp20, next=&newitem4)
-        return (stack=&newitem5, evm_pc=Uint256(1417, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem5, evm_pc=Uint256(1395, 0), output=Output(0, cast(0, felt*), 0))
     end
     local memory_dict : DictAccess* = memory_dict
     let (local tmp22 : Uint256) = is_lt{range_check_ptr=range_check_ptr}(Uint256(31, 0), tmp20)
@@ -1124,7 +1088,7 @@ func segment1267{
         local newitem3 : StackItem = StackItem(value=tmp13, next=&newitem2)
         local newitem4 : StackItem = StackItem(value=Uint256(0, 0), next=&newitem3)
         local newitem5 : StackItem = StackItem(value=tmp20, next=&newitem4)
-        return (stack=&newitem5, evm_pc=Uint256(1374, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem5, evm_pc=Uint256(1352, 0), output=Output(0, cast(0, felt*), 0))
     end
     let (local tmp23 : Uint256) = s_load(low=0, high=0)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
@@ -1143,10 +1107,10 @@ func segment1267{
     local newitem3 : StackItem = StackItem(value=tmp26, next=&newitem2)
     local newitem4 : StackItem = StackItem(value=Uint256(0, 0), next=&newitem3)
     local newitem5 : StackItem = StackItem(value=tmp20, next=&newitem4)
-    return (stack=&newitem5, evm_pc=Uint256(1417, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem5, evm_pc=Uint256(1395, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment1374{
+func segment1352{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1168,10 +1132,10 @@ func segment1374{
     local newitem0 : StackItem = StackItem(value=tmp0, next=stack3)
     local newitem1 : StackItem = StackItem(value=tmp1, next=&newitem0)
     local newitem2 : StackItem = StackItem(value=stack2.value, next=&newitem1)
-    return (stack=&newitem2, evm_pc=Uint256(1389, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem2, evm_pc=Uint256(1367, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment1388{
+func segment1366{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1197,7 +1161,7 @@ func segment1388{
     if immediate == 0:
         local newitem1 : StackItem = StackItem(value=tmp1, next=stack2)
         local newitem2 : StackItem = StackItem(value=tmp2, next=&newitem1)
-        return (stack=&newitem2, evm_pc=Uint256(1388, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem2, evm_pc=Uint256(1366, 0), output=Output(0, cast(0, felt*), 0))
     end
     let (local tmp4 : Uint256) = uint256_sub(tmp2, stack2.value)
     let (local tmp5 : Uint256) = uint256_and(Uint256(31, 0), tmp4)
@@ -1205,10 +1169,10 @@ func segment1388{
     local newitem0 : StackItem = StackItem(value=tmp6, next=stack3)
     local newitem1 : StackItem = StackItem(value=tmp1, next=&newitem0)
     local newitem2 : StackItem = StackItem(value=stack2.value, next=&newitem1)
-    return (stack=&newitem2, evm_pc=Uint256(1418, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem2, evm_pc=Uint256(1396, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment1417{
+func segment1395{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1225,7 +1189,7 @@ func segment1417{
     return (stack=stack5, evm_pc=stack6.value, output=Output(0, cast(0, felt*), 0))
 end
 
-func segment1425{
+func segment1403{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1277,7 +1241,7 @@ func segment1425{
     return (stack=&newitem0, evm_pc=stack3.value, output=Output(0, cast(0, felt*), 0))
 end
 
-func segment1567{
+func segment1545{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1292,7 +1256,7 @@ func segment1567{
     return (stack=&newitem1, evm_pc=stack0.value, output=Output(0, cast(0, felt*), 0))
 end
 
-func segment1573{
+func segment1551{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1309,7 +1273,7 @@ func segment1573{
     return (stack=&newitem1, evm_pc=stack0.value, output=Output(0, cast(0, felt*), 0))
 end
 
-func segment1592{
+func segment1570{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1346,7 +1310,7 @@ func segment1592{
     return (stack=stack3, evm_pc=stack2.value, output=Output(0, cast(0, felt*), 0))
 end
 
-func segment1673{
+func segment1651{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1367,7 +1331,7 @@ func segment1673{
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp4, Uint256(0, 0))
     if immediate == 0:
         local newitem4 : StackItem = StackItem(value=Uint256(0, 0), next=stack0)
-        return (stack=&newitem4, evm_pc=Uint256(2084, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem4, evm_pc=Uint256(2062, 0), output=Output(0, cast(0, felt*), 0))
     end
     let (local tmp5 : Uint256) = uint256_and(
         Uint256(340282366920938463463374607431768211455, 4294967295), stack3.value)
@@ -1414,14 +1378,14 @@ func segment1673{
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp15, Uint256(0, 0))
     if immediate == 0:
         local newitem4 : StackItem = StackItem(value=Uint256(0, 0), next=stack0)
-        return (stack=&newitem4, evm_pc=Uint256(1867, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem4, evm_pc=Uint256(1845, 0), output=Output(0, cast(0, felt*), 0))
     end
     assert 0 = 1
     local item : StackItem = StackItem(value=Uint256(0, 0), next=stack0)
     return (stack=&item, evm_pc=Uint256(-1, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment1867{
+func segment1845{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1460,14 +1424,14 @@ func segment1867{
     let (local tmp7 : Uint256) = is_zero{range_check_ptr=range_check_ptr}(tmp6)
     let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(tmp7, Uint256(0, 0))
     if immediate == 0:
-        return (stack=stack0, evm_pc=Uint256(1945, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=stack0, evm_pc=Uint256(1923, 0), output=Output(0, cast(0, felt*), 0))
     end
     assert 0 = 1
     local item : StackItem = StackItem(value=Uint256(0, 0), next=stack0)
     return (stack=&item, evm_pc=Uint256(-1, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment1945{
+func segment1923{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1520,10 +1484,10 @@ func segment1945{
     s_store(low=tmp5.low, high=tmp5.high, value_low=tmp7.low, value_high=tmp7.high)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local storage_ptr : Storage* = storage_ptr
-    return (stack=stack0, evm_pc=Uint256(2085, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=stack0, evm_pc=Uint256(2063, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment2084{
+func segment2062{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1588,7 +1552,7 @@ func segment2084{
     return (stack=&newitem0, evm_pc=stack5.value, output=Output(0, cast(0, felt*), 0))
 end
 
-func segment2250{
+func segment2228{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1617,7 +1581,7 @@ func segment2250{
     return (stack=&newitem1, evm_pc=stack1.value, output=Output(0, cast(0, felt*), 0))
 end
 
-func segment2274{
+func segment2252{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1673,7 +1637,7 @@ func segment2274{
         local newitem3 : StackItem = StackItem(value=tmp13, next=&newitem2)
         local newitem4 : StackItem = StackItem(value=Uint256(1, 0), next=&newitem3)
         local newitem5 : StackItem = StackItem(value=tmp20, next=&newitem4)
-        return (stack=&newitem5, evm_pc=Uint256(2424, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem5, evm_pc=Uint256(2402, 0), output=Output(0, cast(0, felt*), 0))
     end
     local memory_dict : DictAccess* = memory_dict
     let (local tmp22 : Uint256) = is_lt{range_check_ptr=range_check_ptr}(Uint256(31, 0), tmp20)
@@ -1685,7 +1649,7 @@ func segment2274{
         local newitem3 : StackItem = StackItem(value=tmp13, next=&newitem2)
         local newitem4 : StackItem = StackItem(value=Uint256(1, 0), next=&newitem3)
         local newitem5 : StackItem = StackItem(value=tmp20, next=&newitem4)
-        return (stack=&newitem5, evm_pc=Uint256(2381, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem5, evm_pc=Uint256(2359, 0), output=Output(0, cast(0, felt*), 0))
     end
     let (local tmp23 : Uint256) = s_load(low=1, high=0)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
@@ -1704,10 +1668,10 @@ func segment2274{
     local newitem3 : StackItem = StackItem(value=tmp26, next=&newitem2)
     local newitem4 : StackItem = StackItem(value=Uint256(1, 0), next=&newitem3)
     local newitem5 : StackItem = StackItem(value=tmp20, next=&newitem4)
-    return (stack=&newitem5, evm_pc=Uint256(2424, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem5, evm_pc=Uint256(2402, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment2381{
+func segment2359{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1729,10 +1693,10 @@ func segment2381{
     local newitem0 : StackItem = StackItem(value=tmp0, next=stack3)
     local newitem1 : StackItem = StackItem(value=tmp1, next=&newitem0)
     local newitem2 : StackItem = StackItem(value=stack2.value, next=&newitem1)
-    return (stack=&newitem2, evm_pc=Uint256(2396, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem2, evm_pc=Uint256(2374, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment2395{
+func segment2373{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1758,7 +1722,7 @@ func segment2395{
     if immediate == 0:
         local newitem1 : StackItem = StackItem(value=tmp1, next=stack2)
         local newitem2 : StackItem = StackItem(value=tmp2, next=&newitem1)
-        return (stack=&newitem2, evm_pc=Uint256(2395, 0), output=Output(0, cast(0, felt*), 0))
+        return (stack=&newitem2, evm_pc=Uint256(2373, 0), output=Output(0, cast(0, felt*), 0))
     end
     let (local tmp4 : Uint256) = uint256_sub(tmp2, stack2.value)
     let (local tmp5 : Uint256) = uint256_and(Uint256(31, 0), tmp4)
@@ -1766,10 +1730,10 @@ func segment2395{
     local newitem0 : StackItem = StackItem(value=tmp6, next=stack3)
     local newitem1 : StackItem = StackItem(value=tmp1, next=&newitem0)
     local newitem2 : StackItem = StackItem(value=stack2.value, next=&newitem1)
-    return (stack=&newitem2, evm_pc=Uint256(2425, 0), output=Output(0, cast(0, felt*), 0))
+    return (stack=&newitem2, evm_pc=Uint256(2403, 0), output=Output(0, cast(0, felt*), 0))
 end
 
-func segment2424{
+func segment2402{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1786,7 +1750,7 @@ func segment2424{
     return (stack=stack5, evm_pc=stack6.value, output=Output(0, cast(0, felt*), 0))
 end
 
-func segment2432{
+func segment2410{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
         stack : StackItem*, evm_pc : Uint256, output : Output):
@@ -1922,17 +1886,17 @@ func run_from{
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(376, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(449, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment376(exec_env, stack)
+        let (stack, evm_pc, output) = segment449(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(460, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(475, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment460(exec_env, stack)
+        let (stack, evm_pc, output) = segment475(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
@@ -1946,17 +1910,17 @@ func run_from{
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(497, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(494, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment497(exec_env, stack)
+        let (stack, evm_pc, output) = segment494(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(505, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(516, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment505(exec_env, stack)
+        let (stack, evm_pc, output) = segment516(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
@@ -1970,73 +1934,65 @@ func run_from{
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(538, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(535, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment538(exec_env, stack)
+        let (stack, evm_pc, output) = segment535(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(546, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(563, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment546(exec_env, stack)
+        let (stack, evm_pc, output) = segment563(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(574, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(616, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment574(exec_env, stack)
+        let (stack, evm_pc, output) = segment616(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(627, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(618, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment627(exec_env, stack)
+        let (stack, evm_pc, output) = segment618(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(629, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(733, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment629(exec_env, stack)
+        let (stack, evm_pc, output) = segment733(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(640, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(759, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment640(exec_env, stack)
+        let (stack, evm_pc, output) = segment759(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(755, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(770, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment755(exec_env, stack)
+        let (stack, evm_pc, output) = segment770(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(781, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(814, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment781(exec_env, stack)
-        if output.active == 1:
-            return (stack, output)
-        end
-        return run_from(exec_env, evm_pc, stack)
-    end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(792, 0))
-    if immediate == 1:
-        let (stack, evm_pc, output) = segment792(exec_env, stack)
+        let (stack, evm_pc, output) = segment814(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
@@ -2050,65 +2006,65 @@ func run_from{
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(858, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(847, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment858(exec_env, stack)
+        let (stack, evm_pc, output) = segment847(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(869, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(855, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment869(exec_env, stack)
+        let (stack, evm_pc, output) = segment855(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(877, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(892, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment877(exec_env, stack)
+        let (stack, evm_pc, output) = segment892(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(914, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(919, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment914(exec_env, stack)
+        let (stack, evm_pc, output) = segment919(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(941, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(964, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment941(exec_env, stack)
+        let (stack, evm_pc, output) = segment964(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(986, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(978, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment986(exec_env, stack)
+        let (stack, evm_pc, output) = segment978(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1000, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(989, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment1000(exec_env, stack)
+        let (stack, evm_pc, output) = segment989(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1011, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1064, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment1011(exec_env, stack)
+        let (stack, evm_pc, output) = segment1064(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
@@ -2122,161 +2078,153 @@ func run_from{
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1108, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1164, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment1108(exec_env, stack)
+        let (stack, evm_pc, output) = segment1164(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1186, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1245, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment1186(exec_env, stack)
+        let (stack, evm_pc, output) = segment1245(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1267, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1352, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment1267(exec_env, stack)
+        let (stack, evm_pc, output) = segment1352(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1374, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1366, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment1374(exec_env, stack)
+        let (stack, evm_pc, output) = segment1366(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1388, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1395, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment1388(exec_env, stack)
+        let (stack, evm_pc, output) = segment1395(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1417, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1403, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment1417(exec_env, stack)
+        let (stack, evm_pc, output) = segment1403(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1425, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1545, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment1425(exec_env, stack)
+        let (stack, evm_pc, output) = segment1545(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1567, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1551, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment1567(exec_env, stack)
+        let (stack, evm_pc, output) = segment1551(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1573, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1570, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment1573(exec_env, stack)
+        let (stack, evm_pc, output) = segment1570(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1592, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1651, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment1592(exec_env, stack)
+        let (stack, evm_pc, output) = segment1651(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1673, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1845, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment1673(exec_env, stack)
+        let (stack, evm_pc, output) = segment1845(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1867, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1923, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment1867(exec_env, stack)
+        let (stack, evm_pc, output) = segment1923(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(1945, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(2062, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment1945(exec_env, stack)
+        let (stack, evm_pc, output) = segment2062(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(2084, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(2228, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment2084(exec_env, stack)
+        let (stack, evm_pc, output) = segment2228(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(2250, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(2252, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment2250(exec_env, stack)
+        let (stack, evm_pc, output) = segment2252(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(2274, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(2359, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment2274(exec_env, stack)
+        let (stack, evm_pc, output) = segment2359(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(2381, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(2373, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment2381(exec_env, stack)
+        let (stack, evm_pc, output) = segment2373(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(2395, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(2402, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment2395(exec_env, stack)
+        let (stack, evm_pc, output) = segment2402(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(2424, 0))
+    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(2410, 0))
     if immediate == 1:
-        let (stack, evm_pc, output) = segment2424(exec_env, stack)
-        if output.active == 1:
-            return (stack, output)
-        end
-        return run_from(exec_env, evm_pc, stack)
-    end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(2432, 0))
-    if immediate == 1:
-        let (stack, evm_pc, output) = segment2432(exec_env, stack)
+        let (stack, evm_pc, output) = segment2410(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
