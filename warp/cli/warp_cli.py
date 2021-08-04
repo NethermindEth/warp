@@ -78,17 +78,17 @@ async def test():
 
 
 def main():
-    try:
-        warp()
-    except:
-        if return_args != {}:
-            if return_args["type"] is Command.INVOKE:
-                asyncio.run(
-                    _invoke(
-                        return_args["contract"],
-                        return_args["address"],
-                        return_args["abi"],
-                        return_args["function"],
-                        return_args["inputs"],
-                    )
-                )
+    # try:
+    warp()
+    # except:
+    #     if return_args != {}:
+    #         if return_args["type"] is Command.INVOKE:
+    #             asyncio.run(
+    #                 _invoke(
+    #                     return_args["contract"],
+    #                     return_args["address"],
+    #                     return_args["abi"],
+    #                     return_args["function"],
+    #                     return_args["inputs"],
+    #                 )
+    #             )

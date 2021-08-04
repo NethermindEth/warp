@@ -1,7 +1,9 @@
 from __future__ import annotations
 import abc
+import os
 
 from transpiler.Imports import Imports
+WARP_ROOT = os.path.abspath(os.path.join(__file__, "../.."))
 
 
 class Operation(abc.ABC):
@@ -67,9 +69,8 @@ class NoParse(BaseException):
 # The following piece of code serves for automatic discovery of
 # operations.
 import importlib
-import os
 
-with os.scandir("warp/transpiler/Operations") as it:
+with os.scandir(os.path.join(WARP_ROOT,"transpiler/Operations")) as it:
     for entry in it:
         if entry.is_file() and entry.name.endswith(".py"):
             importlib.import_module(f".{entry.name[:-3]}", package="transpiler.Operations")

@@ -1,14 +1,19 @@
 from __future__ import annotations
 from typing import Optional
 import abc
+import os
 
 from transpiler.StackValue import Uint256, UINT256_BOUND
 from transpiler.Operation import Operation
+WARP_ROOT = os.path.abspath(os.path.join(__file__, "../../../.."))
 
 
 def get_arg(state, arg_spec):
     assert arg_spec == "l" or arg_spec == "w"
     arg = state.stack.pop()
+    ret = f"{arg}.low"
+    if isinstance(arg, str):
+        return ret
     return arg.get_low_bits() if arg_spec == "l" else arg
 
 
