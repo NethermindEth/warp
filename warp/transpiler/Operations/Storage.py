@@ -1,4 +1,3 @@
-from transpiler.Operation import Operation
 from transpiler.StackValue import Uint256
 from transpiler.Operations.EnforcedStack import EnforcedStack
 from transpiler.Operations.Unary import Unary

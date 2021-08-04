@@ -1,6 +1,4 @@
-import operator
-
-from transpiler.Operations.Binary import Binary, SimpleBinary
+from transpiler.Operations.Binary import Binary
 from transpiler.Operations.Unary import Unary
 from transpiler.utils import uint256_to_int256
 

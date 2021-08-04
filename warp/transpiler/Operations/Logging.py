@@ -1,4 +1,4 @@
-from transpiler.Operation import Operation, NoParse
+from transpiler.Operation import NoParse
 from transpiler.Operations.EnforcedStack import EnforcedStack
 
 

@@ -1,7 +1,7 @@
 import abc
 
 from transpiler.Operation import Operation
-from transpiler.StackValue import UINT256_BOUND, Uint256, Str
+from transpiler.StackValue import Uint256
 from transpiler.Imports import Imports
 
 # Important: per yellow paper, the representation of uint256 as bytes
