@@ -24,7 +24,7 @@ sh build.sh
 pip install cairo-lang-0.3.0.zip
 ```
 
-Once that is finished, run `make warp` in the project repo's root directory.
+Once that is finished, run `make warp` in the repo's root directory.
 
 ## Usage :computer:
 
@@ -56,6 +56,6 @@ warp status TX_ID
 
 Your contributions are always welcome! Please check the [contribution guidelines](CONTRIBUTING.md) first, which will give you details on how to do it.
 
-## License :warning:
+## License
 
 [Apache License](LICENSE) Version 2.0, January 2004.
