@@ -23,7 +23,7 @@ The project uses GitHub Actions to build its artifacts and run tests. We do our 
 
 ## Implementing opcodes
 
-The implementation of each opcode goes into the [Operations](https://github.com/NethermindEth/warp/tree/main/warp/transpiler/Operations) file.
+The implementation of each opcode goes into the [Operations](https://github.com/NethermindEth/warp/tree/main/warp/transpiler/Operations) folder.
 
 You need to create a class that implements the opcode behavior.
 
