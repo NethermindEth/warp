@@ -63,13 +63,6 @@ def get_func_sigs(abi: List[Dict[str, str]]) -> Dict[str, int]:
 #  GT
 #  PUSH2 0x0059
 #  JUMPI
-'PASS'
-'NOOP4'
-'0x47e7ef24'
-'PASS'
-'NOOP2'
-'0x0069'
-'PASS'
 def is_gt_seq(opcodes: List[str], language: Language):
     if language is Language.SOL:
         is_gt_seq = (
@@ -163,9 +156,7 @@ def is_entry_seq(opcodes: List[str], language: Language) -> bool:
 
 
 def get_selectors(abi: List[Dict[str, str]]) -> Dict[str, str]:
-    file_name = os.path.join(
-        os.path.expanduser("~"), ".warp", "artifacts", "selectors.json"
-    )
+    file_name = os.path.join(artifacts_dir, "selectors.json")
     sigs = get_func_sigs(abi)
     selectors = {}
     for sig in sigs.keys():
