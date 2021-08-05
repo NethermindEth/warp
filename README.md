@@ -54,7 +54,7 @@ warp status TX_ID
 
 ## Want to contribute? :thumbsup:
 
-Your contributions are always welcome! Please check the [contribution guidelines](CONTRIBUTING.md) first, which will give you details on how to do it.
+Your contributions are always welcome, see [contribution guidelines](CONTRIBUTING.md).
 
 ## License
 
