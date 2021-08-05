@@ -24,6 +24,11 @@ sh build.sh
 pip install cairo-lang-0.3.0.zip
 ```
 
+If you get errors relating to missing header files or bdist_wheel after installing python3.7 and trying to install Cairo, run the following commands:
+```
+sudo apt-get install -y python3.7-dev
+pip install wheel
+```
 Once that is finished, run `make warp` in the repo's root directory.
 
 ## Usage :computer:
