@@ -101,3 +101,4 @@ class EnforcedStack(Operation):
         names.
 
         """
+        pass

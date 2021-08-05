@@ -4,10 +4,6 @@ from transpiler.Operation import Operation
 class CodeSize(Operation):
     code_size: int
 
-    @classmethod
-    def required_imports(cls):
-        return {}
-
     def proceed(self, state):
         state.stack.push_uint256(self.code_size)
         return []

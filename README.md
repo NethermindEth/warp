@@ -1,20 +1,61 @@
 # Warp
 
-Warp brings EVM compatiable languages to StarkNet, making it possible to transpile Ethereum smart contracts to Cario, and use them on StarkNet.
+Warp brings EVM compatible languages to StarkNet, making it possible to transpile Ethereum smart contracts to Cairo, and use them on StarkNet.
 
-# Installation
+## Table of Contents :clipboard:
+
+- [Installation](#installation-gear)
+- [Usage](#usage-computer)
+- [Want to contribute?](#want-to-contribute-thumbsup)
+- [License](#license-warning)
+
+## Installation :gear:
 
 You'll need to install Cairo first. Make sure you're using a python venv with python 3.7. Cairo depends on GMP, which can be installed with `sudo apt install -y libgmp3-dev` or `brew install gmp` if you're on Mac. You'll need to install the following too:
+
 ```
 pip install ecdsa fastecdsa sympy
 ```
+
 Once you've done that, head into vendor/cairo-lang and run:
+
 ```
 sh build.sh
 pip install cairo-lang-0.3.0.zip
 ```
-Once that is finished, run `make warp` in the project repo's root directory.
 
-# Usage
+Once that is finished, run `make warp` in the repo's root directory.
 
-You can transpile your Solidity/Vyper contracts with `warp transpile CONTRACT`. To deploy the transpiled Cairo contract to Starknet use: `warp deploy CONTRACT.cairo`. To invoke a public/external method use: `warp invoke --contract CONTRACT.cairo --address ADDRESS --function FUNCTION_NAME --inputs "INPUTS"`. The `--inputs` flag requires its argument to be a string and have each value separated by a space. You can check the status of your transaction with `warp status TX_ID`.
+## Usage :computer:
+
+You can transpile your Solidity/Vyper contracts with:
+
+```
+warp transpile CONTRACT
+```
+
+To deploy the transpiled Cairo contract to Starknet use:
+```
+warp deploy CONTRACT.cairo
+```
+
+To invoke a public/external method use:
+```
+warp invoke --contract CONTRACT.cairo --address ADDRESS --function FUNCTION_NAME --inputs "INPUTS"
+```
+
+The `--inputs` flag requires its argument to be a string and have each value separated by a space.
+
+You can check the status of your transaction with:
+
+```
+warp status TX_ID
+```
+
+## Want to contribute? :thumbsup:
+
+Your contributions are always welcome! Please check the [contribution guidelines](CONTRIBUTING.md) first, which will give you details on how to do it.
+
+## License
+
+[Apache License](LICENSE) Version 2.0, January 2004.

@@ -1,5 +1,3 @@
-from transpiler.Operations.Binary import Binary
-from transpiler.Operation import Operation
 from transpiler.Operations.EnforcedStack import EnforcedStack
 
 
