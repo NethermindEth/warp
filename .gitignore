@@ -2,7 +2,6 @@
 vendor/cairo-lang/build
 *.vscode
 /build
-**/data
 dist
 *.egg-info
 **/artifacts/*.json
