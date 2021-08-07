@@ -20,7 +20,6 @@ pip install ecdsa fastecdsa sympy
 Once you've done that, head into vendor/cairo-lang and run:
 
 ```
-sh build.sh
 pip install cairo-lang-0.3.0.zip
 ```
 
