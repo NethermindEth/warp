@@ -1,4 +1,5 @@
 import json
+import pprint
 import sys
 from typing import Dict, List
 from dataclasses import dataclass
@@ -78,14 +79,23 @@ class Vyper:
             end = item["end_lineno"]
             if start == end:
                 body_list.append(
-                    self.vy_code[start - 1].strip().replace("\\", "").replace("\n", "")
+                    {
+                        "lines": [start, end],
+                        "code": self.vy_code[start - 1]
+                        .strip()
+                        .replace("\\", "")
+                        .replace("\n", ""),
+                    }
                 )
             else:
                 body_list.append(
-                    " ".join(self.vy_code[start - 1 : end])
-                    .strip()
-                    .replace("\\", "")
-                    .replace("\n", "")
+                    {
+                        "lines": [start, end],
+                        "code": " ".join(self.vy_code[start - 1 : end])
+                        .strip()
+                        .replace("\\", "")
+                        .replace("\n", ""),
+                    }
                 )
         return body_list
 
@@ -110,8 +120,10 @@ class Vyper:
                             "returns": returns,
                             "source": source,
                             "visibility": visibility,
-                            "body_str": self.get_func_body(node["body"]),
-                            "body_ast": node["body"],
+                            "body": {
+                                "source": self.get_func_body(node["body"]),
+                                "ast": node["body"],
+                            },
                             "args_len": args_line_len,
                             "args": [],
                         }
@@ -137,8 +149,10 @@ class Vyper:
                         "returns": returns,
                         "source": source[args_line_len + 1 :],
                         "visibility": visibility,
-                        "body_str": self.get_func_body(node["body"]),
-                        "body_ast": node["body"],
+                        "body": {
+                            "source": self.get_func_body(node["body"]),
+                            "ast": node["body"],
+                        },
                         "args_len": args_line_len,
                         "args": args,
                     }
@@ -326,14 +340,29 @@ func get_{var_name}(arg) -> (res : felt):
             print(sig)
             return sig
 
-    def generate_func_body(self, vy_body):
-        print(vy_body)
+    def rvalue_func(line_ast):
+        pass
+
+    def generate_func_body(self, body, source):
+        for line in body:
+            if "Assign" in line["ast_type"]:
+                ast_value = line["value"]
+                if ast_value["ast_type"] == "BinOp":
+                    right = ast_value["right"]
+                    left = ast_value["left"]
+                    if "func" in left or "func" in right:
+                        sys.exit(
+                            f"""
+cairo does not yet support operations on rvalue function calls:
+    line {ast_value['lineno']}
+"""
+                        )
 
     def generate_functions(self, vyper_functions):
         for f in vyper_functions:
-            print(f["returns"])
             sig = self.generate_func_sig(f)
-            self.generate_func_body(f["body_str"])
+            # pprint.pprint(f["body"]["ast"])
+            self.generate_func_body(f["body"]["ast"], f["body"]["source"])
             # print(vyper_functions)
             pass
 
