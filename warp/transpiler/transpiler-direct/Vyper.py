@@ -248,14 +248,29 @@ func get_{var_name}(arg) -> (res : felt):
 
                 return c_declr
             
-    def generate_func_sig(self, vy_sig):
-        sig = vy_sig.replace("def", "func")
-
+    def generate_func_sig(self, func):
+        sig = f'@{func["visibility"]}\nfunc {func["name"]+refs}(' 
+        if func['args'] == []:
+            sig += '):'
+            print(sig)
+            return
+        if func["visibility"] == "external" or func["visibility"] == "view":
+            for idx, arg in enumerate(func['args']):
+                if idx == len(func['args'])-1:
+                    if TYPE_MAP_VY[arg["type"]]['big']:
+                        sig += f"{arg['name']}_low: felt, {arg['name']}_high: felt):"
+                        break
+                    else:
+                        sig += f'{arg["name"]}: {arg["type"]}, '
+                        break
+                if TYPE_MAP_VY[arg["type"]]['big']:
+                    sig += f"{arg['name']}_low: felt, {arg['name']}_high: felt, "
+                else:
+                    sig += f'{arg["name"]}: {arg["type"]}, '
+            print(sig)
     def generate_functions(self, vyper_functions):
         for f in vyper_functions:
-            sig = f'func {f["name"]+refs}'
-
-            print(sig)
+            self.generate_func_sig(f)
         # print(vyper_functions)
             pass
 
