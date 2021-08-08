@@ -29,6 +29,12 @@ EXT_TYPE_MAP_VY = {
     },
 }
 
+decorator_map = {
+    "external": "@external",
+    "internal": "",
+    "view": "@view"
+}
+
 class Bool:
     def __init__(self):
         pass

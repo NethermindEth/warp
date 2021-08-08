@@ -2,17 +2,23 @@ import json
 import sys
 from typing import Dict, List
 from dataclasses import dataclass
-from TypeMap import TYPE_MAP_VY
+from TypeMap import TYPE_MAP_VY, decorator_map
 
 # TODO delete comments before building ast
 
 refs = "{storage_ptr: Storage*, pedersen_ptr: HashBuiltin*, range_check_ptr}"
+
 
 @dataclass
 class FunctionState:
     variables: Dict[str, Dict[str, str]]
     arguments: Dict[str, Dict[str, str]]
     return_type: str
+
+    def __init__(self):
+        self.variables = {}
+        self.arguments = {}
+        self.return_type = ""
 
 
 # Represents the state of the generated
@@ -63,7 +69,7 @@ class Vyper:
         if args_line_len > 0:
             return "\n".join(body[: args_line_len + 1])
         else:
-            return body[0]
+            return body[0][: body[0].rfind("-")]
 
     def get_func_body(self, body_ast):
         body_list = []
@@ -71,9 +77,16 @@ class Vyper:
             start = item["lineno"]
             end = item["end_lineno"]
             if start == end:
-                body_list.append(self.vy_code[start-1].strip())
+                body_list.append(
+                    self.vy_code[start - 1].strip().replace("\\", "").replace("\n", "")
+                )
             else:
-                body_list.append(" ".join(self.vy_code[start-1:end]).strip().replace("\\","").replace("\n","").replace(" ",""))
+                body_list.append(
+                    " ".join(self.vy_code[start - 1 : end])
+                    .strip()
+                    .replace("\\", "")
+                    .replace("\n", "")
+                )
         return body_list
 
     def get_functions(self, ast):
@@ -83,19 +96,26 @@ class Vyper:
                 start = node["lineno"] - 1
                 end = node["end_lineno"]
                 name = node["name"]
+                try:
+                    returns = node["returns"]["id"]
+                except TypeError:
+                    returns = None
                 source = [x.strip() for x in self.vy_code[start:end]]
                 visibility = self.get_func_visibility(node)
                 if node["args"]["args"] == []:
                     args_line_len = 0
-                    funcs.append({
-                        "name": name,
-                        "source": source,
-                        "visibility": visibility,
-                        "body_str": self.get_func_body(node["body"]),
-                        "body_ast": node["body"],
-                        "args_len": args_line_len,
-                        "args": [],
-                    })
+                    funcs.append(
+                        {
+                            "name": name,
+                            "returns": returns,
+                            "source": source,
+                            "visibility": visibility,
+                            "body_str": self.get_func_body(node["body"]),
+                            "body_ast": node["body"],
+                            "args_len": args_line_len,
+                            "args": [],
+                        }
+                    )
                     continue
                 args_endno = node["args"]["end_lineno"]
                 args_line_len = args_endno - (start + 1)
@@ -111,15 +131,18 @@ class Vyper:
                             "type": i[i.find(":") + 1 :].strip(),
                         }
                     )
-                funcs.append({
-                    "name": name,
-                    "source": source,
-                    "visibility": visibility,
-                    "body_str": self.get_func_body(node["body"]),
-                    "body_ast": node["body"],
-                    "args_len": args_line_len,
-                    "args": args,
-                })
+                funcs.append(
+                    {
+                        "name": name,
+                        "returns": returns,
+                        "source": source[args_line_len + 1 :],
+                        "visibility": visibility,
+                        "body_str": self.get_func_body(node["body"]),
+                        "body_ast": node["body"],
+                        "args_len": args_line_len,
+                        "args": args,
+                    }
+                )
         return funcs
 
     def get_func_visibility(self, node):
@@ -247,31 +270,71 @@ func get_{var_name}(arg) -> (res : felt):
                     }
 
                 return c_declr
-            
+
     def generate_func_sig(self, func):
-        sig = f'@{func["visibility"]}\nfunc {func["name"]+refs}(' 
-        if func['args'] == []:
-            sig += '):'
-            print(sig)
-            return
-        if func["visibility"] == "external" or func["visibility"] == "view":
-            for idx, arg in enumerate(func['args']):
-                if idx == len(func['args'])-1:
-                    if TYPE_MAP_VY[arg["type"]]['big']:
+        func_state = FunctionState()
+        returns = func["returns"]
+        name = func["name"]
+        visibility = func["visibility"]
+        sig = f"{decorator_map[visibility]}\nfunc {name+refs}("
+        if visibility == "external" or visibility == "view":
+            if func["args"] == []:
+                if returns != None:
+                    if TYPE_MAP_VY[returns]["big"]:
+                        sys.exit(
+                            f"external and view functions can only return a \
+                                single felt(128bit int), but {name} returns {returns} \
+                                which can't be mapped to a felt.\n"
+                        )
+                    sig += f") -> (res : felt):"
+                    print(sig)
+                    return sig
+                else:
+                    sig += f"):"
+                    print(sig)
+                    return sig
+            for idx, arg in enumerate(func["args"]):
+                if idx == len(func["args"]) - 1:
+                    if TYPE_MAP_VY[arg["type"]]["big"]:
                         sig += f"{arg['name']}_low: felt, {arg['name']}_high: felt):"
                         break
                     else:
                         sig += f'{arg["name"]}: {arg["type"]}, '
                         break
-                if TYPE_MAP_VY[arg["type"]]['big']:
+                if TYPE_MAP_VY[arg["type"]]["big"]:
                     sig += f"{arg['name']}_low: felt, {arg['name']}_high: felt, "
                 else:
                     sig += f'{arg["name"]}: {arg["type"]}, '
             print(sig)
+            return sig
+        else:
+            if func["args"] == []:
+                if returns != None:
+                    sig += f') -> (res : {TYPE_MAP_VY[returns]["type"]}):'
+                    print(sig)
+                    return sig
+                else:
+                    sig += f"):"
+                    print(sig)
+                    return sig
+            for idx, arg in enumerate(func["args"]):
+                if idx == len(func["args"]) - 1:
+                    if returns != None:
+                        sig += f"{arg['name']}: {TYPE_MAP_VY[arg['type']]}) -> (res : {TYPE_MAP_VY[returns]['type']}):"
+                        break
+                sig += f'{arg["name"]}: {arg["type"]}, '
+            print(sig)
+            return sig
+
+    def generate_func_body(self, vy_body):
+        print(vy_body)
+
     def generate_functions(self, vyper_functions):
         for f in vyper_functions:
-            self.generate_func_sig(f)
-        # print(vyper_functions)
+            print(f["returns"])
+            sig = self.generate_func_sig(f)
+            self.generate_func_body(f["body_str"])
+            # print(vyper_functions)
             pass
 
 

@@ -24,8 +24,6 @@ def bid(sender: address,
     self.pendingReturns[self.highestBidder] += self.highestBid
     self.highestBidder = sender
     self.highestBid = value
-    t = rando() + rando()/2 + \
-        rando()
 
 @external
 def withdraw():
@@ -33,7 +31,7 @@ def withdraw():
     self.pendingReturns[sender] = 0
 
 @internal 
-def rando():
+def rando() -> uint256:
     return 10    
 
 
