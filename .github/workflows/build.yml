@@ -49,12 +49,10 @@ jobs:
 
       - name: Test golden tests
         run: |
-          python setup.py install
           make test_bats BATS_ARGS="-j 4"
 
       - name: Test starknet tests
         env:
           STARKNET_ENV: ${{ secrets.STARKNET_ENV }}
         run: |
-          python setup.py install
           make test_starknet
