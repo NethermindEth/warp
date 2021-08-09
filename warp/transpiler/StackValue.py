@@ -1,8 +1,6 @@
 import abc
 
-
-def is_valid_uintN(n: int, x: int):
-    return 0 <= x < 2 ** n
+from transpiler.utils import is_valid_uintN
 
 
 UINT256_BOUND = 2 ** 256
