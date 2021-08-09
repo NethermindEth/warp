@@ -23,7 +23,9 @@ class EvmStack:
         """
         padding = max(0, n - len(self.values))
         new_depth = self.depth + padding
-        padding_values = [f"stack{d}.value" for d in range(self.depth, new_depth)]
+        padding_values = [
+            StackValue.Str(f"stack{d}.value") for d in range(self.depth, new_depth)
+        ]
         padding_values.reverse()
 
         self.depth = new_depth
@@ -70,7 +72,7 @@ class EvmStack:
         Returns the Cairo instruction for constructing the stack.
         """
         for i, val in enumerate(self.values):
-            if val != f"stack{self.depth - i - 1}.value":
+            if str(val) != f"stack{self.depth - i - 1}.value":
                 break
         else:
             i = len(self.values)

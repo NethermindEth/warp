@@ -10,6 +10,7 @@ from transpiler.Imports import UINT256_MODULE, format_imports, merge_imports
 from transpiler.EvmStack import EvmStack
 import transpiler.StackValue as StackValue
 from transpiler.Operations.Storage import STORAGE_DECLS
+from transpiler.utils import EMPTY_OUTPUT
 
 LANGUAGE = "%lang starknet"
 BUILTINS = ["pedersen", "range_check"]
@@ -50,19 +51,16 @@ func main{storage_ptr: Storage*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
    local stack0 : StackItem
    assert stack0 = StackItem(value=Uint256(-1, 0), next=&stack0)  # Points to itself.
 
-   let (local stack, local output) = run_from{
+   let (local stack, local output) = segment0{
       storage_ptr=storage_ptr,
       pedersen_ptr=pedersen_ptr,
       range_check_ptr=range_check_ptr,
       msize=msize, memory_dict=memory_dict
-      }(&exec_env, 0, &stack0)
+      }(&exec_env, &stack0)
 
    return ()
 end
 """
-
-NO_OUTPUT = "Output(0, cast(0, felt*), 0)"
-EMPTY_OUTPUT = "Output(1, cast(0, felt*), 0)"
 
 
 @dataclass
@@ -80,14 +78,19 @@ class SegmentState:
         self.msize = 0
         self.cur_evm_pc = cur_evm_pc
 
-    def make_return_instructions(
-        self, pc: StackValue, output: str = NO_OUTPUT
-    ) -> list[str]:
+    def make_jump_instructions(self, pc: StackValue) -> list[str]:
         build_instructions, stack_ref = self.stack.build_stack_instructions()
-        return [
-            *build_instructions,
-            f"return (stack={stack_ref}, evm_pc={pc.get_low_bits()}, output={output})",
-        ]
+        if isinstance(pc, StackValue.Uint256):
+            ret = f"return segment{pc.get_int_repr()}(exec_env, {stack_ref})"
+        elif isinstance(pc, StackValue.Str):
+            ret = f"return run_from(exec_env, {pc.get_low_bits()}, {stack_ref})"
+        else:
+            raise RuntimeError(f"Unexpected PC type: {pc} of type {type(pc)}")
+        return [*build_instructions, ret]
+
+    def make_return_instructions(self, output: str) -> list[str]:
+        build_instructions, stack_ref = self.stack.build_stack_instructions()
+        return [*build_instructions, f"return ({stack_ref}, {output})"]
 
     def request_fresh_name(self) -> str:
         var_name = f"tmp{self.n_locals}"
@@ -112,7 +115,7 @@ class EvmToCairo:
                 [
                     f"func segment{self.segment_pc}{self.__make_implicit_args()}"
                     "(exec_env: ExecutionEnvironment*, stack : StackItem*) -> "
-                    "(stack : StackItem*, evm_pc, output: Output):",
+                    "(stack: StackItem*, output: Output):",
                     "alloc_locals",
                     "let stack0 = stack",
                     "let (local __fp__, _) = get_fp_and_pc()",
@@ -157,11 +160,7 @@ class EvmToCairo:
             run_from.extend(
                 [
                     f"if evm_pc == {segment_pc}:",
-                    f"let (stack, evm_pc, output) = segment{segment_pc}(exec_env, stack)",
-                    "if output.active == 1:",
-                    "return (stack, output)",
-                    "end",
-                    f"return run_from(exec_env, evm_pc, stack)",
+                    f"return segment{segment_pc}(exec_env, stack)",
                     "end",
                 ]
             )
@@ -171,22 +170,18 @@ class EvmToCairo:
                 f"if evm_pc == -1:",
                 f"return (stack, {EMPTY_OUTPUT})",
                 "end",
+                "# Fail.",
+                "assert 0 = 1",
+                "jmp rel 0",
+                "end",
             ]
         )
 
-        run_from.append("# Fail.")
-        run_from.append("assert 0 = 1")
-        run_from.append("jmp rel 0")
-        run_from.append("end")
         return "\n".join(run_from)
 
     def finish(self, dump_all):
         if dump_all and not self.state.unreachable:
-            insts, new_stack = self.state.stack.build_stack_instructions()
-            self.instructions.extend(insts)
-            self.instructions.append(
-                f"return (stack={new_stack}, " f"evm_pc=0, output={EMPTY_OUTPUT})"
-            )
+            self.instructions.extend(self.state.make_return_instructions(EMPTY_OUTPUT))
         self.finish_segment()
         builtins_line = "%builtins " + " ".join(BUILTINS) if BUILTINS else ""
         return "\n\n".join(

@@ -10,6 +10,8 @@ UINT256_BOUND = 2 ** 256
 UINT256_HALF_BOUND = 2 ** 255
 UINT128_BOUND = 2 ** 128
 
+EMPTY_OUTPUT = "Output(cast(0, felt*), 0)"
+
 
 def get_low_high(x):
     if isinstance(x, str):

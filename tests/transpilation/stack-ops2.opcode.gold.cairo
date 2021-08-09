@@ -16,14 +16,14 @@ from starkware.starknet.common.storage import Storage
 func segment0{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
-        stack : StackItem*, evm_pc, output : Output):
+        stack : StackItem*, output : Output):
     alloc_locals
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
     local newitem0 : StackItem = StackItem(value=Uint256(128, 0), next=stack0)
     local newitem1 : StackItem = StackItem(value=Uint256(5, 0), next=&newitem0)
     local newitem2 : StackItem = StackItem(value=Uint256(27670116110564327424, 0), next=&newitem1)
-    return (stack=&newitem2, evm_pc=0, output=Output(1, cast(0, felt*), 0))
+    return (&newitem2, Output(cast(0, felt*), 0))
 end
 
 func run_from{
@@ -32,14 +32,10 @@ func run_from{
         exec_env : ExecutionEnvironment*, evm_pc, stack : StackItem*) -> (
         stack : StackItem*, output : Output):
     if evm_pc == 0:
-        let (stack, evm_pc, output) = segment0(exec_env, stack)
-        if output.active == 1:
-            return (stack, output)
-        end
-        return run_from(exec_env, evm_pc, stack)
+        return segment0(exec_env, stack)
     end
     if evm_pc == -1:
-        return (stack, Output(1, cast(0, felt*), 0))
+        return (stack, Output(cast(0, felt*), 0))
     end
     # Fail.
     assert 0 = 1
@@ -65,12 +61,12 @@ func main{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     local stack0 : StackItem
     assert stack0 = StackItem(value=Uint256(-1, 0), next=&stack0)  # Points to itself.
 
-    let (local stack, local output) = run_from{
+    let (local stack, local output) = segment0{
         storage_ptr=storage_ptr,
         pedersen_ptr=pedersen_ptr,
         range_check_ptr=range_check_ptr,
         msize=msize,
-        memory_dict=memory_dict}(&exec_env, 0, &stack0)
+        memory_dict=memory_dict}(&exec_env, &stack0)
 
     return ()
 end

@@ -6,3 +6,4 @@ dist
 *.egg-info
 **/artifacts/*.json
 **/artifacts/*.opcode
+/.warp-activation-token
