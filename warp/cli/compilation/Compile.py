@@ -17,6 +17,7 @@ from cli.compilation.utils import (
 from cli.compilation.Disasm import InstructionIterator
 from cli.compilation.Contract import Contract, Language
 import solcx
+
 artifacts_dir = os.path.join(os.path.abspath("."), "artifacts")
 
 
@@ -202,12 +203,14 @@ class Solidity(Contract):
                 metadata_hash="none",
                 output_values=["bin-runtime"],
                 solc_version=source_version,
+                optimize=True,
             )
         else:
             compiled = solcx.compile_source(
                 code,
                 output_values=["bin-runtime"],
                 solc_version=source_version,
+                optimize=True,
             )
         os.chdir(pwd)
         return compiled, source_version
