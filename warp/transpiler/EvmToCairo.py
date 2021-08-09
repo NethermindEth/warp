@@ -44,7 +44,7 @@ func main{storage_ptr: Storage*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 
    let (local memory_dict : DictAccess*) = default_dict_new(0)
    local memory_start : DictAccess* = memory_dict
-   
+
    tempvar msize = 0
 
    local stack0 : StackItem
@@ -55,7 +55,7 @@ func main{storage_ptr: Storage*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
       pedersen_ptr=pedersen_ptr,
       range_check_ptr=range_check_ptr,
       msize=msize, memory_dict=memory_dict
-      }(&exec_env, Uint256(0, 0), &stack0)
+      }(&exec_env, 0, &stack0)
 
    return ()
 end
@@ -71,9 +71,9 @@ class SegmentState:
     n_locals: int
     unreachable: bool
     msize: int
-    cur_evm_pc: StackValue.Uint256
+    cur_evm_pc: int
 
-    def __init__(self, cur_evm_pc: StackValue.Uint256):
+    def __init__(self, cur_evm_pc: int):
         self.stack = EvmStack()
         self.n_locals = 0
         self.unreachable = False
@@ -86,7 +86,7 @@ class SegmentState:
         build_instructions, stack_ref = self.stack.build_stack_instructions()
         return [
             *build_instructions,
-            f"return (stack={stack_ref}, evm_pc={pc}, output={output})",
+            f"return (stack={stack_ref}, evm_pc={pc.get_low_bits()}, output={output})",
         ]
 
     def request_fresh_name(self) -> str:
@@ -99,7 +99,7 @@ class EvmToCairo:
     def __init__(self, cur_evm_pc: int):
         self.code_segments: list[StackValue.Uint256] = []
         self.text_segments = []
-        self.state = SegmentState(StackValue.Uint256(cur_evm_pc))
+        self.state = SegmentState(cur_evm_pc)
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
         self.requires_storage = False
@@ -107,17 +107,12 @@ class EvmToCairo:
         self.start_new_segment()
 
     def finish_segment(self):
-        int_pc = int(self.segment_pc.get_int_repr())
-        if int_pc != 0:
-            segment_pc_txt = int_pc - 1
-        else:
-            segment_pc_txt = self.segment_pc.get_int_repr()
         self.text_segments.append(
             "\n".join(
                 [
-                    f"func segment{segment_pc_txt}{self.__make_implicit_args()}"
+                    f"func segment{self.segment_pc}{self.__make_implicit_args()}"
                     "(exec_env: ExecutionEnvironment*, stack : StackItem*) -> "
-                    "(stack : StackItem*, evm_pc : Uint256, output: Output):",
+                    "(stack : StackItem*, evm_pc, output: Output):",
                     "alloc_locals",
                     "let stack0 = stack",
                     "let (local __fp__, _) = get_fp_and_pc()",
@@ -129,9 +124,15 @@ class EvmToCairo:
         )
 
     def start_new_segment(self):
+        # A new segment is started either at the program start (PC =
+        # 0) or on an encountered JUMPDEST (PC > 0). The EVM treats
+        # jumps as if they jump right before JUMPDEST (JUMPDEST is the
+        # next operation), so PC needs to be decremented by one for
+        # such cases. That explains peculiarities with segment_pc
+        # computation.
         self.instructions = []
+        self.segment_pc = max(0, self.state.cur_evm_pc - 1)
         self.state = SegmentState(self.state.cur_evm_pc)
-        self.segment_pc = self.state.cur_evm_pc
         self.code_segments.append(self.segment_pc)
 
     def process_operation(self, operation: Operation):
@@ -148,22 +149,15 @@ class EvmToCairo:
     def construct_run_from_function(self):
         run_from = [
             f"func run_from{self.__make_implicit_args()}"
-            "(exec_env: ExecutionEnvironment*, evm_pc: Uint256, stack: StackItem*) "
+            "(exec_env: ExecutionEnvironment*, evm_pc, stack: StackItem*) "
             "-> (stack: StackItem*, output: Output):"
         ]
 
         for segment_pc in self.code_segments:
-
-            int_pc = int(segment_pc.get_int_repr())
-            if int_pc != 0:
-                segment_pc_txt = int_pc - 1
-            else:
-                segment_pc_txt = int_pc
             run_from.extend(
                 [
-                    f"let (immediate) = uint256_eq{{range_check_ptr=range_check_ptr}}(evm_pc, Uint256({segment_pc_txt}, 0))",
-                    f"if immediate == 1:",
-                    f"let (stack, evm_pc, output) = segment{segment_pc_txt}(exec_env, stack)",
+                    f"if evm_pc == {segment_pc}:",
+                    f"let (stack, evm_pc, output) = segment{segment_pc}(exec_env, stack)",
                     "if output.active == 1:",
                     "return (stack, output)",
                     "end",
@@ -174,8 +168,7 @@ class EvmToCairo:
 
         run_from.extend(
             [
-                f"let (immediate) = uint256_eq{{range_check_ptr=range_check_ptr}}(evm_pc, Uint256(-1, 0))",
-                f"if immediate == 1:",
+                f"if evm_pc == -1:",
                 f"return (stack, {EMPTY_OUTPUT})",
                 "end",
             ]
@@ -192,8 +185,7 @@ class EvmToCairo:
             insts, new_stack = self.state.stack.build_stack_instructions()
             self.instructions.extend(insts)
             self.instructions.append(
-                f"return (stack={new_stack}, "
-                f"evm_pc=Uint256(0, 0), output={EMPTY_OUTPUT})"
+                f"return (stack={new_stack}, " f"evm_pc=0, output={EMPTY_OUTPUT})"
             )
         self.finish_segment()
         builtins_line = "%builtins " + " ".join(BUILTINS) if BUILTINS else ""
@@ -239,6 +231,7 @@ def parse_operations(file):
         (op, i) = correct_cls.parse_from_words(words, i)
         yield op
 
+
 def parse_ops_direct(words):
     operation_classes = get_subclasses(Operation)
 
@@ -251,6 +244,7 @@ def parse_ops_direct(words):
         correct_cls = word_to_cls[words[i]]
         (op, i) = correct_cls.parse_from_words(words, i)
         yield op
+
 
 USAGE = f"Usage: python {sys.argv[0]} EVM-OPCODES-FILE [--dump-all]"
 

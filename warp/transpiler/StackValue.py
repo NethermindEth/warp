@@ -1,7 +1,6 @@
 import abc
 
 
-
 def is_valid_uintN(n: int, x: int):
     return 0 <= x < 2 ** n
 
@@ -48,6 +47,7 @@ class Uint256(StackValue):
         high, low = divmod(self.x, UINT128_BOUND)
         return low, high
 
+
 class Str(StackValue):
     def __init__(self, x: str):
         self.x = x
@@ -57,6 +57,3 @@ class Str(StackValue):
 
     def get_low_high(self):
         return f"{self.x}.low", f"{self.x}.high"
-
-    def get_low_bits(self):
-        return f"{self.x}.low"

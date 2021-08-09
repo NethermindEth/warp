@@ -18,7 +18,7 @@ from starkware.starknet.common.storage import Storage
 func segment0{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(exec_env : ExecutionEnvironment*, stack : StackItem*) -> (
-        stack : StackItem*, evm_pc : Uint256, output : Output):
+        stack : StackItem*, evm_pc, output : Output):
     alloc_locals
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
@@ -39,24 +39,22 @@ func segment0{
     let (local immediate) = round_up_to_multiple(msize, 32)
     local tmp0 : Uint256 = Uint256(immediate, 0)
     local newitem0 : StackItem = StackItem(value=tmp0, next=stack0)
-    return (stack=&newitem0, evm_pc=Uint256(0, 0), output=Output(1, cast(0, felt*), 0))
+    return (stack=&newitem0, evm_pc=0, output=Output(1, cast(0, felt*), 0))
 end
 
 func run_from{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, msize,
         memory_dict : DictAccess*}(
-        exec_env : ExecutionEnvironment*, evm_pc : Uint256, stack : StackItem*) -> (
+        exec_env : ExecutionEnvironment*, evm_pc, stack : StackItem*) -> (
         stack : StackItem*, output : Output):
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(0, 0))
-    if immediate == 1:
+    if evm_pc == 0:
         let (stack, evm_pc, output) = segment0(exec_env, stack)
         if output.active == 1:
             return (stack, output)
         end
         return run_from(exec_env, evm_pc, stack)
     end
-    let (immediate) = uint256_eq{range_check_ptr=range_check_ptr}(evm_pc, Uint256(-1, 0))
-    if immediate == 1:
+    if evm_pc == -1:
         return (stack, Output(1, cast(0, felt*), 0))
     end
     # Fail.
@@ -88,7 +86,7 @@ func main{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         pedersen_ptr=pedersen_ptr,
         range_check_ptr=range_check_ptr,
         msize=msize,
-        memory_dict=memory_dict}(&exec_env, Uint256(0, 0), &stack0)
+        memory_dict=memory_dict}(&exec_env, 0, &stack0)
 
     return ()
 end

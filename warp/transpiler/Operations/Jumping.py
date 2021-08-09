@@ -1,10 +1,14 @@
 from transpiler.Imports import UINT256_MODULE
 from transpiler.Operation import Operation
+from transpiler.StackValue import Uint256
 
 
 class Jumpdest(Operation):
     def proceed(self, state):
-        return state.make_return_instructions(state.cur_evm_pc)
+        # The EVM treats jumps as if they jump right before JUMPDEST
+        # (JUMPDEST is the next operation), so PC needs to be
+        # decremented by one.
+        return state.make_return_instructions(state.cur_evm_pc - 1)
 
     def process_structural_changes(self, evmToCairo):
         evmToCairo.finish_segment()
