@@ -26,7 +26,7 @@ from starkware.cairo.lang.compiler.parser import parse_file
 starknet_dir = os.path.join(WARP_ROOT, "tests", "starknet")
 OPCODES_PATH = os.path.join(starknet_dir, "opcodes")
 ARTIFACTS_DIR = os.path.join(starknet_dir, "artifacts")
-TEST_ENV = ""
+TEST_ENV = os.getenv("STARKNET_ENV")
 
 
 def tx_accepted():
@@ -401,16 +401,14 @@ async def main():
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) == 2:
+        TEST_ENV = sys.argv[1]
+    if TEST_ENV is None:
         sys.exit(
-            f"""
-Please enter a feeder gateway url, for example:
-python scripts/starknet/starknet_test.py https://someUrl.com
-"""
+            """
+Please, either provide a feeder gateway URL as an environment
+variable STARKNET_ENV or supply it as a program argument"""
         )
-    TEST_ENV = sys.argv[1]
-    if TEST_ENV == "":
-        sys.exit("Please enter a feeder gateway url")
     addresses, tables, abis = asyncio.run(main())
     # executes all tests concurrently, so it takes around 5 seconds
     # instead of 3-4 minutes
@@ -423,4 +421,3 @@ async def do():
 asyncio.run(do())
 """
     exec(tests)
-

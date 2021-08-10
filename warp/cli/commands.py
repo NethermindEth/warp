@@ -18,9 +18,10 @@ from starkware.starknet.services.api.contract_definition import ContractDefiniti
 from transpiler.utils import cairoize_bytes
 from transpiler.EvmToCairo import EvmToCairo, parse_operations
 
-TEST_ENV = ""
+TEST_ENV = os.getenv("STARKNET_ENV")
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../.."))
 artifacts_dir = os.path.join(os.path.abspath("."), "artifacts")
+
 
 def get_selector_cairo(args: str) -> int:
     return int.from_bytes(keccak(args.encode("ascii")), "big") & (2 ** 250 - 1)
@@ -57,7 +58,9 @@ def _transpile(file):
 
 # returns true/false on transaction success/failure
 async def _invoke(source_name, address, function, inputs):
-    with open(os.path.join(artifacts_dir, f"{source_name[:-6]}_selector_jumpdests.json")) as f:
+    with open(
+        os.path.join(artifacts_dir, f"{source_name[:-6]}_selector_jumpdests.json")
+    ) as f:
         jumpdests = json.load(f)
     with open(os.path.join(artifacts_dir, f"{source_name[:-6]}_abi.json")) as f:
         cairo_abi = json.load(f)
@@ -137,7 +140,7 @@ def starknet_compile(contract):
             f"{WARP_ROOT}/cairo-src",
         ]
     )
-    output = process.wait() 
+    output = process.wait()
     if output == 1:
         raise Exception("Compilation failed")
     return compiled, abi
@@ -172,9 +175,10 @@ Transaction ID: {tx_id}.
 Contract Address Has Been Written to {os.path.abspath(contract_name)}_ADDRESS.txt
 """
             )
-    with open(f"{os.path.abspath(contract_name)}_ADDRESS.txt", 'w') as f:
+    with open(f"{os.path.abspath(contract_name)}_ADDRESS.txt", "w") as f:
         f.write(f"0x{address:064x}")
     return f"0x{address:064x}"
+
 
 async def _status(tx_id):
     status = f"{TEST_ENV}/feeder_gateway/get_transaction_status?transactionId={tx_id}"
