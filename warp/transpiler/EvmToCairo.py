@@ -10,6 +10,7 @@ from transpiler.Imports import UINT256_MODULE, format_imports, merge_imports
 from transpiler.EvmStack import EvmStack
 import transpiler.StackValue as StackValue
 from transpiler.Operations.Storage import STORAGE_DECLS
+from transpiler.utils import EMPTY_OUTPUT
 
 LANGUAGE = "%lang starknet"
 BUILTINS = ["pedersen", "range_check"]
@@ -44,25 +45,22 @@ func main{storage_ptr: Storage*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 
    let (local memory_dict : DictAccess*) = default_dict_new(0)
    local memory_start : DictAccess* = memory_dict
-   
+
    tempvar msize = 0
 
    local stack0 : StackItem
    assert stack0 = StackItem(value=Uint256(-1, 0), next=&stack0)  # Points to itself.
 
-   let (local stack, local output) = run_from{
+   let (local stack, local output) = segment0{
       storage_ptr=storage_ptr,
       pedersen_ptr=pedersen_ptr,
       range_check_ptr=range_check_ptr,
       msize=msize, memory_dict=memory_dict
-      }(&exec_env, Uint256(0, 0), &stack0)
+      }(&exec_env, &stack0)
 
    return ()
 end
 """
-
-NO_OUTPUT = "Output(0, cast(0, felt*), 0)"
-EMPTY_OUTPUT = "Output(1, cast(0, felt*), 0)"
 
 
 @dataclass
@@ -71,23 +69,28 @@ class SegmentState:
     n_locals: int
     unreachable: bool
     msize: int
-    cur_evm_pc: StackValue.Uint256
+    cur_evm_pc: int
 
-    def __init__(self, cur_evm_pc: StackValue.Uint256):
+    def __init__(self, cur_evm_pc: int):
         self.stack = EvmStack()
         self.n_locals = 0
         self.unreachable = False
         self.msize = 0
         self.cur_evm_pc = cur_evm_pc
 
-    def make_return_instructions(
-        self, pc: StackValue, output: str = NO_OUTPUT
-    ) -> list[str]:
+    def make_jump_instructions(self, pc: StackValue) -> list[str]:
         build_instructions, stack_ref = self.stack.build_stack_instructions()
-        return [
-            *build_instructions,
-            f"return (stack={stack_ref}, evm_pc={pc}, output={output})",
-        ]
+        if isinstance(pc, StackValue.Uint256):
+            ret = f"return segment{pc.get_int_repr()}(exec_env, {stack_ref})"
+        elif isinstance(pc, StackValue.Str):
+            ret = f"return run_from(exec_env, {pc.get_low_bits()}, {stack_ref})"
+        else:
+            raise RuntimeError(f"Unexpected PC type: {pc} of type {type(pc)}")
+        return [*build_instructions, ret]
+
+    def make_return_instructions(self, output: str) -> list[str]:
+        build_instructions, stack_ref = self.stack.build_stack_instructions()
+        return [*build_instructions, f"return ({stack_ref}, {output})"]
 
     def request_fresh_name(self) -> str:
         var_name = f"tmp{self.n_locals}"
@@ -99,7 +102,7 @@ class EvmToCairo:
     def __init__(self, cur_evm_pc: int):
         self.code_segments: list[StackValue.Uint256] = []
         self.text_segments = []
-        self.state = SegmentState(StackValue.Uint256(cur_evm_pc))
+        self.state = SegmentState(cur_evm_pc)
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
         self.requires_storage = False
@@ -107,17 +110,12 @@ class EvmToCairo:
         self.start_new_segment()
 
     def finish_segment(self):
-        int_pc = int(self.segment_pc.get_int_repr())
-        if int_pc != 0:
-            segment_pc_txt = int_pc - 1
-        else:
-            segment_pc_txt = self.segment_pc.get_int_repr()
         self.text_segments.append(
             "\n".join(
                 [
-                    f"func segment{segment_pc_txt}{self.__make_implicit_args()}"
+                    f"func segment{self.segment_pc}{self.__make_implicit_args()}"
                     "(exec_env: ExecutionEnvironment*, stack : StackItem*) -> "
-                    "(stack : StackItem*, evm_pc : Uint256, output: Output):",
+                    "(stack: StackItem*, output: Output):",
                     "alloc_locals",
                     "let stack0 = stack",
                     "let (local __fp__, _) = get_fp_and_pc()",
@@ -129,9 +127,15 @@ class EvmToCairo:
         )
 
     def start_new_segment(self):
+        # A new segment is started either at the program start (PC =
+        # 0) or on an encountered JUMPDEST (PC > 0). The EVM treats
+        # jumps as if they jump right before JUMPDEST (JUMPDEST is the
+        # next operation), so PC needs to be decremented by one for
+        # such cases. That explains peculiarities with segment_pc
+        # computation.
         self.instructions = []
+        self.segment_pc = max(0, self.state.cur_evm_pc - 1)
         self.state = SegmentState(self.state.cur_evm_pc)
-        self.segment_pc = self.state.cur_evm_pc
         self.code_segments.append(self.segment_pc)
 
     def process_operation(self, operation: Operation):
@@ -148,53 +152,36 @@ class EvmToCairo:
     def construct_run_from_function(self):
         run_from = [
             f"func run_from{self.__make_implicit_args()}"
-            "(exec_env: ExecutionEnvironment*, evm_pc: Uint256, stack: StackItem*) "
+            "(exec_env: ExecutionEnvironment*, evm_pc, stack: StackItem*) "
             "-> (stack: StackItem*, output: Output):"
         ]
 
         for segment_pc in self.code_segments:
-
-            int_pc = int(segment_pc.get_int_repr())
-            if int_pc != 0:
-                segment_pc_txt = int_pc - 1
-            else:
-                segment_pc_txt = int_pc
             run_from.extend(
                 [
-                    f"let (immediate) = uint256_eq{{range_check_ptr=range_check_ptr}}(evm_pc, Uint256({segment_pc_txt}, 0))",
-                    f"if immediate == 1:",
-                    f"let (stack, evm_pc, output) = segment{segment_pc_txt}(exec_env, stack)",
-                    "if output.active == 1:",
-                    "return (stack, output)",
-                    "end",
-                    f"return run_from(exec_env, evm_pc, stack)",
+                    f"if evm_pc == {segment_pc}:",
+                    f"return segment{segment_pc}(exec_env, stack)",
                     "end",
                 ]
             )
 
         run_from.extend(
             [
-                f"let (immediate) = uint256_eq{{range_check_ptr=range_check_ptr}}(evm_pc, Uint256(-1, 0))",
-                f"if immediate == 1:",
+                f"if evm_pc == -1:",
                 f"return (stack, {EMPTY_OUTPUT})",
+                "end",
+                "# Fail.",
+                "assert 0 = 1",
+                "jmp rel 0",
                 "end",
             ]
         )
 
-        run_from.append("# Fail.")
-        run_from.append("assert 0 = 1")
-        run_from.append("jmp rel 0")
-        run_from.append("end")
         return "\n".join(run_from)
 
     def finish(self, dump_all):
         if dump_all and not self.state.unreachable:
-            insts, new_stack = self.state.stack.build_stack_instructions()
-            self.instructions.extend(insts)
-            self.instructions.append(
-                f"return (stack={new_stack}, "
-                f"evm_pc=Uint256(0, 0), output={EMPTY_OUTPUT})"
-            )
+            self.instructions.extend(self.state.make_return_instructions(EMPTY_OUTPUT))
         self.finish_segment()
         builtins_line = "%builtins " + " ".join(BUILTINS) if BUILTINS else ""
         return "\n\n".join(
@@ -239,6 +226,7 @@ def parse_operations(file):
         (op, i) = correct_cls.parse_from_words(words, i)
         yield op
 
+
 def parse_ops_direct(words):
     operation_classes = get_subclasses(Operation)
 
@@ -251,6 +239,7 @@ def parse_ops_direct(words):
         correct_cls = word_to_cls[words[i]]
         (op, i) = correct_cls.parse_from_words(words, i)
         yield op
+
 
 USAGE = f"Usage: python {sys.argv[0]} EVM-OPCODES-FILE [--dump-all]"
 

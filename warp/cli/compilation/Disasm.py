@@ -47,14 +47,13 @@ class InstructionIterator:
             self.arg = None
         return True
 
-    def disassemble(self) -> Dict[str, str]:
-        self.instructions = {}
+    def disassemble(self) -> list[str]:
+        instructions = []
         while self.next():
+            instructions.append(f"{self.op_str()}")
             if self.arg != None and len(self.arg) > 0:
-                self.instructions[hex(self.pc)] = f"{self.op_str()} {self.arg_padded}"
-            else:
-                self.instructions[hex(self.pc)] = f"{self.op_str()}"
-        return self.instructions
+                instructions.append(f"{self.arg_padded}")
+        return instructions
 
     def is_push(self, op_str) -> Tuple[bool, int]:
         if "PUSH" in op_str:
@@ -89,12 +88,3 @@ class InstructionIterator:
         l_arg = len(arg_hex[2:])
         arg = "0x" + "0" * (len_push - l_arg) + arg_hex[2:]
         return arg
-
-
-if __name__ == "__main__":
-    with open("weth10.bin") as f:
-        bytecode = f.read()
-    it = InstructionIterator(bytecode)
-    dis = it.disassemble()
-    with open("weth.json", "w") as f:
-        json.dump(dis, f, indent=4)

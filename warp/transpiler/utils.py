@@ -1,23 +1,15 @@
 from __future__ import annotations
-from transpiler.StackValue import Uint256, Str
-
-
-def is_valid_uintN(n: int, x: int):
-    return 0 <= x < 2 ** n
 
 
 UINT256_BOUND = 2 ** 256
 UINT256_HALF_BOUND = 2 ** 255
 UINT128_BOUND = 2 ** 128
 
+EMPTY_OUTPUT = "Output(cast(0, felt*), 0)"
 
-def get_low_high(x):
-    if isinstance(x, str):
-        return f"{x}.low", f"{x}.high"
-    elif isinstance(x, Str):
-        return f"{x}.low", f"{x}.high"
-    elif isinstance(x, Uint256):
-        return x.get_low_high()
+
+def is_valid_uintN(n: int, x: int):
+    return 0 <= x < 2 ** n
 
 
 def int256_to_uint256(x: int) -> int:

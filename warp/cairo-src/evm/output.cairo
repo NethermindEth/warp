@@ -4,7 +4,6 @@ from evm.array import create_from_memory as array_create_from_memory
 from evm.utils import ceil_div, serialize_array
 
 struct Output:
-    member active: felt
     member array: felt* # 128-bit packed byte array
     member n_bytes: felt
 end
@@ -12,7 +11,7 @@ end
 func create_from_memory{memory_dict: DictAccess*, range_check_ptr}(offset, length)
     -> (output: Output):
     let (array) = array_create_from_memory(offset, length)
-    return (Output(active=1, array=array, n_bytes=length))
+    return (Output(array=array, n_bytes=length))
 end
 
 func serialize_output{output_ptr: felt*, range_check_ptr}(output: Output):

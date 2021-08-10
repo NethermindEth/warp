@@ -31,6 +31,8 @@ def transpile(contract_path):
         path = os.path.abspath(click.format_filename(contract_path))
         filename = os.path.basename(path)
         contract = Solidity(path)
+        with open(f"{path[:-4]}.bytecode", "w") as f:
+            f.write(contract.bytecode)
         with open(f"{path[:-4]}.opcode", "w") as f:
             f.write(contract.opcodes_str)
         cairo_str = _transpile(
@@ -47,7 +49,11 @@ return_args = {}
 @warp.command()
 @click.option("--contract", required=True, help="path to transpiled cairo contract")
 @click.option("--address", required=True, help="contract address")
-@click.option("--function", required=True, help="the name of the function to invoke, as defined in the SOLIDITY/VYPER contract")
+@click.option(
+    "--function",
+    required=True,
+    help="the name of the function to invoke, as defined in the SOLIDITY/VYPER contract",
+)
 @click.option("--inputs", required=True, help="Function Arguments")
 def invoke(contract, address, function, inputs):
     inputs = inputs.split(" ")
@@ -78,11 +84,13 @@ def deploy(contract):
     return_args["contract"] = contract
     return_args["type"] = Command.DEPLOY
 
+
 @warp.command()
 @click.argument("status", nargs=1, required=True)
 def status(status):
     return_args["id"] = status
     return_args["type"] = Command.STATUS
+
 
 cli = click.CommandCollection(sources=[warp])
 

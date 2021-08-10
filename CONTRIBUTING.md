@@ -34,7 +34,7 @@ class JumpI(Operation):
     def proceed(self, state):
         a = state.stack.pop()
         b = state.stack.pop()
-        return_instructions = state.make_return_instructions(a)
+        return_instructions = state.make_jump_instructions(a)
         return [
             f"let (immediate) = uint256_eq{{range_check_ptr=range_check_ptr}}({b}, Uint256(0, 0))",
             "if immediate == 0:",
