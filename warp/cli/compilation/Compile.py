@@ -279,4 +279,6 @@ class Solidity(Contract):
 
     def get_opcodes(self):
         it = InstructionIterator(self.bytecode)
-        return " ".join(x for x in it.disassemble().values()).split(" ")
+        ops = it.disassemble()
+        return ops
+
