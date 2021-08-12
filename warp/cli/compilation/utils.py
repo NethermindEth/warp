@@ -26,9 +26,7 @@ def read_file_json(file_name: str) -> List[str]:
         data = f.readlines()
     abi = []
     for line in data:
-        if not "[" in line:
-            continue
-        else:
+        if "[" in line:
             abi.extend(json.loads(line))
     return abi
 
@@ -36,26 +34,11 @@ def read_file_json(file_name: str) -> List[str]:
 def get_func_sigs(abi: List[Dict[str, str]]) -> Dict[str, int]:
     sigs = {}
     for item in abi:
-        if item["type"] != "function":
-            continue
-        else:
+        if item["type"] == "function":
             name = item["name"] + "("
-            if len(item["inputs"]) == 0:
-                name += ")"
-                if item["stateMutability"] == "payable":
-                    sigs[name] = 1
-                else:
-                    sigs[name] = 0
-                continue
-            for idx, x in enumerate(item["inputs"]):
-                if (idx == len(item["inputs"]) - 1) or item["inputs"] == "":
-                    name += x["type"] + ")"
-                else:
-                    name += x["type"] + ","
-            if item["stateMutability"] == "payable":
-                sigs[name] = 1
-            else:
-                sigs[name] = 0
+            name += ",".join([x["type"] for x in item["inputs"]])
+            name += ")"
+        sigs[name] = 1 if item["stateMutability"] == "payable" else 0
     return sigs
 
 #  DUP1

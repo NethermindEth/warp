@@ -3,6 +3,7 @@ import operator
 from transpiler.Imports import UINT256_MODULE
 from transpiler.Operations.Binary import Binary, SimpleBinary
 from transpiler.Operations.Ternary import Ternary
+from transpiler.StackValue import UINT256_BOUND
 from transpiler.utils import (
     uint256_to_int256,
     int256_to_uint256,
@@ -64,11 +65,18 @@ class Sdiv(Binary):
     def required_imports(cls):
         return {UINT256_MODULE: {"uint256_signed_div_rem"}}
 
+def bin_exp(a, b):
+    ans = 1
+    while b > 0:
+        if b % 2 == 1:
+            ans = (ans * a) % UINT256_BOUND
+        a = (a * a) % UINT256_BOUND
+        b = (b >> 1)
+    return ans
 
 class Exp(SimpleBinary):
     def __init__(self):
-        # FIXME we should probably use a fast modular exponentiation algorithm instead
-        super().__init__(operator.pow, UINT256_MODULE, "uint256_exp")
+        super().__init__(bin_exp, UINT256_MODULE, "uint256_exp")
 
 
 def mod(a, b):
