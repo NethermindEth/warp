@@ -122,7 +122,7 @@
                 },
                 {
                     "expr": "[cast(fp, starkware.cairo.common.uint256.Uint256*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_unsigned_div_rem.quot"
+                    "name": "starkware.cairo.common.uint256.uint256_unsigned_div_rem.quotient"
                 },
                 {
                     "expr": "[cast(fp + (-7), felt*)]",
@@ -130,19 +130,18 @@
                 },
                 {
                     "expr": "[cast(fp + 2, starkware.cairo.common.uint256.Uint256*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_unsigned_div_rem.rem"
+                    "name": "starkware.cairo.common.uint256.uint256_unsigned_div_rem.remainder"
                 }
             ],
             "hint_lines": [
-                "a = (ids.a.high<<128)+ids.a.low",
-                "div = (ids.div.high<<128)+ids.div.low",
-                "quot = a // div",
-                "rem = a % div",
+                "a = (ids.a.high << 128) + ids.a.low",
+                "div = (ids.div.high << 128) + ids.div.low",
+                "quotient, remainder = divmod(a, div)",
                 "",
-                "ids.quot.low = quot & ((1<<128)-1)",
-                "ids.quot.high = quot >> 128",
-                "ids.rem.low = rem & ((1<<128)-1)",
-                "ids.rem.high = rem >> 128"
+                "ids.quotient.low = quotient & ((1 << 128) - 1)",
+                "ids.quotient.high = quotient >> 128",
+                "ids.remainder.low = remainder & ((1 << 128) - 1)",
+                "ids.remainder.high = remainder >> 128"
             ]
         },
         {
@@ -645,6 +644,58 @@
         {
             "allowed_expressions": [
                 {
+                    "expr": "[cast(fp + 2, felt*)]",
+                    "name": "evm.sha3.sha.high"
+                },
+                {
+                    "expr": "[cast(fp + (-3), felt*)]",
+                    "name": "evm.sha3.sha.length"
+                },
+                {
+                    "expr": "[cast(fp + 3, felt*)]",
+                    "name": "evm.sha3.sha.low"
+                },
+                {
+                    "expr": "[cast(ap + (-3), starkware.cairo.common.dict_access.DictAccess**)]",
+                    "name": "evm.sha3.sha.memory_dict"
+                },
+                {
+                    "expr": "[cast(fp + 1, felt**)]",
+                    "name": "evm.sha3.sha.memval"
+                },
+                {
+                    "expr": "[cast(fp, felt*)]",
+                    "name": "evm.sha3.sha.msize"
+                },
+                {
+                    "expr": "[cast(fp + (-4), felt*)]",
+                    "name": "evm.sha3.sha.offset"
+                },
+                {
+                    "expr": "[cast(ap + (-2), felt*)]",
+                    "name": "evm.sha3.sha.range_check_ptr"
+                }
+            ],
+            "hint_lines": [
+                "from Crypto.Hash import keccak",
+                "keccak_hash = keccak.new(digest_bits=256)",
+                "arr = []",
+                "arr_length = ids.length//16 if ids.length % 16 == 0 else ids.length//16+1",
+                "for i in range(arr_length):",
+                "    arr.append(memory[ids.memval+i])",
+                "keccak_input = bytearray()",
+                "for i in range(arr_length-1):",
+                "    keccak_input += arr[i].to_bytes(16,\"big\")",
+                "keccak_input += arr[-1].to_bytes(16,\"big\") if ids.length % 16 == 0 else arr[-1].to_bytes(ids.length % 16,\"big\")",
+                "keccak_hash.update(keccak_input)",
+                "hashed = keccak_hash.digest()",
+                "ids.high = int.from_bytes(hashed[:16],\"big\")",
+                "ids.low = int.from_bytes(hashed[16:32],\"big\")"
+            ]
+        },
+        {
+            "allowed_expressions": [
+                {
                     "expr": "[cast([fp + (-4)] + 1, felt*)]",
                     "name": "starkware.cairo.common.math.assert_250_bit.high"
                 },
@@ -912,107 +963,56 @@
             "allowed_expressions": [
                 {
                     "expr": "[cast(fp + (-5), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint128_and.a"
+                    "name": "starkware.cairo.common.uint256.felt_and.a"
                 },
                 {
                     "expr": "[cast(fp, felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint128_and.a0"
+                    "name": "starkware.cairo.common.uint256.felt_and.a_lsb"
                 },
                 {
                     "expr": "[cast(fp + (-4), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint128_and.b"
+                    "name": "starkware.cairo.common.uint256.felt_and.b"
                 },
                 {
                     "expr": "[cast(fp + 1, felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint128_and.b0"
+                    "name": "starkware.cairo.common.uint256.felt_and.b_lsb"
                 },
                 {
                     "expr": "[cast(fp + (-3), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint128_and.n"
+                    "name": "starkware.cairo.common.uint256.felt_and.n"
                 },
                 {
                     "expr": "[cast(fp + (-6), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint128_and.range_check_ptr"
+                    "name": "starkware.cairo.common.uint256.felt_and.range_check_ptr"
                 },
                 {
                     "expr": "[cast(fp + (-5), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint128_xor.a"
+                    "name": "starkware.cairo.common.uint256.felt_xor.a"
                 },
                 {
                     "expr": "[cast(fp, felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint128_xor.a0"
+                    "name": "starkware.cairo.common.uint256.felt_xor.a_lsb"
                 },
                 {
                     "expr": "[cast(fp + (-4), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint128_xor.b"
+                    "name": "starkware.cairo.common.uint256.felt_xor.b"
                 },
                 {
                     "expr": "[cast(fp + 1, felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint128_xor.b0"
+                    "name": "starkware.cairo.common.uint256.felt_xor.b_lsb"
                 },
                 {
                     "expr": "[cast(fp + (-3), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint128_xor.n"
+                    "name": "starkware.cairo.common.uint256.felt_xor.n"
                 },
                 {
                     "expr": "[cast(fp + (-6), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint128_xor.range_check_ptr"
+                    "name": "starkware.cairo.common.uint256.felt_xor.range_check_ptr"
                 }
             ],
             "hint_lines": [
-                "ids.a0 = ids.a&1",
-                "ids.b0 = ids.b&1"
-            ]
-        },
-        {
-            "allowed_expressions": [
-                {
-                    "expr": "[cast(fp + (-6), starkware.cairo.common.uint256.Uint256*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_exp128.a"
-                },
-                {
-                    "expr": "[cast(fp + (-4), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_exp128.b"
-                },
-                {
-                    "expr": "[cast(fp, felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_exp128.bit"
-                },
-                {
-                    "expr": "[cast(fp + (-3), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_exp128.n"
-                },
-                {
-                    "expr": "[cast(fp + (-7), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_exp128.range_check_ptr"
-                },
-                {
-                    "expr": "[cast(fp + (-8), starkware.cairo.common.uint256.Uint256*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_mulmod128.a"
-                },
-                {
-                    "expr": "[cast(fp + (-6), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_mulmod128.b"
-                },
-                {
-                    "expr": "[cast(fp, felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_mulmod128.bit"
-                },
-                {
-                    "expr": "[cast(fp + (-5), starkware.cairo.common.uint256.Uint256*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_mulmod128.m"
-                },
-                {
-                    "expr": "[cast(fp + (-3), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_mulmod128.n"
-                },
-                {
-                    "expr": "[cast(fp + (-9), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_mulmod128.range_check_ptr"
-                }
-            ],
-            "hint_lines": [
-                "ids.bit = ids.b&1"
+                "ids.a_lsb = ids.a & 1",
+                "ids.b_lsb = ids.b & 1"
             ]
         },
         {
@@ -1079,6 +1079,37 @@
             ],
             "hint_lines": [
                 "ids.is_250 = 1 if ids.addr < 2**250 else 0"
+            ]
+        },
+        {
+            "allowed_expressions": [
+                {
+                    "expr": "[cast(fp + (-4), felt*)]",
+                    "name": "starkware.cairo.common.pow.pow.base"
+                },
+                {
+                    "expr": "[cast(fp + (-3), felt*)]",
+                    "name": "starkware.cairo.common.pow.pow.exp"
+                },
+                {
+                    "expr": "cast(fp + (-2), starkware.cairo.common.pow.pow.LoopLocals*)",
+                    "name": "starkware.cairo.common.pow.pow.initial_locs"
+                },
+                {
+                    "expr": "cast(ap, starkware.cairo.common.pow.pow.LoopLocals*)",
+                    "name": "starkware.cairo.common.pow.pow.locs"
+                },
+                {
+                    "expr": "cast(ap + (-5), starkware.cairo.common.pow.pow.LoopLocals*)",
+                    "name": "starkware.cairo.common.pow.pow.prev_locs"
+                },
+                {
+                    "expr": "[cast(fp + (-5), felt*)]",
+                    "name": "starkware.cairo.common.pow.pow.range_check_ptr"
+                }
+            ],
+            "hint_lines": [
+                "ids.locs.bit = (ids.prev_locs.exp % PRIME) & 1"
             ]
         },
         {
@@ -1276,33 +1307,6 @@
         {
             "allowed_expressions": [
                 {
-                    "expr": "[cast(fp + (-6), starkware.cairo.common.uint256.Uint256*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_mod.a"
-                },
-                {
-                    "expr": "[cast(fp + (-4), starkware.cairo.common.uint256.Uint256*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_mod.m"
-                },
-                {
-                    "expr": "[cast(fp + (-7), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_mod.range_check_ptr"
-                },
-                {
-                    "expr": "[cast(fp, felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_mod.should_reduce"
-                }
-            ],
-            "hint_lines": [
-                "if (ids.m.high == 0 and ids.m.low == 0) or \\",
-                "        (ids.a.high, ids.a.low) >= (ids.m.high, ids.m.low):",
-                "    ids.should_reduce = 1",
-                "else:",
-                "    ids.should_reduce = 0"
-            ]
-        },
-        {
-            "allowed_expressions": [
-                {
                     "expr": "[cast(fp + (-4), felt*)]",
                     "name": "starkware.cairo.common.math_cmp.is_le_felt.a"
                 },
@@ -1462,63 +1466,6 @@
                 "new_access_index = current_access_indices.pop()",
                 "ids.loop_temps.index_delta_minus1 = new_access_index - current_access_index - 1",
                 "current_access_index = new_access_index"
-            ]
-        },
-        {
-            "allowed_expressions": [
-                {
-                    "expr": "[cast(fp + (-4), starkware.cairo.common.uint256.Uint256*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_neg.a"
-                },
-                {
-                    "expr": "[cast(fp + (-5), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_neg.range_check_ptr"
-                }
-            ],
-            "hint_lines": [
-                "print(ids.a.low, ids.a.high)"
-            ]
-        },
-        {
-            "allowed_expressions": [
-                {
-                    "expr": "[cast(fp + (-4), starkware.cairo.common.uint256.Uint256*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_neg.a"
-                },
-                {
-                    "expr": "[cast(ap + (-2), starkware.cairo.common.uint256.Uint256*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_neg.not_num"
-                },
-                {
-                    "expr": "[cast(ap + (-3), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_neg.range_check_ptr"
-                }
-            ],
-            "hint_lines": [
-                "print(ids.not_num.low, ids.not_num.high)"
-            ]
-        },
-        {
-            "allowed_expressions": [
-                {
-                    "expr": "[cast(fp + (-4), starkware.cairo.common.uint256.Uint256*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_neg.a"
-                },
-                {
-                    "expr": "[cast(ap + (-2), starkware.cairo.common.uint256.Uint256*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_neg.not_num"
-                },
-                {
-                    "expr": "[cast(ap + (-4), felt*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_neg.range_check_ptr"
-                },
-                {
-                    "expr": "[cast(ap + (-3), starkware.cairo.common.uint256.Uint256*)]",
-                    "name": "starkware.cairo.common.uint256.uint256_neg.res"
-                }
-            ],
-            "hint_lines": [
-                "print(ids.res.low, ids.res.high)"
             ]
         },
         {

@@ -6,7 +6,7 @@ from evm.exec_env import ExecutionEnvironment
 from evm.memory import mload, mstore
 from evm.output import Output
 from evm.stack import StackItem
-from evm.uint256 import sgt, slt, smod
+from evm.uint256 import sgt, slt, smod, uint256_mod, uint256_mulmod, uint256_sar, uint256_signextend
 from evm.utils import update_msize
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_new
@@ -14,9 +14,8 @@ from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import (
-    Uint256, uint256_add, uint256_eq, uint256_mod, uint256_mul, uint256_mulmod, uint256_not,
-    uint256_or, uint256_sar, uint256_shl, uint256_shr, uint256_signed_div_rem, uint256_signextend,
-    uint256_sub, uint256_xor)
+    Uint256, uint256_add, uint256_eq, uint256_mul, uint256_not, uint256_or, uint256_shl,
+    uint256_shr, uint256_signed_div_rem, uint256_sub, uint256_xor)
 from starkware.starknet.common.storage import Storage
 
 @storage_var
