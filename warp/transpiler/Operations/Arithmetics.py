@@ -65,18 +65,20 @@ class Sdiv(Binary):
     def required_imports(cls):
         return {UINT256_MODULE: {"uint256_signed_div_rem"}}
 
+
 def bin_exp(a, b):
     ans = 1
     while b > 0:
         if b % 2 == 1:
             ans = (ans * a) % UINT256_BOUND
         a = (a * a) % UINT256_BOUND
-        b = (b >> 1)
+        b = b >> 1
     return ans
+
 
 class Exp(SimpleBinary):
     def __init__(self):
-        super().__init__(bin_exp, UINT256_MODULE, "uint256_exp")
+        super().__init__(bin_exp, "evm.uint256", "uint256_exp")
 
 
 def mod(a, b):
@@ -85,7 +87,7 @@ def mod(a, b):
 
 class Mod(SimpleBinary):
     def __init__(self):
-        super().__init__(mod, UINT256_MODULE, "uint256_mod")
+        super().__init__(mod, "evm.uint256", "uint256_mod")
 
 
 def smod(a, b):
@@ -108,7 +110,7 @@ class AddMod(Ternary):
 
     @classmethod
     def required_imports(cls):
-        return {UINT256_MODULE: {"uint256_addmod"}}
+        return {"evm.uint256": {"uint256_addmod"}}
 
 
 class MulMod(Ternary):
@@ -120,12 +122,13 @@ class MulMod(Ternary):
 
     @classmethod
     def required_imports(cls):
-        return {UINT256_MODULE: {"uint256_mulmod"}}
+        return {"evm.uint256": {"uint256_mulmod"}}
 
 
 class SignExtend(Binary):
     def evaluate_eagerly(self, b, x):
-        if b > 31: return x
+        if b > 31:
+            return x
         bit = (b * 8) + 7
         mask = (1 << bit) - 1
         if is_bit_set(x, bit):
@@ -140,4 +143,4 @@ class SignExtend(Binary):
 
     @classmethod
     def required_imports(cls):
-        return {UINT256_MODULE: {"uint256_signextend"}}
+        return {"evm.uint256": {"uint256_signextend"}}

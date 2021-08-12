@@ -5,12 +5,13 @@
 from evm.exec_env import ExecutionEnvironment
 from evm.output import Output
 from evm.stack import StackItem
+from evm.uint256 import uint256_mulmod
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_mulmod
+from starkware.cairo.common.uint256 import Uint256, uint256_eq
 from starkware.starknet.common.storage import Storage
 
 func segment0{

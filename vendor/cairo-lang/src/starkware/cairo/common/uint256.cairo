@@ -1,5 +1,7 @@
-from starkware.cairo.common.math import assert_nn_le, assert_not_zero
+from starkware.cairo.common.math import assert_le, assert_nn_le, assert_not_zero
 from starkware.cairo.common.math_cmp import is_le
+from starkware.cairo.common.pow import pow
+from starkware.cairo.common.registers import get_ap, get_fp_and_pc
 
 # Represents an integer in the range [0, 2^256).
 struct Uint256:
@@ -10,6 +12,7 @@ struct Uint256:
 end
 
 const SHIFT = 2 ** 128
+const ALL_ONES = 2 ** 128 - 1
 const HALF_SHIFT = 2 ** 64
 
 # Verifies that the given integer is valid.
@@ -82,57 +85,80 @@ func uint256_mul{range_check_ptr}(a : Uint256, b : Uint256) -> (low : Uint256, h
         high=Uint256(low=res4 + HALF_SHIFT * res5, high=res6 + HALF_SHIFT * carry))
 end
 
-func uint256_unsigned_div_rem{range_check_ptr}(a : Uint256, div : Uint256) -> (
-        quot : Uint256, rem : Uint256):
-    alloc_locals
-    local quot : Uint256
-    local rem : Uint256
+# Returns 1 if the first unsigned integer is less than the second unsigned integer.
+func uint256_lt{range_check_ptr}(a : Uint256, b : Uint256) -> (res):
+    if a.high == b.high:
+        return is_le(a.low + 1, b.low)
+    end
+    return is_le(a.high + 1, b.high)
+end
 
+# Returns 1 if the first signed integer is less than the second signed integer.
+func uint256_signed_lt{range_check_ptr}(a : Uint256, b : Uint256) -> (res):
+    let (a, _) = uint256_add(a, cast((low=0, high=%[2**127%]), Uint256))
+    let (b, _) = uint256_add(b, cast((low=0, high=%[2**127%]), Uint256))
+    return uint256_lt(a, b)
+end
+
+# Unsigned integer division between two integers. Returns the quotient and the remainder.
+# Conforms to EVM specifications: division by 0 yields 0.
+func uint256_unsigned_div_rem{range_check_ptr}(a : Uint256, div : Uint256) -> (
+        quotient : Uint256, remainder : Uint256):
+    alloc_locals
+    local quotient : Uint256
+    local remainder : Uint256
+
+    # If div == 0, return (0, 0).
     if div.low + div.high == 0:
-        return (quot=cast((0, 0), Uint256), rem=cast((0, 0), Uint256))
+        return (quotient=Uint256(0, 0), remainder=Uint256(0, 0))
     end
 
     %{
-        a = (ids.a.high<<128)+ids.a.low
-        div = (ids.div.high<<128)+ids.div.low
-        quot = a // div
-        rem = a % div
+        a = (ids.a.high << 128) + ids.a.low
+        div = (ids.div.high << 128) + ids.div.low
+        quotient, remainder = divmod(a, div)
 
-        ids.quot.low = quot & ((1<<128)-1)
-        ids.quot.high = quot >> 128
-        ids.rem.low = rem & ((1<<128)-1)
-        ids.rem.high = rem >> 128
+        ids.quotient.low = quotient & ((1 << 128) - 1)
+        ids.quotient.high = quotient >> 128
+        ids.remainder.low = remainder & ((1 << 128) - 1)
+        ids.remainder.high = remainder >> 128
     %}
-    let (res_mul, carry) = uint256_mul(quot, div)
-    assert carry = cast((0, 0), Uint256)
+    let (res_mul, carry) = uint256_mul(quotient, div)
+    assert carry = Uint256(0, 0)
 
-    let (check_val, _) = uint256_add(res_mul, rem)
+    let (check_val, add_carry) = uint256_add(res_mul, remainder)
     assert check_val = a
+    assert add_carry = 0
 
-    let (is_valid) = uint256_lt(rem, div)
+    let (is_valid) = uint256_lt(remainder, div)
     assert is_valid = 1
-    return (quot=quot, rem=rem)
+    return (quotient=quotient, remainder=remainder)
 end
 
+# Returns the bitwise NOT of an integer.
+func uint256_not{range_check_ptr}(a : Uint256) -> (res : Uint256):
+    return (Uint256(low=ALL_ONES - a.low, high=ALL_ONES - a.high))
+end
+
+# Returns the negation of an integer.
+func uint256_neg{range_check_ptr}(a : Uint256) -> (res : Uint256):
+    let (not_num) = uint256_not(a)
+    let (res, _) = uint256_add(not_num, Uint256(low=1, high=0))
+    return (res)
+end
+
+# Conditionally negates an integer.
 func uint256_cond_neg{range_check_ptr}(a : Uint256, should_neg) -> (res : Uint256):
     if should_neg != 0:
-        let (neg) = uint256_neg(a)
-        return (res=neg)
+        return uint256_neg(a)
     else:
         return (res=a)
     end
 end
 
-func uint256_not{range_check_ptr}(a : Uint256) -> (res : Uint256):
-    return (cast((low=%[2**128-1%] - a.low, high=%[2**128-1%] - a.high), Uint256))
-end
-
-func uint256_neg{range_check_ptr}(a : Uint256) -> (res : Uint256):
-    let (not_num) = uint256_not(a)
-    let (res, _) = uint256_add(not_num, cast((low=1, high=0), Uint256))
-    return (res)
-end
-
+# Signed integer division between two integers. Returns the quotient and the remainder.
+# Conforms to EVM specifications.
+# See ethereum yellow paper (https://ethereum.github.io/yellowpaper/paper.pdf, page 29).
 func uint256_signed_div_rem{range_check_ptr}(a : Uint256, div : Uint256) -> (
         quot : Uint256, rem : Uint256):
     alloc_locals
@@ -145,139 +171,61 @@ func uint256_signed_div_rem{range_check_ptr}(a : Uint256, div : Uint256) -> (
         end
     end
 
-    let (local is_a_low) = is_le(a.high, %[2**127 - 1%])
+    let (local is_a_low) = is_le(a.high, 2 ** 127 - 1)
     local range_check_ptr = range_check_ptr
     let (local a) = uint256_cond_neg(a, should_neg=1 - is_a_low)
 
-    let (local is_div_low) = is_le(div.high, %[2**127 - 1%])
+    let (local is_div_low) = is_le(div.high, 2 ** 127 - 1)
     local range_check_ptr = range_check_ptr
     let (div) = uint256_cond_neg(div, should_neg=1 - is_div_low)
 
     let (local quot, local rem) = uint256_unsigned_div_rem(a, div)
     local range_check_ptr = range_check_ptr
+
+    let (rem) = uint256_cond_neg(rem, should_neg=1 - is_a_low)
     if is_a_low == is_div_low:
         return (quot=quot, rem=rem)
     end
-
     let (local quot_neg) = uint256_neg(quot)
-    let (rem_neg) = uint256_neg(rem)
-    return (quot=quot_neg, rem=rem_neg)
+    return (quot=quot_neg, rem=rem)
 end
 
+# Subtracts two integers. Returns the result as a 256-bit integer.
 func uint256_sub{range_check_ptr}(a : Uint256, b : Uint256) -> (res : Uint256):
     let (b_neg) = uint256_neg(b)
     let (res, _) = uint256_add(a, b_neg)
     return (res)
 end
 
-func uint256_exp128{range_check_ptr}(a : Uint256, b : felt, n) -> (res : Uint256, new_a : Uint256):
-    if b == 0:
-        return (res=cast((low=1, high=0), Uint256), new_a=a)
+# Bitwise.
+
+# Computes the bitwise XOR of 2 n-bit words.
+# This is an inefficient implementation, and will be replaced with a builtin in the future.
+func felt_xor{range_check_ptr}(a, b, n) -> (res : felt):
+    alloc_locals
+    local a_lsb
+    local b_lsb
+
+    if n == 0:
+        assert a = 0
+        assert b = 0
+        return (0)
     end
 
-    alloc_locals
-    local bit
-    %{ ids.bit = ids.b&1 %}
-    bit * bit = bit
-    assert_not_zero(n)
-
-    let (a2, _) = uint256_mul(a, a)
-    let (res, new_a) = uint256_exp128(a2, (b - bit) / 2, n - 1)
-    if bit != 0:
-        let (res, _) = uint256_mul(res, a)
-        return (res=res, new_a=new_a)
-    else:
-        return (res=res, new_a=new_a)
-    end
-end
-
-func uint256_exp{range_check_ptr}(a : Uint256, b : Uint256) -> (res : Uint256):
-    alloc_locals
-    let (local res0, new_a) = uint256_exp128(a, b.low, 128)
-    let (res1, _) = uint256_exp128(new_a, b.high, 128)
-    let (res, _) = uint256_mul(res0, res1)
-    return (res=res)
-end
-
-func uint256_mod{range_check_ptr}(a : Uint256, m : Uint256) -> (res : Uint256):
-    alloc_locals
-    local should_reduce
     %{
-        if (ids.m.high == 0 and ids.m.low == 0) or \
-                (ids.a.high, ids.a.low) >= (ids.m.high, ids.m.low):
-            ids.should_reduce = 1
-        else:
-            ids.should_reduce = 0
+        ids.a_lsb = ids.a & 1
+        ids.b_lsb = ids.b & 1
     %}
-    if should_reduce == 0:
-        let (is_lt) = uint256_lt(a, m)
-        assert is_lt = 1
-        return (a)
-    end
-    let (_, a) = uint256_signed_div_rem(a, m)
-    return (a)
+    assert a_lsb * a_lsb = a_lsb
+    assert b_lsb * b_lsb = b_lsb
+
+    local res_bit = a_lsb + b_lsb - 2 * a_lsb * b_lsb
+
+    let (res) = felt_xor((a - a_lsb) / 2, (b - b_lsb) / 2, n - 1)
+    return (res=res * 2 + res_bit)
 end
 
-func uint256_addmod{range_check_ptr}(a : Uint256, b : Uint256, m : Uint256) -> (res : Uint256):
-    alloc_locals
-    let (local a) = uint256_mod(a, m)
-    let (local b) = uint256_mod(b, m)
-    let (local res, carry) = uint256_add(a, b)
-    if carry != 0:
-        return uint256_sub(res, m)
-    end
-    let (is_lt) = uint256_lt(res, m)
-    if is_lt != 0:
-        return (res)
-    else:
-        return uint256_sub(res, m)
-    end
-end
-
-func uint256_mulmod128{range_check_ptr}(a : Uint256, b : felt, m : Uint256, n) -> (
-        res : Uint256, new_a : Uint256):
-    if b == 0:
-        return (res=cast((low=1, high=0), Uint256), new_a=a)
-    end
-
-    alloc_locals
-    local bit
-    %{ ids.bit = ids.b&1 %}
-    bit * bit = bit
-    assert_not_zero(n)
-
-    let (a2) = uint256_addmod(a, a, m)
-    let (res, local new_a) = uint256_mulmod128(a2, (b - bit) / 2, m, n - 1)
-    if bit != 0:
-        let (res) = uint256_addmod(res, a, m)
-        return (res=res, new_a=new_a)
-    else:
-        return (res=res, new_a=new_a)
-    end
-end
-
-func uint256_mulmod{range_check_ptr}(a : Uint256, b : Uint256, m : Uint256) -> (res : Uint256):
-    alloc_locals
-    let (local res0, new_a) = uint256_mulmod128(a, b.low, m, 128)
-    let (res1, _) = uint256_mulmod128(new_a, b.high, m, 128)
-    let (res) = uint256_addmod(res0, res1, m)
-    return (res=res)
-end
-
-# Logical.
-func uint256_lt{range_check_ptr}(a : Uint256, b : Uint256) -> (res):
-    if a.high == b.high:
-        return is_le(a.low + 1, b.low)
-    end
-    return is_le(a.high + 1, b.high)
-end
-
-func uint256_signed_lt{range_check_ptr}(a : Uint256, b : Uint256) -> (res):
-    let (a, _) = uint256_add(a, cast((low=0, high=%[2**127%]), Uint256))
-    let (b, _) = uint256_add(b, cast((low=0, high=%[2**127%]), Uint256))
-    return uint256_lt(a, b)
-end
-
+# Return true if both integers are equal.
 func uint256_eq{range_check_ptr}(a : Uint256, b : Uint256) -> (res):
     if a.high != b.high:
         return (0)
@@ -288,35 +236,12 @@ func uint256_eq{range_check_ptr}(a : Uint256, b : Uint256) -> (res):
     return (1)
 end
 
-# Bitwise.
-func uint128_xor{range_check_ptr}(a, b, n) -> (res : felt):
+# Computes the bitwise AND of 2 n-bit words.
+# This is an inefficient implementation, and will be replaced with a builtin in the future.
+func felt_and{range_check_ptr}(a, b, n) -> (res : felt):
     alloc_locals
-    local a0
-    local b0
-
-    if n == 0:
-        assert a = 0
-        assert b = 0
-        return (0)
-    end
-
-    %{
-        ids.a0 = ids.a&1
-        ids.b0 = ids.b&1
-    %}
-    assert a0 * a0 = a0
-    assert b0 * b0 = b0
-
-    local res_bit = a0 + b0 - 2 * a0 * b0
-
-    let (res) = uint128_xor((a - a0) / 2, (b - b0) / 2, n - 1)
-    return (res=res * 2 + res_bit)
-end
-
-func uint128_and{range_check_ptr}(a, b, n) -> (res : felt):
-    alloc_locals
-    local a0
-    local b0
+    local a_lsb
+    local b_lsb
 
     if n == 0:
         assert a = 0
@@ -325,32 +250,35 @@ func uint128_and{range_check_ptr}(a, b, n) -> (res : felt):
     end
 
     %{
-        ids.a0 = ids.a&1
-        ids.b0 = ids.b&1
+        ids.a_lsb = ids.a & 1
+        ids.b_lsb = ids.b & 1
     %}
-    assert a0 * a0 = a0
-    assert b0 * b0 = b0
+    assert a_lsb * a_lsb = a_lsb
+    assert b_lsb * b_lsb = b_lsb
 
-    local res_bit = a0 * b0
+    local res_bit = a_lsb * b_lsb
 
-    let (res) = uint128_and((a - a0) / 2, (b - b0) / 2, n - 1)
+    let (res) = felt_and((a - a_lsb) / 2, (b - b_lsb) / 2, n - 1)
     return (res=res * 2 + res_bit)
 end
 
+# Computes the bitwise XOR of 2 uint256 integers.
 func uint256_xor{range_check_ptr}(a : Uint256, b : Uint256) -> (res : Uint256):
     alloc_locals
-    let (local low) = uint128_xor(a.low, b.low, 128)
-    let (high) = uint128_xor(a.high, b.high, 128)
-    return (cast((low, high), Uint256))
+    let (local low) = felt_xor(a.low, b.low, 128)
+    let (high) = felt_xor(a.high, b.high, 128)
+    return (Uint256(low, high))
 end
 
+# Computes the bitwise AND of 2 uint256 integers.
 func uint256_and{range_check_ptr}(a : Uint256, b : Uint256) -> (res : Uint256):
     alloc_locals
-    let (local low) = uint128_and(a.low, b.low, 128)
-    let (high) = uint128_and(a.high, b.high, 128)
-    return (cast((low, high), Uint256))
+    let (local low) = felt_and(a.low, b.low, 128)
+    let (high) = felt_and(a.high, b.high, 128)
+    return (Uint256(low, high))
 end
 
+# Computes the bitwise OR of 2 uint256 integers.
 func uint256_or{range_check_ptr}(a : Uint256, b : Uint256) -> (res : Uint256):
     let (a) = uint256_not(a)
     let (b) = uint256_not(b)
@@ -358,37 +286,34 @@ func uint256_or{range_check_ptr}(a : Uint256, b : Uint256) -> (res : Uint256):
     return uint256_not(res)
 end
 
+# Computes 2**exp % 2**256 as a uint256 integer.
+func uint256_pow2{range_check_ptr}(exp : Uint256) -> (res : Uint256):
+    # If exp >= 256, the result will be zero modulo 2**256.
+    let (res) = uint256_lt(exp, Uint256(256, 0))
+    if res == 0:
+        return (Uint256(0, 0))
+    end
+
+    let (res) = is_le(exp.low, 127)
+    if res != 0:
+        let (x) = pow(2, exp.low)
+        return (Uint256(x, 0))
+    else:
+        let (x) = pow(2, exp.low - 128)
+        return (Uint256(0, x))
+    end
+end
+
+# Computes the logical left shift of a uint256 integer.
 func uint256_shl{range_check_ptr}(a : Uint256, b : Uint256) -> (res : Uint256):
-    let (c) = uint256_exp(cast((2, 0), Uint256), b)
+    let (c) = uint256_pow2(b)
     let (res, _) = uint256_mul(a, c)
     return (res)
 end
 
+# Computes the logical right shift of a uint256 integer.
 func uint256_shr{range_check_ptr}(a : Uint256, b : Uint256) -> (res : Uint256):
-    let (c) = uint256_exp(cast((2, 0), Uint256), b)
+    let (c) = uint256_pow2(b)
     let (res, _) = uint256_unsigned_div_rem(a, c)
     return (res)
-end
-
-func uint256_sar{range_check_ptr}(a : Uint256, b : Uint256) -> (res : Uint256):
-    let (c) = uint256_exp(cast((2, 0), Uint256), b)
-    let (res, _) = uint256_signed_div_rem(a, c)
-    return (res)
-end
-
-func uint256_signextend{range_check_ptr}(a : Uint256, i : Uint256) -> (res : Uint256):
-    alloc_locals
-    let (i, _) = uint256_mul(i, cast((8, 0), Uint256))
-    let (local i) = uint256_sub(cast((248, 0), Uint256), i)
-    let (a) = uint256_shl(a, i)
-    let (a) = uint256_sar(a, i)
-    return (a)
-end
-
-func uint256_byte{range_check_ptr}(a : Uint256, i : Uint256) -> (res : Uint256):
-    let (i, _) = uint256_mul(i, cast((8, 0), Uint256))
-    let (i) = uint256_sub(cast((248, 0), Uint256), i)
-    let (res) = uint256_shr(a, i)
-    let (low) = uint128_and(res.low, 255, 8)
-    return (res=cast((low, 0), Uint256))
 end
