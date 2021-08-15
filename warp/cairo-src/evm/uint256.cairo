@@ -14,7 +14,6 @@ from starkware.cairo.common.uint256 import (
     uint256_signed_lt,
     uint256_sub,
     uint256_unsigned_div_rem,
-    uint256_signed_div_rem,
     )
 from starkware.cairo.common.math_cmp import is_le
 
@@ -39,7 +38,7 @@ end
 
 func is_gt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
     let (res) = uint256_lt(op2, op1)
-    return Uint256(1-res, 0)
+    return (result=Uint256(1-res, 0))
 end
 
 # strict less than. Returns 1 if op1 < op2, and 0 otherwise
@@ -94,6 +93,7 @@ func uint256_addmod{range_check_ptr}(a : Uint256, b : Uint256, m : Uint256) -> (
 end
 
 func smod{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (res : Uint256):
+    alloc_locals
     let (local div : Uint256, rem : Uint256) = uint256_signed_div_rem(op1, op2)
     return (res=rem)
 end

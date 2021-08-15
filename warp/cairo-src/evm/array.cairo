@@ -50,10 +50,10 @@ func copy_to_memory{memory_dict: DictAccess*, range_check_ptr}(
     let (local res) = is_le(length, 16)
     if res == 1:
         let (value) = replace_lower_bytes(value, 0, 16 - length)
-        memory_write_uin128(memory_offset, value)
+        memory_write_uint128(memory_offset, value)
         return ()
     else:
-        memory_write_uin128(memory_offset, value)
+        memory_write_uint128(memory_offset, value)
         return copy_to_memory(array_length, array,
             array_offset + 16, memory_offset + 16, length - 16)
     end
