@@ -39,7 +39,7 @@ func main{output_ptr : felt*, range_check_ptr}():
     serialize_word(w15_2.low)
     serialize_word(w15_2.high)
 
-    local output_ptr: felt* = output_ptr
+    local output_ptr : felt* = output_ptr
 
     default_dict_finalize(dict_start, memory_dict, 0)
     return ()

@@ -32,17 +32,17 @@ func main{output_ptr : felt*, range_check_ptr}():
         let (local b115) = mload8(115)
     end
 
-    serialize_word(b0)     # 1
-    serialize_word(b2)     # 0
-    serialize_word(b3)     # 2
-    serialize_word(b4)     # 0
-    serialize_word(b5)     # 4
-    serialize_word(b17)    # 0
-    serialize_word(b20)    # 8
-    serialize_word(b22)    # 12
-    serialize_word(b115)   # 0
+    serialize_word(b0)  # 1
+    serialize_word(b2)  # 0
+    serialize_word(b3)  # 2
+    serialize_word(b4)  # 0
+    serialize_word(b5)  # 4
+    serialize_word(b17)  # 0
+    serialize_word(b20)  # 8
+    serialize_word(b22)  # 12
+    serialize_word(b115)  # 0
 
-    local output_ptr: felt* = output_ptr
+    local output_ptr : felt* = output_ptr
 
     default_dict_finalize(dict_start, memory_dict, 0)
     return ()

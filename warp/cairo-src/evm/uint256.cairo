@@ -1,31 +1,19 @@
 from starkware.cairo.common.math import assert_not_zero
 from starkware.cairo.common.uint256 import (
-    Uint256,
-    felt_and,
-    uint256_add,
-    uint256_cond_neg,
-    uint256_eq,
-    uint256_lt,
-    uint256_mul,
-    uint256_pow2,
-    uint256_shl,
-    uint256_shr,
-    uint256_signed_div_rem,
-    uint256_signed_lt,
-    uint256_sub,
-    uint256_unsigned_div_rem,
-    )
+    Uint256, felt_and, uint256_add, uint256_cond_neg, uint256_eq, uint256_lt, uint256_mul,
+    uint256_pow2, uint256_shl, uint256_shr, uint256_signed_lt, uint256_sub,
+    uint256_unsigned_div_rem, uint256_signed_div_rem)
 from starkware.cairo.common.math_cmp import is_le
 
-func is_zero{range_check_ptr}(x : Uint256 ) -> (result : Uint256):
+func is_zero{range_check_ptr}(x : Uint256) -> (result : Uint256):
     if x.high != 0:
         tempvar range_check_ptr = range_check_ptr
-        return (result=Uint256(0,0))
+        return (result=Uint256(0, 0))
     else:
         if x.low != 0:
-            return (result=Uint256(0,0))
+            return (result=Uint256(0, 0))
         else:
-            return (result=Uint256(1,0))
+            return (result=Uint256(1, 0))
         end
     end
 end
@@ -37,33 +25,14 @@ func is_eq{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
 end
 
 func is_gt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
-    alloc_locals
-    let (local eq) = uint256_eq(op1, op2)
-    if eq == 1:
-        tempvar range_check_ptr = range_check_ptr
-        return (result=Uint256(0,0))
-    else:
-        let (local res) = uint256_lt(op1, op2)
-        if res == 0:
-            tempvar range_check_ptr = range_check_ptr
-            return (result=Uint256(1,0))
-        else:
-            tempvar range_check_ptr = range_check_ptr
-            return (result=Uint256(0,0))
-        end
-    end
+    let (res) = uint256_lt(op2, op1)
+    return (result=Uint256(res, 0))
 end
 
 # strict less than. Returns 1 if op1 < op2, and 0 otherwise
 func is_lt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
-    alloc_locals
-    let (local eq) = uint256_eq{range_check_ptr=range_check_ptr}(op1 ,op2)
-    if eq == 1:
-        return (result=Uint256(0,0))
-    else:
-        let (local res) = uint256_lt{range_check_ptr=range_check_ptr}(op1, op2)
-        return (result=Uint256(res, 0))
-    end
+    let (res) = uint256_lt(op1, op2)
+    return (result=Uint256(res, 0))
 end
 
 func slt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
@@ -73,7 +42,7 @@ end
 
 func sgt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
     let (res) = uint256_signed_lt(op1, op2)
-    return (result=Uint256(1-res, 0))
+    return (result=Uint256(1 - res, 0))
 end
 
 func uint256_mod{range_check_ptr}(a : Uint256, m : Uint256) -> (res : Uint256):
@@ -113,8 +82,7 @@ func get_max{range_check_ptr}(op1, op2) -> (result):
     end
 end
 
-func extract_lowest_byte{range_check_ptr}(x: Uint256)
-    -> (byte: felt, rest: Uint256):
+func extract_lowest_byte{range_check_ptr}(x : Uint256) -> (byte : felt, rest : Uint256):
     let (quot, rem) = uint256_unsigned_div_rem(x, Uint256(256, 0))
     return (byte=rem.low, rest=quot)
 end

@@ -21,8 +21,7 @@ func read_uint128{range_check_ptr}(offset, lower_v, higher_v) -> (value):
     return (value)
 end
 
-func write_uint128{range_check_ptr}(offset, lower_v, higher_v, value)
-    -> (lower_v, higher_v):
+func write_uint128{range_check_ptr}(offset, lower_v, higher_v, value) -> (lower_v, higher_v):
     alloc_locals
     let (local lower) = round_down_to_multiple(offset, 16)
     local lower_overlap = lower + 16 - offset
@@ -37,7 +36,6 @@ func write_uint128{range_check_ptr}(offset, lower_v, higher_v, value)
     let (higher_v) = replace_higher_bytes(higher_v, value, higher_overlap)
     return (lower_v, higher_v)
 end
-
 
 func replace_lower_bytes{range_check_ptr}(a, b, n) -> (res):
     # Replace 'n' lower _bytes_ of 'a' with 'n' higher _bytes_ of
