@@ -3,7 +3,7 @@ BATS_DIR := ./build/bats
 TEMPLATES := $(wildcard $(GOLDEN_DIR)/*.template)
 BATS_FILES := $(patsubst $(GOLDEN_DIR)/%.template,$(BATS_DIR)/test-%.bats,$(TEMPLATES))
 TEST_FILES := $(shell find ./tests -type f ! -name '*.temp*') # exclude temporary files
-SRC_FILES := $(shell find ./warp/ -type f)
+SRC_FILES := $(shell find ./warp/ -type f ! -name '*.cairo')
 
 warp: .warp-activation-token
 .PHONY: warp

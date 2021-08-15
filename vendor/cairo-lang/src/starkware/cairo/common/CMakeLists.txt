@@ -10,16 +10,17 @@ python_lib(cairo_common_lib
     dict.py
     find_element.cairo
     hash_chain.cairo
+    hash.cairo
     hash_chain.py
     hash_state.cairo
-    hash.cairo
     invoke.cairo
+    math.cairo
     math_cmp.cairo
     math_utils.py
-    math.cairo
     memcpy.cairo
     merkle_multi_update.cairo
     merkle_update.cairo
+    pow.cairo
     registers.cairo
     segments.cairo
     serialize.cairo

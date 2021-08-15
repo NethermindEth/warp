@@ -49,7 +49,7 @@ def sar(a, b):
 
 class Sar(SimpleBinary):
     def __init__(self):
-        super().__init__(sar, UINT256_MODULE, "uint256_sar")
+        super().__init__(sar, "evm.uint256", "uint256_sar")
 
 
 class Byte(Binary):
@@ -61,4 +61,4 @@ class Byte(Binary):
         return [f"let (local {res} : Uint256) = uint256_byte({op2}, {op1})"]
 
     def required_imports(cls):
-        return {UINT256_MODULE: {"uint256_byte"}}
+        return {"evm.uint256": {"uint256_byte"}}
