@@ -6,7 +6,7 @@ from starkware.cairo.common.uint256 import Uint256
 from evm.bit_packing import replace_lower_bytes, read_uint128 as general_read_uint128
 from evm.memory import (
     read_uint128 as memory_read_uint128,
-    write_uint128 as memory_write_uin128,
+    write_uint128 as memory_write_uint128,
     )
 from evm.utils import floor_div, ceil_div
 
@@ -47,8 +47,8 @@ func copy_to_memory{memory_dict: DictAccess*, range_check_ptr}(
     ):
     alloc_locals
     let (local value) = read_uint128(array_length, array, array_offset)
-    is_le(length, 16)
-    if [ap - 1] == 1:
+    let (local res) = is_le(length, 16)
+    if res == 1:
         let (value) = replace_lower_bytes(value, 0, 16 - length)
         memory_write_uin128(memory_offset, value)
         return ()
