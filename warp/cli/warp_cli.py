@@ -1,4 +1,4 @@
-import os
+import os, sys
 import asyncio
 import click
 from enum import Enum
@@ -98,7 +98,10 @@ cli = click.CommandCollection(sources=[warp])
 def main():
     try:
         warp()
-    except:
+    # This is how we make handling async code with
+    # click MUCH simpler. click will always throw SystemExit
+    # after leaving its main loop.
+    except SystemExit as e:
         if return_args != {}:
             if return_args["type"] is Command.INVOKE:
                 asyncio.run(
@@ -113,3 +116,8 @@ def main():
                 asyncio.run(_deploy(return_args["contract"]))
             elif return_args["type"] is Command.STATUS:
                 asyncio.run(_status(return_args["id"]))
+            # An Error to log
+            else:
+                click.echo(e)
+    except BaseException as e:
+        click.echo(e)
