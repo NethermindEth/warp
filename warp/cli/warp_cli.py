@@ -116,8 +116,8 @@ def main():
                 asyncio.run(_deploy(return_args["contract"]))
             elif return_args["type"] is Command.STATUS:
                 asyncio.run(_status(return_args["id"]))
-            # An Error to log
-        else:
-            click.echo(e)
+        # An Error to log
+        elif e.args[0] != 0:
+            click.echo(e.args[0])
     except BaseException as e:
         click.echo(e)

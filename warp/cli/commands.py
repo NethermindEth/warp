@@ -76,7 +76,6 @@ async def _invoke(source_name, address, function, inputs):
     evm_contract = w3.eth.contract(abi=evm_abi, bytecode=bytecode)
     evm_calldata = evm_contract.encodeABI(fn_name=function, args=inputs)
     cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(evm_calldata[2:]))
-    print(f"evm_calldata: {evm_calldata}\n") 
     calldata_size = (len(cairo_input) * 16) - unused_bytes
     try:
         address = int(address, 16)
@@ -85,7 +84,6 @@ async def _invoke(source_name, address, function, inputs):
 
     selector = get_selector_cairo("main")
     calldata = [calldata_size, unused_bytes, len(cairo_input)] + cairo_input
-    print(f"calldata: {calldata}\n")
     tx = InvokeFunction(
         contract_address=address, entry_point_selector=selector, calldata=calldata
     )
