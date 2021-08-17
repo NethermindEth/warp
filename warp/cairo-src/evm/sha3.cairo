@@ -1,4 +1,4 @@
-from evm.array import create_from_memory
+from evm.array import array_create_from_memory
 from evm.utils import update_msize
 from evm.uint256 import Uint256
 from starkware.cairo.common.dict_access import DictAccess

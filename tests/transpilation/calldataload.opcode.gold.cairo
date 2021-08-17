@@ -2,7 +2,7 @@
 
 %builtins pedersen range_check
 
-from evm.array import aload
+from evm.array import array_load
 from evm.exec_env import ExecutionEnvironment
 from evm.output import Output
 from evm.stack import StackItem
@@ -21,7 +21,7 @@ func segment0{
     alloc_locals
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
-    let (local tmp0 : Uint256) = aload(exec_env.input_len, exec_env.input, 0)
+    let (local tmp0 : Uint256) = array_load(exec_env.input_len, exec_env.input, 0)
     local newitem0 : StackItem = StackItem(value=Uint256(3, 0), next=stack0)
     local newitem1 : StackItem = StackItem(value=Uint256(65535, 0), next=&newitem0)
     local newitem2 : StackItem = StackItem(value=tmp0, next=&newitem1)

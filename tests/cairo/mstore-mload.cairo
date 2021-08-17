@@ -23,7 +23,7 @@ func main{output_ptr : felt*, range_check_ptr}():
         # check with 'python scripts/utils/mload.py -m "M 0 10000 5000" -o 15'
         let (local w15) = mload(15)
 
-        mstore(3, Uint256(0, 1193046))
+        mstore(3, Uint256(0, 0x123456))
 
         # check with 'python scripts/utils/mload.py -m "M 0 10000 5000 3 0 1193046" -o 0/15'
         let (local w0_2) = mload(0)

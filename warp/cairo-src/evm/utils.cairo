@@ -3,8 +3,8 @@ from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.serialize import serialize_word
 
 func get_max{range_check_ptr}(op1, op2) -> (result):
-    is_le(op1, op2)
-    if [ap - 1] == 1:
+    let (le) = is_le(op1, op2)
+    if le == 1:
         return (op2)
     else:
         return (op1)
@@ -35,13 +35,13 @@ func update_msize{range_check_ptr}(size, offset, length) -> (result):
 end
 
 func round_down_to_multiple{range_check_ptr}(x, div) -> (y):
-    floor_div(x, div)
-    return ([ap - 1] * div)
+    let (r) = floor_div(x, div)
+    return (r * div)
 end
 
 func round_up_to_multiple{range_check_ptr}(x, div) -> (y):
-    ceil_div(x, div)
-    return ([ap - 1] * div)
+    let (r) = ceil_div(x, div)
+    return (r * div)
 end
 
 func serialize_array{output_ptr : felt*}(array : felt*, n_elms):

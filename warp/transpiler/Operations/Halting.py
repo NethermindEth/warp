@@ -36,9 +36,9 @@ class Return(Operation):
         offset = state.stack.pop().get_low_bits()
         length = state.stack.pop().get_low_bits()
         return [
-            f"let (local output : Output) = create_from_memory({offset}, {length})",
+            f"let (local output : Output) = output_create_from_memory({offset}, {length})",
             *state.make_return_instructions("output"),
         ]
 
     def required_imports(self):
-        return {"evm.output": {"create_from_memory"}}
+        return {"evm.output": {"output_create_from_memory"}}

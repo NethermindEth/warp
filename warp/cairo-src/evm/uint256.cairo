@@ -56,8 +56,7 @@ func uint256_addmod{range_check_ptr}(a : Uint256, b : Uint256, m : Uint256) -> (
 end
 
 func smod{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (res : Uint256):
-    alloc_locals
-    let (local div : Uint256, rem : Uint256) = uint256_signed_div_rem(op1, op2)
+    let (_, rem : Uint256) = uint256_signed_div_rem(op1, op2)
     return (res=rem)
 end
 

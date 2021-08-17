@@ -36,9 +36,10 @@ class CallDataLoad(EnforcedStack):
 
     def generate_cairo_code(self, byte_pos, res):
         return [
-            f"let (local {res} : Uint256) = aload(exec_env.input_len, exec_env.input, {byte_pos})",
+            f"let (local {res} : Uint256) = "
+            f"array_load(exec_env.input_len, exec_env.input, {byte_pos})",
         ]
 
     @classmethod
     def required_imports(cls):
-        return {"evm.array": {"aload"}}
+        return {"evm.array": {"array_load"}}

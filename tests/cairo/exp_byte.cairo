@@ -1,10 +1,10 @@
-%builtins output
+%builtins output range_check
 
 from starkware.cairo.common.serialize import serialize_word
 
 from evm.memory import exp_byte
 
-func main{output_ptr : felt*}():
+func main{output_ptr : felt*, range_check_ptr}():
     alloc_locals
 
     let (local d0) = exp_byte(0)
