@@ -95,8 +95,8 @@ end
 
 # Returns 1 if the first signed integer is less than the second signed integer.
 func uint256_signed_lt{range_check_ptr}(a : Uint256, b : Uint256) -> (res):
-    let (a, _) = uint256_add(a, cast((low=0, high=%[2**127%]), Uint256))
-    let (b, _) = uint256_add(b, cast((low=0, high=%[2**127%]), Uint256))
+    let (a, _) = uint256_add(a, cast((low=0, high=2 ** 127), Uint256))
+    let (b, _) = uint256_add(b, cast((low=0, high=2 ** 127), Uint256))
     return uint256_lt(a, b)
 end
 
@@ -141,6 +141,7 @@ func uint256_not{range_check_ptr}(a : Uint256) -> (res : Uint256):
 end
 
 # Returns the negation of an integer.
+# Note that the negation of -2**255 is -2**255.
 func uint256_neg{range_check_ptr}(a : Uint256) -> (res : Uint256):
     let (not_num) = uint256_not(a)
     let (res, _) = uint256_add(not_num, Uint256(low=1, high=0))
@@ -159,11 +160,13 @@ end
 # Signed integer division between two integers. Returns the quotient and the remainder.
 # Conforms to EVM specifications.
 # See ethereum yellow paper (https://ethereum.github.io/yellowpaper/paper.pdf, page 29).
+# Note that the remainder may be negative if one of the inputs is negative and that
+# (-2**255) / (-1) = -2**255 because 2*255 is out of range.
 func uint256_signed_div_rem{range_check_ptr}(a : Uint256, div : Uint256) -> (
         quot : Uint256, rem : Uint256):
     alloc_locals
 
-    # Edge case when div=-1.
+    # When div=-1, simply return -a.
     if div.low == SHIFT - 1:
         if div.high == SHIFT - 1:
             let (quot) = uint256_neg(a)
@@ -171,22 +174,29 @@ func uint256_signed_div_rem{range_check_ptr}(a : Uint256, div : Uint256) -> (
         end
     end
 
-    let (local is_a_low) = is_le(a.high, 2 ** 127 - 1)
+    # Take the absolute value of a.
+    let (local a_sign) = is_le(2 ** 127, a.high)
     local range_check_ptr = range_check_ptr
-    let (local a) = uint256_cond_neg(a, should_neg=1 - is_a_low)
+    let (local a) = uint256_cond_neg(a, should_neg=a_sign)
 
-    let (local is_div_low) = is_le(div.high, 2 ** 127 - 1)
+    # Take the absolute value of div.
+    let (local div_sign) = is_le(2 ** 127, div.high)
     local range_check_ptr = range_check_ptr
-    let (div) = uint256_cond_neg(div, should_neg=1 - is_div_low)
+    let (div) = uint256_cond_neg(div, should_neg=div_sign)
 
+    # Unsigned division.
     let (local quot, local rem) = uint256_unsigned_div_rem(a, div)
     local range_check_ptr = range_check_ptr
 
-    let (rem) = uint256_cond_neg(rem, should_neg=1 - is_a_low)
-    if is_a_low == is_div_low:
+    # Fix the remainder according to the sign of a.
+    let (rem) = uint256_cond_neg(rem, should_neg=a_sign)
+
+    # Fix the quotient according to the signs of a and div.
+    if a_sign == div_sign:
         return (quot=quot, rem=rem)
     end
     let (local quot_neg) = uint256_neg(quot)
+
     return (quot=quot_neg, rem=rem)
 end
 

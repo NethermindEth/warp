@@ -1,5 +1,4 @@
 from transpiler.Operation import Operation
-from transpiler.StackValue import Uint256
 from transpiler.utils import EMPTY_OUTPUT
 
 

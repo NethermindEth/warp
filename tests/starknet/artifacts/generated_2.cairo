@@ -104,7 +104,7 @@ func segment0{
     s_store(low=8, high=0, value_low=0, value_high=0)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local storage_ptr : Storage* = storage_ptr
-    s_store(low=9, high=0, value_low=50465865728, value_high=0)
+    s_store(low=9, high=0, value_low=4222124650659840, value_high=0)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local storage_ptr : Storage* = storage_ptr
     s_store(low=10, high=0, value_low=0, value_high=0)

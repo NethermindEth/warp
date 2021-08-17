@@ -1,5 +1,4 @@
 from __future__ import annotations
-import argparse
 import aiohttp
 import asyncio
 import json
@@ -256,13 +255,14 @@ def starknet_compile(contracts):
 async def tx_status(tx_id):
     status = f"{TEST_ENV}/feeder_gateway/get_transaction_status?transactionId={tx_id}"
     res = await send_req("GET", status)
-    return json.loads(res)["tx_status"]
+    return json.loads(res)["tx_status"], json.loads(res)
 
 
 async def wait_tx_confirmed(tx_id):
     while True:
-        status = await tx_status(tx_id)
+        status, full = await tx_status(tx_id)
         print(status)
+        print(full)
         if status == "REJECTED":
             print("REJECTED")
             sys.exit("Transaction rejected")
@@ -417,7 +417,6 @@ async def do():
     await asyncio.gather(
 {generate_test_funcs(tables, abis, addresses)}
     )
-
 asyncio.run(do())
 """
     exec(tests)

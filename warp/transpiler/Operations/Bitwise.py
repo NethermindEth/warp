@@ -32,14 +32,27 @@ class Xor(SimpleBinary):
         super().__init__(operator.xor, UINT256_MODULE, "uint256_xor")
 
 
-class Shl(SimpleBinary):
-    def __init__(self):
-        super().__init__(operator.lshift, UINT256_MODULE, "uint256_shl")
+class Shl(Binary):
+    def evaluate_eagerly(self, b, x):
+        return (x << b) % 2**256
 
+    def generate_cairo_code(self, op1, op2, res):
+        # the reverse order in `uint256_shr` call is intentional
+        return [f"let (local {res} : Uint256) = uint256_shl({op2}, {op1})"]
 
-class Shr(SimpleBinary):
-    def __init__(self):
-        super().__init__(operator.rshift, UINT256_MODULE, "uint256_shr")
+    def required_imports(cls):
+        return {UINT256_MODULE: {"uint256_shl"}}
+
+class Shr(Binary):
+    def evaluate_eagerly(self, b, x):
+        return x >> b
+
+    def generate_cairo_code(self, op1, op2, res):
+        # the reverse order in `uint256_shr` call is intentional
+        return [f"let (local {res} : Uint256) = uint256_shr({op2}, {op1})"]
+
+    def required_imports(cls):
+        return {UINT256_MODULE: {"uint256_shr"}}
 
 
 def sar(a, b):
@@ -47,10 +60,15 @@ def sar(a, b):
     return int256_to_uint256(a >> b)
 
 
-class Sar(SimpleBinary):
-    def __init__(self):
-        super().__init__(sar, "evm.uint256", "uint256_sar")
+class Sar(Binary):
+    def evaluate_eagerly(self, b, x):
+        return sar(b, x)
 
+    def generate_cairo_code(self, op1, op2, res):
+        return [f"let (local {res} : Uint256) = uint256_sar({op2}, {op1})"]
+
+    def required_imports(cls):
+        return {"evm.uint256": {"uint256_sar"}}
 
 class Byte(Binary):
     def evaluate_eagerly(self, b, x):
