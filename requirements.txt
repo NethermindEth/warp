@@ -65,8 +65,6 @@ typing-inspect==0.7.1
 urllib3==1.26.6
 varint==1.0.2
 vyper==0.2.14
-# Editable install with no version control (warp==0.1.0)
--e /home/greg/warp/lib/python3.7/site-packages/warp-0.1.0-py3.7.egg
 web3==5.21.0
 websockets==9.1
 yarl==1.6.3
