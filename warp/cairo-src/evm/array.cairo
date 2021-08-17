@@ -7,9 +7,10 @@ from starkware.cairo.common.uint256 import Uint256
 from evm.bit_packing import replace_lower_bytes, split_on_byte, exp_byte, extract_unaligned_uint128
 from evm.memory import mstore
 
-# as a 128-bit packed big-endian array
 func array_create_from_memory{memory_dict : DictAccess*, range_check_ptr}(offset, length) -> (
         array : felt*):
+    # Create a 128-bit packed big-endian array that contains memory
+    # contents from offset to offset + length
     alloc_locals
     let (local array) = alloc()
     copy_from_memory(offset=offset, length=length, array=array)
@@ -73,8 +74,11 @@ func copy_from_memory_shifted{memory_dict : DictAccess*, range_check_ptr}(
         array=array + 1)
 end
 
-func copy_to_memory{memory_dict : DictAccess*, range_check_ptr}(
+func array_copy_to_memory{memory_dict : DictAccess*, range_check_ptr}(
         array_length, array : felt*, array_offset, memory_offset, length):
+    # Given a 128-bit packed 'array' with a total of 'array_length'
+    # bytes, copy from the array 'length' bytes starting with
+    # 'array_offset' into memory starting with 'memory_offset'.
     alloc_locals
     let (local block) = array_load(array_length, array, array_offset)
     let (le_32) = is_le(length, 32)
@@ -90,10 +94,16 @@ func copy_to_memory{memory_dict : DictAccess*, range_check_ptr}(
         return ()
     end
     mstore(memory_offset, block)
-    return copy_to_memory(array_length, array, array_offset + 32, memory_offset + 32, length - 32)
+    return array_copy_to_memory(
+        array_length, array, array_offset + 32, memory_offset + 32, length - 32)
 end
 
 func array_load{range_check_ptr}(array_length : felt, array : felt*, offset) -> (value : Uint256):
+    # Load a value from a 128-bit packed big-endian
+    # array.
+    #
+    # 'array_length' is the length of the array in bytes.
+    # 'offset' is the byte to start reading from.
     alloc_locals
     let (local index, local rem) = unsigned_div_rem(offset, 16)
     let (local high) = safe_read(array_length, array, index)

@@ -3,14 +3,17 @@ from starkware.cairo.common.pow import pow
 from starkware.cairo.common.uint256 import uint256_shl, Uint256
 
 func extract_unaligned_uint128{range_check_ptr}(shift, low, high) -> (value):
-    # Given two aligned uint128, extract an unaligned uint128, shifted
-    # by 'shift' bytes from the 'high' high end.
+    # Given two aligned uint128's, extract an unaligned uint128,
+    # shifted by 'shift' bytes from the 'high' high end.
     let x = Uint256(low=low, high=high)
     let (y) = uint256_shl(x, Uint256(low=8 * shift, high=0))
     return (y.high)
 end
 
 func put_unaligned_uint128{range_check_ptr}(shift, low, high, value) -> (low, high):
+    # Given two aligned uint128's, and a third 'value',
+    # return two uint128's with 'value' replacing bytes of 'low' and
+    # 'high' shifted by 'shift' bytes from the 'high' high end.
     alloc_locals
     let (local d1) = exp_byte(shift)
     let (d2) = exp_byte(16 - shift)
@@ -63,6 +66,8 @@ func exp_byte{range_check_ptr}(d) -> (res):
 end
 
 func extract_byte{range_check_ptr}(x, pos) -> (low, byte, high):
+    # Extract byte at the position 'pos' in 'x', as well as bytes
+    # lower than 'pos' higher than 'pos'.
     alloc_locals
     let (local low, rest) = split_on_byte(x, pos)
     let (byte, high) = split_on_byte(rest, 1)

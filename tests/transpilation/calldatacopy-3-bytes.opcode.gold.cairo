@@ -2,7 +2,7 @@
 
 %builtins pedersen range_check
 
-from evm.array import copy_to_memory
+from evm.array import array_copy_to_memory
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import mload
 from evm.output import Output
@@ -25,7 +25,7 @@ func segment0{
     let (local __fp__, _) = get_fp_and_pc()
     let (local msize) = update_msize(msize, 0, 3)
     local memory_dict : DictAccess* = memory_dict
-    copy_to_memory(exec_env.input_len, exec_env.input, 0, 65535, 3)
+    array_copy_to_memory(exec_env.input_len, exec_env.input, 0, 65535, 3)
     local memory_dict : DictAccess* = memory_dict
     let (local msize) = update_msize{range_check_ptr=range_check_ptr}(msize, 65535, 32)
     local memory_dict : DictAccess* = memory_dict

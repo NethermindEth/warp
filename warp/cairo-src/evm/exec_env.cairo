@@ -1,5 +1,4 @@
 # Store environment info, e.g. gas, calldata, value, addresses etc
-from evm.uint256 import Uint256
 struct ExecutionEnvironment:
     member calldata_size : felt
     member input_len : felt

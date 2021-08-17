@@ -7,10 +7,13 @@ from evm.bit_packing import (
     exp_byte, split_on_byte, extract_byte, put_byte, extract_unaligned_uint128,
     put_unaligned_uint128)
 
-# Memory is packed 16 bytes per felt. Valid addresses/keys are 0, 16,
-# 32, 48 etc. The layout is big-endian.
+# A module for work with the EVM memory.
+
+# Memory 'memory_dict' is packed 16 bytes per felt. Valid
+# addresses/keys are 0, 16, 32, 48 etc. The layout is big-endian.
 
 func mstore8{memory_dict : DictAccess*, range_check_ptr}(offset, byte):
+    # Put a byte 'byte' into memory at the 'offset' index.
     alloc_locals
 
     # value is supposed to be 1 byte
@@ -30,6 +33,7 @@ func mstore8{memory_dict : DictAccess*, range_check_ptr}(offset, byte):
 end
 
 func mload8{memory_dict : DictAccess*, range_check_ptr}(offset) -> (byte):
+    # Load a byte 'byte' from memory at the 'offset' index.
     alloc_locals
 
     let (index, rem) = unsigned_div_rem(offset, 16)
@@ -43,6 +47,8 @@ func mload8{memory_dict : DictAccess*, range_check_ptr}(offset) -> (byte):
 end
 
 func mstore{memory_dict : DictAccess*, range_check_ptr}(offset, value : Uint256):
+    # Store a 256-bit value 'value' in memory, starting with the
+    # 'offset' index.
     alloc_locals
     let (local index, local rem) = unsigned_div_rem(offset, 16)
     if rem == 0:
@@ -64,6 +70,8 @@ func mstore{memory_dict : DictAccess*, range_check_ptr}(offset, value : Uint256)
 end
 
 func mload{memory_dict : DictAccess*, range_check_ptr}(offset) -> (value : Uint256):
+    # Load a 256-bit value 'value' from memory, starting with the
+    # 'offset' index.
     alloc_locals
     let (index, local rem) = unsigned_div_rem(offset, 16)
     let (high) = dict_read{dict_ptr=memory_dict}(index * 16)
