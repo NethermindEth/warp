@@ -644,53 +644,41 @@
         {
             "allowed_expressions": [
                 {
-                    "expr": "[cast(fp + 2, felt*)]",
-                    "name": "evm.sha3.sha.high"
+                    "expr": "[cast(fp + (-4), felt**)]",
+                    "name": "starkware.cairo.common.keccak.unsafe_keccak.data"
+                },
+                {
+                    "expr": "[cast(fp + 1, felt*)]",
+                    "name": "starkware.cairo.common.keccak.unsafe_keccak.high"
                 },
                 {
                     "expr": "[cast(fp + (-3), felt*)]",
-                    "name": "evm.sha3.sha.length"
-                },
-                {
-                    "expr": "[cast(fp + 3, felt*)]",
-                    "name": "evm.sha3.sha.low"
-                },
-                {
-                    "expr": "[cast(ap + (-3), starkware.cairo.common.dict_access.DictAccess**)]",
-                    "name": "evm.sha3.sha.memory_dict"
-                },
-                {
-                    "expr": "[cast(fp + 1, felt**)]",
-                    "name": "evm.sha3.sha.memval"
+                    "name": "starkware.cairo.common.keccak.unsafe_keccak.length"
                 },
                 {
                     "expr": "[cast(fp, felt*)]",
-                    "name": "evm.sha3.sha.msize"
-                },
-                {
-                    "expr": "[cast(fp + (-4), felt*)]",
-                    "name": "evm.sha3.sha.offset"
-                },
-                {
-                    "expr": "[cast(ap + (-2), felt*)]",
-                    "name": "evm.sha3.sha.range_check_ptr"
+                    "name": "starkware.cairo.common.keccak.unsafe_keccak.low"
                 }
             ],
             "hint_lines": [
-                "from Crypto.Hash import keccak",
-                "keccak_hash = keccak.new(digest_bits=256)",
-                "arr = []",
-                "arr_length = ids.length//16 if ids.length % 16 == 0 else ids.length//16+1",
-                "for i in range(arr_length):",
-                "    arr.append(memory[ids.memval+i])",
+                "from eth_hash.auto import keccak",
+                "data, length = ids.data, ids.length",
+                "",
+                "if '__keccak_max_size' in globals():",
+                "    assert length <= __keccak_max_size, \\",
+                "        f'unsafe_keccak() can only be used with length<={__keccak_max_size}. ' \\",
+                "        f'Got: length={length}.'",
+                "",
                 "keccak_input = bytearray()",
-                "for i in range(arr_length-1):",
-                "    keccak_input += arr[i].to_bytes(16,\"big\")",
-                "keccak_input += arr[-1].to_bytes(16,\"big\") if ids.length % 16 == 0 else arr[-1].to_bytes(ids.length % 16,\"big\")",
-                "keccak_hash.update(keccak_input)",
-                "hashed = keccak_hash.digest()",
-                "ids.high = int.from_bytes(hashed[:16],\"big\")",
-                "ids.low = int.from_bytes(hashed[16:32],\"big\")"
+                "for word_i, byte_i in enumerate(range(0, length, 16)):",
+                "    word = memory[data + word_i]",
+                "    n_bytes = min(16, length - byte_i)",
+                "    assert 0 <= word < 2 ** (8 * n_bytes)",
+                "    keccak_input += word.to_bytes(n_bytes, 'big')",
+                "",
+                "hashed = keccak(keccak_input)",
+                "ids.high = int.from_bytes(hashed[:16], 'big')",
+                "ids.low = int.from_bytes(hashed[16:32], 'big')"
             ]
         },
         {

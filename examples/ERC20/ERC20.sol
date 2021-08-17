@@ -1,4 +1,4 @@
-pragma solidity >=0.4.18;
+pragma solidity 0.8.6;
 
 contract WARP {
     string public name        = "Warrpped Ether";

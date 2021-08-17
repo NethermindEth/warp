@@ -20,7 +20,7 @@ func segment0{
     alloc_locals
     let stack0 = stack
     let (local __fp__, _) = get_fp_and_pc()
-    local newitem0 : StackItem = StackItem(value=Uint256(50465865728, 0), next=stack0)
+    local newitem0 : StackItem = StackItem(value=Uint256(4222124650659840, 0), next=stack0)
     return (&newitem0, Output(cast(0, felt*), 0))
 end
 

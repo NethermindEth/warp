@@ -37,14 +37,33 @@ func is_eq{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
 end
 
 func is_gt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
-    let (res) = uint256_lt(op2, op1)
-    return (result=Uint256(1-res, 0))
+    alloc_locals
+    let (local eq) = uint256_eq(op1, op2)
+    if eq == 1:
+        tempvar range_check_ptr = range_check_ptr
+        return (result=Uint256(0,0))
+    else:
+        let (local res) = uint256_lt(op1, op2)
+        if res == 0:
+            tempvar range_check_ptr = range_check_ptr
+            return (result=Uint256(1,0))
+        else:
+            tempvar range_check_ptr = range_check_ptr
+            return (result=Uint256(0,0))
+        end
+    end
 end
 
 # strict less than. Returns 1 if op1 < op2, and 0 otherwise
 func is_lt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
-    let (res) = uint256_lt(op2, op1)
-    return (result=Uint256(res, 0))
+    alloc_locals
+    let (local eq) = uint256_eq{range_check_ptr=range_check_ptr}(op1 ,op2)
+    if eq == 1:
+        return (result=Uint256(0,0))
+    else:
+        let (local res) = uint256_lt{range_check_ptr=range_check_ptr}(op1, op2)
+        return (result=Uint256(res, 0))
+    end
 end
 
 func slt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
@@ -59,20 +78,7 @@ end
 
 func uint256_mod{range_check_ptr}(a : Uint256, m : Uint256) -> (res : Uint256):
     alloc_locals
-    local should_reduce
-    %{
-        if (ids.m.high == 0 and ids.m.low == 0) or \
-                (ids.a.high, ids.a.low) >= (ids.m.high, ids.m.low):
-            ids.should_reduce = 1
-        else:
-            ids.should_reduce = 0
-    %}
-    if should_reduce == 0:
-        let (is_lt) = uint256_lt(a, m)
-        assert is_lt = 1
-        return (a)
-    end
-    let (_, a) = uint256_signed_div_rem(a, m)
+    let (_, a) = uint256_unsigned_div_rem(a, m)
     return (a)
 end
 
@@ -166,7 +172,7 @@ end
 
 func uint256_mulmod128{range_check_ptr}(a : Uint256, b : felt, m : Uint256, n) -> (
         res : Uint256, new_a : Uint256):
-    if b == 0:
+    if n == 0:
         return (res=cast((low=1, high=0), Uint256), new_a=a)
     end
 

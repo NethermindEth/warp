@@ -76,6 +76,7 @@ async def _invoke(source_name, address, function, inputs):
     evm_contract = w3.eth.contract(abi=evm_abi, bytecode=bytecode)
     evm_calldata = evm_contract.encodeABI(fn_name=function, args=inputs)
     cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(evm_calldata[2:]))
+    print(f"evm_calldata: {evm_calldata}\n") 
     calldata_size = (len(cairo_input) * 16) - unused_bytes
     try:
         address = int(address, 16)
@@ -84,12 +85,13 @@ async def _invoke(source_name, address, function, inputs):
 
     selector = get_selector_cairo("main")
     calldata = [calldata_size, unused_bytes, len(cairo_input)] + cairo_input
+    print(f"calldata: {calldata}\n")
     tx = InvokeFunction(
         contract_address=address, entry_point_selector=selector, calldata=calldata
     )
 
     response = await send_req(
-        method="POST", url=f"{TEST_ENV}/gateway/add_transaction", tx=tx
+        method="POST", url="https://alpha1.starknet.io/gateway/add_transaction", tx=tx
     )
     tx_id = json.loads(response)["tx_id"]
     print(
@@ -116,7 +118,7 @@ async def _call(address, abi, function, inputs) -> bool:
         contract_address=address, entry_point_selector=selector, calldata=calldata
     )
 
-    url = f"{TEST_ENV}/feeder_gateway/call_contract?blockId=null"
+    url = "https://alpha1.starknet.io/feeder_gateway/call_contract?blockId=null"
     async with aiohttp.ClientSession() as session:
         async with session.request(method="POST", url=url, data=tx.dumps()) as response:
             raw_resp = await response.text()
@@ -154,7 +156,7 @@ async def _deploy(contract_path):
         cont = f.read()
 
     contract_definition = ContractDefinition.loads(cont)
-    url = f"{TEST_ENV}/gateway/add_transaction"
+    url = "https://alpha1.starknet.io/gateway/add_transaction"
     tx = Deploy(contract_address=address, contract_definition=contract_definition)
 
     async with aiohttp.ClientSession() as session:
@@ -181,6 +183,6 @@ Contract Address Has Been Written to {os.path.abspath(contract_name)}_ADDRESS.tx
 
 
 async def _status(tx_id):
-    status = f"{TEST_ENV}/feeder_gateway/get_transaction_status?transactionId={tx_id}"
+    status = f"https://alpha1.starknet.io/feeder_gateway/get_transaction_status?transactionId={tx_id}"
     res = await send_req("GET", status)
     print(json.loads(res))

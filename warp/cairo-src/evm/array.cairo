@@ -63,23 +63,24 @@ func aload{range_check_ptr}(array_length : felt, array: felt*, offset)
     -> (value: Uint256):
     alloc_locals
     let (local high) = read_uint128(array_length, array, offset)
-    let (low) = read_uint128(array_length, array, offset + 16)
+    let (local low) = read_uint128(array_length, array, offset + 16)
     return (Uint256(low, high))
 end
 
 func read_uint128{range_check_ptr}(array_length, array: felt*, offset)
-     -> (value):
+     -> (res):
     alloc_locals
     let (lower) = floor_div(offset, 16)
     let (local higher) = ceil_div(offset, 16)
     let (local lower_v) = safe_read(array_length, array, lower)
     let (higher_v) = safe_read(array_length, array, higher)
-    return general_read_uint128(offset, lower_v, higher_v)
+    let (local res) = general_read_uint128(offset, lower_v, higher_v)
+    return (res=res)
 end
 
 func safe_read{range_check_ptr}(array_length, array: felt*, index) -> (value):
-    is_le(array_length, index * 16)  # array_length is measured in bytes, 16 in a cell
-    if [ap - 1] == 1:
+    let (res) = is_le(array_length, index * 16)  # array_length is measured in bytes, 16 in a cell
+    if res == 1:
         return (0)
     else:
         return (array[index])
