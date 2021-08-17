@@ -11,25 +11,37 @@ Warp brings EVM compatible languages to StarkNet, making it possible to transpil
 
 ## Installation :gear:
 
-You'll need to install Cairo first. Make sure you're using a python venv with python 3.7. Cairo depends on GMP, which can be installed with `sudo apt install -y libgmp3-dev` or `brew install gmp` if you're on Mac. You'll need to install the following too:
-
+Linux:
 ```
-pip install ecdsa fastecdsa sympy
-```
-
-Once you've done that, head into vendor/cairo-lang and run:
-
-```
-pip install cairo-lang-0.3.0.zip
-```
-
-If you get errors relating to missing header files or bdist_wheel after installing python3.7 and trying to install Cairo, run the following commands:
-```
-sudo apt-get install -y python3.7-dev
+sudo apt update
+sudo apt install software-properties-common
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install -y python3.7
+sudo apt install -y python3.7-dev
+sudo apt install -y libgmp3-dev
+python3.7 -m venv ~/warp_demo
+source ~/warp_demo/bin/activate
 pip install wheel
+pip install ecdsa fastecdsa sympy
+cd vendor/cairo-lang
+pip install cairo-lang-0.3.1.zip
+cd ../../
+make warp
 ```
-Once that is finished, run `make warp` in the repo's root directory.
-
+MacOs:
+```
+brew install python@3.7
+brew install gmp
+python3.7 -m venv ~/warp_demo
+source ~/warp_demo/bin/activate
+pip install wheel
+pip install ecdsa fastecdsa sympy
+cd vendor/cairo-lang
+pip install cairo-lang-0.3.1.zip
+cd ../../
+make warp
+```
 ## Usage :computer:
 
 You can transpile your Solidity/Vyper contracts with:
