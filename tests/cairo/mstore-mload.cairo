@@ -23,7 +23,7 @@ func main{output_ptr : felt*, range_check_ptr}():
         # check with 'python scripts/utils/mload.py -m "M 0 10000 5000" -o 15'
         let (local w15) = mload(15)
 
-        mstore(3, Uint256(0, 1193046))
+        mstore(3, Uint256(0, 0x123456))
 
         # check with 'python scripts/utils/mload.py -m "M 0 10000 5000 3 0 1193046" -o 0/15'
         let (local w0_2) = mload(0)
@@ -39,7 +39,7 @@ func main{output_ptr : felt*, range_check_ptr}():
     serialize_word(w15_2.low)
     serialize_word(w15_2.high)
 
-    local output_ptr: felt* = output_ptr
+    local output_ptr : felt* = output_ptr
 
     default_dict_finalize(dict_start, memory_dict, 0)
     return ()

@@ -7,7 +7,7 @@ from evm.memory import mstore8
 from evm.output import Output
 from evm.stack import StackItem
 from evm.uint256 import extract_lowest_byte
-from evm.utils import get_max, round_up_to_multiple, update_msize
+from evm.utils import round_up_to_multiple, update_msize
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_new
 from starkware.cairo.common.dict_access import DictAccess

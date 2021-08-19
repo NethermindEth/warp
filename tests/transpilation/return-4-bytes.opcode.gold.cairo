@@ -4,7 +4,7 @@
 
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import mstore
-from evm.output import Output, create_from_memory
+from evm.output import Output, output_create_from_memory
 from evm.stack import StackItem
 from evm.utils import update_msize
 from starkware.cairo.common.cairo_builtins import HashBuiltin
@@ -28,7 +28,7 @@ func segment0{
     mstore{memory_dict=memory_dict, range_check_ptr=range_check_ptr}(
         offset=2, value=Uint256(48098712, 0))
     local memory_dict : DictAccess* = memory_dict
-    let (local output : Output) = create_from_memory(30, 4)
+    let (local output : Output) = output_create_from_memory(30, 4)
     return (stack0, output)
 end
 

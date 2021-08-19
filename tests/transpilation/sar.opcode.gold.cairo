@@ -69,4 +69,3 @@ func main{storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
 
     return ()
 end
-

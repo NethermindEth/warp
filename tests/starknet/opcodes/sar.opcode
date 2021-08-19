@@ -1,3 +1,1 @@
-PUSH1 0x3
-PUSH1 0xf4
-SAR
+../../transpilation/sar.opcode

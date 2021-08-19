@@ -113,4 +113,4 @@ class MSize(Operation):
         ]
 
     def required_imports(self):
-        return {"evm.utils": {"round_up_to_multiple", "get_max"}}
+        return {"evm.utils": {"round_up_to_multiple"}}

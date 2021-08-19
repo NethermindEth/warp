@@ -9,7 +9,7 @@ class CallDataCopy(EnforcedStack):
         return [
             f"let (local msize) = update_msize(msize, {dest_offset}, {length})",
             "local memory_dict : DictAccess* = memory_dict",
-            "copy_to_memory(exec_env.input_len, exec_env.input, ",
+            "array_copy_to_memory(exec_env.input_len, exec_env.input, ",
             f"   {dest_offset}, {offset}, {length})",
             "local memory_dict : DictAccess* = memory_dict",
         ]
@@ -17,7 +17,7 @@ class CallDataCopy(EnforcedStack):
     @classmethod
     def required_imports(cls):
         return {
-            "evm.array": {"copy_to_memory"},
+            "evm.array": {"array_copy_to_memory"},
             "evm.utils": {"update_msize"},
         }
 
@@ -36,9 +36,10 @@ class CallDataLoad(EnforcedStack):
 
     def generate_cairo_code(self, byte_pos, res):
         return [
-            f"let (local {res} : Uint256) = aload(exec_env.input_len, exec_env.input, {byte_pos})",
+            f"let (local {res} : Uint256) = "
+            f"array_load(exec_env.input_len, exec_env.input, {byte_pos})",
         ]
 
     @classmethod
     def required_imports(cls):
-        return {"evm.array": {"aload"}}
+        return {"evm.array": {"array_load"}}

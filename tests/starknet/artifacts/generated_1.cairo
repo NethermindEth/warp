@@ -2,7 +2,7 @@
 
 %builtins pedersen range_check
 
-from evm.array import aload, copy_to_memory
+from evm.array import array_load, copy_to_memory
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import mload
 from evm.output import Output
@@ -95,7 +95,7 @@ func segment0{
     s_store(low=5, high=0, value_low=tmp1.low, value_high=tmp1.high)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local storage_ptr : Storage* = storage_ptr
-    let (local tmp2 : Uint256) = aload(exec_env.input_len, exec_env.input, 0)
+    let (local tmp2 : Uint256) = array_load(exec_env.input_len, exec_env.input, 0)
     s_store(low=6, high=0, value_low=tmp2.low, value_high=tmp2.high)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local storage_ptr : Storage* = storage_ptr

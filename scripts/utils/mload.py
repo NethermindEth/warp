@@ -37,6 +37,10 @@ def count_uint16(offset, memory):
     return int("".join(arr), 16)
 
 
+def read_int(x: str) -> int:
+    return int(x, 16) if x.startswith("0x") else int(x)
+
+
 def parse_memory(mem: str) -> dict:
     words = mem.split()
     i = 0
@@ -52,15 +56,14 @@ def parse_memory(mem: str) -> dict:
             i += 1
         elif mode == "m8":
             k = int(words[i])
-            sv = words[i + 1]
-            v = int(sv, 16) if sv.startswith("0x") else int(sv)
+            v = read_int(words[i + 1])
             i += 2
             memory[k] = byte_to_hex(v)
         else:
             assert mode == "m256"
             k_start = int(words[i])
-            low = int(words[i + 1])
-            high = int(words[i + 2])
+            low = read_int(words[i + 1])
+            high = read_int(words[i + 2])
             byte_arr = uint128_to_hex(high) + uint128_to_hex(low)
             i += 3
             for j in range(0, 32):
