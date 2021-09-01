@@ -3,7 +3,7 @@ from typing import Optional
 from collections import deque
 
 import yul.yul_ast as ast
-from yul.AstVisitor import AstVisitor
+from yul.yul_ast import AstVisitor
 from yul.WarpException import WarpException
 
 UINT128_BOUND = 2 ** 128

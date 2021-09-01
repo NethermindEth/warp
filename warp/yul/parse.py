@@ -47,7 +47,6 @@ def parse_expression(yul_ast) -> ast.Expression:
 
 def parse_statement(yul_ast) -> ast.Statement:
     node = parse_node(yul_ast)
-    # with python 3.10 we'll get rid of typing.get_args
     warp_assert(
         is_statement(node),
         f"Expected yul_ast.Statement, got {type(node)}",
