@@ -22,7 +22,7 @@ setup (
  description='Transpile EVM-Compatible Languages To Cairo',
  version='0.1.0',
  package_dir={"": "warp"},
- packages=["cairo-src", "cairo-src.evm", "cli","cli.compilation", "transpiler", "transpiler.Operations"], # list of all packages
+ packages=["cairo-src", "cairo-src.evm", "cli","cli.compilation", "transpiler", "transpiler.Operations", "yul"], # list of all packages
  include_package_data=True,
  package_data={'': ['*.json', '*.cairo']},
  install_requires=install_requires,

@@ -1,8 +1,6 @@
-pragma solidity 0.8.6;
+pragma solidity ^0.8.6;
 
 contract WARP {
-    string public name        = "Warrpped Ether";
-    string public symbol      = "WARP";
     uint8  public decimals    = 18;
     uint256 public totalSupply= 100000000000000000000000000000000000;
 
