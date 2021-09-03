@@ -5,6 +5,7 @@ from collections import deque
 import yul.yul_ast as ast
 from yul.AstVisitor import AstVisitor
 from yul.WarpException import WarpException
+from yul.utils import YUL_BUILTINS_MAP
 
 UINT128_BOUND = 2 ** 128
 
@@ -53,7 +54,10 @@ class ToCairoVisitor(AstVisitor):
     def visit_function_call(self, node: ast.FunctionCall):
         fun_repr = self.print(node.function_name)
         args_repr = ", ".join(self.print(x) for x in node.arguments)
-        self.repr_stack.append(f"{fun_repr}({args_repr})")
+        if fun_repr in YUL_BUILTINS_MAP.keys():
+            self.repr_stack.append(f"{YUL_BUILTINS_MAP[fun_repr]}({args_repr})")
+        else:
+            self.repr_stack.append(f"{fun_repr}({args_repr})")
 
     def visit_expression_statement(self, node: ast.ExpressionStatement):
         if isinstance(node.expression, ast.FunctionCall):
