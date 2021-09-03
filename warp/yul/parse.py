@@ -1,8 +1,8 @@
-import typing
+from __future__ import annotations
 
 import yul.yul_ast as ast
 from yul.WarpException import WarpException, warp_assert
-from yul.utils import camelize
+from yul.utils import camelize, remove_prefix, is_statement
 
 _node_to_parser = {}
 
@@ -13,7 +13,7 @@ def register_parser(parser):
         "A parsing function should start with 'parse_' "
         "and end with the node type written in snake case"
     )
-    node_type = "Yul" + camelize(fun_name.removeprefix("parse_"))
+    node_type = "Yul" + camelize(remove_prefix(fun_name, "parse_"))
     _node_to_parser[node_type] = parser
 
     def inner(yul_ast):
@@ -49,7 +49,7 @@ def parse_statement(yul_ast) -> ast.Statement:
     node = parse_node(yul_ast)
     # with python 3.10 we'll get rid of typing.get_args
     warp_assert(
-        isinstance(node, typing.get_args(ast.Statement)),
+        is_statement(node),
         f"Expected yul_ast.Statement, got {type(node)}",
     )
     return node
