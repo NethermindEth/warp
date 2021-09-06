@@ -15,36 +15,21 @@ statementStings = ["ExpressionStatement",
     "Block",
 ]
 
-YUL_BUILTINS_MAP = {
-	'iszero': 'is_zero',
-	'eq': 'is_eq',
-	'gt': 'is_gt',
-	'lt': 'is_lt',
-	'slt': 'slt',
-	'sgt': 'sgt',
-	'smod': 'smod',
-	'exp': 'uint256_exp',
-	'mulmod': 'uint256_mulmod',
-	'mstore8': 'mstore8',
-	'mstore': 'mstore',
-	'mload': 'mload',
-	'add': 'uint256_add',
-	'and': 'uint256_and',
-	'sub': 'uint256_sub',
-	'mul': 'uint256_mul',
-	'div': 'uint256_unsigned_div_rem',
-	'sdiv': 'uint256_signed_div_rem',
-	'mod': 'uint256_mod',
-	'not': 'uint256_not',
-	'or': 'uint256_or',
-	'xor': 'uint256_xor',
-	'byte': 'uint256_byte',
-	'shl': 'uint256_shl',
-	'shr': 'uint256_shr',
-	'sar': 'uint256_sar',
-	'addmod': 'uint256_addmod',
-	'signextend': 'uint256_signextend'
-}
+def get_low_bits(string: str) -> str:
+    try:
+        value = int(string)
+        high, low = divmod(value, 2**128)
+        return f"Uint256({low}, 0)"
+    except ValueError:
+        return f"{string}.low"
+
+def get_low_high(string: str) -> str:
+    try:
+        value = int(string)
+        high, low = divmod(value, 2**128)
+        return f"{low}", f"{high}"
+    except ValueError:
+        return f"{string}.low", f"{string}.high"
 
 def is_statement(node):
     node_str = node.__repr__()
@@ -75,3 +60,42 @@ def camelize(snake_case: str) -> str:
             " It probably contains several consecutive underscores."
         )
     return "".join(x.capitalize() for x in parts)
+
+STORAGE_DECLS = """
+
+@storage_var
+func evm_storage(low: felt, high: felt, part: felt) -> (res : felt):
+end
+
+func s_load{
+        storage_ptr: Storage*, range_check_ptr, pedersen_ptr: HashBuiltin*}(
+        key: Uint256) -> (res : Uint256):
+    let (low_r) = evm_storage.read(key.low, key.high, 1)
+    let (high_r) = evm_storage.read(key.low, key.high, 2)
+    return (Uint256(low_r, high_r))
+end
+
+func s_store{
+        storage_ptr: Storage*, range_check_ptr, pedersen_ptr: HashBuiltin*}(
+        key: Uint256, value: Uint256):
+    evm_storage.write(low=key.low, high=key.high, part=1, value=value.low)
+    evm_storage.write(low=key.low, high=key.high, part=2, value=value.high)
+    return ()
+end
+
+@view
+func get_storage_low{
+        storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
+        low : felt, high : felt) -> (res : felt):
+    let (storage_val_low) = evm_storage.read(low=low, high=high, part=1)
+    return (res=storage_val_low)
+end
+
+@view
+func get_storage_high{
+        storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
+        low : felt, high : felt) -> (res : felt):
+    let (storage_val_high) = evm_storage.read(low=low, high=high, part=2)
+    return (res=storage_val_high)
+end
+"""
