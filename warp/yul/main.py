@@ -12,7 +12,7 @@ from yul.SwitchToIfVisitor import SwitchToIfVisitor
 from yul.ToCairoVisitor import ToCairoVisitor
 from yul.parse import parse_node
 
-AST_GENERATOR = "./gen-yul-json-ast"
+AST_GENERATOR = "gen-yul-json-ast"
 
 
 def main(argv):

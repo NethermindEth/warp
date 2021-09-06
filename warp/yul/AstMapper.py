@@ -1,51 +1,7 @@
 from __future__ import annotations
-from typing import Iterable
 
+from yul.yul_ast import AstVisitor
 import yul.yul_ast as ast
-from yul.utils import snakify
-
-
-def get_children(node: ast.Node) -> list[ast.Node]:
-    if isinstance(node, ast.Assignment):
-        return node.variable_names + [node.value]
-    elif isinstance(node, ast.FunctionCall):
-        return node.arguments + [node.function_name]
-    elif isinstance(node, ast.ExpressionStatement):
-        return [node.expression]
-    elif isinstance(node, ast.VariableDeclaration):
-        return node.variables + ([] if node.value is None else [node.value])
-    elif isinstance(node, ast.Block):
-        return node.statements
-    elif isinstance(node, ast.FunctionDefinition):
-        return node.parameters + node.return_variables + [node.body]
-    elif isinstance(node, ast.If):
-        return [node.condition, node.body] + (
-            [] if node.else_body is None else [node.else_body]
-        )
-    elif isinstance(node, ast.Case):
-        return [node.value, node.body]
-    elif isinstance(node, ast.Switch):
-        return node.cases + [node.expression]
-    elif isinstance(node, ast.ForLoop):
-        return [node.pre, node.condition, node.post, node.body]
-    else:
-        return []
-
-
-class AstVisitor:
-    def visit(self, node: ast.Node, *args, **kwargs):
-        method_name = "visit_" + snakify(type(node).__name__)
-        try:
-            return getattr(self, method_name)(node, *args, **kwargs)
-        except AttributeError:
-            return self.common_visit(node, *args, **kwargs)
-
-    def common_visit(self, node, *args, **kwargs):
-        for child in get_children(node):
-            self.visit(child, *args, **kwargs)
-
-    def visit_list(self, nodes: Iterable[ast.Node], *args, **kwargs) -> list:
-        return [self.visit(x) for x in nodes]
 
 
 class AstMapper(AstVisitor):
