@@ -34,7 +34,7 @@ class ToCairoVisitor(AstVisitor):
     def __init__(self):
         super().__init__()
         self.repr_stack: list[str] = []
-        self.preabmle: bool = False
+        self.preamble: bool = False
         self.n_names: int = 0
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
@@ -68,18 +68,10 @@ class ToCairoVisitor(AstVisitor):
         for var in variable_names:
             var_repr = self.print(var)
             if "Uint256" not in var_repr:
-                if function_name in RETURNS_TWO:
-                    var_repr += ": Uint256, _"
-                    variables.append(var_repr)
-                else:
-                    var_repr += ": Uint256"
-                    variables.append(var_repr)
-            else:
-                if function_name in RETURNS_TWO:
-                    var_repr += ", _"
-                    variables.append(var_repr)
-                else:
-                    variables.append(var_repr)
+                var_repr += ": Uint256"
+            if function_name in RETURNS_TWO:
+                var_repr += ", _"
+            variables.append(var_repr)
         return ", ".join("local " + x for x in variables)
 
     def visit_assignment(self, node: ast.Assignment) -> str:

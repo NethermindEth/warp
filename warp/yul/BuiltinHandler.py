@@ -80,8 +80,6 @@ class Eq(BuiltinHandler):
             module="evm.uint256",
             function_name="is_eq",
             function_args=function_args,
-            preamble="",
-            ref_copy="",
         )
 
 
@@ -121,8 +119,6 @@ class Sgt(BuiltinHandler):
             module="evm.uint256",
             function_name="sgt",
             function_args=function_args,
-            preamble="",
-            ref_copy="",
         )
 
 
@@ -142,8 +138,6 @@ class Or(BuiltinHandler):
             module=UINT256_MODULE,
             function_name="uint256_or",
             function_args=function_args,
-            preamble="",
-            ref_copy="",
         )
 
 
