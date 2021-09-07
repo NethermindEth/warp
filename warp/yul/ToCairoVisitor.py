@@ -47,6 +47,7 @@ class ToCairoVisitor(AstVisitor):
         self.imports = defaultdict(set)
         self.discarded_warp_blocks: list[str] = []
         merge_imports(self.imports, COMMON_IMPORTS)
+        self.last_function: Optional[ast.FunctionDefinition] = None
 
     def get_source_version(self, sol_source: str) -> float:
         code_split = sol_source.split("\n")
@@ -282,6 +283,7 @@ local msize = msize"""
         return declr_str
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
+        self.last_function = node
         taboos = ["abi_", "checked_", "getter_", "panic_error"]
         if any(taboo in node.name for taboo in taboos):
             return ""
@@ -312,12 +314,12 @@ local msize = msize"""
         func = (
             f"{external_function}"
             f"func {node.name}"
-            f"{{range_check_ptr, pedersen_ptr: HashBuiltin*,"
-            f"storage_ptr: Storage*, memory_dict: DictAccess*, msize}}"
+            f"{{range_check_ptr, pedersen_ptr: HashBuiltin*"
+            f", storage_ptr: Storage*, memory_dict: DictAccess*, msize}}"
             f"({params_repr}) -> ({returns_repr}):\n"
             f"alloc_locals\n"
             f"{body_repr}\n"
-            f"end"
+            f"end\n"
         )
         func = parse_file(func).format()
 
@@ -361,5 +363,6 @@ local msize = msize"""
             "There should be no continues, run ForLoopEliminator first"
         )
 
-    def visit_leave(self, node: ast.Leave):
-        return ""  # TODO
+    def visit_leave(self, node: ast.Leave) -> str:
+        return_names = ", ".join(x.name for x in self.last_function.return_variables)
+        return f"return ({return_names})"

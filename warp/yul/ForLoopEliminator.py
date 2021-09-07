@@ -80,7 +80,7 @@ class ForLoopEliminator(AstMapper):
                     body_call,
                     ast.If(
                         condition=break_id,
-                        body=ast.Block((ast.Leave(),)),
+                        body=ast.Block((ast.LEAVE,)),
                         else_body=ast.Block((loop_call,)),
                     ),
                 )
@@ -110,12 +110,12 @@ class ForLoopEliminator(AstMapper):
                     variable_names=[ast.Identifier(self.break_name)],
                     value=ast.Literal(True),
                 ),
-                ast.Leave(),
+                ast.LEAVE,
             )
         )
 
     def visit_continue(self, node: ast.Continue):
-        return ast.Leave()
+        return ast.LEAVE
 
     @contextmanager
     def _new_for_loop(self):
