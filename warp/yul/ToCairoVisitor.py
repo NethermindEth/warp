@@ -33,6 +33,7 @@ class ToCairoVisitor(ast.AstVisitor):
         self.validate_solc_ver()
         self.public_functions = self.get_public_functions(self.sol_source)
         self.imports = defaultdict(set)
+        self.external_cairo_funcs: dict[str, dict[str, str]] = {}
         merge_imports(self.imports, COMMON_IMPORTS)
         self.cairo_code: str = ""
 
@@ -123,7 +124,9 @@ let ({ids_repr}) = {builtin_to_cairo.function_call}
                 if not node.variable_names:
                     return value_repr
                 else:
-                    return f"let ({ids_repr}) = {value_repr}"
+                    if function_name in self.external_cairo_funcs: 
+                        ids_repr_felt = self.to_high_low_felt(ids_repr)
+                    return f"let ({ids_repr_felt}) = {value_repr}\n" + self.init_u256(ids_repr)
         else:
             ids_repr: str = self.generate_ids_typed(node.variable_names)
             self.preamble = True
@@ -132,6 +135,8 @@ let ({ids_repr}) = {builtin_to_cairo.function_call}
     def visit_function_call(self, node: ast.FunctionCall) -> str:
         fun_repr = self.print(node.function_name)
         args_repr = ", ".join(self.print(x) for x in node.arguments)
+        if fun_repr in self.external_cairo_funcs: 
+            args_repr = self.to_high_low_felt(args_repr)
         if fun_repr == "revert":
             return "assert 0 = 1"
         if fun_repr.startswith("checked_add"):
@@ -186,7 +191,9 @@ let ({vars_repr}) = {builtin_to_cairo.function_call}
                 if not node.variables:
                     return value_repr
                 else:
-                    return f"let ({vars_repr}) = {value_repr}"
+                    if function_name in self.external_cairo_funcs: 
+                        vars_repr_felt = self.to_high_low_felt(vars_repr)
+                    return f"let ({vars_repr_felt}) = {value_repr}\n" + self.init_u256(vars_repr)
         else:
             vars_repr = self.generate_ids_typed(node.variables)
             self.preamble = True
@@ -213,12 +220,19 @@ let ({vars_repr}) = {builtin_to_cairo.function_call}
     def init_u256(self, params_repr: str) -> str:
         params = params_repr.replace(" : Uint256", "")
         params = params.split(",")
-        declr_str = "\n".join(
-            f"let (local {p}: Uint256) = Uint256({p}_low, {p}_high)" for p in params
-        )
+        declr_str = ""
+        for p in params:
+            if "local" in p:
+                p_no_local = p.replace("local", "").strip()
+                declr_str += f"let ({p}: Uint256) = Uint256({p_no_local}_low, {p_no_local}_high)\n"
+            else:
+                declr_str += f"let (local {p}: Uint256) = Uint256({p}_low, {p}_high)\n"
         return declr_str
 
-    def gen_external_function(
+    def gen_external_function_call(self, ret_vars: str) -> str:
+        pass
+
+    def gen_external_function_def(
         self,
         fun_name: str,
         params_repr: str,
@@ -226,10 +240,11 @@ let ({vars_repr}) = {builtin_to_cairo.function_call}
         return_names: str,
         body: str,
     ) -> str:
-        body = self.init_u256(params_repr) + body
+        body = self.init_u256(params_repr) + "\n" + body
         params = self.to_high_low_felt(params_repr)
         return_signature = self.to_high_low_felt(return_repr)
         return_names = self.to_high_low_felt(return_names)
+        self.external_cairo_funcs[fun_name] = {"return_names": return_names}
         return f"""
 @external
 func {fun_name}{{range_check_ptr, pedersen_ptr: HashBuiltin*, storage_ptr: Storage*, memory_dict: DictAccess*, msize}}({params}) -> ({return_signature}):
@@ -243,10 +258,10 @@ end"""
         returns_repr = ", ".join(self.print(x) for x in node.return_variables)
         return_names = ", ".join(x.name for x in node.return_variables)
         body_repr = self.print(node.body)
-        if "abi_" in node.name or "checked_" in node.name:
+        if "abi_" in node.name or "checked_" in node.name or "getter_" in node.name:
             return ""
         if node.name in self.public_functions:
-            self.cairo_code += self.gen_external_function(
+            self.cairo_code += self.gen_external_function_def(
                 node.name, params_repr, returns_repr, return_names, body_repr
             )
         else:

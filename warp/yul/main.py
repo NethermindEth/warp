@@ -51,8 +51,7 @@ def main(argv):
         + STORAGE_DECLS
         + cairo_visitor.cairo_code
     )
-    print(cairo_visitor.cairo_code)
-    # print(parse_file(cairo_visitor.cairo_code).format())
+    print(parse_file(cairo_visitor.cairo_code).format())
 
 
 if __name__ == "__main__":
