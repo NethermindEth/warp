@@ -177,9 +177,10 @@ def get_children(node: Node) -> Iterable[Node]:
 class AstVisitor:
     def visit(self, node: Node, *args, **kwargs):
         method_name = "visit_" + snakify(type(node).__name__)
-        try:
-            return getattr(self, method_name)(node, *args, **kwargs)
-        except AttributeError:
+        method = getattr(self, method_name, None)
+        if method:
+            return method(node, *args, **kwargs)
+        else:
             return self.common_visit(node, *args, **kwargs)
 
     def common_visit(self, node, *args, **kwargs):
