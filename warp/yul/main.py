@@ -23,13 +23,18 @@ MAIN_PREAMBLE = """%lang starknet
 
 def main(argv):
     if len(argv) != 3:
-        sys.exit(f"Usage: python {argv[0]} SOLIDITY-FILE MAIN-CONTRACT"
-            f"where MAIN-CONTRACT is the name of the 'primary' contract (non-interface, non-library & non-abstract contract)")
+        sys.exit(
+            f"Usage: python {argv[0]} SOLIDITY-FILE MAIN-CONTRACT\n"
+            f"where MAIN-CONTRACT is the name of the 'primary' contract (i.e non-interface, non-library & non-abstract contract)"
+        )
 
     if not shutil.which(AST_GENERATOR):
         sys.exit(f"Please install {AST_GENERATOR} first")
 
     solidity_file = argv[1]
+    with open(solidity_file) as f:
+        sol_source = f.read()
+
     result = subprocess.run(
         [AST_GENERATOR, solidity_file, argv[2]], check=True, capture_output=True
     )
@@ -38,7 +43,7 @@ def main(argv):
     yul_ast = MangleNamesVisitor().map(yul_ast)
     yul_ast = SwitchToIfVisitor().map(yul_ast)
     yul_ast = ScopeFlattener().map(yul_ast)
-    cairo_visitor = ToCairoVisitor()
+    cairo_visitor = ToCairoVisitor(sol_source)
     cairo_visitor.translate(yul_ast)
     cairo_visitor.cairo_code = (
         MAIN_PREAMBLE
@@ -46,7 +51,8 @@ def main(argv):
         + STORAGE_DECLS
         + cairo_visitor.cairo_code
     )
-    print(parse_file(cairo_visitor.cairo_code).format())
+    print(cairo_visitor.cairo_code)
+    # print(parse_file(cairo_visitor.cairo_code).format())
 
 
 if __name__ == "__main__":

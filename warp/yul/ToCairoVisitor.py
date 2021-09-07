@@ -1,10 +1,10 @@
-from collections import  defaultdict
+from __future__ import annotations
+from collections import defaultdict
 
+import solcx
 from transpiler.Imports import merge_imports, UINT256_MODULE
 import yul.yul_ast as ast
 from yul.BuiltinHandler import YUL_BUILTINS_MAP
-from yul.yul_ast import AstVisitor
-from yul.WarpException import WarpException
 
 UINT128_BOUND = 2 ** 128
 
@@ -21,15 +21,54 @@ COMMON_IMPORTS = {
     "evm.utils": {"update_msize"},
 }
 
+
 class ToCairoVisitor(ast.AstVisitor):
-    def __init__(self):
+    def __init__(self, sol_source: str):
         super().__init__()
         self.repr_stack: list[str] = []
         self.preamble: bool = False
         self.n_names: int = 0
+        self.sol_source: str = sol_source
+        self.solc_version: float = self.get_source_version(sol_source)
+        self.validate_solc_ver()
+        self.public_functions = self.get_public_functions(self.sol_source)
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
         self.cairo_code: str = ""
+
+    def get_source_version(self, sol_source: str) -> float:
+        code_split = sol_source.split("\n")
+        for line in code_split:
+            if "pragma" in line:
+                ver: float = float(line[line.index("0.") + 2 :].replace(";", ""))
+                if ver < 8.0:
+                    raise Exception(
+                        "Please use a version of solidity that is at least 0.8.0"
+                    )
+                return ver
+        raise Exception("No Solidity version specified in contract")
+
+    def check_installed_solc(self, source_version: float) -> str:
+        solc_vers = solcx.get_installed_solc_versions()
+        vers_clean = []
+        src_ver = "0." + str(source_version)
+        for ver in solc_vers:
+            vers_clean.append(".".join(str(x) for x in list(ver.precedence_key)[:3]))
+        if src_ver not in vers_clean:
+            solcx.install_solc(src_ver)
+        return src_ver
+
+    def validate_solc_ver(self):
+        src_ver: str = self.check_installed_solc(self.solc_version)
+        solcx.set_solc_version(src_ver)
+
+    def get_public_functions(self, sol_source: str) -> list[str]:
+        public_functions = set()
+        abi = solcx.compile_source(sol_source, output_values=["hashes"])
+        for value in abi.values():
+            for v in value["hashes"]:
+                public_functions.add(f"fun_{v[:v.find('(')]}")
+        return list(public_functions)
 
     def translate(self, node: ast.Node) -> str:
         main_part = self.print(node)
@@ -162,6 +201,43 @@ let ({vars_repr}) = {builtin_to_cairo.function_call}
                 continue
         return stmts_repr
 
+    def to_high_low_felt(self, vars: str) -> str:
+        if vars != "":
+            vars = vars.replace(" : Uint256", "")
+            vars = vars.split(",")
+            params_repr = ", ".join(f"{p.strip()}_low, {p.strip()}_high" for p in vars)
+            return params_repr
+        else:
+            return vars
+
+    def init_u256(self, params_repr: str) -> str:
+        params = params_repr.replace(" : Uint256", "")
+        params = params.split(",")
+        declr_str = "\n".join(
+            f"let (local {p}: Uint256) = Uint256({p}_low, {p}_high)" for p in params
+        )
+        return declr_str
+
+    def gen_external_function(
+        self,
+        fun_name: str,
+        params_repr: str,
+        return_repr: str,
+        return_names: str,
+        body: str,
+    ) -> str:
+        body = self.init_u256(params_repr) + body
+        params = self.to_high_low_felt(params_repr)
+        return_signature = self.to_high_low_felt(return_repr)
+        return_names = self.to_high_low_felt(return_names)
+        return f"""
+@external
+func {fun_name}{{range_check_ptr, pedersen_ptr: HashBuiltin*, storage_ptr: Storage*, memory_dict: DictAccess*, msize}}({params}) -> ({return_signature}):
+alloc_locals
+{body}
+return ({return_names})
+end"""
+
     def visit_function_definition(self, node: ast.FunctionDefinition):
         params_repr = ", ".join(self.print(x) for x in node.parameters)
         returns_repr = ", ".join(self.print(x) for x in node.return_variables)
@@ -169,7 +245,12 @@ let ({vars_repr}) = {builtin_to_cairo.function_call}
         body_repr = self.print(node.body)
         if "abi_" in node.name or "checked_" in node.name:
             return ""
-        self.cairo_code += f"""
+        if node.name in self.public_functions:
+            self.cairo_code += self.gen_external_function(
+                node.name, params_repr, returns_repr, return_names, body_repr
+            )
+        else:
+            self.cairo_code += f"""
 func {node.name}{{range_check_ptr, pedersen_ptr: HashBuiltin*, storage_ptr: Storage*, memory_dict: DictAccess*, msize}}({params_repr}) -> ({returns_repr}):
 alloc_locals
 {body_repr}
