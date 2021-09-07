@@ -16,7 +16,6 @@ STATEMENT_STRINGS = {
     "Block",
 }
 
-
 def get_low_bits(string: str) -> str:
     try:
         value = int(string)
