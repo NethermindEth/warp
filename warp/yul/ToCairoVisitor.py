@@ -3,6 +3,8 @@ from collections import  defaultdict
 from transpiler.Imports import merge_imports, UINT256_MODULE
 import yul.yul_ast as ast
 from yul.BuiltinHandler import YUL_BUILTINS_MAP
+from yul.yul_ast import AstVisitor
+from yul.WarpException import WarpException
 
 UINT128_BOUND = 2 ** 128
 
