@@ -47,7 +47,6 @@ class ToCairoVisitor(AstVisitor):
         self.imports = defaultdict(set)
         self.discarded_warp_blocks: list[str] = []
         merge_imports(self.imports, COMMON_IMPORTS)
-        self.last_function: Optional[ast.FunctionDefinition] = None
 
     def get_source_version(self, sol_source: str) -> float:
         code_split = sol_source.split("\n")
@@ -333,28 +332,34 @@ local msize = msize"""
         body_repr = self.print(node.body)
         else_repr = ""
         if node.else_body:
-            else_repr = f"\t{self.print(node.else_body)}\n"
+            else_repr = f"else:\n\t{self.print(node.else_body)}\n"
         return (
             f"if {cond_repr}.low + {cond_repr}.high != 0:\n"
-            f"{body_repr}\n"
-            f"{else_repr}\n"
+            f"\t{body_repr}\n"
+            f"{else_repr}"
             f"end"
         )
 
     def visit_case(self, node: ast.Case):
-        return ""
+        return AssertionError("There should be no cases, run SwitchToIfVisitor first")
 
     def visit_switch(self, node: ast.Switch):
-        return ""
+        return AssertionError(
+            "There should be no switches, run SwitchToIfVisitor first"
+        )
 
     def visit_for_loop(self, node: ast.ForLoop):
-        return ""
+        raise AssertionError(
+            "There should be no for loops, run ForLoopEliminator first"
+        )
 
     def visit_break(self, node: ast.Break):
-        return ""
+        raise AssertionError("There should be no breaks, run ForLoopEliminator first")
 
     def visit_continue(self, node: ast.Continue):
-        return ""
+        raise AssertionError(
+            "There should be no continues, run ForLoopEliminator first"
+        )
 
     def visit_leave(self, node: ast.Leave):
-        return ""
+        return ""  # TODO
