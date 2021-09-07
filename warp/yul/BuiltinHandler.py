@@ -1,5 +1,5 @@
 from __future__ import annotations
-from utils import get_low_bits, get_low_high
+from utils import get_low_bits
 
 UINT256_MODULE = "starkware.cairo.common.uint256"
 
@@ -54,7 +54,7 @@ class BuiltinHandler:
 
     def required_imports(self):
         if self.module == "":
-            return {"": {""}}
+            return {}
         return {self.module: {self.function_name}}
 
     def generate_cairo(self):
@@ -172,7 +172,7 @@ class Shr(BuiltinHandler):  # ARG ORDER NOT CONVENTIONAL
     def __init__(self, function_args: str):
         super().__init__(
             module=UINT256_MODULE,
-            function_name="uint256_shl",
+            function_name="uint256_shr",
             function_args=function_args,
         )
 
@@ -199,8 +199,8 @@ class Byte(BuiltinHandler):
 class Add(BuiltinHandler):
     def __init__(self, function_args: str):
         super().__init__(
-            module=UINT256_MODULE,
-            function_name="uint256_add",
+            module="evm.uint256",
+            function_name="u256_add",
             function_args=function_args,
         )
 
@@ -208,8 +208,8 @@ class Add(BuiltinHandler):
 class Mul(BuiltinHandler):
     def __init__(self, function_args: str):
         super().__init__(
-            module=UINT256_MODULE,
-            function_name="uint256_mul",
+            module="evm.uint256",
+            function_name="u256_mul",
             function_args=function_args,
         )
 
@@ -226,8 +226,8 @@ class Sub(BuiltinHandler):
 class Div(BuiltinHandler):
     def __init__(self, function_args: str):
         super().__init__(
-            module=UINT256_MODULE,
-            function_name="uint256_unsigned_div_rem",
+            module="evm.uint256",
+            function_name="u256_div",
             function_args=function_args,
         )
 
@@ -235,8 +235,8 @@ class Div(BuiltinHandler):
 class Sdiv(BuiltinHandler):
     def __init__(self, function_args: str):
         super().__init__(
-            module=UINT256_MODULE,
-            function_name="uint256_signed_div_rem",
+            module="evm.uint256",
+            function_name="u256_sdiv",
             function_args=function_args,
         )
 
@@ -314,7 +314,7 @@ local msize = msize\n""",
 
     def generate_cairo(self):
         return f"""
-{self.preamble}mstore(offset={self.address}, value=byte)
+{self.preamble}{self.function_call}
 {self.ref_copy}"""
 
     def required_imports(self):
@@ -338,6 +338,7 @@ class MStore8(BuiltinHandler):
             f"let (local byte, _) = extract_lowest_byte({self.value})",
             ref_copy="local memory_dict : DictAccess* = memory_dict",
         )
+        self.function_call = f"mstore8(offset={self.address}, byte=byte)"
 
     def generate_cairo(self):
         return f"""
@@ -356,17 +357,17 @@ mstore8(offset={self.address}, byte=byte)
 
 class MLoad(BuiltinHandler):
     def __init__(self, function_args: str):
-        self.address: str = get_low_bits(function_args.split(",")[0].strip())
-        self.value: str = function_args.split(",")[1].strip()
+        self.offset: str = get_low_bits(function_args.split(",")[0].strip())
         super().__init__(
-            module="evm.uint256",
-            function_name="uint256_signextend",
+            module="evm.memory",
+            function_name="mload",
             function_args=function_args,
-            preamble=f"let (local msize) = update_msize{{range_check_ptr=range_check_ptr}}(msize, {self.address}, 1)"
-            f"local memory_dict : DictAccess* = memory_dict"
+            preamble=f"let (local msize) = update_msize{{range_check_ptr=range_check_ptr}}(msize, {self.offset}, 32)\n"
+            f"local memory_dict : DictAccess* = memory_dict\n"
             f"local msize = msize",
             ref_copy="local memory_dict : DictAccess* = memory_dict",
         )
+        self.function_call = f"mload({self.offset})"
 
     def required_imports(self):
         return {"evm.memory": {"mload"}, "evm.utils": {"update_msize"}}
@@ -411,7 +412,7 @@ class SLoad(BuiltinHandler):
             ref_copy="local pedersen_ptr : HashBuiltin* = pedersen_ptr\n\
             local storage_ptr : Storage* = storage_ptr",
         )
-        self.function_call = f"s_load(key={self.key})"
+        self.function_call = f"s_load({self.key})"
 
 
 # ============ Keccak ============
@@ -424,11 +425,10 @@ class SHA3(BuiltinHandler):
             function_name="sha",
             function_args=function_args,
             preamble="",
-            ref_copy=f"local msize = msize"
+            ref_copy=f"local msize = msize\n"
             "local memory_dict : DictAccess* = memory_dict",
         )
-        self.function_call = f"sha({self.offset}, {self.length})\nlocal msize = msize\n"\
-            f"local memory_dict : DictAccess* = memory_dict"
+        self.function_call = f"sha({self.offset}, {self.length})"
 
     def required_imports(self):
         return {"evm.sha3": {"sha"}}

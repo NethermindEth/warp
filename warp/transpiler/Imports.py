@@ -21,16 +21,11 @@ def format_names(import_names: set[str]) -> str:
     import_lines = [import_line_fmt.format(name) for name in sorted_names]
     return "(\n" + "\n".join(import_lines) + "\n)"
 
-def import_statment(module: str, names) -> str:
-    if module == "":
-        return ""
-    else:
-        return f"from {module} import {format_names(names)}"
 
 def format_imports(imports: Imports) -> str:
     sorted_imports = sorted(imports.items())
     return "\n".join(
-        import_statment(module, names)
+        f"from {module} import {format_names(names)}"
         for module, names in sorted_imports
     )
 

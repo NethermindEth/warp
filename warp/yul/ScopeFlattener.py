@@ -1,8 +1,7 @@
 from typing import Optional
 
 import yul.yul_ast as ast
-from yul.AstVisitor import AstMapper
-from yul.ScopeResolver import get_scope, ScopeResolver
+from yul.AstMapper import AstMapper
 
 
 class ScopeFlattener(AstMapper):
@@ -16,22 +15,22 @@ class ScopeFlattener(AstMapper):
         all_statements = []
         statements = node.statements
         while statements:
-            block: ast.Block = self.visit(ScopeResolver().map(ast.Block(statements)))
-            all_statements.extend(block.statements)
+            all_statements.extend(self.visit_list(statements))
             statements = self.block_functions
             self.block_functions = []
         return ast.Block(tuple(all_statements))
 
     def visit_block(self, node: ast.Block, inline: Optional[bool] = None):
-        if inline or get_scope(node).is_global():
+        if inline:
             return super().visit_block(node)
-        if not get_scope(node).bound_variables and inline is not False:
+        if not node.scope.bound_variables and inline is not False:
             return super().visit_block(node)
 
-        free_vars = sorted(get_scope(node).free_variables)  # to ensure order
-        mod_vars = sorted(get_scope(node).modified_variables)
-        typed_free_vars = [get_scope(node).resolve(x.name) for x in free_vars]
-        typed_mod_vars = [get_scope(node).resolve(x.name) for x in mod_vars]
+        free_vars = sorted(node.scope.free_variables)  # to ensure order
+        mod_vars = sorted(node.scope.modified_variables)
+        # ↓ default Uint256 type for everything
+        typed_free_vars = [ast.TypedName(x.name) for x in free_vars]
+        typed_mod_vars = [ast.TypedName(x.name) for x in mod_vars]
         block_fun = ast.FunctionDefinition(
             name=self._request_fresh_name(),
             parameters=typed_free_vars,

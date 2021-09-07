@@ -2,7 +2,8 @@ import re
 
 UPPERCASE_PATTERN = re.compile(r"[A-Z]")
 
-statementStings = ["ExpressionStatement",
+STATEMENT_STRINGS = {
+    "ExpressionStatement",
     "Assignment",
     "VariableDeclaration",
     "FunctionDefinition",
@@ -13,7 +14,8 @@ statementStings = ["ExpressionStatement",
     "Continue",
     "Leave",
     "Block",
-]
+}
+
 
 def get_low_bits(string: str) -> str:
     try:
@@ -32,21 +34,20 @@ def get_low_high(string: str) -> str:
         return f"{string}.low", f"{string}.high"
 
 def is_statement(node):
-    node_str = node.__repr__()
-    node_type = node_str[:node_str.find('(')]
+    return type(node).__name__ in STATEMENT_STRINGS
 
-    return node_type in statementStings
 
 def remove_prefix(text, prefix):
     if text.startswith(prefix):
-        return text[len(prefix):]
+        return text[len(prefix) :]
     return text
+
 
 def snakify(camel_case: str) -> str:
     """ThisCaseWord -> this_case_word"""
-    return remove_prefix(UPPERCASE_PATTERN.sub(
-        lambda m: f"_{m.group(0).lower()}", camel_case
-    ),"_")
+    return remove_prefix(
+        UPPERCASE_PATTERN.sub(lambda m: f"_{m.group(0).lower()}", camel_case), "_"
+    )
 
 
 def camelize(snake_case: str) -> str:

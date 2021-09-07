@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Optional
 
 import yul.yul_ast as ast
-from yul.AstVisitor import AstMapper
+from yul.AstMapper import AstMapper
 
 
 class SwitchToIfVisitor(AstMapper):

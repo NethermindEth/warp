@@ -1,12 +1,8 @@
-from contextlib import contextmanager
-from typing import Optional
-from collections import deque, defaultdict
+from collections import  defaultdict
 
 from transpiler.Imports import merge_imports, UINT256_MODULE
 import yul.yul_ast as ast
-from yul.AstVisitor import AstVisitor
-from yul.BuiltinHandler import BuiltinHandler, YUL_BUILTINS_MAP, BUILTIN_NAME_MAP
-from yul.WarpException import WarpException
+from yul.BuiltinHandler import YUL_BUILTINS_MAP
 
 UINT128_BOUND = 2 ** 128
 
@@ -23,14 +19,7 @@ COMMON_IMPORTS = {
     "evm.utils": {"update_msize"},
 }
 
-RETURNS_TWO = [
-    "uint256_add",
-    "uint256_mul",
-    "uint256_unsigned_div_rem",
-    "uint256_signed_div_rem",
-]
-
-class ToCairoVisitor(AstVisitor):
+class ToCairoVisitor(ast.AstVisitor):
     def __init__(self):
         super().__init__()
         self.repr_stack: list[str] = []
@@ -69,20 +58,16 @@ class ToCairoVisitor(AstVisitor):
             var_repr = self.print(var)
             if "Uint256" not in var_repr:
                 var_repr += ": Uint256"
-            if function_name in RETURNS_TWO:
-                var_repr += ", _"
             variables.append(var_repr)
         return ", ".join("local " + x for x in variables)
 
     def visit_assignment(self, node: ast.Assignment) -> str:
         self.preamble = False
         value_repr: str = self.print(node.value)
-        function_name: str = value_repr[: value_repr.find("(")].strip()
-        ids_repr: str = self.generate_ids_typed(node.variable_names, function_name)
         if isinstance(node.value, ast.FunctionCall):
-            function_args: str = value_repr[
-                value_repr.find("(") + 1 : value_repr.rfind(")")
-            ]
+            function_name = node.value.function_name.name
+            function_args: str = ", ".join(self.print(x) for x in node.value.arguments)
+            ids_repr: str = self.generate_ids_typed(node.variable_names, function_name)
             if function_name in YUL_BUILTINS_MAP.keys():
                 builtin_to_cairo = YUL_BUILTINS_MAP[function_name](function_args)
                 merge_imports(self.imports, builtin_to_cairo.required_imports())
@@ -102,6 +87,7 @@ let ({ids_repr}) = {builtin_to_cairo.function_call}
                     self.preamble = True
                     return f"let ({ids_repr}) = {value_repr}"
         else:
+            ids_repr: str = self.generate_ids_typed(node.variable_names)
             self.preamble = True
             return f"{ids_repr} = {value_repr}"
 
@@ -111,8 +97,8 @@ let ({ids_repr}) = {builtin_to_cairo.function_call}
         if fun_repr == "revert":
             return "assert 0 = 1"
         if fun_repr.startswith("checked_add"):
-            merge_imports(self.imports, {UINT256_MODULE: {"uint256_add"}})
-            return f"uint256_add({args_repr})"
+            merge_imports(self.imports, {"evm.uint256": {"u256_add"}})
+            return f"u256_add({args_repr})"
         if fun_repr.startswith("checked_sub"):
             merge_imports(self.imports, {UINT256_MODULE: {"uint256_sub"}})
             return f"uint256_sub({args_repr})"
@@ -145,10 +131,8 @@ let ({ids_repr}) = {builtin_to_cairo.function_call}
             return decls_repr
         value_repr = self.print(node.value)
         if isinstance(node.value, ast.FunctionCall):
-            function_name: str = value_repr[: value_repr.find("(")].strip()
-            function_args: str = value_repr[
-                value_repr.find("(") + 1 : value_repr.rfind(")")
-            ]
+            function_name: str = node.value.function_name.name
+            function_args: str = ", ".join(self.print(x) for x in node.value.arguments)
             vars_repr = self.generate_ids_typed(node.variables, function_name)
             if function_name in YUL_BUILTINS_MAP.keys():
                 builtin_to_cairo = YUL_BUILTINS_MAP[function_name](function_args)
