@@ -34,7 +34,6 @@ class ToCairoVisitor(AstVisitor):
         self.n_names: int = 0
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
-        self.last_function: Optional[ast.FunctionDefinition] = None
 
     def translate(self, node: ast.Node) -> str:
         main_part = self.print(node)
@@ -166,13 +165,7 @@ let ({vars_repr}) = {builtin_to_cairo.function_call}
             return f"{vars_repr} = {value_repr}"
 
     def visit_block(self, node: ast.Block) -> str:
-        stmts_repr = ""
-        for stmt in node.statements:
-            try:
-                stmts_repr += self.print(stmt) + "\n"
-            except:
-                continue
-        return stmts_repr
+        return "\n".join(self.print(x) for x in node.statements)
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
         params_repr = ", ".join(self.print(x) for x in node.parameters)
@@ -197,28 +190,34 @@ let ({vars_repr}) = {builtin_to_cairo.function_call}
         body_repr = self.print(node.body)
         else_repr = ""
         if node.else_body:
-            else_repr = f"\t{self.print(node.else_body)}\n"
+            else_repr = f"else:\n\t{self.print(node.else_body)}\n"
         return (
             f"if {cond_repr}.low + {cond_repr}.high != 0:\n"
-            f"{body_repr}\n"
-            f"{else_repr}\n"
+            f"\t{body_repr}\n"
+            f"{else_repr}"
             f"end"
         )
 
     def visit_case(self, node: ast.Case):
-        return ""
+        return AssertionError("There should be no cases, run SwitchToIfVisitor first")
 
     def visit_switch(self, node: ast.Switch):
-        return ""
+        return AssertionError(
+            "There should be no switches, run SwitchToIfVisitor first"
+        )
 
     def visit_for_loop(self, node: ast.ForLoop):
-        return ""
+        raise AssertionError(
+            "There should be no for loops, run ForLoopEliminator first"
+        )
 
     def visit_break(self, node: ast.Break):
-        return ""
+        raise AssertionError("There should be no breaks, run ForLoopEliminator first")
 
     def visit_continue(self, node: ast.Continue):
-        return ""
+        raise AssertionError(
+            "There should be no continues, run ForLoopEliminator first"
+        )
 
     def visit_leave(self, node: ast.Leave):
-        return ""
+        return ""  # TODO

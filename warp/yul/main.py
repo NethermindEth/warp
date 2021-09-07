@@ -10,6 +10,7 @@ from yul.ForLoopSimplifier import ForLoopSimplifier
 from yul.MangleNamesVisitor import MangleNamesVisitor
 from yul.ScopeFlattener import ScopeFlattener
 from yul.SwitchToIfVisitor import SwitchToIfVisitor
+from yul.ForLoopEliminator import ForLoopEliminator
 from yul.ToCairoVisitor import ToCairoVisitor
 from yul.parse import parse_node
 
@@ -37,6 +38,7 @@ def main(argv):
 
     yul_ast = parse_node(json.loads(result.stdout))
     yul_ast = ForLoopSimplifier().map(yul_ast)
+    yul_ast = ForLoopEliminator().map(yul_ast)
     yul_ast = MangleNamesVisitor().map(yul_ast)
     yul_ast = SwitchToIfVisitor().map(yul_ast)
     yul_ast = ExpressionSplitter().map(yul_ast)

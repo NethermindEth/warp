@@ -22,9 +22,7 @@ class ScopeFlattener(AstMapper):
         return ast.Block(tuple(all_statements))
 
     def visit_block(self, node: ast.Block, inline: Optional[bool] = None):
-        if inline:
-            return super().visit_block(node)
-        if not node.scope.bound_variables and inline is not False:
+        if inline or not node.scope.bound_variables:
             return super().visit_block(node)
 
         free_vars = sorted(node.scope.free_variables)  # to ensure order
@@ -46,39 +44,7 @@ class ScopeFlattener(AstMapper):
                 arguments=free_vars,
             ),
         )
-        return self.visit(block_call)
-
-    def visit_for_loop(self, node: ast.ForLoop):
-        assert not node.pre.statements, "Loop not simplified"
-        assert not node.post.statements, "Loop not simplified"
-        fun_call = self.visit(node.body, inline=False)
-        typed_free_vars = self.block_functions[-1].parameters
-        typed_mod_vars = self.block_functions[-1].return_variables
-        free_vars = [ast.Identifier(x.name) for x in typed_free_vars]
-        mod_vars = [ast.Identifier(x.name) for x in typed_mod_vars]
-        fun_name = self._request_fresh_name()
-        loop_call = ast.Assignment(
-            variable_names=mod_vars,
-            value=ast.FunctionCall(
-                function_name=ast.Identifier(fun_name),
-                arguments=free_vars,
-            ),
-        )
-        loop_fun = ast.FunctionDefinition(
-            name=fun_name,
-            parameters=typed_free_vars,
-            return_variables=typed_free_vars,
-            body=ast.Block(
-                (
-                    ast.If(
-                        condition=node.condition,
-                        body=ast.Block((fun_call, loop_call)),
-                    ),
-                )
-            ),
-        )
-        self.block_functions.append(loop_fun)
-        return self.visit(loop_call)
+        return ast.Block((self.visit(block_call),))
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
         return ast.FunctionDefinition(
