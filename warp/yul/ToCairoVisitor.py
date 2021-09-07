@@ -34,6 +34,7 @@ class ToCairoVisitor(AstVisitor):
         self.n_names: int = 0
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
+        self.last_function: Optional[ast.FunctionDefinition] = None
 
     def translate(self, node: ast.Node) -> str:
         main_part = self.print(node)
@@ -168,21 +169,20 @@ let ({vars_repr}) = {builtin_to_cairo.function_call}
         return "\n".join(self.print(x) for x in node.statements)
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
+        self.last_function = node
         params_repr = ", ".join(self.print(x) for x in node.parameters)
         returns_repr = ", ".join(self.print(x) for x in node.return_variables)
-        return_names = ", ".join(x.name for x in node.return_variables)
         body_repr = self.print(node.body)
         if "abi_" in node.name or "checked_" in node.name:
             return ""
         return (
             f"func {node.name}"
-            f"{{range_check_ptr, pedersen_ptr: HashBuiltin*,"
-            f"storage_ptr: Storage*, memory_dict: DictAccess*, msize}}"
+            f"{{range_check_ptr, pedersen_ptr: HashBuiltin*"
+            f", storage_ptr: Storage*, memory_dict: DictAccess*, msize}}"
             f"({params_repr}) -> ({returns_repr}):\n"
             f"alloc_locals\n"
             f"{body_repr}\n"
-            f"return ({return_names})\n"
-            f"end"
+            f"end\n"
         )
 
     def visit_if(self, node: ast.If) -> str:
@@ -219,5 +219,6 @@ let ({vars_repr}) = {builtin_to_cairo.function_call}
             "There should be no continues, run ForLoopEliminator first"
         )
 
-    def visit_leave(self, node: ast.Leave):
-        return ""  # TODO
+    def visit_leave(self, node: ast.Leave) -> str:
+        return_names = ", ".join(x.name for x in self.last_function.return_variables)
+        return f"return ({return_names})"

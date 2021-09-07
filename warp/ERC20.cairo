@@ -53,6 +53,7 @@ func cleanup_from_storage_uint256{
     local cleaned : Uint256 = value_60
     return (cleaned)
 end
+
 func extract_from_storage_value_dynamict_uint8{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(slot_value : Uint256) -> (value_61 : Uint256):
@@ -63,6 +64,7 @@ func extract_from_storage_value_dynamict_uint8{
 
     return (value_61)
 end
+
 func fun_approve{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(
@@ -78,6 +80,7 @@ func fun_approve{
     local var_ : Uint256 = Uint256(low=1, high=0)
     return (var_)
 end
+
 func fun_deposit{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(var_sender_65 : Uint256, var_value : Uint256) -> ():
@@ -94,6 +97,7 @@ func fun_deposit{
     update_storage_value_offsett_uint256_to_uint256(_1_66, _4_69)
     return ()
 end
+
 func fun_transferFrom{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(
@@ -131,6 +135,7 @@ func fun_transferFrom{
     local var : Uint256 = Uint256(low=1, high=0)
     return (var)
 end
+
 func fun_withdraw{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(var_wad_80 : Uint256, var_sender_81 : Uint256) -> ():
@@ -159,6 +164,7 @@ func fun_withdraw{
     update_storage_value_offsett_uint256_to_uint256(_5_86, _8_89)
     return ()
 end
+
 func getter_fun_balanceOf{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(key : Uint256) -> (ret__warp_mangled : Uint256):
@@ -169,6 +175,7 @@ func getter_fun_balanceOf{
     let (local ret__warp_mangled : Uint256) = read_from_storage_split_dynamic_uint256(_1_90)
     return (ret__warp_mangled)
 end
+
 func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_540{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(key_91 : Uint256) -> (dataSlot : Uint256):
@@ -196,6 +203,7 @@ func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_540
     local memory_dict : DictAccess* = memory_dict
     return (dataSlot)
 end
+
 func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_543{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(key_97 : Uint256) -> (dataSlot_98 : Uint256):
@@ -223,6 +231,7 @@ func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_543
     local memory_dict : DictAccess* = memory_dict
     return (dataSlot_98)
 end
+
 func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_544{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(key_104 : Uint256) -> (dataSlot_105 : Uint256):
@@ -250,6 +259,7 @@ func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_544
     local memory_dict : DictAccess* = memory_dict
     return (dataSlot_105)
 end
+
 func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_552{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(key_111 : Uint256) -> (dataSlot_112 : Uint256):
@@ -277,6 +287,7 @@ func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_552
     local memory_dict : DictAccess* = memory_dict
     return (dataSlot_112)
 end
+
 func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(slot : Uint256, key_118 : Uint256) -> (
@@ -304,6 +315,7 @@ func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256{
     local memory_dict : DictAccess* = memory_dict
     return (dataSlot_119)
 end
+
 func panic_error_0x11{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}() -> ():
@@ -332,6 +344,7 @@ func panic_error_0x11{
     assert 0 = 1
     return ()
 end
+
 func read_from_storage_split_dynamic_uint256{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(slot_130 : Uint256) -> (value_131 : Uint256):
@@ -343,6 +356,7 @@ func read_from_storage_split_dynamic_uint256{
     let (local value_131 : Uint256) = cleanup_from_storage_uint256(_1_132)
     return (value_131)
 end
+
 func require_helper{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(condition : Uint256) -> ():
@@ -355,6 +369,7 @@ func require_helper{
     end
     return ()
 end
+
 func revert_error_42b3090547df1d2001c96683413b8cf91c1b902ef5e3cb8d9f6f304cf7446f74{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}() -> ():
@@ -364,6 +379,7 @@ func revert_error_42b3090547df1d2001c96683413b8cf91c1b902ef5e3cb8d9f6f304cf7446f
     assert 0 = 1
     return ()
 end
+
 func update_byte_slice_shift{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(value_138 : Uint256, toInsert : Uint256) -> (
@@ -372,6 +388,7 @@ func update_byte_slice_shift{
     local result : Uint256 = toInsert
     return (result)
 end
+
 func update_storage_value_offsett_uint256_to_uint256{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(slot_139 : Uint256, value_140 : Uint256) -> ():
@@ -384,6 +401,7 @@ func update_storage_value_offsett_uint256_to_uint256{
     s_store(key=slot_139, value=_2_142)
     return ()
 end
+
 func __warp_block_0{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(
@@ -432,6 +450,7 @@ func __warp_block_0{
     update_storage_value_offsett_uint256_to_uint256(_14, _17)
     return ()
 end
+
 func __warp_block_1{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}() -> ():
