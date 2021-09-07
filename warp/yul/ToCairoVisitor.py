@@ -70,23 +70,20 @@ class ToCairoVisitor(ast.AstVisitor):
             function_name = node.value.function_name.name
             function_args: str = ", ".join(self.print(x) for x in node.value.arguments)
             ids_repr: str = self.generate_ids_typed(node.variable_names, function_name)
+            self.preamble = True
             if function_name in YUL_BUILTINS_MAP.keys():
                 builtin_to_cairo = YUL_BUILTINS_MAP[function_name](function_args)
                 merge_imports(self.imports, builtin_to_cairo.required_imports())
                 if not node.variable_names:
-                    self.preamble = True
                     return builtin_to_cairo.generated_cairo
                 else:
-                    self.preamble = True
                     return f"""{builtin_to_cairo.preamble}
 let ({ids_repr}) = {builtin_to_cairo.function_call}
 {builtin_to_cairo.ref_copy}"""
             else:
                 if not node.variable_names:
-                    self.preamble = True
                     return value_repr
                 else:
-                    self.preamble = True
                     return f"let ({ids_repr}) = {value_repr}"
         else:
             ids_repr: str = self.generate_ids_typed(node.variable_names)
@@ -139,20 +136,17 @@ let ({ids_repr}) = {builtin_to_cairo.function_call}
             if function_name in YUL_BUILTINS_MAP.keys():
                 builtin_to_cairo = YUL_BUILTINS_MAP[function_name](function_args)
                 merge_imports(self.imports, builtin_to_cairo.required_imports())
+                self.preamble = True
                 if not node.variables:
-                    self.preamble = True
                     return builtin_to_cairo.generated_cairo
                 else:
-                    self.preamble = True
                     return f"""{builtin_to_cairo.preamble}
 let ({vars_repr}) = {builtin_to_cairo.function_call}
 {builtin_to_cairo.ref_copy}"""
             else:
                 if not node.variables:
-                    self.preamble = True
                     return value_repr
                 else:
-                    self.preamble = True
                     return f"let ({vars_repr}) = {value_repr}"
         else:
             vars_repr = self.generate_ids_typed(node.variables)
@@ -160,10 +154,12 @@ let ({vars_repr}) = {builtin_to_cairo.function_call}
             return f"{vars_repr} = {value_repr}"
 
     def visit_block(self, node: ast.Block) -> str:
-        try:
-            stmts_repr = "\n".join(self.print(x) for x in node.statements)
-        except TypeError:
-            return ""
+        stmts_repr = ""
+        for stmt in node.statements:
+            try:
+                stmts_repr += self.print(stmt) + "\n"
+            except:
+                continue
         return stmts_repr
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
@@ -172,7 +168,7 @@ let ({vars_repr}) = {builtin_to_cairo.function_call}
         return_names = ", ".join(x.name for x in node.return_variables)
         body_repr = self.print(node.body)
         if "abi_" in node.name or "checked_" in node.name:
-            return
+            return ""
         self.cairo_code += f"""
 func {node.name}{{range_check_ptr, pedersen_ptr: HashBuiltin*, storage_ptr: Storage*, memory_dict: DictAccess*, msize}}({params_repr}) -> ({returns_repr}):
 alloc_locals
@@ -192,19 +188,19 @@ end"""
 end"""
 
     def visit_case(self, node: ast.Case):
-        raise AssertionError("There should be no cases, run SwitchToIfVisitor first")
+        return ""
 
     def visit_switch(self, node: ast.Switch):
-        raise AssertionError("There should be no switches, run SwitchToIfVisitor first")
+        return ""
 
     def visit_for_loop(self, node: ast.ForLoop):
-        raise AssertionError("There should be no for loops, run ScopeFlattener first")
+        return ""
 
     def visit_break(self, node: ast.Break):
-        self.repr_stack.append("")  # TODO
+        return ""
 
     def visit_continue(self, node: ast.Continue):
-        self.repr_stack.append("")  # TODO
+        return ""
 
     def visit_leave(self, node: ast.Leave):
-        self.repr_stack.append("")  # TODO
+        return ""
