@@ -5,6 +5,31 @@ from starkware.cairo.common.uint256 import (
     uint256_unsigned_div_rem, uint256_signed_div_rem)
 from starkware.cairo.common.math_cmp import is_le
 
+
+func u256_add{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
+    alloc_locals
+    let (local result : Uint256, _) = uint256_add(x, y)
+    return (result=result)
+end
+
+func u256_mul{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
+    alloc_locals
+    let (local result : Uint256, _) = uint256_mul(x, y)
+    return (result=result)
+end
+
+func u256_sdiv{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
+    alloc_locals
+    let (local result : Uint256, _) = uint256_signed_div_rem(x, y)
+    return (result=result)
+end
+
+func u256_div{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
+    alloc_locals
+    let (local result : Uint256, _) = uint256_unsigned_div_rem(x, y)
+    return (result=result)
+end
+
 func is_zero{range_check_ptr}(x : Uint256) -> (result : Uint256):
     if x.high != 0:
         tempvar range_check_ptr = range_check_ptr
