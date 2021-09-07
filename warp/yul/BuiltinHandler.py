@@ -374,16 +374,14 @@ class MLoad(BuiltinHandler):
 
 
 class MSize(BuiltinHandler):
-    @classmethod
-    def proceed(self, res_ref_name):
-        return [
-            "let (local immediate) = round_up_to_multiple(msize, 32)",
-            f"local {res_ref_name} : Uint256 = Uint256(immediate, 0)",
-        ]
-
-    def required_imports(self):
-        return {"evm.utils": {"round_up_to_multiple"}}
-
+    def __init__(self, function_args):
+        super().__init__(
+            module="evm.utils",
+            function_name="round_up_to_multiple",
+            function_args=function_args,
+            preamble="let (local immediate) = round_up_to_multiple(msize, 32)"
+        )
+        self.function_call = "Uint256(immediate, 0)"
 
 # ============ Storage ============
 class SStore(BuiltinHandler):
