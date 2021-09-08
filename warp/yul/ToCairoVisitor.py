@@ -1,11 +1,16 @@
 from __future__ import annotations
+
 from collections import defaultdict
+from typing import Optional
 
 import solcx
-from transpiler.Imports import merge_imports, UINT256_MODULE
 from starkware.cairo.lang.compiler.parser import parse_file
+
 import yul.yul_ast as ast
+from transpiler.Imports import merge_imports, UINT256_MODULE, format_imports
 from yul.BuiltinHandler import YUL_BUILTINS_MAP
+from yul.utils import STORAGE_DECLS
+from yul.yul_ast import AstVisitor
 
 UINT128_BOUND = 2 ** 128
 
@@ -22,35 +27,27 @@ COMMON_IMPORTS = {
     "evm.utils": {"update_msize"},
 }
 
+# TODO we should rather analyze the tree, than rely on textual presentation
 DISCARD = """    assert 0 = 1
-
     return ()"""
 
-IF_REF_COPY = """
-tempvar range_check_ptr = range_check_ptr
-tempvar pedersen_ptr : HashBuiltin* = pedersen_ptr
-tempvar storage_ptr : Storage* = storage_ptr
-tempvar msize = msize
-tempvar memory_dict : DictAccess* = memory_dict
+MAIN_PREAMBLE = """%lang starknet
+%builtins pedersen range_check
 """
 
 
-class ToCairoVisitor(ast.AstVisitor):
+class ToCairoVisitor(AstVisitor):
     def __init__(self, sol_source: str):
         super().__init__()
-        self.repr_stack: list[str] = []
         self.preamble: bool = False
         self.n_names: int = 0
-        self.sol_source: str = sol_source
         self.solc_version: float = self.get_source_version(sol_source)
         self.validate_solc_ver()
-        self.public_functions = self.get_public_functions(self.sol_source)
+        self.public_functions = self.get_public_functions(sol_source)
         self.imports = defaultdict(set)
-        self.discarded_warp_blocks : list[str] = []
-        self.external_cairo_funcs: dict[str, dict[str, str]] = {}
-        self.current_function_ret_vars_len: int = 0
+        self.discarded_warp_blocks: list[str] = []
         merge_imports(self.imports, COMMON_IMPORTS)
-        self.cairo_code: str = ""
+        self.last_function: Optional[ast.FunctionDefinition] = None
 
     def get_source_version(self, sol_source: str) -> float:
         code_split = sol_source.split("\n")
@@ -88,7 +85,14 @@ class ToCairoVisitor(ast.AstVisitor):
 
     def translate(self, node: ast.Node) -> str:
         main_part = self.print(node)
-        return main_part
+        return "\n".join(
+            [
+                MAIN_PREAMBLE,
+                format_imports(self.imports),
+                STORAGE_DECLS,
+                main_part,
+            ]
+        )
 
     def print(self, node: ast.Node, *args, **kwargs) -> str:
         return self.visit(node, *args, **kwargs)
@@ -98,8 +102,12 @@ class ToCairoVisitor(ast.AstVisitor):
             f"Each node type should have a custom visit, but {type(node)} doesn't"
         )
 
-    def visit_typed_name(self, node: ast.TypedName) -> str:
-        return f"{node.name} : {node.type}"
+    def visit_typed_name(self, node: ast.TypedName, split: bool = False) -> str:
+        if not split:
+            return f"{node.name} : {node.type}"
+        assert node.type == "Uint256", "Can't split non Uin256 type"
+        # could have added ": felt", but when a type is omitted, it's felt by default
+        return f"{node.name}_low, {node.name}_high"
 
     def visit_literal(self, node: ast.Literal) -> str:
         v = int(node.value)  # to convert bools: True -> 1, False -> 0
@@ -150,8 +158,10 @@ let ({ids_repr}) = {builtin_to_cairo.function_call}
                 if not node.variable_names:
                     return value_repr
                 else:
-                    ids_repr: str = self.print(node.variable_names)
-                    if function_name in self.external_cairo_funcs:
+                    ids_repr: str = ", ".join(
+                        self.print(x) for x in node.variable_names
+                    )
+                    if function_name in self.public_functions:
                         ids_repr_felt = self.to_high_low_felt(ids_repr)
                         return f"let ({ids_repr_felt}) = {call}\n" + self.init_u256(
                             ids_repr
@@ -167,7 +177,7 @@ let ({ids_repr}) = {builtin_to_cairo.function_call}
     def visit_function_call(self, node: ast.FunctionCall) -> str:
         fun_repr = self.print(node.function_name)
         args_repr = ", ".join(self.print(x) for x in node.arguments)
-        if fun_repr in self.external_cairo_funcs:
+        if fun_repr in self.public_functions:
             args_repr = self.to_high_low_felt(args_repr)
         if fun_repr == "revert":
             return "assert 0 = 1"
@@ -213,7 +223,7 @@ let ({ids_repr}) = {builtin_to_cairo.function_call}
             function_args: str = ", ".join(self.print(x) for x in node.value.arguments)
             func_call: str = self.print(node.value)
             vars_repr = self.generate_ids_typed(node.variables, function_name)
-            if function_name in YUL_BUILTINS_MAP.keys():
+            if function_name in YUL_BUILTINS_MAP:
                 builtin_to_cairo = YUL_BUILTINS_MAP[function_name](function_args)
                 merge_imports(self.imports, builtin_to_cairo.required_imports())
                 self.preamble = True
@@ -227,7 +237,7 @@ let ({vars_repr}) = {builtin_to_cairo.function_call}
                 if not node.variables:
                     return value_repr
                 else:
-                    if function_name in self.external_cairo_funcs:
+                    if function_name in self.public_functions:
                         vars_repr_felt = self.to_high_low_felt(vars_repr)
                         return (
                             f"let ({vars_repr_felt}) = {function_name}({self.to_high_low_felt(function_args)})\n"
@@ -247,13 +257,7 @@ local msize = msize"""
             return f"{vars_repr} = {value_repr}"
 
     def visit_block(self, node: ast.Block) -> str:
-        stmts_repr = ""
-        for stmt in node.statements:
-            try:
-                stmts_repr += self.print(stmt) + "\n"
-            except:
-                continue
-        return stmts_repr
+        return "\n".join(self.print(x) for x in node.statements)
 
     def to_high_low_felt(self, vars: str) -> str:
         if vars != "":
@@ -278,99 +282,51 @@ local msize = msize"""
                 declr_str += f"local {p}: Uint256 = Uint256({p}_low, {p}_high)\n"
         return declr_str
 
-    def gen_external_return_names(self, names: str) -> str:
-        if names != "":
-            vars = names.replace(" : Uint256", "")
-            vars = vars.split(",")
-            params_repr = ", ".join(f"{p.strip()}.low, {p.strip()}.high" for p in vars)
-            return params_repr
-        else:
-            return names
-
-    def gen_external_function_def(
-        self,
-        fun_name: str,
-        params_repr: str,
-        return_repr: str,
-        return_names_repr: str,
-        body: str,
-    ) -> str:
-        body = self.init_u256(params_repr) + "\n" + body
-        params = self.to_high_low_felt(params_repr)
-        return_signature = self.to_high_low_felt(return_repr)
-        return_names = self.gen_external_return_names(return_names_repr)
-        self.external_cairo_funcs[fun_name] = {"return_names": return_names}
-        if self.current_function_ret_vars_len == 0:
-            assignment = f"""{fun_name}{{range_check_ptr=range_check_ptr,
-            pedersen_ptr=pedersen_ptr,
-            storage_ptr=storage_ptr,
-            memory_dict=memory_dict,
-            msize=msize}}({params})"""
-        else:
-            assignment = f"""let ({return_signature}) = {fun_name}{{range_check_ptr=range_check_ptr,
-            pedersen_ptr=pedersen_ptr,
-            storage_ptr=storage_ptr,
-            memory_dict=memory_dict,
-            msize=msize}}({params})"""
-        return f"""
-func {fun_name}{{range_check_ptr, pedersen_ptr: HashBuiltin*, storage_ptr: Storage*, memory_dict : DictAccess*, msize}}({params}) -> ({return_signature}):
-alloc_locals
-{body}
-return ({return_names})
-end
-
-@external
-func {fun_name}_external{{range_check_ptr, pedersen_ptr: HashBuiltin*, storage_ptr: Storage*}}({params}) -> ({return_signature}):
-alloc_locals
-let (local memory_dict : DictAccess*) = default_dict_new(0)
-tempvar msize = 0
-{assignment}
-return ({return_signature})
-end
-"""
-
     def visit_function_definition(self, node: ast.FunctionDefinition):
-        params_repr = ", ".join(self.print(x) for x in node.parameters)
-        returns_repr = ", ".join(self.print(x) for x in node.return_variables)
-        if "panic_error" in node.name:
-            return
-        if node.name in self.public_functions:
-            # must split into high/low bits
-            self.current_function_ret_vars_len = len(node.return_variables) * 2
-            self.curr_fun_ret_felt = True
-        else:
-            self.current_function_ret_vars_len = len(node.return_variables)
-            self.curr_fun_ret_felt = False
-
-        return_names = ", ".join(x.name for x in node.return_variables)
-        body_repr = self.print(node.body)
-        if "abi_" in node.name or "checked_" in node.name or "getter_" in node.name:
+        taboos = ["abi_", "checked_", "getter_", "panic_error"]
+        if any(taboo in node.name for taboo in taboos):
             return ""
-        if node.name in self.public_functions:
-            self.cairo_code += self.gen_external_function_def(
-                node.name, params_repr, returns_repr, return_names, body_repr
+        external = node.name in self.public_functions
+        params_repr = ", ".join(self.print(x, split=external) for x in node.parameters)
+        returns_repr = ", ".join(
+            self.print(x, split=external) for x in node.return_variables
+        )
+        body_repr = self.print(node.body)
+        external_function: str = ""
+        if external:
+            combine_split_params = "\n".join(
+                f"local {x.name}: Uint256 = Uint256({x.name}_low, {x.name}_high)"
+                for x in node.parameters
             )
-        else:
-            func = f"""
-func {node.name}{{range_check_ptr, pedersen_ptr: HashBuiltin*, storage_ptr: Storage*, memory_dict: DictAccess*, msize}}({params_repr}) -> ({returns_repr}):
-alloc_locals
-{body_repr}
-return ({return_names})
-end""" 
+            body_repr = combine_split_params + "\n" + body_repr
+            external_function: str = (
+                f"@external\n"
+                f"func {node.name}_external({params_repr}) -> ({returns_repr}):\n"
+                f"alloc_locals\n"
+                f"let (local memory_dict: DictAccess*) = default_dict_new(0)\n"
+                f"tempvar msize = 0\n"
+                f"return {node.name}{{msize=msize, memory_dict=memory_dict}}"
+                f"                  ({params_repr})\n"
+                f"end\n\n"
+            )
+
+        func = (
+            f"{external_function}"
+            f"func {node.name}"
+            f"{{range_check_ptr, pedersen_ptr: HashBuiltin*,"
+            f"storage_ptr: Storage*, memory_dict: DictAccess*, msize}}"
+            f"({params_repr}) -> ({returns_repr}):\n"
+            f"alloc_locals\n"
+            f"{body_repr}\n"
+            f"end"
+        )
         func = parse_file(func).format()
+
         if ("__warp_block" in node.name) and (DISCARD in func):
             self.discarded_warp_blocks.append(node.name)
-            return
+            return ""
         else:
-            self.cairo_code += func
-
-    def gen_early_return(self, is_u256: bool) -> str:
-        if self.current_function_ret_vars_len == 0:
-            return "return ()"
-        elif self.curr_fun_ret_felt:
-            return f'return ({",".join("0" for i in range(self.current_function_ret_vars_len))})'
-        else:
-            return f'return ({",".join("Uint256(0,0)" for i in range(self.current_function_ret_vars_len))})'
+            return func
 
     def visit_if(self, node: ast.If) -> str:
         cond_repr = self.print(node.condition)
@@ -378,20 +334,12 @@ end"""
         else_repr = ""
         if node.else_body:
             else_repr = f"\t{self.print(node.else_body)}\n"
-        if "panic_" in body_repr or "assert 0 = 1" in body_repr:
-            body_repr = body_repr + self.gen_early_return(self.curr_fun_ret_felt)
-            return f"""if {cond_repr}.low + {cond_repr}.high != 0:
-{body_repr}
-{else_repr}
-end"""
-        else:
-            else_repr = "else:\n" if not node.else_body else node.else_body
-            return f"""if {cond_repr}.low + {cond_repr}.high != 0:
-{body_repr}
-{IF_REF_COPY}
-{else_repr}
-{IF_REF_COPY}
-end"""
+        return (
+            f"if {cond_repr}.low + {cond_repr}.high != 0:\n"
+            f"{body_repr}\n"
+            f"{else_repr}\n"
+            f"end"
+        )
 
     def visit_case(self, node: ast.Case):
         return ""

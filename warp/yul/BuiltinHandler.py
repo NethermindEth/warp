@@ -351,7 +351,7 @@ mstore8(offset={self.address}, byte=byte)
         return {
             "evm.memory": {"mstore8"},
             "evm.uint256": {"extract_lowest_byte"},
-            "evm.utils": {"update_msize"}
+            "evm.utils": {"update_msize"},
         }
 
 
@@ -379,9 +379,10 @@ class MSize(BuiltinHandler):
             module="evm.utils",
             function_name="round_up_to_multiple",
             function_args=function_args,
-            preamble="let (local immediate) = round_up_to_multiple(msize, 32)"
+            preamble="let (local immediate) = round_up_to_multiple(msize, 32)",
         )
         self.function_call = "Uint256(immediate, 0)"
+
 
 # ============ Storage ============
 class SStore(BuiltinHandler):

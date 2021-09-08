@@ -16,21 +16,24 @@ STATEMENT_STRINGS = {
     "Block",
 }
 
+
 def get_low_bits(string: str) -> str:
     try:
         value = int(string)
-        high, low = divmod(value, 2**128)
+        high, low = divmod(value, 2 ** 128)
         return f"Uint256({low}, 0)"
     except ValueError:
         return f"{string}.low"
 
+
 def get_low_high(string: str) -> str:
     try:
         value = int(string)
-        high, low = divmod(value, 2**128)
+        high, low = divmod(value, 2 ** 128)
         return f"{low}", f"{high}"
     except ValueError:
         return f"{string}.low", f"{string}.high"
+
 
 def is_statement(node):
     return type(node).__name__ in STATEMENT_STRINGS
@@ -60,6 +63,7 @@ def camelize(snake_case: str) -> str:
             " It probably contains several consecutive underscores."
         )
     return "".join(x.capitalize() for x in parts)
+
 
 STORAGE_DECLS = """
 
