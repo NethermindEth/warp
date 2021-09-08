@@ -5,7 +5,7 @@ import sys
 
 from starkware.cairo.lang.compiler.parser import parse_file
 
-from transpiler.Imports import format_imports, merge_imports
+from transpiler.Imports import format_imports
 from yul.utils import STORAGE_DECLS
 from yul.ForLoopSimplifier import ForLoopSimplifier
 from yul.MangleNamesVisitor import MangleNamesVisitor
