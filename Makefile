@@ -15,12 +15,17 @@ warp: .warp-activation-token
 	autohooks activate
 	touch .warp-activation-token
 
-test: test_bats
+test: test_bats test_yul
 .PHONY: test
 
 test_bats: warp $(BATS_FILES)
 	bats -j 8 $^ $(BATS_ARGS)
 .PHONY: test_bats
+
+test_yul: warp
+	python3.7 -m pytest scripts/yul/transpile_test.py -v --tb=short
+	python3.7 -m pytest scripts/yul/starknet_test.py -v --tb=short
+.PHONY: test_yul
 
 $(BATS_DIR)/test-%.bats: \
 		$(GOLDEN_DIR)/%.template \
