@@ -343,7 +343,6 @@ end
             self.curr_fun_ret_felt = False
 
         return_names = ", ".join(x.name for x in node.return_variables)
-        self.current_function_ret_vars_len = len(node.return_variables)
         body_repr = self.print(node.body)
         if "abi_" in node.name or "checked_" in node.name or "getter_" in node.name:
             return ""
