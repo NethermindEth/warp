@@ -1,10 +1,11 @@
-from collections import  defaultdict
+from collections import defaultdict
+from typing import Optional
 
-from transpiler.Imports import merge_imports, UINT256_MODULE
 import yul.yul_ast as ast
+from transpiler.Imports import merge_imports, UINT256_MODULE, format_imports
 from yul.BuiltinHandler import YUL_BUILTINS_MAP
+from yul.utils import STORAGE_DECLS
 from yul.yul_ast import AstVisitor
-from yul.WarpException import WarpException
 
 UINT128_BOUND = 2 ** 128
 
@@ -21,19 +22,30 @@ COMMON_IMPORTS = {
     "evm.utils": {"update_msize"},
 }
 
-class ToCairoVisitor(ast.AstVisitor):
+MAIN_PREAMBLE = """%lang starknet
+%builtins pedersen range_check
+"""
+
+
+class ToCairoVisitor(AstVisitor):
     def __init__(self):
         super().__init__()
-        self.repr_stack: list[str] = []
         self.preamble: bool = False
         self.n_names: int = 0
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
-        self.cairo_code: str = ""
+        self.last_function: Optional[ast.FunctionDefinition] = None
 
     def translate(self, node: ast.Node) -> str:
         main_part = self.print(node)
-        return main_part
+        return "\n".join(
+            [
+                MAIN_PREAMBLE,
+                format_imports(self.imports),
+                STORAGE_DECLS,
+                main_part,
+            ]
+        )
 
     def print(self, node: ast.Node, *args, **kwargs) -> str:
         return self.visit(node, *args, **kwargs)
@@ -133,7 +145,7 @@ let ({ids_repr}) = {builtin_to_cairo.function_call}
             function_name: str = node.value.function_name.name
             function_args: str = ", ".join(self.print(x) for x in node.value.arguments)
             vars_repr = self.generate_ids_typed(node.variables, function_name)
-            if function_name in YUL_BUILTINS_MAP.keys():
+            if function_name in YUL_BUILTINS_MAP:
                 builtin_to_cairo = YUL_BUILTINS_MAP[function_name](function_args)
                 merge_imports(self.imports, builtin_to_cairo.required_imports())
                 self.preamble = True
@@ -169,12 +181,16 @@ let ({vars_repr}) = {builtin_to_cairo.function_call}
         body_repr = self.print(node.body)
         if "abi_" in node.name or "checked_" in node.name:
             return ""
-        self.cairo_code += f"""
-func {node.name}{{range_check_ptr, pedersen_ptr: HashBuiltin*, storage_ptr: Storage*, memory_dict: DictAccess*, msize}}({params_repr}) -> ({returns_repr}):
-alloc_locals
-{body_repr}
-return ({return_names})
-end"""
+        return (
+            f"func {node.name}"
+            f"{{range_check_ptr, pedersen_ptr: HashBuiltin*,"
+            f"storage_ptr: Storage*, memory_dict: DictAccess*, msize}}"
+            f"({params_repr}) -> ({returns_repr}):\n"
+            f"alloc_locals\n"
+            f"{body_repr}\n"
+            f"return ({return_names})\n"
+            f"end"
+        )
 
     def visit_if(self, node: ast.If) -> str:
         cond_repr = self.print(node.condition)
@@ -182,10 +198,12 @@ end"""
         else_repr = ""
         if node.else_body:
             else_repr = f"\t{self.print(node.else_body)}\n"
-        return f"""if {cond_repr}.low + {cond_repr}.high != 0:
-{body_repr}
-{else_repr}
-end"""
+        return (
+            f"if {cond_repr}.low + {cond_repr}.high != 0:\n"
+            f"{body_repr}\n"
+            f"{else_repr}\n"
+            f"end"
+        )
 
     def visit_case(self, node: ast.Case):
         return ""
