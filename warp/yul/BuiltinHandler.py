@@ -431,6 +431,16 @@ class SHA3(BuiltinHandler):
     def required_imports(self):
         return {"evm.sha3": {"sha"}}
 
+# ============ Call Data ============
+class Caller(BuiltinHandler):
+    def __init__(self, function_args: str):
+        super().__init__(
+            function_name="get_caller_address",
+            function_args=function_args,
+        )
+
+    def required_imports(self):
+        return {"starkware.starknet.common.syscall": {"get_caller_address"}}
 
 YUL_BUILTINS_MAP = {
     "iszero": IsZero,
@@ -465,4 +475,5 @@ YUL_BUILTINS_MAP = {
     "sar": Sar,
     "addmod": AddMod,
     "signextend": SignExtend,
+    "caller": Caller,
 }
