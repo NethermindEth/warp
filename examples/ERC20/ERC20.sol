@@ -32,6 +32,12 @@ contract WARP {
             allowance[src][sender] -= wad;
         }
 
+        for (uint i = 20; i > 10; i--) {
+            if (i == 3) {
+                break;
+            }
+        }
+
         balanceOf[src] -= wad;
         balanceOf[dst] += wad;
 

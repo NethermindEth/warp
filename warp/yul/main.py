@@ -36,6 +36,8 @@ def main(argv):
     except subprocess.CalledProcessError as e:
         print(e.stderr.decode("utf-8"), file=sys.stderr)
         raise e
+    with open(solidity_file) as f:
+        sol_source = f.read()
 
     yul_ast = parse_node(json.loads(result.stdout))
     yul_ast = ForLoopSimplifier().map(yul_ast)
@@ -45,7 +47,7 @@ def main(argv):
     yul_ast = ExpressionSplitter().map(yul_ast)
     yul_ast = ScopeFlattener().map(yul_ast)
     yul_ast = LeaveNormalizer().map(yul_ast)
-    cairo_visitor = ToCairoVisitor()
+    cairo_visitor = ToCairoVisitor(sol_source)
     cairo_code = cairo_visitor.translate(yul_ast)
     print(parse_file(cairo_code).format())
 
