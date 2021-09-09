@@ -6,6 +6,7 @@ from yul.AstMapper import AstMapper
 
 class ScopeFlattener(AstMapper):
     def __init__(self):
+        super().__init__()
         self.n_names: int = 0
         self.block_functions: list[ast.FunctionDefinition] = []
 

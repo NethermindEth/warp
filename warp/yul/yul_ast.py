@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from abc import ABC
 from dataclasses import dataclass
 from functools import lru_cache
@@ -139,6 +140,25 @@ Statement = Union[
     Block,
 ]
 
+NODE_TYPES = frozenset(
+    (
+        Literal,
+        Identifier,
+        FunctionCall,
+        ExpressionStatement,
+        Assignment,
+        VariableDeclaration,
+        FunctionDefinition,
+        If,
+        Switch,
+        ForLoop,
+        Break,
+        Continue,
+        Leave,
+        Block,
+    )
+)
+
 
 @dataclass
 class Scope:
@@ -175,12 +195,31 @@ def get_children(node: Node) -> Iterable[Node]:
 
 
 class AstVisitor:
+    def __init__(self):
+        self.path = []
+        # ↑ path of nodes from the AST root down to the current node,
+        # inclusively
+
+        def path_decorator(method):
+            def new_method(node, *args, **kwargs):
+                self.path.append(node)
+                res = method(node, *args, **kwargs)
+                self.path.pop()
+                return res
+
+            return new_method
+
+        for node_type in NODE_TYPES:
+            visitor_name = "visit_" + snakify(node_type.__name__)
+            method = getattr(self, visitor_name, None)
+            if method is None:
+                method = self.common_visit
+            setattr(self, visitor_name, path_decorator(method))
+
     def visit(self, node: Node, *args, **kwargs):
         method_name = "visit_" + snakify(type(node).__name__)
-        try:
-            return getattr(self, method_name)(node, *args, **kwargs)
-        except AttributeError:
-            return self.common_visit(node, *args, **kwargs)
+        method = getattr(self, method_name, None)
+        return method(node, *args, **kwargs)
 
     def common_visit(self, node, *args, **kwargs):
         for child in get_children(node):
@@ -192,6 +231,7 @@ class AstVisitor:
 
 class ScopeResolver(AstVisitor):
     def __init__(self):
+        super().__init__()
         self.bound_variables: dict[str, TypedName] = {}
         self.free_variables: list[Identifier] = []
         self.modified_variables: list[Identifier] = []
