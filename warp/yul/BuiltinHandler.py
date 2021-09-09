@@ -89,7 +89,7 @@ class Lt(BuiltinHandler):
             module="evm.uint256",
             function_name="is_lt",
             function_args=function_args,
-            ref_copy="\nlocal memory_dict : DictAccess* = memory_dict",
+            ref_copy="local memory_dict : DictAccess* = memory_dict",
         )
 
 

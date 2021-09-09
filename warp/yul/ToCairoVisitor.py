@@ -94,6 +94,40 @@ class ToCairoVisitor(AstVisitor):
                 public_functions.add(f"fun_{v[:v.find('(')]}")
         return list(public_functions)
 
+    def get_source_version(self, sol_source: str) -> float:
+        code_split = sol_source.split("\n")
+        for line in code_split:
+            if "pragma" in line:
+                ver: float = float(line[line.index("0.") + 2 :].replace(";", ""))
+                if ver < 8.0:
+                    raise Exception(
+                        "Please use a version of solidity that is at least 0.8.0"
+                    )
+                return ver
+        raise Exception("No Solidity version specified in contract")
+
+    def check_installed_solc(self, source_version: float) -> str:
+        solc_vers = solcx.get_installed_solc_versions()
+        vers_clean = []
+        src_ver = "0." + str(source_version)
+        for ver in solc_vers:
+            vers_clean.append(".".join(str(x) for x in list(ver.precedence_key)[:3]))
+        if src_ver not in vers_clean:
+            solcx.install_solc(src_ver)
+        return src_ver
+
+    def validate_solc_ver(self):
+        src_ver: str = self.check_installed_solc(self.solc_version)
+        solcx.set_solc_version(src_ver)
+
+    def get_public_functions(self, sol_source: str) -> list[str]:
+        public_functions = set()
+        abi = solcx.compile_source(sol_source, output_values=["hashes"])
+        for value in abi.values():
+            for v in value["hashes"]:
+                public_functions.add(f"fun_{v[:v.find('(')]}")
+        return list(public_functions)
+
     def translate(self, node: ast.Node) -> str:
         main_part = self.print(node)
         return "\n".join(
@@ -214,7 +248,8 @@ let ({ids_repr}) = {builtin_to_cairo.function_call}
 {builtin_to_cairo.ref_copy}"""
             else:
                 return f"{builtin_to_cairo.function_call}"
-        return f"{fun_repr}({args_repr})"
+        else:
+            return f"{fun_repr}({args_repr})"
 
     def visit_expression_statement(self, node: ast.ExpressionStatement) -> str:
         if isinstance(node.expression, ast.FunctionCall):
@@ -236,6 +271,7 @@ let ({ids_repr}) = {builtin_to_cairo.function_call}
         if isinstance(node.value, ast.FunctionCall):
             function_name: str = node.value.function_name.name
             function_args: str = ", ".join(self.print(x) for x in node.value.arguments)
+            func_call: str = self.print(node.value)
             vars_repr = self.generate_ids_typed(node.variables, function_name)
             if function_name in YUL_BUILTINS_MAP:
                 builtin_to_cairo = YUL_BUILTINS_MAP[function_name](function_args)
@@ -264,8 +300,8 @@ local memory_dict : DictAccess* = memory_dict
 local msize = msize"""
                     return f"let ({vars_repr}) = {value_repr}"
         else:
-            vars_repr = self.generate_ids_typed(node.variables)
             self.preamble = True
+            vars_repr = self.generate_ids_typed(node.variables)
             return f"{vars_repr} = {value_repr}"
 
     def visit_block(self, node: ast.Block) -> str:
@@ -345,10 +381,94 @@ return ({return_signature})
 end
 """
 
+    def to_high_low_felt(self, vars: str) -> str:
+        if vars != "":
+            vars = vars.replace(" : Uint256", "")
+            vars = vars.split(",")
+            params_repr = ", ".join(f"{p.strip()}_low, {p.strip()}_high" for p in vars)
+            return params_repr
+        else:
+            return vars
+
+    def init_u256(self, params_repr: str) -> str:
+        params = params_repr.replace(" : Uint256", "")
+        params = params.split(",")
+        declr_str = ""
+        for p in params:
+            if "local" in p:
+                p_no_local = p.replace("local", "").strip()
+                declr_str += (
+                    f"{p}: Uint256 = Uint256({p_no_local}_low, {p_no_local}_high)\n"
+                )
+            else:
+                declr_str += f"local {p}: Uint256 = Uint256({p}_low, {p}_high)\n"
+        return declr_str
+
+    def gen_external_return_names(self, names: str) -> str:
+        if names != "":
+            vars = names.replace(" : Uint256", "")
+            vars = vars.split(",")
+            params_repr = ", ".join(f"{p.strip()}.low, {p.strip()}.high" for p in vars)
+            return params_repr
+        else:
+            return names
+
+    def gen_external_function_def(
+        self,
+        fun_name: str,
+        params_repr: str,
+        return_repr: str,
+        return_names_repr: str,
+        body: str,
+    ) -> str:
+        body = self.init_u256(params_repr) + "\n" + body
+        params = self.to_high_low_felt(params_repr)
+        return_signature = self.to_high_low_felt(return_repr)
+        return_names = self.gen_external_return_names(return_names_repr)
+        self.external_cairo_funcs[fun_name] = {"return_names": return_names}
+        if self.current_function_ret_vars_len == 0:
+            assignment = f"""{fun_name}{{range_check_ptr=range_check_ptr,
+            pedersen_ptr=pedersen_ptr,
+            storage_ptr=storage_ptr,
+            memory_dict=memory_dict,
+            msize=msize}}({params})"""
+        else:
+            assignment = f"""let ({return_signature}) = {fun_name}{{range_check_ptr=range_check_ptr,
+            pedersen_ptr=pedersen_ptr,
+            storage_ptr=storage_ptr,
+            memory_dict=memory_dict,
+            msize=msize}}({params})"""
+        return f"""
+func {fun_name}{{range_check_ptr, pedersen_ptr: HashBuiltin*, storage_ptr: Storage*, memory_dict : DictAccess*, msize}}({params}) -> ({return_signature}):
+alloc_locals
+{body}
+return ({return_names})
+end
+
+@external
+func {fun_name}_external{{range_check_ptr, pedersen_ptr: HashBuiltin*, storage_ptr: Storage*}}({params}) -> ({return_signature}):
+alloc_locals
+let (local memory_dict : DictAccess*) = default_dict_new(0)
+tempvar msize = 0
+{assignment}
+return ({return_signature})
+end
+"""
+
     def visit_function_definition(self, node: ast.FunctionDefinition):
         self.last_function = node
         params_repr = ", ".join(self.print(x) for x in node.parameters)
         returns_repr = ", ".join(self.print(x) for x in node.return_variables)
+        if "panic_error" in node.name:
+            return
+        if node.name in self.public_functions:
+            # must split into high/low bits
+            self.current_function_ret_vars_len = len(node.return_variables) * 2
+            self.curr_fun_ret_felt = True
+        else:
+            self.current_function_ret_vars_len = len(node.return_variables)
+            self.curr_fun_ret_felt = False
+
         return_names = ", ".join(x.name for x in node.return_variables)
         if node.name in self.public_functions:
             # must split into high/low bits
