@@ -171,4 +171,4 @@ def parse_continue(yul_ast) -> ast.Continue:
 
 @register_parser
 def parse_leave(yul_ast) -> ast.Leave:
-    return ast.Leave()
+    return ast.LEAVE

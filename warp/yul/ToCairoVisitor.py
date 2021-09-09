@@ -283,6 +283,7 @@ local msize = msize"""
         return declr_str
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
+        self.last_function = node
         taboos = ["abi_", "checked_", "getter_", "panic_error"]
         if any(taboo in node.name for taboo in taboos):
             return ""
@@ -313,12 +314,12 @@ local msize = msize"""
         func = (
             f"{external_function}"
             f"func {node.name}"
-            f"{{range_check_ptr, pedersen_ptr: HashBuiltin*,"
-            f"storage_ptr: Storage*, memory_dict: DictAccess*, msize}}"
+            f"{{range_check_ptr, pedersen_ptr: HashBuiltin*"
+            f", storage_ptr: Storage*, memory_dict: DictAccess*, msize}}"
             f"({params_repr}) -> ({returns_repr}):\n"
             f"alloc_locals\n"
             f"{body_repr}\n"
-            f"end"
+            f"end\n"
         )
         func = parse_file(func).format()
 
@@ -333,28 +334,35 @@ local msize = msize"""
         body_repr = self.print(node.body)
         else_repr = ""
         if node.else_body:
-            else_repr = f"\t{self.print(node.else_body)}\n"
+            else_repr = f"else:\n\t{self.print(node.else_body)}\n"
         return (
             f"if {cond_repr}.low + {cond_repr}.high != 0:\n"
-            f"{body_repr}\n"
-            f"{else_repr}\n"
+            f"\t{body_repr}\n"
+            f"{else_repr}"
             f"end"
         )
 
     def visit_case(self, node: ast.Case):
-        return ""
+        return AssertionError("There should be no cases, run SwitchToIfVisitor first")
 
     def visit_switch(self, node: ast.Switch):
-        return ""
+        return AssertionError(
+            "There should be no switches, run SwitchToIfVisitor first"
+        )
 
     def visit_for_loop(self, node: ast.ForLoop):
-        return ""
+        raise AssertionError(
+            "There should be no for loops, run ForLoopEliminator first"
+        )
 
     def visit_break(self, node: ast.Break):
-        return ""
+        raise AssertionError("There should be no breaks, run ForLoopEliminator first")
 
     def visit_continue(self, node: ast.Continue):
-        return ""
+        raise AssertionError(
+            "There should be no continues, run ForLoopEliminator first"
+        )
 
-    def visit_leave(self, node: ast.Leave):
-        return ""
+    def visit_leave(self, node: ast.Leave) -> str:
+        return_names = ", ".join(x.name for x in self.last_function.return_variables)
+        return f"return ({return_names})"

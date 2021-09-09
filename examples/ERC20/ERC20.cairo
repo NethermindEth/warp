@@ -50,6 +50,7 @@ func cleanup_from_storage_uint256{
         memory_dict : DictAccess*, msize}(value_67 : Uint256) -> (cleaned : Uint256):
     alloc_locals
     local cleaned : Uint256 = value_67
+    return (cleaned)
 end
 
 func extract_from_storage_value_dynamict_uint8{
@@ -59,6 +60,8 @@ func extract_from_storage_value_dynamict_uint8{
     local _1_69 : Uint256 = Uint256(low=255, high=0)
 
     let (local value_68 : Uint256) = uint256_and(slot_value, _1_69)
+
+    return (value_68)
 end
 
 @external
@@ -95,6 +98,7 @@ func fun_approve{
     local msize = msize
     update_storage_value_offsett_uint256_to_uint256(_2_71, var_wad)
     local var : Uint256 = Uint256(low=1, high=0)
+    return (var)
 end
 
 @external
@@ -130,6 +134,7 @@ func fun_deposit{
     update_storage_value_offsett_uint256_to_uint256(_1_74, _4_77)
     local var_73 : Uint256 = Uint256(low=21, high=0)
     local var_ : Uint256 = Uint256(low=12, high=0)
+    return (var_73, var_)
 end
 
 @external
@@ -195,6 +200,7 @@ func fun_transferFrom{
     let (local _25 : Uint256) = u256_add(_24, var_wad_78)
     update_storage_value_offsett_uint256_to_uint256(_22, _25)
     local var_80 : Uint256 = Uint256(low=1, high=0)
+    return (var_80)
 end
 
 @external
@@ -246,6 +252,8 @@ func fun_withdraw{
         var_sender_90_low, var_sender_90_high, var_wad_89_low, var_wad_89_high)
     local expr_component : Uint256 = Uint256(expr_component_low, expr_component_high)
     local expr_component_1 : Uint256 = Uint256(expr_component_1_low, expr_component_1_high)
+
+    return ()
 end
 
 func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_567{
@@ -273,6 +281,7 @@ func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_567
     let (local dataSlot : Uint256) = sha(_1_101.low, _4_104.low)
     local msize = msize
     local memory_dict : DictAccess* = memory_dict
+    return (dataSlot)
 end
 
 func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_570{
@@ -300,6 +309,7 @@ func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_570
     let (local dataSlot_107 : Uint256) = sha(_1_108.low, _4_111.low)
     local msize = msize
     local memory_dict : DictAccess* = memory_dict
+    return (dataSlot_107)
 end
 
 func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_571{
@@ -327,6 +337,7 @@ func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_571
     let (local dataSlot_114 : Uint256) = sha(_1_115.low, _4_118.low)
     local msize = msize
     local memory_dict : DictAccess* = memory_dict
+    return (dataSlot_114)
 end
 
 func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_579{
@@ -354,6 +365,7 @@ func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_579
     let (local dataSlot_121 : Uint256) = sha(_1_122.low, _4_125.low)
     local msize = msize
     local memory_dict : DictAccess* = memory_dict
+    return (dataSlot_121)
 end
 
 func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256{
@@ -381,6 +393,7 @@ func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256{
     let (local dataSlot_128 : Uint256) = sha(_1_129.low, _3_131.low)
     local msize = msize
     local memory_dict : DictAccess* = memory_dict
+    return (dataSlot_128)
 end
 
 func read_from_storage_split_dynamic_uint256{
@@ -392,6 +405,8 @@ func read_from_storage_split_dynamic_uint256{
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local storage_ptr : Storage* = storage_ptr
     let (value_140) = cleanup_from_storage_uint256(_1_141)
+
+    return (value_140)
 end
 
 func require_helper{
@@ -404,6 +419,7 @@ func require_helper{
     if _1_142.low + _1_142.high != 0:
         __warp_block_1()
     end
+    return ()
 end
 
 func revert_error_42b3090547df1d2001c96683413b8cf91c1b902ef5e3cb8d9f6f304cf7446f74{
@@ -413,6 +429,7 @@ func revert_error_42b3090547df1d2001c96683413b8cf91c1b902ef5e3cb8d9f6f304cf7446f
     local _1_145 : Uint256 = Uint256(low=0, high=0)
     local _2_146 : Uint256 = _1_145
     assert 0 = 1
+    return ()
 end
 
 func update_byte_slice_shift{
@@ -421,6 +438,7 @@ func update_byte_slice_shift{
         result : Uint256):
     alloc_locals
     local result : Uint256 = toInsert
+    return (result)
 end
 
 func update_storage_value_offsett_uint256_to_uint256{
@@ -433,6 +451,7 @@ func update_storage_value_offsett_uint256_to_uint256{
     local storage_ptr : Storage* = storage_ptr
     let (local _2_151 : Uint256) = update_byte_slice_shift(_1_150, value_149)
     s_store(key=slot_148, value=_2_151)
+    return ()
 end
 
 func __warp_block_0{
@@ -494,14 +513,6 @@ func __warp_block_0{
     let (local _16 : Uint256) = cleanup_from_storage_uint256(_15)
     let (local _17 : Uint256) = uint256_sub(_16, var_wad_78)
     update_storage_value_offsett_uint256_to_uint256(_14, _17)
-end
-
-func __warp_block_1{
-        range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
-        memory_dict : DictAccess*, msize}() -> ():
-    alloc_locals
-    local _2_143 : Uint256 = Uint256(low=0, high=0)
-    local _3_144 : Uint256 = _2_143
-    assert 0 = 1
+    return ()
 end
 

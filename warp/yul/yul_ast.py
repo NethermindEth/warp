@@ -125,6 +125,11 @@ class Leave(Node):
     pass
 
 
+# No two nodes of this class should be different from each
+# other. Thus, it's cheaper to create one object and use it in all
+# contexts, rather than create new `Leave()` each time.
+LEAVE = Leave()
+
 Expression = Union[Literal, Identifier, FunctionCall]
 Statement = Union[
     ExpressionStatement,
