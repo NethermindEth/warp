@@ -12,16 +12,12 @@ warp: .warp-activation-token
 	python setup.py install
 	touch .warp-activation-token
 
-test: test_bats test_starknet
+test: test_bats
 .PHONY: test
 
 test_bats: warp $(BATS_FILES)
 	bats -j 8 $^ $(BATS_ARGS)
 .PHONY: test_bats
-
-test_starknet: warp
-	python scripts/starknet/starknet_test.py "${STARKNET_ENV}"
-.PHONY: test_starknet
 
 $(BATS_DIR)/test-%.bats: \
 		$(GOLDEN_DIR)/%.template \
