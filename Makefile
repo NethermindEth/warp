@@ -4,12 +4,15 @@ TEMPLATES := $(wildcard $(GOLDEN_DIR)/*.template)
 BATS_FILES := $(patsubst $(GOLDEN_DIR)/%.template,$(BATS_DIR)/test-%.bats,$(TEMPLATES))
 TEST_FILES := $(shell find ./tests -type f ! -name '*.temp*') # exclude temporary files
 SRC_FILES := $(shell find ./warp/ -type f)
+PY_REQUIREMENTS := requirements.txt
 
 warp: .warp-activation-token
 .PHONY: warp
 
 .warp-activation-token: $(SRC_FILES) setup.py
+	pip install -r $(PY_REQUIREMENTS)
 	python setup.py install
+	pre-commit install
 	touch .warp-activation-token
 
 test: test_bats
