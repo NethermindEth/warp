@@ -1,3 +1,0 @@
-PUSH1 0xed
-PUSH1 0xff
-LT
