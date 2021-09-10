@@ -5,12 +5,16 @@ contract WARP {
 
     function transferFrom(uint src, uint dst, uint wad, uint sender)
         public payable
-        returns (bool)
+        returns (uint)
     {
+      uint res = 0;
         if (src != sender) {
             allowance[src][sender] -= wad;
+            res = 1;
+        } else {
+            res = 2;
         }
 
-        return true;
+        return res;
     }
 }

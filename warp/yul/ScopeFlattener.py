@@ -85,6 +85,10 @@ class ScopeFlattener(AstMapper):
         free_vars = sorted(if_block_scope.free_variables)
         mod_vars = sorted(if_block_scope.modified_variables)
 
+        # We do not flatten if-blocks if there is no mutation in it.
+        if len(mod_vars) == 0:
+            return node
+
         typed_free_vars = [ast.TypedName(x.name) for x in free_vars]
         typed_mod_vars = [ast.TypedName(x.name) for x in mod_vars]
 
