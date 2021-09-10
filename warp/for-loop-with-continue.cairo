@@ -45,31 +45,24 @@ end
 
 func fun_transferFrom{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
-        memory_dict : DictAccess*, msize}(var_i_low, var_i_high, var_j_low, var_j_high) -> (
-        var_low, var_high):
+        memory_dict : DictAccess*, msize}(var_i : Uint256, var_j : Uint256) -> (var : Uint256):
     alloc_locals
-    local var_i : Uint256 = Uint256(var_i_low, var_i_high)
-    local var_j : Uint256 = Uint256(var_j_low, var_j_high)
     local var_k : Uint256 = Uint256(low=0, high=0)
     let (var_k) = __warp_loop_0(var_j, var_k)
 
     local var : Uint256 = Uint256(low=1, high=0)
-    return (var.low, var.high)
+    return (var)
 end
+
 @external
 func fun_transferFrom_external{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*}(
         var_i_low, var_i_high, var_j_low, var_j_high) -> (var_low, var_high):
-    alloc_locals
-    let (local memory_dict : DictAccess*) = default_dict_new(0)
-    tempvar msize = 0
-    let (var_low, var_high) = fun_transferFrom{
-        range_check_ptr=range_check_ptr,
-        pedersen_ptr=pedersen_ptr,
-        storage_ptr=storage_ptr,
-        memory_dict=memory_dict,
-        msize=msize}(var_i_low, var_i_high, var_j_low, var_j_high)
-    return (var_low, var_high)
+    let (memory_dict) = default_dict_new(0)
+    let msize = 0
+    let (var) = fun_transferFrom{memory_dict=memory_dict, msize=msize}(
+        Uint256(var_i_low, var_i_high), Uint256(var_j_low, var_j_high))
+    return (var.low, var.high)
 end
 
 func revert_error_42b3090547df1d2001c96683413b8cf91c1b902ef5e3cb8d9f6f304cf7446f74{
@@ -122,6 +115,7 @@ func __warp_block_0_if{
         let (var_k) = __warp_loop_0(var_j, var_k)
 
         return (var_k)
+    else:
         return (var_k)
     end
 end

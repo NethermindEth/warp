@@ -56,12 +56,8 @@ end
 func fun_transferFrom{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(
-        var_src_low, var_src_high, var_wad_low, var_wad_high, var_sender_low, var_sender_high) -> (
-        var_low, var_high):
+        var_src : Uint256, var_wad : Uint256, var_sender : Uint256) -> (var : Uint256):
     alloc_locals
-    local var_src : Uint256 = Uint256(var_src_low, var_src_high)
-    local var_wad : Uint256 = Uint256(var_wad_low, var_wad_high)
-    local var_sender : Uint256 = Uint256(var_sender_low, var_sender_high)
     local var_res : Uint256 = Uint256(low=0, high=0)
 
     let (local _1_14 : Uint256) = is_eq(var_src, var_sender)
@@ -71,24 +67,21 @@ func fun_transferFrom{
     let (var_res) = __warp_block_0(_2_15, var_res, var_sender, var_src, var_wad)
 
     local var : Uint256 = var_res
-    return (var.low, var.high)
+    return (var)
 end
+
 @external
 func fun_transferFrom_external{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*}(
         var_src_low, var_src_high, var_wad_low, var_wad_high, var_sender_low, var_sender_high) -> (
         var_low, var_high):
-    alloc_locals
-    let (local memory_dict : DictAccess*) = default_dict_new(0)
-    tempvar msize = 0
-    let (var_low, var_high) = fun_transferFrom{
-        range_check_ptr=range_check_ptr,
-        pedersen_ptr=pedersen_ptr,
-        storage_ptr=storage_ptr,
-        memory_dict=memory_dict,
-        msize=msize}(
-        var_src_low, var_src_high, var_wad_low, var_wad_high, var_sender_low, var_sender_high)
-    return (var_low, var_high)
+    let (memory_dict) = default_dict_new(0)
+    let msize = 0
+    let (var) = fun_transferFrom{memory_dict=memory_dict, msize=msize}(
+        Uint256(var_src_low, var_src_high),
+        Uint256(var_wad_low, var_wad_high),
+        Uint256(var_sender_low, var_sender_high))
+    return (var.low, var.high)
 end
 
 func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_278{
@@ -255,6 +248,7 @@ func __warp_block_2_if{
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         local var_res : Uint256 = Uint256(low=2, high=0)
         return (var_res)
+    else:
         let (var_res) = __warp_block_3(var_res, var_sender, var_src, var_wad)
 
         return (var_res)

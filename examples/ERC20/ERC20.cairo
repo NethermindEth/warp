@@ -67,12 +67,8 @@ end
 func fun_approve{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(
-        var_guy_low, var_guy_high, var_wad_low, var_wad_high, var_sender_low, var_sender_high) -> (
-        var_low, var_high):
+        var_guy : Uint256, var_wad : Uint256, var_sender : Uint256) -> (var : Uint256):
     alloc_locals
-    local var_guy : Uint256 = Uint256(var_guy_low, var_guy_high)
-    local var_wad : Uint256 = Uint256(var_wad_low, var_wad_high)
-    local var_sender : Uint256 = Uint256(var_sender_low, var_sender_high)
     let (
         local _1_70 : Uint256) = mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_570(
         var_sender)
@@ -87,33 +83,27 @@ func fun_approve{
     local msize = msize
     update_storage_value_offsett_uint256_to_uint256(_2_71, var_wad)
     local var : Uint256 = Uint256(low=1, high=0)
-    return (var.low, var.high)
+    return (var)
 end
+
 @external
 func fun_approve_external{range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*}(
         var_guy_low, var_guy_high, var_wad_low, var_wad_high, var_sender_low, var_sender_high) -> (
         var_low, var_high):
-    alloc_locals
-    let (local memory_dict : DictAccess*) = default_dict_new(0)
-    tempvar msize = 0
-    let (var_low, var_high) = fun_approve{
-        range_check_ptr=range_check_ptr,
-        pedersen_ptr=pedersen_ptr,
-        storage_ptr=storage_ptr,
-        memory_dict=memory_dict,
-        msize=msize}(
-        var_guy_low, var_guy_high, var_wad_low, var_wad_high, var_sender_low, var_sender_high)
-    return (var_low, var_high)
+    let (memory_dict) = default_dict_new(0)
+    let msize = 0
+    let (var) = fun_approve{memory_dict=memory_dict, msize=msize}(
+        Uint256(var_guy_low, var_guy_high),
+        Uint256(var_wad_low, var_wad_high),
+        Uint256(var_sender_low, var_sender_high))
+    return (var.low, var.high)
 end
 
 func fun_deposit{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
-        memory_dict : DictAccess*, msize}(
-        var_sender_72_low, var_sender_72_high, var_value_low, var_value_high) -> (
-        var_73_low, var_73_high, var__low, var__high):
+        memory_dict : DictAccess*, msize}(var_sender_72 : Uint256, var_value : Uint256) -> (
+        var_73 : Uint256, var_ : Uint256):
     alloc_locals
-    local var_sender_72 : Uint256 = Uint256(var_sender_72_low, var_sender_72_high)
-    local var_value : Uint256 = Uint256(var_value_low, var_value_high)
     let (
         local _1_74 : Uint256) = mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_571(
         var_sender_72)
@@ -129,34 +119,26 @@ func fun_deposit{
     update_storage_value_offsett_uint256_to_uint256(_1_74, _4_77)
     local var_73 : Uint256 = Uint256(low=21, high=0)
     local var_ : Uint256 = Uint256(low=12, high=0)
-    return (var_73.low, var_73.high, var_.low, var_.high)
+    return (var_73, var_)
 end
+
 @external
 func fun_deposit_external{range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*}(
         var_sender_72_low, var_sender_72_high, var_value_low, var_value_high) -> (
         var_73_low, var_73_high, var__low, var__high):
-    alloc_locals
-    let (local memory_dict : DictAccess*) = default_dict_new(0)
-    tempvar msize = 0
-    let (var_73_low, var_73_high, var__low, var__high) = fun_deposit{
-        range_check_ptr=range_check_ptr,
-        pedersen_ptr=pedersen_ptr,
-        storage_ptr=storage_ptr,
-        memory_dict=memory_dict,
-        msize=msize}(var_sender_72_low, var_sender_72_high, var_value_low, var_value_high)
-    return (var_73_low, var_73_high, var__low, var__high)
+    let (memory_dict) = default_dict_new(0)
+    let msize = 0
+    let (var_73, var_) = fun_deposit{memory_dict=memory_dict, msize=msize}(
+        Uint256(var_sender_72_low, var_sender_72_high), Uint256(var_value_low, var_value_high))
+    return (var_73.low, var_73.high, var_.low, var_.high)
 end
 
 func fun_transferFrom{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(
-        var_src_low, var_src_high, var_dst_low, var_dst_high, var_wad_78_low, var_wad_78_high,
-        var_sender_79_low, var_sender_79_high) -> (var_80_low, var_80_high):
+        var_src : Uint256, var_dst : Uint256, var_wad_78 : Uint256, var_sender_79 : Uint256) -> (
+        var_80 : Uint256):
     alloc_locals
-    local var_src : Uint256 = Uint256(var_src_low, var_src_high)
-    local var_dst : Uint256 = Uint256(var_dst_low, var_dst_high)
-    local var_wad_78 : Uint256 = Uint256(var_wad_78_low, var_wad_78_high)
-    local var_sender_79 : Uint256 = Uint256(var_sender_79_low, var_sender_79_high)
 
     let (local _1_81 : Uint256) = is_eq(var_src, var_sender_79)
 
@@ -245,40 +227,28 @@ func fun_transferFrom{
     let (local _25 : Uint256) = u256_add(_24, var_wad_78)
     update_storage_value_offsett_uint256_to_uint256(_22, _25)
     local var_80 : Uint256 = Uint256(low=1, high=0)
-    return (var_80.low, var_80.high)
+    return (var_80)
 end
+
 @external
 func fun_transferFrom_external{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*}(
         var_src_low, var_src_high, var_dst_low, var_dst_high, var_wad_78_low, var_wad_78_high,
         var_sender_79_low, var_sender_79_high) -> (var_80_low, var_80_high):
-    alloc_locals
-    let (local memory_dict : DictAccess*) = default_dict_new(0)
-    tempvar msize = 0
-    let (var_80_low, var_80_high) = fun_transferFrom{
-        range_check_ptr=range_check_ptr,
-        pedersen_ptr=pedersen_ptr,
-        storage_ptr=storage_ptr,
-        memory_dict=memory_dict,
-        msize=msize}(
-        var_src_low,
-        var_src_high,
-        var_dst_low,
-        var_dst_high,
-        var_wad_78_low,
-        var_wad_78_high,
-        var_sender_79_low,
-        var_sender_79_high)
-    return (var_80_low, var_80_high)
+    let (memory_dict) = default_dict_new(0)
+    let msize = 0
+    let (var_80) = fun_transferFrom{memory_dict=memory_dict, msize=msize}(
+        Uint256(var_src_low, var_src_high),
+        Uint256(var_dst_low, var_dst_high),
+        Uint256(var_wad_78_low, var_wad_78_high),
+        Uint256(var_sender_79_low, var_sender_79_high))
+    return (var_80.low, var_80.high)
 end
 
 func fun_withdraw{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
-        memory_dict : DictAccess*, msize}(
-        var_wad_89_low, var_wad_89_high, var_sender_90_low, var_sender_90_high) -> ():
+        memory_dict : DictAccess*, msize}(var_wad_89 : Uint256, var_sender_90 : Uint256) -> ():
     alloc_locals
-    local var_wad_89 : Uint256 = Uint256(var_wad_89_low, var_wad_89_high)
-    local var_sender_90 : Uint256 = Uint256(var_sender_90_low, var_sender_90_high)
     let (
         local _1_91 : Uint256) = mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_571(
         var_sender_90)
@@ -306,26 +276,18 @@ func fun_withdraw{
     let (local _7_97 : Uint256) = cleanup_from_storage_uint256(_6_96)
     let (local _8_98 : Uint256) = uint256_sub(_7_97, var_wad_89)
     update_storage_value_offsett_uint256_to_uint256(_5_95, _8_98)
-    let (local expr_component_low, local expr_component_high, local expr_component_1_low,
-        local expr_component_1_high) = fun_deposit(
-        var_sender_90_low, var_sender_90_high, var_wad_89_low, var_wad_89_high)
-    local expr_component : Uint256 = Uint256(expr_component_low, expr_component_high)
-    local expr_component_1 : Uint256 = Uint256(expr_component_1_low, expr_component_1_high)
-
+    let (local expr_component : Uint256, local expr_component_1 : Uint256) = fun_deposit(
+        var_sender_90, var_wad_89)
     return ()
 end
+
 @external
 func fun_withdraw_external{range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*}(
         var_wad_89_low, var_wad_89_high, var_sender_90_low, var_sender_90_high) -> ():
-    alloc_locals
-    let (local memory_dict : DictAccess*) = default_dict_new(0)
-    tempvar msize = 0
-    fun_withdraw{
-        range_check_ptr=range_check_ptr,
-        pedersen_ptr=pedersen_ptr,
-        storage_ptr=storage_ptr,
-        memory_dict=memory_dict,
-        msize=msize}(var_wad_89_low, var_wad_89_high, var_sender_90_low, var_sender_90_high)
+    let (memory_dict) = default_dict_new(0)
+    let msize = 0
+    fun_withdraw{memory_dict=memory_dict, msize=msize}(
+        Uint256(var_wad_89_low, var_wad_89_high), Uint256(var_sender_90_low, var_sender_90_high))
     return ()
 end
 
@@ -493,7 +455,6 @@ func require_helper{
         local _2_143 : Uint256 = Uint256(low=0, high=0)
         local _3_144 : Uint256 = _2_143
         assert 0 = 1
-        return ()
     end
     return ()
 end
