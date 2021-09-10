@@ -80,22 +80,10 @@ class ScopeFlattener(AstMapper):
         )
 
     def visit_if(self, node: ast.If):
-        free_vars = set()
-        mod_vars = set()
+        if_block_scope = ast.Block((node,)).scope
 
-        free_vars.update(node.body.scope.free_variables)
-        free_vars.update(node.body.scope.modified_variables)
-        mod_vars.update(node.body.scope.modified_variables)
-
-        free_vars.update(ast.Block((node.condition,)).scope.free_variables)
-
-        if node.else_body:
-            free_vars.update(node.else_body.scope.free_variables)
-            free_vars.update(node.else_body.scope.modified_variables)
-            mod_vars.update(node.else_body.scope.modified_variables)
-
-        free_vars = sorted(free_vars)
-        mod_vars = sorted(mod_vars)
+        free_vars = sorted(if_block_scope.free_variables)
+        mod_vars = sorted(if_block_scope.modified_variables)
 
         typed_free_vars = [ast.TypedName(x.name) for x in free_vars]
         typed_mod_vars = [ast.TypedName(x.name) for x in mod_vars]
