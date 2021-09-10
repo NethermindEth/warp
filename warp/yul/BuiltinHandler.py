@@ -435,13 +435,10 @@ class SHA3(BuiltinHandler):
 class Caller(BuiltinHandler):
     def __init__(self, function_args: str):
         super().__init__(
-            module="",
+            module="evm.calls",
             function_name="get_caller_data_uint256",
             function_args=function_args,
         )
-
-    def required_imports(self):
-        return {"evm.calls": {"get_caller_address_uint256"}}
 
 YUL_BUILTINS_MAP = {
     "iszero": IsZero,
