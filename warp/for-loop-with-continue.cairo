@@ -48,7 +48,7 @@ func fun_transferFrom{
         memory_dict : DictAccess*, msize}(var_i : Uint256, var_j : Uint256) -> (var : Uint256):
     alloc_locals
     local var_k : Uint256 = Uint256(low=0, high=0)
-    let (var_k) = __warp_loop_0(var_j, var_k)
+    let (var_k) = __warp_loop_0(var_i, var_j, var_k)
 
     local var : Uint256 = Uint256(low=1, high=0)
     return (var)
@@ -94,12 +94,13 @@ end
 
 func __warp_loop_0{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
-        memory_dict : DictAccess*, msize}(var_j : Uint256, var_k : Uint256) -> (var_k : Uint256):
+        memory_dict : DictAccess*, msize}(var_i : Uint256, var_j : Uint256, var_k : Uint256) -> (
+        var_k : Uint256):
     alloc_locals
 
     let (local __warp_subexpr_0 : Uint256) = is_lt(var_k, var_i)
     local memory_dict : DictAccess* = memory_dict
-    let (var_k) = __warp_block_0_if(__warp_subexpr_0, var_j, var_k)
+    let (var_k) = __warp_block_0_if(__warp_subexpr_0, var_i, var_j, var_k)
 
     return (var_k)
 end
@@ -107,12 +108,13 @@ end
 func __warp_block_0_if{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(
-        __warp_subexpr_0 : Uint256, var_j : Uint256, var_k : Uint256) -> (var_k : Uint256):
+        __warp_subexpr_0 : Uint256, var_i : Uint256, var_j : Uint256, var_k : Uint256) -> (
+        var_k : Uint256):
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         let (var_k) = __warp_loop_body_0(var_j, var_k)
 
-        let (var_k) = __warp_loop_0(var_j, var_k)
+        let (var_k) = __warp_loop_0(var_i, var_j, var_k)
 
         return (var_k)
     else:
