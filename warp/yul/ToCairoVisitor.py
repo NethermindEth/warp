@@ -48,6 +48,7 @@ class ToCairoVisitor(AstVisitor):
         self.discarded_warp_blocks: list[str] = []
         merge_imports(self.imports, COMMON_IMPORTS)
         self.last_function: Optional[ast.FunctionDefinition] = None
+        self.in_external_function: bool = False
 
     def get_source_version(self, sol_source: str) -> float:
         code_split = sol_source.split("\n")
@@ -282,19 +283,46 @@ local msize = msize"""
                 declr_str += f"local {p}: Uint256 = Uint256({p}_low, {p}_high)\n"
         return declr_str
 
+    def set_ret_vars_len(self, node: ast.FunctionDefinition):
+        if node.name in self.public_functions:
+            # must split into high/low bits
+            self.current_function_ret_vars_len = len(node.return_variables) * 2
+            self.curr_fun_ret_felt = True
+        else:
+            self.current_function_ret_vars_len = len(node.return_variables)
+            self.curr_fun_ret_felt = False
+
+    def gen_wrapped_extern_assign(self, fun_name: str, params: str, return_repr: str) -> str:
+        if self.current_function_ret_vars_len == 0:
+            return f"""{fun_name}{{range_check_ptr=range_check_ptr,
+            pedersen_ptr=pedersen_ptr,
+            storage_ptr=storage_ptr,
+            memory_dict=memory_dict,
+            msize=msize}}({params})
+            return ()"""
+        else:
+            return f"""let ({return_repr}) = {fun_name}{{range_check_ptr=range_check_ptr,
+            pedersen_ptr=pedersen_ptr,
+            storage_ptr=storage_ptr,
+            memory_dict=memory_dict,
+            msize=msize}}({params})
+            return ({return_repr})"""
+
     def visit_function_definition(self, node: ast.FunctionDefinition):
         self.last_function = node
+        self.set_ret_vars_len(node)
         taboos = ["abi_", "checked_", "getter_", "panic_error"]
         if any(taboo in node.name for taboo in taboos):
             return ""
-        external = node.name in self.public_functions
-        params_repr = ", ".join(self.print(x, split=external) for x in node.parameters)
+        self.in_external_function = node.name in self.public_functions
+        params_repr = ", ".join(self.print(x, split=self.in_external_function) for x in node.parameters)
         returns_repr = ", ".join(
-            self.print(x, split=external) for x in node.return_variables
+            self.print(x, split=self.in_external_function) for x in node.return_variables
         )
         body_repr = self.print(node.body)
         external_function: str = ""
-        if external:
+        if self.in_external_function:
+            assign = self.gen_wrapped_extern_assign(node.name, params_repr, returns_repr)
             combine_split_params = "\n".join(
                 f"local {x.name}: Uint256 = Uint256({x.name}_low, {x.name}_high)"
                 for x in node.parameters
@@ -302,17 +330,16 @@ local msize = msize"""
             body_repr = combine_split_params + "\n" + body_repr
             external_function: str = (
                 f"@external\n"
-                f"func {node.name}_external({params_repr}) -> ({returns_repr}):\n"
+                f"func {node.name}_external{{range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*}}({params_repr}) -> ({returns_repr}):\n"
                 f"alloc_locals\n"
                 f"let (local memory_dict: DictAccess*) = default_dict_new(0)\n"
                 f"tempvar msize = 0\n"
-                f"return {node.name}{{msize=msize, memory_dict=memory_dict}}"
-                f"                  ({params_repr})\n"
+                f"{assign}\n"
                 f"end\n\n"
             )
+            self.in_external_function = False
 
         func = (
-            f"{external_function}"
             f"func {node.name}"
             f"{{range_check_ptr, pedersen_ptr: HashBuiltin*"
             f", storage_ptr: Storage*, memory_dict: DictAccess*, msize}}"
@@ -320,6 +347,7 @@ local msize = msize"""
             f"alloc_locals\n"
             f"{body_repr}\n"
             f"end\n"
+            f"{external_function}"
         )
         func = parse_file(func).format()
 
@@ -329,18 +357,34 @@ local msize = msize"""
         else:
             return func
 
+    def gen_early_return(self) -> str:
+        if self.current_function_ret_vars_len == 0:
+            return "return ()"
+        elif self.curr_fun_ret_felt:
+            return f'return ({",".join("0" for i in range(self.current_function_ret_vars_len))})'
+        else:
+            return f'return ({",".join("Uint256(0,0)" for i in range(self.current_function_ret_vars_len))})'
+
     def visit_if(self, node: ast.If) -> str:
         cond_repr = self.print(node.condition)
         body_repr = self.print(node.body)
         else_repr = ""
         if node.else_body:
-            else_repr = f"else:\n\t{self.print(node.else_body)}\n"
-        return (
-            f"if {cond_repr}.low + {cond_repr}.high != 0:\n"
-            f"\t{body_repr}\n"
-            f"{else_repr}"
-            f"end"
-        )
+            else_repr = f"\t{self.print(node.else_body)}\n"
+        if "panic_" in body_repr or "assert 0 = 1" in body_repr or "revert" in body_repr:
+            body_repr = body_repr + "\n" + self.gen_early_return()
+        return f"""if {cond_repr}.low + {cond_repr}.high != 0:
+{body_repr}
+{else_repr}
+end"""
+        # if node.else_body:
+        #     else_repr = f"else:\n\t{self.print(node.else_body)}\n"
+        # return (
+        #     f"if {cond_repr}.low + {cond_repr}.high != 0:\n"
+        #     f"\t{body_repr}\n"
+        #     f"{else_repr}"
+        #     f"end"
+        # )
 
     def visit_case(self, node: ast.Case):
         return AssertionError("There should be no cases, run SwitchToIfVisitor first")
@@ -364,5 +408,9 @@ local msize = msize"""
         )
 
     def visit_leave(self, node: ast.Leave) -> str:
-        return_names = ", ".join(x.name for x in self.last_function.return_variables)
-        return f"return ({return_names})"
+        if self.in_external_function:
+            return_names = ", ".join(f"{x.name}.low, {x.name}.high" for x in self.last_function.return_variables)
+            return f"return ({return_names})"
+        else:
+            return_names = ", ".join(x.name for x in self.last_function.return_variables)
+            return f"return ({return_names})"
