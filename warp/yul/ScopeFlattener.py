@@ -47,12 +47,69 @@ class ScopeFlattener(AstMapper):
         return ast.Block((self.visit(block_call),))
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
+        # We do not want to flatten an if-block if it is the only statement in
+        # the function body. Skip visit_if in such cases and instead visit all
+        # the branches of the if-block.
+        if len(node.body.statements) == 1 and isinstance(
+            node.body.statements[0], ast.If
+        ):
+            if_statement = node.body.statements[0]
+
+            return ast.FunctionDefinition(
+                name=node.name,
+                parameters=self.visit_list(node.parameters),
+                return_variables=self.visit_list(node.return_variables),
+                body=ast.Block(
+                    (
+                        ast.If(
+                            condition=self.visit(if_statement.condition),
+                            body=self.visit(if_statement.body),
+                            else_body=self.visit(if_statement.else_body)
+                            if if_statement.else_body
+                            else None,
+                        ),
+                    )
+                ),
+            )
+
         return ast.FunctionDefinition(
             name=node.name,
             parameters=self.visit_list(node.parameters),
             return_variables=self.visit_list(node.return_variables),
             body=self.visit(node.body, inline=True),
         )
+
+    def visit_if(self, node: ast.If):
+        if_block_scope = ast.Block((node,)).scope
+
+        free_vars = sorted(if_block_scope.free_variables)
+        mod_vars = sorted(if_block_scope.modified_variables)
+
+        # We do not flatten if-blocks if there is no mutation in it.
+        if len(mod_vars) == 0:
+            return node
+
+        typed_free_vars = [ast.TypedName(x.name) for x in free_vars]
+        typed_mod_vars = [ast.TypedName(x.name) for x in mod_vars]
+
+        fun_name = self._request_fresh_name() + "_if"
+        if_fun = ast.FunctionDefinition(
+            name=fun_name,
+            parameters=typed_free_vars,
+            return_variables=typed_mod_vars,
+            body=ast.Block((node,)),
+        )
+        self.block_functions.append(if_fun)
+
+        return_assignment = ast.Assignment(
+            variable_names=mod_vars,
+            value=ast.FunctionCall(
+                function_name=ast.Identifier(if_fun.name),
+                arguments=free_vars,
+            ),
+        )
+
+        return self.visit(return_assignment)
 
     def _request_fresh_name(self):
         name = f"__warp_block_{self.n_names}"
