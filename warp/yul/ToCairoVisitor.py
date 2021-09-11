@@ -27,10 +27,6 @@ COMMON_IMPORTS = {
     "evm.utils": {"update_msize"},
 }
 
-# TODO we should rather analyze the tree, than rely on textual presentation
-DISCARD = """    assert 0 = 1
-    return ()"""
-
 MAIN_PREAMBLE = """%lang starknet
 %builtins pedersen range_check
 """
@@ -45,7 +41,6 @@ class ToCairoVisitor(AstVisitor):
         self.validate_solc_ver()
         self.public_functions = self.get_public_functions(sol_source)
         self.imports = defaultdict(set)
-        self.discarded_warp_blocks: list[str] = []
         merge_imports(self.imports, COMMON_IMPORTS)
         self.last_function: Optional[ast.FunctionDefinition] = None
 
@@ -126,16 +121,6 @@ class ToCairoVisitor(AstVisitor):
             variables.append(var_repr)
         return ", ".join("local " + x for x in variables)
 
-    def remove_checked(self, args_repr: str, function_name: str) -> str:
-        if "checked_add" in function_name:
-            return f"u256_add({args_repr})"
-        elif "checked_sub" in function_name:
-            return f"uint256_sub({args_repr})"
-        elif "revert" in function_name:
-            return f"assert 0 = 1"
-        else:
-            return f"{function_name}({args_repr})"
-
     def visit_assignment(self, node: ast.Assignment) -> str:
         self.preamble = False
         value_repr: str = self.print(node.value)
@@ -154,14 +139,13 @@ class ToCairoVisitor(AstVisitor):
 let ({ids_repr}) = {builtin_to_cairo.function_call}
 {builtin_to_cairo.ref_copy}"""
             else:
-                call = self.remove_checked(function_args, function_name)
                 if not node.variable_names:
                     return value_repr
                 else:
                     ids_repr: str = ", ".join(
                         self.print(x) for x in node.variable_names
                     )
-                    return f"let ({ids_repr}) = {call}\n"
+                    return f"let ({ids_repr}) = {value_repr}\n"
 
         else:
             ids_repr: str = self.generate_ids_typed(node.variable_names)
@@ -176,11 +160,6 @@ let ({ids_repr}) = {builtin_to_cairo.function_call}
         elif fun_repr.startswith("checked_add"):
             merge_imports(self.imports, {"evm.uint256": {"u256_add"}})
             return f"u256_add({args_repr})"
-        elif fun_repr.startswith("checked_sub"):
-            merge_imports(self.imports, {UINT256_MODULE: {"uint256_sub"}})
-            return f"uint256_sub({args_repr})"
-        elif fun_repr in self.discarded_warp_blocks or "panic_error" in fun_repr:
-            return "assert 0 = 1"
         elif fun_repr in YUL_BUILTINS_MAP.keys():
             builtin_to_cairo = YUL_BUILTINS_MAP[fun_repr](args_repr)
             merge_imports(self.imports, builtin_to_cairo.required_imports())
@@ -249,7 +228,7 @@ let ({vars_repr}) = {builtin_to_cairo.function_call}
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
         self.last_function = node
-        taboos = ["abi_", "checked_", "getter_", "panic_error"]
+        taboos = ["abi_", "checked_add", "getter_"]
         if any(taboo in node.name for taboo in taboos):
             return ""
         params_repr = ", ".join(self.print(x) for x in node.parameters)
@@ -267,13 +246,7 @@ let ({vars_repr}) = {builtin_to_cairo.function_call}
             f"end\n"
             f"{external_function}"
         )
-        func = parse_file(func).format()
-
-        if ("__warp_block" in node.name) and (DISCARD in func):
-            self.discarded_warp_blocks.append(node.name)
-            return ""
-        else:
-            return func
+        return parse_file(func).format()
 
     def visit_if(self, node: ast.If) -> str:
         cond_repr = self.print(node.condition)
