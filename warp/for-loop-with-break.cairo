@@ -43,15 +43,6 @@ func get_storage_high{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : Ha
     return (res=storage_val_high)
 end
 
-@external
-func fun_transferFrom_external(var_i_low, var_i_high, var_j_low, var_j_high) -> (var_low, var_high):
-    alloc_locals
-    let (local memory_dict : DictAccess*) = default_dict_new(0)
-    tempvar msize = 0
-    return fun_transferFrom{msize=msize, memory_dict=memory_dict}(
-        var_i_low, var_i_high, var_j_low, var_j_high)
-end
-
 func fun_transferFrom{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(var_i_low, var_i_high, var_j_low, var_j_high) -> (
@@ -63,7 +54,22 @@ func fun_transferFrom{
     let (var_k) = __warp_loop_0(var_j, var_k)
 
     local var : Uint256 = Uint256(low=1, high=0)
-    return (var)
+    return (var.low, var.high)
+end
+@external
+func fun_transferFrom_external{
+        range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*}(
+        var_i_low, var_i_high, var_j_low, var_j_high) -> (var_low, var_high):
+    alloc_locals
+    let (local memory_dict : DictAccess*) = default_dict_new(0)
+    tempvar msize = 0
+    let (var_low, var_high) = fun_transferFrom{
+        range_check_ptr=range_check_ptr,
+        pedersen_ptr=pedersen_ptr,
+        storage_ptr=storage_ptr,
+        memory_dict=memory_dict,
+        msize=msize}(var_i_low, var_i_high, var_j_low, var_j_high)
+    return (var_low, var_high)
 end
 
 func revert_error_42b3090547df1d2001c96683413b8cf91c1b902ef5e3cb8d9f6f304cf7446f74{
@@ -85,10 +91,8 @@ func __warp_loop_body_0{
 
     let (local _1_11 : Uint256) = is_gt(var_k, var_j)
 
-    if _1_11.low + _1_11.high != 0:
-        local __warp_break_0 : Uint256 = Uint256(low=1, high=0)
-        return (__warp_break_0, var_k)
-    end
+    let (__warp_break_0) = __warp_block_0_if(_1_11, __warp_break_0)
+
     let (var_k) = uint256_sub(var_k)
 
     let (var_k) = u256_add(var_k, var_j)
@@ -103,24 +107,59 @@ func __warp_loop_0{
 
     let (local __warp_subexpr_0 : Uint256) = is_lt(var_k, var_i)
     local memory_dict : DictAccess* = memory_dict
-    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
-        let (var_k) = __warp_block_0(var_j, var_k)
-    end
+    let (var_k) = __warp_block_1_if(__warp_subexpr_0, var_j, var_k)
+
     return (var_k)
 end
 
-func __warp_block_0{
+func __warp_block_0_if{
+        range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
+        memory_dict : DictAccess*, msize}(_1_11 : Uint256, __warp_break_0 : Uint256) -> (
+        __warp_break_0 : Uint256):
+    alloc_locals
+    if _1_11.low + _1_11.high != 0:
+        local __warp_break_0 : Uint256 = Uint256(low=1, high=0)
+        return (__warp_break_0)
+        return (__warp_break_0)
+        return (__warp_break_0)
+    end
+end
+
+func __warp_block_1_if{
+        range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
+        memory_dict : DictAccess*, msize}(
+        __warp_subexpr_0 : Uint256, var_j : Uint256, var_k : Uint256) -> (var_k : Uint256):
+    alloc_locals
+    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
+        let (var_k) = __warp_block_2(var_j, var_k)
+
+        return (var_k)
+        return (var_k)
+    end
+end
+
+func __warp_block_2{
         range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
         memory_dict : DictAccess*, msize}(var_j : Uint256, var_k : Uint256) -> (var_k : Uint256):
     alloc_locals
     local __warp_break_0 : Uint256 = Uint256(low=0, high=0)
     let (__warp_break_0, var_k) = __warp_loop_body_0(__warp_break_0, var_j, var_k)
 
+    let (var_k) = __warp_block_3_if(__warp_break_0, var_j, var_k)
+
+    return (var_k)
+end
+
+func __warp_block_3_if{
+        range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
+        memory_dict : DictAccess*, msize}(
+        __warp_break_0 : Uint256, var_j : Uint256, var_k : Uint256) -> (var_k : Uint256):
+    alloc_locals
     if __warp_break_0.low + __warp_break_0.high != 0:
         return (var_k)
-    else:
         let (var_k) = __warp_loop_0(var_j, var_k)
+
+        return (var_k)
     end
-    return (var_k)
 end
 
