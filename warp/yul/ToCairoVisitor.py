@@ -156,7 +156,7 @@ let ({ids_repr}) = {builtin_to_cairo.function_call}
         fun_repr = self.print(node.function_name)
         args_repr = ", ".join(self.print(x) for x in node.arguments)
         if fun_repr == "revert":
-            return "assert 0 = 1"
+            return "assert 0 = 1\njmp rel 0"
         elif fun_repr.startswith("checked_add"):
             merge_imports(self.imports, {"evm.uint256": {"u256_add"}})
             return f"u256_add({args_repr})"
