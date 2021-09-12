@@ -357,7 +357,7 @@ end
 
 @external
 func fun_transferFrom_external{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
         var_src_low, var_src_high, var_wad_low, var_wad_high, var_sender_low, var_sender_high) -> (
         var_low, var_high):
     let (memory_dict) = default_dict_new(0)
