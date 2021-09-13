@@ -1,2 +1,2 @@
-black~=21.8b0
-pre-commit~=2.15.0
+autohooks~=21.7.0
+autohooks-plugin-black~=21.7.1

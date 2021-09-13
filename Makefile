@@ -9,10 +9,10 @@ PY_REQUIREMENTS := requirements.txt
 warp: .warp-activation-token
 .PHONY: warp
 
-.warp-activation-token: $(SRC_FILES) setup.py
+.warp-activation-token: $(SRC_FILES) setup.py $(PY_REQUIREMENTS)
 	pip install -r $(PY_REQUIREMENTS)
 	python setup.py install
-	pre-commit install
+	autohooks activate
 	touch .warp-activation-token
 
 test: test_bats
