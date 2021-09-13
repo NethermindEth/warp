@@ -10,6 +10,7 @@ from yul.ForLoopEliminator import ForLoopEliminator
 from yul.ForLoopSimplifier import ForLoopSimplifier
 from yul.LeaveNormalizer import LeaveNormalizer
 from yul.MangleNamesVisitor import MangleNamesVisitor
+from yul.RevertNormalizer import RevertNormalizer
 from yul.ScopeFlattener import ScopeFlattener
 from yul.SwitchToIfVisitor import SwitchToIfVisitor
 from yul.ToCairoVisitor import ToCairoVisitor
@@ -49,6 +50,7 @@ def main(argv):
     yul_ast = ExpressionSplitter().map(yul_ast)
     yul_ast = ScopeFlattener().map(yul_ast)
     yul_ast = LeaveNormalizer().map(yul_ast)
+    yul_ast = RevertNormalizer().map(yul_ast)
     cairo_visitor = ToCairoVisitor(sol_source)
     cairo_code = cairo_visitor.translate(yul_ast)
     print(parse_file(cairo_code).format())

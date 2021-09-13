@@ -223,7 +223,7 @@ class AstVisitor:
 
     def visit(self, node: Node, *args, **kwargs):
         method_name = "visit_" + snakify(type(node).__name__)
-        method = getattr(self, method_name, None)
+        method = getattr(self, method_name, self.common_visit)
         return method(node, *args, **kwargs)
 
     def common_visit(self, node, *args, **kwargs):

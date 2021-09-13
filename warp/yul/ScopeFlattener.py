@@ -21,9 +21,16 @@ class ScopeFlattener(AstMapper):
             self.block_functions = []
         return ast.Block(tuple(all_statements))
 
-    def visit_block(self, node: ast.Block, inline: Optional[bool] = None):
+    def visit_block(self, node: ast.Block, inline: Optional[bool] = None) -> ast.Block:
         if inline or not node.scope.bound_variables:
-            return super().visit_block(node)
+            stmts = []
+            for stmt in node.statements:
+                new_stmt = self.visit(stmt)
+                if isinstance(new_stmt, ast.Block):
+                    stmts.extend(new_stmt.statements)
+                else:
+                    stmts.append(new_stmt)
+            return ast.Block(tuple(stmts))
 
         free_vars = sorted(node.scope.free_variables)  # to ensure order
         mod_vars = sorted(node.scope.modified_variables)
@@ -84,10 +91,6 @@ class ScopeFlattener(AstMapper):
 
         free_vars = sorted(if_block_scope.free_variables)
         mod_vars = sorted(if_block_scope.modified_variables)
-
-        # We do not flatten if-blocks if there is no mutation in it.
-        if len(mod_vars) == 0:
-            return node
 
         typed_free_vars = [ast.TypedName(x.name) for x in free_vars]
         typed_mod_vars = [ast.TypedName(x.name) for x in mod_vars]

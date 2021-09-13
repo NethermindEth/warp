@@ -3,37 +3,6 @@ from utils import get_low_bits
 
 UINT256_MODULE = "starkware.cairo.common.uint256"
 
-BUILTIN_NAME_MAP = {
-    "iszero": "is_zero",
-    "eq": "is_eq",
-    "gt": "is_gt",
-    "lt": "is_lt",
-    "slt": "slt",
-    "sgt": "sgt",
-    "smod": "smod",
-    "exp": "uint256_exp",
-    "mulmod": "uint256_mulmod",
-    "mstore8": "mstore8",
-    "mstore": "mstore",
-    "mload": "mload",
-    "add": "uint256_add",
-    "and": "uint256_and",
-    "sub": "uint256_sub",
-    "mul": "uint256_mul",
-    "div": "uint256_unsigned_div_rem",
-    "sdiv": "uint256_signed_div_rem",
-    "mod": "uint256_mod",
-    "not": "uint256_not",
-    "or": "uint256_or",
-    "xor": "uint256_xor",
-    "byte": "uint256_byte",
-    "shl": "uint256_shl",
-    "shr": "uint256_shr",
-    "sar": "uint256_sar",
-    "addmod": "uint256_addmod",
-    "signextend": "uint256_signextend",
-}
-
 
 class BuiltinHandler:
     def __init__(
@@ -41,27 +10,18 @@ class BuiltinHandler:
         module: str,
         function_name: str,
         function_args: str,
-        preamble: str = "",
-        ref_copy: str = "",
+        ref_copy: str = "",  # TODO replace with a simple bool
     ):
         self.module = module
         self.function_name = function_name
         self.function_args = function_args
-        self.preamble = preamble
         self.ref_copy = ref_copy
         self.function_call = f"{self.function_name}({self.function_args})"
-        self.generated_cairo = self.generate_cairo()
 
     def required_imports(self):
         if self.module == "":
             return {}
         return {self.module: {self.function_name}}
-
-    def generate_cairo(self):
-        return f"""
-{self.preamble}{self.function_call}
-{self.ref_copy}
-"""
 
 
 # ============ Comparisons ============
@@ -99,7 +59,6 @@ class Gt(BuiltinHandler):
             module="evm.uint256",
             function_name="is_gt",
             function_args=function_args,
-            preamble="",
             ref_copy="",
         )
 
@@ -302,26 +261,11 @@ class MStore(BuiltinHandler):
         self.value: str = function_args.split(",")[1].strip()
         super().__init__(
             module="evm.memory",
-            function_name="mstore",
+            function_name="mstore_",
             function_args=function_args,
-            preamble=f"""let (local msize) = update_msize{{range_check_ptr=range_check_ptr}}(msize, {self.address}, 32)
-local memory_dict : DictAccess* = memory_dict
-local msize = msize\n""",
             ref_copy="local memory_dict : DictAccess* = memory_dict",
         )
-        self.function_call = f"mstore(offset={self.address}, value={self.value})"
-        self.generated_cairo = self.generate_cairo()
-
-    def generate_cairo(self):
-        return f"""
-{self.preamble}{self.function_call}
-{self.ref_copy}"""
-
-    def required_imports(self):
-        return {
-            "evm.memory": {"mstore"},
-            "starkware.cairo.common.dict_access": {"DictAccess"},
-        }
+        self.function_call = f"mstore_(offset={self.address}, value={self.value})"
 
 
 class MStore8(BuiltinHandler):
@@ -330,29 +274,11 @@ class MStore8(BuiltinHandler):
         self.value: str = function_args.split(",")[1].strip()
         super().__init__(
             module="evm.memory",
-            function_name="mstore8",
+            function_name="mstore8_",
             function_args=function_args,
-            preamble=f"let (local msize) = update_msize{{range_check_ptr=range_check_ptr}}(msize, {self.address}, 1)"
-            f"local memory_dict : DictAccess* = memory_dict"
-            f"local msize = msize"
-            f"let (local byte, _) = extract_lowest_byte({self.value})",
             ref_copy="local memory_dict : DictAccess* = memory_dict",
         )
-        self.function_call = f"mstore8(offset={self.address}, byte=byte)"
-
-    def generate_cairo(self):
-        return f"""
-{self.preamble}
-mstore8(offset={self.address}, byte=byte)
-{self.ref_copy}
-"""
-
-    def required_imports(self):
-        return {
-            "evm.memory": {"mstore8"},
-            "evm.uint256": {"extract_lowest_byte"},
-            "evm.utils": {"update_msize"},
-        }
+        self.function_call = f"mstore8_(offset={self.address}, byte={self.value})"
 
 
 class MLoad(BuiltinHandler):
@@ -360,28 +286,20 @@ class MLoad(BuiltinHandler):
         self.offset: str = get_low_bits(function_args.split(",")[0].strip())
         super().__init__(
             module="evm.memory",
-            function_name="mload",
+            function_name="mload_",
             function_args=function_args,
-            preamble=f"let (local msize) = update_msize{{range_check_ptr=range_check_ptr}}(msize, {self.offset}, 32)\n"
-            f"local memory_dict : DictAccess* = memory_dict\n"
-            f"local msize = msize",
             ref_copy="local memory_dict : DictAccess* = memory_dict",
         )
-        self.function_call = f"mload({self.offset})"
-
-    def required_imports(self):
-        return {"evm.memory": {"mload"}, "evm.utils": {"update_msize"}}
+        self.function_call = f"mload_({self.offset})"
 
 
 class MSize(BuiltinHandler):
     def __init__(self, function_args):
         super().__init__(
-            module="evm.utils",
-            function_name="round_up_to_multiple",
+            module="evm.memory",
+            function_name="get_msize",
             function_args=function_args,
-            preamble="let (local immediate) = round_up_to_multiple(msize, 32)",
         )
-        self.function_call = "Uint256(immediate, 0)"
 
 
 # ============ Storage ============
@@ -393,7 +311,6 @@ class SStore(BuiltinHandler):
             module="",
             function_name="s_store",
             function_args=function_args,
-            preamble="",
             ref_copy="local pedersen_ptr : HashBuiltin* = pedersen_ptr\n\
             local storage_ptr : Storage* = storage_ptr",
         )
@@ -407,7 +324,6 @@ class SLoad(BuiltinHandler):
             module="",
             function_name="s_store",
             function_args=function_args,
-            preamble="",
             ref_copy="local pedersen_ptr : HashBuiltin* = pedersen_ptr\n\
             local storage_ptr : Storage* = storage_ptr",
         )
@@ -423,7 +339,6 @@ class SHA3(BuiltinHandler):
             module="",
             function_name="sha",
             function_args=function_args,
-            preamble="",
             ref_copy=f"local msize = msize\n"
             "local memory_dict : DictAccess* = memory_dict",
         )
@@ -431,6 +346,7 @@ class SHA3(BuiltinHandler):
 
     def required_imports(self):
         return {"evm.sha3": {"sha"}}
+
 
 # ============ Call Data ============
 class Caller(BuiltinHandler):
@@ -440,6 +356,7 @@ class Caller(BuiltinHandler):
             function_name="get_caller_data_uint256",
             function_args=function_args,
         )
+
 
 YUL_BUILTINS_MAP = {
     "iszero": IsZero,

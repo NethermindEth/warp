@@ -56,22 +56,21 @@ class ForLoopEliminator(AstMapper):
                 body=body,
             )
 
-            has_break = break_id in body.scope.free_variables
-            if has_break:
-                free_vars = sorted(body.scope.free_variables - {break_id})
-                mod_vars = sorted(body.scope.modified_variables - {break_id})
-                typed_free_vars = [ast.TypedName(x.name) for x in free_vars]
-                typed_mod_vars = [ast.TypedName(x.name) for x in mod_vars]
+            loop_scope = ast.Block((node,)).scope
+            loop_free_vars = sorted(loop_scope.free_variables)
+            loop_mod_vars = sorted(loop_scope.modified_variables)
+            typed_loop_free_vars = [ast.TypedName(x.name) for x in loop_free_vars]
+            typed_loop_mod_vars = [ast.TypedName(x.name) for x in loop_mod_vars]
 
             loop_call = ast.Assignment(
-                variable_names=mod_vars,
+                variable_names=loop_mod_vars,
                 value=ast.FunctionCall(
                     function_name=ast.Identifier(self.loop_name),
-                    arguments=free_vars,
+                    arguments=loop_free_vars,
                 ),
             )
 
-            if has_break:
+            if break_id in body.scope.free_variables:
                 loop_statements = (
                     ast.VariableDeclaration(
                         variables=[ast.TypedName(self.break_name)],
@@ -89,8 +88,8 @@ class ForLoopEliminator(AstMapper):
 
             loop_fun = ast.FunctionDefinition(
                 name=self.loop_name,
-                parameters=typed_free_vars,
-                return_variables=typed_mod_vars,
+                parameters=typed_loop_free_vars,
+                return_variables=typed_loop_mod_vars,
                 body=ast.Block(
                     (
                         ast.If(

@@ -6,6 +6,8 @@ from starkware.cairo.common.uint256 import Uint256
 from evm.bit_packing import (
     exp_byte, split_on_byte, extract_byte, put_byte, extract_unaligned_uint128,
     put_unaligned_uint128)
+from evm.uint256 import extract_lowest_byte
+from evm.utils import update_msize, round_up_to_multiple
 
 # A module for work with the EVM memory.
 
@@ -84,4 +86,32 @@ func mload{memory_dict : DictAccess*, range_check_ptr}(offset) -> (value : Uint2
     let (local unaligned_high) = extract_unaligned_uint128(shift=rem, low=mid, high=high)
     let (unaligned_low) = extract_unaligned_uint128(shift=rem, low=low, high=mid)
     return (Uint256(low=unaligned_low, high=unaligned_high))
+end
+
+func mstore8_{memory_dict : DictAccess*, range_check_ptr, msize}(offset, value : Uint256):
+    # Extracts lower byte of 'value' and does 'mstore8' on it. Also updates 'msize'.
+    let (byte, _) = extract_lowest_byte(value)
+    let (msize) = update_msize(msize, offset, 1)
+    return mstore8(offset, byte)
+end
+
+func mstore_{memory_dict : DictAccess*, range_check_ptr, msize}(offset, value : Uint256):
+    # Does what 'mstore' does but also updates 'msize'.
+    alloc_locals
+    let (local msize) = update_msize(msize, offset, 32)
+    mstore(offset, value)
+    return ()
+end
+
+func mload_{memory_dict : DictAccess*, range_check_ptr, msize}(offset) -> (value : Uint256):
+    # Does what 'mload' does but also updates 'msize'.
+    alloc_locals
+    let (msize) = update_msize(msize, offset, 32)
+    return mload(offset)
+end
+
+func get_msize{range_check_ptr, msize}() -> (value : Uint256):
+    # Returns 'msize' rounded up to the nearest word, as per the yellow paper.
+    let (immediate) = round_up_to_multiple(msize, 32)
+    return Uint256(immediate, 0)
 end
