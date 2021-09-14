@@ -10,12 +10,12 @@ class BuiltinHandler:
         module: str,
         function_name: str,
         function_args: str,
-        ref_copy: str = "",  # TODO replace with a simple bool
+        used_implicits: tuple[str] = ("range_check_ptr",),
     ):
         self.module = module
         self.function_name = function_name
         self.function_args = function_args
-        self.ref_copy = ref_copy
+        self.used_implicits = used_implicits
         self.function_call = f"{self.function_name}({self.function_args})"
 
     def required_imports(self):
@@ -49,7 +49,6 @@ class Lt(BuiltinHandler):
             module="evm.uint256",
             function_name="is_lt",
             function_args=function_args,
-            ref_copy="local memory_dict : DictAccess* = memory_dict",
         )
 
 
@@ -59,7 +58,6 @@ class Gt(BuiltinHandler):
             module="evm.uint256",
             function_name="is_gt",
             function_args=function_args,
-            ref_copy="",
         )
 
 
@@ -263,7 +261,7 @@ class MStore(BuiltinHandler):
             module="evm.memory",
             function_name="mstore_",
             function_args=function_args,
-            ref_copy="local memory_dict : DictAccess* = memory_dict",
+            used_implicits=("memory_dict", "range_check_ptr", "msize"),
         )
         self.function_call = f"mstore_(offset={self.address}, value={self.value})"
 
@@ -276,7 +274,7 @@ class MStore8(BuiltinHandler):
             module="evm.memory",
             function_name="mstore8_",
             function_args=function_args,
-            ref_copy="local memory_dict : DictAccess* = memory_dict",
+            used_implicits=("memory_dict", "range_check_ptr", "msize"),
         )
         self.function_call = f"mstore8_(offset={self.address}, byte={self.value})"
 
@@ -288,7 +286,7 @@ class MLoad(BuiltinHandler):
             module="evm.memory",
             function_name="mload_",
             function_args=function_args,
-            ref_copy="local memory_dict : DictAccess* = memory_dict",
+            used_implicits=("memory_dict", "range_check_ptr", "msize"),
         )
         self.function_call = f"mload_({self.offset})"
 
@@ -299,6 +297,7 @@ class MSize(BuiltinHandler):
             module="evm.memory",
             function_name="get_msize",
             function_args=function_args,
+            used_implicits=("range_check_ptr", "msize"),
         )
 
 
@@ -311,8 +310,7 @@ class SStore(BuiltinHandler):
             module="",
             function_name="s_store",
             function_args=function_args,
-            ref_copy="local pedersen_ptr : HashBuiltin* = pedersen_ptr\n\
-            local storage_ptr : Storage* = storage_ptr",
+            used_implicits=("storage_ptr", "range_check_ptr", "pedersen_ptr"),
         )
         self.function_call = f"s_store(key={self.key},value={self.value})"
 
@@ -324,8 +322,7 @@ class SLoad(BuiltinHandler):
             module="",
             function_name="s_store",
             function_args=function_args,
-            ref_copy="local pedersen_ptr : HashBuiltin* = pedersen_ptr\n\
-            local storage_ptr : Storage* = storage_ptr",
+            used_implicits=("storage_ptr", "range_check_ptr", "pedersen_ptr"),
         )
         self.function_call = f"s_load({self.key})"
 
@@ -339,8 +336,7 @@ class SHA3(BuiltinHandler):
             module="",
             function_name="sha",
             function_args=function_args,
-            ref_copy=f"local msize = msize\n"
-            "local memory_dict : DictAccess* = memory_dict",
+            used_implicits=("memory_dict", "range_check_ptr", "msize"),
         )
         self.function_call = f"sha({self.offset}, {self.length})"
 
@@ -355,6 +351,7 @@ class Caller(BuiltinHandler):
             module="evm.calls",
             function_name="get_caller_data_uint256",
             function_args=function_args,
+            used_implicits=("syscall_ptr", "range_check_ptr"),
         )
 
 
