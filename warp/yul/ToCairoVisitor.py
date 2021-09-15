@@ -49,11 +49,13 @@ class ToCairoVisitor(AstVisitor):
         self.solc_version: float = self.get_source_version(sol_source)
         self.validate_solc_ver()
         self.public_functions = self.get_public_functions(sol_source)
+        self.external_functions: list[str] = []
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
         self.last_function: Optional[ast.FunctionDefinition] = None
         self.last_used_implicits: tuple[str] = ()
         self.function_to_implicits: dict[str, set[str]] = {}
+        self.in_entry_function: bool = False
 
     def get_source_version(self, sol_source: str) -> float:
         code_split = sol_source.split("\n")
@@ -134,11 +136,18 @@ class ToCairoVisitor(AstVisitor):
     def visit_function_call(self, node: ast.FunctionCall) -> str:
         fun_repr = self.print(node.function_name)
         args_repr = ", ".join(self.print(x) for x in node.arguments)
-        if fun_repr == "revert":
+        if fun_repr == "revert" and not self.in_entry_function:
             return "assert 0 = 1\njmp rel 0"
+        if fun_repr == "revert" and self.in_entry_function:
+            return ""
+        if "return" in fun_repr:
+            return ""
         if fun_repr == "checked_add_uint256":
             fun_repr = "add"
-
+        if "calldata" in fun_repr:
+            return "Uint256(31597865,9284653)"
+        if "callvalue" in fun_repr:
+            return "Uint256(0,0)"
         result: str
         if fun_repr in YUL_BUILTINS_MAP:
             builtin_to_cairo = YUL_BUILTINS_MAP[fun_repr](args_repr)
@@ -151,7 +160,13 @@ class ToCairoVisitor(AstVisitor):
                     node.function_name.name, IMPLICITS_SET
                 )
             )
-            result = f"{fun_repr}({args_repr})"
+            implicits_call = ", ".join(f"{x}={x}" for x in self.last_used_implicits)
+            result = (
+                f"{fun_repr}({args_repr})"
+                if (implicits_call == "" or "return" in fun_repr)
+                else f"{fun_repr}{{{implicits_call}}}({args_repr})"
+            )
+
         self.function_to_implicits.setdefault(self.last_function.name, set()).update(
             self.last_used_implicits
         )
@@ -176,7 +191,13 @@ class ToCairoVisitor(AstVisitor):
             return value_repr
         vars_repr = ", ".join(f"local {self.visit(x)}" for x in node.variables)
         if isinstance(node.value, ast.FunctionCall):
-            return f"let ({vars_repr}) = {value_repr}"
+            if (
+                value_repr == "Uint256(31597865,9284653)"
+                or value_repr == "Uint256(0,0)"
+            ):
+                return f"{vars_repr} = {value_repr}"
+            else:
+                return f"let ({vars_repr}) = {value_repr}"
         else:
             assert len(node.variables) == 1
             return f"{vars_repr} = {value_repr}"
@@ -191,26 +212,44 @@ class ToCairoVisitor(AstVisitor):
         return "\n".join(stmt_reprs)
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
+        if "ENTRY_POINT" in node.name:
+            self.in_entry_function = True
         self.last_function = node
-        taboos = ["abi_", "checked_add", "getter_"]
+        taboos = ["checked_add"]
         if any(taboo in node.name for taboo in taboos):
             return ""
         params_repr = ", ".join(self.print(x) for x in node.parameters)
         returns_repr = ", ".join(self.print(x) for x in node.return_variables)
         body_repr = self.print(node.body)
+        if "revert" in node.name:
+            return ""
+        if "ENTRY_POINT" in node.name:
+            self.in_entry_function = False
+            return (
+                "@external\n"
+                f"func {node.name}{{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt* }}({params_repr}) -> ({returns_repr}):\n"
+                f"alloc_locals\n"
+                "let (memory_dict) = default_dict_new(0)\n"
+                "let msize = 0\n"
+                f"{body_repr}\n"
+                f"end\n"
+            )
+
         external = node.name in self.public_functions
         external_function = self._make_external_function(node) if external else ""
         implicits = sorted(self.function_to_implicits.setdefault(node.name, set()))
         if implicits:
             implicits_repr = ", ".join(print_implicit(x) for x in implicits)
-            implicits_decl = "{" + implicits_repr + "}"
+            implicits_decl = "{" + implicits_repr
+            implicits_decl += (
+                ", range_check_ptr}" if not "range_check" in implicits_decl else "}"
+            )
         else:
             implicits_decl = ""
-        initial_implicits_copy = "".join(copy_implicit(x) + "\n" for x in implicits)
+        self.in_entry_function = False
         return (
             f"func {node.name}{implicits_decl}({params_repr}) -> ({returns_repr}):\n"
             f"alloc_locals\n"
-            f"{initial_implicits_copy}"
             f"{body_repr}\n"
             f"end\n"
             f"{external_function}"
@@ -272,6 +311,7 @@ class ToCairoVisitor(AstVisitor):
         split_returns = ", ".join(
             f"{x.name}.low, {x.name}.high" for x in node.return_variables
         )
+        self.external_functions.append(node.name)
         return (
             f"\n@external\n"
             f"func {node.name}_external"

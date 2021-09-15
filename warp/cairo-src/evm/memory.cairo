@@ -92,7 +92,8 @@ func mstore8_{memory_dict : DictAccess*, range_check_ptr, msize}(offset, value :
     # Extracts lower byte of 'value' and does 'mstore8' on it. Also updates 'msize'.
     let (byte, _) = extract_lowest_byte(value)
     let (msize) = update_msize(msize, offset, 1)
-    return mstore8(offset, byte)
+    mstore8(offset, byte)
+    return ()
 end
 
 func mstore_{memory_dict : DictAccess*, range_check_ptr, msize}(offset, value : Uint256):
@@ -107,7 +108,10 @@ func mload_{memory_dict : DictAccess*, range_check_ptr, msize}(offset) -> (value
     # Does what 'mload' does but also updates 'msize'.
     alloc_locals
     let (msize) = update_msize(msize, offset, 32)
-    return mload(offset)
+    local msize = msize
+    let (local value : Uint256) = mload(offset)
+    local memory_dict : DictAccess* = memory_dict
+    return (value=value)
 end
 
 func get_msize{range_check_ptr, msize}() -> (value : Uint256):

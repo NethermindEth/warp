@@ -19,24 +19,18 @@ from yul.parse import parse_node
 AST_GENERATOR = "gen-yul-json-ast"
 
 
-def main(argv):
-    if len(argv) != 3:
-        sys.exit(
-            f"Usage: python {argv[0]} SOLIDITY-FILE MAIN-CONTRACT\n"
-            f"where MAIN-CONTRACT is the name of the 'primary' contract"
-            f" (i.e non-interface, non-library & non-abstract contract)"
-        )
-
+def generate_cairo(sol_src_path, main_contract):
     if not shutil.which(AST_GENERATOR):
         sys.exit(f"Please install {AST_GENERATOR} first")
 
-    solidity_file = argv[1]
-    with open(solidity_file) as f:
+    with open(sol_src_path) as f:
         sol_source = f.read()
 
     try:
         result = subprocess.run(
-            [AST_GENERATOR, solidity_file, argv[2]], check=True, capture_output=True
+            [AST_GENERATOR, sol_src_path, main_contract],
+            check=True,
+            capture_output=True,
         )
     except subprocess.CalledProcessError as e:
         print(e.stderr.decode("utf-8"), file=sys.stderr)
@@ -53,8 +47,4 @@ def main(argv):
     yul_ast = RevertNormalizer().map(yul_ast)
     cairo_visitor = ToCairoVisitor(sol_source)
     cairo_code = cairo_visitor.translate(yul_ast)
-    print(parse_file(cairo_code).format())
-
-
-if __name__ == "__main__":
-    main(sys.argv)
+    return parse_file(cairo_code).format()

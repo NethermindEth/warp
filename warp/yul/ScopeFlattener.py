@@ -43,14 +43,22 @@ class ScopeFlattener(AstMapper):
             return_variables=typed_mod_vars,
             body=node,
         )
-        self.block_functions.append(block_fun)
-        block_call = ast.Assignment(
-            variable_names=mod_vars,
-            value=ast.FunctionCall(
+        if mod_vars == []:
+            self.block_functions.append(block_fun)
+            block_call = ast.FunctionCall(
                 function_name=ast.Identifier(block_fun.name),
                 arguments=free_vars,
-            ),
-        )
+            )
+
+        else:
+            self.block_functions.append(block_fun)
+            block_call = ast.Assignment(
+                variable_names=mod_vars,
+                value=ast.FunctionCall(
+                    function_name=ast.Identifier(block_fun.name),
+                    arguments=free_vars,
+                ),
+            )
         return ast.Block((self.visit(block_call),))
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
@@ -104,13 +112,19 @@ class ScopeFlattener(AstMapper):
         )
         self.block_functions.append(if_fun)
 
-        return_assignment = ast.Assignment(
-            variable_names=mod_vars,
-            value=ast.FunctionCall(
+        if mod_vars == []:
+            return_assignment = ast.FunctionCall(
                 function_name=ast.Identifier(if_fun.name),
                 arguments=free_vars,
-            ),
-        )
+            )
+        else:
+            return_assignment = ast.Assignment(
+                variable_names=mod_vars,
+                value=ast.FunctionCall(
+                    function_name=ast.Identifier(if_fun.name),
+                    arguments=free_vars,
+                ),
+            )
 
         return self.visit(return_assignment)
 
