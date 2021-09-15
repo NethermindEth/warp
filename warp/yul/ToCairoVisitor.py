@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Optional
 from contextlib import contextmanager
+from typing import Optional
 
 import solcx
-from starkware.cairo.lang.compiler.parser import parse_file
 
 import yul.yul_ast as ast
-from transpiler.Imports import merge_imports, UINT256_MODULE, format_imports
+from transpiler.Imports import merge_imports, format_imports
 from yul.BuiltinHandler import YUL_BUILTINS_MAP
 from yul.utils import STORAGE_DECLS
 from yul.yul_ast import AstVisitor
@@ -33,12 +32,15 @@ MAIN_PREAMBLE = """%lang starknet
 """
 
 IMPLICITS = {
-    "range_check_ptr": None,
-    "pedersen_ptr": "HashBuiltin*",
-    "storage_ptr": "Storage*",
     "memory_dict": "DictAccess*",
     "msize": None,
+    "pedersen_ptr": "HashBuiltin*",
+    "range_check_ptr": None,
+    "storage_ptr": "Storage*",
+    "syscall_ptr": "felt*",
 }
+
+IMPLICITS_SET = set(IMPLICITS.keys())
 
 
 class ToCairoVisitor(AstVisitor):
@@ -50,7 +52,8 @@ class ToCairoVisitor(AstVisitor):
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
         self.last_function: Optional[ast.FunctionDefinition] = None
-        self.last_needs_ref_copy: Optional[bool] = None
+        self.last_used_implicits: tuple[str] = ()
+        self.function_to_implicits: dict[str, set[str]] = {}
 
     def get_source_version(self, sol_source: str) -> float:
         code_split = sol_source.split("\n")
@@ -133,17 +136,26 @@ class ToCairoVisitor(AstVisitor):
         args_repr = ", ".join(self.print(x) for x in node.arguments)
         if fun_repr == "revert":
             return "assert 0 = 1\njmp rel 0"
-        elif fun_repr.startswith("checked_add"):
-            merge_imports(self.imports, {"evm.uint256": {"u256_add"}})
-            return f"u256_add({args_repr})"
-        elif fun_repr in YUL_BUILTINS_MAP:
+        if fun_repr == "checked_add_uint256":
+            fun_repr = "add"
+
+        result: str
+        if fun_repr in YUL_BUILTINS_MAP:
             builtin_to_cairo = YUL_BUILTINS_MAP[fun_repr](args_repr)
             merge_imports(self.imports, builtin_to_cairo.required_imports())
-            self.last_needs_ref_copy = builtin_to_cairo.ref_copy
-            return f"{builtin_to_cairo.function_call}"
+            self.last_used_implicits = builtin_to_cairo.used_implicits
+            result = f"{builtin_to_cairo.function_call}"
         else:
-            self.last_needs_ref_copy = True
-            return f"{fun_repr}({args_repr})"
+            self.last_used_implicits = sorted(
+                self.function_to_implicits.setdefault(
+                    node.function_name.name, IMPLICITS_SET
+                )
+            )
+            result = f"{fun_repr}({args_repr})"
+        self.function_to_implicits.setdefault(self.last_function.name, set()).update(
+            self.last_used_implicits
+        )
+        return result
 
     def visit_expression_statement(self, node: ast.ExpressionStatement) -> str:
         if isinstance(node.expression, ast.FunctionCall):
@@ -174,8 +186,8 @@ class ToCairoVisitor(AstVisitor):
         for stmt in node.statements:
             with self._new_statement():
                 stmt_reprs.append(self.visit(stmt))
-                if self.last_needs_ref_copy:
-                    stmt_reprs.append(gen_ref_copy())
+                for implicit in self.last_used_implicits:
+                    stmt_reprs.append(copy_implicit(implicit))
         return "\n".join(stmt_reprs)
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
@@ -188,17 +200,21 @@ class ToCairoVisitor(AstVisitor):
         body_repr = self.print(node.body)
         external = node.name in self.public_functions
         external_function = self._make_external_function(node) if external else ""
-        implicits = ", ".join(
-            print_implicit(name, type) for name, type in IMPLICITS.items()
-        )
-        func = (
-            f"func {node.name}{{{implicits}}}({params_repr}) -> ({returns_repr}):\n"
+        implicits = sorted(self.function_to_implicits.setdefault(node.name, set()))
+        if implicits:
+            implicits_repr = ", ".join(print_implicit(x) for x in implicits)
+            implicits_decl = "{" + implicits_repr + "}"
+        else:
+            implicits_decl = ""
+        initial_implicits_copy = "".join(copy_implicit(x) + "\n" for x in implicits)
+        return (
+            f"func {node.name}{implicits_decl}({params_repr}) -> ({returns_repr}):\n"
             f"alloc_locals\n"
+            f"{initial_implicits_copy}"
             f"{body_repr}\n"
             f"end\n"
             f"{external_function}"
         )
-        return parse_file(func).format()
 
     def visit_if(self, node: ast.If) -> str:
         cond_repr = self.print(node.condition)
@@ -270,23 +286,21 @@ class ToCairoVisitor(AstVisitor):
 
     @contextmanager
     def _new_statement(self):
-        old = self.last_needs_ref_copy
-        self.last_needs_ref_copy = False
+        old = self.last_used_implicits
+        self.last_used_implicits = ()
         try:
             yield None
         finally:
-            self.last_needs_ref_copy = old
+            self.last_used_implicits = old
 
 
-def print_implicit(name, type_):
-    if type_:
-        return f"{name}: {type_}"
-    else:
+def print_implicit(name):
+    type_ = IMPLICITS.get(name, None)
+    if type_ is None:
         return name
+    else:
+        return f"{name}: {type_}"
 
 
-def gen_ref_copy():
-    return "\n".join(
-        f"local {print_implicit(name, type_)} = {name}"
-        for name, type_ in IMPLICITS.items()
-    )
+def copy_implicit(name):
+    return f"local {print_implicit(name)} = {name}"
