@@ -24,30 +24,22 @@ class NeedsExececutionEnvironment(AstVisitor):
         self.needs_exec_env: list[str] = []
         self.visited: list[str] = []
 
-    def traverse_inner(self, calledFuncs):
-        if calledFuncs == []:
-            return
-        else:
-            for func in calledFuncs:
-                if func in self.visited:
-                    continue
-                else:
-                    if self.callgraph[func]["calldataOp"]:
-                        self.needs_exec_env.append(func)
-                    self.visited.append(func)
-                    self.traverse_inner(self.callgraph[func]["calledFunctions"])
-
     def traverse_callgraph(self, callgraph):
         for k, v in callgraph.items():
-            if k == "fun_ENTRY_POINT":
-                for func in v["calledFunctions"]:
-                    try:
-                        self.needs_exec_env.append(func)
-                        self.traverse_inner(self.callgraph[func]["calledFunctions"])
-                    except KeyError:
-                        continue
-            else:
-                continue
+            stack = []
+            stack.append(k)
+
+            while len(stack):
+                func = stack.pop()
+
+                if func in self.visited:
+                    continue
+
+                if callgraph.get(func, {}).get("calldataOp"):
+                    self.needs_exec_env.append(func)
+
+                self.visited.append(func)
+                stack.extend(v["calledFunctions"])
 
     def get_exec_env_functions(self, node: ast.Node) -> list[str]:
         self.print(node)
@@ -101,6 +93,9 @@ class NeedsExececutionEnvironment(AstVisitor):
         result: str
         if fun_repr in YUL_BUILTINS_MAP:
             builtin_to_cairo = YUL_BUILTINS_MAP[fun_repr](args_repr)
+            self.callgraph[self.cur_function]["calledFunctions"].append(
+                builtin_to_cairo.function_name
+            )
             result = f"{builtin_to_cairo.function_call}"
         else:
             self.callgraph[self.cur_function]["calledFunctions"].append(fun_repr)
