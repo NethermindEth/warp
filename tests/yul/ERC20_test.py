@@ -23,10 +23,8 @@ async def test_starknet():
         contract_address=contract_address,
     )
 
-    sender = 30
-    receiver = 20
     assert await contract.fun_deposit_external(
-        var_sender_72_low=sender,
+        var_sender_72_low=30,
         var_sender_72_high=0,
         var_value_low=500,
         var_value_high=0

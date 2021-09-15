@@ -29,3 +29,7 @@ jobs:
       - name: Test golden tests
         run: |
           make test_bats BATS_ARGS="-j 4"
+      
+      - name: Test yul tests
+        run: |
+          make test_yul
