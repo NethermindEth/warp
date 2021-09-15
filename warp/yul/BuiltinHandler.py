@@ -1,5 +1,5 @@
 from __future__ import annotations
-from utils import get_low_bits
+from yul.utils import get_low_bits
 
 UINT256_MODULE = "starkware.cairo.common.uint256"
 
@@ -10,13 +10,19 @@ class BuiltinHandler:
         module: str,
         function_name: str,
         function_args: str,
+        call_implicits: list[str] = [],
         used_implicits: tuple[str] = ("range_check_ptr",),
     ):
         self.module = module
         self.function_name = function_name
         self.function_args = function_args
+        self.call_implicits = ", ".join(f"{x}={x}" for x in call_implicits)
         self.used_implicits = used_implicits
-        self.function_call = f"{self.function_name}({self.function_args})"
+        self.function_call = (
+            f"{self.function_name}({self.function_args})"
+            if self.call_implicits == ""
+            else f"{self.function_name}{{{self.call_implicits}}}({self.function_args})"
+        )
 
     def required_imports(self):
         if self.module == "":
@@ -261,9 +267,12 @@ class MStore(BuiltinHandler):
             module="evm.memory",
             function_name="mstore_",
             function_args=function_args,
-            used_implicits=("memory_dict", "range_check_ptr", "msize"),
+            call_implicits=["memory_dict", "range_check_ptr", "msize"],
+            used_implicits=("memory_dict", "msize"),
         )
-        self.function_call = f"mstore_(offset={self.address}, value={self.value})"
+        self.call_implicits = ["memory_dict", "range_check_ptr", "msize"]
+        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
+        self.function_call = f"mstore_{{{self.call_implicits_decl}}}(offset={self.address}, value={self.value})"
 
 
 class MStore8(BuiltinHandler):
@@ -274,9 +283,12 @@ class MStore8(BuiltinHandler):
             module="evm.memory",
             function_name="mstore8_",
             function_args=function_args,
-            used_implicits=("memory_dict", "range_check_ptr", "msize"),
+            call_implicits=["memory_dict", "range_check_ptr", "msize"],
+            used_implicits=("memory_dict", "msize"),
         )
-        self.function_call = f"mstore8_(offset={self.address}, byte={self.value})"
+        self.call_implicits = ["memory_dict", "range_check_ptr", "msize"]
+        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
+        self.function_call = f"mstore8_{{{self.call_implicits_decl}}}(offset={self.address}, value={self.value})"
 
 
 class MLoad(BuiltinHandler):
@@ -286,9 +298,12 @@ class MLoad(BuiltinHandler):
             module="evm.memory",
             function_name="mload_",
             function_args=function_args,
-            used_implicits=("memory_dict", "range_check_ptr", "msize"),
+            call_implicits=["memory_dict", "range_check_ptr", "msize"],
+            used_implicits=("memory_dict", "msize"),
         )
-        self.function_call = f"mload_({self.offset})"
+        self.call_implicits = ["memory_dict", "range_check_ptr", "msize"]
+        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
+        self.function_call = f"mload_{{{self.call_implicits_decl}}}({self.offset})"
 
 
 class MSize(BuiltinHandler):
@@ -297,7 +312,8 @@ class MSize(BuiltinHandler):
             module="evm.memory",
             function_name="get_msize",
             function_args=function_args,
-            used_implicits=("range_check_ptr", "msize"),
+            call_implicits=["msize"],
+            used_implicits=("msize"),
         )
 
 
@@ -310,9 +326,14 @@ class SStore(BuiltinHandler):
             module="",
             function_name="s_store",
             function_args=function_args,
-            used_implicits=("storage_ptr", "range_check_ptr", "pedersen_ptr"),
+            call_implicits=["storage_ptr", "range_check_ptr", "pedersen_ptr"],
+            used_implicits=("storage_ptr", "pedersen_ptr"),
         )
-        self.function_call = f"s_store(key={self.key},value={self.value})"
+        self.call_implicits = ["storage_ptr", "range_check_ptr", "pedersen_ptr"]
+        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
+        self.function_call = (
+            f"s_store{{{self.call_implicits_decl}}}(key={self.key},value={self.value})"
+        )
 
 
 class SLoad(BuiltinHandler):
@@ -322,9 +343,12 @@ class SLoad(BuiltinHandler):
             module="",
             function_name="s_store",
             function_args=function_args,
-            used_implicits=("storage_ptr", "range_check_ptr", "pedersen_ptr"),
+            call_implicits=["storage_ptr", "range_check_ptr", "pedersen_ptr"],
+            used_implicits=("storage_ptr", "pedersen_ptr"),
         )
-        self.function_call = f"s_load({self.key})"
+        self.call_implicits = ["storage_ptr", "range_check_ptr", "pedersen_ptr"]
+        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
+        self.function_call = f"s_load{{{self.call_implicits_decl}}}({self.key})"
 
 
 # ============ Keccak ============
@@ -336,9 +360,14 @@ class SHA3(BuiltinHandler):
             module="",
             function_name="sha",
             function_args=function_args,
-            used_implicits=("memory_dict", "range_check_ptr", "msize"),
+            call_implicits=["range_check_ptr", "memory_dict", "msize"],
+            used_implicits=("memory_dict", "msize"),
         )
-        self.function_call = f"sha({self.offset}, {self.length})"
+        self.call_implicits = ["range_check_ptr", "memory_dict", "msize"]
+        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
+        self.function_call = (
+            f"sha{{{self.call_implicits_decl}}}({self.offset},{self.length})"
+        )
 
     def required_imports(self):
         return {"evm.sha3": {"sha"}}
@@ -351,42 +380,43 @@ class Caller(BuiltinHandler):
             module="evm.calls",
             function_name="get_caller_data_uint256",
             function_args=function_args,
-            used_implicits=("syscall_ptr", "range_check_ptr"),
+            call_implicits=["syscall_ptr"],
+            used_implicits=("syscall_ptr"),
         )
 
 
 YUL_BUILTINS_MAP = {
-    "iszero": IsZero,
-    "eq": Eq,
-    "gt": Gt,
-    "lt": Lt,
-    "slt": Slt,
-    "sgt": Sgt,
-    "smod": SMod,
-    "exp": Exp,
-    "keccak256": SHA3,
-    "mulmod": MulMod,
-    "sstore": SStore,
-    "sload": SLoad,
-    "mstore8": MStore8,
-    "mstore": MStore,
-    "mload": MLoad,
-    "msize": MSize,
     "add": Add,
+    "addmod": AddMod,
     "and": And,
-    "sub": Sub,
-    "mul": Mul,
+    "byte": Byte,
+    "caller": Caller,
     "div": Div,
-    "sdiv": Sdiv,
+    "eq": Eq,
+    "exp": Exp,
+    "gt": Gt,
+    "iszero": IsZero,
+    "keccak256": SHA3,
+    "lt": Lt,
+    "mload": MLoad,
     "mod": Mod,
+    "msize": MSize,
+    "mstore": MStore,
+    "mstore8": MStore8,
+    "mul": Mul,
+    "mulmod": MulMod,
     "not": Not,
     "or": Sub,
-    "xor": Xor,
-    "byte": Byte,
+    "sar": Sar,
+    "sdiv": Sdiv,
+    "sgt": Sgt,
     "shl": Shl,
     "shr": Shr,
-    "sar": Sar,
-    "addmod": AddMod,
     "signextend": SignExtend,
-    "caller": Caller,
+    "sload": SLoad,
+    "slt": Slt,
+    "smod": SMod,
+    "sstore": SStore,
+    "sub": Sub,
+    "xor": Xor,
 }

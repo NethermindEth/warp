@@ -16,9 +16,8 @@ from starkware.starknet.services.api.gateway.transaction import (
 )
 from starkware.starknet.services.api.contract_definition import ContractDefinition
 from transpiler.utils import cairoize_bytes
-from transpiler.EvmToCairo import EvmToCairo, parse_operations
+from yul.main import generate_cairo
 
-TEST_ENV = os.getenv("STARKNET_ENV")
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../.."))
 artifacts_dir = os.path.join(os.path.abspath("."), "artifacts")
 
@@ -40,20 +39,6 @@ async def send_req(method, url, tx: Optional[Union[str, Dict[str, Any]]] = None)
             async with session.request(method=method, url=url, data=None) as response:
                 text = await response.text()
                 return text
-
-
-def _transpile(file):
-    evm_to_cairo = EvmToCairo(cur_evm_pc=0)
-    with open(file, "r") as opcodes_file:
-        operations = list(parse_operations(opcodes_file))
-        for op in operations:
-            op.inspect_program(operations)
-
-        for op in operations:
-            evm_to_cairo.process_operation(op)
-
-    os.remove(file)
-    return parse_file(evm_to_cairo.finish(True)).format()
 
 
 # returns true/false on transaction success/failure

@@ -16,6 +16,7 @@ class RevertNormalizer(AstMapper):
     def __init__(self):
         super().__init__()
         self.revert_functions: set[str] = set()
+        self.in_entry_function: bool = False
 
     def map(self, node: ast.Node, **kwargs) -> ast.Node:
         if isinstance(node, ast.Block):
@@ -54,6 +55,7 @@ class RevertNormalizer(AstMapper):
     def visit_function_definition(
         self, node: ast.FunctionDefinition
     ) -> ast.FunctionDefinition:
+        self.in_entry_function = "ENTRY_POINT" in node.name
         body = self.visit(node.body)
         if self._is_revert(body):
             self.revert_functions.add(node.name)
@@ -75,11 +77,11 @@ class RevertNormalizer(AstMapper):
         return ast.If(condition, body, else_body)
 
     def _is_revert(self, node: Optional[ast.Node]):
-        if isinstance(node, ast.FunctionCall):
+        if isinstance(node, ast.FunctionCall) and not self.in_entry_function:
             return node.function_name.name == "revert"
-        if isinstance(node, ast.ExpressionStatement):
+        if isinstance(node, ast.ExpressionStatement) and not self.in_entry_function:
             return self._is_revert(node.expression)
-        if isinstance(node, ast.Block):
+        if isinstance(node, ast.Block) and not self.in_entry_function:
             return len(node.statements) == 1 and self._is_revert(node.statements[0])
         return False
 
@@ -87,4 +89,5 @@ class RevertNormalizer(AstMapper):
         return (
             isinstance(node, ast.FunctionDefinition)
             and node.name in self.revert_functions
+            and not self.in_entry_function
         )

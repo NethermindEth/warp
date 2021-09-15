@@ -2,8 +2,8 @@ import os, sys
 import asyncio
 import click
 from enum import Enum
-from cli.compilation.Compile import Vyper, Solidity
-from cli.commands import _transpile, _call, _invoke, _deploy, _status
+from yul.main import generate_cairo
+from cli.commands import _call, _invoke, _deploy, _status
 
 
 class Command(Enum):
@@ -19,27 +19,14 @@ def warp():
 
 
 @warp.command()
-@click.argument("contract_path", nargs=1, type=click.Path(exists=True))
+@click.argument("contract_path", nargs=2, type=click.Path(exists=False))
 def transpile(contract_path):
-    if contract_path.endswith("vy"):
-        path = os.path.abspath(click.format_filename(contract_path))
-        contract = Vyper(path)
-        cairo_str = _transpile(contract.opcodes)
-        with open(f"{path[:-3]}.cairo", "w") as f:
-            f.write(cairo_str)
-    elif contract_path.endswith("sol"):
-        path = os.path.abspath(click.format_filename(contract_path))
-        filename = os.path.basename(path)
-        contract = Solidity(path)
-        with open(f"{path[:-4]}.bytecode", "w") as f:
-            f.write(contract.bytecode)
-        with open(f"{path[:-4]}.opcode", "w") as f:
-            f.write(contract.opcodes_str)
-        cairo_str = _transpile(
-            f"{path[:-4]}.opcode",
-        )
-        with open(f"{path[:-4]}.cairo", "w") as f:
-            f.write(cairo_str)
+    path = os.path.abspath(click.format_filename(contract_path[0]))
+    filename = os.path.basename(path)
+    cairo_str = generate_cairo(contract_path[0], contract_path[1])
+    with open(f"{path[:-4]}.cairo", "w") as f:
+        f.write(cairo_str)
+    click.echo(f"The generated Cairo contract has been written to {path[:-4]}.cairo")
     return None
 
 
