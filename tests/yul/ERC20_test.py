@@ -12,7 +12,11 @@ test_dir = __file__
 async def test_starknet():
     contract_file = test_dir[:-8] + '.cairo'
     cairo_path = f"{warp_root}/warp/cairo-src"
-    contract_definition = compile_starknet_files([contract_file], debug_info=True, cairo_path=[cairo_path])
+    contract_definition = compile_starknet_files(
+        [contract_file], 
+        debug_info=True, 
+        cairo_path=[cairo_path]
+    )
 
     starknet = await Starknet.empty()
     contract_address = await starknet.deploy(

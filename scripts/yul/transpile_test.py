@@ -35,16 +35,10 @@ def test_transpilation(solidity_file):
 
 
 def compare_codes(lines1, lines2):
-    d = difflib.Differ()
-    diff = d.compare(lines1, lines2)
-
-    message = ""
-    result = False
-    for item in diff:
-        result |= item.startswith("+") or item.startswith("-")
-        message += item + "\n"
-
-    assert not result, message
+    d = difflib.context_diff(lines1, lines2, n=1, lineterm="")
+    
+    message = '\n'.join([line for line in d])
+    assert len(message) == 0, message
 
 
 def clean(lines):
