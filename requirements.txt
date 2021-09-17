@@ -1,2 +1,4 @@
 autohooks~=21.7.0
 autohooks-plugin-black~=21.7.1
+pytest==6.2.4
+py-solc-x

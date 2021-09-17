@@ -312,10 +312,12 @@ class ToCairoVisitor(AstVisitor):
             f"{x.name}.low, {x.name}.high" for x in node.return_variables
         )
         self.external_functions.append(node.name)
+        implicits = sorted(IMPLICITS_SET - {"msize", "memory_dict"})
+        implicits_repr = ", ".join(print_implicit(x) for x in implicits)
         return (
             f"\n@external\n"
             f"func {node.name}_external"
-            f"{{range_check_ptr, pedersen_ptr: HashBuiltin*, storage_ptr: Storage*}}"
+            f"{{{implicits_repr}}}"
             f"({params}) -> ({returns}):\n"
             f"let (memory_dict) = default_dict_new(0)\n"
             f"let msize = 0\n"

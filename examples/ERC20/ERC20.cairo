@@ -448,7 +448,8 @@ func fun_approve{
 end
 
 @external
-func fun_approve_external{range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*}(
+func fun_approve_external{
+        storage_ptr : Storage*, range_check_ptr, syscall_ptr : felt*, pedersen_ptr : HashBuiltin*}(
         var_guy_low, var_guy_high, var_wad_low, var_wad_high, var_sender_low, var_sender_high) -> (
         var_low, var_high):
     let (memory_dict) = default_dict_new(0)
@@ -512,7 +513,8 @@ func fun_deposit{
 end
 
 @external
-func fun_deposit_external{range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*}(
+func fun_deposit_external{
+        storage_ptr : Storage*, range_check_ptr, syscall_ptr : felt*, pedersen_ptr : HashBuiltin*}(
         var_sender_72_low, var_sender_72_high, var_value_low, var_value_high) -> (
         var_73_low, var_73_high, var__low, var__high):
     let (memory_dict) = default_dict_new(0)
@@ -708,7 +710,7 @@ end
 
 @external
 func fun_transferFrom_external{
-        range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*}(
+        storage_ptr : Storage*, range_check_ptr, syscall_ptr : felt*, pedersen_ptr : HashBuiltin*}(
         var_src_low, var_src_high, var_dst_low, var_dst_high, var_wad_78_low, var_wad_78_high,
         var_sender_79_low, var_sender_79_high) -> (var_80_low, var_80_high):
     let (memory_dict) = default_dict_new(0)
@@ -772,7 +774,8 @@ func fun_withdraw{
 end
 
 @external
-func fun_withdraw_external{range_check_ptr, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*}(
+func fun_withdraw_external{
+        storage_ptr : Storage*, range_check_ptr, syscall_ptr : felt*, pedersen_ptr : HashBuiltin*}(
         var_wad_89_low, var_wad_89_high, var_sender_90_low, var_sender_90_high) -> ():
     let (memory_dict) = default_dict_new(0)
     let msize = 0
