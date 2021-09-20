@@ -1,5 +1,6 @@
 from __future__ import annotations
 from yul.utils import get_low_bits
+from transpiler.utils import cairoize_bytes
 
 UINT256_MODULE = "starkware.cairo.common.uint256"
 
@@ -385,12 +386,32 @@ class Caller(BuiltinHandler):
         )
 
 
+class CallDataLoad(BuiltinHandler):
+    def __init__(self, function_args: str, evm_calldata):
+        input, unused_bytes = cairoize_bytes(bytes.fromhex(evm_calldata[2:]))
+        calldata_size = (len(input) * 16) - unused_bytes
+        input_len = len(input)
+
+        self.calldata_size = calldata_size
+        self.unused_bytes = unused_bytes
+        self.input_len = input_len
+        self.input = input
+
+        super().__init__(
+            module="evm.calls",
+            function_name="call_data_load",
+            function_args=function_args,
+        )
+        self.function_call = f"call_data_load({self.calldata_size}, {self.unused_bytes}, {self.input_len}, {self.input})"
+
+
 YUL_BUILTINS_MAP = {
     "add": Add,
     "addmod": AddMod,
     "and": And,
     "byte": Byte,
     "caller": Caller,
+    "calldataload": CallDataLoad,
     "div": Div,
     "eq": Eq,
     "exp": Exp,
