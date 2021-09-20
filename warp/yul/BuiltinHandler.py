@@ -388,6 +388,7 @@ class Caller(BuiltinHandler):
 
 class CallDataLoad(BuiltinHandler):
     def __init__(self, function_args: str, evm_calldata):
+        self.offset = get_low_bits(function_args.split(",")[0].strip())
         input, unused_bytes = cairoize_bytes(bytes.fromhex(evm_calldata[2:]))
         calldata_size = (len(input) * 16) - unused_bytes
         input_len = len(input)
@@ -402,7 +403,7 @@ class CallDataLoad(BuiltinHandler):
             function_name="call_data_load",
             function_args=function_args,
         )
-        self.function_call = f"call_data_load({self.calldata_size}, {self.unused_bytes}, {self.input_len}, {self.input})"
+        self.function_call = f"call_data_load({self.offset})"
 
 
 YUL_BUILTINS_MAP = {
