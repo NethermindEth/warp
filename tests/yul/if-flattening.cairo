@@ -128,12 +128,6 @@ func abi_encode_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
     return (tail)
 end
 
-func panic_error_0x11() -> ():
-    alloc_locals
-    assert 0 = 1
-    jmp rel 0
-end
-
 func __warp_block_2_if(_1_12 : Uint256) -> ():
     alloc_locals
     if _1_12.low + _1_12.high != 0:

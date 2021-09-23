@@ -101,12 +101,6 @@ func abi_encode_bool{memory_dict : DictAccess*, msize, range_check_ptr}(
     return (tail)
 end
 
-func panic_error_0x11() -> ():
-    alloc_locals
-    assert 0 = 1
-    jmp rel 0
-end
-
 func __warp_block_1_if(_2_6 : Uint256) -> ():
     alloc_locals
     if _2_6.low + _2_6.high != 0:

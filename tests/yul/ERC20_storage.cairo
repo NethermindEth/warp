@@ -283,12 +283,6 @@ func abi_encode_uint8{memory_dict : DictAccess*, msize, range_check_ptr}(
     return (tail_53)
 end
 
-func panic_error_0x11() -> ():
-    alloc_locals
-    assert 0 = 1
-    jmp rel 0
-end
-
 func __warp_block_5_if(_2_56 : Uint256) -> ():
     alloc_locals
     if _2_56.low + _2_56.high != 0:
@@ -540,12 +534,6 @@ func fun_get_balance_external{
     let (var) = fun_get_balance{memory_dict=memory_dict, msize=msize}(
         Uint256(var_src_low, var_src_high))
     return (var.low, var.high)
-end
-
-func __warp_block_11() -> ():
-    alloc_locals
-    assert 0 = 1
-    jmp rel 0
 end
 
 func __warp_block_8_if(_1_136 : Uint256) -> ():

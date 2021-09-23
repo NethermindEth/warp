@@ -301,12 +301,6 @@ func abi_encode_uint8{memory_dict : DictAccess*, msize, range_check_ptr}(
     return (tail_60)
 end
 
-func panic_error_0x11() -> ():
-    alloc_locals
-    assert 0 = 1
-    jmp rel 0
-end
-
 func __warp_block_5_if(_2_63 : Uint256) -> ():
     alloc_locals
     if _2_63.low + _2_63.high != 0:
@@ -535,12 +529,6 @@ func read_from_storage_split_dynamic_uint256{
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     let (local value_140 : Uint256) = cleanup_from_storage_uint256(_1_141)
     return (value_140)
-end
-
-func __warp_block_11() -> ():
-    alloc_locals
-    assert 0 = 1
-    jmp rel 0
 end
 
 func __warp_block_8_if(_1_142 : Uint256) -> ():
