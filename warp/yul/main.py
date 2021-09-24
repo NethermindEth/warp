@@ -45,6 +45,7 @@ def generate_cairo(sol_src_path, main_contract):
     yul_ast = MangleNamesVisitor().map(yul_ast)
     yul_ast = SwitchToIfVisitor().map(yul_ast)
     yul_ast = ExpressionSplitter().map(yul_ast)
+    yul_ast = RevertNormalizer().map(yul_ast)
     yul_ast = ScopeFlattener().map(yul_ast)
     yul_ast = LeaveNormalizer().map(yul_ast)
     yul_ast = RevertNormalizer().map(yul_ast)
