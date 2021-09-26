@@ -7,15 +7,14 @@ contract WARP {
     mapping (uint => uint)                       public  balanceOf;
     mapping (uint => mapping (uint => uint))  public  allowance;
 
-    function deposit(uint sender, uint256 value) public payable returns (uint, uint){
+    function deposit(uint sender, uint256 value) public payable returns (bool){
         balanceOf[sender] += value;
-        return (21,12);
+        return true;
     }
 
-    function withdraw(uint wad, uint sender) public payable {
-        require(balanceOf[sender] >= wad);
-        balanceOf[sender] -= wad;
-        (uint a, uint b) = deposit(sender, wad);
+    function withdraw(uint[] calldata wad, uint sender) public payable {
+        require(balanceOf[sender] >= wad[0]);
+        balanceOf[sender] -= wad[0];
     }
 
     function approve(uint guy, uint wad, uint sender) public payable returns (bool) {

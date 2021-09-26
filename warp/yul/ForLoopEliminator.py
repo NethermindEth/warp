@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from typing import Optional
+from typing import Optional, List
 
 import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
@@ -20,7 +20,7 @@ class ForLoopEliminator(AstMapper):
         self.body_name: Optional[str] = None
         self.loop_name: Optional[str] = None
         self.break_name: Optional[str] = None
-        self.aux_functions: [ast.FunctionDefinition] = []
+        self.aux_functions: List[ast.FunctionDefinition] = []
 
     def map(self, node: ast.Node, **kwargs):
         if not isinstance(node, ast.Block):

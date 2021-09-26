@@ -3,6 +3,7 @@ import asyncio
 import click
 from enum import Enum
 from yul.main import generate_cairo
+from yul.utils import get_low_high
 from cli.commands import _call, _invoke, _deploy, _status
 
 
@@ -44,13 +45,24 @@ return_args = {}
 @click.option("--inputs", required=True, help="Function Arguments")
 def invoke(contract, address, function, inputs):
     inputs = inputs.split(" ")
+    # high & low bits
+    split_inputs = []
     for idx, input in enumerate(inputs):
         if input.isdigit():
-            inputs[idx] = int(input)
+            try:
+                to_split = int(input, 16) if input.startswith("0x") else int(input)
+                low, high = get_low_high(to_split)
+                split_inputs += [int(low), int(high)]
+                inputs[idx] = int(input, 16) if input.startswith("0x") else int(input)
+            except ValueError:
+                raise ValueError(
+                    f"Invalid input value: '{input}'. Expected a decimal or hexadecimal integer."
+                )
     return_args["address"] = address
     return_args["function"] = function
     return_args["contract"] = contract
-    return_args["inputs"] = inputs
+    return_args["cairo_inputs"] = split_inputs
+    return_args["evm_inputs"] = inputs
     return_args["type"] = Command.INVOKE
 
 
@@ -96,7 +108,8 @@ def main():
                         return_args["contract"],
                         return_args["address"],
                         return_args["function"],
-                        return_args["inputs"],
+                        return_args["cairo_inputs"],
+                        return_args["evm_inputs"],
                     )
                 )
             elif return_args["type"] is Command.DEPLOY:

@@ -2,7 +2,7 @@ import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
 
 
-CAIRO_KEYWORDS = {"ret", "felt", "call", "jmp", "func"}
+CAIRO_KEYWORDS = {"ret", "felt", "call", "jmp", "func", "end"}
 
 
 def mangle(identifier: str) -> str:

@@ -1,6 +1,7 @@
 import json
 import shutil
 import subprocess
+import os
 import sys
 
 from starkware.cairo.lang.compiler.parser import parse_file
@@ -50,6 +51,6 @@ def generate_cairo(sol_src_path, main_contract):
     yul_ast = LeaveNormalizer().map(yul_ast)
     yul_ast = RevertNormalizer().map(yul_ast)
     yul_ast = FunctionPruner(public_functions).map(yul_ast)
-    cairo_visitor = ToCairoVisitor(sol_source, public_functions)
+    cairo_visitor = ToCairoVisitor(sol_source, sol_src_path, main_contract)
     cairo_code = cairo_visitor.translate(yul_ast)
     return parse_file(cairo_code).format()

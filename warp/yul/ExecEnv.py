@@ -1,21 +1,12 @@
 from __future__ import annotations
+from transpiler.Imports import merge_imports, format_imports
 
 from collections import defaultdict
 from contextlib import contextmanager
-import os
 from typing import Optional
 
 import yul.yul_ast as ast
-from transpiler.Imports import merge_imports, format_imports
 from yul.BuiltinHandler import YUL_BUILTINS_MAP
-from yul.Artifacts import Artifacts
-from yul.ExecEnv import NeedsExececutionEnvironment
-from yul.utils import (
-    STORAGE_DECLS,
-    get_source_version,
-    get_public_functions,
-    validate_solc_ver,
-)
 from yul.yul_ast import AstVisitor
 
 UINT128_BOUND = 2 ** 128
@@ -38,54 +29,42 @@ MAIN_PREAMBLE = """%lang starknet
 %builtins pedersen range_check
 """
 
-IMPLICITS = {
-    "memory_dict": "DictAccess*",
-    "msize": None,
-    "pedersen_ptr": "HashBuiltin*",
-    "range_check_ptr": None,
-    "storage_ptr": "Storage*",
-    "syscall_ptr": "felt*",
-    "exec_env": "ExecutionEnvironment",
-}
 
-IMPLICITS_SET = set(IMPLICITS.keys())
-
-
-class ToCairoVisitor(AstVisitor):
-    def __init__(self, sol_source: str, sol_src_path: str, main_contract: str):
+class NeedsExececutionEnvironment(AstVisitor):
+    def __init__(self):
         super().__init__()
-        self.artifacts_manager = Artifacts(sol_src_path)
-        self.artifacts_manager.write_artifact("MAIN_CONTRACT", main_contract)
-        self.solc_version: float = get_source_version(sol_source)
-        validate_solc_ver(sol_source)
-        self.code = sol_source
-        self.main_contract = main_contract
-        self.file_name = os.path.basename(sol_src_path)[:-4]
-        self.public_functions = get_public_functions(sol_source)
         self.external_functions: list[str] = []
         self.imports = defaultdict(set)
-        merge_imports(self.imports, COMMON_IMPORTS)
         self.last_function: Optional[ast.FunctionDefinition] = None
-        self.last_used_implicits: tuple[str] = ()
-        self.function_to_implicits: dict[str, set[str]] = {}
-        self.in_entry_function: bool = False
-        self.exec_env_functions: list[str] = []
-        self.cur_function: str = ""
+        self.curr_func: str = []
+        self.callgraph = {}
+        self.needs_exec_env: list[str] = []
 
-    def translate(self, node: ast.Node) -> str:
-        self.exec_env_functions = NeedsExececutionEnvironment().get_exec_env_functions(
-            node
-        )
-        self.exec_env_functions = list(set(self.exec_env_functions))
-        main_part = self.print(node)
-        return "\n".join(
-            [
-                MAIN_PREAMBLE,
-                format_imports(self.imports),
-                STORAGE_DECLS,
-                main_part,
-            ]
-        )
+    def traverse_inner(self, calledFuncs):
+        if calledFuncs == []:
+            return
+        else:
+            for func in calledFuncs:
+                if self.callgraph[func]["calldataOp"]:
+                    self.needs_exec_env.append(func)
+                self.traverse_inner(self.callgraph[func]["calledFunctions"])
+
+    def traverse_callgraph(self, callgraph):
+        for k, v in callgraph.items():
+            if k == "fun_ENTRY_POINT":
+                for func in v["calledFunctions"]:
+                    try:
+                        self.needs_exec_env.append(func)
+                        self.traverse_inner(self.callgraph[func]["calledFunctions"])
+                    except KeyError:
+                        continue
+            else:
+                continue
+
+    def get_exec_env_functions(self, node: ast.Node) -> list[str]:
+        self.print(node)
+        self.traverse_callgraph(self.callgraph)
+        return self.needs_exec_env
 
     def print(self, node: ast.Node, *args, **kwargs) -> str:
         return self.visit(node, *args, **kwargs)
@@ -121,9 +100,9 @@ class ToCairoVisitor(AstVisitor):
     def visit_function_call(self, node: ast.FunctionCall) -> str:
         fun_repr = self.print(node.function_name)
         args_repr = ", ".join(self.print(x) for x in node.arguments)
-        if fun_repr == "revert" and not self.in_entry_function:
+        if fun_repr == "revert":
             return "assert 0 = 1\njmp rel 0"
-        if fun_repr == "revert" and self.in_entry_function:
+        if fun_repr == "revert":
             return ""
         if "return" in fun_repr:
             return ""
@@ -135,31 +114,11 @@ class ToCairoVisitor(AstVisitor):
         if fun_repr in YUL_BUILTINS_MAP:
             builtin_to_cairo = YUL_BUILTINS_MAP[fun_repr](args_repr)
             merge_imports(self.imports, builtin_to_cairo.required_imports())
-            self.last_used_implicits = builtin_to_cairo.used_implicits
             result = f"{builtin_to_cairo.function_call}"
         else:
-            self.last_used_implicits = sorted(
-                self.function_to_implicits.setdefault(
-                    node.function_name.name, IMPLICITS_SET
-                )
-            )
-            implicits_call = ", ".join(f"{x}={x}" for x in self.last_used_implicits)
-            if (
-                "exec_env" not in implicits_call
-                and fun_repr in self.exec_env_functions
-                and fun_repr != "__warp_block_00"
-            ):
-                implicits_call = "exec_env=exec_env, " + implicits_call
-                self.last_used_implicits.append("exec_env")
-            result = (
-                f"{fun_repr}({args_repr})"
-                if (implicits_call == "" or "return" in fun_repr)
-                else f"{fun_repr}{{{implicits_call}}}({args_repr})"
-            )
+            self.callgraph[self.cur_function]["calledFunctions"].append(fun_repr)
+            result = f"{fun_repr}({args_repr})"
 
-        self.function_to_implicits.setdefault(self.last_function.name, set()).update(
-            self.last_used_implicits
-        )
         return result
 
     def visit_expression_statement(self, node: ast.ExpressionStatement) -> str:
@@ -182,7 +141,6 @@ class ToCairoVisitor(AstVisitor):
         vars_repr = ", ".join(f"local {self.visit(x)}" for x in node.variables)
         if isinstance(node.value, ast.FunctionCall):
             if "calldatasize" in node.value.function_name.name:
-                self.last_used_implicits = tuple("")
                 return f"{vars_repr} = Uint256(exec_env.calldata_size, 0)"
             else:
                 return f"let ({vars_repr}) = {value_repr}"
@@ -193,19 +151,10 @@ class ToCairoVisitor(AstVisitor):
     def visit_block(self, node: ast.Block) -> str:
         stmt_reprs = []
         for stmt in node.statements:
-            with self._new_statement():
-                stmt_reprs.append(self.visit(stmt))
-                for implicit in self.last_used_implicits:
-                    stmt_reprs.append(copy_implicit(implicit))
+            stmt_reprs.append(self.visit(stmt))
         return "\n".join(stmt_reprs)
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
-        if "_dynArgs" in node.name:
-            self.artifacts_manager.write_artifact(
-                ".DynArgFunctions", node.name.replace("_dynArgs", "") + "\n"
-            )
-        if "ENTRY_POINT" in node.name:
-            self.in_entry_function = True
         self.last_function = node
         taboos = ["checked_add"]
         if any(taboo in node.name for taboo in taboos):
@@ -214,9 +163,16 @@ class ToCairoVisitor(AstVisitor):
         returns_repr = ", ".join(self.print(x) for x in node.return_variables)
         if "revert" in node.name:
             return ""
+        self.cur_function = node.name
+        self.callgraph[node.name] = {}
+        self.callgraph[node.name]["calledFunctions"] = []
         body_repr = self.print(node.body)
+        if "calldata" in body_repr:
+            self.callgraph[node.name]["calldataOp"] = True
+        else:
+            self.callgraph[node.name]["calldataOp"] = False
+
         if "ENTRY_POINT" in node.name:
-            self.in_entry_function = False
             return (
                 "@external\n"
                 f"func {node.name}{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
@@ -231,36 +187,11 @@ class ToCairoVisitor(AstVisitor):
                 f"end\n"
             )
 
-        external = node.name in self.public_functions
-        external_function = self._make_external_function(node) if external else ""
-        implicits = sorted(self.function_to_implicits.setdefault(node.name, set()))
-        implicits_decl = ""
-        if implicits:
-            implicits_decl = ", ".join(print_implicit(x) for x in implicits)
-            if (
-                node.name in self.exec_env_functions
-                and "exec_env" not in implicits
-                and "block_00" not in node.name
-            ):
-                implicits_decl = "{exec_env : ExecutionEnvironment, " + implicits_decl
-            else:
-                implicits_decl = "{" + implicits_decl
-            if not "range_check" in implicits_decl:
-                implicits_decl += (
-                    ", range_check_ptr}"
-                    if len(implicits_decl) > 1
-                    and implicits_decl != "{exec_env : ExecutionEnvironment, "
-                    else "range_check_ptr}"
-                )
-            else:
-                implicits_decl += "}"
-        self.in_entry_function = False
         return (
-            f"func {node.name}{implicits_decl}({params_repr}) -> ({returns_repr}):\n"
+            f"func {node.name}({params_repr}) -> ({returns_repr}):\n"
             f"alloc_locals\n"
             f"{body_repr}\n"
             f"end\n"
-            f"{external_function}"
         )
 
     def visit_if(self, node: ast.If) -> str:
@@ -300,57 +231,3 @@ class ToCairoVisitor(AstVisitor):
     def visit_leave(self, _node: ast.Leave) -> str:
         return_names = ", ".join(x.name for x in self.last_function.return_variables)
         return f"return ({return_names})"
-
-    def _make_external_function(self, node: ast.FunctionDefinition) -> str:
-        params = ", ".join(self.print(x, split=True) for x in node.parameters)
-        returns = ", ".join(self.print(x, split=True) for x in node.return_variables)
-        inner_args = ", ".join(
-            f"Uint256({x.name}_low, {x.name}_high)" for x in node.parameters
-        )
-        inner_returns = ", ".join(x.name for x in node.return_variables)
-        inner_call = (
-            f"{node.name}{{memory_dict=memory_dict, msize=msize}}({inner_args})"
-        )
-        inner_assignment = (
-            f"let ({inner_returns}) = {inner_call}"
-            if node.return_variables
-            else inner_call
-        )
-        split_returns = ", ".join(
-            f"{x.name}.low, {x.name}.high" for x in node.return_variables
-        )
-        self.external_functions.append(node.name)
-        implicits = sorted(IMPLICITS_SET - {"msize", "memory_dict", "exec_env"})
-        implicits_repr = ", ".join(print_implicit(x) for x in implicits)
-        return (
-            f"\n@external\n"
-            f"func {node.name}_external"
-            f"{{{implicits_repr}}}"
-            f"({params}) -> ({returns}):\n"
-            f"let (memory_dict) = default_dict_new(0)\n"
-            f"let msize = 0\n"
-            f"{inner_assignment}\n"
-            f"return ({split_returns})\n"
-            f"end\n\n"
-        )
-
-    @contextmanager
-    def _new_statement(self):
-        old = self.last_used_implicits
-        self.last_used_implicits = ()
-        try:
-            yield None
-        finally:
-            self.last_used_implicits = old
-
-
-def print_implicit(name):
-    type_ = IMPLICITS.get(name, None)
-    if type_ is None:
-        return name
-    else:
-        return f"{name}: {type_}"
-
-
-def copy_implicit(name):
-    return f"local {print_implicit(name)} = {name}"
