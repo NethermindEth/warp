@@ -9,6 +9,8 @@ class ScopeFlattener(AstMapper):
         super().__init__()
         self.n_names: int = 0
         self.block_functions: list[ast.FunctionDefinition] = []
+        self.revert_function_name: str = "__warp_block_00"
+        self.call_revert: bool = False
 
     def map(self, node: ast.Node, **kwargs) -> ast.Node:
         if not isinstance(node, ast.Block):
@@ -65,6 +67,7 @@ class ScopeFlattener(AstMapper):
         # We do not want to flatten an if-block if it is the only statement in
         # the function body. Skip visit_if in such cases and instead visit all
         # the branches of the if-block.
+        
         if len(node.body.statements) == 1 and isinstance(
             node.body.statements[0], ast.If
         ):
@@ -95,6 +98,13 @@ class ScopeFlattener(AstMapper):
         )
 
     def visit_if(self, node: ast.If):
+        if self.is_leave_if(node):
+            return ast.If(
+                condition=self.visit(node.condition),
+                body=self.visit(node.body),
+                else_body=self.visit(node.else_body) if node.else_body else None
+            )
+
         if_block_scope = ast.Block((node,)).scope
 
         free_vars = sorted(if_block_scope.free_variables)
@@ -103,32 +113,55 @@ class ScopeFlattener(AstMapper):
         typed_free_vars = [ast.TypedName(x.name) for x in free_vars]
         typed_mod_vars = [ast.TypedName(x.name) for x in mod_vars]
 
-        fun_name = self._request_fresh_name() + "_if"
-        if_fun = ast.FunctionDefinition(
-            name=fun_name,
-            parameters=typed_free_vars,
-            return_variables=typed_mod_vars,
-            body=ast.Block((node,)),
-        )
-        self.block_functions.append(if_fun)
+        revert_if = self.is_revert_if(node)
+
+        fun_name = self.revert_function_name if revert_if else self._request_fresh_name() + "_if"
+        if not revert_if or not self.call_revert:
+            if_fun = ast.FunctionDefinition(
+                name=fun_name,
+                parameters=typed_free_vars,
+                return_variables=typed_mod_vars,
+                body=ast.Block((node,)),
+            )
+            self.block_functions.append(if_fun)
+        
+        self.call_revert |= revert_if
 
         if mod_vars == []:
             return_assignment = ast.FunctionCall(
-                function_name=ast.Identifier(if_fun.name),
+                function_name=ast.Identifier(fun_name),
                 arguments=free_vars,
             )
         else:
             return_assignment = ast.Assignment(
                 variable_names=mod_vars,
                 value=ast.FunctionCall(
-                    function_name=ast.Identifier(if_fun.name),
+                    function_name=ast.Identifier(fun_name),
                     arguments=free_vars,
                 ),
             )
 
         return self.visit(return_assignment)
 
+    def is_revert_if(self, node: ast.If):
+        return self._is_revert(node.body) or self._is_revert(node.else_body)
+
+    def is_leave_if(self, node: ast.If):
+        body_stmt = node.body.statements[0] if node.body.statements else None
+        else_stmt = node.else_body.statements[0] if (node.else_body and node.else_body.statements) else None
+        
+        return isinstance(body_stmt, ast.Leave) or isinstance(else_stmt, ast.Leave)
+
     def _request_fresh_name(self):
         name = f"__warp_block_{self.n_names}"
         self.n_names += 1
         return name
+
+    def _is_revert(self, node: Optional[ast.Node]):
+        if isinstance(node, ast.FunctionCall):
+            return node.function_name.name == "revert"
+        if isinstance(node, ast.ExpressionStatement):
+            return self._is_revert(node.expression)
+        if isinstance(node, ast.Block):
+            return len(node.statements) == 1 and self._is_revert(node.statements[0])
+        return False

@@ -8,12 +8,14 @@ from starkware.cairo.lang.compiler.parser import parse_file
 from yul.ExpressionSplitter import ExpressionSplitter
 from yul.ForLoopEliminator import ForLoopEliminator
 from yul.ForLoopSimplifier import ForLoopSimplifier
+from yul.FunctionPruner import FunctionPruner
 from yul.LeaveNormalizer import LeaveNormalizer
 from yul.MangleNamesVisitor import MangleNamesVisitor
 from yul.RevertNormalizer import RevertNormalizer
 from yul.ScopeFlattener import ScopeFlattener
 from yul.SwitchToIfVisitor import SwitchToIfVisitor
 from yul.ToCairoVisitor import ToCairoVisitor
+from yul.utils import get_public_functions
 from yul.parse import parse_node
 
 AST_GENERATOR = "gen-yul-json-ast"
@@ -25,6 +27,7 @@ def generate_cairo(sol_src_path, main_contract):
 
     with open(sol_src_path) as f:
         sol_source = f.read()
+        public_functions = get_public_functions(sol_source)
 
     try:
         result = subprocess.run(
@@ -42,9 +45,11 @@ def generate_cairo(sol_src_path, main_contract):
     yul_ast = MangleNamesVisitor().map(yul_ast)
     yul_ast = SwitchToIfVisitor().map(yul_ast)
     yul_ast = ExpressionSplitter().map(yul_ast)
+    yul_ast = RevertNormalizer().map(yul_ast)
     yul_ast = ScopeFlattener().map(yul_ast)
     yul_ast = LeaveNormalizer().map(yul_ast)
     yul_ast = RevertNormalizer().map(yul_ast)
-    cairo_visitor = ToCairoVisitor(sol_source)
+    yul_ast = FunctionPruner(public_functions).map(yul_ast)
+    cairo_visitor = ToCairoVisitor(sol_source, public_functions)
     cairo_code = cairo_visitor.translate(yul_ast)
     return parse_file(cairo_code).format()

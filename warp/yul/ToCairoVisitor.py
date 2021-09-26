@@ -44,11 +44,9 @@ IMPLICITS_SET = set(IMPLICITS.keys())
 
 
 class ToCairoVisitor(AstVisitor):
-    def __init__(self, sol_source: str):
+    def __init__(self, sol_source: str, public_functions: list[str]):
         super().__init__()
-        self.solc_version: float = self.get_source_version(sol_source)
-        self.validate_solc_ver()
-        self.public_functions = self.get_public_functions(sol_source)
+        self.public_functions = public_functions
         self.external_functions: list[str] = []
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
@@ -56,40 +54,6 @@ class ToCairoVisitor(AstVisitor):
         self.last_used_implicits: tuple[str] = ()
         self.function_to_implicits: dict[str, set[str]] = {}
         self.in_entry_function: bool = False
-
-    def get_source_version(self, sol_source: str) -> float:
-        code_split = sol_source.split("\n")
-        for line in code_split:
-            if "pragma" in line:
-                ver: float = float(line[line.index("0.") + 2 :].replace(";", ""))
-                if ver < 8.0:
-                    raise Exception(
-                        "Please use a version of solidity that is at least 0.8.0"
-                    )
-                return ver
-        raise Exception("No Solidity version specified in contract")
-
-    def check_installed_solc(self, source_version: float) -> str:
-        solc_vers = solcx.get_installed_solc_versions()
-        vers_clean = []
-        src_ver = "0." + str(source_version)
-        for ver in solc_vers:
-            vers_clean.append(".".join(str(x) for x in list(ver.precedence_key)[:3]))
-        if src_ver not in vers_clean:
-            solcx.install_solc(src_ver)
-        return src_ver
-
-    def validate_solc_ver(self):
-        src_ver: str = self.check_installed_solc(self.solc_version)
-        solcx.set_solc_version(src_ver)
-
-    def get_public_functions(self, sol_source: str) -> list[str]:
-        public_functions = set()
-        abi = solcx.compile_source(sol_source, output_values=["hashes"])
-        for value in abi.values():
-            for v in value["hashes"]:
-                public_functions.add(f"fun_{v[:v.find('(')]}")
-        return list(public_functions)
 
     def translate(self, node: ast.Node) -> str:
         main_part = self.print(node)
