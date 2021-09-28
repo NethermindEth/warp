@@ -385,12 +385,41 @@ class Caller(BuiltinHandler):
         )
 
 
+class CallDataLoad(BuiltinHandler):
+    def __init__(self, function_args: str):
+        self.offset: str = get_low_bits(function_args.split(",")[0].strip())
+        super().__init__(
+            module="evm.calls",
+            function_name="calldata_load",
+            function_args=function_args,
+            call_implicits=["range_check_ptr", "exec_env"],
+        )
+        self.function_call = (
+            f"calldata_load{{range_check_ptr=range_check_ptr, exec_env=exec_env}}("
+            f"{self.offset})\n"
+            f"local exec_env : ExecutionEnvironment = exec_env"
+        )
+
+
+class CallDataSize(BuiltinHandler):
+    def __init__(self, function_args: str):
+        super().__init__(
+            module="",
+            function_name="",
+            function_args=function_args,
+            call_implicits=[],
+        )
+        self.function_call = "Uint256(exec_env.calldata_size, 0)"
+
+
 YUL_BUILTINS_MAP = {
     "add": Add,
     "addmod": AddMod,
     "and": And,
     "byte": Byte,
     "caller": Caller,
+    "calldataload": CallDataLoad,
+    "calldatasize": CallDataSize,
     "div": Div,
     "eq": Eq,
     "exp": Exp,

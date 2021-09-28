@@ -67,7 +67,7 @@ class ScopeFlattener(AstMapper):
         # We do not want to flatten an if-block if it is the only statement in
         # the function body. Skip visit_if in such cases and instead visit all
         # the branches of the if-block.
-        
+
         if len(node.body.statements) == 1 and isinstance(
             node.body.statements[0], ast.If
         ):
@@ -102,7 +102,7 @@ class ScopeFlattener(AstMapper):
             return ast.If(
                 condition=self.visit(node.condition),
                 body=self.visit(node.body),
-                else_body=self.visit(node.else_body) if node.else_body else None
+                else_body=self.visit(node.else_body) if node.else_body else None,
             )
 
         if_block_scope = ast.Block((node,)).scope
@@ -115,7 +115,11 @@ class ScopeFlattener(AstMapper):
 
         revert_if = self.is_revert_if(node)
 
-        fun_name = self.revert_function_name if revert_if else self._request_fresh_name() + "_if"
+        fun_name = (
+            self.revert_function_name
+            if revert_if
+            else self._request_fresh_name() + "_if"
+        )
         if not revert_if or not self.call_revert:
             if_fun = ast.FunctionDefinition(
                 name=fun_name,
@@ -124,7 +128,7 @@ class ScopeFlattener(AstMapper):
                 body=ast.Block((node,)),
             )
             self.block_functions.append(if_fun)
-        
+
         self.call_revert |= revert_if
 
         if mod_vars == []:
@@ -148,8 +152,12 @@ class ScopeFlattener(AstMapper):
 
     def is_leave_if(self, node: ast.If):
         body_stmt = node.body.statements[0] if node.body.statements else None
-        else_stmt = node.else_body.statements[0] if (node.else_body and node.else_body.statements) else None
-        
+        else_stmt = (
+            node.else_body.statements[0]
+            if (node.else_body and node.else_body.statements)
+            else None
+        )
+
         return isinstance(body_stmt, ast.Leave) or isinstance(else_stmt, ast.Leave)
 
     def _request_fresh_name(self):
