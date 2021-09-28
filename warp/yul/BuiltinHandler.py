@@ -403,7 +403,6 @@ class CallDataLoad(BuiltinHandler):
 
 class CallDataSize(BuiltinHandler):
     def __init__(self, function_args: str):
-        self.offset: str = get_low_bits(function_args.split(",")[0].strip())
         super().__init__(
             module="",
             function_name="",
@@ -420,6 +419,7 @@ YUL_BUILTINS_MAP = {
     "byte": Byte,
     "caller": Caller,
     "calldataload": CallDataLoad,
+    "calldatasize": CallDataSize,
     "div": Div,
     "eq": Eq,
     "exp": Exp,

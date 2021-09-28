@@ -1,5 +1,4 @@
 from __future__ import annotations
-from transpiler.Imports import merge_imports, format_imports
 
 from collections import defaultdict
 from contextlib import contextmanager
@@ -11,19 +10,6 @@ from yul.yul_ast import AstVisitor
 
 UINT128_BOUND = 2 ** 128
 
-COMMON_IMPORTS = {
-    "starkware.cairo.common.registers": {"get_fp_and_pc"},
-    "starkware.cairo.common.dict_access": {"DictAccess"},
-    "starkware.cairo.common.math_cmp": {"is_le"},
-    "starkware.cairo.common.default_dict": {
-        "default_dict_new",
-    },
-    "starkware.cairo.common.uint256": {"Uint256", "uint256_eq"},
-    "starkware.cairo.common.cairo_builtins": {"HashBuiltin"},
-    "starkware.starknet.common.storage": {"Storage"},
-    "evm.utils": {"update_msize"},
-    "evm.exec_env": {"ExecutionEnvironment"},
-}
 
 MAIN_PREAMBLE = """%lang starknet
 %builtins pedersen range_check
@@ -33,21 +19,23 @@ MAIN_PREAMBLE = """%lang starknet
 class NeedsExececutionEnvironment(AstVisitor):
     def __init__(self):
         super().__init__()
-        self.external_functions: list[str] = []
-        self.imports = defaultdict(set)
         self.last_function: Optional[ast.FunctionDefinition] = None
-        self.curr_func: str = []
         self.callgraph = {}
         self.needs_exec_env: list[str] = []
+        self.visited: list[str] = []
 
     def traverse_inner(self, calledFuncs):
         if calledFuncs == []:
             return
         else:
             for func in calledFuncs:
-                if self.callgraph[func]["calldataOp"]:
-                    self.needs_exec_env.append(func)
-                self.traverse_inner(self.callgraph[func]["calledFunctions"])
+                if func in self.visited:
+                    continue
+                else:
+                    if self.callgraph[func]["calldataOp"]:
+                        self.needs_exec_env.append(func)
+                    self.visited.append(func)
+                    self.traverse_inner(self.callgraph[func]["calledFunctions"])
 
     def traverse_callgraph(self, callgraph):
         for k, v in callgraph.items():
@@ -113,7 +101,6 @@ class NeedsExececutionEnvironment(AstVisitor):
         result: str
         if fun_repr in YUL_BUILTINS_MAP:
             builtin_to_cairo = YUL_BUILTINS_MAP[fun_repr](args_repr)
-            merge_imports(self.imports, builtin_to_cairo.required_imports())
             result = f"{builtin_to_cairo.function_call}"
         else:
             self.callgraph[self.cur_function]["calledFunctions"].append(fun_repr)

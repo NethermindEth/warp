@@ -12,6 +12,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: install solc
+        run: |
+          sudo apt-get install gcc-11
+          sudo apt-get install g++-11
+          sudo add-apt-repository ppa:ethereum/ethereum
+          sudo apt-get update
+          sudo apt-get install solc
+
       - name: Setup Python
         uses: actions/setup-python@v2.2.2
         with:
@@ -24,7 +32,7 @@ jobs:
       # cairo-run assert
       - name: Install Cairo
         run: |
-          pip install cairo-lang==0.4.0
+          pip install cairo-lang==0.4.1
 
       - name: Test yul tests
         run: |

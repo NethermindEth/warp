@@ -16,6 +16,7 @@ from yul.utils import (
     get_public_functions,
     validate_solc_ver,
 )
+
 from yul.yul_ast import AstVisitor
 
 UINT128_BOUND = 2 ** 128
@@ -129,6 +130,8 @@ class ToCairoVisitor(AstVisitor):
             return ""
         if fun_repr == "checked_add_uint256":
             fun_repr = "add"
+        if fun_repr == "pop":
+            return ""
         if "callvalue" in fun_repr:
             return "Uint256(0,0)"
         result: str
@@ -140,7 +143,7 @@ class ToCairoVisitor(AstVisitor):
         else:
             self.last_used_implicits = sorted(
                 self.function_to_implicits.setdefault(
-                    node.function_name.name, IMPLICITS_SET
+                    node.function_name.name, (IMPLICITS_SET - {"exec_env"})
                 )
             )
             implicits_call = ", ".join(f"{x}={x}" for x in self.last_used_implicits)
@@ -156,7 +159,6 @@ class ToCairoVisitor(AstVisitor):
                 if (implicits_call == "" or "return" in fun_repr)
                 else f"{fun_repr}{{{implicits_call}}}({args_repr})"
             )
-
         self.function_to_implicits.setdefault(self.last_function.name, set()).update(
             self.last_used_implicits
         )
@@ -182,8 +184,7 @@ class ToCairoVisitor(AstVisitor):
         vars_repr = ", ".join(f"local {self.visit(x)}" for x in node.variables)
         if isinstance(node.value, ast.FunctionCall):
             if "calldatasize" in node.value.function_name.name:
-                self.last_used_implicits = tuple("")
-                return f"{vars_repr} = Uint256(exec_env.calldata_size, 0)"
+                return f"{vars_repr} = {value_repr}"
             else:
                 return f"let ({vars_repr}) = {value_repr}"
         else:
@@ -207,8 +208,7 @@ class ToCairoVisitor(AstVisitor):
         if "ENTRY_POINT" in node.name:
             self.in_entry_function = True
         self.last_function = node
-        taboos = ["checked_add"]
-        if any(taboo in node.name for taboo in taboos):
+        if node.name == "checked_add_uint256":
             return ""
         params_repr = ", ".join(self.print(x) for x in node.parameters)
         returns_repr = ", ".join(self.print(x) for x in node.return_variables)
@@ -308,9 +308,15 @@ class ToCairoVisitor(AstVisitor):
             f"Uint256({x.name}_low, {x.name}_high)" for x in node.parameters
         )
         inner_returns = ", ".join(x.name for x in node.return_variables)
-        inner_call = (
-            f"{node.name}{{memory_dict=memory_dict, msize=msize}}({inner_args})"
+        self.function_to_implicits[node.name].add("range_check_ptr")
+        inner_call_implicits = (
+            "{"
+            + ", ".join(
+                f"{x}={x}" for x in sorted(self.function_to_implicits[node.name])
+            )
+            + "}"
         )
+        inner_call = f"{node.name}{inner_call_implicits}({inner_args})"
         inner_assignment = (
             f"let ({inner_returns}) = {inner_call}"
             if node.return_variables
