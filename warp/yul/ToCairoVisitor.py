@@ -27,6 +27,7 @@ COMMON_IMPORTS = {
     "starkware.cairo.common.math_cmp": {"is_le"},
     "starkware.cairo.common.default_dict": {
         "default_dict_new",
+        "default_dict_finalize",
     },
     "starkware.cairo.common.uint256": {"Uint256", "uint256_eq"},
     "starkware.cairo.common.cairo_builtins": {"HashBuiltin"},
@@ -226,8 +227,10 @@ class ToCairoVisitor(AstVisitor):
                 f"local exec_env : ExecutionEnvironment = ExecutionEnvironment("
                 f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata)\n"
                 "let (memory_dict) = default_dict_new(0)\n"
+                f"local memory_dict_start: DictAccess* = memory_dict\n"
                 "let msize = 0\n"
                 f"{body_repr}\n"
+                f"default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
                 f"end\n"
             )
 
@@ -307,7 +310,9 @@ class ToCairoVisitor(AstVisitor):
         inner_args = ", ".join(
             f"Uint256({x.name}_low, {x.name}_high)" for x in node.parameters
         )
-        inner_returns = ", ".join(x.name for x in node.return_variables)
+        inner_returns = ", ".join(
+            "local " + x.name + " : Uint256" for x in node.return_variables
+        )
         self.function_to_implicits[node.name].add("range_check_ptr")
         inner_call_implicits = (
             "{"
@@ -328,14 +333,28 @@ class ToCairoVisitor(AstVisitor):
         self.external_functions.append(node.name)
         implicits = sorted(IMPLICITS_SET - {"msize", "memory_dict", "exec_env"})
         implicits_repr = ", ".join(print_implicit(x) for x in implicits)
+        implicit_copy = "\n".join(
+            [
+                "local "
+                + implicit
+                + (" : " + (IMPLICITS[implicit]) if IMPLICITS[implicit] else "")
+                + "="
+                + implicit
+                for implicit in implicits
+            ]
+        )
         return (
             f"\n@external\n"
             f"func {node.name}_external"
             f"{{{implicits_repr}}}"
             f"({params}) -> ({returns}):\n"
+            f"alloc_locals\n"
             f"let (memory_dict) = default_dict_new(0)\n"
+            f"local memory_dict_start : DictAccess* = memory_dict\n"
             f"let msize = 0\n"
             f"{inner_assignment}\n"
+            f"{implicit_copy}\n"
+            f"default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
             f"return ({split_returns})\n"
             f"end\n\n"
         )
