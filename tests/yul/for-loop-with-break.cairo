@@ -54,6 +54,18 @@ func __warp_block_00(_4 : Uint256) -> ():
     end
 end
 
+func checked_add_uint256{range_check_ptr}(x : Uint256, y : Uint256) -> (sum : Uint256):
+    alloc_locals
+    let (local _1_5 : Uint256) = uint256_not(y)
+    local range_check_ptr = range_check_ptr
+    let (local _2_6 : Uint256) = is_gt(x, _1_5)
+    local range_check_ptr = range_check_ptr
+    __warp_block_00(_2_6)
+    let (local sum : Uint256) = u256_add(x, y)
+    local range_check_ptr = range_check_ptr
+    return (sum)
+end
+
 func checked_sub_uint256{range_check_ptr}(x_7 : Uint256) -> (diff : Uint256):
     alloc_locals
     local _1_8 : Uint256 = Uint256(low=1, high=0)
@@ -86,7 +98,7 @@ func __warp_loop_body_0{range_check_ptr}(
     let (local __warp_break_0 : Uint256) = __warp_block_0_if(_1_11, __warp_break_0)
     let (local var_k : Uint256) = checked_sub_uint256{range_check_ptr=range_check_ptr}(var_k)
     local range_check_ptr = range_check_ptr
-    let (local var_k : Uint256) = u256_add(var_k, var_j)
+    let (local var_k : Uint256) = checked_add_uint256{range_check_ptr=range_check_ptr}(var_k, var_j)
     local range_check_ptr = range_check_ptr
     return (__warp_break_0, var_k)
 end

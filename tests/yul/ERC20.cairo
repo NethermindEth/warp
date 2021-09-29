@@ -4,14 +4,14 @@
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import mstore_
 from evm.sha3 import sha
-from evm.uint256 import is_eq, is_lt, is_zero, u256_add
+from evm.uint256 import is_eq, is_gt, is_lt, is_zero, u256_add
 from evm.utils import update_msize
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_sub
+from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_not, uint256_sub
 from starkware.starknet.common.storage import Storage
 
 @storage_var
@@ -54,6 +54,18 @@ func __warp_block_00(_4 : Uint256) -> ():
     else:
         return ()
     end
+end
+
+func checked_add_uint256{range_check_ptr}(x : Uint256, y : Uint256) -> (sum : Uint256):
+    alloc_locals
+    let (local _1_62 : Uint256) = uint256_not(y)
+    local range_check_ptr = range_check_ptr
+    let (local _2_63 : Uint256) = is_gt(x, _1_62)
+    local range_check_ptr = range_check_ptr
+    __warp_block_00(_2_63)
+    let (local sum : Uint256) = u256_add(x, y)
+    local range_check_ptr = range_check_ptr
+    return (sum)
 end
 
 func checked_sub_uint256{range_check_ptr}(x_64 : Uint256, y_65 : Uint256) -> (diff : Uint256):
@@ -233,7 +245,8 @@ func fun_deposit{
     local storage_ptr : Storage* = storage_ptr
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     let (local _3_76 : Uint256) = cleanup_from_storage_uint256(_2_75)
-    let (local _4_77 : Uint256) = u256_add(_3_76, var_value)
+    let (local _4_77 : Uint256) = checked_add_uint256{range_check_ptr=range_check_ptr}(
+        _3_76, var_value)
     local range_check_ptr = range_check_ptr
     update_storage_value_offsett_uint256_to_uint256{
         pedersen_ptr=pedersen_ptr, storage_ptr=storage_ptr}(_1_74, _4_77)
@@ -426,7 +439,8 @@ func fun_transferFrom{
     local storage_ptr : Storage* = storage_ptr
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     let (local _24 : Uint256) = cleanup_from_storage_uint256(_23)
-    let (local _25 : Uint256) = u256_add(_24, var_wad_78)
+    let (local _25 : Uint256) = checked_add_uint256{range_check_ptr=range_check_ptr}(
+        _24, var_wad_78)
     local range_check_ptr = range_check_ptr
     update_storage_value_offsett_uint256_to_uint256{
         pedersen_ptr=pedersen_ptr, storage_ptr=storage_ptr}(_22, _25)

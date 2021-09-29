@@ -129,8 +129,6 @@ class ToCairoVisitor(AstVisitor):
             return ""
         if "return" in fun_repr:
             return ""
-        if fun_repr == "checked_add_uint256":
-            fun_repr = "add"
         if fun_repr == "pop":
             return ""
         if "callvalue" in fun_repr:
@@ -209,8 +207,6 @@ class ToCairoVisitor(AstVisitor):
         if "ENTRY_POINT" in node.name:
             self.in_entry_function = True
         self.last_function = node
-        if node.name == "checked_add_uint256":
-            return ""
         params_repr = ", ".join(self.print(x) for x in node.parameters)
         returns_repr = ", ".join(self.print(x) for x in node.return_variables)
         if "revert" in node.name:
