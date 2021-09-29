@@ -276,15 +276,12 @@ func fun_transferFrom_external{
     let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
-    let (local var : Uint256) = fun_transferFrom{
-        memory_dict=memory_dict,
-        msize=msize,
-        pedersen_ptr=pedersen_ptr,
-        range_check_ptr=range_check_ptr,
-        storage_ptr=storage_ptr}(
-        Uint256(var_src_low, var_src_high),
-        Uint256(var_wad_low, var_wad_high),
-        Uint256(var_sender_low, var_sender_high))
+    with memory_dict, msize:
+        let (local var : Uint256) = fun_transferFrom(
+            Uint256(var_src_low, var_src_high),
+            Uint256(var_wad_low, var_wad_high),
+            Uint256(var_sender_low, var_sender_high))
+    end
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr

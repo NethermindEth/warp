@@ -307,17 +307,9 @@ class ToCairoVisitor(AstVisitor):
             f"Uint256({x.name}_low, {x.name}_high)" for x in node.parameters
         )
         inner_returns = ", ".join(
-            "local " + x.name + " : Uint256" for x in node.return_variables
+            f"local {self.visit(x)}" for x in node.return_variables
         )
-        self.function_to_implicits[node.name].add("range_check_ptr")
-        inner_call_implicits = (
-            "{"
-            + ", ".join(
-                f"{x}={x}" for x in sorted(self.function_to_implicits[node.name])
-            )
-            + "}"
-        )
-        inner_call = f"{node.name}{inner_call_implicits}({inner_args})"
+        inner_call = f"{node.name}({inner_args})"
         inner_assignment = (
             f"let ({inner_returns}) = {inner_call}"
             if node.return_variables
@@ -339,7 +331,9 @@ class ToCairoVisitor(AstVisitor):
             f"let (local memory_dict) = default_dict_new(0)\n"
             f"local memory_dict_start : DictAccess* = memory_dict\n"
             f"let msize = 0\n"
-            f"{inner_assignment}\n"
+            f"with memory_dict, msize:\n"
+            f"  {inner_assignment}\n"
+            f"end\n"
             f"{implicit_copy}\n"
             f"default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
             f"return ({split_returns})\n"
