@@ -34,14 +34,14 @@ class ScopeFlattener(AstMapper):
                     stmts.append(new_stmt)
             return ast.Block(tuple(stmts))
 
-        free_vars = sorted(node.scope.free_variables)  # to ensure order
+        read_vars = sorted(node.scope.read_variables)  # to ensure order
         mod_vars = sorted(node.scope.modified_variables)
         # ↓ default Uint256 type for everything
-        typed_free_vars = [ast.TypedName(x.name) for x in free_vars]
+        typed_read_vars = [ast.TypedName(x.name) for x in read_vars]
         typed_mod_vars = [ast.TypedName(x.name) for x in mod_vars]
         block_fun = ast.FunctionDefinition(
             name=self._request_fresh_name(),
-            parameters=typed_free_vars,
+            parameters=typed_read_vars,
             return_variables=typed_mod_vars,
             body=node,
         )
@@ -49,7 +49,7 @@ class ScopeFlattener(AstMapper):
             self.block_functions.append(block_fun)
             block_call = ast.FunctionCall(
                 function_name=ast.Identifier(block_fun.name),
-                arguments=free_vars,
+                arguments=read_vars,
             )
 
         else:
@@ -58,7 +58,7 @@ class ScopeFlattener(AstMapper):
                 variable_names=mod_vars,
                 value=ast.FunctionCall(
                     function_name=ast.Identifier(block_fun.name),
-                    arguments=free_vars,
+                    arguments=read_vars,
                 ),
             )
         return ast.Block((self.visit(block_call),))
@@ -107,10 +107,10 @@ class ScopeFlattener(AstMapper):
 
         if_block_scope = ast.Block((node,)).scope
 
-        free_vars = sorted(if_block_scope.free_variables)
+        read_vars = sorted(if_block_scope.read_variables)
         mod_vars = sorted(if_block_scope.modified_variables)
 
-        typed_free_vars = [ast.TypedName(x.name) for x in free_vars]
+        typed_read_vars = [ast.TypedName(x.name) for x in read_vars]
         typed_mod_vars = [ast.TypedName(x.name) for x in mod_vars]
 
         revert_if = self.is_revert_if(node)
@@ -123,7 +123,7 @@ class ScopeFlattener(AstMapper):
         if not revert_if or not self.call_revert:
             if_fun = ast.FunctionDefinition(
                 name=fun_name,
-                parameters=typed_free_vars,
+                parameters=typed_read_vars,
                 return_variables=typed_mod_vars,
                 body=ast.Block((node,)),
             )
@@ -134,14 +134,14 @@ class ScopeFlattener(AstMapper):
         if mod_vars == []:
             return_assignment = ast.FunctionCall(
                 function_name=ast.Identifier(fun_name),
-                arguments=free_vars,
+                arguments=read_vars,
             )
         else:
             return_assignment = ast.Assignment(
                 variable_names=mod_vars,
                 value=ast.FunctionCall(
                     function_name=ast.Identifier(fun_name),
-                    arguments=free_vars,
+                    arguments=read_vars,
                 ),
             )
 
