@@ -1,3 +1,6 @@
+# NOTE
+Warp is under heavy development and is currently not stable. A stable release will be released in the coming weeks.
+
 # Warp
 
 Warp brings EVM compatible languages to StarkNet, making it possible to transpile Ethereum smart contracts to Cairo, and use them on StarkNet.
