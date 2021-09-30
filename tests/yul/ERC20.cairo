@@ -7,7 +7,7 @@ from evm.sha3 import sha
 from evm.uint256 import is_eq, is_lt, is_zero, u256_add
 from evm.utils import update_msize
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.default_dict import default_dict_new
+from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.registers import get_fp_and_pc
@@ -172,9 +172,11 @@ func fun_approve_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
         var_guy_low, var_guy_high, var_wad_low, var_wad_high, var_sender_low, var_sender_high) -> (
         var_low, var_high):
+    alloc_locals
     let (memory_dict) = default_dict_new(0)
+    local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
-    let (var) = fun_approve{
+    let (local var : Uint256) = fun_approve{
         memory_dict=memory_dict,
         msize=msize,
         pedersen_ptr=pedersen_ptr,
@@ -183,6 +185,11 @@ func fun_approve_external{
         Uint256(var_guy_low, var_guy_high),
         Uint256(var_wad_low, var_wad_high),
         Uint256(var_sender_low, var_sender_high))
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
+    local storage_ptr : Storage* = storage_ptr
+    local syscall_ptr : felt* = syscall_ptr
+    default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (var.low, var.high)
 end
 
@@ -242,15 +249,22 @@ func fun_deposit_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
         var_sender_72_low, var_sender_72_high, var_value_low, var_value_high) -> (
         var_73_low, var_73_high, var__low, var__high):
+    alloc_locals
     let (memory_dict) = default_dict_new(0)
+    local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
-    let (var_73, var_) = fun_deposit{
+    let (local var_73 : Uint256, local var_ : Uint256) = fun_deposit{
         memory_dict=memory_dict,
         msize=msize,
         pedersen_ptr=pedersen_ptr,
         range_check_ptr=range_check_ptr,
         storage_ptr=storage_ptr}(
         Uint256(var_sender_72_low, var_sender_72_high), Uint256(var_value_low, var_value_high))
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
+    local storage_ptr : Storage* = storage_ptr
+    local syscall_ptr : felt* = syscall_ptr
+    default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (var_73.low, var_73.high, var_.low, var_.high)
 end
 
@@ -427,9 +441,11 @@ func fun_transferFrom_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
         var_src_low, var_src_high, var_dst_low, var_dst_high, var_wad_78_low, var_wad_78_high,
         var_sender_79_low, var_sender_79_high) -> (var_80_low, var_80_high):
+    alloc_locals
     let (memory_dict) = default_dict_new(0)
+    local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
-    let (var_80) = fun_transferFrom{
+    let (local var_80 : Uint256) = fun_transferFrom{
         memory_dict=memory_dict,
         msize=msize,
         pedersen_ptr=pedersen_ptr,
@@ -439,6 +455,11 @@ func fun_transferFrom_external{
         Uint256(var_dst_low, var_dst_high),
         Uint256(var_wad_78_low, var_wad_78_high),
         Uint256(var_sender_79_low, var_sender_79_high))
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
+    local storage_ptr : Storage* = storage_ptr
+    local syscall_ptr : felt* = syscall_ptr
+    default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (var_80.low, var_80.high)
 end
 
@@ -496,7 +517,9 @@ end
 func fun_withdraw_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
         var_wad_89_low, var_wad_89_high, var_sender_90_low, var_sender_90_high) -> ():
+    alloc_locals
     let (memory_dict) = default_dict_new(0)
+    local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
     fun_withdraw{
         memory_dict=memory_dict,
@@ -505,5 +528,10 @@ func fun_withdraw_external{
         range_check_ptr=range_check_ptr,
         storage_ptr=storage_ptr}(
         Uint256(var_wad_89_low, var_wad_89_high), Uint256(var_sender_90_low, var_sender_90_high))
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
+    local storage_ptr : Storage* = storage_ptr
+    local syscall_ptr : felt* = syscall_ptr
+    default_dict_finalize(memory_dict_start, memory_dict, 0)
     return ()
 end

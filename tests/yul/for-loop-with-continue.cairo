@@ -5,7 +5,7 @@ from evm.exec_env import ExecutionEnvironment
 from evm.uint256 import is_gt, is_lt, u256_add
 from evm.utils import update_msize
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.default_dict import default_dict_new
+from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.registers import get_fp_and_pc
@@ -160,14 +160,21 @@ end
 func fun_transferFrom_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
         var_i_low, var_i_high, var_j_low, var_j_high) -> (var_low, var_high):
+    alloc_locals
     let (memory_dict) = default_dict_new(0)
+    local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
-    let (var) = fun_transferFrom{
+    let (local var : Uint256) = fun_transferFrom{
         memory_dict=memory_dict,
         msize=msize,
         pedersen_ptr=pedersen_ptr,
         range_check_ptr=range_check_ptr,
         storage_ptr=storage_ptr,
         syscall_ptr=syscall_ptr}(Uint256(var_i_low, var_i_high), Uint256(var_j_low, var_j_high))
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
+    local storage_ptr : Storage* = storage_ptr
+    local syscall_ptr : felt* = syscall_ptr
+    default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (var.low, var.high)
 end
