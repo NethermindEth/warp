@@ -1,6 +1,7 @@
 from __future__ import annotations
 from transpiler.Operation import Operation
 
+
 class CodeSize(Operation):
     code_size: int
 

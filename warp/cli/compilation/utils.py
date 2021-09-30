@@ -7,6 +7,7 @@ sys.path.append(os.path.join(WARP_ROOT, "src"))
 from eth_hash.auto import keccak
 from cli.compilation.Contract import Contract, Language
 import json
+
 artifacts_dir = os.path.join(os.path.abspath("."), "artifacts")
 
 
@@ -41,6 +42,7 @@ def get_func_sigs(abi: List[Dict[str, str]]) -> Dict[str, int]:
         sigs[name] = 1 if item["stateMutability"] == "payable" else 0
     return sigs
 
+
 #  DUP1
 #  PUSH4 0x47e7ef24
 #  GT
@@ -66,6 +68,7 @@ def is_gt_seq(opcodes: List[str], language: Language):
         ]
         return is_gt_seq, replace_seq
     return False, []
+
 
 # CALLVALUE
 # ISZERO

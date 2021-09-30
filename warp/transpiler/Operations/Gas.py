@@ -2,6 +2,7 @@ from transpiler.Operation import Operation
 
 MAX_VAL = 2 ** 64 - 1
 
+
 class Gas(Operation):
     def proceed(self, state):
         """

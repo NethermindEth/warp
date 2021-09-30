@@ -15,9 +15,9 @@ class FunctionPruner(AstMapper):
     def map(self, node: ast.Node, *args, **kwargs) -> ast.Node:
         if not isinstance(node, ast.Block):
             return self.visit(node)
-        
+
         self.callgraph = cleanup_callgraph(CallGraphBuilder().gather(node))
-        
+
         for function in self.callgraph:
             f_name = function.name
             if f_name in self.public_functions or "ENTRY_POINT" in f_name:
@@ -41,9 +41,9 @@ class FunctionPruner(AstMapper):
         for f in self.callgraph[function]:
             if not f.name in self.visited_functions:
                 self._dfs(f)
-        
+
     def _is_unused_function(self, node):
         return (
-            isinstance(node, ast.FunctionDefinition) and 
-            not node.name in self.visited_functions
+            isinstance(node, ast.FunctionDefinition)
+            and not node.name in self.visited_functions
         )
