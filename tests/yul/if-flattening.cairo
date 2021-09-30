@@ -273,7 +273,7 @@ func fun_transferFrom_external{
         var_src_low, var_src_high, var_wad_low, var_wad_high, var_sender_low, var_sender_high) -> (
         var_low, var_high):
     alloc_locals
-    let (memory_dict) = default_dict_new(0)
+    let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
     let (local var : Uint256) = fun_transferFrom{

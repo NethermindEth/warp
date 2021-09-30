@@ -161,7 +161,7 @@ func fun_transferFrom_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
         var_i_low, var_i_high, var_j_low, var_j_high) -> (var_low, var_high):
     alloc_locals
-    let (memory_dict) = default_dict_new(0)
+    let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
     let (local var : Uint256) = fun_transferFrom{

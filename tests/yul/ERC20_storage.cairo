@@ -173,7 +173,7 @@ func fun_approve_external{
         var_guy_low, var_guy_high, var_wad_low, var_wad_high, var_sender_low, var_sender_high) -> (
         var__low, var__high):
     alloc_locals
-    let (memory_dict) = default_dict_new(0)
+    let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
     let (local var_ : Uint256) = fun_approve{
@@ -246,7 +246,7 @@ func fun_deposit_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
         var_sender_65_low, var_sender_65_high, var_value_low, var_value_high) -> ():
     alloc_locals
-    let (memory_dict) = default_dict_new(0)
+    let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
     fun_deposit{
@@ -298,7 +298,7 @@ func fun_get_balance_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
         var_src_low, var_src_high) -> (var_low, var_high):
     alloc_locals
-    let (memory_dict) = default_dict_new(0)
+    let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
     let (local var : Uint256) = fun_get_balance{
@@ -476,7 +476,7 @@ func fun_transferFrom_external{
         var_src_71_low, var_src_71_high, var_dst_low, var_dst_high, var_wad_72_low,
         var_wad_72_high, var_sender_73_low, var_sender_73_high) -> (var_74_low, var_74_high):
     alloc_locals
-    let (memory_dict) = default_dict_new(0)
+    let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
     let (local var_74 : Uint256) = fun_transferFrom{
@@ -541,7 +541,7 @@ func fun_withdraw_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
         var_wad_83_low, var_wad_83_high, var_sender_84_low, var_sender_84_high) -> ():
     alloc_locals
-    let (memory_dict) = default_dict_new(0)
+    let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
     fun_withdraw{
