@@ -1,7 +1,7 @@
 import pytest
 import os
 
-from starknet.compile import compile_starknet_files
+from starkware.starknet.compiler.compile import compile_starknet_files
 
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
 test_dir = os.path.join(warp_root, "tests", "yul")
