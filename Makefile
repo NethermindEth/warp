@@ -12,7 +12,6 @@ warp: .warp-activation-token
 .warp-activation-token: $(SRC_FILES) setup.py $(PY_REQUIREMENTS)
 	pip install -r $(PY_REQUIREMENTS)
 	python setup.py install
-	autohooks activate
 	touch .warp-activation-token
 
 test: test_bats test_yul
