@@ -299,11 +299,9 @@ class ToCairoVisitor(AstVisitor):
         return f"return ({return_names})"
 
     def _make_external_function(self, node: ast.FunctionDefinition) -> str:
-        params = ", ".join(self.print(x, split=True) for x in node.parameters)
+        params = ", ".join(self.print(x, split=False) for x in node.parameters)
         returns = ", ".join(self.print(x, split=True) for x in node.return_variables)
-        inner_args = ", ".join(
-            f"Uint256({x.name}_low, {x.name}_high)" for x in node.parameters
-        )
+        inner_args = ", ".join(x.name for x in node.parameters)
         inner_returns = ", ".join(
             f"local {self.visit(x)}" for x in node.return_variables
         )
