@@ -5,7 +5,6 @@ import os
 import sys
 
 from starkware.cairo.lang.compiler.parser import parse_file
-
 from yul.ExpressionSplitter import ExpressionSplitter
 from yul.ForLoopEliminator import ForLoopEliminator
 from yul.ForLoopSimplifier import ForLoopSimplifier
@@ -16,8 +15,8 @@ from yul.RevertNormalizer import RevertNormalizer
 from yul.ScopeFlattener import ScopeFlattener
 from yul.SwitchToIfVisitor import SwitchToIfVisitor
 from yul.ToCairoVisitor import ToCairoVisitor
-from yul.utils import get_public_functions
 from yul.parse import parse_node
+from yul.utils import get_public_functions
 
 AST_GENERATOR = "gen-yul-json-ast"
 
@@ -54,3 +53,15 @@ def generate_cairo(sol_src_path, main_contract):
     cairo_visitor = ToCairoVisitor(sol_source, sol_src_path, main_contract)
     cairo_code = cairo_visitor.translate(yul_ast)
     return parse_file(cairo_code).format()
+
+
+def main(argv):
+    if len(argv) != 3:
+        sys.exit("Supply SOLIDITY-CONTRACT and MAIN-CONTRACT-NAME")
+    sol_src_path = argv[1]
+    main_contract = argv[2]
+    generate_cairo(sol_src_path, main_contract)
+
+
+if __name__ == "__main__":
+    main(sys.argv)

@@ -144,8 +144,7 @@ end
 
 func __warp_block_3{
         memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        storage_ptr : Storage*}(
-        var_res : Uint256, var_sender : Uint256, var_src : Uint256, var_wad : Uint256) -> (
+        storage_ptr : Storage*}(var_sender : Uint256, var_src : Uint256, var_wad : Uint256) -> (
         var_res : Uint256):
     alloc_locals
     let (
@@ -177,8 +176,8 @@ end
 func __warp_block_2_if{
         memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
         storage_ptr : Storage*}(
-        __warp_subexpr_0 : Uint256, var_res : Uint256, var_sender : Uint256, var_src : Uint256,
-        var_wad : Uint256) -> (var_res : Uint256):
+        __warp_subexpr_0 : Uint256, var_sender : Uint256, var_src : Uint256, var_wad : Uint256) -> (
+        var_res : Uint256):
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         local var_res : Uint256 = Uint256(low=2, high=0)
@@ -189,7 +188,7 @@ func __warp_block_2_if{
             msize=msize,
             pedersen_ptr=pedersen_ptr,
             range_check_ptr=range_check_ptr,
-            storage_ptr=storage_ptr}(var_res, var_sender, var_src, var_wad)
+            storage_ptr=storage_ptr}(var_sender, var_src, var_wad)
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local pedersen_ptr : HashBuiltin* = pedersen_ptr
@@ -202,8 +201,8 @@ end
 func __warp_block_1{
         memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
         storage_ptr : Storage*}(
-        match_var : Uint256, var_res : Uint256, var_sender : Uint256, var_src : Uint256,
-        var_wad : Uint256) -> (var_res : Uint256):
+        match_var : Uint256, var_sender : Uint256, var_src : Uint256, var_wad : Uint256) -> (
+        var_res : Uint256):
     alloc_locals
     let (local __warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=0, high=0))
     local range_check_ptr = range_check_ptr
@@ -212,7 +211,7 @@ func __warp_block_1{
         msize=msize,
         pedersen_ptr=pedersen_ptr,
         range_check_ptr=range_check_ptr,
-        storage_ptr=storage_ptr}(__warp_subexpr_0, var_res, var_sender, var_src, var_wad)
+        storage_ptr=storage_ptr}(__warp_subexpr_0, var_sender, var_src, var_wad)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
@@ -224,8 +223,8 @@ end
 func __warp_block_0{
         memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
         storage_ptr : Storage*}(
-        _2_15 : Uint256, var_res : Uint256, var_sender : Uint256, var_src : Uint256,
-        var_wad : Uint256) -> (var_res : Uint256):
+        _2_15 : Uint256, var_sender : Uint256, var_src : Uint256, var_wad : Uint256) -> (
+        var_res : Uint256):
     alloc_locals
     local match_var : Uint256 = _2_15
     let (local var_res : Uint256) = __warp_block_1{
@@ -233,7 +232,7 @@ func __warp_block_0{
         msize=msize,
         pedersen_ptr=pedersen_ptr,
         range_check_ptr=range_check_ptr,
-        storage_ptr=storage_ptr}(match_var, var_res, var_sender, var_src, var_wad)
+        storage_ptr=storage_ptr}(match_var, var_sender, var_src, var_wad)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
@@ -257,7 +256,7 @@ func fun_transferFrom{
         msize=msize,
         pedersen_ptr=pedersen_ptr,
         range_check_ptr=range_check_ptr,
-        storage_ptr=storage_ptr}(_2_15, var_res, var_sender, var_src, var_wad)
+        storage_ptr=storage_ptr}(_2_15, var_sender, var_src, var_wad)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
@@ -273,18 +272,15 @@ func fun_transferFrom_external{
         var_src_low, var_src_high, var_wad_low, var_wad_high, var_sender_low, var_sender_high) -> (
         var_low, var_high):
     alloc_locals
-    let (memory_dict) = default_dict_new(0)
+    let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
-    let (local var : Uint256) = fun_transferFrom{
-        memory_dict=memory_dict,
-        msize=msize,
-        pedersen_ptr=pedersen_ptr,
-        range_check_ptr=range_check_ptr,
-        storage_ptr=storage_ptr}(
-        Uint256(var_src_low, var_src_high),
-        Uint256(var_wad_low, var_wad_high),
-        Uint256(var_sender_low, var_sender_high))
+    with memory_dict, msize:
+        let (local var : Uint256) = fun_transferFrom(
+            Uint256(var_src_low, var_src_high),
+            Uint256(var_wad_low, var_wad_high),
+            Uint256(var_sender_low, var_sender_high))
+    end
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr

@@ -129,8 +129,6 @@ class ToCairoVisitor(AstVisitor):
             return ""
         if "return" in fun_repr:
             return ""
-        if fun_repr == "checked_add_uint256":
-            fun_repr = "add"
         if fun_repr == "pop":
             return ""
         if "callvalue" in fun_repr:
@@ -209,8 +207,6 @@ class ToCairoVisitor(AstVisitor):
         if "ENTRY_POINT" in node.name:
             self.in_entry_function = True
         self.last_function = node
-        if node.name == "checked_add_uint256":
-            return ""
         params_repr = ", ".join(self.print(x) for x in node.parameters)
         returns_repr = ", ".join(self.print(x) for x in node.return_variables)
         if "revert" in node.name:
@@ -226,7 +222,7 @@ class ToCairoVisitor(AstVisitor):
                 f"alloc_locals\n"
                 f"local exec_env : ExecutionEnvironment = ExecutionEnvironment("
                 f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata)\n"
-                "let (memory_dict) = default_dict_new(0)\n"
+                "let (local memory_dict) = default_dict_new(0)\n"
                 f"local memory_dict_start: DictAccess* = memory_dict\n"
                 "let msize = 0\n"
                 f"{body_repr}\n"
@@ -311,17 +307,9 @@ class ToCairoVisitor(AstVisitor):
             f"Uint256({x.name}_low, {x.name}_high)" for x in node.parameters
         )
         inner_returns = ", ".join(
-            "local " + x.name + " : Uint256" for x in node.return_variables
+            f"local {self.visit(x)}" for x in node.return_variables
         )
-        self.function_to_implicits[node.name].add("range_check_ptr")
-        inner_call_implicits = (
-            "{"
-            + ", ".join(
-                f"{x}={x}" for x in sorted(self.function_to_implicits[node.name])
-            )
-            + "}"
-        )
-        inner_call = f"{node.name}{inner_call_implicits}({inner_args})"
+        inner_call = f"{node.name}({inner_args})"
         inner_assignment = (
             f"let ({inner_returns}) = {inner_call}"
             if node.return_variables
@@ -333,26 +321,19 @@ class ToCairoVisitor(AstVisitor):
         self.external_functions.append(node.name)
         implicits = sorted(IMPLICITS_SET - {"msize", "memory_dict", "exec_env"})
         implicits_repr = ", ".join(print_implicit(x) for x in implicits)
-        implicit_copy = "\n".join(
-            [
-                "local "
-                + implicit
-                + (" : " + (IMPLICITS[implicit]) if IMPLICITS[implicit] else "")
-                + "="
-                + implicit
-                for implicit in implicits
-            ]
-        )
+        implicit_copy = "\n".join(copy_implicit(x) for x in implicits)
         return (
             f"\n@external\n"
             f"func {node.name}_external"
             f"{{{implicits_repr}}}"
             f"({params}) -> ({returns}):\n"
             f"alloc_locals\n"
-            f"let (memory_dict) = default_dict_new(0)\n"
+            f"let (local memory_dict) = default_dict_new(0)\n"
             f"local memory_dict_start : DictAccess* = memory_dict\n"
             f"let msize = 0\n"
-            f"{inner_assignment}\n"
+            f"with memory_dict, msize:\n"
+            f"  {inner_assignment}\n"
+            f"end\n"
             f"{implicit_copy}\n"
             f"default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
             f"return ({split_returns})\n"

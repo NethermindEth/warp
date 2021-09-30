@@ -1,6 +1,7 @@
-import pytest
-import os
 import difflib
+import os
+import pytest
+import sys
 
 from yul.main import generate_cairo
 
@@ -20,21 +21,29 @@ def test_transpilation(solidity_file):
     gen_cairo_code = generate_cairo(solidity_file, main_contract).splitlines()
 
     cairo_file_path = solidity_file[:-4] + cairo_suffix
-    with open(cairo_file_path, "r") as cairo_file:
-        cairo_code = cairo_file.read().splitlines()
-        cairo_file.close()
+    try:
+        with open(cairo_file_path, "r") as cairo_file:
+            cairo_code = cairo_file.read().splitlines()
+            cairo_file.close()
+    except OSError as e:
+        print(
+            f"Troubles with reading {cairo_file_path}: {e}. "
+            f"Treating the file as empty",
+            file=sys.stderr,
+        )
+        cairo_code = []
 
     temp_file_path = f"{cairo_file_path}.temp"
     with open(temp_file_path, "w") as temp_file:
         print(*gen_cairo_code, file=temp_file, sep="\n")
-        gen_cairo_code = clean(gen_cairo_code)
-        cairo_code = clean(cairo_code)
-        compare_codes(gen_cairo_code, cairo_code)
-        os.remove(temp_file_path)
+    gen_cairo_code = clean(gen_cairo_code)
+    cairo_code = clean(cairo_code)
+    compare_codes(gen_cairo_code, cairo_code)
+    os.remove(temp_file_path)
 
 
 def compare_codes(lines1, lines2):
-    d = difflib.context_diff(lines1, lines2, n=1, lineterm="")
+    d = difflib.unified_diff(lines1, lines2, n=1, lineterm="")
 
     message = "\n".join([line for line in d])
     assert len(message) == 0, message
