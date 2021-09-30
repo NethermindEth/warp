@@ -25,8 +25,6 @@ def test_transpilation(solidity_file):
         cairo_file.close()
 
     temp_file_path = f"{cairo_file_path}.temp"
-    marked_sol_file = solidity_file[:-4] + "_marked.sol"
-    os.remove(marked_sol_file)
     with open(temp_file_path, "w") as temp_file:
         print(*gen_cairo_code, file=temp_file, sep="\n")
         gen_cairo_code = clean(gen_cairo_code)
