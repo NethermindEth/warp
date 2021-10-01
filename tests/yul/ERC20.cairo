@@ -2,8 +2,6 @@
 %builtins pedersen range_check
 
 from evm.exec_env import ExecutionEnvironment
-from evm.memory import mstore_
-from evm.sha3 import sha
 from evm.uint256 import is_eq, is_gt, is_lt, is_zero, u256_add
 from evm.utils import update_msize
 from starkware.cairo.common.cairo_builtins import HashBuiltin
@@ -13,6 +11,14 @@ from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_not, uint256_sub
 from starkware.starknet.common.storage import Storage
+
+@storage_var
+func allowance(arg0_low, arg0_high, arg1_low, arg1_high) -> (res : Uint256):
+end
+
+@storage_var
+func balanceOf(arg0_low, arg0_high) -> (res : Uint256):
+end
 
 @storage_var
 func evm_storage(low : felt, high : felt, part : felt) -> (res : felt):
@@ -78,102 +84,27 @@ func checked_sub_uint256{range_check_ptr}(x_64 : Uint256, y_65 : Uint256) -> (di
     return (diff)
 end
 
-func cleanup_from_storage_uint256(value_67 : Uint256) -> (cleaned : Uint256):
+func cleanup_uint256(value_67 : Uint256) -> (cleaned : Uint256):
     alloc_locals
     local cleaned : Uint256 = value_67
     return (cleaned)
 end
 
-func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_570{
-        memory_dict : DictAccess*, msize, range_check_ptr}(key_106 : Uint256) -> (
-        dataSlot_107 : Uint256):
+func setter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
+        arg0_111 : Uint256, arg1_112 : Uint256, value_113 : Uint256) -> ():
     alloc_locals
-    local _1_108 : Uint256 = Uint256(low=0, high=0)
-    mstore_{memory_dict=memory_dict, range_check_ptr=range_check_ptr, msize=msize}(
-        offset=_1_108.low, value=key_106)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    local _2_109 : Uint256 = Uint256(low=3, high=0)
-    local _3_110 : Uint256 = Uint256(low=32, high=0)
-    mstore_{memory_dict=memory_dict, range_check_ptr=range_check_ptr, msize=msize}(
-        offset=_3_110.low, value=_2_109)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    local _4_111 : Uint256 = Uint256(low=64, high=0)
-    local _5_112 : Uint256 = _1_108
-    let (local dataSlot_107 : Uint256) = sha{
-        range_check_ptr=range_check_ptr, memory_dict=memory_dict, msize=msize}(
-        _1_108.low, _4_111.low)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    return (dataSlot_107)
-end
-
-func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256{
-        memory_dict : DictAccess*, msize, range_check_ptr}(slot : Uint256, key_127 : Uint256) -> (
-        dataSlot_128 : Uint256):
-    alloc_locals
-    local _1_129 : Uint256 = Uint256(low=0, high=0)
-    mstore_{memory_dict=memory_dict, range_check_ptr=range_check_ptr, msize=msize}(
-        offset=_1_129.low, value=key_127)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    local _2_130 : Uint256 = Uint256(low=32, high=0)
-    mstore_{memory_dict=memory_dict, range_check_ptr=range_check_ptr, msize=msize}(
-        offset=_2_130.low, value=slot)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    local _3_131 : Uint256 = Uint256(low=64, high=0)
-    local _4_132 : Uint256 = _1_129
-    let (local dataSlot_128 : Uint256) = sha{
-        range_check_ptr=range_check_ptr, memory_dict=memory_dict, msize=msize}(
-        _1_129.low, _3_131.low)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    return (dataSlot_128)
-end
-
-func update_byte_slice_shift(value_147 : Uint256, toInsert : Uint256) -> (result : Uint256):
-    alloc_locals
-    local result : Uint256 = toInsert
-    return (result)
-end
-
-func update_storage_value_offsett_uint256_to_uint256{
-        pedersen_ptr : HashBuiltin*, storage_ptr : Storage*, range_check_ptr}(
-        slot_148 : Uint256, value_149 : Uint256) -> ():
-    alloc_locals
-    let (local _1_150 : Uint256) = s_load{
-        storage_ptr=storage_ptr, range_check_ptr=range_check_ptr, pedersen_ptr=pedersen_ptr}(
-        slot_148)
-    local storage_ptr : Storage* = storage_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    let (local _2_151 : Uint256) = update_byte_slice_shift(_1_150, value_149)
-    s_store{storage_ptr=storage_ptr, range_check_ptr=range_check_ptr, pedersen_ptr=pedersen_ptr}(
-        key=slot_148, value=_2_151)
-    local storage_ptr : Storage* = storage_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    allowance.write(arg0_111.low, arg0_111.high, arg1_112.low, arg1_112.high, value_113)
     return ()
 end
 
-func fun_approve{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, storage_ptr : Storage*,
-        range_check_ptr}(var_guy : Uint256, var_wad : Uint256, var_sender : Uint256) -> (
-        var : Uint256):
+func fun_approve{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
+        var_guy : Uint256, var_wad : Uint256, var_sender : Uint256) -> (var : Uint256):
     alloc_locals
-    let (
-        local _1_70 : Uint256) = mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_570{
-        memory_dict=memory_dict, msize=msize}(var_sender)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    let (
-        local _2_71 : Uint256) = mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256{
-        memory_dict=memory_dict, msize=msize}(_1_70, var_guy)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    update_storage_value_offsett_uint256_to_uint256{
-        pedersen_ptr=pedersen_ptr, storage_ptr=storage_ptr}(_2_71, var_wad)
+    setter_fun_allowance{
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        var_sender, var_guy, var_wad)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
     local var : Uint256 = Uint256(low=1, high=0)
     return (var)
@@ -198,179 +129,131 @@ func fun_approve_external{
     return (var.low, var.high)
 end
 
-func mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_571{
-        memory_dict : DictAccess*, msize, range_check_ptr}(key_113 : Uint256) -> (
-        dataSlot_114 : Uint256):
+func getter_fun_balanceOf{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
+        arg0_93 : Uint256) -> (value_94 : Uint256):
     alloc_locals
-    local _1_115 : Uint256 = Uint256(low=0, high=0)
-    mstore_{memory_dict=memory_dict, range_check_ptr=range_check_ptr, msize=msize}(
-        offset=_1_115.low, value=key_113)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    local _2_116 : Uint256 = Uint256(low=2, high=0)
-    local _3_117 : Uint256 = Uint256(low=32, high=0)
-    mstore_{memory_dict=memory_dict, range_check_ptr=range_check_ptr, msize=msize}(
-        offset=_3_117.low, value=_2_116)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    local _4_118 : Uint256 = Uint256(low=64, high=0)
-    local _5_119 : Uint256 = _1_115
-    let (local dataSlot_114 : Uint256) = sha{
-        range_check_ptr=range_check_ptr, memory_dict=memory_dict, msize=msize}(
-        _1_115.low, _4_118.low)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    return (dataSlot_114)
+    let (res) = balanceOf.read(arg0_93.low, arg0_93.high)
+    return (res)
 end
 
-func fun_deposit{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        storage_ptr : Storage*}(var_sender_72 : Uint256, var_value : Uint256) -> (
-        var_73 : Uint256, var_ : Uint256):
+func setter_fun_balanceOf{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
+        arg0_116 : Uint256, value_117 : Uint256) -> ():
     alloc_locals
-    let (
-        local _1_74 : Uint256) = mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_571{
-        memory_dict=memory_dict, msize=msize}(var_sender_72)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    let (local _2_75 : Uint256) = s_load{
-        storage_ptr=storage_ptr, range_check_ptr=range_check_ptr, pedersen_ptr=pedersen_ptr}(_1_74)
-    local storage_ptr : Storage* = storage_ptr
+    balanceOf.write(arg0_116.low, arg0_116.high, value_117)
+    return ()
+end
+
+func fun_deposit{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
+        var_sender_68 : Uint256, var_value : Uint256) -> (var_69 : Uint256, var_ : Uint256):
+    alloc_locals
+    let (local _1_70 : Uint256) = getter_fun_balanceOf{
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        var_sender_68)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    let (local _3_76 : Uint256) = cleanup_from_storage_uint256(_2_75)
-    let (local _4_77 : Uint256) = checked_add_uint256{range_check_ptr=range_check_ptr}(
-        _3_76, var_value)
     local range_check_ptr = range_check_ptr
-    update_storage_value_offsett_uint256_to_uint256{
-        pedersen_ptr=pedersen_ptr, storage_ptr=storage_ptr}(_1_74, _4_77)
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local storage_ptr : Storage* = storage_ptr
-    local var_73 : Uint256 = Uint256(low=21, high=0)
+    let (local _2_71 : Uint256) = checked_add_uint256{range_check_ptr=range_check_ptr}(
+        _1_70, var_value)
+    local range_check_ptr = range_check_ptr
+    setter_fun_balanceOf{
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        var_sender_68, _2_71)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
+    local storage_ptr : Storage* = storage_ptr
+    local var_69 : Uint256 = Uint256(low=21, high=0)
     local var_ : Uint256 = Uint256(low=12, high=0)
-    return (var_73, var_)
+    return (var_69, var_)
 end
 
 @external
 func fun_deposit_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
-        var_sender_72 : Uint256, var_value : Uint256) -> (
-        var_73_low, var_73_high, var__low, var__high):
+        var_sender_68 : Uint256, var_value : Uint256) -> (
+        var_69_low, var_69_high, var__low, var__high):
     alloc_locals
     let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
     with memory_dict, msize:
-        let (local var_73 : Uint256, local var_ : Uint256) = fun_deposit(var_sender_72, var_value)
+        let (local var_69 : Uint256, local var_ : Uint256) = fun_deposit(var_sender_68, var_value)
     end
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
     default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var_73.low, var_73.high, var_.low, var_.high)
+    return (var_69.low, var_69.high, var_.low, var_.high)
 end
 
-func read_from_storage_split_dynamic_uint256{
-        pedersen_ptr : HashBuiltin*, storage_ptr : Storage*, range_check_ptr}(
-        slot_139 : Uint256) -> (value_140 : Uint256):
+func getter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
+        arg0 : Uint256, arg1 : Uint256) -> (value_90 : Uint256):
     alloc_locals
-    let (local _1_141 : Uint256) = s_load{
-        storage_ptr=storage_ptr, range_check_ptr=range_check_ptr, pedersen_ptr=pedersen_ptr}(
-        slot_139)
-    local storage_ptr : Storage* = storage_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    let (local value_140 : Uint256) = cleanup_from_storage_uint256(_1_141)
-    return (value_140)
+    let (res) = allowance.read(arg0.low, arg0.high, arg1.low, arg1.high)
+    return (res)
 end
 
 func require_helper{range_check_ptr}(condition : Uint256) -> ():
     alloc_locals
-    let (local _1_142 : Uint256) = is_zero(condition)
+    let (local _1_106 : Uint256) = is_zero(condition)
     local range_check_ptr = range_check_ptr
-    __warp_block_00(_1_142)
+    __warp_block_00(_1_106)
     return ()
 end
 
-func __warp_block_1{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        storage_ptr : Storage*}(
-        var_sender_79 : Uint256, var_src : Uint256, var_wad_78 : Uint256) -> ():
+func __warp_block_1{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
+        var_sender_73 : Uint256, var_src : Uint256, var_wad_72 : Uint256) -> ():
     alloc_locals
-    let (
-        local _3_83 : Uint256) = mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_570{
-        memory_dict=memory_dict, msize=msize}(var_src)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    let (
-        local _4_84 : Uint256) = mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256{
-        memory_dict=memory_dict, msize=msize}(_3_83, var_sender_79)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    let (local _5_85 : Uint256) = read_from_storage_split_dynamic_uint256{
-        pedersen_ptr=pedersen_ptr, storage_ptr=storage_ptr}(_4_84)
+    let (local _3_77 : Uint256) = getter_fun_allowance{
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        var_src, var_sender_73)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    let (local _6_86 : Uint256) = is_lt(_5_85, var_wad_78)
+    let (local _4_78 : Uint256) = is_lt(_3_77, var_wad_72)
     local range_check_ptr = range_check_ptr
-    let (local _7_87 : Uint256) = is_zero(_6_86)
+    let (local _5_79 : Uint256) = is_zero(_4_78)
     local range_check_ptr = range_check_ptr
-    require_helper{range_check_ptr=range_check_ptr}(_7_87)
+    require_helper{range_check_ptr=range_check_ptr}(_5_79)
     local range_check_ptr = range_check_ptr
-    let (
-        local _8_88 : Uint256) = mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_571{
-        memory_dict=memory_dict, msize=msize}(var_src)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    let (local _9 : Uint256) = read_from_storage_split_dynamic_uint256{
-        pedersen_ptr=pedersen_ptr, storage_ptr=storage_ptr}(_8_88)
+    let (local _6_80 : Uint256) = getter_fun_balanceOf{
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        var_src)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    let (local _10 : Uint256) = cleanup_from_storage_uint256(_9)
-    let (local _11 : Uint256) = is_lt(_10, var_wad_78)
+    let (local _7_81 : Uint256) = cleanup_uint256(_6_80)
+    let (local _8_82 : Uint256) = is_lt(_7_81, var_wad_72)
     local range_check_ptr = range_check_ptr
-    let (local _12 : Uint256) = is_zero(_11)
+    let (local _9 : Uint256) = is_zero(_8_82)
     local range_check_ptr = range_check_ptr
-    require_helper{range_check_ptr=range_check_ptr}(_12)
+    require_helper{range_check_ptr=range_check_ptr}(_9)
     local range_check_ptr = range_check_ptr
-    let (
-        local _13 : Uint256) = mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_570{
-        memory_dict=memory_dict, msize=msize}(var_src)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    let (
-        local _14 : Uint256) = mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256{
-        memory_dict=memory_dict, msize=msize}(_13, var_sender_79)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    let (local _15 : Uint256) = s_load{
-        storage_ptr=storage_ptr, range_check_ptr=range_check_ptr, pedersen_ptr=pedersen_ptr}(_14)
+    let (local _10 : Uint256) = getter_fun_allowance{
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        var_src, var_sender_73)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    let (local _16 : Uint256) = cleanup_from_storage_uint256(_15)
-    let (local _17 : Uint256) = checked_sub_uint256{range_check_ptr=range_check_ptr}(
-        _16, var_wad_78)
+    let (local _11 : Uint256) = checked_sub_uint256{range_check_ptr=range_check_ptr}(
+        _10, var_wad_72)
     local range_check_ptr = range_check_ptr
-    update_storage_value_offsett_uint256_to_uint256{
-        pedersen_ptr=pedersen_ptr, storage_ptr=storage_ptr}(_14, _17)
+    setter_fun_allowance{
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        var_src, var_sender_73, _11)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
     return ()
 end
 
-func __warp_block_0_if{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        storage_ptr : Storage*}(
-        _2_82 : Uint256, var_sender_79 : Uint256, var_src : Uint256, var_wad_78 : Uint256) -> ():
+func __warp_block_0_if{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
+        _2_76 : Uint256, var_sender_73 : Uint256, var_src : Uint256, var_wad_72 : Uint256) -> ():
     alloc_locals
-    if _2_82.low + _2_82.high != 0:
+    if _2_76.low + _2_76.high != 0:
         __warp_block_1{
-            memory_dict=memory_dict,
-            msize=msize,
-            pedersen_ptr=pedersen_ptr,
-            range_check_ptr=range_check_ptr,
-            storage_ptr=storage_ptr}(var_sender_79, var_src, var_wad_78)
-        local memory_dict : DictAccess* = memory_dict
-        local msize = msize
+            pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+            var_sender_73, var_src, var_wad_72)
         local pedersen_ptr : HashBuiltin* = pedersen_ptr
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
@@ -380,129 +263,107 @@ func __warp_block_0_if{
     end
 end
 
-func fun_transferFrom{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        storage_ptr : Storage*}(
-        var_src : Uint256, var_dst : Uint256, var_wad_78 : Uint256, var_sender_79 : Uint256) -> (
-        var_80 : Uint256):
+func fun_transferFrom{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
+        var_src : Uint256, var_dst : Uint256, var_wad_72 : Uint256, var_sender_73 : Uint256) -> (
+        var_74 : Uint256):
     alloc_locals
-    let (local _1_81 : Uint256) = is_eq(var_src, var_sender_79)
+    let (local _1_75 : Uint256) = is_eq(var_src, var_sender_73)
     local range_check_ptr = range_check_ptr
-    let (local _2_82 : Uint256) = is_zero(_1_81)
+    let (local _2_76 : Uint256) = is_zero(_1_75)
     local range_check_ptr = range_check_ptr
     __warp_block_0_if{
-        memory_dict=memory_dict,
-        msize=msize,
-        pedersen_ptr=pedersen_ptr,
-        range_check_ptr=range_check_ptr,
-        storage_ptr=storage_ptr}(_2_82, var_sender_79, var_src, var_wad_78)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        _2_76, var_sender_73, var_src, var_wad_72)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    let (
-        local _18 : Uint256) = mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_571{
-        memory_dict=memory_dict, msize=msize}(var_src)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    let (local _19 : Uint256) = s_load{
-        storage_ptr=storage_ptr, range_check_ptr=range_check_ptr, pedersen_ptr=pedersen_ptr}(_18)
-    local storage_ptr : Storage* = storage_ptr
+    let (local _12 : Uint256) = getter_fun_balanceOf{
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        var_src)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    let (local _20 : Uint256) = cleanup_from_storage_uint256(_19)
-    let (local _21 : Uint256) = checked_sub_uint256{range_check_ptr=range_check_ptr}(
-        _20, var_wad_78)
     local range_check_ptr = range_check_ptr
-    update_storage_value_offsett_uint256_to_uint256{
-        pedersen_ptr=pedersen_ptr, storage_ptr=storage_ptr}(_18, _21)
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local storage_ptr : Storage* = storage_ptr
-    let (
-        local _22 : Uint256) = mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_571{
-        memory_dict=memory_dict, msize=msize}(var_dst)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    let (local _23 : Uint256) = s_load{
-        storage_ptr=storage_ptr, range_check_ptr=range_check_ptr, pedersen_ptr=pedersen_ptr}(_22)
-    local storage_ptr : Storage* = storage_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    let (local _24 : Uint256) = cleanup_from_storage_uint256(_23)
-    let (local _25 : Uint256) = checked_add_uint256{range_check_ptr=range_check_ptr}(
-        _24, var_wad_78)
+    let (local _13 : Uint256) = checked_sub_uint256{range_check_ptr=range_check_ptr}(
+        _12, var_wad_72)
     local range_check_ptr = range_check_ptr
-    update_storage_value_offsett_uint256_to_uint256{
-        pedersen_ptr=pedersen_ptr, storage_ptr=storage_ptr}(_22, _25)
+    setter_fun_balanceOf{
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        var_src, _13)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    local var_80 : Uint256 = Uint256(low=1, high=0)
-    return (var_80)
+    let (local _14 : Uint256) = getter_fun_balanceOf{
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        var_dst)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
+    local storage_ptr : Storage* = storage_ptr
+    let (local _15 : Uint256) = checked_add_uint256{range_check_ptr=range_check_ptr}(
+        _14, var_wad_72)
+    local range_check_ptr = range_check_ptr
+    setter_fun_balanceOf{
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        var_dst, _15)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
+    local storage_ptr : Storage* = storage_ptr
+    local var_74 : Uint256 = Uint256(low=1, high=0)
+    return (var_74)
 end
 
 @external
 func fun_transferFrom_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
-        var_src : Uint256, var_dst : Uint256, var_wad_78 : Uint256, var_sender_79 : Uint256) -> (
-        var_80_low, var_80_high):
+        var_src : Uint256, var_dst : Uint256, var_wad_72 : Uint256, var_sender_73 : Uint256) -> (
+        var_74_low, var_74_high):
     alloc_locals
     let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
     with memory_dict, msize:
-        let (local var_80 : Uint256) = fun_transferFrom(var_src, var_dst, var_wad_78, var_sender_79)
+        let (local var_74 : Uint256) = fun_transferFrom(var_src, var_dst, var_wad_72, var_sender_73)
     end
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
     default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var_80.low, var_80.high)
+    return (var_74.low, var_74.high)
 end
 
-func fun_withdraw{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        storage_ptr : Storage*}(var_wad_89 : Uint256, var_sender_90 : Uint256) -> ():
+func fun_withdraw{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
+        var_wad_83 : Uint256, var_sender_84 : Uint256) -> ():
     alloc_locals
-    let (
-        local _1_91 : Uint256) = mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_571{
-        memory_dict=memory_dict, msize=msize}(var_sender_90)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    let (local _2_92 : Uint256) = read_from_storage_split_dynamic_uint256{
-        pedersen_ptr=pedersen_ptr, storage_ptr=storage_ptr}(_1_91)
+    let (local _1_85 : Uint256) = getter_fun_balanceOf{
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        var_sender_84)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    let (local _3_93 : Uint256) = is_lt(_2_92, var_wad_89)
+    let (local _2_86 : Uint256) = is_lt(_1_85, var_wad_83)
     local range_check_ptr = range_check_ptr
-    let (local _4_94 : Uint256) = is_zero(_3_93)
+    let (local _3_87 : Uint256) = is_zero(_2_86)
     local range_check_ptr = range_check_ptr
-    require_helper{range_check_ptr=range_check_ptr}(_4_94)
+    require_helper{range_check_ptr=range_check_ptr}(_3_87)
     local range_check_ptr = range_check_ptr
-    let (
-        local _5_95 : Uint256) = mapping_index_access_mapping_uint256_mapping_uint256_uint256_of_uint256_571{
-        memory_dict=memory_dict, msize=msize}(var_sender_90)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    let (local _6_96 : Uint256) = s_load{
-        storage_ptr=storage_ptr, range_check_ptr=range_check_ptr, pedersen_ptr=pedersen_ptr}(_5_95)
+    let (local _4_88 : Uint256) = getter_fun_balanceOf{
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        var_sender_84)
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    let (local _7_97 : Uint256) = cleanup_from_storage_uint256(_6_96)
-    let (local _8_98 : Uint256) = checked_sub_uint256{range_check_ptr=range_check_ptr}(
-        _7_97, var_wad_89)
+    let (local _5_89 : Uint256) = checked_sub_uint256{range_check_ptr=range_check_ptr}(
+        _4_88, var_wad_83)
     local range_check_ptr = range_check_ptr
-    update_storage_value_offsett_uint256_to_uint256{
-        pedersen_ptr=pedersen_ptr, storage_ptr=storage_ptr}(_5_95, _8_98)
+    setter_fun_balanceOf{
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        var_sender_84, _5_89)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
     let (local expr_component : Uint256, local expr_component_1 : Uint256) = fun_deposit{
-        memory_dict=memory_dict,
-        msize=msize,
-        pedersen_ptr=pedersen_ptr,
-        range_check_ptr=range_check_ptr,
-        storage_ptr=storage_ptr}(var_sender_90, var_wad_89)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
+        pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr, storage_ptr=storage_ptr}(
+        var_sender_84, var_wad_83)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
@@ -512,13 +373,13 @@ end
 @external
 func fun_withdraw_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
-        var_wad_89 : Uint256, var_sender_90 : Uint256) -> ():
+        var_wad_83 : Uint256, var_sender_84 : Uint256) -> ():
     alloc_locals
     let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
     with memory_dict, msize:
-        fun_withdraw(var_wad_89, var_sender_90)
+        fun_withdraw(var_wad_83, var_sender_84)
     end
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr

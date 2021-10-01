@@ -22,13 +22,20 @@ jobs:
           pip install black
           black . --check --verbose --diff --color
 
-      - name: Install solc
-        run: |
-          sudo apt-get install gcc-11
-          sudo apt-get install g++-11
+      - name: Install dependencies
+        run: >
           sudo add-apt-repository ppa:ethereum/ethereum
+
+          sudo add-apt-repository
+          'deb http://mirrors.kernel.org/ubuntu hirsute main universe'
+
           sudo apt-get update
-          sudo apt-get install solc
+
+          sudo apt-get -y install gcc-11 g++-11 solc libicu-dev
+          libboost-all-dev libgmp-dev libleveldb-dev libminiupnpc-dev
+          libreadline-dev libncurses5-dev libcurl4-openssl-dev
+          libjsonrpccpp-dev libmicrohttpd-dev libjsoncpp-dev
+          libedit-dev libz-dev
 
       - name: Setup BATS testing framework
         uses: mig4/setup-bats@v1.2.0
