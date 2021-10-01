@@ -127,8 +127,6 @@ class ToCairoVisitor(AstVisitor):
             return "assert 0 = 1\njmp rel 0"
         if fun_repr == "revert" and self.in_entry_function:
             return ""
-        if "return" in fun_repr:
-            return ""
         if fun_repr == "pop":
             return ""
         if "callvalue" in fun_repr:

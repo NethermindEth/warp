@@ -412,6 +412,47 @@ class CallDataSize(BuiltinHandler):
         self.function_call = "Uint256(exec_env.calldata_size, 0)"
 
 
+# ============ Return Data ============
+
+
+class ReturnDataCopy(BuiltinHandler):
+    touched = False
+
+    def __init__(self, function_args: str):
+        super().__init__(
+            module="", function_name="", function_args="", call_implicits=[]
+        )
+        if not ReturnDataCopy.touched:
+            print(
+                "WARNING: This contract referenced 'return data' (returndatacopy) which is not yet supported. Evaluating this contract on starknet may result in unexpected behavior."
+            )
+            ReturnDataCopy.touched = True
+        self.function_call = ""
+
+
+class ReturnDataSize(BuiltinHandler):
+    touched = False
+
+    def __init__(self, function_args: str):
+        super().__init__(
+            module="", function_name="", function_args="", call_implicits=[]
+        )
+        if not ReturnDataCopy.touched:
+            print(
+                "WARNING: This contract referenced 'return data' (returndatacopy) which is not yet supported. Evaluating this contract on starknet may result in unexpected behavior."
+            )
+            ReturnDataCopy.touched = True
+        self.function_call = "Uint256(low=0, high=0)"
+
+
+class Return(BuiltinHandler):
+    def __init__(self, function_arg: str):
+        super().__init__(
+            module="", function_name="", function_args="", call_implicits=[]
+        )
+        self.function_call = ""
+
+
 YUL_BUILTINS_MAP = {
     "add": Add,
     "addmod": AddMod,
@@ -436,6 +477,9 @@ YUL_BUILTINS_MAP = {
     "mulmod": MulMod,
     "not": Not,
     "or": Sub,
+    "return": Return,
+    "returndatacopy": ReturnDataCopy,
+    "returndatasize": ReturnDataSize,
     "sar": Sar,
     "sdiv": Sdiv,
     "sgt": Sgt,
