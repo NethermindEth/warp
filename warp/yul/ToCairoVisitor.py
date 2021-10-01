@@ -152,19 +152,9 @@ class ToCairoVisitor(AstVisitor):
                     node.function_name.name, (IMPLICITS_SET - {"exec_env"})
                 )
             )
-            implicits_call = ", ".join(f"{x}={x}" for x in self.last_used_implicits)
-            if (
-                "exec_env" not in implicits_call
-                and fun_repr in self.exec_env_functions
-                and fun_repr != "__warp_block_00"
-            ):
-                implicits_call = "exec_env=exec_env, " + implicits_call
+            if fun_repr in self.exec_env_functions and fun_repr != "__warp_block_00":
                 self.last_used_implicits.append("exec_env")
-            result = (
-                f"{fun_repr}({args_repr})"
-                if (implicits_call == "" or "return" in fun_repr)
-                else f"{fun_repr}{{{implicits_call}}}({args_repr})"
-            )
+            result = f"{fun_repr}({args_repr})"
         self.function_to_implicits.setdefault(self.last_function.name, set()).update(
             self.last_used_implicits
         )

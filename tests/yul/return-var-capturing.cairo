@@ -84,11 +84,11 @@ func __warp_block_2_if{range_check_ptr}(
         __warp_subexpr_0 : Uint256, var_a : Uint256, var_b : Uint256) -> (var : Uint256):
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
-        let (local var : Uint256) = checked_add_uint256_141{range_check_ptr=range_check_ptr}(var_b)
+        let (local var : Uint256) = checked_add_uint256_141(var_b)
         local range_check_ptr = range_check_ptr
         return (var)
     else:
-        let (local var : Uint256) = checked_add_uint256{range_check_ptr=range_check_ptr}(var_a)
+        let (local var : Uint256) = checked_add_uint256(var_a)
         local range_check_ptr = range_check_ptr
         return (var)
     end
@@ -99,8 +99,7 @@ func __warp_block_1{range_check_ptr}(match_var : Uint256, var_a : Uint256, var_b
     alloc_locals
     let (local __warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=0, high=0))
     local range_check_ptr = range_check_ptr
-    let (local var : Uint256) = __warp_block_2_if{range_check_ptr=range_check_ptr}(
-        __warp_subexpr_0, var_a, var_b)
+    let (local var : Uint256) = __warp_block_2_if(__warp_subexpr_0, var_a, var_b)
     local range_check_ptr = range_check_ptr
     return (var)
 end
@@ -109,8 +108,7 @@ func __warp_block_0{range_check_ptr}(_1_11 : Uint256, var_a : Uint256, var_b : U
         var : Uint256):
     alloc_locals
     local match_var : Uint256 = _1_11
-    let (local var : Uint256) = __warp_block_1{range_check_ptr=range_check_ptr}(
-        match_var, var_a, var_b)
+    let (local var : Uint256) = __warp_block_1(match_var, var_a, var_b)
     local range_check_ptr = range_check_ptr
     return (var)
 end
@@ -119,7 +117,7 @@ func fun_rando{range_check_ptr}(var_a : Uint256, var_b : Uint256) -> (var : Uint
     alloc_locals
     let (local _1_11 : Uint256) = is_gt(var_a, var_b)
     local range_check_ptr = range_check_ptr
-    let (local var : Uint256) = __warp_block_0{range_check_ptr=range_check_ptr}(_1_11, var_a, var_b)
+    let (local var : Uint256) = __warp_block_0(_1_11, var_a, var_b)
     local range_check_ptr = range_check_ptr
     return (var)
 end
