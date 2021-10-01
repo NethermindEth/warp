@@ -12,18 +12,23 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: install solc
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7 # Cairo was tested with this version
+
+      - name: Check formatting
+        run: |
+          pip install black
+          black . --check --verbose --diff --color
+
+      - name: Install solc
         run: |
           sudo apt-get install gcc-11
           sudo apt-get install g++-11
           sudo add-apt-repository ppa:ethereum/ethereum
           sudo apt-get update
           sudo apt-get install solc
-
-      - name: Setup Python
-        uses: actions/setup-python@v2.2.2
-        with:
-          python-version: 3.7 # Cairo was tested with this version
 
       - name: Setup BATS testing framework
         uses: mig4/setup-bats@v1.2.0

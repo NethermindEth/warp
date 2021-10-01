@@ -118,10 +118,12 @@ def get_public_functions(sol_source: str) -> list[str]:
             public_functions.add(f"fun_{v[:v.find('(')]}")
     return list(public_functions)
 
+
 def validate_solc_ver(sol_source):
     solc_version: float = get_source_version(sol_source)
     src_ver: str = check_installed_solc(solc_version)
     solcx.set_solc_version(src_ver)
+
 
 def get_source_version(sol_source: str) -> float:
     code_split = sol_source.split("\n")
@@ -134,6 +136,7 @@ def get_source_version(sol_source: str) -> float:
                 )
             return ver
     raise Exception("No Solidity version specified in contract")
+
 
 def check_installed_solc(source_version: float) -> str:
     solc_vers = solcx.get_installed_solc_versions()

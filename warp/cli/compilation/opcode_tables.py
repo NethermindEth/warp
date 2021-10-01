@@ -143,7 +143,7 @@ OP_TO_STR = {
     "60": "PUSH1",
     "61": "PUSH2",
     "62": "PUSH3",
-    "63": "PUSH4"
+    "63": "PUSH4",
 }
 
 STR_TO_OP = {
@@ -288,5 +288,5 @@ STR_TO_OP = {
     "SWAP8": "97",
     "SWAP9": "98",
     "TIMESTAMP": "42",
-    "XOR": "18"
+    "XOR": "18",
 }

@@ -281,4 +281,3 @@ class Solidity(Contract):
         it = InstructionIterator(self.bytecode)
         ops = it.disassemble()
         return ops
-

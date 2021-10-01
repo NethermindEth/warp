@@ -4,9 +4,11 @@ from eth_hash.auto import keccak
 from enum import Enum
 import abc
 
+
 class Language(Enum):
     SOL = 0
     VYPER = 1
+
 
 class Contract(abc.ABC):
     @abc.abstractmethod
@@ -32,4 +34,3 @@ class Contract(abc.ABC):
     @abc.abstractmethod
     def get_abi(self, path):
         pass
-

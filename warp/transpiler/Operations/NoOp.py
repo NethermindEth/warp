@@ -1,5 +1,6 @@
-from transpiler.Operation import NoParse, Operation 
+from transpiler.Operation import NoParse, Operation
 from transpiler.utils import is_valid_uintN
+
 
 class NoOp(Operation):
     def __init__(self, bytes_in_value: int, value: int):
@@ -31,7 +32,7 @@ class NoOp(Operation):
     def proceed(self, state):
         return []
 
+
 class Pass(Operation):
     def proceed(self, state):
         return []
-    
