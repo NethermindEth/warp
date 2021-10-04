@@ -5,6 +5,7 @@ from typing import Optional
 import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
 from yul.top_sort import top_sort_ast
+from yul.storage_access import extract_var_from_getter, extract_var_from_setter
 
 REVERT = ast.FunctionCall(
     function_name=ast.Identifier("revert"), arguments=[ast.Literal(0), ast.Literal(0)]
@@ -16,7 +17,6 @@ class RevertNormalizer(AstMapper):
     def __init__(self):
         super().__init__()
         self.revert_functions: set[str] = set()
-        self.in_entry_function: bool = False
 
     def map(self, node: ast.Node, **kwargs) -> ast.Node:
         if isinstance(node, ast.Block):
@@ -55,9 +55,8 @@ class RevertNormalizer(AstMapper):
     def visit_function_definition(
         self, node: ast.FunctionDefinition
     ) -> ast.FunctionDefinition:
-        self.in_entry_function = "ENTRY_POINT" in node.name
         body = self.visit(node.body)
-        if self._is_revert(body):
+        if not _is_untouchable(node) and self._is_revert(body):
             self.revert_functions.add(node.name)
         return ast.FunctionDefinition(
             name=node.name,
@@ -77,11 +76,11 @@ class RevertNormalizer(AstMapper):
         return ast.If(condition, body, else_body)
 
     def _is_revert(self, node: Optional[ast.Node]):
-        if isinstance(node, ast.FunctionCall) and not self.in_entry_function:
+        if isinstance(node, ast.FunctionCall):
             return node.function_name.name == "revert"
-        if isinstance(node, ast.ExpressionStatement) and not self.in_entry_function:
+        if isinstance(node, ast.ExpressionStatement):
             return self._is_revert(node.expression)
-        if isinstance(node, ast.Block) and not self.in_entry_function:
+        if isinstance(node, ast.Block):
             return len(node.statements) == 1 and self._is_revert(node.statements[0])
         return False
 
@@ -89,5 +88,13 @@ class RevertNormalizer(AstMapper):
         return (
             isinstance(node, ast.FunctionDefinition)
             and node.name in self.revert_functions
-            and not self.in_entry_function
         )
+
+
+def _is_untouchable(function: ast.FunctionDefinition) -> bool:
+    name = function.name
+    if name == "fun_ENTRY_POINT":
+        return True
+    if extract_var_from_getter(name) or extract_var_from_setter(name):
+        return True
+    return False

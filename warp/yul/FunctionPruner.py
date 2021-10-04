@@ -2,27 +2,25 @@ from __future__ import annotations
 
 import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
-from yul.top_sort import CallGraphBuilder, cleanup_callgraph
+from yul.call_graph import build_callgraph, CallGraph
 
 
 class FunctionPruner(AstMapper):
     def __init__(self, public_functions: list[str]):
         super().__init__()
-        self.public_functions: set[str] = public_functions
-        self.callgraph: dict[ast.FunctionDefinition, tuple[ast.FunctionDefinition]] = {}
+        self.public_functions: frozenset[str] = frozenset(public_functions)
+        self.callgraph: CallGraph = {}
         self.visited_functions: set[str] = set()
 
     def map(self, node: ast.Node, *args, **kwargs) -> ast.Node:
         if not isinstance(node, ast.Block):
-            return self.visit(node)
+            return self.visit(node, *args, **kwargs)
 
-        self.callgraph = cleanup_callgraph(CallGraphBuilder().gather(node))
-
+        self.callgraph = build_callgraph(node)
         for function in self.callgraph:
             f_name = function.name
-            if f_name in self.public_functions or "ENTRY_POINT" in f_name:
-                if not f_name in self.visited_functions:
-                    self._dfs(function)
+            if f_name in self.public_functions or f_name == "fun_ENTRY_POINT":
+                self._dfs(function)
 
         return self.visit(node, *args, **kwargs)
 
@@ -36,14 +34,15 @@ class FunctionPruner(AstMapper):
         return ast.Block(statements=tuple(statements))
 
     def _dfs(self, function: ast.FunctionDefinition):
-        self.visited_functions.add(function.name)
+        if function.name in self.visited_functions:
+            return
 
+        self.visited_functions.add(function.name)
         for f in self.callgraph[function]:
-            if not f.name in self.visited_functions:
-                self._dfs(f)
+            self._dfs(f)
 
     def _is_unused_function(self, node):
         return (
             isinstance(node, ast.FunctionDefinition)
-            and not node.name in self.visited_functions
+            and node.name not in self.visited_functions
         )

@@ -16,6 +16,14 @@ from yul.utils import (
     get_public_functions,
     validate_solc_ver,
 )
+from yul.storage_access import (
+    StorageVar,
+    extract_var_from_getter,
+    extract_var_from_setter,
+    generate_getter_body,
+    generate_setter_body,
+    generate_storage_var_declaration,
+)
 
 from yul.yul_ast import AstVisitor
 
@@ -72,18 +80,19 @@ class ToCairoVisitor(AstVisitor):
         self.function_to_implicits: dict[str, set[str]] = {}
         self.in_entry_function: bool = False
         self.exec_env_functions: list[str] = []
-        self.cur_function: str = ""
+        self.storage_variables: set[StorageVar] = set()
 
     def translate(self, node: ast.Node) -> str:
-        self.exec_env_functions = NeedsExececutionEnvironment().get_exec_env_functions(
-            node
-        )
-        self.exec_env_functions = list(set(self.exec_env_functions))
         main_part = self.print(node)
+        storage_var_decls = [
+            generate_storage_var_declaration(x) for x in sorted(self.storage_variables)
+        ]
         return "\n".join(
             [
                 MAIN_PREAMBLE,
                 format_imports(self.imports),
+                "",
+                *storage_var_decls,
                 STORAGE_DECLS,
                 main_part,
             ]
@@ -143,19 +152,9 @@ class ToCairoVisitor(AstVisitor):
                     node.function_name.name, (IMPLICITS_SET - {"exec_env"})
                 )
             )
-            implicits_call = ", ".join(f"{x}={x}" for x in self.last_used_implicits)
-            if (
-                "exec_env" not in implicits_call
-                and fun_repr in self.exec_env_functions
-                and fun_repr != "__warp_block_00"
-            ):
-                implicits_call = "exec_env=exec_env, " + implicits_call
+            if fun_repr in self.exec_env_functions and fun_repr != "__warp_block_00":
                 self.last_used_implicits.append("exec_env")
-            result = (
-                f"{fun_repr}({args_repr})"
-                if (implicits_call == "" or "return" in fun_repr)
-                else f"{fun_repr}{{{implicits_call}}}({args_repr})"
-            )
+            result = f"{fun_repr}({args_repr})"
         self.function_to_implicits.setdefault(self.last_function.name, set()).update(
             self.last_used_implicits
         )
@@ -207,11 +206,14 @@ class ToCairoVisitor(AstVisitor):
         self.last_function = node
         params_repr = ", ".join(self.print(x) for x in node.parameters)
         returns_repr = ", ".join(self.print(x) for x in node.return_variables)
-        if "revert" in node.name:
-            return ""
-        body_repr = self.print(node.body)
         if "ENTRY_POINT" in node.name:
             self.in_entry_function = False
+
+        body_repr = self._try_make_storage_accessor_body(node)
+        if not body_repr:
+            body_repr = self.print(node.body)
+
+        if node.name == "fun_ENTRY_POINT":
             return (
                 "@external\n"
                 f"func {node.name}{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
@@ -251,7 +253,6 @@ class ToCairoVisitor(AstVisitor):
                 )
             else:
                 implicits_decl += "}"
-        self.in_entry_function = False
         return (
             f"func {node.name}{implicits_decl}({params_repr}) -> ({returns_repr}):\n"
             f"alloc_locals\n"
@@ -358,6 +359,40 @@ class ToCairoVisitor(AstVisitor):
             yield None
         finally:
             self.last_used_implicits = old
+
+    def _try_make_storage_accessor_body(
+        self, node: ast.FunctionDefinition
+    ) -> Optional[str]:
+        getter_var = extract_var_from_getter(node.name)
+        setter_var = extract_var_from_setter(node.name)
+        if not (getter_var or setter_var):
+            return None
+
+        self.function_to_implicits.setdefault(node.name, set()).update(
+            ("storage_ptr", "pedersen_ptr", "range_check_ptr")
+        )
+        accessor_args = tuple(x.name for x in node.parameters)
+        if getter_var:
+            assert (
+                len(node.return_variables) == 1
+            ), "We don't support multivalued storage variables yet"
+            name = getter_var
+            arg_types = tuple(x.type for x in node.parameters)
+            res_type = node.return_variables[0].type
+            body = generate_getter_body(getter_var, accessor_args)
+        else:
+            assert setter_var
+            assert (
+                node.parameters
+            ), "Storage variable setters must have at least one parameter (the value to set)"
+            name = setter_var
+            arg_types = tuple(x.type for x in node.parameters[:-1])
+            res_type = node.parameters[-1].type
+            body = generate_setter_body(setter_var, accessor_args)
+        self.storage_variables.add(
+            StorageVar(name=name, arg_types=arg_types, res_type=res_type)
+        )
+        return body
 
 
 def print_implicit(name):
