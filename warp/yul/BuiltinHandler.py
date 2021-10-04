@@ -412,6 +412,17 @@ class CallDataSize(BuiltinHandler):
         self.function_call = "Uint256(exec_env.calldata_size, 0)"
 
 
+class CallDataCopy(BuiltinHandler):
+    def __init__(self, function_args: str):
+        super().__init__(
+            module="evm.calls",
+            function_name="calldatacopy_",
+            function_args=function_args,
+            call_implicits=["range_check_ptr", "exec_env"],
+            used_implicits=("range_check_ptr", "exec_env", "memory_dict", "msize"),
+        )
+
+
 # ============ Return Data ============
 
 
@@ -458,9 +469,10 @@ YUL_BUILTINS_MAP = {
     "addmod": AddMod,
     "and": And,
     "byte": Byte,
-    "caller": Caller,
+    "calldatacopy": CallDataCopy,
     "calldataload": CallDataLoad,
     "calldatasize": CallDataSize,
+    "caller": Caller,
     "div": Div,
     "eq": Eq,
     "exp": Exp,

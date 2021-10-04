@@ -32,8 +32,8 @@ COMMON_IMPORTS = {
     "starkware.cairo.common.uint256": {"Uint256", "uint256_eq"},
     "starkware.cairo.common.cairo_builtins": {"HashBuiltin"},
     "starkware.starknet.common.storage": {"Storage"},
-    "evm.utils": {"update_msize"},
     "evm.exec_env": {"ExecutionEnvironment"},
+    "evm.utils": {"update_msize"},
 }
 
 MAIN_PREAMBLE = """%lang starknet
@@ -318,6 +318,19 @@ class ToCairoVisitor(AstVisitor):
         implicits = sorted(IMPLICITS_SET - {"msize", "memory_dict", "exec_env"})
         implicits_repr = ", ".join(print_implicit(x) for x in implicits)
         implicit_copy = "\n".join(copy_implicit(x) for x in implicits)
+
+        inner_implicits = "memory_dict, msize"
+        init_exec_env = ""
+        if "exec_env" in self.function_to_implicits[node.name]:
+            params += ", " if params else ""
+            params += "calldata_size, calldata_len, calldata : felt*"
+            init_exec_env = (
+                f"local exec_env : ExecutionEnvironment ="
+                f"ExecutionEnvironment(calldata_size=calldata_size,"
+                f"calldata_len=calldata_len, calldata=calldata)\n"
+            )
+            inner_implicits += ", exec_env"
+
         return (
             f"\n@external\n"
             f"func {node.name}_external"
@@ -327,7 +340,8 @@ class ToCairoVisitor(AstVisitor):
             f"let (local memory_dict) = default_dict_new(0)\n"
             f"local memory_dict_start : DictAccess* = memory_dict\n"
             f"let msize = 0\n"
-            f"with memory_dict, msize:\n"
+            f"{init_exec_env}"
+            f"with {inner_implicits}:\n"
             f"  {inner_assignment}\n"
             f"end\n"
             f"{implicit_copy}\n"
