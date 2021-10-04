@@ -111,7 +111,7 @@ end
 @external
 func fun_approve_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
-        var_guy : Uint256, var_wad : Uint256, var_sender : Uint256) -> (var_low, var_high):
+        var_guy : Uint256, var_wad : Uint256, var_sender : Uint256) -> (var : Uint256):
     alloc_locals
     let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
@@ -124,7 +124,7 @@ func fun_approve_external{
     local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
     default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var.low, var.high)
+    return (var=var)
 end
 
 func getter_fun_balanceOf{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
@@ -162,8 +162,7 @@ end
 @external
 func fun_deposit_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
-        var_sender_68 : Uint256, var_value : Uint256) -> (
-        var_69_low, var_69_high, var__low, var__high):
+        var_sender_68 : Uint256, var_value : Uint256) -> (var_69 : Uint256, var_ : Uint256):
     alloc_locals
     let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
@@ -176,7 +175,7 @@ func fun_deposit_external{
     local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
     default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var_69.low, var_69.high, var_.low, var_.high)
+    return (var_69=var_69, var_=var_)
 end
 
 func getter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
@@ -285,7 +284,7 @@ end
 func fun_transferFrom_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
         var_src : Uint256, var_dst : Uint256, var_wad_72 : Uint256, var_sender_73 : Uint256) -> (
-        var_74_low, var_74_high):
+        var_74 : Uint256):
     alloc_locals
     let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
@@ -298,7 +297,7 @@ func fun_transferFrom_external{
     local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
     default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var_74.low, var_74.high)
+    return (var_74=var_74)
 end
 
 func fun_withdraw{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
