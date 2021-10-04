@@ -3,6 +3,7 @@ from typing import Optional, List
 
 import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
+from yul.NameGenerator import NameGenerator
 
 
 class ForLoopEliminator(AstMapper):
@@ -14,9 +15,9 @@ class ForLoopEliminator(AstMapper):
 
     """
 
-    def __init__(self):
+    def __init__(self, name_gen: NameGenerator):
         super().__init__()
-        self.n_loops = 0
+        self.name_gen = name_gen
         self.body_name: Optional[str] = None
         self.loop_name: Optional[str] = None
         self.break_name: Optional[str] = None
@@ -119,10 +120,12 @@ class ForLoopEliminator(AstMapper):
     @contextmanager
     def _new_for_loop(self):
         old_names = (self.body_name, self.loop_name, self.break_name)
-        self.body_name = f"__warp_loop_body_{self.n_loops}"
-        self.loop_name = f"__warp_loop_{self.n_loops}"
-        self.break_name = f"__warp_break_{self.n_loops}"
-        self.n_loops += 1
+        (
+            self.loop_name,
+            self.body_name,
+            self.break_name,
+        ) = self.name_gen.make_loop_names()
+        self.leave_name = self.name_gen.make_leave_name()
         try:
             yield None
         finally:

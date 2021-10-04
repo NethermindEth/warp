@@ -1,22 +1,15 @@
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from contextlib import contextmanager
 from typing import Optional
-import os
-import re
 
 import yul.yul_ast as ast
 from transpiler.Imports import merge_imports, format_imports
-from yul.BuiltinHandler import YUL_BUILTINS_MAP
 from yul.Artifacts import Artifacts
-from yul.utils import (
-    STORAGE_DECLS,
-    get_function_mutabilities,
-    get_public_functions,
-    get_source_version,
-    validate_solc_ver,
-)
+from yul.BuiltinHandler import YUL_BUILTINS_MAP
+from yul.NameGenerator import NameGenerator
 from yul.storage_access import (
     StorageVar,
     extract_var_from_getter,
@@ -25,7 +18,14 @@ from yul.storage_access import (
     generate_setter_body,
     generate_storage_var_declaration,
 )
-
+from yul.utils import (
+    STORAGE_DECLS,
+    get_public_functions,
+    validate_solc_ver,
+)
+from yul.utils import (
+    get_function_mutabilities,
+)
 from yul.yul_ast import AstVisitor
 
 UINT128_BOUND = 2 ** 128
@@ -63,19 +63,23 @@ IMPLICITS_SET = set(IMPLICITS.keys())
 
 
 class ToCairoVisitor(AstVisitor):
-    def __init__(self, sol_source: str, sol_src_path: str, main_contract: str):
+    def __init__(
+        self,
+        sol_source: str,
+        sol_src_path: str,
+        main_contract: str,
+        name_gen: NameGenerator,
+    ):
         super().__init__()
         self.artifacts_manager = Artifacts(sol_src_path)
         self.artifacts_manager.write_artifact("MAIN_CONTRACT", main_contract)
-        self.solc_version: float = get_source_version(sol_source)
         validate_solc_ver(sol_source)
-        self.code = sol_source
         self.main_contract = main_contract
-        self.file_name = os.path.basename(sol_src_path)[:-4]
         self.public_functions = get_public_functions(sol_source)
         self.function_mutabilities: dict[str, str] = get_function_mutabilities(
             sol_source
         )
+        self.name_gen = name_gen
         self.external_functions: list[str] = []
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
@@ -153,7 +157,7 @@ class ToCairoVisitor(AstVisitor):
             )
             if (
                 "exec_env" in self.function_to_implicits[fun_repr]
-                and fun_repr != "__warp_block_00"
+                and fun_repr != self.name_gen.take_cond_revert_name()
             ):
                 self.last_used_implicits.append("exec_env")
             result = f"{fun_repr}({args_repr})"

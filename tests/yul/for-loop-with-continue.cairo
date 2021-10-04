@@ -44,7 +44,7 @@ func get_storage_high{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : Ha
     return (res=storage_val_high)
 end
 
-func __warp_block_00(_4 : Uint256) -> ():
+func __warp_cond_revert(_4 : Uint256) -> ():
     alloc_locals
     if _4.low + _4.high != 0:
         assert 0 = 1
@@ -60,7 +60,7 @@ func checked_add_uint256{range_check_ptr}(x : Uint256, y : Uint256) -> (sum : Ui
     local range_check_ptr = range_check_ptr
     let (local _2_6 : Uint256) = is_gt(x, _1_5)
     local range_check_ptr = range_check_ptr
-    __warp_block_00(_2_6)
+    __warp_cond_revert(_2_6)
     let (local sum : Uint256) = u256_add(x, y)
     local range_check_ptr = range_check_ptr
     return (sum)
@@ -71,7 +71,7 @@ func checked_sub_uint256{range_check_ptr}(x_7 : Uint256) -> (diff : Uint256):
     local _1_8 : Uint256 = Uint256(low=1, high=0)
     let (local _2_9 : Uint256) = is_lt(x_7, _1_8)
     local range_check_ptr = range_check_ptr
-    __warp_block_00(_2_9)
+    __warp_cond_revert(_2_9)
     let (local _3_10 : Uint256) = uint256_not(Uint256(low=0, high=0))
     local range_check_ptr = range_check_ptr
     let (local diff : Uint256) = u256_add(x_7, _3_10)
@@ -93,7 +93,7 @@ func __warp_loop_body_0{range_check_ptr}(var_j : Uint256, var_k : Uint256) -> (v
     return (var_k)
 end
 
-func __warp_block_0_if{
+func __warp_if_0{
         memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
         storage_ptr : Storage*, syscall_ptr : felt*}(
         __warp_subexpr_0 : Uint256, var_i : Uint256, var_j : Uint256, var_k : Uint256) -> (
@@ -122,7 +122,7 @@ func __warp_loop_0{
     alloc_locals
     let (local __warp_subexpr_0 : Uint256) = is_lt(var_k, var_i)
     local range_check_ptr = range_check_ptr
-    let (local var_k : Uint256) = __warp_block_0_if(__warp_subexpr_0, var_i, var_j, var_k)
+    let (local var_k : Uint256) = __warp_if_0(__warp_subexpr_0, var_i, var_j, var_k)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local pedersen_ptr : HashBuiltin* = pedersen_ptr

@@ -2,14 +2,14 @@ from typing import Optional
 
 import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
+from yul.NameGenerator import NameGenerator
 
 
 class ScopeFlattener(AstMapper):
-    def __init__(self):
+    def __init__(self, name_gen: NameGenerator):
         super().__init__()
-        self.n_names: int = 0
+        self.name_gen = name_gen
         self.block_functions: list[ast.FunctionDefinition] = []
-        self.revert_function_name: str = "__warp_block_00"
         self.call_revert: bool = False
 
     def map(self, node: ast.Node, **kwargs) -> ast.Node:
@@ -40,7 +40,7 @@ class ScopeFlattener(AstMapper):
         typed_read_vars = [ast.TypedName(x.name) for x in read_vars]
         typed_mod_vars = [ast.TypedName(x.name) for x in mod_vars]
         block_fun = ast.FunctionDefinition(
-            name=self._request_fresh_name(),
+            name=self.name_gen.make_block_name(),
             parameters=typed_read_vars,
             return_variables=typed_mod_vars,
             body=node,
@@ -116,9 +116,9 @@ class ScopeFlattener(AstMapper):
         revert_if = self.is_revert_if(node)
 
         fun_name = (
-            self.revert_function_name
+            self.name_gen.take_cond_revert_name()
             if revert_if
-            else self._request_fresh_name() + "_if"
+            else self.name_gen.make_if_name()
         )
         if not revert_if or not self.call_revert:
             if_fun = ast.FunctionDefinition(
@@ -159,11 +159,6 @@ class ScopeFlattener(AstMapper):
         )
 
         return isinstance(body_stmt, ast.Leave) or isinstance(else_stmt, ast.Leave)
-
-    def _request_fresh_name(self):
-        name = f"__warp_block_{self.n_names}"
-        self.n_names += 1
-        return name
 
     def _is_revert(self, node: Optional[ast.Node]):
         if isinstance(node, ast.FunctionCall):

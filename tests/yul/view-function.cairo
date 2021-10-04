@@ -45,7 +45,7 @@ func get_storage_high{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : Ha
     return (res=storage_val_high)
 end
 
-func __warp_block_2_if{range_check_ptr}(
+func __warp_if_0{range_check_ptr}(
         __warp_subexpr_0 : Uint256, expr : Uint256, var_wad : Uint256) -> (var_res : Uint256):
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
@@ -64,7 +64,7 @@ func __warp_block_1{range_check_ptr}(expr : Uint256, match_var : Uint256, var_wa
     alloc_locals
     let (local __warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=0, high=0))
     local range_check_ptr = range_check_ptr
-    let (local var_res : Uint256) = __warp_block_2_if(__warp_subexpr_0, expr, var_wad)
+    let (local var_res : Uint256) = __warp_if_0(__warp_subexpr_0, expr, var_wad)
     local range_check_ptr = range_check_ptr
     return (var_res)
 end
