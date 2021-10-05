@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 from contextlib import contextmanager
 from typing import Optional, List
 
 import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
 from yul.NameGenerator import NameGenerator
+from yul.extract_block import extract_block_as_function, extract_rec_block_as_function
 
 
 class ForLoopEliminator(AstMapper):
@@ -21,6 +24,7 @@ class ForLoopEliminator(AstMapper):
         self.body_name: Optional[str] = None
         self.loop_name: Optional[str] = None
         self.break_name: Optional[str] = None
+        self.leave_name: Optional[str] = None
         self.aux_functions: List[ast.FunctionDefinition] = []
 
     def map(self, node: ast.Node, **kwargs):
@@ -36,72 +40,28 @@ class ForLoopEliminator(AstMapper):
 
         with self._new_for_loop():
             body = self.visit(node.body)
-            break_id = ast.Identifier(self.break_name)
+            body_fun, body_stmt = extract_block_as_function(body, self.body_name)
 
-            read_vars = sorted(body.scope.read_variables)
-            mod_vars = sorted(body.scope.modified_variables)
-            # ↓ default Uint256 type for everything
-            typed_read_vars = [ast.TypedName(x.name) for x in read_vars]
-            typed_mod_vars = [ast.TypedName(x.name) for x in mod_vars]
-
-            body_call = ast.Assignment(
-                variable_names=mod_vars,
-                value=ast.FunctionCall(
-                    function_name=ast.Identifier(self.body_name), arguments=read_vars
-                ),
+            rec_loop_head = lambda rec: self._make_loop_head(body_stmt, rec)
+            head_fun, head_stmt = extract_rec_block_as_function(
+                rec_loop_head, self.loop_name
             )
-            body_fun = ast.FunctionDefinition(
-                name=self.body_name,
-                parameters=typed_read_vars,
-                return_variables=typed_mod_vars,
-                body=body,
-            )
+            self.aux_functions.extend((body_fun, head_fun))
 
-            loop_scope = ast.Block((node,)).scope
-            loop_read_vars = sorted(loop_scope.read_variables)
-            loop_mod_vars = sorted(loop_scope.modified_variables)
-            typed_loop_read_vars = [ast.TypedName(x.name) for x in loop_read_vars]
-            typed_loop_mod_vars = [ast.TypedName(x.name) for x in loop_mod_vars]
-
-            loop_call = ast.Assignment(
-                variable_names=loop_mod_vars,
-                value=ast.FunctionCall(
-                    function_name=ast.Identifier(self.loop_name),
-                    arguments=loop_read_vars,
-                ),
-            )
-
-            if break_id in body.scope.read_variables:
-                loop_statements = (
+            leave_id = ast.Identifier(self.leave_name)
+            if leave_id not in body.scope.modified_variables:
+                call_statements = (head_stmt,)
+            else:
+                call_statements = (
                     ast.VariableDeclaration(
-                        variables=[ast.TypedName(self.break_name)],
+                        variables=[ast.TypedName(self.leave_name)],
                         value=ast.Literal(False),
                     ),
-                    body_call,
-                    ast.If(
-                        condition=break_id,
-                        body=ast.Block((ast.LEAVE,)),
-                        else_body=ast.Block((loop_call,)),
-                    ),
+                    head_stmt,
+                    ast.If(condition=leave_id, body=ast.LEAVE_BLOCK),
                 )
-            else:
-                loop_statements = (body_call, loop_call)
 
-            loop_fun = ast.FunctionDefinition(
-                name=self.loop_name,
-                parameters=typed_loop_read_vars,
-                return_variables=typed_loop_mod_vars,
-                body=ast.Block(
-                    (
-                        ast.If(
-                            condition=node.condition,
-                            body=ast.Block(loop_statements),
-                        ),
-                    )
-                ),
-            )
-            self.aux_functions.extend((body_fun, loop_fun))
-            return ast.Block((loop_call,))
+            return ast.Block(call_statements)
 
     def visit_break(self, node: ast.Break):
         return ast.Block(
@@ -117,9 +77,22 @@ class ForLoopEliminator(AstMapper):
     def visit_continue(self, node: ast.Continue):
         return ast.LEAVE
 
+    def visit_leave(self, node: ast.Leave):
+        if not self.leave_name:  # not in a loop
+            return node
+        return ast.Block(
+            (
+                ast.Assignment(
+                    variable_names=[ast.Identifier(self.leave_name)],
+                    value=ast.Literal(True),
+                ),
+                ast.LEAVE,
+            )
+        )
+
     @contextmanager
     def _new_for_loop(self):
-        old_names = (self.body_name, self.loop_name, self.break_name)
+        old_names = (self.body_name, self.loop_name, self.break_name, self.leave_name)
         (
             self.loop_name,
             self.body_name,
@@ -129,4 +102,25 @@ class ForLoopEliminator(AstMapper):
         try:
             yield None
         finally:
-            self.body_name, self.loop_name, self.break_name = old_names
+            self.body_name, self.loop_name, self.break_name, self.leave_name = old_names
+
+    def _make_loop_head(
+        self, body_stmt: ast.Statement, rec: ast.Statement
+    ) -> ast.Block:
+        break_id = ast.Identifier(self.break_name)
+        leave_id = ast.Identifier(self.leave_name)
+        modified_vars = ast.Block((body_stmt,)).scope.modified_variables
+        head_stmts = []
+        if break_id in modified_vars:
+            head_stmts.append(
+                ast.VariableDeclaration(
+                    variables=[ast.TypedName(self.break_name)], value=ast.Literal(False)
+                )
+            )
+        head_stmts.append(body_stmt)
+        if break_id in modified_vars:
+            head_stmts.append(ast.If(condition=break_id, body=ast.LEAVE_BLOCK))
+        if leave_id in modified_vars:
+            head_stmts.append(ast.If(condition=leave_id, body=ast.LEAVE_BLOCK))
+        head_stmts.append(rec)
+        return ast.Block(tuple(head_stmts))

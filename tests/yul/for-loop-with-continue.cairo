@@ -93,58 +93,20 @@ func __warp_loop_body_0{range_check_ptr}(var_j : Uint256, var_k : Uint256) -> (v
     return (var_k)
 end
 
-func __warp_if_0{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        storage_ptr : Storage*, syscall_ptr : felt*}(
-        __warp_subexpr_0 : Uint256, var_i : Uint256, var_j : Uint256, var_k : Uint256) -> (
-        var_k : Uint256):
+func __warp_loop_0{range_check_ptr}(var_j : Uint256, var_k : Uint256) -> (var_k : Uint256):
     alloc_locals
-    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
-        let (local var_k : Uint256) = __warp_loop_body_0(var_j, var_k)
-        local range_check_ptr = range_check_ptr
-        let (local var_k : Uint256) = __warp_loop_0(var_i, var_j, var_k)
-        local memory_dict : DictAccess* = memory_dict
-        local msize = msize
-        local pedersen_ptr : HashBuiltin* = pedersen_ptr
-        local range_check_ptr = range_check_ptr
-        local storage_ptr : Storage* = storage_ptr
-        local syscall_ptr : felt* = syscall_ptr
-        return (var_k)
-    else:
-        return (var_k)
-    end
-end
-
-func __warp_loop_0{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        storage_ptr : Storage*, syscall_ptr : felt*}(
-        var_i : Uint256, var_j : Uint256, var_k : Uint256) -> (var_k : Uint256):
-    alloc_locals
-    let (local __warp_subexpr_0 : Uint256) = is_lt(var_k, var_i)
+    let (local var_k : Uint256) = __warp_loop_body_0(var_j, var_k)
     local range_check_ptr = range_check_ptr
-    let (local var_k : Uint256) = __warp_if_0(__warp_subexpr_0, var_i, var_j, var_k)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    let (local var_k : Uint256) = __warp_loop_0(var_j, var_k)
     local range_check_ptr = range_check_ptr
-    local storage_ptr : Storage* = storage_ptr
-    local syscall_ptr : felt* = syscall_ptr
     return (var_k)
 end
 
-func fun_transferFrom{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        storage_ptr : Storage*, syscall_ptr : felt*}(var_i : Uint256, var_j : Uint256) -> (
-        var : Uint256):
+func fun_transferFrom{range_check_ptr}(var_i : Uint256, var_j : Uint256) -> (var : Uint256):
     alloc_locals
     local var_k : Uint256 = Uint256(low=0, high=0)
-    let (local var_k : Uint256) = __warp_loop_0(var_i, var_j, var_k)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    let (local var_k : Uint256) = __warp_loop_0(var_j, var_k)
     local range_check_ptr = range_check_ptr
-    local storage_ptr : Storage* = storage_ptr
-    local syscall_ptr : felt* = syscall_ptr
     local var : Uint256 = Uint256(low=1, high=0)
     return (var)
 end
