@@ -381,7 +381,7 @@ class Caller(BuiltinHandler):
             function_name="get_caller_data_uint256",
             function_args=function_args,
             call_implicits=["syscall_ptr"],
-            used_implicits=("syscall_ptr"),
+            used_implicits=("syscall_ptr",),
         )
 
 
