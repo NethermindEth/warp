@@ -1,42 +1,99 @@
-pragma solidity ^0.8.6;
+// SPDX-License-Identifier: MIT
 
-contract WARP {
-    uint8  public decimals    = 18;
-    uint256 public totalSupply= 100000000000000000000000000000000000;
+pragma solidity ^0.8.0;
 
-    mapping (uint => uint)                       public  balanceOf;
-    mapping (uint => mapping (uint => uint))  public  allowance;
+contract ERC20 {
+    mapping(address => uint256) private _balances;
 
-    function deposit(uint sender, uint256 value) public payable returns (uint, uint){
-        balanceOf[sender] += value;
-        return (21,12);
+    mapping(address => mapping(address => uint256)) private _allowances;
+
+    uint256 private _totalSupply;
+
+    function decimals() public view returns (uint8) {
+        return 18;
     }
 
-    function withdraw(uint wad, uint sender) public payable {
-        require(balanceOf[sender] >= wad);
-        balanceOf[sender] -= wad;
-        (uint a, uint b) = deposit(sender, wad);
+    function totalSupply() public view returns (uint256) {
+        return _totalSupply;
     }
 
-    function approve(uint guy, uint wad, uint sender) public payable returns (bool) {
-        allowance[sender][guy] = wad;
+    function balanceOf(address account) public returns (uint256) {
+        return _balances[account];
+    }
+
+    function transfer(address recipient, uint256 amount) public returns (bool) {
+        _transfer(msg.sender, recipient, amount);
         return true;
     }
 
-    function transferFrom(uint src, uint dst, uint wad, uint sender)
-        public payable
-        returns (bool)
-    {
+    function allowance(address owner, address spender) public view returns (uint256) {
+        return _allowances[owner][spender];
+    }
 
-        if (src != sender) {
-            require(allowance[src][sender] >= wad);
-            require(balanceOf[src] >= wad);
-            allowance[src][sender] -= wad;
+    function approve(address spender, uint256 amount) public returns (bool) {
+        _approve(msg.sender, spender, amount);
+        return true;
+    }
+
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) public returns (bool) {
+        _transfer(sender, recipient, amount);
+
+        uint256 currentAllowance = _allowances[sender][msg.sender];
+        require(currentAllowance >= amount);
+        unchecked {
+            _approve(sender, msg.sender, currentAllowance - amount);
         }
 
-        balanceOf[src] -= wad;
-        balanceOf[dst] += wad;
+        return true;
+    }
+
+    function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
+        _approve(msg.sender, spender, _allowances[msg.sender][spender] + addedValue);
+        return true;
+    }
+
+    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
+        uint256 currentAllowance = _allowances[msg.sender][spender];
+        require(currentAllowance >= subtractedValue);
+        unchecked {
+            _approve(msg.sender, spender, currentAllowance - subtractedValue);
+        }
 
         return true;
     }
+
+    function _transfer(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) internal {
+        uint256 senderBalance = _balances[sender];
+        require(senderBalance >= amount);
+        unchecked {
+            _balances[sender] = senderBalance - amount;
+        }
+        _balances[recipient] += amount;
+    }
+
+    function _burn(address account, uint256 amount) internal {
+        uint256 accountBalance = _balances[account];
+        require(accountBalance >= amount);
+        unchecked {
+            _balances[account] = accountBalance - amount;
+        }
+        _totalSupply -= amount;
+    }
+
+    function _approve(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal {
+        _allowances[owner][spender] = amount;
+    }
+
 }
