@@ -9,7 +9,6 @@ import yul.yul_ast as ast
 from transpiler.Imports import merge_imports, format_imports
 from yul.BuiltinHandler import YUL_BUILTINS_MAP
 from yul.Artifacts import Artifacts
-from yul.ExecEnv import NeedsExececutionEnvironment
 from yul.utils import (
     STORAGE_DECLS,
     get_source_version,
@@ -79,7 +78,6 @@ class ToCairoVisitor(AstVisitor):
         self.last_used_implicits: tuple[str] = ()
         self.function_to_implicits: dict[str, set[str]] = {}
         self.in_entry_function: bool = False
-        self.exec_env_functions: list[str] = []
         self.storage_variables: set[StorageVar] = set()
 
     def translate(self, node: ast.Node) -> str:
@@ -148,7 +146,10 @@ class ToCairoVisitor(AstVisitor):
                     node.function_name.name, (IMPLICITS_SET - {"exec_env"})
                 )
             )
-            if fun_repr in self.exec_env_functions and fun_repr != "__warp_block_00":
+            if (
+                "exec_env" in self.function_to_implicits[fun_repr]
+                and fun_repr != "__warp_block_00"
+            ):
                 self.last_used_implicits.append("exec_env")
             result = f"{fun_repr}({args_repr})"
         self.function_to_implicits.setdefault(self.last_function.name, set()).update(
@@ -233,7 +234,7 @@ class ToCairoVisitor(AstVisitor):
         if implicits:
             implicits_decl = ", ".join(print_implicit(x) for x in implicits)
             if (
-                node.name in self.exec_env_functions
+                "exec_env" in self.function_to_implicits[node.name]
                 and "exec_env" not in implicits
                 and "block_00" not in node.name
             ):
