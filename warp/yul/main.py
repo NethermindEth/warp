@@ -18,7 +18,7 @@ from yul.ToCairoVisitor import ToCairoVisitor
 from yul.parse import parse_node
 from yul.utils import get_public_functions
 
-AST_GENERATOR = "gen-yul-json-ast"
+AST_GENERATOR = "kudu"
 
 
 def generate_cairo(sol_src_path, main_contract):
