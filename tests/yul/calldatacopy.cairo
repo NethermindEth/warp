@@ -66,7 +66,7 @@ end
 @external
 func fun_callMe_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
-        calldata_size, calldata_len, calldata : felt*) -> (var_low, var_high):
+        calldata_size, calldata_len, calldata : felt*) -> (var : Uint256):
     alloc_locals
     let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
@@ -80,5 +80,5 @@ func fun_callMe_external{
     local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
     default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var.low, var.high)
+    return (var=var)
 end

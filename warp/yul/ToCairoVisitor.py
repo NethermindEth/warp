@@ -106,12 +106,8 @@ class ToCairoVisitor(AstVisitor):
             f"Each node type should have a custom visit, but {type(node)} doesn't"
         )
 
-    def visit_typed_name(self, node: ast.TypedName, split: bool = False) -> str:
-        if not split:
-            return f"{node.name} : {node.type}"
-        assert node.type == "Uint256", "Can't split non Uin256 type"
-        # could have added ": felt", but when a type is omitted, it's felt by default
-        return f"{node.name}_low, {node.name}_high"
+    def visit_typed_name(self, node: ast.TypedName) -> str:
+        return f"{node.name} : {node.type}"
 
     def visit_literal(self, node: ast.Literal) -> str:
         v = int(node.value)  # to convert bools: True -> 1, False -> 0
@@ -300,8 +296,8 @@ class ToCairoVisitor(AstVisitor):
         return f"return ({return_names})"
 
     def _make_external_function(self, node: ast.FunctionDefinition) -> str:
-        params = ", ".join(self.print(x, split=False) for x in node.parameters)
-        returns = ", ".join(self.print(x, split=True) for x in node.return_variables)
+        params = ", ".join(self.print(x) for x in node.parameters)
+        returns = ", ".join(self.print(x) for x in node.return_variables)
         inner_args = ", ".join(x.name for x in node.parameters)
         inner_returns = ", ".join(
             f"local {self.visit(x)}" for x in node.return_variables
@@ -312,8 +308,8 @@ class ToCairoVisitor(AstVisitor):
             if node.return_variables
             else inner_call
         )
-        split_returns = ", ".join(
-            f"{x.name}.low, {x.name}.high" for x in node.return_variables
+        external_returns = ", ".join(
+            f"{x.name}={x.name}" for x in node.return_variables
         )
         self.external_functions.append(node.name)
         implicits = sorted(IMPLICITS_SET - {"msize", "memory_dict", "exec_env"})
@@ -347,7 +343,7 @@ class ToCairoVisitor(AstVisitor):
             f"end\n"
             f"{implicit_copy}\n"
             f"default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
-            f"return ({split_returns})\n"
+            f"return ({external_returns})\n"
             f"end\n\n"
         )
 

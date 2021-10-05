@@ -125,7 +125,7 @@ end
 @external
 func fun_rando_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
-        var_a : Uint256, var_b : Uint256) -> (var_low, var_high):
+        var_a : Uint256, var_b : Uint256) -> (var : Uint256):
     alloc_locals
     let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
@@ -138,5 +138,5 @@ func fun_rando_external{
     local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
     default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var.low, var.high)
+    return (var=var)
 end
