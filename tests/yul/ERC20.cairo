@@ -127,6 +127,7 @@ func fun_approve_external{
     return (var=var)
 end
 
+@view
 func getter_fun_balanceOf{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
         arg0_93 : Uint256) -> (value_94 : Uint256):
     alloc_locals
@@ -134,6 +135,7 @@ func getter_fun_balanceOf{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_
     return (res)
 end
 
+@external
 func setter_fun_balanceOf{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
         arg0_116 : Uint256, value_117 : Uint256) -> ():
     alloc_locals

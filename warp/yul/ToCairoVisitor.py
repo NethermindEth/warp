@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from collections import defaultdict
 from contextlib import contextmanager
-import os
 from typing import Optional
+import os
+import re
 
 import yul.yul_ast as ast
 from transpiler.Imports import merge_imports, format_imports
@@ -11,8 +12,9 @@ from yul.BuiltinHandler import YUL_BUILTINS_MAP
 from yul.Artifacts import Artifacts
 from yul.utils import (
     STORAGE_DECLS,
-    get_source_version,
+    get_function_mutabilities,
     get_public_functions,
+    get_source_version,
     validate_solc_ver,
 )
 from yul.storage_access import (
@@ -71,6 +73,9 @@ class ToCairoVisitor(AstVisitor):
         self.main_contract = main_contract
         self.file_name = os.path.basename(sol_src_path)[:-4]
         self.public_functions = get_public_functions(sol_source)
+        self.function_mutabilities: dict[str, str] = get_function_mutabilities(
+            sol_source
+        )
         self.external_functions: list[str] = []
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
@@ -227,8 +232,18 @@ class ToCairoVisitor(AstVisitor):
                 f"end\n"
             )
 
+        function_name = extract_function_name(node.name) or node.name
+        mutability = self.function_mutabilities.get(function_name)
+        mutability = "view" if mutability in ["pure", "view"] else "external"
+        if node.name.startswith("getter"):
+            mutability = "view"
+        elif node.name.startswith("setter"):
+            mutability = "external"
+
         external = node.name in self.public_functions
-        external_function = self._make_external_function(node) if external else ""
+        external_function = (
+            self._make_external_function(node, mutability) if external else ""
+        )
         implicits = sorted(self.function_to_implicits.setdefault(node.name, set()))
         implicits_decl = ""
         if implicits:
@@ -250,7 +265,16 @@ class ToCairoVisitor(AstVisitor):
                 )
             else:
                 implicits_decl += "}"
+        # We do not want to annotate current function with mutability if we are going to
+        # generate a corresponding external function
+        mutability = (
+            f"@{mutability}"
+            if not external and self.function_mutabilities.get(function_name)
+            else ""
+        )
+
         return (
+            f"{mutability}\n"
             f"func {node.name}{implicits_decl}({params_repr}) -> ({returns_repr}):\n"
             f"alloc_locals\n"
             f"{body_repr}\n"
@@ -296,7 +320,9 @@ class ToCairoVisitor(AstVisitor):
         return_names = ", ".join(x.name for x in self.last_function.return_variables)
         return f"return ({return_names})"
 
-    def _make_external_function(self, node: ast.FunctionDefinition) -> str:
+    def _make_external_function(
+        self, node: ast.FunctionDefinition, mutability: str
+    ) -> str:
         params = ", ".join(self.print(x) for x in node.parameters)
         returns = ", ".join(self.print(x) for x in node.return_variables)
         inner_args = ", ".join(x.name for x in node.parameters)
@@ -328,9 +354,8 @@ class ToCairoVisitor(AstVisitor):
                 f"calldata_len=calldata_len, calldata=calldata)\n"
             )
             inner_implicits += ", exec_env"
-
         return (
-            f"\n@external\n"
+            f"\n@{mutability}\n"
             f"func {node.name}_external"
             f"{{{implicits_repr}}}"
             f"({params}) -> ({returns}):\n"
@@ -402,3 +427,16 @@ def print_implicit(name):
 
 def copy_implicit(name):
     return f"local {print_implicit(name)} = {name}"
+
+
+def extract_function_name(name: str) -> Optional[str]:
+    if name.startswith("getter"):
+        return extract_var_from_getter(name)
+    elif name.startswith("setter"):
+        return extract_var_from_setter(name)
+    else:
+        fun_pattern = re.compile(r"fun_(\S*)(_(\d+))?")
+        match = re.fullmatch(fun_pattern, name)
+        if not match:
+            return None
+        return match.group(1)
