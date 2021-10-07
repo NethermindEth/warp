@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 from typing import Optional
+from contextlib import contextmanager
+from functools import lru_cache
 
 import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
 from yul.NameGenerator import NameGenerator
+from yul.extract_block import extract_block_as_function
 
 
 class ScopeFlattener(AstMapper):
@@ -10,7 +15,9 @@ class ScopeFlattener(AstMapper):
         super().__init__()
         self.name_gen = name_gen
         self.block_functions: list[ast.FunctionDefinition] = []
-        self.call_revert: bool = False
+        self.revert_created: bool = False
+        self.leave_name: Optional[str] = None
+        self.pass_leaves_higher = False
 
     def map(self, node: ast.Node, **kwargs) -> ast.Node:
         if not isinstance(node, ast.Block):
@@ -23,7 +30,7 @@ class ScopeFlattener(AstMapper):
             self.block_functions = []
         return ast.Block(tuple(all_statements))
 
-    def visit_block(self, node: ast.Block, inline: Optional[bool] = None) -> ast.Block:
+    def visit_block(self, node: ast.Block, inline: bool = False) -> ast.Block:
         if inline or not node.scope.bound_variables:
             stmts = []
             for stmt in node.statements:
@@ -34,137 +41,134 @@ class ScopeFlattener(AstMapper):
                     stmts.append(new_stmt)
             return ast.Block(tuple(stmts))
 
-        read_vars = sorted(node.scope.read_variables)  # to ensure order
-        mod_vars = sorted(node.scope.modified_variables)
-        # ↓ default Uint256 type for everything
-        typed_read_vars = [ast.TypedName(x.name) for x in read_vars]
-        typed_mod_vars = [ast.TypedName(x.name) for x in mod_vars]
-        block_fun = ast.FunctionDefinition(
-            name=self.name_gen.make_block_name(),
-            parameters=typed_read_vars,
-            return_variables=typed_mod_vars,
-            body=node,
-        )
-        if mod_vars == []:
+        with self._new_extraction():
+            fun_name = self.name_gen.make_block_name()
+            node = super().visit_block(node)
+            block_fun, block_stmt = extract_block_as_function(node, fun_name)
             self.block_functions.append(block_fun)
-            block_call = ast.FunctionCall(
-                function_name=ast.Identifier(block_fun.name),
-                arguments=read_vars,
-            )
-
-        else:
-            self.block_functions.append(block_fun)
-            block_call = ast.Assignment(
-                variable_names=mod_vars,
-                value=ast.FunctionCall(
-                    function_name=ast.Identifier(block_fun.name),
-                    arguments=read_vars,
-                ),
-            )
-        return ast.Block((self.visit(block_call),))
+            leave_id = ast.Identifier(self.leave_name)
+            if leave_id not in node.scope.modified_variables:
+                stmts = (block_stmt,)
+            else:
+                stmts = (block_stmt, ast.If(condition=leave_id, body=ast.LEAVE_BLOCK))
+            return ast.Block(stmts)
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
         # We do not want to flatten an if-block if it is the only statement in
         # the function body. Skip visit_if in such cases and instead visit all
         # the branches of the if-block.
 
-        if len(node.body.statements) == 1 and isinstance(
-            node.body.statements[0], ast.If
-        ):
-            if_statement = node.body.statements[0]
-
+        with self._new_function():
+            if len(node.body.statements) == 1 and isinstance(
+                node.body.statements[0], ast.If
+            ):
+                if_stmt = node.body.statements[0]
+                if_body = self.visit_block(if_stmt.body, inline=True)
+                if_else_body = None
+                if if_stmt.else_body:
+                    if_else_body = self.visit_block(if_stmt.else_body, inline=True)
+                body = ast.Block((ast.If(if_stmt.condition, if_body, if_else_body),))
+            else:
+                body = self.visit(node.body, inline=True)
+            leave_id = ast.Identifier(self.leave_name)
+            if leave_id in body.scope.modified_variables:
+                leave_var_decl = ast.VariableDeclaration(
+                    [ast.TypedName(self.leave_name)], ast.Literal(False)
+                )
+                body = ast.Block((leave_var_decl, *body.statements))
+            uninitialized_return_vars: list[ast.TypedName] = []
+            params_set: set[str] = {x.name for x in node.parameters}
+            for v in node.return_variables:
+                v_id = ast.Identifier(v.name)
+                if v_id in body.scope.read_variables and v.name not in params_set:
+                    uninitialized_return_vars.append(v)
+            if uninitialized_return_vars:
+                init = ast.VariableDeclaration(uninitialized_return_vars, value=None)
+                body = ast.Block((init, *body.statements))
             return ast.FunctionDefinition(
                 name=node.name,
                 parameters=self.visit_list(node.parameters),
                 return_variables=self.visit_list(node.return_variables),
-                body=ast.Block(
-                    (
-                        ast.If(
-                            condition=self.visit(if_statement.condition),
-                            body=self.visit(if_statement.body),
-                            else_body=self.visit(if_statement.else_body)
-                            if if_statement.else_body
-                            else None,
-                        ),
-                    )
-                ),
+                body=body,
             )
-
-        return ast.FunctionDefinition(
-            name=node.name,
-            parameters=self.visit_list(node.parameters),
-            return_variables=self.visit_list(node.return_variables),
-            body=self.visit(node.body, inline=True),
-        )
 
     def visit_if(self, node: ast.If):
         if self.is_leave_if(node):
-            return ast.If(
-                condition=self.visit(node.condition),
-                body=self.visit(node.body),
-                else_body=self.visit(node.else_body) if node.else_body else None,
-            )
-
-        if_block_scope = ast.Block((node,)).scope
-
-        read_vars = sorted(if_block_scope.read_variables)
-        mod_vars = sorted(if_block_scope.modified_variables)
-
-        typed_read_vars = [ast.TypedName(x.name) for x in read_vars]
-        typed_mod_vars = [ast.TypedName(x.name) for x in mod_vars]
+            return super().visit_if(node)
 
         revert_if = self.is_revert_if(node)
-
-        fun_name = (
-            self.name_gen.take_cond_revert_name()
-            if revert_if
-            else self.name_gen.make_if_name()
-        )
-        if not revert_if or not self.call_revert:
-            if_fun = ast.FunctionDefinition(
-                name=fun_name,
-                parameters=typed_read_vars,
-                return_variables=typed_mod_vars,
-                body=ast.Block((node,)),
-            )
-            self.block_functions.append(if_fun)
-
-        self.call_revert |= revert_if
-
-        if mod_vars == []:
-            return_assignment = ast.FunctionCall(
-                function_name=ast.Identifier(fun_name),
-                arguments=read_vars,
-            )
+        if revert_if:
+            fun_name = self.name_gen.take_cond_revert_name()
         else:
-            return_assignment = ast.Assignment(
-                variable_names=mod_vars,
-                value=ast.FunctionCall(
-                    function_name=ast.Identifier(fun_name),
-                    arguments=read_vars,
-                ),
-            )
+            fun_name = self.name_gen.make_if_name()
 
-        return self.visit(return_assignment)
+        with self._new_extraction():
+            if_block = ast.Block((super().visit_if(node),))
+            if_fun, if_stmt = extract_block_as_function(if_block, fun_name)
+            if revert_if and self.revert_created:
+                return if_stmt
+            self.block_functions.append(if_fun)
+            self.revert_created |= revert_if
+            leave_id = ast.Identifier(self.leave_name)
+            if leave_id in if_block.scope.modified_variables:
+                stmts = (if_stmt, ast.If(condition=leave_id, body=ast.LEAVE_BLOCK))
+            else:
+                stmts = (if_stmt,)
+            return ast.Block(stmts)
+
+    def visit_leave(self, node: ast.Leave):
+        if not self.pass_leaves_higher:
+            return node
+        else:
+            leave_var_assign = ast.Assignment(
+                [ast.Identifier(self.leave_name)], ast.Literal(True)
+            )
+            return ast.Block((leave_var_assign, ast.LEAVE))
 
     def is_revert_if(self, node: ast.If):
-        return self._is_revert(node.body) or self._is_revert(node.else_body)
+        return _is_revert(node.body) or _is_revert(node.else_body)
 
     def is_leave_if(self, node: ast.If):
-        body_stmt = node.body.statements[0] if node.body.statements else None
-        else_stmt = (
-            node.else_body.statements[0]
-            if (node.else_body and node.else_body.statements)
-            else None
+        return _is_leave(node.body) or _is_leave(node.else_body)
+
+    @contextmanager
+    def _new_function(self):
+        old_leave_name = self.leave_name
+        self.leave_name = self.name_gen.make_leave_name()
+        try:
+            yield None
+        finally:
+            self.leave_name = old_leave_name
+
+    @contextmanager
+    def _new_extraction(self):
+        old_pass_leaves_higher = self.pass_leaves_higher
+        self.pass_leaves_higher = True
+        try:
+            yield None
+        finally:
+            self.pass_leaves_higher = old_pass_leaves_higher
+
+
+@lru_cache()
+def _is_leave(node: Optional[ast.Node]) -> bool:
+    if isinstance(node, ast.Block):
+        return any(_is_leave(x) for x in node.statements)
+    elif isinstance(node, ast.If):
+        return _is_leave(node.condition) and (
+            not node.else_body or _is_leave(node.else_body)
         )
-
-        return isinstance(body_stmt, ast.Leave) or isinstance(else_stmt, ast.Leave)
-
-    def _is_revert(self, node: Optional[ast.Node]):
-        if isinstance(node, ast.FunctionCall):
-            return node.function_name.name == "revert"
-        if isinstance(node, ast.ExpressionStatement):
-            return self._is_revert(node.expression)
-        if isinstance(node, ast.Block):
-            return len(node.statements) == 1 and self._is_revert(node.statements[0])
+    elif isinstance(node, ast.Leave):
+        return True
+    else:
         return False
+
+
+def _is_revert(node: Optional[ast.Node]) -> bool:
+    if isinstance(node, ast.FunctionCall):
+        return node.function_name.name == "revert"
+    if isinstance(node, ast.ExpressionStatement):
+        return _is_revert(node.expression)
+    if isinstance(node, ast.Block):
+        return len(node.statements) == 1 and _is_revert(node.statements[0])
+    return False

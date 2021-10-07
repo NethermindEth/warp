@@ -3,7 +3,6 @@ import os
 
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
-from starkware.starknet.testing.contract import StarknetContract
 
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
 test_dir = __file__

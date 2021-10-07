@@ -128,7 +128,9 @@ class Leave(Node):
 # No two nodes of this class should be different from each
 # other. Thus, it's cheaper to create one object and use it in all
 # contexts, rather than create new `Leave()` each time.
-LEAVE = Leave()
+LEAVE: Leave = Leave()
+
+LEAVE_BLOCK: Block = Block(statements=((LEAVE,)))
 
 Expression = Union[Literal, Identifier, FunctionCall]
 Statement = Union[
