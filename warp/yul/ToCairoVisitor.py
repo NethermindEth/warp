@@ -54,12 +54,14 @@ class ToCairoVisitor(AstVisitor):
         name_gen: NameGenerator,
         artifacts_manager: Artifacts,
         cairo_functions: CairoFunctions,
+        interfaces: str,
     ):
         super().__init__()
         self.artifacts_manager = artifacts_manager
         self.artifacts_manager.write_artifact("MAIN_CONTRACT", main_contract)
         self.public_functions = public_functions
         self.function_mutabilities = function_mutabilities
+        self.interfaces = interfaces
         self.name_gen = name_gen
         self.cairo_functions = cairo_functions
         self.external_functions: list[str] = []
@@ -82,7 +84,10 @@ class ToCairoVisitor(AstVisitor):
                 MAIN_PREAMBLE,
                 format_imports(self.imports),
                 "",
+                self.interfaces,
+                "",
                 *self.cairo_functions.get_definitions(),
+                "",
                 *storage_var_decls,
                 HANDLERS_DECL,
                 main_part,
