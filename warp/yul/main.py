@@ -17,6 +17,7 @@ from yul.SwitchToIfVisitor import SwitchToIfVisitor
 from yul.ToCairoVisitor import ToCairoVisitor
 from yul.parse import parse_node
 from yul.utils import get_public_functions
+from yul.InterfaceTranspiler import get_cairo_interfaces
 
 AST_GENERATOR = "kudu"
 
@@ -39,6 +40,8 @@ def generate_cairo(sol_src_path, main_contract):
         print(e.stderr.decode("utf-8"), file=sys.stderr)
         raise e
 
+    interfaces = get_cairo_interfaces(sol_source)
+
     yul_ast = parse_node(json.loads(result.stdout))
     yul_ast = ForLoopSimplifier().map(yul_ast)
     yul_ast = ForLoopEliminator().map(yul_ast)
@@ -50,7 +53,7 @@ def generate_cairo(sol_src_path, main_contract):
     yul_ast = LeaveNormalizer().map(yul_ast)
     yul_ast = RevertNormalizer().map(yul_ast)
     yul_ast = FunctionPruner(public_functions).map(yul_ast)
-    cairo_visitor = ToCairoVisitor(sol_source, sol_src_path, main_contract)
+    cairo_visitor = ToCairoVisitor(sol_source, sol_src_path, main_contract, interfaces)
     cairo_code = cairo_visitor.translate(yul_ast)
     return parse_file(cairo_code).format()
 

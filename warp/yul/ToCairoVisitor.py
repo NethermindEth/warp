@@ -61,7 +61,9 @@ IMPLICITS_SET = set(IMPLICITS.keys())
 
 
 class ToCairoVisitor(AstVisitor):
-    def __init__(self, sol_source: str, sol_src_path: str, main_contract: str):
+    def __init__(
+        self, sol_source: str, sol_src_path: str, main_contract: str, interfaces: str
+    ):
         super().__init__()
         self.artifacts_manager = Artifacts(sol_src_path)
         self.artifacts_manager.write_artifact("MAIN_CONTRACT", main_contract)
@@ -69,6 +71,7 @@ class ToCairoVisitor(AstVisitor):
         validate_solc_ver(sol_source)
         self.code = sol_source
         self.main_contract = main_contract
+        self.interfaces = interfaces
         self.file_name = os.path.basename(sol_src_path)[:-4]
         self.public_functions = get_public_functions(sol_source)
         self.external_functions: list[str] = []
@@ -89,6 +92,8 @@ class ToCairoVisitor(AstVisitor):
             [
                 MAIN_PREAMBLE,
                 format_imports(self.imports),
+                "",
+                self.interfaces,
                 "",
                 *storage_var_decls,
                 STORAGE_DECLS,
