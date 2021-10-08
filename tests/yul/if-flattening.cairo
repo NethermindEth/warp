@@ -68,6 +68,7 @@ func checked_sub_uint256{range_check_ptr}(x : Uint256, y : Uint256) -> (diff : U
     return (diff)
 end
 
+@view
 func getter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
         arg0 : Uint256, arg1 : Uint256) -> (value_17 : Uint256):
     alloc_locals
@@ -75,6 +76,7 @@ func getter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_
     return (res)
 end
 
+@external
 func setter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
         arg0_28 : Uint256, arg1_29 : Uint256, value_30 : Uint256) -> ():
     alloc_locals

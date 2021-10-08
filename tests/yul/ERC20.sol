@@ -5,7 +5,7 @@ contract WARP {
     uint256 public totalSupply= 100000000000000000000000000000000000;
 
     mapping (uint => uint)                       public  balanceOf;
-    mapping (uint => mapping (uint => uint))  public  allowance;
+    mapping (uint => mapping (uint => uint))  private  allowance;
 
     function deposit(uint sender, uint256 value) public payable returns (uint, uint){
         balanceOf[sender] += value;

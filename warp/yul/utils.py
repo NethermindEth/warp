@@ -119,6 +119,19 @@ def get_public_functions(sol_source: str) -> list[str]:
     return list(public_functions)
 
 
+def get_function_mutabilities(sol_source: str) -> dict[str, str]:
+    validate_solc_ver(sol_source)
+
+    function_visibilities = dict()
+    abi = solcx.compile_source(sol_source)
+
+    for value in abi.values():
+        for v in value["abi"]:
+            if v["type"] in ["function", "constructor", "fallback", "receive"]:
+                function_visibilities[v["name"]] = v["stateMutability"]
+    return function_visibilities
+
+
 def validate_solc_ver(sol_source):
     solc_version: float = get_source_version(sol_source)
     src_ver: str = check_installed_solc(solc_version)

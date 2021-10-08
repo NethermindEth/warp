@@ -90,6 +90,7 @@ func cleanup_uint256(value_60 : Uint256) -> (cleaned : Uint256):
     return (cleaned)
 end
 
+@external
 func setter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
         arg0_104 : Uint256, arg1_105 : Uint256, value_106 : Uint256) -> ():
     alloc_locals
@@ -127,6 +128,7 @@ func fun_approve_external{
     return (var_=var_)
 end
 
+@view
 func getter_fun_balanceOf{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
         arg0_86 : Uint256) -> (value_87 : Uint256):
     alloc_locals
@@ -134,6 +136,7 @@ func getter_fun_balanceOf{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_
     return (res)
 end
 
+@external
 func setter_fun_balanceOf{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
         arg0_109 : Uint256, value_110 : Uint256) -> ():
     alloc_locals
@@ -205,6 +208,7 @@ func fun_get_balance_external{
     return (var=var)
 end
 
+@view
 func getter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
         arg0 : Uint256, arg1 : Uint256) -> (value_83 : Uint256):
     alloc_locals
