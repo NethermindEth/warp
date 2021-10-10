@@ -16,7 +16,7 @@ Warp brings EVM compatible languages to StarkNet, making it possible to transpil
 
 Prerequisites:
 
-Install [Kudu](https://github.com/NethermindEth/kudu), our tool to generate the Yul AST, which Warp uses and add it to your PATH
+Install [Kudu](https://github.com/NethermindEth/kudu), our tool to generate the Yul AST, and add it to your PATH.
 
 Linux:
 ```
