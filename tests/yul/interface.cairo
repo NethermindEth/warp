@@ -12,6 +12,13 @@ from starkware.cairo.common.uint256 import Uint256, uint256_eq
 from starkware.starknet.common.storage import Storage
 
 @contract_interface
+namespace GenericCallInterface:
+    func fun_ENTRY_POINT(calldata_size : felt, calldata_len : felt, calldata : felt*) -> (
+            res : felt):
+    end
+end
+
+@contract_interface
 namespace InterfaceICounter:
     func approve(guy : Uint256, wad : Uint256, sender : Uint256) -> (res0 : Uint256):
     end

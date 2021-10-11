@@ -525,6 +525,43 @@ class Delegatecall(BuiltinHandler):
             cairo_functions=cairo_functions,
         )
         # TODO implement delegatecall
+=======
+class Call(BuiltinHandler):
+    def __init__(self, function_args: str):
+        super().__init__(
+            module="", function_name="", function_args="", call_implicits=[]
+        )
+        [g, a, v, in_, insize, out, outsize] = map(
+            lambda s: s.strip(), function_args.split(",")
+        )
+
+        self.function_call = (
+            f"GenericCallInterface.fun_ENTRY_POINT(\n"
+            f"  contract_address={a},\n"
+            f"  calldata_size={insize},\n"
+            f"  calldata_length={insize},\n"
+            f"  calldata={in_},\n"
+            f")"
+        )
+
+
+class StaticCall(BuiltinHandler):
+    def __init__(self, function_args: str):
+        super().__init__(
+            module="", function_name="", function_args="", call_implicits=[]
+        )
+        [g, a, in_, insize, out, outsize] = map(
+            lambda s: s.strip(), function_args.split(",")
+        )
+
+        self.function_call = (
+            f"GenericCallInterface.fun_ENTRY_POINT(\n"
+            f"  contract_address={a},\n"
+            f"  calldata_size={insize},\n"
+            f"  calldata_length={insize},\n"
+            f"  calldata={in_},\n"
+            f")"
+        )
 
 
 YUL_BUILTINS_MAP = {
@@ -568,6 +605,8 @@ YUL_BUILTINS_MAP = {
     "slt": Slt,
     "smod": SMod,
     "sstore": SStore,
+    "call": Call,
+    "staticcall": StaticCall,
     "sub": Sub,
     "xor": Xor,
 }

@@ -61,4 +61,12 @@ namespace Interface{contract.split(":")[1]}:
 end"""
         )
 
-    return "\n\n".join(interface_ABIs)
+    return "\n\n".join([GenericCallInterface] + interface_ABIs)
+
+GenericCallInterface = '''
+@contract_interface
+namespace GenericCallInterface:
+    func fun_ENTRY_POINT(calldata_size: felt, calldata_len: felt, calldata : felt*) -> (res: felt):
+    end
+end
+'''
