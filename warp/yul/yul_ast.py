@@ -61,7 +61,7 @@ class VariableDeclaration(Node):
 
 @dataclass(eq=False, frozen=True)
 class Block(Node):
-    statements: tuple["Statement"] = ()
+    statements: tuple["Statement", ...] = ()
 
     @property
     @lru_cache(None)
@@ -128,7 +128,9 @@ class Leave(Node):
 # No two nodes of this class should be different from each
 # other. Thus, it's cheaper to create one object and use it in all
 # contexts, rather than create new `Leave()` each time.
-LEAVE = Leave()
+LEAVE: Leave = Leave()
+
+LEAVE_BLOCK: Block = Block(statements=((LEAVE,)))
 
 Expression = Union[Literal, Identifier, FunctionCall]
 Statement = Union[
@@ -287,13 +289,20 @@ class ScopeResolver(AstVisitor):
             self._register_read(node)
 
     def visit_assignment(self, node: Assignment):
+        # assigned vars are registered _after_ the assignment is complete
+        self.visit(node.value)
         for var in node.variable_names:
             self._register_modification(var)
-        self.visit(node.value)
 
     def visit_function_call(self, node: FunctionCall):
         self.visit(node.function_name, is_function=True)
         self.visit_list(node.arguments)
+
+    def visit_variable_declaration(self, node: VariableDeclaration):
+        # declared vars are registered _after_ the declaration is complete
+        if node.value:
+            self.visit(node.value)
+        self.visit_list(node.variables)
 
     def visit_block(self, node: Block):
         for var in node.scope.read_variables:

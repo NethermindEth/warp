@@ -48,7 +48,7 @@ func get_storage_high{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : Ha
     return (res=storage_val_high)
 end
 
-func __warp_block_00(_4 : Uint256) -> ():
+func __warp_cond_revert(_4 : Uint256) -> ():
     alloc_locals
     if _4.low + _4.high != 0:
         assert 0 = 1
@@ -62,7 +62,7 @@ func checked_sub_uint256{range_check_ptr}(x : Uint256, y : Uint256) -> (diff : U
     alloc_locals
     let (local _1_12 : Uint256) = is_lt(x, y)
     local range_check_ptr = range_check_ptr
-    __warp_block_00(_1_12)
+    __warp_cond_revert(_1_12)
     let (local diff : Uint256) = uint256_sub(x, y)
     local range_check_ptr = range_check_ptr
     return (diff)
@@ -84,7 +84,7 @@ func setter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_
     return ()
 end
 
-func __warp_block_3{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
+func __warp_block_2{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
         var_sender : Uint256, var_src : Uint256, var_wad : Uint256) -> (var_res : Uint256):
     alloc_locals
     let (local _3_15 : Uint256) = getter_fun_allowance(var_src, var_sender)
@@ -101,7 +101,7 @@ func __warp_block_3{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : 
     return (var_res)
 end
 
-func __warp_block_2_if{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
+func __warp_if_0{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
         __warp_subexpr_0 : Uint256, var_sender : Uint256, var_src : Uint256, var_wad : Uint256) -> (
         var_res : Uint256):
     alloc_locals
@@ -109,7 +109,7 @@ func __warp_block_2_if{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr
         local var_res : Uint256 = Uint256(low=2, high=0)
         return (var_res)
     else:
-        let (local var_res : Uint256) = __warp_block_3(var_sender, var_src, var_wad)
+        let (local var_res : Uint256) = __warp_block_2(var_sender, var_src, var_wad)
         local pedersen_ptr : HashBuiltin* = pedersen_ptr
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
@@ -123,8 +123,7 @@ func __warp_block_1{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : 
     alloc_locals
     let (local __warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=0, high=0))
     local range_check_ptr = range_check_ptr
-    let (local var_res : Uint256) = __warp_block_2_if(
-        __warp_subexpr_0, var_sender, var_src, var_wad)
+    let (local var_res : Uint256) = __warp_if_0(__warp_subexpr_0, var_sender, var_src, var_wad)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr

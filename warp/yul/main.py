@@ -1,7 +1,6 @@
 import json
 import shutil
 import subprocess
-import os
 import sys
 
 from starkware.cairo.lang.compiler.parser import parse_file
@@ -11,6 +10,7 @@ from yul.ForLoopSimplifier import ForLoopSimplifier
 from yul.FunctionPruner import FunctionPruner
 from yul.LeaveNormalizer import LeaveNormalizer
 from yul.MangleNamesVisitor import MangleNamesVisitor
+from yul.NameGenerator import NameGenerator
 from yul.RevertNormalizer import RevertNormalizer
 from yul.ScopeFlattener import ScopeFlattener
 from yul.SwitchToIfVisitor import SwitchToIfVisitor
@@ -39,18 +39,19 @@ def generate_cairo(sol_src_path, main_contract):
         print(e.stderr.decode("utf-8"), file=sys.stderr)
         raise e
 
+    name_gen = NameGenerator()
     yul_ast = parse_node(json.loads(result.stdout))
     yul_ast = ForLoopSimplifier().map(yul_ast)
-    yul_ast = ForLoopEliminator().map(yul_ast)
+    yul_ast = ForLoopEliminator(name_gen).map(yul_ast)
     yul_ast = MangleNamesVisitor().map(yul_ast)
     yul_ast = SwitchToIfVisitor().map(yul_ast)
-    yul_ast = ExpressionSplitter().map(yul_ast)
+    yul_ast = ExpressionSplitter(name_gen).map(yul_ast)
     yul_ast = RevertNormalizer().map(yul_ast)
-    yul_ast = ScopeFlattener().map(yul_ast)
+    yul_ast = ScopeFlattener(name_gen).map(yul_ast)
     yul_ast = LeaveNormalizer().map(yul_ast)
     yul_ast = RevertNormalizer().map(yul_ast)
     yul_ast = FunctionPruner(public_functions).map(yul_ast)
-    cairo_visitor = ToCairoVisitor(sol_source, sol_src_path, main_contract)
+    cairo_visitor = ToCairoVisitor(sol_source, sol_src_path, main_contract, name_gen)
     cairo_code = cairo_visitor.translate(yul_ast)
     return parse_file(cairo_code).format()
 
