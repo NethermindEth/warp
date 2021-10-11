@@ -127,7 +127,7 @@ def get_function_mutabilities(sol_source: str) -> dict[str, str]:
 
     for value in abi.values():
         for v in value["abi"]:
-            if v["type"] in ["function", "constructor", "fallback", "receive"]:
+            if v["type"] == "function":
                 function_visibilities[v["name"]] = v["stateMutability"]
     return function_visibilities
 
