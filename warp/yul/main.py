@@ -11,6 +11,7 @@ from yul.Artifacts import Artifacts
 from yul.ExpressionSplitter import ExpressionSplitter
 from yul.ForLoopEliminator import ForLoopEliminator
 from yul.ForLoopSimplifier import ForLoopSimplifier
+from yul.FunctionGenerator import FunctionGenerator, CairoFunctions
 from yul.FunctionPruner import FunctionPruner
 from yul.LeaveNormalizer import LeaveNormalizer
 from yul.MangleNamesVisitor import MangleNamesVisitor
@@ -63,6 +64,7 @@ def generate_from_yul(
     artifacts_manager: Artifacts,
 ):
     name_gen = NameGenerator()
+    cairo_functions = CairoFunctions(FunctionGenerator())
     yul_ast = ForLoopSimplifier().map(yul_ast)
     yul_ast = ForLoopEliminator(name_gen).map(yul_ast)
     yul_ast = MangleNamesVisitor().map(yul_ast)
@@ -80,6 +82,7 @@ def generate_from_yul(
         function_mutabilities,
         name_gen,
         artifacts_manager,
+        cairo_functions,
     )
     cairo_code = cairo_visitor.translate(yul_ast)
     return parse_file(cairo_code).format()

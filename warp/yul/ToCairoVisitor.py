@@ -65,6 +65,7 @@ class ToCairoVisitor(AstVisitor):
         function_mutabilities: dict[str, str],
         name_gen: NameGenerator,
         artifacts_manager: Artifacts,
+        cairo_functions: CairoFunctions,
     ):
         super().__init__()
         self.artifacts_manager = artifacts_manager
@@ -72,6 +73,7 @@ class ToCairoVisitor(AstVisitor):
         self.public_functions = public_functions
         self.function_mutabilities = function_mutabilities
         self.name_gen = name_gen
+        self.cairo_functions = cairo_functions
         self.external_functions: list[str] = []
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
@@ -91,6 +93,7 @@ class ToCairoVisitor(AstVisitor):
                 MAIN_PREAMBLE,
                 format_imports(self.imports),
                 "",
+                *self.cairo_functions.get_definitions(),
                 *storage_var_decls,
                 STORAGE_DECLS,
                 main_part,
@@ -137,7 +140,9 @@ class ToCairoVisitor(AstVisitor):
             return "Uint256(0,0)"
         result: str
         if fun_repr in YUL_BUILTINS_MAP:
-            builtin_to_cairo = YUL_BUILTINS_MAP[fun_repr](args_repr)
+            builtin_to_cairo = YUL_BUILTINS_MAP[fun_repr](
+                args_repr, self.cairo_functions
+            )
             merge_imports(self.imports, builtin_to_cairo.required_imports())
             self.last_used_implicits = builtin_to_cairo.used_implicits
             result = f"{builtin_to_cairo.function_call}"
