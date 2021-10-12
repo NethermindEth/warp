@@ -152,7 +152,7 @@ class ToCairoVisitor(AstVisitor):
         else:
             self.last_used_implicits = sorted(
                 self.function_to_implicits.setdefault(
-                    node.function_name.name, (IMPLICITS_SET)
+                    node.function_name.name, (IMPLICITS_SET - {"exec_env"})
                 )
             )
             if (
@@ -270,8 +270,9 @@ class ToCairoVisitor(AstVisitor):
         implicits_decl = ""
         if implicits:
             implicits_decl = ", ".join(print_implicit(x) for x in implicits)
-            if ("exec_env" not in implicits
-                and "block_00" not in node.name
+            if (
+                "exec_env" in self.function_to_implicits[node.name]
+                and "exec_env" not in implicits
             ):
                 implicits_decl = "{exec_env : ExecutionEnvironment, " + implicits_decl
             else:

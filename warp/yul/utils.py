@@ -19,6 +19,38 @@ STATEMENT_STRINGS = {
     "Block",
 }
 
+BAD_BUILTINS = [
+    "selfdestruct",
+    "invalid",
+    "log0",
+    "log1",
+    "log2",
+    "log3",
+    "log4",
+    "chainid",
+    "basefee",
+    "origin",
+    "gasprice",
+    "blockhash",
+    "coinbase",
+    "timestamp",
+    "number",
+    "difficulty",
+    "gaslimit",
+    "delegatecall",
+    "create2",
+    "extcodehash",
+    "extcodecopy",
+    "extcodesize",
+    "codecopy",
+    "codesize",
+    "selfbalance",
+    "balance",
+    "callvalue",
+    "gas",
+    "pc",
+]
+
 
 def get_low_bits(string: str) -> str:
     try:
