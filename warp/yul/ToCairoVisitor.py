@@ -152,7 +152,7 @@ class ToCairoVisitor(AstVisitor):
         else:
             self.last_used_implicits = sorted(
                 self.function_to_implicits.setdefault(
-                    node.function_name.name, (IMPLICITS_SET - {"exec_env"})
+                    node.function_name.name, (IMPLICITS_SET)
                 )
             )
             if (
@@ -212,27 +212,45 @@ class ToCairoVisitor(AstVisitor):
         self.last_function = node
         params_repr = ", ".join(self.print(x) for x in node.parameters)
         returns_repr = ", ".join(self.print(x) for x in node.return_variables)
-        if "ENTRY_POINT" in node.name:
-            self.in_entry_function = False
 
         body_repr = self._try_make_storage_accessor_body(node)
         if not body_repr:
             body_repr = self.print(node.body)
 
         if node.name == "fun_ENTRY_POINT":
+            self.in_entry_function = False
             return (
                 "@external\n"
                 f"func {node.name}{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
                 f"storage_ptr : Storage*, syscall_ptr : felt* }}(calldata_size,"
-                f"calldata_len, calldata : felt*) -> ({returns_repr}):\n"
+                f"calldata_len, calldata : felt*, init_address : felt) -> ({returns_repr}):\n"
                 f"alloc_locals\n"
+                f"let (address_init) = address_initialized.read()\n"
+                f"if address_init == 0:\n"
+                f"this_address.write(init_address)\n"
+                f"address_initialized.write(1)\n"
+                f"tempvar range_check_ptr = range_check_ptr\n"
+                f"tempvar pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
+                f"tempvar storage_ptr : Storage* = storage_ptr\n"
+                f"tempvar syscall_ptr : felt* = syscall_ptr\n"
+                f"else:\n"
+                f"tempvar range_check_ptr = range_check_ptr\n"
+                f"tempvar pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
+                f"tempvar storage_ptr : Storage* = storage_ptr\n"
+                f"tempvar syscall_ptr : felt* = syscall_ptr\n"
+                f"end\n"
                 f"local exec_env : ExecutionEnvironment = ExecutionEnvironment("
                 f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata)\n"
                 "let (local memory_dict) = default_dict_new(0)\n"
                 f"local memory_dict_start: DictAccess* = memory_dict\n"
-                "let msize = 0\n"
+                f"let msize = 0\n"
                 f"{body_repr}\n"
+                f"local range_check_ptr = range_check_ptr\n"
+                f"local storage_ptr : Storage* = storage_ptr\n"
+                f"local pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
+                f"local syscall_ptr: felt* = syscall_ptr\n"
                 f"default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
+                f"return ()\n"
                 f"end\n"
             )
 
@@ -252,9 +270,7 @@ class ToCairoVisitor(AstVisitor):
         implicits_decl = ""
         if implicits:
             implicits_decl = ", ".join(print_implicit(x) for x in implicits)
-            if (
-                "exec_env" in self.function_to_implicits[node.name]
-                and "exec_env" not in implicits
+            if ("exec_env" not in implicits
                 and "block_00" not in node.name
             ):
                 implicits_decl = "{exec_env : ExecutionEnvironment, " + implicits_decl

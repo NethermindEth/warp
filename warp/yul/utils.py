@@ -105,6 +105,14 @@ func get_storage_high{
     let (storage_val_high) = evm_storage.read(low=low, high=high, part=2)
     return (res=storage_val_high)
 end
+
+@storage_var
+func this_address() -> (res: felt):
+end
+
+@storage_var
+func address_initialized() -> (res : felt):
+end
 """
 
 

@@ -17,7 +17,7 @@ contract ERC20 {
         return _totalSupply;
     }
 
-    function balanceOf(address[] calldata account) public returns (uint256) {
+    function balanceOf_dynArgs(address[] calldata account) public returns (uint256) {
         return _balances[account[0]];
     }
 

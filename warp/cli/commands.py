@@ -40,6 +40,11 @@ async def send_req(method, url, tx: Optional[Union[str, Dict[str, Any]]] = None)
 
 # returns true/false on transaction success/failure
 async def _invoke(source_name, address, function, cairo_inputs, evm_inputs):
+    with open(f"{os.path.abspath(source_name[:-4])}_ADDRESS.txt", "r") as f:
+        try:
+            contract_self_address_initialized = json.load(f)[address]
+        except KeyError:
+           raise Exception(f"You have not deployed a contract with address '{address}'") 
     with open(os.path.join(artifacts_dir, "MAIN_CONTRACT")) as f:
         main_contract = f.read()
     evm_calldata = get_evm_calldata(source_name, main_contract, function, evm_inputs)
@@ -57,7 +62,11 @@ async def _invoke(source_name, address, function, cairo_inputs, evm_inputs):
 
     if function in dynArgFunctions:
         selector = get_selector_cairo("fun_ENTRY_POINT")
-        calldata = [calldata_size, unused_bytes, len(cairo_input)] + cairo_input
+        calldata = [calldata_size, len(cairo_input)] + cairo_input
+        if not contract_self_address_initialized:
+            calldata.append(int(address, 16))
+            with open(f"{os.path.abspath(source_name[:-4])}_ADDRESS.txt", "w") as f:
+                f.write(json.dumps({f"{address}": 1}))
     else:
         selector = get_selector_cairo(function)
         calldata = cairo_inputs
@@ -155,7 +164,7 @@ Contract Address Has Been Written to {os.path.abspath(contract_name)}_ADDRESS.tx
 """
             )
     with open(f"{os.path.abspath(contract_name)}_ADDRESS.txt", "w") as f:
-        f.write(f"0x{address:064x}")
+        f.write(json.dumps({f"0x{address:064x}": 0}))
     return f"0x{address:064x}"
 
 
