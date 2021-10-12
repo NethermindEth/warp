@@ -39,7 +39,9 @@ def generate_getter_body(getter_var: str, args: list[str]) -> str:
 def generate_setter_body(setter_var: str, args: list[str]) -> str:
     assert args
     args_repr = ", ".join(f"{x}.low, {x}.high" for x in args[:-1])
-    return f"{setter_var}.write({args_repr}, {args[-1]})\nreturn ()"
+    if args_repr:
+        args_repr += ", "
+    return f"{setter_var}.write({args_repr}{args[-1]})\nreturn ()"
 
 
 def generate_storage_var_declaration(var: StorageVar) -> str:
