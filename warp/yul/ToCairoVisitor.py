@@ -142,7 +142,7 @@ class ToCairoVisitor(AstVisitor):
         if fun_repr == "pop":
             return ""
         if "callvalue" in fun_repr:
-            return "Uint256(0,0)"
+            return "__warp_holder()"
         result: str
         if fun_repr in YUL_BUILTINS_MAP:
             builtin_to_cairo = YUL_BUILTINS_MAP[fun_repr](args_repr)
@@ -152,15 +152,19 @@ class ToCairoVisitor(AstVisitor):
         else:
             self.last_used_implicits = sorted(
                 self.function_to_implicits.setdefault(
-                    node.function_name.name, (IMPLICITS_SET - {"exec_env"})
+                    node.function_name.name, IMPLICITS_SET
                 )
             )
-            if (
-                "exec_env" in self.function_to_implicits[fun_repr]
-                and fun_repr != self.name_gen.take_cond_revert_name()
-            ):
-                self.last_used_implicits.append("exec_env")
-            result = f"{fun_repr}({args_repr})"
+            holder = list(self.last_used_implicits)
+            holder.append("exec_env") if "exec_env" not in holder else None
+            self.last_used_implicits = tuple(holder)
+            if self.in_entry_function:
+                result = ("with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, storage_ptr, syscall_ptr:\n"
+                    f"{fun_repr}({args_repr})\n"
+                    "end\n"
+                )
+            else:
+                result = f"{fun_repr}({args_repr})"
         self.function_to_implicits.setdefault(self.last_function.name, set()).update(
             self.last_used_implicits
         )
@@ -226,57 +230,33 @@ class ToCairoVisitor(AstVisitor):
                 f"calldata_len, calldata : felt*, init_address : felt) -> ({returns_repr}):\n"
                 f"alloc_locals\n"
                 f"let (address_init) = address_initialized.read()\n"
-                f"if address_init == 0:\n"
+                f"if address_init == 1:\n"
+                f"return ()\n"
+                f"end\n"
                 f"this_address.write(init_address)\n"
                 f"address_initialized.write(1)\n"
-                f"tempvar range_check_ptr = range_check_ptr\n"
-                f"tempvar pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
-                f"tempvar storage_ptr : Storage* = storage_ptr\n"
-                f"tempvar syscall_ptr : felt* = syscall_ptr\n"
-                f"else:\n"
-                f"tempvar range_check_ptr = range_check_ptr\n"
-                f"tempvar pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
-                f"tempvar storage_ptr : Storage* = storage_ptr\n"
-                f"tempvar syscall_ptr : felt* = syscall_ptr\n"
-                f"end\n"
+                f"local range_check_ptr = range_check_ptr\n"
+                f"local pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
+                f"local storage_ptr : Storage* = storage_ptr\n"
+                f"local syscall_ptr : felt* = syscall_ptr\n"
                 f"local exec_env : ExecutionEnvironment = ExecutionEnvironment("
                 f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata)\n"
                 "let (local memory_dict) = default_dict_new(0)\n"
                 f"local memory_dict_start: DictAccess* = memory_dict\n"
                 f"let msize = 0\n"
                 f"{body_repr}\n"
-                f"local range_check_ptr = range_check_ptr\n"
-                f"local storage_ptr : Storage* = storage_ptr\n"
-                f"local pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
-                f"local syscall_ptr: felt* = syscall_ptr\n"
-                f"default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
-                f"return ()\n"
                 f"end\n"
             )
 
-        function_name = extract_function_name(node.name) or node.name
-        mutability = self.function_mutabilities.get(function_name)
-        mutability = "view" if mutability in ["pure", "view"] else "external"
-        if node.name.startswith("getter"):
-            mutability = "view"
-        elif node.name.startswith("setter"):
-            mutability = "external"
-
-        external = node.name in self.public_functions
-        external_function = (
-            self._make_external_function(node, mutability) if external else ""
-        )
         implicits = sorted(self.function_to_implicits.setdefault(node.name, set()))
         implicits_decl = ""
         if implicits:
             implicits_decl = ", ".join(print_implicit(x) for x in implicits)
-            if (
-                "exec_env" in self.function_to_implicits[node.name]
-                and "exec_env" not in implicits
-            ):
-                implicits_decl = "{exec_env : ExecutionEnvironment, " + implicits_decl
-            else:
-                implicits_decl = "{" + implicits_decl
+            implicits_decl = (
+                "{exec_env : ExecutionEnvironment, " + implicits_decl
+                if "exec_env" not in implicits_decl
+                else "{" + implicits_decl
+            )
             if not "range_check" in implicits_decl:
                 implicits_decl += (
                     ", range_check_ptr}"
@@ -286,21 +266,12 @@ class ToCairoVisitor(AstVisitor):
                 )
             else:
                 implicits_decl += "}"
-        # We do not want to annotate current function with mutability if we are going to
-        # generate a corresponding external function
-        mutability = (
-            f"@{mutability}"
-            if not external and self.function_mutabilities.get(function_name)
-            else ""
-        )
 
         return (
-            f"{mutability}\n"
             f"func {node.name}{implicits_decl}({params_repr}) -> ({returns_repr}):\n"
             f"alloc_locals\n"
             f"{body_repr}\n"
             f"end\n"
-            f"{external_function}"
         )
 
     def visit_if(self, node: ast.If) -> str:

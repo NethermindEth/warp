@@ -19,7 +19,8 @@ STATEMENT_STRINGS = {
     "Block",
 }
 
-BAD_BUILTINS = [
+NOT_SUPPORTED_BUILTINS = [
+    "pop",
     "selfdestruct",
     "invalid",
     "log0",
@@ -101,6 +102,10 @@ def camelize(snake_case: str) -> str:
 
 
 STORAGE_DECLS = """
+
+func __warp_holder() -> (res : Uint256):
+    return (res=Uint256(0,0))
+end
 
 @storage_var
 func evm_storage(low: felt, high: felt, part: felt) -> (res : felt):
