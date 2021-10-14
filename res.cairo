@@ -55,9 +55,7 @@ _21_783
 _24_786
 _3_1480
 var_data_mpos
-Uint256(low=64
 expr_3259_mpos
-Uint256(low=64
 _8_837
 _7_858
 expr_mpos
@@ -2132,7 +2130,7 @@ local expr_3_832 : Uint256 = Uint256(low=0, high=0)
 let (local expr_3_832 : Uint256) = __warp_block_12(expr_2_831, expr_827, var_sqrtPriceLimitX96_822)
 local exec_env: ExecutionEnvironment = exec_env
 local range_check_ptr = range_check_ptr
-let (local expr_3259_mpos : Uint256) = mload_{memory_dict=memory_dict, range_check_ptr=range_check_ptr, msize=msize}(Uint256(low=64.low)
+let (local expr_3259_mpos : Uint256) = mload_{memory_dict=memory_dict, range_check_ptr=range_check_ptr, msize=msize}(64)
 local memory_dict: DictAccess* = memory_dict
 local msize = msize
 let (local __warp_subexpr_6 : Uint256) = u256_add(expr_3259_mpos, Uint256(low=32, high=0))
@@ -2161,7 +2159,7 @@ let (local __warp_subexpr_9 : Uint256) = is_zero(_7_836)
 local range_check_ptr = range_check_ptr
 __warp_cond_revert(__warp_subexpr_9)
 local exec_env: ExecutionEnvironment = exec_env
-let (local _8_837 : Uint256) = mload_{memory_dict=memory_dict, range_check_ptr=range_check_ptr, msize=msize}(Uint256(low=64.low)
+let (local _8_837 : Uint256) = mload_{memory_dict=memory_dict, range_check_ptr=range_check_ptr, msize=msize}(64)
 local memory_dict: DictAccess* = memory_dict
 local msize = msize
 let (local __warp_subexpr_10 : Uint256) = uint256_shl(Uint256(low=224, high=0), Uint256(low=1884727471, high=0))
@@ -8497,3 +8495,4 @@ return ()
 end
 
 
+The generated Cairo contract has been written to /home/greg/dev/warp/UniswapV3Router.cairo

@@ -293,7 +293,12 @@ class MStore8(BuiltinHandler):
 
 class MLoad(BuiltinHandler):
     def __init__(self, function_args: str):
-        self.offset: str = get_low_bits(function_args.split(",")[0].strip())
+        if "Uint256(low=" in function_args:
+            self.offset = function_args[function_args.find("=") +1: function_args.find(',')].strip()
+        elif "Uint256(" in function_args:
+            self.offset = function_args[function_args.find("(") +1: function_args.find(',')].strip()
+        else:
+            self.offset: str = get_low_bits(function_args.split(",")[0].strip())
         super().__init__(
             module="evm.memory",
             function_name="mload_",
