@@ -106,8 +106,15 @@ def parse_expression_statement(yul_ast) -> ast.ExpressionStatement:
 
 @register_parser
 def parse_variable_declaration(yul_ast) -> ast.VariableDeclaration:
+    """
+    if we have a variable declaration in Yul like: 'let expr_6', then there will be no 'value'
+    key 
+    """
     variables = [parse_typed_name(x) for x in yul_ast.get("variables", [])]
-    value = parse_expression(yul_ast["value"]) if yul_ast["value"] else None
+    try:
+        value = parse_expression(yul_ast["value"]) if yul_ast["value"] else None
+    except KeyError:
+        value = None
     return ast.VariableDeclaration(variables, value)
 
 

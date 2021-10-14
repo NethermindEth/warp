@@ -6,6 +6,7 @@ CAIRO_KEYWORDS = {"ret", "felt", "jmp", "func", "end"}
 
 
 def mangle(identifier: str) -> str:
+    identifier = identifier.replace("$", "_")
     if identifier in CAIRO_KEYWORDS:
         return identifier + "__warp_mangled"
     else:

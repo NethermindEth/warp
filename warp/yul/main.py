@@ -53,6 +53,7 @@ def generate_cairo(sol_src_path, main_contract):
     yul_ast = FunctionPruner(public_functions).map(yul_ast)
     cairo_visitor = ToCairoVisitor(sol_source, sol_src_path, main_contract, name_gen)
     cairo_code = cairo_visitor.translate(yul_ast)
+    print(cairo_code)
     return parse_file(cairo_code).format()
 
 

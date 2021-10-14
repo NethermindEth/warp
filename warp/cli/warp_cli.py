@@ -95,29 +95,29 @@ cli = click.CommandCollection(sources=[warp])
 
 
 def main():
-    try:
+    # try:
         warp()
-    # This is how we make handling async code with
-    # click MUCH simpler. click will always throw SystemExit
-    # after leaving its main loop.
-    except SystemExit as e:
-        if return_args != {}:
-            if return_args["type"] is Command.INVOKE:
-                asyncio.run(
-                    _invoke(
-                        return_args["contract"],
-                        return_args["address"],
-                        return_args["function"],
-                        return_args["cairo_inputs"],
-                        return_args["evm_inputs"],
-                    )
-                )
-            elif return_args["type"] is Command.DEPLOY:
-                asyncio.run(_deploy(return_args["contract"]))
-            elif return_args["type"] is Command.STATUS:
-                asyncio.run(_status(return_args["id"]))
-        # An Error to log
-        elif e.args[0] != 0:
-            click.echo(e.args[0])
-    except BaseException as e:
-        click.echo(e)
+    # # This is how we make handling async code with
+    # # click MUCH simpler. click will always throw SystemExit
+    # # after leaving its main loop.
+    # except SystemExit as e:
+    #     if return_args != {}:
+    #         if return_args["type"] is Command.INVOKE:
+    #             asyncio.run(
+    #                 _invoke(
+    #                     return_args["contract"],
+    #                     return_args["address"],
+    #                     return_args["function"],
+    #                     return_args["cairo_inputs"],
+    #                     return_args["evm_inputs"],
+    #                 )
+    #             )
+    #         elif return_args["type"] is Command.DEPLOY:
+    #             asyncio.run(_deploy(return_args["contract"]))
+    #         elif return_args["type"] is Command.STATUS:
+    #             asyncio.run(_status(return_args["id"]))
+    #     # An Error to log
+    #     elif e.args[0] != 0:
+    #         click.echo(e.args[0])
+    # except BaseException as e:
+    #     click.echo(e)

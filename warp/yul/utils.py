@@ -66,6 +66,7 @@ def get_low_bits(string: str) -> str:
         high, low = divmod(value, 2 ** 128)
         return f"Uint256({low}, 0)"
     except ValueError:
+        print(string)
         return f"{string}.low"
 
 
