@@ -52,24 +52,17 @@ async def _invoke(source_name, address, function, cairo_inputs, evm_inputs):
     calldata_size = (len(cairo_input) * 16) - unused_bytes
     function = "fun_" + function + "_external"
 
-    with open(os.path.abspath(os.path.join(artifacts_dir, ".DynArgFunctions"))) as f:
-        dynArgFunctions = f.readlines()
-
     try:
         address = int(address, 16)
     except ValueError:
         raise ValueError("Invalid address format.")
 
-    if function in dynArgFunctions:
-        selector = get_selector_cairo("fun_ENTRY_POINT")
-        calldata = [calldata_size, len(cairo_input)] + cairo_input
-        if not contract_self_address_initialized:
-            calldata.append(int(address, 16))
-            with open(f"{os.path.abspath(source_name[:-4])}_ADDRESS.txt", "w") as f:
-                f.write(json.dumps({f"{address}": 1}))
-    else:
-        selector = get_selector_cairo(function)
-        calldata = cairo_inputs
+    selector = get_selector_cairo("fun_ENTRY_POINT")
+    calldata = [calldata_size, len(cairo_input)] + cairo_input
+    if not contract_self_address_initialized:
+        calldata.append(int(address, 16))
+        with open(f"{os.path.abspath(source_name[:-4])}_ADDRESS.txt", "w") as f:
+            f.write(json.dumps({f"{address}": 1}))
 
     tx = InvokeFunction(
         contract_address=address, entry_point_selector=selector, calldata=calldata

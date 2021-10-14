@@ -19,6 +19,7 @@ from yul.storage_access import (
     generate_storage_var_declaration,
 )
 from yul.utils import (
+    UNSUPPORTED_BUILTINS,
     STORAGE_DECLS,
     get_public_functions,
     validate_solc_ver,
@@ -139,9 +140,7 @@ class ToCairoVisitor(AstVisitor):
             return "assert 0 = 1\njmp rel 0"
         if fun_repr == "revert" and self.in_entry_function:
             return ""
-        if fun_repr == "pop":
-            return ""
-        if "callvalue" in fun_repr:
+        if fun_repr in UNSUPPORTED_BUILTINS:
             return "__warp_holder()"
         result: str
         if fun_repr in YUL_BUILTINS_MAP:

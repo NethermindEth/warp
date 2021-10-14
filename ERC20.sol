@@ -10,7 +10,7 @@ contract ERC20 {
     uint256 private _totalSupply;
     uint256 internal bday;
 
-    function decimals() public view returns (uint8) {
+    function decimals() public pure returns (uint8) {
         return 18;
     }
 
@@ -18,15 +18,15 @@ contract ERC20 {
         return _totalSupply;
     }
 
-    function setBday(uint newBday) public {
+    function setBday(uint newBday) public payable {
         bday = newBday;
     }
-    function balanceOf(address[] calldata account) public returns (uint256) {
+    function balanceOf(address[] calldata account) public payable returns (uint256) {
         setBday(180595);
         return _balances[account[0]];
     }
 
-    function transfer(address recipient, uint256 amount) public returns (bool) {
+    function transfer(address recipient, uint256 amount) public payable returns (bool) {
         _transfer(msg.sender, recipient, amount);
         return true;
     }
@@ -35,7 +35,7 @@ contract ERC20 {
         return _allowances[owner][spender];
     }
 
-    function approve(address spender, uint256 amount) public returns (bool) {
+    function approve(address spender, uint256 amount) public payable returns (bool) {
         _approve(msg.sender, spender, amount);
         return true;
     }
@@ -44,7 +44,7 @@ contract ERC20 {
         address sender,
         address recipient,
         uint256 amount
-    ) public returns (bool) {
+    ) public payable returns (bool) {
         _transfer(sender, recipient, amount);
 
         uint256 currentAllowance = _allowances[sender][msg.sender];
@@ -56,12 +56,16 @@ contract ERC20 {
         return true;
     }
 
-    function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
+    function increaseAllowance(address spender, uint256 addedValue) public payable returns (bool) {
         _approve(msg.sender, spender, _allowances[msg.sender][spender] + addedValue);
         return true;
     }
 
-    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
+    function mint(address to, uint256 amount) public payable {
+        _balances[to] += amount;
+    }
+
+    function decreaseAllowance(address spender, uint256 subtractedValue) public payable returns (bool) {
         uint256 currentAllowance = _allowances[msg.sender][spender];
         require(currentAllowance >= subtractedValue);
         unchecked {

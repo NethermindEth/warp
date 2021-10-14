@@ -6,50 +6,57 @@ import solcx
 UPPERCASE_PATTERN = re.compile(r"[A-Z]")
 
 STATEMENT_STRINGS = {
-    "ExpressionStatement",
     "Assignment",
-    "VariableDeclaration",
-    "FunctionDefinition",
-    "If",
-    "Switch",
-    "ForLoop",
+    "Block",
     "Break",
     "Continue",
+    "ExpressionStatement",
+    "ForLoop",
+    "FunctionDefinition",
+    "If",
     "Leave",
-    "Block",
+    "Switch",
+    "VariableDeclaration",
 }
 
-NOT_SUPPORTED_BUILTINS = [
-    "pop",
-    "selfdestruct",
+UNSUPPORTED_BUILTINS = [
+    "address",
+    "balance",
+    "basefee",
+    "blockhash",
+    "call",
+    "callvalue",
+    "chainid",
+    "codecopy",
+    "codesize",
+    "coinbase",
+    "create2",
+    "delegatecall",
+    "delegatecall",
+    "difficulty",
+    "extcodecopy",
+    "extcodehash",
+    "extcodesize",
+    "gas",
+    "gaslimit",
+    "gasprice",
     "invalid",
     "log0",
     "log1",
     "log2",
     "log3",
     "log4",
-    "chainid",
-    "basefee",
-    "origin",
-    "gasprice",
-    "blockhash",
-    "coinbase",
-    "timestamp",
     "number",
-    "difficulty",
-    "gaslimit",
-    "delegatecall",
-    "create2",
-    "extcodehash",
-    "extcodecopy",
-    "extcodesize",
-    "codecopy",
-    "codesize",
-    "selfbalance",
-    "balance",
-    "callvalue",
-    "gas",
+    "origin",
     "pc",
+    "pop",
+    "returndatasize",
+    "returndatacopy",
+    "selfbalance",
+    "selfdestruct",
+    "staticcall",
+    "stop",
+    "timestamp",
 ]
 
 
@@ -188,9 +195,9 @@ def get_source_version(sol_source: str) -> float:
     for line in code_split:
         if "pragma" in line:
             ver: float = float(line[line.index("0.") + 2 :].replace(";", ""))
-            if ver < 8.0:
+            if ver < 7.6:
                 raise Exception(
-                    "Please use a version of solidity that is at least 0.8.0"
+                    "Please use a version of solidity that is at least 0.7.6"
                 )
             return ver
     raise Exception("No Solidity version specified in contract")
