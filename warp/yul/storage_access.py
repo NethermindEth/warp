@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Optional
+from typing import Optional, Iterable
 from dataclasses import dataclass
 
 from yul.WarpException import warp_assert
@@ -31,17 +31,17 @@ class StorageVar:
     res_type: str
 
 
-def generate_getter_body(getter_var: str, args: list[str]) -> str:
+def generate_getter_body(getter_var: str, args: Iterable[str]) -> str:
     args_repr = ", ".join(f"{x}.low, {x}.high" for x in args)
     return f"let (res) = {getter_var}.read({args_repr})\nreturn (res)"
 
 
-def generate_setter_body(setter_var: str, args: list[str]) -> str:
-    assert args
-    args_repr = ", ".join(f"{x}.low, {x}.high" for x in args[:-1])
-    if args_repr:
+def generate_setter_body(setter_var: str, args: Iterable[str]) -> str:
+    *access_args, value_arg = args
+    args_repr = ", ".join(f"{x}.low, {x}.high" for x in access_args)
+    if access_args:
         args_repr += ", "
-    return f"{setter_var}.write({args_repr}{args[-1]})\nreturn ()"
+    return f"{setter_var}.write({args_repr}{value_arg})\nreturn ()"
 
 
 def generate_storage_var_declaration(var: StorageVar) -> str:

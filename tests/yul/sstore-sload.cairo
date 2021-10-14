@@ -11,29 +11,41 @@ from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import Uint256, uint256_eq
 from starkware.starknet.common.storage import Storage
 
-func __warp_constant_0() -> (res : Uint256):
-    return (Uint256(low=0, high=0))
+func sstore{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
+        key : Uint256, value : Uint256):
+    evm_storage.write(key.low, key.high, value)
+    return ()
 end
 
-func __warp_cond_revert(_4 : Uint256) -> ():
-    alloc_locals
-    if _4.low + _4.high != 0:
-        assert 0 = 1
-        jmp rel 0
-    else:
-        return ()
-    end
+func sload{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(key : Uint256) -> (
+        value : Uint256):
+    let (res) = evm_storage.read(key.low, key.high)
+    return (res)
 end
 
-func fun_viewReturndatasize() -> (var_res : Uint256):
+@storage_var
+func evm_storage(arg0_low, arg0_high) -> (res : Uint256):
+end
+
+func fun_test{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}() -> (
+        var_res : Uint256):
     alloc_locals
-    let (local var_res : Uint256) = __warp_constant_0()
-    __warp_cond_revert(var_res)
+    local _1_2 : Uint256 = Uint256(low=5, high=0)
+    local _2_3 : Uint256 = Uint256(low=0, high=0)
+    sstore(key=_2_3, value=_1_2)
+    local storage_ptr : Storage* = storage_ptr
+    local range_check_ptr = range_check_ptr
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
+    local _3_4 : Uint256 = Uint256(low=1, high=0)
+    let (local var_res : Uint256) = sload(_3_4)
+    local storage_ptr : Storage* = storage_ptr
+    local range_check_ptr = range_check_ptr
+    local pedersen_ptr : HashBuiltin* = pedersen_ptr
     return (var_res)
 end
 
-@view
-func fun_viewReturndatasize_external{
+@external
+func fun_test_external{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
         ) -> (var_res : Uint256):
     alloc_locals
@@ -41,7 +53,7 @@ func fun_viewReturndatasize_external{
     local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
     with memory_dict, msize:
-        let (local var_res : Uint256) = fun_viewReturndatasize()
+        let (local var_res : Uint256) = fun_test()
     end
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr

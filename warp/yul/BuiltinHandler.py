@@ -355,35 +355,27 @@ class SStore(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         self.key: str = function_args.split(",")[0].strip()
         self.value: str = function_args.split(",")[1].strip()
+        info = cairo_functions.sstore_function()
         super().__init__(
             module="",
-            function_name="s_store",
+            function_name=info.name,
             function_args=function_args,
-            call_implicits=["storage_ptr", "range_check_ptr", "pedersen_ptr"],
-            used_implicits=("storage_ptr", "pedersen_ptr"),
+            used_implicits=("storage_ptr", "range_check_ptr", "pedersen_ptr"),
             cairo_functions=cairo_functions,
         )
-        self.call_implicits = ["storage_ptr", "range_check_ptr", "pedersen_ptr"]
-        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
-        self.function_call = (
-            f"s_store{{{self.call_implicits_decl}}}(key={self.key},value={self.value})"
-        )
+        self.function_call = f"{info.name}(key={self.key},value={self.value})"
 
 
 class SLoad(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
-        self.key: str = function_args.split(",")[0].strip()
+        info = cairo_functions.sload_function()
         super().__init__(
             module="",
-            function_name="s_store",
+            function_name=info.name,
             function_args=function_args,
-            call_implicits=["storage_ptr", "range_check_ptr", "pedersen_ptr"],
-            used_implicits=("storage_ptr", "pedersen_ptr"),
+            used_implicits=("storage_ptr", "range_check_ptr", "pedersen_ptr"),
             cairo_functions=cairo_functions,
         )
-        self.call_implicits = ["storage_ptr", "range_check_ptr", "pedersen_ptr"]
-        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
-        self.function_call = f"s_load{{{self.call_implicits_decl}}}({self.key})"
 
 
 # ============ Keccak ============
@@ -489,11 +481,12 @@ class ReturnDataSize(BuiltinHandler):
     touched = False
 
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.constant_function(0)
         super().__init__(
             module="",
-            function_name="",
+            function_name=info.name,
             function_args="",
-            call_implicits=[],
+            used_implicits=tuple(info.implicits),
             cairo_functions=cairo_functions,
         )
         if not ReturnDataCopy.touched:
@@ -501,7 +494,6 @@ class ReturnDataSize(BuiltinHandler):
                 "WARNING: This contract referenced 'return data' (returndatacopy) which is not yet supported. Evaluating this contract on starknet may result in unexpected behavior."
             )
             ReturnDataCopy.touched = True
-        self.function_call = cairo_functions.constant_function(0) + "()"
 
 
 class Return(BuiltinHandler):

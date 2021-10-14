@@ -10,6 +10,7 @@ from transpiler.Imports import merge_imports, format_imports
 from yul.Artifacts import Artifacts
 from yul.BuiltinHandler import YUL_BUILTINS_MAP
 from yul.NameGenerator import NameGenerator
+from yul.implicits import IMPLICITS_SET, copy_implicit, print_implicit
 from yul.storage_access import (
     StorageVar,
     extract_var_from_getter,
@@ -17,9 +18,6 @@ from yul.storage_access import (
     generate_getter_body,
     generate_setter_body,
     generate_storage_var_declaration,
-)
-from yul.utils import (
-    STORAGE_DECLS,
 )
 from yul.yul_ast import AstVisitor
 
@@ -43,18 +41,6 @@ COMMON_IMPORTS = {
 MAIN_PREAMBLE = """%lang starknet
 %builtins pedersen range_check
 """
-
-IMPLICITS = {
-    "memory_dict": "DictAccess*",
-    "msize": None,
-    "pedersen_ptr": "HashBuiltin*",
-    "range_check_ptr": None,
-    "storage_ptr": "Storage*",
-    "syscall_ptr": "felt*",
-    "exec_env": "ExecutionEnvironment",
-}
-
-IMPLICITS_SET = set(IMPLICITS.keys())
 
 
 class ToCairoVisitor(AstVisitor):
@@ -85,8 +71,9 @@ class ToCairoVisitor(AstVisitor):
 
     def translate(self, node: ast.Node) -> str:
         main_part = self.print(node)
+        storage_vars = self.storage_variables | self.cairo_functions.storage_vars
         storage_var_decls = [
-            generate_storage_var_declaration(x) for x in sorted(self.storage_variables)
+            generate_storage_var_declaration(x) for x in sorted(storage_vars)
         ]
         return "\n".join(
             [
@@ -95,7 +82,6 @@ class ToCairoVisitor(AstVisitor):
                 "",
                 *self.cairo_functions.get_definitions(),
                 *storage_var_decls,
-                STORAGE_DECLS,
                 main_part,
             ]
         )
@@ -417,18 +403,6 @@ class ToCairoVisitor(AstVisitor):
             StorageVar(name=name, arg_types=arg_types, res_type=res_type)
         )
         return body
-
-
-def print_implicit(name):
-    type_ = IMPLICITS.get(name, None)
-    if type_ is None:
-        return name
-    else:
-        return f"{name}: {type_}"
-
-
-def copy_implicit(name):
-    return f"local {print_implicit(name)} = {name}"
 
 
 def extract_function_name(name: str) -> Optional[str]:
