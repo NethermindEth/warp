@@ -13,20 +13,14 @@ class BuiltinHandler:
         function_name: str,
         function_args: str,
         cairo_functions: CairoFunctions,
-        call_implicits: list[str] = [],
         used_implicits: tuple[str] = ("range_check_ptr",),
     ):
         self.module = module
         self.function_name = function_name
         self.function_args = function_args
         self.cairo_functions = cairo_functions
-        self.call_implicits = ", ".join(f"{x}={x}" for x in call_implicits)
         self.used_implicits = used_implicits
-        self.function_call = (
-            f"{self.function_name}({self.function_args})"
-            if self.call_implicits == ""
-            else f"{self.function_name}{{{self.call_implicits}}}({self.function_args})"
-        )
+        self.function_call = f"{self.function_name}({self.function_args})"
 
     def required_imports(self):
         if self.module == "":
@@ -296,13 +290,10 @@ class MStore(BuiltinHandler):
             module="evm.memory",
             function_name="mstore_",
             function_args=function_args,
-            call_implicits=["memory_dict", "range_check_ptr", "msize"],
-            used_implicits=("memory_dict", "msize"),
+            used_implicits=("memory_dict", "msize", "range_check_ptr"),
             cairo_functions=cairo_functions,
         )
-        self.call_implicits = ["memory_dict", "range_check_ptr", "msize"]
-        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
-        self.function_call = f"mstore_{{{self.call_implicits_decl}}}(offset={self.address}, value={self.value})"
+        self.function_call = f"mstore_(offset={self.address}, value={self.value})"
 
 
 class MStore8(BuiltinHandler):
@@ -313,13 +304,10 @@ class MStore8(BuiltinHandler):
             module="evm.memory",
             function_name="mstore8_",
             function_args=function_args,
-            call_implicits=["memory_dict", "range_check_ptr", "msize"],
-            used_implicits=("memory_dict", "msize"),
+            used_implicits=("memory_dict", "msize", "range_check_ptr"),
             cairo_functions=cairo_functions,
         )
-        self.call_implicits = ["memory_dict", "range_check_ptr", "msize"]
-        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
-        self.function_call = f"mstore8_{{{self.call_implicits_decl}}}(offset={self.address}, value={self.value})"
+        self.function_call = f"mstore8_(offset={self.address}, value={self.value})"
 
 
 class MLoad(BuiltinHandler):
@@ -329,13 +317,10 @@ class MLoad(BuiltinHandler):
             module="evm.memory",
             function_name="mload_",
             function_args=function_args,
-            call_implicits=["memory_dict", "range_check_ptr", "msize"],
-            used_implicits=("memory_dict", "msize"),
+            used_implicits=("memory_dict", "msize", "range_check_ptr"),
             cairo_functions=cairo_functions,
         )
-        self.call_implicits = ["memory_dict", "range_check_ptr", "msize"]
-        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
-        self.function_call = f"mload_{{{self.call_implicits_decl}}}({self.offset})"
+        self.function_call = f"mload_({self.offset})"
 
 
 class MSize(BuiltinHandler):
@@ -344,7 +329,6 @@ class MSize(BuiltinHandler):
             module="evm.memory",
             function_name="get_msize",
             function_args=function_args,
-            call_implicits=["msize"],
             used_implicits=("msize"),
             cairo_functions=cairo_functions,
         )
@@ -387,15 +371,10 @@ class SHA3(BuiltinHandler):
             module="",
             function_name="sha",
             function_args=function_args,
-            call_implicits=["range_check_ptr", "memory_dict", "msize"],
-            used_implicits=("memory_dict", "msize"),
+            used_implicits=("memory_dict", "msize", "range_check_ptr"),
             cairo_functions=cairo_functions,
         )
-        self.call_implicits = ["range_check_ptr", "memory_dict", "msize"]
-        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
-        self.function_call = (
-            f"sha{{{self.call_implicits_decl}}}({self.offset},{self.length})"
-        )
+        self.function_call = f"sha({self.offset}, {self.length})"
 
     def required_imports(self):
         return {"evm.sha3": {"sha"}}
@@ -408,7 +387,6 @@ class Caller(BuiltinHandler):
             module="evm.calls",
             function_name="get_caller_data_uint256",
             function_args=function_args,
-            call_implicits=["syscall_ptr"],
             used_implicits=("syscall_ptr",),
             cairo_functions=cairo_functions,
         )
@@ -421,26 +399,23 @@ class CallDataLoad(BuiltinHandler):
             module="evm.calls",
             function_name="calldata_load",
             function_args=function_args,
-            call_implicits=["range_check_ptr", "exec_env"],
+            used_implicits=("range_check_ptr", "exec_env"),
             cairo_functions=cairo_functions,
         )
-        self.function_call = (
-            f"calldata_load{{range_check_ptr=range_check_ptr, exec_env=exec_env}}("
-            f"{self.offset})\n"
-            f"local exec_env : ExecutionEnvironment = exec_env"
-        )
+        self.function_call = f"calldata_load({self.offset})"
 
 
 class CallDataSize(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.constant_function(0)
         super().__init__(
             module="",
-            function_name="",
+            function_name=info.name,
             function_args=function_args,
-            call_implicits=[],
+            used_implicits=tuple(info.implicits),
             cairo_functions=cairo_functions,
         )
-        self.function_call = "Uint256(exec_env.calldata_size, 0)"
+        self.function_call = info.name + "()"
 
 
 class CallDataCopy(BuiltinHandler):
@@ -449,7 +424,6 @@ class CallDataCopy(BuiltinHandler):
             module="evm.calls",
             function_name="calldatacopy_",
             function_args=function_args,
-            call_implicits=["range_check_ptr", "exec_env"],
             used_implicits=("range_check_ptr", "exec_env", "memory_dict", "msize"),
             cairo_functions=cairo_functions,
         )
@@ -466,7 +440,7 @@ class ReturnDataCopy(BuiltinHandler):
             module="",
             function_name="",
             function_args="",
-            call_implicits=[],
+            used_implicits=(),
             cairo_functions=cairo_functions,
         )
         if not ReturnDataCopy.touched:
@@ -502,7 +476,7 @@ class Return(BuiltinHandler):
             module="",
             function_name="",
             function_args="",
-            call_implicits=[],
+            used_implicits=(),
             cairo_functions=cairo_functions,
         )
         self.function_call = ""

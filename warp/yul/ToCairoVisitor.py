@@ -169,10 +169,7 @@ class ToCairoVisitor(AstVisitor):
             return value_repr
         vars_repr = ", ".join(f"local {self.visit(x)}" for x in node.variables)
         if isinstance(node.value, ast.FunctionCall):
-            if "calldatasize" in node.value.function_name.name:
-                return f"{vars_repr} = {value_repr}"
-            else:
-                return f"let ({vars_repr}) = {value_repr}"
+            return f"let ({vars_repr}) = {value_repr}"
         else:
             assert len(node.variables) == 1
             return f"{vars_repr} = {value_repr}"
