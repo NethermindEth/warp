@@ -482,18 +482,57 @@ class Return(BuiltinHandler):
         self.function_call = ""
 
 
+class Address(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        super().__init__(
+            module="",
+            function_name=cairo_functions.stubbing_function().name,
+            function_args="",
+            used_implicits=(),
+            cairo_functions=cairo_functions,
+        )
+        # TODO implement address
+
+
+class Gas(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        super().__init__(
+            module="",
+            function_name=cairo_functions.stubbing_function().name,
+            function_args="",
+            used_implicits=(),
+            cairo_functions=cairo_functions,
+        )
+        # TODO implement gas
+
+
+class Delegatecall(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        super().__init__(
+            module="",
+            function_name=cairo_functions.stubbing_function().name,
+            function_args="",
+            used_implicits=(),
+            cairo_functions=cairo_functions,
+        )
+        # TODO implement delegatecall
+
+
 YUL_BUILTINS_MAP = {
     "add": Add,
     "addmod": AddMod,
+    "address": Address,
     "and": And,
     "byte": Byte,
     "calldatacopy": CallDataCopy,
     "calldataload": CallDataLoad,
     "calldatasize": CallDataSize,
     "caller": Caller,
+    "delegatecall": Delegatecall,
     "div": Div,
     "eq": Eq,
     "exp": Exp,
+    "gas": Gas,
     "gt": Gt,
     "iszero": IsZero,
     "keccak256": SHA3,

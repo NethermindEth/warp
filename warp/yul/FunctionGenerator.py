@@ -92,3 +92,19 @@ class CairoFunctions:
             StorageVar(name="evm_storage", arg_types=("Uint256",), res_type="Uint256")
         )
         return FunctionInfo(name=name, implicits=implicits)
+
+    def stubbing_function(self) -> FunctionInfo:
+        name = f"__warp_stub"
+
+        def inner():
+            return "\n".join(
+                [
+                    f"func {name}() -> (res: Uint256):",
+                    f"assert 1 = 0",
+                    f"jmp rel 0",
+                    f"end\n",
+                ]
+            )
+
+        self.generator.create_function(name, inner)
+        return FunctionInfo(name=name, implicits=set())

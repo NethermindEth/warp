@@ -19,6 +19,11 @@ func __warp_constant_0() -> (res : Uint256):
     return (Uint256(low=0, high=0))
 end
 
+func __warp_stub() -> (res : Uint256):
+    assert 1 = 0
+    jmp rel 0
+end
+
 func __warp_cond_revert(_4 : Uint256) -> ():
     alloc_locals
     if _4.low + _4.high != 0:
@@ -424,8 +429,7 @@ func increment_uint256{range_check_ptr}(value_140 : Uint256) -> (ret__warp_mangl
 end
 
 func __warp_loop_body_2{
-        exec_env : ExecutionEnvironment, memory_dict : DictAccess*, msize,
-        pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
+        exec_env : ExecutionEnvironment, memory_dict : DictAccess*, msize, range_check_ptr}(
         var_data_length : Uint256, var_data_offset : Uint256, var_i : Uint256,
         var_results_mpos : Uint256) -> (var_i : Uint256):
     alloc_locals
@@ -450,28 +454,9 @@ func __warp_loop_body_2{
     local exec_env : ExecutionEnvironment = exec_env
     let (local _6_132 : Uint256) = uint256_sub(_5_131, _2_128)
     local range_check_ptr = range_check_ptr
-    let (local _7_133 : Uint256) = address()
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local storage_ptr : Storage* = storage_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    let (local _8_134 : Uint256) = gas()
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local storage_ptr : Storage* = storage_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    let (local expr_component : Uint256) = delegatecall(
-        _8_134, _7_133, _2_128, _6_132, _3_129, _3_129)
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local storage_ptr : Storage* = storage_ptr
-    local syscall_ptr : felt* = syscall_ptr
+    let (local _7_133 : Uint256) = __warp_stub()
+    let (local _8_134 : Uint256) = __warp_stub()
+    let (local expr_component : Uint256) = __warp_stub()
     let (local var_result_mpos : Uint256) = extract_returndata()
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
@@ -498,8 +483,7 @@ func __warp_loop_body_2{
 end
 
 func __warp_loop_2{
-        exec_env : ExecutionEnvironment, memory_dict : DictAccess*, msize,
-        pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
+        exec_env : ExecutionEnvironment, memory_dict : DictAccess*, msize, range_check_ptr}(
         var_data_length : Uint256, var_data_offset : Uint256, var_i : Uint256,
         var_results_mpos : Uint256) -> (var_i : Uint256):
     alloc_locals
@@ -513,27 +497,20 @@ func __warp_loop_2{
     local exec_env : ExecutionEnvironment = exec_env
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
-    local storage_ptr : Storage* = storage_ptr
-    local syscall_ptr : felt* = syscall_ptr
     local exec_env : ExecutionEnvironment = exec_env
     let (local var_i : Uint256) = __warp_loop_2(
         var_data_length, var_data_offset, var_i, var_results_mpos)
     local exec_env : ExecutionEnvironment = exec_env
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
-    local storage_ptr : Storage* = storage_ptr
-    local syscall_ptr : felt* = syscall_ptr
     local exec_env : ExecutionEnvironment = exec_env
     return (var_i)
 end
 
 func fun_multicall{
-        exec_env : ExecutionEnvironment, memory_dict : DictAccess*, msize,
-        pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
+        exec_env : ExecutionEnvironment, memory_dict : DictAccess*, msize, range_check_ptr}(
         var_data_offset : Uint256, var_data_length : Uint256) -> (var_results_mpos : Uint256):
     alloc_locals
     let (local var_results_mpos : Uint256) = allocate_and_zero_memory_array_array_bytes_dyn(
@@ -547,10 +524,7 @@ func fun_multicall{
     local exec_env : ExecutionEnvironment = exec_env
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
-    local storage_ptr : Storage* = storage_ptr
-    local syscall_ptr : felt* = syscall_ptr
     local exec_env : ExecutionEnvironment = exec_env
     return (var_results_mpos)
 end
