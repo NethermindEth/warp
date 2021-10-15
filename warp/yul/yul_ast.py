@@ -330,8 +330,10 @@ class ScopeResolver(AstVisitor):
         )
         new_mod = scope1.modified_variables | scope2.modified_variables
         new_known = scope1.modified_variables & scope2.modified_variables
-        self.read_variables.extend(new_read)
-        self.modified_variables.extend(new_mod)
+        for var in new_read:
+            self._register_read(var)
+        for var in new_mod:
+            self._register_modification(var)
         self.known_variables.update(new_known)
 
     def _register_modification(self, var: Identifier):

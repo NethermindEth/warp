@@ -12,38 +12,6 @@ from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_not
 from starkware.starknet.common.storage import Storage
 
-@storage_var
-func evm_storage(low : felt, high : felt, part : felt) -> (res : felt):
-end
-
-func s_load{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
-        key : Uint256) -> (res : Uint256):
-    let (low_r) = evm_storage.read(key.low, key.high, 1)
-    let (high_r) = evm_storage.read(key.low, key.high, 2)
-    return (Uint256(low_r, high_r))
-end
-
-func s_store{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
-        key : Uint256, value : Uint256):
-    evm_storage.write(low=key.low, high=key.high, part=1, value=value.low)
-    evm_storage.write(low=key.low, high=key.high, part=2, value=value.high)
-    return ()
-end
-
-@view
-func get_storage_low{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
-        low : felt, high : felt) -> (res : felt):
-    let (storage_val_low) = evm_storage.read(low=low, high=high, part=1)
-    return (res=storage_val_low)
-end
-
-@view
-func get_storage_high{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
-        low : felt, high : felt) -> (res : felt):
-    let (storage_val_high) = evm_storage.read(low=low, high=high, part=2)
-    return (res=storage_val_high)
-end
-
 func __warp_cond_revert(_4 : Uint256) -> ():
     alloc_locals
     if _4.low + _4.high != 0:
@@ -93,11 +61,17 @@ func __warp_loop_body_0{range_check_ptr}(var_j : Uint256, var_k : Uint256) -> (v
     return (var_k)
 end
 
-func __warp_loop_0{range_check_ptr}(var_j : Uint256, var_k : Uint256) -> (var_k : Uint256):
+func __warp_loop_0{range_check_ptr}(var_i : Uint256, var_j : Uint256, var_k : Uint256) -> (
+        var_k : Uint256):
     alloc_locals
+    let (local __warp_subexpr_0 : Uint256) = is_lt(var_k, var_i)
+    local range_check_ptr = range_check_ptr
+    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
+        return (var_k)
+    end
     let (local var_k : Uint256) = __warp_loop_body_0(var_j, var_k)
     local range_check_ptr = range_check_ptr
-    let (local var_k : Uint256) = __warp_loop_0(var_j, var_k)
+    let (local var_k : Uint256) = __warp_loop_0(var_i, var_j, var_k)
     local range_check_ptr = range_check_ptr
     return (var_k)
 end
@@ -105,7 +79,7 @@ end
 func fun_transferFrom{range_check_ptr}(var_i : Uint256, var_j : Uint256) -> (var : Uint256):
     alloc_locals
     local var_k : Uint256 = Uint256(low=0, high=0)
-    let (local var_k : Uint256) = __warp_loop_0(var_j, var_k)
+    let (local var_k : Uint256) = __warp_loop_0(var_i, var_j, var_k)
     local range_check_ptr = range_check_ptr
     local var : Uint256 = Uint256(low=1, high=0)
     return (var)
