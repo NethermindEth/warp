@@ -266,7 +266,6 @@ class ScopeResolver(AstVisitor):
             self.common_visit(node)
         else:
             assert isinstance(node, FunctionDefinition)
-            print(node.name)
             # Not visiting return_variables, they are not bound or
             # mentioned semantically.
             self.visit_list(node.parameters)

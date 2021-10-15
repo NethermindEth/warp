@@ -42,7 +42,9 @@ class FunctionPruner(AstMapper):
             self._dfs(f)
 
     def _is_unused_function(self, node):
-        return (
+        if (
             isinstance(node, ast.FunctionDefinition)
             and node.name not in self.visited_functions
-        )
+        ):
+            print(node.name)
+            return True
