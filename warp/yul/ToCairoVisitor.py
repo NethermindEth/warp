@@ -20,11 +20,6 @@ from yul.storage_access import (
 )
 from yul.utils import (
     STORAGE_DECLS,
-    get_public_functions,
-    validate_solc_ver,
-)
-from yul.utils import (
-    get_function_mutabilities,
 )
 from yul.yul_ast import AstVisitor
 
@@ -65,20 +60,17 @@ IMPLICITS_SET = set(IMPLICITS.keys())
 class ToCairoVisitor(AstVisitor):
     def __init__(
         self,
-        sol_source: str,
-        sol_src_path: str,
         main_contract: str,
+        public_functions: list[str],
+        function_mutabilities: dict[str, str],
         name_gen: NameGenerator,
+        artifacts_manager: Artifacts,
     ):
         super().__init__()
-        self.artifacts_manager = Artifacts(sol_src_path)
+        self.artifacts_manager = artifacts_manager
         self.artifacts_manager.write_artifact("MAIN_CONTRACT", main_contract)
-        validate_solc_ver(sol_source)
-        self.main_contract = main_contract
-        self.public_functions = get_public_functions(sol_source)
-        self.function_mutabilities: dict[str, str] = get_function_mutabilities(
-            sol_source
-        )
+        self.public_functions = public_functions
+        self.function_mutabilities = function_mutabilities
         self.name_gen = name_gen
         self.external_functions: list[str] = []
         self.imports = defaultdict(set)
@@ -161,9 +153,10 @@ class ToCairoVisitor(AstVisitor):
             ):
                 self.last_used_implicits.append("exec_env")
             result = f"{fun_repr}({args_repr})"
-        self.function_to_implicits.setdefault(self.last_function.name, set()).update(
-            self.last_used_implicits
-        )
+        if self.last_function:
+            self.function_to_implicits.setdefault(
+                self.last_function.name, set()
+            ).update(self.last_used_implicits)
         return result
 
     def visit_expression_statement(self, node: ast.ExpressionStatement) -> str:

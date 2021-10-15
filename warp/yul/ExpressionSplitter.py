@@ -13,12 +13,12 @@ from yul.NameGenerator import NameGenerator
 class BlockEnv:
     def __init__(self, name_gen: NameGenerator):
         self.name_gen = name_gen
-        self.split_stmt: Optional[ast.VariableDeclaration] = None
+        self.split_stmts: list[ast.VariableDeclaration] = []
 
     def process_subexpr(self, call: ast.FunctionCall) -> str:
         name = self.name_gen.make_subexpr_name()
-        self.split_stmt = ast.VariableDeclaration(
-            variables=[ast.TypedName(name)], value=call
+        self.split_stmts.append(
+            ast.VariableDeclaration(variables=[ast.TypedName(name)], value=call)
         )
         return name
 
@@ -46,10 +46,10 @@ class ExpressionSplitter(AstMapper):
             for stmt in node.statements:
                 new_stmt = self.visit(stmt)
                 split_stmts = [new_stmt]  # in the reverse order of declaration
-                while self.env.split_stmt:
-                    split_stmt = self.env.split_stmt
-                    self.env.split_stmt = None
-                    split_stmts.append(self.visit(split_stmt))
+                while self.env.split_stmts:
+                    new_split_stmts = self.env.split_stmts
+                    self.env.split_stmts = []
+                    split_stmts.extend(self.visit_list(new_split_stmts))
                 split_stmts.reverse()
                 new_stmts.extend(split_stmts)
             return ast.Block(tuple(new_stmts))
