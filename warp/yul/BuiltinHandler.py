@@ -311,7 +311,7 @@ class MStore8(BuiltinHandler):
 
 
 class MLoad(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         if "Uint256(low=" in function_args:
             self.offset = function_args[function_args.find("=") +1: function_args.find(',')].strip()
         elif "Uint256(" in function_args:

@@ -83,7 +83,7 @@ class ToCairoVisitor(AstVisitor):
             [
                 MAIN_PREAMBLE,
                 format_imports(self.imports),
-                "",
+                STORAGE_DECLS,
                 *self.cairo_functions.get_definitions(),
                 *storage_var_decls,
                 main_part,
