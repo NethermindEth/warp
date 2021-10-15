@@ -93,6 +93,7 @@ class CairoFunctions:
         )
         return FunctionInfo(name=name, implicits=implicits)
 
+
     def stubbing_function(self) -> FunctionInfo:
         name = f"__warp_stub"
 
@@ -108,3 +109,4 @@ class CairoFunctions:
 
         self.generator.create_function(name, inner)
         return FunctionInfo(name=name, implicits=set())
+
