@@ -42,7 +42,9 @@ class ForLoopEliminator(AstMapper):
             body = self.visit(node.body)
             body_fun, body_stmt = extract_block_as_function(body, self.body_name)
 
-            rec_loop_head = lambda rec: self._make_loop_head(body_stmt, rec)
+            rec_loop_head = lambda rec: self._make_loop_head(
+                node.condition, body_stmt, rec
+            )
             head_fun, head_stmt = extract_rec_block_as_function(
                 rec_loop_head, self.loop_name
             )
@@ -105,7 +107,7 @@ class ForLoopEliminator(AstMapper):
             self.body_name, self.loop_name, self.break_name, self.leave_name = old_names
 
     def _make_loop_head(
-        self, body_stmt: ast.Statement, rec: ast.Statement
+        self, condition: ast.Expression, body_stmt: ast.Statement, rec: ast.Statement
     ) -> ast.Block:
         break_id = ast.Identifier(self.break_name)
         leave_id = ast.Identifier(self.leave_name)
@@ -117,6 +119,7 @@ class ForLoopEliminator(AstMapper):
                     variables=[ast.TypedName(self.break_name)], value=ast.Literal(False)
                 )
             )
+        head_stmts.append(ast.If(condition, ast.LEAVE_BLOCK))
         head_stmts.append(body_stmt)
         if break_id in modified_vars:
             head_stmts.append(ast.If(condition=break_id, body=ast.LEAVE_BLOCK))
