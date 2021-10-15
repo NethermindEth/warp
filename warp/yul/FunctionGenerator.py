@@ -45,6 +45,24 @@ class CairoFunctions:
         self.generator.create_function(name, inner)
         return FunctionInfo(name=name, implicits=set())
 
+    def identity_function(self, types: list[str]):
+        name = f"__warp_identity_{'__'.join(types)}"
+        args = ', '.join([f"arg{i} : {tp}" for (i, tp) in enumerate(types)])
+        returns = ', '.join([f"arg{i}" for i in range(len(types))])
+
+        def inner():
+            return "\n".join(
+                [
+                    f"func {name}({args}) -> ({args}):",
+                    f"return ({returns})",
+                    f"end\n",
+                ]
+            )
+
+        self.generator.create_function(name, inner)
+        return FunctionInfo(name=name, implicits=set())
+
+
     def sload_function(self) -> FunctionInfo:
         name = "sload"
         implicits = {"storage_ptr", "range_check_ptr", "pedersen_ptr"}

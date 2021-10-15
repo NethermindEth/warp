@@ -34,16 +34,30 @@ COMMON_IMPORTS = {
         "default_dict_finalize",
     },
     "starkware.cairo.common.uint256": {"Uint256", "uint256_eq"},
+    "starkware.cairo.common.math": {"unsigned_div_rem"},
     "starkware.cairo.common.cairo_builtins": {"HashBuiltin"},
     "starkware.starknet.common.storage": {"Storage"},
+    "starkware.cairo.common.alloc": {"alloc"},
     "evm.exec_env": {"ExecutionEnvironment"},
     "evm.utils": {"update_msize"},
+    "evm.array": {"array_create_from_memory", "array_copy_to_memory"},
 }
 
 MAIN_PREAMBLE = """%lang starknet
 %builtins pedersen range_check
 """
 
+IMPLICITS = {
+    "memory_dict": "DictAccess*",
+    "msize": None,
+    "pedersen_ptr": "HashBuiltin*",
+    "range_check_ptr": None,
+    "storage_ptr": "Storage*",
+    "syscall_ptr": "felt*",
+    "exec_env": "ExecutionEnvironment",
+}
+
+IMPLICITS_SET = set(IMPLICITS.keys())
 
 class ToCairoVisitor(AstVisitor):
     def __init__(
@@ -130,8 +144,6 @@ class ToCairoVisitor(AstVisitor):
             return ""
         if fun_repr == "pop":
             return ""
-        if "callvalue" in fun_repr:
-            return "__warp_holder()"
         result: str
         if fun_repr in YUL_BUILTINS_MAP:
             builtin_to_cairo = YUL_BUILTINS_MAP[fun_repr](
@@ -221,6 +233,10 @@ class ToCairoVisitor(AstVisitor):
             body_repr = self.print(node.body)
 
         if node.name == "fun_ENTRY_POINT":
+            # The leave gets replaced with the wrong return type in this case
+            # we need to replace it with our return
+            body_repr = re.sub("return \(\)$", "", body_repr)
+            returns_repr = "success: felt, returndata_size: felt, returndata_len: felt, returndata: felt*"
             self.in_entry_function = False
             return (
                 "@external\n"
@@ -232,14 +248,17 @@ class ToCairoVisitor(AstVisitor):
                 f"local pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
                 f"local range_check_ptr = range_check_ptr\n"
                 f"local storage_ptr : Storage* = storage_ptr\n"
+                f"let (returndata_ptr: felt*) = alloc()\n"
                 f"local exec_env : ExecutionEnvironment = ExecutionEnvironment("
-                f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata)\n"
+                f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata,"
+                f"returndata_size=0, returndata_len=0, returndata=returndata_ptr,"
+                f"to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)\n"
                 "let (local memory_dict) = default_dict_new(0)\n"
                 f"local memory_dict_start: DictAccess* = memory_dict\n"
                 "let msize = 0\n"
                 f"{body_repr}\n"
-                # TODO we need to fix this, because ↓ is coming after the return in body_repr
-                # f"default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
+                f"default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
+                f"return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)\n"
                 f"end\n"
             )
 
@@ -360,9 +379,10 @@ class ToCairoVisitor(AstVisitor):
             params += ", " if params else ""
             params += "calldata_size, calldata_len, calldata : felt*"
             init_exec_env = (
+                f"let (returndata_ptr : felt*) = alloc()\n"
                 f"local exec_env : ExecutionEnvironment ="
                 f"ExecutionEnvironment(calldata_size=calldata_size,"
-                f"calldata_len=calldata_len, calldata=calldata)\n"
+                f"calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=returndata_ptr)\n"
             )
             inner_implicits += ", exec_env"
         return (

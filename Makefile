@@ -6,12 +6,16 @@ TEST_FILES := $(shell find ./tests -type f ! -name '*.temp*') # exclude temporar
 SRC_FILES := $(shell find ./warp/ -type f)
 PY_REQUIREMENTS := requirements.txt
 
-warp: .warp-activation-token
+warp: .warp-deps .warp-activation-token
 .PHONY: warp
 
-.warp-activation-token: $(SRC_FILES) setup.py $(PY_REQUIREMENTS)
+.warp-activation-token: $(SRC_FILES) setup.py
 	python setup.py install
 	touch .warp-activation-token
+
+.warp-deps: requirements.txt
+	pip install -r requirements.txt
+	touch .warp-deps
 
 test: test_bats test_yul
 .PHONY: test

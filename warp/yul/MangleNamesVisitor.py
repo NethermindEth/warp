@@ -1,8 +1,7 @@
 import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
 
-CAIRO_KEYWORDS = {"ret", "felt", "call", "jmp", "func", "end"}
-
+CAIRO_KEYWORDS = {"ret", "felt", "jmp", "func", "end"}
 
 def mangle(identifier: str) -> str:
     identifier = identifier.replace("$", "_")

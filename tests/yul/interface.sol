@@ -9,4 +9,8 @@ interface ICounter {
 }
 
 contract WARP {
+    function test() external returns (bool) {
+        bool x = ICounter(0x0000000000000000000000000000000000000000).approve(1,1,1);
+        return x;
+    }
 }

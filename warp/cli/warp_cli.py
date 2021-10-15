@@ -22,9 +22,10 @@ def warp():
 
 
 @warp.command()
+@click.option("--verbose", is_flag=True, required=False, help="prints stacktraces on fail")
 @click.argument("file_path", type=click.Path(exists=True))
 @click.argument("contract_name")
-def transpile(file_path, contract_name):
+def transpile(verbose, file_path, contract_name):
     path = os.path.abspath(click.format_filename(file_path))
     filename = os.path.basename(path)
     cairo_str = generate_cairo(file_path, contract_name)
@@ -123,4 +124,8 @@ def main():
         elif e.args[0] != 0:
             click.echo(e.args[0])
     except BaseException as e:
-        click.echo(e)
+        if "--verbose" in click.get_os_args():
+            import traceback
+            click.echo(traceback.format_exc())
+        else:
+            click.echo(e)

@@ -51,10 +51,6 @@ UNSUPPORTED_BUILTINS = [
 ]
 
 HANDLERS_DECL = """
-func __warp_holder() -> (res : Uint256):
-    return (Uint256(0,0))
-end
-
 @storage_var
 func this_address() -> (res: felt):
 end

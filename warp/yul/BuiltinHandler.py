@@ -407,12 +407,10 @@ class CallDataLoad(BuiltinHandler):
         super().__init__(
             module="evm.calls",
             function_name="calldata_load",
-            function_args=function_args,
+            function_args=f"{self.offset}",
             used_implicits=("range_check_ptr", "exec_env"),
             cairo_functions=cairo_functions,
         )
-        self.function_call = f"calldata_load({self.offset})"
-
 
 class CallDataSize(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
@@ -426,7 +424,6 @@ class CallDataSize(BuiltinHandler):
         )
         self.function_call = info.name + "()"
 
-
 class CallDataCopy(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
@@ -438,57 +435,62 @@ class CallDataCopy(BuiltinHandler):
         )
 
 
-# ============ Return Data ============
-
-
-class ReturnDataCopy(BuiltinHandler):
-    touched = False
-
-    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
-        super().__init__(
-            module="",
-            function_name="",
-            function_args="",
-            used_implicits=(),
-            cairo_functions=cairo_functions,
-        )
-        if not ReturnDataCopy.touched:
-            print(
-                "WARNING: This contract referenced 'return data' (returndatacopy) which is not yet supported. Evaluating this contract on starknet may result in unexpected behavior."
-            )
-            ReturnDataCopy.touched = True
-        self.function_call = ""
-
-
-class ReturnDataSize(BuiltinHandler):
-    touched = False
-
+class CallValue(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         info = cairo_functions.constant_function(0)
         super().__init__(
             module="",
             function_name=info.name,
             function_args="",
-            used_implicits=tuple(info.implicits),
             cairo_functions=cairo_functions,
         )
-        if not ReturnDataCopy.touched:
-            print(
-                "WARNING: This contract referenced 'return data' (returndatacopy) which is not yet supported. Evaluating this contract on starknet may result in unexpected behavior."
-            )
-            ReturnDataCopy.touched = True
+
+
+# ============ Return Data ============
+
+
+class ReturnDataCopy(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        super().__init__(
+            module="evm.calls",
+            function_name="returndata_copy",
+            function_args=function_args,
+            used_implicits=("range_check_ptr", "exec_env", "memory_dict"),
+            cairo_functions=cairo_functions,
+        )
+
+
+class ReturnDataSize(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.identity_function(["Uint256"])
+        super().__init__(
+            module="",
+            function_name=info.name,
+            function_args="Uint256(low=exec_env.returndata_size, high=0)",
+            used_implicits=("exec_env",),
+            cairo_functions=cairo_functions,
+        )
 
 
 class Return(BuiltinHandler):
-    def __init__(self, function_arg: str, cairo_functions: CairoFunctions):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
-            module="",
-            function_name="",
-            function_args="",
-            used_implicits=(),
+            module="evm.array",
+            function_name="array_create_from_memory",
+            function_args=function_args,
             cairo_functions=cairo_functions,
+            used_implicits=("exec_env",),
         )
-        self.function_call = ""
+        [pointer, length] = [arg.strip() for arg in self.function_args.split(",")]
+        self.function_call = (
+            f"let (local return_: felt*) = array_create_from_memory({pointer}.low, {length}.low)\n"
+            f"let (returndata_len) = calculate_data_len({length}.low)\n"
+            f"local exec_env: ExecutionEnvironment = ExecutionEnvironment(\n"
+            f"  calldata_size=exec_env.calldata_size, calldata_len=exec_env.calldata_len, calldata=exec_env.calldata,\n"
+            f"  returndata_size=exec_env.returndata_size, returndata_len=exec_env.returndata_len, returndata=exec_env.returndata,\n"
+            f"  to_returndata_size={length}.low, to_returndata_len=returndata_len, to_returndata=return_\n"
+            f")\n"
+        )
 
 
 class Address(BuiltinHandler):
@@ -502,19 +504,6 @@ class Address(BuiltinHandler):
         )
         self.function_call = "address()"
 
-
-class Gas(BuiltinHandler):
-    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
-        super().__init__(
-            module="",
-            function_name=cairo_functions.stubbing_function().name,
-            function_args="",
-            used_implicits=(),
-            cairo_functions=cairo_functions,
-        )
-        self.function_call = "gas()"
-
-
 class Delegatecall(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
@@ -525,42 +514,58 @@ class Delegatecall(BuiltinHandler):
             cairo_functions=cairo_functions,
         )
         # TODO implement delegatecall
-=======
-class Call(BuiltinHandler):
-    def __init__(self, function_args: str):
-        super().__init__(
-            module="", function_name="", function_args="", call_implicits=[]
-        )
-        [g, a, v, in_, insize, out, outsize] = map(
-            lambda s: s.strip(), function_args.split(",")
-        )
 
-        self.function_call = (
-            f"GenericCallInterface.fun_ENTRY_POINT(\n"
-            f"  contract_address={a},\n"
-            f"  calldata_size={insize},\n"
-            f"  calldata_length={insize},\n"
-            f"  calldata={in_},\n"
-            f")"
+class Call(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        super().__init__(
+            module="",
+            function_name="warp_call",
+            function_args=function_args,
+            used_implicits=(
+                "syscall_ptr",
+                "storage_ptr",
+                "exec_env",
+                "memory_dict",
+                "range_check_ptr",
+            ),
+            cairo_functions=cairo_functions,
         )
 
 
 class StaticCall(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
-            module="", function_name="", function_args="", call_implicits=[]
-        )
-        [g, a, in_, insize, out, outsize] = map(
-            lambda s: s.strip(), function_args.split(",")
+            module="",
+            function_name="warp_static_call",
+            function_args=function_args,
+            used_implicits=(
+                "syscall_ptr",
+                "storage_ptr",
+                "exec_env",
+                "memory_dict",
+                "range_check_ptr",
+            ),
+            cairo_functions=cairo_functions,
         )
 
-        self.function_call = (
-            f"GenericCallInterface.fun_ENTRY_POINT(\n"
-            f"  contract_address={a},\n"
-            f"  calldata_size={insize},\n"
-            f"  calldata_length={insize},\n"
-            f"  calldata={in_},\n"
-            f")"
+class ExtCodeSize(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.constant_function(1)
+        super().__init__(
+            module="",
+            function_name=info.name,
+            function_args="",
+            cairo_functions=cairo_functions,
+        )
+
+
+class Gas(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        super().__init__(
+            module="",
+            function_name="gas",
+            function_args="",
+            cairo_functions=cairo_functions,
         )
 
 
@@ -575,10 +580,10 @@ YUL_BUILTINS_MAP = {
     "calldatasize": CallDataSize,
     "caller": Caller,
     "delegatecall": Delegatecall,
+    "callvalue": CallValue,
     "div": Div,
     "eq": Eq,
     "exp": Exp,
-    "gas": Gas,
     "gt": Gt,
     "iszero": IsZero,
     "keccak256": SHA3,
@@ -605,6 +610,8 @@ YUL_BUILTINS_MAP = {
     "slt": Slt,
     "smod": SMod,
     "sstore": SStore,
+    "extcodesize": ExtCodeSize,
+    "gas": Gas,
     "call": Call,
     "staticcall": StaticCall,
     "sub": Sub,

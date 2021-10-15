@@ -5,6 +5,7 @@ vendor/cairo-lang/build
 
 # Secrets
 /.warp-activation-token
+/.warp-deps
 
 # VSCode
 *.vscode
