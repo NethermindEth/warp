@@ -10,6 +10,7 @@ from transpiler.Imports import merge_imports, format_imports
 from yul.Artifacts import Artifacts
 from yul.BuiltinHandler import YUL_BUILTINS_MAP
 from yul.NameGenerator import NameGenerator
+from yul.implicits import IMPLICITS_SET, copy_implicit, print_implicit
 from yul.storage_access import (
     StorageVar,
     extract_var_from_getter,
@@ -17,9 +18,6 @@ from yul.storage_access import (
     generate_getter_body,
     generate_setter_body,
     generate_storage_var_declaration,
-)
-from yul.utils import (
-    STORAGE_DECLS,
 )
 from yul.yul_ast import AstVisitor
 
@@ -44,18 +42,6 @@ MAIN_PREAMBLE = """%lang starknet
 %builtins pedersen range_check
 """
 
-IMPLICITS = {
-    "memory_dict": "DictAccess*",
-    "msize": None,
-    "pedersen_ptr": "HashBuiltin*",
-    "range_check_ptr": None,
-    "storage_ptr": "Storage*",
-    "syscall_ptr": "felt*",
-    "exec_env": "ExecutionEnvironment",
-}
-
-IMPLICITS_SET = set(IMPLICITS.keys())
-
 
 class ToCairoVisitor(AstVisitor):
     def __init__(
@@ -65,6 +51,7 @@ class ToCairoVisitor(AstVisitor):
         function_mutabilities: dict[str, str],
         name_gen: NameGenerator,
         artifacts_manager: Artifacts,
+        cairo_functions: CairoFunctions,
     ):
         super().__init__()
         self.artifacts_manager = artifacts_manager
@@ -72,6 +59,7 @@ class ToCairoVisitor(AstVisitor):
         self.public_functions = public_functions
         self.function_mutabilities = function_mutabilities
         self.name_gen = name_gen
+        self.cairo_functions = cairo_functions
         self.external_functions: list[str] = []
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
@@ -83,16 +71,17 @@ class ToCairoVisitor(AstVisitor):
 
     def translate(self, node: ast.Node) -> str:
         main_part = self.print(node)
+        storage_vars = self.storage_variables | self.cairo_functions.storage_vars
         storage_var_decls = [
-            generate_storage_var_declaration(x) for x in sorted(self.storage_variables)
+            generate_storage_var_declaration(x) for x in sorted(storage_vars)
         ]
         return "\n".join(
             [
                 MAIN_PREAMBLE,
                 format_imports(self.imports),
                 "",
+                *self.cairo_functions.get_definitions(),
                 *storage_var_decls,
-                STORAGE_DECLS,
                 main_part,
             ]
         )
@@ -137,7 +126,9 @@ class ToCairoVisitor(AstVisitor):
             return "Uint256(0,0)"
         result: str
         if fun_repr in YUL_BUILTINS_MAP:
-            builtin_to_cairo = YUL_BUILTINS_MAP[fun_repr](args_repr)
+            builtin_to_cairo = YUL_BUILTINS_MAP[fun_repr](
+                args_repr, self.cairo_functions
+            )
             merge_imports(self.imports, builtin_to_cairo.required_imports())
             self.last_used_implicits = builtin_to_cairo.used_implicits
             result = f"{builtin_to_cairo.function_call}"
@@ -178,10 +169,7 @@ class ToCairoVisitor(AstVisitor):
             return value_repr
         vars_repr = ", ".join(f"local {self.visit(x)}" for x in node.variables)
         if isinstance(node.value, ast.FunctionCall):
-            if "calldatasize" in node.value.function_name.name:
-                return f"{vars_repr} = {value_repr}"
-            else:
-                return f"let ({vars_repr}) = {value_repr}"
+            return f"let ({vars_repr}) = {value_repr}"
         else:
             assert len(node.variables) == 1
             return f"{vars_repr} = {value_repr}"
@@ -412,18 +400,6 @@ class ToCairoVisitor(AstVisitor):
             StorageVar(name=name, arg_types=arg_types, res_type=res_type)
         )
         return body
-
-
-def print_implicit(name):
-    type_ = IMPLICITS.get(name, None)
-    if type_ is None:
-        return name
-    else:
-        return f"{name}: {type_}"
-
-
-def copy_implicit(name):
-    return f"local {print_implicit(name)} = {name}"
 
 
 def extract_function_name(name: str) -> Optional[str]:

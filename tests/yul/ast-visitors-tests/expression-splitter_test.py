@@ -6,6 +6,7 @@ from yul.main import generate_from_yul
 from yul.Artifacts import DUMMY_ARTIFACTS
 from yul.ExpressionSplitter import ExpressionSplitter
 from yul.NameGenerator import NameGenerator
+from yul.FunctionGenerator import CairoFunctions, FunctionGenerator
 
 
 @pytest.mark.asyncio
@@ -27,6 +28,7 @@ async def test_ExpressionSplitter():
         function_mutabilities={},
         name_gen=NameGenerator(),
         artifacts_manager=DUMMY_ARTIFACTS,
+        cairo_functions=CairoFunctions(FunctionGenerator()),
     ).print(new_node)
     assert cairo.splitlines() == [
         "let (local __warp_subexpr_1 : Uint256) = f2()",

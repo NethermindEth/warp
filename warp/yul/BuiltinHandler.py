@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from yul.FunctionGenerator import CairoFunctions
 from yul.utils import get_low_bits
 
 UINT256_MODULE = "starkware.cairo.common.uint256"
@@ -10,19 +12,15 @@ class BuiltinHandler:
         module: str,
         function_name: str,
         function_args: str,
-        call_implicits: list[str] = [],
+        cairo_functions: CairoFunctions,
         used_implicits: tuple[str] = ("range_check_ptr",),
     ):
         self.module = module
         self.function_name = function_name
         self.function_args = function_args
-        self.call_implicits = ", ".join(f"{x}={x}" for x in call_implicits)
+        self.cairo_functions = cairo_functions
         self.used_implicits = used_implicits
-        self.function_call = (
-            f"{self.function_name}({self.function_args})"
-            if self.call_implicits == ""
-            else f"{self.function_name}{{{self.call_implicits}}}({self.function_args})"
-        )
+        self.function_call = f"{self.function_name}({self.function_args})"
 
     def required_imports(self):
         if self.module == "":
@@ -32,342 +30,351 @@ class BuiltinHandler:
 
 # ============ Comparisons ============
 class IsZero(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="is_zero",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Eq(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="is_eq",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Lt(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="is_lt",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Gt(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="is_gt",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Slt(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="slt",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Sgt(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="sgt",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 # ============ Bitwise ============
 class And(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module=UINT256_MODULE,
             function_name="uint256_and",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Or(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module=UINT256_MODULE,
             function_name="uint256_or",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Not(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module=UINT256_MODULE,
             function_name="uint256_not",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Xor(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module=UINT256_MODULE,
             function_name="uint256_xor",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Shl(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module=UINT256_MODULE,
             function_name="uint256_shl",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Shr(BuiltinHandler):  # ARG ORDER NOT CONVENTIONAL
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module=UINT256_MODULE,
             function_name="uint256_shr",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Sar(BuiltinHandler):  # ARG ORDER NOT CONVENTIONAL
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="uint256_sar",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Byte(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="uint256_byte",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 # ============ Arithmetic ============
 class Add(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="u256_add",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Mul(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="u256_mul",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Sub(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module=UINT256_MODULE,
             function_name="uint256_sub",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Div(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="u256_div",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Sdiv(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="u256_sdiv",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Exp(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module=UINT256_MODULE,
             function_name="uint256_exp",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class Mod(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="uint256_mod",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class SMod(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="smod",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class AddMod(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="uint256_addmod",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class MulMod(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="uint256_mulmod",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 class SignExtend(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.uint256",
             function_name="uint256_signextend",
             function_args=function_args,
+            cairo_functions=cairo_functions,
         )
 
 
 # ============ Memory ============
 class MStore(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         self.address = get_low_bits(function_args.split(",")[0].strip())
         self.value: str = function_args.split(",")[1].strip()
         super().__init__(
             module="evm.memory",
             function_name="mstore_",
             function_args=function_args,
-            call_implicits=["memory_dict", "range_check_ptr", "msize"],
-            used_implicits=("memory_dict", "msize"),
+            used_implicits=("memory_dict", "msize", "range_check_ptr"),
+            cairo_functions=cairo_functions,
         )
-        self.call_implicits = ["memory_dict", "range_check_ptr", "msize"]
-        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
-        self.function_call = f"mstore_{{{self.call_implicits_decl}}}(offset={self.address}, value={self.value})"
+        self.function_call = f"mstore_(offset={self.address}, value={self.value})"
 
 
 class MStore8(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         self.address: str = get_low_bits(function_args.split(",")[0].strip())
         self.value: str = function_args.split(",")[1].strip()
         super().__init__(
             module="evm.memory",
             function_name="mstore8_",
             function_args=function_args,
-            call_implicits=["memory_dict", "range_check_ptr", "msize"],
-            used_implicits=("memory_dict", "msize"),
+            used_implicits=("memory_dict", "msize", "range_check_ptr"),
+            cairo_functions=cairo_functions,
         )
-        self.call_implicits = ["memory_dict", "range_check_ptr", "msize"]
-        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
-        self.function_call = f"mstore8_{{{self.call_implicits_decl}}}(offset={self.address}, value={self.value})"
+        self.function_call = f"mstore8_(offset={self.address}, value={self.value})"
 
 
 class MLoad(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         self.offset: str = get_low_bits(function_args.split(",")[0].strip())
         super().__init__(
             module="evm.memory",
             function_name="mload_",
             function_args=function_args,
-            call_implicits=["memory_dict", "range_check_ptr", "msize"],
-            used_implicits=("memory_dict", "msize"),
+            used_implicits=("memory_dict", "msize", "range_check_ptr"),
+            cairo_functions=cairo_functions,
         )
-        self.call_implicits = ["memory_dict", "range_check_ptr", "msize"]
-        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
-        self.function_call = f"mload_{{{self.call_implicits_decl}}}({self.offset})"
+        self.function_call = f"mload_({self.offset})"
 
 
 class MSize(BuiltinHandler):
-    def __init__(self, function_args):
+    def __init__(self, function_args, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.memory",
             function_name="get_msize",
             function_args=function_args,
-            call_implicits=["msize"],
             used_implicits=("msize"),
+            cairo_functions=cairo_functions,
         )
 
 
 # ============ Storage ============
 class SStore(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         self.key: str = function_args.split(",")[0].strip()
         self.value: str = function_args.split(",")[1].strip()
+        info = cairo_functions.sstore_function()
         super().__init__(
             module="",
-            function_name="s_store",
+            function_name=info.name,
             function_args=function_args,
-            call_implicits=["storage_ptr", "range_check_ptr", "pedersen_ptr"],
-            used_implicits=("storage_ptr", "pedersen_ptr"),
+            used_implicits=("storage_ptr", "range_check_ptr", "pedersen_ptr"),
+            cairo_functions=cairo_functions,
         )
-        self.call_implicits = ["storage_ptr", "range_check_ptr", "pedersen_ptr"]
-        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
-        self.function_call = (
-            f"s_store{{{self.call_implicits_decl}}}(key={self.key},value={self.value})"
-        )
+        self.function_call = f"{info.name}(key={self.key},value={self.value})"
 
 
 class SLoad(BuiltinHandler):
-    def __init__(self, function_args: str):
-        self.key: str = function_args.split(",")[0].strip()
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.sload_function()
         super().__init__(
             module="",
-            function_name="s_store",
+            function_name=info.name,
             function_args=function_args,
-            call_implicits=["storage_ptr", "range_check_ptr", "pedersen_ptr"],
-            used_implicits=("storage_ptr", "pedersen_ptr"),
+            used_implicits=("storage_ptr", "range_check_ptr", "pedersen_ptr"),
+            cairo_functions=cairo_functions,
         )
-        self.call_implicits = ["storage_ptr", "range_check_ptr", "pedersen_ptr"]
-        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
-        self.function_call = f"s_load{{{self.call_implicits_decl}}}({self.key})"
 
 
 # ============ Keccak ============
 class SHA3(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         self.offset = get_low_bits(function_args.split(",")[0].strip())
         self.length: str = get_low_bits(function_args.split(",")[1].strip())
         super().__init__(
             module="",
             function_name="sha",
             function_args=function_args,
-            call_implicits=["range_check_ptr", "memory_dict", "msize"],
-            used_implicits=("memory_dict", "msize"),
+            used_implicits=("memory_dict", "msize", "range_check_ptr"),
+            cairo_functions=cairo_functions,
         )
-        self.call_implicits = ["range_check_ptr", "memory_dict", "msize"]
-        self.call_implicits_decl = ", ".join(f"{x}={x}" for x in self.call_implicits)
-        self.function_call = (
-            f"sha{{{self.call_implicits_decl}}}({self.offset},{self.length})"
-        )
+        self.function_call = f"sha({self.offset}, {self.length})"
 
     def required_imports(self):
         return {"evm.sha3": {"sha"}}
@@ -375,51 +382,50 @@ class SHA3(BuiltinHandler):
 
 # ============ Call Data ============
 class Caller(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.calls",
             function_name="get_caller_data_uint256",
             function_args=function_args,
-            call_implicits=["syscall_ptr"],
             used_implicits=("syscall_ptr",),
+            cairo_functions=cairo_functions,
         )
 
 
 class CallDataLoad(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         self.offset: str = get_low_bits(function_args.split(",")[0].strip())
         super().__init__(
             module="evm.calls",
             function_name="calldata_load",
             function_args=function_args,
-            call_implicits=["range_check_ptr", "exec_env"],
+            used_implicits=("range_check_ptr", "exec_env"),
+            cairo_functions=cairo_functions,
         )
-        self.function_call = (
-            f"calldata_load{{range_check_ptr=range_check_ptr, exec_env=exec_env}}("
-            f"{self.offset})\n"
-            f"local exec_env : ExecutionEnvironment = exec_env"
-        )
+        self.function_call = f"calldata_load({self.offset})"
 
 
 class CallDataSize(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.constant_function(0)
         super().__init__(
             module="",
-            function_name="",
+            function_name=info.name,
             function_args=function_args,
-            call_implicits=[],
+            used_implicits=tuple(info.implicits),
+            cairo_functions=cairo_functions,
         )
-        self.function_call = "Uint256(exec_env.calldata_size, 0)"
+        self.function_call = info.name + "()"
 
 
 class CallDataCopy(BuiltinHandler):
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="evm.calls",
             function_name="calldatacopy_",
             function_args=function_args,
-            call_implicits=["range_check_ptr", "exec_env"],
             used_implicits=("range_check_ptr", "exec_env", "memory_dict", "msize"),
+            cairo_functions=cairo_functions,
         )
 
 
@@ -429,9 +435,13 @@ class CallDataCopy(BuiltinHandler):
 class ReturnDataCopy(BuiltinHandler):
     touched = False
 
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
-            module="", function_name="", function_args="", call_implicits=[]
+            module="",
+            function_name="",
+            function_args="",
+            used_implicits=(),
+            cairo_functions=cairo_functions,
         )
         if not ReturnDataCopy.touched:
             print(
@@ -444,22 +454,30 @@ class ReturnDataCopy(BuiltinHandler):
 class ReturnDataSize(BuiltinHandler):
     touched = False
 
-    def __init__(self, function_args: str):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.constant_function(0)
         super().__init__(
-            module="", function_name="", function_args="", call_implicits=[]
+            module="",
+            function_name=info.name,
+            function_args="",
+            used_implicits=tuple(info.implicits),
+            cairo_functions=cairo_functions,
         )
         if not ReturnDataCopy.touched:
             print(
                 "WARNING: This contract referenced 'return data' (returndatacopy) which is not yet supported. Evaluating this contract on starknet may result in unexpected behavior."
             )
             ReturnDataCopy.touched = True
-        self.function_call = "Uint256(low=0, high=0)"
 
 
 class Return(BuiltinHandler):
-    def __init__(self, function_arg: str):
+    def __init__(self, function_arg: str, cairo_functions: CairoFunctions):
         super().__init__(
-            module="", function_name="", function_args="", call_implicits=[]
+            module="",
+            function_name="",
+            function_args="",
+            used_implicits=(),
+            cairo_functions=cairo_functions,
         )
         self.function_call = ""
 

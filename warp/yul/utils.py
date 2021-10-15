@@ -68,46 +68,6 @@ def camelize(snake_case: str) -> str:
     return "".join(x.capitalize() for x in parts)
 
 
-STORAGE_DECLS = """
-
-@storage_var
-func evm_storage(low: felt, high: felt, part: felt) -> (res : felt):
-end
-
-func s_load{
-        storage_ptr: Storage*, range_check_ptr, pedersen_ptr: HashBuiltin*}(
-        key: Uint256) -> (res : Uint256):
-    let (low_r) = evm_storage.read(key.low, key.high, 1)
-    let (high_r) = evm_storage.read(key.low, key.high, 2)
-    return (Uint256(low_r, high_r))
-end
-
-func s_store{
-        storage_ptr: Storage*, range_check_ptr, pedersen_ptr: HashBuiltin*}(
-        key: Uint256, value: Uint256):
-    evm_storage.write(low=key.low, high=key.high, part=1, value=value.low)
-    evm_storage.write(low=key.low, high=key.high, part=2, value=value.high)
-    return ()
-end
-
-@view
-func get_storage_low{
-        storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
-        low : felt, high : felt) -> (res : felt):
-    let (storage_val_low) = evm_storage.read(low=low, high=high, part=1)
-    return (res=storage_val_low)
-end
-
-@view
-func get_storage_high{
-        storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
-        low : felt, high : felt) -> (res : felt):
-    let (storage_val_high) = evm_storage.read(low=low, high=high, part=2)
-    return (res=storage_val_high)
-end
-"""
-
-
 def get_public_functions(sol_source: str) -> list[str]:
     validate_solc_ver(sol_source)
 
