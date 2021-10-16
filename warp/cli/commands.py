@@ -110,6 +110,7 @@ def starknet_compile(contract):
     process = subprocess.Popen(
         [
             "starknet-compile",
+            "--no_debug_info",
             "--disable_hint_validation",
             f"{contract}",
             "--output",

@@ -62,7 +62,6 @@ class ForLoopEliminator(AstMapper):
                     head_stmt,
                     ast.If(condition=leave_id, body=ast.LEAVE_BLOCK),
                 )
-
             return ast.Block(call_statements)
 
     def visit_break(self, node: ast.Break):

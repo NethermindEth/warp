@@ -294,6 +294,8 @@ class ToCairoVisitor(AstVisitor):
         else_repr = ""
         if node.else_body:
             else_repr = f"else:\n\t{self.print(node.else_body)}\n"
+        if cond_repr == "Uint256(low=1, high=0)":
+            print("HEREE")
         return (
             f"if {cond_repr}.low + {cond_repr}.high != 0:\n"
             f"\t{body_repr}\n"

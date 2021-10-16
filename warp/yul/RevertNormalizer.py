@@ -57,7 +57,6 @@ class RevertNormalizer(AstMapper):
     ) -> ast.FunctionDefinition:
         body = self.visit(node.body)
         if not _is_untouchable(node) and self._is_revert(body):
-            print(node.name)
             self.revert_functions.add(node.name)
         return ast.FunctionDefinition(
             name=node.name,
