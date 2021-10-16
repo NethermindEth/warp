@@ -3,4 +3,7 @@ struct ExecutionEnvironment:
     member calldata_size : felt
     member calldata_len : felt
     member calldata : felt*  # a big-endian 128-bit packed byte array
+    member returndata_size : felt
+    member returndata_len : felt
+    member returndata : felt*
 end

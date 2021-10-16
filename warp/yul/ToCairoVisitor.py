@@ -9,6 +9,7 @@ import yul.yul_ast as ast
 from transpiler.Imports import merge_imports, format_imports
 from yul.Artifacts import Artifacts
 from yul.BuiltinHandler import YUL_BUILTINS_MAP
+from yul.FunctionGenerator import CairoFunctions
 from yul.NameGenerator import NameGenerator
 from yul.implicits import IMPLICITS_SET, copy_implicit, print_implicit
 from yul.storage_access import (
@@ -36,15 +37,38 @@ COMMON_IMPORTS = {
         "default_dict_finalize",
     },
     "starkware.cairo.common.uint256": {"Uint256", "uint256_eq"},
+    "starkware.cairo.common.math": {"unsigned_div_rem"},
     "starkware.cairo.common.cairo_builtins": {"HashBuiltin"},
     "starkware.starknet.common.storage": {"Storage"},
+    "starkware.cairo.common.alloc": {"alloc"},
     "evm.exec_env": {"ExecutionEnvironment"},
     "evm.utils": {"update_msize"},
+    "evm.array": {"array_create_from_memory", "array_copy_to_memory"},
 }
 
 MAIN_PREAMBLE = """%lang starknet
 %builtins pedersen range_check
 """
+
+# This exists to fix the bug where function return values are technically
+# structured, replacing them with a value is not possible unless we also modify
+# the variable declaration The quick fix is to use this instead
+ID_FUNC = """func __warp__id(arg: Uint256) -> (res: Uint256):
+    return (res=arg)
+    end
+"""
+
+IMPLICITS = {
+    "memory_dict": "DictAccess*",
+    "msize": None,
+    "pedersen_ptr": "HashBuiltin*",
+    "range_check_ptr": None,
+    "storage_ptr": "Storage*",
+    "syscall_ptr": "felt*",
+    "exec_env": "ExecutionEnvironment",
+}
+
+IMPLICITS_SET = set(IMPLICITS.keys())
 
 
 class ToCairoVisitor(AstVisitor):
@@ -56,12 +80,14 @@ class ToCairoVisitor(AstVisitor):
         name_gen: NameGenerator,
         artifacts_manager: Artifacts,
         cairo_functions: CairoFunctions,
+        interfaces: str,
     ):
         super().__init__()
         self.artifacts_manager = artifacts_manager
         self.artifacts_manager.write_artifact("MAIN_CONTRACT", main_contract)
         self.public_functions = public_functions
         self.function_mutabilities = function_mutabilities
+        self.interfaces = interfaces
         self.name_gen = name_gen
         self.cairo_functions = cairo_functions
         self.external_functions: list[str] = []
@@ -86,6 +112,10 @@ class ToCairoVisitor(AstVisitor):
                 STORAGE_DECLS,
                 *self.cairo_functions.get_definitions(),
                 *storage_var_decls,
+                "",
+                self.interfaces,
+                "",
+                ID_FUNC,
                 main_part,
             ]
         )
@@ -221,10 +251,12 @@ class ToCairoVisitor(AstVisitor):
                 f"local pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
                 f"local storage_ptr : Storage* = storage_ptr\n"
                 f"local syscall_ptr : felt* = syscall_ptr\n"
+                f"let (returndata_ptr: felt*) = alloc()\n"
                 f"local exec_env : ExecutionEnvironment = ExecutionEnvironment("
-                f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata)\n"
+                f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata,"
+                f"returndata_size=0, returndata_len=0, returndata=returndata_ptr)\n"
                 "let (local memory_dict) = default_dict_new(0)\n"
-                f"local memory_dict_start: DictAccess* = memory_dict\n"
+                "local memory_dict_start : DictAccess* = memory_dict\n"
                 f"let msize = 0\n"
                 f"{body_repr}\n"
                 f"end\n"
@@ -323,9 +355,10 @@ class ToCairoVisitor(AstVisitor):
             params += ", " if params else ""
             params += "calldata_size, calldata_len, calldata : felt*"
             init_exec_env = (
+                f"let (returndata_ptr : felt*) = alloc()\n"
                 f"local exec_env : ExecutionEnvironment ="
                 f"ExecutionEnvironment(calldata_size=calldata_size,"
-                f"calldata_len=calldata_len, calldata=calldata)\n"
+                f"calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=returndata_ptr)\n"
             )
             inner_implicits += ", exec_env"
         return (
