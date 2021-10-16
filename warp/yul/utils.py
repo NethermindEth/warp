@@ -20,7 +20,6 @@ STATEMENT_STRINGS = {
 }
 
 UNSUPPORTED_BUILTINS = [
-    "address",
     "balance",
     "basefee",
     "blockhash",
@@ -150,6 +149,11 @@ end
 
 @storage_var
 func this_address() -> (res: felt):
+end
+
+func address() -> (res : Uint256):
+    let (addr) = this_address.read()
+    return (res=Uint256(low=addr, high=0))
 end
 
 @storage_var

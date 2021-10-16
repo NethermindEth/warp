@@ -508,6 +508,15 @@ class StaticCall(BuiltinHandler):
             cairo_functions=cairo_functions,
         )
 
+class Address(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        super().__init__(
+            module="",
+            function_name="",
+            function_args=function_args,
+            cairo_functions=cairo_functions,
+        )
+        self.function_call = "address()"
 
 class ExtCodeSize(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
@@ -534,7 +543,7 @@ class Gas(BuiltinHandler):
 YUL_BUILTINS_MAP = {
     "add": Add,
     "addmod": AddMod,
-    # "address": Address,
+    "address": Address,
     "and": And,
     "byte": Byte,
     "calldatacopy": CallDataCopy,

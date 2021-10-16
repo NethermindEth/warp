@@ -163,7 +163,14 @@ class ToCairoVisitor(AstVisitor):
             )
             merge_imports(self.imports, builtin_to_cairo.required_imports())
             self.last_used_implicits = builtin_to_cairo.used_implicits
-            result = f"{builtin_to_cairo.function_call}"
+            if "mstore" in fun_repr and self.in_entry_function:
+                result = (
+                    "with memory_dict, range_check_ptr, msize:\n"
+                    f"{builtin_to_cairo.function_call}\n"
+                    "end\n"
+                )
+            else:
+                result = f"{builtin_to_cairo.function_call}"
         else:
             self.last_used_implicits = sorted(
                 self.function_to_implicits.setdefault(
@@ -174,7 +181,8 @@ class ToCairoVisitor(AstVisitor):
             holder.append("exec_env") if "exec_env" not in holder else None
             self.last_used_implicits = tuple(holder)
             if self.in_entry_function:
-                result = ("with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, storage_ptr, syscall_ptr:\n"
+                result = (
+                    "with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, storage_ptr, syscall_ptr:\n"
                     f"{fun_repr}({args_repr})\n"
                     "end\n"
                 )
@@ -294,8 +302,6 @@ class ToCairoVisitor(AstVisitor):
         else_repr = ""
         if node.else_body:
             else_repr = f"else:\n\t{self.print(node.else_body)}\n"
-        if cond_repr == "Uint256(low=1, high=0)":
-            print("HEREE")
         return (
             f"if {cond_repr}.low + {cond_repr}.high != 0:\n"
             f"\t{body_repr}\n"
