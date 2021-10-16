@@ -2,7 +2,7 @@
 %builtins pedersen range_check
 
 from evm.exec_env import ExecutionEnvironment
-from evm.uint256 import is_gt, is_lt, u256_add
+from evm.uint256 import is_gt, is_lt, is_zero, u256_add
 from evm.utils import update_msize
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
@@ -69,7 +69,9 @@ func __warp_loop_0{range_check_ptr}(
         __warp_leave_0 : Uint256, var : Uint256, var_i : Uint256, var_j : Uint256, var_k : Uint256,
         var_k_1 : Uint256) -> (__warp_leave_0 : Uint256, var : Uint256, var_k_1 : Uint256):
     alloc_locals
-    let (local __warp_subexpr_0 : Uint256) = is_lt(var_k_1, var_i)
+    let (local __warp_subexpr_1 : Uint256) = is_lt(var_k_1, var_i)
+    local range_check_ptr = range_check_ptr
+    let (local __warp_subexpr_0 : Uint256) = is_zero(__warp_subexpr_1)
     local range_check_ptr = range_check_ptr
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         return (__warp_leave_0, var, var_k_1)
