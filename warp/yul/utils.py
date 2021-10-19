@@ -104,9 +104,9 @@ def get_source_version(sol_source: str) -> float:
     for line in code_split:
         if "pragma" in line:
             ver: float = float(line[line.index("0.") + 2 :].replace(";", ""))
-            if ver < 8.0:
+            if ver < 7.6:
                 raise Exception(
-                    "Please use a version of solidity that is at least 0.8.0"
+                    "Please use a version of solidity that is at least 0.7.6"
                 )
             return ver
     raise Exception("No Solidity version specified in contract")
