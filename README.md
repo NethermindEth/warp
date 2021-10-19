@@ -32,7 +32,6 @@ python3.7 -m venv ~/warp_demo
 source ~/warp_demo/bin/activate
 pip install wheel
 pip install ecdsa fastecdsa sympy
-pip install cairo-lang==0.4.2
 make warp
 ```
 MacOs:
@@ -43,7 +42,6 @@ python3.7 -m venv ~/warp_demo
 source ~/warp_demo/bin/activate
 pip install wheel
 pip install ecdsa fastecdsa sympy
-pip install cairo-lang==0.4.2
 make warp
 ```
 ## Usage :computer:
