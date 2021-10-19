@@ -51,8 +51,10 @@ make warp
 You can transpile your Solidity/Vyper contracts with:
 
 ```
-warp transpile CONTRACT
+warp transpile FILE_PATH CONTRACT_NAME
 ```
+
+`CONTRACT_NAME` is the name of the primary contract (non-interface, non-library, non-abstract contract) that you wish to transpile
 
 To deploy the transpiled Cairo contract to Starknet use:
 ```

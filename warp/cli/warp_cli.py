@@ -22,11 +22,12 @@ def warp():
 
 
 @warp.command()
-@click.argument("contract_path", nargs=2, type=click.Path(exists=False))
-def transpile(contract_path):
-    path = os.path.abspath(click.format_filename(contract_path[0]))
+@click.argument("file_path", type=click.Path(exists=True))
+@click.argument("contract_name")
+def transpile(file_path, contract_name):
+    path = os.path.abspath(click.format_filename(file_path))
     filename = os.path.basename(path)
-    cairo_str = generate_cairo(contract_path[0], contract_path[1])
+    cairo_str = generate_cairo(file_path, contract_name)
     with open(f"{path[:-4]}.cairo", "w") as f:
         f.write(cairo_str)
     click.echo(f"The generated Cairo contract has been written to {path[:-4]}.cairo")
