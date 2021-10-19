@@ -1,12 +1,11 @@
 import pytest
-
 import yul.yul_ast as ast
-from yul.ToCairoVisitor import ToCairoVisitor
-from yul.main import generate_from_yul
 from yul.Artifacts import DUMMY_ARTIFACTS
 from yul.ExpressionSplitter import ExpressionSplitter
-from yul.NameGenerator import NameGenerator
 from yul.FunctionGenerator import CairoFunctions, FunctionGenerator
+from yul.main import generate_from_yul
+from yul.NameGenerator import NameGenerator
+from yul.ToCairoVisitor import ToCairoVisitor
 
 
 @pytest.mark.asyncio

@@ -1,8 +1,9 @@
 import operator
+
+from transpiler.Imports import UINT256_MODULE
 from transpiler.Operations.Binary import Binary, SimpleBinary
 from transpiler.Operations.Unary import Unary
-from transpiler.Imports import UINT256_MODULE
-from transpiler.utils import uint256_to_int256, int256_to_uint256
+from transpiler.utils import int256_to_uint256, uint256_to_int256
 
 
 class And(SimpleBinary):

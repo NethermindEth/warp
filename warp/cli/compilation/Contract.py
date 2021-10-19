@@ -1,8 +1,10 @@
 from __future__ import annotations
-from dataclasses import dataclass
-from eth_hash.auto import keccak
-from enum import Enum
+
 import abc
+from dataclasses import dataclass
+from enum import Enum
+
+from eth_hash.auto import keccak
 
 
 class Language(Enum):

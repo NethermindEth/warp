@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Optional
 
 import yul.yul_ast as ast

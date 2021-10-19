@@ -3,8 +3,8 @@
 import argparse
 from collections import defaultdict
 
-from starkware.cairo.lang.compiler.cairo_compile import compile_cairo_files
 from starkware.cairo.lang.cairo_constants import DEFAULT_PRIME
+from starkware.cairo.lang.compiler.cairo_compile import compile_cairo_files
 
 # A script to check values in EVM-like simulated memory. You just
 # enter memory writes, an offset, and get a mload of uint256 split

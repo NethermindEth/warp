@@ -1,6 +1,6 @@
-import pytest
 import os
 
+import pytest
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
 

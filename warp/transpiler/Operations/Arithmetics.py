@@ -5,11 +5,11 @@ from transpiler.Operations.Binary import Binary, SimpleBinary
 from transpiler.Operations.Ternary import Ternary
 from transpiler.StackValue import UINT256_BOUND
 from transpiler.utils import (
-    uint256_to_int256,
-    int256_to_uint256,
     UINT256_HALF_BOUND,
-    is_bit_set,
     bit_not,
+    int256_to_uint256,
+    is_bit_set,
+    uint256_to_int256,
 )
 
 

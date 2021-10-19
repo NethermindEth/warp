@@ -1,13 +1,17 @@
 from __future__ import annotations
-import os, sys
+
+import os
+import sys
 from typing import Dict, List, Tuple
 
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../../../.."))
 sys.path.append(os.path.join(WARP_ROOT, "src"))
-import os, sys
-from cli.compilation.utils import is_entry_seq, get_jumpdest_offset
-from cli.compilation.opcode_tables import OP_TO_STR
 import json
+import os
+import sys
+
+from cli.compilation.opcode_tables import OP_TO_STR
+from cli.compilation.utils import get_jumpdest_offset, is_entry_seq
 
 
 class InstructionIterator:

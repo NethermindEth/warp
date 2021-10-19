@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
-from yul.call_graph import build_callgraph, CallGraph
+from yul.call_graph import CallGraph, build_callgraph
 
 
 class FunctionPruner(AstMapper):

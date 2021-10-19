@@ -1,4 +1,4 @@
-from transpiler.Operation import Operation, NoParse
+from transpiler.Operation import NoParse, Operation
 from transpiler.utils import is_valid_uintN
 
 

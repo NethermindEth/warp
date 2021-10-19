@@ -6,11 +6,11 @@ from contextlib import contextmanager
 from typing import Optional
 
 import yul.yul_ast as ast
-from transpiler.Imports import merge_imports, format_imports
+from transpiler.Imports import format_imports, merge_imports
 from yul.Artifacts import Artifacts
 from yul.BuiltinHandler import YUL_BUILTINS_MAP
-from yul.NameGenerator import NameGenerator
 from yul.implicits import IMPLICITS_SET, copy_implicit, print_implicit
+from yul.NameGenerator import NameGenerator
 from yul.storage_access import (
     StorageVar,
     extract_var_from_getter,

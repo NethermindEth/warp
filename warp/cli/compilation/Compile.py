@@ -1,22 +1,22 @@
 from __future__ import annotations
-from collections import OrderedDict
-import os, sys
+
 import json
+import os
 import subprocess
+import sys
+from collections import OrderedDict
 from typing import List
+
 from semantic_version import Version
 from vyper.cli.vyper_compile import compile_files
 from web3 import Web3
 
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../../../.."))
 sys.path.append(os.path.join(WARP_ROOT, "src"))
-from cli.compilation.utils import (
-    get_selectors,
-    get_selector_jumpdests,
-)
-from cli.compilation.Disasm import InstructionIterator
-from cli.compilation.Contract import Contract, Language
 import solcx
+from cli.compilation.Contract import Contract, Language
+from cli.compilation.Disasm import InstructionIterator
+from cli.compilation.utils import get_selector_jumpdests, get_selectors
 
 artifacts_dir = os.path.join(os.path.abspath("."), "artifacts")
 

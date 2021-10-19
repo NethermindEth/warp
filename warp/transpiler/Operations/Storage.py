@@ -1,6 +1,6 @@
-from transpiler.StackValue import Uint256
 from transpiler.Operations.EnforcedStack import EnforcedStack
 from transpiler.Operations.Unary import Unary
+from transpiler.StackValue import Uint256
 
 # The view functions get_storage_low/high will are used
 # for starknet testing.

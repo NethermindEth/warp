@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 UINT256_BOUND = 2 ** 256
 UINT256_HALF_BOUND = 2 ** 255
 UINT128_BOUND = 2 ** 128

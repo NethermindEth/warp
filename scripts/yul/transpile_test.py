@@ -1,8 +1,8 @@
 import difflib
 import os
-import pytest
 import sys
 
+import pytest
 from yul.main import generate_cairo
 
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))

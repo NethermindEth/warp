@@ -1,14 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, Callable
+from typing import Callable, Iterable
 
 from yul.implicits import print_implicit
-from yul.storage_access import (
-    generate_getter_body,
-    generate_setter_body,
-    StorageVar,
-)
+from yul.storage_access import StorageVar, generate_getter_body, generate_setter_body
 
 
 class FunctionGenerator:
@@ -93,7 +89,6 @@ class CairoFunctions:
         )
         return FunctionInfo(name=name, implicits=implicits)
 
-
     def stubbing_function(self) -> FunctionInfo:
         name = f"__warp_stub"
 
@@ -109,4 +104,3 @@ class CairoFunctions:
 
         self.generator.create_function(name, inner)
         return FunctionInfo(name=name, implicits=set())
-

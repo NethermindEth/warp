@@ -1,14 +1,14 @@
 from __future__ import annotations
+
 import sys
-from dataclasses import dataclass
 from collections import defaultdict
+from dataclasses import dataclass
 
-from starkware.cairo.lang.compiler.parser import parse_file
-
-from transpiler.Operation import Operation
-from transpiler.Imports import UINT256_MODULE, format_imports, merge_imports
-from transpiler.EvmStack import EvmStack
 import transpiler.StackValue as StackValue
+from starkware.cairo.lang.compiler.parser import parse_file
+from transpiler.EvmStack import EvmStack
+from transpiler.Imports import UINT256_MODULE, format_imports, merge_imports
+from transpiler.Operation import Operation
 from transpiler.Operations.Storage import STORAGE_DECLS
 
 EMPTY_OUTPUT = "Output(cast(0, felt*), 0)"

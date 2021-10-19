@@ -1,12 +1,15 @@
 from __future__ import annotations
-import os, sys
+
+import os
+import sys
 from typing import Dict, List, Tuple
 
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../../../.."))
 sys.path.append(os.path.join(WARP_ROOT, "src"))
-from eth_hash.auto import keccak
-from cli.compilation.Contract import Contract, Language
 import json
+
+from cli.compilation.Contract import Contract, Language
+from eth_hash.auto import keccak
 
 artifacts_dir = os.path.join(os.path.abspath("."), "artifacts")
 

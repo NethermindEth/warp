@@ -1,6 +1,6 @@
-import pytest
 import os
 
+import pytest
 from starkware.starknet.compiler.compile import compile_starknet_files
 
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))

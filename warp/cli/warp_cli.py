@@ -1,10 +1,12 @@
-import os, sys
 import asyncio
-import click
+import os
+import sys
 from enum import Enum
+
+import click
+from cli.commands import _call, _deploy, _invoke, _status
 from yul.main import generate_cairo
 from yul.utils import get_low_high
-from cli.commands import _call, _invoke, _deploy, _status
 
 
 class Command(Enum):

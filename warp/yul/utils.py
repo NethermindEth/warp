@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+
 import solcx
 
 UPPERCASE_PATTERN = re.compile(r"[A-Z]")

@@ -2,7 +2,6 @@ import abc
 
 from transpiler.utils import is_valid_uintN
 
-
 UINT256_BOUND = 2 ** 256
 UINT256_HALF_BOUND = 2 ** 255
 UINT128_BOUND = 2 ** 128

@@ -4,8 +4,8 @@ from typing import Optional
 
 import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
-from yul.top_sort import top_sort_ast
 from yul.storage_access import extract_var_from_getter, extract_var_from_setter
+from yul.top_sort import top_sort_ast
 
 REVERT = ast.FunctionCall(
     function_name=ast.Identifier("revert"), arguments=[ast.Literal(0), ast.Literal(0)]
