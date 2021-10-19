@@ -19,8 +19,9 @@ jobs:
 
       - name: Check formatting
         run: |
-          pip install black
+          pip install colorama black isort
           black . --check --verbose --diff --color
+          isort . --check --verbose --diff --color
 
       - name: Install dependencies
         run: >

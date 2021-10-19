@@ -17,3 +17,7 @@ extend-exclude = '''
   | bin
 )/
 '''
+
+[tool.isort]
+profile = "black"
+skip_gitignore = true

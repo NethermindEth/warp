@@ -1,59 +1,15 @@
-from web3 import Web3
 import functools
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, List, Optional, Sequence, Tuple, Type, Union
 
-from eth_typing import (
-    Address,
-    HexStr,
-)
-from eth_utils import (
-    combomethod,
-    encode_hex,
-    function_abi_to_4byte_selector,
-    is_text,
-)
-from eth_utils.toolz import (
-    pipe,
-)
-from hexbytes import (
-    HexBytes,
-)
-from web3._utils.encoding import (
-    to_hex,
-)
-from web3._utils.function_identifiers import (
-    FallbackFn,
-    ReceiveFn,
-)
-
-from web3._utils.normalizers import (
-    abi_address_to_hex,
-    abi_bytes_to_bytes,
-    abi_ens_resolver,
-    abi_string_to_text,
-)
-
-from web3.types import (
-    ABI,
-    ABIFunction,
-)
-from eth_abi.codec import (
-    ABICodec,
-)
-
+from eth_abi.codec import ABICodec
+from eth_typing import Address, HexStr
+from eth_utils import combomethod, encode_hex, function_abi_to_4byte_selector, is_text
+from eth_utils.toolz import pipe
+from hexbytes import HexBytes
+from web3 import Web3
 from web3._utils.abi import (
     filter_by_argument_count,
     filter_by_name,
-    get_abi_input_types,
     get_abi_input_types,
     get_aligned_abi_inputs,
     get_fallback_func_abi,
@@ -61,12 +17,21 @@ from web3._utils.abi import (
     map_abi_data,
     merge_args_and_kwargs,
 )
+from web3._utils.encoding import to_hex
+from web3._utils.function_identifiers import FallbackFn, ReceiveFn
+from web3._utils.normalizers import (
+    abi_address_to_hex,
+    abi_bytes_to_bytes,
+    abi_ens_resolver,
+    abi_string_to_text,
+)
+from web3.types import ABI, ABIFunction
 
 if TYPE_CHECKING:
     from web3 import Web3
 
-from web3.contract import Contract
 import solcx
+from web3.contract import Contract
 
 
 def encode_abi(

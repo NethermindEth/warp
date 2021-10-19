@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import yul.yul_ast as ast
+from yul.utils import camelize, is_statement, remove_prefix
 from yul.WarpException import WarpException, warp_assert
-from yul.utils import camelize, remove_prefix, is_statement
 
 _node_to_parser = {}
 

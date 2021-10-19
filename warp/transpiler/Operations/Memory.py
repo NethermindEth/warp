@@ -1,8 +1,8 @@
 import abc
 
+from transpiler.Imports import Imports
 from transpiler.Operation import Operation
 from transpiler.StackValue import Uint256
-from transpiler.Imports import Imports
 
 # Important: per yellow paper, the representation of uint256 as bytes
 # is big-endian.

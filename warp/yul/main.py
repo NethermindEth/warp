@@ -11,17 +11,17 @@ from yul.Artifacts import Artifacts
 from yul.ExpressionSplitter import ExpressionSplitter
 from yul.ForLoopEliminator import ForLoopEliminator
 from yul.ForLoopSimplifier import ForLoopSimplifier
-from yul.FunctionGenerator import FunctionGenerator, CairoFunctions
+from yul.FunctionGenerator import CairoFunctions, FunctionGenerator
 from yul.FunctionPruner import FunctionPruner
 from yul.LeaveNormalizer import LeaveNormalizer
 from yul.MangleNamesVisitor import MangleNamesVisitor
 from yul.NameGenerator import NameGenerator
+from yul.parse import parse_node
 from yul.RevertNormalizer import RevertNormalizer
 from yul.ScopeFlattener import ScopeFlattener
 from yul.SwitchToIfVisitor import SwitchToIfVisitor
 from yul.ToCairoVisitor import ToCairoVisitor
-from yul.parse import parse_node
-from yul.utils import get_public_functions, get_function_mutabilities
+from yul.utils import get_function_mutabilities, get_public_functions
 
 AST_GENERATOR = "kudu"
 

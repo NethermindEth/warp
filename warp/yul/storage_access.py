@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import re
-from typing import Optional, Iterable
 from dataclasses import dataclass
+from typing import Iterable, Optional
 
 from yul.WarpException import warp_assert
 

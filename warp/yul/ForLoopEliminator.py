@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Optional, List
+from typing import List, Optional
 
 import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
-from yul.NameGenerator import NameGenerator
 from yul.extract_block import extract_block_as_function, extract_rec_block_as_function
+from yul.NameGenerator import NameGenerator
 
 
 class ForLoopEliminator(AstMapper):

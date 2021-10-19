@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Union, Optional, Iterable
+from typing import Iterable, Optional, Union
 
 from yul.utils import snakify
 

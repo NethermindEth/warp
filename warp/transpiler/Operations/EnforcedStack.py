@@ -1,10 +1,11 @@
 from __future__ import annotations
-from typing import Optional
+
 import abc
 import os
+from typing import Optional
 
-from transpiler.StackValue import Uint256, UINT256_BOUND
 from transpiler.Operation import Operation
+from transpiler.StackValue import UINT256_BOUND, Uint256
 
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../../../.."))
 
