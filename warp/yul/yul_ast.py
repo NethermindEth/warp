@@ -132,6 +132,11 @@ LEAVE: Leave = Leave()
 
 LEAVE_BLOCK: Block = Block(statements=((LEAVE,)))
 
+
+def yul_log_not(argument: Expression) -> FunctionCall:
+    return FunctionCall(Identifier("iszero"), [argument])
+
+
 Expression = Union[Literal, Identifier, FunctionCall]
 Statement = Union[
     ExpressionStatement,

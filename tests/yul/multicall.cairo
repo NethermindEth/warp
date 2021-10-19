@@ -213,7 +213,9 @@ end
 func __warp_loop_3{memory_dict : DictAccess*, msize, range_check_ptr}(
         dataSizeInBytes : Uint256, dataStart : Uint256, i_173 : Uint256) -> (i_173 : Uint256):
     alloc_locals
-    let (local __warp_subexpr_0 : Uint256) = is_lt(i_173, dataSizeInBytes)
+    let (local __warp_subexpr_1 : Uint256) = is_lt(i_173, dataSizeInBytes)
+    local range_check_ptr = range_check_ptr
+    let (local __warp_subexpr_0 : Uint256) = is_zero(__warp_subexpr_1)
     local range_check_ptr = range_check_ptr
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         return (i_173)
@@ -487,7 +489,9 @@ func __warp_loop_2{
         var_data_length : Uint256, var_data_offset : Uint256, var_i : Uint256,
         var_results_mpos : Uint256) -> (var_i : Uint256):
     alloc_locals
-    let (local __warp_subexpr_0 : Uint256) = is_lt(var_i, var_data_length)
+    let (local __warp_subexpr_1 : Uint256) = is_lt(var_i, var_data_length)
+    local range_check_ptr = range_check_ptr
+    let (local __warp_subexpr_0 : Uint256) = is_zero(__warp_subexpr_1)
     local range_check_ptr = range_check_ptr
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         return (var_i)

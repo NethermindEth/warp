@@ -7,6 +7,7 @@ import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
 from yul.extract_block import extract_block_as_function, extract_rec_block_as_function
 from yul.NameGenerator import NameGenerator
+from yul.yul_ast import yul_log_not
 
 
 class ForLoopEliminator(AstMapper):
@@ -46,7 +47,10 @@ class ForLoopEliminator(AstMapper):
                 node.condition, body_stmt, rec
             )
             head_fun, head_stmt = extract_rec_block_as_function(
-                rec_loop_head, self.loop_name
+                rec_loop_head,
+                self.loop_name,
+                has_leave=True,
+                # ↑ we leave if the loop condition is not satisified
             )
             self.aux_functions.extend((body_fun, head_fun))
 
@@ -119,7 +123,7 @@ class ForLoopEliminator(AstMapper):
                     variables=[ast.TypedName(self.break_name)], value=ast.Literal(False)
                 )
             )
-        head_stmts.append(ast.If(condition, ast.LEAVE_BLOCK))
+        head_stmts.append(ast.If(yul_log_not(condition), ast.LEAVE_BLOCK))
         head_stmts.append(body_stmt)
         if break_id in modified_vars:
             head_stmts.append(ast.If(condition=break_id, body=ast.LEAVE_BLOCK))
