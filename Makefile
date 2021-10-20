@@ -17,7 +17,7 @@ test: test_bats test_yul
 .PHONY: test
 
 test_bats: warp $(BATS_FILES)
-	bats -j 8 $^ $(BATS_ARGS)
+	bats -j 20 $^ $(BATS_ARGS)
 .PHONY: test_bats
 
 test_yul: warp

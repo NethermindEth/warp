@@ -9,6 +9,7 @@ import yul.yul_ast as ast
 from transpiler.Imports import format_imports, merge_imports
 from yul.Artifacts import Artifacts
 from yul.BuiltinHandler import YUL_BUILTINS_MAP
+from yul.FunctionGenerator import CairoFunctions
 from yul.implicits import IMPLICITS_SET, copy_implicit, print_implicit
 from yul.NameGenerator import NameGenerator
 from yul.storage_access import (
@@ -19,6 +20,7 @@ from yul.storage_access import (
     generate_setter_body,
     generate_storage_var_declaration,
 )
+from yul.utils import HANDLERS_DECL
 from yul.yul_ast import AstVisitor
 
 UINT128_BOUND = 2 ** 128
@@ -82,6 +84,7 @@ class ToCairoVisitor(AstVisitor):
                 "",
                 *self.cairo_functions.get_definitions(),
                 *storage_var_decls,
+                HANDLERS_DECL,
                 main_part,
             ]
         )
@@ -123,7 +126,7 @@ class ToCairoVisitor(AstVisitor):
         if fun_repr == "pop":
             return ""
         if "callvalue" in fun_repr:
-            return "Uint256(0,0)"
+            return "__warp_holder()"
         result: str
         if fun_repr in YUL_BUILTINS_MAP:
             builtin_to_cairo = YUL_BUILTINS_MAP[fun_repr](
@@ -131,7 +134,14 @@ class ToCairoVisitor(AstVisitor):
             )
             merge_imports(self.imports, builtin_to_cairo.required_imports())
             self.last_used_implicits = builtin_to_cairo.used_implicits
-            result = f"{builtin_to_cairo.function_call}"
+            if self.in_entry_function and "mstore" in fun_repr:
+                result = (
+                    f"with memory_dict, msize, range_check_ptr:\n"
+                    f"{builtin_to_cairo.function_call}\n"
+                    f"end\n"
+                )
+            else:
+                result = f"{builtin_to_cairo.function_call}"
         else:
             self.last_used_implicits = sorted(
                 self.function_to_implicits.setdefault(
@@ -143,7 +153,15 @@ class ToCairoVisitor(AstVisitor):
                 and fun_repr != self.name_gen.take_cond_revert_name()
             ):
                 self.last_used_implicits.append("exec_env")
-            result = f"{fun_repr}({args_repr})"
+
+            if self.in_entry_function and "__warp_if_" in fun_repr:
+                result = (
+                    f"with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, storage_ptr, syscall_ptr:\n"
+                    f"{fun_repr}({args_repr})\n"
+                    f"end\n"
+                )
+            else:
+                result = f"{fun_repr}({args_repr})"
         if self.last_function:
             self.function_to_implicits.setdefault(
                 self.last_function.name, set()
@@ -193,27 +211,30 @@ class ToCairoVisitor(AstVisitor):
         self.last_function = node
         params_repr = ", ".join(self.print(x) for x in node.parameters)
         returns_repr = ", ".join(self.print(x) for x in node.return_variables)
-        if "ENTRY_POINT" in node.name:
-            self.in_entry_function = False
-
         body_repr = self._try_make_storage_accessor_body(node)
         if not body_repr:
             body_repr = self.print(node.body)
 
         if node.name == "fun_ENTRY_POINT":
+            self.in_entry_function = False
             return (
                 "@external\n"
                 f"func {node.name}{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
                 f"storage_ptr : Storage*, syscall_ptr : felt* }}(calldata_size,"
-                f"calldata_len, calldata : felt*) -> ({returns_repr}):\n"
+                f"calldata_len, calldata : felt*, self_address : felt) -> ({returns_repr}):\n"
                 f"alloc_locals\n"
+                f"initialize_address(self_address)\n"
+                f"local pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
+                f"local range_check_ptr = range_check_ptr\n"
+                f"local storage_ptr : Storage* = storage_ptr\n"
                 f"local exec_env : ExecutionEnvironment = ExecutionEnvironment("
                 f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata)\n"
                 "let (local memory_dict) = default_dict_new(0)\n"
                 f"local memory_dict_start: DictAccess* = memory_dict\n"
                 "let msize = 0\n"
                 f"{body_repr}\n"
-                f"default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
+                # TODO we need to fix this, because ↓ is coming after the return in body_repr
+                # f"default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
                 f"end\n"
             )
 
@@ -257,7 +278,7 @@ class ToCairoVisitor(AstVisitor):
             if not external and self.function_mutabilities.get(function_name)
             else ""
         )
-
+        self.in_entry_function = False
         return (
             f"{mutability}\n"
             f"func {node.name}{implicits_decl}({params_repr}) -> ({returns_repr}):\n"

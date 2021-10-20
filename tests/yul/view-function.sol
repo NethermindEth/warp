@@ -1,8 +1,6 @@
 pragma solidity ^0.8.6;
 
 contract WARP {
-    mapping (uint => mapping (uint => uint)) private allowance;
-
     function viewFunction(uint src, uint dst, uint wad, uint sender)
         public view
         returns (uint) {
