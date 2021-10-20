@@ -4,8 +4,6 @@ from typing import Dict, Set
 
 Imports = Dict[str, Set[str]]
 
-UINT256_MODULE = "starkware.cairo.common.uint256"
-
 
 def format_names(import_names: set[str]) -> str:
     """Create an import names list, e.g. '(name1, name2)' in 'from module
@@ -31,6 +29,6 @@ def format_imports(imports: Imports) -> str:
     )
 
 
-def merge_imports(imports: dict[str, set[str]], new_imports: dict[str, set[str]]):
+def merge_imports(imports: Imports, new_imports: Imports):
     for module, names in new_imports.items():
         imports[module].update(names)

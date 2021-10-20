@@ -18,7 +18,8 @@ class FunctionGenerator:
 @dataclass
 class FunctionInfo:
     name: str
-    implicits: set[str]
+    implicits: tuple[str, ...]
+    kwarg_names: tuple[str, ...]
 
 
 class CairoFunctions:
@@ -43,7 +44,7 @@ class CairoFunctions:
             )
 
         self.generator.create_function(name, inner)
-        return FunctionInfo(name=name, implicits=set())
+        return FunctionInfo(name=name, implicits=(), kwarg_names=())
 
     def identity_function(self, types: list[str]):
         name = f"__warp_identity_{'__'.join(types)}"
@@ -128,7 +129,7 @@ class CairoFunctions:
 
     def sload_function(self) -> FunctionInfo:
         name = "sload"
-        implicits = {"storage_ptr", "range_check_ptr", "pedersen_ptr"}
+        implicits = ("storage_ptr", "range_check_ptr", "pedersen_ptr")
 
         def inner():
             implicits_str = (
@@ -146,11 +147,11 @@ class CairoFunctions:
         self.storage_vars.add(
             StorageVar(name="evm_storage", arg_types=("Uint256",), res_type="Uint256")
         )
-        return FunctionInfo(name=name, implicits=implicits)
+        return FunctionInfo(name=name, implicits=implicits, kwarg_names=("key",))
 
     def sstore_function(self) -> FunctionInfo:
         name = "sstore"
-        implicits = {"storage_ptr", "range_check_ptr", "pedersen_ptr"}
+        implicits = ("storage_ptr", "range_check_ptr", "pedersen_ptr")
 
         def inner():
             implicits_str = (
@@ -168,7 +169,9 @@ class CairoFunctions:
         self.storage_vars.add(
             StorageVar(name="evm_storage", arg_types=("Uint256",), res_type="Uint256")
         )
-        return FunctionInfo(name=name, implicits=implicits)
+        return FunctionInfo(
+            name=name, implicits=implicits, kwarg_names=("key", "value")
+        )
 
     def stubbing_function(self) -> FunctionInfo:
         name = f"__warp_stub"
@@ -184,11 +187,11 @@ class CairoFunctions:
             )
 
         self.generator.create_function(name, inner)
-        return FunctionInfo(name=name, implicits=set())
+        return FunctionInfo(name=name, implicits=(), kwarg_names=())
 
     def address_function(self) -> FunctionInfo:
         name = f"address"
-        implicits = {"syscall_ptr", "storage_ptr", "range_check_ptr", "pedersen_ptr"}
+        implicits = ("syscall_ptr", "storage_ptr", "range_check_ptr", "pedersen_ptr")
 
         def inner():
             implicits_str = (
@@ -204,4 +207,23 @@ class CairoFunctions:
             )
 
         self.generator.create_function(name, inner)
-        return FunctionInfo(name=name, implicits=implicits)
+        return FunctionInfo(name=name, implicits=implicits, kwarg_names=())
+
+    def returndata_size_function(self) -> FunctionInfo:
+        name = f"returndata_size"
+        implicits = ("exec_env",)
+
+        def inner():
+            implicits_str = (
+                "{" + ", ".join(print_implicit(x) for x in sorted(implicits)) + "}"
+            )
+            return "\n".join(
+                [
+                    f"func {name}{implicits_str}() -> (res: Uint256):",
+                    "return (Uint256(low=exec_env.returndata_size, high=0))",
+                    "end\n",
+                ]
+            )
+
+        self.generator.create_function(name, inner)
+        return FunctionInfo(name=name, implicits=implicits, kwarg_names=())

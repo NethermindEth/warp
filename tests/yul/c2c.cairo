@@ -18,12 +18,12 @@ from starkware.cairo.common.uint256 import (
     Uint256, uint256_and, uint256_eq, uint256_not, uint256_sub)
 from starkware.starknet.common.storage import Storage
 
-func __warp_identity_Uint256(arg0 : Uint256) -> (arg0 : Uint256):
-    return (arg0)
+func returndata_size{exec_env : ExecutionEnvironment}() -> (res : Uint256):
+    return (Uint256(low=exec_env.returndata_size, high=0))
 end
 
-func __warp_constant_340282366920938463463374607431768211456() -> (res : Uint256):
-    return (Uint256(low=0, high=1))
+func __warp_constant_10000000000000000000000000000000000000000() -> (res : Uint256):
+    return (Uint256(low=131811359292784559562136384478721867776, high=29))
 end
 
 func __warp_constant_0() -> (res : Uint256):
@@ -196,7 +196,8 @@ func abi_decode_t_bool_fromMemory{memory_dict : DictAccess*, msize, range_check_
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-
+    validator_revert_bool(value)
+    local range_check_ptr = range_check_ptr
     return (value)
 end
 
@@ -220,15 +221,13 @@ func __warp_block_0{
         exec_env : ExecutionEnvironment, memory_dict : DictAccess*, msize, range_check_ptr}(
         _4_112 : Uint256) -> (expr_123 : Uint256):
     alloc_locals
-    let (local _15_124 : Uint256) = __warp_identity_Uint256(
-        Uint256(low=exec_env.returndata_size, high=0))
+    let (local _15_124 : Uint256) = returndata_size()
     local exec_env : ExecutionEnvironment = exec_env
     finalize_allocation(_4_112, _15_124)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    let (local _16_125 : Uint256) = __warp_identity_Uint256(
-        Uint256(low=exec_env.returndata_size, high=0))
+    let (local _16_125 : Uint256) = returndata_size()
     local exec_env : ExecutionEnvironment = exec_env
     let (local _17_126 : Uint256) = u256_add(_4_112, _16_125)
     local range_check_ptr = range_check_ptr
@@ -286,7 +285,7 @@ func fun_sendMoneyz{
     let (local _10_118 : Uint256) = uint256_sub(_9_117, _4_112)
     local range_check_ptr = range_check_ptr
     local _11_119 : Uint256 = Uint256(low=0, high=0)
-    let (local _12_120 : Uint256) = __warp_constant_340282366920938463463374607431768211456()
+    let (local _12_120 : Uint256) = __warp_constant_10000000000000000000000000000000000000000()
     let (local _13_121 : Uint256) = warp_call(
         _12_120, var_contract_addr, _11_119, _4_112, _10_118, _4_112, _6_114)
     local syscall_ptr : felt* = syscall_ptr
@@ -415,15 +414,13 @@ func __warp_block_1{
         exec_env : ExecutionEnvironment, memory_dict : DictAccess*, msize, range_check_ptr}(
         _4_78 : Uint256) -> (expr : Uint256):
     alloc_locals
-    let (local _14_88 : Uint256) = __warp_identity_Uint256(
-        Uint256(low=exec_env.returndata_size, high=0))
+    let (local _14_88 : Uint256) = returndata_size()
     local exec_env : ExecutionEnvironment = exec_env
     finalize_allocation(_4_78, _14_88)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    let (local _15_89 : Uint256) = __warp_identity_Uint256(
-        Uint256(low=exec_env.returndata_size, high=0))
+    let (local _15_89 : Uint256) = returndata_size()
     local exec_env : ExecutionEnvironment = exec_env
     let (local _16_90 : Uint256) = u256_add(_4_78, _15_89)
     local range_check_ptr = range_check_ptr
@@ -478,7 +475,7 @@ func fun_checkMoneyz{
     local range_check_ptr = range_check_ptr
     let (local _10_84 : Uint256) = uint256_sub(_9_83, _4_78)
     local range_check_ptr = range_check_ptr
-    let (local _11_85 : Uint256) = __warp_constant_340282366920938463463374607431768211456()
+    let (local _11_85 : Uint256) = __warp_constant_10000000000000000000000000000000000000000()
     let (local _12_86 : Uint256) = warp_static_call(_11_85, var_addr, _4_78, _10_84, _4_78, _6_80)
     local syscall_ptr : felt* = syscall_ptr
     local storage_ptr : Storage* = storage_ptr
@@ -571,15 +568,13 @@ func __warp_block_2{
         exec_env : ExecutionEnvironment, memory_dict : DictAccess*, msize, range_check_ptr}(
         _4_93 : Uint256) -> (expr_105 : Uint256):
     alloc_locals
-    let (local _16_106 : Uint256) = __warp_identity_Uint256(
-        Uint256(low=exec_env.returndata_size, high=0))
+    let (local _16_106 : Uint256) = returndata_size()
     local exec_env : ExecutionEnvironment = exec_env
     finalize_allocation(_4_93, _16_106)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    let (local _17_107 : Uint256) = __warp_identity_Uint256(
-        Uint256(low=exec_env.returndata_size, high=0))
+    let (local _17_107 : Uint256) = returndata_size()
     local exec_env : ExecutionEnvironment = exec_env
     let (local _18_108 : Uint256) = u256_add(_4_93, _17_107)
     local range_check_ptr = range_check_ptr
@@ -636,7 +631,7 @@ func fun_gimmeMoney{
     let (local _11_100 : Uint256) = uint256_sub(_10_99, _4_93)
     local range_check_ptr = range_check_ptr
     local _12_101 : Uint256 = Uint256(low=0, high=0)
-    let (local _13_102 : Uint256) = __warp_constant_340282366920938463463374607431768211456()
+    let (local _13_102 : Uint256) = __warp_constant_10000000000000000000000000000000000000000()
     let (local _14_103 : Uint256) = warp_call(
         _13_102, var_add, _12_101, _4_93, _11_100, _4_93, _6_95)
     local syscall_ptr : felt* = syscall_ptr
@@ -689,7 +684,6 @@ func __warp_block_6{
         _2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _11 : Uint256) = __warp_constant_0()
-    local range_check_ptr = range_check_ptr
     __warp_cond_revert(_11)
     local _12 : Uint256 = _4
     local _13 : Uint256 = _3
@@ -729,7 +723,6 @@ func __warp_block_8{
         _2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _17 : Uint256) = __warp_constant_0()
-    local range_check_ptr = range_check_ptr
     __warp_cond_revert(_17)
     local _18 : Uint256 = _4
     local _19 : Uint256 = _3
@@ -768,7 +761,6 @@ func __warp_block_10{
         _2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _23 : Uint256) = __warp_constant_0()
-    local range_check_ptr = range_check_ptr
     __warp_cond_revert(_23)
     local _24 : Uint256 = _4
     local _25 : Uint256 = _3

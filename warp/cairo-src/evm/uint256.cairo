@@ -30,12 +30,14 @@ func u256_div{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
     return (result=result)
 end
 
+# THE ORDER OF ARGUMENTS IS REVERSED, LIKE IN YUL
 func u256_shr{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
     alloc_locals
     let (local result : Uint256) = uint256_shr(y, x)
     return (result=result)
 end
 
+# THE ORDER OF ARGUMENTS IS REVERSED, LIKE IN YUL
 func u256_shl{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
     alloc_locals
     let (local result : Uint256) = uint256_shl(y, x)

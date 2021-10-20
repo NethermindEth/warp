@@ -429,7 +429,6 @@ func __warp_block_3{
         _2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _11 : Uint256) = __warp_constant_0()
-    local range_check_ptr = range_check_ptr
     __warp_cond_revert(_11)
     local _12 : Uint256 = _4
     abi_decode(_3, _4)
@@ -459,7 +458,6 @@ func __warp_block_5{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _19 : Uint256) = __warp_constant_0()
-    local range_check_ptr = range_check_ptr
     __warp_cond_revert(_19)
     local _20 : Uint256 = _4
     let (local param : Uint256, local param_1 : Uint256,
@@ -491,7 +489,6 @@ func __warp_block_7{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _23 : Uint256) = __warp_constant_0()
-    local range_check_ptr = range_check_ptr
     __warp_cond_revert(_23)
     local _24 : Uint256 = _4
     abi_decode(_3, _4)
@@ -518,7 +515,6 @@ func __warp_block_9{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _28 : Uint256) = __warp_constant_0()
-    local range_check_ptr = range_check_ptr
     __warp_cond_revert(_28)
     local _29 : Uint256 = _4
     abi_decode(_3, _4)
@@ -548,7 +544,6 @@ func __warp_block_11{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _32 : Uint256) = __warp_constant_0()
-    local range_check_ptr = range_check_ptr
     __warp_cond_revert(_32)
     local _33 : Uint256 = _4
     let (local param_3 : Uint256, local param_4 : Uint256) = abi_decode_addresst_uint256(_3, _4)
@@ -580,7 +575,6 @@ func __warp_block_13{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _36 : Uint256) = __warp_constant_0()
-    local range_check_ptr = range_check_ptr
     __warp_cond_revert(_36)
     local _37 : Uint256 = _4
     let (local _38 : Uint256) = abi_decode_address(_3, _4)
@@ -612,7 +606,6 @@ func __warp_block_15{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _41 : Uint256) = __warp_constant_0()
-    local range_check_ptr = range_check_ptr
     __warp_cond_revert(_41)
     local _42 : Uint256 = _4
     let (local _43 : Uint256) = abi_decode_address(_3, _4)
@@ -644,7 +637,6 @@ func __warp_block_17{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _46 : Uint256) = __warp_constant_0()
-    local range_check_ptr = range_check_ptr
     __warp_cond_revert(_46)
     local _47 : Uint256 = _4
     let (local param_5 : Uint256, local param_6 : Uint256) = abi_decode_addresst_uint256(_3, _4)

@@ -245,7 +245,6 @@ func __warp_block_6{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _11 : Uint256) = __warp_constant_0()
-    local range_check_ptr = range_check_ptr
     __warp_cond_revert(_11)
     let (local _12 : Uint256) = uint256_not(Uint256(low=127, high=0))
     local range_check_ptr = range_check_ptr

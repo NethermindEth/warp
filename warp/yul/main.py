@@ -8,6 +8,7 @@ import sys
 import yul.yul_ast as ast
 from starkware.cairo.lang.compiler.parser import parse_file
 from yul.Artifacts import Artifacts
+from yul.BuiltinHandler import get_default_builtins
 from yul.ExpressionSplitter import ExpressionSplitter
 from yul.ForLoopEliminator import ForLoopEliminator
 from yul.ForLoopSimplifier import ForLoopSimplifier
@@ -84,6 +85,7 @@ def generate_from_yul(
         name_gen,
         artifacts_manager,
         cairo_functions,
+        get_default_builtins,
     )
     cairo_code = cairo_visitor.translate(yul_ast)
     return parse_file(cairo_code).format()
