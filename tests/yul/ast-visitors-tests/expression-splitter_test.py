@@ -1,9 +1,9 @@
 import pytest
 import yul.yul_ast as ast
 from yul.Artifacts import DUMMY_ARTIFACTS
+from yul.BuiltinHandler import StaticHandler
 from yul.ExpressionSplitter import ExpressionSplitter
 from yul.FunctionGenerator import CairoFunctions, FunctionGenerator
-from yul.main import generate_from_yul
 from yul.NameGenerator import NameGenerator
 from yul.ToCairoVisitor import ToCairoVisitor
 
@@ -28,27 +28,17 @@ async def test_ExpressionSplitter():
         name_gen=NameGenerator(),
         artifacts_manager=DUMMY_ARTIFACTS,
         cairo_functions=CairoFunctions(FunctionGenerator()),
+        builtins_map=lambda _: {
+            "f1": StaticHandler("f1"),
+            "f2": StaticHandler("f2"),
+            "<": StaticHandler("<"),
+        },
     ).print(new_node)
     assert cairo.splitlines() == [
         "let (local __warp_subexpr_1 : Uint256) = f2()",
-        "local memory_dict: DictAccess* = memory_dict",
-        "local msize = msize",
-        "local pedersen_ptr: HashBuiltin* = pedersen_ptr",
         "local range_check_ptr = range_check_ptr",
-        "local storage_ptr: Storage* = storage_ptr",
-        "local syscall_ptr: felt* = syscall_ptr",
         "let (local __warp_subexpr_0 : Uint256) = f1()",
-        "local memory_dict: DictAccess* = memory_dict",
-        "local msize = msize",
-        "local pedersen_ptr: HashBuiltin* = pedersen_ptr",
         "local range_check_ptr = range_check_ptr",
-        "local storage_ptr: Storage* = storage_ptr",
-        "local syscall_ptr: felt* = syscall_ptr",
         "let (local res : Uint256) = <(__warp_subexpr_0, __warp_subexpr_1)",
-        "local memory_dict: DictAccess* = memory_dict",
-        "local msize = msize",
-        "local pedersen_ptr: HashBuiltin* = pedersen_ptr",
         "local range_check_ptr = range_check_ptr",
-        "local storage_ptr: Storage* = storage_ptr",
-        "local syscall_ptr: felt* = syscall_ptr",
     ]

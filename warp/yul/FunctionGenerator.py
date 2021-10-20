@@ -18,7 +18,8 @@ class FunctionGenerator:
 @dataclass
 class FunctionInfo:
     name: str
-    implicits: set[str]
+    implicits: tuple[str, ...]
+    kwarg_names: tuple[str, ...]
 
 
 class CairoFunctions:
@@ -43,11 +44,11 @@ class CairoFunctions:
             )
 
         self.generator.create_function(name, inner)
-        return FunctionInfo(name=name, implicits=set())
+        return FunctionInfo(name=name, implicits=(), kwarg_names=())
 
     def sload_function(self) -> FunctionInfo:
         name = "sload"
-        implicits = {"storage_ptr", "range_check_ptr", "pedersen_ptr"}
+        implicits = ("storage_ptr", "range_check_ptr", "pedersen_ptr")
 
         def inner():
             implicits_str = (
@@ -65,11 +66,11 @@ class CairoFunctions:
         self.storage_vars.add(
             StorageVar(name="evm_storage", arg_types=("Uint256",), res_type="Uint256")
         )
-        return FunctionInfo(name=name, implicits=implicits)
+        return FunctionInfo(name=name, implicits=implicits, kwarg_names=("key",))
 
     def sstore_function(self) -> FunctionInfo:
         name = "sstore"
-        implicits = {"storage_ptr", "range_check_ptr", "pedersen_ptr"}
+        implicits = ("storage_ptr", "range_check_ptr", "pedersen_ptr")
 
         def inner():
             implicits_str = (
@@ -87,7 +88,9 @@ class CairoFunctions:
         self.storage_vars.add(
             StorageVar(name="evm_storage", arg_types=("Uint256",), res_type="Uint256")
         )
-        return FunctionInfo(name=name, implicits=implicits)
+        return FunctionInfo(
+            name=name, implicits=implicits, kwarg_names=("key", "value")
+        )
 
     def stubbing_function(self) -> FunctionInfo:
         name = f"__warp_stub"
@@ -103,11 +106,11 @@ class CairoFunctions:
             )
 
         self.generator.create_function(name, inner)
-        return FunctionInfo(name=name, implicits=set())
+        return FunctionInfo(name=name, implicits=(), kwarg_names=())
 
     def address_function(self) -> FunctionInfo:
         name = f"address"
-        implicits = {"storage_ptr", "range_check_ptr", "pedersen_ptr"}
+        implicits = ("pedersen_ptr", "range_check_ptr", "storage_ptr")
 
         def inner():
             implicits_str = (
@@ -123,4 +126,4 @@ class CairoFunctions:
             )
 
         self.generator.create_function(name, inner)
-        return FunctionInfo(name=name, implicits=implicits)
+        return FunctionInfo(name=name, implicits=implicits, kwarg_names=())

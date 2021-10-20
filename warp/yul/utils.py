@@ -72,12 +72,7 @@ end
 
 
 def get_low_bits(string: str) -> str:
-    try:
-        value = int(string)
-        high, low = divmod(value, 2 ** 128)
-        return f"Uint256({low}, 0)"
-    except ValueError:
-        return f"{string}.low"
+    return get_low_high(string)[0]
 
 
 def get_low_high(string: str) -> str:
