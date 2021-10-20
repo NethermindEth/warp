@@ -312,7 +312,16 @@ class MStore8(BuiltinHandler):
 
 class MLoad(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
-        self.offset: str = get_low_bits(function_args.split(",")[0].strip())
+        if "Uint256(low=" in function_args:
+            self.offset = function_args[
+                function_args.find("=") + 1 : function_args.find(",")
+            ].strip()
+        elif "Uint256(" in function_args:
+            self.offset = function_args[
+                function_args.find("(") + 1 : function_args.find(",")
+            ].strip()
+        else:
+            self.offset: str = get_low_bits(function_args.split(",")[0].strip())
         super().__init__(
             module="evm.memory",
             function_name="mload_",
@@ -486,12 +495,12 @@ class Address(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
             module="",
-            function_name=cairo_functions.stubbing_function().name,
-            function_args="",
-            used_implicits=(),
+            function_name="",
+            function_args=function_args,
+            used_implicits=("storage_ptr", "range_check_ptr", "pedersen_ptr"),
             cairo_functions=cairo_functions,
         )
-        # TODO implement address
+        self.function_call = "address()"
 
 
 class Gas(BuiltinHandler):
@@ -503,7 +512,7 @@ class Gas(BuiltinHandler):
             used_implicits=(),
             cairo_functions=cairo_functions,
         )
-        # TODO implement gas
+        self.function_call = "gas()"
 
 
 class Delegatecall(BuiltinHandler):

@@ -20,6 +20,69 @@ STATEMENT_STRINGS = {
     "Block",
 }
 
+UNSUPPORTED_BUILTINS = [
+    "balance",
+    "basefee",
+    "blockhash",
+    "chainid",
+    "codecopy",
+    "codesize",
+    "coinbase",
+    "create2",
+    "delegatecall",
+    "difficulty",
+    "extcodecopy",
+    "extcodehash",
+    "extcodesize",
+    "gaslimit",
+    "gasprice",
+    "invalid",
+    "log0",
+    "log1",
+    "log2",
+    "log3",
+    "log4",
+    "number",
+    "origin",
+    "pc",
+    "selfbalance",
+    "selfdestruct",
+    "timestamp",
+]
+
+HANDLERS_DECL = """
+func __warp_holder() -> (res : Uint256):
+    return (Uint256(0,0))
+end
+
+@storage_var
+func this_address() -> (res: felt):
+end
+
+func address{storage_ptr : Storage*, range_check_ptr, pedersen_ptr: HashBuiltin*}() -> (res : Uint256):
+    let (addr) = this_address.read()
+    return (res=Uint256(low=addr, high=0))
+end
+
+@storage_var
+func address_initialized() -> (res : felt):
+end
+
+func gas() -> (res : Uint256):
+    return (Uint256(100000,100000))
+end
+
+func initialize_address{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(self_address : felt):
+    let (address_init) = address_initialized.read()
+    if address_init == 1:
+        return ()
+    end
+    this_address.write(self_address)
+    address_initialized.write(1)
+    return ()
+end
+"""
+
 
 def get_low_bits(string: str) -> str:
     try:

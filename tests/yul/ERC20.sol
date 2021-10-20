@@ -5,7 +5,6 @@ contract WARP {
     uint256 public totalSupply= 100000000000000000000000000000000000;
 
     mapping (uint => uint)                       public  balanceOf;
-    mapping (uint => mapping (uint => uint))  private  allowance;
 
     function deposit(uint sender, uint256 value) public payable returns (uint, uint){
         balanceOf[sender] += value;
@@ -18,10 +17,6 @@ contract WARP {
         (uint a, uint b) = deposit(sender, wad);
     }
 
-    function approve(uint guy, uint wad, uint sender) public payable returns (bool) {
-        allowance[sender][guy] = wad;
-        return true;
-    }
 
     function transferFrom(uint src, uint dst, uint wad, uint sender)
         public payable
@@ -29,9 +24,7 @@ contract WARP {
     {
 
         if (src != sender) {
-            require(allowance[src][sender] >= wad);
             require(balanceOf[src] >= wad);
-            allowance[src][sender] -= wad;
         }
 
         balanceOf[src] -= wad;
