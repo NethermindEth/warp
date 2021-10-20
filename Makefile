@@ -10,7 +10,6 @@ warp: .warp-activation-token
 .PHONY: warp
 
 .warp-activation-token: $(SRC_FILES) setup.py $(PY_REQUIREMENTS)
-	pip install -r $(PY_REQUIREMENTS)
 	python setup.py install
 	touch .warp-activation-token
 
