@@ -8,29 +8,57 @@ from yul.storage_access import StorageVar, generate_getter_body, generate_setter
 
 
 class FunctionGenerator:
+    """Utility to create multi-use functions."""
+
     def __init__(self):
         self.definitions: dict[str, str] = {}
 
     def create_function(self, name: str, definition: Callable[[], str]) -> None:
+        """Creates definition of a function named 'name', unless it already
+        exists.
+
+        'definition' is a function generator.
+
+        """
         self.definitions.setdefault(name, definition())
 
 
 @dataclass
 class FunctionInfo:
+    """Represents all information necessary to make a call to a particular Cairo function.
+
+    'name' is a name of the function.
+    'implicits' is a sequence of implicits needed by the functions.
+    'kwarg_names' is a sequence of names of the arguments of the function.
+
+    """
+
     name: str
     implicits: tuple[str, ...]
     kwarg_names: tuple[str, ...]
 
 
 class CairoFunctions:
+    """A collection of functions generators. All function generators can
+    be used to generate a function and get all information necessary
+    to make a call to it (via 'FunctionInfo'). No function is generated
+    twice.
+
+    """
+
     def __init__(self, generator: FunctionGenerator):
         self.generator = generator
         self.storage_vars: set[StorageVar] = set()
 
     def get_definitions(self) -> Iterable[str]:
+        """Returns all generated function definitions. Note, it doesn't
+        include generated 'StorageVar's.
+
+        """
         yield from self.generator.definitions.values()
 
     def constant_function(self, constant: int) -> FunctionInfo:
+        """Creates a function that always returns a specified 'constant'."""
         name = f"__warp_constant_{constant}"
 
         def inner():
@@ -128,6 +156,10 @@ class CairoFunctions:
         return FunctionInfo(name=name, implicits=set())
 
     def sload_function(self) -> FunctionInfo:
+        """Creates a function that fetches a Uint256 from the emulated Ethereum
+        storage, as well as a 'StorageVar' representing the said storage.
+
+        """
         name = "sload"
         implicits = ("storage_ptr", "range_check_ptr", "pedersen_ptr")
 
@@ -150,6 +182,10 @@ class CairoFunctions:
         return FunctionInfo(name=name, implicits=implicits, kwarg_names=("key",))
 
     def sstore_function(self) -> FunctionInfo:
+        """Creates a function that stores a Uint256 from the emulated Ethereum
+        storage, as well as a 'StorageVar' representing the said storage.
+
+        """
         name = "sstore"
         implicits = ("storage_ptr", "range_check_ptr", "pedersen_ptr")
 
@@ -174,6 +210,11 @@ class CairoFunctions:
         )
 
     def stubbing_function(self) -> FunctionInfo:
+        """Creates a function that takes no arguments and returns a single
+        value. The function doesn't actually compute anything but just
+        reverts.
+
+        """
         name = f"__warp_stub"
 
         def inner():
@@ -190,6 +231,10 @@ class CairoFunctions:
         return FunctionInfo(name=name, implicits=(), kwarg_names=())
 
     def address_function(self) -> FunctionInfo:
+        """Creates a function that returns the address of this contract on
+        StarkNet.
+
+        """
         name = f"address"
         implicits = ("syscall_ptr", "storage_ptr", "range_check_ptr", "pedersen_ptr")
 
