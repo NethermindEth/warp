@@ -4,6 +4,7 @@ import abc
 from abc import ABC
 from typing import Callable, Mapping, Optional, Sequence
 
+from transpiler.Imports import Imports
 from yul.FunctionGenerator import CairoFunctions, FunctionInfo
 from yul.utils import get_low_bits
 
@@ -11,7 +12,20 @@ UINT256_MODULE = "starkware.cairo.common.uint256"
 
 
 class BuiltinHandler(ABC):
+    """Describes how an operation built into Yul translates to Cairo.
+
+    References:
+    https://docs.soliditylang.org/en/latest/yul.html?highlight=optimization#evm-dialect
+
+    """
+
     def get_function_call(self, function_args: Sequence[str]) -> str:
+        """Given the builtin operation and arguments, returns cairo code for
+        this operation.
+
+        - 'function_args' — a sequence of arguments already translated to Cairo
+
+        """
         kwarg_names = self.get_kwarg_names()
         function_name = self.get_function_name()
         if kwarg_names:
@@ -23,7 +37,8 @@ class BuiltinHandler(ABC):
             args_repr = ", ".join(function_args)
         return f"{function_name}({args_repr})"
 
-    def required_imports(self) -> Mapping[str, set[str]]:
+    def required_imports(self) -> Imports:
+        """Specifies Cairo imports requried for this operation."""
         module = self.get_module()
         if module is None:
             return {}
@@ -31,22 +46,44 @@ class BuiltinHandler(ABC):
 
     @abc.abstractmethod
     def get_function_name(self) -> str:
+        """Specifies a name for the Cairo function used for this builtin."""
         pass
 
     @abc.abstractmethod
     def get_module(self) -> Optional[str]:
+        """Specifies a module which needs to be imported. 'None' if no module
+        is needed.
+
+        """
         pass
 
     @abc.abstractmethod
     def get_used_implicits(self) -> tuple[str, ...]:
+        """Specifies implicits needed for the Cairo function"""
         pass
 
     @abc.abstractmethod
     def get_kwarg_names(self) -> Optional[tuple[str, ...]]:
+        """Specifies names of arguments of the Cairo function.
+
+        If not 'None', all passed arguments will be passed as keyword
+        arguments, i.e. 'ARG_NAME=' will be prepended to them.
+
+        Right now, it's either all arguments are keyword arguments or
+        none are. In the future, we can allow passing some names as
+        'None'. That would mean that this arguments don't need the
+        argument name prepending.
+
+        """
         pass
 
 
 class StaticHandler(BuiltinHandler):
+    """A 'BuiltinHandler' for which function parameters are known at the
+    handler creation time.
+
+    """
+
     def __init__(
         self,
         function_name: str,
@@ -73,7 +110,17 @@ class StaticHandler(BuiltinHandler):
 
 
 class DynamicHandler(BuiltinHandler):
+    """A 'BuiltinHandler' for functions that are generated at the call
+    time.
+
+    """
+
     def __init__(self, info_gen: Callable[[], FunctionInfo]):
+        """'info_gen' is a function that generates the required cairo function
+        and returns information about it. Amortized it should run
+        fast. See 'yul.FunctionGenerator'.
+
+        """
         self.info_gen = info_gen
 
     def get_function_name(self):
@@ -393,6 +440,7 @@ class Delegatecall(NotImplementedOp):
 def get_default_builtins(
     cairo_functions: CairoFunctions,
 ) -> Mapping[str, BuiltinHandler]:
+    """Returns a mapping from default Yul builtins to their handlers."""
     return {
         "add": Add(),
         "addmod": AddMod(),
