@@ -177,7 +177,6 @@ func __warp_if_0{
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     else:
         return ()
@@ -220,6 +219,5 @@ func fun_ENTRY_POINT{
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return ()
 end

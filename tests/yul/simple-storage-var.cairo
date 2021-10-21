@@ -235,7 +235,6 @@ func __warp_if_0{
         local pedersen_ptr : HashBuiltin* = pedersen_ptr
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     else:
         return ()
@@ -280,6 +279,5 @@ func fun_ENTRY_POINT{
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return ()
 end

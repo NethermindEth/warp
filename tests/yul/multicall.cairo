@@ -130,7 +130,6 @@ func abi_decode_array_bytes_calldata_dyn_calldata{exec_env : ExecutionEnvironmen
         _6_20, dataEnd)
     local exec_env : ExecutionEnvironment = exec_env
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     local value0 : Uint256 = value0_1
     local value1 : Uint256 = value1_1
     return (value0, value1)
@@ -353,7 +352,6 @@ func calldata_array_index_access_bytes_calldata_dyn_calldata{
         base_ref_102, _5_109)
     local exec_env : ExecutionEnvironment = exec_env
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     local addr_104 : Uint256 = addr_1_110
     local len : Uint256 = len_1
     return (addr_104, len)
@@ -387,7 +385,6 @@ func abi_encode_bytes_calldata{
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     let (local end_34 : Uint256) = u256_add(pos_33, length_32)
     local range_check_ptr = range_check_ptr
     return (end_34)
@@ -543,7 +540,6 @@ func __warp_loop_body_2{
         var_data_offset, var_data_length, var_i)
     local exec_env : ExecutionEnvironment = exec_env
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     local _1_142 : Uint256 = Uint256(low=64, high=0)
     let (local _2_143 : Uint256) = mload_(_1_142.low)
     local memory_dict : DictAccess* = memory_dict
@@ -556,7 +552,6 @@ func __warp_loop_body_2{
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     let (local _6_147 : Uint256) = uint256_sub(_5_146, _2_143)
     local range_check_ptr = range_check_ptr
     let (local _7_148 : Uint256) = address()
@@ -611,7 +606,6 @@ func __warp_loop_2{
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     let (local var_i : Uint256) = __warp_loop_2(
         var_data_length, var_data_offset, var_i, var_results_mpos)
     local exec_env : ExecutionEnvironment = exec_env
@@ -620,7 +614,6 @@ func __warp_loop_2{
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return (var_i)
 end
 
@@ -643,7 +636,6 @@ func fun_multicall_dynArgs{
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return (var_results_mpos)
 end
 
@@ -915,7 +907,6 @@ func __warp_block_5{
         local param_1 : Uint256) = abi_decode_array_bytes_calldata_dyn_calldata(_3, _4)
     local exec_env : ExecutionEnvironment = exec_env
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     let (local ret__warp_mangled : Uint256) = fun_multicall_dynArgs(param, param_1)
     local exec_env : ExecutionEnvironment = exec_env
     local memory_dict : DictAccess* = memory_dict
@@ -923,7 +914,6 @@ func __warp_block_5{
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     local _15 : Uint256 = _2
     let (local memPos : Uint256) = mload_(_2.low)
     local memory_dict : DictAccess* = memory_dict
@@ -953,7 +943,6 @@ func __warp_if_3{
         local pedersen_ptr : HashBuiltin* = pedersen_ptr
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     else:
         return ()
@@ -982,7 +971,6 @@ func __warp_block_4{
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return ()
 end
 
@@ -999,7 +987,6 @@ func __warp_if_2{
         local pedersen_ptr : HashBuiltin* = pedersen_ptr
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     else:
         return ()
@@ -1044,6 +1031,5 @@ func fun_ENTRY_POINT{
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return ()
 end
