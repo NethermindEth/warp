@@ -154,14 +154,9 @@ class ToCairoVisitor(AstVisitor):
         else:
             self.last_used_implicits = sorted(
                 self.function_to_implicits.setdefault(
-                    node.function_name.name, (IMPLICITS_SET - {"exec_env"})
+                    node.function_name.name, IMPLICITS_SET
                 )
             )
-            if (
-                "exec_env" in self.function_to_implicits[fun_repr]
-                and fun_repr != self.name_gen.take_cond_revert_name()
-            ):
-                self.last_used_implicits.append("exec_env")
             args_repr = ", ".join(self.print(x) for x in node.arguments)
             if self.in_entry_function and "__warp_if_" in fun_repr:
                 result = (

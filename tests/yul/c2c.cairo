@@ -248,7 +248,6 @@ func __warp_if_0{
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return (expr_123)
     else:
         return (expr_123)
@@ -303,7 +302,6 @@ func fun_sendMoneyz{
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     local var_110 : Uint256 = expr_123
     return (var_110)
 end
@@ -441,7 +439,6 @@ func __warp_if_1{
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return (expr)
     else:
         return (expr)
@@ -492,7 +489,6 @@ func fun_checkMoneyz{
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     local var_ : Uint256 = expr
     return (var_)
 end
@@ -595,7 +591,6 @@ func __warp_if_2{
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return (expr_105)
     else:
         return (expr_105)
@@ -649,7 +644,6 @@ func fun_gimmeMoney{
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     local var : Uint256 = expr_105
     return (var)
 end
@@ -691,7 +685,6 @@ func __warp_block_6{
         local param_3 : Uint256) = abi_decode_addresst_addresst_addresst_uint256(_3, _4)
     local exec_env : ExecutionEnvironment = exec_env
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     let (local ret__warp_mangled : Uint256) = fun_sendMoneyz(param, param_1, param_2, param_3)
     local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     local exec_env : ExecutionEnvironment = exec_env
@@ -700,7 +693,6 @@ func __warp_block_6{
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     local _14 : Uint256 = _2
     let (local memPos : Uint256) = mload_(_2.low)
     local memory_dict : DictAccess* = memory_dict
@@ -729,7 +721,6 @@ func __warp_block_8{
     let (local param_4 : Uint256, local param_5 : Uint256) = abi_decode_addresst_address(_3, _4)
     local exec_env : ExecutionEnvironment = exec_env
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     let (local ret_1 : Uint256) = fun_checkMoneyz(param_4, param_5)
     local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     local exec_env : ExecutionEnvironment = exec_env
@@ -738,7 +729,6 @@ func __warp_block_8{
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     local _20 : Uint256 = _2
     let (local memPos_1 : Uint256) = mload_(_2.low)
     local memory_dict : DictAccess* = memory_dict
@@ -767,7 +757,6 @@ func __warp_block_10{
     let (local param_6 : Uint256, local param_7 : Uint256) = abi_decode_addresst_address(_3, _4)
     local exec_env : ExecutionEnvironment = exec_env
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     let (local ret_2 : Uint256) = fun_gimmeMoney(param_6, param_7)
     local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     local exec_env : ExecutionEnvironment = exec_env
@@ -776,7 +765,6 @@ func __warp_block_10{
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     local _26 : Uint256 = _2
     let (local memPos_2 : Uint256) = mload_(_2.low)
     local memory_dict : DictAccess* = memory_dict
@@ -807,7 +795,6 @@ func __warp_if_6{
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
         local syscall_ptr : felt* = syscall_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     else:
         return ()
@@ -829,7 +816,6 @@ func __warp_block_9{
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return ()
 end
 
@@ -848,7 +834,6 @@ func __warp_if_5{
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
         local syscall_ptr : felt* = syscall_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     else:
         __warp_block_9(_2, _3, _4, match_var)
@@ -859,7 +844,6 @@ func __warp_if_5{
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
         local syscall_ptr : felt* = syscall_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     end
 end
@@ -879,7 +863,6 @@ func __warp_block_7{
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return ()
 end
 
@@ -898,7 +881,6 @@ func __warp_if_4{
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
         local syscall_ptr : felt* = syscall_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     else:
         __warp_block_7(_2, _3, _4, match_var)
@@ -909,7 +891,6 @@ func __warp_if_4{
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
         local syscall_ptr : felt* = syscall_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     end
 end
@@ -929,7 +910,6 @@ func __warp_block_5{
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return ()
 end
 
@@ -947,7 +927,6 @@ func __warp_block_4{
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return ()
 end
 
@@ -971,7 +950,6 @@ func __warp_block_3{
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return ()
 end
 
@@ -989,7 +967,6 @@ func __warp_if_3{
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
         local syscall_ptr : felt* = syscall_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     else:
         return ()
@@ -1047,7 +1024,6 @@ func fun_ENTRY_POINT{
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
         local syscall_ptr : felt* = syscall_ptr
-        local exec_env : ExecutionEnvironment = exec_env
     end
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (

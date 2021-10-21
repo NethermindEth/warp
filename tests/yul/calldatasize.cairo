@@ -136,7 +136,6 @@ func __warp_block_1{
     let (local _17 : Uint256) = fun_test()
     local exec_env : ExecutionEnvironment = exec_env
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     local _18 : Uint256 = _1
     let (local _19 : Uint256) = abi_encode_uint256(_1, _17)
     local memory_dict : DictAccess* = memory_dict
@@ -160,7 +159,6 @@ func __warp_if_1{
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     else:
         return ()
@@ -186,7 +184,6 @@ func __warp_block_0{
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return ()
 end
 
@@ -200,7 +197,6 @@ func __warp_if_0{
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     else:
         return ()
@@ -255,7 +251,6 @@ func fun_ENTRY_POINT{
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
-        local exec_env : ExecutionEnvironment = exec_env
     end
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (
