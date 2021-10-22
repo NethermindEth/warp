@@ -87,7 +87,7 @@ end
 
 @view
 func getter_fun_totalSupply{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
-        ) -> (value_80 : Uint256):
+        ) -> (value_78 : Uint256):
     alloc_locals
     let (res) = totalSupply.read()
     return (res)
@@ -118,7 +118,7 @@ end
 
 @view
 func getter_fun_decimals{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
-        ) -> (value_78 : Uint256):
+        ) -> (value_76 : Uint256):
     alloc_locals
     let (res) = decimals.read()
     return (res)
@@ -181,9 +181,9 @@ end
 
 func require_helper{range_check_ptr}(condition : Uint256) -> ():
     alloc_locals
-    let (local _1_88 : Uint256) = is_zero(condition)
+    let (local _1_86 : Uint256) = is_zero(condition)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_1_88)
+    __warp_cond_revert(_1_86)
     return ()
 end
 
@@ -199,9 +199,9 @@ end
 
 @external
 func setter_fun_balanceOf{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
-        arg0_97 : Uint256, value_98 : Uint256) -> ():
+        arg0_95 : Uint256, value_96 : Uint256) -> ():
     alloc_locals
-    balanceOf.write(arg0_97.low, arg0_97.high, value_98)
+    balanceOf.write(arg0_95.low, arg0_95.high, value_96)
     return ()
 end
 

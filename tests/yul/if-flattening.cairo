@@ -152,9 +152,9 @@ end
 
 @external
 func setter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
-        arg0_38 : Uint256, value_39 : Uint256) -> ():
+        arg0_36 : Uint256, value_37 : Uint256) -> ():
     alloc_locals
-    allowance.write(arg0_38.low, arg0_38.high, value_39)
+    allowance.write(arg0_36.low, arg0_36.high, value_37)
     return ()
 end
 
