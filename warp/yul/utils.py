@@ -51,25 +51,12 @@ UNSUPPORTED_BUILTINS = [
 ]
 
 HANDLERS_DECL = """
-func __warp_holder() -> (res : Uint256):
-    return (Uint256(0,0))
-end
-
 @storage_var
 func this_address() -> (res: felt):
 end
 
-func address{storage_ptr : Storage*, range_check_ptr, pedersen_ptr: HashBuiltin*}() -> (res : Uint256):
-    let (addr) = this_address.read()
-    return (res=Uint256(low=addr, high=0))
-end
-
 @storage_var
 func address_initialized() -> (res : felt):
-end
-
-func gas() -> (res : Uint256):
-    return (Uint256(100000,100000))
 end
 
 func initialize_address{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(self_address : felt):

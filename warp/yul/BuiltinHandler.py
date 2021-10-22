@@ -421,10 +421,9 @@ class CallDataSize(BuiltinHandler):
             module="",
             function_name=info.name,
             function_args=function_args,
-            used_implicits=tuple(info.implicits),
+            used_implicits=tuple(sorted(info.implicits)),
             cairo_functions=cairo_functions,
         )
-        self.function_call = info.name + "()"
 
 
 class CallDataCopy(BuiltinHandler):
@@ -469,7 +468,7 @@ class ReturnDataSize(BuiltinHandler):
             module="",
             function_name=info.name,
             function_args="",
-            used_implicits=tuple(info.implicits),
+            used_implicits=tuple(sorted(info.implicits)),
             cairo_functions=cairo_functions,
         )
         if not ReturnDataCopy.touched:
@@ -493,26 +492,26 @@ class Return(BuiltinHandler):
 
 class Address(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.address_function()
         super().__init__(
             module="",
-            function_name="",
+            function_name=info.name,
             function_args=function_args,
-            used_implicits=("storage_ptr", "range_check_ptr", "pedersen_ptr"),
+            used_implicits=tuple(sorted(info.implicits)),
             cairo_functions=cairo_functions,
         )
-        self.function_call = "address()"
 
 
 class Gas(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.constant_function(10 ** 40)
         super().__init__(
             module="",
-            function_name=cairo_functions.stubbing_function().name,
+            function_name=info.name,
             function_args="",
-            used_implicits=(),
+            used_implicits=tuple(sorted(info.implicits)),
             cairo_functions=cairo_functions,
         )
-        self.function_call = "gas()"
 
 
 class Delegatecall(BuiltinHandler):
@@ -527,6 +526,18 @@ class Delegatecall(BuiltinHandler):
         # TODO implement delegatecall
 
 
+class Callvalue(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.constant_function(0)
+        super().__init__(
+            module="",
+            function_name=info.name,
+            function_args=function_args,
+            used_implicits=tuple(sorted(info.implicits)),
+            cairo_functions=cairo_functions,
+        )
+
+
 YUL_BUILTINS_MAP = {
     "add": Add,
     "addmod": AddMod,
@@ -537,6 +548,7 @@ YUL_BUILTINS_MAP = {
     "calldataload": CallDataLoad,
     "calldatasize": CallDataSize,
     "caller": Caller,
+    "callvalue": Callvalue,
     "delegatecall": Delegatecall,
     "div": Div,
     "eq": Eq,

@@ -125,8 +125,6 @@ class ToCairoVisitor(AstVisitor):
             return ""
         if fun_repr == "pop":
             return ""
-        if "callvalue" in fun_repr:
-            return "__warp_holder()"
         result: str
         if fun_repr in YUL_BUILTINS_MAP:
             builtin_to_cairo = YUL_BUILTINS_MAP[fun_repr](

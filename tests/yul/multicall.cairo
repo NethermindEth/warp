@@ -19,31 +19,27 @@ func __warp_constant_0() -> (res : Uint256):
     return (Uint256(low=0, high=0))
 end
 
+func address{pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}() -> (
+        res : Uint256):
+    let (addr) = this_address.read()
+    return (Uint256(low=addr, high=0))
+end
+
+func __warp_constant_10000000000000000000000000000000000000000() -> (res : Uint256):
+    return (Uint256(low=131811359292784559562136384478721867776, high=29))
+end
+
 func __warp_stub() -> (res : Uint256):
     assert 1 = 0
     jmp rel 0
-end
-
-func __warp_holder() -> (res : Uint256):
-    return (Uint256(0, 0))
 end
 
 @storage_var
 func this_address() -> (res : felt):
 end
 
-func address{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}() -> (
-        res : Uint256):
-    let (addr) = this_address.read()
-    return (res=Uint256(low=addr, high=0))
-end
-
 @storage_var
 func address_initialized() -> (res : felt):
-end
-
-func gas() -> (res : Uint256):
-    return (Uint256(100000, 100000))
 end
 
 func initialize_address{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
@@ -564,10 +560,10 @@ func __warp_loop_body_2{
     let (local _6_147 : Uint256) = uint256_sub(_5_146, _2_143)
     local range_check_ptr = range_check_ptr
     let (local _7_148 : Uint256) = address()
-    local storage_ptr : Storage* = storage_ptr
-    local range_check_ptr = range_check_ptr
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    let (local _8_149 : Uint256) = gas()
+    local range_check_ptr = range_check_ptr
+    local storage_ptr : Storage* = storage_ptr
+    let (local _8_149 : Uint256) = __warp_constant_10000000000000000000000000000000000000000()
     let (local expr_component : Uint256) = __warp_stub()
     let (local var_result_mpos : Uint256) = extract_returndata()
     local memory_dict : DictAccess* = memory_dict

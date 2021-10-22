@@ -23,26 +23,12 @@ end
 func allowance(arg0_low, arg0_high) -> (res : Uint256):
 end
 
-func __warp_holder() -> (res : Uint256):
-    return (Uint256(0, 0))
-end
-
 @storage_var
 func this_address() -> (res : felt):
 end
 
-func address{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}() -> (
-        res : Uint256):
-    let (addr) = this_address.read()
-    return (res=Uint256(low=addr, high=0))
-end
-
 @storage_var
 func address_initialized() -> (res : felt):
-end
-
-func gas() -> (res : Uint256):
-    return (Uint256(100000, 100000))
 end
 
 func initialize_address{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
@@ -253,7 +239,7 @@ func __warp_block_6{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
-    let (local _11 : Uint256) = __warp_holder()
+    let (local _11 : Uint256) = __warp_constant_0()
     __warp_cond_revert(_11)
     let (local _12 : Uint256) = uint256_not(Uint256(low=127, high=0))
     local range_check_ptr = range_check_ptr

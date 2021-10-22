@@ -31,26 +31,12 @@ end
 func totalSupply() -> (res : Uint256):
 end
 
-func __warp_holder() -> (res : Uint256):
-    return (Uint256(0, 0))
-end
-
 @storage_var
 func this_address() -> (res : felt):
 end
 
-func address{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}() -> (
-        res : Uint256):
-    let (addr) = this_address.read()
-    return (res=Uint256(low=addr, high=0))
-end
-
 @storage_var
 func address_initialized() -> (res : felt):
-end
-
-func gas() -> (res : Uint256):
-    return (Uint256(100000, 100000))
 end
 
 func initialize_address{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
@@ -491,7 +477,7 @@ func __warp_block_4{
         memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
         storage_ptr : Storage*}(_2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
-    let (local _11 : Uint256) = __warp_holder()
+    let (local _11 : Uint256) = __warp_constant_0()
     __warp_cond_revert(_11)
     local _12 : Uint256 = _4
     abi_decode(_3, _4)
@@ -518,7 +504,7 @@ func __warp_block_6{
         memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
         storage_ptr : Storage*}(_1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
-    let (local _19 : Uint256) = __warp_holder()
+    let (local _19 : Uint256) = __warp_constant_0()
     __warp_cond_revert(_19)
     local _20 : Uint256 = _4
     abi_decode(_3, _4)
@@ -598,7 +584,7 @@ func __warp_block_12{
         pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*}(
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
-    let (local _29 : Uint256) = __warp_holder()
+    let (local _29 : Uint256) = __warp_constant_0()
     __warp_cond_revert(_29)
     local _30 : Uint256 = _4
     let (local _31 : Uint256) = abi_decode_uint256(_3, _4)

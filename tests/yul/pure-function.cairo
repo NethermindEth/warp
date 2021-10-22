@@ -19,26 +19,12 @@ func __warp_constant_0() -> (res : Uint256):
     return (Uint256(low=0, high=0))
 end
 
-func __warp_holder() -> (res : Uint256):
-    return (Uint256(0, 0))
-end
-
 @storage_var
 func this_address() -> (res : felt):
 end
 
-func address{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}() -> (
-        res : Uint256):
-    let (addr) = this_address.read()
-    return (res=Uint256(low=addr, high=0))
-end
-
 @storage_var
 func address_initialized() -> (res : felt):
-end
-
-func gas() -> (res : Uint256):
-    return (Uint256(100000, 100000))
 end
 
 func initialize_address{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
@@ -196,7 +182,7 @@ func __warp_block_3{
         exec_env : ExecutionEnvironment, memory_dict : DictAccess*, msize, range_check_ptr}(
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
-    let (local _13 : Uint256) = __warp_holder()
+    let (local _13 : Uint256) = __warp_constant_0()
     __warp_cond_revert(_13)
     local _14 : Uint256 = _4
     local _15 : Uint256 = _3
