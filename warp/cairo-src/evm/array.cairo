@@ -112,8 +112,7 @@ func array_load{range_check_ptr}(array_length : felt, array : felt*, offset) -> 
         return (Uint256(low=mid, high=high))
     end
     let (low) = safe_read(array_length, array, index + 2)
-
-    let (local unaligned_low) = extract_unaligned_uint128(shift=rem, low=low, high=mid)
+   let (local unaligned_low) = extract_unaligned_uint128(shift=rem, low=low, high=mid)
     let (unaligned_high) = extract_unaligned_uint128(shift=rem, low=mid, high=mid)
 
     return (Uint256(low=unaligned_low, high=unaligned_high))
@@ -126,4 +125,14 @@ func safe_read{range_check_ptr}(array_length, array : felt*, index) -> (value):
     else:
         return (array[index])
     end
+end
+
+func extend_array_to_len(array_len: felt, array: felt*, length):
+  if length == array_len:
+    return ()
+  end
+
+  array[array_len] = 0
+  extend_array_to_len(array_len + 1, array, length)
+  return ()
 end

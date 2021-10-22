@@ -47,8 +47,8 @@ class CairoFunctions:
 
     def identity_function(self, types: list[str]):
         name = f"__warp_identity_{'__'.join(types)}"
-        args = ', '.join([f"arg{i} : {tp}" for (i, tp) in enumerate(types)])
-        returns = ', '.join([f"arg{i}" for i in range(len(types))])
+        args = ", ".join([f"arg{i} : {tp}" for (i, tp) in enumerate(types)])
+        returns = ", ".join([f"arg{i}" for i in range(len(types))])
 
         def inner():
             return "\n".join(
@@ -62,6 +62,65 @@ class CairoFunctions:
         self.generator.create_function(name, inner)
         return FunctionInfo(name=name, implicits=set())
 
+    def bigstruct(self, size: int):
+        """size in bytes"""
+        name = f"__warp_BigStruct__{size}"
+        def inner():
+            return "\n".join(
+                [
+                    f"struct {name}:",
+                    *[f"member f{i} : felt" for i in range(size // 16 + 1)],
+                    f"end\n"
+                ]
+            )
+        self.generator.create_function(name, inner)
+        return FunctionInfo(name=name, implicits=set())
+
+
+    def bigstructencode_function(self, size: int):
+        """size in bytes"""
+        structname = f"__warp_BigStruct__{size}"
+        name = f"__warp__encode_bigstruct__{size}"
+
+        def inner():
+            return "\n".join(
+                [
+                    f"func {name}{{range_check_ptr}}(array: felt*, array_len, array_size) -> (bigStruct: {structname}):",
+                    f"alloc_locals",
+                    f"let (le) = is_le(array_size, {size})",
+                    f"local range_check_ptr = range_check_ptr",
+                    f"if le == 0:", 
+                    f"  assert 0 = 1",
+                    f"end",
+                    f"let bigStruct = {structname}(",
+                    ", ".join([f"f{i} = array[{i}]" for i in range(size // 16 + 1)]),
+                    f")",
+                    f"return (bigStruct)",
+                    f"end\n",
+                ]
+            )
+
+        self.generator.create_function(name, inner)
+        return FunctionInfo(name=name, implicits={"range_check_ptr"})
+
+    def bigstructdecode_function(self, size: int):
+        """size in bytes"""
+        structname = f"__warp_BigStruct__{size}"
+        name = f"__warp__decode_bigstruct__{size}"
+
+        def inner():
+            return "\n".join(
+                [
+                    f"func {name}(bigstruct: {structname}) -> (array: felt*, array_len, array_size):",
+                    f"let arr : felt* = alloc()",
+                    *[f"assert arr[{i}] = bigstruct.f{i}" for i in range(size // 16 + 1)],
+                    f"return (array=arr, array_len={size // 16 + 1}, array_size={size})",
+                    f"end\n",
+                ]
+            )
+
+        self.generator.create_function(name, inner)
+        return FunctionInfo(name=name, implicits=set())
 
     def sload_function(self) -> FunctionInfo:
         name = "sload"

@@ -13,7 +13,6 @@ from yul.ForLoopEliminator import ForLoopEliminator
 from yul.ForLoopSimplifier import ForLoopSimplifier
 from yul.FunctionGenerator import CairoFunctions, FunctionGenerator
 from yul.FunctionPruner import FunctionPruner
-from yul.InterfaceTranspiler import get_cairo_interfaces
 from yul.LeaveNormalizer import LeaveNormalizer
 from yul.MangleNamesVisitor import MangleNamesVisitor
 from yul.NameGenerator import NameGenerator
@@ -47,7 +46,6 @@ def generate_cairo(sol_src_path, main_contract):
         function_mutabilities = get_function_mutabilities(sol_source)
 
     artifacts_manager = Artifacts(sol_src_path)
-    interfaces = get_cairo_interfaces(sol_source)
 
     yul_ast = parse_node(json.loads(result.stdout))
     return generate_from_yul(
@@ -56,7 +54,6 @@ def generate_cairo(sol_src_path, main_contract):
         public_functions,
         function_mutabilities,
         artifacts_manager,
-        interfaces,
     )
 
 
@@ -66,7 +63,6 @@ def generate_from_yul(
     public_functions: list[str],
     function_mutabilities: dict[str, str],
     artifacts_manager: Artifacts,
-    interfaces: str,
 ):
     name_gen = NameGenerator()
     cairo_functions = CairoFunctions(FunctionGenerator())
@@ -88,7 +84,6 @@ def generate_from_yul(
         name_gen,
         artifacts_manager,
         cairo_functions,
-        interfaces,
     )
     cairo_code = cairo_visitor.translate(yul_ast)
     return parse_file(cairo_code).format()

@@ -3,6 +3,7 @@ from yul.AstMapper import AstMapper
 
 CAIRO_KEYWORDS = {"ret", "felt", "jmp", "func", "end"}
 
+
 def mangle(identifier: str) -> str:
     identifier = identifier.replace("$", "_")
     if identifier in CAIRO_KEYWORDS:

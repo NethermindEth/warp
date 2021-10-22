@@ -412,6 +412,7 @@ class CallDataLoad(BuiltinHandler):
             cairo_functions=cairo_functions,
         )
 
+
 class CallDataSize(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         info = cairo_functions.constant_function(0)
@@ -423,6 +424,7 @@ class CallDataSize(BuiltinHandler):
             cairo_functions=cairo_functions,
         )
         self.function_call = info.name + "()"
+
 
 class CallDataCopy(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
@@ -475,21 +477,11 @@ class ReturnDataSize(BuiltinHandler):
 class Return(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
-            module="evm.array",
-            function_name="array_create_from_memory",
+            module="evm.calls",
+            function_name="returndata_write",
             function_args=function_args,
             cairo_functions=cairo_functions,
             used_implicits=("exec_env",),
-        )
-        [pointer, length] = [arg.strip() for arg in self.function_args.split(",")]
-        self.function_call = (
-            f"let (local return_: felt*) = array_create_from_memory({pointer}.low, {length}.low)\n"
-            f"let (returndata_len) = calculate_data_len({length}.low)\n"
-            f"local exec_env: ExecutionEnvironment = ExecutionEnvironment(\n"
-            f"  calldata_size=exec_env.calldata_size, calldata_len=exec_env.calldata_len, calldata=exec_env.calldata,\n"
-            f"  returndata_size=exec_env.returndata_size, returndata_len=exec_env.returndata_len, returndata=exec_env.returndata,\n"
-            f"  to_returndata_size={length}.low, to_returndata_len=returndata_len, to_returndata=return_\n"
-            f")\n"
         )
 
 
@@ -499,10 +491,11 @@ class Address(BuiltinHandler):
             module="",
             function_name="",
             function_args=function_args,
-            used_implicits=("storage_ptr", "range_check_ptr", "pedersen_ptr"),
+            used_implicits=("syscall_ptr", "storage_ptr", "range_check_ptr", "pedersen_ptr"),
             cairo_functions=cairo_functions,
         )
         self.function_call = "address()"
+
 
 class Delegatecall(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
@@ -515,10 +508,11 @@ class Delegatecall(BuiltinHandler):
         )
         # TODO implement delegatecall
 
+
 class Call(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
-            module="",
+            module="evm.calls",
             function_name="warp_call",
             function_args=function_args,
             used_implicits=(
@@ -535,7 +529,7 @@ class Call(BuiltinHandler):
 class StaticCall(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
-            module="",
+            module="evm.calls",
             function_name="warp_static_call",
             function_args=function_args,
             used_implicits=(
@@ -547,6 +541,7 @@ class StaticCall(BuiltinHandler):
             ),
             cairo_functions=cairo_functions,
         )
+
 
 class ExtCodeSize(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):

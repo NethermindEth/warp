@@ -22,7 +22,9 @@ def warp():
 
 
 @warp.command()
-@click.option("--verbose", is_flag=True, required=False, help="prints stacktraces on fail")
+@click.option(
+    "--verbose", is_flag=True, required=False, help="prints stacktraces on fail"
+)
 @click.argument("file_path", type=click.Path(exists=True))
 @click.argument("contract_name")
 def transpile(verbose, file_path, contract_name):
@@ -126,6 +128,7 @@ def main():
     except BaseException as e:
         if "--verbose" in click.get_os_args():
             import traceback
+
             click.echo(traceback.format_exc())
         else:
             click.echo(e)

@@ -2,7 +2,7 @@
 %builtins pedersen range_check
 
 from evm.array import array_copy_to_memory, array_create_from_memory
-from evm.calls import calldata_load
+from evm.calls import calldata_load, returndata_write, warp_static_call
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import mload_, mstore_
 from evm.uint256 import is_eq, is_gt, is_lt, is_zero, slt, u256_add
@@ -18,57 +18,6 @@ from starkware.cairo.common.uint256 import (
     Uint256, uint256_and, uint256_eq, uint256_not, uint256_shl, uint256_shr, uint256_sub)
 from starkware.starknet.common.storage import Storage
 
-@contract_interface
-namespace GenericCallInterface:
-    func fun_ENTRY_POINT(calldata_size : felt, calldata_len : felt, calldata : felt*) -> (
-            success : felt, returndata_size : felt, returndata_len : felt, returndata : felt*):
-    end
-end
-
-func calculate_data_len{range_check_ptr}(calldata_size) -> (calldata_len):
-    let (calldata_len_, rem) = unsigned_div_rem(calldata_size, 8)
-    if rem != 0:
-        return (calldata_len=calldata_len_ + 1)
-    else:
-        return (calldata_len=calldata_len_)
-    end
-end
-
-func warp_call{
-        syscall_ptr : felt*, storage_ptr : Storage*, exec_env : ExecutionEnvironment,
-        memory_dict : DictAccess*, range_check_ptr}(
-        gas : Uint256, address : Uint256, value : Uint256, in : Uint256, insize : Uint256,
-        out : Uint256, outsize : Uint256) -> (success : Uint256):
-    alloc_locals
-    local memory_dict : DictAccess* = memory_dict
-
-    # TODO will 128 bits be enough for addresses
-    let (local mem : felt*) = array_create_from_memory{
-        memory_dict=memory_dict, range_check_ptr=range_check_ptr}(in.low, insize.low)
-    local memory_dict : DictAccess* = memory_dict
-    let (calldata_len) = calculate_data_len(insize.low)
-    let (local success, local returnn_size, local returnn_len,
-        local returnn : felt*) = GenericCallInterface.fun_ENTRY_POINT(
-        address.low, insize.low, calldata_len, mem)
-    local syscall_ptr : felt* = syscall_ptr
-    local storage_ptr : Storage* = storage_ptr
-    array_copy_to_memory(returnn_size, returnn, 0, out.low, outsize.low)
-    local exec_env : ExecutionEnvironment = ExecutionEnvironment(
-        calldata_size=exec_env.calldata_size, calldata_len=exec_env.calldata_len, calldata=exec_env.calldata,
-        returndata_size=returnn_size, returndata_len=returnn_len, returndata=returnn,
-        to_returndata_size=exec_env.to_returndata_size, to_returndata_len=exec_env.to_returndata_len, to_returndata=exec_env.to_returndata
-        )
-    return (Uint256(success, 0))
-end
-
-func warp_static_call{
-        syscall_ptr : felt*, storage_ptr : Storage*, exec_env : ExecutionEnvironment,
-        memory_dict : DictAccess*, range_check_ptr}(
-        gas : Uint256, address : Uint256, in : Uint256, insize : Uint256, out : Uint256,
-        outsize : Uint256) -> (success : Uint256):
-    return warp_call(gas, address, Uint256(0, 0), in, insize, out, outsize)
-end
-
 func __warp_identity_Uint256(arg0 : Uint256) -> (arg0 : Uint256):
     return (arg0)
 end
@@ -81,8 +30,9 @@ end
 func this_address() -> (res : felt):
 end
 
-func address{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}() -> (
-        res : Uint256):
+func address{
+        syscall_ptr : felt*, storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
+        ) -> (res : Uint256):
     let (addr) = this_address.read()
     return (res=Uint256(low=addr, high=0))
 end
@@ -95,7 +45,8 @@ func gas() -> (res : Uint256):
     return (Uint256(100000, 100000))
 end
 
-func initialize_address{storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
+func initialize_address{
+        syscall_ptr : felt*, storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
         self_address : felt):
     let (address_init) = address_initialized.read()
     if address_init == 1:
@@ -661,14 +612,7 @@ func __warp_block_4{
     local range_check_ptr = range_check_ptr
     let (local _16 : Uint256) = uint256_sub(_15, memPos)
     local range_check_ptr = range_check_ptr
-    let (local return_ : felt*) = array_create_from_memory(memPos.low, _16.low)
-    let (returndata_len) = calculate_data_len(_16.low)
-    local exec_env : ExecutionEnvironment = ExecutionEnvironment(
-        calldata_size=exec_env.calldata_size, calldata_len=exec_env.calldata_len, calldata=exec_env.calldata,
-        returndata_size=exec_env.returndata_size, returndata_len=exec_env.returndata_len, returndata=exec_env.returndata,
-        to_returndata_size=_16.low, to_returndata_len=returndata_len, to_returndata=return_
-        )
-
+    returndata_write(memPos, _16)
     local exec_env : ExecutionEnvironment = exec_env
     return ()
 end
@@ -700,14 +644,7 @@ func __warp_block_6{
     local range_check_ptr = range_check_ptr
     let (local _22 : Uint256) = uint256_sub(_21, memPos_1)
     local range_check_ptr = range_check_ptr
-    let (local return_ : felt*) = array_create_from_memory(memPos_1.low, _22.low)
-    let (returndata_len) = calculate_data_len(_22.low)
-    local exec_env : ExecutionEnvironment = ExecutionEnvironment(
-        calldata_size=exec_env.calldata_size, calldata_len=exec_env.calldata_len, calldata=exec_env.calldata,
-        returndata_size=exec_env.returndata_size, returndata_len=exec_env.returndata_len, returndata=exec_env.returndata,
-        to_returndata_size=_22.low, to_returndata_len=returndata_len, to_returndata=return_
-        )
-
+    returndata_write(memPos_1, _22)
     local exec_env : ExecutionEnvironment = exec_env
     return ()
 end
@@ -850,12 +787,17 @@ func __warp_if_1{
 end
 
 @external
-func fun_ENTRY_POINT{
-        pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
+func fun_ENTRY_POINT{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         calldata_size, calldata_len, calldata : felt*, self_address : felt) -> (
-        success : felt, returndata_size : felt, returndata_len : felt, returndata : felt*):
+        success : felt, returndata_size : felt, returndata_len : felt, f0 : felt, f1 : felt,
+        f2 : felt, f3 : felt, f4 : felt, f5 : felt, f6 : felt, f7 : felt):
     alloc_locals
-    initialize_address(self_address)
+    let (local storage_ptr : Storage*) = alloc()
+    initialize_address{
+        syscall_ptr=syscall_ptr,
+        storage_ptr=storage_ptr,
+        range_check_ptr=range_check_ptr,
+        pedersen_ptr=pedersen_ptr}(self_address)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
@@ -892,5 +834,16 @@ func fun_ENTRY_POINT{
     local exec_env : ExecutionEnvironment = exec_env
 
     default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
+    return (
+        1,
+        exec_env.to_returndata_size,
+        exec_env.to_returndata_len,
+        f0=exec_env.to_returndata[0],
+        f1=exec_env.to_returndata[1],
+        f2=exec_env.to_returndata[2],
+        f3=exec_env.to_returndata[3],
+        f4=exec_env.to_returndata[4],
+        f5=exec_env.to_returndata[5],
+        f6=exec_env.to_returndata[6],
+        f7=exec_env.to_returndata[7])
 end

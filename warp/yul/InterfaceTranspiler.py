@@ -62,53 +62,5 @@ end"""
         )
 
     # return "\n\n".join([GenericCallInterface] + interface_ABIs + [WARP_CALLS])
-    return "\n\n".join([GenericCallInterface] + [WARP_CALLS])
+    return ""
 
-
-WARP_CALLS = """
-func calculate_data_len{range_check_ptr}(calldata_size) -> (calldata_len):
-    let (calldata_len_, rem) = unsigned_div_rem(calldata_size, 8)
-    if rem != 0:
-        return (calldata_len = calldata_len_ + 1)
-    else:
-        return (calldata_len = calldata_len_)
-    end
-end
-
-func warp_call{syscall_ptr: felt*, storage_ptr: Storage*, exec_env: ExecutionEnvironment, memory_dict : DictAccess*, range_check_ptr}(
-        gas : Uint256, address : Uint256, value : Uint256, in : Uint256, insize : Uint256,
-        out : Uint256, outsize : Uint256) -> (success : Uint256):
-    alloc_locals
-    local memory_dict : DictAccess* = memory_dict
-
-    # TODO will 128 bits be enough for addresses
-    let (local mem : felt*) = array_create_from_memory{memory_dict=memory_dict, range_check_ptr=range_check_ptr}(in.low, insize.low)
-    local memory_dict : DictAccess* = memory_dict
-    let (calldata_len) = calculate_data_len(insize.low)
-    let (local success, local returnn_size, local returnn_len, local returnn : felt*) = GenericCallInterface.fun_ENTRY_POINT(
-        address.low, insize.low, calldata_len, mem)
-    local syscall_ptr : felt* = syscall_ptr
-    local storage_ptr : Storage* = storage_ptr
-    array_copy_to_memory(returnn_size, returnn, 0, out.low, outsize.low)
-    local exec_env: ExecutionEnvironment = ExecutionEnvironment(
-        calldata_size=exec_env.calldata_size, calldata_len=exec_env.calldata_len, calldata=exec_env.calldata,
-        returndata_size=returnn_size, returndata_len=returnn_len, returndata=returnn,
-        to_returndata_size=exec_env.to_returndata_size, to_returndata_len=exec_env.to_returndata_len, to_returndata=exec_env.to_returndata
-    )
-    return (Uint256(success, 0))
-end
-
-func warp_static_call{syscall_ptr: felt*, storage_ptr: Storage*, exec_env: ExecutionEnvironment, memory_dict : DictAccess*, range_check_ptr}(
-        gas : Uint256, address : Uint256, in : Uint256, insize : Uint256, out : Uint256,
-        outsize : Uint256) -> (success : Uint256):
-    return warp_call(gas, address, Uint256(0,0), in, insize, out, outsize)
-end
-"""
-
-GenericCallInterface = """
-@contract_interface
-namespace GenericCallInterface:
-    func fun_ENTRY_POINT(calldata_size: felt, calldata_len: felt, calldata : felt*) -> (success: felt, returndata_size: felt, returndata_len: felt, returndata: felt*):
-    end
-end
-"""
