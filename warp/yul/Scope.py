@@ -12,14 +12,28 @@ from yul.AstVisitor import AstVisitor
 class Scope:
     """'Scope' represents symbols encountered in a particular scope.
 
-    - 'bound_variables' maps names of variables assigned in the scope
-    to their types.
+    - 'bound_variables' maps names of variables declared in the scope
+      to their types.
 
     - 'read_variables' is a set of undeclared ("free") identifiers
-      encountered in the scope that were read from.
+      whose value has been required at some point, but couldn't be
+      derived from the scope at that point
 
     - 'modified_variables' is a set of undeclared ("free") identifiers
-      encountered in the scope that were written to.
+      which have been modified at some point, but they weren't
+      declared in the scope at that point.
+
+    An intuition for how this groups can be used is the following. If
+    this scopes is to be extracted into a separate function,
+    'read_variables' is the minimal set of parameters of that
+    function. 'modified_variables' is the minimal set of return
+    variables of that function.
+
+    NOTE: when there is a 'leave' instruction in the scope, it leads
+    to ambiguity regarding 'read_variables'. 'leave' means that a
+    function should return (thus, read) values of all of its "return
+    variables". If the scope is being computed for an 'ast.Block', the
+    set of return variables is unknown.
 
     """
 
@@ -32,6 +46,8 @@ EMPTY_SCOPE = Scope({}, frozenset(), frozenset())
 
 
 class ScopeResolver(AstVisitor):
+    """Gathers information necessary to create a 'Scope'."""
+
     def __init__(self):
         super().__init__()
         self.bound_variables: dict[str, ast.TypedName] = {}
@@ -44,11 +60,14 @@ class ScopeResolver(AstVisitor):
     def compute_uncached_scope(
         self, node: Union[ast.Block, ast.FunctionDefinition]
     ) -> Scope:
+        """Computes 'Scope' for the 'node' without attempting to access
+        cache (to avoid infinite recursion).
+
+        """
         if isinstance(node, ast.Block):
             self.common_visit(node)
         else:
             assert isinstance(node, ast.FunctionDefinition)
-            print(node.name)
             # Not visiting return_variables, they are not bound or
             # mentioned semantically.
             self.visit_list(node.parameters)
@@ -112,6 +131,8 @@ class ScopeResolver(AstVisitor):
             | (scope1.modified_variables ^ scope2.modified_variables)
         )
         new_mod = scope1.modified_variables | scope2.modified_variables
+        # only variables that have been modified on both possible code
+        # paths are fully determined in the scope
         new_known = scope1.modified_variables & scope2.modified_variables
         for var in new_read:
             self._register_read(var)
