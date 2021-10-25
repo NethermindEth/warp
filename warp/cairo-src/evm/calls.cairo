@@ -28,13 +28,17 @@ func calldatacopy_{
     let (local msize) = update_msize(msize, dest_offset.low, length.low)
     local memory_dict : DictAccess* = memory_dict
     array_copy_to_memory(
-        exec_env.calldata_len, exec_env.calldata, dest_offset.low, offset.low, length.low)
+        exec_env.calldata_size, exec_env.calldata, dest_offset.low, offset.low, length.low)
     return ()
+end
+
+func calldatasize_{range_check_ptr, exec_env : ExecutionEnvironment}() -> (res: Uint256):
+    return (Uint256(low=exec_env.calldata_size, high=0))
 end
 
 func calldata_load{range_check_ptr, exec_env : ExecutionEnvironment}(offset) -> (value : Uint256):
     alloc_locals
-    let (local value : Uint256) = array_load(exec_env.calldata_len, exec_env.calldata, offset)
+    let (local value : Uint256) = array_load(exec_env.calldata_size, exec_env.calldata, offset)
     return (value=value)
 end
 
@@ -56,7 +60,7 @@ namespace GenericCallInterface:
 end
 
 func calculate_data_len{range_check_ptr}(calldata_size) -> (calldata_len):
-    let (calldata_len_, rem) = unsigned_div_rem(calldata_size, 8)
+    let (calldata_len_, rem) = unsigned_div_rem(calldata_size, 16)
     if rem != 0:
         return (calldata_len=calldata_len_ + 1)
     else:
@@ -83,14 +87,14 @@ func warp_call{
     local syscall_ptr : felt* = syscall_ptr
     local storage_ptr : Storage* = storage_ptr
     let (local return_array : felt*) = alloc()
-    return_array[0] = f0
-    return_array[1] = f1
-    return_array[2] = f2
-    return_array[3] = f3
-    return_array[4] = f4
-    return_array[5] = f5
-    return_array[6] = f6
-    return_array[7] = f7
+    assert return_array[0] = f0
+    assert return_array[1] = f1
+    assert return_array[2] = f2
+    assert return_array[3] = f3
+    assert return_array[4] = f4
+    assert return_array[5] = f5
+    assert return_array[6] = f6
+    assert return_array[7] = f7
     array_copy_to_memory(return_size, return_array, 0, out.low, outsize.low)
     local exec_env : ExecutionEnvironment = ExecutionEnvironment(
         calldata_size=exec_env.calldata_size, calldata_len=exec_env.calldata_len, calldata=exec_env.calldata,
@@ -111,6 +115,7 @@ end
 func returndata_write{memory_dict : DictAccess*, exec_env : ExecutionEnvironment, range_check_ptr}(
         returndata_ptr : Uint256, returndata_size : Uint256):
     alloc_locals
+    assert 0 = 1
     let (local return_ : felt*) = array_create_from_memory(returndata_ptr.low, returndata_size.low)
     local memory_dict : DictAccess* = memory_dict
     let (returndata_len) = calculate_data_len(returndata_size.low)

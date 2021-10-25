@@ -133,8 +133,8 @@ class Xor(BuiltinHandler):
 class Shl(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
-            module=UINT256_MODULE,
-            function_name="uint256_shl",
+            module="evm.uint256",
+            function_name="u256_shl",
             function_args=function_args,
             cairo_functions=cairo_functions,
         )
@@ -143,8 +143,8 @@ class Shl(BuiltinHandler):
 class Shr(BuiltinHandler):  # ARG ORDER NOT CONVENTIONAL
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
-            module=UINT256_MODULE,
-            function_name="uint256_shr",
+            module="evm.uint256",
+            function_name="u256_shr",
             function_args=function_args,
             cairo_functions=cairo_functions,
         )
@@ -415,15 +415,14 @@ class CallDataLoad(BuiltinHandler):
 
 class CallDataSize(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
-        info = cairo_functions.constant_function(0)
         super().__init__(
-            module="",
-            function_name=info.name,
-            function_args=function_args,
-            used_implicits=tuple(info.implicits),
+            module="evm.calls",
+            function_name="calldatasize_",
+            function_args="",
+            used_implicits=("range_check_ptr", "exec_env"),
             cairo_functions=cairo_functions,
         )
-        self.function_call = info.name + "()"
+        self.function_call="calldatasize_{range_check_ptr=range_check_ptr, exec_env=exec_env}()"
 
 
 class CallDataCopy(BuiltinHandler):

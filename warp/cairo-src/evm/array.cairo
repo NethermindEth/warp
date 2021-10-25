@@ -113,7 +113,7 @@ func array_load{range_check_ptr}(array_length : felt, array : felt*, offset) -> 
     end
     let (low) = safe_read(array_length, array, index + 2)
     let (local unaligned_low) = extract_unaligned_uint128(shift=rem, low=low, high=mid)
-    let (unaligned_high) = extract_unaligned_uint128(shift=rem, low=mid, high=mid)
+    let (unaligned_high) = extract_unaligned_uint128(shift=rem, low=mid, high=high)
 
     return (Uint256(low=unaligned_low, high=unaligned_high))
 end
