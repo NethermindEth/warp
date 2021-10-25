@@ -7,6 +7,7 @@ import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
 from yul.extract_block import extract_block_as_function, extract_rec_block_as_function
 from yul.NameGenerator import NameGenerator
+from yul.Scope import get_scope
 from yul.yul_ast import yul_log_not
 
 
@@ -55,7 +56,7 @@ class ForLoopEliminator(AstMapper):
             self.aux_functions.extend((body_fun, head_fun))
 
             leave_id = ast.Identifier(self.leave_name)
-            if leave_id not in body.scope.modified_variables:
+            if leave_id not in get_scope(body).modified_variables:
                 call_statements = (head_stmt,)
             else:
                 call_statements = (
@@ -115,7 +116,7 @@ class ForLoopEliminator(AstMapper):
     ) -> ast.Block:
         break_id = ast.Identifier(self.break_name)
         leave_id = ast.Identifier(self.leave_name)
-        modified_vars = ast.Block((body_stmt,)).scope.modified_variables
+        modified_vars = get_scope(ast.Block((body_stmt,))).modified_variables
         head_stmts = []
         if break_id in modified_vars:
             head_stmts.append(

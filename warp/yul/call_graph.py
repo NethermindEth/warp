@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Dict, Optional, Tuple
 
 import yul.yul_ast as ast
-from yul.yul_ast import AstVisitor
+from yul.AstVisitor import AstVisitor
 
 CallGraph = Dict[ast.FunctionDefinition, Tuple[ast.FunctionDefinition]]
 

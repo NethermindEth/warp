@@ -1,7 +1,5 @@
-from __future__ import annotations
-
 import yul.yul_ast as ast
-from yul.yul_ast import AstVisitor
+from yul.AstVisitor import AstVisitor
 
 
 class AstMapper(AstVisitor):
