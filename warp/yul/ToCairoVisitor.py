@@ -242,11 +242,10 @@ class ToCairoVisitor(AstVisitor):
             self.in_entry_function = False
             return (
                 "@external\n"
-                f"func {node.name}{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
+                f"func {node.name}{{storage_ptr: Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr,"
                 f"syscall_ptr : felt* }}(calldata_size,"
                 f"calldata_len, calldata : felt*, self_address : felt) -> ({returns_repr}):\n"
                 f"alloc_locals\n"
-                f"let (local storage_ptr : Storage*) = alloc()\n"
                 f"initialize_address{{syscall_ptr=syscall_ptr, storage_ptr=storage_ptr, range_check_ptr=range_check_ptr, pedersen_ptr=pedersen_ptr}}(self_address)\n"
                 f"local pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
                 f"local range_check_ptr = range_check_ptr\n"
@@ -395,7 +394,8 @@ class ToCairoVisitor(AstVisitor):
                 f"let (returndata_ptr : felt*) = alloc()\n"
                 f"local exec_env : ExecutionEnvironment ="
                 f"ExecutionEnvironment(calldata_size=calldata_size,"
-                f"calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=returndata_ptr)\n"
+                f"calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=returndata_ptr,"
+                f"to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)\n"
             )
             inner_implicits += ", exec_env"
         return (

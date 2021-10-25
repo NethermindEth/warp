@@ -3,13 +3,13 @@ pragma solidity ^0.8.6;
 // SPDX-License-Identifier: MIT
 
 contract WARP {
-  function callMe(address add, uint8[] calldata arr) external view returns (bool) {
+  function callMe(address add) external pure returns (bool) {
                   // Here's my number
-    return WARP(add).callMeMaybe(arr);
+    return WARP(add).callMeMaybe(66);
   }
 
-  function callMeMaybe(uint8[] calldata arr) external pure returns (bool) {
-    if (arr.length > 8) {
+  function callMeMaybe(uint8 arr) external pure returns (bool) {
+    if (arr > 8) {
       return false;
     } 
     return true;
