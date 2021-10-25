@@ -6,7 +6,6 @@ from contextlib import contextmanager
 from typing import Callable, Optional
 
 import yul.yul_ast as ast
-from yul.Artifacts import Artifacts
 from yul.BuiltinHandler import BuiltinHandler
 from yul.FunctionGenerator import CairoFunctions
 from yul.implicits import IMPLICITS_SET, copy_implicit, print_implicit
@@ -53,17 +52,13 @@ MAIN_PREAMBLE = """%lang starknet
 class ToCairoVisitor(AstVisitor):
     def __init__(
         self,
-        main_contract: str,
         public_functions: list[str],
         function_mutabilities: dict[str, str],
         name_gen: NameGenerator,
-        artifacts_manager: Artifacts,
         cairo_functions: CairoFunctions,
         builtins_map: Callable[[CairoFunctions], dict[str, BuiltinHandler]],
     ):
         super().__init__()
-        self.artifacts_manager = artifacts_manager
-        self.artifacts_manager.write_artifact("MAIN_CONTRACT", main_contract)
         self.public_functions = public_functions
         self.function_mutabilities = function_mutabilities
         self.name_gen = name_gen
@@ -205,12 +200,6 @@ class ToCairoVisitor(AstVisitor):
         return "\n".join(stmt_reprs)
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
-        if node.name == "validator_":
-            return ""
-        if "_dynArgs" in node.name:
-            self.artifacts_manager.write_artifact(
-                ".DynArgFunctions", node.name.replace("_dynArgs", "") + "\n"
-            )
         if "ENTRY_POINT" in node.name:
             self.in_entry_function = True
         self.last_function = node

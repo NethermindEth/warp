@@ -157,26 +157,7 @@ class StarkNetEVMContract(Contract):
         return encode_abi(cls.web3, fn_abi, fn_arguments, data)
 
 
-def get_evm_calldata(
-    src_path: str, main_contract: str, fn_name: str, inputs: List[str]
-) -> str:
-    with open(src_path) as f:
-        src = f.read()
-    compiled = solcx.compile_source(src, output_values=["abi", "bin"])
-
-    abi = None
-    bytecode = None
-    for contractName, contract in compiled.items():
-        name = contractName[contractName.find(":") + 1 :]
-        if name == main_contract:
-            abi = contract["abi"]
-            bytecode = contract["bin"]
-
-    if abi is None:
-        raise Exception("could not find abi of given contract name")
-    if bytecode is None:
-        raise Exception("could not find bytecode of given contract name")
-
+def get_evm_calldata(abi, bytecode, fn_name: str, inputs: List[str]) -> str:
     w3 = Web3()
     evm_contract_factoryClass = StarkNetEVMContract()
     evm_contract = evm_contract_factoryClass.factory(w3, abi=abi, bytecode=bytecode)

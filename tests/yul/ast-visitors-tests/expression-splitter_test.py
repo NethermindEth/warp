@@ -1,6 +1,5 @@
 import pytest
 import yul.yul_ast as ast
-from yul.Artifacts import DUMMY_ARTIFACTS
 from yul.BuiltinHandler import StaticHandler
 from yul.ExpressionSplitter import ExpressionSplitter
 from yul.FunctionGenerator import CairoFunctions, FunctionGenerator
@@ -22,11 +21,9 @@ async def test_ExpressionSplitter():
     block = ast.Block((node,))  # to create new block env
     new_node = ExpressionSplitter(name_gen=NameGenerator()).visit_block(block)
     cairo = ToCairoVisitor(
-        main_contract="dummy",
         public_functions=[],
         function_mutabilities={},
         name_gen=NameGenerator(),
-        artifacts_manager=DUMMY_ARTIFACTS,
         cairo_functions=CairoFunctions(FunctionGenerator()),
         builtins_map=lambda _: {
             "f1": StaticHandler("f1"),

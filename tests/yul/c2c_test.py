@@ -5,6 +5,7 @@ import pytest
 from cli.StarkNetEvmContract import get_evm_calldata
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
+from yul.main import transpile_from_solidity
 from yul.utils import cairoize_bytes
 
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
@@ -15,8 +16,8 @@ test_dir = os.path.dirname(os.path.abspath(__file__))
 async def test_starknet():
     caller_cairo = os.path.join(test_dir, "c2c.cairo")
     caller_sol = os.path.join(test_dir, "c2c.sol")
+    caller_info = transpile_from_solidity(caller_sol, "WARP")
     erc20_cairo = os.path.join(test_dir, "ERC20.cairo")
-    erc20_sol = os.path.join(test_dir, "ERC20.sol")
     cairo_path = f"{warp_root}/warp/cairo-src"
     caller_contractDef = compile_starknet_files(
         [caller_cairo], debug_info=True, cairo_path=[cairo_path]
@@ -34,8 +35,8 @@ async def test_starknet():
     )
 
     mint_calldata_evm = get_evm_calldata(
-        caller_sol,
-        "WARP",
+        caller_info["sol_abi"],
+        caller_info["sol_bytecode"],
         "gimmeMoney",
         [erc20_address, 0xE2D015F2CB56D18AD2B61AC045B262AC421B92C3],
     )
@@ -50,8 +51,8 @@ async def test_starknet():
     )
 
     balance_calldata_evm = get_evm_calldata(
-        caller_sol,
-        "WARP",
+        caller_info["sol_abi"],
+        caller_info["sol_bytecode"],
         "checkMoneyz",
         [erc20_address, 0xE2D015F2CB56D18AD2B61AC045B262AC421B92C3],
     )
@@ -67,8 +68,8 @@ async def test_starknet():
 
     # check transfer worked
     balance_calldata_evm2 = get_evm_calldata(
-        caller_sol,
-        "WARP",
+        caller_info["sol_abi"],
+        caller_info["sol_bytecode"],
         "checkMoneyz",
         [erc20_address, 0x7BE8076F4EA4A4AD08075C2508E481D6C946D12B],
     )
@@ -83,8 +84,8 @@ async def test_starknet():
     )
 
     transfer_calldata_evm = get_evm_calldata(
-        caller_sol,
-        "WARP",
+        caller_info["sol_abi"],
+        caller_info["sol_bytecode"],
         "sendMoneyz",
         [
             erc20_address,

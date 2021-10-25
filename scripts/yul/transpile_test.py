@@ -3,7 +3,7 @@ import os
 import sys
 
 import pytest
-from yul.main import generate_cairo
+from yul.main import transpile_from_solidity
 
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
 test_dir = os.path.join(warp_root, "tests", "yul")
@@ -18,7 +18,8 @@ main_contract = "WARP"
 
 @pytest.mark.parametrize(("solidity_file"), tests)
 def test_transpilation(solidity_file):
-    gen_cairo_code = generate_cairo(solidity_file, main_contract).splitlines()
+    output = transpile_from_solidity(solidity_file, main_contract)
+    gen_cairo_code = output["cairo_code"].splitlines()
 
     cairo_file_path = solidity_file[:-4] + cairo_suffix
     try:

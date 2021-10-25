@@ -7,7 +7,6 @@ import sys
 
 import yul.yul_ast as ast
 from starkware.cairo.lang.compiler.parser import parse_file
-from yul.Artifacts import Artifacts
 from yul.BuiltinHandler import get_default_builtins
 from yul.ExpressionSplitter import ExpressionSplitter
 from yul.ForLoopEliminator import ForLoopEliminator
@@ -22,12 +21,13 @@ from yul.RevertNormalizer import RevertNormalizer
 from yul.ScopeFlattener import ScopeFlattener
 from yul.SwitchToIfVisitor import SwitchToIfVisitor
 from yul.ToCairoVisitor import ToCairoVisitor
-from yul.utils import get_function_mutabilities, get_public_functions
+from yul.utils import get_for_contract, get_function_mutabilities, get_public_functions
+from yul.WarpException import warp_assert
 
 AST_GENERATOR = "kudu"
 
 
-def generate_cairo(sol_src_path, main_contract):
+def transpile_from_solidity(sol_src_path, main_contract) -> dict:
     if not shutil.which(AST_GENERATOR):
         sys.exit(f"Please install {AST_GENERATOR} first")
 
@@ -45,26 +45,27 @@ def generate_cairo(sol_src_path, main_contract):
         sol_source = f.read()
         public_functions = get_public_functions(sol_source)
         function_mutabilities = get_function_mutabilities(sol_source)
-
-    artifacts_manager = Artifacts(sol_src_path)
+        output = get_for_contract(sol_source, main_contract, ["abi", "bin"])
+        warp_assert(
+            output,
+            f"Couldn't extract {main_contract}'s abi and bytecode from {sol_src_path}",
+        )
+        abi, bytecode = output
 
     yul_ast = parse_node(json.loads(result.stdout))
-    return generate_from_yul(
-        yul_ast,
-        main_contract,
-        public_functions,
-        function_mutabilities,
-        artifacts_manager,
-    )
+    cairo_code = transpile_from_yul(yul_ast, public_functions, function_mutabilities)
+    return {
+        "cairo_code": cairo_code,
+        "sol_abi": abi,
+        "sol_bytecode": bytecode,
+    }
 
 
-def generate_from_yul(
+def transpile_from_yul(
     yul_ast: ast.Node,
-    main_contract: str,
     public_functions: list[str],
     function_mutabilities: dict[str, str],
-    artifacts_manager: Artifacts,
-):
+) -> str:
     name_gen = NameGenerator()
     cairo_functions = CairoFunctions(FunctionGenerator())
     yul_ast = ForLoopSimplifier().map(yul_ast)
@@ -79,16 +80,13 @@ def generate_from_yul(
     yul_ast = FunctionPruner(public_functions).map(yul_ast)
 
     cairo_visitor = ToCairoVisitor(
-        main_contract,
         public_functions,
         function_mutabilities,
         name_gen,
-        artifacts_manager,
         cairo_functions,
         get_default_builtins,
     )
-    cairo_code = cairo_visitor.translate(yul_ast)
-    return parse_file(cairo_code).format()
+    return parse_file(cairo_visitor.translate(yul_ast)).format()
 
 
 def main(argv):
@@ -96,7 +94,7 @@ def main(argv):
         sys.exit("Supply SOLIDITY-CONTRACT and MAIN-CONTRACT-NAME")
     sol_src_path = argv[1]
     main_contract = argv[2]
-    generate_cairo(sol_src_path, main_contract)
+    transpile_from_solidity(sol_src_path, main_contract)
 
 
 if __name__ == "__main__":

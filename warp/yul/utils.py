@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from typing import Optional, Sequence
 
 import solcx
 
@@ -136,6 +137,18 @@ def get_function_mutabilities(sol_source: str) -> dict[str, str]:
             if v["type"] == "function":
                 function_visibilities[v["name"]] = v["stateMutability"]
     return function_visibilities
+
+
+def get_for_contract(
+    sol_source: str, target_contract: str, output_values: list[str]
+) -> Optional[Sequence[str]]:
+    validate_solc_ver(sol_source)
+    compiled = solcx.compile_source(sol_source, output_values=output_values)
+    for contract, values in compiled.items():
+        name = contract[contract.find(":") + 1 :]
+        if name == target_contract:
+            return [values[x] for x in output_values]
+    return None
 
 
 def validate_solc_ver(sol_source):
