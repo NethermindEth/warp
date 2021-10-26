@@ -5,7 +5,7 @@ from evm.array import array_copy_to_memory, array_create_from_memory
 from evm.calls import calldata_load, calldatasize_, returndata_write
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import mstore_
-from evm.uint256 import is_eq, is_gt, is_lt, is_zero, slt, u256_add
+from evm.uint256 import is_eq, is_gt, is_lt, is_zero, slt, u256_add, u256_shr
 from evm.utils import update_msize
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import HashBuiltin
@@ -15,7 +15,7 @@ from starkware.cairo.common.math import unsigned_div_rem
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import (
-    Uint256, uint256_and, uint256_eq, uint256_not, uint256_shr, uint256_sub)
+    Uint256, uint256_and, uint256_eq, uint256_not, uint256_sub)
 from starkware.starknet.common.storage import Storage
 
 func __warp_constant_0() -> (res : Uint256):
@@ -106,17 +106,17 @@ end
 func fun_callMeMaybe{range_check_ptr}(var_arr : Uint256) -> (var : Uint256):
     alloc_locals
     local var : Uint256 = Uint256(low=0, high=0)
-    local _1_10 : Uint256 = Uint256(low=5, high=0)
+    local _1_10 : Uint256 = Uint256(low=8, high=0)
     local _2_11 : Uint256 = Uint256(low=255, high=0)
     let (local _3_12 : Uint256) = uint256_and(var_arr, _2_11)
     local range_check_ptr = range_check_ptr
     let (local _4_13 : Uint256) = is_gt(_3_12, _1_10)
     local range_check_ptr = range_check_ptr
     if _4_13.low + _4_13.high != 0:
-        local var : Uint256 = Uint256(low=1, high=0)
+        local var : Uint256 = Uint256(low=0, high=0)
         return (var)
     end
-    local var : Uint256 = Uint256(low=0, high=0)
+    local var : Uint256 = Uint256(low=1, high=0)
     return (var)
 end
 
@@ -222,7 +222,7 @@ func __warp_block_0{
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment = exec_env
     local _9 : Uint256 = Uint256(low=224, high=0)
-    let (local _10 : Uint256) = uint256_shr(_8, _9)
+    let (local _10 : Uint256) = u256_shr(_9, _8)
     local range_check_ptr = range_check_ptr
     local _11 : Uint256 = Uint256(low=1752600728, high=0)
     let (local _12 : Uint256) = is_eq(_11, _10)
@@ -256,15 +256,10 @@ end
 @external
 func fun_ENTRY_POINT{
         storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        calldata_size, calldata_len, calldata : felt*, self_address : felt) -> (
+        calldata_size, calldata_len, calldata : felt* ) -> (
         success : felt, returndata_size : felt, returndata_len : felt, f0 : felt, f1 : felt,
         f2 : felt, f3 : felt, f4 : felt, f5 : felt, f6 : felt, f7 : felt):
     alloc_locals
-    initialize_address{
-        syscall_ptr=syscall_ptr,
-        storage_ptr=storage_ptr,
-        range_check_ptr=range_check_ptr,
-        pedersen_ptr=pedersen_ptr}(self_address)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr

@@ -7,10 +7,24 @@ from starkware.cairo.common.uint256 import Uint256
 from starkware.starknet.common.storage import Storage
 from starkware.starknet.common.syscalls import get_caller_address
 
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.bitwise import bitwise_or
+
+from starkware.cairo.common.pow import pow
 from evm.array import array_copy_to_memory, array_create_from_memory
 from evm.array import array_load, extend_array_to_len
 from evm.exec_env import ExecutionEnvironment
 from evm.utils import update_msize
+
+func uint256_to_address_felt{range_check_ptr, 
+        bitwise_ptr : BitwiseBuiltin*}(address_big : Uint256) -> (res : felt):
+    alloc_locals
+    let (local shift_mul: felt) = pow(2,128)
+    local big_part : felt = address_big.high * shift_mul
+    let (local res : felt) = bitwise_or(big_part, address_big.low)
+    return (res=res)
+end
+
 
 func get_caller_data_uint256{syscall_ptr : felt*, range_check_ptr}() -> (caller_data : Uint256):
     alloc_locals
@@ -28,7 +42,7 @@ func calldatacopy_{
     let (local msize) = update_msize(msize, dest_offset.low, length.low)
     local memory_dict : DictAccess* = memory_dict
     array_copy_to_memory(
-        exec_env.calldata_len, exec_env.calldata, dest_offset.low, offset.low, length.low)
+        exec_env.calldata_size, exec_env.calldata, dest_offset.low, offset.low, length.low)
     return ()
 end
 
@@ -38,7 +52,7 @@ end
 
 func calldata_load{range_check_ptr, exec_env : ExecutionEnvironment}(offset) -> (value : Uint256):
     alloc_locals
-    let (local value : Uint256) = array_load(exec_env.calldata_len, exec_env.calldata, offset)
+    let (local value : Uint256) = array_load(exec_env.calldata_size, exec_env.calldata, offset)
     return (value=value)
 end
 
@@ -60,7 +74,7 @@ namespace GenericCallInterface:
 end
 
 func calculate_data_len{range_check_ptr}(calldata_size) -> (calldata_len):
-    let (calldata_len_, rem) = unsigned_div_rem(calldata_size, 8)
+    let (calldata_len_, rem) = unsigned_div_rem(calldata_size, 16)
     if rem != 0:
         return (calldata_len=calldata_len_ + 1)
     else:
@@ -70,7 +84,7 @@ end
 
 func warp_call{
         syscall_ptr : felt*, storage_ptr : Storage*, exec_env : ExecutionEnvironment,
-        memory_dict : DictAccess*, range_check_ptr}(
+        memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
         gas : Uint256, address : Uint256, value : Uint256, in : Uint256, insize : Uint256,
         out : Uint256, outsize : Uint256) -> (success : Uint256):
     alloc_locals
@@ -80,10 +94,12 @@ func warp_call{
     let (local mem : felt*) = array_create_from_memory{
         memory_dict=memory_dict, range_check_ptr=range_check_ptr}(in.low, insize.low)
     local memory_dict : DictAccess* = memory_dict
-    let (calldata_len) = calculate_data_len(insize.low)
+    let (local calldata_len) = calculate_data_len(insize.low)
+    let (local address_felt : felt) = uint256_to_address_felt(address)
+    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     let (local success, local return_size, local return_len, local f0, local f1, local f2,
         local f3, local f4, local f5, local f6, local f7) = GenericCallInterface.fun_ENTRY_POINT(
-        address.low, insize.low, calldata_len, mem)
+        address_felt, insize.low, calldata_len, mem)
     local syscall_ptr : felt* = syscall_ptr
     local storage_ptr : Storage* = storage_ptr
     let (local return_array : felt*) = alloc()
@@ -106,7 +122,7 @@ end
 
 func warp_static_call{
         syscall_ptr : felt*, storage_ptr : Storage*, exec_env : ExecutionEnvironment,
-        memory_dict : DictAccess*, range_check_ptr}(
+        memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
         gas : Uint256, address : Uint256, in : Uint256, insize : Uint256, out : Uint256,
         outsize : Uint256) -> (success : Uint256):
     return warp_call(gas, address, Uint256(0, 0), in, insize, out, outsize)
@@ -115,7 +131,6 @@ end
 func returndata_write{memory_dict : DictAccess*, exec_env : ExecutionEnvironment, range_check_ptr}(
         returndata_ptr : Uint256, returndata_size : Uint256):
     alloc_locals
-    assert 0 = 1
     let (local return_ : felt*) = array_create_from_memory(returndata_ptr.low, returndata_size.low)
     local memory_dict : DictAccess* = memory_dict
     let (returndata_len) = calculate_data_len(returndata_size.low)

@@ -39,38 +39,41 @@ from web3._utils.normalizers import (
 )
 from web3.types import ABI, ABIFunction
 
-warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
+warp_root = os.path.abspath(os.path.join(__file__, "../.."))
 test_dir = __file__
 
-@pytest.mark.asyncio
 async def test_starknet():
     contract_file = test_dir[:-8] + ".cairo"
     solidity_file = test_dir[:-8] + ".sol"
     cairo_path = f"{warp_root}/warp/cairo-src"
-    contract_definition = compile_starknet_files(
+    caller = compile_starknet_files(
         [contract_file], debug_info=True, cairo_path=[cairo_path]
+    )
+    callee = compile_starknet_files(
+        ["/home/greg/dev/warp/calls_test/callee.cairo"], debug_info=True, cairo_path=[cairo_path]
     )
 
     starknet = await StarknetState.empty()
-    contract_address_1 = await starknet.deploy(contract_definition=contract_definition)
-    contract_address_2 = await starknet.deploy(contract_definition=contract_definition)
-    evm_calldata = get_evm_calldata(solidity_file, "WARP", "callMe", [contract_address_1])
-
-    print(evm_calldata)
-    print(type(evm_calldata))
+    caller_addr = await starknet.deploy(contract_definition=caller)
+    callee_addr = await starknet.deploy(contract_definition=callee)
+    evm_calldata = get_evm_calldata(solidity_file, "WARP", "callMe", [callee_addr])
 
     cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(evm_calldata[2:]))
     calldata_size = (len(cairo_input) * 16) - unused_bytes
-    calldata = [calldata_size, len(cairo_input)] + cairo_input
+    calldata = [calldata_size, len(cairo_input)] + cairo_input 
+    calldata.append(callee_addr)
+
     assert calldata_size == 36
+    assert len(cairo_input) == 3
 
     res = await starknet.invoke_raw(
-        contract_address=contract_address_2,
+        contract_address=caller_addr,
         selector="fun_ENTRY_POINT",
-        calldata=calldata + [contract_address_2],
+        calldata=calldata,
     )
+    print(res)
 
-    assert res.retdata == [1, 0]
+    # assert res.retdata == [1, 0]
 
 def cairoize_bytes(bs):
     """Represent bytes as an array of 128-bit big-endian integers and
@@ -231,5 +234,4 @@ def get_evm_calldata(
     return evm_calldata
 
 
-if __name__ == "main" :
-    asyncio.run(test_starknet())
+asyncio.run(test_starknet())

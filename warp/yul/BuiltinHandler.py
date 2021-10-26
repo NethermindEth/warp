@@ -133,8 +133,8 @@ class Xor(BuiltinHandler):
 class Shl(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
-            module=UINT256_MODULE,
-            function_name="uint256_shl",
+            module="evm.uint256",
+            function_name="u256_shl",
             function_args=function_args,
             cairo_functions=cairo_functions,
         )
@@ -142,11 +142,10 @@ class Shl(BuiltinHandler):
 
 class Shr(BuiltinHandler):  # ARG ORDER NOT CONVENTIONAL
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
-        [a, b] = map(lambda x : x.strip(), function_args.split(","))
         super().__init__(
-            module=UINT256_MODULE,
-            function_name="uint256_shr",
-            function_args=f"{b}, {a}",
+            module="evm.uint256",
+            function_name="u256_shr",
+            function_args=function_args,
             cairo_functions=cairo_functions,
         )
 
@@ -426,7 +425,6 @@ class CallDataSize(BuiltinHandler):
         self.function_call="calldatasize_{range_check_ptr=range_check_ptr, exec_env=exec_env}()"
 
 
-
 class CallDataCopy(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
@@ -522,6 +520,7 @@ class Call(BuiltinHandler):
                 "exec_env",
                 "memory_dict",
                 "range_check_ptr",
+                "bitwise_ptr",
             ),
             cairo_functions=cairo_functions,
         )
@@ -539,6 +538,7 @@ class StaticCall(BuiltinHandler):
                 "exec_env",
                 "memory_dict",
                 "range_check_ptr",
+                "bitwise_ptr"
             ),
             cairo_functions=cairo_functions,
         )

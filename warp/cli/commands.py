@@ -41,6 +41,7 @@ async def send_req(method, url, tx: Optional[Union[str, Dict[str, Any]]] = None)
 
 # returns true/false on transaction success/failure
 async def _invoke(source_name, address, function, cairo_inputs, evm_inputs):
+    print(hex(address))
     with open(os.path.join(artifacts_dir, "MAIN_CONTRACT")) as f:
         main_contract = f.read()
     evm_calldata = get_evm_calldata(source_name, main_contract, function, evm_inputs)

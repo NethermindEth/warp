@@ -56,18 +56,19 @@ async def test_starknet():
     contract_address_2 = await starknet.deploy(contract_definition=contract_definition)
     evm_calldata = get_evm_calldata(solidity_file, "WARP", "callMe", [contract_address_1])
 
-    print(evm_calldata)
-    print(type(evm_calldata))
-
     cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(evm_calldata[2:]))
     calldata_size = (len(cairo_input) * 16) - unused_bytes
-    calldata = [calldata_size, len(cairo_input)] + cairo_input
+    calldata = [calldata_size, len(cairo_input)] + cairo_input + [contract_address_2]
+
+    print(contract_address_1)
+
     assert calldata_size == 36
+    assert len(cairo_input) == 3
 
     res = await starknet.invoke_raw(
         contract_address=contract_address_2,
         selector="fun_ENTRY_POINT",
-        calldata=calldata + [contract_address_2],
+        calldata=calldata,
     )
 
     assert res.retdata == [1, 0]

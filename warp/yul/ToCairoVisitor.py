@@ -35,7 +35,10 @@ COMMON_IMPORTS = {
     },
     "starkware.cairo.common.uint256": {"Uint256", "uint256_eq"},
     "starkware.cairo.common.math": {"unsigned_div_rem"},
-    "starkware.cairo.common.cairo_builtins": {"HashBuiltin"},
+    "starkware.cairo.common.cairo_builtins": {
+        "HashBuiltin",
+        "BitwiseBuiltin",
+    },
     "starkware.starknet.common.storage": {"Storage"},
     "starkware.cairo.common.alloc": {"alloc"},
     "evm.exec_env": {"ExecutionEnvironment"},
@@ -44,21 +47,8 @@ COMMON_IMPORTS = {
 }
 
 MAIN_PREAMBLE = """%lang starknet
-%builtins pedersen range_check
+%builtins pedersen range_check bitwise
 """
-
-IMPLICITS = {
-    "memory_dict": "DictAccess*",
-    "msize": None,
-    "pedersen_ptr": "HashBuiltin*",
-    "range_check_ptr": None,
-    "storage_ptr": "Storage*",
-    "syscall_ptr": "felt*",
-    "exec_env": "ExecutionEnvironment",
-}
-
-IMPLICITS_SET = set(IMPLICITS.keys())
-
 
 class ToCairoVisitor(AstVisitor):
     def __init__(
@@ -140,6 +130,8 @@ class ToCairoVisitor(AstVisitor):
     def visit_function_call(self, node: ast.FunctionCall) -> str:
         fun_repr = self.print(node.function_name)
         args_repr = ", ".join(self.print(x) for x in node.arguments)
+        if "validator_revert_address" in fun_repr:
+            return ""
         if fun_repr == "revert" and not self.in_entry_function:
             return "assert 0 = 1\njmp rel 0"
         if fun_repr == "revert" and self.in_entry_function:
@@ -167,6 +159,7 @@ class ToCairoVisitor(AstVisitor):
                     node.function_name.name, (IMPLICITS_SET - {"exec_env"})
                 )
             )
+            print(f"{fun_repr}: {self.last_used_implicits}")
             if (
                 "exec_env" in self.function_to_implicits[fun_repr]
                 and fun_repr != self.name_gen.take_cond_revert_name()
@@ -221,6 +214,8 @@ class ToCairoVisitor(AstVisitor):
         return "\n".join(stmt_reprs)
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
+        if node.name == "validator_revert_address":
+            return ""
         if "_dynArgs" in node.name:
             self.artifacts_manager.write_artifact(
                 ".DynArgFunctions", node.name.replace("_dynArgs", "") + "\n"
@@ -243,7 +238,7 @@ class ToCairoVisitor(AstVisitor):
             return (
                 "@external\n"
                 f"func {node.name}{{storage_ptr: Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr,"
-                f"syscall_ptr : felt* }}(calldata_size,"
+                f"syscall_ptr : felt* , bitwise_ptr : BitwiseBuiltin*}}(calldata_size,"
                 f"calldata_len, calldata : felt*, self_address : felt) -> ({returns_repr}):\n"
                 f"alloc_locals\n"
                 f"initialize_address{{syscall_ptr=syscall_ptr, storage_ptr=storage_ptr, range_check_ptr=range_check_ptr, pedersen_ptr=pedersen_ptr}}(self_address)\n"
@@ -286,6 +281,8 @@ class ToCairoVisitor(AstVisitor):
         external_function = (
             self._make_external_function(node, mutability) if external else ""
         )
+        if "warp_call" in body_repr or "warp_static_call" in body_repr:
+            self.function_to_implicits[node.name].add("bitwise_ptr")
         implicits = sorted(self.function_to_implicits.setdefault(node.name, set()))
         implicits_decl = ""
         if implicits:
@@ -314,6 +311,7 @@ class ToCairoVisitor(AstVisitor):
             if not external and self.function_mutabilities.get(function_name)
             else ""
         )
+        print(f"{node.name}: {implicits_decl}")
         self.in_entry_function = False
         return (
             f"{mutability}\n"
