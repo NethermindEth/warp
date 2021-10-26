@@ -426,6 +426,7 @@ class CallDataSize(BuiltinHandler):
         self.function_call="calldatasize_{range_check_ptr=range_check_ptr, exec_env=exec_env}()"
 
 
+
 class CallDataCopy(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
