@@ -30,8 +30,7 @@ sudo apt install -y libgmp3-dev
 sudo apt-get install -y python3.7-venv
 python3.7 -m venv ~/warp_demo
 source ~/warp_demo/bin/activate
-pip install wheel
-pip install ecdsa fastecdsa sympy
+cd warp
 make warp
 ```
 MacOs:
@@ -40,8 +39,7 @@ brew install python@3.7
 brew install gmp
 python3.7 -m venv ~/warp_demo
 source ~/warp_demo/bin/activate
-pip install wheel
-pip install ecdsa fastecdsa sympy
+cd warp
 make warp
 ```
 ## Usage :computer:
