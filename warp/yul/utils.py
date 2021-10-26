@@ -184,3 +184,13 @@ def check_installed_solc(source_version: float) -> str:
     if src_ver not in vers_clean:
         solcx.install_solc(src_ver)
     return src_ver
+
+
+def cairoize_bytes(bs: bytes) -> tuple(list[int], int):
+    """Represent bytes as an array of 128-bit big-endian integers and
+    return a number of unused bytes in the last array cell.
+    """
+    unused_bytes = -len(bs) % 16
+    bs = bs.ljust(len(bs) + unused_bytes, b"\x00")
+    arr = [int.from_bytes(bs[i : i + 16], "big") for i in range(0, len(bs), 16)]
+    return (arr, unused_bytes)

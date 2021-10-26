@@ -14,7 +14,7 @@ from starkware.starknet.services.api.gateway.transaction import (
     InvokeFunction,
     Transaction,
 )
-from transpiler.utils import cairoize_bytes
+from yul.utils import cairoize_bytes
 
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../.."))
 artifacts_dir = os.path.join(os.path.abspath("."), "artifacts")
