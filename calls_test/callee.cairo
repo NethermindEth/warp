@@ -1,5 +1,5 @@
 %lang starknet
-%builtins pedersen range_check
+%builtins pedersen range_check bitwise
 
 from evm.array import array_copy_to_memory, array_create_from_memory
 from evm.calls import calldata_load, calldatasize_, returndata_write
@@ -8,7 +8,7 @@ from evm.memory import mstore_
 from evm.uint256 import is_eq, is_gt, is_lt, is_zero, slt, u256_add, u256_shr
 from evm.utils import update_msize
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.math import unsigned_div_rem
@@ -53,9 +53,9 @@ func initialize_address{
     return ()
 end
 
-func __warp_cond_revert(_4_24 : Uint256) -> ():
+func __warp_cond_revert(_4_22 : Uint256) -> ():
     alloc_locals
-    if _4_24.low + _4_24.high != 0:
+    if _4_22.low + _4_22.high != 0:
         assert 0 = 1
         jmp rel 0
     else:
@@ -63,16 +63,16 @@ func __warp_cond_revert(_4_24 : Uint256) -> ():
     end
 end
 
-func validator_revert_uint8{range_check_ptr}(value_20 : Uint256) -> ():
+func validator_revert_uint8{range_check_ptr}(value_18 : Uint256) -> ():
     alloc_locals
-    local _1_21 : Uint256 = Uint256(low=255, high=0)
-    let (local _2_22 : Uint256) = uint256_and(value_20, _1_21)
+    local _1_19 : Uint256 = Uint256(low=255, high=0)
+    let (local _2_20 : Uint256) = uint256_and(value_18, _1_19)
     local range_check_ptr = range_check_ptr
-    let (local _3_23 : Uint256) = is_eq(value_20, _2_22)
+    let (local _3_21 : Uint256) = is_eq(value_18, _2_20)
     local range_check_ptr = range_check_ptr
-    let (local _4_24 : Uint256) = is_zero(_3_23)
+    let (local _4_22 : Uint256) = is_zero(_3_21)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_4_24)
+    __warp_cond_revert(_4_22)
     return ()
 end
 
@@ -106,24 +106,24 @@ end
 func fun_callMeMaybe{range_check_ptr}(var_arr : Uint256) -> (var : Uint256):
     alloc_locals
     local var : Uint256 = Uint256(low=0, high=0)
-    local _1_10 : Uint256 = Uint256(low=8, high=0)
-    local _2_11 : Uint256 = Uint256(low=255, high=0)
-    let (local _3_12 : Uint256) = uint256_and(var_arr, _2_11)
+    local _1_8 : Uint256 = Uint256(low=8, high=0)
+    local _2_9 : Uint256 = Uint256(low=255, high=0)
+    let (local _3_10 : Uint256) = uint256_and(var_arr, _2_9)
     local range_check_ptr = range_check_ptr
-    let (local _4_13 : Uint256) = is_gt(_3_12, _1_10)
+    let (local _4_11 : Uint256) = is_gt(_3_10, _1_8)
     local range_check_ptr = range_check_ptr
-    if _4_13.low + _4_13.high != 0:
-        local var : Uint256 = Uint256(low=0, high=0)
+    if _4_11.low + _4_11.high != 0:
+        local var : Uint256 = Uint256(low=500000, high=0)
         return (var)
     end
-    local var : Uint256 = Uint256(low=1, high=0)
+    local var : Uint256 = Uint256(low=52, high=0)
     return (var)
 end
 
 @view
 func fun_callMeMaybe_external{
-        pedersen_ptr : HashBuiltin*, range_check_ptr, storage_ptr : Storage*, syscall_ptr : felt*}(
-        var_arr : Uint256) -> (var : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
+        storage_ptr : Storage*, syscall_ptr : felt*}(var_arr : Uint256) -> (var : Uint256):
     alloc_locals
     let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
@@ -131,6 +131,7 @@ func fun_callMeMaybe_external{
     with memory_dict, msize:
         let (local var : Uint256) = fun_callMeMaybe(var_arr)
     end
+    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
@@ -139,27 +140,23 @@ func fun_callMeMaybe_external{
     return (var=var)
 end
 
-func abi_encode_bool_to_bool{memory_dict : DictAccess*, msize, range_check_ptr}(
+func abi_encode_uint256_to_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
         value_4 : Uint256, pos : Uint256) -> ():
     alloc_locals
-    let (local _1_5 : Uint256) = is_zero(value_4)
-    local range_check_ptr = range_check_ptr
-    let (local _2_6 : Uint256) = is_zero(_1_5)
-    local range_check_ptr = range_check_ptr
-    mstore_(offset=pos.low, value=_2_6)
+    mstore_(offset=pos.low, value=value_4)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
     return ()
 end
 
-func abi_encode_bool{memory_dict : DictAccess*, msize, range_check_ptr}(
-        headStart_7 : Uint256, value0_8 : Uint256) -> (tail : Uint256):
+func abi_encode_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
+        headStart_5 : Uint256, value0_6 : Uint256) -> (tail : Uint256):
     alloc_locals
-    local _1_9 : Uint256 = Uint256(low=32, high=0)
-    let (local tail : Uint256) = u256_add(headStart_7, _1_9)
+    local _1_7 : Uint256 = Uint256(low=32, high=0)
+    let (local tail : Uint256) = u256_add(headStart_5, _1_7)
     local range_check_ptr = range_check_ptr
-    abi_encode_bool_to_bool(value0_8, headStart_7)
+    abi_encode_uint256_to_uint256(value0_6, headStart_5)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -184,7 +181,7 @@ func __warp_block_1{
     let (local _18 : Uint256) = fun_callMeMaybe(_17)
     local range_check_ptr = range_check_ptr
     local _19 : Uint256 = _1
-    let (local _20 : Uint256) = abi_encode_bool(_1, _18)
+    let (local _20 : Uint256) = abi_encode_uint256(_1, _18)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -255,11 +252,17 @@ end
 
 @external
 func fun_ENTRY_POINT{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        calldata_size, calldata_len, calldata : felt* ) -> (
+        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*,
+        bitwise_ptr : BitwiseBuiltin*}(
+        calldata_size, calldata_len, calldata : felt*, self_address : felt) -> (
         success : felt, returndata_size : felt, returndata_len : felt, f0 : felt, f1 : felt,
         f2 : felt, f3 : felt, f4 : felt, f5 : felt, f6 : felt, f7 : felt):
     alloc_locals
+    initialize_address{
+        syscall_ptr=syscall_ptr,
+        storage_ptr=storage_ptr,
+        range_check_ptr=range_check_ptr,
+        pedersen_ptr=pedersen_ptr}(self_address)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr

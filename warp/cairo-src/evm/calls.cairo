@@ -67,7 +67,7 @@ end
 
 @contract_interface
 namespace GenericCallInterface:
-    func fun_ENTRY_POINT(calldata_size : felt, calldata_len : felt, calldata : felt*) -> (
+    func fun_ENTRY_POINT(calldata_size : felt, calldata_len : felt, calldata : felt*, self_address : felt) -> (
             success : felt, returndata_size : felt, returndata_len : felt, f0 : felt, f1 : felt,
             f2 : felt, f3 : felt, f4 : felt, f5 : felt, f6 : felt, f7 : felt):
     end
@@ -99,7 +99,7 @@ func warp_call{
     local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     let (local success, local return_size, local return_len, local f0, local f1, local f2,
         local f3, local f4, local f5, local f6, local f7) = GenericCallInterface.fun_ENTRY_POINT(
-        address_felt, insize.low, calldata_len, mem)
+        address_felt, insize.low, calldata_len, mem, 0)
     local syscall_ptr : felt* = syscall_ptr
     local storage_ptr : Storage* = storage_ptr
     let (local return_array : felt*) = alloc()
