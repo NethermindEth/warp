@@ -7,9 +7,8 @@ interface IWarp {
 }
 
 contract WARP {
-  function callMe(address add) external pure returns (bool) {
+  function callMe(address add) external returns (bool) {
                   // Here's my number
     return IWarp(add).callMeMaybe(66);
   }
-
 }

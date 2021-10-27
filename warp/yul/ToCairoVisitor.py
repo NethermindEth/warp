@@ -130,7 +130,7 @@ class ToCairoVisitor(AstVisitor):
     def visit_function_call(self, node: ast.FunctionCall) -> str:
         fun_repr = self.print(node.function_name)
         args_repr = ", ".join(self.print(x) for x in node.arguments)
-        if "validator_revert_address" in fun_repr:
+        if "validator_" in fun_repr:
             return ""
         if fun_repr == "revert" and not self.in_entry_function:
             return "assert 0 = 1\njmp rel 0"
@@ -214,7 +214,7 @@ class ToCairoVisitor(AstVisitor):
         return "\n".join(stmt_reprs)
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
-        if node.name == "validator_revert_address":
+        if node.name == "validator_":
             return ""
         if "_dynArgs" in node.name:
             self.artifacts_manager.write_artifact(
