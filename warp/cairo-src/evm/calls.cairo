@@ -99,7 +99,7 @@ func warp_call{
     local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     let (local success, local return_size, local return_len, local f0, local f1, local f2,
         local f3, local f4, local f5, local f6, local f7) = GenericCallInterface.fun_ENTRY_POINT(
-        address_felt, insize.low, calldata_len, mem, 0)
+        address_felt, insize.low, calldata_len, mem, address_felt)
     local syscall_ptr : felt* = syscall_ptr
     local storage_ptr : Storage* = storage_ptr
     let (local return_array : felt*) = alloc()
