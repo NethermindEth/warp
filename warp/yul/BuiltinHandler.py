@@ -133,8 +133,8 @@ class Xor(BuiltinHandler):
 class Shl(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
-            module=UINT256_MODULE,
-            function_name="uint256_shl",
+            module="evm.uint256",
+            function_name="u256_shl",
             function_args=function_args,
             cairo_functions=cairo_functions,
         )
@@ -143,8 +143,8 @@ class Shl(BuiltinHandler):
 class Shr(BuiltinHandler):  # ARG ORDER NOT CONVENTIONAL
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
-            module=UINT256_MODULE,
-            function_name="uint256_shr",
+            module="evm.uint256",
+            function_name="u256_shr",
             function_args=function_args,
             cairo_functions=cairo_functions,
         )
@@ -407,24 +407,24 @@ class CallDataLoad(BuiltinHandler):
         super().__init__(
             module="evm.calls",
             function_name="calldata_load",
-            function_args=function_args,
+            function_args=f"{self.offset}",
             used_implicits=("range_check_ptr", "exec_env"),
             cairo_functions=cairo_functions,
         )
-        self.function_call = f"calldata_load({self.offset})"
 
 
 class CallDataSize(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
-        info = cairo_functions.constant_function(0)
         super().__init__(
-            module="",
-            function_name=info.name,
-            function_args=function_args,
-            used_implicits=tuple(info.implicits),
+            module="evm.calls",
+            function_name="calldatasize_",
+            function_args="",
+            used_implicits=("range_check_ptr", "exec_env"),
             cairo_functions=cairo_functions,
         )
-        self.function_call = info.name + "()"
+        self.function_call = (
+            "calldatasize_{range_check_ptr=range_check_ptr, exec_env=exec_env}()"
+        )
 
 
 class CallDataCopy(BuiltinHandler):
@@ -438,57 +438,52 @@ class CallDataCopy(BuiltinHandler):
         )
 
 
-# ============ Return Data ============
-
-
-class ReturnDataCopy(BuiltinHandler):
-    touched = False
-
-    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
-        super().__init__(
-            module="",
-            function_name="",
-            function_args="",
-            used_implicits=(),
-            cairo_functions=cairo_functions,
-        )
-        if not ReturnDataCopy.touched:
-            print(
-                "WARNING: This contract referenced 'return data' (returndatacopy) which is not yet supported. Evaluating this contract on starknet may result in unexpected behavior."
-            )
-            ReturnDataCopy.touched = True
-        self.function_call = ""
-
-
-class ReturnDataSize(BuiltinHandler):
-    touched = False
-
+class CallValue(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         info = cairo_functions.constant_function(0)
         super().__init__(
             module="",
             function_name=info.name,
             function_args="",
-            used_implicits=tuple(info.implicits),
             cairo_functions=cairo_functions,
         )
-        if not ReturnDataCopy.touched:
-            print(
-                "WARNING: This contract referenced 'return data' (returndatacopy) which is not yet supported. Evaluating this contract on starknet may result in unexpected behavior."
-            )
-            ReturnDataCopy.touched = True
+
+
+# ============ Return Data ============
+
+
+class ReturnDataCopy(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        super().__init__(
+            module="evm.calls",
+            function_name="returndata_copy",
+            function_args=function_args,
+            used_implicits=("range_check_ptr", "exec_env", "memory_dict"),
+            cairo_functions=cairo_functions,
+        )
+
+
+class ReturnDataSize(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.identity_function(["Uint256"])
+        super().__init__(
+            module="",
+            function_name=info.name,
+            function_args="Uint256(low=exec_env.returndata_size, high=0)",
+            used_implicits=("exec_env",),
+            cairo_functions=cairo_functions,
+        )
 
 
 class Return(BuiltinHandler):
-    def __init__(self, function_arg: str, cairo_functions: CairoFunctions):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
         super().__init__(
-            module="",
-            function_name="",
-            function_args="",
-            used_implicits=(),
+            module="evm.calls",
+            function_name="returndata_write",
+            function_args=function_args,
             cairo_functions=cairo_functions,
+            used_implicits=("exec_env",),
         )
-        self.function_call = ""
 
 
 class Address(BuiltinHandler):
@@ -497,22 +492,15 @@ class Address(BuiltinHandler):
             module="",
             function_name="",
             function_args=function_args,
-            used_implicits=("storage_ptr", "range_check_ptr", "pedersen_ptr"),
+            used_implicits=(
+                "syscall_ptr",
+                "storage_ptr",
+                "range_check_ptr",
+                "pedersen_ptr",
+            ),
             cairo_functions=cairo_functions,
         )
         self.function_call = "address()"
-
-
-class Gas(BuiltinHandler):
-    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
-        super().__init__(
-            module="",
-            function_name=cairo_functions.stubbing_function().name,
-            function_args="",
-            used_implicits=(),
-            cairo_functions=cairo_functions,
-        )
-        self.function_call = "gas()"
 
 
 class Delegatecall(BuiltinHandler):
@@ -527,6 +515,63 @@ class Delegatecall(BuiltinHandler):
         # TODO implement delegatecall
 
 
+class Call(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        super().__init__(
+            module="evm.calls",
+            function_name="warp_call",
+            function_args=function_args,
+            used_implicits=(
+                "syscall_ptr",
+                "storage_ptr",
+                "exec_env",
+                "memory_dict",
+                "range_check_ptr",
+                "bitwise_ptr",
+            ),
+            cairo_functions=cairo_functions,
+        )
+
+
+class StaticCall(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        super().__init__(
+            module="evm.calls",
+            function_name="warp_static_call",
+            function_args=function_args,
+            used_implicits=(
+                "syscall_ptr",
+                "storage_ptr",
+                "exec_env",
+                "memory_dict",
+                "range_check_ptr",
+                "bitwise_ptr",
+            ),
+            cairo_functions=cairo_functions,
+        )
+
+
+class ExtCodeSize(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.constant_function(1)
+        super().__init__(
+            module="",
+            function_name=info.name,
+            function_args="",
+            cairo_functions=cairo_functions,
+        )
+
+
+class Gas(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        super().__init__(
+            module="",
+            function_name="gas",
+            function_args="",
+            cairo_functions=cairo_functions,
+        )
+
+
 YUL_BUILTINS_MAP = {
     "add": Add,
     "addmod": AddMod,
@@ -538,10 +583,10 @@ YUL_BUILTINS_MAP = {
     "calldatasize": CallDataSize,
     "caller": Caller,
     "delegatecall": Delegatecall,
+    "callvalue": CallValue,
     "div": Div,
     "eq": Eq,
     "exp": Exp,
-    "gas": Gas,
     "gt": Gt,
     "iszero": IsZero,
     "keccak256": SHA3,
@@ -568,6 +613,10 @@ YUL_BUILTINS_MAP = {
     "slt": Slt,
     "smod": SMod,
     "sstore": SStore,
+    "extcodesize": ExtCodeSize,
+    "gas": Gas,
+    "call": Call,
+    "staticcall": StaticCall,
     "sub": Sub,
     "xor": Xor,
 }

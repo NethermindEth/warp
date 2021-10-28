@@ -6,6 +6,7 @@ IMPLICITS = {
     "storage_ptr": "Storage*",
     "syscall_ptr": "felt*",
     "exec_env": "ExecutionEnvironment",
+    "bitwise_ptr": "BitwiseBuiltin*",
 }
 
 IMPLICITS_SET = set(IMPLICITS.keys())

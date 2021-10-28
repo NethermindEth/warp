@@ -31,6 +31,7 @@ async def test_ExpressionSplitter():
     ).print(new_node)
     assert cairo.splitlines() == [
         "let (local __warp_subexpr_1 : Uint256) = f2()",
+        "local bitwise_ptr: BitwiseBuiltin* = bitwise_ptr",
         "local memory_dict: DictAccess* = memory_dict",
         "local msize = msize",
         "local pedersen_ptr: HashBuiltin* = pedersen_ptr",
@@ -38,6 +39,7 @@ async def test_ExpressionSplitter():
         "local storage_ptr: Storage* = storage_ptr",
         "local syscall_ptr: felt* = syscall_ptr",
         "let (local __warp_subexpr_0 : Uint256) = f1()",
+        "local bitwise_ptr: BitwiseBuiltin* = bitwise_ptr",
         "local memory_dict: DictAccess* = memory_dict",
         "local msize = msize",
         "local pedersen_ptr: HashBuiltin* = pedersen_ptr",
@@ -45,6 +47,7 @@ async def test_ExpressionSplitter():
         "local storage_ptr: Storage* = storage_ptr",
         "local syscall_ptr: felt* = syscall_ptr",
         "let (local res : Uint256) = <(__warp_subexpr_0, __warp_subexpr_1)",
+        "local bitwise_ptr: BitwiseBuiltin* = bitwise_ptr",
         "local memory_dict: DictAccess* = memory_dict",
         "local msize = msize",
         "local pedersen_ptr: HashBuiltin* = pedersen_ptr",
