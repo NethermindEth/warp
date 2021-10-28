@@ -98,6 +98,9 @@ class ToCairoVisitor(AstVisitor):
         return f"{node.name} : {node.type}"
 
     def visit_literal(self, node: ast.Literal) -> str:
+        if isinstance(node.value, str):
+            string = node.value + "\0" * (32 - len(node.value))
+            return f"Uint256('{string[16: 32]}', '{string[:16]}')"
         v = int(node.value)  # to convert bools: True -> 1, False -> 0
         high, low = divmod(v, UINT128_BOUND)
         return f"Uint256(low={low}, high={high})"
