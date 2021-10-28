@@ -179,7 +179,6 @@ def get_evm_calldata(
 
     w3 = Web3()
     evm_contract_factoryClass = StarkNetEVMContract()
-    inputs[0] = int(inputs[0],16)
     evm_contract = evm_contract_factoryClass.factory(w3, abi=abi, bytecode=bytecode)
     evm_calldata = evm_contract.encodeABI(fn_name=fn_name, args=inputs)
 
