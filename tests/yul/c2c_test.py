@@ -5,7 +5,7 @@ import pytest
 from cli.StarkNetEvmContract import get_evm_calldata
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
-from transpiler.utils import cairoize_bytes
+from yul.utils import cairoize_bytes
 
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
 test_dir = os.path.dirname(os.path.abspath(__file__))
