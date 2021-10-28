@@ -1,3 +1,0 @@
-PUSH1 0x2e
-PUSH1 0x3f
-AND

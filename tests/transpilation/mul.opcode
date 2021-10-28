@@ -1,3 +1,0 @@
-PUSH1 0x8
-PUSH1 0x56
-MUL

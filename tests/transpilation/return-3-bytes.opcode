@@ -1,8 +1,0 @@
-PUSH4 0x1ffeead  # [33549997]
-PUSH4 0xddfeeb   # [14548715, 33549997]
-ADD              # [48098712]
-PUSH1 0x2        # [2, 48098712]
-MSTORE           # [], m[33] = 0x98, m[32] = 0xed, m[31] = 0xdd, m[30] = 0x2
-PUSH1 0x3        # [4]
-PUSH1 0x1e       # [30, 4]
-RETURN           # [], output = [0, 48098712]

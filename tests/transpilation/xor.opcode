@@ -1,3 +1,0 @@
-PUSH1 0x8e
-PUSH1 0xbf
-XOR

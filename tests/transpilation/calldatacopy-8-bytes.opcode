@@ -1,6 +1,0 @@
-PUSH1 0x8     # length
-PUSH2 0xABCD  # offset
-PUSH1 0x0     # destOffset
-CALLDATACOPY  # calldata is hardcoded in starknet_test.py =(
-PUSH2 0xABCD
-MLOAD
