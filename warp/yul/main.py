@@ -46,6 +46,7 @@ def generate_cairo(sol_src_path, main_contract):
         function_mutabilities = get_function_mutabilities(sol_source)
 
     artifacts_manager = Artifacts(sol_src_path)
+
     yul_ast = parse_node(json.loads(result.stdout))
     return generate_from_yul(
         yul_ast,

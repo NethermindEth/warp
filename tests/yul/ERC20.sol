@@ -1,35 +1,62 @@
-pragma solidity ^0.8.6;
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
 
 contract WARP {
-    uint8  public decimals    = 18;
-    uint256 public totalSupply= 100000000000000000000000000000000000;
+    mapping(address => uint256) public _balances;
 
-    mapping (uint => uint)                       public  balanceOf;
+    uint256 public _totalSupply = 100000000000000;
 
-    function deposit(uint sender, uint256 value) public payable returns (uint, uint){
-        balanceOf[sender] += value;
-        return (21,12);
+    function decimals() external pure returns (uint8) {
+        return 18;
     }
 
-    function withdraw(uint wad, uint sender) public payable {
-        require(balanceOf[sender] >= wad);
-        balanceOf[sender] -= wad;
-        (uint a, uint b) = deposit(sender, wad);
+    function totalSupply() public view returns (uint256) {
+        return _totalSupply;
     }
 
+    function balanceOf(address account) external view returns (uint256) {
+        return _balances[account];
+    }
 
-    function transferFrom(uint src, uint dst, uint wad, uint sender)
-        public payable
-        returns (bool)
-    {
-
-        if (src != sender) {
-            require(balanceOf[src] >= wad);
-        }
-
-        balanceOf[src] -= wad;
-        balanceOf[dst] += wad;
-
+    function mint(address to, uint amount) external returns (bool) {
+        _balances[to] += amount;
         return true;
+    }
+
+    function transfer(address recipient, uint256 amount) public returns (bool) {
+        _transfer(msg.sender, recipient, amount);
+        return true;
+    }
+
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool) {
+        _transfer(sender, recipient, amount);
+        return true;
+    }
+
+    function _transfer(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) internal {
+        uint256 senderBalance = _balances[sender];
+        require(senderBalance >= amount);
+        unchecked {
+            _balances[sender] = senderBalance - amount;
+        }
+        _balances[recipient] += amount;
+    }
+
+    function _burn(address account, uint256 amount) internal {
+        uint256 accountBalance = _balances[account];
+        require(accountBalance >= amount);
+        unchecked {
+            _balances[account] = accountBalance - amount;
+        }
+        _totalSupply -= amount;
     }
 }
