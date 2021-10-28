@@ -6,9 +6,28 @@ interface IWarp {
   function callMeMaybe(uint8 arr) external pure returns (uint);
 }
 
+interface IERC20 {
+    function mint(address to, uint amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
+    function decimals() external pure returns (uint8);
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
+}
+
 contract WARP {
-  function callMe(address add) external returns (uint) {
-                  // Here's my number
-    return IWarp(add).callMeMaybe(66);
+  function gimmeMoney(address add, address to) external returns (bool) {
+    return IERC20(add).mint(to, 42);
   }
+
+  function checkMoneyz(address addr, address to) public view returns (uint256) {
+    return IERC20(addr).balanceOf(to);
+  }
+
+  function sendMoneyz(address contract_addr, address from , address to, uint256 amount) public returns (bool) {
+    return IERC20(contract_addr).transferFrom(from, to, amount);
+  }
+
 }

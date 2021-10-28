@@ -44,34 +44,51 @@ test_dir = __file__
 
 @pytest.mark.asyncio
 async def test_starknet():
-    contract_file = test_dir[:-8] + ".cairo"
-    solidity_file = test_dir[:-8] + ".sol"
+    caller_cairo = "//home/greg/dev/warp/calls_test/c2c.cairo"
+    caller_sol = "/home/greg/dev/warp/calls_test/c2c.sol"
+    erc20_cairo = "/home/greg/dev/warp/calls_test/ERC20.cairo"
+    erc20_sol = "/home/greg/dev/warp/calls_test/ERC20.sol"
     cairo_path = f"{warp_root}/warp/cairo-src"
-    contract_definition = compile_starknet_files(
-        [contract_file], debug_info=True, cairo_path=[cairo_path]
+    caller_contractDef = compile_starknet_files(
+        [caller_cairo], debug_info=True, cairo_path=[cairo_path]
+    )
+    erc20_contractDef = compile_starknet_files(
+        [erc20_cairo], debug_info=True, cairo_path=[cairo_path]
     )
 
     starknet = await StarknetState.empty()
-    contract_address_1 = await starknet.deploy(contract_definition=contract_definition)
-    contract_address_2 = await starknet.deploy(contract_definition=contract_definition)
-    evm_calldata = get_evm_calldata(solidity_file, "WARP", "callMe", [contract_address_1])
+    erc20_address = await starknet.deploy(contract_definition=erc20_contractDef)
+    caller_address = await starknet.deploy(contract_definition=caller_contractDef)
 
-    cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(evm_calldata[2:]))
-    calldata_size = (len(cairo_input) * 16) - unused_bytes
-    calldata = [calldata_size, len(cairo_input)] + cairo_input + [contract_address_2]
+    mint_calldata_evm  = get_evm_calldata(caller_sol, "WARP", "gimmeMoney", [erc20_address, 0xE2d015F2CB56d18Ad2b61AC045b262aC421b92c3])
+    mint_cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(mint_calldata_evm[2:]))
+    mint_calldata_size = (len(mint_cairo_input) * 16) - unused_bytes
+    mint_calldata = [mint_calldata_size, len(mint_cairo_input)] + mint_cairo_input + [caller_address]
 
-    print(contract_address_1)
+    balance_calldata_evm  = get_evm_calldata(caller_sol, "WARP", "checkMoneyz", [erc20_address, 0xE2d015F2CB56d18Ad2b61AC045b262aC421b92c3])
+    balance_cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(balance_calldata_evm[2:]))
+    balance_calldata_size = (len(balance_cairo_input) * 16) - unused_bytes
+    balance_calldata = [balance_calldata_size, len(balance_cairo_input)] + balance_cairo_input + [erc20_address]
 
-    assert calldata_size == 36
-    assert len(cairo_input) == 3
+    transfer_calldata_evm  = get_evm_calldata(caller_sol, "WARP", "sendMoneyz", [erc20_address, 0xE2d015F2CB56d18Ad2b61AC045b262aC421b92c3, 0x7Be8076f4EA4A4AD08075C2508e481d6C946D12b])
+    transfer_cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(transfer_calldata_evm[2:]))
+    transfer_calldata_size = (len(transfer_cairo_input) * 16) - unused_bytes
+    transfer_calldata = [transfer_calldata_size, len(transfer_cairo_input)] + transfer_cairo_input + [erc20_address]
 
-    res = await starknet.invoke_raw(
-        contract_address=contract_address_2,
+
+
+    mint_res = await starknet.invoke_raw(
+        contract_address=caller_address,
         selector="fun_ENTRY_POINT",
-        calldata=calldata,
+        calldata=mint_calldata,
     )
-
-    assert res.retdata == [1, 0]
+    print(mint_res)
+    balances1_res = await starknet.invoke_raw(
+        contract_address=caller_address,
+        selector="fun_ENTRY_POINT",
+        calldata=balance_calldata
+    )
+    print(balances1_res)
 
 def cairoize_bytes(bs):
     """Represent bytes as an array of 128-bit big-endian integers and

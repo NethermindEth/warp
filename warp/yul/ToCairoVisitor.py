@@ -159,7 +159,6 @@ class ToCairoVisitor(AstVisitor):
                     node.function_name.name, (IMPLICITS_SET - {"exec_env"})
                 )
             )
-            print(f"{fun_repr}: {self.last_used_implicits}")
             if (
                 "exec_env" in self.function_to_implicits[fun_repr]
                 and fun_repr != self.name_gen.take_cond_revert_name()
@@ -311,7 +310,6 @@ class ToCairoVisitor(AstVisitor):
             if not external and self.function_mutabilities.get(function_name)
             else ""
         )
-        print(f"{node.name}: {implicits_decl}")
         self.in_entry_function = False
         return (
             f"{mutability}\n"

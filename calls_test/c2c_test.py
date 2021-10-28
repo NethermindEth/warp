@@ -42,38 +42,122 @@ from web3.types import ABI, ABIFunction
 warp_root = os.path.abspath(os.path.join(__file__, "../.."))
 test_dir = __file__
 
+
 async def test_starknet():
-    contract_file = test_dir[:-8] + ".cairo"
-    solidity_file = test_dir[:-8] + ".sol"
+    caller_cairo = "//home/greg/dev/warp/calls_test/c2c.cairo"
+    caller_sol = "/home/greg/dev/warp/calls_test/c2c.sol"
+    erc20_cairo = "/home/greg/dev/warp/calls_test/ERC20.cairo"
+    erc20_sol = "/home/greg/dev/warp/calls_test/ERC20.sol"
     cairo_path = f"{warp_root}/warp/cairo-src"
-    caller = compile_starknet_files(
-        [contract_file], debug_info=True, cairo_path=[cairo_path]
+    caller_contractDef = compile_starknet_files(
+        [caller_cairo], debug_info=True, cairo_path=[cairo_path]
     )
-    callee = compile_starknet_files(
-        ["/home/greg/dev/warp/calls_test/callee.cairo"], debug_info=True, cairo_path=[cairo_path]
+    erc20_contractDef = compile_starknet_files(
+        [erc20_cairo], debug_info=True, cairo_path=[cairo_path]
     )
 
     starknet = await StarknetState.empty()
-    caller_addr = await starknet.deploy(contract_definition=caller)
-    callee_addr = await starknet.deploy(contract_definition=callee)
-    evm_calldata = get_evm_calldata(solidity_file, "WARP", "callMe", [callee_addr])
+    erc20_address = await starknet.deploy(contract_definition=erc20_contractDef)
+    caller_address = await starknet.deploy(contract_definition=caller_contractDef)
 
-    cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(evm_calldata[2:]))
-    calldata_size = (len(cairo_input) * 16) - unused_bytes
-    calldata = [calldata_size, len(cairo_input)] + cairo_input 
-    calldata.append(callee_addr)
-
-    assert calldata_size == 36
-    assert len(cairo_input) == 3
-
-    res = await starknet.invoke_raw(
-        contract_address=caller_addr,
-        selector="fun_ENTRY_POINT",
-        calldata=calldata,
+    mint_calldata_evm = get_evm_calldata(
+        caller_sol,
+        "WARP",
+        "gimmeMoney",
+        [erc20_address, 0xE2D015F2CB56D18AD2B61AC045B262AC421B92C3],
     )
-    print(res)
+    mint_cairo_input, unused_bytes = cairoize_bytes(
+        bytes.fromhex(mint_calldata_evm[2:])
+    )
+    mint_calldata_size = (len(mint_cairo_input) * 16) - unused_bytes
+    mint_calldata = (
+        [mint_calldata_size, len(mint_cairo_input)]
+        + mint_cairo_input
+        + [caller_address]
+    )
 
-    # assert res.retdata == [1, 0]
+    balance_calldata_evm = get_evm_calldata(
+        caller_sol,
+        "WARP",
+        "checkMoneyz",
+        [erc20_address, 0xE2D015F2CB56D18AD2B61AC045B262AC421B92C3],
+    )
+    balance_cairo_input, unused_bytes = cairoize_bytes(
+        bytes.fromhex(balance_calldata_evm[2:])
+    )
+    balance_calldata_size = (len(balance_cairo_input) * 16) - unused_bytes
+    balance_calldata = (
+        [balance_calldata_size, len(balance_cairo_input)]
+        + balance_cairo_input
+        + [erc20_address]
+    )
+
+    # check transfer worked
+    balance_calldata_evm2 = get_evm_calldata(
+        caller_sol,
+        "WARP",
+        "checkMoneyz",
+        [erc20_address, 0x7BE8076F4EA4A4AD08075C2508E481D6C946D12B],
+    )
+    balance_cairo_input2, unused_bytes = cairoize_bytes(
+        bytes.fromhex(balance_calldata_evm2[2:])
+    )
+    balance_calldata_size2 = (len(balance_cairo_input2) * 16) - unused_bytes
+    balance_calldata2 = (
+        [balance_calldata_size2, len(balance_cairo_input2)]
+        + balance_cairo_input2
+        + [erc20_address]
+    )
+
+    transfer_calldata_evm = get_evm_calldata(
+        caller_sol,
+        "WARP",
+        "sendMoneyz",
+        [
+            erc20_address,
+            0xE2D015F2CB56D18AD2B61AC045B262AC421B92C3,
+            0x7BE8076F4EA4A4AD08075C2508E481D6C946D12B,
+            42,
+        ],
+    )
+    transfer_cairo_input, unused_bytes = cairoize_bytes(
+        bytes.fromhex(transfer_calldata_evm[2:])
+    )
+    transfer_calldata_size = (len(transfer_cairo_input) * 16) - unused_bytes
+    transfer_calldata = (
+        [transfer_calldata_size, len(transfer_cairo_input)]
+        + transfer_cairo_input
+        + [erc20_address]
+    )
+
+    mint_res = await starknet.invoke_raw(
+        contract_address=caller_address,
+        selector="fun_ENTRY_POINT",
+        calldata=mint_calldata,
+    )
+    print(mint_res)
+
+    balances1_res = await starknet.invoke_raw(
+        contract_address=caller_address,
+        selector="fun_ENTRY_POINT",
+        calldata=balance_calldata,
+    )
+    print(balances1_res)
+
+    transfer_res = await starknet.invoke_raw(
+        contract_address=caller_address,
+        selector="fun_ENTRY_POINT",
+        calldata=transfer_calldata,
+    )
+    print(transfer_res)
+
+    balance_after_transfer = await starknet.invoke_raw(
+        contract_address=caller_address,
+        selector="fun_ENTRY_POINT",
+        calldata=balance_calldata2
+    )
+    print(balance_after_transfer)
+
 
 def cairoize_bytes(bs):
     """Represent bytes as an array of 128-bit big-endian integers and
@@ -83,6 +167,7 @@ def cairoize_bytes(bs):
     bs = bs.ljust(len(bs) + unused_bytes, b"\x00")
     arr = [int.from_bytes(bs[i : i + 16], "big") for i in range(0, len(bs), 16)]
     return (arr, unused_bytes)
+
 
 def encode_abi(
     web3: "Web3",
@@ -169,6 +254,7 @@ def get_fun_info(
     _, aligned_fn_arguments = get_aligned_abi_inputs(fn_abi, fn_arguments)
 
     return fn_abi, fn_selector, aligned_fn_arguments
+
 
 class StarkNetEVMContract(Contract):
     def __init__(self):
