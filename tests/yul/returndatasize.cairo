@@ -17,8 +17,8 @@ from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_not, uint256_sub
 from starkware.starknet.common.storage import Storage
 
-func __warp_identity_Uint256(arg0 : Uint256) -> (arg0 : Uint256):
-    return (arg0)
+func returndata_size{exec_env : ExecutionEnvironment}() -> (res : Uint256):
+    return (Uint256(low=exec_env.returndata_size, high=0))
 end
 
 func __warp_constant_0() -> (res : Uint256):
@@ -69,8 +69,7 @@ end
 func fun_viewReturndatasize{exec_env : ExecutionEnvironment, range_check_ptr}() -> (
         var_res : Uint256):
     alloc_locals
-    let (local var_res : Uint256) = __warp_identity_Uint256(
-        Uint256(low=exec_env.returndata_size, high=0))
+    let (local var_res : Uint256) = returndata_size()
     local exec_env : ExecutionEnvironment = exec_env
     __warp_cond_revert(var_res)
     return (var_res)
@@ -127,7 +126,6 @@ func __warp_block_1{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _13 : Uint256) = __warp_constant_0()
-    local range_check_ptr = range_check_ptr
     __warp_cond_revert(_13)
     local _14 : Uint256 = _4
     local _15 : Uint256 = _3
@@ -136,7 +134,6 @@ func __warp_block_1{
     let (local _16 : Uint256) = uint256_not(Uint256(low=127, high=0))
     local range_check_ptr = range_check_ptr
     let (local _17 : Uint256) = fun_viewReturndatasize()
-    local exec_env : ExecutionEnvironment = exec_env
     local exec_env : ExecutionEnvironment = exec_env
     local _18 : Uint256 = _1
     let (local _19 : Uint256) = abi_encode_uint256(_1, _17)
@@ -161,7 +158,6 @@ func __warp_if_1{
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     else:
         return ()
@@ -187,7 +183,6 @@ func __warp_block_0{
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return ()
 end
 
@@ -201,7 +196,6 @@ func __warp_if_0{
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     else:
         return ()
@@ -256,7 +250,6 @@ func fun_ENTRY_POINT{
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
-        local exec_env : ExecutionEnvironment = exec_env
     end
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (

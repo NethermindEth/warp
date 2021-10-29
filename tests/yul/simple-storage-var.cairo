@@ -164,7 +164,6 @@ func __warp_block_3{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _11 : Uint256) = __warp_constant_0()
-    local range_check_ptr = range_check_ptr
     __warp_cond_revert(_11)
     local _12 : Uint256 = _4
     local _13 : Uint256 = _3
@@ -195,7 +194,6 @@ func __warp_block_5{
         _2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _20 : Uint256) = __warp_constant_0()
-    local range_check_ptr = range_check_ptr
     __warp_cond_revert(_20)
     local _21 : Uint256 = _4
     local _22 : Uint256 = _3
@@ -234,7 +232,6 @@ func __warp_if_2{
         local pedersen_ptr : HashBuiltin* = pedersen_ptr
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     else:
         return ()
@@ -255,7 +252,6 @@ func __warp_block_4{
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return ()
 end
 
@@ -273,7 +269,6 @@ func __warp_if_1{
         local pedersen_ptr : HashBuiltin* = pedersen_ptr
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     else:
         __warp_block_4(_2, _3, _4, match_var)
@@ -283,7 +278,6 @@ func __warp_if_1{
         local pedersen_ptr : HashBuiltin* = pedersen_ptr
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     end
 end
@@ -302,7 +296,6 @@ func __warp_block_2{
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return ()
 end
 
@@ -319,7 +312,6 @@ func __warp_block_1{
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return ()
 end
 
@@ -342,7 +334,6 @@ func __warp_block_0{
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local storage_ptr : Storage* = storage_ptr
-    local exec_env : ExecutionEnvironment = exec_env
     return ()
 end
 
@@ -359,7 +350,6 @@ func __warp_if_0{
         local pedersen_ptr : HashBuiltin* = pedersen_ptr
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
-        local exec_env : ExecutionEnvironment = exec_env
         return ()
     else:
         return ()
@@ -416,7 +406,6 @@ func fun_ENTRY_POINT{
         local pedersen_ptr : HashBuiltin* = pedersen_ptr
         local range_check_ptr = range_check_ptr
         local storage_ptr : Storage* = storage_ptr
-        local exec_env : ExecutionEnvironment = exec_env
     end
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (

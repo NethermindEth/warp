@@ -3,11 +3,11 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from contextlib import contextmanager
-from typing import Optional
+from typing import Callable, Optional
 
 import yul.yul_ast as ast
 from yul.Artifacts import Artifacts
-from yul.BuiltinHandler import YUL_BUILTINS_MAP
+from yul.BuiltinHandler import BuiltinHandler
 from yul.FunctionGenerator import CairoFunctions
 from yul.implicits import IMPLICITS_SET, copy_implicit, print_implicit
 from yul.Imports import format_imports, merge_imports
@@ -60,6 +60,7 @@ class ToCairoVisitor(AstVisitor):
         name_gen: NameGenerator,
         artifacts_manager: Artifacts,
         cairo_functions: CairoFunctions,
+        builtins_map: Callable[[CairoFunctions], dict[str, BuiltinHandler]],
     ):
         super().__init__()
         self.artifacts_manager = artifacts_manager
@@ -68,11 +69,11 @@ class ToCairoVisitor(AstVisitor):
         self.function_mutabilities = function_mutabilities
         self.name_gen = name_gen
         self.cairo_functions = cairo_functions
-        self.external_functions: list[str] = []
+        self.builtins_map = builtins_map(self.cairo_functions)
         self.imports = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
         self.last_function: Optional[ast.FunctionDefinition] = None
-        self.last_used_implicits: tuple[str] = ()
+        self.last_used_implicits: tuple[str, ...] = ()
         self.function_to_implicits: dict[str, set[str]] = {}
         self.in_entry_function: bool = False
         self.storage_variables: set[StorageVar] = set()
@@ -130,9 +131,7 @@ class ToCairoVisitor(AstVisitor):
 
     def visit_function_call(self, node: ast.FunctionCall) -> str:
         fun_repr = self.print(node.function_name)
-        args_repr = ", ".join(self.print(x) for x in node.arguments)
-        if "validator_" in fun_repr:
-            return ""
+        args = [self.print(x) for x in node.arguments]
         if fun_repr == "revert" and not self.in_entry_function:
             return "assert 0 = 1\njmp rel 0"
         if fun_repr == "revert" and self.in_entry_function:
@@ -140,32 +139,25 @@ class ToCairoVisitor(AstVisitor):
         if fun_repr == "pop":
             return ""
         result: str
-        if fun_repr in YUL_BUILTINS_MAP:
-            builtin_to_cairo = YUL_BUILTINS_MAP[fun_repr](
-                args_repr, self.cairo_functions
-            )
-            merge_imports(self.imports, builtin_to_cairo.required_imports())
-            self.last_used_implicits = builtin_to_cairo.used_implicits
+        builtin_handler = self.builtins_map.get(fun_repr)
+        if builtin_handler:
+            merge_imports(self.imports, builtin_handler.required_imports())
+            self.last_used_implicits = builtin_handler.get_used_implicits()
             if self.in_entry_function and "mstore" in fun_repr:
                 result = (
                     f"with memory_dict, msize, range_check_ptr:\n"
-                    f"{builtin_to_cairo.function_call}\n"
+                    f"{builtin_handler.get_function_call(args)}\n"
                     f"end\n"
                 )
             else:
-                result = f"{builtin_to_cairo.function_call}"
+                result = f"{builtin_handler.get_function_call(args)}"
         else:
             self.last_used_implicits = sorted(
                 self.function_to_implicits.setdefault(
-                    node.function_name.name, (IMPLICITS_SET - {"exec_env"})
+                    node.function_name.name, IMPLICITS_SET
                 )
             )
-            if (
-                "exec_env" in self.function_to_implicits[fun_repr]
-                and fun_repr != self.name_gen.take_cond_revert_name()
-            ):
-                self.last_used_implicits.append("exec_env")
-
+            args_repr = ", ".join(self.print(x) for x in node.arguments)
             if self.in_entry_function and "__warp_if_" in fun_repr:
                 result = (
                     f"with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, storage_ptr, syscall_ptr:\n"
@@ -379,7 +371,6 @@ class ToCairoVisitor(AstVisitor):
         external_returns = ", ".join(
             f"{x.name}={x.name}" for x in node.return_variables
         )
-        self.external_functions.append(node.name)
         implicits = sorted(IMPLICITS_SET - {"msize", "memory_dict", "exec_env"})
         implicits_repr = ", ".join(print_implicit(x) for x in implicits)
         implicit_copy = "\n".join(copy_implicit(x) for x in implicits)
