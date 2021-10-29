@@ -1,5 +1,6 @@
 eth-hash==0.2.0
 pytest==6.2.4
+pytest-parallel
 py-solc-x==1.1.0
 cairo-lang==0.4.2
 aiohttp<4,>=3.7.4

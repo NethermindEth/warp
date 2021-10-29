@@ -21,9 +21,9 @@ test_bats: warp $(BATS_FILES)
 .PHONY: test_bats
 
 test_yul: warp
-	python -m pytest scripts/yul/transpile_test.py -v --tb=short $(ARGS)
-	python -m pytest scripts/yul/compilation_test.py -v --tb=short $(ARGS)
-	python -m pytest tests/yul/ -v --tb=short $(ARGS)
+	python -m pytest scripts/yul/transpile_test.py -v --tb=short --workers=auto $(ARGS)
+	python -m pytest scripts/yul/compilation_test.py -v --tb=short --workers=auto $(ARGS)
+	python -m pytest tests/yul/ -v --tb=short --workers=auto $(ARGS)
 .PHONY: test_yul
 
 $(BATS_DIR)/test-%.bats: \
