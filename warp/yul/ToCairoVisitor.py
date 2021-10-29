@@ -224,7 +224,7 @@ class ToCairoVisitor(AstVisitor):
             # The leave gets replaced with the wrong return type in this case
             # we need to replace it with our return
             body_repr = re.sub("return \(\)$", "", body_repr)
-            returns_repr = "success: felt, returndata_size: felt, returndata_len: felt, f0: felt, f1 : felt, f2: felt, f3: felt, f4: felt, f5: felt, f6: felt, f7: felt"
+            returns_repr = "success: felt, returndata_size: felt, returndata_len: felt, returndata: felt*"
             self.in_entry_function = False
             return (
                 "@external\n"
@@ -248,16 +248,7 @@ class ToCairoVisitor(AstVisitor):
                 f"  {body_repr}\n"
                 f"end\n"
                 f"default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
-                f"return (1, exec_env.to_returndata_size, exec_env.to_returndata_len,\n"
-                f"f0=exec_env.to_returndata[0],\n"
-                f"f1=exec_env.to_returndata[1],\n"
-                f"f2=exec_env.to_returndata[2],\n"
-                f"f3=exec_env.to_returndata[3],\n"
-                f"f4=exec_env.to_returndata[4],\n"
-                f"f5=exec_env.to_returndata[5],\n"
-                f"f6=exec_env.to_returndata[6],\n"
-                f"f7=exec_env.to_returndata[7],\n"
-                f")\n"
+                f"return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)\n"
                 f"end\n"
             )
 

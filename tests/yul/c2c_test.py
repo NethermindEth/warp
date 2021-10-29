@@ -110,7 +110,7 @@ async def test_starknet():
         caller_address=0,
     )
 
-    assert mint_res.retdata == [1, 32, 8, 0, 1, 0, 0, 0, 0, 0, 0]
+    assert mint_res.retdata == [1, 32, 2, 0, 1]
 
     balances1_res = await starknet.invoke_raw(
         contract_address=caller_address,
@@ -118,7 +118,7 @@ async def test_starknet():
         calldata=balance_calldata,
         caller_address=0,
     )
-    assert balances1_res.retdata == [1, 32, 8, 0, 42, 0, 0, 0, 0, 0, 0]
+    assert balances1_res.retdata == [1, 32, 2, 0, 42]
 
     transfer_res = await starknet.invoke_raw(
         contract_address=caller_address,
@@ -126,7 +126,7 @@ async def test_starknet():
         calldata=transfer_calldata,
         caller_address=0,
     )
-    assert transfer_res.retdata == [1, 32, 8, 0, 1, 0, 0, 0, 0, 0, 0]
+    assert transfer_res.retdata == [1, 32, 2, 0, 1]
 
     balance_after_transfer = await starknet.invoke_raw(
         contract_address=caller_address,
@@ -134,4 +134,4 @@ async def test_starknet():
         calldata=balance_calldata2,
         caller_address=0,
     )
-    assert balance_after_transfer.retdata == [1, 32, 8, 0, 42, 0, 0, 0, 0, 0, 0]
+    assert balance_after_transfer.retdata == [1, 32, 2, 0, 42]

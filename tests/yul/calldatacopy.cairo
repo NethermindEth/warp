@@ -211,8 +211,7 @@ func fun_ENTRY_POINT{
         pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*,
         bitwise_ptr : BitwiseBuiltin*}(
         calldata_size, calldata_len, calldata : felt*, self_address : felt) -> (
-        success : felt, returndata_size : felt, returndata_len : felt, f0 : felt, f1 : felt,
-        f2 : felt, f3 : felt, f4 : felt, f5 : felt, f6 : felt, f7 : felt):
+        success : felt, returndata_size : felt, returndata_len : felt, returndata : felt*):
     alloc_locals
     initialize_address{
         range_check_ptr=range_check_ptr, syscall_ptr=syscall_ptr, pedersen_ptr=pedersen_ptr}(
@@ -253,16 +252,5 @@ func fun_ENTRY_POINT{
         local range_check_ptr = range_check_ptr
     end
     default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (
-        1,
-        exec_env.to_returndata_size,
-        exec_env.to_returndata_len,
-        f0=exec_env.to_returndata[0],
-        f1=exec_env.to_returndata[1],
-        f2=exec_env.to_returndata[2],
-        f3=exec_env.to_returndata[3],
-        f4=exec_env.to_returndata[4],
-        f5=exec_env.to_returndata[5],
-        f6=exec_env.to_returndata[6],
-        f7=exec_env.to_returndata[7])
+    return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end

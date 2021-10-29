@@ -67,8 +67,7 @@ end
 @contract_interface
 namespace GenericCallInterface:
     func fun_ENTRY_POINT(calldata_size : felt, calldata_len : felt, calldata : felt*, self_address : felt) -> (
-            success : felt, returndata_size : felt, returndata_len : felt, f0 : felt, f1 : felt,
-            f2 : felt, f3 : felt, f4 : felt, f5 : felt, f6 : felt, f7 : felt):
+            success : felt, returndata_size : felt, returndata_len : felt, returndata: felt*):
     end
 end
 
@@ -96,23 +95,13 @@ func warp_call{
     let (local calldata_len) = calculate_data_len(insize.low)
     let (local address_felt : felt) = uint256_to_address_felt(address)
     local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    let (local success, local return_size, local return_len, local f0, local f1, local f2,
-        local f3, local f4, local f5, local f6, local f7) = GenericCallInterface.fun_ENTRY_POINT(
+    let (local success, local returndata_size, local returndata_len, local returndata) = GenericCallInterface.fun_ENTRY_POINT(
         address_felt, insize.low, calldata_len, mem, address_felt)
     local syscall_ptr : felt* = syscall_ptr
-    let (local return_array : felt*) = alloc()
-    assert return_array[0] = f0
-    assert return_array[1] = f1
-    assert return_array[2] = f2
-    assert return_array[3] = f3
-    assert return_array[4] = f4
-    assert return_array[5] = f5
-    assert return_array[6] = f6
-    assert return_array[7] = f7
-    array_copy_to_memory(return_size, return_array, 0, out.low, outsize.low)
+    array_copy_to_memory(returndata_size, returndata, 0, out.low, outsize.low)
     local exec_env : ExecutionEnvironment = ExecutionEnvironment(
         calldata_size=exec_env.calldata_size, calldata_len=exec_env.calldata_len, calldata=exec_env.calldata,
-        returndata_size=return_size, returndata_len=return_len, returndata=return_array,
+        returndata_size=returndata_size, returndata_len=returndata_len, returndata=returndata,
         to_returndata_size=exec_env.to_returndata_size, to_returndata_len=exec_env.to_returndata_len, to_returndata=exec_env.to_returndata
         )
     return (Uint256(success, 0))
@@ -129,15 +118,14 @@ end
 func returndata_write{memory_dict : DictAccess*, exec_env : ExecutionEnvironment, range_check_ptr}(
         returndata_ptr : Uint256, returndata_size : Uint256):
     alloc_locals
-    let (local return_ : felt*) = array_create_from_memory(returndata_ptr.low, returndata_size.low)
+    let (local returndata : felt*) = array_create_from_memory(returndata_ptr.low, returndata_size.low)
     local memory_dict : DictAccess* = memory_dict
     let (returndata_len) = calculate_data_len(returndata_size.low)
     local range_check_ptr = range_check_ptr
-    extend_array_to_len(returndata_len, return_, 8)
     local exec_env : ExecutionEnvironment = ExecutionEnvironment(
         calldata_size=exec_env.calldata_size, calldata_len=exec_env.calldata_len, calldata=exec_env.calldata,
         returndata_size=exec_env.returndata_size, returndata_len=exec_env.returndata_len, returndata=exec_env.returndata,
-        to_returndata_size=returndata_size.low, to_returndata_len=8, to_returndata=return_
+        to_returndata_size=returndata_size.low, to_returndata_len=returndata_len, to_returndata=returndata
         )
     return ()
 end
