@@ -1,8 +1,8 @@
 import pytest
-
 from utils import check_ast
 from yul.ExpressionSplitter import ExpressionSplitter
 from yul.NameGenerator import NameGenerator
+
 
 @check_ast(__file__)
 def test_split_expressions(yul_ast):

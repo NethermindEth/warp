@@ -1,9 +1,9 @@
 import pytest
-
 from utils import check_ast
-from yul.ForLoopSimplifier import ForLoopSimplifier
 from yul.ForLoopEliminator import ForLoopEliminator
+from yul.ForLoopSimplifier import ForLoopSimplifier
 from yul.NameGenerator import NameGenerator
+
 
 @check_ast(__file__)
 def test_nested_for_loops(yul_ast):

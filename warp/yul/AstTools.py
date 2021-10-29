@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import List, Optional
+
 import re
+from typing import List, Optional
 
 import yul.yul_ast as ast
 from yul.AstVisitor import AstVisitor
@@ -8,7 +9,6 @@ from yul.WarpException import WarpException
 
 
 class AstPrinter(AstVisitor):
-    
     def format(self, node: ast.Node, tabs: int = 0) -> str:
         res = self.visit(node, tabs)
         return "\n".join(res)
@@ -40,32 +40,38 @@ class AstPrinter(AstVisitor):
             res.extend(item)
         return res
 
-    def visit_expression_statement(self, node: ast.ExpressionStatement, tabs: int) -> List(str):
+    def visit_expression_statement(
+        self, node: ast.ExpressionStatement, tabs: int
+    ) -> List(str):
         res = ["\t" * tabs + "ExpressionStatement:"]
         res.extend(self.visit(node.expression, tabs + 1))
         return res
 
-    def visit_variable_declaration(self, node: ast.VariableDeclaration, tabs: int) -> List(str):
+    def visit_variable_declaration(
+        self, node: ast.VariableDeclaration, tabs: int
+    ) -> List(str):
         res = ["\t" * tabs + "VariableDeclaration:"]
         res.append("\t" * (tabs + 1) + "Variables:")
         for item in self.visit_list(node.variables, tabs + 2):
             res.extend(item)
-        
+
         if node.value is not None:
             res.append("\t" * (tabs + 1) + "Value:")
             res.extend(self.visit(node.value, tabs + 2))
         else:
             res.append("\t" * (tabs + 1) + "Value: None")
-        
+
         return res
 
     def visit_block(self, node: ast.Block, tabs: int) -> List(str):
-        res = ['\t' * tabs + "Block:"]
+        res = ["\t" * tabs + "Block:"]
         for item in self.visit_list(node.statements, tabs + 1):
             res.extend(item)
         return res
 
-    def visit_function_definition(self, node: ast.FunctionDefinition, tabs: int) -> List(str):
+    def visit_function_definition(
+        self, node: ast.FunctionDefinition, tabs: int
+    ) -> List(str):
         res = ["\t" * tabs + "FunctionDefinition:"]
         res.append("\t" * (tabs + 1) + f"Name: {node.name}")
         res.append("\t" * (tabs + 1) + "Parameters:")
@@ -120,7 +126,6 @@ class AstPrinter(AstVisitor):
         return ["\t" * tabs + "Leave"]
 
 
-
 class AstParser:
     def __init__(self, text: str):
         self.lines = text.splitlines()
@@ -135,14 +140,16 @@ class AstParser:
         self.pos += 1
 
         assert self.get_tabs() == tabs + 1, "Wrong indentation"
-        node_name, node_type = self.get_word(tabs + 1).split(':')
+        node_name, node_type = self.get_word(tabs + 1).split(":")
         self.pos += 1
 
         return ast.TypedName(name=node_name, type=node_type)
 
     def parse_literal(self) -> ast.Literal:
         tabs = self.get_tabs()
-        assert self.get_word(tabs).startswith("Literal:"), "This node should be of type Literal"
+        assert self.get_word(tabs).startswith(
+            "Literal:"
+        ), "This node should be of type Literal"
         value = self.get_word(tabs + 8)
         self.pos += 1
 
@@ -150,20 +157,24 @@ class AstParser:
             value = int(value)
         except ValueError:
             pass
-        
+
         return ast.Literal(value=value)
 
     def parse_identifier(self) -> ast.Identifier:
         tabs = self.get_tabs()
-        assert self.get_word(tabs).startswith("Identifier:"), "This node should be of type Identifier"
+        assert self.get_word(tabs).startswith(
+            "Identifier:"
+        ), "This node should be of type Identifier"
         name = self.get_word(tabs + 11)
         self.pos += 1
-        
+
         return ast.Identifier(name=name)
 
     def parse_assignment(self) -> ast.Assignment:
         tabs = self.get_tabs()
-        assert self.get_word(tabs) == "Assignment:", "This node should be of type Assignment"
+        assert (
+            self.get_word(tabs) == "Assignment:"
+        ), "This node should be of type Assignment"
         self.pos += 1
         assert self.get_word(tabs + 1) == "Variables:"
         self.pos += 1
@@ -171,32 +182,37 @@ class AstParser:
         variables_list = self.parse_list(tabs + 1, self.parse_identifier)
         assert self.get_word(tabs + 1) == "Value:"
         self.pos += 1
-        
+
         return ast.Assignment(
-            variable_names=variables_list,
-            value=self.parse_expression()
+            variable_names=variables_list, value=self.parse_expression()
         )
 
     def parse_function_call(self) -> ast.FunctionCall:
         tabs = self.get_tabs()
-        assert self.get_word(tabs) == "FunctionCall:", "This node should be of type FunctionCall"
+        assert (
+            self.get_word(tabs) == "FunctionCall:"
+        ), "This node should be of type FunctionCall"
         self.pos += 1
 
         return ast.FunctionCall(
             function_name=self.parse_identifier(),
-            arguments=self.parse_list(tabs, self.parse_expression)
+            arguments=self.parse_list(tabs, self.parse_expression),
         )
 
     def parse_expression_statement(self) -> ast.Statement:
         tabs = self.get_tabs()
-        assert self.get_word(tabs) == "ExpressionStatement:", "This node should be of type ExpressionStatement"
+        assert (
+            self.get_word(tabs) == "ExpressionStatement:"
+        ), "This node should be of type ExpressionStatement"
         self.pos += 1
-        
+
         return ast.ExpressionStatement(expression=self.parse_expression())
 
     def parse_variable_declaration(self) -> ast.VariableDeclaration:
         tabs = self.get_tabs()
-        assert self.get_word(tabs) == "VariableDeclaration:", "This node should be of type VariableDeclaration"
+        assert (
+            self.get_word(tabs) == "VariableDeclaration:"
+        ), "This node should be of type VariableDeclaration"
         self.pos += 1
 
         assert self.get_tabs() == tabs + 1
@@ -212,27 +228,26 @@ class AstParser:
             value = None
         else:
             value = self.parse_expression()
-        
-        return ast.VariableDeclaration(
-            variables=variables,
-            value=value
-        )
-        
+
+        return ast.VariableDeclaration(variables=variables, value=value)
+
     def parse_block(self) -> ast.Block:
         tabs = self.get_tabs()
         assert self.get_word(tabs) == "Block:", "This node should be of type Block"
         self.pos += 1
 
-        return ast.Block(
-            statements=self.parse_list(tabs, self.parse_statement)
-        )
+        return ast.Block(statements=self.parse_list(tabs, self.parse_statement))
 
     def parse_function_definition(self) -> ast.FunctionDefinition:
         tabs = self.get_tabs()
-        assert self.get_word(tabs) == "FunctionDefinition:", "This node should be of type FunctionDefinition"
+        assert (
+            self.get_word(tabs) == "FunctionDefinition:"
+        ), "This node should be of type FunctionDefinition"
         self.pos += 1
 
-        assert self.get_tabs() == tabs + 1 and self.get_word(tabs + 1).startswith("Name:")
+        assert self.get_tabs() == tabs + 1 and self.get_word(tabs + 1).startswith(
+            "Name:"
+        )
         fun_name = self.get_word(tabs + 7)
         self.pos += 1
 
@@ -240,20 +255,20 @@ class AstParser:
         self.pos += 1
         params = self.parse_list(tabs + 1, self.parse_typed_name)
 
-        assert self.get_tabs() == tabs + 1 and self.get_word(tabs + 1) == "Return Variables:"
+        assert (
+            self.get_tabs() == tabs + 1
+            and self.get_word(tabs + 1) == "Return Variables:"
+        )
         self.pos += 1
 
         returns = self.parse_list(tabs + 1, self.parse_typed_name)
-        
+
         assert self.get_tabs() == tabs + 1 and self.get_word(tabs + 1) == "Body:"
         self.pos += 1
         body = self.parse_block()
 
         return ast.FunctionDefinition(
-            name=fun_name,
-            parameters=params,
-            return_variables=returns,
-            body=body
+            name=fun_name, parameters=params, return_variables=returns, body=body
         )
 
     def parse_if(self) -> ast.If:
@@ -266,33 +281,25 @@ class AstParser:
         else_body = None
         if self.get_tabs() > tabs:
             else_body = self.parse_block()
-        
-        return ast.If(
-            condition=condition,
-            body=body,
-            else_body=else_body
-        )
+
+        return ast.If(condition=condition, body=body, else_body=else_body)
 
     def parse_case(self) -> ast.Case:
         tabs = self.get_tabs()
         assert self.get_word(tabs) == "Case:", "This node should be of type Case"
         self.pos += 1
-        
+
         try:
             value = self.parse_literal()
         except AssertionError:
             assert (
-                self.get_tabs() == tabs + 1 and 
-                self.get_word(tabs + 1) == "Default"
+                self.get_tabs() == tabs + 1 and self.get_word(tabs + 1) == "Default"
             ), "The value must be a literal or None (when it's the default case)"
             value = None
             self.pos += 1
 
-        return ast.Case(
-            value=value, 
-            body=self.parse_block()
-        )
-        
+        return ast.Case(value=value, body=self.parse_block())
+
     def parse_switch(self) -> ast.Switch:
         tabs = self.get_tabs()
         assert self.get_word(tabs) == "Switch:", "This node should be of type Switch"
@@ -300,7 +307,7 @@ class AstParser:
 
         return ast.Switch(
             expression=self.parse_expression(),
-            cases=self.parse_list(tabs, self.parse_case)
+            cases=self.parse_list(tabs, self.parse_case),
         )
 
     def parse_for_loop(self) -> ast.ForLoop:
@@ -312,7 +319,7 @@ class AstParser:
             pre=self.parse_block(),
             condition=self.parse_expression(),
             post=self.parse_block(),
-            body=self.parse_block()
+            body=self.parse_block(),
         )
 
     def parse_break(self) -> ast.Break:
@@ -333,17 +340,13 @@ class AstParser:
         tabs = self.get_tabs()
         assert self.get_word(tabs) == "Leave", "This node should be of type Leave"
         self.pos += 1
-        
+
         return ast.LEAVE, pos
 
     def parse_node(self) -> ast.Node:
         tabs = self.get_tabs()
-<<<<<<< HEAD
-        node_type_name = self.get_word(tabs).split(':')[0]
-=======
         node_type_name = self.get_word(tabs).split(":")[0]
-        
->>>>>>> f378647... fix up
+
         parser_name = f"parse_{self.get_name(node_type_name)}"
         parser = getattr(self, parser_name, None)
         if parser is None:
@@ -352,8 +355,8 @@ class AstParser:
 
     def parse_statement(self) -> ast.Statement:
         statements = [
-            "ExpressionStatement", 
-            "Assignment", 
+            "ExpressionStatement",
+            "Assignment",
             "VariableDeclaration",
             "FunctionDefinition",
             "If",
@@ -362,7 +365,7 @@ class AstParser:
             "Break",
             "Continue",
             "Leave",
-            "Block"
+            "Block",
         ]
 
         tabs = self.get_tabs()
@@ -373,8 +376,12 @@ class AstParser:
 
     def parse_expression(self) -> ast.Expression:
         tabs = self.get_tabs()
-        node_type_name = self.get_word(tabs).split(':')[0]
-        assert node_type_name in ["Literal", "Identifier", "FunctionCall"], "Node type must be an expression"
+        node_type_name = self.get_word(tabs).split(":")[0]
+        assert node_type_name in [
+            "Literal",
+            "Identifier",
+            "FunctionCall",
+        ], "Node type must be an expression"
 
         return self.parse_node()
 
@@ -390,11 +397,13 @@ class AstParser:
         tabs = 0
         if self.pos < len(self.lines):
             for c in self.lines[self.pos]:
-                if not c == '\t':
+                if not c == "\t":
                     break
                 tabs += 1
             else:
-                raise WarpException("Lines are not supposed to be filled only with tabs")
+                raise WarpException(
+                    "Lines are not supposed to be filled only with tabs"
+                )
 
         return tabs
 
@@ -402,5 +411,5 @@ class AstParser:
         return self.lines[self.pos][start:]
 
     def get_name(self, name):
-        name = '_'.join(re.findall('[A-Z][^A-Z]*', name))
+        name = "_".join(re.findall("[A-Z][^A-Z]*", name))
         return name.lower()
