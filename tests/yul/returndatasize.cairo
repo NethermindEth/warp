@@ -15,7 +15,6 @@ from starkware.cairo.common.math import unsigned_div_rem
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_not, uint256_sub
-from starkware.starknet.common.storage import Storage
 
 func returndata_size{exec_env : ExecutionEnvironment}() -> (res : Uint256):
     return (Uint256(low=exec_env.returndata_size, high=0))
@@ -33,8 +32,7 @@ end
 func address_initialized() -> (res : felt):
 end
 
-func initialize_address{
-        syscall_ptr : felt*, storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
+func initialize_address{range_check_ptr, syscall_ptr : felt*, pedersen_ptr : HashBuiltin*}(
         self_address : felt):
     let (address_init) = address_initialized.read()
     if address_init == 1:
@@ -78,8 +76,7 @@ end
 @view
 func fun_viewReturndatasize_external{
         bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        storage_ptr : Storage*, syscall_ptr : felt*}(
-        calldata_size, calldata_len, calldata : felt*) -> (var_res : Uint256):
+        syscall_ptr : felt*}(calldata_size, calldata_len, calldata : felt*) -> (var_res : Uint256):
     alloc_locals
     let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
@@ -92,7 +89,6 @@ func fun_viewReturndatasize_external{
     local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
-    local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (var_res=var_res)
@@ -204,20 +200,17 @@ end
 
 @external
 func fun_ENTRY_POINT{
-        storage_ptr : Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*,
         bitwise_ptr : BitwiseBuiltin*}(
         calldata_size, calldata_len, calldata : felt*, self_address : felt) -> (
         success : felt, returndata_size : felt, returndata_len : felt, f0 : felt, f1 : felt,
         f2 : felt, f3 : felt, f4 : felt, f5 : felt, f6 : felt, f7 : felt):
     alloc_locals
     initialize_address{
-        syscall_ptr=syscall_ptr,
-        storage_ptr=storage_ptr,
-        range_check_ptr=range_check_ptr,
-        pedersen_ptr=pedersen_ptr}(self_address)
+        range_check_ptr=range_check_ptr, syscall_ptr=syscall_ptr, pedersen_ptr=pedersen_ptr}(
+        self_address)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
-    local storage_ptr : Storage* = storage_ptr
     local syscall_ptr : felt* = syscall_ptr
     let (returndata_ptr : felt*) = alloc()
     local exec_env : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=returndata_ptr, to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)
@@ -242,7 +235,7 @@ func fun_ENTRY_POINT{
         local range_check_ptr = range_check_ptr
         let (local _6 : Uint256) = is_zero(_5)
         local range_check_ptr = range_check_ptr
-        with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, storage_ptr, syscall_ptr:
+        with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, syscall_ptr:
             __warp_if_0(_1, _3, _4, _6)
         end
 

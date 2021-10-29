@@ -17,7 +17,9 @@ async def test_calldatacopy():
     )
 
     starknet = await StarknetState.empty()
-    contract_address = await starknet.deploy(contract_definition=contract_definition)
+    contract_address = await starknet.deploy(
+        contract_definition=contract_definition, constructor_calldata=[]
+    )
 
     res = await starknet.invoke_raw(
         contract_address=contract_address,
@@ -25,6 +27,7 @@ async def test_calldatacopy():
         # The arguments to contract are dummy arguments and are not semantically
         # correct
         calldata=[24, 4, 1, 2, 3, 4],
+        caller_address=0,
     )
 
     assert res.retdata == [0, 0]

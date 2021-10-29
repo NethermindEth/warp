@@ -421,9 +421,6 @@ class Return(StaticHandler):
         )
 
 
-# ============ Other ============
-
-
 class Address(DynamicHandler):
     def __init__(self, cairo_functions: CairoFunctions):
         super().__init__(cairo_functions.address_function)
@@ -445,7 +442,6 @@ class Call(StaticHandler):
             module="evm.calls",
             used_implicits=(
                 "syscall_ptr",
-                "storage_ptr",
                 "exec_env",
                 "memory_dict",
                 "range_check_ptr",
@@ -461,7 +457,6 @@ class StaticCall(StaticHandler):
             module="evm.calls",
             used_implicits=(
                 "syscall_ptr",
-                "storage_ptr",
                 "exec_env",
                 "memory_dict",
                 "range_check_ptr",

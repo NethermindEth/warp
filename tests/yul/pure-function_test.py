@@ -17,12 +17,15 @@ async def test_starknet():
     )
 
     starknet = await StarknetState.empty()
-    contract_address = await starknet.deploy(contract_definition=contract_definition)
+    contract_address = await starknet.deploy(
+        contract_definition=contract_definition, constructor_calldata=[]
+    )
 
     res = await starknet.invoke_raw(
         contract_address=contract_address,
         selector="fun_pureFunction_external",
         calldata=[30, 0, 500, 0, 90, 0, 445, 0],
+        caller_address=0,
     )
 
     assert res.retdata == [432, 0]

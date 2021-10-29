@@ -103,6 +103,7 @@ cli = click.CommandCollection(sources=[warp])
 def main():
     try:
         warp()
+
     # This is how we make handling async code with
     # click MUCH simpler. click will always throw SystemExit
     # after leaving its main loop.
