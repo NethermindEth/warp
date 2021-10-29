@@ -59,7 +59,7 @@ end
 func address_initialized() -> (res : felt):
 end
 
-func initialize_address{syscall_ptr: felt*, storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(self_address : felt):
+func initialize_address{range_check_ptr, syscall_ptr: felt*, pedersen_ptr : HashBuiltin*}(self_address : felt):
     let (address_init) = address_initialized.read()
     if address_init == 1:
         return ()

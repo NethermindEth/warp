@@ -3,7 +3,6 @@ IMPLICITS = {
     "msize": None,
     "pedersen_ptr": "HashBuiltin*",
     "range_check_ptr": None,
-    "storage_ptr": "Storage*",
     "syscall_ptr": "felt*",
     "exec_env": "ExecutionEnvironment",
     "bitwise_ptr": "BitwiseBuiltin*",

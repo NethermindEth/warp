@@ -4,7 +4,6 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.math import split_felt, unsigned_div_rem
 from starkware.cairo.common.uint256 import Uint256
-from starkware.starknet.common.storage import Storage
 from starkware.starknet.common.syscalls import get_caller_address
 
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
@@ -83,7 +82,7 @@ func calculate_data_len{range_check_ptr}(calldata_size) -> (calldata_len):
 end
 
 func warp_call{
-        syscall_ptr : felt*, storage_ptr : Storage*, exec_env : ExecutionEnvironment,
+        syscall_ptr : felt*, exec_env : ExecutionEnvironment,
         memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
         gas : Uint256, address : Uint256, value : Uint256, in : Uint256, insize : Uint256,
         out : Uint256, outsize : Uint256) -> (success : Uint256):
@@ -101,7 +100,6 @@ func warp_call{
         local f3, local f4, local f5, local f6, local f7) = GenericCallInterface.fun_ENTRY_POINT(
         address_felt, insize.low, calldata_len, mem, address_felt)
     local syscall_ptr : felt* = syscall_ptr
-    local storage_ptr : Storage* = storage_ptr
     let (local return_array : felt*) = alloc()
     assert return_array[0] = f0
     assert return_array[1] = f1
@@ -121,7 +119,7 @@ func warp_call{
 end
 
 func warp_static_call{
-        syscall_ptr : felt*, storage_ptr : Storage*, exec_env : ExecutionEnvironment,
+        syscall_ptr : felt*, exec_env : ExecutionEnvironment,
         memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
         gas : Uint256, address : Uint256, in : Uint256, insize : Uint256, out : Uint256,
         outsize : Uint256) -> (success : Uint256):

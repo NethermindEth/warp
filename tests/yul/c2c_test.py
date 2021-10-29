@@ -26,8 +26,12 @@ async def test_starknet():
     )
 
     starknet = await StarknetState.empty()
-    erc20_address = await starknet.deploy(contract_definition=erc20_contractDef)
-    caller_address = await starknet.deploy(contract_definition=caller_contractDef)
+    erc20_address = await starknet.deploy(
+        contract_definition=erc20_contractDef, constructor_calldata=[]
+    )
+    caller_address = await starknet.deploy(
+        contract_definition=caller_contractDef, constructor_calldata=[]
+    )
 
     mint_calldata_evm = get_evm_calldata(
         caller_sol,
@@ -103,6 +107,7 @@ async def test_starknet():
         contract_address=caller_address,
         selector="fun_ENTRY_POINT",
         calldata=mint_calldata,
+        caller_address=0,
     )
 
     assert mint_res.retdata == [1, 32, 8, 0, 1, 0, 0, 0, 0, 0, 0]
@@ -111,6 +116,7 @@ async def test_starknet():
         contract_address=caller_address,
         selector="fun_ENTRY_POINT",
         calldata=balance_calldata,
+        caller_address=0,
     )
     assert balances1_res.retdata == [1, 32, 8, 0, 42, 0, 0, 0, 0, 0, 0]
 
@@ -118,6 +124,7 @@ async def test_starknet():
         contract_address=caller_address,
         selector="fun_ENTRY_POINT",
         calldata=transfer_calldata,
+        caller_address=0,
     )
     assert transfer_res.retdata == [1, 32, 8, 0, 1, 0, 0, 0, 0, 0, 0]
 
@@ -125,5 +132,6 @@ async def test_starknet():
         contract_address=caller_address,
         selector="fun_ENTRY_POINT",
         calldata=balance_calldata2,
+        caller_address=0,
     )
     assert balance_after_transfer.retdata == [1, 32, 8, 0, 42, 0, 0, 0, 0, 0, 0]

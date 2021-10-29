@@ -17,7 +17,9 @@ async def test_starknet():
     )
 
     starknet = await StarknetState.empty()
-    contract_address = await starknet.deploy(contract_definition=contract_definition)
+    contract_address = await starknet.deploy(
+        contract_definition=contract_definition, constructor_calldata=[]
+    )
     sender = 74
     receiver = 68
 
@@ -25,12 +27,14 @@ async def test_starknet():
         contract_address=contract_address,
         selector="fun_deposit_external",
         calldata=[sender, 0, 500, 0],
+        caller_address=0,
     )
 
     res = await starknet.invoke_raw(
         contract_address=contract_address,
         selector="fun_transferFrom_external",
         calldata=[sender, 0, receiver, 0, 400, 0, sender, 0],
+        caller_address=0,
     )
     assert res.retdata == [1, 0]
 
@@ -38,12 +42,14 @@ async def test_starknet():
         contract_address=contract_address,
         selector="fun_withdraw_external",
         calldata=[80, 0, sender, 0],
+        caller_address=0,
     )
 
     res = await starknet.invoke_raw(
         contract_address=contract_address,
         selector="fun_get_balance_external",
         calldata=[sender, 0],
+        caller_address=0,
     )
     assert res.retdata == [20, 0]
 
@@ -51,5 +57,6 @@ async def test_starknet():
         contract_address=contract_address,
         selector="fun_get_balance_external",
         calldata=[receiver, 0],
+        caller_address=0,
     )
     assert res.retdata == [400, 0]

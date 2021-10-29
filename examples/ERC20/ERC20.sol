@@ -2,12 +2,12 @@
 
 pragma solidity ^0.8.0;
 
-contract ERC20 {
+contract WARP {
     mapping(address => uint256) public _balances;
 
-    uint256 private _totalSupply;
+    uint256 public _totalSupply = 100000000000000;
 
-    function decimals() public view returns (uint8) {
+    function decimals() external pure returns (uint8) {
         return 18;
     }
 
@@ -15,8 +15,13 @@ contract ERC20 {
         return _totalSupply;
     }
 
-    function balanceOf(address account) public returns (uint256) {
+    function balanceOf(address account) external view returns (uint256) {
         return _balances[account];
+    }
+
+    function mint(address to, uint amount) external returns (bool) {
+        _balances[to] += amount;
+        return true;
     }
 
     function transfer(address recipient, uint256 amount) public returns (bool) {
@@ -28,7 +33,7 @@ contract ERC20 {
         address sender,
         address recipient,
         uint256 amount
-    ) public returns (bool) {
+    ) external returns (bool) {
         _transfer(sender, recipient, amount);
         return true;
     }

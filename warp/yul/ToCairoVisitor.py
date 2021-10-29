@@ -39,7 +39,6 @@ COMMON_IMPORTS = {
         "HashBuiltin",
         "BitwiseBuiltin",
     },
-    "starkware.starknet.common.storage": {"Storage"},
     "starkware.cairo.common.alloc": {"alloc"},
     "evm.exec_env": {"ExecutionEnvironment"},
     "evm.utils": {"update_msize"},
@@ -160,7 +159,7 @@ class ToCairoVisitor(AstVisitor):
             args_repr = ", ".join(self.print(x) for x in node.arguments)
             if self.in_entry_function and "__warp_if_" in fun_repr:
                 result = (
-                    f"with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, storage_ptr, syscall_ptr:\n"
+                    f"with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, syscall_ptr:\n"
                     f"{fun_repr}({args_repr})\n"
                     f"end\n"
                 )
@@ -229,14 +228,13 @@ class ToCairoVisitor(AstVisitor):
             self.in_entry_function = False
             return (
                 "@external\n"
-                f"func {node.name}{{storage_ptr: Storage*, pedersen_ptr : HashBuiltin*, range_check_ptr,"
+                f"func {node.name}{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
                 f"syscall_ptr : felt* , bitwise_ptr : BitwiseBuiltin*}}(calldata_size,"
                 f"calldata_len, calldata : felt*, self_address : felt) -> ({returns_repr}):\n"
                 f"alloc_locals\n"
-                f"initialize_address{{syscall_ptr=syscall_ptr, storage_ptr=storage_ptr, range_check_ptr=range_check_ptr, pedersen_ptr=pedersen_ptr}}(self_address)\n"
+                f"initialize_address{{range_check_ptr=range_check_ptr, syscall_ptr=syscall_ptr, pedersen_ptr=pedersen_ptr}}(self_address)\n"
                 f"local pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
                 f"local range_check_ptr = range_check_ptr\n"
-                f"local storage_ptr : Storage* = storage_ptr\n"
                 f"local syscall_ptr : felt* = syscall_ptr\n"
                 f"let (returndata_ptr: felt*) = alloc()\n"
                 f"local exec_env : ExecutionEnvironment = ExecutionEnvironment("
@@ -425,7 +423,7 @@ class ToCairoVisitor(AstVisitor):
             return None
 
         self.function_to_implicits.setdefault(node.name, set()).update(
-            ("storage_ptr", "pedersen_ptr", "range_check_ptr")
+            ("pedersen_ptr", "range_check_ptr", "syscall_ptr")
         )
         accessor_args = tuple(x.name for x in node.parameters)
         if getter_var:
