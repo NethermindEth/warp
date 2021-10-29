@@ -422,9 +422,6 @@ class CallDataSize(BuiltinHandler):
             used_implicits=("range_check_ptr", "exec_env"),
             cairo_functions=cairo_functions,
         )
-        self.function_call = (
-            "calldatasize_{range_check_ptr=range_check_ptr, exec_env=exec_env}()"
-        )
 
 
 class CallDataCopy(BuiltinHandler):
