@@ -22,6 +22,10 @@ func __warp_identity_Uint256(arg0 : Uint256) -> (arg0 : Uint256):
     return (arg0)
 end
 
+func __warp_constant_340282366920938463463374607431768211456() -> (res : Uint256):
+    return (Uint256(low=0, high=1))
+end
+
 func __warp_constant_0() -> (res : Uint256):
     return (Uint256(low=0, high=0))
 end
@@ -30,19 +34,8 @@ end
 func this_address() -> (res : felt):
 end
 
-func address{
-        syscall_ptr : felt*, storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
-        ) -> (res : Uint256):
-    let (addr) = this_address.read()
-    return (res=Uint256(low=addr, high=0))
-end
-
 @storage_var
 func address_initialized() -> (res : felt):
-end
-
-func gas() -> (res : Uint256):
-    return (Uint256(100000, 100000))
 end
 
 func initialize_address{
@@ -293,8 +286,7 @@ func fun_sendMoneyz{
     let (local _10_118 : Uint256) = uint256_sub(_9_117, _4_112)
     local range_check_ptr = range_check_ptr
     local _11_119 : Uint256 = Uint256(low=0, high=0)
-    let (local _12_120 : Uint256) = gas()
-    local range_check_ptr = range_check_ptr
+    let (local _12_120 : Uint256) = __warp_constant_340282366920938463463374607431768211456()
     let (local _13_121 : Uint256) = warp_call(
         _12_120, var_contract_addr, _11_119, _4_112, _10_118, _4_112, _6_114)
     local syscall_ptr : felt* = syscall_ptr
@@ -486,8 +478,7 @@ func fun_checkMoneyz{
     local range_check_ptr = range_check_ptr
     let (local _10_84 : Uint256) = uint256_sub(_9_83, _4_78)
     local range_check_ptr = range_check_ptr
-    let (local _11_85 : Uint256) = gas()
-    local range_check_ptr = range_check_ptr
+    let (local _11_85 : Uint256) = __warp_constant_340282366920938463463374607431768211456()
     let (local _12_86 : Uint256) = warp_static_call(_11_85, var_addr, _4_78, _10_84, _4_78, _6_80)
     local syscall_ptr : felt* = syscall_ptr
     local storage_ptr : Storage* = storage_ptr
@@ -645,8 +636,7 @@ func fun_gimmeMoney{
     let (local _11_100 : Uint256) = uint256_sub(_10_99, _4_93)
     local range_check_ptr = range_check_ptr
     local _12_101 : Uint256 = Uint256(low=0, high=0)
-    let (local _13_102 : Uint256) = gas()
-    local range_check_ptr = range_check_ptr
+    let (local _13_102 : Uint256) = __warp_constant_340282366920938463463374607431768211456()
     let (local _14_103 : Uint256) = warp_call(
         _13_102, var_add, _12_101, _4_93, _11_100, _4_93, _6_95)
     local syscall_ptr : felt* = syscall_ptr
@@ -1036,36 +1026,37 @@ func fun_ENTRY_POINT{
     let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
-    local _1 : Uint256 = Uint256(low=128, high=0)
-    local _2 : Uint256 = Uint256(low=64, high=0)
-    with memory_dict, msize, range_check_ptr:
-        mstore_(offset=_2.low, value=_1)
+    with exec_env, msize, memory_dict:
+        local _1 : Uint256 = Uint256(low=128, high=0)
+        local _2 : Uint256 = Uint256(low=64, high=0)
+        with memory_dict, msize, range_check_ptr:
+            mstore_(offset=_2.low, value=_1)
+        end
+
+        local memory_dict : DictAccess* = memory_dict
+        local msize = msize
+        local range_check_ptr = range_check_ptr
+        local _3 : Uint256 = Uint256(low=4, high=0)
+        let (local _4 : Uint256) = calldatasize_()
+        local range_check_ptr = range_check_ptr
+        local exec_env : ExecutionEnvironment = exec_env
+        let (local _5 : Uint256) = is_lt(_4, _3)
+        local range_check_ptr = range_check_ptr
+        let (local _6 : Uint256) = is_zero(_5)
+        local range_check_ptr = range_check_ptr
+        with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, storage_ptr, syscall_ptr:
+            __warp_if_3(_2, _3, _4, _6)
+        end
+
+        local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
+        local exec_env : ExecutionEnvironment = exec_env
+        local memory_dict : DictAccess* = memory_dict
+        local msize = msize
+        local range_check_ptr = range_check_ptr
+        local storage_ptr : Storage* = storage_ptr
+        local syscall_ptr : felt* = syscall_ptr
+        local exec_env : ExecutionEnvironment = exec_env
     end
-
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    local range_check_ptr = range_check_ptr
-    local _3 : Uint256 = Uint256(low=4, high=0)
-    let (local _4 : Uint256) = calldatasize_{range_check_ptr=range_check_ptr, exec_env=exec_env}()
-    local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
-    let (local _5 : Uint256) = is_lt(_4, _3)
-    local range_check_ptr = range_check_ptr
-    let (local _6 : Uint256) = is_zero(_5)
-    local range_check_ptr = range_check_ptr
-    with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, storage_ptr, syscall_ptr:
-        __warp_if_3(_2, _3, _4, _6)
-    end
-
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local exec_env : ExecutionEnvironment = exec_env
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    local range_check_ptr = range_check_ptr
-    local storage_ptr : Storage* = storage_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    local exec_env : ExecutionEnvironment = exec_env
-
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (
         1,

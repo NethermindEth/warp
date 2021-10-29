@@ -21,19 +21,8 @@ from starkware.starknet.common.storage import Storage
 func this_address() -> (res : felt):
 end
 
-func address{
-        syscall_ptr : felt*, storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
-        ) -> (res : Uint256):
-    let (addr) = this_address.read()
-    return (res=Uint256(low=addr, high=0))
-end
-
 @storage_var
 func address_initialized() -> (res : felt):
-end
-
-func gas() -> (res : Uint256):
-    return (Uint256(100000, 100000))
 end
 
 func initialize_address{
@@ -330,33 +319,34 @@ func fun_ENTRY_POINT{
     let (local memory_dict) = default_dict_new(0)
     local memory_dict_start : DictAccess* = memory_dict
     let msize = 0
-    local _1 : Uint256 = Uint256(low=128, high=0)
-    local _2 : Uint256 = Uint256(low=64, high=0)
-    with memory_dict, msize, range_check_ptr:
-        mstore_(offset=_2.low, value=_1)
+    with exec_env, msize, memory_dict:
+        local _1 : Uint256 = Uint256(low=128, high=0)
+        local _2 : Uint256 = Uint256(low=64, high=0)
+        with memory_dict, msize, range_check_ptr:
+            mstore_(offset=_2.low, value=_1)
+        end
+
+        local memory_dict : DictAccess* = memory_dict
+        local msize = msize
+        local range_check_ptr = range_check_ptr
+        local _3 : Uint256 = Uint256(low=4, high=0)
+        let (local _4 : Uint256) = calldatasize_()
+        local range_check_ptr = range_check_ptr
+        local exec_env : ExecutionEnvironment = exec_env
+        let (local _5 : Uint256) = is_lt(_4, _3)
+        local range_check_ptr = range_check_ptr
+        let (local _6 : Uint256) = is_zero(_5)
+        local range_check_ptr = range_check_ptr
+        with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, storage_ptr, syscall_ptr:
+            __warp_if_0(_2, _3, _4, _6)
+        end
+
+        local exec_env : ExecutionEnvironment = exec_env
+        local memory_dict : DictAccess* = memory_dict
+        local msize = msize
+        local range_check_ptr = range_check_ptr
+        local exec_env : ExecutionEnvironment = exec_env
     end
-
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    local range_check_ptr = range_check_ptr
-    local _3 : Uint256 = Uint256(low=4, high=0)
-    let (local _4 : Uint256) = calldatasize_{range_check_ptr=range_check_ptr, exec_env=exec_env}()
-    local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
-    let (local _5 : Uint256) = is_lt(_4, _3)
-    local range_check_ptr = range_check_ptr
-    let (local _6 : Uint256) = is_zero(_5)
-    local range_check_ptr = range_check_ptr
-    with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, storage_ptr, syscall_ptr:
-        __warp_if_0(_2, _3, _4, _6)
-    end
-
-    local exec_env : ExecutionEnvironment = exec_env
-    local memory_dict : DictAccess* = memory_dict
-    local msize = msize
-    local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = exec_env
-
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (
         1,

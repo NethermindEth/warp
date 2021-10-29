@@ -185,3 +185,23 @@ class CairoFunctions:
 
         self.generator.create_function(name, inner)
         return FunctionInfo(name=name, implicits=set())
+
+    def address_function(self) -> FunctionInfo:
+        name = f"address"
+        implicits = {"syscall_ptr", "storage_ptr", "range_check_ptr", "pedersen_ptr"}
+
+        def inner():
+            implicits_str = (
+                "{" + ", ".join(print_implicit(x) for x in sorted(implicits)) + "}"
+            )
+            return "\n".join(
+                [
+                    f"func {name}{implicits_str}() -> (res: Uint256):",
+                    "let (addr) = this_address.read()",
+                    "return (Uint256(low=addr, high=0))",
+                    "end\n",
+                ]
+            )
+
+        self.generator.create_function(name, inner)
+        return FunctionInfo(name=name, implicits=implicits)
