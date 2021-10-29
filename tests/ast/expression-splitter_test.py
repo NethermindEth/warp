@@ -6,7 +6,7 @@ from yul.AstTools import AstParser, AstPrinter
 from yul.ExpressionSplitter import ExpressionSplitter
 from yul.NameGenerator import NameGenerator
 
-def test_changing_names():
+def test_split_expressions():
     ast_file_path = str(__file__)[:-8] + '.ast'
     with open(ast_file_path, 'r') as ast_file:
         parser = AstParser(ast_file.read())

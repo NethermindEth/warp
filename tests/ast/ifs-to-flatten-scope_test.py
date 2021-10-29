@@ -3,15 +3,17 @@ import os
 import pytest
 
 from yul.AstTools import AstParser, AstPrinter
-from yul.SwitchToIfVisitor import SwitchToIfVisitor
+from yul.NameGenerator import NameGenerator
+from yul.ScopeFlattener import ScopeFlattener
 
-def test_switch_to_ifs():
+def test_scope_flattening():
     ast_file_path = str(__file__)[:-8] + '.ast'
     with open(ast_file_path, 'r') as ast_file:
         parser = AstParser(ast_file.read())
         
     yul_ast = parser.parse_node()
-    yul_ast = SwitchToIfVisitor().map(yul_ast)
+    name_gen = NameGenerator()
+    yul_ast = ScopeFlattener(name_gen).map(yul_ast)
 
     generated_ast = AstPrinter().format(yul_ast)
     temp_file_path = f"{ast_file_path}.temp"

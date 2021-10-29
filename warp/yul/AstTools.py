@@ -388,12 +388,13 @@ class AstParser:
 
     def get_tabs(self):
         tabs = 0
-        for c in self.lines[self.pos]:
-            if not c == '\t':
-                break
-            tabs += 1
-        else:
-            raise WarpException("Lines are not supposed to be filled only with tabs")
+        if self.pos < len(self.lines):
+            for c in self.lines[self.pos]:
+                if not c == '\t':
+                    break
+                tabs += 1
+            else:
+                raise WarpException("Lines are not supposed to be filled only with tabs")
 
         return tabs
 
