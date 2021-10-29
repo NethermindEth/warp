@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import sys
 from abc import ABC
 from typing import Callable, Mapping, Optional, Sequence
 
@@ -139,14 +140,15 @@ class DynamicHandler(BuiltinHandler):
 class NotImplementedOp(DynamicHandler):
     def __init__(self, cairo_functions: CairoFunctions):
         super().__init__(cairo_functions.stubbing_function)
+
+    def get_function_call(self, _args: Sequence[str]):
         print(
             f"WARNING: This contract referenced '{type(self)}' "
             f"which is not yet supported. Evaluating"
             f"this contract on starknet may result in unexpected"
-            f"behavior."
+            f"behavior.",
+            file=sys.stderr,
         )
-
-    def get_function_call(self, _args: Sequence[str]):
         return super().get_function_call([])
 
 
