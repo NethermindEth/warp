@@ -485,28 +485,24 @@ class Return(BuiltinHandler):
 
 class Address(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.address_function()
         super().__init__(
             module="",
-            function_name="",
+            function_name=info.name,
             function_args=function_args,
-            used_implicits=(
-                "syscall_ptr",
-                "storage_ptr",
-                "range_check_ptr",
-                "pedersen_ptr",
-            ),
+            used_implicits=tuple(sorted(info.implicits)),
             cairo_functions=cairo_functions,
         )
-        self.function_call = "address()"
 
 
 class Delegatecall(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.constant_function(10 ** 40)
         super().__init__(
             module="",
-            function_name=cairo_functions.stubbing_function().name,
+            function_name=info.name,
             function_args="",
-            used_implicits=(),
+            used_implicits=tuple(sorted(info.implicits)),
             cairo_functions=cairo_functions,
         )
         # TODO implement delegatecall
@@ -561,10 +557,24 @@ class ExtCodeSize(BuiltinHandler):
 
 class Gas(BuiltinHandler):
     def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.constant_function(2 ** 128)
         super().__init__(
             module="",
-            function_name="gas",
+            function_name=info.name,
             function_args="",
+            used_implicits=tuple(sorted(info.implicits)),
+            cairo_functions=cairo_functions,
+        )
+
+
+class Callvalue(BuiltinHandler):
+    def __init__(self, function_args: str, cairo_functions: CairoFunctions):
+        info = cairo_functions.constant_function(0)
+        super().__init__(
+            module="",
+            function_name=info.name,
+            function_args=function_args,
+            used_implicits=tuple(sorted(info.implicits)),
             cairo_functions=cairo_functions,
         )
 
@@ -579,6 +589,7 @@ YUL_BUILTINS_MAP = {
     "calldataload": CallDataLoad,
     "calldatasize": CallDataSize,
     "caller": Caller,
+    "callvalue": Callvalue,
     "delegatecall": Delegatecall,
     "callvalue": CallValue,
     "div": Div,

@@ -21,19 +21,8 @@ from starkware.starknet.common.storage import Storage
 func this_address() -> (res : felt):
 end
 
-func address{
-        syscall_ptr : felt*, storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
-        ) -> (res : Uint256):
-    let (addr) = this_address.read()
-    return (res=Uint256(low=addr, high=0))
-end
-
 @storage_var
 func address_initialized() -> (res : felt):
-end
-
-func gas() -> (res : Uint256):
-    return (Uint256(100000, 100000))
 end
 
 func initialize_address{

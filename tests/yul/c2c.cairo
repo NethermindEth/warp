@@ -22,6 +22,10 @@ func __warp_identity_Uint256(arg0 : Uint256) -> (arg0 : Uint256):
     return (arg0)
 end
 
+func __warp_constant_340282366920938463463374607431768211456() -> (res : Uint256):
+    return (Uint256(low=0, high=1))
+end
+
 func __warp_constant_0() -> (res : Uint256):
     return (Uint256(low=0, high=0))
 end
@@ -30,19 +34,8 @@ end
 func this_address() -> (res : felt):
 end
 
-func address{
-        syscall_ptr : felt*, storage_ptr : Storage*, range_check_ptr, pedersen_ptr : HashBuiltin*}(
-        ) -> (res : Uint256):
-    let (addr) = this_address.read()
-    return (res=Uint256(low=addr, high=0))
-end
-
 @storage_var
 func address_initialized() -> (res : felt):
-end
-
-func gas() -> (res : Uint256):
-    return (Uint256(100000, 100000))
 end
 
 func initialize_address{
@@ -293,8 +286,7 @@ func fun_sendMoneyz{
     let (local _10_118 : Uint256) = uint256_sub(_9_117, _4_112)
     local range_check_ptr = range_check_ptr
     local _11_119 : Uint256 = Uint256(low=0, high=0)
-    let (local _12_120 : Uint256) = gas()
-    local range_check_ptr = range_check_ptr
+    let (local _12_120 : Uint256) = __warp_constant_340282366920938463463374607431768211456()
     let (local _13_121 : Uint256) = warp_call(
         _12_120, var_contract_addr, _11_119, _4_112, _10_118, _4_112, _6_114)
     local syscall_ptr : felt* = syscall_ptr
@@ -486,8 +478,7 @@ func fun_checkMoneyz{
     local range_check_ptr = range_check_ptr
     let (local _10_84 : Uint256) = uint256_sub(_9_83, _4_78)
     local range_check_ptr = range_check_ptr
-    let (local _11_85 : Uint256) = gas()
-    local range_check_ptr = range_check_ptr
+    let (local _11_85 : Uint256) = __warp_constant_340282366920938463463374607431768211456()
     let (local _12_86 : Uint256) = warp_static_call(_11_85, var_addr, _4_78, _10_84, _4_78, _6_80)
     local syscall_ptr : felt* = syscall_ptr
     local storage_ptr : Storage* = storage_ptr
@@ -645,8 +636,7 @@ func fun_gimmeMoney{
     let (local _11_100 : Uint256) = uint256_sub(_10_99, _4_93)
     local range_check_ptr = range_check_ptr
     local _12_101 : Uint256 = Uint256(low=0, high=0)
-    let (local _13_102 : Uint256) = gas()
-    local range_check_ptr = range_check_ptr
+    let (local _13_102 : Uint256) = __warp_constant_340282366920938463463374607431768211456()
     let (local _14_103 : Uint256) = warp_call(
         _13_102, var_add, _12_101, _4_93, _11_100, _4_93, _6_95)
     local syscall_ptr : felt* = syscall_ptr
