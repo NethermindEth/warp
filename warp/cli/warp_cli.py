@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+from ast import literal_eval
 from enum import Enum
 
 import click
@@ -28,6 +29,8 @@ def warp():
 @click.argument("file_path", type=click.Path(exists=True))
 @click.argument("contract_name")
 def transpile(verbose, file_path, contract_name):
+    if os.path.exists(os.path.abspath(file_path[:-4])):
+        os.remove(os.path.abspath(file_path[:-4]) + "_marked.sol")
     path = os.path.abspath(click.format_filename(file_path))
     filename = os.path.basename(path)
     cairo_str = generate_cairo(file_path, contract_name)
@@ -50,25 +53,11 @@ return_args = {}
 )
 @click.option("--inputs", required=True, help="Function Arguments")
 def invoke(contract, address, function, inputs):
-    inputs = inputs.split(" ")
-    # high & low bits
-    split_inputs = []
-    for idx, input in enumerate(inputs):
-        if input.isdigit():
-            try:
-                to_split = int(input, 16) if input.startswith("0x") else int(input)
-                low, high = get_low_high(to_split)
-                split_inputs += [int(low), int(high)]
-                inputs[idx] = int(input, 16) if input.startswith("0x") else int(input)
-            except ValueError:
-                raise ValueError(
-                    f"Invalid input value: '{input}'. Expected a decimal or hexadecimal integer."
-                )
+    inputs = literal_eval(inputs)
     return_args["address"] = address
     return_args["function"] = function
     return_args["contract"] = contract
-    return_args["cairo_inputs"] = split_inputs
-    return_args["evm_inputs"] = inputs
+    return_args["inputs"] = inputs
     return_args["type"] = Command.INVOKE
 
 
@@ -82,11 +71,24 @@ def call(address, abi, function):
 
 @warp.command()
 @click.argument("contract", nargs=1, required=True, type=click.Path(exists=True))
-def deploy(contract):
+@click.option("--constructor_args", required=False, default="\0")
+def deploy(contract, constructor_args):
     """
     Name of the Cairo contract to deploy
     """
+    base_source_dir = os.path.abspath(os.path.join(contract, "../"))
+    artifacts_dir = os.path.abspath(os.path.join(base_source_dir, "artifacts"))
+    dynArg_file_path = os.path.join(artifacts_dir, "DynArgFunctions")
+    return_args["dyn_arg_constructor"] = False
+    if os.path.exists(dynArg_file_path):
+        with open(dynArg_file_path) as f:
+            dyn_arg_funcs = f.read()
+            if "constructor" in dyn_arg_funcs:
+                return_args["dyn_arg_constructor"] = True
+    inputs = literal_eval(constructor_args)
     return_args["contract"] = contract
+    return_args["constructor"] = constructor_args != "\0"
+    return_args["constructor_args"] = inputs
     return_args["type"] = Command.DEPLOY
 
 
@@ -115,12 +117,18 @@ def main():
                         return_args["contract"],
                         return_args["address"],
                         return_args["function"],
-                        return_args["cairo_inputs"],
-                        return_args["evm_inputs"],
+                        return_args["inputs"],
                     )
                 )
             elif return_args["type"] is Command.DEPLOY:
-                asyncio.run(_deploy(return_args["contract"]))
+                asyncio.run(
+                    _deploy(
+                        return_args["contract"],
+                        return_args["constructor"],
+                        return_args["dyn_arg_constructor"],
+                        return_args["constructor_args"],
+                    )
+                )
             elif return_args["type"] is Command.STATUS:
                 asyncio.run(_status(return_args["id"]))
         # An Error to log

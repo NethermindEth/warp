@@ -40,7 +40,8 @@ def test_transpilation(solidity_file):
     cairo_code = clean(cairo_code)
     compare_codes(gen_cairo_code, cairo_code)
     os.remove(temp_file_path)
-
+    print(os.path.abspath(solidity_file[:-4]) + "_marked.sol")
+    os.remove(os.path.abspath(solidity_file[:-4]) + "_marked.sol")
 
 def compare_codes(lines1, lines2):
     d = difflib.unified_diff(lines1, lines2, n=1, lineterm="")

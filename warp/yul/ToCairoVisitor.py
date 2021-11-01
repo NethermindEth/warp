@@ -207,10 +207,15 @@ class ToCairoVisitor(AstVisitor):
     def visit_function_definition(self, node: ast.FunctionDefinition):
         if node.name == "validator_":
             return ""
-        if "_dynArgs" in node.name:
-            self.artifacts_manager.write_artifact(
-                ".DynArgFunctions", node.name.replace("_dynArgs", "") + "\n"
-            )
+        if "_DynArgs" in node.name:
+            if node.name == "fun_warp_constructor_DynArgs":
+                self.artifacts_manager.write_artifact(
+                    "DynArgFunctions", "constructor" + "\n"
+                )
+            else:
+                self.artifacts_manager.write_artifact(
+                    "DynArgFunctions", node.name + "\n"
+                )
         if "ENTRY_POINT" in node.name:
             self.in_entry_function = True
         self.last_function = node
@@ -219,6 +224,44 @@ class ToCairoVisitor(AstVisitor):
         body_repr = self._try_make_storage_accessor_body(node)
         if not body_repr:
             body_repr = self.print(node.body)
+
+        if node.name == "fun_warp_constructor":
+            return (
+                f"@constructor\n"
+                f"func constructor{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
+                f"syscall_ptr : felt* , bitwise_ptr : BitwiseBuiltin*}}({params_repr}):\n"
+                f"alloc_locals\n"
+                f"let (local memory_dict) = default_dict_new(0)\n"
+                f"local memory_dict_start: DictAccess* = memory_dict\n"
+                f"let msize = 0\n"
+                f"with pedersen_ptr, range_check_ptr, bitwise_ptr, memory_dict, msize:\n"
+                f"{body_repr}\n"
+                f"end\n"
+                f"end"
+            )
+        elif node.name == "fun_warp_constructor_DynArgs":
+            return (
+                f"@constructor\n"
+                f"func constructor{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
+                f"syscall_ptr : felt* , bitwise_ptr : BitwiseBuiltin*}}(calldata_size,"
+                f"calldata_len, calldata : felt*):\n"
+                f"alloc_locals\n"
+                f"local pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
+                f"local range_check_ptr = range_check_ptr\n"
+                f"local syscall_ptr : felt* = syscall_ptr\n"
+                f"let (returndata_ptr: felt*) = alloc()\n"
+                f"local exec_env : ExecutionEnvironment = ExecutionEnvironment("
+                f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata,"
+                f"returndata_size=0, returndata_len=0, returndata=returndata_ptr,"
+                f"to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)\n"
+                f"let (local memory_dict) = default_dict_new(0)\n"
+                f"local memory_dict_start: DictAccess* = memory_dict\n"
+                f"let msize = 0\n"
+                f"with pedersen_ptr, range_check_ptr, bitwise_ptr, memory_dict, msize, exec_env:\n"
+                f"{body_repr}\n"
+                f"end\n"
+                f"end\n"
+            )
 
         if node.name == "fun_ENTRY_POINT":
             # The leave gets replaced with the wrong return type in this case

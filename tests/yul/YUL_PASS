@@ -1,0 +1,196 @@
+object "WARP_52" {
+    code {
+        //holder
+    }
+
+    object "WARP_52_deployed" {
+        code {
+            function fun_ENTRY_POINT()
+            {
+                /// @src 0:25:506
+                let _1 := 128
+                let _2 := 64
+                mstore(_2, _1)
+                let _3 := 4
+                let _4 := calldatasize()
+                let _5 := lt(_4, _3)
+                let _6 := iszero(_5)
+                if _6
+                {
+                    let _7 := 0
+                    let _8 := calldataload(_7)
+                    let _9 := 224
+                    let _10 := shr(_9, _8)
+                    switch _10
+                    case 0x41d7e26a {
+                        let _11 := callvalue()
+                        if _11
+                        {
+                            revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb()
+                        }
+                        let _12 := _4
+                        let _13 := _3
+                        abi_decode(_3, _4)
+                        let _14 := not(127)
+                        let _15 := getter_fun_ownerCellNumber()
+                        let _16 := _1
+                        let _17 := abi_encode_uint256(_1, _15)
+                        let _18 := add(_17, _14)
+                        let _19 := _1
+                        return(_1, _18)
+                    }
+                    case 0x8da5cb5b {
+                        let _20 := callvalue()
+                        if _20
+                        {
+                            revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb()
+                        }
+                        let _21 := _4
+                        let _22 := _3
+                        abi_decode(_3, _4)
+                        let ret := getter_fun_owner()
+                        let _23 := _2
+                        let memPos := mload(_2)
+                        let _24 := abi_encode_tuple_address(memPos, ret)
+                        let _25 := sub(_24, memPos)
+                        return(memPos, _25)
+                    }
+                    case 0x9dc856d2 {
+                        let _26 := callvalue()
+                        if _26
+                        {
+                            revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb()
+                        }
+                        let _27 := _4
+                        let _28 := _3
+                        abi_decode(_3, _4)
+                        let ret_1 := getter_fun_ownerAge()
+                        let _29 := _2
+                        let memPos_1 := mload(_2)
+                        let _30 := abi_encode_uint256(memPos_1, ret_1)
+                        let _31 := sub(_30, memPos_1)
+                        return(memPos_1, _31)
+                    }
+                    
+                }
+            }
+
+            function abi_decode(headStart, dataEnd)
+            {
+                let _1 := 0
+                let _2 := sub(dataEnd, headStart)
+                let _3 := slt(_2, _1)
+                if _3
+                {
+                    revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b()
+                }
+            }
+            function abi_decode_addresst_uint256t_uint256(headStart, dataEnd) -> value0, value1, value2
+            {
+                let _1 := 96
+                let _2 := sub(dataEnd, headStart)
+                let _3 := slt(_2, _1)
+                if _3
+                {
+                    revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b()
+                }
+                value0 := calldataload(headStart)
+                let _4 := 32
+                let _5 := add(headStart, _4)
+                value1 := calldataload(_5)
+                let _6 := 64
+                let _7 := add(headStart, _6)
+                value2 := calldataload(_7)
+            }
+            function abi_encode_address(value, pos)
+            { mstore(pos, value) }
+            function abi_encode_uint256_to_uint256(value, pos)
+            { mstore(pos, value) }
+            function abi_encode_tuple_address(headStart, value0) -> tail
+            {
+                let _1 := 32
+                tail := add(headStart, _1)
+                abi_encode_address(value0, headStart)
+            }
+            function abi_encode_uint256(headStart, value0) -> tail
+            {
+                let _1 := 32
+                tail := add(headStart, _1)
+                abi_encode_uint256_to_uint256(value0, headStart)
+            }
+            /// @src 0:130:326
+            function fun_warp_constructor(var_owner, var_ownerAge, var_ownerCellNumber)
+            {
+                /// @src 0:231:245
+                setter_fun_owner(var_owner)
+                /// @src 0:255:275
+                setter_fun_ownerAge(var_ownerAge)
+                /// @src 0:285:319
+                setter_fun_ownerCellNumber(var_ownerCellNumber)
+            }
+            /// @src 0:25:506
+            function getter_fun_ownerAge() -> value
+            {
+                value := 424238336
+                let _1 := 52
+                revert(_1, value)
+            }
+            function getter_fun_ownerCellNumber() -> value
+            {
+                value := 1714636916
+                let _1 := 52
+                revert(_1, value)
+            }
+            function getter_fun_owner() -> value
+            {
+                value := 1957747794
+                let _1 := 52
+                revert(_1, value)
+            }
+            function revert_error_42b3090547df1d2001c96683413b8cf91c1b902ef5e3cb8d9f6f304cf7446f74()
+            {
+                let _1 := 0
+                let _2 := _1
+                revert(_1, _1)
+            }
+            function revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb()
+            {
+                let _1 := 0
+                let _2 := _1
+                revert(_1, _1)
+            }
+            function revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b()
+            {
+                let _1 := 0
+                let _2 := _1
+                revert(_1, _1)
+            }
+            function setter_fun_ownerAge(value)
+            {
+                let _1 := 0xc4aab1e2
+                let _2 := add(value, _1)
+                let _3 := 1649760497
+                let _4 := add(value, _3)
+                revert(_4, _2)
+            }
+            function setter_fun_ownerCellNumber(value)
+            {
+                let _1 := 0x471c3e5e
+                let _2 := add(value, _1)
+                let _3 := 596516655
+                let _4 := add(value, _3)
+                revert(_4, _2)
+            }
+            function setter_fun_owner(value)
+            {
+                let _1 := 0x55d1289c
+                let _2 := add(value, _1)
+                let _3 := 719885390
+                let _4 := add(value, _3)
+                revert(_4, _2)
+            }
+        }
+        data ".metadata" hex"a2646970667358221220f2f564de4690f4f836c42ab4ef0e8b3cdeeb2e6d29c30532ba7af1f24bf2727764736f6c637827302e382e372d646576656c6f702e323032312e31312e312b636f6d6d69742e35343738316636340058"
+    }
+}
+
