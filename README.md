@@ -52,14 +52,14 @@ warp transpile FILE_PATH CONTRACT_NAME
 
 `CONTRACT_NAME` is the name of the primary contract (non-interface, non-library, non-abstract contract) that you wish to transpile
 
-To deploy the transpiled Cairo contract to Starknet use:
+To deploy the transpiled program to Starknet use:
 ```
-warp deploy CONTRACT.cairo
+warp deploy CONTRACT.json
 ```
 
 To invoke a public/external method use:
 ```
-warp invoke --contract CONTRACT.cairo --address ADDRESS --function FUNCTION_NAME --inputs "INPUTS"
+warp invoke --program CONTRACT.json --address ADDRESS --function FUNCTION_NAME --inputs "INPUTS"
 ```
 
 The `--inputs` flag requires its argument to be a string and have each value separated by a space.

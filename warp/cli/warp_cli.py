@@ -1,11 +1,13 @@
 import asyncio
+import json
 import os
 import sys
 from enum import Enum
+from tempfile import NamedTemporaryFile
 
 import click
-from cli.commands import _call, _deploy, _invoke, _status
-from yul.main import generate_cairo
+from cli.commands import _deploy, _invoke, _status
+from yul.main import transpile_from_solidity
 from yul.utils import get_low_high
 
 
@@ -22,114 +24,76 @@ def warp():
 
 
 @warp.command()
-@click.option(
-    "--verbose", is_flag=True, required=False, help="prints stacktraces on fail"
-)
 @click.argument("file_path", type=click.Path(exists=True))
 @click.argument("contract_name")
-def transpile(verbose, file_path, contract_name):
-    path = os.path.abspath(click.format_filename(file_path))
-    filename = os.path.basename(path)
-    cairo_str = generate_cairo(file_path, contract_name)
-    with open(f"{path[:-4]}.cairo", "w") as f:
-        f.write(cairo_str)
-    click.echo(f"The generated Cairo contract has been written to {path[:-4]}.cairo")
-    return None
-
-
-return_args = {}
+def transpile(file_path, contract_name):
+    path = click.format_filename(file_path)
+    output = transpile_from_solidity(file_path, contract_name)
+    with open(f"{file_path[:-4]}.json", "w") as f:
+        json.dump(output, f)
+    click.echo(f"The transpilation output has been written to {path[:-4]}.json")
 
 
 @warp.command()
-@click.option("--contract", required=True, help="path to transpiled cairo contract")
+@click.option(
+    "--program",
+    required=True,
+    type=click.Path(exists=True, dir_okay=False),
+    help="the path to the transpiled program JSON file",
+)
 @click.option("--address", required=True, help="contract address")
 @click.option(
     "--function",
     required=True,
-    help="the name of the function to invoke, as defined in the SOLIDITY/VYPER contract",
+    help="the name of the function to invoke, as defined in the Solidity contract",
 )
 @click.option("--inputs", required=True, help="Function Arguments")
-def invoke(contract, address, function, inputs):
-    inputs = inputs.split(" ")
-    # high & low bits
-    split_inputs = []
-    for idx, input in enumerate(inputs):
-        if input.isdigit():
-            try:
-                to_split = int(input, 16) if input.startswith("0x") else int(input)
-                low, high = get_low_high(to_split)
-                split_inputs += [int(low), int(high)]
-                inputs[idx] = int(input, 16) if input.startswith("0x") else int(input)
-            except ValueError:
-                raise ValueError(
-                    f"Invalid input value: '{input}'. Expected a decimal or hexadecimal integer."
-                )
-    return_args["address"] = address
-    return_args["function"] = function
-    return_args["contract"] = contract
-    return_args["cairo_inputs"] = split_inputs
-    return_args["evm_inputs"] = inputs
-    return_args["type"] = Command.INVOKE
+def invoke(program, address, function, inputs):
+    try:
+        evm_inputs = [
+            int(x, 16) if x.startswith("0x") else int(x) for x in inputs.split()
+        ]
+    except ValueError as e:
+        raise ValueError(
+            f"Invalid input value: '{input}'. Expected a decimal or hexadecimal integer."
+        ) from e
+    with open(program, "r") as f:
+        program_info = json.load(f)
+    asyncio.run(_invoke(program_info, address, function, evm_inputs))
 
 
 @warp.command()
-@click.option("--address", required=True, type=click.Path(exists=True))
-@click.option("--abi", required=True, type=click.Path(exists=True))
-@click.option("--function", required=True, type=click.Path(exists=True))
-def call(address, abi, function):
-    _call(address, abi, function)
+@click.argument(
+    "program",
+    nargs=1,
+    required=True,
+    type=click.Path(exists=True, dir_okay=False),
+)
+def deploy(program):
+    """Deploy PROGRAM.
 
+    PROGRAM is the path to the transpiled program JSON file.
 
-@warp.command()
-@click.argument("contract", nargs=1, required=True, type=click.Path(exists=True))
-def deploy(contract):
     """
-    Name of the Cairo contract to deploy
-    """
-    return_args["contract"] = contract
-    return_args["type"] = Command.DEPLOY
+    assert program.endswith(".json")
+    contract_base = program[: -len(".json")]
+    with open(program, "r") as pf:
+        program_info = json.load(pf)
+    tmp = NamedTemporaryFile(mode="w", delete=False)
+    cairo_path = tmp.name
+    tmp.write(program_info["cairo_code"])
+    tmp.close()
+    try:
+        asyncio.run(_deploy(cairo_path, contract_base))
+    finally:
+        os.remove(tmp.name)
 
 
 @warp.command()
-@click.argument("status", nargs=1, required=True)
-def status(status):
-    return_args["id"] = status
-    return_args["type"] = Command.STATUS
-
-
-cli = click.CommandCollection(sources=[warp])
+@click.argument("tx_id", nargs=1, required=True)
+def status(tx_id):
+    asyncio.run(_status(tx_id))
 
 
 def main():
-    try:
-        warp()
-
-    # This is how we make handling async code with
-    # click MUCH simpler. click will always throw SystemExit
-    # after leaving its main loop.
-    except SystemExit as e:
-        if return_args != {}:
-            if return_args["type"] is Command.INVOKE:
-                asyncio.run(
-                    _invoke(
-                        return_args["contract"],
-                        return_args["address"],
-                        return_args["function"],
-                        return_args["cairo_inputs"],
-                        return_args["evm_inputs"],
-                    )
-                )
-            elif return_args["type"] is Command.DEPLOY:
-                asyncio.run(_deploy(return_args["contract"]))
-            elif return_args["type"] is Command.STATUS:
-                asyncio.run(_status(return_args["id"]))
-        # An Error to log
-        elif e.args[0] != 0:
-            click.echo(e.args[0])
-    except BaseException as e:
-        if "--verbose" in click.get_os_args():
-            import traceback
-
-            click.echo(traceback.format_exc())
-        else:
-            click.echo(e)
+    warp()
