@@ -1,21 +1,17 @@
 %lang starknet
 %builtins pedersen range_check bitwise
 
-from evm.array import array_copy_to_memory, array_create_from_memory
 from evm.calls import calldata_load, calldatasize_, returndata_write
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import mstore_
 from evm.uint256 import is_eq, is_lt, is_zero, slt, u256_add, u256_shr
-from evm.utils import update_msize
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
-from starkware.cairo.common.math import unsigned_div_rem
-from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import (
-    Uint256, uint256_and, uint256_eq, uint256_not, uint256_sub, uint256_xor)
+    Uint256, uint256_and, uint256_not, uint256_sub, uint256_xor)
 
 @storage_var
 func this_address() -> (res : felt):
@@ -308,4 +304,3 @@ func fun_ENTRY_POINT{
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
-

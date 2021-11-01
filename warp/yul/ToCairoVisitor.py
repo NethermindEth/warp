@@ -27,21 +27,17 @@ UINT128_BOUND = 2 ** 128
 COMMON_IMPORTS = {
     "starkware.cairo.common.registers": {"get_fp_and_pc"},
     "starkware.cairo.common.dict_access": {"DictAccess"},
-    "starkware.cairo.common.math_cmp": {"is_le"},
     "starkware.cairo.common.default_dict": {
         "default_dict_new",
         "default_dict_finalize",
     },
-    "starkware.cairo.common.uint256": {"Uint256", "uint256_eq"},
-    "starkware.cairo.common.math": {"unsigned_div_rem"},
+    "starkware.cairo.common.uint256": {"Uint256"},
     "starkware.cairo.common.cairo_builtins": {
         "HashBuiltin",
         "BitwiseBuiltin",
     },
     "starkware.cairo.common.alloc": {"alloc"},
     "evm.exec_env": {"ExecutionEnvironment"},
-    "evm.utils": {"update_msize"},
-    "evm.array": {"array_create_from_memory", "array_copy_to_memory"},
 }
 
 MAIN_PREAMBLE = """%lang starknet
