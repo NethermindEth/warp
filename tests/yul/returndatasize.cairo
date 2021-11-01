@@ -60,8 +60,7 @@ func abi_decode{range_check_ptr}(headStart : Uint256, dataEnd : Uint256) -> ():
     return ()
 end
 
-func fun_viewReturndatasize{exec_env : ExecutionEnvironment*, range_check_ptr}() -> (
-        var_res : Uint256):
+func fun_viewReturndatasize{exec_env : ExecutionEnvironment*}() -> (var_res : Uint256):
     alloc_locals
     let (local var_res : Uint256) = returndata_size()
     local exec_env : ExecutionEnvironment* = exec_env

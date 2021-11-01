@@ -296,29 +296,10 @@ class ToCairoVisitor(AstVisitor):
         external_function = (
             self._make_external_function(node, mutability) if external else ""
         )
-        if "warp_call" in body_repr or "warp_static_call" in body_repr:
-            self.function_to_implicits[node.name].add("bitwise_ptr")
         implicits = sorted(self.function_to_implicits.setdefault(node.name, set()))
         implicits_decl = ""
         if implicits:
-            implicits_decl = ", ".join(print_implicit(x) for x in implicits)
-            if (
-                "exec_env" in self.function_to_implicits[node.name]
-                and "exec_env" not in implicits
-                and "block_00" not in node.name
-            ):
-                implicits_decl = "{exec_env : ExecutionEnvironment*, " + implicits_decl
-            else:
-                implicits_decl = "{" + implicits_decl
-            if not "range_check" in implicits_decl:
-                implicits_decl += (
-                    ", range_check_ptr}"
-                    if len(implicits_decl) > 1
-                    and implicits_decl != "{exec_env : ExecutionEnvironment*, "
-                    else "range_check_ptr}"
-                )
-            else:
-                implicits_decl += "}"
+            implicits_decl = "{" + ", ".join(print_implicit(x) for x in implicits) + "}"
         # We do not want to annotate current function with mutability if we are going to
         # generate a corresponding external function
         mutability = (
