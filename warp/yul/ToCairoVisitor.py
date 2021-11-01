@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from typing import Callable, Optional
 
 import yul.yul_ast as ast
+from yul.AstVisitor import AstVisitor
 from yul.BuiltinHandler import BuiltinHandler
 from yul.FunctionGenerator import CairoFunctions
 from yul.implicits import IMPLICITS_SET, copy_implicit, print_implicit
@@ -20,7 +21,6 @@ from yul.storage_access import (
     generate_storage_var_declaration,
 )
 from yul.utils import HANDLERS_DECL
-from yul.yul_ast import AstVisitor
 
 UINT128_BOUND = 2 ** 128
 

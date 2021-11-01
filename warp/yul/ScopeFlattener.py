@@ -8,6 +8,7 @@ import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
 from yul.extract_block import extract_block_as_function
 from yul.NameGenerator import NameGenerator
+from yul.Scope import get_scope
 
 
 class ScopeFlattener(AstMapper):
@@ -31,7 +32,7 @@ class ScopeFlattener(AstMapper):
         return ast.Block(tuple(all_statements))
 
     def visit_block(self, node: ast.Block, inline: bool = False) -> ast.Block:
-        if inline or not node.scope.bound_variables:
+        if inline or not get_scope(node).bound_variables:
             stmts = []
             for stmt in node.statements:
                 new_stmt = self.visit(stmt)
@@ -47,7 +48,7 @@ class ScopeFlattener(AstMapper):
             block_fun, block_stmt = extract_block_as_function(node, fun_name)
             self.block_functions.append(block_fun)
             leave_id = ast.Identifier(self.leave_name)
-            if leave_id not in node.scope.modified_variables:
+            if leave_id not in get_scope(node).modified_variables:
                 stmts = (block_stmt,)
             else:
                 stmts = (block_stmt, ast.If(condition=leave_id, body=ast.LEAVE_BLOCK))
@@ -71,7 +72,7 @@ class ScopeFlattener(AstMapper):
             else:
                 body = self.visit(node.body, inline=True)
             leave_id = ast.Identifier(self.leave_name)
-            if leave_id in body.scope.modified_variables:
+            if leave_id in get_scope(body).modified_variables:
                 leave_var_decl = ast.VariableDeclaration(
                     [ast.TypedName(self.leave_name)], ast.Literal(False)
                 )
@@ -80,7 +81,7 @@ class ScopeFlattener(AstMapper):
             params_set: set[str] = {x.name for x in node.parameters}
             for v in node.return_variables:
                 v_id = ast.Identifier(v.name)
-                if v_id in body.scope.read_variables and v.name not in params_set:
+                if v_id in get_scope(body).read_variables and v.name not in params_set:
                     uninitialized_return_vars.append(v)
             if uninitialized_return_vars:
                 init = ast.VariableDeclaration(uninitialized_return_vars, value=None)
@@ -110,7 +111,7 @@ class ScopeFlattener(AstMapper):
             self.block_functions.append(if_fun)
             self.revert_created |= revert_if
             leave_id = ast.Identifier(self.leave_name)
-            if leave_id in if_block.scope.modified_variables:
+            if leave_id in get_scope(if_block).modified_variables:
                 stmts = (if_stmt, ast.If(condition=leave_id, body=ast.LEAVE_BLOCK))
             else:
                 stmts = (if_stmt,)
