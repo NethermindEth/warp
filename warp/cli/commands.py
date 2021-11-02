@@ -6,7 +6,7 @@ from http import HTTPStatus
 from typing import Any, Dict, Optional, Union
 
 import aiohttp
-from cli.StarkNetEvmContract import get_evm_calldata
+from cli.StarkNetEvmContract import evm_to_cairo_calldata, get_evm_calldata
 from eth_hash.auto import keccak
 from starkware.starknet.definitions import fields
 from starkware.starknet.services.api.contract_definition import ContractDefinition
@@ -47,11 +47,8 @@ async def _invoke(program_info: dict, address, function, evm_inputs):
         raise ValueError("Invalid address format.") from e
     abi = program_info["sol_abi"]
     bytecode = program_info["sol_bytecode"]
-    evm_calldata = get_evm_calldata(abi, bytecode, function, evm_inputs)
-    cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(evm_calldata[2:]))
-    calldata_size = (len(cairo_input) * 16) - unused_bytes
+    calldata = evm_to_cairo_calldata(abi, bytecode, function, evm_inputs, address)
     selector = get_selector_cairo("fun_ENTRY_POINT")
-    calldata = [calldata_size, unused_bytes, len(cairo_input), *cairo_input, address]
     tx = InvokeFunction(
         contract_address=address,
         entry_point_selector=selector,
@@ -91,19 +88,20 @@ def starknet_compile(cairo_path, contract_base):
     return compiled
 
 
-async def _deploy(cairo_path, contract_base):
+async def _deploy(cairo_path, contract_base, program_info, constructor_args):
     compiled_contract = starknet_compile(cairo_path, contract_base)
     address = fields.ContractAddressField.get_random_value()
     with open(compiled_contract) as f:
         cont = f.read()
 
     contract_definition = ContractDefinition.loads(cont)
-    url = "https://alpha3.starknet.io/gateway/add_transaction"
-    tx = Deploy(
-        contract_address_salt=fields.ContractAddressSalt.get_random_value(),
+    tx = get_constructor_tx(
         contract_definition=contract_definition,
-        constructor_calldata=[],
+        program_info=program_info,
+        address=address,
+        constructor_args=constructor_args,
     )
+    url = "https://alpha3.starknet.io/gateway/add_transaction"
 
     async with aiohttp.ClientSession() as session:
         async with session.request(
@@ -125,6 +123,49 @@ Transaction hash: {tx_hash}.
 Contract Address Has Been Written to {address_path}
 """
     )
+
+
+def get_constructor_tx(
+    contract_definition, program_info: dict, address: int, constructor_args: list
+) -> Deploy:
+    if constructor_args == "\0":
+        tx = Deploy(
+            contract_address_salt=fields.ContractAddressSalt.get_random_value(),
+            contract_definition=contract_definition,
+            constructor_calldata=[],
+        )
+    elif "constructor" in program_info["dynamic_argument_functions"]:
+        calldata = evm_to_cairo_calldata(
+            program_info["abi"],
+            program_info["bytecode"],
+            "__warp_ctorHelper_DynArgs",
+            constructor_args,
+        )
+        tx = Deploy(
+            contract_address_salt=fields.ContractAddressSalt.get_random_value(),
+            contract_definition=contract_definition,
+            constructor_calldata=calldata,
+        )
+    else:
+        flattened_args = list(flatten(constructor_args))
+        split_args = []
+        for arg in flattened_args:
+            high, low = divmod(arg, 2 ** 128)
+            split_args += [low, high]
+        tx = Deploy(
+            contract_address_salt=address,
+            contract_definition=contract_definition,
+            constructor_calldata=split_args,
+        )
+    return tx
+
+
+def flatten(l):
+    for i in l:
+        if isinstance(i, int):
+            yield i
+        else:
+            yield from flatten(i)
 
 
 async def _status(tx_hash):

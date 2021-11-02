@@ -14,10 +14,20 @@ test_dir = os.path.dirname(os.path.abspath(__file__))
 
 @pytest.mark.asyncio
 async def test_starknet():
-    caller_cairo = os.path.join(test_dir, "c2c.cairo")
     caller_sol = os.path.join(test_dir, "c2c.sol")
     caller_info = transpile_from_solidity(caller_sol, "WARP")
+    caller_cairo = os.path.join(test_dir, "c2c.cairo")
+
+    with open(caller_cairo, "w") as f:
+        f.write(caller_info["cairo_code"])
+
     erc20_cairo = os.path.join(test_dir, "ERC20.cairo")
+    erc20_sol = os.path.join(test_dir, "ERC20.sol")
+    erc20_info = transpile_from_solidity(erc20_sol, "WARP")
+
+    with open(erc20_cairo, "w") as f:
+        f.write(erc20_info["cairo_code"])
+
     cairo_path = f"{warp_root}/warp/cairo-src"
     caller_contractDef = compile_starknet_files(
         [caller_cairo], debug_info=True, cairo_path=[cairo_path]
@@ -36,9 +46,13 @@ async def test_starknet():
 
     mint_calldata_evm = get_evm_calldata(
         caller_info["sol_abi"],
+        caller_info["sol_abi_original"],
         caller_info["sol_bytecode"],
         "gimmeMoney",
-        [erc20_address, 0xE2D015F2CB56D18AD2B61AC045B262AC421B92C3],
+        [
+            erc20_address,
+            0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
+        ],
     )
     mint_cairo_input, unused_bytes = cairoize_bytes(
         bytes.fromhex(mint_calldata_evm[2:])
@@ -49,12 +63,15 @@ async def test_starknet():
         + mint_cairo_input
         + [caller_address]
     )
-
     balance_calldata_evm = get_evm_calldata(
         caller_info["sol_abi"],
+        caller_info["sol_abi_original"],
         caller_info["sol_bytecode"],
         "checkMoneyz",
-        [erc20_address, 0xE2D015F2CB56D18AD2B61AC045B262AC421B92C3],
+        [
+            erc20_address,
+            0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
+        ],
     )
     balance_cairo_input, unused_bytes = cairoize_bytes(
         bytes.fromhex(balance_calldata_evm[2:])
@@ -69,9 +86,13 @@ async def test_starknet():
     # check transfer worked
     balance_calldata_evm2 = get_evm_calldata(
         caller_info["sol_abi"],
+        caller_info["sol_abi_original"],
         caller_info["sol_bytecode"],
         "checkMoneyz",
-        [erc20_address, 0x7BE8076F4EA4A4AD08075C2508E481D6C946D12B],
+        [
+            erc20_address,
+            0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
+        ],
     )
     balance_cairo_input2, unused_bytes = cairoize_bytes(
         bytes.fromhex(balance_calldata_evm2[2:])
@@ -85,12 +106,13 @@ async def test_starknet():
 
     transfer_calldata_evm = get_evm_calldata(
         caller_info["sol_abi"],
+        caller_info["sol_abi_original"],
         caller_info["sol_bytecode"],
         "sendMoneyz",
         [
             erc20_address,
-            0xE2D015F2CB56D18AD2B61AC045B262AC421B92C3,
-            0x7BE8076F4EA4A4AD08075C2508E481D6C946D12B,
+            0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
+            0x05E5ABCCFD81CC08D0E51AD2DA3FE1768C80BA6BC1A8F0F189CFC52925B01429,
             42,
         ],
     )
@@ -111,6 +133,7 @@ async def test_starknet():
         caller_address=0,
     )
 
+    print(mint_res)
     assert mint_res.retdata == [1, 32, 2, 0, 1]
 
     balances1_res = await starknet.invoke_raw(
@@ -119,6 +142,7 @@ async def test_starknet():
         calldata=balance_calldata,
         caller_address=0,
     )
+    print(balances1_res)
     assert balances1_res.retdata == [1, 32, 2, 0, 42]
 
     transfer_res = await starknet.invoke_raw(
@@ -127,6 +151,7 @@ async def test_starknet():
         calldata=transfer_calldata,
         caller_address=0,
     )
+    print(transfer_res)
     assert transfer_res.retdata == [1, 32, 2, 0, 1]
 
     balance_after_transfer = await starknet.invoke_raw(
@@ -135,4 +160,5 @@ async def test_starknet():
         calldata=balance_calldata2,
         caller_address=0,
     )
-    assert balance_after_transfer.retdata == [1, 32, 2, 0, 42]
+    print(balance_after_transfer)
+    assert balance_after_transfer.retdata == [1, 32, 2, 0, 0]

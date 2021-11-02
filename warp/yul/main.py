@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
 
+import click
 import yul.yul_ast as ast
 from starkware.cairo.lang.compiler.parser import parse_file
 from yul.BuiltinHandler import get_default_builtins
@@ -21,13 +23,19 @@ from yul.RevertNormalizer import RevertNormalizer
 from yul.ScopeFlattener import ScopeFlattener
 from yul.SwitchToIfVisitor import SwitchToIfVisitor
 from yul.ToCairoVisitor import ToCairoVisitor
-from yul.utils import get_for_contract, get_function_mutabilities, get_public_functions
+from yul.utils import (
+    get_for_contract,
+    get_function_mutabilities,
+    get_public_functions,
+    make_abi_StarkNet_encodable,
+)
 from yul.WarpException import warp_assert
 
 AST_GENERATOR = "kudu"
 
 
 def transpile_from_solidity(sol_src_path, main_contract) -> dict:
+    sol_src_path_modified = sol_src_path[:-4] + "_marked.sol"
     if not shutil.which(AST_GENERATOR):
         sys.exit(f"Please install {AST_GENERATOR} first")
 
@@ -40,8 +48,7 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
     except subprocess.CalledProcessError as e:
         print(e.stderr.decode("utf-8"), file=sys.stderr)
         raise e
-
-    with open(sol_src_path) as f:
+    with open(sol_src_path_modified) as f:
         sol_source = f.read()
         public_functions = get_public_functions(sol_source)
         function_mutabilities = get_function_mutabilities(sol_source)
@@ -51,13 +58,18 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
             f"Couldn't extract {main_contract}'s abi and bytecode from {sol_src_path}",
         )
         abi, bytecode = output
-
     yul_ast = parse_node(json.loads(result.stdout))
-    cairo_code = transpile_from_yul(yul_ast, public_functions, function_mutabilities)
+    cairo_code, dynamic_argument_functions = transpile_from_yul(
+        yul_ast, public_functions, function_mutabilities
+    )
+    os.remove(sol_src_path_modified)
     return {
         "cairo_code": cairo_code,
-        "sol_abi": abi,
+        "sol_source": sol_source,
+        "sol_abi": make_abi_StarkNet_encodable(abi),
+        "sol_abi_original": abi,
         "sol_bytecode": bytecode,
+        "dynamic_argument_functions": dynamic_argument_functions,
     }
 
 
@@ -86,7 +98,10 @@ def transpile_from_yul(
         cairo_functions,
         get_default_builtins,
     )
-    return parse_file(cairo_visitor.translate(yul_ast)).format()
+    return (
+        parse_file(cairo_visitor.translate(yul_ast)).format(),
+        cairo_visitor.dynamic_argument_functions,
+    )
 
 
 def main(argv):

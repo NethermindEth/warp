@@ -1,8 +1,11 @@
+import os
 import pathlib
 from io import open
-from os import path
+from os import path, environ
+import shutil
 
 from setuptools import find_packages, setup
+import pkg_resources
 
 # The directory containing this file
 HERE = pathlib.Path(__file__).parent
@@ -49,3 +52,16 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
 )
+
+# try:
+# base_env_dir = environ['VIRTUAL_ENV']
+# old_kudu_exe = path.join(pkg_resources.get_distribution("warp==0.1.0").location, "bin/kudu")
+# new_kudu_exe = path.join(base_env_dir,"bin/kudu")
+# print(new_kudu_exe)
+# print(old_kudu_exe)
+# if os.path.exists(new_kudu_exe):
+#     os.remove(new_kudu_exe)
+# shutil.move(old_kudu_exe, new_kudu_exe)
+# print(pkg_resources.get_distribution("warp==0.1.0").location)
+# except KeyError:
+#     base_

@@ -1,9 +1,12 @@
 import asyncio
 import json
 import os
-import sys
+import shutil
+import sysconfig
+from ast import literal_eval
 from enum import Enum
 from tempfile import NamedTemporaryFile
+import pkg_resources
 
 import click
 from cli.commands import _deploy, _invoke, _status
@@ -49,17 +52,13 @@ def transpile(file_path, contract_name):
 )
 @click.option("--inputs", required=True, help="Function Arguments")
 def invoke(program, address, function, inputs):
-    try:
-        evm_inputs = [
-            int(x, 16) if x.startswith("0x") else int(x) for x in inputs.split()
-        ]
-    except ValueError as e:
-        raise ValueError(
-            f"Invalid input value: '{input}'. Expected a decimal or hexadecimal integer."
-        ) from e
+    inputs = literal_eval(inputs)
+    click.echo(inputs)
+    click.echo(function)
     with open(program, "r") as f:
+
         program_info = json.load(f)
-    asyncio.run(_invoke(program_info, address, function, evm_inputs))
+    asyncio.run(_invoke(program_info, address, function, inputs))
 
 
 @warp.command()
@@ -69,12 +68,17 @@ def invoke(program, address, function, inputs):
     required=True,
     type=click.Path(exists=True, dir_okay=False),
 )
-def deploy(program):
+@click.option("--constructor_args", required=False, default="\0")
+def deploy(program, constructor_args):
     """Deploy PROGRAM.
 
     PROGRAM is the path to the transpiled program JSON file.
 
     """
+    try:
+        constructor_args = literal_eval(constructor_args)
+    except ValueError:
+        pass
     assert program.endswith(".json")
     contract_base = program[: -len(".json")]
     with open(program, "r") as pf:
@@ -84,7 +88,7 @@ def deploy(program):
     tmp.write(program_info["cairo_code"])
     tmp.close()
     try:
-        asyncio.run(_deploy(cairo_path, contract_base))
+        asyncio.run(_deploy(cairo_path, contract_base, program_info, constructor_args))
     finally:
         os.remove(tmp.name)
 
@@ -96,4 +100,14 @@ def status(tx_id):
 
 
 def main():
+    try:
+        base_env_dir = os.environ['VIRTUAL_ENV']
+        new_kudu_exe = os.path.join(base_env_dir,"bin/kudu")
+    except KeyError:
+        base_env_dir = sysconfig.get_path('scripts', f'{os.name}_user')
+        new_kudu_exe = os.path.join(base_env_dir,"kudu")
+    kudu_pkg_dir = os.path.join(pkg_resources.get_distribution("warp==0.1.0").location, "bin/kudu")
+    if os.path.exists(new_kudu_exe):
+        os.remove(new_kudu_exe)
+    shutil.copy2(kudu_pkg_dir, new_kudu_exe)
     warp()
