@@ -405,7 +405,6 @@ class ToCairoVisitor(AstVisitor):
             params += "calldata_size, calldata_len, calldata : felt*"
             init_exec_env = (
                 f"let (returndata_ptr : felt*) = alloc()\n"
-                f"let (local exec_env : ExecutionEnvironment*) = alloc()\n"
                 f"let (local __fp__, _) = get_fp_and_pc()\n"
                 f"local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size,"
                 f"calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=returndata_ptr,"
