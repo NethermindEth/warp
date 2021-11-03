@@ -1,11 +1,11 @@
 import os
 import pathlib
-from io import open
-from os import path, environ
 import shutil
+from io import open
+from os import environ, path
 
-from setuptools import find_packages, setup
 import pkg_resources
+from setuptools import find_packages, setup
 
 # The directory containing this file
 HERE = pathlib.Path(__file__).parent
@@ -26,9 +26,16 @@ dependency_links = [x.strip().replace("git+", "") for x in all_reqs if "git+" no
 setup(
     name="sol-warp",
     description="A Solidity to Cairo Transpiler",
-    version="0.1.2",
+    version="0.1.4",
     package_dir={"": "warp"},
-    packages=["cairo-src", "cairo-src.evm", "cli", "yul", "bin"],  # list of all packages
+    packages=[
+        "cairo-src",
+        "cairo-src.evm",
+        "cli",
+        "yul",
+        "bin.linux",
+        "bin.macos",
+    ],  # list of all packages
     include_package_data=True,
     package_data={"": ["*.json", "*.cairo", "kudu"]},
     install_requires=install_requires,

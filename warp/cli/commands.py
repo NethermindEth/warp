@@ -3,9 +3,10 @@ import os
 import subprocess
 import sys
 from http import HTTPStatus
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import aiohttp
+import click
 from cli.StarkNetEvmContract import evm_to_cairo_calldata, get_evm_calldata
 from eth_hash.auto import keccak
 from starkware.starknet.definitions import fields
@@ -40,44 +41,42 @@ async def send_req(method, url, tx: Optional[Union[str, Dict[str, Any]]] = None)
 
 
 # returns true/false on transaction success/failure
-async def _invoke(program_info: dict, address, function, evm_inputs):
-    try:
-        address = int(address, 16)
-    except ValueError as e:
-        raise ValueError("Invalid address format.") from e
-    abi = program_info["sol_abi"]
-    bytecode = program_info["sol_bytecode"]
-    calldata = evm_to_cairo_calldata(abi, bytecode, function, evm_inputs, address)
-    selector = get_selector_cairo("fun_ENTRY_POINT")
-    tx = InvokeFunction(
-        contract_address=address,
-        entry_point_selector=selector,
-        calldata=calldata,
-        signature=[],
+async def _invoke(contract_base, program_info: dict, address, function, evm_inputs):
+    calldata_evm = get_evm_calldata(
+        program_info["sol_abi"],
+        program_info["sol_abi_original"],
+        program_info["sol_bytecode"],
+        function,
+        evm_inputs,
     )
-
-    response = await send_req(
-        method="POST", url="https://alpha3.starknet.io/gateway/add_transaction", tx=tx
-    )
-    tx_hash = json.loads(response)["transaction_hash"]
-    print(
-        f"""\
-Invoke transaction was sent.
-Contract address: 0x{address:064x}.
-Transaction hash: {tx_hash}."""
-    )
+    cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(calldata_evm[2:]))
+    calldata_size = (len(cairo_input) * 16) - unused_bytes
+    calldata = [calldata_size, len(cairo_input)] + cairo_input + [address]
+    calldata = " ".join(str(x) for x in calldata)
+    starknet_invoke(contract_base, address, calldata)
     return True
+
+
+def starknet_invoke(contract_base, address, inputs):
+    abi = f"{contract_base}_abi.json"
+    print(
+        os.popen(
+            f"starknet invoke --address {address} --abi {abi} --function fun_ENTRY_POINT --inputs {inputs}"
+        ).read()
+    )
 
 
 def starknet_compile(cairo_path, contract_base):
     compiled = f"{contract_base}_compiled.json"
+    abi = f"{contract_base}_abi.json"
     process = subprocess.Popen(
         [
             "starknet-compile",
-            "--disable_hint_validation",
             f"{cairo_path}",
             "--output",
             compiled,
+            "--abi",
+            abi,
             "--cairo_path",
             f"{WARP_ROOT}/cairo-src",
         ]
@@ -89,83 +88,50 @@ def starknet_compile(cairo_path, contract_base):
 
 
 async def _deploy(cairo_path, contract_base, program_info, constructor_args):
-    compiled_contract = starknet_compile(cairo_path, contract_base)
-    address = fields.ContractAddressField.get_random_value()
-    with open(compiled_contract) as f:
-        cont = f.read()
-
-    contract_definition = ContractDefinition.loads(cont)
-    tx = get_constructor_tx(
-        contract_definition=contract_definition,
-        program_info=program_info,
-        address=address,
-        constructor_args=constructor_args,
-    )
-    url = "https://alpha3.starknet.io/gateway/add_transaction"
-
-    async with aiohttp.ClientSession() as session:
-        async with session.request(
-            method="POST", url=url, data=Transaction.Schema().dumps(obj=tx)
-        ) as response:
-            text = await response.text()
-            if response.status != HTTPStatus.OK:
-                sys.exit(f"FAIL:\n{response}")
-            tx_hash = json.loads(text)["transaction_hash"]
-    address_path = f"{os.path.abspath(contract_base)}_ADDRESS.txt"
-    with open(address_path, "w") as f:
-        f.write(f"0x{address:064x}")
-    print(
-        f"""\
-Deploy transaction was sent.
-Contract address: 0x{address:064x}.
-Transaction hash: {tx_hash}.
-
-Contract Address Has Been Written to {address_path}
-"""
-    )
-
-
-def get_constructor_tx(
-    contract_definition, program_info: dict, address: int, constructor_args: list
-) -> Deploy:
-    if constructor_args == "\0":
-        tx = Deploy(
-            contract_address_salt=fields.ContractAddressSalt.get_random_value(),
-            contract_definition=contract_definition,
-            constructor_calldata=[],
-        )
-    elif "constructor" in program_info["dynamic_argument_functions"]:
-        calldata = evm_to_cairo_calldata(
-            program_info["abi"],
-            program_info["bytecode"],
+    if "constructor" in program_info["dynamic_argument_functions"]:
+        calldata_evm = get_evm_calldata(
+            program_info["sol_abi"],
+            program_info["sol_abi_original"],
+            program_info["sol_bytecode"],
             "__warp_ctorHelper_DynArgs",
             constructor_args,
         )
-        tx = Deploy(
-            contract_address_salt=fields.ContractAddressSalt.get_random_value(),
-            contract_definition=contract_definition,
-            constructor_calldata=calldata,
+        cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(calldata_evm[2:]))
+        calldata_size = (len(cairo_input) * 16) - unused_bytes
+        calldata = [calldata_size, len(cairo_input)] + cairo_input
+    elif constructor_args != "\0":
+        calldata = None
+    else:
+        calldata = None
+        constructor_args = None
+    starknet_deploy(contract_base, cairo_path, constructor_args, calldata)
+
+
+def starknet_deploy(
+    contract_base,
+    cairo_path,
+    constructor_args: Optional[List[int]] = None,
+    calldata: Optional[List[int]] = None,
+):
+    compiled_contract = starknet_compile(cairo_path, contract_base)
+    if calldata is not None:
+        print(
+            os.popen(
+                f"starknet deploy --contract {contract_base}_compiled.json --inputs {calldata}"
+            ).read()
+        )
+    elif constructor_args is not None:
+        print(
+            os.popen(
+                f"starknet deploy --contract {contract_base}_compiled.json --inputs {constructor_args}"
+            ).read()
         )
     else:
-        flattened_args = list(flatten(constructor_args))
-        split_args = []
-        for arg in flattened_args:
-            high, low = divmod(arg, 2 ** 128)
-            split_args += [low, high]
-        tx = Deploy(
-            contract_address_salt=address,
-            contract_definition=contract_definition,
-            constructor_calldata=split_args,
+        print(
+            os.popen(f"starknet deploy --contract {contract_base}_compiled.json").read()
         )
-    return tx
 
-
-def flatten(l):
-    for i in l:
-        if isinstance(i, int):
-            yield i
-        else:
-            yield from flatten(i)
+    return compiled_contract
 
 
 async def _status(tx_hash):

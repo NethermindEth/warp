@@ -1,14 +1,15 @@
 import asyncio
 import json
 import os
+import platform
 import shutil
 import sysconfig
 from ast import literal_eval
 from enum import Enum
 from tempfile import NamedTemporaryFile
-import pkg_resources
 
 import click
+import pkg_resources
 from cli.commands import _deploy, _invoke, _status
 from yul.main import transpile_from_solidity
 from yul.utils import get_low_high
@@ -53,12 +54,10 @@ def transpile(file_path, contract_name):
 @click.option("--inputs", required=True, help="Function Arguments")
 def invoke(program, address, function, inputs):
     inputs = literal_eval(inputs)
-    click.echo(inputs)
-    click.echo(function)
+    contract_base = program[: -len(".json")]
     with open(program, "r") as f:
-
         program_info = json.load(f)
-    asyncio.run(_invoke(program_info, address, function, inputs))
+    asyncio.run(_invoke(contract_base, program_info, address, function, inputs))
 
 
 @warp.command()
@@ -101,12 +100,19 @@ def status(tx_id):
 
 def main():
     try:
-        base_env_dir = os.environ['VIRTUAL_ENV']
-        new_kudu_exe = os.path.join(base_env_dir,"bin/kudu")
+        base_env_dir = os.environ["VIRTUAL_ENV"]
+        new_kudu_exe = os.path.join(base_env_dir, "bin/kudu")
     except KeyError:
-        base_env_dir = sysconfig.get_path('scripts', f'{os.name}_user')
-        new_kudu_exe = os.path.join(base_env_dir,"kudu")
-    kudu_pkg_dir = os.path.join(pkg_resources.get_distribution("sol-warp").location, "bin/kudu")
+        base_env_dir = sysconfig.get_path("scripts", f"{os.name}_user")
+        new_kudu_exe = os.path.join(base_env_dir, "kudu")
+    if platform.system() == "Linux":
+        kudu_pkg_dir = os.path.join(
+            pkg_resources.get_distribution("sol-warp").location, "bin/linux/kudu"
+        )
+    elif platform.system() == "Darwin":
+        kudu_pkg_dir = os.path.join(
+            pkg_resources.get_distribution("sol-warp").location, "bin/macos/kudu"
+        )
     if os.path.exists(new_kudu_exe):
         os.remove(new_kudu_exe)
     shutil.copy2(kudu_pkg_dir, new_kudu_exe)
