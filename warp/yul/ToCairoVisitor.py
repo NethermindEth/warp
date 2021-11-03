@@ -239,10 +239,12 @@ class ToCairoVisitor(AstVisitor):
                 f"local range_check_ptr = range_check_ptr\n"
                 f"local syscall_ptr : felt* = syscall_ptr\n"
                 f"let (returndata_ptr: felt*) = alloc()\n"
-                f"local exec_env : ExecutionEnvironment = ExecutionEnvironment("
+                f"let (local __fp__, _) = get_fp_and_pc()\n"
+                f"local exec_env_ : ExecutionEnvironment = ExecutionEnvironment("
                 f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata,"
                 f"returndata_size=0, returndata_len=0, returndata=returndata_ptr,"
                 f"to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)\n"
+                f"let exec_env : ExecutionEnvironment* = &exec_env_\n"
                 f"let (local memory_dict) = default_dict_new(0)\n"
                 f"local memory_dict_start: DictAccess* = memory_dict\n"
                 f"let msize = 0\n"
@@ -264,15 +266,17 @@ class ToCairoVisitor(AstVisitor):
                 f"syscall_ptr : felt* , bitwise_ptr : BitwiseBuiltin*}}(calldata_size,"
                 f"calldata_len, calldata : felt*, self_address : felt) -> ({returns_repr}):\n"
                 f"alloc_locals\n"
+                f"let (local __fp__, _) = get_fp_and_pc()\n"
                 f"initialize_address{{range_check_ptr=range_check_ptr, syscall_ptr=syscall_ptr, pedersen_ptr=pedersen_ptr}}(self_address)\n"
                 f"local pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
                 f"local range_check_ptr = range_check_ptr\n"
                 f"local syscall_ptr : felt* = syscall_ptr\n"
                 f"let (returndata_ptr: felt*) = alloc()\n"
-                f"local exec_env : ExecutionEnvironment = ExecutionEnvironment("
+                f"local exec_env_ : ExecutionEnvironment = ExecutionEnvironment("
                 f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata,"
                 f"returndata_size=0, returndata_len=0, returndata=returndata_ptr,"
                 f"to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)\n"
+                f"let exec_env : ExecutionEnvironment* = &exec_env_\n"
                 f"let (local memory_dict) = default_dict_new(0)\n"
                 f"local memory_dict_start: DictAccess* = memory_dict\n"
                 f"let msize = 0\n"
@@ -307,14 +311,14 @@ class ToCairoVisitor(AstVisitor):
                 and "exec_env" not in implicits
                 and "block_00" not in node.name
             ):
-                implicits_decl = "{exec_env : ExecutionEnvironment, " + implicits_decl
+                implicits_decl = "{exec_env : ExecutionEnvironment*, " + implicits_decl
             else:
                 implicits_decl = "{" + implicits_decl
             if not "range_check" in implicits_decl:
                 implicits_decl += (
                     ", range_check_ptr}"
                     if len(implicits_decl) > 1
-                    and implicits_decl != "{exec_env : ExecutionEnvironment, "
+                    and implicits_decl != "{exec_env : ExecutionEnvironment*, "
                     else "range_check_ptr}"
                 )
             else:
@@ -403,10 +407,11 @@ class ToCairoVisitor(AstVisitor):
             params += "calldata_size, calldata_len, calldata : felt*"
             init_exec_env = (
                 f"let (returndata_ptr : felt*) = alloc()\n"
-                f"local exec_env : ExecutionEnvironment ="
-                f"ExecutionEnvironment(calldata_size=calldata_size,"
+                f"let (local __fp__, _) = get_fp_and_pc()\n"
+                f"local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size,"
                 f"calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=returndata_ptr,"
                 f"to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)\n"
+                f"let exec_env : ExecutionEnvironment* = &exec_env_\n"
             )
             inner_implicits += ", exec_env"
         return (

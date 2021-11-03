@@ -3,6 +3,7 @@
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.math import split_felt, unsigned_div_rem
+from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import Uint256
 from starkware.starknet.common.syscalls import get_caller_address
 
@@ -35,7 +36,7 @@ func get_caller_data_uint256{syscall_ptr : felt*, range_check_ptr}() -> (caller_
 end
 
 func calldatacopy_{
-        memory_dict : DictAccess*, range_check_ptr, msize, exec_env : ExecutionEnvironment}(
+        memory_dict : DictAccess*, range_check_ptr, msize, exec_env : ExecutionEnvironment*}(
         dest_offset : Uint256, offset : Uint256, length : Uint256) -> ():
     alloc_locals
     let (local msize) = update_msize(msize, dest_offset.low, length.low)
@@ -45,11 +46,11 @@ func calldatacopy_{
     return ()
 end
 
-func calldatasize_{range_check_ptr, exec_env : ExecutionEnvironment}() -> (res: Uint256):
+func calldatasize_{range_check_ptr, exec_env : ExecutionEnvironment*}() -> (res: Uint256):
     return (Uint256(low=exec_env.calldata_size, high=0))
 end
 
-func calldata_load{range_check_ptr, exec_env : ExecutionEnvironment}(offset) -> (value : Uint256):
+func calldata_load{range_check_ptr, exec_env : ExecutionEnvironment*}(offset) -> (value : Uint256):
     alloc_locals
     let (local value : Uint256) = array_load(exec_env.calldata_size, exec_env.calldata, offset)
     return (value=value)
@@ -81,11 +82,12 @@ func calculate_data_len{range_check_ptr}(calldata_size) -> (calldata_len):
 end
 
 func warp_call{
-        syscall_ptr : felt*, exec_env : ExecutionEnvironment,
+        syscall_ptr : felt*, exec_env : ExecutionEnvironment*,
         memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
         gas : Uint256, address : Uint256, value : Uint256, in : Uint256, insize : Uint256,
         out : Uint256, outsize : Uint256) -> (success : Uint256):
     alloc_locals
+    let (local __fp__, _) = get_fp_and_pc()
     local memory_dict : DictAccess* = memory_dict
 
     # TODO will 128 bits be enough for addresses
@@ -99,33 +101,36 @@ func warp_call{
         address_felt, insize.low, calldata_len, mem, address_felt)
     local syscall_ptr : felt* = syscall_ptr
     array_copy_to_memory(returndata_size, returndata, 0, out.low, outsize.low)
-    local exec_env : ExecutionEnvironment = ExecutionEnvironment(
+    local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(
         calldata_size=exec_env.calldata_size, calldata_len=exec_env.calldata_len, calldata=exec_env.calldata,
         returndata_size=returndata_size, returndata_len=returndata_len, returndata=returndata,
         to_returndata_size=exec_env.to_returndata_size, to_returndata_len=exec_env.to_returndata_len, to_returndata=exec_env.to_returndata
         )
+    local exec_env : ExecutionEnvironment* = &exec_env_
     return (Uint256(success, 0))
 end
 
 func warp_static_call{
-        syscall_ptr : felt*, exec_env : ExecutionEnvironment,
+        syscall_ptr : felt*, exec_env : ExecutionEnvironment*,
         memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
         gas : Uint256, address : Uint256, in : Uint256, insize : Uint256, out : Uint256,
         outsize : Uint256) -> (success : Uint256):
     return warp_call(gas, address, Uint256(0, 0), in, insize, out, outsize)
 end
 
-func returndata_write{memory_dict : DictAccess*, exec_env : ExecutionEnvironment, range_check_ptr}(
+func returndata_write{memory_dict : DictAccess*, exec_env : ExecutionEnvironment*, range_check_ptr}(
         returndata_ptr : Uint256, returndata_size : Uint256):
     alloc_locals
+    let (local __fp__, _) = get_fp_and_pc()
     let (local returndata : felt*) = array_create_from_memory(returndata_ptr.low, returndata_size.low)
     local memory_dict : DictAccess* = memory_dict
     let (returndata_len) = calculate_data_len(returndata_size.low)
     local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment = ExecutionEnvironment(
+    local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(
         calldata_size=exec_env.calldata_size, calldata_len=exec_env.calldata_len, calldata=exec_env.calldata,
         returndata_size=exec_env.returndata_size, returndata_len=exec_env.returndata_len, returndata=exec_env.returndata,
         to_returndata_size=returndata_size.low, to_returndata_len=returndata_len, to_returndata=returndata
         )
+    local exec_env : ExecutionEnvironment* = &exec_env_
     return ()
 end

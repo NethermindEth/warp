@@ -4,8 +4,8 @@ IMPLICITS = {
     "pedersen_ptr": "HashBuiltin*",
     "range_check_ptr": None,
     "syscall_ptr": "felt*",
-    "exec_env": "ExecutionEnvironment",
     "bitwise_ptr": "BitwiseBuiltin*",
+    "exec_env": "ExecutionEnvironment*",
 }
 
 IMPLICITS_SET = set(IMPLICITS.keys())
