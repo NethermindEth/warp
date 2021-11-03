@@ -27,7 +27,6 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-bin/
 
 # Python Compilation
 __pycache__/

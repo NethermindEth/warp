@@ -138,3 +138,11 @@ async def _status(tx_hash):
     status = f"https://alpha3.starknet.io/feeder_gateway/get_transaction_status?transactionHash={tx_hash}"
     res = await send_req("GET", status)
     print(json.loads(res))
+
+
+def flatten(l):
+    for i in l:
+        if isinstance(i, int):
+            yield i
+        else:
+            yield from flatten(i)

@@ -200,7 +200,6 @@ def make_abi_StarkNet_encodable(abi):
     This is fine because our fork of solc treats address types as uint256 anyway.
     We will replace this hackery with our own encoder in the future.
     """
-    lol = f"{abi}"
-    abiStr = lol.replace("'address'", "'uint256'")
+    abiStr = f"{abi}".replace("'address'", "'uint256'")
     abiStr = abiStr.replace("'", '"')
     return json.loads(abiStr)
