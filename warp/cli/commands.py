@@ -61,7 +61,12 @@ def starknet_invoke(contract_base, address, inputs):
     abi = f"{contract_base}_abi.json"
     print(
         os.popen(
-            f"starknet invoke --address {address} --abi {abi} --function fun_ENTRY_POINT --inputs {inputs}"
+            f"starknet invoke "
+            f"--address {address} "
+            f"--abi {abi} "
+            f"--function fun_ENTRY_POINT "
+            f"--inputs {inputs} "
+            f"--network alpha "
         ).read()
     )
 
@@ -72,7 +77,7 @@ def starknet_compile(cairo_path, contract_base):
     process = subprocess.Popen(
         [
             "starknet-compile",
-            f"{cairo_path}",
+            cairo_path,
             "--output",
             compiled,
             "--abi",
@@ -99,11 +104,8 @@ async def _deploy(cairo_path, contract_base, program_info, constructor_args):
         cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(calldata_evm[2:]))
         calldata_size = (len(cairo_input) * 16) - unused_bytes
         calldata = [calldata_size, len(cairo_input)] + cairo_input
-    elif constructor_args != "\0":
-        calldata = None
     else:
         calldata = None
-        constructor_args = None
     starknet_deploy(contract_base, cairo_path, constructor_args, calldata)
 
 
@@ -114,22 +116,19 @@ def starknet_deploy(
     calldata: Optional[List[int]] = None,
 ):
     compiled_contract = starknet_compile(cairo_path, contract_base)
-    if calldata is not None:
-        print(
-            os.popen(
-                f"starknet deploy --contract {contract_base}_compiled.json --inputs {calldata}"
-            ).read()
-        )
-    elif constructor_args is not None:
-        print(
-            os.popen(
-                f"starknet deploy --contract {contract_base}_compiled.json --inputs {constructor_args}"
-            ).read()
-        )
-    else:
-        print(
-            os.popen(f"starknet deploy --contract {contract_base}_compiled.json").read()
-        )
+    assert not (
+        calldata is not None and constructor_args is not None
+    ), "calldata and constructor arguments are mutuallly exclusive"
+    inputs = calldata or constructor_args or []
+    inputs_str = " ".join(map(str, inputs))
+    print(
+        os.popen(
+            f"starknet deploy "
+            f"--contract {contract_base}_compiled.json "
+            f"--inputs {inputs_str} "
+            f"--network alpha "
+        ).read()
+    )
 
     return compiled_contract
 
