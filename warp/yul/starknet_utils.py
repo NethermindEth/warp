@@ -16,9 +16,7 @@ async def invoke_method(
         method,
         args,
     )
-    print(evm_calldata)
     calldata, unused_bytes = cairoize_bytes(bytes.fromhex(evm_calldata[2:]))
-    print(calldata)
     calldata_size = len(calldata) * 16 - unused_bytes
     calldata_len = len(calldata)
     entry_calldata = [calldata_size, calldata_len, *calldata, address]

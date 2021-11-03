@@ -68,7 +68,6 @@ func abi_decode{range_check_ptr}(headStart : Uint256, dataEnd : Uint256) -> ():
     return ()
 end
 
-@view
 func getter_fun_totalSupply{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         ) -> (value_78 : Uint256):
     alloc_locals
@@ -99,7 +98,6 @@ func abi_encode_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
     return (tail_43)
 end
 
-@view
 func getter_fun_decimals{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (
         value_76 : Uint256):
     alloc_locals
@@ -154,7 +152,6 @@ func abi_decode_uint256t_uint256{exec_env : ExecutionEnvironment*, range_check_p
     return (value0_11, value1)
 end
 
-@view
 func getter_fun_balanceOf{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         arg0 : Uint256) -> (value_74 : Uint256):
     alloc_locals
@@ -180,7 +177,6 @@ func checked_sub_uint256{range_check_ptr}(x_51 : Uint256, y_52 : Uint256) -> (di
     return (diff)
 end
 
-@external
 func setter_fun_balanceOf{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         arg0_95 : Uint256, value_96 : Uint256) -> ():
     alloc_locals
@@ -214,25 +210,6 @@ func fun_withdraw{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
     return ()
 end
 
-@external
-func fun_withdraw_external{
-        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_wad_67 : Uint256, var_sender_68 : Uint256) -> ():
-    alloc_locals
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
-    let msize = 0
-    with memory_dict, msize:
-        fun_withdraw(var_wad_67, var_sender_68)
-    end
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return ()
-end
-
 func abi_decode_uint256{exec_env : ExecutionEnvironment*, range_check_ptr}(
         headStart_4 : Uint256, dataEnd_5 : Uint256) -> (value0 : Uint256):
     alloc_locals
@@ -256,25 +233,6 @@ func fun_get_balance{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr :
     local range_check_ptr = range_check_ptr
     local syscall_ptr : felt* = syscall_ptr
     return (var)
-end
-
-@external
-func fun_get_balance_external{
-        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_src : Uint256) -> (var : Uint256):
-    alloc_locals
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
-    let msize = 0
-    with memory_dict, msize:
-        let (local var : Uint256) = fun_get_balance(var_src)
-    end
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var=var)
 end
 
 func abi_decode_uint256t_uint256t_uint256t_uint256{
@@ -390,27 +348,6 @@ func fun_transferFrom{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     return (var_)
 end
 
-@external
-func fun_transferFrom_external{
-        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(
-        var_src_56 : Uint256, var_dst : Uint256, var_wad : Uint256, var_sender_57 : Uint256) -> (
-        var_ : Uint256):
-    alloc_locals
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
-    let msize = 0
-    with memory_dict, msize:
-        let (local var_ : Uint256) = fun_transferFrom(var_src_56, var_dst, var_wad, var_sender_57)
-    end
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var_=var_)
-end
-
 func abi_encode_bool_to_bool{memory_dict : DictAccess*, msize, range_check_ptr}(
         value : Uint256, pos : Uint256) -> ():
     alloc_locals
@@ -451,25 +388,6 @@ func fun_deposit{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fel
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local syscall_ptr : felt* = syscall_ptr
-    return ()
-end
-
-@external
-func fun_deposit_external{
-        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_sender : Uint256, var_value : Uint256) -> ():
-    alloc_locals
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
-    let msize = 0
-    with memory_dict, msize:
-        fun_deposit(var_sender, var_value)
-    end
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    default_dict_finalize(memory_dict_start, memory_dict, 0)
     return ()
 end
 

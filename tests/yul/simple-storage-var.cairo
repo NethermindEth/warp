@@ -60,7 +60,6 @@ func abi_decode{range_check_ptr}(headStart : Uint256, dataEnd : Uint256) -> ():
     return ()
 end
 
-@view
 func getter_fun_counter{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (
         value_11 : Uint256):
     alloc_locals
@@ -103,7 +102,6 @@ func checked_add_uint256{range_check_ptr}(x : Uint256, y : Uint256) -> (sum : Ui
     return (sum)
 end
 
-@external
 func setter_fun_counter{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         value_25 : Uint256) -> ():
     alloc_locals
@@ -130,25 +128,6 @@ func fun_increment{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : f
     local range_check_ptr = range_check_ptr
     local syscall_ptr : felt* = syscall_ptr
     return (var)
-end
-
-@external
-func fun_increment_external{
-        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}() -> (var : Uint256):
-    alloc_locals
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
-    let msize = 0
-    with memory_dict, msize:
-        let (local var : Uint256) = fun_increment()
-    end
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var=var)
 end
 
 func __warp_block_3{

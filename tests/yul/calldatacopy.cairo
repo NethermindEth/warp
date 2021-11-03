@@ -72,29 +72,6 @@ func fun_callMe{
     return (var)
 end
 
-@external
-func fun_callMe_external{
-        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(calldata_size, calldata_len, calldata : felt*) -> (var : Uint256):
-    alloc_locals
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
-    let msize = 0
-    let (returndata_ptr : felt*) = alloc()
-    let (local __fp__, _) = get_fp_and_pc()
-    local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=returndata_ptr, to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)
-    let exec_env : ExecutionEnvironment* = &exec_env_
-    with memory_dict, msize, exec_env:
-        let (local var : Uint256) = fun_callMe()
-    end
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var=var)
-end
-
 func abi_encode_bytes4{memory_dict : DictAccess*, msize, range_check_ptr}(
         value : Uint256, pos : Uint256) -> ():
     alloc_locals

@@ -64,7 +64,6 @@ func abi_decode_uint256{exec_env : ExecutionEnvironment*, range_check_ptr}(
     return (value0)
 end
 
-@view
 func getter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         arg0 : Uint256) -> (value_22 : Uint256):
     alloc_locals
@@ -133,7 +132,6 @@ func checked_sub_uint256{range_check_ptr}(x : Uint256, y : Uint256) -> (diff : U
     return (diff)
 end
 
-@external
 func setter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         arg0_36 : Uint256, value_37 : Uint256) -> ():
     alloc_locals
@@ -210,26 +208,6 @@ func fun_transferFrom{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     local syscall_ptr : felt* = syscall_ptr
     local var : Uint256 = var_res
     return (var)
-end
-
-@external
-func fun_transferFrom_external{
-        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_src : Uint256, var_wad : Uint256, var_sender : Uint256) -> (
-        var : Uint256):
-    alloc_locals
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
-    let msize = 0
-    with memory_dict, msize:
-        let (local var : Uint256) = fun_transferFrom(var_src, var_wad, var_sender)
-    end
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var=var)
 end
 
 func __warp_block_6{

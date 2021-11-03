@@ -89,25 +89,6 @@ func fun_test{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}
     return (var_res)
 end
 
-@external
-func fun_test_external{
-        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}() -> (var_res : Uint256):
-    alloc_locals
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
-    let msize = 0
-    with memory_dict, msize:
-        let (local var_res : Uint256) = fun_test()
-    end
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var_res=var_res)
-end
-
 func abi_encode_uint256_to_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
         value : Uint256, pos : Uint256) -> ():
     alloc_locals

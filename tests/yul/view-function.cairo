@@ -133,27 +133,6 @@ func fun_viewFunction{range_check_ptr}(
     return (var)
 end
 
-@view
-func fun_viewFunction_external{
-        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(
-        var_src : Uint256, var_dst : Uint256, var_wad : Uint256, var_sender : Uint256) -> (
-        var : Uint256):
-    alloc_locals
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
-    let msize = 0
-    with memory_dict, msize:
-        let (local var : Uint256) = fun_viewFunction(var_src, var_dst, var_wad, var_sender)
-    end
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var=var)
-end
-
 func abi_encode_uint256_to_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
         value : Uint256, pos : Uint256) -> ():
     alloc_locals
