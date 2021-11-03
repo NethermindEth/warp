@@ -1,12 +1,10 @@
-import asyncio
 import os
 
 import pytest
-from cli.StarkNetEvmContract import get_evm_calldata
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
 from yul.main import transpile_from_solidity
-from yul.utils import cairoize_bytes
+from yul.starknet_utils import invoke_method
 
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
 test_dir = os.path.dirname(os.path.abspath(__file__))
@@ -44,121 +42,48 @@ async def test_starknet():
         contract_definition=caller_contractDef, constructor_calldata=[]
     )
 
-    mint_calldata_evm = get_evm_calldata(
-        caller_info["sol_abi"],
-        caller_info["sol_abi_original"],
-        caller_info["sol_bytecode"],
+    mint_res = await invoke_method(
+        starknet,
+        caller_info,
+        caller_address,
         "gimmeMoney",
-        [
-            erc20_address,
-            0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
-        ],
+        erc20_address,
+        0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
     )
-    mint_cairo_input, unused_bytes = cairoize_bytes(
-        bytes.fromhex(mint_calldata_evm[2:])
-    )
-    mint_calldata_size = (len(mint_cairo_input) * 16) - unused_bytes
-    mint_calldata = (
-        [mint_calldata_size, len(mint_cairo_input)]
-        + mint_cairo_input
-        + [caller_address]
-    )
-    balance_calldata_evm = get_evm_calldata(
-        caller_info["sol_abi"],
-        caller_info["sol_abi_original"],
-        caller_info["sol_bytecode"],
-        "checkMoneyz",
-        [
-            erc20_address,
-            0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
-        ],
-    )
-    balance_cairo_input, unused_bytes = cairoize_bytes(
-        bytes.fromhex(balance_calldata_evm[2:])
-    )
-    balance_calldata_size = (len(balance_cairo_input) * 16) - unused_bytes
-    balance_calldata = (
-        [balance_calldata_size, len(balance_cairo_input)]
-        + balance_cairo_input
-        + [erc20_address]
-    )
-
-    # check transfer worked
-    balance_calldata_evm2 = get_evm_calldata(
-        caller_info["sol_abi"],
-        caller_info["sol_abi_original"],
-        caller_info["sol_bytecode"],
-        "checkMoneyz",
-        [
-            erc20_address,
-            0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
-        ],
-    )
-    balance_cairo_input2, unused_bytes = cairoize_bytes(
-        bytes.fromhex(balance_calldata_evm2[2:])
-    )
-    balance_calldata_size2 = (len(balance_cairo_input2) * 16) - unused_bytes
-    balance_calldata2 = (
-        [balance_calldata_size2, len(balance_cairo_input2)]
-        + balance_cairo_input2
-        + [erc20_address]
-    )
-
-    transfer_calldata_evm = get_evm_calldata(
-        caller_info["sol_abi"],
-        caller_info["sol_abi_original"],
-        caller_info["sol_bytecode"],
-        "sendMoneyz",
-        [
-            erc20_address,
-            0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
-            0x05E5ABCCFD81CC08D0E51AD2DA3FE1768C80BA6BC1A8F0F189CFC52925B01429,
-            42,
-        ],
-    )
-    transfer_cairo_input, unused_bytes = cairoize_bytes(
-        bytes.fromhex(transfer_calldata_evm[2:])
-    )
-    transfer_calldata_size = (len(transfer_cairo_input) * 16) - unused_bytes
-    transfer_calldata = (
-        [transfer_calldata_size, len(transfer_cairo_input)]
-        + transfer_cairo_input
-        + [erc20_address]
-    )
-
-    mint_res = await starknet.invoke_raw(
-        contract_address=caller_address,
-        selector="fun_ENTRY_POINT",
-        calldata=mint_calldata,
-        caller_address=0,
-    )
-
-    print(mint_res)
     assert mint_res.retdata == [1, 32, 2, 0, 1]
 
-    balances1_res = await starknet.invoke_raw(
-        contract_address=caller_address,
-        selector="fun_ENTRY_POINT",
-        calldata=balance_calldata,
-        caller_address=0,
+    balances1_res = await invoke_method(
+        starknet,
+        caller_info,
+        caller_address,
+        "checkMoneyz",
+        erc20_address,
+        0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
     )
     print(balances1_res)
     assert balances1_res.retdata == [1, 32, 2, 0, 42]
 
-    transfer_res = await starknet.invoke_raw(
-        contract_address=caller_address,
-        selector="fun_ENTRY_POINT",
-        calldata=transfer_calldata,
-        caller_address=0,
+    transfer_res = await invoke_method(
+        starknet,
+        caller_info,
+        caller_address,
+        "sendMoneyz",
+        erc20_address,
+        0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
+        0x05E5ABCCFD81CC08D0E51AD2DA3FE1768C80BA6BC1A8F0F189CFC52925B01429,
+        42,
     )
     print(transfer_res)
     assert transfer_res.retdata == [1, 32, 2, 0, 1]
 
-    balance_after_transfer = await starknet.invoke_raw(
-        contract_address=caller_address,
-        selector="fun_ENTRY_POINT",
-        calldata=balance_calldata2,
-        caller_address=0,
+    # check transfer worked
+    balance_after_transfer = await invoke_method(
+        starknet,
+        caller_info,
+        caller_address,
+        "checkMoneyz",
+        erc20_address,
+        0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
     )
     print(balance_after_transfer)
     assert balance_after_transfer.retdata == [1, 32, 2, 0, 0]

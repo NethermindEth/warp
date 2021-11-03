@@ -7,7 +7,7 @@ from cli.StarkNetEvmContract import evm_to_cairo_calldata
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
 from yul.main import transpile_from_solidity
-from yul.utils import cairoize_bytes
+from yul.starknet_utils import invoke_method
 
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
 test_dir = os.path.dirname(os.path.abspath(__file__))
@@ -61,36 +61,16 @@ async def test_constructors():
             constructor_calldata=split_args,
         ),
     )
-    dyn_calldata = evm_to_cairo_calldata(
-        dyn_info["sol_abi"],
-        dyn_info["sol_abi_original"],
-        dyn_info["sol_bytecode"],
-        fn_name="validate_constructor",
-        inputs=dyn_inputs,
-        address=dyn_address,
-    )
-    non_dyn_calldata = evm_to_cairo_calldata(
-        non_dyn_info["sol_abi"],
-        non_dyn_info["sol_abi_original"],
-        non_dyn_info["sol_bytecode"],
-        fn_name="validate_constructor",
-        inputs=non_dyn_inputs,
-        address=0,
-    )
-    print(dyn_calldata)
-    print(non_dyn_calldata)
     dyn_result, non_dyn_result = await asyncio.gather(
-        starknet.invoke_raw(
-            contract_address=dyn_address,
-            selector="fun_ENTRY_POINT",
-            calldata=dyn_calldata,
-            caller_address=0,
+        invoke_method(
+            starknet, dyn_info, dyn_address, "validate_constructor", *dyn_inputs
         ),
-        starknet.invoke_raw(
-            contract_address=non_dyn_address,
-            selector="fun_ENTRY_POINT",
-            calldata=non_dyn_calldata,
-            caller_address=0,
+        invoke_method(
+            starknet,
+            non_dyn_info,
+            non_dyn_address,
+            "validate_constructor",
+            *non_dyn_inputs,
         ),
     )
     print(f"dyn_result: {dyn_result}\n non_dyn_result: {non_dyn_result}")
