@@ -29,14 +29,15 @@ sudo apt install -y libgmp3-dev
 sudo apt install -y libboost-all-dev
 sudo apt-get install -y python3.7-venv
 python3.7 -m venv ~/warp
+source ~/warp/bin/activate
 ```
 MacOs:
 ```
 brew install python@3.7
 brew install gmp
 brew install boost
-python3.7 -m venv ~/warp_demo
-source ~/warp_demo/bin/activate
+python3.7 -m venv ~/warp
+source ~/warp/bin/activate
 ```
 
 Install Warp:
