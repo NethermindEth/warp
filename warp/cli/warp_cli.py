@@ -101,16 +101,30 @@ def main():
         base_env_dir = os.environ["VIRTUAL_ENV"]
         new_kudu_exe = os.path.join(base_env_dir, "bin/kudu")
     except KeyError:
-        base_env_dir = sysconfig.get_path("scripts", f"{os.name}_user")
-        new_kudu_exe = os.path.join(base_env_dir, "kudu")
+        raise Exception(
+            "Please use a python venv, see https://github.com/NethermindEth/warp#installation-gear for detials"
+        )
     if platform.system() == "Linux":
         kudu_pkg_dir = os.path.join(
             pkg_resources.get_distribution("sol-warp").location, "bin/linux/kudu"
         )
     elif platform.system() == "Darwin":
-        kudu_pkg_dir = os.path.join(
-            pkg_resources.get_distribution("sol-warp").location, "bin/macos/kudu"
-        )
+        v, _, _ = platform.mac_ver()
+        v = float(".".join(v.split(".")[:2]))
+        if v < 11:
+            if v < 10.15:
+                raise RuntimeError(
+                    "Unsupported MacOS version, please update to version 10.15 or higher"
+                )
+            kudu_pkg_dir = os.path.join(
+                pkg_resources.get_distribution("sol-warp").location, "bin/macos/10/kudu"
+            )
+        elif v >= 11:
+            kudu_pkg_dir = os.path.join(
+                pkg_resources.get_distribution("sol-warp").location, "bin/macos/11/kudu"
+            )
+        else:
+            raise RuntimeError("Unsupported MacOS version")
     if os.path.exists(new_kudu_exe):
         os.remove(new_kudu_exe)
     shutil.copy2(kudu_pkg_dir, new_kudu_exe)
