@@ -46,7 +46,7 @@ pip install sol-warp
 
 ## Usage :computer:
 
-You can transpile your Solidity/Vyper contracts with:
+You can transpile your Solidity contracts with:
 
 ```
 warp transpile FILE_PATH CONTRACT_NAME
