@@ -1,0 +1,50 @@
+Block:
+	FunctionDefinition:
+		Name: funA
+		Parameters:
+			TypedName:
+				flag:Uint256
+		Return Variables:
+			TypedName:
+				res:Uint256
+		Body:
+			Block:
+				VariableDeclaration:
+					Variables:
+						TypedName:
+							var:Uint256
+					Value:
+						Literal:100
+				If:
+					Identifier:flag
+					Block:
+						Assignment:
+							Variables:
+								Identifier:res
+							Value:
+								Literal:1
+						Leave
+					Block:
+						Assignment:
+							Variables:
+								Identifier:res
+							Value:
+								Literal:0
+						Leave
+	FunctionDefinition:
+		Name: funB
+		Parameters:
+		Return Variables:
+		Body:
+			Block:
+				Leave
+	FunctionDefinition:
+		Name: funC
+		Parameters:
+		Return Variables:
+		Body:
+			Block:
+				ExpressionStatement:
+					FunctionCall:
+						Identifier:funB
+				Leave
