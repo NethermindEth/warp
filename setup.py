@@ -1,7 +1,10 @@
+import os
 import pathlib
+import shutil
 from io import open
-from os import path
+from os import environ, path
 
+import pkg_resources
 from setuptools import find_packages, setup
 
 # The directory containing this file
@@ -21,13 +24,20 @@ install_requires = [
 dependency_links = [x.strip().replace("git+", "") for x in all_reqs if "git+" not in x]
 
 setup(
-    name="warp",
-    description="Transpile EVM-Compatible Languages To Cairo",
-    version="0.1.0",
+    name="sol-warp",
+    description="A Solidity to Cairo Transpiler",
+    version="0.2.0",
     package_dir={"": "warp"},
-    packages=["cairo-src", "cairo-src.evm", "cli", "yul"],  # list of all packages
+    packages=[
+        "cairo-src",
+        "cairo-src.evm",
+        "cli",
+        "yul",
+        "bin.linux",
+        "bin.macos",
+    ],  # list of all packages
     include_package_data=True,
-    package_data={"": ["*.json", "*.cairo"]},
+    package_data={"": ["*.json", "*.cairo", "kudu"]},
     install_requires=install_requires,
     python_requires=">=3.7",  # any python greater than 3.7
     entry_points="""
@@ -44,8 +54,7 @@ setup(
     dependency_links=dependency_links,
     author_email="hello@nethermind.io",
     classifiers=[
-        "License :: OSI Approved :: Apache 2.0 License",
-        "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
+        "License :: OSI Approved :: Apache Software License",
     ],
 )
