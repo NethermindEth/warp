@@ -24,13 +24,13 @@ install_requires = [
 dependency_links = [x.strip().replace("git+", "") for x in all_reqs if "git+" not in x]
 
 setup(
-    name="warp",
-    description="Transpile EVM-Compatible Languages To Cairo",
-    version="0.1.0",
+    name="sol-warp",
+    description="A Solidity to Cairo Transpiler",
+    version="0.1.2",
     package_dir={"": "warp"},
-    packages=["cairo-src", "cairo-src.evm", "cli", "yul"],  # list of all packages
+    packages=["cairo-src", "cairo-src.evm", "cli", "yul", "bin"],  # list of all packages
     include_package_data=True,
-    package_data={"": ["*.json", "*.cairo"]},
+    package_data={"": ["*.json", "*.cairo", "kudu"]},
     install_requires=install_requires,
     python_requires=">=3.7",  # any python greater than 3.7
     entry_points="""
@@ -47,21 +47,7 @@ setup(
     dependency_links=dependency_links,
     author_email="hello@nethermind.io",
     classifiers=[
-        "License :: OSI Approved :: Apache 2.0 License",
-        "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
+        "License :: OSI Approved :: Apache Software License",
     ],
 )
-
-# try:
-# base_env_dir = environ['VIRTUAL_ENV']
-# old_kudu_exe = path.join(pkg_resources.get_distribution("warp==0.1.0").location, "bin/kudu")
-# new_kudu_exe = path.join(base_env_dir,"bin/kudu")
-# print(new_kudu_exe)
-# print(old_kudu_exe)
-# if os.path.exists(new_kudu_exe):
-#     os.remove(new_kudu_exe)
-# shutil.move(old_kudu_exe, new_kudu_exe)
-# print(pkg_resources.get_distribution("warp==0.1.0").location)
-# except KeyError:
-#     base_

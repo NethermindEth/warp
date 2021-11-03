@@ -1,3 +1,4 @@
+wheel
 eth-hash==0.2.0
 ecdsa
 fastecdsa

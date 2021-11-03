@@ -106,7 +106,7 @@ def main():
     except KeyError:
         base_env_dir = sysconfig.get_path('scripts', f'{os.name}_user')
         new_kudu_exe = os.path.join(base_env_dir,"kudu")
-    kudu_pkg_dir = os.path.join(pkg_resources.get_distribution("warp==0.1.0").location, "bin/kudu")
+    kudu_pkg_dir = os.path.join(pkg_resources.get_distribution("sol-warp").location, "bin/kudu")
     if os.path.exists(new_kudu_exe):
         os.remove(new_kudu_exe)
     shutil.copy2(kudu_pkg_dir, new_kudu_exe)
