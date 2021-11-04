@@ -203,12 +203,3 @@ def make_abi_StarkNet_encodable(abi):
     abiStr = f"{abi}".replace("'address'", "'uint256'")
     abiStr = abiStr.replace("'", '"')
     return json.loads(abiStr)
-
-
-def parse_uint256(x: str) -> int:
-    # no boundary checks for now
-    return int(x, 16) if x.startswith("0x") else int(x)
-
-
-def parse_uint256_list(xs: str) -> list[int]:
-    return list(map(parse_uint256, xs.split()))
