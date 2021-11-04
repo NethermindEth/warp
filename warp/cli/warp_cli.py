@@ -71,7 +71,7 @@ def invoke(program, address, function, inputs):
     required=True,
     type=click.Path(exists=True, dir_okay=False),
 )
-@click.option("--constructor_args", required=False, default="\0")
+@click.option("--constructor_args", required=False, default="[]")
 def deploy(program, constructor_args):
     """Deploy PROGRAM.
 

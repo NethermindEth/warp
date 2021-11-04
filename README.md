@@ -74,9 +74,9 @@ struct Person {
     uint age;
     uint height;
 }
-function validate(address _ownerCheck, Person calldata _person, uint _ownerCellNumberCheck) 
+function validate(address _ownerCheck, Person calldata _person, uint _ownerCellNumberCheck)
   public view returns (bool) {
-    return (owner == _ownerCheck && ownerAge == _person.age 
+    return (owner == _ownerCheck && ownerAge == _person.age
         && ownerCellNumber == _ownerCellNumberCheck);
 }
 ```
@@ -86,7 +86,7 @@ warp invoke --program CONTRACT.json --address ADDRESS --function validate \
         --inputs "[0x07964d2123425737cd3663bec47c68db37dc61d83fee74fc192d50a59fb7ab56,
         (26, 200), 7432533831]"
 ```
-The `--inuputs` flag, if not empty, should always be an 'array'. As you can see, we have 
+The `--inputs` flag, if not empty, should always be an 'array'. As you can see, we have
 passed the struct fields as a tuple, their order should be the same as their
 declaration order (i.e `age` first, `person` second). If the first argument to the
 ```validate``` function was an array of uint's, then we'd pass it in as you'd expect:

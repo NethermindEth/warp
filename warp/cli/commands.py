@@ -104,25 +104,18 @@ async def _deploy(cairo_path, contract_base, program_info, constructor_args):
         cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(calldata_evm[2:]))
         calldata_size = (len(cairo_input) * 16) - unused_bytes
         calldata = [calldata_size, len(cairo_input)] + cairo_input
-    elif constructor_args != "\0":
-        calldata = None
     else:
-        calldata = None
-        constructor_args = None
-    starknet_deploy(contract_base, cairo_path, constructor_args, calldata)
+        calldata = constructor_args
+    starknet_deploy(contract_base, cairo_path, calldata)
 
 
 def starknet_deploy(
     contract_base,
     cairo_path,
-    constructor_args: Optional[List[int]] = None,
     calldata: Optional[List[int]] = None,
 ):
     compiled_contract = starknet_compile(cairo_path, contract_base)
-    assert not (
-        calldata is not None and constructor_args is not None
-    ), "calldata and constructor arguments are mutuallly exclusive"
-    inputs = calldata or constructor_args or []
+    inputs = calldata or []
     inputs_str = " ".join(map(str, inputs))
     print(
         os.popen(
