@@ -83,12 +83,15 @@ function validate(address _ownerCheck, Person calldata _person, uint _ownerCellN
 The command to call this function would be:
 ```bash
 warp invoke --program CONTRACT.json --address ADDRESS --function validate \
-        --inputs "0x07964d2123425737cd3663bec47c68db37dc61d83fee74fc192d50a59fb7ab56 26 200 7432533831"
+        --inputs "[0x07964d2123425737cd3663bec47c68db37dc61d83fee74fc192d50a59fb7ab56,
+        (26, 200), 7432533831]"
 ```
-The `--inuputs` flag, if not empty, should always be a string with each argument separated by a space. As you can see, we passed the Person struct values in the same order as their declaration (i.e `age` first, `person` second). If the first argument to the
+The `--inuputs` flag, if not empty, should always be an 'array'. As you can see, we have 
+passed the struct fields as a tuple, their order should be the same as their
+declaration order (i.e `age` first, `person` second). If the first argument to the
 ```validate``` function was an array of uint's, then we'd pass it in as you'd expect:
 ```bash
---inputs = "42 1722 7 26 200 7432533831"
+--inputs = "[[42,1722,7], (26, 200), 7432533831]"
 ```
 
 
