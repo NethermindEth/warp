@@ -4,6 +4,7 @@ import os
 import platform
 import shutil
 import sysconfig
+from ast import literal_eval
 from enum import Enum
 from tempfile import NamedTemporaryFile
 
@@ -11,8 +12,10 @@ import click
 import pkg_resources
 from cli.commands import _deploy, _invoke, _status
 from yul.main import transpile_from_solidity
-from yul.utils import parse_uint256_list
+from yul.utils import get_low_high
 
+WARP_CONFIG_DIR = os.path.abspath(os.path.join(os.path.expanduser("~"), ".warp"))
+KUDU_INIT = os.path.abspath(os.path.join(WARP_CONFIG_DIR, ".kudu_init"))
 
 class Command(Enum):
     INVOKE = 0
@@ -24,10 +27,6 @@ class Command(Enum):
 @click.group()
 def warp():
     pass
-
-
-WARP_CONFIG_DIR = os.path.abspath(os.path.join(os.path.expanduser("~"), ".warp"))
-KUDU_INIT = os.path.abspath(os.path.join(WARP_CONFIG_DIR, ".kudu_init"))
 
 
 @warp.command()
@@ -54,11 +53,9 @@ def transpile(file_path, contract_name):
     required=True,
     help="the name of the function to invoke, as defined in the Solidity contract",
 )
-@click.option(
-    "--inputs", required=True, type=str, help="Function Arguments", default=""
-)
+@click.option("--inputs", required=True, help="Function Arguments")
 def invoke(program, address, function, inputs):
-    inputs = parse_uint256_list(inputs)
+    inputs = literal_eval(inputs)
     contract_base = program[: -len(".json")]
     with open(program, "r") as f:
         program_info = json.load(f)
@@ -72,14 +69,17 @@ def invoke(program, address, function, inputs):
     required=True,
     type=click.Path(exists=True, dir_okay=False),
 )
-@click.option("--constructor_args", type=str, required=False, default="")
+@click.option("--constructor_args", required=False, default="\0")
 def deploy(program, constructor_args):
     """Deploy PROGRAM.
 
     PROGRAM is the path to the transpiled program JSON file.
 
     """
-    constructor_args = parse_uint256_list(constructor_args)
+    try:
+        constructor_args = literal_eval(constructor_args)
+    except ValueError:
+        pass
     assert program.endswith(".json")
     contract_base = program[: -len(".json")]
     with open(program, "r") as pf:
@@ -98,7 +98,6 @@ def deploy(program, constructor_args):
 @click.argument("tx_id", nargs=1, required=True)
 def status(tx_id):
     asyncio.run(_status(tx_id))
-
 
 def init_kudu():
     os.mkdir(WARP_CONFIG_DIR)
@@ -143,7 +142,6 @@ def init_kudu():
     shutil.copy2(kudu_pkg_dir, new_kudu_exe)
     with open(KUDU_INIT, "w") as f:
         f.write("1")
-
 
 def main():
     if not os.path.exists(KUDU_INIT):
