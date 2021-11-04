@@ -46,6 +46,7 @@ setup(
         [console_scripts]
         warp=cli.warp_cli:main
     """,
+    scripts=["scripts/kudu"],
     author="Nethermind",
     keyword="Ethereum, Layer2, ETH, StarkNet, Nethermind, StarkWare, transpilation, warp, transpiler, cairo",
     long_description=README,
