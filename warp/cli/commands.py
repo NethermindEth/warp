@@ -101,7 +101,10 @@ async def _deploy(cairo_path, contract_base, program_info, constructor_args):
         calldata = [calldata_size, len(cairo_input)] + cairo_input
         calldata = " ".join(map(str, calldata))
         constructor_args = None
-    elif constructor_args != "\0" and "constructor" not in program_info["dynamic_argument_functions"]:
+    elif (
+        constructor_args != "\0"
+        and "constructor" not in program_info["dynamic_argument_functions"]
+    ):
         calldata = None
         flattened_args = list(flatten(constructor_args))
         split_args = []
@@ -109,7 +112,7 @@ async def _deploy(cairo_path, contract_base, program_info, constructor_args):
             high, low = divmod(arg, 2 ** 128)
             split_args += [low, high]
         constructor_args = split_args
-        constructor_args = " ".join(map(str,constructor_args))
+        constructor_args = " ".join(map(str, constructor_args))
     else:
         calldata = None
         constructor_args = None
@@ -137,7 +140,9 @@ def starknet_deploy(
         )
     else:
         print(
-            os.popen(f"starknet deploy --contract {contract_base}_compiled.json --network alpha").read()
+            os.popen(
+                f"starknet deploy --contract {contract_base}_compiled.json --network alpha"
+            ).read()
         )
 
     return compiled_contract

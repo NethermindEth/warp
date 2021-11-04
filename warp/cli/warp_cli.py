@@ -17,6 +17,7 @@ from yul.utils import get_low_high
 WARP_CONFIG_DIR = os.path.abspath(os.path.join(os.path.expanduser("~"), ".warp"))
 KUDU_INIT = os.path.abspath(os.path.join(WARP_CONFIG_DIR, ".kudu_init"))
 
+
 class Command(Enum):
     INVOKE = 0
     CALL = 1
@@ -99,6 +100,7 @@ def deploy(program, constructor_args):
 def status(tx_id):
     asyncio.run(_status(tx_id))
 
+
 def init_kudu():
     os.mkdir(WARP_CONFIG_DIR)
     try:
@@ -142,6 +144,7 @@ def init_kudu():
     shutil.copy2(kudu_pkg_dir, new_kudu_exe)
     with open(KUDU_INIT, "w") as f:
         f.write("1")
+
 
 def main():
     if not os.path.exists(KUDU_INIT):
