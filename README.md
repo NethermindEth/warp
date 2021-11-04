@@ -42,7 +42,7 @@ source ~/warp/bin/activate
 
 Install Warp:
 ```
-pip install sol-warp==0.2.1
+pip install sol-warp
 ```
 
 ## Usage :computer:

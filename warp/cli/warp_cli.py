@@ -26,6 +26,10 @@ def warp():
     pass
 
 
+WARP_CONFIG_DIR = os.path.abspath(os.path.join(os.path.expanduser("~"), ".warp"))
+KUDU_INIT = os.path.abspath(os.path.join(WARP_CONFIG_DIR, ".kudu_init"))
+
+
 @warp.command()
 @click.argument("file_path", type=click.Path(exists=True))
 @click.argument("contract_name")
@@ -96,7 +100,8 @@ def status(tx_id):
     asyncio.run(_status(tx_id))
 
 
-def main():
+def init_kudu():
+    os.mkdir(WARP_CONFIG_DIR)
     try:
         base_env_dir = os.environ["VIRTUAL_ENV"]
         new_kudu_exe = os.path.join(base_env_dir, "bin/kudu")
@@ -112,13 +117,21 @@ def main():
         v, _, _ = platform.mac_ver()
         v = float(".".join(v.split(".")[:2]))
         if v < 11:
-            if v < 10.15:
+            if v < 10.14:
                 raise RuntimeError(
-                    "Unsupported MacOS version, please update to version 10.15 or higher"
+                    "Unsupported MacOS version, please update to version 10.14 or higher"
                 )
-            kudu_pkg_dir = os.path.join(
-                pkg_resources.get_distribution("sol-warp").location, "bin/macos/10/kudu"
-            )
+            if v >= 10.14 and v < 10.15:
+                kudu_pkg_dir = os.path.join(
+                    pkg_resources.get_distribution("sol-warp").location,
+                    "bin/macos/10/14/kudu",
+                )
+            else:
+                kudu_pkg_dir = os.path.join(
+                    pkg_resources.get_distribution("sol-warp").location,
+                    "bin/macos/10/kudu",
+                )
+
         elif v >= 11:
             kudu_pkg_dir = os.path.join(
                 pkg_resources.get_distribution("sol-warp").location, "bin/macos/11/kudu"
@@ -128,4 +141,11 @@ def main():
     if os.path.exists(new_kudu_exe):
         os.remove(new_kudu_exe)
     shutil.copy2(kudu_pkg_dir, new_kudu_exe)
+    with open(KUDU_INIT, "w") as f:
+        f.write("1")
+
+
+def main():
+    if not os.path.exists(KUDU_INIT):
+        init_kudu()
     warp()

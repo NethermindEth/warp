@@ -26,7 +26,7 @@ dependency_links = [x.strip().replace("git+", "") for x in all_reqs if "git+" no
 setup(
     name="sol-warp",
     description="A Solidity to Cairo Transpiler",
-    version="0.2.10",
+    version="0.2.12",
     package_dir={"": "warp"},
     packages=[
         "cairo-src",
@@ -35,6 +35,7 @@ setup(
         "yul",
         "bin.linux",
         "bin.macos.10",
+        "bin.macos.10.14",
         "bin.macos.11",
     ],  # list of all packages
     include_package_data=True,
