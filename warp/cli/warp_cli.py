@@ -4,6 +4,7 @@ import os
 import platform
 import shutil
 import sysconfig
+from ast import literal_eval
 from enum import Enum
 from tempfile import NamedTemporaryFile
 
@@ -11,7 +12,7 @@ import click
 import pkg_resources
 from cli.commands import _deploy, _invoke, _status
 from yul.main import transpile_from_solidity
-from yul.utils import parse_uint256_list
+from yul.utils import get_low_high
 
 
 class Command(Enum):
@@ -54,11 +55,9 @@ def transpile(file_path, contract_name):
     required=True,
     help="the name of the function to invoke, as defined in the Solidity contract",
 )
-@click.option(
-    "--inputs", required=True, type=str, help="Function Arguments", default=""
-)
+@click.option("--inputs", required=True, help="Function Arguments")
 def invoke(program, address, function, inputs):
-    inputs = parse_uint256_list(inputs)
+    inputs = literal_eval(inputs)
     contract_base = program[: -len(".json")]
     with open(program, "r") as f:
         program_info = json.load(f)
@@ -72,14 +71,17 @@ def invoke(program, address, function, inputs):
     required=True,
     type=click.Path(exists=True, dir_okay=False),
 )
-@click.option("--constructor_args", type=str, required=False, default="")
+@click.option("--constructor_args", required=False, default="\0")
 def deploy(program, constructor_args):
     """Deploy PROGRAM.
 
     PROGRAM is the path to the transpiled program JSON file.
 
     """
-    constructor_args = parse_uint256_list(constructor_args)
+    try:
+        constructor_args = literal_eval(constructor_args)
+    except ValueError:
+        pass
     assert program.endswith(".json")
     contract_base = program[: -len(".json")]
     with open(program, "r") as pf:
