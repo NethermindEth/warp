@@ -119,27 +119,20 @@ def starknet_deploy(
     calldata: Optional[List[int]] = None,
 ):
     compiled_contract = starknet_compile(cairo_path, contract_base)
-    inputs = calldata if constructor_args is None else constructor_args
-    inputs = flatten(inputs)
+    assert (
+        calldata is not None and constructor_args is not None
+    ), "calldata and constructor arguments are mutuallly exclusive"
+    inputs = calldata or constructor_args or []
     inputs_str = " ".join(map(str, inputs))
-    click.echo(inputs_str)
-    if (constructor_args is None and calldata is None):
-        print(
-            os.popen(
-                f"starknet deploy "
-                f"--contract {contract_base}_compiled.json "
-                f"--network alpha "
-            ).read()
-        )
-    else:
-        print(
-            os.popen(
-                f"starknet deploy "
-                f"--contract {contract_base}_compiled.json "
-                f"--inputs {inputs_str} "
-                f"--network alpha "
-            ).read()
-        )
+    print(
+        os.popen(
+            f"starknet deploy "
+            f"--contract {contract_base}_compiled.json "
+            f"--inputs {inputs_str} "
+            f"--network alpha "
+        ).read()
+    )
+
     return compiled_contract
 
 
