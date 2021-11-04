@@ -119,7 +119,7 @@ def starknet_deploy(
     calldata: Optional[List[int]] = None,
 ):
     compiled_contract = starknet_compile(cairo_path, contract_base)
-    assert not (
+    assert (
         calldata is not None and constructor_args is not None
     ), "calldata and constructor arguments are mutuallly exclusive"
     inputs = calldata or constructor_args or []
