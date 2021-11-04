@@ -6,8 +6,68 @@ on:
   pull_request:
 
 jobs:
-  build:
+  test-linux-tranpsilation:
     runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7 # Cairo was tested with this version
+
+      - name: Install dependencies
+        run: >
+          sudo add-apt-repository ppa:ethereum/ethereum
+
+          sudo add-apt-repository 'deb http://mirrors.kernel.org/ubuntu hirsute main universe'
+
+          sudo apt-get -y install gcc-11 g++-11 solc
+          libboost-filesystem-dev libboost-system-dev
+          libboost-program-options-dev libboost-regex-dev
+
+
+      - name: Install Warp
+        run: make
+
+      - name: Test transpilation
+        run: |
+          make
+          python -m pytest scripts/yul/transpile_test.py -v --workers=auto
+
+  # "export no_proxy='*'" for macos runners is a workaround described
+  # here: https://bugs.python.org/issue30385#msg293958
+
+  test-macos-11-transpilation:
+    runs-on: macos-10.15
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7 # Cairo was tested with this version
+
+      - name: Install dependencies
+        run: |
+          brew tap ethereum/ethereum
+          brew install boost icu4c solidity diffutils
+          export LIBRARY_PATH="${LIBRARY_PATH}:$(brew --prefix icu4c)/lib"
+
+      - name: Install Warp
+        run: make
+
+      - name: Test transpilation
+        run: |
+          export no_proxy='*'
+          make
+          python -m pytest scripts/yul/transpile_test.py -v --workers=auto
+
+
+  test-macos-10-15-complete:
+    runs-on: macos-10.15
 
     steps:
       - uses: actions/checkout@v2
@@ -19,24 +79,15 @@ jobs:
 
       - name: Check formatting
         run: |
-          pip install colorama black isort
+          pip install colorama black==21.6b0 isort
           black . --check --verbose --diff --color
           isort . --check --verbose --diff --color
 
       - name: Install dependencies
-        run: >
-          sudo add-apt-repository ppa:ethereum/ethereum
-
-          sudo add-apt-repository
-          'deb http://mirrors.kernel.org/ubuntu hirsute main universe'
-
-          sudo apt-get update
-
-          sudo apt-get -y install gcc-11 g++-11 solc libicu-dev
-          libboost-all-dev libgmp-dev libleveldb-dev libminiupnpc-dev
-          libreadline-dev libncurses5-dev libcurl4-openssl-dev
-          libjsonrpccpp-dev libmicrohttpd-dev libjsoncpp-dev
-          libedit-dev libz-dev
+        run: |
+          brew tap ethereum/ethereum
+          brew install boost icu4c solidity diffutils
+          export LIBRARY_PATH="${LIBRARY_PATH}:$(brew --prefix icu4c)/lib"
 
       - name: Install Warp
         run: make
@@ -46,8 +97,8 @@ jobs:
 
       - name: Test golden tests
         run: |
-          make test_bats
+          env no_proxy='*' make test_bats
 
       - name: Test yul tests
         run: |
-          make test_yul
+          env no_proxy='*' make test_yul
