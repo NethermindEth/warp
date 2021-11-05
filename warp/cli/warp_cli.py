@@ -26,6 +26,12 @@ def warp():
 @click.argument("file_path", type=click.Path(exists=True))
 @click.argument("contract_name")
 def transpile(file_path, contract_name):
+    """
+    FILE_PATH: Path to your solidity contract\n
+    CONTRACT_NAME: Name of the primary contract (non-interface, non-library, non-abstract contract) that you wish to transpile
+
+    Generates a JSON file containing the transpiled contract and relevant information.
+    """
     path = click.format_filename(file_path)
     output = transpile_from_solidity(file_path, contract_name)
     with open(f"{file_path[:-4]}.json", "w") as f:
@@ -46,8 +52,15 @@ def transpile(file_path, contract_name):
     required=True,
     help="the name of the function to invoke, as defined in the Solidity contract",
 )
-@click.option("--inputs", required=True, help="Function Arguments")
+@click.option(
+    "--inputs",
+    required=True,
+    help="function arguments passed as a python literal enclosed in double quotes. Either [] or () can be used for grouping as Solidity structs or arrays",
+)
 def invoke(program, address, function, inputs):
+    """
+    Invoke the given function from a contract on StarkNet
+    """
     inputs = literal_eval(inputs)
     contract_base = program[: -len(".json")]
     with open(program, "r") as f:
@@ -64,10 +77,11 @@ def invoke(program, address, function, inputs):
 )
 @click.option("--constructor_args", required=False, default="[]")
 def deploy(program, constructor_args):
-    """Deploy PROGRAM.
+    """
+    PROGRAM: path to the transpiled program JSON file.
 
-    PROGRAM is the path to the transpiled program JSON file.
-
+    Compiles the given Cairo program info file and deploys it to StarkNet.
+    Contract's address is printed to stdout.
     """
     try:
         constructor_args = literal_eval(constructor_args)
@@ -88,9 +102,13 @@ def deploy(program, constructor_args):
 
 
 @warp.command()
-@click.argument("tx_id", nargs=1, required=True)
-def status(tx_id):
-    asyncio.run(_status(tx_id))
+@click.argument("tx_hash", nargs=1, required=True)
+def status(tx_hash):
+    """
+    TX_HASH: The transaction hash printed to stdout after invoking/deployment.\n
+    To check the status of the invoke/deployment.
+    """
+    asyncio.run(_status(tx_hash))
 
 
 def main():
