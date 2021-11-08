@@ -92,11 +92,7 @@ def transpile_from_yul(
     yul_ast = FunctionPruner(public_functions).map(yul_ast)
 
     cairo_visitor = ToCairoVisitor(
-        public_functions,
-        function_mutabilities,
-        name_gen,
-        cairo_functions,
-        get_default_builtins,
+        public_functions, name_gen, cairo_functions, get_default_builtins
     )
     return (
         parse_file(cairo_visitor.translate(yul_ast)).format(),

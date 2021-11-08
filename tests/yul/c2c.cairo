@@ -1,21 +1,16 @@
 %lang starknet
 %builtins pedersen range_check bitwise
 
-from evm.array import array_copy_to_memory, array_create_from_memory
 from evm.calls import calldata_load, calldatasize_, returndata_write, warp_call, warp_static_call
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import mload_, mstore_
 from evm.uint256 import is_eq, is_gt, is_lt, is_zero, slt, u256_add, u256_shl, u256_shr
-from evm.utils import update_msize
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
-from starkware.cairo.common.math import unsigned_div_rem
-from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import (
-    Uint256, uint256_and, uint256_eq, uint256_not, uint256_sub)
+from starkware.cairo.common.uint256 import Uint256, uint256_and, uint256_not, uint256_sub
 
 func returndata_size{exec_env : ExecutionEnvironment*}() -> (res : Uint256):
     return (Uint256(low=exec_env.returndata_size, high=0))
@@ -303,32 +298,6 @@ func fun_sendMoneyz{
     return (var_110)
 end
 
-@external
-func fun_sendMoneyz_external{
-        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(
-        var_contract_addr : Uint256, var_from : Uint256, var_to_109 : Uint256,
-        var_amount : Uint256, calldata_size, calldata_len, calldata : felt*) -> (var_110 : Uint256):
-    alloc_locals
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
-    let msize = 0
-    let (returndata_ptr : felt*) = alloc()
-    let (local __fp__, _) = get_fp_and_pc()
-    local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=returndata_ptr, to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)
-    let exec_env : ExecutionEnvironment* = &exec_env_
-    with memory_dict, msize, exec_env:
-        let (local var_110 : Uint256) = fun_sendMoneyz(
-            var_contract_addr, var_from, var_to_109, var_amount)
-    end
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var_110=var_110)
-end
-
 func abi_encode_bool_to_bool{memory_dict : DictAccess*, msize, range_check_ptr}(
         value_32 : Uint256, pos_33 : Uint256) -> ():
     alloc_locals
@@ -490,31 +459,6 @@ func fun_checkMoneyz{
     return (var_)
 end
 
-@view
-func fun_checkMoneyz_external{
-        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(
-        var_addr : Uint256, var_to : Uint256, calldata_size, calldata_len, calldata : felt*) -> (
-        var_ : Uint256):
-    alloc_locals
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
-    let msize = 0
-    let (returndata_ptr : felt*) = alloc()
-    let (local __fp__, _) = get_fp_and_pc()
-    local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=returndata_ptr, to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)
-    let exec_env : ExecutionEnvironment* = &exec_env_
-    with memory_dict, msize, exec_env:
-        let (local var_ : Uint256) = fun_checkMoneyz(var_addr, var_to)
-    end
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var_=var_)
-end
-
 func abi_encode_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
         headStart_64 : Uint256, value0_65 : Uint256) -> (tail_66 : Uint256):
     alloc_locals
@@ -643,31 +587,6 @@ func fun_gimmeMoney{
     local range_check_ptr = range_check_ptr
     local var : Uint256 = expr_105
     return (var)
-end
-
-@external
-func fun_gimmeMoney_external{
-        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(
-        var_add : Uint256, var_to_91 : Uint256, calldata_size, calldata_len, calldata : felt*) -> (
-        var : Uint256):
-    alloc_locals
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
-    let msize = 0
-    let (returndata_ptr : felt*) = alloc()
-    let (local __fp__, _) = get_fp_and_pc()
-    local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=returndata_ptr, to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)
-    let exec_env : ExecutionEnvironment* = &exec_env_
-    with memory_dict, msize, exec_env:
-        let (local var : Uint256) = fun_gimmeMoney(var_add, var_to_91)
-    end
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var=var)
 end
 
 func __warp_block_6{

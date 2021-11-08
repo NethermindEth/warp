@@ -1,20 +1,16 @@
 %lang starknet
 %builtins pedersen range_check bitwise
 
-from evm.array import array_copy_to_memory, array_create_from_memory
 from evm.calls import calldata_load, calldatasize_, returndata_write
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import mstore_
 from evm.uint256 import is_eq, is_lt, is_zero, slt, u256_add, u256_shr
-from evm.utils import update_msize
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
-from starkware.cairo.common.math import unsigned_div_rem
-from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_not, uint256_sub
+from starkware.cairo.common.uint256 import Uint256, uint256_not, uint256_sub
 
 @storage_var
 func this_address() -> (res : felt):
@@ -77,25 +73,6 @@ func fun_test{range_check_ptr}(var_i : Uint256, var_j : Uint256) -> (var : Uint2
     end
     local var : Uint256 = Uint256(low=0, high=0)
     return (var)
-end
-
-@external
-func fun_test_external{
-        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_i : Uint256, var_j : Uint256) -> (var : Uint256):
-    alloc_locals
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
-    let msize = 0
-    with memory_dict, msize:
-        let (local var : Uint256) = fun_test(var_i, var_j)
-    end
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var=var)
 end
 
 func abi_encode_bool_to_bool{memory_dict : DictAccess*, msize, range_check_ptr}(
@@ -255,4 +232,3 @@ func fun_ENTRY_POINT{
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
-

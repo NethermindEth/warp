@@ -1,20 +1,16 @@
 %lang starknet
 %builtins pedersen range_check bitwise
 
-from evm.array import array_copy_to_memory, array_create_from_memory
 from evm.calls import calldata_load, calldatasize_, returndata_write
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import mload_, mstore_
 from evm.uint256 import is_eq, is_lt, is_zero, slt, u256_add, u256_shr
-from evm.utils import update_msize
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
-from starkware.cairo.common.math import unsigned_div_rem
-from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import Uint256, uint256_eq, uint256_not, uint256_sub
+from starkware.cairo.common.uint256 import Uint256, uint256_not, uint256_sub
 
 func __warp_constant_0() -> (res : Uint256):
     return (Uint256(low=0, high=0))
@@ -68,7 +64,6 @@ func abi_decode_uint256{exec_env : ExecutionEnvironment*, range_check_ptr}(
     return (value0)
 end
 
-@view
 func getter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         arg0 : Uint256) -> (value_22 : Uint256):
     alloc_locals
@@ -137,7 +132,6 @@ func checked_sub_uint256{range_check_ptr}(x : Uint256, y : Uint256) -> (diff : U
     return (diff)
 end
 
-@external
 func setter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         arg0_36 : Uint256, value_37 : Uint256) -> ():
     alloc_locals
@@ -214,26 +208,6 @@ func fun_transferFrom{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     local syscall_ptr : felt* = syscall_ptr
     local var : Uint256 = var_res
     return (var)
-end
-
-@external
-func fun_transferFrom_external{
-        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_src : Uint256, var_wad : Uint256, var_sender : Uint256) -> (
-        var : Uint256):
-    alloc_locals
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
-    let msize = 0
-    with memory_dict, msize:
-        let (local var : Uint256) = fun_transferFrom(var_src, var_wad, var_sender)
-    end
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var=var)
 end
 
 func __warp_block_6{
@@ -487,4 +461,3 @@ func fun_ENTRY_POINT{
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
-

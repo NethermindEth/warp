@@ -22,7 +22,6 @@ async def test_ExpressionSplitter():
     new_node = ExpressionSplitter(name_gen=NameGenerator()).visit_block(block)
     cairo = ToCairoVisitor(
         public_functions=[],
-        function_mutabilities={},
         name_gen=NameGenerator(),
         cairo_functions=CairoFunctions(FunctionGenerator()),
         builtins_map=lambda _: {

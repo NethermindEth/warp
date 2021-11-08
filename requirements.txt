@@ -5,6 +5,7 @@ fastecdsa
 sympy
 pytest==6.2.4
 pytest-parallel
+pytest-check
 py-solc-x==1.1.0
 cairo-lang==0.5.1
 aiohttp<4,>=3.7.4

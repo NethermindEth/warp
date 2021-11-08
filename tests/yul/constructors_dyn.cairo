@@ -1,21 +1,16 @@
 %lang starknet
 %builtins pedersen range_check bitwise
 
-from evm.array import array_copy_to_memory, array_create_from_memory
 from evm.calls import calldata_load, calldatasize_, returndata_write
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import mload_, mstore_
 from evm.uint256 import is_eq, is_gt, is_lt, is_zero, slt, u256_add, u256_shl, u256_shr
-from evm.utils import update_msize
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
-from starkware.cairo.common.math import unsigned_div_rem
-from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import (
-    Uint256, uint256_and, uint256_eq, uint256_not, uint256_sub)
+from starkware.cairo.common.uint256 import Uint256, uint256_and, uint256_not, uint256_sub
 
 func __warp_constant_0() -> (res : Uint256):
     return (Uint256(low=0, high=0))
@@ -103,7 +98,6 @@ func abi_decode_addresst_struct_Person_calldatat_uint256{
     return (value0, value1, value2)
 end
 
-@view
 func getter_fun_owner{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (
         value_90 : Uint256):
     alloc_locals
@@ -111,7 +105,6 @@ func getter_fun_owner{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     return (res)
 end
 
-@view
 func getter_fun_ownerAge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (
         value_86 : Uint256):
     alloc_locals
@@ -119,7 +112,6 @@ func getter_fun_ownerAge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_p
     return (res)
 end
 
-@view
 func getter_fun_ownerCellNumber{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         ) -> (value_88 : Uint256):
     alloc_locals
@@ -209,32 +201,6 @@ func fun_validate_constructor{
     local syscall_ptr : felt* = syscall_ptr
     local var : Uint256 = expr_1
     return (var)
-end
-
-@view
-func fun_validate_constructor_external{
-        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(
-        var_ownerCheck : Uint256, var_person_offset : Uint256, var_ownerCellNumberCheck : Uint256,
-        calldata_size, calldata_len, calldata : felt*) -> (var : Uint256):
-    alloc_locals
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
-    let msize = 0
-    let (returndata_ptr : felt*) = alloc()
-    let (local __fp__, _) = get_fp_and_pc()
-    local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=returndata_ptr, to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)
-    let exec_env : ExecutionEnvironment* = &exec_env_
-    with memory_dict, msize, exec_env:
-        let (local var : Uint256) = fun_validate_constructor(
-            var_ownerCheck, var_person_offset, var_ownerCellNumberCheck)
-    end
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
-    default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (var=var)
 end
 
 func abi_encode_bool_to_bool{memory_dict : DictAccess*, msize, range_check_ptr}(
@@ -843,7 +809,6 @@ func cleanup_uint256(value_60 : Uint256) -> (cleaned : Uint256):
     return (cleaned)
 end
 
-@external
 func setter_fun_owner{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         value_118 : Uint256) -> ():
     alloc_locals
@@ -851,7 +816,6 @@ func setter_fun_owner{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
     return ()
 end
 
-@external
 func setter_fun_ownerAge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         value_108 : Uint256) -> ():
     alloc_locals
@@ -859,7 +823,6 @@ func setter_fun_ownerAge{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_p
     return ()
 end
 
-@external
 func setter_fun_ownerCellNumber{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         value_113 : Uint256) -> ():
     alloc_locals
