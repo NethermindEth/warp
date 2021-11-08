@@ -9,7 +9,7 @@ PY_REQUIREMENTS := requirements.txt
 warp: .warp-activation-token
 .PHONY: warp
 
-.warp-activation-token: $(SRC_FILES) setup.py $(PY_REQUIREMENTS)
+.warp-activation-token: $(SRC_FILES) ./scripts/kudu setup.py $(PY_REQUIREMENTS)
 	python setup.py install
 	touch .warp-activation-token
 

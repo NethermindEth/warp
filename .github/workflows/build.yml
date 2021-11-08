@@ -43,7 +43,7 @@ jobs:
 
       - name: Test yul tests
         run: |
-          PATH="./bin/linux:$PATH" make test_yul
+          make test_yul
 
       - name: Test golden tests
         run: |
