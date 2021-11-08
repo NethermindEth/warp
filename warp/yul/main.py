@@ -41,7 +41,7 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
 
     try:
         result = subprocess.run(
-            [AST_GENERATOR, sol_src_path, main_contract],
+            [AST_GENERATOR, "--yul-json-ast", sol_src_path, main_contract],
             check=True,
             capture_output=True,
         )
