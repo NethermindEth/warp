@@ -38,13 +38,16 @@ jobs:
           libjsonrpccpp-dev libmicrohttpd-dev libjsoncpp-dev
           libedit-dev libz-dev
 
+      - name: Install Warp
+        run: make
+
       - name: Setup BATS testing framework
         uses: mig4/setup-bats@v1.2.0
+
+      - name: Test golden tests
+        run: |
+          make test_bats
 
       - name: Test yul tests
         run: |
           make test_yul
-
-      - name: Test golden tests
-        run: |
-          make test_bats BATS_ARGS="-j 4"

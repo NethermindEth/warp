@@ -5,6 +5,7 @@ BATS_FILES := $(patsubst $(GOLDEN_DIR)/%.template,$(BATS_DIR)/test-%.bats,$(TEMP
 TEST_FILES := $(shell find ./tests -type f ! -name '*.temp*') # exclude temporary files
 SRC_FILES := $(shell find ./warp/ -type f)
 PY_REQUIREMENTS := requirements.txt
+NPROCS := $(shell getconf _NPROCESSORS_ONLN)
 
 warp: .warp-activation-token
 .PHONY: warp
@@ -16,8 +17,8 @@ warp: .warp-activation-token
 test: test_bats test_yul
 .PHONY: test
 
-test_bats: warp $(BATS_FILES)
-	bats -j 20 $^ $(BATS_ARGS)
+test_bats: warp $(BATS_FILES) tests/cli/*.bats
+	bats -j $(NPROCS) $^ $(BATS_ARGS)
 .PHONY: test_bats
 
 test_yul: warp
