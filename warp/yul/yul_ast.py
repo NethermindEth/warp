@@ -26,7 +26,7 @@ class TypedName(Node):
 
 @dataclass(eq=True, frozen=True)
 class Literal(Node):
-    value: Union[int, bool]
+    value: Union[int, bool, str]
 
 
 @dataclass(eq=True, order=True, frozen=True)

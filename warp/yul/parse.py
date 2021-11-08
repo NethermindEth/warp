@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from ast import literal_eval
+
 import yul.yul_ast as ast
 from yul.utils import camelize, is_statement, remove_prefix
 from yul.WarpException import WarpException, warp_assert
@@ -75,7 +77,14 @@ def parse_literal(yul_ast) -> ast.Literal:
     elif kind == "bool":
         return ast.Literal(yul_ast["value"] == "true")
     elif kind == "string":
-        raise WarpException("string literals are not supported yet")
+        yul_string = yul_ast["value"]
+        parsed_string = literal_eval(f"'{yul_string}'")
+        parsed_string = "".join([i if i.isascii() else "" for i in parsed_string])
+        if parsed_string != yul_ast["value"]:
+            print(
+                f"Warning string literal f{yul_ast['value']} was parsed as f{parsed_string}"
+            )
+        return ast.Literal(parsed_string)
     else:
         assert False, "Invalid Literal node"
 

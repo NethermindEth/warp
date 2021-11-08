@@ -90,7 +90,6 @@ func warp_call{
     let (local __fp__, _) = get_fp_and_pc()
     local memory_dict : DictAccess* = memory_dict
 
-    # TODO will 128 bits be enough for addresses
     let (local mem : felt*) = array_create_from_memory{
         memory_dict=memory_dict, range_check_ptr=range_check_ptr}(in.low, insize.low)
     local memory_dict : DictAccess* = memory_dict
