@@ -6,11 +6,11 @@ from yul.utils import cairoize_bytes
 
 
 def get_evm_calldata(
-    abi: dict, abi_original: dict, bytecode, fn_name: str, inputs: List[int]
+    abi: dict, abi_original: dict, fn_name: str, inputs: List[int]
 ) -> str:
     w3 = Web3()
-    contract_abi_original = w3.eth.contract(abi=abi_original, bytecode=bytecode)
-    contract = w3.eth.contract(abi=abi, bytecode=bytecode)
+    contract_abi_original = w3.eth.contract(abi=abi_original)
+    contract = w3.eth.contract(abi=abi)
     for f in contract_abi_original.all_functions():
         if f.function_identifier == fn_name:
             selector = function_abi_to_4byte_selector(f.abi).hex()
@@ -21,7 +21,6 @@ def get_evm_calldata(
 def evm_to_cairo_calldata(
     abi: dict,
     abi_original: dict,
-    bytecode: str,
     fn_name: str,
     inputs: List[int],
     address: Optional[int] = None,
@@ -29,7 +28,6 @@ def evm_to_cairo_calldata(
     evm_calldata = get_evm_calldata(
         abi=abi,
         abi_original=abi_original,
-        bytecode=bytecode,
         fn_name=fn_name,
         inputs=inputs,
     )

@@ -12,7 +12,6 @@ async def invoke_method(
     evm_calldata = get_evm_calldata(
         program_info["sol_abi"],
         program_info["sol_abi_original"],
-        program_info["sol_bytecode"],
         method,
         args,
     )
