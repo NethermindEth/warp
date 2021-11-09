@@ -29,7 +29,6 @@ async def test_starknet():
     calldata_evm = get_evm_calldata(
         contract_info["sol_abi"],
         contract_info["sol_abi_original"],
-        contract_info["sol_bytecode"],
         "returnFun",
         [],
     )
@@ -49,7 +48,6 @@ async def test_starknet():
     calldata_evm = get_evm_calldata(
         contract_info["sol_abi"],
         contract_info["sol_abi_original"],
-        contract_info["sol_bytecode"],
         "bytesFun",
         [],
     )

@@ -47,7 +47,6 @@ async def _invoke(
     calldata_evm = get_evm_calldata(
         program_info["sol_abi"],
         program_info["sol_abi_original"],
-        program_info["sol_bytecode"],
         function,
         evm_inputs,
     )
@@ -101,7 +100,6 @@ async def _deploy(
         calldata_evm = get_evm_calldata(
             program_info["sol_abi"],
             program_info["sol_abi_original"],
-            program_info["sol_bytecode"],
             "__warp_ctorHelper_DynArgs",
             constructor_args,
         )

@@ -35,7 +35,6 @@ async def test_constructors():
     dyn_constructor_calldata = evm_to_cairo_calldata(
         dyn_info["sol_abi"],
         dyn_info["sol_abi_original"],
-        dyn_info["sol_bytecode"],
         fn_name="__warp_ctorHelper_DynArgs",
         inputs=dyn_inputs,
     )
