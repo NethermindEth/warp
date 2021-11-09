@@ -26,6 +26,7 @@ jobs:
           sudo apt-get -y install gcc-11 g++-11 solc
           libboost-filesystem-dev libboost-system-dev
           libboost-program-options-dev libboost-regex-dev
+          libboost-test-dev
 
       - name: Install Warp
         run: make

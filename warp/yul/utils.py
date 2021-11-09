@@ -119,43 +119,12 @@ def camelize(snake_case: str) -> str:
 def get_for_contract(
     sol_source: str, target_contract: str, output_values: list[str]
 ) -> Optional[Sequence[str]]:
-    validate_solc_ver(sol_source)
     compiled = solcx.compile_source(sol_source, output_values=output_values)
     for contract, values in compiled.items():
         name = contract[contract.find(":") + 1 :]
         if name == target_contract:
             return [values[x] for x in output_values]
     return None
-
-
-def validate_solc_ver(sol_source):
-    solc_version: float = get_source_version(sol_source)
-    src_ver: str = check_installed_solc(solc_version)
-    solcx.set_solc_version(src_ver)
-
-
-def get_source_version(sol_source: str) -> float:
-    code_split = sol_source.split("\n")
-    for line in code_split:
-        if "pragma" in line:
-            ver: float = float(line[line.index("0.") + 2 :].replace(";", ""))
-            if ver < 7.6:
-                raise Exception(
-                    "Please use a version of solidity that is at least 0.7.6"
-                )
-            return ver
-    raise Exception("No Solidity version specified in contract")
-
-
-def check_installed_solc(source_version: float) -> str:
-    solc_vers = solcx.get_installed_solc_versions()
-    vers_clean = []
-    src_ver = "0." + str(source_version)
-    for ver in solc_vers:
-        vers_clean.append(".".join(str(x) for x in list(ver.precedence_key)[:3]))
-    if src_ver not in vers_clean:
-        solcx.install_solc(src_ver)
-    return src_ver
 
 
 def cairoize_bytes(bs: bytes) -> tuple(List[int], int):

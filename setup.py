@@ -39,14 +39,14 @@ setup(
         "bin.macos.11",
     ],  # list of all packages
     include_package_data=True,
-    package_data={"": ["*.json", "*.cairo", "kudu"]},
+    package_data={"": ["*.json", "*.cairo", "kudu", "solc"]},
     install_requires=install_requires,
     python_requires=">=3.7",  # any python greater than 3.7
     entry_points="""
         [console_scripts]
         warp=cli.warp_cli:main
     """,
-    scripts=["scripts/kudu"],
+    scripts=["scripts/kudu", "scripts/solc"],
     author="Nethermind",
     keyword="Ethereum, Layer2, ETH, StarkNet, Nethermind, StarkWare, transpilation, warp, transpiler, cairo",
     long_description=README,
