@@ -10,32 +10,34 @@ from typing import Optional
 
 import pkg_resources
 
+exec_name = "kudu"
 
-def get_kudu_suffix(system: str) -> Optional[str]:
+
+def get_system_suffix(system: str) -> Optional[str]:
     system = system.lower()
     if system == "linux":
-        return "bin/linux/kudu"
+        return "bin/linux/"
     elif system == "darwin":
         version = platform.mac_ver()[0]
         major, minor = map(int, version.split(".")[:2])
         if major >= 11:
-            return "bin/macos/11/kudu"
+            return "bin/macos/11/"
         elif (major, minor) == (10, 14):
-            return "bin/macos/10/14/kudu"
+            return "bin/macos/10/14/"
         elif (major, minor) == (10, 15):
-            return "bin/macos/10/kudu"
+            return "bin/macos/10/"
 
 
 def main(argv):
-    suffix = get_kudu_suffix(platform.system())
+    suffix = get_system_suffix(platform.system())
     if not suffix:
         raise RuntimeError(f"Unsupported OS: {platform.platform()}")
     warp_location = PurePath(pkg_resources.get_distribution("sol-warp").location)
-    kudu_location = warp_location / suffix
-    st_mode = os.stat(kudu_location).st_mode
-    os.chmod(kudu_location, stat.S_IEXEC | st_mode)
+    exec_location = warp_location / suffix / exec_name
+    st_mode = os.stat(exec_location).st_mode
+    os.chmod(exec_location, stat.S_IEXEC | st_mode)
     res = subprocess.run(
-        [kudu_location, *argv[1:]], stdout=sys.stdout, stderr=sys.stderr
+        [exec_location, *argv[1:]], stdout=sys.stdout, stderr=sys.stderr
     )
     sys.exit(res.returncode)
 
