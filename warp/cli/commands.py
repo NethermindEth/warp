@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import aiohttp
 import click
-from cli.StarkNetEvmContract import evm_to_cairo_calldata, get_evm_calldata
+from cli.encoding import evm_to_cairo_calldata, get_evm_calldata
 from eth_hash.auto import keccak
 from starkware.starknet.definitions import fields
 from starkware.starknet.services.api.contract_definition import ContractDefinition
@@ -44,12 +44,7 @@ async def send_req(method, url, tx: Optional[Union[str, Dict[str, Any]]] = None)
 async def _invoke(
     contract_base, program_info: dict, address, function, evm_inputs, network: str
 ):
-    calldata_evm = get_evm_calldata(
-        program_info["sol_abi"],
-        program_info["sol_abi_original"],
-        function,
-        evm_inputs,
-    )
+    calldata_evm = get_evm_calldata(program_info["sol_abi"], function, evm_inputs)
     cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(calldata_evm[2:]))
     calldata_size = (len(cairo_input) * 16) - unused_bytes
     calldata = [calldata_size, len(cairo_input)] + cairo_input + [address]
@@ -98,10 +93,7 @@ async def _deploy(
 ):
     if "constructor" in program_info["dynamic_argument_functions"]:
         calldata_evm = get_evm_calldata(
-            program_info["sol_abi"],
-            program_info["sol_abi_original"],
-            "__warp_ctorHelper_DynArgs",
-            constructor_args,
+            program_info["sol_abi"], "__warp_ctorHelper_DynArgs", constructor_args
         )
         cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(calldata_evm[2:]))
         calldata_size = (len(cairo_input) * 16) - unused_bytes

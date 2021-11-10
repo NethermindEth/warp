@@ -22,7 +22,7 @@ from yul.RevertNormalizer import RevertNormalizer
 from yul.ScopeFlattener import ScopeFlattener
 from yul.SwitchToIfVisitor import SwitchToIfVisitor
 from yul.ToCairoVisitor import ToCairoVisitor
-from yul.utils import get_for_contract, make_abi_StarkNet_encodable
+from yul.utils import get_for_contract
 from yul.WarpException import warp_assert
 
 AST_GENERATOR = "kudu"
@@ -55,8 +55,7 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
     return {
         "cairo_code": cairo_code,
         "sol_source": sol_source,
-        "sol_abi": make_abi_StarkNet_encodable(abi),
-        "sol_abi_original": abi,
+        "sol_abi": abi,
         "dynamic_argument_functions": dynamic_argument_functions,
     }
 
