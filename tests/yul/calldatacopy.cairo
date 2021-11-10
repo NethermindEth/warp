@@ -4,13 +4,13 @@
 from evm.calls import calldatacopy, calldataload, calldatasize, returndata_write
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import uint256_mload, uint256_mstore
-from evm.uint256 import is_eq, is_lt, is_zero, slt, u256_add, u256_shl, u256_shr
+from evm.uint256 import is_eq, is_lt, is_zero, slt, u256_add, u256_shr
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import Uint256, uint256_and, uint256_not, uint256_sub
+from starkware.cairo.common.uint256 import Uint256, uint256_and, uint256_sub
 
 @storage_var
 func this_address() -> (res : felt):
@@ -33,9 +33,9 @@ end
 
 func abi_decode{range_check_ptr}(dataEnd : Uint256) -> ():
     alloc_locals
-    let (local __warp_subexpr_2 : Uint256) = uint256_not(Uint256(low=3, high=0))
-    local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_1 : Uint256) = u256_add(dataEnd, __warp_subexpr_2)
+    let (local __warp_subexpr_1 : Uint256) = u256_add(
+        dataEnd,
+        Uint256(low=340282366920938463463374607431768211452, high=340282366920938463463374607431768211455))
     local range_check_ptr = range_check_ptr
     let (local __warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=0, high=0))
     local range_check_ptr = range_check_ptr
@@ -65,10 +65,8 @@ end
 func abi_encode_bytes4{memory_dict : DictAccess*, msize, range_check_ptr}(
         value : Uint256, pos : Uint256) -> ():
     alloc_locals
-    let (local __warp_subexpr_1 : Uint256) = u256_shl(
-        Uint256(low=224, high=0), Uint256(low=4294967295, high=0))
-    local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_0 : Uint256) = uint256_and(value, __warp_subexpr_1)
+    let (local __warp_subexpr_0 : Uint256) = uint256_and(
+        value, Uint256(low=0, high=340282366841710300949110269838224261120))
     local range_check_ptr = range_check_ptr
     uint256_mstore(offset=pos, value=__warp_subexpr_0)
     local memory_dict : DictAccess* = memory_dict
