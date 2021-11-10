@@ -118,7 +118,6 @@ end
 
 func fun_rando{range_check_ptr}(var_a : Uint256, var_b : Uint256) -> (var : Uint256):
     alloc_locals
-    local __warp_leave_3 : Uint256 = Uint256(low=0, high=0)
     let (local __warp_leave_3 : Uint256, local var : Uint256) = __warp_block_0(var_a, var_b)
     local range_check_ptr = range_check_ptr
     if __warp_leave_3.low + __warp_leave_3.high != 0:

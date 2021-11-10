@@ -335,7 +335,9 @@ class ToCairoVisitor(AstVisitor):
             name = getter_var
             arg_types = tuple(x.type for x in node.parameters)
             res_type = node.return_variables[0].type
-            body = generate_getter_body(getter_var, accessor_args)
+            body = generate_getter_body(
+                getter_var, accessor_args, node.return_variables[0].name
+            )
         else:
             assert setter_var
             assert (

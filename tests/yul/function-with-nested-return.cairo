@@ -55,7 +55,6 @@ end
 
 func fun_test{range_check_ptr}(var_i : Uint256, var_j : Uint256) -> (var : Uint256):
     alloc_locals
-    local var : Uint256 = Uint256(low=0, high=0)
     let (local __warp_subexpr_0 : Uint256) = is_lt(var_i, var_j)
     local range_check_ptr = range_check_ptr
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:

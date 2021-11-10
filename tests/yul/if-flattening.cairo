@@ -15,8 +15,8 @@ from starkware.cairo.common.uint256 import Uint256, uint256_not, uint256_sub
 
 func sload{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(key : Uint256) -> (
         value : Uint256):
-    let (res) = evm_storage.read(key.low, key.high)
-    return (res)
+    let (value) = evm_storage.read(key.low, key.high)
+    return (value)
 end
 
 func sstore{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
@@ -113,8 +113,8 @@ end
 func getter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         key_4 : Uint256) -> (ret_5 : Uint256):
     alloc_locals
-    let (res) = allowance.read(key_4.low, key_4.high)
-    return (res)
+    let (ret_5) = allowance.read(key_4.low, key_4.high)
+    return (ret_5)
 end
 
 func abi_encode_uint256_to_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
@@ -303,7 +303,6 @@ func fun_transferFrom{
         syscall_ptr : felt*}(var_src : Uint256, var_wad : Uint256, var_sender : Uint256) -> (
         var : Uint256):
     alloc_locals
-    local var_res : Uint256 = Uint256(low=0, high=0)
     let (local var_res : Uint256) = __warp_block_0(var_sender, var_src, var_wad)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize

@@ -14,8 +14,8 @@ from starkware.cairo.common.uint256 import Uint256, uint256_not, uint256_sub
 
 func sload{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(key : Uint256) -> (
         value : Uint256):
-    let (res) = evm_storage.read(key.low, key.high)
-    return (res)
+    let (value) = evm_storage.read(key.low, key.high)
+    return (value)
 end
 
 func sstore{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(

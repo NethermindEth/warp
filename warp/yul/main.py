@@ -8,6 +8,7 @@ import sys
 
 import yul.yul_ast as ast
 from yul.BuiltinHandler import get_default_builtins
+from yul.DeadcodeEliminator import DeadcodeEliminator
 from yul.ExpressionSplitter import ExpressionSplitter
 from yul.ForLoopEliminator import ForLoopEliminator
 from yul.ForLoopSimplifier import ForLoopSimplifier
@@ -70,9 +71,12 @@ def transpile_from_yul(yul_ast: ast.Node) -> str:
     yul_ast = LeaveNormalizer().map(yul_ast)
     yul_ast = RevertNormalizer().map(yul_ast)
     yul_ast = FunctionPruner().map(yul_ast)
-    from starkware.cairo.lang.compiler.parser import parse_file
+    yul_ast = DeadcodeEliminator().map(yul_ast)
 
     cairo_visitor = ToCairoVisitor(name_gen, cairo_functions, get_default_builtins)
+
+    from starkware.cairo.lang.compiler.parser import parse_file
+
     return (
         parse_file(cairo_visitor.translate(yul_ast)).format(),
         cairo_visitor.dynamic_argument_functions,
