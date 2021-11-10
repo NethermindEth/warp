@@ -35,7 +35,6 @@ jobs:
       - name: Test transpilation
         run: |
           export no_proxy='*'
-          make
           python -m pytest scripts/yul/transpile_test.py --tb=short --workers=auto
 
 
