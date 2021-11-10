@@ -1,4 +1,4 @@
-from cli.StarkNetEvmContract import get_evm_calldata
+from cli.encoding import get_evm_calldata
 from starkware.starknet.business_logic.internal_transaction_interface import (
     TransactionExecutionInfo,
 )
@@ -9,12 +9,7 @@ from yul.utils import cairoize_bytes
 async def invoke_method(
     starknet: StarknetState, program_info: dict, address: str, method: str, *args: list
 ) -> TransactionExecutionInfo:
-    evm_calldata = get_evm_calldata(
-        program_info["sol_abi"],
-        program_info["sol_abi_original"],
-        method,
-        args,
-    )
+    evm_calldata = get_evm_calldata(program_info["sol_abi"], method, args)
     calldata, unused_bytes = cairoize_bytes(bytes.fromhex(evm_calldata[2:]))
     calldata_size = len(calldata) * 16 - unused_bytes
     calldata_len = len(calldata)

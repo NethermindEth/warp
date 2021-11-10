@@ -1,7 +1,7 @@
 import os
 
 import pytest
-from cli.StarkNetEvmContract import get_evm_calldata
+from cli.encoding import get_evm_calldata
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
 from yul.main import transpile_from_solidity
@@ -26,12 +26,7 @@ async def test_starknet():
         contract_definition=contract_definition, constructor_calldata=[]
     )
 
-    calldata_evm = get_evm_calldata(
-        contract_info["sol_abi"],
-        contract_info["sol_abi_original"],
-        "returnFun",
-        [],
-    )
+    calldata_evm = get_evm_calldata(contract_info["sol_abi"], "returnFun", [])
     cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(calldata_evm[2:]))
     calldata_size = (len(cairo_input) * 16) - unused_bytes
     calldata = [calldata_size, len(cairo_input)] + cairo_input + [contract_address]
@@ -45,12 +40,7 @@ async def test_starknet():
 
     assert res.retdata == [1, 96, 6, 0, 32, 0, 3, 0x41424300000000000000000000000000, 0]
 
-    calldata_evm = get_evm_calldata(
-        contract_info["sol_abi"],
-        contract_info["sol_abi_original"],
-        "bytesFun",
-        [],
-    )
+    calldata_evm = get_evm_calldata(contract_info["sol_abi"], "bytesFun", [])
     cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(calldata_evm[2:]))
     calldata_size = (len(cairo_input) * 16) - unused_bytes
     calldata = [calldata_size, len(cairo_input)] + cairo_input + [contract_address]
