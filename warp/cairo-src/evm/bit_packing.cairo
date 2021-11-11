@@ -1,6 +1,6 @@
 from starkware.cairo.common.math import assert_lt, unsigned_div_rem
 from starkware.cairo.common.pow import pow
-from starkware.cairo.common.uint256 import uint256_shl, Uint256
+from starkware.cairo.common.uint256 import Uint256, uint256_shl
 
 func extract_unaligned_uint128{range_check_ptr}(shift, low, high) -> (value):
     # Given two aligned uint128's, extract an unaligned uint128,

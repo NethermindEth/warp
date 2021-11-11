@@ -4,7 +4,7 @@ from starkware.cairo.common.math import unsigned_div_rem
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.uint256 import Uint256
 
-from evm.bit_packing import replace_lower_bytes, split_on_byte, exp_byte, extract_unaligned_uint128
+from evm.bit_packing import exp_byte, extract_unaligned_uint128, replace_lower_bytes, split_on_byte
 from evm.memory import mstore
 
 func array_create_from_memory{memory_dict : DictAccess*, range_check_ptr}(offset, length) -> (

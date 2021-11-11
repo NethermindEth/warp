@@ -1,13 +1,13 @@
-from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.dict import dict_read, dict_write
+from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.math import assert_lt, unsigned_div_rem
 from starkware.cairo.common.uint256 import Uint256
 
 from evm.bit_packing import (
-    exp_byte, split_on_byte, extract_byte, put_byte, extract_unaligned_uint128,
-    put_unaligned_uint128)
+    exp_byte, extract_byte, extract_unaligned_uint128, put_byte, put_unaligned_uint128,
+    split_on_byte)
 from evm.uint256 import extract_lowest_byte
-from evm.utils import update_msize, round_up_to_multiple
+from evm.utils import round_up_to_multiple, update_msize
 
 # A module for work with the EVM memory.
 
