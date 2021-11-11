@@ -18,8 +18,12 @@ class Command(Enum):
 
 
 @click.group()
-def warp():
-    pass
+@click.option(
+    "--network", envvar="STARKNET_NETWORK", default="alpha", help="A StarkNet network"
+)
+@click.pass_context
+def warp(ctx, network):
+    ctx.obj = {"network": network}
 
 
 @warp.command()
@@ -63,9 +67,13 @@ def transpile(file_path, contract_name, cairo_output):
 @click.option(
     "--inputs",
     required=True,
-    help="function arguments passed as a python literal enclosed in double quotes. Either [] or () can be used for grouping as Solidity structs or arrays",
+    help=(
+        "function arguments passed as a python literal enclosed in double quotes. "
+        "Either [] or () can be used for grouping as Solidity structs or arrays"
+    ),
 )
-def invoke(program, address, function, inputs):
+@click.pass_obj
+def invoke(obj, program, address, function, inputs):
     """
     Invoke the given function from a contract on StarkNet
     """
@@ -73,7 +81,9 @@ def invoke(program, address, function, inputs):
     contract_base = program[: -len(".json")]
     with open(program, "r") as f:
         program_info = json.load(f)
-    asyncio.run(_invoke(contract_base, program_info, address, function, inputs))
+    asyncio.run(
+        _invoke(contract_base, program_info, address, function, inputs, obj["network"])
+    )
 
 
 @warp.command()
@@ -81,7 +91,8 @@ def invoke(program, address, function, inputs):
     "program", nargs=1, required=True, type=click.Path(exists=True, dir_okay=False)
 )
 @click.option("--constructor_args", required=False, default="[]")
-def deploy(program, constructor_args):
+@click.pass_obj
+def deploy(obj, program, constructor_args):
     """
     PROGRAM: path to the transpiled program JSON file.
 
@@ -101,7 +112,15 @@ def deploy(program, constructor_args):
     tmp.write(program_info["cairo_code"])
     tmp.close()
     try:
-        asyncio.run(_deploy(cairo_path, contract_base, program_info, constructor_args))
+        asyncio.run(
+            _deploy(
+                cairo_path,
+                contract_base,
+                program_info,
+                constructor_args,
+                obj["network"],
+            )
+        )
     finally:
         os.remove(tmp.name)
 

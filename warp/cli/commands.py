@@ -41,7 +41,9 @@ async def send_req(method, url, tx: Optional[Union[str, Dict[str, Any]]] = None)
 
 
 # returns true/false on transaction success/failure
-async def _invoke(contract_base, program_info: dict, address, function, evm_inputs):
+async def _invoke(
+    contract_base, program_info: dict, address, function, evm_inputs, network: str
+):
     calldata_evm = get_evm_calldata(
         program_info["sol_abi"],
         program_info["sol_abi_original"],
@@ -53,11 +55,11 @@ async def _invoke(contract_base, program_info: dict, address, function, evm_inpu
     calldata_size = (len(cairo_input) * 16) - unused_bytes
     calldata = [calldata_size, len(cairo_input)] + cairo_input + [address]
     calldata = " ".join(str(x) for x in calldata)
-    starknet_invoke(contract_base, address, calldata)
+    starknet_invoke(contract_base, address, calldata, network)
     return True
 
 
-def starknet_invoke(contract_base, address, inputs):
+def starknet_invoke(contract_base, address, inputs, network: str):
     abi = f"{contract_base}_abi.json"
     print(
         os.popen(
@@ -66,7 +68,7 @@ def starknet_invoke(contract_base, address, inputs):
             f"--abi {abi} "
             f"--function fun_ENTRY_POINT "
             f"--inputs {inputs} "
-            f"--network alpha "
+            f"--network {network} "
         ).read()
     )
 
@@ -92,7 +94,9 @@ def starknet_compile(cairo_path, contract_base):
     return compiled
 
 
-async def _deploy(cairo_path, contract_base, program_info, constructor_args):
+async def _deploy(
+    cairo_path, contract_base, program_info, constructor_args, network: str
+):
     if "constructor" in program_info["dynamic_argument_functions"]:
         calldata_evm = get_evm_calldata(
             program_info["sol_abi"],
@@ -106,13 +110,14 @@ async def _deploy(cairo_path, contract_base, program_info, constructor_args):
         calldata = [calldata_size, len(cairo_input)] + cairo_input
     else:
         calldata = constructor_args
-    starknet_deploy(contract_base, cairo_path, calldata)
+    starknet_deploy(contract_base, cairo_path, calldata, network)
 
 
 def starknet_deploy(
     contract_base,
     cairo_path,
-    calldata: Optional[List[int]] = None,
+    calldata: Optional[List[int]],
+    network: str,
 ):
     compiled_contract = starknet_compile(cairo_path, contract_base)
     inputs = calldata or []
@@ -122,7 +127,7 @@ def starknet_deploy(
             f"starknet deploy "
             f"--contract {contract_base}_compiled.json "
             f"--inputs {inputs_str} "
-            f"--network alpha "
+            f"--network {network} "
         ).read()
     )
 
