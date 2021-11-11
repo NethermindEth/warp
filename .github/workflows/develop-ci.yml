@@ -38,11 +38,18 @@ jobs:
           isort --ext cairo warp/cairo-src --check --verbose --diff --color
           find warp/cairo-src/ -iname *.cairo -exec cairo-format -c {} +
 
+      - name: Setup a local devnet
+        run: |
+          pip install starknet-devnet==0.1.5
+          starknet-devnet --host localhost --port 5000 &
+
       - name: Setup BATS testing framework
         uses: mig4/setup-bats@v1.2.0
 
       - name: Test golden tests
-        run: make test_bats
+        run: |
+          export STARKNET_NETWORK=localhost:5000
+          make test_bats
 
       - name: Test yul tests
         run: make test_yul
