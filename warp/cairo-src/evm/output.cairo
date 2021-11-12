@@ -1,7 +1,6 @@
 from starkware.cairo.common.dict import DictAccess
 
 from evm.array import array_create_from_memory
-from evm.utils import ceil_div
 
 struct Output:
     # The structure represents EVM output data. It contains of

@@ -13,11 +13,14 @@ func array_create_from_memory{memory_dict : DictAccess*, range_check_ptr}(offset
     # contents from offset to offset + length
     alloc_locals
     let (local array) = alloc()
-    copy_from_memory(offset=offset, length=length, array=array)
+    array_copy_from_memory(offset=offset, length=length, array=array)
     return (array)
 end
 
-func copy_from_memory{memory_dict : DictAccess*, range_check_ptr}(offset, length, array : felt*):
+func array_copy_from_memory{memory_dict : DictAccess*, range_check_ptr}(
+        offset, length, array : felt*):
+    # Copies memory contents from 'offset' to 'offset + length' to
+    # 'array'. See 'array_create_from_memory'.
     alloc_locals
     if length == 0:
         return ()
