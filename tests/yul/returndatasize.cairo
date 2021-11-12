@@ -195,10 +195,7 @@ func fun_ENTRY_POINT{
     with exec_env, msize, memory_dict:
         local _1 : Uint256 = Uint256(low=128, high=0)
         local _2 : Uint256 = Uint256(low=64, high=0)
-        with memory_dict, msize, range_check_ptr:
-            mstore_(offset=_2.low, value=_1)
-        end
-
+        mstore_(offset=_2.low, value=_1)
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
@@ -210,10 +207,7 @@ func fun_ENTRY_POINT{
         local range_check_ptr = range_check_ptr
         let (local _6 : Uint256) = is_zero(_5)
         local range_check_ptr = range_check_ptr
-        with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, syscall_ptr:
-            __warp_if_0(_1, _3, _4, _6)
-        end
-
+        __warp_if_0(_1, _3, _4, _6)
         local exec_env : ExecutionEnvironment* = exec_env
         local memory_dict : DictAccess* = memory_dict
         local msize = msize

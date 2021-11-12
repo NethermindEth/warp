@@ -62,7 +62,6 @@ class ToCairoVisitor(AstVisitor):
         self.last_function: Optional[ast.FunctionDefinition] = None
         self.last_used_implicits: tuple[str, ...] = ()
         self.function_to_implicits: dict[str, set[str]] = {}
-        self.in_entry_function: bool = False
         self.storage_variables: set[StorageVar] = set()
 
     def translate(self, node: ast.Node) -> str:
@@ -117,25 +116,14 @@ class ToCairoVisitor(AstVisitor):
     def visit_function_call(self, node: ast.FunctionCall) -> str:
         fun_repr = self.print(node.function_name)
         args = [self.print(x) for x in node.arguments]
-        if fun_repr == "revert" and not self.in_entry_function:
+        if fun_repr == "revert":
             return "assert 0 = 1\njmp rel 0"
-        if fun_repr == "revert" and self.in_entry_function:
-            return ""
-        if fun_repr == "pop":
-            return ""
         result: str
         builtin_handler = self.builtins_map.get(fun_repr)
         if builtin_handler:
             merge_imports(self.imports, builtin_handler.required_imports())
             self.last_used_implicits = builtin_handler.get_used_implicits()
-            if self.in_entry_function and "mstore" in fun_repr:
-                result = (
-                    f"with memory_dict, msize, range_check_ptr:\n"
-                    f"{builtin_handler.get_function_call(args)}\n"
-                    f"end\n"
-                )
-            else:
-                result = f"{builtin_handler.get_function_call(args)}"
+            result = f"{builtin_handler.get_function_call(args)}"
         else:
             self.last_used_implicits = sorted(
                 self.function_to_implicits.setdefault(
@@ -143,14 +131,7 @@ class ToCairoVisitor(AstVisitor):
                 )
             )
             args_repr = ", ".join(self.print(x) for x in node.arguments)
-            if self.in_entry_function and "__warp_if_" in fun_repr:
-                result = (
-                    f"with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, syscall_ptr:\n"
-                    f"{fun_repr}({args_repr})\n"
-                    f"end\n"
-                )
-            else:
-                result = f"{fun_repr}({args_repr})"
+            result = f"{fun_repr}({args_repr})"
         if self.last_function:
             self.function_to_implicits.setdefault(
                 self.last_function.name, set()
@@ -191,8 +172,6 @@ class ToCairoVisitor(AstVisitor):
         return "\n".join(stmt_reprs)
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
-        if "ENTRY_POINT" in node.name:
-            self.in_entry_function = True
         self.last_function = node
         params_repr = ", ".join(self.print(x) for x in node.parameters)
         returns_repr = ", ".join(self.print(x) for x in node.return_variables)
@@ -249,7 +228,6 @@ class ToCairoVisitor(AstVisitor):
             # we need to replace it with our return
             body_repr = re.sub("return \(\)$", "", body_repr)
             returns_repr = "success: felt, returndata_size: felt, returndata_len: felt, returndata: felt*"
-            self.in_entry_function = False
             return (
                 "@external\n"
                 f"func {node.name}{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
@@ -282,7 +260,6 @@ class ToCairoVisitor(AstVisitor):
         implicits_decl = ""
         if implicits:
             implicits_decl = "{" + ", ".join(print_implicit(x) for x in implicits) + "}"
-        self.in_entry_function = False
         return (
             f"func {node.name}{implicits_decl}({params_repr}) -> ({returns_repr}):\n"
             f"alloc_locals\n"
