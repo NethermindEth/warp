@@ -12,3 +12,8 @@ func sha{range_check_ptr, memory_dict : DictAccess*, msize}(offset, length) -> (
     let (local low, local high) = unsafe_keccak(memval, length)
     return (res=Uint256(low, high))
 end
+
+func uint256_sha{range_check_ptr, memory_dict : DictAccess*, msize}(
+        offset : Uint256, length : Uint256) -> (res : Uint256):
+    return sha(offset.low, length.low)
+end

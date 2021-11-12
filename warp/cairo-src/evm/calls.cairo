@@ -17,13 +17,13 @@ func uint256_to_address_felt(x : Uint256) -> (address : felt):
     return (x.low + x.high * 2 ** 128)
 end
 
-func get_caller_data_uint256{syscall_ptr : felt*, range_check_ptr}() -> (caller_data : Uint256):
+func caller{syscall_ptr : felt*, range_check_ptr}() -> (caller_data : Uint256):
     let (caller_address) = get_caller_address()
     let (res) = felt_to_uint256(caller_address)
     return (res)
 end
 
-func calldatacopy_{
+func calldatacopy{
         memory_dict : DictAccess*, range_check_ptr, msize, exec_env : ExecutionEnvironment*}(
         dest_offset : Uint256, offset : Uint256, length : Uint256) -> ():
     alloc_locals
@@ -34,13 +34,13 @@ func calldatacopy_{
     return ()
 end
 
-func calldatasize_{range_check_ptr, exec_env : ExecutionEnvironment*}() -> (res : Uint256):
+func calldatasize{range_check_ptr, exec_env : ExecutionEnvironment*}() -> (res : Uint256):
     return (Uint256(low=exec_env.calldata_size, high=0))
 end
 
-func calldata_load{range_check_ptr, exec_env : ExecutionEnvironment*}(offset) -> (value : Uint256):
-    alloc_locals
-    let (local value : Uint256) = array_load(exec_env.calldata_size, exec_env.calldata, offset)
+func calldataload{range_check_ptr, exec_env : ExecutionEnvironment*}(offset : Uint256) -> (
+        value : Uint256):
+    let (value) = array_load(exec_env.calldata_size, exec_env.calldata, offset.low)
     return (value=value)
 end
 

@@ -21,15 +21,11 @@ func mstore8{memory_dict : DictAccess*, range_check_ptr}(offset, byte):
     # value is supposed to be 1 byte
     assert_lt(byte, 256)
 
-    let (local index, local rem) = unsigned_div_rem(offset, 16)
-    let (local block) = dict_read{dict_ptr=memory_dict}(index * 16)
-    local memory_dict : DictAccess* = memory_dict
-
-    local byte_pos = 15 - rem
+    let (index, rem) = unsigned_div_rem(offset, 16)
+    let (block) = dict_read{dict_ptr=memory_dict}(index * 16)
+    let byte_pos = 15 - rem
     let (low, _, high) = extract_byte(block, byte_pos)
-    local range_check_ptr = range_check_ptr
     let (block) = put_byte(byte_pos, low, byte, high)
-
     dict_write{dict_ptr=memory_dict}(index * 16, block)
     return ()
 end
@@ -37,14 +33,10 @@ end
 func mload8{memory_dict : DictAccess*, range_check_ptr}(offset) -> (byte):
     # Load a byte 'byte' from memory at the 'offset' index.
     alloc_locals
-
     let (index, rem) = unsigned_div_rem(offset, 16)
     let (block) = dict_read{dict_ptr=memory_dict}(index * 16)
-    local memory_dict : DictAccess* = memory_dict
-
     let byte_pos = 15 - rem
     let (_, byte, _) = extract_byte(block, byte_pos)
-
     return (byte)
 end
 
@@ -52,7 +44,7 @@ func mstore{memory_dict : DictAccess*, range_check_ptr}(offset, value : Uint256)
     # Store a 256-bit value 'value' in memory, starting with the
     # 'offset' index.
     alloc_locals
-    let (local index, local rem) = unsigned_div_rem(offset, 16)
+    let (index, rem) = unsigned_div_rem(offset, 16)
     if rem == 0:
         dict_write{dict_ptr=memory_dict}(index * 16, value.high)
         dict_write{dict_ptr=memory_dict}(index * 16 + 16, value.low)
@@ -60,10 +52,8 @@ func mstore{memory_dict : DictAccess*, range_check_ptr}(offset, value : Uint256)
     end
     let (high) = dict_read{dict_ptr=memory_dict}(index * 16)
     let (mid) = dict_read{dict_ptr=memory_dict}(index * 16 + 16)
-    let (local low) = dict_read{dict_ptr=memory_dict}(index * 16 + 32)
-    local memory_dict : DictAccess* = memory_dict
-    let (local _mid, local _high) = put_unaligned_uint128(
-        shift=rem, low=mid, high=high, value=value.high)
+    let (low) = dict_read{dict_ptr=memory_dict}(index * 16 + 32)
+    let (_mid, _high) = put_unaligned_uint128(shift=rem, low=mid, high=high, value=value.high)
     let (_low, _mid) = put_unaligned_uint128(shift=rem, low=low, high=_mid, value=value.low)
     dict_write{dict_ptr=memory_dict}(index * 16, _high)
     dict_write{dict_ptr=memory_dict}(index * 16 + 16, _mid)
@@ -75,15 +65,14 @@ func mload{memory_dict : DictAccess*, range_check_ptr}(offset) -> (value : Uint2
     # Load a 256-bit value 'value' from memory, starting with the
     # 'offset' index.
     alloc_locals
-    let (index, local rem) = unsigned_div_rem(offset, 16)
+    let (index, rem) = unsigned_div_rem(offset, 16)
     let (high) = dict_read{dict_ptr=memory_dict}(index * 16)
-    let (local mid) = dict_read{dict_ptr=memory_dict}(index * 16 + 16)
+    let (mid) = dict_read{dict_ptr=memory_dict}(index * 16 + 16)
     if rem == 0:
         return (Uint256(low=mid, high=high))
     end
-    let (local low) = dict_read{dict_ptr=memory_dict}(index * 16 + 32)
-    local memory_dict : DictAccess* = memory_dict
-    let (local unaligned_high) = extract_unaligned_uint128(shift=rem, low=mid, high=high)
+    let (low) = dict_read{dict_ptr=memory_dict}(index * 16 + 32)
+    let (unaligned_high) = extract_unaligned_uint128(shift=rem, low=mid, high=high)
     let (unaligned_low) = extract_unaligned_uint128(shift=rem, low=low, high=mid)
     return (Uint256(low=unaligned_low, high=unaligned_high))
 end
@@ -91,28 +80,47 @@ end
 func mstore8_{memory_dict : DictAccess*, range_check_ptr, msize}(offset, value : Uint256):
     # Extracts lower byte of 'value' and does 'mstore8' on it. Also updates 'msize'.
     alloc_locals
-    let (local byte, _) = extract_lowest_byte(value)
-    let (local msize) = update_msize(msize, offset, 1)
+    let (byte, _) = extract_lowest_byte(value)
+    let (msize) = update_msize(msize, offset, 1)
     mstore8(offset, byte)
     return ()
+end
+
+func uint256_mstore8{memory_dict : DictAccess*, range_check_ptr, msize}(
+        offset : Uint256, value : Uint256):
+    # Does what 'mstore8_' does, but with Uint256 arguments for
+    # convenient use in the transpiled code.
+    return mstore8_(offset.low, value)
 end
 
 func mstore_{memory_dict : DictAccess*, range_check_ptr, msize}(offset, value : Uint256):
     # Does what 'mstore' does but also updates 'msize'.
     alloc_locals
-    let (local msize) = update_msize(msize, offset, 32)
+    let (msize) = update_msize(msize, offset, 32)
     mstore(offset, value)
     return ()
+end
+
+func uint256_mstore{memory_dict : DictAccess*, range_check_ptr, msize}(
+        offset : Uint256, value : Uint256):
+    # Does what 'mstore_' does, but with Uint256 arguments for
+    # convenient use in the transpiled code.
+    return mstore_(offset.low, value)
 end
 
 func mload_{memory_dict : DictAccess*, range_check_ptr, msize}(offset) -> (value : Uint256):
     # Does what 'mload' does but also updates 'msize'.
     alloc_locals
     let (msize) = update_msize(msize, offset, 32)
-    local msize = msize
-    let (local value : Uint256) = mload(offset)
-    local memory_dict : DictAccess* = memory_dict
+    let (value : Uint256) = mload(offset)
     return (value=value)
+end
+
+func uint256_mload{memory_dict : DictAccess*, range_check_ptr, msize}(offset : Uint256) -> (
+        value : Uint256):
+    # Does what 'mload_' does, but with Uint256 arguments for
+    # convenient use in the transpiled code.
+    return mload_(offset.low)
 end
 
 func get_msize{range_check_ptr, msize}() -> (value : Uint256):

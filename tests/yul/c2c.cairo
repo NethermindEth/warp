@@ -1,9 +1,9 @@
 %lang starknet
 %builtins pedersen range_check bitwise
 
-from evm.calls import calldata_load, calldatasize_, returndata_write, warp_call, warp_static_call
+from evm.calls import calldataload, calldatasize, returndata_write, warp_call, warp_static_call
 from evm.exec_env import ExecutionEnvironment
-from evm.memory import mload_, mstore_
+from evm.memory import uint256_mload, uint256_mstore
 from evm.uint256 import is_eq, is_gt, is_lt, is_zero, slt, u256_add, u256_shl, u256_shr
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
@@ -64,25 +64,25 @@ func abi_decode_addresst_addresst_addresst_uint256{
     let (local _3_12 : Uint256) = slt(_2_11, _1_10)
     local range_check_ptr = range_check_ptr
     __warp_cond_revert(_3_12)
-    let (local value0_8 : Uint256) = calldata_load(headStart_6.low)
+    let (local value0_8 : Uint256) = calldataload(headStart_6)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local _4_13 : Uint256 = Uint256(low=32, high=0)
     let (local _5_14 : Uint256) = u256_add(headStart_6, _4_13)
     local range_check_ptr = range_check_ptr
-    let (local value1_9 : Uint256) = calldata_load(_5_14.low)
+    let (local value1_9 : Uint256) = calldataload(_5_14)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local _6_15 : Uint256 = Uint256(low=64, high=0)
     let (local _7_16 : Uint256) = u256_add(headStart_6, _6_15)
     local range_check_ptr = range_check_ptr
-    let (local value2 : Uint256) = calldata_load(_7_16.low)
+    let (local value2 : Uint256) = calldataload(_7_16)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local _8_17 : Uint256 = Uint256(low=96, high=0)
     let (local _9_18 : Uint256) = u256_add(headStart_6, _8_17)
     local range_check_ptr = range_check_ptr
-    let (local value3 : Uint256) = calldata_load(_9_18.low)
+    let (local value3 : Uint256) = calldataload(_9_18)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     return (value0_8, value1_9, value2, value3)
@@ -91,7 +91,7 @@ end
 func abi_encode_address{memory_dict : DictAccess*, msize, range_check_ptr}(
         value_31 : Uint256, pos : Uint256) -> ():
     alloc_locals
-    mstore_(offset=pos.low, value=value_31)
+    uint256_mstore(offset=pos, value=value_31)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -101,7 +101,7 @@ end
 func abi_encode_uint256_to_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
         value_38 : Uint256, pos_39 : Uint256) -> ():
     alloc_locals
-    mstore_(offset=pos_39.low, value=value_38)
+    uint256_mstore(offset=pos_39, value=value_38)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -161,7 +161,7 @@ func finalize_allocation{memory_dict : DictAccess*, msize, range_check_ptr}(
     local range_check_ptr = range_check_ptr
     __warp_cond_revert(_8_75)
     local _9_76 : Uint256 = Uint256(low=64, high=0)
-    mstore_(offset=_9_76.low, value=newFreePtr)
+    uint256_mstore(offset=_9_76, value=newFreePtr)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -185,7 +185,7 @@ end
 func abi_decode_t_bool_fromMemory{memory_dict : DictAccess*, msize, range_check_ptr}(
         offset : Uint256) -> (value : Uint256):
     alloc_locals
-    let (local value : Uint256) = mload_(offset.low)
+    let (local value : Uint256) = uint256_mload(offset)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -254,14 +254,14 @@ func fun_sendMoneyz{
         var_amount : Uint256) -> (var_110 : Uint256):
     alloc_locals
     local _3_111 : Uint256 = Uint256(low=64, high=0)
-    let (local _4_112 : Uint256) = mload_(_3_111.low)
+    let (local _4_112 : Uint256) = uint256_mload(_3_111)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
     let (local _5_113 : Uint256) = u256_shl(
         Uint256(low=224, high=0), Uint256(low=599290589, high=0))
     local range_check_ptr = range_check_ptr
-    mstore_(offset=_4_112.low, value=_5_113)
+    uint256_mstore(offset=_4_112, value=_5_113)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -304,7 +304,7 @@ func abi_encode_bool_to_bool{memory_dict : DictAccess*, msize, range_check_ptr}(
     local range_check_ptr = range_check_ptr
     let (local _2_35 : Uint256) = is_zero(_1_34)
     local range_check_ptr = range_check_ptr
-    mstore_(offset=pos_33.low, value=_2_35)
+    uint256_mstore(offset=pos_33, value=_2_35)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -333,13 +333,13 @@ func abi_decode_addresst_address{exec_env : ExecutionEnvironment*, range_check_p
     let (local _3_3 : Uint256) = slt(_2_2, _1_1)
     local range_check_ptr = range_check_ptr
     __warp_cond_revert(_3_3)
-    let (local value0 : Uint256) = calldata_load(headStart.low)
+    let (local value0 : Uint256) = calldataload(headStart)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local _4_4 : Uint256 = Uint256(low=32, high=0)
     let (local _5_5 : Uint256) = u256_add(headStart, _4_4)
     local range_check_ptr = range_check_ptr
-    let (local value1 : Uint256) = calldata_load(_5_5.low)
+    let (local value1 : Uint256) = calldataload(_5_5)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     return (value0, value1)
@@ -367,7 +367,7 @@ func abi_decode_uint256_fromMemory{memory_dict : DictAccess*, msize, range_check
     let (local _3_30 : Uint256) = slt(_2_29, _1_28)
     local range_check_ptr = range_check_ptr
     __warp_cond_revert(_3_30)
-    let (local value0_27 : Uint256) = mload_(headStart_25.low)
+    let (local value0_27 : Uint256) = uint256_mload(headStart_25)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -416,14 +416,14 @@ func fun_checkMoneyz{
         syscall_ptr : felt*}(var_addr : Uint256, var_to : Uint256) -> (var_ : Uint256):
     alloc_locals
     local _3_77 : Uint256 = Uint256(low=64, high=0)
-    let (local _4_78 : Uint256) = mload_(_3_77.low)
+    let (local _4_78 : Uint256) = uint256_mload(_3_77)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
     let (local _5_79 : Uint256) = u256_shl(
         Uint256(low=224, high=0), Uint256(low=1889567281, high=0))
     local range_check_ptr = range_check_ptr
-    mstore_(offset=_4_78.low, value=_5_79)
+    uint256_mstore(offset=_4_78, value=_5_79)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -472,7 +472,7 @@ end
 func abi_encode_rational_by{memory_dict : DictAccess*, msize, range_check_ptr}(
         value_36 : Uint256, pos_37 : Uint256) -> ():
     alloc_locals
-    mstore_(offset=pos_37.low, value=value_36)
+    uint256_mstore(offset=pos_37, value=value_36)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -541,14 +541,14 @@ func fun_gimmeMoney{
         syscall_ptr : felt*}(var_add : Uint256, var_to_91 : Uint256) -> (var : Uint256):
     alloc_locals
     local _3_92 : Uint256 = Uint256(low=64, high=0)
-    let (local _4_93 : Uint256) = mload_(_3_92.low)
+    let (local _4_93 : Uint256) = uint256_mload(_3_92)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
     let (local _5_94 : Uint256) = u256_shl(
         Uint256(low=224, high=0), Uint256(low=1086394137, high=0))
     local range_check_ptr = range_check_ptr
-    mstore_(offset=_4_93.low, value=_5_94)
+    uint256_mstore(offset=_4_93, value=_5_94)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -603,7 +603,7 @@ func __warp_block_6{
     local range_check_ptr = range_check_ptr
     local syscall_ptr : felt* = syscall_ptr
     local _14 : Uint256 = _2
-    let (local memPos : Uint256) = mload_(_2.low)
+    let (local memPos : Uint256) = uint256_mload(_2)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -636,7 +636,7 @@ func __warp_block_8{
     local range_check_ptr = range_check_ptr
     local syscall_ptr : felt* = syscall_ptr
     local _20 : Uint256 = _2
-    let (local memPos_1 : Uint256) = mload_(_2.low)
+    let (local memPos_1 : Uint256) = uint256_mload(_2)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -669,7 +669,7 @@ func __warp_block_10{
     local range_check_ptr = range_check_ptr
     local syscall_ptr : felt* = syscall_ptr
     local _26 : Uint256 = _2
-    let (local memPos_2 : Uint256) = mload_(_2.low)
+    let (local memPos_2 : Uint256) = uint256_mload(_2)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -816,7 +816,7 @@ func __warp_block_3{
         syscall_ptr : felt*}(_2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     local _7 : Uint256 = Uint256(low=0, high=0)
-    let (local _8 : Uint256) = calldata_load(_7.low)
+    let (local _8 : Uint256) = calldataload(_7)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local _9 : Uint256 = Uint256(low=224, high=0)
@@ -871,12 +871,12 @@ func fun_ENTRY_POINT{
     with exec_env, msize, memory_dict:
         local _1 : Uint256 = Uint256(low=128, high=0)
         local _2 : Uint256 = Uint256(low=64, high=0)
-        mstore_(offset=_2.low, value=_1)
+        uint256_mstore(offset=_2, value=_1)
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
         local _3 : Uint256 = Uint256(low=4, high=0)
-        let (local _4 : Uint256) = calldatasize_()
+        let (local _4 : Uint256) = calldatasize()
         local range_check_ptr = range_check_ptr
         local exec_env : ExecutionEnvironment* = exec_env
         let (local _5 : Uint256) = is_lt(_4, _3)
