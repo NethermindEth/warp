@@ -7,35 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test-linux-tranpsilation:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v2.2.2
-        with:
-          python-version: 3.7 # Cairo was tested with this version
-
-      - name: Install dependencies
-        run: >
-          sudo add-apt-repository ppa:ethereum/ethereum
-
-          sudo add-apt-repository 'deb http://mirrors.kernel.org/ubuntu hirsute main universe'
-
-          sudo apt-get -y install gcc-11 g++-11 solc
-          libboost-filesystem-dev libboost-system-dev
-          libboost-program-options-dev libboost-regex-dev
-
-
-      - name: Install Warp
-        run: make
-
-      - name: Test transpilation
-        run: |
-          make
-          python -m pytest scripts/yul/transpile_test.py -v --workers=auto
+  # linux transpilation is tested by develop-ci.yml
 
   # "export no_proxy='*'" for macos runners is a workaround described
   # here: https://bugs.python.org/issue30385#msg293958
@@ -78,12 +50,6 @@ jobs:
         with:
           python-version: 3.7 # Cairo was tested with this version
 
-      - name: Check formatting
-        run: |
-          pip install colorama black==21.6b0 isort
-          black . --check --verbose --diff --color
-          isort . --check --verbose --diff --color
-
       - name: Install dependencies
         run: |
           brew tap ethereum/ethereum
@@ -92,6 +58,14 @@ jobs:
 
       - name: Install Warp
         run: make
+
+      - name: Check formatting
+        run: |
+          pip install colorama black==21.6b0 isort
+          black . --check --verbose --diff --color
+          isort . --check --verbose --diff --color
+          isort --ext cairo ./warp/cairo-src --check --verbose --diff --color
+          find warp/cairo-src/ -iname *.cairo -exec cairo-format -c {} +
 
       - name: Setup BATS testing framework
         uses: mig4/setup-bats@v1.2.0

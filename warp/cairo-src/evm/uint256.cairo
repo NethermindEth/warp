@@ -1,10 +1,9 @@
 from starkware.cairo.common.math import assert_not_zero
+from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.uint256 import (
     Uint256, felt_and, uint256_add, uint256_cond_neg, uint256_eq, uint256_lt, uint256_mul,
-    uint256_pow2, uint256_shl, uint256_shr, uint256_signed_lt, uint256_sub,
-    uint256_unsigned_div_rem, uint256_signed_div_rem)
-from starkware.cairo.common.math_cmp import is_le
-
+    uint256_pow2, uint256_shl, uint256_shr, uint256_signed_div_rem, uint256_signed_lt, uint256_sub,
+    uint256_unsigned_div_rem)
 
 func u256_add{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
     alloc_locals
