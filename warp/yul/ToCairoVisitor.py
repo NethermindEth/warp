@@ -48,13 +48,11 @@ MAIN_PREAMBLE = """%lang starknet
 class ToCairoVisitor(AstVisitor):
     def __init__(
         self,
-        public_functions: list[str],
         name_gen: NameGenerator,
         cairo_functions: CairoFunctions,
         builtins_map: Callable[[CairoFunctions], dict[str, BuiltinHandler]],
     ):
         super().__init__()
-        self.public_functions = public_functions
         self.name_gen = name_gen
         self.cairo_functions = cairo_functions
         self.builtins_map = builtins_map(self.cairo_functions)

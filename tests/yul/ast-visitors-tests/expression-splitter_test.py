@@ -21,7 +21,6 @@ async def test_ExpressionSplitter():
     block = ast.Block((node,))  # to create new block env
     new_node = ExpressionSplitter(name_gen=NameGenerator()).visit_block(block)
     cairo = ToCairoVisitor(
-        public_functions=[],
         name_gen=NameGenerator(),
         cairo_functions=CairoFunctions(FunctionGenerator()),
         builtins_map=lambda _: {

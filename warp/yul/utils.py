@@ -116,17 +116,6 @@ def camelize(snake_case: str) -> str:
     return "".join(x.capitalize() for x in parts)
 
 
-def get_public_functions(sol_source: str) -> list[str]:
-    validate_solc_ver(sol_source)
-
-    public_functions = set()
-    abi = solcx.compile_source(sol_source, output_values=["hashes"])
-    for value in abi.values():
-        for v in value["hashes"]:
-            public_functions.add(f"fun_{v[:v.find('(')]}")
-    return list(public_functions)
-
-
 def get_function_mutabilities(sol_source: str) -> dict[str, str]:
     validate_solc_ver(sol_source)
 
