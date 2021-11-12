@@ -248,8 +248,8 @@ func __warp_if_0{
 end
 
 func fun_sendMoneyz{
-        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, syscall_ptr : felt*}(
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(
         var_contract_addr : Uint256, var_from : Uint256, var_to_109 : Uint256,
         var_amount : Uint256) -> (var_110 : Uint256):
     alloc_locals
@@ -284,7 +284,6 @@ func fun_sendMoneyz{
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
     local range_check_ptr = range_check_ptr
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     let (local _14_122 : Uint256) = is_zero(_13_121)
     local range_check_ptr = range_check_ptr
     __warp_cond_revert(_14_122)
@@ -413,9 +412,8 @@ func __warp_if_1{
 end
 
 func fun_checkMoneyz{
-        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, syscall_ptr : felt*}(var_addr : Uint256, var_to : Uint256) -> (
-        var_ : Uint256):
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(var_addr : Uint256, var_to : Uint256) -> (var_ : Uint256):
     alloc_locals
     local _3_77 : Uint256 = Uint256(low=64, high=0)
     let (local _4_78 : Uint256) = mload_(_3_77.low)
@@ -445,7 +443,6 @@ func fun_checkMoneyz{
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
     local range_check_ptr = range_check_ptr
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     let (local _13_87 : Uint256) = is_zero(_12_86)
     local range_check_ptr = range_check_ptr
     __warp_cond_revert(_13_87)
@@ -540,9 +537,8 @@ func __warp_if_2{
 end
 
 func fun_gimmeMoney{
-        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, syscall_ptr : felt*}(var_add : Uint256, var_to_91 : Uint256) -> (
-        var : Uint256):
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(var_add : Uint256, var_to_91 : Uint256) -> (var : Uint256):
     alloc_locals
     local _3_92 : Uint256 = Uint256(low=64, high=0)
     let (local _4_93 : Uint256) = mload_(_3_92.low)
@@ -575,7 +571,6 @@ func fun_gimmeMoney{
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
     local range_check_ptr = range_check_ptr
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     let (local _15_104 : Uint256) = is_zero(_14_103)
     local range_check_ptr = range_check_ptr
     __warp_cond_revert(_15_104)
@@ -590,9 +585,8 @@ func fun_gimmeMoney{
 end
 
 func __warp_block_6{
-        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, syscall_ptr : felt*}(_2 : Uint256, _3 : Uint256, _4 : Uint256) -> (
-        ):
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(_2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _11 : Uint256) = __warp_constant_0()
     __warp_cond_revert(_11)
@@ -603,7 +597,6 @@ func __warp_block_6{
     local exec_env : ExecutionEnvironment* = exec_env
     local range_check_ptr = range_check_ptr
     let (local ret__warp_mangled : Uint256) = fun_sendMoneyz(param, param_1, param_2, param_3)
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
@@ -626,9 +619,8 @@ func __warp_block_6{
 end
 
 func __warp_block_8{
-        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, syscall_ptr : felt*}(_2 : Uint256, _3 : Uint256, _4 : Uint256) -> (
-        ):
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(_2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _17 : Uint256) = __warp_constant_0()
     __warp_cond_revert(_17)
@@ -638,7 +630,6 @@ func __warp_block_8{
     local exec_env : ExecutionEnvironment* = exec_env
     local range_check_ptr = range_check_ptr
     let (local ret_1 : Uint256) = fun_checkMoneyz(param_4, param_5)
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
@@ -661,9 +652,8 @@ func __warp_block_8{
 end
 
 func __warp_block_10{
-        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, syscall_ptr : felt*}(_2 : Uint256, _3 : Uint256, _4 : Uint256) -> (
-        ):
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(_2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _23 : Uint256) = __warp_constant_0()
     __warp_cond_revert(_23)
@@ -673,7 +663,6 @@ func __warp_block_10{
     local exec_env : ExecutionEnvironment* = exec_env
     local range_check_ptr = range_check_ptr
     let (local ret_2 : Uint256) = fun_gimmeMoney(param_6, param_7)
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
@@ -696,13 +685,12 @@ func __warp_block_10{
 end
 
 func __warp_if_6{
-        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, syscall_ptr : felt*}(
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(
         _2 : Uint256, _3 : Uint256, _4 : Uint256, __warp_subexpr_0 : Uint256) -> ():
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         __warp_block_10(_2, _3, _4)
-        local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
         local exec_env : ExecutionEnvironment* = exec_env
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
@@ -715,14 +703,12 @@ func __warp_if_6{
 end
 
 func __warp_block_9{
-        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, syscall_ptr : felt*}(
-        _2 : Uint256, _3 : Uint256, _4 : Uint256, match_var : Uint256) -> ():
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(_2 : Uint256, _3 : Uint256, _4 : Uint256, match_var : Uint256) -> ():
     alloc_locals
     let (local __warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=3747097146, high=0))
     local range_check_ptr = range_check_ptr
     __warp_if_6(_2, _3, _4, __warp_subexpr_0)
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
@@ -732,14 +718,13 @@ func __warp_block_9{
 end
 
 func __warp_if_5{
-        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, syscall_ptr : felt*}(
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(
         _2 : Uint256, _3 : Uint256, _4 : Uint256, __warp_subexpr_0 : Uint256,
         match_var : Uint256) -> ():
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         __warp_block_8(_2, _3, _4)
-        local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
         local exec_env : ExecutionEnvironment* = exec_env
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
@@ -748,7 +733,6 @@ func __warp_if_5{
         return ()
     else:
         __warp_block_9(_2, _3, _4, match_var)
-        local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
         local exec_env : ExecutionEnvironment* = exec_env
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
@@ -759,14 +743,12 @@ func __warp_if_5{
 end
 
 func __warp_block_7{
-        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, syscall_ptr : felt*}(
-        _2 : Uint256, _3 : Uint256, _4 : Uint256, match_var : Uint256) -> ():
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(_2 : Uint256, _3 : Uint256, _4 : Uint256, match_var : Uint256) -> ():
     alloc_locals
     let (local __warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=1506652845, high=0))
     local range_check_ptr = range_check_ptr
     __warp_if_5(_2, _3, _4, __warp_subexpr_0, match_var)
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
@@ -776,14 +758,13 @@ func __warp_block_7{
 end
 
 func __warp_if_4{
-        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, syscall_ptr : felt*}(
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(
         _2 : Uint256, _3 : Uint256, _4 : Uint256, __warp_subexpr_0 : Uint256,
         match_var : Uint256) -> ():
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         __warp_block_6(_2, _3, _4)
-        local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
         local exec_env : ExecutionEnvironment* = exec_env
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
@@ -792,7 +773,6 @@ func __warp_if_4{
         return ()
     else:
         __warp_block_7(_2, _3, _4, match_var)
-        local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
         local exec_env : ExecutionEnvironment* = exec_env
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
@@ -803,14 +783,12 @@ func __warp_if_4{
 end
 
 func __warp_block_5{
-        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, syscall_ptr : felt*}(
-        _2 : Uint256, _3 : Uint256, _4 : Uint256, match_var : Uint256) -> ():
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(_2 : Uint256, _3 : Uint256, _4 : Uint256, match_var : Uint256) -> ():
     alloc_locals
     let (local __warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=762392335, high=0))
     local range_check_ptr = range_check_ptr
     __warp_if_4(_2, _3, _4, __warp_subexpr_0, match_var)
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
@@ -820,13 +798,11 @@ func __warp_block_5{
 end
 
 func __warp_block_4{
-        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, syscall_ptr : felt*}(
-        _10 : Uint256, _2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(_10 : Uint256, _2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     local match_var : Uint256 = _10
     __warp_block_5(_2, _3, _4, match_var)
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
@@ -836,9 +812,8 @@ func __warp_block_4{
 end
 
 func __warp_block_3{
-        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, syscall_ptr : felt*}(_2 : Uint256, _3 : Uint256, _4 : Uint256) -> (
-        ):
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(_2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     local _7 : Uint256 = Uint256(low=0, high=0)
     let (local _8 : Uint256) = calldata_load(_7.low)
@@ -848,7 +823,6 @@ func __warp_block_3{
     let (local _10 : Uint256) = u256_shr(_9, _8)
     local range_check_ptr = range_check_ptr
     __warp_block_4(_10, _2, _3, _4)
-    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
@@ -858,13 +832,11 @@ func __warp_block_3{
 end
 
 func __warp_if_3{
-        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, syscall_ptr : felt*}(
-        _2 : Uint256, _3 : Uint256, _4 : Uint256, _6 : Uint256) -> ():
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(_2 : Uint256, _3 : Uint256, _4 : Uint256, _6 : Uint256) -> ():
     alloc_locals
     if _6.low + _6.high != 0:
         __warp_block_3(_2, _3, _4)
-        local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
         local exec_env : ExecutionEnvironment* = exec_env
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
@@ -918,7 +890,6 @@ func fun_ENTRY_POINT{
             __warp_if_3(_2, _3, _4, _6)
         end
 
-        local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr
         local exec_env : ExecutionEnvironment* = exec_env
         local memory_dict : DictAccess* = memory_dict
         local msize = msize

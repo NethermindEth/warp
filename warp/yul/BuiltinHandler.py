@@ -447,7 +447,6 @@ class Call(StaticHandler):
                 "exec_env",
                 "memory_dict",
                 "range_check_ptr",
-                "bitwise_ptr",
             ),
         )
 
@@ -462,7 +461,6 @@ class StaticCall(StaticHandler):
                 "exec_env",
                 "memory_dict",
                 "range_check_ptr",
-                "bitwise_ptr",
             ),
         )
 
