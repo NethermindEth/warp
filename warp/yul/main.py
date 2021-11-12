@@ -23,11 +23,7 @@ from yul.RevertNormalizer import RevertNormalizer
 from yul.ScopeFlattener import ScopeFlattener
 from yul.SwitchToIfVisitor import SwitchToIfVisitor
 from yul.ToCairoVisitor import ToCairoVisitor
-from yul.utils import (
-    get_for_contract,
-    get_function_mutabilities,
-    make_abi_StarkNet_encodable,
-)
+from yul.utils import get_for_contract, make_abi_StarkNet_encodable
 from yul.WarpException import warp_assert
 
 AST_GENERATOR = "kudu"
@@ -49,7 +45,6 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
         raise e
     with open(sol_src_path_modified) as f:
         sol_source = f.read()
-        function_mutabilities = get_function_mutabilities(sol_source)
         output = get_for_contract(sol_source, main_contract, ["abi", "bin"])
         warp_assert(
             output,
@@ -57,9 +52,7 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
         )
         abi, bytecode = output
     yul_ast = parse_node(json.loads(result.stdout))
-    cairo_code, dynamic_argument_functions = transpile_from_yul(
-        yul_ast, function_mutabilities
-    )
+    cairo_code, dynamic_argument_functions = transpile_from_yul(yul_ast)
     os.remove(sol_src_path_modified)
     return {
         "cairo_code": cairo_code,
@@ -71,7 +64,7 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
     }
 
 
-def transpile_from_yul(yul_ast: ast.Node, function_mutabilities: dict[str, str]) -> str:
+def transpile_from_yul(yul_ast: ast.Node) -> str:
     name_gen = NameGenerator()
     cairo_functions = CairoFunctions(FunctionGenerator())
     yul_ast = ForLoopSimplifier().map(yul_ast)
