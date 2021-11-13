@@ -6,8 +6,6 @@ from enum import Enum
 from tempfile import NamedTemporaryFile
 
 import click
-from cli.commands import _deploy, _invoke, _status
-from yul.main import transpile_from_solidity
 
 
 class Command(Enum):
@@ -37,6 +35,7 @@ def transpile(file_path, contract_name, cairo_output):
 
     Generates a JSON file containing the transpiled contract and relevant information.
     """
+    from yul.main import transpile_from_solidity
     path = click.format_filename(file_path)
     output = transpile_from_solidity(file_path, contract_name)
     if cairo_output:
@@ -77,6 +76,7 @@ def invoke(obj, program, address, function, inputs):
     """
     Invoke the given function from a contract on StarkNet
     """
+    from cli.commands import _invoke
     inputs = literal_eval(inputs)
     contract_base = program[: -len(".json")]
     with open(program, "r") as f:
@@ -99,6 +99,7 @@ def deploy(obj, program, constructor_args):
     Compiles the given Cairo program info file and deploys it to StarkNet.
     Contract's address is printed to stdout.
     """
+    from cli.commands import _deploy
     try:
         constructor_args = literal_eval(constructor_args)
     except ValueError:
@@ -132,6 +133,7 @@ def status(tx_hash):
     TX_HASH: The transaction hash printed to stdout after invoking/deployment.\n
     To check the status of the invoke/deployment.
     """
+    from cli.commands import _status
     asyncio.run(_status(tx_hash))
 
 
