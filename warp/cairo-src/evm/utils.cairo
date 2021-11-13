@@ -1,5 +1,7 @@
-from starkware.cairo.common.math import unsigned_div_rem
+from starkware.cairo.common.math import split_felt, unsigned_div_rem
 from starkware.cairo.common.math_cmp import is_le
+
+from evm.uint256 import Uint256
 
 func get_max{range_check_ptr}(op1, op2) -> (result):
     let (le) = is_le(op1, op2)
@@ -43,4 +45,9 @@ end
 func round_up_to_multiple{range_check_ptr}(x, div) -> (y):
     let (r) = ceil_div(x, div)
     return (r * div)
+end
+
+func felt_to_uint256{range_check_ptr}(x) -> (x_ : Uint256):
+    let split = split_felt(x)
+    return (Uint256(low=split.low, high=split.high))
 end

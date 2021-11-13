@@ -6,9 +6,8 @@ from yul.call_graph import CallGraph, build_callgraph
 
 
 class FunctionPruner(AstMapper):
-    def __init__(self, public_functions: list[str]):
+    def __init__(self):
         super().__init__()
-        self.public_functions: frozenset[str] = frozenset(public_functions)
         self.callgraph: CallGraph = {}
         self.visited_functions: set[str] = set()
 
@@ -19,11 +18,7 @@ class FunctionPruner(AstMapper):
         self.callgraph = build_callgraph(node)
         for function in self.callgraph:
             f_name = function.name
-            if (
-                f_name in self.public_functions
-                or f_name == "fun_ENTRY_POINT"
-                or "warp_constructor" in f_name
-            ):
+            if f_name == "fun_ENTRY_POINT" or "warp_constructor" in f_name:
                 self._dfs(function)
 
         return self.visit(node, *args, **kwargs)

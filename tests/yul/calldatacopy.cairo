@@ -1,9 +1,9 @@
 %lang starknet
 %builtins pedersen range_check bitwise
 
-from evm.calls import calldata_load, calldatacopy_, calldatasize_, returndata_write
+from evm.calls import calldatacopy, calldataload, calldatasize, returndata_write
 from evm.exec_env import ExecutionEnvironment
-from evm.memory import mload_, mstore_
+from evm.memory import uint256_mload, uint256_mstore
 from evm.uint256 import is_eq, is_lt, is_zero, slt, u256_add, u256_shl, u256_shr
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
@@ -60,7 +60,7 @@ func fun_callMe{
     local _1_8 : Uint256 = Uint256(low=4, high=0)
     local _2_9 : Uint256 = Uint256(low=0, high=0)
     local _3_10 : Uint256 = _2_9
-    calldatacopy_(_2_9, _2_9, _1_8)
+    calldatacopy(_2_9, _2_9, _1_8)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
@@ -79,7 +79,7 @@ func abi_encode_bytes4{memory_dict : DictAccess*, msize, range_check_ptr}(
     local range_check_ptr = range_check_ptr
     let (local _2_5 : Uint256) = uint256_and(value, _1_4)
     local range_check_ptr = range_check_ptr
-    mstore_(offset=pos.low, value=_2_5)
+    uint256_mstore(offset=pos, value=_2_5)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -113,7 +113,7 @@ func __warp_block_1{
     local msize = msize
     local range_check_ptr = range_check_ptr
     local _15 : Uint256 = _2
-    let (local memPos : Uint256) = mload_(_2.low)
+    let (local memPos : Uint256) = uint256_mload(_2)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -149,7 +149,7 @@ func __warp_block_0{
         _2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     local _7 : Uint256 = Uint256(low=0, high=0)
-    let (local _8 : Uint256) = calldata_load(_7.low)
+    let (local _8 : Uint256) = calldataload(_7)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local _9 : Uint256 = Uint256(low=224, high=0)
@@ -205,25 +205,19 @@ func fun_ENTRY_POINT{
     with exec_env, msize, memory_dict:
         local _1 : Uint256 = Uint256(low=128, high=0)
         local _2 : Uint256 = Uint256(low=64, high=0)
-        with memory_dict, msize, range_check_ptr:
-            mstore_(offset=_2.low, value=_1)
-        end
-
+        uint256_mstore(offset=_2, value=_1)
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
         local _3 : Uint256 = Uint256(low=4, high=0)
-        let (local _4 : Uint256) = calldatasize_()
+        let (local _4 : Uint256) = calldatasize()
         local range_check_ptr = range_check_ptr
         local exec_env : ExecutionEnvironment* = exec_env
         let (local _5 : Uint256) = is_lt(_4, _3)
         local range_check_ptr = range_check_ptr
         let (local _6 : Uint256) = is_zero(_5)
         local range_check_ptr = range_check_ptr
-        with exec_env, memory_dict, msize, pedersen_ptr, range_check_ptr, syscall_ptr:
-            __warp_if_0(_2, _3, _4, _6)
-        end
-
+        __warp_if_0(_2, _3, _4, _6)
         local exec_env : ExecutionEnvironment* = exec_env
         local memory_dict : DictAccess* = memory_dict
         local msize = msize

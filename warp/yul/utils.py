@@ -116,30 +116,6 @@ def camelize(snake_case: str) -> str:
     return "".join(x.capitalize() for x in parts)
 
 
-def get_public_functions(sol_source: str) -> list[str]:
-    validate_solc_ver(sol_source)
-
-    public_functions = set()
-    abi = solcx.compile_source(sol_source, output_values=["hashes"])
-    for value in abi.values():
-        for v in value["hashes"]:
-            public_functions.add(f"fun_{v[:v.find('(')]}")
-    return list(public_functions)
-
-
-def get_function_mutabilities(sol_source: str) -> dict[str, str]:
-    validate_solc_ver(sol_source)
-
-    function_visibilities = dict()
-    abi = solcx.compile_source(sol_source)
-
-    for value in abi.values():
-        for v in value["abi"]:
-            if v["type"] == "function":
-                function_visibilities[v["name"]] = v["stateMutability"]
-    return function_visibilities
-
-
 def get_for_contract(
     sol_source: str, target_contract: str, output_values: list[str]
 ) -> Optional[Sequence[str]]:

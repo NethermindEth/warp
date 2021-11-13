@@ -7,7 +7,6 @@ from typing import Callable, Mapping, Optional, Sequence
 
 from yul.FunctionGenerator import CairoFunctions, FunctionInfo
 from yul.Imports import Imports
-from yul.utils import get_low_bits
 
 UINT256_MODULE = "starkware.cairo.common.uint256"
 
@@ -284,41 +283,29 @@ class SignExtend(StaticHandler):
 class MStore(StaticHandler):
     def __init__(self):
         super().__init__(
-            function_name="mstore_",
+            function_name="uint256_mstore",
             module="evm.memory",
             used_implicits=("memory_dict", "msize", "range_check_ptr"),
             kwarg_names=("offset", "value"),
         )
 
-    def get_function_call(self, args: Sequence[str]):
-        (address, value) = args
-        return super().get_function_call([get_low_bits(address), value])
-
 
 class MStore8(StaticHandler):
     def __init__(self):
         super().__init__(
-            function_name="mstore8_",
+            function_name="uint256_mstore8",
             module="evm.memory",
             used_implicits=("memory_dict", "msize", "range_check_ptr"),
         )
-
-    def get_function_call(self, args: Sequence[str]):
-        (address, value) = args
-        return super().get_function_call([get_low_bits(address), value])
 
 
 class MLoad(StaticHandler):
     def __init__(self):
         super().__init__(
-            function_name="mload_",
+            function_name="uint256_mload",
             module="evm.memory",
             used_implicits=("memory_dict", "msize", "range_check_ptr"),
         )
-
-    def get_function_call(self, args: Sequence[str]):
-        (address,) = args
-        return super().get_function_call([get_low_bits(address)])
 
 
 class MSize(StaticHandler):
@@ -346,21 +333,17 @@ class SLoad(DynamicHandler):
 class SHA3(StaticHandler):
     def __init__(self):
         super().__init__(
-            function_name="sha",
-            module="evm.sha3",
+            function_name="uint256_sha",
+            module="evm.hashing",
             used_implicits=("memory_dict", "msize", "range_check_ptr"),
         )
-
-    def get_function_call(self, args: Sequence[str]):
-        (offset, length) = map(get_low_bits, args)
-        return super().get_function_call([offset, length])
 
 
 # ============ Call Data ============
 class Caller(StaticHandler):
     def __init__(self):
         super().__init__(
-            function_name="get_caller_data_uint256",
+            function_name="caller",
             module="evm.calls",
             used_implicits=("syscall_ptr",),
         )
@@ -369,20 +352,16 @@ class Caller(StaticHandler):
 class CallDataLoad(StaticHandler):
     def __init__(self):
         super().__init__(
-            function_name="calldata_load",
+            function_name="calldataload",
             module="evm.calls",
             used_implicits=("range_check_ptr", "exec_env"),
         )
-
-    def get_function_call(self, args: Sequence[str]):
-        (offset,) = args
-        return super().get_function_call([get_low_bits(offset)])
 
 
 class CallDataSize(StaticHandler):
     def __init__(self):
         super().__init__(
-            function_name="calldatasize_",
+            function_name="calldatasize",
             module="evm.calls",
             used_implicits=("range_check_ptr", "exec_env"),
         )
@@ -391,7 +370,7 @@ class CallDataSize(StaticHandler):
 class CallDataCopy(StaticHandler):
     def __init__(self):
         super().__init__(
-            function_name="calldatacopy_",
+            function_name="calldatacopy",
             module="evm.calls",
             used_implicits=("range_check_ptr", "exec_env", "memory_dict", "msize"),
         )
@@ -447,7 +426,6 @@ class Call(StaticHandler):
                 "exec_env",
                 "memory_dict",
                 "range_check_ptr",
-                "bitwise_ptr",
             ),
         )
 
@@ -462,7 +440,6 @@ class StaticCall(StaticHandler):
                 "exec_env",
                 "memory_dict",
                 "range_check_ptr",
-                "bitwise_ptr",
             ),
         )
 

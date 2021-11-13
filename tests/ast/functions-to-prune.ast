@@ -6,7 +6,7 @@ Block:
 		Body:
 			Block:
 	FunctionDefinition:
-		Name: funB
+		Name: fun_ENTRY_POINT
 		Parameters:
 		Return Variables:
 		Body:
@@ -58,7 +58,7 @@ Block:
 			Block:
 				ExpressionStatement:
 					FunctionCall:
-						Identifier:funB
+						Identifier:fun_ENTRY_POINT
 				ExpressionStatement:
 					FunctionCall:
 						Identifier:funC
