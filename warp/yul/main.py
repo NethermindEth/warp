@@ -6,7 +6,6 @@ import shutil
 import subprocess
 import sys
 
-import click
 import yul.yul_ast as ast
 from starkware.cairo.lang.compiler.parser import parse_file
 from yul.BuiltinHandler import get_default_builtins
@@ -43,14 +42,14 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
     except subprocess.CalledProcessError as e:
         print(e.stderr.decode("utf-8"), file=sys.stderr)
         raise e
-    with open(sol_src_path_modified) as f:
+    with open(sol_src_path_modified, "r") as f:
         sol_source = f.read()
-        output = get_for_contract(sol_source, main_contract, ["abi", "bin"])
-        warp_assert(
-            output,
-            f"Couldn't extract {main_contract}'s abi and bytecode from {sol_src_path}",
-        )
-        abi, bytecode = output
+    output = get_for_contract(sol_src_path_modified, main_contract, ["abi", "bin"])
+    warp_assert(
+        output,
+        f"Couldn't extract {main_contract}'s abi and bytecode from {sol_src_path_modified}",
+    )
+    abi, bytecode = output
     yul_ast = parse_node(json.loads(result.stdout))
     cairo_code, dynamic_argument_functions = transpile_from_yul(yul_ast)
     os.remove(sol_src_path_modified)

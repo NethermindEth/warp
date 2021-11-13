@@ -39,9 +39,9 @@ func initialize_address{range_check_ptr, syscall_ptr : felt*, pedersen_ptr : Has
     return ()
 end
 
-func __warp_cond_revert(_3_3 : Uint256) -> ():
+func __warp_cond_revert(_3_7 : Uint256) -> ():
     alloc_locals
-    if _3_3.low + _3_3.high != 0:
+    if _3_7.low + _3_7.high != 0:
         assert 0 = 1
         jmp rel 0
     else:
@@ -51,12 +51,12 @@ end
 
 func abi_decode{range_check_ptr}(headStart : Uint256, dataEnd : Uint256) -> ():
     alloc_locals
-    local _1_1 : Uint256 = Uint256(low=0, high=0)
-    let (local _2_2 : Uint256) = uint256_sub(dataEnd, headStart)
+    local _1_5 : Uint256 = Uint256(low=0, high=0)
+    let (local _2_6 : Uint256) = uint256_sub(dataEnd, headStart)
     local range_check_ptr = range_check_ptr
-    let (local _3_3 : Uint256) = slt(_2_2, _1_1)
+    let (local _3_7 : Uint256) = slt(_2_6, _1_5)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_3)
+    __warp_cond_revert(_3_7)
     return ()
 end
 
@@ -79,12 +79,12 @@ func abi_encode_uint256_to_uint256{memory_dict : DictAccess*, msize, range_check
 end
 
 func abi_encode_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
-        headStart_4 : Uint256, value0 : Uint256) -> (tail : Uint256):
+        headStart_8 : Uint256, value0 : Uint256) -> (tail : Uint256):
     alloc_locals
-    local _1_5 : Uint256 = Uint256(low=32, high=0)
-    let (local tail : Uint256) = u256_add(headStart_4, _1_5)
+    local _1_9 : Uint256 = Uint256(low=32, high=0)
+    let (local tail : Uint256) = u256_add(headStart_8, _1_9)
     local range_check_ptr = range_check_ptr
-    abi_encode_uint256_to_uint256(value0, headStart_4)
+    abi_encode_uint256_to_uint256(value0, headStart_8)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -216,3 +216,4 @@ func fun_ENTRY_POINT{
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
+

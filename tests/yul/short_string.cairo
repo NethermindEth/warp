@@ -35,9 +35,9 @@ func initialize_address{range_check_ptr, syscall_ptr : felt*, pedersen_ptr : Has
     return ()
 end
 
-func __warp_cond_revert(_3_3 : Uint256) -> ():
+func __warp_cond_revert(_3_7 : Uint256) -> ():
     alloc_locals
-    if _3_3.low + _3_3.high != 0:
+    if _3_7.low + _3_7.high != 0:
         assert 0 = 1
         jmp rel 0
     else:
@@ -47,106 +47,106 @@ end
 
 func abi_decode{range_check_ptr}(headStart : Uint256, dataEnd : Uint256) -> ():
     alloc_locals
-    local _1_1 : Uint256 = Uint256(low=0, high=0)
-    let (local _2_2 : Uint256) = uint256_sub(dataEnd, headStart)
+    local _1_5 : Uint256 = Uint256(low=0, high=0)
+    let (local _2_6 : Uint256) = uint256_sub(dataEnd, headStart)
     local range_check_ptr = range_check_ptr
-    let (local _3_3 : Uint256) = slt(_2_2, _1_1)
+    let (local _3_7 : Uint256) = slt(_2_6, _1_5)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_3)
+    __warp_cond_revert(_3_7)
     return ()
 end
 
-func array_allocation_size_string{range_check_ptr}(length_25 : Uint256) -> (size_26 : Uint256):
+func array_allocation_size_string{range_check_ptr}(length_49 : Uint256) -> (size_50 : Uint256):
     alloc_locals
     let (local __warp_subexpr_0 : Uint256) = u256_shl(
         Uint256(low=64, high=0), Uint256(low=1, high=0))
     local range_check_ptr = range_check_ptr
-    let (local _1_27 : Uint256) = uint256_sub(__warp_subexpr_0, Uint256(low=1, high=0))
+    let (local _1_51 : Uint256) = uint256_sub(__warp_subexpr_0, Uint256(low=1, high=0))
     local range_check_ptr = range_check_ptr
-    let (local _2_28 : Uint256) = is_gt(length_25, _1_27)
+    let (local _2_52 : Uint256) = is_gt(length_49, _1_51)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_2_28)
-    local _3_29 : Uint256 = Uint256(low=32, high=0)
-    let (local _4_30 : Uint256) = uint256_not(Uint256(low=31, high=0))
+    __warp_cond_revert(_2_52)
+    local _3_53 : Uint256 = Uint256(low=32, high=0)
+    let (local _4_54 : Uint256) = uint256_not(Uint256(low=31, high=0))
     local range_check_ptr = range_check_ptr
-    local _5_31 : Uint256 = Uint256(low=31, high=0)
-    let (local _6_32 : Uint256) = u256_add(length_25, _5_31)
+    local _5_55 : Uint256 = Uint256(low=31, high=0)
+    let (local _6_56 : Uint256) = u256_add(length_49, _5_55)
     local range_check_ptr = range_check_ptr
-    let (local _7_33 : Uint256) = uint256_and(_6_32, _4_30)
+    let (local _7_57 : Uint256) = uint256_and(_6_56, _4_54)
     local range_check_ptr = range_check_ptr
-    let (local size_26 : Uint256) = u256_add(_7_33, _3_29)
+    let (local size_50 : Uint256) = u256_add(_7_57, _3_53)
     local range_check_ptr = range_check_ptr
-    return (size_26)
+    return (size_50)
 end
 
 func finalize_allocation{memory_dict : DictAccess*, msize, range_check_ptr}(
-        memPtr_49 : Uint256, size_50 : Uint256) -> ():
+        memPtr : Uint256, size : Uint256) -> ():
     alloc_locals
-    let (local _1_51 : Uint256) = uint256_not(Uint256(low=31, high=0))
+    let (local _1_37 : Uint256) = uint256_not(Uint256(low=31, high=0))
     local range_check_ptr = range_check_ptr
-    local _2_52 : Uint256 = Uint256(low=31, high=0)
-    let (local _3_53 : Uint256) = u256_add(size_50, _2_52)
+    local _2_38 : Uint256 = Uint256(low=31, high=0)
+    let (local _3_39 : Uint256) = u256_add(size, _2_38)
     local range_check_ptr = range_check_ptr
-    let (local _4_54 : Uint256) = uint256_and(_3_53, _1_51)
+    let (local _4_40 : Uint256) = uint256_and(_3_39, _1_37)
     local range_check_ptr = range_check_ptr
-    let (local newFreePtr : Uint256) = u256_add(memPtr_49, _4_54)
+    let (local newFreePtr : Uint256) = u256_add(memPtr, _4_40)
     local range_check_ptr = range_check_ptr
-    let (local _5_55 : Uint256) = is_lt(newFreePtr, memPtr_49)
+    let (local _5_41 : Uint256) = is_lt(newFreePtr, memPtr)
     local range_check_ptr = range_check_ptr
     let (local __warp_subexpr_0 : Uint256) = u256_shl(
         Uint256(low=64, high=0), Uint256(low=1, high=0))
     local range_check_ptr = range_check_ptr
-    let (local _6_56 : Uint256) = uint256_sub(__warp_subexpr_0, Uint256(low=1, high=0))
+    let (local _6_42 : Uint256) = uint256_sub(__warp_subexpr_0, Uint256(low=1, high=0))
     local range_check_ptr = range_check_ptr
-    let (local _7_57 : Uint256) = is_gt(newFreePtr, _6_56)
+    let (local _7_43 : Uint256) = is_gt(newFreePtr, _6_42)
     local range_check_ptr = range_check_ptr
-    let (local _8_58 : Uint256) = uint256_sub(_7_57, _5_55)
+    let (local _8_44 : Uint256) = uint256_sub(_7_43, _5_41)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_8_58)
-    local _9_59 : Uint256 = Uint256(low=64, high=0)
-    uint256_mstore(offset=_9_59, value=newFreePtr)
+    __warp_cond_revert(_8_44)
+    local _9_45 : Uint256 = Uint256(low=64, high=0)
+    uint256_mstore(offset=_9_45, value=newFreePtr)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
     return ()
 end
 
-func allocate_memory{memory_dict : DictAccess*, msize, range_check_ptr}(size : Uint256) -> (
-        memPtr_20 : Uint256):
+func allocate_memory{memory_dict : DictAccess*, msize, range_check_ptr}(size_46 : Uint256) -> (
+        memPtr_47 : Uint256):
     alloc_locals
-    local _1_21 : Uint256 = Uint256(low=64, high=0)
-    let (local memPtr_20 : Uint256) = uint256_mload(_1_21)
+    local _1_48 : Uint256 = Uint256(low=64, high=0)
+    let (local memPtr_47 : Uint256) = uint256_mload(_1_48)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    finalize_allocation(memPtr_20, size)
+    finalize_allocation(memPtr_47, size_46)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    return (memPtr_20)
+    return (memPtr_47)
 end
 
 func allocate_memory_array_string{memory_dict : DictAccess*, msize, range_check_ptr}(
-        length_22 : Uint256) -> (memPtr_23 : Uint256):
+        length_58 : Uint256) -> (memPtr_59 : Uint256):
     alloc_locals
-    let (local _1_24 : Uint256) = array_allocation_size_string(length_22)
+    let (local _1_60 : Uint256) = array_allocation_size_string(length_58)
     local range_check_ptr = range_check_ptr
-    let (local memPtr_23 : Uint256) = allocate_memory(_1_24)
+    let (local memPtr_59 : Uint256) = allocate_memory(_1_60)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    uint256_mstore(offset=memPtr_23, value=length_22)
+    uint256_mstore(offset=memPtr_59, value=length_58)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    return (memPtr_23)
+    return (memPtr_59)
 end
 
 func store_literal_in_memory_e1629b9dda060bb30c7908346f6af189c16773fa148d3366701fbaa35d54f3c8{
-        memory_dict : DictAccess*, msize, range_check_ptr}(memPtr_93 : Uint256) -> ():
+        memory_dict : DictAccess*, msize, range_check_ptr}(memPtr_61 : Uint256) -> ():
     alloc_locals
-    local _1_94 : Uint256 = Uint256(low='', high='ABC' * 256 ** 13)
-    uint256_mstore(offset=memPtr_93, value=_1_94)
+    local _1_62 : Uint256 = Uint256(low='', high='ABC' * 256 ** 13)
+    uint256_mstore(offset=memPtr_61, value=_1_62)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -154,32 +154,32 @@ func store_literal_in_memory_e1629b9dda060bb30c7908346f6af189c16773fa148d3366701
 end
 
 func copy_literal_to_memory_e1629b9dda060bb30c7908346f6af189c16773fa148d3366701fbaa35d54f3c8{
-        memory_dict : DictAccess*, msize, range_check_ptr}() -> (memPtr_37 : Uint256):
+        memory_dict : DictAccess*, msize, range_check_ptr}() -> (memPtr_63 : Uint256):
     alloc_locals
-    local _1_38 : Uint256 = Uint256(low=3, high=0)
-    let (local memPtr_37 : Uint256) = allocate_memory_array_string(_1_38)
+    local _1_64 : Uint256 = Uint256(low=3, high=0)
+    let (local memPtr_63 : Uint256) = allocate_memory_array_string(_1_64)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local _2_39 : Uint256 = Uint256(low=32, high=0)
-    let (local _3_40 : Uint256) = u256_add(memPtr_37, _2_39)
+    local _2_65 : Uint256 = Uint256(low=32, high=0)
+    let (local _3_66 : Uint256) = u256_add(memPtr_63, _2_65)
     local range_check_ptr = range_check_ptr
-    store_literal_in_memory_e1629b9dda060bb30c7908346f6af189c16773fa148d3366701fbaa35d54f3c8(_3_40)
+    store_literal_in_memory_e1629b9dda060bb30c7908346f6af189c16773fa148d3366701fbaa35d54f3c8(_3_66)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    return (memPtr_37)
+    return (memPtr_63)
 end
 
 func array_storeLengthForEncoding_string{memory_dict : DictAccess*, msize, range_check_ptr}(
-        pos_34 : Uint256, length_35 : Uint256) -> (updated_pos : Uint256):
+        pos : Uint256, length : Uint256) -> (updated_pos : Uint256):
     alloc_locals
-    uint256_mstore(offset=pos_34, value=length_35)
+    uint256_mstore(offset=pos, value=length)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local _1_36 : Uint256 = Uint256(low=32, high=0)
-    let (local updated_pos : Uint256) = u256_add(pos_34, _1_36)
+    local _1_8 : Uint256 = Uint256(low=32, high=0)
+    let (local updated_pos : Uint256) = u256_add(pos, _1_8)
     local range_check_ptr = range_check_ptr
     return (updated_pos)
 end
@@ -187,28 +187,28 @@ end
 func __warp_loop_body_0{memory_dict : DictAccess*, msize, range_check_ptr}(
         dst : Uint256, i : Uint256, src : Uint256) -> (i : Uint256):
     alloc_locals
-    let (local _2_43 : Uint256) = u256_add(src, i)
+    let (local _2_11 : Uint256) = u256_add(src, i)
     local range_check_ptr = range_check_ptr
-    let (local _3_44 : Uint256) = uint256_mload(_2_43)
+    let (local _3_12 : Uint256) = uint256_mload(_2_11)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    let (local _4_45 : Uint256) = u256_add(dst, i)
+    let (local _4_13 : Uint256) = u256_add(dst, i)
     local range_check_ptr = range_check_ptr
-    uint256_mstore(offset=_4_45, value=_3_44)
+    uint256_mstore(offset=_4_13, value=_3_12)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local _1_42 : Uint256 = Uint256(low=32, high=0)
-    let (local i : Uint256) = u256_add(i, _1_42)
+    local _1_10 : Uint256 = Uint256(low=32, high=0)
+    let (local i : Uint256) = u256_add(i, _1_10)
     local range_check_ptr = range_check_ptr
     return (i)
 end
 
 func __warp_loop_0{memory_dict : DictAccess*, msize, range_check_ptr}(
-        dst : Uint256, i : Uint256, length_41 : Uint256, src : Uint256) -> (i : Uint256):
+        dst : Uint256, i : Uint256, length_9 : Uint256, src : Uint256) -> (i : Uint256):
     alloc_locals
-    let (local __warp_subexpr_1 : Uint256) = is_lt(i, length_41)
+    let (local __warp_subexpr_1 : Uint256) = is_lt(i, length_9)
     local range_check_ptr = range_check_ptr
     let (local __warp_subexpr_0 : Uint256) = is_zero(__warp_subexpr_1)
     local range_check_ptr = range_check_ptr
@@ -219,7 +219,7 @@ func __warp_loop_0{memory_dict : DictAccess*, msize, range_check_ptr}(
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    let (local i : Uint256) = __warp_loop_0(dst, i, length_41, src)
+    let (local i : Uint256) = __warp_loop_0(dst, i, length_9, src)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -227,12 +227,12 @@ func __warp_loop_0{memory_dict : DictAccess*, msize, range_check_ptr}(
 end
 
 func __warp_block_0{memory_dict : DictAccess*, msize, range_check_ptr}(
-        dst : Uint256, length_41 : Uint256) -> ():
+        dst : Uint256, length_9 : Uint256) -> ():
     alloc_locals
-    local _6_47 : Uint256 = Uint256(low=0, high=0)
-    let (local _7_48 : Uint256) = u256_add(dst, length_41)
+    local _6_15 : Uint256 = Uint256(low=0, high=0)
+    let (local _7_16 : Uint256) = u256_add(dst, length_9)
     local range_check_ptr = range_check_ptr
-    uint256_mstore(offset=_7_48, value=_6_47)
+    uint256_mstore(offset=_7_16, value=_6_15)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -240,10 +240,10 @@ func __warp_block_0{memory_dict : DictAccess*, msize, range_check_ptr}(
 end
 
 func __warp_if_0{memory_dict : DictAccess*, msize, range_check_ptr}(
-        _5_46 : Uint256, dst : Uint256, length_41 : Uint256) -> ():
+        _5_14 : Uint256, dst : Uint256, length_9 : Uint256) -> ():
     alloc_locals
-    if _5_46.low + _5_46.high != 0:
-        __warp_block_0(dst, length_41)
+    if _5_14.low + _5_14.high != 0:
+        __warp_block_0(dst, length_9)
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
@@ -254,16 +254,16 @@ func __warp_if_0{memory_dict : DictAccess*, msize, range_check_ptr}(
 end
 
 func copy_memory_to_memory{memory_dict : DictAccess*, msize, range_check_ptr}(
-        src : Uint256, dst : Uint256, length_41 : Uint256) -> ():
+        src : Uint256, dst : Uint256, length_9 : Uint256) -> ():
     alloc_locals
     local i : Uint256 = Uint256(low=0, high=0)
-    let (local i : Uint256) = __warp_loop_0(dst, i, length_41, src)
+    let (local i : Uint256) = __warp_loop_0(dst, i, length_9, src)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    let (local _5_46 : Uint256) = is_gt(i, length_41)
+    let (local _5_14 : Uint256) = is_gt(i, length_9)
     local range_check_ptr = range_check_ptr
-    __warp_if_0(_5_46, dst, length_41)
+    __warp_if_0(_5_14, dst, length_9)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -271,47 +271,47 @@ func copy_memory_to_memory{memory_dict : DictAccess*, msize, range_check_ptr}(
 end
 
 func abi_encode_string_memory_ptr{memory_dict : DictAccess*, msize, range_check_ptr}(
-        value : Uint256, pos : Uint256) -> (end__warp_mangled : Uint256):
+        value : Uint256, pos_17 : Uint256) -> (end__warp_mangled : Uint256):
     alloc_locals
-    let (local length : Uint256) = uint256_mload(value)
+    let (local length_18 : Uint256) = uint256_mload(value)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    let (local pos_1 : Uint256) = array_storeLengthForEncoding_string(pos, length)
+    let (local pos_1 : Uint256) = array_storeLengthForEncoding_string(pos_17, length_18)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local _1_4 : Uint256 = Uint256(low=32, high=0)
-    let (local _2_5 : Uint256) = u256_add(value, _1_4)
+    local _1_19 : Uint256 = Uint256(low=32, high=0)
+    let (local _2_20 : Uint256) = u256_add(value, _1_19)
     local range_check_ptr = range_check_ptr
-    copy_memory_to_memory(_2_5, pos_1, length)
+    copy_memory_to_memory(_2_20, pos_1, length_18)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    let (local _3_6 : Uint256) = uint256_not(Uint256(low=31, high=0))
+    let (local _3_21 : Uint256) = uint256_not(Uint256(low=31, high=0))
     local range_check_ptr = range_check_ptr
-    local _4_7 : Uint256 = Uint256(low=31, high=0)
-    let (local _5_8 : Uint256) = u256_add(length, _4_7)
+    local _4_22 : Uint256 = Uint256(low=31, high=0)
+    let (local _5_23 : Uint256) = u256_add(length_18, _4_22)
     local range_check_ptr = range_check_ptr
-    let (local _6_9 : Uint256) = uint256_and(_5_8, _3_6)
+    let (local _6_24 : Uint256) = uint256_and(_5_23, _3_21)
     local range_check_ptr = range_check_ptr
-    let (local end__warp_mangled : Uint256) = u256_add(pos_1, _6_9)
+    let (local end__warp_mangled : Uint256) = u256_add(pos_1, _6_24)
     local range_check_ptr = range_check_ptr
     return (end__warp_mangled)
 end
 
 func abi_encode_string{memory_dict : DictAccess*, msize, range_check_ptr}(
-        headStart_10 : Uint256, value0 : Uint256) -> (tail : Uint256):
+        headStart_25 : Uint256, value0 : Uint256) -> (tail : Uint256):
     alloc_locals
-    local _1_11 : Uint256 = Uint256(low=32, high=0)
-    uint256_mstore(offset=headStart_10, value=_1_11)
+    local _1_26 : Uint256 = Uint256(low=32, high=0)
+    uint256_mstore(offset=headStart_25, value=_1_26)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local _2_12 : Uint256 = _1_11
-    let (local _3_13 : Uint256) = u256_add(headStart_10, _1_11)
+    local _2_27 : Uint256 = _1_26
+    let (local _3_28 : Uint256) = u256_add(headStart_25, _1_26)
     local range_check_ptr = range_check_ptr
-    let (local tail : Uint256) = abi_encode_string_memory_ptr(value0, _3_13)
+    let (local tail : Uint256) = abi_encode_string_memory_ptr(value0, _3_28)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -322,10 +322,10 @@ func zero_memory_chunk_bytes1{
         exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}(
         dataStart : Uint256, dataSizeInBytes : Uint256) -> ():
     alloc_locals
-    let (local _1_95 : Uint256) = calldatasize()
+    let (local _1_67 : Uint256) = calldatasize()
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
-    calldatacopy(dataStart, _1_95, dataSizeInBytes)
+    calldatacopy(dataStart, _1_67, dataSizeInBytes)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
@@ -335,45 +335,45 @@ end
 
 func allocate_and_zero_memory_array_string{
         exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}(
-        length_14 : Uint256) -> (memPtr : Uint256):
+        length_68 : Uint256) -> (memPtr_69 : Uint256):
     alloc_locals
-    let (local memPtr : Uint256) = allocate_memory_array_string(length_14)
+    let (local memPtr_69 : Uint256) = allocate_memory_array_string(length_68)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    let (local _1_15 : Uint256) = uint256_not(Uint256(low=31, high=0))
+    let (local _1_70 : Uint256) = uint256_not(Uint256(low=31, high=0))
     local range_check_ptr = range_check_ptr
-    let (local _2_16 : Uint256) = array_allocation_size_string(length_14)
+    let (local _2_71 : Uint256) = array_allocation_size_string(length_68)
     local range_check_ptr = range_check_ptr
-    let (local _3_17 : Uint256) = u256_add(_2_16, _1_15)
+    let (local _3_72 : Uint256) = u256_add(_2_71, _1_70)
     local range_check_ptr = range_check_ptr
-    local _4_18 : Uint256 = Uint256(low=32, high=0)
-    let (local _5_19 : Uint256) = u256_add(memPtr, _4_18)
+    local _4_73 : Uint256 = Uint256(low=32, high=0)
+    let (local _5_74 : Uint256) = u256_add(memPtr_69, _4_73)
     local range_check_ptr = range_check_ptr
-    zero_memory_chunk_bytes1(_5_19, _3_17)
+    zero_memory_chunk_bytes1(_5_74, _3_72)
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    return (memPtr)
+    return (memPtr_69)
 end
 
 func memory_array_index_access_bytes{memory_dict : DictAccess*, msize, range_check_ptr}(
         baseRef : Uint256, index : Uint256) -> (addr : Uint256):
     alloc_locals
-    let (local _1_70 : Uint256) = uint256_mload(baseRef)
+    let (local _1_81 : Uint256) = uint256_mload(baseRef)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    let (local _2_71 : Uint256) = is_lt(index, _1_70)
+    let (local _2_82 : Uint256) = is_lt(index, _1_81)
     local range_check_ptr = range_check_ptr
-    let (local _3_72 : Uint256) = is_zero(_2_71)
+    let (local _3_83 : Uint256) = is_zero(_2_82)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_72)
-    local _4_73 : Uint256 = Uint256(low=32, high=0)
-    let (local _5_74 : Uint256) = u256_add(baseRef, index)
+    __warp_cond_revert(_3_83)
+    local _4_84 : Uint256 = Uint256(low=32, high=0)
+    let (local _5_85 : Uint256) = u256_add(baseRef, index)
     local range_check_ptr = range_check_ptr
-    let (local addr : Uint256) = u256_add(_5_74, _4_73)
+    let (local addr : Uint256) = u256_add(_5_85, _4_84)
     local range_check_ptr = range_check_ptr
     return (addr)
 end
@@ -382,39 +382,39 @@ func fun_bytesFun{
         exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}() -> (
         var_mpos : Uint256):
     alloc_locals
-    local _1_60 : Uint256 = Uint256(low=3, high=0)
-    let (local expr_mpos : Uint256) = allocate_and_zero_memory_array_string(_1_60)
+    local _1_86 : Uint256 = Uint256(low=3, high=0)
+    let (local expr_mpos : Uint256) = allocate_and_zero_memory_array_string(_1_86)
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local _2_61 : Uint256 = Uint256(low=65, high=0)
-    local _3_62 : Uint256 = Uint256(low=0, high=0)
-    let (local _4_63 : Uint256) = memory_array_index_access_bytes(expr_mpos, _3_62)
+    local _2_87 : Uint256 = Uint256(low=65, high=0)
+    local _3_88 : Uint256 = Uint256(low=0, high=0)
+    let (local _4_89 : Uint256) = memory_array_index_access_bytes(expr_mpos, _3_88)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    uint256_mstore8(_4_63, _2_61)
+    uint256_mstore8(_4_89, _2_87)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local _5_64 : Uint256 = Uint256(low=66, high=0)
-    local _6_65 : Uint256 = Uint256(low=1, high=0)
-    let (local _7_66 : Uint256) = memory_array_index_access_bytes(expr_mpos, _6_65)
+    local _5_90 : Uint256 = Uint256(low=66, high=0)
+    local _6_91 : Uint256 = Uint256(low=1, high=0)
+    let (local _7_92 : Uint256) = memory_array_index_access_bytes(expr_mpos, _6_91)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    uint256_mstore8(_7_66, _5_64)
+    uint256_mstore8(_7_92, _5_90)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    local _8_67 : Uint256 = Uint256(low=67, high=0)
-    local _9_68 : Uint256 = Uint256(low=2, high=0)
-    let (local _10_69 : Uint256) = memory_array_index_access_bytes(expr_mpos, _9_68)
+    local _8_93 : Uint256 = Uint256(low=67, high=0)
+    local _9_94 : Uint256 = Uint256(low=2, high=0)
+    let (local _10_95 : Uint256) = memory_array_index_access_bytes(expr_mpos, _9_94)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    uint256_mstore8(_10_69, _8_67)
+    uint256_mstore8(_10_95, _8_93)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -643,3 +643,4 @@ func fun_ENTRY_POINT{
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
+
