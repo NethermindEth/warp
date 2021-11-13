@@ -39,9 +39,9 @@ func initialize_address{range_check_ptr, syscall_ptr : felt*, pedersen_ptr : Has
     return ()
 end
 
-func __warp_cond_revert(_3_3 : Uint256) -> ():
+func __warp_cond_revert(_3_7 : Uint256) -> ():
     alloc_locals
-    if _3_3.low + _3_3.high != 0:
+    if _3_7.low + _3_7.high != 0:
         assert 0 = 1
         jmp rel 0
     else:
@@ -52,12 +52,12 @@ end
 func abi_decode_uint256{exec_env : ExecutionEnvironment*, range_check_ptr}(
         headStart : Uint256, dataEnd : Uint256) -> (value0 : Uint256):
     alloc_locals
-    local _1_1 : Uint256 = Uint256(low=32, high=0)
-    let (local _2_2 : Uint256) = uint256_sub(dataEnd, headStart)
+    local _1_5 : Uint256 = Uint256(low=32, high=0)
+    let (local _2_6 : Uint256) = uint256_sub(dataEnd, headStart)
     local range_check_ptr = range_check_ptr
-    let (local _3_3 : Uint256) = slt(_2_2, _1_1)
+    let (local _3_7 : Uint256) = slt(_2_6, _1_5)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_3)
+    __warp_cond_revert(_3_7)
     let (local value0 : Uint256) = calldataload(headStart)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
@@ -65,16 +65,16 @@ func abi_decode_uint256{exec_env : ExecutionEnvironment*, range_check_ptr}(
 end
 
 func getter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        arg0 : Uint256) -> (value_22 : Uint256):
+        arg0 : Uint256) -> (value : Uint256):
     alloc_locals
     let (res) = allowance.read(arg0.low, arg0.high)
     return (res)
 end
 
 func abi_encode_uint256_to_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
-        value : Uint256, pos : Uint256) -> ():
+        value_9 : Uint256, pos : Uint256) -> ():
     alloc_locals
-    uint256_mstore(offset=pos, value=value)
+    uint256_mstore(offset=pos, value=value_9)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -82,12 +82,12 @@ func abi_encode_uint256_to_uint256{memory_dict : DictAccess*, msize, range_check
 end
 
 func abi_encode_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
-        headStart_14 : Uint256, value0_15 : Uint256) -> (tail : Uint256):
+        headStart_10 : Uint256, value0_11 : Uint256) -> (tail : Uint256):
     alloc_locals
-    local _1_16 : Uint256 = Uint256(low=32, high=0)
-    let (local tail : Uint256) = u256_add(headStart_14, _1_16)
+    local _1_12 : Uint256 = Uint256(low=32, high=0)
+    let (local tail : Uint256) = u256_add(headStart_10, _1_12)
     local range_check_ptr = range_check_ptr
-    abi_encode_uint256_to_uint256(value0_15, headStart_14)
+    abi_encode_uint256_to_uint256(value0_11, headStart_10)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -95,60 +95,60 @@ func abi_encode_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
 end
 
 func abi_decode_uint256t_uint256t_uint256{exec_env : ExecutionEnvironment*, range_check_ptr}(
-        headStart_4 : Uint256, dataEnd_5 : Uint256) -> (
-        value0_6 : Uint256, value1 : Uint256, value2 : Uint256):
+        headStart_13 : Uint256, dataEnd_14 : Uint256) -> (
+        value0_15 : Uint256, value1 : Uint256, value2 : Uint256):
     alloc_locals
-    local _1_7 : Uint256 = Uint256(low=96, high=0)
-    let (local _2_8 : Uint256) = uint256_sub(dataEnd_5, headStart_4)
+    local _1_16 : Uint256 = Uint256(low=96, high=0)
+    let (local _2_17 : Uint256) = uint256_sub(dataEnd_14, headStart_13)
     local range_check_ptr = range_check_ptr
-    let (local _3_9 : Uint256) = slt(_2_8, _1_7)
+    let (local _3_18 : Uint256) = slt(_2_17, _1_16)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_9)
-    let (local value0_6 : Uint256) = calldataload(headStart_4)
-    local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment* = exec_env
-    local _4_10 : Uint256 = Uint256(low=32, high=0)
-    let (local _5_11 : Uint256) = u256_add(headStart_4, _4_10)
-    local range_check_ptr = range_check_ptr
-    let (local value1 : Uint256) = calldataload(_5_11)
+    __warp_cond_revert(_3_18)
+    let (local value0_15 : Uint256) = calldataload(headStart_13)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
-    local _6_12 : Uint256 = Uint256(low=64, high=0)
-    let (local _7_13 : Uint256) = u256_add(headStart_4, _6_12)
+    local _4_19 : Uint256 = Uint256(low=32, high=0)
+    let (local _5_20 : Uint256) = u256_add(headStart_13, _4_19)
     local range_check_ptr = range_check_ptr
-    let (local value2 : Uint256) = calldataload(_7_13)
+    let (local value1 : Uint256) = calldataload(_5_20)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
-    return (value0_6, value1, value2)
+    local _6_21 : Uint256 = Uint256(low=64, high=0)
+    let (local _7_22 : Uint256) = u256_add(headStart_13, _6_21)
+    local range_check_ptr = range_check_ptr
+    let (local value2 : Uint256) = calldataload(_7_22)
+    local range_check_ptr = range_check_ptr
+    local exec_env : ExecutionEnvironment* = exec_env
+    return (value0_15, value1, value2)
 end
 
 func checked_sub_uint256{range_check_ptr}(x : Uint256, y : Uint256) -> (diff : Uint256):
     alloc_locals
-    let (local _1_17 : Uint256) = is_lt(x, y)
+    let (local _1_31 : Uint256) = is_lt(x, y)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_1_17)
+    __warp_cond_revert(_1_31)
     let (local diff : Uint256) = uint256_sub(x, y)
     local range_check_ptr = range_check_ptr
     return (diff)
 end
 
 func setter_fun_allowance{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        arg0_36 : Uint256, value_37 : Uint256) -> ():
+        arg0_32 : Uint256, value_33 : Uint256) -> ():
     alloc_locals
-    allowance.write(arg0_36.low, arg0_36.high, value_37)
+    allowance.write(arg0_32.low, arg0_32.high, value_33)
     return ()
 end
 
 func __warp_block_2{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         var_src : Uint256, var_wad : Uint256) -> (var_res : Uint256):
     alloc_locals
-    let (local _3_20 : Uint256) = getter_fun_allowance(var_src)
+    let (local _3_40 : Uint256) = getter_fun_allowance(var_src)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local syscall_ptr : felt* = syscall_ptr
-    let (local _4_21 : Uint256) = checked_sub_uint256(_3_20, var_wad)
+    let (local _4_41 : Uint256) = checked_sub_uint256(_3_40, var_wad)
     local range_check_ptr = range_check_ptr
-    setter_fun_allowance(var_src, _4_21)
+    setter_fun_allowance(var_src, _4_41)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local syscall_ptr : felt* = syscall_ptr
@@ -184,9 +184,9 @@ func __warp_block_1{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : 
 end
 
 func __warp_block_0{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        _2_19 : Uint256, var_src : Uint256, var_wad : Uint256) -> (var_res : Uint256):
+        _2_39 : Uint256, var_src : Uint256, var_wad : Uint256) -> (var_res : Uint256):
     alloc_locals
-    local match_var : Uint256 = _2_19
+    local match_var : Uint256 = _2_39
     let (local var_res : Uint256) = __warp_block_1(match_var, var_src, var_wad)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
@@ -198,11 +198,11 @@ func fun_transferFrom{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr 
         var_src : Uint256, var_wad : Uint256, var_sender : Uint256) -> (var : Uint256):
     alloc_locals
     local var_res : Uint256 = Uint256(low=0, high=0)
-    let (local _1_18 : Uint256) = is_eq(var_src, var_sender)
+    let (local _1_38 : Uint256) = is_eq(var_src, var_sender)
     local range_check_ptr = range_check_ptr
-    let (local _2_19 : Uint256) = is_zero(_1_18)
+    let (local _2_39 : Uint256) = is_zero(_1_38)
     local range_check_ptr = range_check_ptr
-    let (local var_res : Uint256) = __warp_block_0(_2_19, var_src, var_wad)
+    let (local var_res : Uint256) = __warp_block_0(_2_39, var_src, var_wad)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local syscall_ptr : felt* = syscall_ptr
@@ -455,3 +455,4 @@ func fun_ENTRY_POINT{
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
+

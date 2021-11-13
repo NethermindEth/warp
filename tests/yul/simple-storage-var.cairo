@@ -39,9 +39,9 @@ func initialize_address{range_check_ptr, syscall_ptr : felt*, pedersen_ptr : Has
     return ()
 end
 
-func __warp_cond_revert(_3_3 : Uint256) -> ():
+func __warp_cond_revert(_3_7 : Uint256) -> ():
     alloc_locals
-    if _3_3.low + _3_3.high != 0:
+    if _3_7.low + _3_7.high != 0:
         assert 0 = 1
         jmp rel 0
     else:
@@ -51,26 +51,26 @@ end
 
 func abi_decode{range_check_ptr}(headStart : Uint256, dataEnd : Uint256) -> ():
     alloc_locals
-    local _1_1 : Uint256 = Uint256(low=0, high=0)
-    let (local _2_2 : Uint256) = uint256_sub(dataEnd, headStart)
+    local _1_5 : Uint256 = Uint256(low=0, high=0)
+    let (local _2_6 : Uint256) = uint256_sub(dataEnd, headStart)
     local range_check_ptr = range_check_ptr
-    let (local _3_3 : Uint256) = slt(_2_2, _1_1)
+    let (local _3_7 : Uint256) = slt(_2_6, _1_5)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_3)
+    __warp_cond_revert(_3_7)
     return ()
 end
 
 func getter_fun_counter{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (
-        value_11 : Uint256):
+        value : Uint256):
     alloc_locals
     let (res) = counter.read()
     return (res)
 end
 
 func abi_encode_uint256_to_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
-        value : Uint256, pos : Uint256) -> ():
+        value_9 : Uint256, pos : Uint256) -> ():
     alloc_locals
-    uint256_mstore(offset=pos, value=value)
+    uint256_mstore(offset=pos, value=value_9)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -78,12 +78,12 @@ func abi_encode_uint256_to_uint256{memory_dict : DictAccess*, msize, range_check
 end
 
 func abi_encode_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
-        headStart_4 : Uint256, value0 : Uint256) -> (tail : Uint256):
+        headStart_10 : Uint256, value0 : Uint256) -> (tail : Uint256):
     alloc_locals
-    local _1_5 : Uint256 = Uint256(low=32, high=0)
-    let (local tail : Uint256) = u256_add(headStart_4, _1_5)
+    local _1_11 : Uint256 = Uint256(low=32, high=0)
+    let (local tail : Uint256) = u256_add(headStart_10, _1_11)
     local range_check_ptr = range_check_ptr
-    abi_encode_uint256_to_uint256(value0, headStart_4)
+    abi_encode_uint256_to_uint256(value0, headStart_10)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -92,34 +92,34 @@ end
 
 func checked_add_uint256{range_check_ptr}(x : Uint256, y : Uint256) -> (sum : Uint256):
     alloc_locals
-    let (local _1_6 : Uint256) = uint256_not(y)
+    let (local _1_20 : Uint256) = uint256_not(y)
     local range_check_ptr = range_check_ptr
-    let (local _2_7 : Uint256) = is_gt(x, _1_6)
+    let (local _2_21 : Uint256) = is_gt(x, _1_20)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_2_7)
+    __warp_cond_revert(_2_21)
     let (local sum : Uint256) = u256_add(x, y)
     local range_check_ptr = range_check_ptr
     return (sum)
 end
 
 func setter_fun_counter{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        value_25 : Uint256) -> ():
+        value_22 : Uint256) -> ():
     alloc_locals
-    counter.write(value_25)
+    counter.write(value_22)
     return ()
 end
 
 func fun_increment{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (
         var : Uint256):
     alloc_locals
-    local _1_8 : Uint256 = Uint256(low=1, high=0)
-    let (local _2_9 : Uint256) = getter_fun_counter()
+    local _1_27 : Uint256 = Uint256(low=1, high=0)
+    let (local _2_28 : Uint256) = getter_fun_counter()
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local syscall_ptr : felt* = syscall_ptr
-    let (local _3_10 : Uint256) = checked_add_uint256(_2_9, _1_8)
+    let (local _3_29 : Uint256) = checked_add_uint256(_2_28, _1_27)
     local range_check_ptr = range_check_ptr
-    setter_fun_counter(_3_10)
+    setter_fun_counter(_3_29)
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local range_check_ptr = range_check_ptr
     local syscall_ptr : felt* = syscall_ptr
@@ -374,3 +374,4 @@ func fun_ENTRY_POINT{
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
+
