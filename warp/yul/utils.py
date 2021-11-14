@@ -197,4 +197,6 @@ def make_abi_StarkNet_encodable(abi):
     """
     abiStr = f"{abi}".replace("'address'", "'uint256'")
     abiStr = abiStr.replace("'", '"')
+    abiStr = abiStr.replace("True", "true")
+    abiStr = abiStr.replace("False", "false")
     return json.loads(abiStr)
