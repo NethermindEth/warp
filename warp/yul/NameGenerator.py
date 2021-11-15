@@ -35,9 +35,6 @@ class NameGenerator:
         self.n_ifs += 1
         return self._prefixed(f"if_{self.n_ifs}")
 
-    def take_cond_revert_name(self) -> str:
-        return self._prefixed("cond_revert")
-
     @contextmanager
     def new_block(self):
         old_n_subexpressions = self.n_subexpressions

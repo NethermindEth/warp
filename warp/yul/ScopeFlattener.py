@@ -16,7 +16,6 @@ class ScopeFlattener(AstMapper):
         super().__init__()
         self.name_gen = name_gen
         self.block_functions: list[ast.FunctionDefinition] = []
-        self.revert_created: bool = False
         self.leave_name: Optional[str] = None
         self.pass_leaves_higher = False
 
@@ -94,22 +93,14 @@ class ScopeFlattener(AstMapper):
             )
 
     def visit_if(self, node: ast.If):
-        if self.is_leave_if(node):
+        if self.is_leave_if(node) or self.is_revert_if(node):
             return super().visit_if(node)
 
-        revert_if = self.is_revert_if(node)
-        if revert_if:
-            fun_name = self.name_gen.take_cond_revert_name()
-        else:
-            fun_name = self.name_gen.make_if_name()
-
+        fun_name = self.name_gen.make_if_name()
         with self._new_extraction():
             if_block = ast.Block((super().visit_if(node),))
             if_fun, if_stmt = extract_block_as_function(if_block, fun_name)
-            if revert_if and self.revert_created:
-                return if_stmt
             self.block_functions.append(if_fun)
-            self.revert_created |= revert_if
             leave_id = ast.Identifier(self.leave_name)
             if leave_id in get_scope(if_block).modified_variables:
                 stmts = (if_stmt, ast.If(condition=leave_id, body=ast.LEAVE_BLOCK))

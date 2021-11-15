@@ -31,16 +31,6 @@ func initialize_address{range_check_ptr, syscall_ptr : felt*, pedersen_ptr : Has
     return ()
 end
 
-func __warp_cond_revert(_3_5 : Uint256) -> ():
-    alloc_locals
-    if _3_5.low + _3_5.high != 0:
-        assert 0 = 1
-        jmp rel 0
-    else:
-        return ()
-    end
-end
-
 func abi_decode_uint256t_uint256{exec_env : ExecutionEnvironment*, range_check_ptr}(
         headStart : Uint256, dataEnd : Uint256) -> (value0 : Uint256, value1 : Uint256):
     alloc_locals
@@ -49,7 +39,10 @@ func abi_decode_uint256t_uint256{exec_env : ExecutionEnvironment*, range_check_p
     local range_check_ptr = range_check_ptr
     let (local _3_5 : Uint256) = slt(_2_4, _1_3)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_5)
+    if _3_5.low + _3_5.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     let (local value0 : Uint256) = calldataload(headStart)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
@@ -68,7 +61,10 @@ func checked_add_uint256{range_check_ptr}(x : Uint256, y : Uint256) -> (sum : Ui
     local range_check_ptr = range_check_ptr
     let (local _2_20 : Uint256) = is_gt(x, _1_19)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_2_20)
+    if _2_20.low + _2_20.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     let (local sum : Uint256) = u256_add(x, y)
     local range_check_ptr = range_check_ptr
     return (sum)
@@ -93,26 +89,26 @@ func __warp_block_3{range_check_ptr}(var_a : Uint256) -> (__warp_leave_2 : Uint2
 end
 
 func __warp_if_2{range_check_ptr}(
-        __warp_leave_9 : Uint256, __warp_subexpr_0 : Uint256, var_a : Uint256, var_b : Uint256) -> (
-        __warp_leave_2 : Uint256, __warp_leave_9 : Uint256, var : Uint256):
+        __warp_leave_8 : Uint256, __warp_subexpr_0 : Uint256, var_a : Uint256, var_b : Uint256) -> (
+        __warp_leave_2 : Uint256, __warp_leave_8 : Uint256, var : Uint256):
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         let (local __warp_leave_2 : Uint256, local var : Uint256) = __warp_block_2(var_b)
         local range_check_ptr = range_check_ptr
         if __warp_leave_2.low + __warp_leave_2.high != 0:
-            local __warp_leave_9 : Uint256 = Uint256(low=1, high=0)
-            return (__warp_leave_2, __warp_leave_9, var)
+            local __warp_leave_8 : Uint256 = Uint256(low=1, high=0)
+            return (__warp_leave_2, __warp_leave_8, var)
         else:
-            return (__warp_leave_2, __warp_leave_9, var)
+            return (__warp_leave_2, __warp_leave_8, var)
         end
     else:
         let (local __warp_leave_2 : Uint256, local var : Uint256) = __warp_block_3(var_a)
         local range_check_ptr = range_check_ptr
         if __warp_leave_2.low + __warp_leave_2.high != 0:
-            local __warp_leave_9 : Uint256 = Uint256(low=1, high=0)
-            return (__warp_leave_2, __warp_leave_9, var)
+            local __warp_leave_8 : Uint256 = Uint256(low=1, high=0)
+            return (__warp_leave_2, __warp_leave_8, var)
         else:
-            return (__warp_leave_2, __warp_leave_9, var)
+            return (__warp_leave_2, __warp_leave_8, var)
         end
     end
 end
@@ -120,13 +116,13 @@ end
 func __warp_block_1{range_check_ptr}(match_var : Uint256, var_a : Uint256, var_b : Uint256) -> (
         __warp_leave_2 : Uint256, var : Uint256):
     alloc_locals
-    local __warp_leave_9 : Uint256 = Uint256(low=0, high=0)
+    local __warp_leave_8 : Uint256 = Uint256(low=0, high=0)
     let (local __warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=0, high=0))
     local range_check_ptr = range_check_ptr
-    let (local __warp_leave_2 : Uint256, local __warp_leave_9 : Uint256,
-        local var : Uint256) = __warp_if_2(__warp_leave_9, __warp_subexpr_0, var_a, var_b)
+    let (local __warp_leave_2 : Uint256, local __warp_leave_8 : Uint256,
+        local var : Uint256) = __warp_if_2(__warp_leave_8, __warp_subexpr_0, var_a, var_b)
     local range_check_ptr = range_check_ptr
-    if __warp_leave_9.low + __warp_leave_9.high != 0:
+    if __warp_leave_8.low + __warp_leave_8.high != 0:
         return (__warp_leave_2, var)
     else:
         return (__warp_leave_2, var)
@@ -309,4 +305,3 @@ func fun_ENTRY_POINT{
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
-
