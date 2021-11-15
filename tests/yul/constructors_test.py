@@ -3,7 +3,7 @@ import os
 
 import pytest
 from cli.commands import flatten
-from cli.StarkNetEvmContract import evm_to_cairo_calldata
+from cli.encoding import evm_to_cairo_calldata
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
 from yul.main import transpile_from_solidity
@@ -33,11 +33,7 @@ async def test_constructors():
         250,
     ]
     dyn_constructor_calldata = evm_to_cairo_calldata(
-        dyn_info["sol_abi"],
-        dyn_info["sol_abi_original"],
-        dyn_info["sol_bytecode"],
-        fn_name="__warp_ctorHelper_DynArgs",
-        inputs=dyn_inputs,
+        dyn_info["sol_abi"], fn_name="__warp_ctorHelper_DynArgs", inputs=dyn_inputs
     )
 
     non_dyn_contract_def = compile_starknet_files(

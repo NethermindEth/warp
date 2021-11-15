@@ -22,7 +22,7 @@ from yul.RevertNormalizer import RevertNormalizer
 from yul.ScopeFlattener import ScopeFlattener
 from yul.SwitchToIfVisitor import SwitchToIfVisitor
 from yul.ToCairoVisitor import ToCairoVisitor
-from yul.utils import get_for_contract, make_abi_StarkNet_encodable
+from yul.utils import get_for_contract
 from yul.WarpException import warp_assert
 
 AST_GENERATOR = "kudu"
@@ -44,21 +44,16 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
         raise e
     with open(sol_src_path_modified, "r") as f:
         sol_source = f.read()
-    output = get_for_contract(sol_src_path_modified, main_contract, ["abi", "bin"])
-    warp_assert(
-        output,
-        f"Couldn't extract {main_contract}'s abi and bytecode from {sol_src_path_modified}",
-    )
-    abi, bytecode = output
+    output = get_for_contract(sol_src_path_modified, main_contract, ["abi"])
+    warp_assert(output, f"Couldn't extract {main_contract}'s abi from {sol_src_path}")
+    (abi,) = output
     yul_ast = parse_node(json.loads(result.stdout))
     cairo_code, dynamic_argument_functions = transpile_from_yul(yul_ast)
     os.remove(sol_src_path_modified)
     return {
         "cairo_code": cairo_code,
         "sol_source": sol_source,
-        "sol_abi": make_abi_StarkNet_encodable(abi),
-        "sol_abi_original": abi,
-        "sol_bytecode": bytecode,
+        "sol_abi": abi,
         "dynamic_argument_functions": dynamic_argument_functions,
     }
 

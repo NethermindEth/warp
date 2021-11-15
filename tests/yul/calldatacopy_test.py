@@ -1,5 +1,4 @@
 import os
-import sys
 
 import pytest
 from starkware.starknet.compiler.compile import compile_starknet_files
@@ -16,7 +15,6 @@ async def test_calldatacopy():
     contract_file = test_dir[:-8] + ".cairo"
     sol_file = test_dir[:-8] + ".sol"
     program_info = transpile_from_solidity(sol_file, "WARP")
-    print(program_info["sol_abi"], file=sys.stderr)
     cairo_path = f"{warp_root}/warp/cairo-src"
     contract_definition = compile_starknet_files(
         [contract_file], debug_info=True, cairo_path=[cairo_path]

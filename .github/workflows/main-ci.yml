@@ -35,8 +35,7 @@ jobs:
       - name: Test transpilation
         run: |
           export no_proxy='*'
-          make
-          python -m pytest scripts/yul/transpile_test.py -v --workers=auto
+          python -m pytest scripts/yul/transpile_test.py --tb=short --workers=auto
 
 
   test-macos-10-15-complete:
