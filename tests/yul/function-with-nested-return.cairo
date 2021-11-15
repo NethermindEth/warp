@@ -31,16 +31,6 @@ func initialize_address{range_check_ptr, syscall_ptr : felt*, pedersen_ptr : Has
     return ()
 end
 
-func __warp_cond_revert(_3_5 : Uint256) -> ():
-    alloc_locals
-    if _3_5.low + _3_5.high != 0:
-        assert 0 = 1
-        jmp rel 0
-    else:
-        return ()
-    end
-end
-
 func abi_decode_uint256t_uint256{exec_env : ExecutionEnvironment*, range_check_ptr}(
         headStart : Uint256, dataEnd : Uint256) -> (value0 : Uint256, value1 : Uint256):
     alloc_locals
@@ -49,7 +39,10 @@ func abi_decode_uint256t_uint256{exec_env : ExecutionEnvironment*, range_check_p
     local range_check_ptr = range_check_ptr
     let (local _3_5 : Uint256) = slt(_2_4, _1_3)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_5)
+    if _3_5.low + _3_5.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     let (local value0 : Uint256) = calldataload(headStart)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
@@ -226,4 +219,3 @@ func fun_ENTRY_POINT{
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
-

@@ -39,16 +39,6 @@ func initialize_address{range_check_ptr, syscall_ptr : felt*, pedersen_ptr : Has
     return ()
 end
 
-func __warp_cond_revert(_3_7 : Uint256) -> ():
-    alloc_locals
-    if _3_7.low + _3_7.high != 0:
-        assert 0 = 1
-        jmp rel 0
-    else:
-        return ()
-    end
-end
-
 func abi_decode_uint256{exec_env : ExecutionEnvironment*, range_check_ptr}(
         headStart : Uint256, dataEnd : Uint256) -> (value0 : Uint256):
     alloc_locals
@@ -57,7 +47,10 @@ func abi_decode_uint256{exec_env : ExecutionEnvironment*, range_check_ptr}(
     local range_check_ptr = range_check_ptr
     let (local _3_7 : Uint256) = slt(_2_6, _1_5)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_7)
+    if _3_7.low + _3_7.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     let (local value0 : Uint256) = calldataload(headStart)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
@@ -103,7 +96,10 @@ func abi_decode_uint256t_uint256t_uint256{exec_env : ExecutionEnvironment*, rang
     local range_check_ptr = range_check_ptr
     let (local _3_18 : Uint256) = slt(_2_17, _1_16)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_18)
+    if _3_18.low + _3_18.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     let (local value0_15 : Uint256) = calldataload(headStart_13)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
@@ -126,7 +122,10 @@ func checked_sub_uint256{range_check_ptr}(x : Uint256, y : Uint256) -> (diff : U
     alloc_locals
     let (local _1_31 : Uint256) = is_lt(x, y)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_1_31)
+    if _1_31.low + _1_31.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     let (local diff : Uint256) = uint256_sub(x, y)
     local range_check_ptr = range_check_ptr
     return (diff)
@@ -216,7 +215,10 @@ func __warp_block_6{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _11 : Uint256) = __warp_constant_0()
-    __warp_cond_revert(_11)
+    if _11.low + _11.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     let (local _12 : Uint256) = uint256_not(Uint256(low=127, high=0))
     local range_check_ptr = range_check_ptr
     local _13 : Uint256 = _4
@@ -455,4 +457,3 @@ func fun_ENTRY_POINT{
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
-

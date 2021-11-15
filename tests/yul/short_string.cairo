@@ -35,16 +35,6 @@ func initialize_address{range_check_ptr, syscall_ptr : felt*, pedersen_ptr : Has
     return ()
 end
 
-func __warp_cond_revert(_3_7 : Uint256) -> ():
-    alloc_locals
-    if _3_7.low + _3_7.high != 0:
-        assert 0 = 1
-        jmp rel 0
-    else:
-        return ()
-    end
-end
-
 func abi_decode{range_check_ptr}(headStart : Uint256, dataEnd : Uint256) -> ():
     alloc_locals
     local _1_5 : Uint256 = Uint256(low=0, high=0)
@@ -52,8 +42,12 @@ func abi_decode{range_check_ptr}(headStart : Uint256, dataEnd : Uint256) -> ():
     local range_check_ptr = range_check_ptr
     let (local _3_7 : Uint256) = slt(_2_6, _1_5)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_7)
-    return ()
+    if _3_7.low + _3_7.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    else:
+        return ()
+    end
 end
 
 func array_allocation_size_string{range_check_ptr}(length_49 : Uint256) -> (size_50 : Uint256):
@@ -65,7 +59,10 @@ func array_allocation_size_string{range_check_ptr}(length_49 : Uint256) -> (size
     local range_check_ptr = range_check_ptr
     let (local _2_52 : Uint256) = is_gt(length_49, _1_51)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_2_52)
+    if _2_52.low + _2_52.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _3_53 : Uint256 = Uint256(low=32, high=0)
     let (local _4_54 : Uint256) = uint256_not(Uint256(low=31, high=0))
     local range_check_ptr = range_check_ptr
@@ -102,7 +99,10 @@ func finalize_allocation{memory_dict : DictAccess*, msize, range_check_ptr}(
     local range_check_ptr = range_check_ptr
     let (local _8_44 : Uint256) = uint256_sub(_7_43, _5_41)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_8_44)
+    if _8_44.low + _8_44.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _9_45 : Uint256 = Uint256(low=64, high=0)
     uint256_mstore(offset=_9_45, value=newFreePtr)
     local memory_dict : DictAccess* = memory_dict
@@ -369,7 +369,10 @@ func memory_array_index_access_bytes{memory_dict : DictAccess*, msize, range_che
     local range_check_ptr = range_check_ptr
     let (local _3_83 : Uint256) = is_zero(_2_82)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_83)
+    if _3_83.low + _3_83.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _4_84 : Uint256 = Uint256(low=32, high=0)
     let (local _5_85 : Uint256) = u256_add(baseRef, index)
     local range_check_ptr = range_check_ptr
@@ -427,7 +430,10 @@ func __warp_block_4{
         _2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _11 : Uint256) = __warp_constant_0()
-    __warp_cond_revert(_11)
+    if _11.low + _11.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _12 : Uint256 = _4
     local _13 : Uint256 = _3
     abi_decode(_3, _4)
@@ -459,7 +465,10 @@ func __warp_block_6{
         _2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _17 : Uint256) = __warp_constant_0()
-    __warp_cond_revert(_17)
+    if _17.low + _17.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _18 : Uint256 = _4
     local _19 : Uint256 = _3
     abi_decode(_3, _4)
@@ -643,4 +652,3 @@ func fun_ENTRY_POINT{
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
-

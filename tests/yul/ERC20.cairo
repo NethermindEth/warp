@@ -43,16 +43,6 @@ func initialize_address{range_check_ptr, syscall_ptr : felt*, pedersen_ptr : Has
     return ()
 end
 
-func __warp_cond_revert(_3_7 : Uint256) -> ():
-    alloc_locals
-    if _3_7.low + _3_7.high != 0:
-        assert 0 = 1
-        jmp rel 0
-    else:
-        return ()
-    end
-end
-
 func abi_decode{range_check_ptr}(headStart : Uint256, dataEnd : Uint256) -> ():
     alloc_locals
     local _1_5 : Uint256 = Uint256(low=0, high=0)
@@ -60,8 +50,12 @@ func abi_decode{range_check_ptr}(headStart : Uint256, dataEnd : Uint256) -> ():
     local range_check_ptr = range_check_ptr
     let (local _3_7 : Uint256) = slt(_2_6, _1_5)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_7)
-    return ()
+    if _3_7.low + _3_7.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    else:
+        return ()
+    end
 end
 
 func getter_fun_totalSupply{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
@@ -103,7 +97,10 @@ func abi_decode_addresst_addresst_uint256{exec_env : ExecutionEnvironment*, rang
     local range_check_ptr = range_check_ptr
     let (local _3_15 : Uint256) = slt(_2_14, _1_13)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_15)
+    if _3_15.low + _3_15.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     let (local value0_12 : Uint256) = calldataload(headStart_10)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
@@ -133,8 +130,12 @@ func require_helper{range_check_ptr}(condition : Uint256) -> ():
     alloc_locals
     let (local _1_79 : Uint256) = is_zero(condition)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_1_79)
-    return ()
+    if _1_79.low + _1_79.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    else:
+        return ()
+    end
 end
 
 func setter_fun_balances{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
@@ -150,7 +151,10 @@ func checked_add_uint256{range_check_ptr}(x : Uint256, y : Uint256) -> (sum : Ui
     local range_check_ptr = range_check_ptr
     let (local _2_64 : Uint256) = is_gt(x, _1_63)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_2_64)
+    if _2_64.low + _2_64.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     let (local sum : Uint256) = u256_add(x, y)
     local range_check_ptr = range_check_ptr
     return (sum)
@@ -261,7 +265,10 @@ func abi_decode_addresst_uint256{exec_env : ExecutionEnvironment*, range_check_p
     local range_check_ptr = range_check_ptr
     let (local _3_44 : Uint256) = slt(_2_43, _1_42)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_44)
+    if _3_44.low + _3_44.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     let (local value0_40 : Uint256) = calldataload(headStart_38)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
@@ -299,7 +306,10 @@ func abi_decode_address{exec_env : ExecutionEnvironment*, range_check_ptr}(
     local range_check_ptr = range_check_ptr
     let (local _3_52 : Uint256) = slt(_2_51, _1_50)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_52)
+    if _3_52.low + _3_52.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     let (local value0_49 : Uint256) = calldataload(headStart_47)
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
@@ -335,7 +345,10 @@ func __warp_block_3{
         _2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _11 : Uint256) = __warp_constant_0()
-    __warp_cond_revert(_11)
+    if _11.low + _11.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _12 : Uint256 = _4
     abi_decode(_3, _4)
     local range_check_ptr = range_check_ptr
@@ -364,7 +377,10 @@ func __warp_block_5{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _19 : Uint256) = __warp_constant_0()
-    __warp_cond_revert(_19)
+    if _19.low + _19.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _20 : Uint256 = _4
     let (local param : Uint256, local param_1 : Uint256,
         local param_2 : Uint256) = abi_decode_addresst_addresst_uint256(_3, _4)
@@ -394,7 +410,10 @@ func __warp_block_7{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _23 : Uint256) = __warp_constant_0()
-    __warp_cond_revert(_23)
+    if _23.low + _23.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _24 : Uint256 = _4
     abi_decode(_3, _4)
     local range_check_ptr = range_check_ptr
@@ -420,7 +439,10 @@ func __warp_block_9{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _28 : Uint256) = __warp_constant_0()
-    __warp_cond_revert(_28)
+    if _28.low + _28.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _29 : Uint256 = _4
     abi_decode(_3, _4)
     local range_check_ptr = range_check_ptr
@@ -449,7 +471,10 @@ func __warp_block_11{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _32 : Uint256) = __warp_constant_0()
-    __warp_cond_revert(_32)
+    if _32.low + _32.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _33 : Uint256 = _4
     let (local param_3 : Uint256, local param_4 : Uint256) = abi_decode_addresst_uint256(_3, _4)
     local exec_env : ExecutionEnvironment* = exec_env
@@ -479,7 +504,10 @@ func __warp_block_13{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _36 : Uint256) = __warp_constant_0()
-    __warp_cond_revert(_36)
+    if _36.low + _36.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _37 : Uint256 = _4
     let (local _38 : Uint256) = abi_decode_address(_3, _4)
     local exec_env : ExecutionEnvironment* = exec_env
@@ -509,7 +537,10 @@ func __warp_block_15{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _41 : Uint256) = __warp_constant_0()
-    __warp_cond_revert(_41)
+    if _41.low + _41.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _42 : Uint256 = _4
     let (local _43 : Uint256) = abi_decode_address(_3, _4)
     local exec_env : ExecutionEnvironment* = exec_env
@@ -539,7 +570,10 @@ func __warp_block_17{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _46 : Uint256) = __warp_constant_0()
-    __warp_cond_revert(_46)
+    if _46.low + _46.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _47 : Uint256 = _4
     let (local param_5 : Uint256, local param_6 : Uint256) = abi_decode_addresst_uint256(_3, _4)
     local exec_env : ExecutionEnvironment* = exec_env
@@ -1008,4 +1042,3 @@ func fun_ENTRY_POINT{
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
-

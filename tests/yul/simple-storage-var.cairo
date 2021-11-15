@@ -39,16 +39,6 @@ func initialize_address{range_check_ptr, syscall_ptr : felt*, pedersen_ptr : Has
     return ()
 end
 
-func __warp_cond_revert(_3_7 : Uint256) -> ():
-    alloc_locals
-    if _3_7.low + _3_7.high != 0:
-        assert 0 = 1
-        jmp rel 0
-    else:
-        return ()
-    end
-end
-
 func abi_decode{range_check_ptr}(headStart : Uint256, dataEnd : Uint256) -> ():
     alloc_locals
     local _1_5 : Uint256 = Uint256(low=0, high=0)
@@ -56,8 +46,12 @@ func abi_decode{range_check_ptr}(headStart : Uint256, dataEnd : Uint256) -> ():
     local range_check_ptr = range_check_ptr
     let (local _3_7 : Uint256) = slt(_2_6, _1_5)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_7)
-    return ()
+    if _3_7.low + _3_7.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    else:
+        return ()
+    end
 end
 
 func getter_fun_counter{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (
@@ -96,7 +90,10 @@ func checked_add_uint256{range_check_ptr}(x : Uint256, y : Uint256) -> (sum : Ui
     local range_check_ptr = range_check_ptr
     let (local _2_21 : Uint256) = is_gt(x, _1_20)
     local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_2_21)
+    if _2_21.low + _2_21.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     let (local sum : Uint256) = u256_add(x, y)
     local range_check_ptr = range_check_ptr
     return (sum)
@@ -136,7 +133,10 @@ func __warp_block_3{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _11 : Uint256) = __warp_constant_0()
-    __warp_cond_revert(_11)
+    if _11.low + _11.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _12 : Uint256 = _4
     local _13 : Uint256 = _3
     abi_decode(_3, _4)
@@ -166,7 +166,10 @@ func __warp_block_5{
         _2 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _20 : Uint256) = __warp_constant_0()
-    __warp_cond_revert(_20)
+    if _20.low + _20.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _21 : Uint256 = _4
     local _22 : Uint256 = _3
     abi_decode(_3, _4)
@@ -374,4 +377,3 @@ func fun_ENTRY_POINT{
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
-

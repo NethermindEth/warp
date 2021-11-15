@@ -20,12 +20,14 @@ Block:
 							Identifier:lt
 							Identifier:x
 							Identifier:y
-				Assignment:
-					Variables:
-					Value:
-						FunctionCall:
-							Identifier:__warp_cond_revert
-							Identifier:_1_5
+				If:
+					Identifier:_1_5
+					Block:
+						ExpressionStatement:
+							FunctionCall:
+								Identifier:revert
+								Literal:0
+								Literal:0
 				Assignment:
 					Variables:
 						Identifier:diff
@@ -50,12 +52,14 @@ Block:
 						FunctionCall:
 							Identifier:iszero
 							Identifier:condition
-				Assignment:
-					Variables:
-					Value:
-						FunctionCall:
-							Identifier:__warp_cond_revert
-							Identifier:_1_17
+				If:
+					Identifier:_1_17
+					Block:
+						ExpressionStatement:
+							FunctionCall:
+								Identifier:revert
+								Literal:0
+								Literal:0
 	FunctionDefinition:
 		Name: fun_transfer
 		Parameters:
@@ -132,19 +136,3 @@ Block:
 						Identifier:var
 					Value:
 						Literal:1
-	FunctionDefinition:
-		Name: __warp_cond_revert
-		Parameters:
-			TypedName:
-				_1_5:Uint256
-		Return Variables:
-		Body:
-			Block:
-				If:
-					Identifier:_1_5
-					Block:
-						ExpressionStatement:
-							FunctionCall:
-								Identifier:revert
-								Literal:0
-								Literal:0

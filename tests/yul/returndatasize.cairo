@@ -39,8 +39,13 @@ func initialize_address{range_check_ptr, syscall_ptr : felt*, pedersen_ptr : Has
     return ()
 end
 
-func __warp_cond_revert(_3_7 : Uint256) -> ():
+func abi_decode{range_check_ptr}(headStart : Uint256, dataEnd : Uint256) -> ():
     alloc_locals
+    local _1_5 : Uint256 = Uint256(low=0, high=0)
+    let (local _2_6 : Uint256) = uint256_sub(dataEnd, headStart)
+    local range_check_ptr = range_check_ptr
+    let (local _3_7 : Uint256) = slt(_2_6, _1_5)
+    local range_check_ptr = range_check_ptr
     if _3_7.low + _3_7.high != 0:
         assert 0 = 1
         jmp rel 0
@@ -49,23 +54,16 @@ func __warp_cond_revert(_3_7 : Uint256) -> ():
     end
 end
 
-func abi_decode{range_check_ptr}(headStart : Uint256, dataEnd : Uint256) -> ():
-    alloc_locals
-    local _1_5 : Uint256 = Uint256(low=0, high=0)
-    let (local _2_6 : Uint256) = uint256_sub(dataEnd, headStart)
-    local range_check_ptr = range_check_ptr
-    let (local _3_7 : Uint256) = slt(_2_6, _1_5)
-    local range_check_ptr = range_check_ptr
-    __warp_cond_revert(_3_7)
-    return ()
-end
-
 func fun_viewReturndatasize{exec_env : ExecutionEnvironment*}() -> (var_res : Uint256):
     alloc_locals
     let (local var_res : Uint256) = returndata_size()
     local exec_env : ExecutionEnvironment* = exec_env
-    __warp_cond_revert(var_res)
-    return (var_res)
+    if var_res.low + var_res.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    else:
+        return (var_res)
+    end
 end
 
 func abi_encode_uint256_to_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
@@ -96,7 +94,10 @@ func __warp_block_1{
         _1 : Uint256, _3 : Uint256, _4 : Uint256) -> ():
     alloc_locals
     let (local _13 : Uint256) = __warp_constant_0()
-    __warp_cond_revert(_13)
+    if _13.low + _13.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
     local _14 : Uint256 = _4
     local _15 : Uint256 = _3
     abi_decode(_3, _4)
@@ -216,4 +217,3 @@ func fun_ENTRY_POINT{
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
-
