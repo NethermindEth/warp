@@ -4,13 +4,14 @@ TEMPLATES := $(wildcard $(GOLDEN_DIR)/*.template)
 BATS_FILES := $(patsubst $(GOLDEN_DIR)/%.template,$(BATS_DIR)/test-%.bats,$(TEMPLATES))
 TEST_FILES := $(shell find ./tests -type f ! -name '*.temp*') # exclude temporary files
 SRC_FILES := $(shell find ./warp/ -type f)
+KUDU_FILES := $(shell find ./warp/bin -name kudu)
 PY_REQUIREMENTS := requirements.txt
 NPROCS := $(shell getconf _NPROCESSORS_ONLN)
 
 warp: .warp-activation-token
 .PHONY: warp
 
-.warp-activation-token: $(SRC_FILES) ./scripts/kudu setup.py $(PY_REQUIREMENTS)
+.warp-activation-token: $(SRC_FILES) $(KUDU_FILES) ./scripts/kudu setup.py $(PY_REQUIREMENTS)
 	python setup.py install
 	touch .warp-activation-token
 

@@ -13,10 +13,6 @@ from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import (
     Uint256, uint256_and, uint256_not, uint256_sub, uint256_xor)
 
-func __warp_constant_0() -> (res : Uint256):
-    return (Uint256(low=0, high=0))
-end
-
 @storage_var
 func this_address() -> (res : felt):
 end
@@ -141,29 +137,24 @@ func __warp_block_3{
         exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}() -> (
         ):
     alloc_locals
-    let (local __warp_subexpr_0 : Uint256) = __warp_constant_0()
-    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
-        assert 0 = 1
-        jmp rel 0
-    end
-    let (local __warp_subexpr_1 : Uint256) = calldatasize()
+    let (local __warp_subexpr_0 : Uint256) = calldatasize()
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     let (local param : Uint256, local param_1 : Uint256, local param_2 : Uint256,
-        local param_3 : Uint256) = abi_decode_uint256t_uint256t_uint256t_uint256(__warp_subexpr_1)
+        local param_3 : Uint256) = abi_decode_uint256t_uint256t_uint256t_uint256(__warp_subexpr_0)
     local exec_env : ExecutionEnvironment* = exec_env
     local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_5 : Uint256) = fun_pureFunction(param, param_1, param_2, param_3)
+    let (local __warp_subexpr_4 : Uint256) = fun_pureFunction(param, param_1, param_2, param_3)
     local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_4 : Uint256) = uint256_not(Uint256(low=127, high=0))
+    let (local __warp_subexpr_3 : Uint256) = uint256_not(Uint256(low=127, high=0))
     local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_3 : Uint256) = abi_encode_uint256(__warp_subexpr_5)
+    let (local __warp_subexpr_2 : Uint256) = abi_encode_uint256(__warp_subexpr_4)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_2 : Uint256) = u256_add(__warp_subexpr_3, __warp_subexpr_4)
+    let (local __warp_subexpr_1 : Uint256) = u256_add(__warp_subexpr_2, __warp_subexpr_3)
     local range_check_ptr = range_check_ptr
-    returndata_write(Uint256(low=128, high=0), __warp_subexpr_2)
+    returndata_write(Uint256(low=128, high=0), __warp_subexpr_1)
     local exec_env : ExecutionEnvironment* = exec_env
     return ()
 end

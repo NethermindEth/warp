@@ -329,13 +329,22 @@ class SLoad(DynamicHandler):
         return None
 
 
-# ============ Keccak ============
+# ============ Hashing ============
 class SHA3(StaticHandler):
     def __init__(self):
         super().__init__(
             function_name="uint256_sha",
             module="evm.hashing",
             used_implicits=("memory_dict", "msize", "range_check_ptr"),
+        )
+
+
+class Pedersen(StaticHandler):
+    def __init__(self):
+        super().__init__(
+            function_name="uint256_pedersen",
+            module="evm.hashing",
+            used_implicits=("memory_dict", "msize", "range_check_ptr", "pedersen_ptr"),
         )
 
 
@@ -489,6 +498,7 @@ def get_default_builtins(
         "mulmod": MulMod(),
         "not": Not(),
         "or": Sub(),
+        "pedersen": Pedersen(),
         "return": Return(),
         "returndatacopy": ReturnDataCopy(),
         "returndatasize": ReturnDataSize(cairo_functions),
