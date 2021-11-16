@@ -36,7 +36,8 @@ class VariableInliner(AstMapper):
             definition_scope = self.scope_lookup(node.value.name)
             current_scope[var_name] = definition_scope[0] if definition_scope else None
         elif node.value is None:
-            current_scope[var_name] = ast.Literal(0)
+            for var in node.variables:
+                current_scope[var.name] = ast.Literal(0)
 
         return ast.VariableDeclaration(
             variables=node.variables,

@@ -141,11 +141,9 @@ class DeadcodeEliminator(AstMapper):
                 if isinstance(statement, (ast.Assignment, ast.VariableDeclaration)):
                     var_list = _get_variables(statement)
                     if not isinstance(statement.value, ast.FunctionCall):
-                        # We know that there is only one var
-                        assert (
-                            len(var_list) == 1
-                        ), "Yul variable assignment and declerations should have only one var definied if it's not unpacking a function call"
-                        keep = var_list[0] in live_vars
+                        # We under approximate for now, we keep the entire
+                        # declaration if any of the declared variable is live.
+                        keep = any(var in live_vars for var in var_list)
                     live_vars -= fset(var_list)
                 if keep:
                     live_vars |= current_live_vars

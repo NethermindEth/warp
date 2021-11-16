@@ -18,8 +18,10 @@ class FoldIf(AstMapper):
                 visited_if = self.visit(statement)
                 if isinstance(visited_if, ast.Block):
                     statements += list(visited_if.statements)
-                    continue
-            statements.append(self.visit(statement))
+                else:
+                    statements.append(visited_if)
+            else:
+                statements.append(self.visit(statement))
 
         return ast.Block(tuple(statements))
 
