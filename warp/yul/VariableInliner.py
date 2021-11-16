@@ -33,8 +33,8 @@ class VariableInliner(AstMapper):
         if isinstance(node.value, ast.Literal):
             current_scope[var_name] = node.value
         elif isinstance(node.value, ast.Identifier):
-            definition_scope = self.scope_lookup(node.value.name)
-            current_scope[var_name] = definition_scope[0] if definition_scope else None
+            val_and_scope = self.scope_lookup(node.value.name)
+            current_scope[var_name] = val_and_scope[0] if val_and_scope else None
         elif node.value is None:
             for var in node.variables:
                 current_scope[var.name] = ast.Literal(0)
@@ -49,17 +49,17 @@ class VariableInliner(AstMapper):
         # Since the rhs is either a literal or an identifier only one variable
         # is being assigned to.
         var_name = node.variable_names[0].name
-        definition_scope = self.scope_lookup(var_name)
-        # Invalidate |var_name| in |parent_scope| if it was not declared in the
+        val_and_scope = self.scope_lookup(var_name)
+        # Invalidate |var_name| in |definition_scope| if it was not declared in the
         # current scope.
-        if var_name not in current_scope and definition_scope:
-            (_, parent_scope) = definition_scope
-            parent_scope[var_name] = None
+        if var_name not in current_scope and val_and_scope:
+            (_, definition_scope) = val_and_scope
+            definition_scope[var_name] = None
 
         if isinstance(node.value, ast.Literal):
             current_scope[var_name] = node.value
         elif isinstance(node.value, ast.Identifier):
-            current_scope[var_name] = definition_scope[0] if definition_scope else None
+            current_scope[var_name] = val_and_scope[0] if val_and_scope else None
 
         return ast.Assignment(
             variable_names=node.variable_names,
@@ -69,8 +69,8 @@ class VariableInliner(AstMapper):
     def visit_identifier(
         self, node: ast.Identifier
     ) -> Union[ast.Literal, ast.Identifier]:
-        definition_scope = self.scope_lookup(node.name)
-        return definition_scope[0] if definition_scope else node
+        val_and_scope = self.scope_lookup(node.name)
+        return val_and_scope[0] if val_and_scope else node
 
     def scope_lookup(self, var_name: str) -> Optional[Tuple[ast.Literal, Scope]]:
         for scope in reversed(self.scope):

@@ -13,7 +13,7 @@ REDUCERS = {
     "div": lambda x, y: x / y if y != 0 else 0,
     "mod": lambda x, y: x % y if y != 0 else 0,
     "exp": lambda x, y: x ** y,
-    "not": lambda x: ~x,
+    "not": lambda x: ~x % uint256,
     "eq": lambda x, y: int(x == y),
     "and": lambda x, y: x & y,
     "or": lambda x, y: x | y,
@@ -28,10 +28,10 @@ REDUCERS = {
 uint256 = 2 ** 256
 
 
-def _modulo_guard(res):
+def overflow_check(res):
     if res > uint256:
         raise WarpException("ConstantFolder detected an overflow")
-    return res % uint256
+    return res
 
 
 class ConstantFolder(AstMapper):
@@ -48,7 +48,7 @@ class ConstantFolder(AstMapper):
         reducer = REDUCERS.get(node.function_name.name)
         if reducer and all(isinstance(arg, ast.Literal) for arg in reduced_args):
             return ast.Literal(
-                _modulo_guard(reducer(*[arg.value for arg in reduced_args]))
+                overflow_check(reducer(*[arg.value for arg in reduced_args]))
             )
 
         return ast.FunctionCall(
