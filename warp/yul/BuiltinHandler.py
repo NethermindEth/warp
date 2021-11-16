@@ -11,6 +11,11 @@ from yul.Imports import Imports
 UINT256_MODULE = "starkware.cairo.common.uint256"
 
 
+class PrettyType(type):
+    def __repr__(self):
+        return self.__name__
+
+
 class BuiltinHandler(ABC):
     """Describes how an operation built into Yul translates to Cairo.
 
@@ -149,6 +154,15 @@ class NotImplementedOp(DynamicHandler):
             file=sys.stderr,
         )
         return super().get_function_call([])
+
+
+class NotImplementedStarkNet(metaclass=PrettyType):
+    def get_function_call(self, _args: Sequence[str]):
+        raise Exception(
+            f"Your Solidity contract makes use of {str(type(self)).lower()},"
+            f"which is not yet accessible from within StarkNet contracts."
+            f"Please remove references to {str(type(self)).lower()}"
+        )
 
 
 # ============ Comparisons ============
@@ -472,6 +486,94 @@ class CallValue(DynamicHandler):
         return super().get_function_call([])
 
 
+class BaseFee(NotImplementedStarkNet):
+    pass
+
+
+class BlockHash(NotImplementedStarkNet):
+    pass
+
+
+class ChainID(NotImplementedStarkNet):
+    pass
+
+
+class Coinbase(NotImplementedStarkNet):
+    pass
+
+
+class CodeCopy(NotImplementedStarkNet):
+    pass
+
+
+class CodeSize(NotImplementedStarkNet):
+    pass
+
+
+class Create(NotImplementedStarkNet):
+    pass
+
+
+class Create2(NotImplementedStarkNet):
+    pass
+
+
+class Difficulty(NotImplementedStarkNet):
+    pass
+
+
+class ExtCodeHash(NotImplementedStarkNet):
+    pass
+
+
+class ExtCodeCopy(NotImplementedStarkNet):
+    pass
+
+
+class GasLimit(NotImplementedStarkNet):
+    pass
+
+
+class GasPrice(NotImplementedStarkNet):
+    pass
+
+
+class Log0(NotImplementedStarkNet):
+    pass
+
+
+class Log1(NotImplementedStarkNet):
+    pass
+
+
+class Log2(NotImplementedStarkNet):
+    pass
+
+
+class Log3(NotImplementedStarkNet):
+    pass
+
+
+class Log4(NotImplementedStarkNet):
+    pass
+
+
+class Number(NotImplementedStarkNet):
+    pass
+
+
+class SelfDestruct(NotImplementedStarkNet):
+    pass
+
+
+class SelfBalance(NotImplementedStarkNet):
+    pass
+
+
+class Timestamp(NotImplementedStarkNet):
+    pass
+
+
 def get_default_builtins(
     cairo_functions: CairoFunctions,
 ) -> Mapping[str, BuiltinHandler]:
@@ -481,6 +583,8 @@ def get_default_builtins(
         "addmod": AddMod(),
         "address": Address(cairo_functions),
         "and": And(),
+        "basefee": BaseFee(),
+        "blockhash": BlockHash(),
         "byte": Byte(),
         "call": Call(),
         "calldatacopy": CallDataCopy(),
@@ -488,16 +592,30 @@ def get_default_builtins(
         "calldatasize": CallDataSize(),
         "caller": Caller(),
         "callvalue": CallValue(cairo_functions),
+        "coinbase": Coinbase(),
+        "codecopy": CodeCopy(),
+        "codesize": CodeSize(),
+        "create": Create(),
+        "create2": Create2(),
         "delegatecall": Delegatecall(cairo_functions),
+        "difficulty": Difficulty(),
         "div": Div(),
         "eq": Eq(),
         "exp": Exp(),
-        "extcodesize": ExtCodeSize(cairo_functions),
+        "extcodecopy": ExtCodeCopy(),
+        "extecodesize": ExtCodeSize(cairo_functions),
         "gas": Gas(cairo_functions),
+        "gaslimit": GasLimit(),
+        "gasprice": GasPrice(),
         "gt": Gt(),
         "iszero": IsZero(),
         "keccak256": SHA3(),
         "lt": Lt(),
+        "log0": Log0(),
+        "log1": Log1(),
+        "log2": Log2(),
+        "log3": Log3(),
+        "log4": Log4(),
         "mload": MLoad(),
         "mod": Mod(),
         "msize": MSize(),
@@ -506,6 +624,7 @@ def get_default_builtins(
         "mul": Mul(),
         "mulmod": MulMod(),
         "not": Not(),
+        "number": Number(),
         "or": Sub(),
         "pedersen": Pedersen(),
         "return": Return(),
@@ -513,6 +632,7 @@ def get_default_builtins(
         "returndatasize": ReturnDataSize(cairo_functions),
         "sar": Sar(),
         "sdiv": Sdiv(),
+        "selfbalance": SelfBalance(),
         "sgt": Sgt(),
         "shl": Shl(),
         "shr": Shr(),
@@ -523,5 +643,6 @@ def get_default_builtins(
         "sstore": SStore(cairo_functions),
         "staticcall": StaticCall(),
         "sub": Sub(),
+        "timestamp": Timestamp(),
         "xor": Xor(),
     }

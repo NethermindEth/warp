@@ -44,10 +44,14 @@ func calldataload{range_check_ptr, exec_env : ExecutionEnvironment*}(offset : Ui
     return (value=value)
 end
 
-func returndata_copy{range_check_ptr, exec_env : ExecutionEnvironment, memory_dict : DictAccess*}(
+func returndata_copy{range_check_ptr, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*}(
         memory_pos : Uint256, returndata_pos : Uint256, length : Uint256):
     array_copy_to_memory(
-        exec_env.returndata_len, exec_env.returndata, returndata_pos, memory_pos, length)
+        exec_env.returndata_len,
+        exec_env.returndata,
+        returndata_pos.low,
+        memory_pos.low,
+        length.low)
     return ()
 end
 
