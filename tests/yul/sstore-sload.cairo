@@ -20,8 +20,8 @@ end
 
 func sload{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(key : Uint256) -> (
         value : Uint256):
-    let (res) = evm_storage.read(key.low, key.high)
-    return (res)
+    let (value) = evm_storage.read(key.low, key.high)
+    return (value)
 end
 
 @storage_var

@@ -420,6 +420,9 @@ class Gas(DynamicHandler):
     def __init__(self, cairo_functions: CairoFunctions):
         super().__init__(lambda: cairo_functions.constant_function(10 ** 40))
 
+    def get_function_call(self, function_args: Sequence[str]) -> str:
+        return super().get_function_call([])
+
 
 class Delegatecall(NotImplementedOp):
     pass
@@ -457,10 +460,16 @@ class ExtCodeSize(DynamicHandler):
     def __init__(self, cairo_functions: CairoFunctions):
         super().__init__(lambda: cairo_functions.constant_function(1))
 
+    def get_function_call(self, function_args: Sequence[str]) -> str:
+        return super().get_function_call([])
+
 
 class CallValue(DynamicHandler):
     def __init__(self, cairo_functions: CairoFunctions):
         super().__init__(lambda: cairo_functions.constant_function(0))
+
+    def get_function_call(self, function_args: Sequence[str]) -> str:
+        return super().get_function_call([])
 
 
 def get_default_builtins(
@@ -483,7 +492,7 @@ def get_default_builtins(
         "div": Div(),
         "eq": Eq(),
         "exp": Exp(),
-        "extecodesize": ExtCodeSize(cairo_functions),
+        "extcodesize": ExtCodeSize(cairo_functions),
         "gas": Gas(cairo_functions),
         "gt": Gt(),
         "iszero": IsZero(),

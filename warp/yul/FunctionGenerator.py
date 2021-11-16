@@ -106,7 +106,7 @@ class CairoFunctions:
             return "\n".join(
                 [
                     f"func {name}{implicits_str}(key: Uint256) -> (value: Uint256):",
-                    generate_getter_body("evm_storage", ("key",)),
+                    generate_getter_body("evm_storage", ("key",), "value"),
                     "end\n",
                 ]
             )

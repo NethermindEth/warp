@@ -15,8 +15,8 @@ from starkware.cairo.common.uint256 import Uint256, uint256_not, uint256_sub
 
 func sload{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(key : Uint256) -> (
         value : Uint256):
-    let (res) = evm_storage.read(key.low, key.high)
-    return (res)
+    let (value) = evm_storage.read(key.low, key.high)
+    return (value)
 end
 
 func sstore{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
@@ -433,8 +433,8 @@ end
 func getter_fun_balances{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         key_23 : Uint256) -> (ret_24 : Uint256):
     alloc_locals
-    let (res) = balances.read(key_23.low, key_23.high)
-    return (res)
+    let (ret_24) = balances.read(key_23.low, key_23.high)
+    return (ret_24)
 end
 
 func fun_balanceOf{

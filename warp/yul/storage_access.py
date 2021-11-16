@@ -31,9 +31,13 @@ class StorageVar:
     res_type: str
 
 
-def generate_getter_body(getter_var: str, args: Iterable[str]) -> str:
+def generate_getter_body(
+    getter_var: str, args: Iterable[str], return_name: str = "res"
+) -> str:
     args_repr = ", ".join(f"{x}.low, {x}.high" for x in args)
-    return f"let (res) = {getter_var}.read({args_repr})\nreturn (res)"
+    return (
+        f"let ({return_name}) = {getter_var}.read({args_repr})\nreturn ({return_name})"
+    )
 
 
 def generate_setter_body(setter_var: str, args: Iterable[str]) -> str:
