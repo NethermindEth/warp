@@ -7,7 +7,6 @@ import subprocess
 import sys
 
 import yul.yul_ast as ast
-from starkware.cairo.lang.compiler.parser import parse_file
 from yul.BuiltinHandler import get_default_builtins
 from yul.ExpressionSplitter import ExpressionSplitter
 from yul.ForLoopEliminator import ForLoopEliminator
@@ -71,6 +70,7 @@ def transpile_from_yul(yul_ast: ast.Node) -> str:
     yul_ast = LeaveNormalizer().map(yul_ast)
     yul_ast = RevertNormalizer().map(yul_ast)
     yul_ast = FunctionPruner().map(yul_ast)
+    from starkware.cairo.lang.compiler.parser import parse_file
 
     cairo_visitor = ToCairoVisitor(name_gen, cairo_functions, get_default_builtins)
     return (

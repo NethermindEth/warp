@@ -1,4 +1,5 @@
 # NOTE
+
 Warp is under heavy development and is currently not stable. A stable release will be released in the coming weeks.
 
 # Warp
@@ -18,6 +19,7 @@ Prerequisites:
 Make sure your Solidity compiler version is >= 0.8.0
 
 Linux:
+
 ```
 sudo apt update
 sudo apt install software-properties-common
@@ -31,7 +33,9 @@ sudo apt-get install -y python3.7-venv
 python3.7 -m venv ~/warp
 source ~/warp/bin/activate
 ```
+
 MacOs:
+
 ```
 brew install python@3.7
 brew install gmp
@@ -41,8 +45,31 @@ source ~/warp/bin/activate
 ```
 
 Install Warp:
+
 ```
 pip install sol-warp
+```
+
+## Setting up autocompletion
+
+Warp comes with support for command line completion in bash, zsh, and fish
+
+for bash:
+
+```
+ eval "$(_WARP_COMPLETE=bash_source warp)" >> ~/.bashrc
+```
+
+for zsh:
+
+```
+ eval "$(_WARP_COMPLETE=zsh_source warp)" >> ~/.zshrc
+```
+
+for fish:
+
+```
+_WARP_COMPLETE=fish_source warp > ~/.config/fish/completions/warp.fish
 ```
 
 ## Usage :computer:
@@ -56,11 +83,13 @@ warp transpile FILE_PATH CONTRACT_NAME
 `CONTRACT_NAME` is the name of the primary contract (non-interface, non-library, non-abstract contract) that you wish to transpile
 
 To deploy the transpiled program to Starknet use:
+
 ```
 warp deploy CONTRACT.json
 ```
 
 To invoke a public/external method use:
+
 ```
 warp invoke --program CONTRACT.json --address ADDRESS --function FUNCTION_NAME --inputs "INPUTS"
 ```
@@ -80,20 +109,23 @@ function validate(address _ownerCheck, Person calldata _person, uint _ownerCellN
         && ownerCellNumber == _ownerCellNumberCheck);
 }
 ```
+
 The command to call this function would be:
+
 ```bash
 warp invoke --program CONTRACT.json --address ADDRESS --function validate \
         --inputs "[0x07964d2123425737cd3663bec47c68db37dc61d83fee74fc192d50a59fb7ab56,
         (26, 200), 7432533831]"
 ```
+
 The `--inputs` flag, if not empty, should always be an 'array'. As you can see, we have
 passed the struct fields as a tuple, their order should be the same as their
 declaration order (i.e `age` first, `person` second). If the first argument to the
-```validate``` function was an array of uint's, then we'd pass it in as you'd expect:
+`validate` function was an array of uint's, then we'd pass it in as you'd expect:
+
 ```bash
 --inputs = "[[42,1722,7], (26, 200), 7432533831]"
 ```
-
 
 You can check the status of your transaction with:
 
