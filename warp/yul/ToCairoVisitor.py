@@ -120,12 +120,14 @@ class ToCairoVisitor(AstVisitor):
         args = [self.print(x) for x in node.arguments]
         if fun_repr == "revert":
             return "assert 0 = 1\njmp rel 0"
+        if fun_repr == "pop":
+            return ""
         result: str
         builtin_handler = self.builtins_map.get(fun_repr)
         if builtin_handler:
+            result = f"{builtin_handler.get_function_call(args)}"
             merge_imports(self.imports, builtin_handler.required_imports())
             self.last_used_implicits = builtin_handler.get_used_implicits()
-            result = f"{builtin_handler.get_function_call(args)}"
         else:
             self.last_used_implicits = sorted(
                 self.function_to_implicits.setdefault(
