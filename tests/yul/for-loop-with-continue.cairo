@@ -34,9 +34,9 @@ end
 func abi_decode_uint256t_uint256{exec_env : ExecutionEnvironment*, range_check_ptr}(
         dataEnd : Uint256) -> (value0 : Uint256, value1 : Uint256):
     alloc_locals
-    let (local __warp_subexpr_2 : Uint256) = uint256_not(Uint256(low=3, high=0))
-    local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_1 : Uint256) = u256_add(dataEnd, __warp_subexpr_2)
+    let (local __warp_subexpr_1 : Uint256) = u256_add(
+        dataEnd,
+        Uint256(low=340282366920938463463374607431768211452, high=340282366920938463463374607431768211455))
     local range_check_ptr = range_check_ptr
     let (local __warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=64, high=0))
     local range_check_ptr = range_check_ptr
@@ -61,9 +61,9 @@ func checked_sub_uint256{range_check_ptr}(x_2 : Uint256) -> (diff : Uint256):
         assert 0 = 1
         jmp rel 0
     end
-    let (local __warp_subexpr_1 : Uint256) = uint256_not(Uint256(low=0, high=0))
-    local range_check_ptr = range_check_ptr
-    let (local diff : Uint256) = u256_add(x_2, __warp_subexpr_1)
+    let (local diff : Uint256) = u256_add(
+        x_2,
+        Uint256(low=340282366920938463463374607431768211455, high=340282366920938463463374607431768211455))
     local range_check_ptr = range_check_ptr
     return (diff)
 end

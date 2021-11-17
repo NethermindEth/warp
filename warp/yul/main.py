@@ -8,8 +8,10 @@ import sys
 
 import yul.yul_ast as ast
 from yul.BuiltinHandler import get_default_builtins
+from yul.ConstantFolder import ConstantFolder
 from yul.DeadcodeEliminator import DeadcodeEliminator
 from yul.ExpressionSplitter import ExpressionSplitter
+from yul.FoldIf import FoldIf
 from yul.ForLoopEliminator import ForLoopEliminator
 from yul.ForLoopSimplifier import ForLoopSimplifier
 from yul.FunctionGenerator import CairoFunctions, FunctionGenerator
@@ -23,6 +25,7 @@ from yul.ScopeFlattener import ScopeFlattener
 from yul.SwitchToIfVisitor import SwitchToIfVisitor
 from yul.ToCairoVisitor import ToCairoVisitor
 from yul.utils import get_for_contract
+from yul.VariableInliner import VariableInliner
 from yul.WarpException import warp_assert
 
 AST_GENERATOR = "kudu"
@@ -65,6 +68,9 @@ def transpile_from_yul(yul_ast: ast.Node) -> str:
     yul_ast = ForLoopEliminator(name_gen).map(yul_ast)
     yul_ast = MangleNamesVisitor().map(yul_ast)
     yul_ast = SwitchToIfVisitor().map(yul_ast)
+    yul_ast = VariableInliner().map(yul_ast)
+    yul_ast = ConstantFolder().map(yul_ast)
+    yul_ast = FoldIf().map(yul_ast)
     yul_ast = ExpressionSplitter(name_gen).map(yul_ast)
     yul_ast = RevertNormalizer().map(yul_ast)
     yul_ast = ScopeFlattener(name_gen).map(yul_ast)

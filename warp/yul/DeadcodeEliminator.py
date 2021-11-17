@@ -45,12 +45,12 @@ class DeadcodeEliminator(AstMapper):
     def visit_identifier(self, node: ast.Identifier) -> Tuple[LiveVars, ast.Identifier]:
         return (fset({node.name}), node)
 
-    def visit_typed_name(self, node: ast.TypedName):
+    def visit_typed_name(self, node: ast.TypedName) -> Tuple[LiveVars, ast.TypedName]:
         return (fset({node.name}), node)
 
     def visit_function_call(
         self, node: ast.FunctionCall
-    ) -> (LiveVars, ast.FunctionCall):
+    ) -> Tuple[LiveVars, ast.FunctionCall]:
         (live_vars, arguments) = self.visit(node.arguments)
         return (
             live_vars,
@@ -59,7 +59,7 @@ class DeadcodeEliminator(AstMapper):
 
     def visit_expression_statement(
         self, node: ast.ExpressionStatement
-    ) -> (LiveVars, ast.ExpressionStatement):
+    ) -> Tuple[LiveVars, ast.ExpressionStatement]:
         (live_vars, _) = self.visit(node.expression)
         return (live_vars, node)
 
@@ -69,7 +69,7 @@ class DeadcodeEliminator(AstMapper):
 
     def visit_variable_declaration(
         self, node: ast.VariableDeclaration
-    ) -> (LiveVars, ast.VariableDeclaration):
+    ) -> Tuple[LiveVars, ast.VariableDeclaration]:
         if node.value is None:
             return (fset(), node)
         (live_vars, _) = self.visit(node.value)
@@ -77,7 +77,7 @@ class DeadcodeEliminator(AstMapper):
 
     def visit_function_definition(
         self, node: ast.FunctionDefinition
-    ) -> (LiveVars, ast.FunctionDefinition):
+    ) -> Tuple[LiveVars, ast.FunctionDefinition]:
         return_variables = fset({n.name for n in node.return_variables})
         with self._new_function(return_variables):
             (live_vars, body) = self.visit(node.body)
@@ -141,17 +141,15 @@ class DeadcodeEliminator(AstMapper):
                 if isinstance(statement, (ast.Assignment, ast.VariableDeclaration)):
                     var_list = _get_variables(statement)
                     if not isinstance(statement.value, ast.FunctionCall):
-                        # We know that there is only one var
-                        assert (
-                            len(var_list) == 1
-                        ), "Yul variable assignment and declerations should have only one var definied if it's not unpacking a function call"
-                        keep = var_list[0] in live_vars
+                        # We under approximate for now, we keep the entire
+                        # declaration if any of the declared variable is live.
+                        keep = any(var in live_vars for var in var_list)
                     live_vars -= fset(var_list)
                 if keep:
                     live_vars |= current_live_vars
                     statements.append(statement)
         statements.reverse()
-        return (live_vars, ast.Block((statements)))
+        return (live_vars, ast.Block(tuple(statements)))
 
     @contextmanager
     def _new_function(self, return_vars):

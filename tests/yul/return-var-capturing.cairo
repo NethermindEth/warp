@@ -10,7 +10,7 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import Uint256, uint256_not, uint256_sub
+from starkware.cairo.common.uint256 import Uint256, uint256_sub
 
 @storage_var
 func this_address() -> (res : felt):
@@ -34,9 +34,9 @@ end
 func abi_decode_uint256t_uint256{exec_env : ExecutionEnvironment*, range_check_ptr}(
         dataEnd : Uint256) -> (value0 : Uint256, value1 : Uint256):
     alloc_locals
-    let (local __warp_subexpr_2 : Uint256) = uint256_not(Uint256(low=3, high=0))
-    local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_1 : Uint256) = u256_add(dataEnd, __warp_subexpr_2)
+    let (local __warp_subexpr_1 : Uint256) = u256_add(
+        dataEnd,
+        Uint256(low=340282366920938463463374607431768211452, high=340282366920938463463374607431768211455))
     local range_check_ptr = range_check_ptr
     let (local __warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=64, high=0))
     local range_check_ptr = range_check_ptr
@@ -55,9 +55,9 @@ end
 
 func checked_add_uint256_141{range_check_ptr}(x : Uint256) -> (sum : Uint256):
     alloc_locals
-    let (local __warp_subexpr_1 : Uint256) = uint256_not(Uint256(low=42, high=0))
-    local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_0 : Uint256) = is_gt(x, __warp_subexpr_1)
+    let (local __warp_subexpr_0 : Uint256) = is_gt(
+        x,
+        Uint256(low=340282366920938463463374607431768211413, high=340282366920938463463374607431768211455))
     local range_check_ptr = range_check_ptr
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         assert 0 = 1
@@ -70,9 +70,9 @@ end
 
 func checked_add_uint256{range_check_ptr}(x_2 : Uint256) -> (sum_3 : Uint256):
     alloc_locals
-    let (local __warp_subexpr_1 : Uint256) = uint256_not(Uint256(low=21, high=0))
-    local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_0 : Uint256) = is_gt(x_2, __warp_subexpr_1)
+    let (local __warp_subexpr_0 : Uint256) = is_gt(
+        x_2,
+        Uint256(low=340282366920938463463374607431768211434, high=340282366920938463463374607431768211455))
     local range_check_ptr = range_check_ptr
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         assert 0 = 1

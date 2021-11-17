@@ -4,13 +4,13 @@
 from evm.calls import calldatacopy, calldataload, calldatasize, returndata_write
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import uint256_mload, uint256_mstore, uint256_mstore8
-from evm.uint256 import is_eq, is_gt, is_lt, is_zero, slt, u256_add, u256_shl, u256_shr
+from evm.uint256 import is_eq, is_gt, is_lt, is_zero, slt, u256_add, u256_shr
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import Uint256, uint256_and, uint256_not, uint256_sub
+from starkware.cairo.common.uint256 import Uint256, uint256_and, uint256_sub
 
 @storage_var
 func this_address() -> (res : felt):
@@ -33,9 +33,9 @@ end
 
 func abi_decode{range_check_ptr}(dataEnd : Uint256) -> ():
     alloc_locals
-    let (local __warp_subexpr_2 : Uint256) = uint256_not(Uint256(low=3, high=0))
-    local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_1 : Uint256) = u256_add(dataEnd, __warp_subexpr_2)
+    let (local __warp_subexpr_1 : Uint256) = u256_add(
+        dataEnd,
+        Uint256(low=340282366920938463463374607431768211452, high=340282366920938463463374607431768211455))
     local range_check_ptr = range_check_ptr
     let (local __warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=0, high=0))
     local range_check_ptr = range_check_ptr
@@ -51,14 +51,10 @@ func finalize_allocation{memory_dict : DictAccess*, msize, range_check_ptr}(memP
     alloc_locals
     let (local newFreePtr : Uint256) = u256_add(memPtr, Uint256(low=64, high=0))
     local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_4 : Uint256) = u256_shl(
-        Uint256(low=64, high=0), Uint256(low=1, high=0))
-    local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_3 : Uint256) = uint256_sub(__warp_subexpr_4, Uint256(low=1, high=0))
-    local range_check_ptr = range_check_ptr
     let (local __warp_subexpr_2 : Uint256) = is_lt(newFreePtr, memPtr)
     local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_1 : Uint256) = is_gt(newFreePtr, __warp_subexpr_3)
+    let (local __warp_subexpr_1 : Uint256) = is_gt(
+        newFreePtr, Uint256(low=18446744073709551615, high=0))
     local range_check_ptr = range_check_ptr
     let (local __warp_subexpr_0 : Uint256) = uint256_sub(__warp_subexpr_1, __warp_subexpr_2)
     local range_check_ptr = range_check_ptr
@@ -240,11 +236,11 @@ func abi_encode_string_memory_ptr{memory_dict : DictAccess*, msize, range_check_
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_3 : Uint256) = uint256_not(Uint256(low=31, high=0))
-    local range_check_ptr = range_check_ptr
     let (local __warp_subexpr_2 : Uint256) = u256_add(length_3, Uint256(low=31, high=0))
     local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_1 : Uint256) = uint256_and(__warp_subexpr_2, __warp_subexpr_3)
+    let (local __warp_subexpr_1 : Uint256) = uint256_and(
+        __warp_subexpr_2,
+        Uint256(low=340282366920938463463374607431768211424, high=340282366920938463463374607431768211455))
     local range_check_ptr = range_check_ptr
     let (local end__warp_mangled : Uint256) = u256_add(pos_1, __warp_subexpr_1)
     local range_check_ptr = range_check_ptr

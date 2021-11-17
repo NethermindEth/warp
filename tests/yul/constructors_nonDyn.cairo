@@ -10,7 +10,7 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import Uint256, uint256_not, uint256_sub
+from starkware.cairo.common.uint256 import Uint256, uint256_sub
 
 func sload{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(key : Uint256) -> (
         value : Uint256):
@@ -49,9 +49,9 @@ end
 
 func abi_decode{range_check_ptr}(dataEnd : Uint256) -> ():
     alloc_locals
-    let (local __warp_subexpr_2 : Uint256) = uint256_not(Uint256(low=3, high=0))
-    local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_1 : Uint256) = u256_add(dataEnd, __warp_subexpr_2)
+    let (local __warp_subexpr_1 : Uint256) = u256_add(
+        dataEnd,
+        Uint256(low=340282366920938463463374607431768211452, high=340282366920938463463374607431768211455))
     local range_check_ptr = range_check_ptr
     let (local __warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=0, high=0))
     local range_check_ptr = range_check_ptr
@@ -115,9 +115,9 @@ end
 func abi_decode_addresst_uint256t_uint256{exec_env : ExecutionEnvironment*, range_check_ptr}(
         dataEnd_5 : Uint256) -> (value0_6 : Uint256, value1 : Uint256, value2 : Uint256):
     alloc_locals
-    let (local __warp_subexpr_2 : Uint256) = uint256_not(Uint256(low=3, high=0))
-    local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_1 : Uint256) = u256_add(dataEnd_5, __warp_subexpr_2)
+    let (local __warp_subexpr_1 : Uint256) = u256_add(
+        dataEnd_5,
+        Uint256(low=340282366920938463463374607431768211452, high=340282366920938463463374607431768211455))
     local range_check_ptr = range_check_ptr
     let (local __warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=96, high=0))
     local range_check_ptr = range_check_ptr
@@ -253,18 +253,18 @@ func __warp_block_4{
     local exec_env : ExecutionEnvironment* = exec_env
     abi_decode(__warp_subexpr_0)
     local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_5 : Uint256) = sload(Uint256(low=2, high=0))
+    let (local __warp_subexpr_4 : Uint256) = sload(Uint256(low=2, high=0))
     local range_check_ptr = range_check_ptr
     local pedersen_ptr : HashBuiltin* = pedersen_ptr
     local syscall_ptr : felt* = syscall_ptr
-    let (local __warp_subexpr_4 : Uint256) = cleanup_from_storage_uint256(__warp_subexpr_5)
-    let (local __warp_subexpr_3 : Uint256) = uint256_not(Uint256(low=127, high=0))
-    local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_2 : Uint256) = abi_encode_uint256_327(__warp_subexpr_4)
+    let (local __warp_subexpr_3 : Uint256) = cleanup_from_storage_uint256(__warp_subexpr_4)
+    let (local __warp_subexpr_2 : Uint256) = abi_encode_uint256_327(__warp_subexpr_3)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_1 : Uint256) = u256_add(__warp_subexpr_2, __warp_subexpr_3)
+    let (local __warp_subexpr_1 : Uint256) = u256_add(
+        __warp_subexpr_2,
+        Uint256(low=340282366920938463463374607431768211328, high=340282366920938463463374607431768211455))
     local range_check_ptr = range_check_ptr
     returndata_write(Uint256(low=128, high=0), __warp_subexpr_1)
     local exec_env : ExecutionEnvironment* = exec_env
