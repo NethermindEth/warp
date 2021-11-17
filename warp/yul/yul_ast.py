@@ -8,10 +8,7 @@ from __future__ import annotations
 
 from abc import ABC
 from dataclasses import dataclass
-from functools import lru_cache
-from typing import Iterable, Optional, Union
-
-from yul.utils import snakify
+from typing import Optional, Union
 
 
 class Node(ABC):
@@ -39,6 +36,11 @@ class Assignment(Node):
     variable_names: list[Identifier]
     value: "Expression"
 
+    def __post_init__(self):
+        assert (
+            self.variable_names
+        ), "Each assignment should assign to at least one variable"
+
 
 @dataclass(eq=False, frozen=True)
 class FunctionCall(Node):
@@ -63,6 +65,11 @@ class ExpressionStatement(Node):
 class VariableDeclaration(Node):
     variables: list[TypedName]
     value: Optional["Expression"]  # None means all variables initialize to 0
+
+    def __post_init__(self):
+        assert (
+            self.variables
+        ), "Each variable declaration should declare at least one variable"
 
 
 @dataclass(eq=False, frozen=True)

@@ -26,21 +26,20 @@ class VariableInliner(AstMapper):
     def visit_variable_declaration(
         self, node: ast.VariableDeclaration
     ) -> ast.VariableDeclaration:
-        if node.variables:
-            current_scope = self.scope[-1]
-            # We only care about the cases where the rhs is either a implicit
-            # literal (rhs is None and value is 0) explicit literal or an
-            # identifier. In the latter two cases only one variable can be
-            # declared.
-            var_name = node.variables[0].name
-            if isinstance(node.value, ast.Literal):
-                current_scope[var_name] = node.value
-            elif isinstance(node.value, ast.Identifier):
-                val_and_scope = self.scope_lookup(node.value.name)
-                current_scope[var_name] = val_and_scope[0] if val_and_scope else None
-            elif node.value is None:
-                for var in node.variables:
-                    current_scope[var.name] = ast.Literal(0)
+        current_scope = self.scope[-1]
+        # We only care about the cases where the rhs is either a implicit
+        # literal (rhs is None and value is 0) explicit literal or an
+        # identifier. In the latter two cases only one variable can be
+        # declared.
+        var_name = node.variables[0].name
+        if isinstance(node.value, ast.Literal):
+            current_scope[var_name] = node.value
+        elif isinstance(node.value, ast.Identifier):
+            val_and_scope = self.scope_lookup(node.value.name)
+            current_scope[var_name] = val_and_scope[0] if val_and_scope else None
+        elif node.value is None:
+            for var in node.variables:
+                current_scope[var.name] = ast.Literal(0)
 
         return ast.VariableDeclaration(
             variables=node.variables,
@@ -48,22 +47,21 @@ class VariableInliner(AstMapper):
         )
 
     def visit_assignment(self, node: ast.Assignment) -> ast.Assignment:
-        if node.variable_names:
-            current_scope = self.scope[-1]
-            # We only care about the cases where the rhs is either explicit literal
-            # or an identifier. In these cases only one variable can be assigned to.
-            var_name = node.variable_names[0].name
-            val_and_scope = self.scope_lookup(var_name)
-            # Invalidate |var_name| in |definition_scope| if it was not declared in the
-            # current scope.
-            if var_name not in current_scope and val_and_scope:
-                (_, definition_scope) = val_and_scope
-                definition_scope[var_name] = None
+        current_scope = self.scope[-1]
+        # We only care about the cases where the rhs is either explicit literal
+        # or an identifier. In these cases only one variable can be assigned to.
+        var_name = node.variable_names[0].name
+        val_and_scope = self.scope_lookup(var_name)
+        # Invalidate |var_name| in |definition_scope| if it was not declared in the
+        # current scope.
+        if var_name not in current_scope and val_and_scope:
+            (_, definition_scope) = val_and_scope
+            definition_scope[var_name] = None
 
-            if isinstance(node.value, ast.Literal):
-                current_scope[var_name] = node.value
-            elif isinstance(node.value, ast.Identifier):
-                current_scope[var_name] = val_and_scope[0] if val_and_scope else None
+        if isinstance(node.value, ast.Literal):
+            current_scope[var_name] = node.value
+        elif isinstance(node.value, ast.Identifier):
+            current_scope[var_name] = val_and_scope[0] if val_and_scope else None
 
         return ast.Assignment(
             variable_names=node.variable_names,
