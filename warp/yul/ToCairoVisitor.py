@@ -157,8 +157,6 @@ class ToCairoVisitor(AstVisitor):
             )
             return decls_repr
         value_repr = self.visit(node.value)
-        if not node.variables:
-            return value_repr
         vars_repr = ", ".join(f"local {self.visit(x)}" for x in node.variables)
         if isinstance(node.value, ast.FunctionCall):
             return f"let ({vars_repr}) = {value_repr}"

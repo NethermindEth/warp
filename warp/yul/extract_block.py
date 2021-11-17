@@ -27,11 +27,16 @@ def extract_block_as_function(
         body=block,
     )
     fun_call = ast.FunctionCall(ast.Identifier(name), read_vars)
-    fun_stmt = ast.Assignment(variable_names=mod_vars, value=fun_call)
+    if mod_vars:
+        fun_stmt = ast.Assignment(variable_names=mod_vars, value=fun_call)
+    else:
+        fun_stmt = ast.ExpressionStatement(fun_call)
     return fun_def, fun_stmt
 
 
-DUMMY_CALL = ast.Assignment([], ast.FunctionCall(ast.Identifier("__WARP_DUMMY"), []))
+DUMMY_CALL = ast.ExpressionStatement(
+    ast.FunctionCall(ast.Identifier("__WARP_DUMMY"), [])
+)
 
 
 def extract_rec_block_as_function(
@@ -50,7 +55,10 @@ def extract_rec_block_as_function(
     typed_read_vars = [ast.TypedName(x.name) for x in read_vars]
     typed_mod_vars = [ast.TypedName(x.name) for x in mod_vars]
     fun_call = ast.FunctionCall(ast.Identifier(name), read_vars)
-    fun_stmt = ast.Assignment(variable_names=mod_vars, value=fun_call)
+    if mod_vars:
+        fun_stmt = ast.Assignment(variable_names=mod_vars, value=fun_call)
+    else:
+        fun_stmt = ast.ExpressionStatement(fun_call)
     real_body = rec_block(fun_stmt)
     fun_def = ast.FunctionDefinition(
         name=name,
