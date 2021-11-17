@@ -11,10 +11,10 @@ test_dir = __file__
 
 
 @pytest.mark.asyncio
-async def test_starknet():
-    solidity_file = test_dir[:-8] + ".sol"
+async def test_address():
     contract_file = test_dir[:-8] + ".cairo"
-    contract_info = transpile_from_solidity(solidity_file, "WARP")
+    sol_file = test_dir[:-8] + ".sol"
+    program_info = transpile_from_solidity(sol_file, "WARP")
     cairo_path = f"{warp_root}/warp/cairo-src"
     contract_definition = compile_starknet_files(
         [contract_file], debug_info=True, cairo_path=[cairo_path]
@@ -24,9 +24,7 @@ async def test_starknet():
     contract_address = await starknet.deploy(
         contract_definition=contract_definition, constructor_calldata=[]
     )
+    high, low = divmod(contract_address, 2 ** 128)
 
-    res = await invoke_method(starknet, contract_info, contract_address, "returnFun")
-    assert res.retdata == [1, 96, 6, 0, 32, 0, 3, 0x41424300000000000000000000000000, 0]
-
-    res = await invoke_method(starknet, contract_info, contract_address, "bytesFun")
-    assert res.retdata == [1, 96, 6, 0, 32, 0, 3, 0x41424300000000000000000000000000, 0]
+    res = await invoke_method(starknet, program_info, contract_address, "getAddress")
+    assert res.retdata == [1, 32, 2, high, low]

@@ -425,9 +425,13 @@ class Return(StaticHandler):
         )
 
 
-class Address(DynamicHandler):
-    def __init__(self, cairo_functions: CairoFunctions):
-        super().__init__(cairo_functions.address_function)
+class Address(StaticHandler):
+    def __init__(self):
+        super().__init__(
+            function_name="address",
+            module="evm.yul_api",
+            used_implicits=("syscall_ptr", "range_check_ptr"),
+        )
 
 
 class Gas(DynamicHandler):
@@ -581,7 +585,7 @@ def get_default_builtins(
     return {
         "add": Add(),
         "addmod": AddMod(),
-        "address": Address(cairo_functions),
+        "address": Address(),
         "and": And(),
         "basefee": BaseFee(),
         "blockhash": BlockHash(),

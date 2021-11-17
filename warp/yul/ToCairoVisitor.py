@@ -20,7 +20,6 @@ from yul.storage_access import (
     generate_setter_body,
     generate_storage_var_declaration,
 )
-from yul.utils import HANDLERS_DECL
 
 UINT128_BOUND = 2 ** 128
 
@@ -78,7 +77,6 @@ class ToCairoVisitor(AstVisitor):
                 *self.cairo_functions.get_definitions(),
                 "",
                 *storage_var_decls,
-                HANDLERS_DECL,
                 main_part,
             ]
         )
@@ -234,13 +232,9 @@ class ToCairoVisitor(AstVisitor):
                 "@external\n"
                 f"func {node.name}{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
                 f"syscall_ptr : felt* , bitwise_ptr : BitwiseBuiltin*}}(calldata_size,"
-                f"calldata_len, calldata : felt*, self_address : felt) -> ({returns_repr}):\n"
+                f"calldata_len, calldata : felt*) -> ({returns_repr}):\n"
                 f"alloc_locals\n"
                 f"let (local __fp__, _) = get_fp_and_pc()\n"
-                f"initialize_address{{range_check_ptr=range_check_ptr, syscall_ptr=syscall_ptr, pedersen_ptr=pedersen_ptr}}(self_address)\n"
-                f"local pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
-                f"local range_check_ptr = range_check_ptr\n"
-                f"local syscall_ptr : felt* = syscall_ptr\n"
                 f"let (returndata_ptr: felt*) = alloc()\n"
                 f"local exec_env_ : ExecutionEnvironment = ExecutionEnvironment("
                 f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata,"

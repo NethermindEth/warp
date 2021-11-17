@@ -29,25 +29,6 @@ end
 func evm_storage(arg0_low, arg0_high) -> (res : Uint256):
 end
 
-@storage_var
-func this_address() -> (res : felt):
-end
-
-@storage_var
-func address_initialized() -> (res : felt):
-end
-
-func initialize_address{range_check_ptr, syscall_ptr : felt*, pedersen_ptr : HashBuiltin*}(
-        self_address : felt):
-    let (address_init) = address_initialized.read()
-    if address_init == 1:
-        return ()
-    end
-    this_address.write(self_address)
-    address_initialized.write(1)
-    return ()
-end
-
 func abi_decode_uint256t_uint256{exec_env : ExecutionEnvironment*, range_check_ptr}(
         dataEnd : Uint256) -> (value0 : Uint256, value1 : Uint256):
     alloc_locals
@@ -418,17 +399,10 @@ end
 @external
 func fun_ENTRY_POINT{
         pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*,
-        bitwise_ptr : BitwiseBuiltin*}(
-        calldata_size, calldata_len, calldata : felt*, self_address : felt) -> (
+        bitwise_ptr : BitwiseBuiltin*}(calldata_size, calldata_len, calldata : felt*) -> (
         success : felt, returndata_size : felt, returndata_len : felt, returndata : felt*):
     alloc_locals
     let (local __fp__, _) = get_fp_and_pc()
-    initialize_address{
-        range_check_ptr=range_check_ptr, syscall_ptr=syscall_ptr, pedersen_ptr=pedersen_ptr}(
-        self_address)
-    local pedersen_ptr : HashBuiltin* = pedersen_ptr
-    local range_check_ptr = range_check_ptr
-    local syscall_ptr : felt* = syscall_ptr
     let (returndata_ptr : felt*) = alloc()
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=returndata_ptr, to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)
     let exec_env : ExecutionEnvironment* = &exec_env_

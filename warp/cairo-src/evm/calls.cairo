@@ -11,11 +11,7 @@ from starkware.starknet.common.syscalls import get_caller_address
 from evm.array import (
     array_copy_to_memory, array_create_from_memory, array_load, extend_array_to_len)
 from evm.exec_env import ExecutionEnvironment
-from evm.utils import felt_to_uint256, update_msize
-
-func uint256_to_address_felt(x : Uint256) -> (address : felt):
-    return (x.low + x.high * 2 ** 128)
-end
+from evm.utils import felt_to_uint256, uint256_to_address_felt, update_msize
 
 func caller{syscall_ptr : felt*, range_check_ptr}() -> (caller_data : Uint256):
     let (caller_address) = get_caller_address()
@@ -59,8 +55,7 @@ end
 
 @contract_interface
 namespace GenericCallInterface:
-    func fun_ENTRY_POINT(
-            calldata_size : felt, calldata_len : felt, calldata : felt*, self_address : felt) -> (
+    func fun_ENTRY_POINT(calldata_size : felt, calldata_len : felt, calldata : felt*) -> (
             success : felt, returndata_size : felt, returndata_len : felt, returndata : felt*):
     end
 end
@@ -87,7 +82,7 @@ func warp_call{
     let (address_felt : felt) = uint256_to_address_felt(address)
     let (success, returndata_size, returndata_len,
         returndata) = GenericCallInterface.fun_ENTRY_POINT(
-        address_felt, insize.low, calldata_len, mem, address_felt)
+        address_felt, insize.low, calldata_len, mem)
     array_copy_to_memory(returndata_size, returndata, 0, out.low, outsize.low)
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(
         calldata_size=exec_env.calldata_size,
