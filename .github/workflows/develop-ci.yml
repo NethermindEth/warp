@@ -40,7 +40,7 @@ jobs:
 
       - name: Setup a local devnet
         run: |
-          pip install starknet-devnet==0.1.5
+          pipx install starknet-devnet==0.1.6
           starknet-devnet --host localhost --port 5000 &
 
       - name: Setup BATS testing framework
