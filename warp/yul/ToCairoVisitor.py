@@ -155,12 +155,12 @@ class ToCairoVisitor(AstVisitor):
             )
             return decls_repr
         value_repr = self.visit(node.value)
-        vars_repr = ", ".join(f"local {self.visit(x)}" for x in node.variables)
+        vars_repr = ", ".join(f"{self.visit(x)}" for x in node.variables)
         if isinstance(node.value, ast.FunctionCall):
             return f"let ({vars_repr}) = {value_repr}"
         else:
             assert len(node.variables) == 1
-            return f"{vars_repr} = {value_repr}"
+            return f"let {vars_repr} = {value_repr}"
 
     def visit_block(self, node: ast.Block) -> str:
         stmt_reprs = []
