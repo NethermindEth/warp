@@ -6,6 +6,8 @@ from starkware.starknet.testing.state import StarknetState
 from yul.main import transpile_from_solidity
 from yul.starknet_utils import invoke_method
 
+from warp.logging.generateMarkdown import stepsInFunction
+
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
 test_dir = __file__
 
@@ -28,4 +30,5 @@ async def test_starknet():
     res = await invoke_method(
         starknet, program_info, contract_address, "pureFunction", 30, 500, 90, 445
     )
+    stepsInFunction(sol_file, "pureFunction", res, "pure-function_test")
     assert res.retdata == [1, 32, 2, 0, 432]

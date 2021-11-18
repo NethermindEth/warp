@@ -1,10 +1,13 @@
 import os
 
 import pytest
+from cli.encoding import get_evm_calldata
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
 from yul.main import transpile_from_solidity
 from yul.starknet_utils import invoke_method
+
+from warp.logging.generateMarkdown import stepsInFunction
 
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
 test_dir = __file__
@@ -26,7 +29,9 @@ async def test_starknet():
     )
 
     res = await invoke_method(starknet, contract_info, contract_address, "returnFun")
+    stepsInFunction(solidity_file, "returnFun", res, "short_string")
     assert res.retdata == [1, 96, 6, 0, 32, 0, 3, 0x41424300000000000000000000000000, 0]
 
     res = await invoke_method(starknet, contract_info, contract_address, "bytesFun")
+    stepsInFunction(solidity_file, "bytesFun", res, "short_string")
     assert res.retdata == [1, 96, 6, 0, 32, 0, 3, 0x41424300000000000000000000000000, 0]
