@@ -325,7 +325,9 @@ class MLoad(StaticHandler):
 class MSize(StaticHandler):
     def __init__(self):
         super().__init__(
-            function_name="get_msize", module="evm.memory", used_implicits=("msize",)
+            function_name="get_msize",
+            module="evm.memory",
+            used_implicits=("msize", "range_check_ptr"),
         )
 
 
@@ -368,7 +370,7 @@ class Caller(StaticHandler):
         super().__init__(
             function_name="caller",
             module="evm.calls",
-            used_implicits=("syscall_ptr",),
+            used_implicits=("syscall_ptr", "range_check_ptr"),
         )
 
 
@@ -421,7 +423,7 @@ class Return(StaticHandler):
         super().__init__(
             function_name="returndata_write",
             module="evm.calls",
-            used_implicits=("exec_env",),
+            used_implicits=("exec_env", "memory_dict", "range_check_ptr"),
         )
 
 
