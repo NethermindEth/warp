@@ -5,6 +5,7 @@ from evm.calls import calldataload, calldatasize, returndata_write
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import uint256_mstore
 from evm.uint256 import is_eq, is_lt, is_zero, slt, u256_add, u256_shr
+from evm.yul_api import address
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
@@ -28,23 +29,7 @@ func abi_decode{range_check_ptr}(dataEnd : Uint256) -> ():
     end
 end
 
-func fun_test{exec_env : ExecutionEnvironment*, range_check_ptr}() -> (var_res : Uint256):
-    alloc_locals
-    let (local var_res : Uint256) = calldatasize()
-    local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment* = exec_env
-    let (local __warp_subexpr_0 : Uint256) = calldataload(Uint256(low=0, high=0))
-    local range_check_ptr = range_check_ptr
-    local exec_env : ExecutionEnvironment* = exec_env
-    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
-        assert 0 = 1
-        jmp rel 0
-    else:
-        return (var_res)
-    end
-end
-
-func abi_encode_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(value : Uint256) -> ():
+func abi_encode_address{memory_dict : DictAccess*, msize, range_check_ptr}(value : Uint256) -> ():
     alloc_locals
     uint256_mstore(offset=Uint256(low=128, high=0), value=value)
     local memory_dict : DictAccess* = memory_dict
@@ -53,11 +38,11 @@ func abi_encode_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(value
     return ()
 end
 
-func abi_encode_uint256_70{memory_dict : DictAccess*, msize, range_check_ptr}(value0 : Uint256) -> (
-        tail : Uint256):
+func abi_encode_tuple_address{memory_dict : DictAccess*, msize, range_check_ptr}(
+        value0 : Uint256) -> (tail : Uint256):
     alloc_locals
     local tail : Uint256 = Uint256(low=160, high=0)
-    abi_encode_uint256(value0)
+    abi_encode_address(value0)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -65,18 +50,18 @@ func abi_encode_uint256_70{memory_dict : DictAccess*, msize, range_check_ptr}(va
 end
 
 func __warp_block_1{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}() -> (
-        ):
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}() -> ():
     alloc_locals
     let (local __warp_subexpr_0 : Uint256) = calldatasize()
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     abi_decode(__warp_subexpr_0)
     local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_3 : Uint256) = fun_test()
-    local exec_env : ExecutionEnvironment* = exec_env
+    let (local __warp_subexpr_3 : Uint256) = address()
+    local syscall_ptr : felt* = syscall_ptr
     local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_2 : Uint256) = abi_encode_uint256_70(__warp_subexpr_3)
+    let (local __warp_subexpr_2 : Uint256) = abi_encode_tuple_address(__warp_subexpr_3)
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
@@ -90,8 +75,8 @@ func __warp_block_1{
 end
 
 func __warp_if_1{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}(
-        __warp_subexpr_0 : Uint256) -> ():
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(__warp_subexpr_0 : Uint256) -> ():
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         __warp_block_1()
@@ -99,6 +84,7 @@ func __warp_if_1{
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
+        local syscall_ptr : felt* = syscall_ptr
         return ()
     else:
         return ()
@@ -106,28 +92,28 @@ func __warp_if_1{
 end
 
 func __warp_block_0{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}() -> (
-        ):
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}() -> ():
     alloc_locals
     let (local __warp_subexpr_2 : Uint256) = calldataload(Uint256(low=0, high=0))
     local range_check_ptr = range_check_ptr
     local exec_env : ExecutionEnvironment* = exec_env
     let (local __warp_subexpr_1 : Uint256) = u256_shr(Uint256(low=224, high=0), __warp_subexpr_2)
     local range_check_ptr = range_check_ptr
-    let (local __warp_subexpr_0 : Uint256) = is_eq(
-        Uint256(low=4171824493, high=0), __warp_subexpr_1)
+    let (local __warp_subexpr_0 : Uint256) = is_eq(Uint256(low=952911921, high=0), __warp_subexpr_1)
     local range_check_ptr = range_check_ptr
     __warp_if_1(__warp_subexpr_0)
     local exec_env : ExecutionEnvironment* = exec_env
     local memory_dict : DictAccess* = memory_dict
     local msize = msize
     local range_check_ptr = range_check_ptr
+    local syscall_ptr : felt* = syscall_ptr
     return ()
 end
 
 func __warp_if_0{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}(
-        __warp_subexpr_0 : Uint256) -> ():
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        syscall_ptr : felt*}(__warp_subexpr_0 : Uint256) -> ():
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         __warp_block_0()
@@ -135,6 +121,7 @@ func __warp_if_0{
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
+        local syscall_ptr : felt* = syscall_ptr
         return ()
     else:
         return ()
@@ -171,6 +158,7 @@ func fun_ENTRY_POINT{
         local memory_dict : DictAccess* = memory_dict
         local msize = msize
         local range_check_ptr = range_check_ptr
+        local syscall_ptr : felt* = syscall_ptr
     end
     default_dict_finalize(memory_dict_start, memory_dict, 0)
     return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)

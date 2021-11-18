@@ -51,26 +51,6 @@ UNSUPPORTED_BUILTINS = [
     "timestamp",
 ]
 
-HANDLERS_DECL = """
-@storage_var
-func this_address() -> (res: felt):
-end
-
-@storage_var
-func address_initialized() -> (res : felt):
-end
-
-func initialize_address{range_check_ptr, syscall_ptr: felt*, pedersen_ptr : HashBuiltin*}(self_address : felt):
-    let (address_init) = address_initialized.read()
-    if address_init == 1:
-        return ()
-    end
-    this_address.write(self_address)
-    address_initialized.write(1)
-    return ()
-end
-"""
-
 
 def get_low_bits(string: str) -> str:
     return get_low_high(string)[0]

@@ -166,30 +166,6 @@ class CairoFunctions:
         self.generator.create_function(name, inner)
         return FunctionInfo(name=name, implicits=(), kwarg_names=())
 
-    def address_function(self) -> FunctionInfo:
-        """Creates a function that returns the address of this contract on
-        StarkNet.
-
-        """
-        name = f"address"
-        implicits = ("syscall_ptr", "range_check_ptr", "pedersen_ptr")
-
-        def inner():
-            implicits_str = (
-                "{" + ", ".join(print_implicit(x) for x in sorted(implicits)) + "}"
-            )
-            return "\n".join(
-                [
-                    f"func {name}{implicits_str}() -> (res: Uint256):",
-                    "let (addr) = this_address.read()",
-                    "return (Uint256(low=addr, high=0))",
-                    "end\n",
-                ]
-            )
-
-        self.generator.create_function(name, inner)
-        return FunctionInfo(name=name, implicits=implicits, kwarg_names=())
-
     def returndata_size_function(self) -> FunctionInfo:
         name = f"returndata_size"
         implicits = ("exec_env",)

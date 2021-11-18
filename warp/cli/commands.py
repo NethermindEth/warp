@@ -1,21 +1,12 @@
 import json
 import os
 import subprocess
-import sys
-from http import HTTPStatus
 from typing import Any, Dict, List, Optional, Union
 
 import aiohttp
-import click
-from cli.encoding import evm_to_cairo_calldata, get_evm_calldata
+from cli.encoding import get_evm_calldata
 from eth_hash.auto import keccak
-from starkware.starknet.definitions import fields
-from starkware.starknet.services.api.contract_definition import ContractDefinition
-from starkware.starknet.services.api.gateway.transaction import (
-    Deploy,
-    InvokeFunction,
-    Transaction,
-)
+from starkware.starknet.services.api.gateway.transaction import Transaction
 from yul.utils import cairoize_bytes
 
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../.."))
@@ -47,7 +38,7 @@ async def _invoke(
     calldata_evm = get_evm_calldata(program_info["sol_abi"], function, evm_inputs)
     cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(calldata_evm[2:]))
     calldata_size = (len(cairo_input) * 16) - unused_bytes
-    calldata = [calldata_size, len(cairo_input)] + cairo_input + [address]
+    calldata = [calldata_size, len(cairo_input), *cairo_input]
     calldata = " ".join(str(x) for x in calldata)
     starknet_invoke(contract_base, address, calldata, network)
     return True

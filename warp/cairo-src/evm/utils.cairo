@@ -51,3 +51,7 @@ func felt_to_uint256{range_check_ptr}(x) -> (x_ : Uint256):
     let split = split_felt(x)
     return (Uint256(low=split.low, high=split.high))
 end
+
+func uint256_to_address_felt(x : Uint256) -> (address : felt):
+    return (x.low + x.high * 2 ** 128)
+end
