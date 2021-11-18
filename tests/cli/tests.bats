@@ -24,3 +24,16 @@
     warp deploy ./tests/yul/constructors_nonDyn.json --constructor_args "[0x123, 15, 17]"
     rm ./tests/yul/constructors_nonDyn.json
 }
+
+@test "check transpiling options" {
+    warp transpile ./examples/ERC20/ERC20.sol WARP
+    rm ./examples/ERC20/ERC20.json
+    warp transpile ./examples/ERC20/ERC20.sol WARP --cairo-output
+    rm ./examples/ERC20/ERC20.cairo
+}
+
+@test "check deployment without constructor" {
+    warp transpile ./examples/ERC20/ERC20.sol WARP
+    warp deploy ./examples/ERC20/ERC20.json
+    rm ./examples/ERC20/ERC20.json
+}
