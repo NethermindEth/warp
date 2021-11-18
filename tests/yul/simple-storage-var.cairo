@@ -224,12 +224,12 @@ func fun_ENTRY_POINT{
         bitwise_ptr : BitwiseBuiltin*}(calldata_size, calldata_len, calldata : felt*) -> (
         success : felt, returndata_size : felt, returndata_len : felt, returndata : felt*):
     alloc_locals
-    let (local __fp__, _) = get_fp_and_pc()
+    let (__fp__, _) = get_fp_and_pc()
     let (returndata_ptr : felt*) = alloc()
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=returndata_ptr, to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)
-    let exec_env : ExecutionEnvironment* = &exec_env_
-    let (local memory_dict) = default_dict_new(0)
-    local memory_dict_start : DictAccess* = memory_dict
+    let exec_env = &exec_env_
+    let (memory_dict) = default_dict_new(0)
+    let memory_dict_start = memory_dict
     let msize = 0
     with exec_env, msize, memory_dict:
         uint256_mstore(offset=Uint256(low=64, high=0), value=Uint256(low=128, high=0))
