@@ -23,8 +23,7 @@ func calldatacopy{
         memory_dict : DictAccess*, range_check_ptr, msize, exec_env : ExecutionEnvironment*}(
         dest_offset : Uint256, offset : Uint256, length : Uint256) -> ():
     alloc_locals
-    let (local msize) = update_msize(msize, dest_offset.low, length.low)
-    local memory_dict : DictAccess* = memory_dict
+    let (msize) = update_msize(msize, dest_offset.low, length.low)
     array_copy_to_memory(
         exec_env.calldata_size, exec_env.calldata, dest_offset.low, offset.low, length.low)
     return ()

@@ -10,9 +10,9 @@ from evm.utils import ceil_div, felt_to_uint256, update_msize
 
 func sha{range_check_ptr, memory_dict : DictAccess*, msize}(offset, length) -> (res : Uint256):
     alloc_locals
-    let (local msize) = update_msize(msize, offset, length)
-    let (local memval) = array_create_from_memory(offset, length)
-    let (local low, local high) = unsafe_keccak(memval, length)
+    let (msize) = update_msize(msize, offset, length)
+    let (memval) = array_create_from_memory(offset, length)
+    let (low, high) = unsafe_keccak(memval, length)
     return (res=Uint256(low, high))
 end
 

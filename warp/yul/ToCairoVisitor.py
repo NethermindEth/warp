@@ -9,7 +9,7 @@ import yul.yul_ast as ast
 from yul.AstVisitor import AstVisitor
 from yul.BuiltinHandler import BuiltinHandler
 from yul.FunctionGenerator import CairoFunctions
-from yul.implicits import IMPLICITS_SET, copy_implicit, print_implicit
+from yul.implicits import IMPLICITS_SET, print_implicit
 from yul.Imports import format_imports, merge_imports
 from yul.NameGenerator import NameGenerator
 from yul.storage_access import (
@@ -155,20 +155,18 @@ class ToCairoVisitor(AstVisitor):
             )
             return decls_repr
         value_repr = self.visit(node.value)
-        vars_repr = ", ".join(f"local {self.visit(x)}" for x in node.variables)
+        vars_repr = ", ".join(f"{self.visit(x)}" for x in node.variables)
         if isinstance(node.value, ast.FunctionCall):
             return f"let ({vars_repr}) = {value_repr}"
         else:
             assert len(node.variables) == 1
-            return f"{vars_repr} = {value_repr}"
+            return f"let {vars_repr} = {value_repr}"
 
     def visit_block(self, node: ast.Block) -> str:
         stmt_reprs = []
         for stmt in node.statements:
             with self._new_statement():
                 stmt_reprs.append(self.visit(stmt))
-                for implicit in self.last_used_implicits:
-                    stmt_reprs.append(copy_implicit(implicit))
         return "\n".join(stmt_reprs)
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
@@ -189,8 +187,8 @@ class ToCairoVisitor(AstVisitor):
                 f"func constructor{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
                 f"syscall_ptr : felt* , bitwise_ptr : BitwiseBuiltin*}}({params_repr}):\n"
                 f"alloc_locals\n"
-                f"let (local memory_dict) = default_dict_new(0)\n"
-                f"local memory_dict_start: DictAccess* = memory_dict\n"
+                f"let (memory_dict) = default_dict_new(0)\n"
+                f"let memory_dict_start: DictAccess* = memory_dict\n"
                 f"let msize = 0\n"
                 f"with pedersen_ptr, range_check_ptr, bitwise_ptr, memory_dict, msize:\n"
                 f"{body_repr}\n"
@@ -204,18 +202,15 @@ class ToCairoVisitor(AstVisitor):
                 f"syscall_ptr : felt* , bitwise_ptr : BitwiseBuiltin*}}(calldata_size,"
                 f"calldata_len, calldata : felt*):\n"
                 f"alloc_locals\n"
-                f"local pedersen_ptr : HashBuiltin* = pedersen_ptr\n"
-                f"local range_check_ptr = range_check_ptr\n"
-                f"local syscall_ptr : felt* = syscall_ptr\n"
                 f"let (returndata_ptr: felt*) = alloc()\n"
-                f"let (local __fp__, _) = get_fp_and_pc()\n"
+                f"let (__fp__, _) = get_fp_and_pc()\n"
                 f"local exec_env_ : ExecutionEnvironment = ExecutionEnvironment("
                 f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata,"
                 f"returndata_size=0, returndata_len=0, returndata=returndata_ptr,"
                 f"to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)\n"
                 f"let exec_env : ExecutionEnvironment* = &exec_env_\n"
-                f"let (local memory_dict) = default_dict_new(0)\n"
-                f"local memory_dict_start: DictAccess* = memory_dict\n"
+                f"let (memory_dict) = default_dict_new(0)\n"
+                f"let memory_dict_start = memory_dict\n"
                 f"let msize = 0\n"
                 f"with pedersen_ptr, range_check_ptr, bitwise_ptr, memory_dict, msize, exec_env:\n"
                 f"{body_repr}\n"
@@ -234,15 +229,15 @@ class ToCairoVisitor(AstVisitor):
                 f"syscall_ptr : felt* , bitwise_ptr : BitwiseBuiltin*}}(calldata_size,"
                 f"calldata_len, calldata : felt*) -> ({returns_repr}):\n"
                 f"alloc_locals\n"
-                f"let (local __fp__, _) = get_fp_and_pc()\n"
+                f"let (__fp__, _) = get_fp_and_pc()\n"
                 f"let (returndata_ptr: felt*) = alloc()\n"
                 f"local exec_env_ : ExecutionEnvironment = ExecutionEnvironment("
                 f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata,"
                 f"returndata_size=0, returndata_len=0, returndata=returndata_ptr,"
                 f"to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)\n"
-                f"let exec_env : ExecutionEnvironment* = &exec_env_\n"
-                f"let (local memory_dict) = default_dict_new(0)\n"
-                f"local memory_dict_start: DictAccess* = memory_dict\n"
+                f"let exec_env = &exec_env_\n"
+                f"let (memory_dict) = default_dict_new(0)\n"
+                f"let memory_dict_start = memory_dict\n"
                 f"let msize = 0\n"
                 f"with exec_env, msize, memory_dict:\n"
                 f"  {body_repr}\n"

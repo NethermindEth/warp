@@ -30,10 +30,7 @@ async def test_ExpressionSplitter():
         },
     ).print(new_node)
     assert cairo.splitlines() == [
-        "let (local __warp_subexpr_1 : Uint256) = f2()",
-        "local range_check_ptr = range_check_ptr",
-        "let (local __warp_subexpr_0 : Uint256) = f1()",
-        "local range_check_ptr = range_check_ptr",
-        "let (local res : Uint256) = <(__warp_subexpr_0, __warp_subexpr_1)",
-        "local range_check_ptr = range_check_ptr",
+        "let (__warp_subexpr_1 : Uint256) = f2()",
+        "let (__warp_subexpr_0 : Uint256) = f1()",
+        "let (res : Uint256) = <(__warp_subexpr_0, __warp_subexpr_1)",
     ]
