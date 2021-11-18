@@ -9,7 +9,7 @@ import yul.yul_ast as ast
 from yul.AstVisitor import AstVisitor
 from yul.BuiltinHandler import BuiltinHandler
 from yul.FunctionGenerator import CairoFunctions
-from yul.implicits import IMPLICITS_SET, copy_implicit, print_implicit
+from yul.implicits import IMPLICITS_SET, print_implicit
 from yul.Imports import format_imports, merge_imports
 from yul.NameGenerator import NameGenerator
 from yul.storage_access import (
@@ -167,8 +167,6 @@ class ToCairoVisitor(AstVisitor):
         for stmt in node.statements:
             with self._new_statement():
                 stmt_reprs.append(self.visit(stmt))
-                for implicit in self.last_used_implicits:
-                    stmt_reprs.append(copy_implicit(implicit))
         return "\n".join(stmt_reprs)
 
     def visit_function_definition(self, node: ast.FunctionDefinition):
