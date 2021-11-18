@@ -6,6 +6,8 @@ from starkware.starknet.testing.state import StarknetState
 from yul.main import transpile_from_solidity
 from yul.starknet_utils import invoke_method
 
+from warp.logging.generateMarkdown import steps_in_function
+
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
 test_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -50,6 +52,7 @@ async def test_starknet():
         erc20_address,
         0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
     )
+    steps_in_function("c2c.sol", "gimmeMoney", mint_res, "c2c")
     assert mint_res.retdata == [1, 32, 2, 0, 1]
 
     balances1_res = await invoke_method(
@@ -61,6 +64,7 @@ async def test_starknet():
         0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
     )
     print(balances1_res)
+    steps_in_function("c2c.sol", "checkMoneyz", balances1_res, "c2c")
     assert balances1_res.retdata == [1, 32, 2, 0, 42]
 
     transfer_res = await invoke_method(
@@ -74,6 +78,7 @@ async def test_starknet():
         42,
     )
     print(transfer_res)
+    steps_in_function("c2c.sol", "sendMoneyz", transfer_res, "c2c")
     assert transfer_res.retdata == [1, 32, 2, 0, 1]
 
     # check transfer worked
@@ -86,4 +91,5 @@ async def test_starknet():
         0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
     )
     print(balance_after_transfer)
+    steps_in_function("c2c.sol", "checkMoneyz", balance_after_transfer, "c2c")
     assert balance_after_transfer.retdata == [1, 32, 2, 0, 0]
