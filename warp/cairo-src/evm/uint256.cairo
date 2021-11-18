@@ -6,46 +6,39 @@ from starkware.cairo.common.uint256 import (
     uint256_unsigned_div_rem)
 
 func u256_add{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
-    alloc_locals
-    let (local result : Uint256, _) = uint256_add(x, y)
+    let (result : Uint256, _) = uint256_add(x, y)
     return (result=result)
 end
 
 func u256_mul{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
-    alloc_locals
-    let (local result : Uint256, _) = uint256_mul(x, y)
+    let (result : Uint256, _) = uint256_mul(x, y)
     return (result=result)
 end
 
 func u256_sdiv{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
-    alloc_locals
-    let (local result : Uint256, _) = uint256_signed_div_rem(x, y)
+    let (result : Uint256, _) = uint256_signed_div_rem(x, y)
     return (result=result)
 end
 
 func u256_div{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
-    alloc_locals
-    let (local result : Uint256, _) = uint256_unsigned_div_rem(x, y)
+    let (result : Uint256, _) = uint256_unsigned_div_rem(x, y)
     return (result=result)
 end
 
 # THE ORDER OF ARGUMENTS IS REVERSED, LIKE IN YUL
 func u256_shr{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
-    alloc_locals
-    let (local result : Uint256) = uint256_shr(y, x)
+    let (result : Uint256) = uint256_shr(y, x)
     return (result=result)
 end
 
 # THE ORDER OF ARGUMENTS IS REVERSED, LIKE IN YUL
 func u256_shl{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
-    alloc_locals
-    let (local result : Uint256) = uint256_shl(y, x)
+    let (result : Uint256) = uint256_shl(y, x)
     return (result=result)
 end
 
 func is_zero{range_check_ptr}(x : Uint256) -> (result : Uint256):
     if x.high != 0:
-        tempvar range_check_ptr = range_check_ptr
         return (result=Uint256(0, 0))
     else:
         if x.low != 0:
@@ -57,8 +50,7 @@ func is_zero{range_check_ptr}(x : Uint256) -> (result : Uint256):
 end
 
 func is_eq{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
-    alloc_locals
-    let (local res) = uint256_eq(op1, op2)
+    let (res) = uint256_eq(op1, op2)
     return (result=Uint256(res, 0))
 end
 
@@ -112,7 +104,7 @@ end
 func uint256_signextend{range_check_ptr}(a : Uint256, i : Uint256) -> (res : Uint256):
     alloc_locals
     let (i, _) = uint256_mul(i, cast((8, 0), Uint256))
-    let (local i) = uint256_sub(cast((248, 0), Uint256), i)
+    let (i) = uint256_sub(cast((248, 0), Uint256), i)
     let (a) = uint256_shl(a, i)
     let (a) = uint256_sar(a, i)
     return (a)
