@@ -126,16 +126,6 @@ func safe_read{range_check_ptr}(array_length, array : felt*, index) -> (value):
     end
 end
 
-func extend_array_to_len(array_len : felt, array : felt*, length):
-    if length == array_len:
-        return ()
-    end
-
-    assert array[array_len] = 0
-    extend_array_to_len(array_len + 1, array, length)
-    return ()
-end
-
 func validate_array{range_check_ptr}(array_len, array : felt*):
     # Verifies that all felts in the 'array' of length 'array_len' are
     # in the range [0, 2^128).

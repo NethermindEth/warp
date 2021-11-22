@@ -6,7 +6,7 @@ from evm.calls import calldatacopy, calldataload, calldatasize, caller, returnda
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import uint256_mload, uint256_mstore
 from evm.uint256 import is_eq, is_gt, is_lt, is_zero, slt, u256_add, u256_shr
-from evm.yul_api import warp_call, warp_return
+from evm.yul_api import delegatecall, warp_return
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
@@ -309,14 +309,8 @@ func __main_meat{
     uint256_mstore(offset=_5, value=Uint256(low=0, high=0))
     let (__warp_subexpr_7 : Uint256) = uint256_sub(_5, _3)
     let (__warp_subexpr_6 : Uint256) = __warp_constant_10000000000000000000000000000000000000000()
-    let (__warp_subexpr_5 : Uint256) = warp_call(
-        __warp_subexpr_6,
-        _2,
-        Uint256(low=0, high=0),
-        _3,
-        __warp_subexpr_7,
-        Uint256(low=0, high=0),
-        Uint256(low=0, high=0))
+    let (__warp_subexpr_5 : Uint256) = delegatecall(
+        __warp_subexpr_6, _2, _3, __warp_subexpr_7, Uint256(low=0, high=0), Uint256(low=0, high=0))
 
     __warp_block_6()
     warp_return(Uint256(low=0, high=0), Uint256(low=0, high=0))

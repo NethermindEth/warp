@@ -2,11 +2,11 @@
 %builtins pedersen range_check bitwise
 
 from evm.array import validate_array
-from evm.calls import calldataload, calldatasize, warp_call, warp_static_call
+from evm.calls import calldataload, calldatasize
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import uint256_mload, uint256_mstore
 from evm.uint256 import is_eq, is_gt, is_lt, is_zero, slt, u256_add, u256_shr
-from evm.yul_api import warp_return
+from evm.yul_api import staticcall, warp_call, warp_return
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
@@ -235,7 +235,7 @@ func fun_checkMoneyz{
     let (__warp_subexpr_0 : Uint256) = u256_add(_1, Uint256(low=4, high=0))
     uint256_mstore(offset=__warp_subexpr_0, value=var_to)
     let (__warp_subexpr_1 : Uint256) = __warp_constant_10000000000000000000000000000000000000000()
-    let (_2 : Uint256) = warp_static_call(
+    let (_2 : Uint256) = staticcall(
         __warp_subexpr_1, var_addr, _1, Uint256(low=36, high=0), _1, Uint256(low=32, high=0))
     let (__warp_subexpr_2 : Uint256) = is_zero(_2)
     if __warp_subexpr_2.low + __warp_subexpr_2.high != 0:

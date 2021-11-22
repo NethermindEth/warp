@@ -467,15 +467,11 @@ class Gas(DynamicHandler):
         return super().get_function_call([])
 
 
-class Delegatecall(NotImplementedOp):
-    pass
-
-
 class Call(StaticHandler):
     def __init__(self):
         super().__init__(
             function_name="warp_call",
-            module="evm.calls",
+            module="evm.yul_api",
             used_implicits=(
                 "syscall_ptr",
                 "exec_env",
@@ -488,8 +484,22 @@ class Call(StaticHandler):
 class StaticCall(StaticHandler):
     def __init__(self):
         super().__init__(
-            function_name="warp_static_call",
-            module="evm.calls",
+            function_name="staticcall",
+            module="evm.yul_api",
+            used_implicits=(
+                "syscall_ptr",
+                "exec_env",
+                "memory_dict",
+                "range_check_ptr",
+            ),
+        )
+
+
+class Delegatecall(StaticHandler):
+    def __init__(self):
+        super().__init__(
+            function_name="delegatecall",
+            module="evm.yul_api",
             used_implicits=(
                 "syscall_ptr",
                 "exec_env",
@@ -626,7 +636,7 @@ def get_default_builtins(
         "coinbase": Coinbase(),
         "create": Create(),
         "create2": Create2(),
-        "delegatecall": Delegatecall(cairo_functions),
+        "delegatecall": Delegatecall(),
         "difficulty": Difficulty(),
         "div": Div(),
         "eq": Eq(),

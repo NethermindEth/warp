@@ -3,17 +3,19 @@
 # This module is for functions that correspond to Yul builtin
 # instructions. All such functions must take only Uint256's as
 # explicit parameters and return tuples of Uint256's. Furthermore,
-# they must be named just as their Yul counterparts. This way we
+# they must be named just like their Yul counterparts. This way we
 # ensure that they don't clash with some other names in the translated
-# yul code.
+# yul code. In case such naming conflicts with Cairo's keywords or
+# builtin functions, the name should also be prefixed with "warp_".
 
 from starkware.cairo.common.dict_access import DictAccess
-from starkware.starknet.common.syscalls import get_contract_address
+from starkware.cairo.common.registers import get_label_location
+from starkware.starknet.common.syscalls import call_contract, delegate_call, get_contract_address
 
-from evm.calls import returndata_write
+from evm.calls import general_call, returndata_write
 from evm.exec_env import ExecutionEnvironment
 from evm.uint256 import Uint256
-from evm.utils import felt_to_uint256
+from evm.utils import felt_to_uint256, uint256_to_address_felt
 
 func address{syscall_ptr : felt*, range_check_ptr}() -> (contract_address : Uint256):
     let (felt_address) = get_contract_address()
@@ -28,4 +30,36 @@ func warp_return{
     let termination_token = 1
     returndata_write(returndata_ptr.low, returndata_size.low)
     return ()
+end
+
+func warp_call{
+        syscall_ptr : felt*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        range_check_ptr}(
+        gas : Uint256, address : Uint256, value : Uint256, in_offset : Uint256, in_size : Uint256,
+        out_offset : Uint256, out_size : Uint256) -> (success : Uint256):
+    let (call_function) = get_label_location(call_contract)
+    let (address_felt) = uint256_to_address_felt(address)
+    let (success) = general_call(
+        call_function, address_felt, in_offset.low, in_size.low, out_offset.low, out_size.low)
+    return (Uint256(success, 0))
+end
+
+func staticcall{
+        syscall_ptr : felt*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        range_check_ptr}(
+        gas : Uint256, address : Uint256, in_offset : Uint256, in_size : Uint256,
+        out_offset : Uint256, out_size : Uint256) -> (success : Uint256):
+    return warp_call(gas, address, Uint256(0, 0), in_offset, in_size, out_offset, out_size)
+end
+
+func delegatecall{
+        syscall_ptr : felt*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        range_check_ptr}(
+        gas : Uint256, address : Uint256, in_offset : Uint256, in_size : Uint256,
+        out_offset : Uint256, out_size : Uint256) -> (success : Uint256):
+    let (call_function) = get_label_location(delegate_call)
+    let (address_felt) = uint256_to_address_felt(address)
+    let (success) = general_call(
+        call_function, address_felt, in_offset.low, in_size.low, out_offset.low, out_size.low)
+    return (Uint256(success, 0))
 end
