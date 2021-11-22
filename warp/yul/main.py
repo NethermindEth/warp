@@ -45,8 +45,6 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
     except subprocess.CalledProcessError as e:
         print(e.stderr.decode("utf-8"), file=sys.stderr)
         raise e
-    with open(sol_src_path_modified, "r") as f:
-        sol_source = f.read()
     output = get_for_contract(sol_src_path_modified, main_contract, ["abi"])
     warp_assert(output, f"Couldn't extract {main_contract}'s abi from {sol_src_path}")
     (abi,) = output
@@ -55,7 +53,6 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
     os.remove(sol_src_path_modified)
     return {
         "cairo_code": cairo_code,
-        "sol_source": sol_source,
         "sol_abi": abi,
         "dynamic_argument_functions": dynamic_argument_functions,
     }
