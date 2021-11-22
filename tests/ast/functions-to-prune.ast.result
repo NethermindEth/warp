@@ -1,16 +1,4 @@
-Block:
-	FunctionDefinition:
-		Name: funD
-		Parameters:
-		Return Variables:
-		Body:
-			Block:
-	FunctionDefinition:
-		Name: fun_ENTRY_POINT
-		Parameters:
-		Return Variables:
-		Body:
-			Block:
-				ExpressionStatement:
-					FunctionCall:
-						Identifier:funD
+{
+	function funD() {  }
+	function fun_ENTRY_POINT() { funD() }
+}

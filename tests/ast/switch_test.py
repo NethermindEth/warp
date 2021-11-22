@@ -1,6 +1,5 @@
 import pytest
 from utils import check_ast
-from yul.AstTools import AstParser, AstPrinter
 from yul.SwitchToIfVisitor import SwitchToIfVisitor
 
 

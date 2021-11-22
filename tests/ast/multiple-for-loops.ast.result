@@ -1,222 +1,32 @@
-Block:
-	FunctionDefinition:
-		Name: fun_transferFrom
-		Parameters:
-			TypedName:
-				var_i:Uint256
-			TypedName:
-				var_j:Uint256
-		Return Variables:
-			TypedName:
-				var:Uint256
-		Body:
-			Block:
-				VariableDeclaration:
-					Variables:
-						TypedName:
-							var_cant:Uint256
-					Value:
-						Literal:0
-				VariableDeclaration:
-					Variables:
-						TypedName:
-							var_k:Uint256
-					Value:
-						Identifier:var_cant
-				Block:
-					Block:
-						Assignment:
-							Variables:
-								Identifier:var_cant
-								Identifier:var_k
-							Value:
-								FunctionCall:
-									Identifier:__warp_loop_0
-									Identifier:var_cant
-									Identifier:var_i
-									Identifier:var_j
-									Identifier:var_k
-				VariableDeclaration:
-					Variables:
-						TypedName:
-							var_k_1:Uint256
-					Value:
-						Literal:0
-				Block:
-					Block:
-						Assignment:
-							Variables:
-								Identifier:var_cant
-								Identifier:var_k_1
-							Value:
-								FunctionCall:
-									Identifier:__warp_loop_1
-									Identifier:var_cant
-									Identifier:var_i
-									Identifier:var_j
-									Identifier:var_k_1
-				Assignment:
-					Variables:
-						Identifier:var
-					Value:
-						Identifier:var_cant
-	FunctionDefinition:
-		Name: __warp_loop_body_0
-		Parameters:
-			TypedName:
-				var_cant:Uint256
-			TypedName:
-				var_j:Uint256
-			TypedName:
-				var_k:Uint256
-		Return Variables:
-			TypedName:
-				var_cant:Uint256
-			TypedName:
-				var_k:Uint256
-		Body:
-			Block:
-				Assignment:
-					Variables:
-						Identifier:var_cant
-					Value:
-						FunctionCall:
-							Identifier:checked_add_uint256
-							Identifier:var_cant
-							Identifier:var_k
-				Assignment:
-					Variables:
-						Identifier:var_k
-					Value:
-						FunctionCall:
-							Identifier:checked_add_uint256
-							Identifier:var_k
-							Identifier:var_j
-	FunctionDefinition:
-		Name: __warp_loop_0
-		Parameters:
-			TypedName:
-				var_cant:Uint256
-			TypedName:
-				var_i:Uint256
-			TypedName:
-				var_j:Uint256
-			TypedName:
-				var_k:Uint256
-		Return Variables:
-			TypedName:
-				var_cant:Uint256
-			TypedName:
-				var_k:Uint256
-		Body:
-			Block:
-				If:
-					FunctionCall:
-						Identifier:iszero
-						FunctionCall:
-							Identifier:lt
-							Identifier:var_k
-							Identifier:var_i
-					Block:
-						Leave
-				Assignment:
-					Variables:
-						Identifier:var_cant
-						Identifier:var_k
-					Value:
-						FunctionCall:
-							Identifier:__warp_loop_body_0
-							Identifier:var_cant
-							Identifier:var_j
-							Identifier:var_k
-				Assignment:
-					Variables:
-						Identifier:var_cant
-						Identifier:var_k
-					Value:
-						FunctionCall:
-							Identifier:__warp_loop_0
-							Identifier:var_cant
-							Identifier:var_i
-							Identifier:var_j
-							Identifier:var_k
-	FunctionDefinition:
-		Name: __warp_loop_body_1
-		Parameters:
-			TypedName:
-				var_cant:Uint256
-			TypedName:
-				var_i:Uint256
-			TypedName:
-				var_k_1:Uint256
-		Return Variables:
-			TypedName:
-				var_cant:Uint256
-			TypedName:
-				var_k_1:Uint256
-		Body:
-			Block:
-				Assignment:
-					Variables:
-						Identifier:var_cant
-					Value:
-						FunctionCall:
-							Identifier:checked_add_uint256
-							Identifier:var_cant
-							Identifier:var_k_1
-				Assignment:
-					Variables:
-						Identifier:var_k_1
-					Value:
-						FunctionCall:
-							Identifier:checked_add_uint256
-							Identifier:var_k_1
-							Identifier:var_i
-	FunctionDefinition:
-		Name: __warp_loop_1
-		Parameters:
-			TypedName:
-				var_cant:Uint256
-			TypedName:
-				var_i:Uint256
-			TypedName:
-				var_j:Uint256
-			TypedName:
-				var_k_1:Uint256
-		Return Variables:
-			TypedName:
-				var_cant:Uint256
-			TypedName:
-				var_k_1:Uint256
-		Body:
-			Block:
-				If:
-					FunctionCall:
-						Identifier:iszero
-						FunctionCall:
-							Identifier:lt
-							Identifier:var_k_1
-							Identifier:var_j
-					Block:
-						Leave
-				Assignment:
-					Variables:
-						Identifier:var_cant
-						Identifier:var_k_1
-					Value:
-						FunctionCall:
-							Identifier:__warp_loop_body_1
-							Identifier:var_cant
-							Identifier:var_i
-							Identifier:var_k_1
-				Assignment:
-					Variables:
-						Identifier:var_cant
-						Identifier:var_k_1
-					Value:
-						FunctionCall:
-							Identifier:__warp_loop_1
-							Identifier:var_cant
-							Identifier:var_i
-							Identifier:var_j
-							Identifier:var_k_1
+{
+	function fun_transferFrom(var_i, var_j) -> var {
+		let var_cant := 0
+		let var_k := var_cant
+		{
+			{ var_cant, var_k := __warp_loop_0(var_cant, var_i, var_j, var_k) }
+		}
+		let var_k_1 := 0
+		{
+			{ var_cant, var_k_1 := __warp_loop_1(var_cant, var_i, var_j, var_k_1) }
+		}
+		var := var_cant
+	}
+	function __warp_loop_body_0(var_cant, var_j, var_k) -> var_cant, var_k {
+		var_cant := checked_add_uint256(var_cant, var_k)
+		var_k := checked_add_uint256(var_k, var_j)
+	}
+	function __warp_loop_0(var_cant, var_i, var_j, var_k) -> var_cant, var_k {
+		if iszero(lt(var_k, var_i)) { leave }
+		var_cant, var_k := __warp_loop_body_0(var_cant, var_j, var_k)
+		var_cant, var_k := __warp_loop_0(var_cant, var_i, var_j, var_k)
+	}
+	function __warp_loop_body_1(var_cant, var_i, var_k_1) -> var_cant, var_k_1 {
+		var_cant := checked_add_uint256(var_cant, var_k_1)
+		var_k_1 := checked_add_uint256(var_k_1, var_i)
+	}
+	function __warp_loop_1(var_cant, var_i, var_j, var_k_1) -> var_cant, var_k_1 {
+		if iszero(lt(var_k_1, var_j)) { leave }
+		var_cant, var_k_1 := __warp_loop_body_1(var_cant, var_i, var_k_1)
+		var_cant, var_k_1 := __warp_loop_1(var_cant, var_i, var_j, var_k_1)
+	}
+}

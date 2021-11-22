@@ -1,7 +1,7 @@
 import difflib
 import os
 
-from yul.AstTools import AstParser, AstPrinter
+from yul.AstTools import AstParser, YulPrinter
 
 
 def check_ast(file_path):
@@ -14,7 +14,7 @@ def check_ast(file_path):
             yul_ast = parser.parse_node()
             yul_ast = func(yul_ast)
 
-            generated_ast = AstPrinter().format(yul_ast)
+            generated_ast = YulPrinter().format(yul_ast)
             temp_file_path = f"{ast_file_path}.temp"
             with open(temp_file_path, "w") as temp_file:
                 temp_file.write(generated_ast)

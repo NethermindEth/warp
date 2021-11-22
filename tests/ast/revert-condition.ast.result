@@ -1,138 +1,22 @@
-Block:
-	FunctionDefinition:
-		Name: checked_sub_uint256
-		Parameters:
-			TypedName:
-				x:Uint256
-			TypedName:
-				y:Uint256
-		Return Variables:
-			TypedName:
-				diff:Uint256
-		Body:
-			Block:
-				VariableDeclaration:
-					Variables:
-						TypedName:
-							_1_5:Uint256
-					Value:
-						FunctionCall:
-							Identifier:lt
-							Identifier:x
-							Identifier:y
-				If:
-					Identifier:_1_5
-					Block:
-						ExpressionStatement:
-							FunctionCall:
-								Identifier:revert
-								Literal:0
-								Literal:0
-				Assignment:
-					Variables:
-						Identifier:diff
-					Value:
-						FunctionCall:
-							Identifier:sub
-							Identifier:x
-							Identifier:y
-	FunctionDefinition:
-		Name: require_helper
-		Parameters:
-			TypedName:
-				condition:Uint256
-		Return Variables:
-		Body:
-			Block:
-				VariableDeclaration:
-					Variables:
-						TypedName:
-							_1_17:Uint256
-					Value:
-						FunctionCall:
-							Identifier:iszero
-							Identifier:condition
-				If:
-					Identifier:_1_17
-					Block:
-						ExpressionStatement:
-							FunctionCall:
-								Identifier:revert
-								Literal:0
-								Literal:0
-	FunctionDefinition:
-		Name: fun_transfer
-		Parameters:
-			TypedName:
-				var_sender:Uint256
-			TypedName:
-				var_sender_balance:Uint256
-			TypedName:
-				var_recipient:Uint256
-			TypedName:
-				var_amount:Uint256
-		Return Variables:
-			TypedName:
-				var:Uint256
-		Body:
-			Block:
-				VariableDeclaration:
-					Variables:
-						TypedName:
-							_1_6:Uint256
-					Value:
-						FunctionCall:
-							Identifier:eq
-							Identifier:var_sender
-							Identifier:var_recipient
-				VariableDeclaration:
-					Variables:
-						TypedName:
-							_2_7:Uint256
-					Value:
-						FunctionCall:
-							Identifier:iszero
-							Identifier:_1_6
-				ExpressionStatement:
-					FunctionCall:
-						Identifier:require_helper
-						Identifier:_2_7
-				VariableDeclaration:
-					Variables:
-						TypedName:
-							_3_8:Uint256
-					Value:
-						FunctionCall:
-							Identifier:gt
-							Identifier:var_amount
-							Identifier:var_sender_balance
-				VariableDeclaration:
-					Variables:
-						TypedName:
-							_4_9:Uint256
-					Value:
-						FunctionCall:
-							Identifier:iszero
-							Identifier:_3_8
-				ExpressionStatement:
-					FunctionCall:
-						Identifier:require_helper
-						Identifier:_4_9
-				VariableDeclaration:
-					Variables:
-						TypedName:
-							_5_10:Uint256
-					Value:
-						FunctionCall:
-							Identifier:checked_sub_uint256
-							Identifier:var_sender_balance
-							Identifier:var_amount
-				ExpressionStatement:
-					FunctionCall:
-						Identifier:pop
-						Identifier:_5_10
-				Assignment:
-					Variables:
-						Identifier:var
-					Value:
-						Literal:1
+{
+	function checked_sub_uint256(x, y) -> diff {
+		let _1_5 := lt(x, y)
+		if _1_5 { revert(0, 0) }
+		diff := sub(x, y)
+	}
+	function require_helper(condition) {
+		let _1_17 := iszero(condition)
+		if _1_17 { revert(0, 0) }
+	}
+	function fun_transfer(var_sender, var_sender_balance, var_recipient, var_amount) -> var {
+		let _1_6 := eq(var_sender, var_recipient)
+		let _2_7 := iszero(_1_6)
+		require_helper(_2_7)
+		let _3_8 := gt(var_amount, var_sender_balance)
+		let _4_9 := iszero(_3_8)
+		require_helper(_4_9)
+		let _5_10 := checked_sub_uint256(var_sender_balance, var_amount)
+		pop(_5_10)
+		var := 1
+	}
+}
