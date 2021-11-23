@@ -1,3 +1,4 @@
+typing-extensions<4,>=3.7.4.1
 wheel
 eth-hash==0.2.0
 ecdsa
@@ -11,4 +12,3 @@ cairo-lang==0.5.2
 aiohttp<4,>=3.7.4
 eth-utils<1.10
 click
-lark
