@@ -2,7 +2,7 @@ name: develop-ci
 
 on:
   push:
-    branches: [ develop ]
+    branches: [develop]
   pull_request:
 
 jobs:
@@ -53,3 +53,8 @@ jobs:
 
       - name: Test yul tests
         run: make test_yul
+
+      - name: Generate benchmarks for tests
+        run: |
+          mkdir -p ./benchmark/stats
+          make benchmark
