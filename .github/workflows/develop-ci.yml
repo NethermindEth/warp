@@ -2,7 +2,7 @@ name: develop-ci
 
 on:
   push:
-    branches: [ develop ]
+    branches: [develop]
   pull_request:
 
 jobs:
@@ -53,3 +53,19 @@ jobs:
 
       - name: Test yul tests
         run: make test_yul
+
+      - name: Generate benchmarks for tests
+        run: |
+          mkdir -p ./benchmark/stats
+          make test_bench
+
+      - name: Push benchmarks to another repository
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source-directory: "benchmark/stats"
+          destination-github-username: "NethermindEth"
+          destination-repository-name: ${{ secrets.BENCHMARK_REPO }}
+          user-email: atharvakn@gmail.com
+          target-branch: main
