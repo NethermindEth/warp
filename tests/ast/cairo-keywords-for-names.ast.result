@@ -1,56 +1,10 @@
-Block:
-	FunctionDefinition:
-		Name: func__warp_mangled
-		Parameters:
-			TypedName:
-				felt__warp_mangled:Uint256
-			TypedName:
-				end__warp_mangled:Uint256
-		Return Variables:
-			TypedName:
-				jmp__warp_mangled:Uint256
-		Body:
-			Block:
-				VariableDeclaration:
-					Variables:
-						TypedName:
-							_1_7:Uint256
-					Value:
-						FunctionCall:
-							Identifier:iszero
-							Identifier:felt__warp_mangled
-				VariableDeclaration:
-					Variables:
-						TypedName:
-							_2_8:Uint256
-					Value:
-						FunctionCall:
-							Identifier:iszero
-							Identifier:_1_7
-				ExpressionStatement:
-					FunctionCall:
-						Identifier:require_helper
-						Identifier:_2_8
-				VariableDeclaration:
-					Variables:
-						TypedName:
-							_3_9:Uint256
-					Value:
-						Literal:100
-				VariableDeclaration:
-					Variables:
-						TypedName:
-							ret__warp_mangled:Uint256
-					Value:
-						FunctionCall:
-							Identifier:checked_add_uint256
-							Identifier:end__warp_mangled
-							Identifier:felt__warp_mangled
-				Assignment:
-					Variables:
-						Identifier:jmp__warp_mangled
-					Value:
-						FunctionCall:
-							Identifier:gt
-							Identifier:ret__warp_mangled
-							Identifier:_3_9
+{
+	function func__warp_mangled(felt__warp_mangled, end__warp_mangled) -> jmp__warp_mangled {
+		let _1_7 := iszero(felt__warp_mangled)
+		let _2_8 := iszero(_1_7)
+		require_helper(_2_8)
+		let _3_9 := 100
+		let ret__warp_mangled := checked_add_uint256(end__warp_mangled, felt__warp_mangled)
+		jmp__warp_mangled := gt(ret__warp_mangled, _3_9)
+	}
+}
