@@ -61,6 +61,7 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
 def transpile_from_yul(yul_ast: ast.Node) -> str:
     name_gen = NameGenerator()
     cairo_functions = CairoFunctions(FunctionGenerator())
+    builtins = get_default_builtins(cairo_functions)
     yul_ast = ForLoopSimplifier().map(yul_ast)
     yul_ast = ForLoopEliminator(name_gen).map(yul_ast)
     yul_ast = MangleNamesVisitor().map(yul_ast)
@@ -69,10 +70,10 @@ def transpile_from_yul(yul_ast: ast.Node) -> str:
     yul_ast = ConstantFolder().map(yul_ast)
     yul_ast = FoldIf().map(yul_ast)
     yul_ast = ExpressionSplitter(name_gen).map(yul_ast)
-    yul_ast = RevertNormalizer().map(yul_ast)
+    yul_ast = RevertNormalizer(builtins).map(yul_ast)
     yul_ast = ScopeFlattener(name_gen).map(yul_ast)
     yul_ast = LeaveNormalizer().map(yul_ast)
-    yul_ast = RevertNormalizer().map(yul_ast)
+    yul_ast = RevertNormalizer(builtins).map(yul_ast)
     yul_ast = FunctionPruner().map(yul_ast)
     yul_ast = DeadcodeEliminator().map(yul_ast)
 

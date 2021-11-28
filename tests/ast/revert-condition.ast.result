@@ -1,4 +1,5 @@
 {
+	function panic_error_0x11() { revert(0, 0) }
 	function checked_sub_uint256(x, y) -> diff {
 		let _1_5 := lt(x, y)
 		if _1_5 { revert(0, 0) }
@@ -19,4 +20,5 @@
 		pop(_5_10)
 		var := 1
 	}
+	function revert_error_42b3090547df1d2001c96683413b8cf91c1b902ef5e3cb8d9f6f304cf7446f74() { revert(0, 0) }
 }

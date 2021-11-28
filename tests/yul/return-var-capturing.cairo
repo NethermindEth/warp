@@ -56,36 +56,36 @@ func checked_add_uint256{range_check_ptr}(x_2 : Uint256) -> (sum_3 : Uint256):
 end
 
 func __warp_block_1{range_check_ptr}(match_var : Uint256, var_a : Uint256, var_b : Uint256) -> (
-        __warp_leave_3 : Uint256, var : Uint256):
+        __warp_leave_5 : Uint256, var : Uint256):
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=0, high=0))
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         let (var : Uint256) = checked_add_uint256_141(var_b)
-        let __warp_leave_3 : Uint256 = Uint256(low=1, high=0)
-        return (__warp_leave_3, var)
+        let __warp_leave_5 : Uint256 = Uint256(low=1, high=0)
+        return (__warp_leave_5, var)
     else:
         let (var : Uint256) = checked_add_uint256(var_a)
-        let __warp_leave_3 : Uint256 = Uint256(low=1, high=0)
-        return (__warp_leave_3, var)
+        let __warp_leave_5 : Uint256 = Uint256(low=1, high=0)
+        return (__warp_leave_5, var)
     end
 end
 
 func __warp_block_0{range_check_ptr}(var_a : Uint256, var_b : Uint256) -> (
-        __warp_leave_3 : Uint256, var : Uint256):
+        __warp_leave_5 : Uint256, var : Uint256):
     alloc_locals
     let (match_var : Uint256) = is_gt(var_a, var_b)
-    let (__warp_leave_3 : Uint256, var : Uint256) = __warp_block_1(match_var, var_a, var_b)
-    if __warp_leave_3.low + __warp_leave_3.high != 0:
-        return (__warp_leave_3, var)
+    let (__warp_leave_5 : Uint256, var : Uint256) = __warp_block_1(match_var, var_a, var_b)
+    if __warp_leave_5.low + __warp_leave_5.high != 0:
+        return (__warp_leave_5, var)
     else:
-        return (__warp_leave_3, var)
+        return (__warp_leave_5, var)
     end
 end
 
 func fun_rando{range_check_ptr}(var_a : Uint256, var_b : Uint256) -> (var : Uint256):
     alloc_locals
-    let (__warp_leave_3 : Uint256, var : Uint256) = __warp_block_0(var_a, var_b)
-    if __warp_leave_3.low + __warp_leave_3.high != 0:
+    let (__warp_leave_5 : Uint256, var : Uint256) = __warp_block_0(var_a, var_b)
+    if __warp_leave_5.low + __warp_leave_5.high != 0:
         return (var)
     else:
         return (var)
