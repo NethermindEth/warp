@@ -5,7 +5,7 @@ from cli.encoding import get_evm_calldata
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
 from yul.main import transpile_from_solidity
-from yul.starknet_utils import invoke_method
+from yul.starknet_utils import deploy_contract, invoke_method
 
 from warp.logging.generateMarkdown import steps_in_function
 
@@ -17,21 +17,21 @@ test_dir = __file__
 async def test_starknet():
     solidity_file = test_dir[:-8] + ".sol"
     contract_file = test_dir[:-8] + ".cairo"
-    contract_info = transpile_from_solidity(solidity_file, "WARP")
+    program_info = transpile_from_solidity(solidity_file, "WARP")
     cairo_path = f"{warp_root}/warp/cairo-src"
     contract_definition = compile_starknet_files(
         [contract_file], debug_info=True, cairo_path=[cairo_path]
     )
 
     starknet = await StarknetState.empty()
-    contract_address = await starknet.deploy(
-        contract_definition=contract_definition, constructor_calldata=[]
+    contract_address = await deploy_contract(
+        starknet, program_info, contract_definition
     )
 
-    res = await invoke_method(starknet, contract_info, contract_address, "returnFun")
+    res = await invoke_method(starknet, program_info, contract_address, "returnFun")
     steps_in_function(solidity_file, "returnFun", res, "short_string")
     assert res.retdata == [96, 6, 0, 32, 0, 3, 0x41424300000000000000000000000000, 0]
 
-    res = await invoke_method(starknet, contract_info, contract_address, "bytesFun")
+    res = await invoke_method(starknet, program_info, contract_address, "bytesFun")
     steps_in_function(solidity_file, "bytesFun", res, "short_string")
     assert res.retdata == [96, 6, 0, 32, 0, 3, 0x41424300000000000000000000000000, 0]

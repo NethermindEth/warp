@@ -17,8 +17,7 @@ class FunctionPruner(AstMapper):
 
         self.callgraph = build_callgraph(node)
         for function in self.callgraph:
-            f_name = function.name
-            if f_name == "fun_ENTRY_POINT" or "warp_constructor" in f_name:
+            if function.name in ("fun_ENTRY_POINT", "constructor"):
                 self._dfs(function)
 
         return self.visit(node, *args, **kwargs)
@@ -44,7 +43,7 @@ class FunctionPruner(AstMapper):
         return (
             isinstance(node, ast.FunctionDefinition)
             and node.name not in self.visited_functions
-            and "constructor" not in node.name
+            and node.name != "constructor"
             and "setter" not in node.name
             and "getter" not in node.name
         )

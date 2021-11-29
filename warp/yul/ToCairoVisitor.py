@@ -55,7 +55,6 @@ class ToCairoVisitor(AstVisitor):
         self.name_gen = name_gen
         self.cairo_functions = cairo_functions
         self.builtins_map = builtins_map(self.cairo_functions)
-        self.dynamic_argument_functions: list[str] = []
         self.imports: defaultdict[str, set[str]] = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
         self.last_function: Optional[ast.FunctionDefinition] = None
@@ -184,26 +183,7 @@ class ToCairoVisitor(AstVisitor):
         body_repr = self._try_make_storage_accessor_body(node)
         if not body_repr:
             body_repr = self.print(node.body)
-        if "_DynArgs" in node.name:
-            if node.name == "fun_warp_constructor_DynArgs":
-                self.dynamic_argument_functions.append("constructor")
-            else:
-                self.dynamic_argument_functions.append(node.name)
-        if node.name == "fun_warp_constructor":
-            return (
-                f"@constructor\n"
-                f"func constructor{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
-                f"syscall_ptr : felt* , bitwise_ptr : BitwiseBuiltin*}}({params_repr}):\n"
-                f"alloc_locals\n"
-                f"let (memory_dict) = default_dict_new(0)\n"
-                f"let memory_dict_start: DictAccess* = memory_dict\n"
-                f"let msize = 0\n"
-                f"with memory_dict, msize:\n"
-                f"{body_repr}\n"
-                f"end\n"
-                f"end"
-            )
-        elif node.name == "fun_warp_constructor_DynArgs":
+        if node.name == "constructor":
             return (
                 f"@constructor\n"
                 f"func constructor{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
@@ -226,7 +206,6 @@ class ToCairoVisitor(AstVisitor):
                 f"end\n"
                 f"end\n"
             )
-
         if node.name == "fun_ENTRY_POINT":
             # The leave gets replaced with the wrong return type in this case
             # we need to replace it with our return
@@ -254,7 +233,6 @@ class ToCairoVisitor(AstVisitor):
                 f"with exec_env, msize, memory_dict, termination_token:\n"
                 f"  {body_repr}\n"
                 f"end\n"
-                f"{self._get_termination_actions()}"
                 f"end\n"
             )
 
@@ -304,6 +282,7 @@ class ToCairoVisitor(AstVisitor):
         )
 
     def visit_leave(self, _node: ast.Leave) -> str:
+        assert self.last_function
         return_names = ", ".join(x.name for x in self.last_function.return_variables)
         return f"return ({return_names})"
 
