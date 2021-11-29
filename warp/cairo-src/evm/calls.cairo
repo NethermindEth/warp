@@ -55,7 +55,7 @@ end
 @contract_interface
 namespace GenericCallInterface:
     func fun_ENTRY_POINT(calldata_size : felt, calldata_len : felt, calldata : felt*) -> (
-            success : felt, returndata_size : felt, returndata_len : felt, returndata : felt*):
+            returndata_size : felt, returndata_len : felt, returndata : felt*):
     end
 end
 
@@ -79,8 +79,7 @@ func warp_call{
         memory_dict=memory_dict, range_check_ptr=range_check_ptr}(in.low, insize.low)
     let (calldata_len) = calculate_data_len(insize.low)
     let (address_felt : felt) = uint256_to_address_felt(address)
-    let (success, returndata_size, returndata_len,
-        returndata) = GenericCallInterface.fun_ENTRY_POINT(
+    let (returndata_size, returndata_len, returndata) = GenericCallInterface.fun_ENTRY_POINT(
         address_felt, insize.low, calldata_len, mem)
     array_copy_to_memory(returndata_size, returndata, 0, out.low, outsize.low)
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(
@@ -94,7 +93,7 @@ func warp_call{
         to_returndata_len=exec_env.to_returndata_len,
         to_returndata=exec_env.to_returndata)
     let exec_env : ExecutionEnvironment* = &exec_env_
-    return (Uint256(success, 0))
+    return (Uint256(1, 0))
 end
 
 func warp_static_call{
@@ -106,11 +105,11 @@ func warp_static_call{
 end
 
 func returndata_write{memory_dict : DictAccess*, exec_env : ExecutionEnvironment*, range_check_ptr}(
-        returndata_ptr : Uint256, returndata_size : Uint256):
+        returndata_ptr, returndata_size):
     alloc_locals
     let (__fp__, _) = get_fp_and_pc()
-    let (returndata : felt*) = array_create_from_memory(returndata_ptr.low, returndata_size.low)
-    let (returndata_len) = calculate_data_len(returndata_size.low)
+    let (returndata : felt*) = array_create_from_memory(returndata_ptr, returndata_size)
+    let (returndata_len) = calculate_data_len(returndata_size)
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(
         calldata_size=exec_env.calldata_size,
         calldata_len=exec_env.calldata_len,
@@ -118,7 +117,7 @@ func returndata_write{memory_dict : DictAccess*, exec_env : ExecutionEnvironment
         returndata_size=exec_env.returndata_size,
         returndata_len=exec_env.returndata_len,
         returndata=exec_env.returndata,
-        to_returndata_size=returndata_size.low,
+        to_returndata_size=returndata_size,
         to_returndata_len=returndata_len,
         to_returndata=returndata)
     let exec_env : ExecutionEnvironment* = &exec_env_

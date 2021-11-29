@@ -81,5 +81,5 @@ async def test_constructors():
         "constructors_nonDyn",
     )
     print(f"dyn_result: {dyn_result}\n non_dyn_result: {non_dyn_result}")
-    assert dyn_result.retdata == [1, 32, 2, 0, 1]
-    assert non_dyn_result.retdata == [1, 32, 2, 0, 1]
+    assert dyn_result.retdata == [32, 2, 0, 1]
+    assert non_dyn_result.retdata == [32, 2, 0, 1]

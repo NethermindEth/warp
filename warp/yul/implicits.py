@@ -6,6 +6,7 @@ IMPLICITS = {
     "syscall_ptr": "felt*",
     "bitwise_ptr": "BitwiseBuiltin*",
     "exec_env": "ExecutionEnvironment*",
+    "termination_token": None,
 }
 
 IMPLICITS_SET = set(IMPLICITS.keys())

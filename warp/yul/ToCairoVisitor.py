@@ -56,12 +56,13 @@ class ToCairoVisitor(AstVisitor):
         self.cairo_functions = cairo_functions
         self.builtins_map = builtins_map(self.cairo_functions)
         self.dynamic_argument_functions: list[str] = []
-        self.imports = defaultdict(set)
+        self.imports: defaultdict[str, set[str]] = defaultdict(set)
         merge_imports(self.imports, COMMON_IMPORTS)
         self.last_function: Optional[ast.FunctionDefinition] = None
         self.last_used_implicits: tuple[str, ...] = ()
         self.function_to_implicits: dict[str, set[str]] = {}
         self.storage_variables: set[StorageVar] = set()
+        self.next_stmt_is_leave: bool = False
 
     def translate(self, node: ast.Node) -> str:
         main_part = self.print(node)
@@ -123,21 +124,25 @@ class ToCairoVisitor(AstVisitor):
         result: str
         builtin_handler = self.builtins_map.get(fun_repr)
         if builtin_handler:
-            result = f"{builtin_handler.get_function_call(args)}"
+            result = builtin_handler.get_function_call(args)
             merge_imports(self.imports, builtin_handler.required_imports())
             self.last_used_implicits = builtin_handler.get_used_implicits()
         else:
-            self.last_used_implicits = sorted(
-                self.function_to_implicits.setdefault(
-                    node.function_name.name, IMPLICITS_SET
-                )
-            )
+            self.last_used_implicits = self._get_implicits(node.function_name.name)
             args_repr = ", ".join(self.print(x) for x in node.arguments)
             result = f"{fun_repr}({args_repr})"
         if self.last_function:
-            self.function_to_implicits.setdefault(
-                self.last_function.name, set()
-            ).update(self.last_used_implicits)
+            self._add_implicits(self.last_function.name, *self.last_used_implicits)
+            if self.next_stmt_is_leave:
+                return result
+            if "termination_token" in self.last_used_implicits:
+                assert (
+                    "exec_env" in self.last_used_implicits
+                ), "Termination requires writing to returndata"
+                return (
+                    result
+                    + f"\nif termination_token == 1:\n{self._get_termination_actions()}\nend"
+                )
         return result
 
     def visit_expression_statement(self, node: ast.ExpressionStatement) -> str:
@@ -164,7 +169,10 @@ class ToCairoVisitor(AstVisitor):
 
     def visit_block(self, node: ast.Block) -> str:
         stmt_reprs = []
-        for stmt in node.statements:
+        for i, stmt in enumerate(node.statements):
+            self.next_stmt_is_leave = False
+            if i < len(node.statements) - 1:
+                self.next_stmt_is_leave = isinstance(node.statements[i + 1], ast.Leave)
             with self._new_statement():
                 stmt_reprs.append(self.visit(stmt))
         return "\n".join(stmt_reprs)
@@ -190,7 +198,7 @@ class ToCairoVisitor(AstVisitor):
                 f"let (memory_dict) = default_dict_new(0)\n"
                 f"let memory_dict_start: DictAccess* = memory_dict\n"
                 f"let msize = 0\n"
-                f"with pedersen_ptr, range_check_ptr, bitwise_ptr, memory_dict, msize:\n"
+                f"with memory_dict, msize:\n"
                 f"{body_repr}\n"
                 f"end\n"
                 f"end"
@@ -202,6 +210,7 @@ class ToCairoVisitor(AstVisitor):
                 f"syscall_ptr : felt* , bitwise_ptr : BitwiseBuiltin*}}(calldata_size,"
                 f"calldata_len, calldata : felt*):\n"
                 f"alloc_locals\n"
+                f"let termination_token = 0\n"
                 f"let (returndata_ptr: felt*) = alloc()\n"
                 f"let (__fp__, _) = get_fp_and_pc()\n"
                 f"local exec_env_ : ExecutionEnvironment = ExecutionEnvironment("
@@ -212,7 +221,7 @@ class ToCairoVisitor(AstVisitor):
                 f"let (memory_dict) = default_dict_new(0)\n"
                 f"let memory_dict_start = memory_dict\n"
                 f"let msize = 0\n"
-                f"with pedersen_ptr, range_check_ptr, bitwise_ptr, memory_dict, msize, exec_env:\n"
+                f"with memory_dict, msize, exec_env, termination_token:\n"
                 f"{body_repr}\n"
                 f"end\n"
                 f"end\n"
@@ -222,13 +231,16 @@ class ToCairoVisitor(AstVisitor):
             # The leave gets replaced with the wrong return type in this case
             # we need to replace it with our return
             body_repr = re.sub("return \(\)$", "", body_repr)
-            returns_repr = "success: felt, returndata_size: felt, returndata_len: felt, returndata: felt*"
+            returns_repr = (
+                "returndata_size: felt, returndata_len: felt, returndata: felt*"
+            )
             return (
-                "@external\n"
+                f"@external\n"
                 f"func {node.name}{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
                 f"syscall_ptr : felt* , bitwise_ptr : BitwiseBuiltin*}}(calldata_size,"
                 f"calldata_len, calldata : felt*) -> ({returns_repr}):\n"
                 f"alloc_locals\n"
+                f"let termination_token = 0\n"
                 f"let (__fp__, _) = get_fp_and_pc()\n"
                 f"let (returndata_ptr: felt*) = alloc()\n"
                 f"local exec_env_ : ExecutionEnvironment = ExecutionEnvironment("
@@ -239,11 +251,10 @@ class ToCairoVisitor(AstVisitor):
                 f"let (memory_dict) = default_dict_new(0)\n"
                 f"let memory_dict_start = memory_dict\n"
                 f"let msize = 0\n"
-                f"with exec_env, msize, memory_dict:\n"
+                f"with exec_env, msize, memory_dict, termination_token:\n"
                 f"  {body_repr}\n"
                 f"end\n"
-                f"default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
-                f"return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)\n"
+                f"{self._get_termination_actions()}"
                 f"end\n"
             )
 
@@ -313,9 +324,7 @@ class ToCairoVisitor(AstVisitor):
         if not (getter_var or setter_var):
             return None
 
-        self.function_to_implicits.setdefault(node.name, set()).update(
-            ("pedersen_ptr", "range_check_ptr", "syscall_ptr")
-        )
+        self._add_implicits(node.name, "pedersen_ptr", "range_check_ptr", "syscall_ptr")
         accessor_args = tuple(x.name for x in node.parameters)
         if getter_var:
             assert (
@@ -340,3 +349,27 @@ class ToCairoVisitor(AstVisitor):
             StorageVar(name=name, arg_types=arg_types, res_type=res_type)
         )
         return body
+
+    def _add_implicits(self, fn_name: str, *implicits: str):
+        self.function_to_implicits.setdefault(fn_name, set()).update(implicits)
+
+    def _get_implicits(self, fn_name: str) -> tuple[str, ...]:
+        return tuple(
+            sorted(self.function_to_implicits.setdefault(fn_name, IMPLICITS_SET))
+        )
+
+    def _get_termination_actions(self):
+        if self.last_function.name == "fun_ENTRY_POINT":
+            return (
+                "default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
+                "return (exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)\n"
+            )
+        elif self.last_function.name.startswith("fun_warp_constructor"):
+            return (
+                "default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
+                "return ()\n"
+            )
+        else:
+            n_returns = len(self.last_function.return_variables)
+            dummy_returns = ", ".join("Uint256(0, 0)" for _ in range(n_returns))
+            return f"return ({dummy_returns})"

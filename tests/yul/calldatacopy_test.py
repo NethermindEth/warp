@@ -1,10 +1,12 @@
 import os
 
 import pytest
+from cli.encoding import get_evm_calldata
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
 from yul.main import transpile_from_solidity
 from yul.starknet_utils import invoke_method
+from yul.utils import cairoize_bytes
 
 from warp.logging.generateMarkdown import steps_in_function
 
@@ -27,6 +29,8 @@ async def test_calldatacopy():
         contract_definition=contract_definition, constructor_calldata=[]
     )
 
+    evm_calldata = get_evm_calldata(program_info["sol_abi"], "callMe", [])[2:]
+    [first_four_bytes], _ = cairoize_bytes(bytes.fromhex(evm_calldata[: 2 * 4]))
     res = await invoke_method(starknet, program_info, contract_address, "callMe")
     steps_in_function(sol_file, "callMe", res, "calldatacopy_test")
-    assert res.retdata == [1, 32, 2, 0, 0]
+    assert res.retdata == [4, 1, first_four_bytes]

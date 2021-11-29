@@ -34,7 +34,7 @@ async def test_starknet():
         starknet, program_info, contract_address, "deposit", sender, 500
     )
     steps_in_function(sol_file, "deposit", res, "ERC20_storage_test")
-    check.equal(res.retdata, [1, 0, 0])
+    check.equal(res.retdata, [0, 0])
 
     res = await invoke_method(
         starknet,
@@ -44,22 +44,22 @@ async def test_starknet():
         *[sender, receiver, 400, sender],
     )
     steps_in_function(sol_file, "transferFrom", res, "ERC20_storage_test")
-    check.equal(res.retdata, [1, 32, 2, 0, 1])
+    check.equal(res.retdata, [32, 2, 0, 1])
 
     res = await invoke_method(
         starknet, program_info, contract_address, "withdraw", 80, sender
     )
     steps_in_function(sol_file, "withdraw", res, "ERC20_storage_test")
-    check.equal(res.retdata, [1, 0, 0])
+    check.equal(res.retdata, [0, 0])
 
     res = await invoke_method(
         starknet, program_info, contract_address, "get_balance", sender
     )
     steps_in_function(sol_file, "get_balance", res, "ERC20_storage_test")
-    check.equal(res.retdata, [1, 32, 2, 0, 20])
+    check.equal(res.retdata, [32, 2, 0, 20])
 
     res = await invoke_method(
         starknet, program_info, contract_address, "get_balance", receiver
     )
     steps_in_function(sol_file, "get_balance", res, "ERC20_storage_test")
-    check.equal(res.retdata, [1, 32, 2, 0, 400])
+    check.equal(res.retdata, [32, 2, 0, 400])

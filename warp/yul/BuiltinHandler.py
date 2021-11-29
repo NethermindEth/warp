@@ -421,9 +421,14 @@ class ReturnDataSize(DynamicHandler):
 class Return(StaticHandler):
     def __init__(self):
         super().__init__(
-            function_name="returndata_write",
-            module="evm.calls",
-            used_implicits=("exec_env", "memory_dict", "range_check_ptr"),
+            function_name="warp_return",
+            module="evm.yul_api",
+            used_implicits=(
+                "exec_env",
+                "memory_dict",
+                "range_check_ptr",
+                "termination_token",
+            ),
         )
 
 
