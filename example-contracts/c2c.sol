@@ -2,6 +2,8 @@ pragma solidity ^0.8.6;
 
 // SPDX-License-Identifier: MIT
 
+import "./lib.sol";
+
 interface IWarp {
   function callMeMaybe(uint8 arr) external pure returns (uint256);
 }
@@ -22,7 +24,7 @@ interface IERC20 {
 
 contract WARP {
   function gimmeMoney(address add, address to) external returns (bool) {
-    return IERC20(add).mint(to, 42);
+    return IERC20(add).mint(to, 42) && Library.dummyFunc(true);
   }
 
   function checkMoneyz(address addr, address to) public view returns (uint256) {

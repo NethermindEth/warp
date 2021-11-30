@@ -6,6 +6,7 @@ import {
   ASTWriter,
   PrettyFormatter,
   LatestCompilerVersion,
+  SourceUnit,
 } from 'solc-typed-ast';
 import { AST } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
@@ -20,26 +21,21 @@ import {
   ExpressionSplitter,
 } from './passes';
 
-export function transpile(file: string, contractName: string): string | null {
+export function transpile(file: string): string[] | null {
   let result: CompileResult;
 
   try {
     result = compileSol(file, 'auto', []);
     const reader = new ASTReader();
     const sourceUnits = reader.read(result.data);
-
-    let contractSourceUnit: ContractDefinition;
-    for (const s of sourceUnits) {
-      contractSourceUnit = s.vContracts.filter((c) => c.name === contractName)[0];
-    }
-    return contractSourceUnit ? transpileContract(contractSourceUnit) : null;
+    return sourceUnits.map((s) => transpileSourceUnit(s));
   } catch (e) {
     console.log(e);
     return null;
   }
 }
 
-export function transpileContract(contract: ContractDefinition): string {
+export function transpileSourceUnit(contract: SourceUnit): string {
   let ast = applyPasses({ ast: contract, imports: null });
   const formatter = new PrettyFormatter(4, 0);
   const writer = new ASTWriter(CairoASTMapping(ast.imports), formatter, LatestCompilerVersion);

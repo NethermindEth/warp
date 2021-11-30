@@ -2,12 +2,8 @@ import assert = require('assert');
 import {
   ASTNode,
   ASTNodeConstructor,
-  DataLocation,
   FunctionKind,
   LiteralKind,
-  Mutability,
-  StateVariableVisibility,
-  TypeName,
   ContractDefinition,
   ContractKind,
   EnumDefinition,
@@ -54,7 +50,6 @@ import {
   PlaceholderStatement,
   Return,
   RevertStatement,
-  Statement,
   Throw,
   TryCatchClause,
   TryStatement,
@@ -66,8 +61,6 @@ import {
   FunctionTypeName,
   Mapping,
   UserDefinedTypeName,
-  PrettyFormatter,
-  LatestCompilerVersion,
   ASTNodeWriter,
   ASTWriter,
   FunctionVisibility,
@@ -174,6 +167,24 @@ class ContractInterfaceWriter extends CairoASTNodeWriter {
   }
 }
 
+class PragmaDirectiveWriter extends CairoASTNodeWriter {
+  writeInner(_node: PragmaDirective, _writer: ASTWriter): SrcDesc {
+    return [['%starknet', '%builtins pedersen range_check bitwise'].join('\n')];
+  }
+}
+
+class SourceUnitWriter extends CairoASTNodeWriter {
+  writeInner(node: SourceUnit, writer: ASTWriter): SrcDesc {
+    const pragmas = node.vPragmaDirectives.map((v) => writer.write(v));
+
+    const imports = importsWriter(this.imports);
+
+    const contracts = node.vContracts.map((v) => writer.write(v));
+
+    return [[...pragmas, [imports], ...contracts].join('\n\n\n')];
+  }
+}
+
 class ContractDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: ContractDefinition, writer: ASTWriter): SrcDesc {
     // @ts-ignore
@@ -181,15 +192,13 @@ class ContractDefinitionWriter extends CairoASTNodeWriter {
       return [`Interfaces not implemented yet`];
     }
 
-    const imports = importsWriter(this.imports);
-
     const structs = node.vStructs.map((value) => writer.write(value));
 
     const stateVars = node.vStateVariables.map((value) => writer.write(value));
 
     const functions = node.vFunctions.map((value) => writer.write(value));
     // todo create these structs
-    return [[[imports], ...structs, ...stateVars, ...functions].join('\n\n\n')];
+    return [[...structs, ...stateVars, ...functions].join('\n\n\n')];
   }
 
   writeWhole(node: ContractDefinition, writer: ASTWriter): SrcDesc {
@@ -434,11 +443,11 @@ export const CairoASTMapping = (imports: Imports) =>
     [EnumDefinition, new NotImplementedWriter()],
     [UsingForDirective, new NotImplementedWriter()],
     [InheritanceSpecifier, new NotImplementedWriter()],
-    [ContractDefinition, new ContractDefinitionWriter(imports)],
+    [ContractDefinition, new ContractDefinitionWriter()],
     [StructuredDocumentation, new NotImplementedWriter()],
     [ImportDirective, new NotImplementedWriter()],
-    [PragmaDirective, new NotImplementedWriter()],
-    [SourceUnit, new NotImplementedWriter()],
+    [PragmaDirective, new PragmaDirectiveWriter()],
+    [SourceUnit, new SourceUnitWriter(imports)],
     [CairoStorageVariable, new CairoStorageVariableWriter()],
     [CairoAssert, new CairoAssertWriter()],
   ]);

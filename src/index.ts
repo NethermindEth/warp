@@ -5,7 +5,6 @@ import {
   CompileResult,
   compileSol,
   ASTReader,
-  ContractDefinition,
   DefaultASTWriterMapping,
   ASTWriter,
   LatestCompilerVersion,
@@ -16,28 +15,27 @@ import { applyPasses, transpile } from './transpiler';
 
 const program = new Command();
 
-program.command('transpile <file> <contractName>').action((file, contractName) => {
+program.command('transpile <file>').action((file) => {
   if (fs.existsSync(file)) {
-    console.log(transpile(file, contractName));
+    console.log(transpile(file).join('\n\n\n'));
   }
 });
 
-program.command('print <file> <contractName>').action((file, contractName) => {
+program.command('print <file>').action((file) => {
   let result: CompileResult;
 
   try {
     result = compileSol(file, 'auto', []);
     const reader = new ASTReader();
     const sourceUnits = reader.read(result.data);
-
-    let contractSourceUnit: ContractDefinition;
-    for (const s of sourceUnits) {
-      contractSourceUnit = s.vContracts.filter((c) => c.name === contractName)[0];
-    }
     const formatter = new PrettyFormatter(4, 0);
     const writer = new ASTWriter(DefaultASTWriterMapping, formatter, LatestCompilerVersion);
-    const ast = applyPasses({ ast: contractSourceUnit, imports: null });
-    console.log(writer.write(ast.ast));
+
+    console.log(
+      sourceUnits
+        .map((s) => writer.write(applyPasses({ ast: s, imports: null }).ast))
+        .join('\n\n\n'),
+    );
   } catch (e) {
     console.log(e);
   }
