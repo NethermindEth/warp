@@ -1,0 +1,43 @@
+{
+  "name": "warp-ts",
+  "version": "0.0.1",
+  "description": "Solidity to Cairo Transpiler",
+  "main": "index.ts",
+  "author": "Nethermind",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "bin": {
+    "warp": "./bin/warp"
+  },
+  "scripts": {
+    "dev": "yarn tsc -w",
+    "prepare": "husky install",
+    "lint": "eslint ./src/**/*.ts --ignore-path .gitignore",
+    "lint:fix": "npm run lint -- --fix"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "tabWidth": 2
+  },
+  "devDependencies": {
+    "@types/clone": "^2.1.1",
+    "@types/node": "^16.11.1",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^8.0.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^7.0.0",
+    "prettier": "^2.5.0",
+    "pretty-quick": "^3.1.2",
+    "typescript": "^4.4.4"
+  },
+  "dependencies": {
+    "clone": "^2.1.2",
+    "commander": "^8.2.0",
+    "solc-typed-ast": "^7.2.0"
+  }
+}

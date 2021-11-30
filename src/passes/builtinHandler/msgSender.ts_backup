@@ -1,0 +1,20 @@
+import {ASTNode, MemberAccess, Identifier, FunctionCall, FunctionCallKind} from 'solc-typed-ast';
+import {BuiltinMapper} from '../../ast/builtinMapper';
+import {FunctionDefinition, FunctionKind, FunctionVisibility, FunctionStateMutability, ParameterList, VariableDeclaration, DataLocation, StateVariableVisibility, Mutability, ElementaryTypeName} from 'solc-typed-ast';
+
+export class MsgSender extends BuiltinMapper {
+  builtinDefs = {
+    "get_caller_address": () =>
+      new FunctionDefinition(this.genId(), "msg.sender", "FunctionDefinition", -1, FunctionKind.Function, "get_caller_address", false, FunctionVisibility.Private, FunctionStateMutability.NonPayable, false, new ParameterList(this.genId(), "msg.sender", "ParameterList", []), new ParameterList(this.genId(), "msg.sender", "ParameterList", [new VariableDeclaration(this.genId(), "msg.sender", "VariableDeclaration", false, false, "address", -1, false, DataLocation.Memory, StateVariableVisibility.Private, Mutability.Mutable, "address", undefined, new ElementaryTypeName(this.genId(), "msg.sender", "ElementaryTypeName", "address", "address", "nonpayable"))]), [])
+  }
+
+  visitMemberAccess(node: MemberAccess): ASTNode {
+    this.addImport({
+      "starkware.starknet.common.syscalls": new Set(["get_caller_address"])
+    });
+    if (node.memberName === "sender" && node.vExpression instanceof Identifier && node.vExpression.name === "msg") {
+      return new FunctionCall(this.genId(), node.src, "FunctionCall", "address", FunctionCallKind.FunctionCall, new Identifier(this.genId(), node.src, "Identifier", "address", "get_caller_address", this.getDefId("get_caller_address"), node.raw), [], undefined, node.raw);
+    }
+    return node;
+  }
+}
