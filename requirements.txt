@@ -4,6 +4,7 @@ eth-hash==0.2.0
 ecdsa
 fastecdsa
 sympy
+numpy<1.22
 pytest==6.2.4
 pytest-parallel
 pytest-check
