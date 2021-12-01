@@ -6,26 +6,178 @@ import {
   FunctionCallKind,
   Identifier,
   UncheckedBlock,
+  ElementaryTypeName,
+  FunctionDefinition,
+  FunctionKind,
+  FunctionVisibility,
+  FunctionStateMutability,
+  ParameterList,
+  VariableDeclaration,
+  DataLocation,
+  StateVariableVisibility,
+  Mutability,
 } from 'solc-typed-ast';
 import { BuiltinMapper } from '../../ast/builtinMapper';
 import { primitiveTypeToCairo } from '../../utils/utils';
 
 export class BinaryOperations extends BuiltinMapper {
+  feltTypeName = () =>
+    new ElementaryTypeName(
+      this.genId(),
+      '',
+      'TypeName',
+      'felt',
+      'felt',
+      undefined,
+      'BINARY_BUILTIN',
+    );
+  uintTypeName = () =>
+    new ElementaryTypeName(
+      this.genId(),
+      '',
+      'TypeName',
+      'uint256',
+      'uint',
+      undefined,
+      'BINARY_BUILTIN',
+    );
   builtinDefs = {
-    "binaryopFelt": {name: "binaryopFelt", src: "binaryop", args: [
-      {name: "arg1", typeString: "felt"},
-      {name: "arg2", typeString: "felt"}
-    ], returns: [
-      {name: "ret", typeString: "felt"},
-    ]},
-    "binaryopUint256": {name: "binaryopUint256", src: "binaryop", args: [
-      {name: "arg1", typeString: "uint256"},
-      {name: "arg2", typeString: "uint256"}
-    ], returns: [
-      {name: "ret", typeString: "uint256"},
-    ]},
-  }
+    binaryopFelt: () =>
+      new FunctionDefinition(
+        this.genId(),
+        '',
+        'FunctionDefinition',
+        -1,
+        FunctionKind.Function,
+        'binaryopFelt',
+        false,
+        FunctionVisibility.Internal,
+        FunctionStateMutability.NonPayable,
+        false,
+        new ParameterList(this.genId(), '', 'ParameterList', [
+          new VariableDeclaration(
+            this.genId(),
+            '',
+            'VariableDeclaration',
+            false,
+            false,
+            'arg1',
+            -1,
+            false,
+            DataLocation.Memory,
+            StateVariableVisibility.Private,
+            Mutability.Mutable,
+            'felt',
+            undefined,
+            this.feltTypeName(),
+          ),
+          new VariableDeclaration(
+            this.genId(),
+            '',
+            'VariableDeclaration',
+            false,
+            false,
+            'arg1',
+            -1,
+            false,
+            DataLocation.Memory,
+            StateVariableVisibility.Private,
+            Mutability.Mutable,
+            'felt',
+            undefined,
+            this.feltTypeName(),
+          ),
+        ]),
+        new ParameterList(this.genId(), '', 'ParameterList', [
+          new VariableDeclaration(
+            this.genId(),
+            '',
+            'VariableDeclaration',
+            false,
+            false,
+            'ret',
+            -1,
+            false,
+            DataLocation.Memory,
+            StateVariableVisibility.Private,
+            Mutability.Mutable,
+            'felt',
+            undefined,
+            this.feltTypeName(),
+          ),
+        ]),
+        [],
+      ),
+    binaryopUint256: () =>
+      new FunctionDefinition(
+        this.genId(),
+        '',
+        'FunctionDefinition',
+        -1,
+        FunctionKind.Function,
+        'binaryopUint256',
+        false,
+        FunctionVisibility.Internal,
+        FunctionStateMutability.NonPayable,
+        false,
+        new ParameterList(this.genId(), '', 'ParameterList', [
+          new VariableDeclaration(
+            this.genId(),
+            '',
+            'VariableDeclaration',
+            false,
+            false,
+            'arg1',
+            -1,
+            false,
+            DataLocation.Memory,
+            StateVariableVisibility.Private,
+            Mutability.Mutable,
+            'uint256',
+            undefined,
+            this.uintTypeName(),
+          ),
+          new VariableDeclaration(
+            this.genId(),
+            '',
+            'VariableDeclaration',
+            false,
+            false,
+            'arg1',
+            -1,
+            false,
+            DataLocation.Memory,
+            StateVariableVisibility.Private,
+            Mutability.Mutable,
+            'uint256',
+            undefined,
+            this.uintTypeName(),
+          ),
+        ]),
+        new ParameterList(this.genId(), '', 'ParameterList', [
+          new VariableDeclaration(
+            this.genId(),
+            '',
+            'VariableDeclaration',
+            false,
+            false,
+            'ret',
+            -1,
+            false,
+            DataLocation.Memory,
+            StateVariableVisibility.Private,
+            Mutability.Mutable,
+            'uint256',
+            undefined,
+            this.uintTypeName(),
+          ),
+        ]),
+        [],
+      ),
+  };
+
   inUncheckedBlock: boolean;
+
   constructor() {
     super();
     this.inUncheckedBlock = false;
@@ -45,9 +197,8 @@ export class BinaryOperations extends BuiltinMapper {
     return block;
   }
   visitBinaryOperation(node: BinaryOperation): ASTNode {
-
     const cairoType = primitiveTypeToCairo(node.vRightExpression.typeString);
-    const isFelt = cairoType === "felt";
+    const isFelt = cairoType === 'felt';
 
     switch (node.operator) {
       case '+':
@@ -73,13 +224,33 @@ export class BinaryOperations extends BuiltinMapper {
   generateCallForOperator(node: BinaryOperation, cairoType: string) {
     const operation = this.binaryOperationBasedOnType(cairoType, node.operator);
     this.addImport({
-        [`math.${cairoType.toLowerCase()}`]: new Set([`${operation}`]),
+      [`math.${cairoType.toLowerCase()}`]: new Set([`${operation}`]),
     });
 
-    const args = [node.vLeftExpression, node.vRightExpression].map(v => this.visit(v)) as Expression[];
-    const iden = new Identifier(this.genId(), node.src, node.type, node.typeString, operation, this.functionDefReferenceBasedOnType(node.typeString), node.raw);
+    const args = [node.vLeftExpression, node.vRightExpression].map((v) =>
+      this.visit(v),
+    ) as Expression[];
+    const iden = new Identifier(
+      this.genId(),
+      node.src,
+      node.type,
+      node.typeString,
+      operation,
+      this.functionDefReferenceBasedOnType(node.typeString),
+      node.raw,
+    );
 
-    return new FunctionCall(this.genId(), node.src, node.type, node.typeString, FunctionCallKind.FunctionCall, iden, args, null, null);
+    return new FunctionCall(
+      this.genId(),
+      node.src,
+      node.type,
+      node.typeString,
+      FunctionCallKind.FunctionCall,
+      iden,
+      args,
+      null,
+      null,
+    );
   }
 
   binaryOperationBasedOnType(typeString: string, operator: string): string {
@@ -98,14 +269,14 @@ export class BinaryOperations extends BuiltinMapper {
   }
 
   functionDefReferenceBasedOnType(typeString: string) {
-    switch(typeString) {
-      case "int":
-      case "uint":
-      case "uint256":
-      case "int256":
-        return this.getDefId("binaryopUint256");
+    switch (typeString) {
+      case 'int':
+      case 'uint':
+      case 'uint256':
+      case 'int256':
+        return this.getDefId('binaryopUint256');
       default:
-        return this.getDefId("binaryopFelt");
+        return this.getDefId('binaryopFelt');
     }
   }
 }
