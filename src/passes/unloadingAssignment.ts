@@ -6,7 +6,7 @@ export class UnloadingAssignment extends ASTMapper {
     if (node.operator === '=') return node;
 
     // Extract "+" from "+="
-    const operator = node.operator.charAt(0);
+    const operator = node.operator.slice(0, node.operator.length - 1);
     const rhs = new BinaryOperation(
       this.genId(),
       node.src,
