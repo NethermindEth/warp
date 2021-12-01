@@ -13,7 +13,7 @@ async def invoke_method(
     cairo_calldata = get_cairo_calldata(evm_calldata)
     return await starknet.invoke_raw(
         contract_address=address,
-        selector="fun_ENTRY_POINT",
+        selector="__main",
         calldata=cairo_calldata,
         caller_address=0,
     )

@@ -45,7 +45,7 @@ def starknet_invoke(
             f"starknet invoke "
             f"--address {address} "
             f"--abi {abi} "
-            f"--function fun_ENTRY_POINT "
+            f"--function __main "
             f"--inputs {inputs} "
             f"--network {network} "
         ).read()

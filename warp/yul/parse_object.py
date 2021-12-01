@@ -18,17 +18,16 @@ def parse_to_normalized_ast(codes) -> ast.Node:
 def combine_deployment_and_runtime(
     deployment_code: ast.Block, runtime_code: ast.Block
 ) -> ast.Block:
-
     ctor_block, deployment_functions = extract_top_level_code(deployment_code)
-    entry_point_block, runtime_functions = extract_top_level_code(runtime_code)
+    main_block, runtime_functions = extract_top_level_code(runtime_code)
     ctor = ast.FunctionDefinition(
-        name="constructor", parameters=[], return_variables=[], body=ctor_block
+        name="__constructor_meat", parameters=[], return_variables=[], body=ctor_block
     )
-    entry_point = ast.FunctionDefinition(
-        name="fun_ENTRY_POINT",
+    main_ = ast.FunctionDefinition(
+        name="__main_meat",
         parameters=[],
         return_variables=[],
-        body=entry_point_block,
+        body=main_block,
     )
 
     deployment_names = {
@@ -42,7 +41,7 @@ def combine_deployment_and_runtime(
     renamed_deployment_functions = renamer.visit_list(deployment_functions)
     renamed_ctor = renamer.visit(ctor)
     return ast.Block(
-        (renamed_ctor, *renamed_deployment_functions, entry_point, *runtime_functions)
+        (renamed_ctor, *renamed_deployment_functions, main_, *runtime_functions)
     )
 
 

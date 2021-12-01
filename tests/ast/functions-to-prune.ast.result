@@ -1,4 +1,4 @@
 {
 	function funD() {  }
-	function fun_ENTRY_POINT() { funD() }
+	function __main_meat() { funD() }
 }

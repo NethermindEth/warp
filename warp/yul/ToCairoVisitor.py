@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from collections import defaultdict
 from contextlib import contextmanager
 from typing import Callable, Optional
@@ -9,7 +8,13 @@ import yul.yul_ast as ast
 from yul.AstVisitor import AstVisitor
 from yul.BuiltinHandler import BuiltinHandler
 from yul.FunctionGenerator import CairoFunctions
-from yul.implicits import IMPLICITS_SET, print_implicit
+from yul.implicits import (
+    IMPLICITS_SET,
+    MANUAL_IMPLICITS,
+    finalize_manual_implicit,
+    initialize_manual_implicit,
+    print_implicit,
+)
 from yul.Imports import format_imports, merge_imports
 from yul.NameGenerator import NameGenerator
 from yul.storage_access import (
@@ -35,7 +40,6 @@ COMMON_IMPORTS = {
         "HashBuiltin",
         "BitwiseBuiltin",
     },
-    "starkware.cairo.common.alloc": {"alloc"},
     "evm.exec_env": {"ExecutionEnvironment"},
 }
 
@@ -77,6 +81,8 @@ class ToCairoVisitor(AstVisitor):
                 *self.cairo_functions.get_definitions(),
                 "",
                 *storage_var_decls,
+                self._make_constructor(),
+                self._make_main(),
                 main_part,
             ]
         )
@@ -135,12 +141,11 @@ class ToCairoVisitor(AstVisitor):
             if self.next_stmt_is_leave:
                 return result
             if "termination_token" in self.last_used_implicits:
-                assert (
-                    "exec_env" in self.last_used_implicits
-                ), "Termination requires writing to returndata"
+                n_returns = len(self.last_function.return_variables)
+                dummy_returns = ", ".join("Uint256(0, 0)" for _ in range(n_returns))
                 return (
                     result
-                    + f"\nif termination_token == 1:\n{self._get_termination_actions()}\nend"
+                    + f"\nif termination_token == 1:\nreturn ({dummy_returns})\nend"
                 )
         return result
 
@@ -183,58 +188,6 @@ class ToCairoVisitor(AstVisitor):
         body_repr = self._try_make_storage_accessor_body(node)
         if not body_repr:
             body_repr = self.print(node.body)
-        if node.name == "constructor":
-            return (
-                f"@constructor\n"
-                f"func constructor{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
-                f"syscall_ptr : felt* , bitwise_ptr : BitwiseBuiltin*}}(calldata_size,"
-                f"calldata_len, calldata : felt*):\n"
-                f"alloc_locals\n"
-                f"let termination_token = 0\n"
-                f"let (returndata_ptr: felt*) = alloc()\n"
-                f"let (__fp__, _) = get_fp_and_pc()\n"
-                f"local exec_env_ : ExecutionEnvironment = ExecutionEnvironment("
-                f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata,"
-                f"returndata_size=0, returndata_len=0, returndata=returndata_ptr,"
-                f"to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)\n"
-                f"let exec_env : ExecutionEnvironment* = &exec_env_\n"
-                f"let (memory_dict) = default_dict_new(0)\n"
-                f"let memory_dict_start = memory_dict\n"
-                f"let msize = 0\n"
-                f"with memory_dict, msize, exec_env, termination_token:\n"
-                f"{body_repr}\n"
-                f"end\n"
-                f"end\n"
-            )
-        if node.name == "fun_ENTRY_POINT":
-            # The leave gets replaced with the wrong return type in this case
-            # we need to replace it with our return
-            body_repr = re.sub("return \(\)$", "", body_repr)
-            returns_repr = (
-                "returndata_size: felt, returndata_len: felt, returndata: felt*"
-            )
-            return (
-                f"@external\n"
-                f"func {node.name}{{pedersen_ptr : HashBuiltin*, range_check_ptr,"
-                f"syscall_ptr : felt* , bitwise_ptr : BitwiseBuiltin*}}(calldata_size,"
-                f"calldata_len, calldata : felt*) -> ({returns_repr}):\n"
-                f"alloc_locals\n"
-                f"let termination_token = 0\n"
-                f"let (__fp__, _) = get_fp_and_pc()\n"
-                f"let (returndata_ptr: felt*) = alloc()\n"
-                f"local exec_env_ : ExecutionEnvironment = ExecutionEnvironment("
-                f"calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata,"
-                f"returndata_size=0, returndata_len=0, returndata=returndata_ptr,"
-                f"to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)\n"
-                f"let exec_env = &exec_env_\n"
-                f"let (memory_dict) = default_dict_new(0)\n"
-                f"let memory_dict_start = memory_dict\n"
-                f"let msize = 0\n"
-                f"with exec_env, msize, memory_dict, termination_token:\n"
-                f"  {body_repr}\n"
-                f"end\n"
-                f"end\n"
-            )
 
         implicits = sorted(self.function_to_implicits.setdefault(node.name, set()))
         implicits_decl = ""
@@ -337,18 +290,59 @@ class ToCairoVisitor(AstVisitor):
             sorted(self.function_to_implicits.setdefault(fn_name, IMPLICITS_SET))
         )
 
-    def _get_termination_actions(self):
-        if self.last_function.name == "fun_ENTRY_POINT":
-            return (
-                "default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
-                "return (exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)\n"
-            )
-        elif self.last_function.name.startswith("fun_warp_constructor"):
-            return (
-                "default_dict_finalize(memory_dict_start, memory_dict, 0)\n"
-                "return ()\n"
-            )
+    def _make_constructor(self):
+        ctor_implicits = self.function_to_implicits.get("__constructor_meat")
+        assert ctor_implicits, "The '__constructor_meat' function is not generated"
+        manual_implicits = sorted(ctor_implicits & MANUAL_IMPLICITS)
+        builtin_implicits = sorted(ctor_implicits - MANUAL_IMPLICITS)
+
+        builtins_str = "{" + ", ".join(map(print_implicit, builtin_implicits)) + "}"
+        manuals_str = ", ".join(manual_implicits)
+        manuals_init = "".join(map(initialize_manual_implicit, manual_implicits))
+        manuals_fin = "".join(map(finalize_manual_implicit, manual_implicits))
+        if not manual_implicits:
+            meat = "__constructor_meat()"
         else:
-            n_returns = len(self.last_function.return_variables)
-            dummy_returns = ", ".join("Uint256(0, 0)" for _ in range(n_returns))
-            return f"return ({dummy_returns})"
+            meat = f"with {manuals_str}:\n__constructor_meat()\nend"
+
+        return (
+            f"@constructor\n"
+            f"func constructor{builtins_str}(calldata_size, calldata_len, calldata : felt*):\n"
+            f"alloc_locals\n"
+            f"{manuals_init}"
+            f"{meat}\n"
+            f"{manuals_fin}"
+            f"return ()\n"
+            f"end\n"
+        )
+
+    def _make_main(self):
+        main_implicits = self.function_to_implicits.get("__main_meat")
+        assert main_implicits, "The '__main_meat' function is not generated"
+        manual_implicits = sorted(main_implicits & MANUAL_IMPLICITS)
+        builtin_implicits = sorted(main_implicits - MANUAL_IMPLICITS)
+
+        builtins_str = "{" + ", ".join(map(print_implicit, builtin_implicits)) + "}"
+        manuals_str = ", ".join(manual_implicits)
+        manuals_init = "".join(map(initialize_manual_implicit, manual_implicits))
+        manuals_fin = "".join(map(finalize_manual_implicit, manual_implicits))
+        if not manual_implicits:
+            meat = "__main_meat()"
+        else:
+            meat = f"with {manuals_str}:\n__main_meat()\nend"
+        if "exec_env" in manual_implicits:
+            returns = "(exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)"
+        else:
+            returns = "(0, 0, cast(0, felt*))"
+
+        return (
+            f"@external\n"
+            f"func __main{builtins_str}(calldata_size, calldata_len, calldata : felt*)"
+            f"-> (returndata_size, returndata_len, returndata: felt*):\n"
+            f"alloc_locals\n"
+            f"{manuals_init}"
+            f"{meat}\n"
+            f"{manuals_fin}"
+            f"return {returns}\n"
+            f"end\n"
+        )
