@@ -1,4 +1,4 @@
-import { EtherUnit, TimeUnit } from 'solc-typed-ast';
+import { AddressType, BoolType, IntType, TypeNode, EtherUnit, TimeUnit } from 'solc-typed-ast';
 import { Imports } from '../ast/visitor';
 
 export function divmod(x: number, y: number): [number, number] {
@@ -45,6 +45,20 @@ export function importsWriter(imports: Imports): string {
   return Object.entries(imports)
     .map(([file, vals]) => `from ${file} import ${[...vals].join(', ')}`)
     .join('\n');
+}
+
+export function sizeOfType(type: TypeNode): number {
+  if (type instanceof IntType) return type.nBits;
+  // We do not respect size of address type
+  else if (type instanceof AddressType) return 251;
+  else if (type instanceof BoolType) return 8;
+  throw new Error(`Don't know the size of ${type.pp()}`);
+}
+
+export function compareTypeSize(typeA: TypeNode, typeB: TypeNode): number {
+  const sizeOfTypeA = sizeOfType(typeA);
+  const sizeOfTypeB = sizeOfType(typeB);
+  return Math.sign(sizeOfTypeA - sizeOfTypeB);
 }
 
 export function* counterGenerator(start = 0): Generator<number, number, unknown> {

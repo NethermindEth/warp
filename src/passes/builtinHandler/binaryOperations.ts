@@ -4,6 +4,7 @@ import {
   Expression,
   FunctionCall,
   FunctionCallKind,
+  getNodeType,
   Identifier,
   UncheckedBlock,
   ElementaryTypeName,
@@ -18,7 +19,7 @@ import {
   Mutability,
 } from 'solc-typed-ast';
 import { BuiltinMapper } from '../../ast/builtinMapper';
-import { primitiveTypeToCairo } from '../../utils/utils';
+import { compareTypeSize, primitiveTypeToCairo } from '../../utils/utils';
 
 export class BinaryOperations extends BuiltinMapper {
   feltTypeName = () =>
@@ -196,10 +197,27 @@ export class BinaryOperations extends BuiltinMapper {
     this.inUncheckedBlock = false;
     return block;
   }
-  visitBinaryOperation(node: BinaryOperation): ASTNode {
-    const cairoType = primitiveTypeToCairo(node.vRightExpression.typeString);
-    const isFelt = cairoType === 'felt';
 
+  visitBinaryOperation(n: BinaryOperation): ASTNode {
+    const node = new BinaryOperation(
+      this.genId(),
+      n.src,
+      n.type,
+      n.typeString,
+      n.operator,
+      this.visit(n.vLeftExpression) as Expression,
+      this.visit(n.vRightExpression) as Expression,
+      n.raw,
+    );
+    const biggerType =
+      compareTypeSize(
+        getNodeType(node.vLeftExpression, this.compilerVersion),
+        getNodeType(node.vRightExpression, this.compilerVersion),
+      ) <= 0
+        ? node.vRightExpression.typeString
+        : node.vLeftExpression.typeString;
+    const cairoType = primitiveTypeToCairo(biggerType);
+    const isFelt = cairoType === 'felt';
     switch (node.operator) {
       case '+':
       case '-':
@@ -215,6 +233,8 @@ export class BinaryOperations extends BuiltinMapper {
       case '&&':
       case '||':
       case '^':
+      case '>>':
+      case '<<':
         return this.generateCallForOperator(node, cairoType);
       default:
         return node;
@@ -248,8 +268,6 @@ export class BinaryOperations extends BuiltinMapper {
       FunctionCallKind.FunctionCall,
       iden,
       args,
-      null,
-      null,
     );
   }
 
@@ -294,4 +312,6 @@ const infixOperatorToCall = {
   '&&': 'and',
   '||': 'or',
   '^': 'xor',
+  '>>': 'shr',
+  '<<': 'shl',
 };

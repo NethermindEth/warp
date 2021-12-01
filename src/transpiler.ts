@@ -20,6 +20,7 @@ import {
   ExpressionSplitter,
   LiteralExpressionEvaluator,
 } from './passes';
+import { ImplicitConversionToExplicit } from './passes/implicitConversionToExplicit';
 
 export function transpile(file: string): string[] | null {
   let result: CompileResult;
@@ -48,10 +49,10 @@ export function transpile(file: string): string[] | null {
   }
 }
 
-export function transpileSourceUnit(contract: SourceUnit, version: string): string {
-  let ast = applyPasses({ ast: contract, imports: null });
+export function transpileSourceUnit(contract: SourceUnit, compilerVersion: string): string {
+  let ast = applyPasses({ ast: contract, imports: null, compilerVersion });
   const formatter = new PrettyFormatter(4, 0);
-  const writer = new ASTWriter(CairoASTMapping(ast.imports), formatter, version);
+  const writer = new ASTWriter(CairoASTMapping(ast.imports), formatter, compilerVersion);
   return writer.write(ast.ast);
 }
 
@@ -71,6 +72,7 @@ export function applyPasses(ast: AST): AST {
   ast = new LiteralExpressionEvaluator().map(ast);
   ast = new UnloadingAssignment().map(ast);
   ast = new VariableDeclarationInitialiser().map(ast);
+  ast = new ImplicitConversionToExplicit().map(ast);
   ast = new BuiltinHandler().map(ast);
   ast = new ForLoopSimplifier().map(ast);
   ast = new ReturnInserter().map(ast);

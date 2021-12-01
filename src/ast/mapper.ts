@@ -68,10 +68,13 @@ import { counterGenerator, mergeImports } from '../utils/utils';
 export interface AST {
   ast: ASTNode;
   imports: Imports;
+  compilerVersion: string;
 }
 
 export class ASTMapper extends ASTVisitor<ASTNode> {
-  imports: Imports = null;
+  imports: Imports;
+
+  compilerVersion: string;
 
   idGen: Generator<number, number, unknown>;
 
@@ -86,16 +89,16 @@ export class ASTMapper extends ASTVisitor<ASTNode> {
     node.children.map((child) => this.register(child));
   }
 
-  constructor(imports?: Imports) {
-    super();
-    this.imports = imports || null;
-  }
-
   map(node: AST): AST {
     this.imports = node.imports;
+    this.compilerVersion = node.compilerVersion;
     this.context = node.ast.context;
     this.idGen = counterGenerator(node.ast.context.lastId + 1);
-    return { ast: this.visit(node.ast), imports: this.imports };
+    return {
+      ast: this.visit(node.ast),
+      imports: this.imports,
+      compilerVersion: this.compilerVersion,
+    };
   }
 
   addImport(newImports: Imports): void {

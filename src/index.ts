@@ -38,7 +38,11 @@ program.command('print <file>').action((file) => {
 
     console.log(
       sourceUnits
-        .map((s) => writer.write(applyPasses({ ast: s, imports: null }).ast))
+        .map((s) =>
+          writer.write(
+            applyPasses({ ast: s, imports: null, compilerVersion: result.compilerVersion }).ast,
+          ),
+        )
         .join('\n\n\n'),
     );
   } catch (e) {

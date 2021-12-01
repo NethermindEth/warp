@@ -22,6 +22,7 @@ function* expressionGenerator(prefix: string): Generator<string, string, unknown
     yield `${prefix}_${count.next().value}`;
   }
 }
+
 export class ExpressionSplitter extends ASTMapper {
   eGen = expressionGenerator('__warp_se');
   expressionLifts = [];
@@ -44,9 +45,7 @@ export class ExpressionSplitter extends ASTMapper {
   }
 
   visitFunctionCall(node: FunctionCall): ASTNode {
-    node.context;
     if (!(node.vReferencedDeclaration instanceof FunctionDefinition)) {
-      // @ts-ignore
       return node;
     }
     const args = node.vArguments.map((v) => this.visit(v) as Expression);
