@@ -11,7 +11,7 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import Uint256, uint256_not, uint256_sub
+from starkware.cairo.common.uint256 import Uint256
 
 func __warp_constant_0() -> (res : Uint256):
     return (Uint256(low=0, high=0))
@@ -42,97 +42,112 @@ func constructor{
     end
 end
 
-func abi_decode_uint256t_uint256{exec_env : ExecutionEnvironment*, range_check_ptr}(
-        headStart : Uint256, dataEnd : Uint256) -> (value0 : Uint256, value1 : Uint256):
+func __warp_block_2{range_check_ptr}(var_b : Uint256) -> (__warp_leave_1 : Uint256, var : Uint256):
     alloc_locals
-    let (__warp_subexpr_1 : Uint256) = uint256_sub(dataEnd, headStart)
-    let (__warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=64, high=0))
+    let (__warp_subexpr_0 : Uint256) = is_gt(
+        var_b,
+        Uint256(low=340282366920938463463374607431768211413, high=340282366920938463463374607431768211455))
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         assert 0 = 1
         jmp rel 0
     end
-    let (value0 : Uint256) = calldataload(headStart)
-    let (__warp_subexpr_2 : Uint256) = u256_add(headStart, Uint256(low=32, high=0))
-    let (value1 : Uint256) = calldataload(__warp_subexpr_2)
-    return (value0, value1)
+    let (var : Uint256) = u256_add(var_b, Uint256(low=42, high=0))
+    let __warp_leave_1 : Uint256 = Uint256(low=1, high=0)
+    return (__warp_leave_1, var)
 end
 
-func checked_add_uint256{range_check_ptr}(x : Uint256, y : Uint256) -> (sum : Uint256):
+func __warp_block_3{range_check_ptr}(var_a : Uint256) -> (__warp_leave_1 : Uint256, var : Uint256):
     alloc_locals
-    let (__warp_subexpr_1 : Uint256) = uint256_not(y)
-    let (__warp_subexpr_0 : Uint256) = is_gt(x, __warp_subexpr_1)
+    let (__warp_subexpr_0 : Uint256) = is_gt(
+        var_a,
+        Uint256(low=340282366920938463463374607431768211434, high=340282366920938463463374607431768211455))
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         assert 0 = 1
         jmp rel 0
     end
-    let (sum : Uint256) = u256_add(x, y)
-    return (sum)
+    let (var : Uint256) = u256_add(var_a, Uint256(low=21, high=0))
+    let __warp_leave_1 : Uint256 = Uint256(low=1, high=0)
+    return (__warp_leave_1, var)
+end
+
+func __warp_if_2{range_check_ptr}(
+        __warp_leave_5 : Uint256, __warp_subexpr_0 : Uint256, var_a : Uint256, var_b : Uint256) -> (
+        __warp_leave_1 : Uint256, __warp_leave_5 : Uint256, var : Uint256):
+    alloc_locals
+    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
+        let (__warp_leave_1 : Uint256, var : Uint256) = __warp_block_2(var_b)
+        if __warp_leave_1.low + __warp_leave_1.high != 0:
+            let __warp_leave_5 : Uint256 = Uint256(low=1, high=0)
+            return (__warp_leave_1, __warp_leave_5, var)
+        else:
+            return (__warp_leave_1, __warp_leave_5, var)
+        end
+    else:
+        let (__warp_leave_1 : Uint256, var : Uint256) = __warp_block_3(var_a)
+        if __warp_leave_1.low + __warp_leave_1.high != 0:
+            let __warp_leave_5 : Uint256 = Uint256(low=1, high=0)
+            return (__warp_leave_1, __warp_leave_5, var)
+        else:
+            return (__warp_leave_1, __warp_leave_5, var)
+        end
+    end
 end
 
 func __warp_block_1{range_check_ptr}(match_var : Uint256, var_a : Uint256, var_b : Uint256) -> (
-        __warp_leave_6 : Uint256, var : Uint256):
+        __warp_leave_1 : Uint256, var : Uint256):
     alloc_locals
+    let __warp_leave_5 : Uint256 = Uint256(low=0, high=0)
     let (__warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=0, high=0))
-    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
-        let (var : Uint256) = checked_add_uint256(var_b, Uint256(low=42, high=0))
-        let __warp_leave_6 : Uint256 = Uint256(low=1, high=0)
-        return (__warp_leave_6, var)
+    let (__warp_leave_1 : Uint256, __warp_leave_5 : Uint256, var : Uint256) = __warp_if_2(
+        __warp_leave_5, __warp_subexpr_0, var_a, var_b)
+    if __warp_leave_5.low + __warp_leave_5.high != 0:
+        return (__warp_leave_1, var)
     else:
-        let (var : Uint256) = checked_add_uint256(var_a, Uint256(low=21, high=0))
-        let __warp_leave_6 : Uint256 = Uint256(low=1, high=0)
-        return (__warp_leave_6, var)
+        return (__warp_leave_1, var)
     end
 end
 
 func __warp_block_0{range_check_ptr}(var_a : Uint256, var_b : Uint256) -> (
-        __warp_leave_6 : Uint256, var : Uint256):
+        __warp_leave_1 : Uint256, var : Uint256):
     alloc_locals
     let (match_var : Uint256) = is_gt(var_a, var_b)
-    let (__warp_leave_6 : Uint256, var : Uint256) = __warp_block_1(match_var, var_a, var_b)
-    if __warp_leave_6.low + __warp_leave_6.high != 0:
-        return (__warp_leave_6, var)
+    let (__warp_leave_1 : Uint256, var : Uint256) = __warp_block_1(match_var, var_a, var_b)
+    if __warp_leave_1.low + __warp_leave_1.high != 0:
+        return (__warp_leave_1, var)
     else:
-        return (__warp_leave_6, var)
+        return (__warp_leave_1, var)
     end
 end
 
 func fun_rando{range_check_ptr}(var_a : Uint256, var_b : Uint256) -> (var : Uint256):
     alloc_locals
-    let (__warp_leave_6 : Uint256, var : Uint256) = __warp_block_0(var_a, var_b)
-    if __warp_leave_6.low + __warp_leave_6.high != 0:
+    let (__warp_leave_1 : Uint256, var : Uint256) = __warp_block_0(var_a, var_b)
+    if __warp_leave_1.low + __warp_leave_1.high != 0:
         return (var)
     else:
         return (var)
     end
 end
 
-func abi_encode_uint256_to_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
-        value : Uint256, pos : Uint256) -> ():
-    alloc_locals
-    uint256_mstore(offset=pos, value=value)
-    return ()
-end
-
-func abi_encode_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
-        headStart : Uint256, value0 : Uint256) -> (tail : Uint256):
-    alloc_locals
-    let (tail : Uint256) = u256_add(headStart, Uint256(low=32, high=0))
-    abi_encode_uint256_to_uint256(value0, headStart)
-    return (tail)
-end
-
-func __warp_block_3{
+func __warp_block_5{
         exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
         termination_token}() -> ():
     alloc_locals
-    let (__warp_subexpr_0 : Uint256) = calldatasize()
-    let (param : Uint256, param_1 : Uint256) = abi_decode_uint256t_uint256(
-        Uint256(low=4, high=0), __warp_subexpr_0)
-    let (ret__warp_mangled : Uint256) = fun_rando(param, param_1)
+    let (__warp_subexpr_2 : Uint256) = calldatasize()
+    let (__warp_subexpr_1 : Uint256) = u256_add(
+        __warp_subexpr_2,
+        Uint256(low=340282366920938463463374607431768211452, high=340282366920938463463374607431768211455))
+    let (__warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=64, high=0))
+    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
+    let (__warp_subexpr_4 : Uint256) = calldataload(Uint256(low=36, high=0))
+    let (__warp_subexpr_3 : Uint256) = calldataload(Uint256(low=4, high=0))
+    let (ret__warp_mangled : Uint256) = fun_rando(__warp_subexpr_3, __warp_subexpr_4)
     let (memPos : Uint256) = uint256_mload(Uint256(low=64, high=0))
-    let (__warp_subexpr_2 : Uint256) = abi_encode_uint256(memPos, ret__warp_mangled)
-    let (__warp_subexpr_1 : Uint256) = uint256_sub(__warp_subexpr_2, memPos)
-    warp_return(memPos, __warp_subexpr_1)
+    uint256_mstore(offset=memPos, value=ret__warp_mangled)
+    warp_return(memPos, Uint256(low=32, high=0))
     return ()
 end
 
@@ -141,14 +156,14 @@ func __warp_if_1{
         termination_token}(__warp_subexpr_0 : Uint256) -> ():
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
-        __warp_block_3()
+        __warp_block_5()
         return ()
     else:
         return ()
     end
 end
 
-func __warp_block_2{
+func __warp_block_4{
         exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
         termination_token}() -> ():
     alloc_locals
@@ -164,7 +179,7 @@ func __warp_if_0{
         termination_token}(__warp_subexpr_0 : Uint256) -> ():
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
-        __warp_block_2()
+        __warp_block_4()
         return ()
     else:
         return ()

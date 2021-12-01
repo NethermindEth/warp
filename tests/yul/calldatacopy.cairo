@@ -3,7 +3,7 @@
 
 from evm.calls import calldatacopy, calldataload, calldatasize
 from evm.exec_env import ExecutionEnvironment
-from evm.memory import uint256_mload, uint256_mstore
+from evm.memory import uint256_mstore
 from evm.uint256 import is_eq, is_lt, is_zero, slt, u256_add, u256_shr
 from evm.yul_api import warp_return
 from starkware.cairo.common.alloc import alloc
@@ -11,7 +11,7 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import Uint256, uint256_and, uint256_sub
+from starkware.cairo.common.uint256 import Uint256
 
 func __warp_constant_0() -> (res : Uint256):
     return (Uint256(low=0, high=0))
@@ -42,59 +42,21 @@ func constructor{
     end
 end
 
-func abi_decode{range_check_ptr}(headStart : Uint256, dataEnd : Uint256) -> ():
-    alloc_locals
-    let (__warp_subexpr_1 : Uint256) = uint256_sub(dataEnd, headStart)
-    let (__warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=0, high=0))
-    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
-        assert 0 = 1
-        jmp rel 0
-    else:
-        return ()
-    end
-end
-
-func fun_callMe{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
-        termination_token}() -> (var : Uint256):
-    alloc_locals
-    let var : Uint256 = Uint256(low=0, high=0)
-    calldatacopy(Uint256(low=0, high=0), Uint256(low=0, high=0), Uint256(low=4, high=0))
-    warp_return(Uint256(low=0, high=0), Uint256(low=4, high=0))
-    return (var)
-end
-
-func abi_encode_bytes4{memory_dict : DictAccess*, msize, range_check_ptr}(
-        value : Uint256, pos : Uint256) -> ():
-    alloc_locals
-    let (__warp_subexpr_0 : Uint256) = uint256_and(
-        value, Uint256(low=0, high=340282366841710300949110269838224261120))
-    uint256_mstore(offset=pos, value=__warp_subexpr_0)
-    return ()
-end
-
-func abi_encode_tuple_bytes4{memory_dict : DictAccess*, msize, range_check_ptr}(
-        headStart : Uint256, value0 : Uint256) -> (tail : Uint256):
-    alloc_locals
-    let (tail : Uint256) = u256_add(headStart, Uint256(low=32, high=0))
-    abi_encode_bytes4(value0, headStart)
-    return (tail)
-end
-
 func __warp_block_1{
         exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
         termination_token}() -> ():
     alloc_locals
-    let (__warp_subexpr_0 : Uint256) = calldatasize()
-    abi_decode(Uint256(low=4, high=0), __warp_subexpr_0)
-    let (ret__warp_mangled : Uint256) = fun_callMe()
-    if termination_token == 1:
-        return ()
+    let (__warp_subexpr_2 : Uint256) = calldatasize()
+    let (__warp_subexpr_1 : Uint256) = u256_add(
+        __warp_subexpr_2,
+        Uint256(low=340282366920938463463374607431768211452, high=340282366920938463463374607431768211455))
+    let (__warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=0, high=0))
+    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
+        assert 0 = 1
+        jmp rel 0
     end
-    let (memPos : Uint256) = uint256_mload(Uint256(low=64, high=0))
-    let (__warp_subexpr_2 : Uint256) = abi_encode_tuple_bytes4(memPos, ret__warp_mangled)
-    let (__warp_subexpr_1 : Uint256) = uint256_sub(__warp_subexpr_2, memPos)
-    warp_return(memPos, __warp_subexpr_1)
+    calldatacopy(Uint256(low=0, high=0), Uint256(low=0, high=0), Uint256(low=4, high=0))
+    warp_return(Uint256(low=0, high=0), Uint256(low=4, high=0))
     return ()
 end
 
