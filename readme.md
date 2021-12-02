@@ -10,5 +10,5 @@ yarn tsc
 
 To transpile a contract:
 ```bash
-bin/warp transpile example-contracts/ERC20.sol WARP
+bin/warp transpile example-contracts/ERC20.sol
 ```
