@@ -28,17 +28,17 @@ export function transpile(file: string): string[] | null {
     result = compileSol(file, 'auto', []);
     const reader = new ASTReader();
     const sourceUnits = reader.read(result.data);
-    return sourceUnits.map((s) => transpileSourceUnit(s));
+    return sourceUnits.map((s) => transpileSourceUnit(s, result.compilerVersion));
   } catch (e) {
     console.log(e);
     return null;
   }
 }
 
-export function transpileSourceUnit(contract: SourceUnit): string {
+export function transpileSourceUnit(contract: SourceUnit, version: string): string {
   let ast = applyPasses({ ast: contract, imports: null });
   const formatter = new PrettyFormatter(4, 0);
-  const writer = new ASTWriter(CairoASTMapping(ast.imports), formatter, LatestCompilerVersion);
+  const writer = new ASTWriter(CairoASTMapping(ast.imports), formatter, version);
   return writer.write(ast.ast);
 }
 

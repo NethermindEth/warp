@@ -1,12 +1,12 @@
-import { Mapping, TypeName } from 'solc-typed-ast';
+import { MappingType, TypeName } from 'solc-typed-ast';
 
-export function getMappingTypes(v: Mapping): TypeName[] {
+export function getMappingTypes(v: MappingType): TypeName[] {
   let types = [];
-  types.push(v.vKeyType);
-  if (v.vValueType instanceof Mapping) {
-    types = getMappingTypes(v.vValueType);
+  types.push(v.keyType);
+  if (v.valueType instanceof MappingType) {
+    types = getMappingTypes(v.valueType);
   } else {
-    types.push(v.vValueType);
+    types.push(v.valueType);
   }
   return types;
 }

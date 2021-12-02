@@ -67,12 +67,15 @@ import {
   FunctionStateMutability,
   SrcDesc,
   FunctionCallKind,
+  getNodeType,
+  MappingType,
 } from 'solc-typed-ast';
 import { Imports } from './ast/visitor';
 import { CairoStorageVariable, CairoStorageVariableKind } from './ast/cairoStorageVariable';
-import { primitiveTypeToCairo, divmod, importsWriter } from './utils/utils';
+import { primitiveTypeToCairo, divmod, importsWriter, canonicalMangler } from './utils/utils';
 import { getMappingTypes } from './utils/mappings';
 import CairoAssert from './ast/cairoAssert';
+import { cairoType, getCairoType } from './typeWriter';
 
 export abstract class CairoASTNodeWriter extends ASTNodeWriter {
   imports: Imports;
@@ -84,38 +87,19 @@ export abstract class CairoASTNodeWriter extends ASTNodeWriter {
 
 class StructDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: StructDefinition, writer: ASTWriter): SrcDesc {
+    const INDENT = ' '.repeat(4);
     return [
       [
-        `struct ${node.name}:`,
-        ...node.vMembers.map((value) => `  member ${value.name} : ${writer.write(value.vType)}`),
+        `struct ${canonicalMangler(node.canonicalName)}:`,
+        ...node.vMembers
+          .map(
+            (value) =>
+              `member ${value.name} : ${getCairoType(value, writer.targetCompilerVersion)}`,
+          )
+          .map((v) => INDENT + v),
         `end`,
       ].join('\n'),
     ];
-  }
-}
-
-class ElementaryTypeNameWriter extends CairoASTNodeWriter {
-  writeInner(node: ElementaryTypeName, _: ASTWriter): SrcDesc {
-    return [primitiveTypeToCairo(node.name)];
-  }
-}
-
-class ArrayTypeNameWriter extends CairoASTNodeWriter {
-  writeInner(node: ArrayTypeName, writer: ASTWriter): SrcDesc {
-    const baseType = writer.write(node.vBaseType);
-    return [`${baseType}*`];
-  }
-}
-
-class UserDefinedTypeNameWriter extends CairoASTNodeWriter {
-  writeInner(node: UserDefinedTypeName, writer: ASTWriter): SrcDesc {
-    return [`${(node.vReferencedDeclaration as StructDefinition).name}`];
-  }
-}
-
-class MappingTypeNameWriter extends CairoASTNodeWriter {
-  writeInner(_node: Mapping, _writer: ASTWriter): SrcDesc {
-    return [`felt*`];
   }
 }
 
@@ -123,12 +107,13 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
   writeInner(node: VariableDeclaration, writer: ASTWriter): SrcDesc {
     if (node.stateVariable) {
       let vals = [];
-      if (node.vType instanceof Mapping) {
-        vals = getMappingTypes(node.vType);
+      const nodeType = getNodeType(node.vType, writer.targetCompilerVersion);
+      if (nodeType instanceof MappingType) {
+        vals = getMappingTypes(nodeType);
       } else {
-        vals.push(writer.write(node.vType));
+        vals.push(nodeType);
       }
-      vals = vals.map((value) => writer.write(value));
+      vals = vals.map((value) => cairoType(value));
       const keys = vals.slice(0, vals.length - 1);
       const returns = vals.slice(vals.length - 1, vals.length);
       return [
@@ -140,7 +125,7 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
       ];
     }
 
-    return [`${node.name} : ${writer.write(node.vType)}`];
+    return [`${node.name} : ${getCairoType(node, writer.targetCompilerVersion)}`];
   }
 }
 
@@ -215,9 +200,10 @@ class NotImplementedWriter extends CairoASTNodeWriter {
 
 class ParameterListWriter extends CairoASTNodeWriter {
   writeInner(node: ParameterList, writer: ASTWriter): SrcDesc {
-    const params = node.vParameters.map((value) =>
-      value.name ? `${value.name} : ${writer.write(value.vType)}` : `${writer.write(value.vType)}`,
-    );
+    const params = node.vParameters.map((value) => {
+      const tp = getCairoType(value, writer.targetCompilerVersion);
+      return value.name ? `${value.name} : ${tp}` : `${tp}`;
+    });
     return [params.join(', ')];
   }
 }
@@ -265,10 +251,10 @@ class BlockWriter extends CairoASTNodeWriter {
 
 class ReturnWriter extends CairoASTNodeWriter {
   writeInner(node: Return, writer: ASTWriter): SrcDesc {
-    let returns =  "()";
+    let returns = '()';
     if (node.vExpression) {
       const expWriten = writer.write(node.vExpression);
-      returns = node.vExpression instanceof TupleExpression ? expWriten : `(${expWriten})`
+      returns = node.vExpression instanceof TupleExpression ? expWriten : `(${expWriten})`;
     }
     return [`return ${returns}`];
   }
@@ -392,10 +378,10 @@ class CairoAssertWriter extends CairoASTNodeWriter {
 
 export const CairoASTMapping = (imports: Imports) =>
   new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([
-    [ElementaryTypeName, new ElementaryTypeNameWriter()],
-    [ArrayTypeName, new ArrayTypeNameWriter()],
-    [Mapping, new MappingTypeNameWriter()],
-    [UserDefinedTypeName, new UserDefinedTypeNameWriter()],
+    [ElementaryTypeName, new NotImplementedWriter()],
+    [ArrayTypeName, new NotImplementedWriter()],
+    [Mapping, new NotImplementedWriter()],
+    [UserDefinedTypeName, new NotImplementedWriter()],
     [FunctionTypeName, new NotImplementedWriter()],
     [Literal, new LiteralWriter()],
     [Identifier, new IdentifierWriter()],

@@ -53,3 +53,7 @@ export function* counterGenerator(start = 0): Generator<number, number, unknown>
     count++;
   }
 }
+
+export function canonicalMangler(name: string) {
+  return name.replace("_", "__").replace(".", "_");
+}
