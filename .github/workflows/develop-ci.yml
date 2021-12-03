@@ -66,9 +66,8 @@ jobs:
       - name: Create benchmarks
         run: |
           mkdir -p benchmark/stats benchmark/tmp
-          python -m pytest tests/yul/ -v --tb=short --workers=auto
+          python -m pytest tests/behaviour/ -v --tb=short --workers=auto
           make benchmark
-          python -m pytest tests/yul/ -v --tb=short --workers=auto $(ARGS)
           mv ./benchmark/stats/stats.md "./benchmark/stats/${{ env.source_hash }}.md"
 
       - name: Push benchmarks to another repository

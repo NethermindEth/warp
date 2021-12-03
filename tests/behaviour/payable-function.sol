@@ -1,0 +1,1 @@
+../golden/payable-function.sol

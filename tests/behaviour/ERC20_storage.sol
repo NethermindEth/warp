@@ -1,0 +1,1 @@
+../golden/ERC20_storage.sol

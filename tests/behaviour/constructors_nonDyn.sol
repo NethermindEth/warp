@@ -1,0 +1,1 @@
+../golden/constructors_nonDyn.sol

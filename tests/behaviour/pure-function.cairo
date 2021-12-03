@@ -1,0 +1,1 @@
+../golden/pure-function.cairo
