@@ -78,6 +78,8 @@ import CairoAssert from './ast/cairoAssert';
 import { cairoType, getCairoType } from './typeWriter';
 import { stringToLiteralValue } from './utils/literalParsing';
 
+const INDENT = ' '.repeat(4);
+
 export abstract class CairoASTNodeWriter extends ASTNodeWriter {
   imports: Imports;
   constructor(imports?: Imports) {
@@ -147,12 +149,6 @@ class TupleExpressionWriter extends CairoASTNodeWriter {
   }
 }
 
-class ContractInterfaceWriter extends CairoASTNodeWriter {
-  writeInner(node: SourceUnit, writer: ASTWriter): SrcDesc {
-    return [``];
-  }
-}
-
 class PragmaDirectiveWriter extends CairoASTNodeWriter {
   writeInner(_node: PragmaDirective, _writer: ASTWriter): SrcDesc {
     return [['%starknet', '%builtins pedersen range_check bitwise'].join('\n')];
@@ -171,11 +167,27 @@ class SourceUnitWriter extends CairoASTNodeWriter {
   }
 }
 
+function writeContractInterface(node: ContractDefinition, writer: ASTWriter): SrcDesc {
+  const structs = node.vStructs.map((value) => writer.write(value));
+  const functions = node.vFunctions.map((v) =>
+    writer
+      .write(v)
+      .split('\n')
+      .map((l) => INDENT + l)
+      .join('\n'),
+  );
+  return [
+    [
+      ...structs,
+      [`@contract_interface`, `namespace ${node.name}:`, ...functions, `end`].join('\n'),
+    ].join('\n'),
+  ];
+}
+
 class ContractDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: ContractDefinition, writer: ASTWriter): SrcDesc {
-    // @ts-ignore
     if (node.kind == ContractKind.Interface) {
-      return [`Interfaces not implemented yet`];
+      return writeContractInterface(node, writer);
     }
 
     const structs = node.vStructs.map((value) => writer.write(value));
@@ -186,7 +198,7 @@ class ContractDefinitionWriter extends CairoASTNodeWriter {
 
     const functions = node.vFunctions.map((value) => writer.write(value));
     // todo create these structs
-    return [[...structs, ...enums, ...stateVars, ...functions].join('\n\n\n')];
+    return [[...structs, ...enums, ...stateVars, ...functions].join('\n\n')];
   }
 
   writeWhole(node: ContractDefinition, writer: ASTWriter): SrcDesc {
@@ -242,7 +254,6 @@ class FunctionDefinitionWriter extends CairoASTNodeWriter {
 
 class BlockWriter extends CairoASTNodeWriter {
   writeInner(node: Block, writer: ASTWriter): SrcDesc {
-    const INDENT = ' '.repeat(4);
     return [
       node.vStatements
         .map((value) => writer.write(value))
