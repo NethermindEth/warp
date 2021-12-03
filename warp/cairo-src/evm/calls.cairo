@@ -9,7 +9,7 @@ from starkware.cairo.common.uint256 import Uint256
 from starkware.starknet.common.syscalls import get_caller_address
 
 from evm.array import (
-    array_copy_to_memory, array_create_from_memory, array_load, extend_array_to_len)
+    array_copy_to_memory, array_create_from_memory, array_load, extend_array_to_len, validate_array)
 from evm.exec_env import ExecutionEnvironment
 from evm.utils import felt_to_uint256, uint256_to_address_felt, update_msize
 
@@ -81,6 +81,7 @@ func warp_call{
     let (address_felt : felt) = uint256_to_address_felt(address)
     let (returndata_size, returndata_len, returndata) = GenericCallInterface.__main(
         address_felt, insize.low, calldata_len, mem)
+    validate_array(returndata_len, returndata)
     array_copy_to_memory(returndata_size, returndata, 0, out.low, outsize.low)
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(
         calldata_size=exec_env.calldata_size,

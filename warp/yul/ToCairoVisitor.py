@@ -40,6 +40,7 @@ COMMON_IMPORTS = {
         "HashBuiltin",
         "BitwiseBuiltin",
     },
+    "evm.array": {"validate_array"},
     "evm.exec_env": {"ExecutionEnvironment"},
 }
 
@@ -291,7 +292,8 @@ class ToCairoVisitor(AstVisitor):
         )
 
     def _make_constructor(self):
-        ctor_implicits = self.function_to_implicits.get("__constructor_meat")
+        ctor_implicits = frozenset(self.function_to_implicits.get("__constructor_meat"))
+        ctor_implicits |= {"range_check_ptr"}  # for validate_array
         assert ctor_implicits, "The '__constructor_meat' function is not generated"
         manual_implicits = sorted(ctor_implicits & MANUAL_IMPLICITS)
         builtin_implicits = sorted(ctor_implicits - MANUAL_IMPLICITS)
@@ -309,6 +311,7 @@ class ToCairoVisitor(AstVisitor):
             f"@constructor\n"
             f"func constructor{builtins_str}(calldata_size, calldata_len, calldata : felt*):\n"
             f"alloc_locals\n"
+            f"validate_array(calldata_len, calldata)\n"
             f"{manuals_init}"
             f"{meat}\n"
             f"{manuals_fin}"
@@ -317,7 +320,8 @@ class ToCairoVisitor(AstVisitor):
         )
 
     def _make_main(self):
-        main_implicits = self.function_to_implicits.get("__main_meat")
+        main_implicits = frozenset(self.function_to_implicits.get("__main_meat"))
+        main_implicits |= {"range_check_ptr"}  # for validate_array
         assert main_implicits, "The '__main_meat' function is not generated"
         manual_implicits = sorted(main_implicits & MANUAL_IMPLICITS)
         builtin_implicits = sorted(main_implicits - MANUAL_IMPLICITS)
@@ -340,6 +344,7 @@ class ToCairoVisitor(AstVisitor):
             f"func __main{builtins_str}(calldata_size, calldata_len, calldata : felt*)"
             f"-> (returndata_size, returndata_len, returndata: felt*):\n"
             f"alloc_locals\n"
+            f"validate_array(calldata_len, calldata)\n"
             f"{manuals_init}"
             f"{meat}\n"
             f"{manuals_fin}"

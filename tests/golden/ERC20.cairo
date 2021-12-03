@@ -1,6 +1,7 @@
 %lang starknet
 %builtins pedersen range_check bitwise
 
+from evm.array import validate_array
 from evm.calls import calldataload, calldatasize, caller
 from evm.exec_env import ExecutionEnvironment
 from evm.hashing import uint256_pedersen
@@ -41,6 +42,7 @@ end
 func constructor{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         calldata_size, calldata_len, calldata : felt*):
     alloc_locals
+    validate_array(calldata_len, calldata)
     let (memory_dict) = default_dict_new(0)
     let memory_dict_start = memory_dict
     let msize = 0
@@ -56,6 +58,7 @@ func __main{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         calldata_size, calldata_len, calldata : felt*) -> (
         returndata_size, returndata_len, returndata : felt*):
     alloc_locals
+    validate_array(calldata_len, calldata)
     let (__fp__, _) = get_fp_and_pc()
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=cast(0, felt*), to_returndata_size=0, to_returndata_len=0, to_returndata=cast(0, felt*))
     let exec_env : ExecutionEnvironment* = &exec_env_
