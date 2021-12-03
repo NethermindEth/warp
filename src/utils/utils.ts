@@ -55,5 +55,5 @@ export function* counterGenerator(start = 0): Generator<number, number, unknown>
 }
 
 export function canonicalMangler(name: string) {
-  return name.replace("_", "__").replace(".", "_");
+  return name.replaceAll("_", "__").replaceAll(".", "_");
 }

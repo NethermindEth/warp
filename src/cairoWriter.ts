@@ -180,11 +180,13 @@ class ContractDefinitionWriter extends CairoASTNodeWriter {
 
     const structs = node.vStructs.map((value) => writer.write(value));
 
+    const enums = node.vEnums.map((value) => writer.write(value));
+
     const stateVars = node.vStateVariables.map((value) => writer.write(value));
 
     const functions = node.vFunctions.map((value) => writer.write(value));
     // todo create these structs
-    return [[...structs, ...stateVars, ...functions].join('\n\n\n')];
+    return [[...structs, ...enums, ...stateVars, ...functions].join('\n\n\n')];
   }
 
   writeWhole(node: ContractDefinition, writer: ASTWriter): SrcDesc {
@@ -332,6 +334,17 @@ class UncheckedBlockWriter extends CairoASTNodeWriter {
 
 class MemberAccessWriter extends CairoASTNodeWriter {
   writeInner(node: MemberAccess, writer: ASTWriter): SrcDesc {
+    const exp = node.vExpression;
+    if (exp instanceof Identifier) {
+      if (
+        exp.vIdentifierType === 'userDefined' &&
+        exp.vReferencedDeclaration instanceof EnumDefinition
+      ) {
+        const defName = exp.vReferencedDeclaration.canonicalName;
+        return [canonicalMangler(`${defName}.${node.memberName}`)];
+      }
+    }
+
     return [`${writer.write(node.vExpression)}.${node.memberName}`];
   }
 }
@@ -348,6 +361,19 @@ class AssignmentWriter extends CairoASTNodeWriter {
     assert(node.operator === '=', `Unexpected operator ${node.operator}`);
     const nodes = [node.vLeftHandSide, node.vRightHandSide].map((v) => writer.write(v));
     return [`${nodes[0]} ${node.operator} ${nodes[1]}`];
+  }
+}
+
+class EnumDefinitionWriter extends CairoASTNodeWriter {
+  writeInner(node: EnumDefinition, writer: ASTWriter): SrcDesc {
+    return [
+      [
+        ...node.vMembers.map((v, i) => {
+          const name = canonicalMangler(`${node.canonicalName}.${v.name}`);
+          return `const ${name} = ${i}`;
+        }),
+      ].join('\n'),
+    ];
   }
 }
 
@@ -427,7 +453,7 @@ export const CairoASTMapping = (imports: Imports) =>
     [EventDefinition, new NotImplementedWriter()],
     [StructDefinition, new StructDefinitionWriter()],
     [EnumValue, new NotImplementedWriter()],
-    [EnumDefinition, new NotImplementedWriter()],
+    [EnumDefinition, new EnumDefinitionWriter()],
     [UsingForDirective, new NotImplementedWriter()],
     [InheritanceSpecifier, new NotImplementedWriter()],
     [ContractDefinition, new ContractDefinitionWriter()],

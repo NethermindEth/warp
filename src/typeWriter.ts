@@ -16,6 +16,7 @@ import {
   Expression,
   VariableDeclaration,
   PointerType,
+  EnumDefinition,
 } from 'solc-typed-ast';
 import {canonicalMangler} from './utils/utils';
 
@@ -42,6 +43,10 @@ export function cairoType(tp: TypeNode): string {
   } else if (tp instanceof MappingType) {
     return `${tp.keyType} => ${cairoType(tp.valueType)}`;
   } else if (tp instanceof UserDefinedType) {
+    const def = tp.definition;
+    if (def instanceof EnumDefinition) {
+      return "felt";
+    }
     return canonicalMangler(tp.name);
   } else if (tp instanceof FunctionType) {
     return `felt*`;
