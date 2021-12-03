@@ -45,7 +45,6 @@ export function transpileSourceUnit(contract: SourceUnit, version: string): stri
 
 export function applyPasses(ast: AST): AST {
   // TODO: Indentifier mangler
-  // TODO: Enum transpiler
   // TODO: StorageVarPass:
   // TODO: Semantic pass to check that mapping access are fully applied
   // TODO: mapper creates an enum for each storage var mapping type
@@ -55,10 +54,8 @@ export function applyPasses(ast: AST): AST {
   // TODO: assignment needs to switch on the type rhs expression to decide between let(felt) vs assert(felt* array)
   // TODO: Replace all arrays with array type plus length pointer.
   // TODO: Replace reference writes with object copies. (use array length as an optimization) Update array lengths
-  // TODO: Global Name Gen/ Id gen
   // TODO: Implement Custom Node for Builtins
   // TODO: replace type(X).min and type(X).max with the corresponing constant value
-  // TODO: Implement a mappner that tranforms the Imports object into AST nodes
   ast = new UnloadingAssignment().map(ast);
   ast = new VariableDeclarationInitialiser().map(ast);
   ast = new BuiltinHandler().map(ast);
