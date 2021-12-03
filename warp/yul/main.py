@@ -32,7 +32,7 @@ AST_GENERATOR = "kudu"
 
 
 def transpile_from_solidity(sol_src_path, main_contract) -> dict:
-    sol_src_path_modified = sol_src_path[:-4] + "_marked.sol"
+    sol_src_path_modified = str(sol_src_path)[:-4] + "_marked.sol"
     if not shutil.which(AST_GENERATOR):
         sys.exit(f"Please install {AST_GENERATOR} first")
 
@@ -53,7 +53,10 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
     codes = json.loads(result.stdout)
     yul_ast = parse_to_normalized_ast(codes)
     cairo_code = transpile_from_yul(yul_ast)
-    os.remove(sol_src_path_modified)
+    try:
+        os.remove(sol_src_path_modified)
+    except FileNotFoundError:
+        pass  # for reentrancy
     return {"cairo_code": cairo_code, "sol_abi": abi}
 
 
