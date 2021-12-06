@@ -76,6 +76,7 @@ import { primitiveTypeToCairo, divmod, importsWriter, canonicalMangler } from '.
 import { getMappingTypes } from './utils/mappings';
 import CairoAssert from './ast/cairoAssert';
 import { cairoType, getCairoType } from './typeWriter';
+import { stringToLiteralValue } from './utils/literalParsing';
 
 export abstract class CairoASTNodeWriter extends ASTNodeWriter {
   imports: Imports;
@@ -275,7 +276,7 @@ class LiteralWriter extends CairoASTNodeWriter {
             const [high, low] = divmod(parseInt(node.value, 10), Math.pow(2, 128));
             return [`Uint256(low=${low}, high=${high})`];
           case 'felt':
-            return [`${parseInt(node.value, 10)}`];
+            return [stringToLiteralValue(node.value).toCairoLiteral()];
         }
       case LiteralKind.Bool:
         return [node.value === 'true' ? '1' : '0'];

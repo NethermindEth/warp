@@ -19,6 +19,7 @@ import {
   VariableDeclarationExpressionSplitter,
   StorageVariableAccessRewriter,
   ExpressionSplitter,
+  UnitHandler,
 } from './passes';
 
 export function transpile(file: string): string[] | null {
@@ -66,5 +67,6 @@ export function applyPasses(ast: AST): AST {
   ast = new VariableDeclarationExpressionSplitter().map(ast);
   ast = new StorageVariableAccessRewriter().map(ast);
   ast = new ExpressionSplitter().map(ast);
+  ast = new UnitHandler().map(ast);
   return ast;
 }
