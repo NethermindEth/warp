@@ -99,7 +99,6 @@ export abstract class CairoASTNodeWriter extends ASTNodeWriter implements CairoW
 
 class StructDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: StructDefinition, writer: ASTWriter): SrcDesc {
-    const INDENT = ' '.repeat(4);
     return [
       [
         `struct ${canonicalMangler(node.canonicalName)}:`,

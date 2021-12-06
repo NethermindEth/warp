@@ -1,5 +1,4 @@
 import {
-  TupleType,
   UserDefinedType,
   IntType,
   ArrayType,
@@ -17,6 +16,7 @@ import {
   VariableDeclaration,
   PointerType,
   EnumDefinition,
+  ContractDefinition,
 } from 'solc-typed-ast';
 import {canonicalMangler} from './utils/utils';
 
@@ -43,9 +43,12 @@ export function cairoType(tp: TypeNode): string {
   } else if (tp instanceof MappingType) {
     return `${tp.keyType} => ${cairoType(tp.valueType)}`;
   } else if (tp instanceof UserDefinedType) {
-    const def = tp.definition;
-    if (def instanceof EnumDefinition) {
+    if (tp.definition instanceof EnumDefinition) {
       return "felt";
+    }
+    if (tp.definition instanceof ContractDefinition) {
+      // This should be an address
+      return `felt`;
     }
     return canonicalMangler(tp.name);
   } else if (tp instanceof FunctionType) {
