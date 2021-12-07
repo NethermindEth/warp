@@ -41,7 +41,7 @@ export function cairoType(tp: TypeNode): string {
   } else if (tp instanceof BuiltinStructType) {
     return canonicalMangler(tp.name);
   } else if (tp instanceof MappingType) {
-    return `${tp.keyType} => ${cairoType(tp.valueType)}`;
+    return `${cairoType(tp.keyType)} => ${cairoType(tp.valueType)}`;
   } else if (tp instanceof UserDefinedType) {
     if (tp.definition instanceof EnumDefinition) {
       return "felt";

@@ -69,6 +69,7 @@ import {
   FunctionCallKind,
   getNodeType,
   MappingType,
+  PointerType,
 } from 'solc-typed-ast';
 import { Imports } from './ast/visitor';
 import {
@@ -119,13 +120,13 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
     if (node.stateVariable) {
       let vals = [];
       const nodeType = getNodeType(node.vType, writer.targetCompilerVersion);
-      if (nodeType instanceof MappingType) {
-        vals = getMappingTypes(nodeType);
+      if (nodeType instanceof PointerType && nodeType.to instanceof MappingType) {
+        vals = getMappingTypes(nodeType.to);
       } else {
         vals.push(nodeType);
       }
       vals = vals.map((value) => cairoType(value));
-      const keys = vals.slice(0, vals.length - 1);
+      const keys = vals.slice(0, vals.length - 1).map((t, i) => `key${i}: ${t}`);
       const returns = vals.slice(vals.length - 1, vals.length);
       return [
         [
@@ -159,7 +160,7 @@ class TupleExpressionWriter extends CairoASTNodeWriter {
 
 class PragmaDirectiveWriter extends CairoASTNodeWriter {
   writeInner(_node: PragmaDirective, _writer: ASTWriter): SrcDesc {
-    return [['%starknet', '%builtins pedersen range_check bitwise'].join('\n')];
+    return [['%lang starknet', '%builtins pedersen range_check bitwise'].join('\n')];
   }
 }
 
@@ -223,9 +224,9 @@ class NotImplementedWriter extends CairoASTNodeWriter {
 
 class ParameterListWriter extends CairoASTNodeWriter {
   writeInner(node: ParameterList, writer: ASTWriter): SrcDesc {
-    const params = node.vParameters.map((value) => {
+    const params = node.vParameters.map((value, i) => {
       const tp = getCairoType(value, writer.targetCompilerVersion);
-      return value.name ? `${value.name} : ${tp}` : `${tp}`;
+      return value.name ? `${value.name} : ${tp}` : `ret${i} : ${tp}`;
     });
     return [params.join(', ')];
   }
