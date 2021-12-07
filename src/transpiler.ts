@@ -19,7 +19,7 @@ import {
   VariableDeclarationExpressionSplitter,
   StorageVariableAccessRewriter,
   ExpressionSplitter,
-  UnitHandler,
+  LiteralExpressionEvaluator,
 } from './passes';
 
 export function transpile(file: string): string[] | null {
@@ -56,6 +56,7 @@ export function applyPasses(ast: AST): AST {
   // TODO: Replace reference writes with object copies. (use array length as an optimization) Update array lengths
   // TODO: Implement Custom Node for Builtins
   // TODO: replace type(X).min and type(X).max with the corresponing constant value
+  ast = new LiteralExpressionEvaluator().map(ast);
   ast = new UnloadingAssignment().map(ast);
   ast = new VariableDeclarationInitialiser().map(ast);
   ast = new BuiltinHandler().map(ast);
@@ -64,6 +65,5 @@ export function applyPasses(ast: AST): AST {
   ast = new VariableDeclarationExpressionSplitter().map(ast);
   ast = new StorageVariableAccessRewriter().map(ast);
   ast = new ExpressionSplitter().map(ast);
-  ast = new UnitHandler().map(ast);
   return ast;
 }

@@ -6,4 +6,4 @@ export * from './variableDeclarationExpressionSplitter';
 export * from './forLoopSimplifier';
 export * from './builtinHandler';
 export * from './expressionSplitter';
-export * from './unitHandler';
+export * from './literalExpressionEvaluator/literalExpressionEvaluator';

@@ -76,7 +76,6 @@ import { primitiveTypeToCairo, divmod, importsWriter, canonicalMangler } from '.
 import { getMappingTypes } from './utils/mappings';
 import CairoAssert from './ast/cairoAssert';
 import { cairoType, getCairoType } from './typeWriter';
-import { stringToLiteralValue } from './utils/literalParsing';
 
 const INDENT = ' '.repeat(4);
 
@@ -281,26 +280,30 @@ class ExpressionStatementWriter extends CairoASTNodeWriter {
 }
 
 class LiteralWriter extends CairoASTNodeWriter {
-  writeInner(node: Literal, writer: ASTWriter): SrcDesc {
+  writeInner(node: Literal, _: ASTWriter): SrcDesc {
     switch (node.kind) {
       case LiteralKind.Number:
         switch (primitiveTypeToCairo(node.typeString)) {
-          case 'Uint256':
+          case 'Uint256': {
             const [high, low] = divmod(parseInt(node.value, 10), Math.pow(2, 128));
             return [`Uint256(low=${low}, high=${high})`];
+          }
           case 'felt':
-            return [stringToLiteralValue(node.value).toCairoLiteral()];
+            return [node.value];
+          default:
+            throw new Error('Attempted to write unexpected cairo type');
         }
       case LiteralKind.Bool:
         return [node.value === 'true' ? '1' : '0'];
       case LiteralKind.String:
-      case LiteralKind.UnicodeString:
+      case LiteralKind.UnicodeString: {
         const cairoString = node.value
           .split('')
           .filter((v) => v.charCodeAt(0) < 127)
           .join('')
           .substring(0, 32);
         return [`"${cairoString}"`];
+      }
       case LiteralKind.HexString:
         console.log('HexStr not implemented yet');
         return ['<hexStr>'];
