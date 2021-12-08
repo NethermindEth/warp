@@ -38,6 +38,18 @@ jobs:
           isort --ext cairo warp/cairo-src --check --verbose --diff --color
           find warp/cairo-src/ -iname *.cairo -exec cairo-format -c {} +
 
+      - name: Generate benchmark statistics
+        run: |
+          mkdir -p ./benchmark/stats
+          make benchmark
+
+      - name: Commit benchmark statistics
+        uses: EndBug/add-and-commit@v7
+        with:
+          add: 'benchmark/stats/*.md'
+          message: 'add benchmarking statistics'
+          default_author: github_actions
+
       - name: Setup a local devnet
         run: |
           pipx install starknet-devnet==0.1.6
@@ -53,8 +65,3 @@ jobs:
 
       - name: Test yul tests
         run: make test_yul
-
-      - name: Generate benchmarks for tests
-        run: |
-          mkdir -p ./benchmark/stats
-          make benchmark
