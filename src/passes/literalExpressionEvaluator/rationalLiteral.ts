@@ -148,10 +148,6 @@ function scientificNotationToLiteral(value: string): RationalLiteral {
     ? decimalToLiteral(parts[0])
     : intToLiteral(parts[0]);
   const exponent: bigint = BigInt(parts[1]);
-  console.log(parts[0]);
-  console.log(parts[1]);
-  console.log(coefficient.toString());
-  console.log(exponent.toString());
   const rationalExponentFactor = new RationalLiteral(10n, 1n).exp(
     new RationalLiteral(exponent, 1n),
   );

@@ -87,4 +87,8 @@ export class MsgSender extends BuiltinMapper {
       return node;
     }
   }
+
+  getPassName(): string {
+    return 'Builtin msg.sender Mapper';
+  }
 }

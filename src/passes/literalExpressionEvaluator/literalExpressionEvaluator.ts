@@ -78,6 +78,10 @@ export class LiteralExpressionEvaluator extends ASTMapper {
   visitUnaryOperation(node: UnaryOperation): ASTNode {
     return this.visitPossibleLiteralExpression(node);
   }
+
+  getPassName(): string {
+    return 'Literal Expression Evaluator';
+  }
 }
 
 function evaluateLiteralExpression(node: Expression): RationalLiteral | boolean | null {

@@ -89,4 +89,8 @@ export class StorageVariableAccessRewriter extends ASTMapper {
       );
     }
   }
+
+  getPassName(): string {
+    return 'Storage Variable Access Rewriter';
+  }
 }

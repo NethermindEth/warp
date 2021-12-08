@@ -22,4 +22,8 @@ export class ForLoopSimplifier extends ASTMapper {
       node?.raw,
     );
   }
+
+  getPassName(): string {
+    return 'For Loop Simplifier';
+  }
 }
