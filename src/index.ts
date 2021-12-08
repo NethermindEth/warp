@@ -17,7 +17,12 @@ const program = new Command();
 
 program.command('transpile <file>').action((file) => {
   if (fs.existsSync(file)) {
-    console.log(transpile(file).join('\n\n\n'));
+    const transpilationResult = transpile(file);
+    if (transpilationResult === null) {
+      console.log('Transpilation failed');
+    } else {
+      console.log(transpilationResult.join('\n\n\n'));
+    }
   }
 });
 

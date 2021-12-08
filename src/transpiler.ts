@@ -1,12 +1,11 @@
 import {
-  ContractDefinition,
   CompileResult,
   ASTReader,
   compileSol,
   ASTWriter,
   PrettyFormatter,
-  LatestCompilerVersion,
   SourceUnit,
+  CompileFailedError,
 } from 'solc-typed-ast';
 import { AST } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
@@ -31,7 +30,20 @@ export function transpile(file: string): string[] | null {
     const sourceUnits = reader.read(result.data);
     return sourceUnits.map((s) => transpileSourceUnit(s, result.compilerVersion));
   } catch (e) {
-    console.log(e);
+    if (e instanceof CompileFailedError) {
+      console.log('---Compile Failed---');
+      e.failures.forEach((failure) => {
+        console.log(`Compiler version ${failure.compilerVersion} reported errors:`);
+        failure.errors.forEach((error, index) => {
+          console.log(`    --${index + 1}--`);
+          const errorLines = error.split('\n');
+          errorLines.forEach((line) => console.log(`    ${line}`));
+        });
+      });
+    } else {
+      console.log('Unexpected error during transpilation');
+      console.log(e);
+    }
     return null;
   }
 }
