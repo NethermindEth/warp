@@ -427,6 +427,12 @@ class Return(StaticHandler):
         )
 
 
+class Stop(Return):
+    def get_function_call(self, _args) -> str:
+        assert not _args
+        return super().get_function_call(["Uint256(0, 0)", "Uint256(0, 0)"])
+
+
 class Address(StaticHandler):
     def __init__(self):
         super().__init__(
@@ -598,9 +604,9 @@ def get_default_builtins(
         "calldatasize": CallDataSize(),
         "caller": Caller(),
         "callvalue": CallValue(cairo_functions),
-        "coinbase": Coinbase(),
         "codecopy": CodeCopy(),
         "codesize": CodeSize(),
+        "coinbase": Coinbase(),
         "create": Create(),
         "create2": Create2(),
         "delegatecall": Delegatecall(cairo_functions),
@@ -616,12 +622,12 @@ def get_default_builtins(
         "gt": Gt(),
         "iszero": IsZero(),
         "keccak256": SHA3(),
-        "lt": Lt(),
         "log0": Log0(),
         "log1": Log1(),
         "log2": Log2(),
         "log3": Log3(),
         "log4": Log4(),
+        "lt": Lt(),
         "mload": MLoad(),
         "mod": Mod(),
         "msize": MSize(),
@@ -648,6 +654,7 @@ def get_default_builtins(
         "smod": SMod(),
         "sstore": SStore(cairo_functions),
         "staticcall": StaticCall(),
+        "stop": Stop(),
         "sub": Sub(),
         "timestamp": Timestamp(),
         "xor": Xor(),

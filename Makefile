@@ -15,7 +15,7 @@ warp: .warp-activation-token
 	python setup.py install
 	touch .warp-activation-token
 
-test: test_bats test_yul
+test: test_bats test_yul benchmark
 .PHONY: test
 
 test_bats: warp $(BATS_FILES) tests/cli/*.bats
@@ -23,11 +23,20 @@ test_bats: warp $(BATS_FILES) tests/cli/*.bats
 .PHONY: test_bats
 
 test_yul: warp
+	mkdir -p benchmark/stats
+	mkdir -p benchmark/tmp
 	python -m pytest scripts/yul/transpile_test.py -v --tb=short --workers=auto $(ARGS)
 	python -m pytest scripts/yul/compilation_test.py -v --tb=short --workers=auto $(ARGS)
 	python -m pytest tests/yul/ -v --tb=short --workers=auto $(ARGS)
 	python -m pytest tests/ast/ -v --tb=short --workers=auto $(ARGS)
 .PHONY: test_yul
+
+benchmark: warp
+	mkdir -p benchmark/stats
+	mkdir -p benchmark/tmp
+	python -m pytest tests/benchmark -v --tb=short --workers=auto $(ARGS)
+	python ./warp/logging/generateMarkdown.py
+.PHONY: benchmark
 
 $(BATS_DIR)/test-%.bats: \
 		$(GOLDEN_DIR)/%.template \

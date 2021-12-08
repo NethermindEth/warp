@@ -2,7 +2,7 @@ name: develop-ci
 
 on:
   push:
-    branches: [ develop ]
+    branches: [develop]
   pull_request:
 
 jobs:
@@ -11,6 +11,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - run: git fetch origin "${{ github.head_ref }}":"${{ github.head_ref }}" --depth 2
 
       - name: Setup Python
         uses: actions/setup-python@v2.2.2
@@ -53,3 +54,20 @@ jobs:
 
       - name: Test yul tests
         run: make test_yul
+
+      - name: Create benchmarks
+        run: |
+          make benchmark
+          source_hash="$(git rev-parse ${{ github.head_ref }})"
+          mv ./benchmark/stats/stats.md "./benchmark/stats/$source_hash.md"
+
+      - name: Push benchmarks to another repository
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source-directory: "benchmark/stats"
+          destination-github-username: "NethermindEth"
+          destination-repository-name: "warp-benchmark"
+          user-email: 41898282+github-actions[bot]@users.noreply.github.com
+          target-branch: master

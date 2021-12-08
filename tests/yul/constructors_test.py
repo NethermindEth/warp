@@ -9,6 +9,8 @@ from starkware.starknet.testing.state import StarknetState
 from yul.main import transpile_from_solidity
 from yul.starknet_utils import invoke_method
 
+from warp.logging.generateMarkdown import steps_in_function
+
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
 test_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -68,6 +70,15 @@ async def test_constructors():
             "validate_constructor",
             *non_dyn_inputs,
         ),
+    )
+    steps_in_function(
+        "constructors_dyn.sol", "validate_constructor", dyn_result, "constructors_dyn"
+    )
+    steps_in_function(
+        "constructors_nonDyn.sol",
+        "validate_constructor",
+        non_dyn_result,
+        "constructors_nonDyn",
     )
     print(f"dyn_result: {dyn_result}\n non_dyn_result: {non_dyn_result}")
     assert dyn_result.retdata == [1, 32, 2, 0, 1]
