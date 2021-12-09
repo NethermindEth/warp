@@ -48,8 +48,4 @@ export class ReturnInserter extends ASTMapper {
       );
     }
   }
-
-  getPassName(): string {
-    return 'Return Inserter';
-  }
 }

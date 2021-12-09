@@ -28,8 +28,4 @@ export class UnloadingAssignment extends ASTMapper {
       node.raw,
     );
   }
-
-  getPassName(): string {
-    return 'Assignment Unloader';
-  }
 }

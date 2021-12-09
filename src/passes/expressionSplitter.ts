@@ -117,8 +117,4 @@ export class ExpressionSplitter extends ASTMapper {
       return identifier;
     }
   }
-
-  getPassName(): string {
-    return 'ExpressionSplitter';
-  }
 }

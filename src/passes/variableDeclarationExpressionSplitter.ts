@@ -16,10 +16,6 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
       .flat();
     return new Block(this.genId(), node.src, node.type, statements, node.documentation, node.raw);
   }
-
-  getPassName(): string {
-    return 'Variable Declaration Expression Splitter';
-  }
 }
 function splitDeclaration(node: VariableDeclarationStatement): VariableDeclarationStatement[] {
   if (node.vDeclarations.length === 1) {

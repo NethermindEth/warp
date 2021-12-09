@@ -12,8 +12,4 @@ export class BuiltinHandler extends ASTMapper {
     node = new BinaryOperations().map(node);
     return node;
   }
-
-  getPassName(): string {
-    return 'Builtin Handler';
-  }
 }

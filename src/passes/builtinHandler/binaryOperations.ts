@@ -300,10 +300,6 @@ export class BinaryOperations extends BuiltinMapper {
         return this.getDefId('binaryopFelt');
     }
   }
-
-  getPassName(): string {
-    return 'Builtin Binary Operation Mapper';
-  }
 }
 
 const infixOperatorToCall = {

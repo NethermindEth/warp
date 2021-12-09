@@ -43,10 +43,6 @@ export class VariableDeclarationInitialiser extends ASTMapper {
       node.raw,
     );
   }
-
-  getPassName(): string {
-    return 'Variable Declaration Initialiser';
-  }
 }
 
 function zeroValue(node: TypeName): Expression {

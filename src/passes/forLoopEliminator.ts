@@ -22,8 +22,4 @@ export class ForLoopEliminator extends ASTMapper {
       node?.raw,
     );
   }
-
-  getPassName(): string {
-    return 'For Loop Eliminator';
-  }
 }
