@@ -1,0 +1,30 @@
+name: benchmark-ci
+
+on:
+  push:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: printf "${{ github.sha }}"
+
+      - name: Set the source hash value
+        run: echo "source_hash=$(git rev-parse ${{ github.head_ref }})" >> $GITHUB_ENV
+
+      # - name: Create benchmarks
+      #   run: |
+      #     make benchmark
+      #     mv ./benchmark/stats/stats.md "./benchmark/stats/${{ env.source_hash }}.md"
+
+      # - name: Push benchmarks to another repository
+      #   uses: dmnemec/copy_file_to_another_repo_action@main
+      #   env:
+      #     API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+      #   with:
+      #     source_file: "benchmark/stats/${{ env.source_hash }}.md"
+      #     destination_repo: "NethermindEth/warp-benchmark"
+      #     destination_folder: "stats"
+      #     destination_branch: master
+      #     user_email: 41898282+github-actions[bot]@users.noreply.github.com
