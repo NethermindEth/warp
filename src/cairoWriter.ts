@@ -256,6 +256,7 @@ class FunctionDefinitionWriter extends CairoASTNodeWriter {
       [
         ...(decorator ? [decorator] : []),
         `func ${name}${implicits}(${args}) -> (${returns}):`,
+        `${INDENT}alloc_locals`,
         ...(body ? [body] : []),
         `end`,
       ].join('\n'),
