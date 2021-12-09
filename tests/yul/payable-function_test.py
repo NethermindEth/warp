@@ -31,4 +31,4 @@ async def test_starknet():
         starknet, program_info, contract_address, "payableFunction", 510, 40, 21, 450
     )
     steps_in_function(sol_file, "payableFunction", res, "payable-function_test")
-    assert res.retdata == [1, 32, 2, 0, 451]
+    assert res.retdata == [32, 2, 0, 451]

@@ -102,7 +102,7 @@ async def test_starknet():
         "totalSupply",
     )
     steps_in_function("WETH10_warp", "totalSupply", res, "WETH10")
-    assert res.retdata == [1, 32, 2, 0, 0]
+    assert res.retdata == [32, 2, 0, 0]
 
     res = await invoke_method(starknet, program_info, contract_address, "deposit", 100)
     steps_in_function("WETH10_warp", "deposit", res, "WETH10")
@@ -116,13 +116,13 @@ async def test_starknet():
         starknet, program_info, contract_address, "maxFlashLoan", 0x0
     )
     steps_in_function("WETH10_warp", "maxFlashLoan", res, "WETH10")
-    assert res.retdata == [1, 32, 2, 0, 0]
+    assert res.retdata == [32, 2, 0, 0]
 
     res = await invoke_method(
         starknet, program_info, contract_address, "flashFee", contract_address, 100
     )
     steps_in_function("WETH10_warp", "flashFee", res, "WETH10")
-    assert res.retdata == [1, 32, 2, 0, 0]
+    assert res.retdata == [32, 2, 0, 0]
 
     # res = await invoke_method(starknet, program_info, contract_address, "withdraw", 100)
     # steps_in_function("WETH10_warp", "withdraw", res)
@@ -141,16 +141,16 @@ async def test_starknet():
         starknet, program_info, contract_address, "approve", 0x0, 10
     )
     steps_in_function("WETH10_warp", "approve", res, "WETH10")
-    assert res.retdata == [1, 32, 2, 0, 1]
+    assert res.retdata == [32, 2, 0, 1]
 
     res = await invoke_method(
         starknet, program_info, contract_address, "transfer", 0x1, 0
     )
     steps_in_function("WETH10_warp", "transfer", res, "WETH10")
-    assert res.retdata == [1, 32, 2, 0, 1]
+    assert res.retdata == [32, 2, 0, 1]
 
     res = await invoke_method(
         starknet, program_info, contract_address, "transferFrom", 0x0, 0x1, 0
     )
     steps_in_function("WETH10_warp", "transferFrom", res, "WETH10")
-    assert res.retdata == [1, 32, 2, 0, 1]
+    assert res.retdata == [32, 2, 0, 1]

@@ -30,8 +30,8 @@ async def test_starknet():
 
     res = await invoke_method(starknet, contract_info, contract_address, "returnFun")
     steps_in_function(solidity_file, "returnFun", res, "short_string")
-    assert res.retdata == [1, 96, 6, 0, 32, 0, 3, 0x41424300000000000000000000000000, 0]
+    assert res.retdata == [96, 6, 0, 32, 0, 3, 0x41424300000000000000000000000000, 0]
 
     res = await invoke_method(starknet, contract_info, contract_address, "bytesFun")
     steps_in_function(solidity_file, "bytesFun", res, "short_string")
-    assert res.retdata == [1, 96, 6, 0, 32, 0, 3, 0x41424300000000000000000000000000, 0]
+    assert res.retdata == [96, 6, 0, 32, 0, 3, 0x41424300000000000000000000000000, 0]

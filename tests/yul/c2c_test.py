@@ -53,7 +53,7 @@ async def test_starknet():
         0x6044EC4F3C64A75078096F7C7A6892D16569921C8B5C86986A28F4BB39FEDDF,
     )
     steps_in_function("c2c.sol", "gimmeMoney", mint_res, "c2c")
-    assert mint_res.retdata == [1, 32, 2, 0, 1]
+    assert mint_res.retdata == [32, 2, 0, 1]
 
     balances1_res = await invoke_method(
         starknet,
@@ -65,7 +65,7 @@ async def test_starknet():
     )
     print(balances1_res)
     steps_in_function("c2c.sol", "checkMoneyz", balances1_res, "c2c")
-    assert balances1_res.retdata == [1, 32, 2, 0, 42]
+    assert balances1_res.retdata == [32, 2, 0, 42]
 
     transfer_res = await invoke_method(
         starknet,
@@ -79,7 +79,7 @@ async def test_starknet():
     )
     print(transfer_res)
     steps_in_function("c2c.sol", "sendMoneyz", transfer_res, "c2c")
-    assert transfer_res.retdata == [1, 32, 2, 0, 1]
+    assert transfer_res.retdata == [32, 2, 0, 1]
 
     # check transfer worked
     balance_after_transfer = await invoke_method(
@@ -92,4 +92,4 @@ async def test_starknet():
     )
     print(balance_after_transfer)
     steps_in_function("c2c.sol", "checkMoneyz", balance_after_transfer, "c2c")
-    assert balance_after_transfer.retdata == [1, 32, 2, 0, 0]
+    assert balance_after_transfer.retdata == [32, 2, 0, 0]

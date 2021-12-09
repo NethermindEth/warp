@@ -85,7 +85,7 @@ async def test_starknet():
     steps_in_function(
         "BaseJumpRateModelV2_warp", "getSupplyRate", res, "BaseJumpRateModelV2"
     )
-    assert res.retdata == [1, 32, 2, 0, 0]
+    assert res.retdata == [32, 2, 0, 0]
 
     res = await invoke_method(
         starknet, program_info, contract_address, "utilizationRate", 500, 100, 200
@@ -93,7 +93,7 @@ async def test_starknet():
     steps_in_function(
         "BaseJumpRateModelV2_warp", "utilizationRate", res, "BaseJumpRateModelV2"
     )
-    assert res.retdata == [1, 32, 2, 0, 250000000000000000]
+    assert res.retdata == [32, 2, 0, 250000000000000000]
 
     res = await invoke_method(
         starknet,

@@ -1,10 +1,11 @@
 %lang starknet
 %builtins pedersen range_check bitwise
 
-from evm.calls import calldatacopy, calldataload, calldatasize, returndata_write
+from evm.calls import calldatacopy, calldataload, calldatasize
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import uint256_mload, uint256_mstore, uint256_mstore8
 from evm.uint256 import is_eq, is_gt, is_lt, is_zero, slt, u256_add, u256_shr
+from evm.yul_api import warp_return
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
@@ -241,8 +242,8 @@ func fun_bytesFun{
 end
 
 func __warp_block_3{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}() -> (
-        ):
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        termination_token}() -> ():
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = calldatasize()
     abi_decode(__warp_subexpr_0)
@@ -252,13 +253,13 @@ func __warp_block_3{
     let (memPos : Uint256) = uint256_mload(Uint256(low=64, high=0))
     let (__warp_subexpr_2 : Uint256) = abi_encode_string(memPos, ret__warp_mangled)
     let (__warp_subexpr_1 : Uint256) = uint256_sub(__warp_subexpr_2, memPos)
-    returndata_write(memPos, __warp_subexpr_1)
+    warp_return(memPos, __warp_subexpr_1)
     return ()
 end
 
 func __warp_block_5{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}() -> (
-        ):
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        termination_token}() -> ():
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = calldatasize()
     abi_decode(__warp_subexpr_0)
@@ -266,13 +267,13 @@ func __warp_block_5{
     let (memPos_1 : Uint256) = uint256_mload(Uint256(low=64, high=0))
     let (__warp_subexpr_2 : Uint256) = abi_encode_string(memPos_1, ret_1)
     let (__warp_subexpr_1 : Uint256) = uint256_sub(__warp_subexpr_2, memPos_1)
-    returndata_write(memPos_1, __warp_subexpr_1)
+    warp_return(memPos_1, __warp_subexpr_1)
     return ()
 end
 
 func __warp_if_3{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}(
-        __warp_subexpr_0 : Uint256) -> ():
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        termination_token}(__warp_subexpr_0 : Uint256) -> ():
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         __warp_block_5()
@@ -283,8 +284,8 @@ func __warp_if_3{
 end
 
 func __warp_block_4{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}(
-        match_var : Uint256) -> ():
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        termination_token}(match_var : Uint256) -> ():
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=2619690814, high=0))
     __warp_if_3(__warp_subexpr_0)
@@ -292,8 +293,8 @@ func __warp_block_4{
 end
 
 func __warp_if_2{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}(
-        __warp_subexpr_0 : Uint256, match_var : Uint256) -> ():
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        termination_token}(__warp_subexpr_0 : Uint256, match_var : Uint256) -> ():
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         __warp_block_3()
@@ -305,8 +306,8 @@ func __warp_if_2{
 end
 
 func __warp_block_2{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}(
-        match_var : Uint256) -> ():
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        termination_token}(match_var : Uint256) -> ():
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=2606647602, high=0))
     __warp_if_2(__warp_subexpr_0, match_var)
@@ -314,8 +315,8 @@ func __warp_block_2{
 end
 
 func __warp_block_1{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}() -> (
-        ):
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        termination_token}() -> ():
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = calldataload(Uint256(low=0, high=0))
     let (match_var : Uint256) = u256_shr(Uint256(low=224, high=0), __warp_subexpr_0)
@@ -324,8 +325,8 @@ func __warp_block_1{
 end
 
 func __warp_if_1{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}(
-        __warp_subexpr_0 : Uint256) -> ():
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
+        termination_token}(__warp_subexpr_0 : Uint256) -> ():
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         __warp_block_1()
@@ -339,8 +340,9 @@ end
 func fun_ENTRY_POINT{
         pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*,
         bitwise_ptr : BitwiseBuiltin*}(calldata_size, calldata_len, calldata : felt*) -> (
-        success : felt, returndata_size : felt, returndata_len : felt, returndata : felt*):
+        returndata_size : felt, returndata_len : felt, returndata : felt*):
     alloc_locals
+    let termination_token = 0
     let (__fp__, _) = get_fp_and_pc()
     let (returndata_ptr : felt*) = alloc()
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=returndata_ptr, to_returndata_size=0, to_returndata_len=0, to_returndata=returndata_ptr)
@@ -348,7 +350,7 @@ func fun_ENTRY_POINT{
     let (memory_dict) = default_dict_new(0)
     let memory_dict_start = memory_dict
     let msize = 0
-    with exec_env, msize, memory_dict:
+    with exec_env, msize, memory_dict, termination_token:
         uint256_mstore(offset=Uint256(low=64, high=0), value=Uint256(low=128, high=0))
         let (__warp_subexpr_2 : Uint256) = calldatasize()
         let (__warp_subexpr_1 : Uint256) = is_lt(__warp_subexpr_2, Uint256(low=4, high=0))
@@ -356,5 +358,5 @@ func fun_ENTRY_POINT{
         __warp_if_1(__warp_subexpr_0)
     end
     default_dict_finalize(memory_dict_start, memory_dict, 0)
-    return (1, exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
+    return (exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
