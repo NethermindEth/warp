@@ -2,7 +2,6 @@ import {
   ASTNode,
   MemberAccess,
   Identifier,
-  FunctionCall,
   FunctionDefinition,
   FunctionCallKind,
   ElementaryTypeName,
@@ -16,6 +15,7 @@ import {
   Mutability,
 } from 'solc-typed-ast';
 import { BuiltinMapper } from '../../ast/builtinMapper';
+import { CairoFunctionCall } from '../../ast/cairoNodes';
 
 export class MsgSender extends BuiltinMapper {
   builtinDefs = {
@@ -59,11 +59,11 @@ export class MsgSender extends BuiltinMapper {
       'starkware.starknet.common.syscalls': new Set(['get_caller_address']),
     });
     if (
-      node.memberName === 'sender' &&
       node.vExpression instanceof Identifier &&
-      node.vExpression.name === 'msg'
+      node.vExpression.name === 'msg' &&
+      node.memberName === 'sender'
     ) {
-      return new FunctionCall(
+      return new CairoFunctionCall(
         this.genId(),
         node.src,
         'FunctionCall',
@@ -79,8 +79,9 @@ export class MsgSender extends BuiltinMapper {
           node.raw,
         ),
         [],
-        undefined,
+        [],
         node.raw,
+        ['syscall_ptr'],
       );
     } else {
       return node;

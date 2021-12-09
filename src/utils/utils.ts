@@ -20,7 +20,7 @@ export function primitiveTypeToCairo(typeString: string): 'Uint256' | 'felt' {
   }
 }
 
-function union<T>(setA: Set<T>, setB: Set<T>) {
+export function union<T>(setA: Set<T>, setB: Set<T>) {
   let _union = new Set(setA);
   for (let elem of setB) {
     _union.add(elem);

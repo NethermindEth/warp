@@ -2,7 +2,6 @@ import {
   ASTNode,
   BinaryOperation,
   Expression,
-  FunctionCall,
   FunctionCallKind,
   getNodeType,
   Identifier,
@@ -20,6 +19,7 @@ import {
 } from 'solc-typed-ast';
 import { BuiltinMapper } from '../../ast/builtinMapper';
 import { compareTypeSize, primitiveTypeToCairo } from '../../utils/utils';
+import { CairoFunctionCall } from '../../ast/cairoNodes';
 
 export class BinaryOperations extends BuiltinMapper {
   feltTypeName = () =>
@@ -260,7 +260,7 @@ export class BinaryOperations extends BuiltinMapper {
       node.raw,
     );
 
-    return new FunctionCall(
+    return new CairoFunctionCall(
       this.genId(),
       node.src,
       node.type,
@@ -268,6 +268,9 @@ export class BinaryOperations extends BuiltinMapper {
       FunctionCallKind.FunctionCall,
       iden,
       args,
+      undefined,
+      undefined,
+      ['range_check_ptr'],
     );
   }
 

@@ -7,7 +7,7 @@ import {
   Expression,
 } from 'solc-typed-ast';
 import { ASTMapper } from '../ast/mapper';
-import { CairoStorageVariable, CairoStorageVariableKind } from '../ast/cairoStorageVariable';
+import { CairoStorageVariable, CairoStorageVariableKind } from '../ast/cairoNodes';
 
 export class StorageVariableAccessRewriter extends ASTMapper {
   visitAssignment(node: Assignment): ASTNode {

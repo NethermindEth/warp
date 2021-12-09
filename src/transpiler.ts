@@ -10,6 +10,7 @@ import {
 import { AST } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
 import {
+  AnnotateImplicits,
   UnloadingAssignment,
   VariableDeclarationInitialiser,
   BuiltinHandler,
@@ -50,10 +51,11 @@ export function transpile(file: string): string[] | null {
 }
 
 export function transpileSourceUnit(contract: SourceUnit, compilerVersion: string): string {
-  let ast = applyPasses({ ast: contract, imports: null, compilerVersion });
+  const node = applyPasses({ ast: contract, compilerVersion, imports: null, functionImplicits: null });
   const formatter = new PrettyFormatter(4, 0);
-  const writer = new ASTWriter(CairoASTMapping(ast.imports), formatter, compilerVersion);
-  return writer.write(ast.ast);
+  const { ast, ...options } = node;
+  const writer = new ASTWriter(CairoASTMapping(options), formatter, compilerVersion);
+  return writer.write(ast);
 }
 
 export function applyPasses(ast: AST): AST {
@@ -79,5 +81,6 @@ export function applyPasses(ast: AST): AST {
   ast = new VariableDeclarationExpressionSplitter().map(ast);
   ast = new StorageVariableAccessRewriter().map(ast);
   ast = new ExpressionSplitter().map(ast);
+  ast = new AnnotateImplicits().map(ast);
   return ast;
 }

@@ -60,8 +60,7 @@ import {
   UserDefinedValueTypeDefinition,
   ASTContext,
 } from 'solc-typed-ast';
-import CairoAssert from './cairoAssert';
-import { CairoStorageVariable } from './cairoStorageVariable';
+import { CairoAssert, CairoStorageVariable, CairoFunctionCall } from './cairoNodes';
 
 export type Imports = { [module: string]: Set<string> };
 
@@ -84,7 +83,10 @@ function setDecendentContext(node: ASTNode, context: ASTContext): ASTNode {
 export abstract class ASTVisitor<T> {
   visit(node: ASTNode): T {
     let res: T | null = null;
-    if (node instanceof ElementaryTypeName) res = this.visitElementaryTypeName(node);
+    if (node instanceof CairoStorageVariable) res = this.visitCairoStorageVariable(node);
+    else if (node instanceof CairoAssert) res = this.visitCairoAssert(node);
+    else if (node instanceof CairoFunctionCall) res = this.visitCairoFunctionCall(node);
+    else if (node instanceof ElementaryTypeName) res = this.visitElementaryTypeName(node);
     else if (node instanceof ArrayTypeName) res = this.visitArrayTypeName(node);
     else if (node instanceof Mapping) res = this.visitMapping(node);
     else if (node instanceof UserDefinedTypeName) res = this.visitUserDefinedTypeName(node);
@@ -144,8 +146,6 @@ export abstract class ASTVisitor<T> {
     else if (node instanceof ImportDirective) res = this.visitImportDirective(node);
     else if (node instanceof PragmaDirective) res = this.visitPragmaDirective(node);
     else if (node instanceof SourceUnit) res = this.visitSourceUnit(node);
-    else if (node instanceof CairoStorageVariable) res = this.visitCairoStorageVariable(node);
-    else if (node instanceof CairoAssert) res = this.visitCairoAssert(node);
     else {
       assert(false, `Unexpected node: ${node.type}`);
     }
@@ -156,7 +156,6 @@ export abstract class ASTVisitor<T> {
     }
     return res;
   }
-  abstract addImport(imports: Imports): void;
   abstract visitElementaryTypeName(node: ElementaryTypeName): T;
   abstract visitArrayTypeName(node: ArrayTypeName): T;
   abstract visitMapping(node: Mapping): T;
@@ -216,4 +215,5 @@ export abstract class ASTVisitor<T> {
   abstract visitSourceUnit(node: SourceUnit): T;
   abstract visitCairoStorageVariable(node: CairoStorageVariable): T;
   abstract visitCairoAssert(node: CairoAssert): T;
+  abstract visitCairoFunctionCall(node: CairoFunctionCall): T;
 }

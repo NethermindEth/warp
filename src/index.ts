@@ -40,7 +40,12 @@ program.command('print <file>').action((file) => {
       sourceUnits
         .map((s) =>
           writer.write(
-            applyPasses({ ast: s, imports: null, compilerVersion: result.compilerVersion }).ast,
+            applyPasses({
+              ast: s,
+              compilerVersion: result.compilerVersion,
+              imports: null,
+              functionImplicits: null,
+            }).ast,
           ),
         )
         .join('\n\n\n'),

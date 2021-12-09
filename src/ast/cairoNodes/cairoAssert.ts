@@ -1,7 +1,7 @@
 import { ASTNode, Expression } from 'solc-typed-ast';
 import CairoASTNode from './cairoASTNode';
 
-export default class CairoAssert extends CairoASTNode {
+export class CairoAssert extends CairoASTNode {
   name: string;
 
   leftHandSide: Expression;
@@ -10,7 +10,14 @@ export default class CairoAssert extends CairoASTNode {
 
   assertEq: boolean;
 
-  constructor(id, src, type, leftHandSide: Expression, rightHandSide: Expression, assertEq = true) {
+  constructor(
+    id: number,
+    src: string,
+    type: string,
+    leftHandSide: Expression,
+    rightHandSide: Expression,
+    assertEq = true,
+  ) {
     super(id, src, type);
     this.name = 'assert';
     this.leftHandSide = leftHandSide;

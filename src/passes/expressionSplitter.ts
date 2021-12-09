@@ -13,6 +13,7 @@ import {
   Identifier,
   ExpressionStatement,
 } from 'solc-typed-ast';
+import { CairoFunctionCall } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { counterGenerator } from '../utils/utils';
 
@@ -44,12 +45,21 @@ export class ExpressionSplitter extends ASTMapper {
     );
   }
 
+  visitCairoFunctionCall(node: CairoFunctionCall): ASTNode {
+    return this.visitCommonFunctionCall(node, node.constructor);
+  }
+
   visitFunctionCall(node: FunctionCall): ASTNode {
+    return this.visitCommonFunctionCall(node, node.constructor);
+  }
+
+  visitCommonFunctionCall(node: FunctionCall | CairoFunctionCall, constructor_: Function): ASTNode {
     if (!(node.vReferencedDeclaration instanceof FunctionDefinition)) {
       return node;
     }
     const args = node.vArguments.map((v) => this.visit(v) as Expression);
-    const replacedFunc = new FunctionCall(
+    //@ts-ignore
+    const replacedFunc = new constructor_(
       this.genId(),
       node.src,
       node.type,

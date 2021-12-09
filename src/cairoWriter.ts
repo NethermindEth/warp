@@ -71,19 +71,29 @@ import {
   MappingType,
 } from 'solc-typed-ast';
 import { Imports } from './ast/visitor';
-import { CairoStorageVariable, CairoStorageVariableKind } from './ast/cairoStorageVariable';
+import {
+  CairoAssert,
+  CairoFunctionCall,
+  CairoStorageVariable,
+  CairoStorageVariableKind,
+} from './ast/cairoNodes';
 import { primitiveTypeToCairo, divmod, importsWriter, canonicalMangler } from './utils/utils';
 import { getMappingTypes } from './utils/mappings';
-import CairoAssert from './ast/cairoAssert';
 import { cairoType, getCairoType } from './typeWriter';
+import { writeImplicits } from './utils/implicits';
+import { AST, FunctionImplicits } from './ast/mapper';
 
 const INDENT = ' '.repeat(4);
 
-export abstract class CairoASTNodeWriter extends ASTNodeWriter {
+type CairoWriterOptions = Omit<AST, 'ast'>;
+
+export abstract class CairoASTNodeWriter extends ASTNodeWriter implements CairoWriterOptions {
   imports: Imports;
-  constructor(imports?: Imports) {
+  functionImplicits: FunctionImplicits;
+  compilerVersion: string;
+  constructor(options: CairoWriterOptions) {
     super();
-    this.imports = imports;
+    Object.assign(this, options);
   }
 }
 
@@ -235,6 +245,8 @@ class FunctionDefinitionWriter extends CairoASTNodeWriter {
     const args = writer.write(node.vParameters);
     const body = node.vBody ? writer.write(node.vBody) : [];
     const returns = writer.write(node.vReturnParameters);
+    const writtenImplicits = writeImplicits(this.functionImplicits.get(node.name));
+    const implicits = writtenImplicits ? `{${writtenImplicits}}` : '';
     switch (node.kind) {
       case FunctionKind.Constructor:
         decorator = '@constructor';
@@ -243,7 +255,7 @@ class FunctionDefinitionWriter extends CairoASTNodeWriter {
     return [
       [
         ...(decorator ? [decorator] : []),
-        `func ${name}(${args}) -> (${returns}):`,
+        `func ${name}${implicits}(${args}) -> (${returns}):`,
         ...(body ? [body] : []),
         `end`,
       ].join('\n'),
@@ -417,64 +429,65 @@ class CairoAssertWriter extends CairoASTNodeWriter {
   }
 }
 
-export const CairoASTMapping = (imports: Imports) =>
+export const CairoASTMapping = (options: CairoWriterOptions) =>
   new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([
-    [ElementaryTypeName, new NotImplementedWriter()],
-    [ArrayTypeName, new NotImplementedWriter()],
-    [Mapping, new NotImplementedWriter()],
-    [UserDefinedTypeName, new NotImplementedWriter()],
-    [FunctionTypeName, new NotImplementedWriter()],
-    [Literal, new LiteralWriter()],
-    [Identifier, new IdentifierWriter()],
-    [IdentifierPath, new NotImplementedWriter()],
-    [FunctionCallOptions, new NotImplementedWriter()],
-    [FunctionCall, new FunctionCallWriter()],
-    [MemberAccess, new MemberAccessWriter()],
-    [IndexAccess, new IndexAccessWriter()],
-    [IndexRangeAccess, new NotImplementedWriter()],
-    [UnaryOperation, new NotImplementedWriter()],
-    [BinaryOperation, new BinaryOperationWriter()],
-    [Conditional, new NotImplementedWriter()],
-    [ElementaryTypeNameExpression, new NotImplementedWriter()],
-    [NewExpression, new NotImplementedWriter()],
-    [TupleExpression, new TupleExpressionWriter()],
-    [ExpressionStatement, new ExpressionStatementWriter()],
-    [Assignment, new AssignmentWriter()],
-    [VariableDeclaration, new VariableDeclarationWriter()],
-    [Block, new BlockWriter()],
-    [UncheckedBlock, new UncheckedBlockWriter()],
-    [VariableDeclarationStatement, new VariableDeclarationStatementWriter()],
-    [IfStatement, new NotImplementedWriter()],
-    [ForStatement, new NotImplementedWriter()],
-    [WhileStatement, new NotImplementedWriter()],
-    [DoWhileStatement, new NotImplementedWriter()],
-    [Return, new ReturnWriter()],
-    [EmitStatement, new NotImplementedWriter()],
-    [RevertStatement, new NotImplementedWriter()],
-    [PlaceholderStatement, new NotImplementedWriter()],
-    [InlineAssembly, new NotImplementedWriter()],
-    [TryCatchClause, new NotImplementedWriter()],
-    [TryStatement, new NotImplementedWriter()],
-    [Break, new NotImplementedWriter()],
-    [Continue, new NotImplementedWriter()],
-    [Throw, new NotImplementedWriter()],
-    [ParameterList, new ParameterListWriter()],
-    [ModifierInvocation, new NotImplementedWriter()],
-    [OverrideSpecifier, new NotImplementedWriter()],
-    [FunctionDefinition, new FunctionDefinitionWriter()],
-    [ModifierDefinition, new NotImplementedWriter()],
-    [ErrorDefinition, new NotImplementedWriter()],
-    [EventDefinition, new NotImplementedWriter()],
-    [StructDefinition, new StructDefinitionWriter()],
-    [EnumValue, new NotImplementedWriter()],
-    [EnumDefinition, new EnumDefinitionWriter()],
-    [UsingForDirective, new NotImplementedWriter()],
-    [InheritanceSpecifier, new NotImplementedWriter()],
-    [ContractDefinition, new ContractDefinitionWriter()],
-    [StructuredDocumentation, new NotImplementedWriter()],
-    [ImportDirective, new NotImplementedWriter()],
-    [PragmaDirective, new PragmaDirectiveWriter()],
-    [SourceUnit, new SourceUnitWriter(imports)],
-    [CairoStorageVariable, new CairoStorageVariableWriter()],
-    [CairoAssert, new CairoAssertWriter()],
+    [ElementaryTypeName, new NotImplementedWriter(options)],
+    [ArrayTypeName, new NotImplementedWriter(options)],
+    [Mapping, new NotImplementedWriter(options)],
+    [UserDefinedTypeName, new NotImplementedWriter(options)],
+    [FunctionTypeName, new NotImplementedWriter(options)],
+    [Literal, new LiteralWriter(options)],
+    [Identifier, new IdentifierWriter(options)],
+    [IdentifierPath, new NotImplementedWriter(options)],
+    [FunctionCallOptions, new NotImplementedWriter(options)],
+    [FunctionCall, new FunctionCallWriter(options)],
+    [MemberAccess, new MemberAccessWriter(options)],
+    [IndexAccess, new IndexAccessWriter(options)],
+    [IndexRangeAccess, new NotImplementedWriter(options)],
+    [UnaryOperation, new NotImplementedWriter(options)],
+    [BinaryOperation, new BinaryOperationWriter(options)],
+    [Conditional, new NotImplementedWriter(options)],
+    [ElementaryTypeNameExpression, new NotImplementedWriter(options)],
+    [NewExpression, new NotImplementedWriter(options)],
+    [TupleExpression, new TupleExpressionWriter(options)],
+    [ExpressionStatement, new ExpressionStatementWriter(options)],
+    [Assignment, new AssignmentWriter(options)],
+    [VariableDeclaration, new VariableDeclarationWriter(options)],
+    [Block, new BlockWriter(options)],
+    [UncheckedBlock, new UncheckedBlockWriter(options)],
+    [VariableDeclarationStatement, new VariableDeclarationStatementWriter(options)],
+    [IfStatement, new NotImplementedWriter(options)],
+    [ForStatement, new NotImplementedWriter(options)],
+    [WhileStatement, new NotImplementedWriter(options)],
+    [DoWhileStatement, new NotImplementedWriter(options)],
+    [Return, new ReturnWriter(options)],
+    [EmitStatement, new NotImplementedWriter(options)],
+    [RevertStatement, new NotImplementedWriter(options)],
+    [PlaceholderStatement, new NotImplementedWriter(options)],
+    [InlineAssembly, new NotImplementedWriter(options)],
+    [TryCatchClause, new NotImplementedWriter(options)],
+    [TryStatement, new NotImplementedWriter(options)],
+    [Break, new NotImplementedWriter(options)],
+    [Continue, new NotImplementedWriter(options)],
+    [Throw, new NotImplementedWriter(options)],
+    [ParameterList, new ParameterListWriter(options)],
+    [ModifierInvocation, new NotImplementedWriter(options)],
+    [OverrideSpecifier, new NotImplementedWriter(options)],
+    [FunctionDefinition, new FunctionDefinitionWriter(options)],
+    [ModifierDefinition, new NotImplementedWriter(options)],
+    [ErrorDefinition, new NotImplementedWriter(options)],
+    [EventDefinition, new NotImplementedWriter(options)],
+    [StructDefinition, new StructDefinitionWriter(options)],
+    [EnumValue, new NotImplementedWriter(options)],
+    [EnumDefinition, new EnumDefinitionWriter(options)],
+    [UsingForDirective, new NotImplementedWriter(options)],
+    [InheritanceSpecifier, new NotImplementedWriter(options)],
+    [ContractDefinition, new ContractDefinitionWriter(options)],
+    [StructuredDocumentation, new NotImplementedWriter(options)],
+    [ImportDirective, new NotImplementedWriter(options)],
+    [PragmaDirective, new PragmaDirectiveWriter(options)],
+    [SourceUnit, new SourceUnitWriter(options)],
+    [CairoStorageVariable, new CairoStorageVariableWriter(options)],
+    [CairoAssert, new CairoAssertWriter(options)],
+    [CairoFunctionCall, new FunctionCallWriter(options)],
   ]);

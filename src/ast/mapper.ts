@@ -61,20 +61,25 @@ import {
 } from 'solc-typed-ast';
 import { ASTVisitor, Imports } from './visitor';
 import * as clone from 'clone';
-import { CairoStorageVariable } from './cairoStorageVariable';
-import CairoAssert from './cairoAssert';
+import { CairoAssert, CairoFunctionCall, CairoStorageVariable } from './cairoNodes';
 import { counterGenerator, mergeImports } from '../utils/utils';
+import { Implicits } from '../utils/implicits';
+
+export type FunctionImplicits = Map<string, Set<Implicits>>;
 
 export interface AST {
   ast: ASTNode;
   imports: Imports;
   compilerVersion: string;
+  functionImplicits: FunctionImplicits;
 }
 
 export class ASTMapper extends ASTVisitor<ASTNode> {
   imports: Imports;
 
   compilerVersion: string;
+
+  functionImplicits: FunctionImplicits = new Map();
 
   idGen: Generator<number, number, unknown>;
 
@@ -90,6 +95,7 @@ export class ASTMapper extends ASTVisitor<ASTNode> {
   }
 
   map(node: AST): AST {
+    this.functionImplicits = node.functionImplicits || this.functionImplicits;
     this.imports = node.imports;
     this.compilerVersion = node.compilerVersion;
     this.context = node.ast.context;
@@ -98,6 +104,7 @@ export class ASTMapper extends ASTVisitor<ASTNode> {
       ast: this.visit(node.ast),
       imports: this.imports,
       compilerVersion: this.compilerVersion,
+      functionImplicits: this.functionImplicits,
     };
   }
 
@@ -304,6 +311,9 @@ export class ASTMapper extends ASTVisitor<ASTNode> {
     return this.commonVisit(node);
   }
   visitCairoAssert(node: CairoAssert): ASTNode {
+    return this.commonVisit(node);
+  }
+  visitCairoFunctionCall(node: CairoFunctionCall): ASTNode {
     return this.commonVisit(node);
   }
 }
