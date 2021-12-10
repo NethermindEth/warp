@@ -25,10 +25,10 @@ test_bats: warp $(BATS_FILES) tests/cli/*.bats
 test_yul: warp
 	mkdir -p benchmark/stats
 	mkdir -p benchmark/tmp
+	python -m pytest tests/ast/ -v --tb=short --workers=auto $(ARGS)
 	python -m pytest scripts/yul/transpile_test.py -v --tb=short --workers=auto $(ARGS)
 	python -m pytest scripts/yul/compilation_test.py -v --tb=short --workers=auto $(ARGS)
 	python -m pytest tests/yul/ -v --tb=short --workers=auto $(ARGS)
-	python -m pytest tests/ast/ -v --tb=short --workers=auto $(ARGS)
 .PHONY: test_yul
 
 benchmark: warp

@@ -24,9 +24,9 @@ def test_function_with_the_same_name_in_deployment_and_runtime():
     actual = YulPrinter().format(combined)
     expected = """
 {
-\tfunction constructor() { do_stuff_deployment() }
+\tfunction __constructor_meat() { do_stuff_deployment() }
 \tfunction do_stuff_deployment() {  }
-\tfunction fun_ENTRY_POINT() { do_stuff() }
+\tfunction __main_meat() { do_stuff() }
 \tfunction do_stuff() {  }
 }
 """

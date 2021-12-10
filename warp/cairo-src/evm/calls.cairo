@@ -54,7 +54,7 @@ end
 
 @contract_interface
 namespace GenericCallInterface:
-    func fun_ENTRY_POINT(calldata_size : felt, calldata_len : felt, calldata : felt*) -> (
+    func __main(calldata_size : felt, calldata_len : felt, calldata : felt*) -> (
             returndata_size : felt, returndata_len : felt, returndata : felt*):
     end
 end
@@ -79,7 +79,7 @@ func warp_call{
         memory_dict=memory_dict, range_check_ptr=range_check_ptr}(in.low, insize.low)
     let (calldata_len) = calculate_data_len(insize.low)
     let (address_felt : felt) = uint256_to_address_felt(address)
-    let (returndata_size, returndata_len, returndata) = GenericCallInterface.fun_ENTRY_POINT(
+    let (returndata_size, returndata_len, returndata) = GenericCallInterface.__main(
         address_felt, insize.low, calldata_len, mem)
     array_copy_to_memory(returndata_size, returndata, 0, out.low, outsize.low)
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(

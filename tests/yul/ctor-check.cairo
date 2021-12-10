@@ -1,7 +1,7 @@
 %lang starknet
 %builtins pedersen range_check bitwise
 
-from evm.calls import calldataload, calldatasize
+from evm.calls import calldatacopy, calldataload, calldatasize, caller, returndata_copy, warp_call
 from evm.exec_env import ExecutionEnvironment
 from evm.memory import uint256_mload, uint256_mstore
 from evm.uint256 import is_eq, is_gt, is_lt, is_zero, slt, u256_add, u256_shr
@@ -10,16 +10,10 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import Uint256, uint256_sub
+from starkware.cairo.common.uint256 import Uint256, uint256_and, uint256_sub
 
 func __warp_constant_0() -> (res : Uint256):
     return (Uint256(low=0, high=0))
-end
-
-func sload{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(key : Uint256) -> (
-        value : Uint256):
-    let (value) = evm_storage.read(key.low, key.high)
-    return (value)
 end
 
 func sstore{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
@@ -28,17 +22,35 @@ func sstore{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
     return ()
 end
 
+func sload{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(key : Uint256) -> (
+        value : Uint256):
+    let (value) = evm_storage.read(key.low, key.high)
+    return (value)
+end
+
+func returndata_size{exec_env : ExecutionEnvironment*}() -> (res : Uint256):
+    return (Uint256(low=exec_env.returndata_size, high=0))
+end
+
+func __warp_constant_10000000000000000000000000000000000000000() -> (res : Uint256):
+    return (Uint256(low=131811359292784559562136384478721867776, high=29))
+end
+
 @storage_var
 func evm_storage(arg0_low, arg0_high) -> (res : Uint256):
 end
 
 @constructor
-func constructor{range_check_ptr}(calldata_size, calldata_len, calldata : felt*):
+func constructor{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        calldata_size, calldata_len, calldata : felt*):
     alloc_locals
+    let (__fp__, _) = get_fp_and_pc()
+    local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=cast(0, felt*), to_returndata_size=0, to_returndata_len=0, to_returndata=cast(0, felt*))
+    let exec_env : ExecutionEnvironment* = &exec_env_
     let (memory_dict) = default_dict_new(0)
     let memory_dict_start = memory_dict
     let msize = 0
-    with memory_dict, msize:
+    with exec_env, memory_dict, msize:
         __constructor_meat()
     end
     default_dict_finalize(memory_dict_start, memory_dict, 0)
@@ -64,24 +76,27 @@ func __main{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
     return (exec_env.to_returndata_size, exec_env.to_returndata_len, exec_env.to_returndata)
 end
 
-func __constructor_meat{memory_dict : DictAccess*, msize, range_check_ptr}() -> ():
+func __constructor_meat{
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> ():
     alloc_locals
     uint256_mstore(offset=Uint256(low=64, high=0), value=Uint256(low=128, high=0))
     let (__warp_subexpr_0 : Uint256) = __warp_constant_0()
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         assert 0 = 1
         jmp rel 0
-    else:
-        return ()
     end
-end
-
-func abi_encode_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
-        headStart : Uint256, value0 : Uint256) -> (tail : Uint256):
-    alloc_locals
-    let (tail : Uint256) = u256_add(headStart, Uint256(low=32, high=0))
-    uint256_mstore(offset=headStart, value=value0)
-    return (tail)
+    let (__warp_subexpr_2 : Uint256) = calldatasize()
+    let (__warp_subexpr_1 : Uint256) = slt(__warp_subexpr_2, Uint256(low=32, high=0))
+    if __warp_subexpr_1.low + __warp_subexpr_1.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
+    let (__warp_subexpr_3 : Uint256) = caller()
+    sstore(key=Uint256(low=0, high=0), value=__warp_subexpr_3)
+    let (__warp_subexpr_4 : Uint256) = calldataload(Uint256(low=0, high=0))
+    sstore(key=Uint256(low=1, high=0), value=__warp_subexpr_4)
+    return ()
 end
 
 func __warp_block_3{
@@ -118,20 +133,10 @@ func __warp_block_5{
         assert 0 = 1
         jmp rel 0
     end
-    let (_2 : Uint256) = sload(Uint256(low=0, high=0))
-    let (__warp_subexpr_3 : Uint256) = is_gt(
-        _2,
-        Uint256(low=340282366920938463463374607431768211454, high=340282366920938463463374607431768211455))
-    if __warp_subexpr_3.low + __warp_subexpr_3.high != 0:
-        assert 0 = 1
-        jmp rel 0
-    end
-    let (sum : Uint256) = u256_add(_2, Uint256(low=1, high=0))
-    sstore(key=Uint256(low=0, high=0), value=sum)
+    let (ret__warp_mangled : Uint256) = sload(Uint256(low=1, high=0))
     let (memPos : Uint256) = uint256_mload(Uint256(low=64, high=0))
-    let (__warp_subexpr_5 : Uint256) = abi_encode_uint256(memPos, sum)
-    let (__warp_subexpr_4 : Uint256) = uint256_sub(__warp_subexpr_5, memPos)
-    warp_return(memPos, __warp_subexpr_4)
+    uint256_mstore(offset=memPos, value=ret__warp_mangled)
+    warp_return(memPos, Uint256(low=32, high=0))
     return ()
 end
 
@@ -153,7 +158,7 @@ func __warp_block_4{
         pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*, termination_token}(
         match_var : Uint256) -> ():
     alloc_locals
-    let (__warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=3500007562, high=0))
+    let (__warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=2457866800, high=0))
     __warp_if_2(__warp_subexpr_0)
     return ()
 end
@@ -177,7 +182,7 @@ func __warp_block_2{
         pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*, termination_token}(
         match_var : Uint256) -> ():
     alloc_locals
-    let (__warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=1639719450, high=0))
+    let (__warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=2376452955, high=0))
     __warp_if_1(__warp_subexpr_0, match_var)
     return ()
 end
@@ -215,6 +220,70 @@ func __warp_if_0{
     end
 end
 
+func __warp_block_8{
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}() -> (
+        ):
+    alloc_locals
+    let (_6 : Uint256) = returndata_size()
+    let _7 : Uint256 = Uint256(low=18446744073709551615, high=0)
+    let (__warp_subexpr_0 : Uint256) = is_gt(_6, _7)
+    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
+    let _8 : Uint256 = Uint256(
+        low=340282366920938463463374607431768211424, high=340282366920938463463374607431768211455)
+    let (memPtr : Uint256) = uint256_mload(Uint256(low=64, high=0))
+    let (__warp_subexpr_4 : Uint256) = u256_add(_6, Uint256(low=31, high=0))
+    let (__warp_subexpr_3 : Uint256) = uint256_and(__warp_subexpr_4, _8)
+    let (__warp_subexpr_2 : Uint256) = u256_add(__warp_subexpr_3, Uint256(low=63, high=0))
+    let (__warp_subexpr_1 : Uint256) = uint256_and(__warp_subexpr_2, _8)
+    let (newFreePtr : Uint256) = u256_add(memPtr, __warp_subexpr_1)
+    let (__warp_subexpr_7 : Uint256) = is_lt(newFreePtr, memPtr)
+    let (__warp_subexpr_6 : Uint256) = is_gt(newFreePtr, _7)
+    let (__warp_subexpr_5 : Uint256) = uint256_sub(__warp_subexpr_6, __warp_subexpr_7)
+    if __warp_subexpr_5.low + __warp_subexpr_5.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
+    uint256_mstore(offset=Uint256(low=64, high=0), value=newFreePtr)
+    uint256_mstore(offset=memPtr, value=_6)
+    let (__warp_subexpr_9 : Uint256) = returndata_size()
+    let (__warp_subexpr_8 : Uint256) = u256_add(memPtr, Uint256(low=32, high=0))
+    returndata_copy(__warp_subexpr_8, Uint256(low=0, high=0), __warp_subexpr_9)
+    return ()
+end
+
+func __warp_if_3{
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}(
+        __warp_subexpr_0 : Uint256) -> ():
+    alloc_locals
+    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
+        return ()
+    else:
+        __warp_block_8()
+        return ()
+    end
+end
+
+func __warp_block_7{
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}(
+        match_var : Uint256) -> ():
+    alloc_locals
+    let (__warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=0, high=0))
+    __warp_if_3(__warp_subexpr_0)
+    return ()
+end
+
+func __warp_block_6{
+        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}() -> (
+        ):
+    alloc_locals
+    let (match_var : Uint256) = returndata_size()
+    __warp_block_7(match_var)
+    return ()
+end
+
 func __main_meat{
         exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize,
         pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*, termination_token}() -> (
@@ -228,6 +297,25 @@ func __main_meat{
     if termination_token == 1:
         return ()
     end
-    assert 0 = 1
-    jmp rel 0
+    let (_2 : Uint256) = sload(Uint256(low=1, high=0))
+    let (_3 : Uint256) = uint256_mload(Uint256(low=64, high=0))
+    let (__warp_subexpr_3 : Uint256) = calldatasize()
+    calldatacopy(_3, Uint256(low=0, high=0), __warp_subexpr_3)
+    let (__warp_subexpr_4 : Uint256) = calldatasize()
+    let (_5 : Uint256) = u256_add(_3, __warp_subexpr_4)
+    uint256_mstore(offset=_5, value=Uint256(low=0, high=0))
+    let (__warp_subexpr_7 : Uint256) = uint256_sub(_5, _3)
+    let (__warp_subexpr_6 : Uint256) = __warp_constant_10000000000000000000000000000000000000000()
+    let (__warp_subexpr_5 : Uint256) = warp_call(
+        __warp_subexpr_6,
+        _2,
+        Uint256(low=0, high=0),
+        _3,
+        __warp_subexpr_7,
+        Uint256(low=0, high=0),
+        Uint256(low=0, high=0))
+
+    __warp_block_6()
+    warp_return(Uint256(low=0, high=0), Uint256(low=0, high=0))
+    return ()
 end

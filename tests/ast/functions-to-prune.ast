@@ -6,7 +6,7 @@ Block:
 		Body:
 			Block:
 	FunctionDefinition:
-		Name: fun_ENTRY_POINT
+		Name: __main_meat
 		Parameters:
 		Return Variables:
 		Body:
