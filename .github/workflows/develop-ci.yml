@@ -49,8 +49,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: NethermindEth/warp-build-action@v1
-
       - name: Setup source hash (pull_request)
         if: ${{ github.event_name == 'pull_request' }}
         run: |
@@ -63,8 +61,12 @@ jobs:
         run: |
           echo "source_hash=${{ github.sha }}" >> $GITHUB_ENV
 
+      - uses: NethermindEth/warp-build-action@v1
+
       - name: Create benchmarks
         run: |
+          mkdir -p benchmark/stats benchmark/tmp
+          python -m pytest tests/yul/ -v --tb=short --workers=auto
           make benchmark
           mv ./benchmark/stats/stats.md "./benchmark/stats/${{ env.source_hash }}.md"
 
