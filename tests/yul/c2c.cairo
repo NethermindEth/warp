@@ -50,47 +50,6 @@ func constructor{
     end
 end
 
-func abi_decode_addresst_addresst_addresst_uint256{
-        exec_env : ExecutionEnvironment*, range_check_ptr}(
-        headStart : Uint256, dataEnd : Uint256) -> (
-        value0 : Uint256, value1 : Uint256, value2 : Uint256, value3 : Uint256):
-    alloc_locals
-    let (__warp_subexpr_1 : Uint256) = uint256_sub(dataEnd, headStart)
-    let (__warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=128, high=0))
-    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
-        assert 0 = 1
-        jmp rel 0
-    end
-    let (value0 : Uint256) = calldataload(headStart)
-    let (__warp_subexpr_2 : Uint256) = u256_add(headStart, Uint256(low=32, high=0))
-    let (value1 : Uint256) = calldataload(__warp_subexpr_2)
-    let (__warp_subexpr_3 : Uint256) = u256_add(headStart, Uint256(low=64, high=0))
-    let (value2 : Uint256) = calldataload(__warp_subexpr_3)
-    let (__warp_subexpr_4 : Uint256) = u256_add(headStart, Uint256(low=96, high=0))
-    let (value3 : Uint256) = calldataload(__warp_subexpr_4)
-    return (value0, value1, value2, value3)
-end
-
-func abi_encode_uint256_to_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
-        value : Uint256, pos : Uint256) -> ():
-    alloc_locals
-    uint256_mstore(offset=pos, value=value)
-    return ()
-end
-
-func abi_encode_address_address_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
-        headStart : Uint256, value0 : Uint256, value1 : Uint256, value2 : Uint256) -> (
-        tail : Uint256):
-    alloc_locals
-    let (tail : Uint256) = u256_add(headStart, Uint256(low=96, high=0))
-    abi_encode_uint256_to_uint256(value0, headStart)
-    let (__warp_subexpr_0 : Uint256) = u256_add(headStart, Uint256(low=32, high=0))
-    abi_encode_uint256_to_uint256(value1, __warp_subexpr_0)
-    let (__warp_subexpr_1 : Uint256) = u256_add(headStart, Uint256(low=64, high=0))
-    abi_encode_uint256_to_uint256(value2, __warp_subexpr_1)
-    return (tail)
-end
-
 func finalize_allocation{memory_dict : DictAccess*, msize, range_check_ptr}(
         memPtr : Uint256, size : Uint256) -> ():
     alloc_locals
@@ -110,28 +69,6 @@ func finalize_allocation{memory_dict : DictAccess*, msize, range_check_ptr}(
     return ()
 end
 
-func validator_revert_bool{range_check_ptr}(value : Uint256) -> ():
-    alloc_locals
-    let (__warp_subexpr_3 : Uint256) = is_zero(value)
-    let (__warp_subexpr_2 : Uint256) = is_zero(__warp_subexpr_3)
-    let (__warp_subexpr_1 : Uint256) = is_eq(value, __warp_subexpr_2)
-    let (__warp_subexpr_0 : Uint256) = is_zero(__warp_subexpr_1)
-    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
-        assert 0 = 1
-        jmp rel 0
-    else:
-        return ()
-    end
-end
-
-func abi_decode_t_bool_fromMemory{memory_dict : DictAccess*, msize, range_check_ptr}(
-        offset : Uint256) -> (value : Uint256):
-    alloc_locals
-    let (value : Uint256) = uint256_mload(offset)
-    validator_revert_bool(value)
-    return (value)
-end
-
 func abi_decode_bool_fromMemory{memory_dict : DictAccess*, msize, range_check_ptr}(
         headStart : Uint256, dataEnd : Uint256) -> (value0 : Uint256):
     alloc_locals
@@ -141,7 +78,16 @@ func abi_decode_bool_fromMemory{memory_dict : DictAccess*, msize, range_check_pt
         assert 0 = 1
         jmp rel 0
     end
-    let (value0 : Uint256) = abi_decode_t_bool_fromMemory(headStart)
+    let (value : Uint256) = uint256_mload(headStart)
+    let (__warp_subexpr_5 : Uint256) = is_zero(value)
+    let (__warp_subexpr_4 : Uint256) = is_zero(__warp_subexpr_5)
+    let (__warp_subexpr_3 : Uint256) = is_eq(value, __warp_subexpr_4)
+    let (__warp_subexpr_2 : Uint256) = is_zero(__warp_subexpr_3)
+    if __warp_subexpr_2.low + __warp_subexpr_2.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
+    let value0 : Uint256 = value
     return (value0)
 end
 
@@ -177,17 +123,19 @@ func fun_sendMoneyz{
     alloc_locals
     let (_1 : Uint256) = uint256_mload(Uint256(low=64, high=0))
     uint256_mstore(offset=_1, value=Uint256(low=0, high=47480692178561195778129796594248187904))
-    let (__warp_subexpr_3 : Uint256) = u256_add(_1, Uint256(low=4, high=0))
-    let (__warp_subexpr_2 : Uint256) = abi_encode_address_address_uint256(
-        __warp_subexpr_3, var_from, var_to, var_amount)
-    let (__warp_subexpr_1 : Uint256) = uint256_sub(__warp_subexpr_2, _1)
-    let (__warp_subexpr_0 : Uint256) = __warp_constant_10000000000000000000000000000000000000000()
+    let (__warp_subexpr_0 : Uint256) = u256_add(_1, Uint256(low=4, high=0))
+    uint256_mstore(offset=__warp_subexpr_0, value=var_from)
+    let (__warp_subexpr_1 : Uint256) = u256_add(_1, Uint256(low=36, high=0))
+    uint256_mstore(offset=__warp_subexpr_1, value=var_to)
+    let (__warp_subexpr_2 : Uint256) = u256_add(_1, Uint256(low=68, high=0))
+    uint256_mstore(offset=__warp_subexpr_2, value=var_amount)
+    let (__warp_subexpr_3 : Uint256) = __warp_constant_10000000000000000000000000000000000000000()
     let (_2 : Uint256) = warp_call(
-        __warp_subexpr_0,
+        __warp_subexpr_3,
         var_contract_addr,
         Uint256(low=0, high=0),
         _1,
-        __warp_subexpr_1,
+        Uint256(low=100, high=0),
         _1,
         Uint256(low=32, high=0))
     let (__warp_subexpr_4 : Uint256) = is_zero(_2)
@@ -201,57 +149,30 @@ func fun_sendMoneyz{
     return (var)
 end
 
-func abi_encode_bool_to_bool{memory_dict : DictAccess*, msize, range_check_ptr}(
-        value : Uint256, pos : Uint256) -> ():
-    alloc_locals
-    let (__warp_subexpr_1 : Uint256) = is_zero(value)
-    let (__warp_subexpr_0 : Uint256) = is_zero(__warp_subexpr_1)
-    uint256_mstore(offset=pos, value=__warp_subexpr_0)
-    return ()
-end
-
 func abi_encode_bool{memory_dict : DictAccess*, msize, range_check_ptr}(
         headStart : Uint256, value0 : Uint256) -> (tail : Uint256):
     alloc_locals
     let (tail : Uint256) = u256_add(headStart, Uint256(low=32, high=0))
-    abi_encode_bool_to_bool(value0, headStart)
+    let (__warp_subexpr_1 : Uint256) = is_zero(value0)
+    let (__warp_subexpr_0 : Uint256) = is_zero(__warp_subexpr_1)
+    uint256_mstore(offset=headStart, value=__warp_subexpr_0)
     return (tail)
 end
 
 func abi_decode_addresst_address{exec_env : ExecutionEnvironment*, range_check_ptr}(
-        headStart : Uint256, dataEnd : Uint256) -> (value0 : Uint256, value1 : Uint256):
+        dataEnd : Uint256) -> (value0 : Uint256, value1 : Uint256):
     alloc_locals
-    let (__warp_subexpr_1 : Uint256) = uint256_sub(dataEnd, headStart)
+    let (__warp_subexpr_1 : Uint256) = u256_add(
+        dataEnd,
+        Uint256(low=340282366920938463463374607431768211452, high=340282366920938463463374607431768211455))
     let (__warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=64, high=0))
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         assert 0 = 1
         jmp rel 0
     end
-    let (value0 : Uint256) = calldataload(headStart)
-    let (__warp_subexpr_2 : Uint256) = u256_add(headStart, Uint256(low=32, high=0))
-    let (value1 : Uint256) = calldataload(__warp_subexpr_2)
+    let (value0 : Uint256) = calldataload(Uint256(low=4, high=0))
+    let (value1 : Uint256) = calldataload(Uint256(low=36, high=0))
     return (value0, value1)
-end
-
-func abi_encode_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
-        headStart : Uint256, value0 : Uint256) -> (tail : Uint256):
-    alloc_locals
-    let (tail : Uint256) = u256_add(headStart, Uint256(low=32, high=0))
-    abi_encode_uint256_to_uint256(value0, headStart)
-    return (tail)
-end
-
-func abi_decode_uint256_fromMemory{memory_dict : DictAccess*, msize, range_check_ptr}(
-        headStart : Uint256, dataEnd : Uint256) -> (value0 : Uint256):
-    alloc_locals
-    let (__warp_subexpr_1 : Uint256) = uint256_sub(dataEnd, headStart)
-    let (__warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=32, high=0))
-    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
-        assert 0 = 1
-        jmp rel 0
-    end
-    let (value0 : Uint256) = uint256_mload(headStart)
-    return (value0)
 end
 
 func __warp_block_1{
@@ -260,9 +181,15 @@ func __warp_block_1{
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = returndata_size()
     finalize_allocation(_1, __warp_subexpr_0)
-    let (__warp_subexpr_2 : Uint256) = returndata_size()
-    let (__warp_subexpr_1 : Uint256) = u256_add(_1, __warp_subexpr_2)
-    let (expr : Uint256) = abi_decode_uint256_fromMemory(_1, __warp_subexpr_1)
+    let (__warp_subexpr_4 : Uint256) = returndata_size()
+    let (__warp_subexpr_3 : Uint256) = u256_add(_1, __warp_subexpr_4)
+    let (__warp_subexpr_2 : Uint256) = uint256_sub(__warp_subexpr_3, _1)
+    let (__warp_subexpr_1 : Uint256) = slt(__warp_subexpr_2, Uint256(low=32, high=0))
+    if __warp_subexpr_1.low + __warp_subexpr_1.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
+    let (expr : Uint256) = uint256_mload(_1)
     return (expr)
 end
 
@@ -284,14 +211,13 @@ func fun_checkMoneyz{
     alloc_locals
     let (_1 : Uint256) = uint256_mload(Uint256(low=64, high=0))
     uint256_mstore(offset=_1, value=Uint256(low=0, high=149706943620704588101898925390394556416))
-    let (__warp_subexpr_3 : Uint256) = u256_add(_1, Uint256(low=4, high=0))
-    let (__warp_subexpr_2 : Uint256) = abi_encode_uint256(__warp_subexpr_3, var_to)
-    let (__warp_subexpr_1 : Uint256) = uint256_sub(__warp_subexpr_2, _1)
-    let (__warp_subexpr_0 : Uint256) = __warp_constant_10000000000000000000000000000000000000000()
+    let (__warp_subexpr_0 : Uint256) = u256_add(_1, Uint256(low=4, high=0))
+    uint256_mstore(offset=__warp_subexpr_0, value=var_to)
+    let (__warp_subexpr_1 : Uint256) = __warp_constant_10000000000000000000000000000000000000000()
     let (_2 : Uint256) = warp_static_call(
-        __warp_subexpr_0, var_addr, _1, __warp_subexpr_1, _1, Uint256(low=32, high=0))
-    let (__warp_subexpr_4 : Uint256) = is_zero(_2)
-    if __warp_subexpr_4.low + __warp_subexpr_4.high != 0:
+        __warp_subexpr_1, var_addr, _1, Uint256(low=36, high=0), _1, Uint256(low=32, high=0))
+    let (__warp_subexpr_2 : Uint256) = is_zero(_2)
+    if __warp_subexpr_2.low + __warp_subexpr_2.high != 0:
         assert 0 = 1
         jmp rel 0
     end
@@ -301,13 +227,11 @@ func fun_checkMoneyz{
     return (var_)
 end
 
-func abi_encode_address_rational_by{memory_dict : DictAccess*, msize, range_check_ptr}(
-        headStart : Uint256, value0 : Uint256, value1 : Uint256) -> (tail : Uint256):
+func abi_encode_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
+        headStart : Uint256, value0 : Uint256) -> (tail : Uint256):
     alloc_locals
-    let (tail : Uint256) = u256_add(headStart, Uint256(low=64, high=0))
-    abi_encode_uint256_to_uint256(value0, headStart)
-    let (__warp_subexpr_0 : Uint256) = u256_add(headStart, Uint256(low=32, high=0))
-    abi_encode_uint256_to_uint256(value1, __warp_subexpr_0)
+    let (tail : Uint256) = u256_add(headStart, Uint256(low=32, high=0))
+    uint256_mstore(offset=headStart, value=value0)
     return (tail)
 end
 
@@ -341,21 +265,21 @@ func fun_gimmeMoney{
     alloc_locals
     let (_1 : Uint256) = uint256_mload(Uint256(low=64, high=0))
     uint256_mstore(offset=_1, value=Uint256(low=0, high=86073011240779955229814836696849580032))
-    let (__warp_subexpr_3 : Uint256) = u256_add(_1, Uint256(low=4, high=0))
-    let (__warp_subexpr_2 : Uint256) = abi_encode_address_rational_by(
-        __warp_subexpr_3, var_to, Uint256(low=42, high=0))
-    let (__warp_subexpr_1 : Uint256) = uint256_sub(__warp_subexpr_2, _1)
-    let (__warp_subexpr_0 : Uint256) = __warp_constant_10000000000000000000000000000000000000000()
+    let (__warp_subexpr_0 : Uint256) = u256_add(_1, Uint256(low=4, high=0))
+    uint256_mstore(offset=__warp_subexpr_0, value=var_to)
+    let (__warp_subexpr_1 : Uint256) = u256_add(_1, Uint256(low=36, high=0))
+    uint256_mstore(offset=__warp_subexpr_1, value=Uint256(low=42, high=0))
+    let (__warp_subexpr_2 : Uint256) = __warp_constant_10000000000000000000000000000000000000000()
     let (_2 : Uint256) = warp_call(
-        __warp_subexpr_0,
+        __warp_subexpr_2,
         var_add,
         Uint256(low=0, high=0),
         _1,
-        __warp_subexpr_1,
+        Uint256(low=68, high=0),
         _1,
         Uint256(low=32, high=0))
-    let (__warp_subexpr_4 : Uint256) = is_zero(_2)
-    if __warp_subexpr_4.low + __warp_subexpr_4.high != 0:
+    let (__warp_subexpr_3 : Uint256) = is_zero(_2)
+    if __warp_subexpr_3.low + __warp_subexpr_3.high != 0:
         assert 0 = 1
         jmp rel 0
     end
@@ -369,15 +293,25 @@ func __warp_block_5{
         exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
         syscall_ptr : felt*, termination_token}() -> ():
     alloc_locals
-    let (__warp_subexpr_0 : Uint256) = calldatasize()
-    let (param : Uint256, param_1 : Uint256, param_2 : Uint256,
-        param_3 : Uint256) = abi_decode_addresst_addresst_addresst_uint256(
-        Uint256(low=4, high=0), __warp_subexpr_0)
-    let (ret__warp_mangled : Uint256) = fun_sendMoneyz(param, param_1, param_2, param_3)
+    let (__warp_subexpr_2 : Uint256) = calldatasize()
+    let (__warp_subexpr_1 : Uint256) = u256_add(
+        __warp_subexpr_2,
+        Uint256(low=340282366920938463463374607431768211452, high=340282366920938463463374607431768211455))
+    let (__warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=128, high=0))
+    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
+    let (__warp_subexpr_6 : Uint256) = calldataload(Uint256(low=100, high=0))
+    let (__warp_subexpr_5 : Uint256) = calldataload(Uint256(low=68, high=0))
+    let (__warp_subexpr_4 : Uint256) = calldataload(Uint256(low=36, high=0))
+    let (__warp_subexpr_3 : Uint256) = calldataload(Uint256(low=4, high=0))
+    let (ret__warp_mangled : Uint256) = fun_sendMoneyz(
+        __warp_subexpr_3, __warp_subexpr_4, __warp_subexpr_5, __warp_subexpr_6)
     let (memPos : Uint256) = uint256_mload(Uint256(low=64, high=0))
-    let (__warp_subexpr_2 : Uint256) = abi_encode_bool(memPos, ret__warp_mangled)
-    let (__warp_subexpr_1 : Uint256) = uint256_sub(__warp_subexpr_2, memPos)
-    warp_return(memPos, __warp_subexpr_1)
+    let (__warp_subexpr_8 : Uint256) = abi_encode_bool(memPos, ret__warp_mangled)
+    let (__warp_subexpr_7 : Uint256) = uint256_sub(__warp_subexpr_8, memPos)
+    warp_return(memPos, __warp_subexpr_7)
     return ()
 end
 
@@ -386,9 +320,8 @@ func __warp_block_7{
         syscall_ptr : felt*, termination_token}() -> ():
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = calldatasize()
-    let (param_4 : Uint256, param_5 : Uint256) = abi_decode_addresst_address(
-        Uint256(low=4, high=0), __warp_subexpr_0)
-    let (ret_1 : Uint256) = fun_checkMoneyz(param_4, param_5)
+    let (param : Uint256, param_1 : Uint256) = abi_decode_addresst_address(__warp_subexpr_0)
+    let (ret_1 : Uint256) = fun_checkMoneyz(param, param_1)
     let (memPos_1 : Uint256) = uint256_mload(Uint256(low=64, high=0))
     let (__warp_subexpr_2 : Uint256) = abi_encode_uint256(memPos_1, ret_1)
     let (__warp_subexpr_1 : Uint256) = uint256_sub(__warp_subexpr_2, memPos_1)
@@ -401,9 +334,8 @@ func __warp_block_9{
         syscall_ptr : felt*, termination_token}() -> ():
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = calldatasize()
-    let (param_6 : Uint256, param_7 : Uint256) = abi_decode_addresst_address(
-        Uint256(low=4, high=0), __warp_subexpr_0)
-    let (ret_2 : Uint256) = fun_gimmeMoney(param_6, param_7)
+    let (param_2 : Uint256, param_3 : Uint256) = abi_decode_addresst_address(__warp_subexpr_0)
+    let (ret_2 : Uint256) = fun_gimmeMoney(param_2, param_3)
     let (memPos_2 : Uint256) = uint256_mload(Uint256(low=64, high=0))
     let (__warp_subexpr_2 : Uint256) = abi_encode_bool(memPos_2, ret_2)
     let (__warp_subexpr_1 : Uint256) = uint256_sub(__warp_subexpr_2, memPos_2)
