@@ -1,19 +1,13 @@
 import json
 import os
 import subprocess
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Sequence, Union
 
 import aiohttp
-from cli.encoding import get_evm_calldata
-from eth_hash.auto import keccak
+from cli.encoding import get_cairo_calldata, get_ctor_evm_calldata, get_evm_calldata
 from starkware.starknet.services.api.gateway.transaction import Transaction
-from yul.utils import cairoize_bytes
 
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../.."))
-
-
-def get_selector_cairo(args: str) -> int:
-    return int.from_bytes(keccak(args.encode("ascii")), "big") & (2 ** 250 - 1)
 
 
 async def send_req(method, url, tx: Optional[Union[str, Dict[str, Any]]] = None):
@@ -35,17 +29,17 @@ async def send_req(method, url, tx: Optional[Union[str, Dict[str, Any]]] = None)
 async def _invoke(
     contract_base, program_info: dict, address, function, evm_inputs, network: str
 ):
-    calldata_evm = get_evm_calldata(program_info["sol_abi"], function, evm_inputs)
-    cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(calldata_evm[2:]))
-    calldata_size = (len(cairo_input) * 16) - unused_bytes
-    calldata = [calldata_size, len(cairo_input), *cairo_input]
-    calldata = " ".join(str(x) for x in calldata)
-    starknet_invoke(contract_base, address, calldata, network)
+    evm_calldata = get_evm_calldata(program_info["sol_abi"], function, evm_inputs)
+    cairo_calldata = get_cairo_calldata(evm_calldata)
+    starknet_invoke(contract_base, address, cairo_calldata, network)
     return True
 
 
-def starknet_invoke(contract_base, address, inputs, network: str):
+def starknet_invoke(
+    contract_base, address, cairo_calldata: Sequence[int], network: str
+):
     abi = f"{contract_base}_abi.json"
+    inputs = " ".join(map(str, cairo_calldata))
     print(
         os.popen(
             f"starknet invoke "
@@ -82,32 +76,21 @@ def starknet_compile(cairo_path, contract_base):
 async def _deploy(
     cairo_path, contract_base, program_info, constructor_args, network: str
 ):
-    if "constructor" in program_info["dynamic_argument_functions"]:
-        calldata_evm = get_evm_calldata(
-            program_info["sol_abi"], "__warp_ctorHelper_DynArgs", constructor_args
-        )
-        cairo_input, unused_bytes = cairoize_bytes(bytes.fromhex(calldata_evm[2:]))
-        calldata_size = (len(cairo_input) * 16) - unused_bytes
-        calldata = [calldata_size, len(cairo_input)] + cairo_input
-    else:
-        calldata = constructor_args
-    starknet_deploy(contract_base, cairo_path, calldata, network)
+    evm_calldata = get_ctor_evm_calldata(program_info["sol_abi"], constructor_args)
+    cairo_calldata = get_cairo_calldata(evm_calldata)
+    starknet_deploy(contract_base, cairo_path, cairo_calldata, network)
 
 
 def starknet_deploy(
-    contract_base,
-    cairo_path,
-    calldata: Optional[List[int]],
-    network: str,
+    contract_base, cairo_path, cairo_calldata: Sequence[int], network: str
 ):
     compiled_contract = starknet_compile(cairo_path, contract_base)
-    inputs = calldata or []
-    inputs_str = " ".join(map(str, inputs))
+    inputs = " ".join(map(str, cairo_calldata))
     print(
         os.popen(
             f"starknet deploy "
             f"--contract {contract_base}_compiled.json "
-            f"--inputs {inputs_str} "
+            f"--inputs {inputs} "
             f"--network {network} "
         ).read()
     )
@@ -119,11 +102,3 @@ async def _status(tx_hash):
     status = f"https://alpha3.starknet.io/feeder_gateway/get_transaction_status?transactionHash={tx_hash}"
     res = await send_req("GET", status)
     print(json.loads(res))
-
-
-def flatten(l):
-    for i in l:
-        if isinstance(i, int):
-            yield i
-        else:
-            yield from flatten(i)

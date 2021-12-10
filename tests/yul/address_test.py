@@ -4,7 +4,7 @@ import pytest
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
 from yul.main import transpile_from_solidity
-from yul.starknet_utils import invoke_method
+from yul.starknet_utils import deploy_contract, invoke_method
 
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
 test_dir = __file__
@@ -21,8 +21,8 @@ async def test_address():
     )
 
     starknet = await StarknetState.empty()
-    contract_address = await starknet.deploy(
-        contract_definition=contract_definition, constructor_calldata=[]
+    contract_address = await deploy_contract(
+        starknet, program_info, contract_definition
     )
     high, low = divmod(contract_address, 2 ** 128)
 

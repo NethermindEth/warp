@@ -5,7 +5,7 @@ from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.starknet import Starknet
 from starkware.starknet.testing.state import StarknetState
 from yul.main import transpile_from_solidity
-from yul.starknet_utils import invoke_method
+from yul.starknet_utils import deploy_contract, invoke_method
 
 from warp.logging.generateMarkdown import (
     bytecode_details,
@@ -74,9 +74,8 @@ async def test_starknet():
     )
 
     starknet = await StarknetState.empty()
-    contract_address = await starknet.deploy(
-        contract_definition=contractDef,
-        constructor_calldata=[10000000, 0, 11000000, 0, 10000000, 0, 10, 0, 0x0, 0],
+    contract_address = await deploy_contract(
+        starknet, program_info, contractDef, *constructor_inputs
     )
 
     res = await invoke_method(

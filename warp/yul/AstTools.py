@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-from typing import List
 
 import yul.yul_ast as ast
 from yul.AstVisitor import AstVisitor

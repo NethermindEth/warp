@@ -82,6 +82,15 @@ class BuiltinHandler(ABC):
         """
         pass
 
+    def is_terminating(self) -> bool:
+        """Specifies whether the instruction can meaningfully terminate
+        execution, i.e. with some output result. It should be true for
+        'return' and 'revert'. However, StarkNet can't yet do a revert
+        while returning some result, so it's only 'return'.
+
+        """
+        return False
+
 
 class StaticHandler(BuiltinHandler):
     """A 'BuiltinHandler' for which function parameters are known at the
@@ -430,6 +439,9 @@ class Return(StaticHandler):
                 "termination_token",
             ),
         )
+
+    def is_terminating(self):
+        return True
 
 
 class Stop(Return):

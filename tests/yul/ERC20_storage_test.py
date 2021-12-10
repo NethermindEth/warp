@@ -5,7 +5,7 @@ import pytest_check as check
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
 from yul.main import transpile_from_solidity
-from yul.starknet_utils import invoke_method
+from yul.starknet_utils import deploy_contract, invoke_method
 
 from warp.logging.generateMarkdown import steps_in_function
 
@@ -24,8 +24,8 @@ async def test_starknet():
     )
 
     starknet = await StarknetState.empty()
-    contract_address = await starknet.deploy(
-        contract_definition=contract_definition, constructor_calldata=[]
+    contract_address = await deploy_contract(
+        starknet, program_info, contract_definition
     )
     sender = 74
     receiver = 68

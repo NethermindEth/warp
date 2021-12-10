@@ -2,12 +2,11 @@ import asyncio
 import os
 
 import pytest
-from cli.commands import flatten
-from cli.encoding import evm_to_cairo_calldata
+from cli.encoding import get_ctor_evm_calldata
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
 from yul.main import transpile_from_solidity
-from yul.starknet_utils import invoke_method
+from yul.starknet_utils import deploy_contract, invoke_method
 
 from warp.logging.generateMarkdown import steps_in_function
 
@@ -34,30 +33,16 @@ async def test_constructors():
         (12345, 23),
         250,
     ]
-    dyn_constructor_calldata = evm_to_cairo_calldata(
-        dyn_info["sol_abi"], fn_name="__warp_ctorHelper_DynArgs", inputs=dyn_inputs
-    )
-
+    dyn_constructor_calldata = get_ctor_evm_calldata(dyn_info["sol_abi"], dyn_inputs)
     non_dyn_contract_def = compile_starknet_files(
         [non_dyn_constructor], debug_info=True, cairo_path=[cairo_path]
     )
     non_dyn_info = transpile_from_solidity(non_dyn_constructor_sol, "WARP")
     non_dyn_inputs = [0x50C2AE5414B02BC962289B3A696F55DFF8B00836519B7, 26, 7432533231]
-    flattened_args = list(flatten(non_dyn_inputs))
-    split_args = []
-    for arg in flattened_args:
-        high, low = divmod(arg, 2 ** 128)
-        split_args += [low, high]
     starknet = await StarknetState.empty()
     dyn_address, non_dyn_address = await asyncio.gather(
-        starknet.deploy(
-            contract_definition=dyn_contract_def,
-            constructor_calldata=dyn_constructor_calldata,
-        ),
-        starknet.deploy(
-            contract_definition=non_dyn_contract_def,
-            constructor_calldata=split_args,
-        ),
+        deploy_contract(starknet, dyn_info, dyn_contract_def, *dyn_inputs),
+        deploy_contract(starknet, non_dyn_info, non_dyn_contract_def, *non_dyn_inputs),
     )
     dyn_result, non_dyn_result = await asyncio.gather(
         invoke_method(

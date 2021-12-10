@@ -1,6 +1,6 @@
 import pytest
 from utils import check_ast
-from yul.MangleNamesVisitor import MangleNamesVisitor
+from yul.Renamer import MangleNamesVisitor
 
 
 @check_ast(__file__)

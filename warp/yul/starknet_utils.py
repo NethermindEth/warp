@@ -1,22 +1,29 @@
-from cli.encoding import get_evm_calldata
+from cli.encoding import get_cairo_calldata, get_ctor_evm_calldata, get_evm_calldata
 from starkware.starknet.business_logic.internal_transaction_interface import (
     TransactionExecutionInfo,
 )
+from starkware.starknet.services.api.contract_definition import ContractDefinition
 from starkware.starknet.testing.state import StarknetState
-from yul.utils import cairoize_bytes
 
 
 async def invoke_method(
     starknet: StarknetState, program_info: dict, address: str, method: str, *args: list
 ) -> TransactionExecutionInfo:
     evm_calldata = get_evm_calldata(program_info["sol_abi"], method, args)
-    calldata, unused_bytes = cairoize_bytes(bytes.fromhex(evm_calldata[2:]))
-    calldata_size = len(calldata) * 16 - unused_bytes
-    calldata_len = len(calldata)
-    entry_calldata = [calldata_size, calldata_len, *calldata]
+    cairo_calldata = get_cairo_calldata(evm_calldata)
     return await starknet.invoke_raw(
         contract_address=address,
         selector="fun_ENTRY_POINT",
-        calldata=entry_calldata,
+        calldata=cairo_calldata,
         caller_address=0,
+    )
+
+
+async def deploy_contract(
+    starknet: StarknetState, program_info: dict, contract_definition, *args: list
+) -> str:
+    evm_calldata = get_ctor_evm_calldata(program_info["sol_abi"], args)
+    cairo_calldata = get_cairo_calldata(evm_calldata)
+    return await starknet.deploy(
+        contract_definition=contract_definition, constructor_calldata=cairo_calldata
     )

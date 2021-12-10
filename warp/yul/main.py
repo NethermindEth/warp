@@ -17,9 +17,9 @@ from yul.ForLoopSimplifier import ForLoopSimplifier
 from yul.FunctionGenerator import CairoFunctions, FunctionGenerator
 from yul.FunctionPruner import FunctionPruner
 from yul.LeaveNormalizer import LeaveNormalizer
-from yul.MangleNamesVisitor import MangleNamesVisitor
 from yul.NameGenerator import NameGenerator
-from yul.parse import parse_node
+from yul.parse_object import parse_to_normalized_ast
+from yul.Renamer import MangleNamesVisitor
 from yul.RevertNormalizer import RevertNormalizer
 from yul.ScopeFlattener import ScopeFlattener
 from yul.SwitchToIfVisitor import SwitchToIfVisitor
@@ -45,25 +45,22 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
     except subprocess.CalledProcessError as e:
         print(e.stderr.decode("utf-8"), file=sys.stderr)
         raise e
-    with open(sol_src_path_modified, "r") as f:
-        sol_source = f.read()
+
     output = get_for_contract(sol_src_path_modified, main_contract, ["abi"])
     warp_assert(output, f"Couldn't extract {main_contract}'s abi from {sol_src_path}")
     (abi,) = output
-    yul_ast = parse_node(json.loads(result.stdout))
-    cairo_code, dynamic_argument_functions = transpile_from_yul(yul_ast)
+
+    codes = json.loads(result.stdout)
+    yul_ast = parse_to_normalized_ast(codes)
+    cairo_code = transpile_from_yul(yul_ast)
     os.remove(sol_src_path_modified)
-    return {
-        "cairo_code": cairo_code,
-        "sol_source": sol_source,
-        "sol_abi": abi,
-        "dynamic_argument_functions": dynamic_argument_functions,
-    }
+    return {"cairo_code": cairo_code, "sol_abi": abi}
 
 
 def transpile_from_yul(yul_ast: ast.Node) -> str:
     name_gen = NameGenerator()
     cairo_functions = CairoFunctions(FunctionGenerator())
+    builtins = get_default_builtins(cairo_functions)
     yul_ast = ForLoopSimplifier().map(yul_ast)
     yul_ast = ForLoopEliminator(name_gen).map(yul_ast)
     yul_ast = MangleNamesVisitor().map(yul_ast)
@@ -72,10 +69,10 @@ def transpile_from_yul(yul_ast: ast.Node) -> str:
     yul_ast = ConstantFolder().map(yul_ast)
     yul_ast = FoldIf().map(yul_ast)
     yul_ast = ExpressionSplitter(name_gen).map(yul_ast)
-    yul_ast = RevertNormalizer().map(yul_ast)
+    yul_ast = RevertNormalizer(builtins).map(yul_ast)
     yul_ast = ScopeFlattener(name_gen).map(yul_ast)
     yul_ast = LeaveNormalizer().map(yul_ast)
-    yul_ast = RevertNormalizer().map(yul_ast)
+    yul_ast = RevertNormalizer(builtins).map(yul_ast)
     yul_ast = FunctionPruner().map(yul_ast)
     yul_ast = DeadcodeEliminator().map(yul_ast)
 
@@ -83,10 +80,7 @@ def transpile_from_yul(yul_ast: ast.Node) -> str:
 
     from starkware.cairo.lang.compiler.parser import parse_file
 
-    return (
-        parse_file(cairo_visitor.translate(yul_ast)).format(),
-        cairo_visitor.dynamic_argument_functions,
-    )
+    return parse_file(cairo_visitor.translate(yul_ast)).format()
 
 
 def main(argv):

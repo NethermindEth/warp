@@ -162,5 +162,7 @@ def _is_revert(node: Optional[ast.Node]) -> bool:
     if isinstance(node, ast.ExpressionStatement):
         return _is_revert(node.expression)
     if isinstance(node, ast.Block):
-        return len(node.statements) == 1 and _is_revert(node.statements[0])
+        # if any statement is a revert, it's safe to not extract this
+        # node
+        return any(_is_revert(x) for x in node.statements)
     return False
