@@ -17,7 +17,11 @@ class Command(Enum):
 
 @click.group()
 @click.option(
-    "--network", envvar="STARKNET_NETWORK", default="alpha", help="A StarkNet network"
+    "--network",
+    envvar="STARKNET_NETWORK",
+    required=True,
+    help="A StarkNet network to use. "
+    "Either specify it as the option value or set an environment variable STARKNET_NETWORK.",
 )
 @click.pass_context
 def warp(ctx, network):
