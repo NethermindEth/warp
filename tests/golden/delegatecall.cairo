@@ -230,22 +230,23 @@ func __warp_block_8{
         msize, range_check_ptr}() -> ():
     alloc_locals
     let (_6 : Uint256) = returndata_size()
-    let _7 : Uint256 = Uint256(low=18446744073709551615, high=0)
-    let (__warp_subexpr_0 : Uint256) = is_gt(_6, _7)
+    let (__warp_subexpr_0 : Uint256) = is_gt(_6, Uint256(low=18446744073709551615, high=0))
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         assert 0 = 1
         jmp rel 0
     end
-    let _8 : Uint256 = Uint256(
-        low=340282366920938463463374607431768211424, high=340282366920938463463374607431768211455)
     let (memPtr : Uint256) = uint256_mload(Uint256(low=64, high=0))
     let (__warp_subexpr_4 : Uint256) = u256_add(_6, Uint256(low=31, high=0))
-    let (__warp_subexpr_3 : Uint256) = uint256_and(__warp_subexpr_4, _8)
+    let (__warp_subexpr_3 : Uint256) = uint256_and(
+        __warp_subexpr_4,
+        Uint256(low=340282366920938463463374607431768211424, high=340282366920938463463374607431768211455))
     let (__warp_subexpr_2 : Uint256) = u256_add(__warp_subexpr_3, Uint256(low=63, high=0))
-    let (__warp_subexpr_1 : Uint256) = uint256_and(__warp_subexpr_2, _8)
+    let (__warp_subexpr_1 : Uint256) = uint256_and(
+        __warp_subexpr_2,
+        Uint256(low=340282366920938463463374607431768211424, high=340282366920938463463374607431768211455))
     let (newFreePtr : Uint256) = u256_add(memPtr, __warp_subexpr_1)
     let (__warp_subexpr_7 : Uint256) = is_lt(newFreePtr, memPtr)
-    let (__warp_subexpr_6 : Uint256) = is_gt(newFreePtr, _7)
+    let (__warp_subexpr_6 : Uint256) = is_gt(newFreePtr, Uint256(low=18446744073709551615, high=0))
     let (__warp_subexpr_5 : Uint256) = uint256_or(__warp_subexpr_6, __warp_subexpr_7)
     if __warp_subexpr_5.low + __warp_subexpr_5.high != 0:
         assert 0 = 1
@@ -318,4 +319,3 @@ func __main_meat{
     warp_return(Uint256(low=0, high=0), Uint256(low=0, high=0))
     return ()
 end
-
