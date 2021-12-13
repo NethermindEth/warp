@@ -1,0 +1,1 @@
+../golden/view-function.cairo

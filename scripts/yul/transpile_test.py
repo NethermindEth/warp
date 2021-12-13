@@ -6,7 +6,7 @@ import pytest
 from yul.main import transpile_from_solidity
 
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
-test_dir = os.path.join(warp_root, "tests", "yul")
+test_dir = os.path.join(warp_root, "tests", "golden")
 tests = [
     os.path.join(test_dir, item)
     for item in os.listdir(test_dir)

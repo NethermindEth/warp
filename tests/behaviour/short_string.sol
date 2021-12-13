@@ -1,0 +1,1 @@
+../golden/short_string.sol

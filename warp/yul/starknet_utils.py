@@ -20,7 +20,10 @@ async def invoke_method(
 
 
 async def deploy_contract(
-    starknet: StarknetState, program_info: dict, contract_definition, *args: list
+    starknet: StarknetState,
+    program_info: dict,
+    contract_definition: ContractDefinition,
+    *args: list
 ) -> str:
     evm_calldata = get_ctor_evm_calldata(program_info["sol_abi"], args)
     cairo_calldata = get_cairo_calldata(evm_calldata)

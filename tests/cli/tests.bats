@@ -14,13 +14,13 @@
 }
 
 @test "check constructor_dyn.sol" {
-    warp transpile ./tests/yul/constructors_dyn.sol WARP
-    warp deploy ./tests/yul/constructors_dyn.json --constructor_args "[0x123, (12, 15), 17]"
-    rm ./tests/yul/constructors_dyn.json
+    warp transpile ./tests/golden/constructors_dyn.sol WARP
+    warp deploy ./tests/golden/constructors_dyn.json --constructor_args "[0x123, (12, 15), 17]"
+    rm ./tests/golden/constructors_dyn.json
 }
 
 @test "check constructor_nonDyn.sol" {
-    warp transpile ./tests/yul/constructors_nonDyn.sol WARP
-    warp deploy ./tests/yul/constructors_nonDyn.json --constructor_args "[0x123, 15, 17]"
-    rm ./tests/yul/constructors_nonDyn.json
+    warp transpile ./tests/golden/constructors_nonDyn.sol WARP
+    warp deploy ./tests/golden/constructors_nonDyn.json --constructor_args "[0x123, 15, 17]"
+    rm ./tests/golden/constructors_nonDyn.json
 }

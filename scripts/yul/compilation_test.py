@@ -4,7 +4,7 @@ import pytest
 from starkware.starknet.compiler.compile import compile_starknet_files
 
 warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
-test_dir = os.path.join(warp_root, "tests", "yul")
+test_dir = os.path.join(warp_root, "tests", "golden")
 cairo_files = [
     os.path.join(test_dir, item)
     for item in os.listdir(test_dir)
