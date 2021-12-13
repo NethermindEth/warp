@@ -24,7 +24,7 @@ func calldatacopy{
     alloc_locals
     let (msize) = update_msize(msize, dest_offset.low, length.low)
     array_copy_to_memory(
-        exec_env.calldata_size, exec_env.calldata, dest_offset.low, offset.low, length.low)
+        exec_env.calldata_size, exec_env.calldata, offset.low, dest_offset.low, length.low)
     return ()
 end
 
