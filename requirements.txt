@@ -8,7 +8,7 @@ numpy<1.22
 pytest==6.2.4
 pytest-parallel
 pytest-check
-cairo-lang==0.6.0
+cairo-lang==0.6.2
 aiohttp<4,>=3.7.4
 eth-utils<1.10
 click

@@ -1,8 +1,10 @@
+from starkware.cairo.common.bitwise import bitwise_and
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.math import assert_not_zero
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.uint256 import (
-    Uint256, felt_and, uint256_add, uint256_cond_neg, uint256_eq, uint256_lt, uint256_mul,
-    uint256_pow2, uint256_shl, uint256_shr, uint256_signed_div_rem, uint256_signed_lt, uint256_sub,
+    Uint256, uint256_add, uint256_cond_neg, uint256_eq, uint256_lt, uint256_mul, uint256_pow2,
+    uint256_shl, uint256_shr, uint256_signed_div_rem, uint256_signed_lt, uint256_sub,
     uint256_unsigned_div_rem)
 
 func u256_add{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
@@ -110,11 +112,12 @@ func uint256_signextend{range_check_ptr}(a : Uint256, i : Uint256) -> (res : Uin
     return (a)
 end
 
-func uint256_byte{range_check_ptr}(a : Uint256, i : Uint256) -> (res : Uint256):
+func uint256_byte{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(a : Uint256, i : Uint256) -> (
+        res : Uint256):
     let (i, _) = uint256_mul(i, cast((8, 0), Uint256))
     let (i) = uint256_sub(cast((248, 0), Uint256), i)
     let (res) = uint256_shr(a, i)
-    let (low) = felt_and(res.low, 255, 8)
+    let (low) = bitwise_and(res.low, 255)
     return (res=cast((low, 0), Uint256))
 end
 

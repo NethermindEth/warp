@@ -60,8 +60,9 @@ func constructor{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fel
 end
 
 @external
-func __main{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        calldata_size, calldata_len, calldata : felt*) -> (
+func __main{
+        bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
+        syscall_ptr : felt*}(calldata_size, calldata_len, calldata : felt*) -> (
         returndata_size, returndata_len, returndata : felt*):
     alloc_locals
     validate_array(calldata_len, calldata)
@@ -224,8 +225,8 @@ func __warp_if_0{
 end
 
 func __warp_block_8{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}() -> (
-        ):
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        msize, range_check_ptr}() -> ():
     alloc_locals
     let (_6 : Uint256) = returndata_size()
     let _7 : Uint256 = Uint256(low=18446744073709551615, high=0)
@@ -258,8 +259,8 @@ func __warp_block_8{
 end
 
 func __warp_if_3{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}(
-        __warp_subexpr_0 : Uint256) -> ():
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        msize, range_check_ptr}(__warp_subexpr_0 : Uint256) -> ():
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         return ()
@@ -270,8 +271,8 @@ func __warp_if_3{
 end
 
 func __warp_block_7{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}(
-        match_var : Uint256) -> ():
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        msize, range_check_ptr}(match_var : Uint256) -> ():
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=0, high=0))
     __warp_if_3(__warp_subexpr_0)
@@ -279,8 +280,8 @@ func __warp_block_7{
 end
 
 func __warp_block_6{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}() -> (
-        ):
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        msize, range_check_ptr}() -> ():
     alloc_locals
     let (match_var : Uint256) = returndata_size()
     __warp_block_7(match_var)
@@ -288,9 +289,9 @@ func __warp_block_6{
 end
 
 func __main_meat{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize,
-        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*, termination_token}() -> (
-        ):
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        msize, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*,
+        termination_token}() -> ():
     alloc_locals
     uint256_mstore(offset=Uint256(low=64, high=0), value=Uint256(low=128, high=0))
     let (__warp_subexpr_2 : Uint256) = calldatasize()
