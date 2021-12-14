@@ -1,9 +1,10 @@
 %lang starknet
-%builtins pedersen range_check
+%builtins pedersen range_check bitwise
 
 from evm.uint256 import (
     is_eq, is_gt, is_lt, u256_add, u256_div, u256_mul, u256_shl, u256_shr, uint256_exp,
     uint256_mod, uint256_mulmod)
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import (
     Uint256, uint256_and, uint256_or, uint256_not, uint256_sub)
 
@@ -57,8 +58,8 @@ func block_0{range_check_ptr}(n : Uint256, r : felt) -> (n : Uint256, r : felt):
     return block_0(_val_0, r + 1)
 end
 
-func block_5{range_check_ptr}(_cond : Uint256, n : Uint256, s : Uint256, r : felt) -> (
-        a : Uint256, b : felt):
+func block_5{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        _cond : Uint256, n : Uint256, s : Uint256, r : felt) -> (a : Uint256, b : felt):
     alloc_locals
     if _cond.low + _cond.low == 0:
         let (_val_0 : Uint256) = u256_shr(s, n)
@@ -68,7 +69,8 @@ func block_5{range_check_ptr}(_cond : Uint256, n : Uint256, s : Uint256, r : fel
     return (n, r)
 end
 
-func block_1{range_check_ptr}(n : Uint256, r : felt, s : Uint256) -> (n : Uint256, r : felt):
+func block_1{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        n : Uint256, r : felt, s : Uint256) -> (n : Uint256, r : felt):
     alloc_locals
     let (_cond_0 : Uint256) = is_gt(s, Uint256(0, 0))
     if _cond_0.low + _cond_0.low == 0:
@@ -86,7 +88,7 @@ end
 
 # @dev Compute the largest integer smaller than or equal to the binary logarithm of `n`
 @external
-func floorLog2{range_check_ptr}(n : Uint256) -> (res):
+func floorLog2{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(n : Uint256) -> (res):
     alloc_locals
 
     let (_cond : Uint256) = is_lt(n, Uint256(256, 0))
@@ -242,7 +244,7 @@ end
 
 # @dev Compute the value of `(2 ^ 256 * xh + xl) / pow2n`, where `xl` is divisible by `pow2n`
 @external
-func div512{range_check_ptr}(xh : Uint256, xl : Uint256, pow2n : Uint256) -> (res : Uint256):
+func div512{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(xh : Uint256, xl : Uint256, pow2n : Uint256) -> (res : Uint256):
     alloc_locals
     let (_val_0 : Uint256) = unsafeSub(Uint256(0, 0), pow2n)
     let (_val_1 : Uint256) = u256_div(_val_0, pow2n)
@@ -280,13 +282,15 @@ end
 
 # @dev Compute the largest integer smaller than or equal to `x * y / z`
 @external
-func mulDivF{range_check_ptr}(x : Uint256, y : Uint256, z : Uint256) -> (res : Uint256):
+func mulDivF{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        x : Uint256, y : Uint256, z : Uint256) -> (res : Uint256):
     alloc_locals
     let (xyh : Uint256, xyl : Uint256) = mul512(x, y)
     let (_cond_0 : Uint256) = is_eq(xyh, Uint256(0, 0))
     # `x * y < 2 ^ 256`
     if _cond_0.low + _cond_0.high != 0:
-        return u256_div(xyl, z)
+        let (result) = u256_div(xyl, z)
+        return (result)
     end
     # `x * y / z < 2 ^ 256`
     let (_cond_1 : Uint256) = is_lt(xyh, z)
@@ -298,7 +302,8 @@ func mulDivF{range_check_ptr}(x : Uint256, y : Uint256, z : Uint256) -> (res : U
         # `n < 2 ^ 256`
         let (_cond_2 : Uint256) = is_eq(nh, Uint256(0, 0))
         if _cond_2.low + _cond_2.high != 0:
-            return u256_div(nl, z)
+            let (result) = u256_div(nl, z)
+            return (result)
         end
         let (_val_0 : Uint256) = unsafeSub(Uint256(0, 0), z)
         # `p` is the largest power of 2 which `z` is divisible by
@@ -309,7 +314,8 @@ func mulDivF{range_check_ptr}(x : Uint256, y : Uint256, z : Uint256) -> (res : U
         # `z / p = 1 mod 2` hence `inverse(z / p) = 1 mod 2 ^ 256`
         let (r : Uint256) = inv256(_val_1)
         # `q * r = (n / p) * inverse(z / p) = n / z`
-        return unsafeMul(q, r)
+        let (result) = unsafeMul(q, r)
+        return (result)
     end
     # `x * y / z >= 2 ^ 256`
     assert 0 = 1
@@ -318,13 +324,15 @@ end
 
 # @dev Compute the smallest integer larger than or equal to `x * y / z`
 @external
-func mulDivC{range_check_ptr}(x : Uint256, y : Uint256, z : Uint256) -> (res : Uint256):
+func mulDivC{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        x : Uint256, y : Uint256, z : Uint256) -> (res : Uint256):
     alloc_locals
     let (w : Uint256) = mulDivF(x, y, z)
     let (_val_0 : Uint256) = mulMod(x, y, z)
     let (_cond_0 : Uint256) = is_gt(_val_0, Uint256(0, 0))
     if _cond_0.low + _cond_0.high != 0:
-        return safeAdd(w, Uint256(1, 0))
+        let (result) = safeAdd(w, Uint256(1, 0))
+        return (result)
     end
     return (res=w)
 end

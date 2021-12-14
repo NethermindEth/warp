@@ -208,12 +208,20 @@ class Sgt(StaticHandler):
 # ============ Bitwise ============
 class And(StaticHandler):
     def __init__(self):
-        super().__init__(function_name="uint256_and", module=UINT256_MODULE)
+        super().__init__(
+            function_name="uint256_and",
+            module=UINT256_MODULE,
+            used_implicits=("range_check_ptr", "bitwise_ptr"),
+        )
 
 
 class Or(StaticHandler):
     def __init__(self):
-        super().__init__(function_name="uint256_or", module=UINT256_MODULE)
+        super().__init__(
+            function_name="uint256_or",
+            module=UINT256_MODULE,
+            used_implicits=("range_check_ptr", "bitwise_ptr"),
+        )
 
 
 class Not(StaticHandler):
@@ -223,7 +231,11 @@ class Not(StaticHandler):
 
 class Xor(StaticHandler):
     def __init__(self):
-        super().__init__(function_name="uint256_xor", module=UINT256_MODULE)
+        super().__init__(
+            function_name="uint256_xor",
+            module=UINT256_MODULE,
+            used_implicits=("range_check_ptr", "bitwise_ptr"),
+        )
 
 
 class Shl(StaticHandler):
@@ -243,7 +255,11 @@ class Sar(StaticHandler):
 
 class Byte(StaticHandler):
     def __init__(self):
-        super().__init__(function_name="uint256_byte", module="evm.uint256")
+        super().__init__(
+            function_name="uint256_byte",
+            module="evm.uint256",
+            used_implicits=("range_check_ptr", "bitwise_ptr"),
+        )
 
 
 # ============ Arithmetic ============

@@ -34,7 +34,8 @@ func multiplierPerBlock() -> (res):
 end
 
 @view
-func getMultiplierPerBlock{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res):
+func getMultiplierPerBlock{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+        res):
     return multiplierPerBlock.read()
 end
 
@@ -44,7 +45,8 @@ func baseRatePerBlock() -> (res):
 end
 
 @view
-func getBaseRatePerBlock{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res):
+func getBaseRatePerBlock{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+        res):
     return baseRatePerBlock.read()
 end
 
@@ -54,7 +56,8 @@ func jumpMultiplierPerBlock() -> (res):
 end
 
 @view
-func getJumpMultiplierPerBlock{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res):
+func getJumpMultiplierPerBlock{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        ) -> (res):
     return jumpMultiplierPerBlock.read()
 end
 

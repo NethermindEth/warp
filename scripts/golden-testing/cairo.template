@@ -27,7 +27,7 @@ test_case() {
     cairo-run \
         --program="$compile_file" \
         --print_output \
-        --layout=small \
+        --layout=all \
         $input_option \
         > "$temp_file"
     diff "$gold_file" "$temp_file" \
