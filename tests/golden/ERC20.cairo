@@ -31,10 +31,6 @@ func sload{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(ke
 end
 
 @storage_var
-func balances(arg0_low, arg0_high) -> (res : Uint256):
-end
-
-@storage_var
 func evm_storage(arg0_low, arg0_high) -> (res : Uint256):
 end
 
@@ -249,10 +245,15 @@ func abi_decode_address{exec_env : ExecutionEnvironment*, range_check_ptr}(dataE
     return (value0)
 end
 
-func getter_fun_balances{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        key : Uint256) -> (ret__warp_mangled : Uint256):
+func getter_fun_balances{
+        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
+        syscall_ptr : felt*}(key : Uint256) -> (ret__warp_mangled : Uint256):
     alloc_locals
-    let (ret__warp_mangled) = balances.read(key.low, key.high)
+    uint256_mstore(offset=Uint256(low=0, high=0), value=key)
+    uint256_mstore(offset=Uint256(low=32, high=0), value=Uint256(low=0, high=0))
+    let (__warp_subexpr_0 : Uint256) = uint256_pedersen(
+        Uint256(low=0, high=0), Uint256(low=64, high=0))
+    let (ret__warp_mangled : Uint256) = sload(__warp_subexpr_0)
     return (ret__warp_mangled)
 end
 

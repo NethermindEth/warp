@@ -1,27 +1,9 @@
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
-from typing import Iterable, Optional
+from typing import Iterable
 
 from yul.WarpException import warp_assert
-
-GETTER_PATTERN = re.compile(r"getter_fun_(\S*)(_(\d+))?")
-SETTER_PATTERN = re.compile(r"setter_fun_(\S*)(_(\d+))?")
-
-
-def extract_var_from_getter(getter: str) -> Optional[str]:
-    match = re.fullmatch(GETTER_PATTERN, getter)
-    if not match:
-        return None
-    return match.group(1)
-
-
-def extract_var_from_setter(setter: str) -> Optional[str]:
-    match = re.fullmatch(SETTER_PATTERN, setter)
-    if not match:
-        return None
-    return match.group(1)
 
 
 @dataclass(frozen=True, order=True)

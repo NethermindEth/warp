@@ -17,14 +17,7 @@ from yul.implicits import (
 )
 from yul.Imports import format_imports, merge_imports
 from yul.NameGenerator import NameGenerator
-from yul.storage_access import (
-    StorageVar,
-    extract_var_from_getter,
-    extract_var_from_setter,
-    generate_getter_body,
-    generate_setter_body,
-    generate_storage_var_declaration,
-)
+from yul.storage_access import generate_storage_var_declaration
 
 UINT128_BOUND = 2 ** 128
 
@@ -65,12 +58,11 @@ class ToCairoVisitor(AstVisitor):
         self.last_function: Optional[ast.FunctionDefinition] = None
         self.last_used_implicits: tuple[str, ...] = ()
         self.function_to_implicits: dict[str, set[str]] = {}
-        self.storage_variables: set[StorageVar] = set()
         self.next_stmt_is_leave: bool = False
 
     def translate(self, node: ast.Node) -> str:
         main_part = self.print(node)
-        storage_vars = self.storage_variables | self.cairo_functions.storage_vars
+        storage_vars = self.cairo_functions.storage_vars
         storage_var_decls = [
             generate_storage_var_declaration(x) for x in sorted(storage_vars)
         ]
@@ -186,10 +178,7 @@ class ToCairoVisitor(AstVisitor):
         self.last_function = node
         params_repr = ", ".join(self.print(x) for x in node.parameters)
         returns_repr = ", ".join(self.print(x) for x in node.return_variables)
-        body_repr = self._try_make_storage_accessor_body(node)
-        if not body_repr:
-            body_repr = self.print(node.body)
-
+        body_repr = self.print(node.body)
         implicits = sorted(self.function_to_implicits.setdefault(node.name, set()))
         implicits_decl = ""
         if implicits:
@@ -248,40 +237,6 @@ class ToCairoVisitor(AstVisitor):
             yield None
         finally:
             self.last_used_implicits = old
-
-    def _try_make_storage_accessor_body(
-        self, node: ast.FunctionDefinition
-    ) -> Optional[str]:
-        getter_var = extract_var_from_getter(node.name)
-        setter_var = extract_var_from_setter(node.name)
-        if not (getter_var or setter_var):
-            return None
-
-        self._add_implicits(node.name, "pedersen_ptr", "range_check_ptr", "syscall_ptr")
-        accessor_args = tuple(x.name for x in node.parameters)
-        if getter_var:
-            assert (
-                len(node.return_variables) == 1
-            ), "We don't support multivalued storage variables yet"
-            name = getter_var
-            arg_types = tuple(x.type for x in node.parameters)
-            res_type = node.return_variables[0].type
-            body = generate_getter_body(
-                getter_var, accessor_args, node.return_variables[0].name
-            )
-        else:
-            assert setter_var
-            assert (
-                node.parameters
-            ), "Storage variable setters must have at least one parameter (the value to set)"
-            name = setter_var
-            arg_types = tuple(x.type for x in node.parameters[:-1])
-            res_type = node.parameters[-1].type
-            body = generate_setter_body(setter_var, accessor_args)
-        self.storage_variables.add(
-            StorageVar(name=name, arg_types=arg_types, res_type=res_type)
-        )
-        return body
 
     def _add_implicits(self, fn_name: str, *implicits: str):
         self.function_to_implicits.setdefault(fn_name, set()).update(implicits)

@@ -31,10 +31,6 @@ func sstore{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
 end
 
 @storage_var
-func balanceOf(arg0_low, arg0_high) -> (res : Uint256):
-end
-
-@storage_var
 func evm_storage(arg0_low, arg0_high) -> (res : Uint256):
 end
 
@@ -310,10 +306,15 @@ func abi_encode_bool{memory_dict : DictAccess*, msize, range_check_ptr}(
     return (tail)
 end
 
-func getter_fun_balanceOf{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
-        key : Uint256) -> (ret__warp_mangled : Uint256):
+func getter_fun_balanceOf{
+        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
+        syscall_ptr : felt*}(key : Uint256) -> (ret__warp_mangled : Uint256):
     alloc_locals
-    let (ret__warp_mangled) = balanceOf.read(key.low, key.high)
+    uint256_mstore(offset=Uint256(low=0, high=0), value=key)
+    uint256_mstore(offset=Uint256(low=32, high=0), value=Uint256(low=2, high=0))
+    let (__warp_subexpr_0 : Uint256) = uint256_pedersen(
+        Uint256(low=0, high=0), Uint256(low=64, high=0))
+    let (ret__warp_mangled : Uint256) = sload(__warp_subexpr_0)
     return (ret__warp_mangled)
 end
 

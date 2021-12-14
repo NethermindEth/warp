@@ -7,7 +7,6 @@ from typing import Mapping, Optional
 import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
 from yul.BuiltinHandler import BuiltinHandler
-from yul.storage_access import extract_var_from_getter, extract_var_from_setter
 from yul.top_sort import top_sort_ast
 
 REVERT = ast.FunctionCall(
