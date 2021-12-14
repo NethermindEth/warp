@@ -2,16 +2,15 @@
 
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.dict_access import DictAccess
-from starkware.cairo.common.math import split_felt, unsigned_div_rem
-from starkware.cairo.common.pow import pow
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import Uint256
 from starkware.starknet.common.syscalls import get_caller_address
 
 from evm.array import (
-    array_copy_to_memory, array_create_from_memory, array_load, extend_array_to_len, validate_array)
+    array_copy_from_memory, array_copy_to_memory, array_create_from_memory, array_load,
+    validate_array)
 from evm.exec_env import ExecutionEnvironment
-from evm.utils import felt_to_uint256, uint256_to_address_felt, update_msize
+from evm.utils import ceil_div, felt_to_uint256, update_msize
 
 func caller{syscall_ptr : felt*, range_check_ptr}() -> (caller_data : Uint256):
     let (caller_address) = get_caller_address()
@@ -25,7 +24,7 @@ func calldatacopy{
     alloc_locals
     let (msize) = update_msize(msize, dest_offset.low, length.low)
     array_copy_to_memory(
-        exec_env.calldata_size, exec_env.calldata, dest_offset.low, offset.low, length.low)
+        exec_env.calldata_size, exec_env.calldata, offset.low, dest_offset.low, length.low)
     return ()
 end
 
@@ -52,37 +51,38 @@ end
 
 # ######################### Making remote calls ###############################
 
-@contract_interface
-namespace GenericCallInterface:
-    func __main(calldata_size : felt, calldata_len : felt, calldata : felt*) -> (
-            returndata_size : felt, returndata_len : felt, returndata : felt*):
-    end
-end
+# get_selector_from_name('__main')
+const main_selector = 0x1b999a79a454af1c08c7c350b2dcee00593e13477465ce7e83f9b73d4c4ab98
 
-func calculate_data_len{range_check_ptr}(calldata_size) -> (calldata_len):
-    let (calldata_len_, rem) = unsigned_div_rem(calldata_size, 16)
-    if rem != 0:
-        return (calldata_len=calldata_len_ + 1)
-    else:
-        return (calldata_len=calldata_len_)
-    end
-end
-
-func warp_call{
+func general_call{
         syscall_ptr : felt*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        range_check_ptr}(
-        gas : Uint256, address : Uint256, value : Uint256, in : Uint256, insize : Uint256,
-        out : Uint256, outsize : Uint256) -> (success : Uint256):
+        range_check_ptr}(call_function, address, in_offset, in_size, out_offset, out_size) -> (
+        success):
     alloc_locals
     let (__fp__, _) = get_fp_and_pc()
-    let (mem : felt*) = array_create_from_memory{
-        memory_dict=memory_dict, range_check_ptr=range_check_ptr}(in.low, insize.low)
-    let (calldata_len) = calculate_data_len(insize.low)
-    let (address_felt : felt) = uint256_to_address_felt(address)
-    let (returndata_size, returndata_len, returndata) = GenericCallInterface.__main(
-        address_felt, insize.low, calldata_len, mem)
+    let (in_len) = ceil_div(in_size, 16)
+    let (cairo_calldata) = alloc()
+    cairo_calldata[0] = in_size
+    cairo_calldata[1] = in_len
+    array_copy_from_memory(in_offset, in_size, cairo_calldata + 2)
+
+    [ap] = syscall_ptr; ap++
+    [ap] = address; ap++
+    [ap] = main_selector; ap++
+    [ap] = 2 + in_len; ap++
+    [ap] = cairo_calldata; ap++
+    call abs call_function
+    let syscall_ptr = cast([ap - 3], felt*)
+    let cairo_retdata_size = [ap - 2]
+    let cairo_retdata = cast([ap - 1], felt*)
+
+    let returndata_size = cairo_retdata[0]
+    let returndata_len = cairo_retdata[1]
+    let returndata = cairo_retdata + 2
+    assert cairo_retdata_size = returndata_len + 2
+
     validate_array(returndata_len, returndata)
-    array_copy_to_memory(returndata_size, returndata, 0, out.low, outsize.low)
+    array_copy_to_memory(returndata_size, returndata, 0, out_offset, out_size)
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(
         calldata_size=exec_env.calldata_size,
         calldata_len=exec_env.calldata_len,
@@ -94,15 +94,7 @@ func warp_call{
         to_returndata_len=exec_env.to_returndata_len,
         to_returndata=exec_env.to_returndata)
     let exec_env : ExecutionEnvironment* = &exec_env_
-    return (Uint256(1, 0))
-end
-
-func warp_static_call{
-        syscall_ptr : felt*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        range_check_ptr}(
-        gas : Uint256, address : Uint256, in : Uint256, insize : Uint256, out : Uint256,
-        outsize : Uint256) -> (success : Uint256):
-    return warp_call(gas, address, Uint256(0, 0), in, insize, out, outsize)
+    return (1)
 end
 
 func returndata_write{memory_dict : DictAccess*, exec_env : ExecutionEnvironment*, range_check_ptr}(
@@ -110,7 +102,7 @@ func returndata_write{memory_dict : DictAccess*, exec_env : ExecutionEnvironment
     alloc_locals
     let (__fp__, _) = get_fp_and_pc()
     let (returndata : felt*) = array_create_from_memory(returndata_ptr, returndata_size)
-    let (returndata_len) = calculate_data_len(returndata_size)
+    let (returndata_len) = ceil_div(returndata_size, 16)
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(
         calldata_size=exec_env.calldata_size,
         calldata_len=exec_env.calldata_len,
