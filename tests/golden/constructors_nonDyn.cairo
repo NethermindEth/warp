@@ -19,18 +19,18 @@ end
 
 func sstore{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         key : Uint256, value : Uint256):
-    evm_storage.write(key.low, key.high, value)
+    evm_storage.write(key, value)
     return ()
 end
 
 func sload{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(key : Uint256) -> (
         value : Uint256):
-    let (value) = evm_storage.read(key.low, key.high)
+    let (value) = evm_storage.read(key)
     return (value)
 end
 
 @storage_var
-func evm_storage(arg0_low, arg0_high) -> (res : Uint256):
+func evm_storage(arg0 : Uint256) -> (res : Uint256):
 end
 
 @constructor

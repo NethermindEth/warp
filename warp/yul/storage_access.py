@@ -16,18 +16,15 @@ class StorageVar:
 def generate_getter_body(
     getter_var: str, args: Iterable[str], return_name: str = "res"
 ) -> str:
-    args_repr = ", ".join(f"{x}.low, {x}.high" for x in args)
+    args_repr = ", ".join(args)
     return (
         f"let ({return_name}) = {getter_var}.read({args_repr})\nreturn ({return_name})"
     )
 
 
 def generate_setter_body(setter_var: str, args: Iterable[str]) -> str:
-    *access_args, value_arg = args
-    args_repr = ", ".join(f"{x}.low, {x}.high" for x in access_args)
-    if access_args:
-        args_repr += ", "
-    return f"{setter_var}.write({args_repr}{value_arg})\nreturn ()"
+    args_repr = ", ".join(args)
+    return f"{setter_var}.write({args_repr})\nreturn ()\n"
 
 
 def generate_storage_var_declaration(var: StorageVar) -> str:
@@ -39,9 +36,7 @@ def generate_storage_var_declaration(var: StorageVar) -> str:
         var.res_type == "Uint256",
         "We don't support storage variables that return types other than Uint256",
     )
-    args_repr = ", ".join(
-        f"arg{i}_low, arg{i}_high" for i, typ in enumerate(var.arg_types)
-    )
+    args_repr = ", ".join(f"arg{i} : {typ}" for i, typ in enumerate(var.arg_types))
     return (
         f"@storage_var\n"
         f"func {var.name}({args_repr}) -> (res: {var.res_type}):\n"
