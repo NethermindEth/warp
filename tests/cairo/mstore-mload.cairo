@@ -1,14 +1,14 @@
-%builtins output range_check
+%builtins output range_check bitwise
 
-from starkware.cairo.common.default_dict import default_dict_new, default_dict_finalize
+from evm.memory import mload, mstore
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
+from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict import dict_read
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.serialize import serialize_word
 from starkware.cairo.common.uint256 import Uint256
 
-from evm.memory import mstore, mload
-
-func main{output_ptr : felt*, range_check_ptr}():
+func main{output_ptr : felt*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}():
     alloc_locals
 
     let (memory_dict) = default_dict_new(0)

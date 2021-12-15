@@ -63,7 +63,8 @@ func __constructor_meat{memory_dict : DictAccess*, msize, range_check_ptr}() -> 
     end
 end
 
-func __warp_loop_body_0{memory_dict : DictAccess*, msize, range_check_ptr}(
+func __warp_loop_body_0{
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize, range_check_ptr}(
         _1 : Uint256, i : Uint256) -> (i : Uint256):
     alloc_locals
     let (__warp_subexpr_2 : Uint256) = u256_add(i, Uint256(low=160, high=0))
@@ -74,7 +75,8 @@ func __warp_loop_body_0{memory_dict : DictAccess*, msize, range_check_ptr}(
     return (i)
 end
 
-func __warp_loop_0{memory_dict : DictAccess*, msize, range_check_ptr}(
+func __warp_loop_0{
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize, range_check_ptr}(
         _1 : Uint256, i : Uint256, length : Uint256) -> (i : Uint256):
     alloc_locals
     let (__warp_subexpr_1 : Uint256) = is_lt(i, length)
@@ -124,7 +126,8 @@ func abi_encode_string_1173{
     return (tail)
 end
 
-func memory_array_index_access_bytes{memory_dict : DictAccess*, msize, range_check_ptr}(
+func memory_array_index_access_bytes{
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize, range_check_ptr}(
         baseRef : Uint256) -> (addr : Uint256):
     alloc_locals
     let (__warp_subexpr_2 : Uint256) = uint256_mload(baseRef)
@@ -139,8 +142,8 @@ func memory_array_index_access_bytes{memory_dict : DictAccess*, msize, range_che
 end
 
 func fun_bytesFun{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr}() -> (
-        var_mpos : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        msize, range_check_ptr}() -> (var_mpos : Uint256):
     alloc_locals
     let (memPtr : Uint256) = uint256_mload(Uint256(low=64, high=0))
     let (newFreePtr : Uint256) = u256_add(memPtr, Uint256(low=64, high=0))
@@ -178,7 +181,8 @@ func fun_bytesFun{
     return (var_mpos)
 end
 
-func __warp_loop_body_1{memory_dict : DictAccess*, msize, range_check_ptr}(
+func __warp_loop_body_1{
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize, range_check_ptr}(
         _1 : Uint256, headStart : Uint256, i : Uint256, value0 : Uint256) -> (i : Uint256):
     alloc_locals
     let (__warp_subexpr_4 : Uint256) = u256_add(value0, i)
@@ -191,7 +195,8 @@ func __warp_loop_body_1{memory_dict : DictAccess*, msize, range_check_ptr}(
     return (i)
 end
 
-func __warp_loop_1{memory_dict : DictAccess*, msize, range_check_ptr}(
+func __warp_loop_1{
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize, range_check_ptr}(
         _1 : Uint256, headStart : Uint256, i : Uint256, length : Uint256, value0 : Uint256) -> (
         i : Uint256):
     alloc_locals

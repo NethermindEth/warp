@@ -91,7 +91,8 @@ func finalize_allocation{
     return ()
 end
 
-func abi_decode_bool_fromMemory{memory_dict : DictAccess*, msize, range_check_ptr}(
+func abi_decode_bool_fromMemory{
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize, range_check_ptr}(
         headStart : Uint256, dataEnd : Uint256) -> (value0 : Uint256):
     alloc_locals
     let (__warp_subexpr_1 : Uint256) = uint256_sub(dataEnd, headStart)
@@ -181,7 +182,8 @@ func abi_encode_bool{memory_dict : DictAccess*, msize, range_check_ptr}(
     return (tail)
 end
 
-func abi_decode_addresst_address{exec_env : ExecutionEnvironment*, range_check_ptr}(
+func abi_decode_addresst_address{
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, range_check_ptr}(
         dataEnd : Uint256) -> (value0 : Uint256, value1 : Uint256):
     alloc_locals
     let (__warp_subexpr_1 : Uint256) = u256_add(
