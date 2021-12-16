@@ -47,7 +47,7 @@ func mulModMax{range_check_ptr}(x : Uint256, y : Uint256) -> (res : Uint256):
     return uint256_mulmod(x, y, Uint256(MAX_VAL, MAX_VAL))
 end
 
-func block_0{range_check_ptr}(n : Uint256, r : felt) -> (n : Uint256, r : felt):
+func block_0{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(n : Uint256, r : felt) -> (n : Uint256, r : felt):
     alloc_locals
     let (_cond : Uint256) = is_gt(n, Uint256(1, 0))
     if _cond.low + _cond.low == 0:
@@ -158,7 +158,7 @@ func block_6{range_check_ptr}(
     return (x, n)
 end
 
-func block_3{range_check_ptr}(n : Uint256, x : Uint256, y : Uint256) -> (n : Uint256, x : Uint256):
+func block_3{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(n : Uint256, x : Uint256, y : Uint256) -> (n : Uint256, x : Uint256):
     alloc_locals
     let (_cond_0 : Uint256) = is_gt(y, Uint256(0, 0))
     if _cond_0.low + _cond_0.high == 0:
@@ -178,7 +178,7 @@ end
 
 # @dev Compute the largest integer smaller than or equal to the cubic root of `n`
 @external
-func floorCbrt{range_check_ptr}(n : Uint256) -> (res : Uint256):
+func floorCbrt{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(n : Uint256) -> (res : Uint256):
     alloc_locals
     let x : Uint256 = Uint256(0, 0)
     let (y : Uint256) = u256_shl(Uint256(255, 0), Uint256(1, 0))
@@ -188,7 +188,7 @@ end
 
 # @dev Compute the smallest integer larger than or equal to the cubic root of `n`
 @external
-func ceilCbrt{range_check_ptr}(n : Uint256) -> (res : Uint256):
+func ceilCbrt{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(n : Uint256) -> (res : Uint256):
     alloc_locals
     let (x : Uint256) = floorCbrt(n)
     let (_sq : Uint256) = u256_mul(x, x)
@@ -197,7 +197,8 @@ func ceilCbrt{range_check_ptr}(n : Uint256) -> (res : Uint256):
     if _cond.low + _cond.high != 0:
         return (res=x)
     end
-    return u256_add(x, Uint256(1, 0))
+    let (res) = u256_add(x, Uint256(1, 0))
+    return (res)
 end
 
 # @dev Compute the nearest integer to the quotient of `n` and `d` (or `n / d`)
