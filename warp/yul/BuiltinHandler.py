@@ -343,7 +343,7 @@ class MLoad(StaticHandler):
         super().__init__(
             function_name="uint256_mload",
             module="evm.memory",
-            used_implicits=("memory_dict", "msize", "range_check_ptr"),
+            used_implicits=("memory_dict", "msize", "range_check_ptr", "bitwise_ptr"),
         )
 
 
@@ -404,7 +404,7 @@ class CallDataLoad(StaticHandler):
         super().__init__(
             function_name="calldataload",
             module="evm.calls",
-            used_implicits=("range_check_ptr", "exec_env"),
+            used_implicits=("range_check_ptr", "exec_env", "bitwise_ptr"),
         )
 
 
@@ -422,7 +422,13 @@ class CallDataCopy(StaticHandler):
         super().__init__(
             function_name="calldatacopy",
             module="evm.calls",
-            used_implicits=("range_check_ptr", "exec_env", "memory_dict", "msize"),
+            used_implicits=(
+                "range_check_ptr",
+                "exec_env",
+                "memory_dict",
+                "msize",
+                "bitwise_ptr",
+            ),
         )
 
 
@@ -434,7 +440,12 @@ class ReturnDataCopy(StaticHandler):
         super().__init__(
             function_name="returndata_copy",
             module="evm.calls",
-            used_implicits=("range_check_ptr", "exec_env", "memory_dict"),
+            used_implicits=(
+                "range_check_ptr",
+                "exec_env",
+                "memory_dict",
+                "bitwise_ptr",
+            ),
         )
 
 
@@ -493,6 +504,7 @@ class Call(StaticHandler):
                 "exec_env",
                 "memory_dict",
                 "range_check_ptr",
+                "bitwise_ptr",
             ),
         )
 
@@ -507,6 +519,7 @@ class StaticCall(StaticHandler):
                 "exec_env",
                 "memory_dict",
                 "range_check_ptr",
+                "bitwise_ptr",
             ),
         )
 
@@ -521,6 +534,7 @@ class Delegatecall(StaticHandler):
                 "exec_env",
                 "memory_dict",
                 "range_check_ptr",
+                "bitwise_ptr",
             ),
         )
 

@@ -1,5 +1,3 @@
-%lang starknet
-
 # This module is for functions that correspond to Yul builtin
 # instructions. All such functions must take only Uint256's as
 # explicit parameters and return tuples of Uint256's. Furthermore,
@@ -8,6 +6,7 @@
 # yul code. In case such naming conflicts with Cairo's keywords or
 # builtin functions, the name should also be prefixed with "warp_".
 
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_label_location
 from starkware.starknet.common.syscalls import call_contract, delegate_call, get_contract_address
@@ -34,7 +33,7 @@ end
 
 func warp_call{
         syscall_ptr : felt*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        range_check_ptr}(
+        range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
         gas : Uint256, address : Uint256, value : Uint256, in_offset : Uint256, in_size : Uint256,
         out_offset : Uint256, out_size : Uint256) -> (success : Uint256):
     let (call_function) = get_label_location(call_contract)
@@ -46,7 +45,7 @@ end
 
 func staticcall{
         syscall_ptr : felt*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        range_check_ptr}(
+        range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
         gas : Uint256, address : Uint256, in_offset : Uint256, in_size : Uint256,
         out_offset : Uint256, out_size : Uint256) -> (success : Uint256):
     return warp_call(gas, address, Uint256(0, 0), in_offset, in_size, out_offset, out_size)
@@ -54,7 +53,7 @@ end
 
 func delegatecall{
         syscall_ptr : felt*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        range_check_ptr}(
+        range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
         gas : Uint256, address : Uint256, in_offset : Uint256, in_size : Uint256,
         out_offset : Uint256, out_size : Uint256) -> (success : Uint256):
     let (call_function) = get_label_location(delegate_call)

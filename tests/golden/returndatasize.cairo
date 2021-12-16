@@ -36,7 +36,8 @@ func constructor{range_check_ptr}(calldata_size, calldata_len, calldata : felt*)
 end
 
 @external
-func __main{range_check_ptr}(calldata_size, calldata_len, calldata : felt*) -> (
+func __main{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
+        calldata_size, calldata_len, calldata : felt*) -> (
         returndata_size, returndata_len, returndata : felt*):
     alloc_locals
     validate_array(calldata_len, calldata)
@@ -102,8 +103,8 @@ func __warp_if_1{
 end
 
 func __warp_block_0{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
-        termination_token}() -> ():
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        msize, range_check_ptr, termination_token}() -> ():
     alloc_locals
     let (__warp_subexpr_2 : Uint256) = calldataload(Uint256(low=0, high=0))
     let (__warp_subexpr_1 : Uint256) = u256_shr(Uint256(low=224, high=0), __warp_subexpr_2)
@@ -113,8 +114,8 @@ func __warp_block_0{
 end
 
 func __warp_if_0{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
-        termination_token}(__warp_subexpr_0 : Uint256) -> ():
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        msize, range_check_ptr, termination_token}(__warp_subexpr_0 : Uint256) -> ():
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         __warp_block_0()
@@ -125,8 +126,8 @@ func __warp_if_0{
 end
 
 func __main_meat{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
-        termination_token}() -> ():
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        msize, range_check_ptr, termination_token}() -> ():
     alloc_locals
     uint256_mstore(offset=Uint256(low=64, high=0), value=Uint256(low=128, high=0))
     let (__warp_subexpr_2 : Uint256) = calldatasize()

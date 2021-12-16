@@ -3,7 +3,7 @@
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.serialize import serialize_word
 from starkware.cairo.common.uint256 import (
-    Uint256, uint256_and, uint256_or, uint256_not, uint256_xor)
+    Uint256, uint256_and, uint256_not, uint256_or, uint256_xor)
 
 func main{output_ptr : felt*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}():
     alloc_locals

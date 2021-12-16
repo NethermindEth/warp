@@ -1,4 +1,5 @@
 from starkware.cairo.common.alloc import alloc
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.dict import DictAccess, dict_read
 from starkware.cairo.common.math import unsigned_div_rem
 from starkware.cairo.common.math_cmp import is_le
@@ -74,7 +75,8 @@ func copy_from_memory_shifted{memory_dict : DictAccess*, range_check_ptr}(
         array=array + 1)
 end
 
-func array_copy_to_memory{memory_dict : DictAccess*, range_check_ptr}(
+func array_copy_to_memory{
+        memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
         array_length, array : felt*, array_offset, memory_offset, length):
     # Given a 128-bit packed 'array' with a total of 'array_length'
     # bytes, copy from the array 'length' bytes starting with
@@ -98,7 +100,8 @@ func array_copy_to_memory{memory_dict : DictAccess*, range_check_ptr}(
         array_length, array, array_offset + 32, memory_offset + 32, length - 32)
 end
 
-func array_load{range_check_ptr}(array_length : felt, array : felt*, offset) -> (value : Uint256):
+func array_load{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        array_length : felt, array : felt*, offset) -> (value : Uint256):
     # Load a value from a 128-bit packed big-endian
     # array.
     #

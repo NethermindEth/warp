@@ -1,6 +1,5 @@
-%lang starknet
-
 from starkware.cairo.common.alloc import alloc
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import Uint256
@@ -19,7 +18,8 @@ func caller{syscall_ptr : felt*, range_check_ptr}() -> (caller_data : Uint256):
 end
 
 func calldatacopy{
-        memory_dict : DictAccess*, range_check_ptr, msize, exec_env : ExecutionEnvironment*}(
+        memory_dict : DictAccess*, range_check_ptr, msize, exec_env : ExecutionEnvironment*,
+        bitwise_ptr : BitwiseBuiltin*}(
         dest_offset : Uint256, offset : Uint256, length : Uint256) -> ():
     alloc_locals
     let (msize) = update_msize(msize, dest_offset.low, length.low)
@@ -32,13 +32,15 @@ func calldatasize{range_check_ptr, exec_env : ExecutionEnvironment*}() -> (res :
     return (Uint256(low=exec_env.calldata_size, high=0))
 end
 
-func calldataload{range_check_ptr, exec_env : ExecutionEnvironment*}(offset : Uint256) -> (
-        value : Uint256):
+func calldataload{range_check_ptr, exec_env : ExecutionEnvironment*, bitwise_ptr : BitwiseBuiltin*}(
+        offset : Uint256) -> (value : Uint256):
     let (value) = array_load(exec_env.calldata_size, exec_env.calldata, offset.low)
     return (value=value)
 end
 
-func returndata_copy{range_check_ptr, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*}(
+func returndata_copy{
+        range_check_ptr, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        bitwise_ptr : BitwiseBuiltin*}(
         memory_pos : Uint256, returndata_pos : Uint256, length : Uint256):
     array_copy_to_memory(
         exec_env.returndata_len,
@@ -56,8 +58,8 @@ const main_selector = 0x1b999a79a454af1c08c7c350b2dcee00593e13477465ce7e83f9b73d
 
 func general_call{
         syscall_ptr : felt*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        range_check_ptr}(call_function, address, in_offset, in_size, out_offset, out_size) -> (
-        success):
+        range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        call_function, address, in_offset, in_size, out_offset, out_size) -> (success):
     alloc_locals
     let (__fp__, _) = get_fp_and_pc()
     let (in_len) = ceil_div(in_size, 16)

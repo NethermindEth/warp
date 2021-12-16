@@ -1,3 +1,4 @@
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.dict import dict_read, dict_write
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.math import assert_lt, unsigned_div_rem
@@ -61,7 +62,8 @@ func mstore{memory_dict : DictAccess*, range_check_ptr}(offset, value : Uint256)
     return ()
 end
 
-func mload{memory_dict : DictAccess*, range_check_ptr}(offset) -> (value : Uint256):
+func mload{memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(offset) -> (
+        value : Uint256):
     # Load a 256-bit value 'value' from memory, starting with the
     # 'offset' index.
     alloc_locals
@@ -108,7 +110,8 @@ func uint256_mstore{memory_dict : DictAccess*, range_check_ptr, msize}(
     return mstore_(offset.low, value)
 end
 
-func mload_{memory_dict : DictAccess*, range_check_ptr, msize}(offset) -> (value : Uint256):
+func mload_{memory_dict : DictAccess*, range_check_ptr, msize, bitwise_ptr : BitwiseBuiltin*}(
+        offset) -> (value : Uint256):
     # Does what 'mload' does but also updates 'msize'.
     alloc_locals
     let (msize) = update_msize(msize, offset, 32)
@@ -116,8 +119,9 @@ func mload_{memory_dict : DictAccess*, range_check_ptr, msize}(offset) -> (value
     return (value=value)
 end
 
-func uint256_mload{memory_dict : DictAccess*, range_check_ptr, msize}(offset : Uint256) -> (
-        value : Uint256):
+func uint256_mload{
+        memory_dict : DictAccess*, range_check_ptr, msize, bitwise_ptr : BitwiseBuiltin*}(
+        offset : Uint256) -> (value : Uint256):
     # Does what 'mload_' does, but with Uint256 arguments for
     # convenient use in the transpiled code.
     return mload_(offset.low)
