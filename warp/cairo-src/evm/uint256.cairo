@@ -7,6 +7,8 @@ from starkware.cairo.common.uint256 import (
     Uint256, uint256_add, uint256_cond_neg, uint256_eq, uint256_lt, uint256_mul, uint256_pow2,
     uint256_shl, uint256_signed_div_rem, uint256_signed_lt, uint256_sub, uint256_unsigned_div_rem)
 
+from evm.pow2 import pow2
+
 const UINT128_BOUND = 2 ** 128
 
 func u256_add{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
@@ -44,7 +46,7 @@ func u256_shr{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(i : Uint256, a : U
         #    = (h & (p-1)) * 2^128 / p + (l&~(p-1)) / p
         #    = (h & (p-1) * 2^128 + l&~(p-1)) / p
         # h' = h >> i = (h - h&(p-1)) / p
-        let (p) = pow(2, i.low)
+        let (p) = pow2(i.low)
         let (low_mask) = bitwise_not(p - 1)
         let (low_part) = bitwise_and(a.low, low_mask)
         let (high_part) = bitwise_and(a.high, p - 1)
@@ -53,7 +55,7 @@ func u256_shr{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(i : Uint256, a : U
     end
     let (le_255) = is_le(i.low, 255)
     if le_255 == 1:
-        let (p) = pow(2, i.low - 128)
+        let (p) = pow2(i.low - 128)
         let (mask) = bitwise_not(p - 1)
         let (res) = bitwise_and(a.high, mask)
         return (Uint256(res / p, 0))

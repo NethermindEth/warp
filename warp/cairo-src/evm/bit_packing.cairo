@@ -3,13 +3,15 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.math import assert_lt, unsigned_div_rem
 from starkware.cairo.common.pow import pow
 
+from evm.pow2 import pow2
+
 const UINT128_BOUND = 2 ** 128
 
 func extract_unaligned_uint128{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
         shift, low, high) -> (value):
     # Given two aligned uint128's, extract an unaligned uint128,
     # shifted by 'shift' bytes from the 'high' high end.
-    let (p) = pow(256, 16 - shift)
+    let (p) = pow2(128 - 8 * shift)
     let (low_mask) = bitwise_not(p - 1)
     let (low_part) = bitwise_and(low, low_mask)
     let (high_part) = bitwise_and(high, p - 1)
@@ -64,8 +66,8 @@ func split_on_byte{range_check_ptr}(value, byte_pos) -> (low, high):
     return (low=r, high=q)
 end
 
-func exp_byte{range_check_ptr}(d) -> (res):
-    return pow(256, d)
+func exp_byte(d) -> (res):
+    return pow2(8 * d)
 end
 
 func extract_byte{range_check_ptr}(x, pos) -> (low, byte, high):
@@ -77,7 +79,7 @@ func extract_byte{range_check_ptr}(x, pos) -> (low, byte, high):
     return (low, byte, high)
 end
 
-func put_byte{range_check_ptr}(pos, low, byte, high) -> (x):
+func put_byte(pos, low, byte, high) -> (x):
     let (d) = exp_byte(pos)
     return ((high * 256 + byte) * d + low)
 end
