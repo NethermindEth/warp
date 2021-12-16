@@ -19,12 +19,12 @@ end
 
 func calldatacopy{
         memory_dict : DictAccess*, range_check_ptr, msize, exec_env : ExecutionEnvironment*,
-        bitwise_ptr : BitwiseBuiltin*}(
-        dest_offset : Uint256, offset : Uint256, length : Uint256) -> ():
+        bitwise_ptr : BitwiseBuiltin*}(dest_offset : Uint256, offset : Uint256, size : Uint256) -> (
+        ):
     alloc_locals
-    let (msize) = update_msize(msize, dest_offset.low, length.low)
+    let (msize) = update_msize(msize, dest_offset.low, size.low)
     array_copy_to_memory(
-        exec_env.calldata_size, exec_env.calldata, offset.low, dest_offset.low, length.low)
+        exec_env.calldata_size, exec_env.calldata, offset.low, dest_offset.low, size.low)
     return ()
 end
 
@@ -41,13 +41,13 @@ end
 func returndata_copy{
         range_check_ptr, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
         bitwise_ptr : BitwiseBuiltin*}(
-        memory_pos : Uint256, returndata_pos : Uint256, length : Uint256):
+        memory_pos : Uint256, returndata_pos : Uint256, size : Uint256):
     array_copy_to_memory(
-        exec_env.returndata_len,
+        exec_env.returndata_size,
         exec_env.returndata,
         returndata_pos.low,
         memory_pos.low,
-        length.low)
+        size.low)
     return ()
 end
 
