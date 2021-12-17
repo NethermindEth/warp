@@ -1,0 +1,3 @@
+[submodule "tests/hardhat/gnosis-safe"]
+	path = tests/hardhat/gnosis-safe
+	url = https://github.com/gnosis/safe-contracts
