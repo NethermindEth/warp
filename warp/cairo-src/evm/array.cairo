@@ -7,6 +7,9 @@ from starkware.cairo.common.uint256 import Uint256
 
 from evm.bit_packing import exp_byte, extract_unaligned_uint128, replace_lower_bytes, split_on_byte
 from evm.memory import mstore
+from evm.pow2 import pow2
+
+const UINT128_BOUND = 2 ** 128
 
 func array_create_from_memory{memory_dict : DictAccess*, range_check_ptr}(offset, size) -> (
         array : felt*):
@@ -29,15 +32,14 @@ func array_copy_from_memory{memory_dict : DictAccess*, range_check_ptr}(
 
     let (div, rem) = unsigned_div_rem(offset, 16)
     if rem == 0:
-        # aligned
         return copy_from_memory_aligned(offset, size, array)
     end
 
     let (block) = dict_read{dict_ptr=memory_dict}(div * 16)
-    let shift = 16 - rem
-    let (remains, _) = split_on_byte(block, byte_pos=shift)
+    let (p) = pow2(128 - 8 * rem)
+    let (_, high_part) = unsigned_div_rem(block, p)
     return copy_from_memory_shifted(
-        shift=shift, aligned_offset=offset + shift, remains=remains, size=size, array=array)
+        p=p, aligned_offset=offset + 16 - rem, high_part=high_part, size=size, array=array)
 end
 
 func copy_from_memory_aligned{memory_dict : DictAccess*, range_check_ptr}(
@@ -55,24 +57,26 @@ func copy_from_memory_aligned{memory_dict : DictAccess*, range_check_ptr}(
 end
 
 func copy_from_memory_shifted{memory_dict : DictAccess*, range_check_ptr}(
-        shift, aligned_offset, remains, size, array : felt*):
+        p, aligned_offset, high_part, size, array : felt*):
     alloc_locals
-    let (exp) = exp_byte(shift)
-    let (remains_enough) = is_le(shift, size)
-    if remains_enough == 1:
-        let (block) = replace_lower_bytes(remains * exp, 0, n=16 - size)
-        array[0] = block
-        return ()
-    end
     let (block) = dict_read{dict_ptr=memory_dict}(aligned_offset)
-    let (new_remains, completion) = split_on_byte(block, byte_pos=shift)
-    assert array[0] = completion + remains * exp
-    return copy_from_memory_shifted(
-        shift=shift,
-        aligned_offset=aligned_offset + 16,
-        remains=new_remains,
-        size=size - 16,
-        array=array + 1)
+    let (low_part, new_high_part) = unsigned_div_rem(block, p)
+    let value = low_part + UINT128_BOUND * high_part / p
+    let (enough) = is_le(size, 16)
+    if enough == 1:
+        let (divisor) = pow2(128 - 8 * size)
+        let (q, _) = unsigned_div_rem(value, divisor)
+        assert array[0] = q * divisor
+        return ()
+    else:
+        assert array[0] = value
+        return copy_from_memory_shifted(
+            p=p,
+            aligned_offset=aligned_offset + 16,
+            high_part=new_high_part,
+            size=size - 16,
+            array=array + 1)
+    end
 end
 
 func array_copy_to_memory{
