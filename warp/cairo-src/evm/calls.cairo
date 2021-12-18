@@ -94,7 +94,7 @@ func general_call{
     let returndata = cairo_retdata + 2
     assert cairo_retdata_size = returndata_len + 2
 
-    validate_array(returndata_len, returndata)
+    validate_array(returndata_size, returndata_len, returndata)
     array_copy_to_memory(returndata_size, returndata, 0, out_offset, out_size)
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(
         calldata_size=exec_env.calldata_size,

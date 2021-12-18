@@ -60,10 +60,19 @@ async def test_normal_contract_call(
 async def test_malicious_deploy(starknet, friendly_info, friendly_def):
     evm_calldata = get_ctor_evm_calldata(friendly_info["sol_abi"], [0])
     cairo_calldata = get_cairo_calldata(evm_calldata)
-    cairo_calldata[-1] = 2 ** 128  # tamper with calldata to make it invalid
+    tampered_calldata1 = list(cairo_calldata)
+    tampered_calldata1[-1] = 2 ** 128
     exc_msg = rf"Value {2**128}, in range check builtin \d*, is out of range \[0, {2**128}\)\."
     with pytest.raises(StarkException, match=exc_msg):
-        await starknet.deploy(friendly_def, cairo_calldata)
+        await starknet.deploy(friendly_def, tampered_calldata1)
+    tampered_calldata2 = list(cairo_calldata)
+    tampered_calldata2[0] -= 10
+    with pytest.raises(StarkException):
+        await starknet.deploy(friendly_def, tampered_calldata2)
+    tampered_calldata3 = list(cairo_calldata)
+    tampered_calldata3[0] += 10
+    with pytest.raises(StarkException):
+        await starknet.deploy(friendly_def, tampered_calldata3)
 
 
 @pytest.mark.asyncio

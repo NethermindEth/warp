@@ -1,7 +1,7 @@
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.dict import DictAccess, dict_read
-from starkware.cairo.common.math import unsigned_div_rem
+from starkware.cairo.common.math import assert_nn_le, unsigned_div_rem
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.uint256 import Uint256
 
@@ -132,13 +132,22 @@ func safe_read{range_check_ptr}(array_size, array : felt*, index) -> (value):
     end
 end
 
-func validate_array{range_check_ptr}(array_len, array : felt*):
+func validate_array{range_check_ptr}(array_size, array_len, array : felt*):
     # Verifies that all felts in the 'array' of length 'array_len' are
-    # in the range [0, 2^128).
+    # in the range [0, 2^128) and that the total number of bytes in
+    # the 'array' is 'array_size'.
     if array_len == 0:
         return ()
     end
     assert [range_check_ptr] = array[0]
     let range_check_ptr = range_check_ptr + 1
-    return validate_array(array_len - 1, array + 1)
+    if array_len == 1:
+        assert_nn_le(array_size, 16)
+        let (p) = pow2(128 - 8 * array_size)
+        let (_, remains) = unsigned_div_rem(array[0], p)
+        assert remains = 0
+        return ()
+    else:
+        return validate_array(array_size - 16, array_len - 1, array + 1)
+    end
 end
