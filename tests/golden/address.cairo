@@ -64,8 +64,8 @@ func __constructor_meat{memory_dict : DictAccess*, msize, range_check_ptr}() -> 
 end
 
 func __warp_block_1{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
-        syscall_ptr : felt*, termination_token}() -> ():
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        msize, range_check_ptr, syscall_ptr : felt*, termination_token}() -> ():
     alloc_locals
     let (__warp_subexpr_2 : Uint256) = calldatasize()
     let (__warp_subexpr_1 : Uint256) = u256_add(
@@ -83,8 +83,9 @@ func __warp_block_1{
 end
 
 func __warp_if_1{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize, range_check_ptr,
-        syscall_ptr : felt*, termination_token}(__warp_subexpr_0 : Uint256) -> ():
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        msize, range_check_ptr, syscall_ptr : felt*, termination_token}(
+        __warp_subexpr_0 : Uint256) -> ():
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         __warp_block_1()

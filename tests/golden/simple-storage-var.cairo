@@ -89,9 +89,9 @@ func abi_encode_uint256{memory_dict : DictAccess*, msize, range_check_ptr}(
 end
 
 func __warp_block_3{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize,
-        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*, termination_token}() -> (
-        ):
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        msize, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*,
+        termination_token}() -> ():
     alloc_locals
     let (__warp_subexpr_2 : Uint256) = calldatasize()
     let (__warp_subexpr_1 : Uint256) = u256_add(

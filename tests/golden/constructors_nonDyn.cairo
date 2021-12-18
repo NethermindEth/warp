@@ -208,9 +208,9 @@ func abi_encode_bool{memory_dict : DictAccess*, msize, range_check_ptr}(
 end
 
 func __warp_block_4{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize,
-        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*, termination_token}() -> (
-        ):
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        msize, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*,
+        termination_token}() -> ():
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = calldatasize()
     abi_decode(__warp_subexpr_0)

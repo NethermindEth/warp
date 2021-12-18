@@ -82,8 +82,9 @@ func __constructor_meat{memory_dict : DictAccess*, msize, range_check_ptr}() -> 
 end
 
 func storage_array_index_access_uint256_dyn{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(index : Uint256) -> (slot : Uint256, offset : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(index : Uint256) -> (
+        slot : Uint256, offset : Uint256):
     alloc_locals
     let (__warp_subexpr_2 : Uint256) = sload(Uint256(low=0, high=0))
     let (__warp_subexpr_1 : Uint256) = is_lt(index, __warp_subexpr_2)
@@ -117,8 +118,9 @@ func abi_decode_uint256{
 end
 
 func fun_get{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_i : Uint256) -> (var : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(var_i : Uint256) -> (
+        var : Uint256):
     alloc_locals
     let (__warp_subexpr_2 : Uint256) = sload(Uint256(low=0, high=0))
     let (__warp_subexpr_1 : Uint256) = is_lt(var_i, __warp_subexpr_2)

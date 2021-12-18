@@ -1,4 +1,5 @@
 from starkware.cairo.common.alloc import alloc
+from starkware.cairo.common.bitwise import bitwise_and, bitwise_not
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.dict import DictAccess, dict_read
 from starkware.cairo.common.math import assert_nn_le, unsigned_div_rem
@@ -11,8 +12,9 @@ from evm.pow2 import pow2
 
 const UINT128_BOUND = 2 ** 128
 
-func array_create_from_memory{memory_dict : DictAccess*, range_check_ptr}(offset, size) -> (
-        array : felt*):
+func array_create_from_memory{
+        memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        offset, size) -> (array : felt*):
     # Create a 128-bit packed big-endian array that contains memory
     # contents from offset to offset + size
     alloc_locals
@@ -21,7 +23,8 @@ func array_create_from_memory{memory_dict : DictAccess*, range_check_ptr}(offset
     return (array)
 end
 
-func array_copy_from_memory{memory_dict : DictAccess*, range_check_ptr}(
+func array_copy_from_memory{
+        memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
         offset, size, array : felt*):
     # Copies memory contents from 'offset' to 'offset + size' to
     # 'array'. See 'array_create_from_memory'.
@@ -32,28 +35,32 @@ func array_copy_from_memory{memory_dict : DictAccess*, range_check_ptr}(
 
     let (div, rem) = unsigned_div_rem(offset, 16)
     if rem == 0:
-        return copy_from_memory_aligned(offset, size, array)
+        let (n, excess) = unsigned_div_rem(size, 16)
+        copy_from_memory_aligned(excess, offset, n, array)
+        return ()
     end
 
     let (block) = dict_read{dict_ptr=memory_dict}(div * 16)
     let (p) = pow2(128 - 8 * rem)
     let (_, high_part) = unsigned_div_rem(block, p)
-    return copy_from_memory_shifted(
+    copy_from_memory_shifted(
         p=p, aligned_offset=offset + 16 - rem, high_part=high_part, size=size, array=array)
+    return ()
 end
 
-func copy_from_memory_aligned{memory_dict : DictAccess*, range_check_ptr}(
-        aligned_offset, size, array : felt*):
+func copy_from_memory_aligned{memory_dict : DictAccess*, bitwise_ptr : BitwiseBuiltin*}(
+        excess, aligned_offset, n, array : felt*):
     alloc_locals
     let (block) = dict_read{dict_ptr=memory_dict}(aligned_offset)
-    let (le) = is_le(size, 16)
-    if le == 1:
-        let (block) = replace_lower_bytes(block, 0, n=16 - size)
+    if n == 0:
+        let (p) = pow2(128 - 8 * excess)
+        let (mask) = bitwise_not(p - 1)
+        let (block) = bitwise_and(block, mask)
         array[0] = block
         return ()
     end
     array[0] = block
-    return copy_from_memory_aligned(aligned_offset + 16, size - 16, array + 1)
+    return copy_from_memory_aligned(excess, aligned_offset + 16, n - 1, array + 1)
 end
 
 func copy_from_memory_shifted{memory_dict : DictAccess*, range_check_ptr}(

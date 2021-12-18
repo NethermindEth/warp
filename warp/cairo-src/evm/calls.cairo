@@ -52,7 +52,8 @@ end
 # get_selector_from_name('__main')
 const main_selector = 0x1b999a79a454af1c08c7c350b2dcee00593e13477465ce7e83f9b73d4c4ab98
 
-func calldata_copy_from_memory{memory_dict : DictAccess*, range_check_ptr}(
+func calldata_copy_from_memory{
+        memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
         offset, size, array : felt*):
     alloc_locals
     let (primary_size) = get_max(0, size - 4)
@@ -106,8 +107,9 @@ func general_call{
     return (1)
 end
 
-func returndata_write{memory_dict : DictAccess*, exec_env : ExecutionEnvironment*, range_check_ptr}(
-        returndata_ptr, returndata_size):
+func returndata_write{
+        memory_dict : DictAccess*, exec_env : ExecutionEnvironment*, range_check_ptr,
+        bitwise_ptr : BitwiseBuiltin*}(returndata_ptr, returndata_size):
     alloc_locals
     let (__fp__, _) = get_fp_and_pc()
     let (returndata : felt*) = array_create_from_memory(returndata_ptr, returndata_size)

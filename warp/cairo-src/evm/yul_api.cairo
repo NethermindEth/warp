@@ -24,7 +24,8 @@ end
 
 func warp_return{
         memory_dict : DictAccess*, exec_env : ExecutionEnvironment*, range_check_ptr,
-        termination_token}(returndata_ptr : Uint256, returndata_size : Uint256):
+        termination_token, bitwise_ptr : BitwiseBuiltin*}(
+        returndata_ptr : Uint256, returndata_size : Uint256):
     alloc_locals
     let termination_token = 1
     returndata_write(returndata_ptr.low, returndata_size.low)

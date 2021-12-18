@@ -1,5 +1,5 @@
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.hash_chain import hash_chain
 from starkware.cairo.common.keccak import unsafe_keccak
@@ -21,8 +21,9 @@ func uint256_sha{range_check_ptr, memory_dict : DictAccess*, msize}(
     return sha(offset.low, size.low)
 end
 
-func pedersen{range_check_ptr, pedersen_ptr : HashBuiltin*, memory_dict : DictAccess*, msize}(
-        offset, size) -> (res):
+func pedersen{
+        range_check_ptr, pedersen_ptr : HashBuiltin*, memory_dict : DictAccess*, msize,
+        bitwise_ptr : BitwiseBuiltin*}(offset, size) -> (res):
     alloc_locals
     let (msize) = update_msize(msize, offset, size)
     let (array) = alloc()
@@ -34,8 +35,8 @@ func pedersen{range_check_ptr, pedersen_ptr : HashBuiltin*, memory_dict : DictAc
 end
 
 func uint256_pedersen{
-        range_check_ptr, pedersen_ptr : HashBuiltin*, memory_dict : DictAccess*, msize}(
-        offset : Uint256, size : Uint256) -> (res : Uint256):
+        range_check_ptr, pedersen_ptr : HashBuiltin*, memory_dict : DictAccess*, msize,
+        bitwise_ptr : BitwiseBuiltin*}(offset : Uint256, size : Uint256) -> (res : Uint256):
     let (felt_res) = pedersen(offset.low, size.low)
     let (res) = felt_to_uint256(felt_res)
     return (res)
