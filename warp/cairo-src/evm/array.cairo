@@ -81,12 +81,12 @@ end
 
 func array_copy_to_memory{
         memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
-        array_size, array : felt*, array_offset, memory_offset, size):
-    # Given a 128-bit packed 'array' with a total of 'array_size'
-    # bytes, copy from the array 'size' bytes starting with
-    # 'array_offset' into memory starting with 'memory_offset'.
+        array_len, array : felt*, array_offset, memory_offset, size):
+    # Given a 128-bit packed 'array' of length 'array_len', copy from
+    # the array 'size' bytes starting with 'array_offset' into memory
+    # starting with 'memory_offset'.
     alloc_locals
-    let (block) = array_load(array_size, array, array_offset)
+    let (block) = array_load(array_len, array, array_offset)
     let (le_32) = is_le(size, 32)
     if le_32 == 1:
         let (le_16) = is_le(size, 16)
@@ -100,36 +100,45 @@ func array_copy_to_memory{
         return ()
     end
     mstore(memory_offset, block)
-    return array_copy_to_memory(array_size, array, array_offset + 32, memory_offset + 32, size - 32)
+    return array_copy_to_memory(array_len, array, array_offset + 32, memory_offset + 32, size - 32)
 end
 
-func array_load{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
-        array_size : felt, array : felt*, offset) -> (value : Uint256):
+func array_load{range_check_ptr}(array_len : felt, array : felt*, offset) -> (value : Uint256):
     # Load a value from a 128-bit packed big-endian
     # array.
     #
-    # 'array_size' is the size of the array in bytes.
+    # 'array_len' is the length of the array.
     # 'offset' is the byte to start reading from.
     alloc_locals
     let (index, rem) = unsigned_div_rem(offset, 16)
-    let (high) = safe_read(array_size, array, index)
-    let (mid) = safe_read(array_size, array, index + 1)
     if rem == 0:
-        return (Uint256(low=mid, high=high))
+        let (has_two) = is_le(index + 2, array_len)
+        if has_two == 1:
+            return (Uint256(low=array[index + 1], high=array[index]))
+        end
+        if index + 1 == array_len:
+            return (Uint256(low=0, high=array[index]))
+        end
+        return (Uint256(0, 0))
     end
-    let (low) = safe_read(array_size, array, index + 2)
-    let (unaligned_low) = extract_unaligned_uint128(shift=rem, low=low, high=mid)
-    let (unaligned_high) = extract_unaligned_uint128(shift=rem, low=mid, high=high)
-    return (Uint256(low=unaligned_low, high=unaligned_high))
-end
-
-func safe_read{range_check_ptr}(array_size, array : felt*, index) -> (value):
-    let (le) = is_le(array_size, index * 16)  # array_size is measured in bytes, 16 in a cell
-    if le == 1:
-        return (0)
-    else:
-        return (array[index])
+    let (p) = pow2(128 - 8 * rem)
+    let (has_three) = is_le(index + 3, array_len)
+    if has_three == 1:
+        let (_, h1) = unsigned_div_rem(array[index], p)
+        let (l1, h2) = unsigned_div_rem(array[index + 1], p)
+        let (l2, _) = unsigned_div_rem(array[index + 2], p)
+        return (Uint256(low=l2 + UINT128_BOUND * h2 / p, high=l1 + UINT128_BOUND * h1 / p))
     end
+    if index + 2 == array_len:
+        let (_, h1) = unsigned_div_rem(array[index], p)
+        let (l1, h2) = unsigned_div_rem(array[index + 1], p)
+        return (Uint256(low=UINT128_BOUND * h2 / p, high=l1 + UINT128_BOUND * h1 / p))
+    end
+    if index + 1 == array_len:
+        let (_, h1) = unsigned_div_rem(array[index], p)
+        return (Uint256(low=0, high=UINT128_BOUND * h1 / p))
+    end
+    return (Uint256(0, 0))
 end
 
 func validate_array{range_check_ptr}(array_size, array_len, array : felt*):

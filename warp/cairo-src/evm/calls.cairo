@@ -24,7 +24,7 @@ func calldatacopy{
     alloc_locals
     let (msize) = update_msize(msize, dest_offset.low, size.low)
     array_copy_to_memory(
-        exec_env.calldata_size, exec_env.calldata, offset.low + 12, dest_offset.low, size.low)
+        exec_env.calldata_len, exec_env.calldata, offset.low + 12, dest_offset.low, size.low)
     return ()
 end
 
@@ -34,7 +34,7 @@ end
 
 func calldataload{range_check_ptr, exec_env : ExecutionEnvironment*, bitwise_ptr : BitwiseBuiltin*}(
         offset : Uint256) -> (value : Uint256):
-    let (value) = array_load(exec_env.calldata_size, exec_env.calldata, offset.low + 12)
+    let (value) = array_load(exec_env.calldata_len, exec_env.calldata, offset.low + 12)
     return (value=value)
 end
 
@@ -43,11 +43,7 @@ func returndata_copy{
         bitwise_ptr : BitwiseBuiltin*}(
         memory_pos : Uint256, returndata_pos : Uint256, size : Uint256):
     array_copy_to_memory(
-        exec_env.returndata_size,
-        exec_env.returndata,
-        returndata_pos.low,
-        memory_pos.low,
-        size.low)
+        exec_env.returndata_len, exec_env.returndata, returndata_pos.low, memory_pos.low, size.low)
     return ()
 end
 
@@ -95,7 +91,7 @@ func general_call{
     assert cairo_retdata_size = returndata_len + 2
 
     validate_array(returndata_size, returndata_len, returndata)
-    array_copy_to_memory(returndata_size, returndata, 0, out_offset, out_size)
+    array_copy_to_memory(returndata_len, returndata, 0, out_offset, out_size)
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(
         calldata_size=exec_env.calldata_size,
         calldata_len=exec_env.calldata_len,
