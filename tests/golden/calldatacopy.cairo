@@ -71,12 +71,13 @@ func __warp_block_1{
     let (__warp_subexpr_1 : Uint256) = u256_add(
         __warp_subexpr_2,
         Uint256(low=340282366920938463463374607431768211452, high=340282366920938463463374607431768211455))
-    let (__warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=0, high=0))
+    let (__warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=32, high=0))
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         assert 0 = 1
         jmp rel 0
     end
-    calldatacopy(Uint256(low=0, high=0), Uint256(low=0, high=0), Uint256(low=4, high=0))
+    let (__warp_subexpr_3 : Uint256) = calldataload(Uint256(low=4, high=0))
+    calldatacopy(__warp_subexpr_3, Uint256(low=0, high=0), Uint256(low=4, high=0))
     warp_return(Uint256(low=0, high=0), Uint256(low=4, high=0))
     return ()
 end
@@ -99,7 +100,7 @@ func __warp_block_0{
     alloc_locals
     let (__warp_subexpr_2 : Uint256) = calldataload(Uint256(low=0, high=0))
     let (__warp_subexpr_1 : Uint256) = u256_shr(Uint256(low=224, high=0), __warp_subexpr_2)
-    let (__warp_subexpr_0 : Uint256) = is_eq(Uint256(low=2965284645, high=0), __warp_subexpr_1)
+    let (__warp_subexpr_0 : Uint256) = is_eq(Uint256(low=1852658519, high=0), __warp_subexpr_1)
     __warp_if_1(__warp_subexpr_0)
     return ()
 end
