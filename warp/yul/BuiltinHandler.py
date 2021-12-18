@@ -245,7 +245,11 @@ class Shl(StaticHandler):
 
 class Shr(StaticHandler):
     def __init__(self):
-        super().__init__(function_name="u256_shr", module="evm.uint256")
+        super().__init__(
+            function_name="u256_shr",
+            module="evm.uint256",
+            used_implicits=("range_check_ptr", "bitwise_ptr"),
+        )
 
 
 class Sar(StaticHandler):
