@@ -19,7 +19,7 @@ test: test_bats test_yul benchmark
 .PHONY: test
 
 test_bats: warp $(BATS_FILES) tests/cli/*.bats
-	bats -j $(NPROCS) $^ $(BATS_ARGS)
+	bats -j $(NPROCS) $^ $(ARGS)
 .PHONY: test_bats
 
 test_yul: warp

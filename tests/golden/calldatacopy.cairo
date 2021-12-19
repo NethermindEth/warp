@@ -20,7 +20,7 @@ end
 @constructor
 func constructor{range_check_ptr}(calldata_size, calldata_len, calldata : felt*):
     alloc_locals
-    validate_array(calldata_len, calldata)
+    validate_array(calldata_size, calldata_len, calldata)
     let (memory_dict) = default_dict_new(0)
     let memory_dict_start = memory_dict
     let msize = 0
@@ -36,7 +36,7 @@ func __main{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
         calldata_size, calldata_len, calldata : felt*) -> (
         returndata_size, returndata_len, returndata : felt*):
     alloc_locals
-    validate_array(calldata_len, calldata)
+    validate_array(calldata_size, calldata_len, calldata)
     let (__fp__, _) = get_fp_and_pc()
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=cast(0, felt*), to_returndata_size=0, to_returndata_len=0, to_returndata=cast(0, felt*))
     let exec_env : ExecutionEnvironment* = &exec_env_
@@ -71,12 +71,13 @@ func __warp_block_1{
     let (__warp_subexpr_1 : Uint256) = u256_add(
         __warp_subexpr_2,
         Uint256(low=340282366920938463463374607431768211452, high=340282366920938463463374607431768211455))
-    let (__warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=0, high=0))
+    let (__warp_subexpr_0 : Uint256) = slt(__warp_subexpr_1, Uint256(low=32, high=0))
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         assert 0 = 1
         jmp rel 0
     end
-    calldatacopy(Uint256(low=0, high=0), Uint256(low=0, high=0), Uint256(low=4, high=0))
+    let (__warp_subexpr_3 : Uint256) = calldataload(Uint256(low=4, high=0))
+    calldatacopy(__warp_subexpr_3, Uint256(low=0, high=0), Uint256(low=4, high=0))
     warp_return(Uint256(low=0, high=0), Uint256(low=4, high=0))
     return ()
 end
@@ -99,7 +100,7 @@ func __warp_block_0{
     alloc_locals
     let (__warp_subexpr_2 : Uint256) = calldataload(Uint256(low=0, high=0))
     let (__warp_subexpr_1 : Uint256) = u256_shr(Uint256(low=224, high=0), __warp_subexpr_2)
-    let (__warp_subexpr_0 : Uint256) = is_eq(Uint256(low=2965284645, high=0), __warp_subexpr_1)
+    let (__warp_subexpr_0 : Uint256) = is_eq(Uint256(low=1852658519, high=0), __warp_subexpr_1)
     __warp_if_1(__warp_subexpr_0)
     return ()
 end

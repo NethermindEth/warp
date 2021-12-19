@@ -157,24 +157,17 @@ def get_source_version(sol_source: str) -> float:
     raise Exception("No Solidity version specified in contract")
 
 
-def cairoize_bytes(bs: bytes) -> tuple(List[int], int):
+def cairoize_bytes(bs: bytes, shifted=False) -> tuple(List[int], int):
     """Represent bytes as an array of 128-bit big-endian integers and
     return a number of unused bytes in the last array cell.
+
+    'shifted' indicates if 'bs' should be shifted 12-bytes to the
+    right, so as to be suitable as Warp calldata.
+
     """
+    if shifted:
+        bs = b"\x00" * 12 + bs
     unused_bytes = -len(bs) % 16
     bs = bs.ljust(len(bs) + unused_bytes, b"\x00")
     arr = [int.from_bytes(bs[i : i + 16], "big") for i in range(0, len(bs), 16)]
     return (arr, unused_bytes)
-
-
-def make_abi_StarkNet_encodable(abi):
-    """
-    Because we need 31 byte addresses for starknet, we need to encode them as uint256,
-    but if we pass an abi with address types to solcx, it will try to validate the address by
-    checksum & making sure it's 20-bytes. So we just change the address abi types to uint256.
-    This is fine because our fork of solc treats address types as uint256 anyway.
-    We will replace this hackery with our own encoder in the future.
-    """
-    abiStr = f"{abi}".replace("'address'", "'uint256'")
-    abiStr = abiStr.replace("'", '"')
-    return json.loads(abiStr)

@@ -46,7 +46,7 @@ func constructor{
         bitwise_ptr : BitwiseBuiltin*, pedersen_ptr : HashBuiltin*, range_check_ptr,
         syscall_ptr : felt*}(calldata_size, calldata_len, calldata : felt*):
     alloc_locals
-    validate_array(calldata_len, calldata)
+    validate_array(calldata_size, calldata_len, calldata)
     let (__fp__, _) = get_fp_and_pc()
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=cast(0, felt*), to_returndata_size=0, to_returndata_len=0, to_returndata=cast(0, felt*))
     let exec_env : ExecutionEnvironment* = &exec_env_
@@ -66,7 +66,7 @@ func __main{
         syscall_ptr : felt*}(calldata_size, calldata_len, calldata : felt*) -> (
         returndata_size, returndata_len, returndata : felt*):
     alloc_locals
-    validate_array(calldata_len, calldata)
+    validate_array(calldata_size, calldata_len, calldata)
     let (__fp__, _) = get_fp_and_pc()
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=cast(0, felt*), to_returndata_size=0, to_returndata_len=0, to_returndata=cast(0, felt*))
     let exec_env : ExecutionEnvironment* = &exec_env_
@@ -105,9 +105,9 @@ func __constructor_meat{
 end
 
 func __warp_block_3{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, msize,
-        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*, termination_token}() -> (
-        ):
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        msize, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*,
+        termination_token}() -> ():
     alloc_locals
     let (__warp_subexpr_2 : Uint256) = calldatasize()
     let (__warp_subexpr_1 : Uint256) = u256_add(

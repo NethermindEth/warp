@@ -37,7 +37,7 @@ end
 @constructor
 func constructor{range_check_ptr}(calldata_size, calldata_len, calldata : felt*):
     alloc_locals
-    validate_array(calldata_len, calldata)
+    validate_array(calldata_size, calldata_len, calldata)
     let (memory_dict) = default_dict_new(0)
     let memory_dict_start = memory_dict
     let msize = 0
@@ -54,7 +54,7 @@ func __main{
         syscall_ptr : felt*}(calldata_size, calldata_len, calldata : felt*) -> (
         returndata_size, returndata_len, returndata : felt*):
     alloc_locals
-    validate_array(calldata_len, calldata)
+    validate_array(calldata_size, calldata_len, calldata)
     let (__fp__, _) = get_fp_and_pc()
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=cast(0, felt*), to_returndata_size=0, to_returndata_len=0, to_returndata=cast(0, felt*))
     let exec_env : ExecutionEnvironment* = &exec_env_
@@ -82,8 +82,9 @@ func __constructor_meat{memory_dict : DictAccess*, msize, range_check_ptr}() -> 
 end
 
 func __warp_block_2{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_src : Uint256, var_wad : Uint256) -> (var_res : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        var_src : Uint256, var_wad : Uint256) -> (var_res : Uint256):
     alloc_locals
     uint256_mstore(offset=Uint256(low=0, high=0), value=var_src)
     uint256_mstore(offset=Uint256(low=32, high=0), value=Uint256(low=0, high=0))
@@ -101,9 +102,9 @@ func __warp_block_2{
 end
 
 func __warp_if_0{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(__warp_subexpr_0 : Uint256, var_src : Uint256, var_wad : Uint256) -> (
-        var_res : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        __warp_subexpr_0 : Uint256, var_src : Uint256, var_wad : Uint256) -> (var_res : Uint256):
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         let var_res : Uint256 = Uint256(low=2, high=0)
@@ -115,9 +116,9 @@ func __warp_if_0{
 end
 
 func __warp_block_1{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(match_var : Uint256, var_src : Uint256, var_wad : Uint256) -> (
-        var_res : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        match_var : Uint256, var_src : Uint256, var_wad : Uint256) -> (var_res : Uint256):
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=0, high=0))
     let (var_res : Uint256) = __warp_if_0(__warp_subexpr_0, var_src, var_wad)
@@ -125,9 +126,9 @@ func __warp_block_1{
 end
 
 func __warp_block_0{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_sender : Uint256, var_src : Uint256, var_wad : Uint256) -> (
-        var_res : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        var_sender : Uint256, var_src : Uint256, var_wad : Uint256) -> (var_res : Uint256):
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = is_eq(var_src, var_sender)
     let (match_var : Uint256) = is_zero(__warp_subexpr_0)
@@ -136,9 +137,9 @@ func __warp_block_0{
 end
 
 func fun_transferFrom{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_src : Uint256, var_wad : Uint256, var_sender : Uint256) -> (
-        var : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        var_src : Uint256, var_wad : Uint256, var_sender : Uint256) -> (var : Uint256):
     alloc_locals
     let (var_res : Uint256) = __warp_block_0(var_sender, var_src, var_wad)
     let var : Uint256 = var_res

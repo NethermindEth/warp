@@ -26,14 +26,14 @@ func ceil_div{range_check_ptr}(a, b) -> (res):
     end
 end
 
-func update_msize{range_check_ptr}(size, offset, length) -> (result):
+func update_msize{range_check_ptr}(msize, offset, size) -> (result):
     # Update MSIZE on memory access from 'offset' to 'offset +
-    # length', according to the rules specified in the yellow paper.
-    if length == 0:
-        return (size)
+    # size', according to the rules specified in the yellow paper.
+    if size == 0:
+        return (msize)
     end
 
-    let (result) = get_max(size, offset + length)
+    let (result) = get_max(msize, offset + size)
     return (result)
 end
 

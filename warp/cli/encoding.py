@@ -56,6 +56,6 @@ def get_evm_calldata(abi: ABI, fn_name: str, inputs: Sequence[Any]) -> bytes:
 
 
 def get_cairo_calldata(evm_calldata: bytes) -> Sequence[int]:
-    cairo_input, unused_bytes = cairoize_bytes(evm_calldata)
+    cairo_input, unused_bytes = cairoize_bytes(evm_calldata, shifted=True)
     calldata_size = (len(cairo_input) * 16) - unused_bytes
     return [calldata_size, len(cairo_input), *cairo_input]

@@ -389,7 +389,13 @@ class Pedersen(StaticHandler):
         super().__init__(
             function_name="uint256_pedersen",
             module="evm.hashing",
-            used_implicits=("memory_dict", "msize", "range_check_ptr", "pedersen_ptr"),
+            used_implicits=(
+                "memory_dict",
+                "msize",
+                "range_check_ptr",
+                "pedersen_ptr",
+                "bitwise_ptr",
+            ),
         )
 
 
@@ -468,6 +474,7 @@ class Return(StaticHandler):
                 "memory_dict",
                 "range_check_ptr",
                 "termination_token",
+                "bitwise_ptr",
             ),
         )
 
