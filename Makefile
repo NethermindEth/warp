@@ -31,6 +31,11 @@ test_yul: warp
 	python -m pytest tests/behaviour/ -v --tb=short --workers=auto $(ARGS)
 .PHONY: test_yul
 
+test_semantics: warp
+	tests/semantic/init_test.sh
+	python -m pytest tests/semantic/test_semantics.py -v --tb=short --workers=auto $(ARGS)
+.PHONY: test_semantics
+
 benchmark: warp
 	mkdir -p benchmark/stats
 	mkdir -p benchmark/tmp

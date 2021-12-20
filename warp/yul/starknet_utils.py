@@ -19,6 +19,18 @@ async def invoke_method(
     )
 
 
+async def invoke_method_evm_calldata(
+    starknet: StarknetState, address: str, evm_calldata: bytes
+) -> TransactionExecutionInfo:
+    cairo_calldata = get_cairo_calldata(evm_calldata)
+    return await starknet.invoke_raw(
+        contract_address=address,
+        selector="__main",
+        calldata=cairo_calldata,
+        caller_address=0,
+    )
+
+
 async def deploy_contract(
     starknet: StarknetState,
     program_info: dict,
@@ -26,6 +38,17 @@ async def deploy_contract(
     *args: list,
 ) -> str:
     evm_calldata = get_ctor_evm_calldata(program_info["sol_abi"], args)
+    cairo_calldata = get_cairo_calldata(evm_calldata)
+    return await starknet.deploy(
+        contract_definition=contract_definition, constructor_calldata=cairo_calldata
+    )
+
+
+async def deploy_contract_evm_calldata(
+    starknet: StarknetState,
+    contract_definition: ContractDefinition,
+    evm_calldata: bytes,
+) -> str:
     cairo_calldata = get_cairo_calldata(evm_calldata)
     return await starknet.deploy(
         contract_definition=contract_definition, constructor_calldata=cairo_calldata
