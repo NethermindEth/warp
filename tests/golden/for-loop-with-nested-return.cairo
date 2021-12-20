@@ -110,18 +110,31 @@ func __warp_loop_0{range_check_ptr}(
     return (__warp_leave_0, var, var_k_1)
 end
 
-func __warp_block_0{range_check_ptr}(var : Uint256, var_i : Uint256, var_j : Uint256) -> (
-        var : Uint256, var_k_1 : Uint256):
+func __warp_block_0{range_check_ptr}(
+        __warp_leave_5 : Uint256, var : Uint256, var_i : Uint256, var_j : Uint256,
+        var_k_1 : Uint256) -> (__warp_leave_5 : Uint256, var : Uint256, var_k_1 : Uint256):
     alloc_locals
+    let __warp_leave_0 : Uint256 = Uint256(low=0, high=0)
     let (__warp_leave_0 : Uint256, var : Uint256, var_k_1 : Uint256) = __warp_loop_0(
-        Uint256(low=0, high=0), var, var_i, var_j, Uint256(low=0, high=0), Uint256(low=0, high=0))
-    return (var, var_k_1)
+        __warp_leave_0, var, var_i, var_j, Uint256(low=0, high=0), var_k_1)
+    if __warp_leave_0.low + __warp_leave_0.high != 0:
+        let __warp_leave_5 : Uint256 = Uint256(low=1, high=0)
+        return (__warp_leave_5, var, var_k_1)
+    else:
+        return (__warp_leave_5, var, var_k_1)
+    end
 end
 
 func fun_transferFrom{range_check_ptr}(var_i : Uint256, var_j : Uint256) -> (var : Uint256):
     alloc_locals
     let var : Uint256 = Uint256(low=0, high=0)
-    let (var : Uint256, var_k_1 : Uint256) = __warp_block_0(var, var_i, var_j)
+    let __warp_leave_5 : Uint256 = Uint256(low=0, high=0)
+    let var_k_1 : Uint256 = Uint256(low=0, high=0)
+    let (__warp_leave_5 : Uint256, var : Uint256, var_k_1 : Uint256) = __warp_block_0(
+        __warp_leave_5, var, var_i, var_j, var_k_1)
+    if __warp_leave_5.low + __warp_leave_5.high != 0:
+        return (var)
+    end
     let var : Uint256 = Uint256(low=1, high=0)
     return (var)
 end

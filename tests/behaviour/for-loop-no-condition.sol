@@ -1,0 +1,1 @@
+../golden/for-loop-no-condition.sol

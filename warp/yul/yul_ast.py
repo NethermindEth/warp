@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 
 class Node(ABC):
@@ -74,7 +74,7 @@ class VariableDeclaration(Node):
 
 @dataclass(eq=False, frozen=True)
 class Block(Node):
-    statements: tuple["Statement", ...] = ()
+    statements: "Statements" = ()
 
 
 @dataclass(eq=False, frozen=True)
@@ -154,6 +154,8 @@ Statement = Union[
     Leave,
     Block,
 ]
+
+Statements = Tuple[Statement, ...]
 
 NODE_TYPES = frozenset(
     (
