@@ -41,6 +41,9 @@ class ForLoopEliminator(AstMapper):
         assert not node.post.statements, "Loop not simplified"
 
         with self._new_for_loop():
+            assert self.loop_name and self.body_name
+            assert self.leave_name and self.break_name
+
             body = self.visit(node.body)
             body_fun, body_stmt = extract_block_as_function(body, self.body_name)
 
@@ -56,6 +59,7 @@ class ForLoopEliminator(AstMapper):
             self.aux_functions.extend((body_fun, head_fun))
 
             leave_id = ast.Identifier(self.leave_name)
+            call_statements: ast.Statements
             if leave_id not in get_scope(body).modified_variables:
                 call_statements = (head_stmt,)
             else:
@@ -71,6 +75,7 @@ class ForLoopEliminator(AstMapper):
             return ast.Block(call_statements)
 
     def visit_break(self, node: ast.Break):
+        assert self.break_name
         return ast.Block(
             (
                 ast.Assignment(
@@ -114,10 +119,11 @@ class ForLoopEliminator(AstMapper):
     def _make_loop_head(
         self, condition: ast.Expression, body_stmt: ast.Statement, rec: ast.Statement
     ) -> ast.Block:
+        assert self.break_name and self.leave_name
         break_id = ast.Identifier(self.break_name)
         leave_id = ast.Identifier(self.leave_name)
         modified_vars = get_scope(ast.Block((body_stmt,))).modified_variables
-        head_stmts = []
+        head_stmts: list[ast.Statement] = []
         if break_id in modified_vars:
             head_stmts.append(
                 ast.VariableDeclaration(

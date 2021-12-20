@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import yul.yul_ast as ast
 from yul.AstMapper import AstMapper
 
-Scope = Dict[str, ast.Literal]
+Scope = Dict[str, Optional[ast.Literal]]
 
 
 class VariableInliner(AstMapper):
@@ -27,19 +27,17 @@ class VariableInliner(AstMapper):
         self, node: ast.VariableDeclaration
     ) -> ast.VariableDeclaration:
         current_scope = self.scope[-1]
-        # We only care about the cases where the rhs is either a implicit
-        # literal (rhs is None and value is 0) explicit literal or an
-        # identifier. In the latter two cases only one variable can be
-        # declared.
-        var_name = node.variables[0].name
         if isinstance(node.value, ast.Literal):
-            current_scope[var_name] = node.value
+            assert len(node.variables) == 1
+            current_scope[node.variables[0].name] = node.value
         elif isinstance(node.value, ast.Identifier):
-            val_and_scope = self.scope_lookup(node.value.name)
-            current_scope[var_name] = val_and_scope[0] if val_and_scope else None
+            assert len(node.variables) == 1
+            current_scope[node.variables[0].name] = self._val_lookup(node.value.name)
         elif node.value is None:
             for var in node.variables:
                 current_scope[var.name] = ast.Literal(0)
+        else:
+            assert isinstance(node.value, ast.FunctionCall)
 
         return ast.VariableDeclaration(
             variables=node.variables,
@@ -47,22 +45,20 @@ class VariableInliner(AstMapper):
         )
 
     def visit_assignment(self, node: ast.Assignment) -> ast.Assignment:
-        current_scope = self.scope[-1]
-        # We only care about the cases where the rhs is either explicit literal
-        # or an identifier. In these cases only one variable can be assigned to.
-        var_name = node.variable_names[0].name
-        val_and_scope = self.scope_lookup(var_name)
-        # Invalidate |var_name| in |definition_scope| if it was not declared in the
-        # current scope.
-        if var_name not in current_scope and val_and_scope:
-            (_, definition_scope) = val_and_scope
-            definition_scope[var_name] = None
-
         if isinstance(node.value, ast.Literal):
-            current_scope[var_name] = node.value
+            assert len(node.variable_names) == 1
+            var_name = node.variable_names[0].name
+            self._assign_value(var_name, node.value)
         elif isinstance(node.value, ast.Identifier):
-            current_scope[var_name] = val_and_scope[0] if val_and_scope else None
-
+            assert len(node.variable_names) == 1
+            var_name = node.variable_names[0].name
+            ident_value = self._val_lookup(node.value.name)
+            self._assign_value(var_name, ident_value)
+        else:
+            assert isinstance(node.value, ast.FunctionCall)
+            for var in node.variable_names:
+                # Can't calculate the value, invalidate the old one
+                self._assign_value(var.name, None)
         return ast.Assignment(
             variable_names=node.variable_names,
             value=self.visit(node.value),
@@ -71,13 +67,29 @@ class VariableInliner(AstMapper):
     def visit_identifier(
         self, node: ast.Identifier
     ) -> Union[ast.Literal, ast.Identifier]:
-        val_and_scope = self.scope_lookup(node.name)
-        return val_and_scope[0] if val_and_scope else node
+        return self._val_lookup(node.name) or node
 
-    def scope_lookup(self, var_name: str) -> Optional[Tuple[ast.Literal, Scope]]:
+    def _info_lookup(self, var_name: str) -> Optional[Tuple[ast.Literal, Scope]]:
         for scope in reversed(self.scope):
             value = scope.get(var_name)
             if value:
                 return (value, scope)
-
         return None
+
+    def _val_lookup(self, var_name: str) -> Optional[ast.Literal]:
+        val_and_scope = self._info_lookup(var_name)
+        if val_and_scope:
+            return val_and_scope[0]
+        return None
+
+    def _scope_lookup(self, var_name: str) -> Optional[Scope]:
+        val_and_scope = self._info_lookup(var_name)
+        if val_and_scope:
+            return val_and_scope[1]
+        return None
+
+    def _assign_value(self, var_name: str, value: Optional[ast.Literal]):
+        definition_scope = self._scope_lookup(var_name)
+        if definition_scope:
+            definition_scope[var_name] = None
+        self.scope[-1][var_name] = value
