@@ -31,6 +31,23 @@ export async function starknet_invoke(
   return response;
 }
 
+export async function starknet_deploy(
+  inputs: string[],
+  cairo_contract: string,
+  program_info: string,
+): Promise<AxiosResponse<any, any>> {
+  const response = await axios.post('http://localhost:5000/gateway/add_transaction', {
+    tx_type: 'deploy',
+    cairo_contract: cairo_contract,
+    program_info: program_info,
+    input: inputs,
+  });
+  return response;
+}
+
 export async function transpile(contractPath: string, mainContract: string) {
+  await sh(
+    `warp --network ALPHA transpile --cairo-output ${contractPath} ${mainContract}`,
+  );
   await sh(`warp transpile ${contractPath} ${mainContract}`);
 }
