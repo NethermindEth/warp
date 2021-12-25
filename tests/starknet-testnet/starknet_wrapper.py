@@ -76,7 +76,7 @@ class StarknetWrapper:
 
     def get_code(self, contract_address: int) -> dict:
         if self.contract_deployed(contract_address):
-            contract_wrapper = self.get_contract_wrapper(contract_address)
+            contract_wrapper = self.address2contract[contract_address]
             return contract_wrapper.code
         return {"abi": {}, "bytecode": []}
 
