@@ -3,70 +3,8 @@ from __future__ import annotations
 import json
 import os
 import re
-from typing import List, Optional, Sequence
 
 UPPERCASE_PATTERN = re.compile(r"[A-Z]")
-
-STATEMENT_STRINGS = {
-    "ExpressionStatement",
-    "Assignment",
-    "VariableDeclaration",
-    "FunctionDefinition",
-    "If",
-    "Switch",
-    "ForLoop",
-    "Break",
-    "Continue",
-    "Leave",
-    "Block",
-}
-
-UNSUPPORTED_BUILTINS = [
-    "balance",
-    "basefee",
-    "blockhash",
-    "chainid",
-    "codecopy",
-    "codesize",
-    "coinbase",
-    "create2",
-    "delegatecall",
-    "difficulty",
-    "extcodecopy",
-    "extcodehash",
-    "extcodesize",
-    "gaslimit",
-    "gasprice",
-    "invalid",
-    "log0",
-    "log1",
-    "log2",
-    "log3",
-    "log4",
-    "number",
-    "origin",
-    "pc",
-    "selfbalance",
-    "selfdestruct",
-    "timestamp",
-]
-
-
-def get_low_bits(string: str) -> str:
-    return get_low_high(string)[0]
-
-
-def get_low_high(string: str) -> str:
-    try:
-        value = int(string)
-        high, low = divmod(value, 2 ** 128)
-        return f"{low}", f"{high}"
-    except ValueError:
-        return f"{string}.low", f"{string}.high"
-
-
-def is_statement(node):
-    return type(node).__name__ in STATEMENT_STRINGS
 
 
 def remove_prefix(text, prefix):
@@ -102,7 +40,7 @@ def clean_path(sol_source):
         return sol_source
 
 
-def get_kudu_output(args: List[str], sol_source) -> dict:
+def get_kudu_output(args: list[str], sol_source) -> dict:
     args = ",".join(args)
     output_str = os.popen(f"kudu --combined-json {args} {sol_source}").read().strip()
     output = json.loads(output_str)
@@ -157,7 +95,7 @@ def get_source_version(sol_source: str) -> float:
     raise Exception("No Solidity version specified in contract")
 
 
-def cairoize_bytes(bs: bytes, shifted=False) -> tuple(List[int], int):
+def cairoize_bytes(bs: bytes, shifted=False) -> tuple[list[int], int]:
     """Represent bytes as an array of 128-bit big-endian integers and
     return a number of unused bytes in the last array cell.
 

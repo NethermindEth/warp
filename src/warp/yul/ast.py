@@ -175,3 +175,34 @@ NODE_TYPES = frozenset(
         Block,
     )
 )
+
+
+# The following block is needed because 'isinstance(x, Union[bla,
+# bla])' doesn't work in Python 3.7, so working around.
+def as_expression(x: Node) -> Optional[Expression]:
+    if isinstance(x, (Literal, Identifier, FunctionCall)):
+        return x
+    return None
+
+
+# pytype: disable=bad-return-type
+def as_statement(x: Node) -> Optional[Statement]:
+    expr = as_expression(x)
+    if expr:
+        return None
+    return x
+
+
+# pytype: enable=bad-return-type
+
+
+def assert_expression(x: Node) -> Expression:
+    expr = as_expression(x)
+    assert expr
+    return expr
+
+
+def assert_statement(x: Node) -> Statement:
+    stmt = as_statement(x)
+    assert stmt
+    return stmt

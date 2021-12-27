@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from contextlib import contextmanager
-from typing import Callable, Optional
+from typing import Callable, Mapping, Optional
 
 import warp.yul.ast as ast
 from warp.yul.AstVisitor import AstVisitor
@@ -47,7 +47,7 @@ class ToCairoVisitor(AstVisitor):
         self,
         name_gen: NameGenerator,
         cairo_functions: CairoFunctions,
-        builtins_map: Callable[[CairoFunctions], dict[str, BuiltinHandler]],
+        builtins_map: Callable[[CairoFunctions], Mapping[str, BuiltinHandler]],
     ):
         super().__init__()
         self.name_gen = name_gen

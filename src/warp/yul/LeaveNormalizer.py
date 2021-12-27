@@ -28,7 +28,7 @@ def normalize_block(block: ast.Block) -> ast.Block:
     return ast.Block(normalize_statements(block.statements))
 
 
-def normalize_statements(statements: tuple[ast.Statement]) -> tuple[ast.Statement]:
+def normalize_statements(statements: ast.Statements) -> ast.Statements:
     statements = strip_trailing_leaves(statements)
     if statements and isinstance(statements[-1], ast.If):
         return (*statements[:-1], normalize_if(statements[-1]))
@@ -46,7 +46,7 @@ def normalize_if(if_node: ast.If) -> ast.If:
     )
 
 
-def strip_trailing_leaves(statements: tuple[ast.Statement]) -> tuple[ast.Statement]:
+def strip_trailing_leaves(statements: ast.Statements) -> ast.Statements:
     leave_no = len(statements)
     while leave_no > 0 and isinstance(statements[leave_no - 1], ast.Leave):
         leave_no -= 1

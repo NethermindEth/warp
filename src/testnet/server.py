@@ -4,7 +4,7 @@ import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-from testnet.starknet_wrapper import StarknetWrapper
+from .starknet_wrapper import StarknetWrapper
 
 app = Flask(__name__)
 CORS(app)
@@ -61,7 +61,7 @@ async def add_transaction():
 
 
 def main():
-    from util import parse_args
+    from .util import parse_args
 
     # reduce startup logging
     os.environ["WERKZEUG_RUN_MAIN"] = "true"

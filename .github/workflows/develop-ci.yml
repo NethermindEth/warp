@@ -21,6 +21,26 @@ jobs:
           isort --ext cairo src/warp/cairo-src --check --verbose --diff --color
           find src/warp/cairo-src/ -iname *.cairo -exec cairo-format -c {} +
 
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7 # Cairo was tested with this version
+
+      - name: Install Warp to pull in dependencies
+        run: make
+
+      - name: Typecheck
+        run: |
+          pip install pytype==2022.01.13
+          pytype . \
+            --keep-going \
+            --exclude ./tests/semantic/solidity ./src/testnet ./build \
+            --jobs auto
+
   test-complete:
     runs-on: ubuntu-latest
     steps:

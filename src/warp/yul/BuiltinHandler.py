@@ -11,11 +11,6 @@ from warp.yul.Imports import Imports
 UINT256_MODULE = "starkware.cairo.common.uint256"
 
 
-class PrettyType(type):
-    def __repr__(self):
-        return self.__name__
-
-
 class BuiltinHandler(ABC):
     """Describes how an operation built into Yul translates to Cairo.
 
@@ -150,36 +145,14 @@ class DynamicHandler(BuiltinHandler):
         return self.info_gen().kwarg_names
 
 
-class NotImplementedOp(DynamicHandler):
-    def __init__(self, cairo_functions: CairoFunctions):
-        super().__init__(cairo_functions.stubbing_function)
+class NotImplementedStarkNet(StaticHandler):
+    def __init__(self):
+        super().__init__(function_name="not_implemented", used_implicits=())
 
     def get_function_call(self, _args: Sequence[str]):
-        print(
-            f"WARNING: This contract referenced '{type(self)}' "
-            f"which is not yet supported. Evaluating"
-            f"this contract on starknet may result in unexpected"
-            f"behavior.",
-            file=sys.stderr,
-        )
-        return super().get_function_call([])
-
-
-class NotImplementedStarkNet(metaclass=PrettyType):
-    def get_function_call(self, _args: Sequence[str]):
-        raise Exception(
-            f"Your Solidity contract makes use of {str(type(self)).lower()},"
-            f"which is not yet accessible from within StarkNet contracts."
-            f"Please remove references to {str(type(self)).lower()}"
-        )
-
-
-class NotSupported(metaclass=PrettyType):
-    def get_function_call(self, _args: Sequence[str]):
-        raise Exception(
-            f"Your Solidity contract makes use of {str(type(self)).lower()},"
-            f"which is not supported."
-            f"Please remove references to {str(type(self)).lower()}"
+        raise RuntimeError(
+            f"WARNING: This contract referenced '{type(self).__name__.lower()}' "
+            f"which is not yet supported."
         )
 
 
@@ -571,7 +544,7 @@ class Delegatecall(StaticHandler):
         )
 
 
-class CallCode(NotSupported):
+class CallCode(NotImplementedStarkNet):
     pass
 
 
@@ -700,7 +673,7 @@ class Origin(NotImplementedStarkNet):
     pass
 
 
-class Pc(NotSupported):
+class Pc(NotImplementedStarkNet):
     pass
 
 

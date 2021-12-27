@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from functools import reduce
-from typing import FrozenSet, List, Sequence, Set, Tuple, Union
+from typing import FrozenSet, List, Sequence, Set, Tuple, TypeVar, Union
 
 import warp.yul.ast as ast
 from warp.yul.AstMapper import AstMapper
@@ -8,6 +8,8 @@ from warp.yul.AstMapper import AstMapper
 LiveVars = FrozenSet[str]
 
 fset = frozenset
+
+NodeCategory = TypeVar("NodeCategory", ast.Expression, ast.Statement)
 
 
 class DeadcodeEliminator(AstMapper):
@@ -30,10 +32,10 @@ class DeadcodeEliminator(AstMapper):
         return node
 
     def visit_list(
-        self, nodes: Sequence[ast.Node], *args, **kwargs
-    ) -> Tuple[LiveVars, Tuple[ast.Node]]:
+        self, nodes: Sequence[NodeCategory], *args, **kwargs
+    ) -> Tuple[LiveVars, Tuple[NodeCategory, ...]]:
         if len(nodes) == 0:
-            return (set(), list())
+            return (fset(), ())
         lis = [self.visit(x, *args, **kwargs) for x in nodes]
         var_set, nodes = map(list, zip(*lis))
         live_vars = reduce(lambda s1, s2: s1 | s2, var_set, fset())
@@ -51,10 +53,12 @@ class DeadcodeEliminator(AstMapper):
     def visit_function_call(
         self, node: ast.FunctionCall
     ) -> Tuple[LiveVars, ast.FunctionCall]:
-        (live_vars, arguments) = self.visit(node.arguments)
+        (live_vars, arguments) = self.visit_list(node.arguments)
         return (
             live_vars,
-            ast.FunctionCall(function_name=node.function_name, arguments=arguments),
+            ast.FunctionCall(
+                function_name=node.function_name, arguments=list(arguments)
+            ),
         )
 
     def visit_expression_statement(

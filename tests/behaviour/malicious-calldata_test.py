@@ -81,7 +81,7 @@ async def test_malicious_deploy(starknet, friendly_info, friendly_def):
 @pytest.mark.asyncio
 async def test_malicious_direct_call(starknet, friendly_info, friendly_address):
     evm_calldata = get_evm_calldata(friendly_info["sol_abi"], "call_friend", [0])
-    cairo_calldata = get_cairo_calldata(evm_calldata)
+    cairo_calldata = list(get_cairo_calldata(evm_calldata))
     cairo_calldata[-1] = 2 ** 128  # tamper with calldata to make it invalid
     exc_msg = rf"Value {2**128}, in range check builtin \d*, is out of range \[0, {2**128}\)\."
     with pytest.raises(StarkException, match=exc_msg):
