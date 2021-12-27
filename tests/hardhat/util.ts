@@ -49,5 +49,5 @@ export async function transpile(contractPath: string, mainContract: string) {
   await sh(
     `warp --network ALPHA transpile --cairo-output ${contractPath} ${mainContract}`,
   );
-  await sh(`warp transpile ${contractPath} ${mainContract}`);
+  await sh(`warp --network ALPHA transpile ${contractPath} ${mainContract}`);
 }

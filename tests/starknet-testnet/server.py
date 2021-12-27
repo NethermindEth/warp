@@ -36,7 +36,12 @@ async def add_transaction():
         )
         from yul.starknet_utils import deploy_contract
 
-        input = data["constructor_input"]
+        input = []
+        for i in data["input"]:
+            if i.startswith("0x"):
+                input.append(int(i, 16))
+            else:
+                input.append(int(i))
         contract_def: ContractDefinition = compile_starknet_files(
             [os.path.join(cairo_contracts_path, data["cairo_contract"])],
             debug_info=False,

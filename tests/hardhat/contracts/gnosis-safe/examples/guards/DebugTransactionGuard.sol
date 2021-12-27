@@ -15,20 +15,6 @@ contract DebugTransactionGuard is BaseGuard {
         // E.g. The expected check method might change and then the Safe would be locked.
     }
 
-    event TransactionDetails(
-        address indexed safe,
-        bytes32 indexed txHash,
-        address to,
-        uint256 value,
-        bytes data,
-        Enum.Operation operation,
-        uint256 safeTxGas,
-        bool usesRefund,
-        uint256 nonce
-    );
-
-    event GasUsage(address indexed safe, bytes32 indexed txHash, uint256 indexed nonce, bool success);
-
     mapping(bytes32 => uint256) public txNonces;
 
     function checkTransaction(
@@ -52,7 +38,6 @@ contract DebugTransactionGuard is BaseGuard {
             nonce = safe.nonce() - 1;
             txHash = safe.getTransactionHash(to, value, data, operation, safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, nonce);
         }
-        emit TransactionDetails(msg.sender, txHash, to, value, data, operation, safeTxGas, gasPrice > 0, nonce);
         txNonces[txHash] = nonce;
     }
 
@@ -60,6 +45,5 @@ contract DebugTransactionGuard is BaseGuard {
         uint256 nonce = txNonces[txHash];
         require(nonce != 0, "Could not get nonce");
         txNonces[txHash] = 0;
-        emit GasUsage(msg.sender, txHash, nonce, success);
     }
 }

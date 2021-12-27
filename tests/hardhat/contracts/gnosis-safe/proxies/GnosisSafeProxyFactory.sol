@@ -7,7 +7,6 @@ import './IProxyCreationCallback.sol';
 /// @title Proxy Factory - Allows to create new proxy contact and execute a message call to the new proxy within one transaction.
 /// @author Stefan George - <stefan@gnosis.pm>
 contract GnosisSafeProxyFactory {
-  event ProxyCreation(GnosisSafeProxy proxy, address singleton);
 
   /// @dev Allows to create new proxy contact and execute a message call to the new proxy within one transaction.
   /// @param singleton Address of singleton contract.
@@ -24,7 +23,6 @@ contract GnosisSafeProxyFactory {
           revert(0, 0)
         }
       }
-    emit ProxyCreation(proxy, singleton);
   }
 
   /// @dev Allows to retrieve the runtime code of a deployed Proxy. This can be used to check that the expected Proxy was deployed.
@@ -51,7 +49,7 @@ contract GnosisSafeProxyFactory {
     bytes32 salt = keccak256(abi.encodePacked(keccak256(initializer), saltNonce));
     bytes memory deploymentData = abi.encodePacked(
       type(GnosisSafeProxy).creationCode,
-      uint256(uint160(_singleton))
+      uint256(uint256(_singleton))
     );
     // solhint-disable-next-line no-inline-assembly
     assembly {
@@ -80,7 +78,6 @@ contract GnosisSafeProxyFactory {
           revert(0, 0)
         }
       }
-    emit ProxyCreation(proxy, _singleton);
   }
 
   /// @dev Allows to create new proxy contact, execute a message call to the new proxy and call a specified callback within one transaction

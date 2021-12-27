@@ -55,7 +55,7 @@ end
 func constructor{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         calldata_size, calldata_len, calldata : felt*):
     alloc_locals
-    validate_array(calldata_len, calldata)
+    validate_array(calldata_size, calldata_len, calldata)
     let (memory_dict) = default_dict_new(0)
     let memory_dict_start = memory_dict
     let msize = 0
@@ -72,7 +72,7 @@ func __main{
         syscall_ptr : felt*}(calldata_size, calldata_len, calldata : felt*) -> (
         returndata_size, returndata_len, returndata : felt*):
     alloc_locals
-    validate_array(calldata_len, calldata)
+    validate_array(calldata_size, calldata_len, calldata)
     let (__fp__, _) = get_fp_and_pc()
     local exec_env_ : ExecutionEnvironment = ExecutionEnvironment(calldata_size=calldata_size, calldata_len=calldata_len, calldata=calldata, returndata_size=0, returndata_len=0, returndata=cast(0, felt*), to_returndata_size=0, to_returndata_len=0, to_returndata=cast(0, felt*))
     let exec_env : ExecutionEnvironment* = &exec_env_
@@ -155,8 +155,8 @@ func require_helper_stringliteral_bd32{range_check_ptr}(condition : Uint256) -> 
 end
 
 func mapping_index_access_mapping_bytes32_uint256_of_bytes32_10982{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        key : Uint256) -> (dataSlot : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr}(key : Uint256) -> (dataSlot : Uint256):
     alloc_locals
     uint256_mstore(offset=Uint256(low=0, high=0), value=key)
     uint256_mstore(offset=Uint256(low=32, high=0), value=Uint256(low=2, high=0))
@@ -263,8 +263,9 @@ func __warp_if_2{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fel
 end
 
 func modifier_authorized_513{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_owner : Uint256, var__threshold : Uint256) -> ():
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        var_owner : Uint256, var__threshold : Uint256) -> ():
     alloc_locals
     fun_requireSelfCall()
     let (__warp_subexpr_0 : Uint256) = is_zero(var_owner)
@@ -531,8 +532,8 @@ func checked_sub_uint8{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(x : Uint2
 end
 
 func mapping_index_access_mapping_bytes32_uint256_of_bytes32_11041{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        key : Uint256) -> (dataSlot : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr}(key : Uint256) -> (dataSlot : Uint256):
     alloc_locals
     uint256_mstore(offset=Uint256(low=0, high=0), value=key)
     uint256_mstore(offset=Uint256(low=32, high=0), value=Uint256(low=8, high=0))
@@ -541,8 +542,9 @@ func mapping_index_access_mapping_bytes32_uint256_of_bytes32_11041{
 end
 
 func mapping_index_access_mapping_bytes32_uint256_of_bytes32{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        slot : Uint256, key : Uint256) -> (dataSlot : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr}(slot : Uint256, key : Uint256) -> (
+        dataSlot : Uint256):
     alloc_locals
     uint256_mstore(offset=Uint256(low=0, high=0), value=key)
     uint256_mstore(offset=Uint256(low=32, high=0), value=slot)
@@ -870,9 +872,9 @@ func __warp_block_7{
 end
 
 func __warp_block_12{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(expr_component_1 : Uint256, var_dataHash : Uint256) -> (
-        expr_3 : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        expr_component_1 : Uint256, var_dataHash : Uint256) -> (expr_3 : Uint256):
     alloc_locals
     let (
         __warp_subexpr_3 : Uint256) = mapping_index_access_mapping_bytes32_uint256_of_bytes32_11041(
@@ -886,8 +888,8 @@ func __warp_block_12{
 end
 
 func __warp_if_7{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         __warp_subexpr_1 : Uint256, expr_3 : Uint256, expr_component_1 : Uint256,
         var_dataHash : Uint256) -> (expr_3 : Uint256):
     alloc_locals
@@ -900,9 +902,9 @@ func __warp_if_7{
 end
 
 func __warp_block_11{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(expr_component_1 : Uint256, var_dataHash : Uint256) -> (
-        var_currentOwner : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        expr_component_1 : Uint256, var_dataHash : Uint256) -> (var_currentOwner : Uint256):
     alloc_locals
     let var_currentOwner : Uint256 = expr_component_1
     let (__warp_subexpr_0 : Uint256) = caller()
@@ -1096,8 +1098,9 @@ func __warp_block_3{
 end
 
 func __warp_block_15{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_currentOwner : Uint256) -> (expr_7 : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        var_currentOwner : Uint256) -> (expr_7 : Uint256):
     alloc_locals
     let (
         __warp_subexpr_2 : Uint256) = mapping_index_access_mapping_bytes32_uint256_of_bytes32_10982(
@@ -1109,8 +1112,9 @@ func __warp_block_15{
 end
 
 func __warp_if_9{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(expr_7 : Uint256, var_currentOwner : Uint256) -> (expr_7 : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        expr_7 : Uint256, var_currentOwner : Uint256) -> (expr_7 : Uint256):
     alloc_locals
     if expr_7.low + expr_7.high != 0:
         let (expr_7 : Uint256) = __warp_block_15(var_currentOwner)
@@ -1237,8 +1241,9 @@ func abi_decode_address{
 end
 
 func __warp_block_17{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_module : Uint256) -> (expr : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        var_module : Uint256) -> (expr : Uint256):
     alloc_locals
     uint256_mstore(offset=Uint256(low=0, high=0), value=var_module)
     uint256_mstore(offset=Uint256(low=32, high=0), value=Uint256(low=1, high=0))
@@ -1251,8 +1256,9 @@ func __warp_block_17{
 end
 
 func __warp_if_11{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(expr : Uint256, var_module : Uint256) -> (expr : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        expr : Uint256, var_module : Uint256) -> (expr : Uint256):
     alloc_locals
     if expr.low + expr.high != 0:
         let (expr : Uint256) = __warp_block_17(var_module)
@@ -1263,8 +1269,9 @@ func __warp_if_11{
 end
 
 func fun_isModuleEnabled{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_module : Uint256) -> (var : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        var_module : Uint256) -> (var : Uint256):
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = is_eq(Uint256(low=1, high=0), var_module)
     let (expr : Uint256) = is_zero(__warp_subexpr_0)
@@ -1284,8 +1291,9 @@ func abi_encode_bool{memory_dict : DictAccess*, msize, range_check_ptr}(
 end
 
 func __warp_block_18{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_owner : Uint256) -> (expr : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(var_owner : Uint256) -> (
+        expr : Uint256):
     alloc_locals
     uint256_mstore(offset=Uint256(low=0, high=0), value=var_owner)
     uint256_mstore(offset=Uint256(low=32, high=0), value=Uint256(low=2, high=0))
@@ -1298,8 +1306,9 @@ func __warp_block_18{
 end
 
 func __warp_if_12{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(expr : Uint256, var_owner : Uint256) -> (expr : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        expr : Uint256, var_owner : Uint256) -> (expr : Uint256):
     alloc_locals
     if expr.low + expr.high != 0:
         let (expr : Uint256) = __warp_block_18(var_owner)
@@ -1310,8 +1319,9 @@ func __warp_if_12{
 end
 
 func fun_isOwner{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_owner : Uint256) -> (var : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(var_owner : Uint256) -> (
+        var : Uint256):
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = is_eq(var_owner, Uint256(low=1, high=0))
     let (expr : Uint256) = is_zero(__warp_subexpr_0)
@@ -1471,8 +1481,8 @@ func fun_execute{
 end
 
 func __warp_block_23{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}() -> (expr : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}() -> (expr : Uint256):
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = caller()
     uint256_mstore(offset=Uint256(low=0, high=0), value=__warp_subexpr_0)
@@ -1486,8 +1496,9 @@ func __warp_block_23{
 end
 
 func __warp_if_14{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(expr : Uint256) -> (expr : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(expr : Uint256) -> (
+        expr : Uint256):
     alloc_locals
     if expr.low + expr.high != 0:
         let (expr : Uint256) = __warp_block_23()
@@ -1632,8 +1643,9 @@ func abi_encode_bytes{
 end
 
 func getter_fun_signedMessages{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(key : Uint256) -> (ret__warp_mangled : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(key : Uint256) -> (
+        ret__warp_mangled : Uint256):
     alloc_locals
     uint256_mstore(offset=Uint256(low=0, high=0), value=key)
     uint256_mstore(offset=Uint256(low=32, high=0), value=Uint256(low=7, high=0))
@@ -1655,8 +1667,8 @@ func require_helper_stringliteral_eab5{range_check_ptr}(condition : Uint256) -> 
 end
 
 func mapping_index_access_mapping_bytes32_uint256_of_bytes32_10961{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
-        dataSlot : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (dataSlot : Uint256):
     alloc_locals
     uint256_mstore(offset=Uint256(low=0, high=0), value=Uint256(low=1, high=0))
     uint256_mstore(offset=Uint256(low=32, high=0), value=Uint256(low=1, high=0))
@@ -1665,8 +1677,8 @@ func mapping_index_access_mapping_bytes32_uint256_of_bytes32_10961{
 end
 
 func mapping_index_access_mapping_bytes32_uint256_of_bytes32_10962{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        key : Uint256) -> (dataSlot : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr}(key : Uint256) -> (dataSlot : Uint256):
     alloc_locals
     uint256_mstore(offset=Uint256(low=0, high=0), value=key)
     uint256_mstore(offset=Uint256(low=32, high=0), value=Uint256(low=1, high=0))
@@ -1692,8 +1704,9 @@ func __warp_if_15{range_check_ptr}(expr : Uint256, var_module : Uint256) -> (exp
 end
 
 func modifier_authorized_121{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_module : Uint256) -> ():
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        var_module : Uint256) -> ():
     alloc_locals
     fun_requireSelfCall()
     let (__warp_subexpr_0 : Uint256) = is_zero(var_module)
@@ -2813,8 +2826,8 @@ func fun_execTransaction{
 end
 
 func mapping_index_access_mapping_bytes32_uint256_of_bytes32_10938{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        key : Uint256) -> (dataSlot : Uint256):
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr}(key : Uint256) -> (dataSlot : Uint256):
     alloc_locals
     uint256_mstore(offset=Uint256(low=0, high=0), value=key)
     uint256_mstore(offset=Uint256(low=32, high=0), value=Uint256(low=8, high=0))
@@ -3897,8 +3910,9 @@ func abi_encode_array_address_dyn_address{
 end
 
 func fun_approveHash{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_hashToApprove : Uint256) -> ():
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        var_hashToApprove : Uint256) -> ():
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = caller()
     uint256_mstore(offset=Uint256(low=0, high=0), value=__warp_subexpr_0)
@@ -4012,8 +4026,9 @@ func __warp_if_45{range_check_ptr}(expr : Uint256, var_module : Uint256) -> (exp
 end
 
 func modifier_authorized_171{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(var_prevModule : Uint256, var_module : Uint256) -> ():
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
+        var_prevModule : Uint256, var_module : Uint256) -> ():
     alloc_locals
     fun_requireSelfCall()
     let (__warp_subexpr_0 : Uint256) = is_zero(var_module)
@@ -4226,8 +4241,8 @@ func __warp_if_50{range_check_ptr}(expr_2 : Uint256, var_oldOwner : Uint256) -> 
 end
 
 func modifier_authorized_655{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         var_prevOwner : Uint256, var_oldOwner : Uint256, var_newOwner : Uint256) -> ():
     alloc_locals
     fun_requireSelfCall()
@@ -4326,8 +4341,8 @@ func __warp_if_52{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : fe
 end
 
 func modifier_authorized_583{
-        memory_dict : DictAccess*, msize, pedersen_ptr : HashBuiltin*, range_check_ptr,
-        syscall_ptr : felt*}(
+        bitwise_ptr : BitwiseBuiltin*, memory_dict : DictAccess*, msize,
+        pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(
         var_prevOwner : Uint256, var_owner : Uint256, var_threshold : Uint256) -> ():
     alloc_locals
     fun_requireSelfCall()
@@ -4391,8 +4406,8 @@ func copy_literal_to_memory_6a08c3e203132c561752255a4d52ffae85bb9c5d33cb3291520d
 end
 
 func __warp_if_53{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, range_check_ptr,
-        termination_token}(__warp_subexpr_0 : Uint256) -> ():
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        range_check_ptr, termination_token}(__warp_subexpr_0 : Uint256) -> ():
     alloc_locals
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         warp_return(Uint256(low=0, high=0), Uint256(low=0, high=0))
@@ -5696,8 +5711,8 @@ func __warp_if_54{
 end
 
 func __warp_if_85{
-        exec_env : ExecutionEnvironment*, memory_dict : DictAccess*, range_check_ptr,
-        termination_token}(__warp_subexpr_3 : Uint256) -> ():
+        bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        range_check_ptr, termination_token}(__warp_subexpr_3 : Uint256) -> ():
     alloc_locals
     if __warp_subexpr_3.low + __warp_subexpr_3.high != 0:
         warp_return(Uint256(low=0, high=0), Uint256(low=0, high=0))
@@ -5738,4 +5753,3 @@ func __main_meat{
     warp_return(Uint256(low=0, high=0), Uint256(low=0, high=0))
     return ()
 end
-

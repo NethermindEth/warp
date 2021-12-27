@@ -593,7 +593,7 @@ class CallValue(DynamicHandler):
 
 class ChainID(DynamicHandler):
     def __init__(self, cairo_functions: CairoFunctions):
-        super().__init__(lambda: cairo_functions.constant_function(1))
+        super().__init__(lambda: cairo_functions.constant_function(42))
 
     def get_function_call(self, function_args: Sequence[str]) -> str:
         return super().get_function_call([])

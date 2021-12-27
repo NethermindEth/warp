@@ -26,6 +26,5 @@ contract Migration is GnosisSafeStorage {
         // Master copy address cannot be null.
         singleton = safe120Singleton;
         domainSeparator = keccak256(abi.encode(DOMAIN_SEPARATOR_TYPEHASH, this));
-        emit ChangedMasterCopy(singleton);
     }
 }

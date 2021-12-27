@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 /// @title Create Call - Allows to use the different create opcodes to deploy a contract
 /// @author Richard Meissner - <richard@gnosis.io>
 contract CreateCall {
-  event ContractCreation(address newContract);
 
   function performCreate2(
     uint256 value,
@@ -21,7 +20,6 @@ contract CreateCall {
       )
     }
     require(newContract != address(0), 'Could not deploy contract');
-    emit ContractCreation(newContract);
   }
 
   function performCreate(uint256 value, bytes memory deploymentData)
@@ -33,6 +31,5 @@ contract CreateCall {
       newContract := create(value, add(deploymentData, 0x20), mload(deploymentData))
     }
     require(newContract != address(0), 'Could not deploy contract');
-    emit ContractCreation(newContract);
   }
 }
