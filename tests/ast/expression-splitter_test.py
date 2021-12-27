@@ -1,12 +1,13 @@
 import pytest
 from utils import check_ast
-from yul.ExpressionSplitter import ExpressionSplitter
-from yul.NameGenerator import NameGenerator
+
+from warp.yul.ExpressionSplitter import ExpressionSplitter
+from warp.yul.NameGenerator import NameGenerator
 
 
 @check_ast(__file__)
-def test_split_expressions(yul_ast):
+def test_split_expressions(ast):
     name_gen = NameGenerator()
-    yul_ast = ExpressionSplitter(name_gen).map(yul_ast)
+    ast = ExpressionSplitter(name_gen).map(ast)
 
-    return yul_ast
+    return ast

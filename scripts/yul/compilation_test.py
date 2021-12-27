@@ -1,22 +1,13 @@
-import os
-
 import pytest
 from starkware.starknet.compiler.compile import compile_starknet_files
 
-warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
-test_dir = os.path.join(warp_root, "tests", "golden")
-cairo_files = [
-    os.path.join(test_dir, item)
-    for item in os.listdir(test_dir)
-    if item.endswith(".cairo")
-]
+from tests.utils import CAIRO_PATH, WARP_ROOT
+
+test_dir = WARP_ROOT / "tests" / "golden"
+cairo_files = list(test_dir.glob("*.cairo"))
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(("cairo_file"), cairo_files)
 async def test_compilation(cairo_file):
-    contract_file = os.path.join(test_dir, cairo_file)
-    cairo_path = f"{warp_root}/warp/cairo-src"
-    contract_definition = compile_starknet_files(
-        [contract_file], debug_info=True, cairo_path=[cairo_path]
-    )
+    compile_starknet_files([str(cairo_file)], debug_info=True, cairo_path=[CAIRO_PATH])

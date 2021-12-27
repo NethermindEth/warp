@@ -3,12 +3,12 @@ import os
 import pytest
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
-from yul.main import transpile_from_solidity
-from yul.starknet_utils import deploy_contract, invoke_method
 
-from warp.logging.generateMarkdown import steps_in_function
+from tests.logging.generateMarkdown import steps_in_function
+from tests.utils import CAIRO_PATH
+from warp.yul.main import transpile_from_solidity
+from warp.yul.starknet_utils import deploy_contract, invoke_method
 
-warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
 test_dir = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -28,12 +28,11 @@ async def test_starknet():
     with open(erc20_cairo, "w") as f:
         f.write(erc20_info["cairo_code"])
 
-    cairo_path = f"{warp_root}/warp/cairo-src"
     caller_contractDef = compile_starknet_files(
-        [caller_cairo], debug_info=True, cairo_path=[cairo_path]
+        [caller_cairo], debug_info=True, cairo_path=[CAIRO_PATH]
     )
     erc20_contractDef = compile_starknet_files(
-        [erc20_cairo], debug_info=True, cairo_path=[cairo_path]
+        [erc20_cairo], debug_info=True, cairo_path=[CAIRO_PATH]
     )
 
     starknet = await StarknetState.empty()

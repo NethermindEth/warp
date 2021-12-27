@@ -1,12 +1,13 @@
 import pytest
 from utils import check_ast
-from yul.NameGenerator import NameGenerator
-from yul.ScopeFlattener import ScopeFlattener
+
+from warp.yul.NameGenerator import NameGenerator
+from warp.yul.ScopeFlattener import ScopeFlattener
 
 
 @check_ast(__file__)
-def test_scope_flattening(yul_ast):
+def test_scope_flattening(ast):
     name_gen = NameGenerator()
-    yul_ast = ScopeFlattener(name_gen).map(yul_ast)
+    ast = ScopeFlattener(name_gen).map(ast)
 
-    return yul_ast
+    return ast

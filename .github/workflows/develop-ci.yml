@@ -18,8 +18,8 @@ jobs:
           pipx install cairo-lang
           black . --check --verbose --diff --color
           isort . --check --verbose --diff --color
-          isort --ext cairo warp/cairo-src --check --verbose --diff --color
-          find warp/cairo-src/ -iname *.cairo -exec cairo-format -c {} +
+          isort --ext cairo src/warp/cairo-src --check --verbose --diff --color
+          find src/warp/cairo-src/ -iname *.cairo -exec cairo-format -c {} +
 
   test-complete:
     runs-on: ubuntu-latest

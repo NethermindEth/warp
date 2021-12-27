@@ -1,7 +1,8 @@
-import yul.yul_ast as ast
 from utils import compare_codes
-from yul.AstTools import YulPrinter
-from yul.parse_object import combine_deployment_and_runtime
+
+import warp.yul.ast as ast
+from warp.yul.AstTools import YulPrinter
+from warp.yul.parse_object import combine_deployment_and_runtime
 
 
 def test_function_with_the_same_name_in_deployment_and_runtime():

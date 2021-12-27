@@ -3,16 +3,15 @@ import os
 import pytest
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.starknet import Starknet
-from starkware.starknet.testing.state import StarknetState
-from yul.main import transpile_from_solidity
 
-from warp.logging.generateMarkdown import (
+from tests.logging.generateMarkdown import (
     bytecode_details,
     size_of_file,
     steps_in_function,
 )
+from tests.utils import CAIRO_PATH, WARP_ROOT
+from warp.yul.main import transpile_from_solidity
 
-warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
 test_dir = __file__
 
 
@@ -20,11 +19,10 @@ test_dir = __file__
 async def test_starknet():
     contract_file = test_dir[:-8] + ".cairo"
     sol_file = test_dir[:-8] + ".sol"
-    cairo_path = f"{warp_root}/warp/cairo-src"
 
     # ======= Handwritten Cairo =======
     contractDef = compile_starknet_files(
-        [contract_file], debug_info=True, cairo_path=[cairo_path]
+        [contract_file], debug_info=True, cairo_path=[CAIRO_PATH]
     )
     bytecode_details("IntegralMath", contractDef.program.data, "IntegralMath")
     size_of_file("IntegralMath", contract_file, "IntegralMath")
@@ -93,7 +91,7 @@ async def test_starknet():
     # ======= Compiled Cairo =======
 
     program_info = transpile_from_solidity(sol_file, "IntegralMath")
-    program_cairo = os.path.join(warp_root, "benchmark/tmp", "IntegralMath_warp.cairo")
+    program_cairo = os.path.join(WARP_ROOT, "benchmark/tmp", "IntegralMath_warp.cairo")
 
     with open(program_cairo, "w") as f:
         f.write(program_info["cairo_code"])

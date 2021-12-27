@@ -3,8 +3,8 @@ BATS_DIR := ./build/bats
 TEMPLATES := $(wildcard $(GOLDEN_DIR)/*.template)
 BATS_FILES := $(patsubst $(GOLDEN_DIR)/%.template,$(BATS_DIR)/test-%.bats,$(TEMPLATES))
 TEST_FILES := $(shell find ./tests -type f ! -name '*.temp*') # exclude temporary files
-SRC_FILES := $(shell find ./warp/ -type f)
-KUDU_FILES := $(shell find ./warp/bin -name kudu)
+SRC_FILES := $(shell find ./src/warp/ -type f)
+KUDU_FILES := $(shell find ./src/warp/bin -name kudu)
 PY_REQUIREMENTS := requirements.txt
 NPROCS := $(shell getconf _NPROCESSORS_ONLN)
 
@@ -19,7 +19,7 @@ test: test_bats test_yul benchmark
 .PHONY: test
 
 test_bats: warp $(BATS_FILES) tests/cli/*.bats
-	bats -j $(NPROCS) $^ $(ARGS)
+	bats -j $(NPROCS) $(wordlist 2,$(words $^),$^) $(ARGS)
 .PHONY: test_bats
 
 test_yul: warp
@@ -35,7 +35,7 @@ benchmark: warp
 	mkdir -p benchmark/stats
 	mkdir -p benchmark/tmp
 	python -m pytest tests/benchmark -v --tb=short --workers=auto $(ARGS)
-	python ./warp/logging/generateMarkdown.py
+	PYTHONPATH=".:$(PYTHONPATH)" python ./tests/logging/generateMarkdown.py
 .PHONY: benchmark
 
 $(BATS_DIR)/test-%.bats: \

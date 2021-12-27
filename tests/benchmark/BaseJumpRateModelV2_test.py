@@ -4,16 +4,16 @@ import pytest
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.starknet import Starknet
 from starkware.starknet.testing.state import StarknetState
-from yul.main import transpile_from_solidity
-from yul.starknet_utils import deploy_contract, invoke_method
 
-from warp.logging.generateMarkdown import (
+from tests.logging.generateMarkdown import (
     bytecode_details,
     size_of_file,
     steps_in_function,
 )
+from tests.utils import CAIRO_PATH, WARP_ROOT
+from warp.yul.main import transpile_from_solidity
+from warp.yul.starknet_utils import deploy_contract, invoke_method
 
-warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
 test_dir = __file__
 
 
@@ -21,13 +21,12 @@ test_dir = __file__
 async def test_starknet():
     contract_file = test_dir[:-8] + ".cairo"
     sol_file = test_dir[:-8] + ".sol"
-    cairo_path = f"{warp_root}/warp/cairo-src"
 
     # ======= Handwritten Cairo =======
     constructor_inputs = [10000000, 11000000, 10000000, 10, 0x0]
 
     contractDef = compile_starknet_files(
-        [contract_file], debug_info=True, cairo_path=[cairo_path]
+        [contract_file], debug_info=True, cairo_path=[CAIRO_PATH]
     )
     bytecode_details(
         "BaseJumpRateModelV2", contractDef.program.data, "BaseJumpRateModelV2"
@@ -63,14 +62,14 @@ async def test_starknet():
 
     program_info = transpile_from_solidity(sol_file, "BaseJumpRateModelV2")
     program_cairo = os.path.join(
-        warp_root, "benchmark/tmp", "BaseJumpRateModelV2_compiled.cairo"
+        WARP_ROOT, "benchmark/tmp", "BaseJumpRateModelV2_compiled.cairo"
     )
 
     with open(program_cairo, "w") as f:
         f.write(program_info["cairo_code"])
 
     contractDef = compile_starknet_files(
-        [program_cairo], debug_info=True, cairo_path=[cairo_path]
+        [program_cairo], debug_info=True, cairo_path=[CAIRO_PATH]
     )
 
     starknet = await StarknetState.empty()
