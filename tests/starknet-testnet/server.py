@@ -46,7 +46,7 @@ async def add_transaction():
         contract_address: int = await deploy_contract(
             state, program_info, contract_def, *input
         )
-        starknet_wrapper.address2contract_wrapper[hex(contract_address)] = contract_def
+        starknet_wrapper.address2contract[hex(contract_address)] = contract_def
         return jsonify({"contract_address": hex(contract_address)})
     else:
         from yul.starknet_utils import invoke_method

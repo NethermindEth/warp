@@ -21,7 +21,7 @@ REDUCERS = {
     "shl": lambda x, y: y << x,
     "shr": lambda x, y: y >> x,
     "addmod": lambda x, y, m: (x + y) % m if m != 0 else 0,
-    "mulmod": lambda x, y, m: (x + y) % m if m != 0 else 0,
+    "mulmod": lambda x, y, m: (x * y) % m if m != 0 else 0,
 }
 
 
@@ -46,7 +46,10 @@ class ConstantFolder(AstMapper):
     ) -> Union[ast.Literal, ast.FunctionCall]:
         reduced_args = self.visit_list(node.arguments)
         reducer = REDUCERS.get(node.function_name.name)
-        if reducer and all(isinstance(arg, ast.Literal) for arg in reduced_args):
+        if reducer and all(
+            isinstance(arg, ast.Literal) and isinstance(arg.value, int)
+            for arg in reduced_args
+        ):
             return ast.Literal(
                 overflow_check(reducer(*[arg.value for arg in reduced_args]))
             )
