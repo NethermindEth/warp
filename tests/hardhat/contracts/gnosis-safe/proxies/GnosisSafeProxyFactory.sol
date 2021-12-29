@@ -49,7 +49,7 @@ contract GnosisSafeProxyFactory {
     bytes32 salt = keccak256(abi.encodePacked(keccak256(initializer), saltNonce));
     bytes memory deploymentData = abi.encodePacked(
       type(GnosisSafeProxy).creationCode,
-      uint256(uint256(_singleton))
+      uint256(_singleton)
     );
     // solhint-disable-next-line no-inline-assembly
     assembly {
