@@ -108,13 +108,27 @@ func sgt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
 end
 
 func uint256_mod{range_check_ptr}(a : Uint256, m : Uint256) -> (res : Uint256):
-    assert 0 = 1  # not implemented yet =(
-    jmp rel 0
+    let (early) = uint256_lt(a,m)
+    if early == 1:
+        tempvar range_check_ptr = range_check_ptr
+        return (res=a)
+    else:
+        tempvar range_check_ptr = range_check_ptr
+        let (_, rem : Uint256) = uint256_unsigned_div_rem(a,m)
+        return (res=rem)
+    end
 end
 
 func uint256_addmod{range_check_ptr}(a : Uint256, b : Uint256, m : Uint256) -> (res : Uint256):
-    assert 0 = 1  # not implemented yet =(
-    jmp rel 0
+    let (pre_mod : Uint256) = uint256_add(a,b)
+    let (res : Uint256) = uint256_mod(pre_mod,m)
+    return (res=res)
+end
+
+func uint256_mulmod{range_check_ptr}(a : Uint256, b : Uint256, m : Uint256) -> (res : Uint256):
+    let (pre_mod : Uint256, _) = uint256_mul(a,b)
+    let (res : Uint256) = uint256_mod(pre_mod,m)
+    return (res=res)
 end
 
 func smod{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (res : Uint256):
@@ -152,11 +166,14 @@ func uint256_byte{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(a : Uint256, i
 end
 
 func uint256_exp{range_check_ptr}(a : Uint256, b : Uint256) -> (res : Uint256):
-    assert 0 = 1  # not implemented yet =(
-    jmp rel 0
+    if b.low == 0:
+        tempvar range_check_ptr = range_check_ptr
+        return (Uint256(1,0))
+    else:
+        tempvar range_check_ptr = range_check_ptr
+    end 
+    let (accum : Uint256) = uint256_exp(a, Uint256(b.low-1, b.high))
+    let (res : Uint256, _) = uint256_mul(a, accum)
+    return (res=res)
 end
 
-func uint256_mulmod{range_check_ptr}(a : Uint256, b : Uint256, m : Uint256) -> (res : Uint256):
-    assert 0 = 1  # not implemented yet =(
-    jmp rel 0
-end
