@@ -294,7 +294,7 @@ class Sdiv(StaticHandler):
 
 class Exp(StaticHandler):
     def __init__(self):
-        super().__init__(function_name="uin256_exp", module=UINT256_MODULE)
+        super().__init__(function_name="uint256_exp", module=UINT256_MODULE)
 
 
 class Mod(StaticHandler):
@@ -309,17 +309,17 @@ class SMod(StaticHandler):
 
 class AddMod(StaticHandler):
     def __init__(self):
-        super().__init__(function_name="uin256_addmod", module="evm.uint256")
+        super().__init__(function_name="uint256_addmod", module="evm.uint256")
 
 
 class MulMod(StaticHandler):
     def __init__(self):
-        super().__init__(function_name="uin256_mulmod", module="evm.uint256")
+        super().__init__(function_name="uint256_mulmod", module="evm.uint256")
 
 
 class SignExtend(StaticHandler):
     def __init__(self):
-        super().__init__(function_name="uin256_signextend", module="evm.uint256")
+        super().__init__(function_name="uint256_signextend", module="evm.uint256")
 
 
 # ============ Memory ============
