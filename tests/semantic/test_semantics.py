@@ -138,7 +138,7 @@ async def test_semantics(contract_file):
     contract_address = None
     if constructor_args:
         constructor_args = bytes.fromhex(constructor_args[2:])
-        constract_address = await deploy_contract_evm_calldata(
+        contract_address = await deploy_contract_evm_calldata(
             starknet, contract_definition, constructor_args
         )
     else:
