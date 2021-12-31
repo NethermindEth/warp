@@ -126,6 +126,7 @@ async def test_semantics(contract_file):
         contract_file, get_last_contract(contract_file)
     )
 
+    print(get_last_contract(contract_file))
     cairo_code = program_info["cairo_code"]
     cairo_file_path = f"{os.path.splitext(contract_file)[0]}.cairo.temp"
 
