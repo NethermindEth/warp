@@ -705,7 +705,7 @@ def get_default_builtins(
         "mulmod": MulMod(),
         "not": Not(),
         "number": Number(),
-        "or": Sub(),
+        "or": Or(),
         "pedersen": Pedersen(),
         "return": Return(),
         "returndatacopy": ReturnDataCopy(),

@@ -11,7 +11,7 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import Uint256, uint256_and, uint256_sub
+from starkware.cairo.common.uint256 import Uint256, uint256_and, uint256_or, uint256_sub
 
 func __warp_constant_0() -> (res : Uint256):
     return (Uint256(low=0, high=0))
@@ -82,7 +82,7 @@ func finalize_allocation{
     let (newFreePtr : Uint256) = u256_add(memPtr, __warp_subexpr_0)
     let (__warp_subexpr_4 : Uint256) = is_lt(newFreePtr, memPtr)
     let (__warp_subexpr_3 : Uint256) = is_gt(newFreePtr, Uint256(low=18446744073709551615, high=0))
-    let (__warp_subexpr_2 : Uint256) = uint256_sub(__warp_subexpr_3, __warp_subexpr_4)
+    let (__warp_subexpr_2 : Uint256) = uint256_or(__warp_subexpr_3, __warp_subexpr_4)
     if __warp_subexpr_2.low + __warp_subexpr_2.high != 0:
         assert 0 = 1
         jmp rel 0
