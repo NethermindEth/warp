@@ -11,7 +11,7 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from starkware.cairo.common.default_dict import default_dict_finalize, default_dict_new
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_fp_and_pc
-from starkware.cairo.common.uint256 import Uint256, uint256_and, uint256_sub, uint256_xor
+from starkware.cairo.common.uint256 import Uint256, uint256_and, uint256_or, uint256_xor
 
 func __warp_constant_0() -> (res : Uint256):
     return (Uint256(low=0, high=0))
@@ -88,7 +88,7 @@ func __warp_block_2{
         expr : Uint256, value2 : Uint256, var_res : Uint256) -> (var_res : Uint256):
     alloc_locals
     let (__warp_subexpr_1 : Uint256) = calldataload(Uint256(low=100, high=0))
-    let (__warp_subexpr_0 : Uint256) = uint256_sub(var_res, __warp_subexpr_1)
+    let (__warp_subexpr_0 : Uint256) = uint256_or(var_res, __warp_subexpr_1)
     let (match_var : Uint256) = is_lt(__warp_subexpr_0, Uint256(low=4, high=0))
     let (var_res : Uint256) = __warp_block_3(expr, match_var, value2)
     return (var_res)
@@ -168,3 +168,4 @@ func __main_meat{
     assert 0 = 1
     jmp rel 0
 end
+
