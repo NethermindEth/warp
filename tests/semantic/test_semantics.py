@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import sys
 import re
 from pathlib import Path
 
@@ -128,6 +129,7 @@ async def test_semantics(contract_file):
 
     cairo_code = program_info["cairo_code"]
     cairo_file_path = f"{os.path.splitext(contract_file)[0]}.cairo.temp"
+        
 
     with open(cairo_file_path, "w") as fp:
         fp.write(cairo_code)
@@ -138,7 +140,7 @@ async def test_semantics(contract_file):
     contract_address = None
     if constructor_args:
         constructor_args = bytes.fromhex(constructor_args[2:])
-        constract_address = await deploy_contract_evm_calldata(
+        contract_address = await deploy_contract_evm_calldata(
             starknet, contract_definition, constructor_args
         )
     else:
@@ -175,12 +177,12 @@ async def test_semantics(contract_file):
     os.remove(cairo_file_path)
 
 
-async def main():
-    compiled_files = [
-        test_semantics(sol_file) for sol_file in sol_files_in_dir(test_folder)
-    ]
-    await asyncio.gather(*compiled_files)
+# async def main():
+#     compiled_files = [
+#         test_semantics(sol_file) for sol_file in sol_files_in_dir(test_folder)
+#     ]
+#     await asyncio.gather(*compiled_files)
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+# if __name__ == "__main__":
+#     asyncio.run(main())

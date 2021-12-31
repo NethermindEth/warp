@@ -33,7 +33,7 @@ test_yul: warp
 
 test_semantics: warp
 	tests/semantic/init_test.sh
-	python -m pytest tests/semantic/test_semantics.py -v --tb=short --workers=auto $(ARGS)
+	python -m pytest --cache-clear tests/semantic/test_semantics.py -v --tb=short --workers=auto $(ARGS)
 .PHONY: test_semantics
 
 benchmark: warp
