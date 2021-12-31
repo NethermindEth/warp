@@ -127,6 +127,7 @@ async def test_semantics(contract_file):
         contract_file, get_last_contract(contract_file)
     )
 
+    print(get_last_contract(contract_file))
     cairo_code = program_info["cairo_code"]
     cairo_file_path = f"{os.path.splitext(contract_file)[0]}.cairo.temp"
         
@@ -178,10 +179,11 @@ async def test_semantics(contract_file):
 
 
 # async def main():
-#     compiled_files = [
-#         test_semantics(sol_file) for sol_file in sol_files_in_dir(test_folder)
-#     ]
-#     await asyncio.gather(*compiled_files)
+#     # compiled_files = [
+#     #     test_semantics(sol_file) for sol_file in sol_files_in_dir(test_folder)
+#     # ]
+#     await test_semantics("/home/greg/dev/nethermind/warp/tests/semantic/solidity/test/libsolidity/semanticTests/various/super_parentheses.sol")
+#     # await asyncio.gather(*compiled_files)
 
 
 # if __name__ == "__main__":
