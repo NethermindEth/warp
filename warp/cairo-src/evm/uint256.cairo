@@ -133,7 +133,7 @@ func uint256_sar{range_check_ptr}(a : Uint256, b : Uint256) -> (res : Uint256):
     return (res)
 end
 
-func uint256_signextend{range_check_ptr}(a : Uint256, i : Uint256) -> (res : Uint256):
+func uint256_signextend{range_check_ptr}(i : Uint256, a : Uint256) -> (res : Uint256):
     alloc_locals
     let (i, _) = uint256_mul(i, cast((8, 0), Uint256))
     let (i) = uint256_sub(cast((248, 0), Uint256), i)
