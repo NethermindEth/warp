@@ -294,7 +294,7 @@ class Sdiv(StaticHandler):
 
 class Exp(StaticHandler):
     def __init__(self):
-        super().__init__(function_name="uint256_exp", module=UINT256_MODULE)
+        super().__init__(function_name="uint256_exp", module="evm.uint256")
 
 
 class Mod(StaticHandler):
