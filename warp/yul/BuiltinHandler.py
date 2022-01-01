@@ -618,6 +618,10 @@ class GasPrice(NotImplementedStarkNet):
     pass
 
 
+class LinkerSymbol(NotImplementedStarkNet):
+    pass
+
+
 class Log0(NotImplementedStarkNet):
     pass
 
@@ -690,6 +694,7 @@ def get_default_builtins(
         "gt": Gt(),
         "iszero": IsZero(),
         "keccak256": SHA3(),
+        "linkersymbol": LinkerSymbol(),
         "log0": Log0(),
         "log1": Log1(),
         "log2": Log2(),
