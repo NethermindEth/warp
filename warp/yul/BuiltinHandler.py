@@ -622,6 +622,10 @@ class LinkerSymbol(NotImplementedStarkNet):
     pass
 
 
+class LoadImmutable(NotImplementedStarkNet):
+    pass
+
+
 class Log0(NotImplementedStarkNet):
     pass
 
@@ -643,6 +647,10 @@ class Log4(NotImplementedStarkNet):
 
 
 class Number(NotImplementedStarkNet):
+    pass
+
+
+class SetImmutable(NotImplementedStarkNet):
     pass
 
 
@@ -695,6 +703,7 @@ def get_default_builtins(
         "iszero": IsZero(),
         "keccak256": SHA3(),
         "linkersymbol": LinkerSymbol(),
+        "loadimmutable": LoadImmutable(),
         "log0": Log0(),
         "log1": Log1(),
         "log2": Log2(),
@@ -718,6 +727,7 @@ def get_default_builtins(
         "sar": Sar(),
         "sdiv": Sdiv(),
         "selfbalance": SelfBalance(),
+        "setimmutable": SetImmutable(),
         "sgt": Sgt(),
         "shl": Shl(),
         "shr": Shr(),
