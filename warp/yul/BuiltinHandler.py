@@ -618,6 +618,10 @@ class GasPrice(NotImplementedStarkNet):
     pass
 
 
+class Invalid(NotImplementedStarkNet):
+    pass
+
+
 class LinkerSymbol(NotImplementedStarkNet):
     pass
 
@@ -700,6 +704,7 @@ def get_default_builtins(
         "gaslimit": GasLimit(),
         "gasprice": GasPrice(),
         "gt": Gt(),
+        "invalid": Invalid(),
         "iszero": IsZero(),
         "keccak256": SHA3(),
         "linkersymbol": LinkerSymbol(),
