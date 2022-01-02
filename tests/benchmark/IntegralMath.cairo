@@ -38,16 +38,19 @@ func unsafeMul{range_check_ptr}(x : Uint256, y : Uint256) -> (prod : Uint256):
 end
 
 @view
-func mulMod{range_check_ptr}(x : Uint256, y : Uint256, z : Uint256) -> (res : Uint256):
+func mulMod{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        x : Uint256, y : Uint256, z : Uint256) -> (res : Uint256):
     return uint256_mulmod(x, y, z)
 end
 
 @view
-func mulModMax{range_check_ptr}(x : Uint256, y : Uint256) -> (res : Uint256):
+func mulModMax{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(x : Uint256, y : Uint256) -> (
+        res : Uint256):
     return uint256_mulmod(x, y, Uint256(MAX_VAL, MAX_VAL))
 end
 
-func block_0{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(n : Uint256, r : felt) -> (n : Uint256, r : felt):
+func block_0{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(n : Uint256, r : felt) -> (
+        n : Uint256, r : felt):
     alloc_locals
     let (_cond : Uint256) = is_gt(n, Uint256(1, 0))
     if _cond.low + _cond.low == 0:
@@ -135,7 +138,7 @@ end
 
 # @dev Compute the smallest integer larger than or equal to the square root of `n`
 @external
-func ceilSqrt{range_check_ptr}(n : Uint256) -> (res : Uint256):
+func ceilSqrt{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(n : Uint256) -> (res : Uint256):
     alloc_locals
     let (x : Uint256) = floorSqrt(n)
     let (_val_0 : Uint256) = uint256_exp(x, Uint256(2, 0))
@@ -143,7 +146,8 @@ func ceilSqrt{range_check_ptr}(n : Uint256) -> (res : Uint256):
     if _cond.low + _cond.high != 0:
         return (res=x)
     end
-    return u256_add(x, Uint256(1, 0))
+    let (res) = u256_add(x, Uint256(1, 0))
+    return (res)
 end
 
 func block_6{range_check_ptr}(
@@ -158,7 +162,8 @@ func block_6{range_check_ptr}(
     return (x, n)
 end
 
-func block_3{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(n : Uint256, x : Uint256, y : Uint256) -> (n : Uint256, x : Uint256):
+func block_3{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        n : Uint256, x : Uint256, y : Uint256) -> (n : Uint256, x : Uint256):
     alloc_locals
     let (_cond_0 : Uint256) = is_gt(y, Uint256(0, 0))
     if _cond_0.low + _cond_0.high == 0:
@@ -215,7 +220,8 @@ end
 
 # @dev Compute the value of `x * y`
 @external
-func mul512{range_check_ptr}(x : Uint256, y : Uint256) -> (a : Uint256, b : Uint256):
+func mul512{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(x : Uint256, y : Uint256) -> (
+        a : Uint256, b : Uint256):
     alloc_locals
     let (p : Uint256) = mulModMax(x, y)
     let (q : Uint256) = unsafeMul(x, y)
@@ -245,7 +251,8 @@ end
 
 # @dev Compute the value of `(2 ^ 256 * xh + xl) / pow2n`, where `xl` is divisible by `pow2n`
 @external
-func div512{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(xh : Uint256, xl : Uint256, pow2n : Uint256) -> (res : Uint256):
+func div512{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        xh : Uint256, xl : Uint256, pow2n : Uint256) -> (res : Uint256):
     alloc_locals
     let (_val_0 : Uint256) = unsafeSub(Uint256(0, 0), pow2n)
     let (_val_1 : Uint256) = u256_div(_val_0, pow2n)
