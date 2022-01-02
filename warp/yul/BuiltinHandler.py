@@ -598,6 +598,18 @@ class Create2(NotImplementedStarkNet):
     pass
 
 
+class DataOffset(NotImplementedStarkNet):
+    pass
+
+
+class DataCopy(NotImplementedStarkNet):
+    pass
+
+
+class DataSize(NotImplementedStarkNet):
+    pass
+
+
 class Difficulty(NotImplementedStarkNet):
     pass
 
