@@ -8,7 +8,8 @@ from evm.array import array_copy_from_memory, array_create_from_memory
 from evm.uint256 import Uint256
 from evm.utils import ceil_div, felt_to_uint256, update_msize
 
-func sha{range_check_ptr, memory_dict : DictAccess*, msize}(offset, size) -> (res : Uint256):
+func sha{range_check_ptr, memory_dict : DictAccess*, msize, bitwise_ptr : BitwiseBuiltin*}(
+        offset, size) -> (res : Uint256):
     alloc_locals
     let (msize) = update_msize(msize, offset, size)
     let (memval) = array_create_from_memory(offset, size)
@@ -16,7 +17,7 @@ func sha{range_check_ptr, memory_dict : DictAccess*, msize}(offset, size) -> (re
     return (res=Uint256(low, high))
 end
 
-func uint256_sha{range_check_ptr, memory_dict : DictAccess*, msize}(
+func uint256_sha{range_check_ptr, memory_dict : DictAccess*, msize, bitwise_ptr : BitwiseBuiltin*}(
         offset : Uint256, size : Uint256) -> (res : Uint256):
     return sha(offset.low, size.low)
 end

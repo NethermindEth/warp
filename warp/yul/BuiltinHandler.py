@@ -380,7 +380,7 @@ class SHA3(StaticHandler):
         super().__init__(
             function_name="uint256_sha",
             module="evm.hashing",
-            used_implicits=("memory_dict", "msize", "range_check_ptr"),
+            used_implicits=("memory_dict", "msize", "range_check_ptr", "bitwise_ptr"),
         )
 
 
