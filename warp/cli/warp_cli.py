@@ -32,7 +32,11 @@ def warp(ctx, network):
 @click.argument("file_path", type=click.Path(exists=True))
 @click.argument("contract_name")
 @click.option("--cairo-output", is_flag=True)
-def transpile(file_path, contract_name, cairo_output):
+@click.option(
+    "--yul-optimizations",
+    help="A string input for setting the sequence of optimizer steps",
+)
+def transpile(file_path, contract_name, cairo_output, yul_optimizations):
     """
     FILE_PATH: Path to your solidity contract\n
     CONTRACT_NAME: Name of the primary contract (non-interface, non-library, non-abstract contract) that you wish to transpile
@@ -42,7 +46,12 @@ def transpile(file_path, contract_name, cairo_output):
     from yul.main import transpile_from_solidity
 
     path = click.format_filename(file_path)
-    output = transpile_from_solidity(file_path, contract_name)
+
+    if isinstance(yul_optimizations, str):
+        output = transpile_from_solidity(file_path, contract_name, yul_optimizations)
+    else:
+        output = transpile_from_solidity(file_path, contract_name)
+
     if cairo_output:
         cairo_code = output["cairo_code"]
         with open(f"{file_path[:-4]}.cairo", "w") as cairo_file:

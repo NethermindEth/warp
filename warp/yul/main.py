@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -31,7 +32,9 @@ from yul.WarpException import warp_assert
 AST_GENERATOR = "kudu"
 
 
-def transpile_from_solidity(sol_src_path, main_contract) -> dict:
+def transpile_from_solidity(
+    sol_src_path, main_contract, optimizers_order="VFoLRFD"
+) -> dict:
     sol_src_path_modified = str(sol_src_path)[:-4] + "_marked.sol"
     if not shutil.which(AST_GENERATOR):
         sys.exit(f"Please install {AST_GENERATOR} first")
@@ -52,7 +55,7 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
 
     codes = json.loads(result.stdout)
     yul_ast = parse_to_normalized_ast(codes)
-    cairo_code = transpile_from_yul(yul_ast)
+    cairo_code = transpile_from_yul(yul_ast, optimizers_order)
     try:
         os.remove(sol_src_path_modified)
     except FileNotFoundError:
@@ -60,24 +63,32 @@ def transpile_from_solidity(sol_src_path, main_contract) -> dict:
     return {"cairo_code": cairo_code, "sol_abi": abi}
 
 
-def transpile_from_yul(yul_ast: ast.Node) -> str:
+def transpile_from_yul(yul_ast: ast.Node, optimizers_order) -> str:
     name_gen = NameGenerator()
     cairo_functions = CairoFunctions(FunctionGenerator())
     builtins = get_default_builtins(cairo_functions)
-    yul_ast = ForLoopSimplifier().map(yul_ast)
-    yul_ast = ForLoopEliminator(name_gen).map(yul_ast)
-    yul_ast = MangleNamesVisitor().map(yul_ast)
-    yul_ast = SwitchToIfVisitor().map(yul_ast)
-    yul_ast = VariableInliner().map(yul_ast)
-    yul_ast = ConstantFolder().map(yul_ast)
-    yul_ast = FoldIf().map(yul_ast)
-    yul_ast = ExpressionSplitter(name_gen).map(yul_ast)
-    yul_ast = RevertNormalizer(builtins).map(yul_ast)
-    yul_ast = ScopeFlattener(name_gen).map(yul_ast)
-    yul_ast = LeaveNormalizer().map(yul_ast)
-    yul_ast = RevertNormalizer(builtins).map(yul_ast)
-    yul_ast = FunctionPruner().map(yul_ast)
-    yul_ast = DeadcodeEliminator().map(yul_ast)
+
+    pass_order = "FlsFleMSVERSf" + optimizers_order
+
+    ast_passes = {
+        "Fls": [ForLoopSimplifier().map],
+        "Fle": [ForLoopEliminator(name_gen).map],
+        "M": [MangleNamesVisitor().map],
+        "S": [SwitchToIfVisitor().map],
+        "E": [ExpressionSplitter(name_gen).map],
+        "Sf": [ScopeFlattener(name_gen).map],
+        "V": [VariableInliner().map, ConstantFolder().map],
+        "Fo": [FoldIf().map],
+        "L": [LeaveNormalizer().map],
+        "R": [RevertNormalizer(builtins).map],
+        "F": [FunctionPruner().map],
+        "D": [DeadcodeEliminator().map],
+    }
+
+    for ast_pass in re.findall(r"[A-Z][a-z]*", pass_order):
+        ast_mappers = ast_passes.get(ast_pass) or [lambda ast: ast]
+        for ast_mapper in ast_mappers:
+            yul_ast = ast_mapper(yul_ast)
 
     cairo_visitor = ToCairoVisitor(name_gen, cairo_functions, get_default_builtins)
 
