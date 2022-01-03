@@ -87,6 +87,10 @@ func is_eq{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
 end
 
 func is_gt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
+    let (eq) = uint256_eq(op1, op2)
+    if eq == 1:
+        return (result=Uint256(0, 0))
+    end
     let (res) = uint256_lt(op2, op1)
     return (result=Uint256(res, 0))
 end
@@ -103,6 +107,10 @@ func slt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
 end
 
 func sgt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : Uint256):
+    let (eq) = uint256_eq(op1, op2)
+    if eq == 1:
+        return (result=Uint256(0, 0))
+    end
     let (res) = uint256_signed_lt(op1, op2)
     return (result=Uint256(1 - res, 0))
 end
@@ -135,8 +143,8 @@ end
 
 func uint256_signextend{range_check_ptr}(a : Uint256, i : Uint256) -> (res : Uint256):
     alloc_locals
-    let (i, _) = uint256_mul(i, cast((8, 0), Uint256))
-    let (i) = uint256_sub(cast((248, 0), Uint256), i)
+    let (i, _) = uint256_mul(i, Uint256(8, 0))
+    let (i) = uint256_sub(Uint256(248, 0), i)
     let (a) = uint256_shl(a, i)
     let (a) = uint256_sar(a, i)
     return (a)
@@ -144,11 +152,11 @@ end
 
 func uint256_byte{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(a : Uint256, i : Uint256) -> (
         res : Uint256):
-    let (i, _) = uint256_mul(i, cast((8, 0), Uint256))
-    let (i) = uint256_sub(cast((248, 0), Uint256), i)
+    let (i, _) = uint256_mul(i, Uint256(8, 0))
+    let (i) = uint256_sub(Uint256(248, 0), i)
     let (res) = u256_shr(i, a)
     let (low) = bitwise_and(res.low, 255)
-    return (res=cast((low, 0), Uint256))
+    return (res=Uint256(low, 0))
 end
 
 func uint256_exp{range_check_ptr}(a : Uint256, b : Uint256) -> (res : Uint256):
