@@ -16,16 +16,8 @@ class Command(Enum):
 
 
 @click.group()
-@click.option(
-    "--network",
-    envvar="STARKNET_NETWORK",
-    required=True,
-    help="A StarkNet network to use. "
-    "Either specify it as the option value or set an environment variable STARKNET_NETWORK.",
-)
-@click.pass_context
-def warp(ctx, network):
-    ctx.obj = {"network": network}
+def warp():
+    pass
 
 
 @warp.command()
@@ -76,8 +68,14 @@ def transpile(file_path, contract_name, cairo_output):
         "Either [] or () can be used for grouping as Solidity structs or arrays"
     ),
 )
-@click.pass_obj
-def invoke(obj, program, address, function, inputs):
+@click.option(
+    "--network",
+    envvar="STARKNET_NETWORK",
+    required=True,
+    help="A StarkNet network to use. "
+    "Either specify it as the option value or set an environment variable STARKNET_NETWORK.",
+)
+def invoke(program, address, function, inputs, network):
     """
     Invoke the given function from a contract on StarkNet
     """
@@ -88,7 +86,7 @@ def invoke(obj, program, address, function, inputs):
     with open(program, "r") as f:
         program_info = json.load(f)
     asyncio.run(
-        _invoke(contract_base, program_info, address, function, inputs, obj["network"])
+        _invoke(contract_base, program_info, address, function, inputs, network)
     )
 
 
@@ -97,8 +95,14 @@ def invoke(obj, program, address, function, inputs):
     "program", nargs=1, required=True, type=click.Path(exists=True, dir_okay=False)
 )
 @click.option("--constructor_args", required=False, default="[]")
-@click.pass_obj
-def deploy(obj, program, constructor_args):
+@click.option(
+    "--network",
+    envvar="STARKNET_NETWORK",
+    required=True,
+    help="A StarkNet network to use. "
+    "Either specify it as the option value or set an environment variable STARKNET_NETWORK.",
+)
+def deploy(program, constructor_args, network):
     """
     PROGRAM: path to the transpiled program JSON file.
 
@@ -126,7 +130,7 @@ def deploy(obj, program, constructor_args):
                 contract_base,
                 program_info,
                 constructor_args,
-                obj["network"],
+                network,
             )
         )
     finally:
