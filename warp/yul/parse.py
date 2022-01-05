@@ -77,14 +77,10 @@ def parse_literal(yul_ast) -> ast.Literal:
     elif kind == "bool":
         return ast.Literal(yul_ast["value"] == "true")
     elif kind == "string":
-        yul_string = yul_ast["value"]
-        parsed_string = literal_eval(f"'{yul_string}'")
-        parsed_string = "".join([i if i.isascii() else "" for i in parsed_string])
-        if parsed_string != yul_ast["value"]:
-            print(
-                f"Warning string literal f{yul_ast['value']} was parsed as f{parsed_string}"
-            )
-        return ast.Literal(parsed_string)
+        yul_string = yul_ast["hexValue"]
+        string_length = len(yul_string)
+        encoded_string = read_int("0x" + yul_string + "0" * (64 - string_length))
+        return ast.Literal(encoded_string)
     else:
         assert False, "Invalid Literal node"
 
