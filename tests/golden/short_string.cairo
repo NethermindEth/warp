@@ -266,7 +266,9 @@ func __warp_block_5{
     end
     uint256_mstore(offset=Uint256(low=64, high=0), value=Uint256(low=192, high=0))
     uint256_mstore(offset=Uint256(low=128, high=0), value=Uint256(low=3, high=0))
-    uint256_mstore(offset=Uint256(low=160, high=0), value=Uint256(low='', high='ABC' * 256 ** 13))
+    uint256_mstore(
+        offset=Uint256(low=160, high=0),
+        value=Uint256(low=0, high=86743870240126275024148876141787086848))
     let (__warp_subexpr_4 : Uint256) = abi_encode_string_1173()
     let (__warp_subexpr_3 : Uint256) = u256_add(
         __warp_subexpr_4,
@@ -385,4 +387,3 @@ func __main_meat{
     assert 0 = 1
     jmp rel 0
 end
-

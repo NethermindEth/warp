@@ -76,9 +76,9 @@ func __warp_block_1{
         assert 0 = 1
         jmp rel 0
     end
-    let (__warp_subexpr_3 : Uint256) = u256_add(
-        Uint256(low='', high='a' * 256 ** 15), Uint256(low=14, high=0))
-    uint256_mstore(offset=Uint256(low=128, high=0), value=__warp_subexpr_3)
+    uint256_mstore(
+        offset=Uint256(low=128, high=0),
+        value=Uint256(low=14, high=128935115591136839671669284847193423872))
     warp_return(Uint256(low=128, high=0), Uint256(low=32, high=0))
     return ()
 end
