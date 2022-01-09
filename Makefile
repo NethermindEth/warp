@@ -34,6 +34,7 @@ test_yul: warp
 benchmark: warp
 	mkdir -p benchmark/stats
 	mkdir -p benchmark/tmp
+	git log -20 --format=format:"%H" > ./benchmark/stats/commits.txt
 	python -m pytest tests/benchmark -v --tb=short --workers=auto $(ARGS)
 	python ./warp/logging/generateMarkdown.py
 .PHONY: benchmark

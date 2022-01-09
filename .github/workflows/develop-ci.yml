@@ -52,7 +52,7 @@ jobs:
       - name: Setup source hash (pull_request)
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          git fetch origin "${{ github.head_ref }}":"${{ github.head_ref }}" --depth 1
+          git fetch origin "${{ github.head_ref }}":"${{ github.head_ref }}" --depth 20
           source_hash="$(git rev-parse ${{ github.head_ref }})"
           echo "source_hash=$source_hash" >> $GITHUB_ENV
 
@@ -76,6 +76,18 @@ jobs:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
           source_file: "benchmark/stats/${{ env.source_hash }}.md"
+          destination_repo: "NethermindEth/warp-benchmark"
+          destination_folder: "stats"
+          destination_branch: master
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          user_name: "Github Actions"
+
+      - name: Push commits list
+        uses: dmnemec/copy_file_to_another_repo_action@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source_file: "benchmark/stats/commits.txt"
           destination_repo: "NethermindEth/warp-benchmark"
           destination_folder: "stats"
           destination_branch: master
