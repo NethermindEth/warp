@@ -91,39 +91,15 @@ func __warp_block_3{range_check_ptr}(var_a : Uint256) -> (__warp_leave_1 : Uint2
     return (__warp_leave_1, var)
 end
 
-func __warp_if_2{range_check_ptr}(
-        __warp_leave_5 : Uint256, __warp_subexpr_0 : Uint256, var_a : Uint256, var_b : Uint256) -> (
-        __warp_leave_1 : Uint256, __warp_leave_5 : Uint256, var : Uint256):
-    alloc_locals
-    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
-        let (__warp_leave_1 : Uint256, var : Uint256) = __warp_block_2(var_b)
-        if __warp_leave_1.low + __warp_leave_1.high != 0:
-            let __warp_leave_5 : Uint256 = Uint256(low=1, high=0)
-            return (__warp_leave_1, __warp_leave_5, var)
-        else:
-            return (__warp_leave_1, __warp_leave_5, var)
-        end
-    else:
-        let (__warp_leave_1 : Uint256, var : Uint256) = __warp_block_3(var_a)
-        if __warp_leave_1.low + __warp_leave_1.high != 0:
-            let __warp_leave_5 : Uint256 = Uint256(low=1, high=0)
-            return (__warp_leave_1, __warp_leave_5, var)
-        else:
-            return (__warp_leave_1, __warp_leave_5, var)
-        end
-    end
-end
-
 func __warp_block_1{range_check_ptr}(match_var : Uint256, var_a : Uint256, var_b : Uint256) -> (
         __warp_leave_1 : Uint256, var : Uint256):
     alloc_locals
-    let __warp_leave_5 : Uint256 = Uint256(low=0, high=0)
     let (__warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=0, high=0))
-    let (__warp_leave_1 : Uint256, __warp_leave_5 : Uint256, var : Uint256) = __warp_if_2(
-        __warp_leave_5, __warp_subexpr_0, var_a, var_b)
-    if __warp_leave_5.low + __warp_leave_5.high != 0:
+    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
+        let (__warp_leave_1 : Uint256, var : Uint256) = __warp_block_2(var_b)
         return (__warp_leave_1, var)
     else:
+        let (__warp_leave_1 : Uint256, var : Uint256) = __warp_block_3(var_a)
         return (__warp_leave_1, var)
     end
 end
@@ -133,21 +109,13 @@ func __warp_block_0{range_check_ptr}(var_a : Uint256, var_b : Uint256) -> (
     alloc_locals
     let (match_var : Uint256) = is_gt(var_a, var_b)
     let (__warp_leave_1 : Uint256, var : Uint256) = __warp_block_1(match_var, var_a, var_b)
-    if __warp_leave_1.low + __warp_leave_1.high != 0:
-        return (__warp_leave_1, var)
-    else:
-        return (__warp_leave_1, var)
-    end
+    return (__warp_leave_1, var)
 end
 
 func fun_rando{range_check_ptr}(var_a : Uint256, var_b : Uint256) -> (var : Uint256):
     alloc_locals
     let (__warp_leave_1 : Uint256, var : Uint256) = __warp_block_0(var_a, var_b)
-    if __warp_leave_1.low + __warp_leave_1.high != 0:
-        return (var)
-    else:
-        return (var)
-    end
+    return (var)
 end
 
 func __warp_block_5{
@@ -172,7 +140,7 @@ func __warp_block_5{
     return ()
 end
 
-func __warp_if_1{
+func __warp_if_0{
         bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
         msize, range_check_ptr, termination_token}(__warp_subexpr_0 : Uint256) -> ():
     alloc_locals
@@ -191,11 +159,11 @@ func __warp_block_4{
     let (__warp_subexpr_2 : Uint256) = calldataload(Uint256(low=0, high=0))
     let (__warp_subexpr_1 : Uint256) = u256_shr(Uint256(low=224, high=0), __warp_subexpr_2)
     let (__warp_subexpr_0 : Uint256) = is_eq(Uint256(low=2528696740, high=0), __warp_subexpr_1)
-    __warp_if_1(__warp_subexpr_0)
+    __warp_if_0(__warp_subexpr_0)
     return ()
 end
 
-func __warp_if_0{
+func __warp_if_1{
         bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
         msize, range_check_ptr, termination_token}(__warp_subexpr_0 : Uint256) -> ():
     alloc_locals
@@ -215,11 +183,10 @@ func __main_meat{
     let (__warp_subexpr_2 : Uint256) = calldatasize()
     let (__warp_subexpr_1 : Uint256) = is_lt(__warp_subexpr_2, Uint256(low=4, high=0))
     let (__warp_subexpr_0 : Uint256) = is_zero(__warp_subexpr_1)
-    __warp_if_0(__warp_subexpr_0)
+    __warp_if_1(__warp_subexpr_0)
     if termination_token == 1:
         return ()
     end
     assert 0 = 1
     jmp rel 0
 end
-

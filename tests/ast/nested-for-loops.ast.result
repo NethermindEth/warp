@@ -7,30 +7,30 @@
 		}
 		var := var_amount
 	}
-	function __warp_loop_body_2(expr, var_amount, var_k) -> var_amount, var_k {
+	function __warp_loop_body_2(expr, var_amount, var_k) -> var_amount {
 		let _4_26 := checked_add_uint256(expr, var_k)
 		var_amount := checked_add_uint256(var_amount, _4_26)
-		var_k := increment_uint256(var_k)
 	}
 	function __warp_loop_2(expr, var_amount, var_k) -> var_amount, var_k {
 		if iszero(iszero(gt(var_k, 3))) { leave }
-		var_amount, var_k := __warp_loop_body_2(expr, var_amount, var_k)
+		var_amount := __warp_loop_body_2(expr, var_amount, var_k)
+		var_k := increment_uint256(var_k)
 		var_amount, var_k := __warp_loop_2(expr, var_amount, var_k)
 	}
-	function __warp_loop_body_1(var_amount, var_i, var_j) -> var_amount, var_j {
+	function __warp_loop_body_1(var_amount, var_i, var_j) -> var_amount {
 		let expr := checked_mul_uint256(var_i, var_j)
 		let var_k := 0
 		{
 			{ var_amount, var_k := __warp_loop_2(expr, var_amount, var_k) }
 		}
-		var_j := checked_add_uint256_278(var_j)
 	}
 	function __warp_loop_1(_1_23, var_amount, var_i, var_j) -> var_amount, var_j {
 		if iszero(lt(var_j, _1_23)) { leave }
-		var_amount, var_j := __warp_loop_body_1(var_amount, var_i, var_j)
+		var_amount := __warp_loop_body_1(var_amount, var_i, var_j)
+		var_j := checked_add_uint256_278(var_j)
 		var_amount, var_j := __warp_loop_1(_1_23, var_amount, var_i, var_j)
 	}
-	function __warp_loop_body_0(__warp_break_0, var_amount, var_i) -> __warp_break_0, var_amount, var_i {
+	function __warp_loop_body_0(__warp_break_0, var_amount, var_i) -> __warp_break_0, var_amount {
 		let _1_23 := 10
 		let _2_24 := lt(var_i, _1_23)
 		let _3_25 := iszero(_2_24)
@@ -44,13 +44,13 @@
 		{
 			{ var_amount, var_j := __warp_loop_1(_1_23, var_amount, var_i, var_j) }
 		}
-		var_i := increment_uint256(var_i)
 	}
 	function __warp_loop_0(var_amount, var_i) -> var_amount, var_i {
 		let __warp_break_0 := False
 		if iszero(1) { leave }
-		__warp_break_0, var_amount, var_i := __warp_loop_body_0(__warp_break_0, var_amount, var_i)
+		__warp_break_0, var_amount := __warp_loop_body_0(__warp_break_0, var_amount, var_i)
 		if __warp_break_0 { leave }
+		var_i := increment_uint256(var_i)
 		var_amount, var_i := __warp_loop_0(var_amount, var_i)
 	}
 }

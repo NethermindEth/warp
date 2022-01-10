@@ -49,6 +49,8 @@ class ScopeFlattener(AstMapper):
             leave_id = ast.Identifier(self.leave_name)
             if leave_id not in get_scope(node).modified_variables:
                 stmts = (block_stmt,)
+            elif _is_leave(block_fun.body):
+                stmts = (block_stmt, ast.LEAVE)
             else:
                 stmts = (block_stmt, ast.If(condition=leave_id, body=ast.LEAVE_BLOCK))
             return ast.Block(stmts)
@@ -93,12 +95,12 @@ class ScopeFlattener(AstMapper):
             )
 
     def visit_if(self, node: ast.If):
-        if self.is_leave_if(node) or self.is_revert_if(node):
-            return super().visit_if(node)
-
-        fun_name = self.name_gen.make_if_name()
         with self._new_extraction():
-            if_block = ast.Block((super().visit_if(node),))
+            visited_if = super().visit_if(node)
+            if self.is_leave_if(visited_if) or self.is_revert_if(visited_if):
+                return visited_if
+            fun_name = self.name_gen.make_if_name()
+            if_block = ast.Block((visited_if,))
             if_fun, if_stmt = extract_block_as_function(if_block, fun_name)
             self.block_functions.append(if_fun)
             leave_id = ast.Identifier(self.leave_name)
@@ -147,9 +149,7 @@ def _is_leave(node: Optional[ast.Node]) -> bool:
     if isinstance(node, ast.Block):
         return any(_is_leave(x) for x in node.statements)
     elif isinstance(node, ast.If):
-        return _is_leave(node.condition) and (
-            not node.else_body or _is_leave(node.else_body)
-        )
+        return _is_leave(node.body) and _is_leave(node.else_body)
     elif isinstance(node, ast.Leave):
         return True
     else:
