@@ -139,7 +139,7 @@ func __warp_block_5{
     return ()
 end
 
-func __warp_if_2{
+func __warp_if_0{
         bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
         msize, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*,
         termination_token}(__warp_subexpr_0 : Uint256) -> ():
@@ -158,7 +158,7 @@ func __warp_block_4{
         termination_token}(match_var : Uint256) -> ():
     alloc_locals
     let (__warp_subexpr_0 : Uint256) = is_eq(match_var, Uint256(low=3500007562, high=0))
-    __warp_if_2(__warp_subexpr_0)
+    __warp_if_0(__warp_subexpr_0)
     return ()
 end
 
@@ -206,7 +206,7 @@ func __warp_block_0{
     return ()
 end
 
-func __warp_if_0{
+func __warp_if_2{
         bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
         msize, pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*,
         termination_token}(__warp_subexpr_0 : Uint256) -> ():
@@ -228,11 +228,10 @@ func __main_meat{
     let (__warp_subexpr_2 : Uint256) = calldatasize()
     let (__warp_subexpr_1 : Uint256) = is_lt(__warp_subexpr_2, Uint256(low=4, high=0))
     let (__warp_subexpr_0 : Uint256) = is_zero(__warp_subexpr_1)
-    __warp_if_0(__warp_subexpr_0)
+    __warp_if_2(__warp_subexpr_0)
     if termination_token == 1:
         return ()
     end
     assert 0 = 1
     jmp rel 0
 end
-

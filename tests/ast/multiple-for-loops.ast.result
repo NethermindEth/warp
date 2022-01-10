@@ -11,22 +11,18 @@
 		}
 		var := var_cant
 	}
-	function __warp_loop_body_0(var_cant, var_j, var_k) -> var_cant, var_k {
-		var_cant := checked_add_uint256(var_cant, var_k)
-		var_k := checked_add_uint256(var_k, var_j)
-	}
+	function __warp_loop_body_0(var_cant, var_k) -> var_cant { var_cant := checked_add_uint256(var_cant, var_k) }
 	function __warp_loop_0(var_cant, var_i, var_j, var_k) -> var_cant, var_k {
 		if iszero(lt(var_k, var_i)) { leave }
-		var_cant, var_k := __warp_loop_body_0(var_cant, var_j, var_k)
+		var_cant := __warp_loop_body_0(var_cant, var_k)
+		var_k := checked_add_uint256(var_k, var_j)
 		var_cant, var_k := __warp_loop_0(var_cant, var_i, var_j, var_k)
 	}
-	function __warp_loop_body_1(var_cant, var_i, var_k_1) -> var_cant, var_k_1 {
-		var_cant := checked_add_uint256(var_cant, var_k_1)
-		var_k_1 := checked_add_uint256(var_k_1, var_i)
-	}
+	function __warp_loop_body_1(var_cant, var_k_1) -> var_cant { var_cant := checked_add_uint256(var_cant, var_k_1) }
 	function __warp_loop_1(var_cant, var_i, var_j, var_k_1) -> var_cant, var_k_1 {
 		if iszero(lt(var_k_1, var_j)) { leave }
-		var_cant, var_k_1 := __warp_loop_body_1(var_cant, var_i, var_k_1)
+		var_cant := __warp_loop_body_1(var_cant, var_k_1)
+		var_k_1 := checked_add_uint256(var_k_1, var_i)
 		var_cant, var_k_1 := __warp_loop_1(var_cant, var_i, var_j, var_k_1)
 	}
 }

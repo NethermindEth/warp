@@ -81,13 +81,6 @@ func __warp_loop_body_0{range_check_ptr}(
     let (var_k_1 : Uint256) = u256_add(
         var_k_1,
         Uint256(low=340282366920938463463374607431768211455, high=340282366920938463463374607431768211455))
-    let (__warp_subexpr_3 : Uint256) = uint256_not(var_j)
-    let (__warp_subexpr_2 : Uint256) = is_gt(var_k_1, __warp_subexpr_3)
-    if __warp_subexpr_2.low + __warp_subexpr_2.high != 0:
-        assert 0 = 1
-        jmp rel 0
-    end
-    let (var_k_1 : Uint256) = u256_add(var_k_1, var_j)
     return (__warp_leave_0, var, var_k_1)
 end
 
@@ -105,6 +98,13 @@ func __warp_loop_0{range_check_ptr}(
     if __warp_leave_0.low + __warp_leave_0.high != 0:
         return (__warp_leave_0, var, var_k_1)
     end
+    let (__warp_subexpr_3 : Uint256) = uint256_not(var_j)
+    let (__warp_subexpr_2 : Uint256) = is_gt(var_k_1, __warp_subexpr_3)
+    if __warp_subexpr_2.low + __warp_subexpr_2.high != 0:
+        assert 0 = 1
+        jmp rel 0
+    end
+    let (var_k_1 : Uint256) = u256_add(var_k_1, var_j)
     let (__warp_leave_0 : Uint256, var : Uint256, var_k_1 : Uint256) = __warp_loop_0(
         __warp_leave_0, var, var_i, var_j, var_k, var_k_1)
     return (__warp_leave_0, var, var_k_1)
@@ -163,7 +163,7 @@ func __warp_block_2{
     return ()
 end
 
-func __warp_if_1{
+func __warp_if_0{
         bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
         msize, range_check_ptr, termination_token}(__warp_subexpr_0 : Uint256) -> ():
     alloc_locals
@@ -182,11 +182,11 @@ func __warp_block_1{
     let (__warp_subexpr_2 : Uint256) = calldataload(Uint256(low=0, high=0))
     let (__warp_subexpr_1 : Uint256) = u256_shr(Uint256(low=224, high=0), __warp_subexpr_2)
     let (__warp_subexpr_0 : Uint256) = is_eq(Uint256(low=105102910, high=0), __warp_subexpr_1)
-    __warp_if_1(__warp_subexpr_0)
+    __warp_if_0(__warp_subexpr_0)
     return ()
 end
 
-func __warp_if_0{
+func __warp_if_1{
         bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
         msize, range_check_ptr, termination_token}(__warp_subexpr_0 : Uint256) -> ():
     alloc_locals
@@ -206,11 +206,10 @@ func __main_meat{
     let (__warp_subexpr_2 : Uint256) = calldatasize()
     let (__warp_subexpr_1 : Uint256) = is_lt(__warp_subexpr_2, Uint256(low=4, high=0))
     let (__warp_subexpr_0 : Uint256) = is_zero(__warp_subexpr_1)
-    __warp_if_0(__warp_subexpr_0)
+    __warp_if_1(__warp_subexpr_0)
     if termination_token == 1:
         return ()
     end
     assert 0 = 1
     jmp rel 0
 end
-

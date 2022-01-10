@@ -53,6 +53,9 @@ func copy_from_memory_aligned{memory_dict : DictAccess*, bitwise_ptr : BitwiseBu
     alloc_locals
     let (block) = dict_read{dict_ptr=memory_dict}(aligned_offset)
     if n == 0:
+        if excess == 0:
+            return ()
+        end
         let (p) = pow2(128 - 8 * excess)
         let (mask) = bitwise_not(p - 1)
         let (block) = bitwise_and(block, mask)
@@ -71,6 +74,9 @@ func copy_from_memory_shifted{memory_dict : DictAccess*, range_check_ptr}(
     let value = low_part + UINT128_BOUND * high_part / p
     let (enough) = is_le(size, 16)
     if enough == 1:
+        if size == 0:
+            return ()
+        end
         let (divisor) = pow2(128 - 8 * size)
         let (q, _) = unsigned_div_rem(value, divisor)
         assert array[0] = q * divisor
