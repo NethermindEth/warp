@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import json
 import os
 import re
@@ -32,6 +33,19 @@ from yul.WarpException import warp_assert
 AST_GENERATOR = "kudu"
 
 
+@dataclasses.dataclass()
+class bcolors:
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
+
+
 def transpile_from_solidity(
     sol_src_path, main_contract, optimizers_order="VFoLRFD"
 ) -> dict:
@@ -45,8 +59,19 @@ def transpile_from_solidity(
             check=True,
             capture_output=True,
         )
+        if result.stderr:
+            print(
+                bcolors.FAIL
+                + bcolors.BOLD
+                + result.stderr.decode("utf-8")
+                + bcolors.ENDC,
+                file=sys.stderr,
+            )
     except subprocess.CalledProcessError as e:
-        print(e.stderr.decode("utf-8"), file=sys.stderr)
+        print(
+            bcolors.FAIL + bcolors.BOLD + e.stderr.decode("utf-8") + bcolors.ENDC,
+            file=sys.stderr,
+        )
         raise e
 
     output = get_for_contract(sol_src_path_modified, main_contract, ["abi"])
