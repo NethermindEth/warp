@@ -322,6 +322,7 @@ func __main_meat{
         Uint256(low=0, high=0))
 
     __warp_block_6()
-    warp_return(Uint256(low=0, high=0), Uint256(low=0, high=0))
+    warp_return(Uint256(0, 0), Uint256(0, 0))
     return ()
 end
+

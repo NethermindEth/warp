@@ -108,7 +108,7 @@ func abi_decode{range_check_ptr}(dataEnd : Uint256) -> ():
     end
 end
 
-func abi_encode_uint256_727{memory_dict : DictAccess*, msize, range_check_ptr}(
+func abi_encode_uint256_729{memory_dict : DictAccess*, msize, range_check_ptr}(
         value0 : Uint256) -> (tail : Uint256):
     alloc_locals
     let tail : Uint256 = Uint256(low=160, high=0)
@@ -348,7 +348,7 @@ func __warp_block_3{
     let (__warp_subexpr_0 : Uint256) = calldatasize()
     abi_decode(__warp_subexpr_0)
     let (__warp_subexpr_3 : Uint256) = sload(Uint256(low=1, high=0))
-    let (__warp_subexpr_2 : Uint256) = abi_encode_uint256_727(__warp_subexpr_3)
+    let (__warp_subexpr_2 : Uint256) = abi_encode_uint256_729(__warp_subexpr_3)
     let (__warp_subexpr_1 : Uint256) = u256_add(
         __warp_subexpr_2,
         Uint256(low=340282366920938463463374607431768211328, high=340282366920938463463374607431768211455))
@@ -651,3 +651,4 @@ func __main_meat{
     assert 0 = 1
     jmp rel 0
 end
+

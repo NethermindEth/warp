@@ -229,14 +229,14 @@ func __warp_block_8{
         bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
         msize, range_check_ptr}() -> ():
     alloc_locals
-    let (_6 : Uint256) = returndata_size()
-    let (__warp_subexpr_0 : Uint256) = is_gt(_6, Uint256(low=18446744073709551615, high=0))
+    let (_5 : Uint256) = returndata_size()
+    let (__warp_subexpr_0 : Uint256) = is_gt(_5, Uint256(low=18446744073709551615, high=0))
     if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
         assert 0 = 1
         jmp rel 0
     end
     let (memPtr : Uint256) = uint256_mload(Uint256(low=64, high=0))
-    let (__warp_subexpr_4 : Uint256) = u256_add(_6, Uint256(low=31, high=0))
+    let (__warp_subexpr_4 : Uint256) = u256_add(_5, Uint256(low=31, high=0))
     let (__warp_subexpr_3 : Uint256) = uint256_and(
         __warp_subexpr_4,
         Uint256(low=340282366920938463463374607431768211424, high=340282366920938463463374607431768211455))
@@ -253,7 +253,7 @@ func __warp_block_8{
         jmp rel 0
     end
     uint256_mstore(offset=Uint256(low=64, high=0), value=newFreePtr)
-    uint256_mstore(offset=memPtr, value=_6)
+    uint256_mstore(offset=memPtr, value=_5)
     let (__warp_subexpr_9 : Uint256) = returndata_size()
     let (__warp_subexpr_8 : Uint256) = u256_add(memPtr, Uint256(low=32, high=0))
     returndata_copy(__warp_subexpr_8, Uint256(low=0, high=0), __warp_subexpr_9)
@@ -308,14 +308,15 @@ func __main_meat{
     let (__warp_subexpr_3 : Uint256) = calldatasize()
     calldatacopy(_3, Uint256(low=0, high=0), __warp_subexpr_3)
     let (__warp_subexpr_4 : Uint256) = calldatasize()
-    let (_5 : Uint256) = u256_add(_3, __warp_subexpr_4)
-    uint256_mstore(offset=_5, value=Uint256(low=0, high=0))
-    let (__warp_subexpr_7 : Uint256) = uint256_sub(_5, _3)
+    let (_4 : Uint256) = u256_add(_3, __warp_subexpr_4)
+    uint256_mstore(offset=_4, value=Uint256(low=0, high=0))
+    let (__warp_subexpr_7 : Uint256) = uint256_sub(_4, _3)
     let (__warp_subexpr_6 : Uint256) = __warp_constant_10000000000000000000000000000000000000000()
     let (__warp_subexpr_5 : Uint256) = delegatecall(
         __warp_subexpr_6, _2, _3, __warp_subexpr_7, Uint256(low=0, high=0), Uint256(low=0, high=0))
 
     __warp_block_6()
-    warp_return(Uint256(low=0, high=0), Uint256(low=0, high=0))
+    warp_return(Uint256(0, 0), Uint256(0, 0))
     return ()
 end
+

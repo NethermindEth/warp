@@ -424,3 +424,4 @@ func __main_meat{
     assert 0 = 1
     jmp rel 0
 end
+
