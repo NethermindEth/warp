@@ -74,10 +74,8 @@ func __warp_loop_body_0{range_check_ptr}(
         assert 0 = 1
         jmp rel 0
     end
-    let (sum : Uint256) = u256_add(var_ret, var_ret_1)
-    let var_ret_2 : Uint256 = sum
-    let var_ret : Uint256 = sum
-    let (__warp_subexpr_2 : Uint256) = is_lt(var_ret_2, Uint256(low=10, high=0))
+    let (var_ret : Uint256) = u256_add(var_ret, var_ret_1)
+    let (__warp_subexpr_2 : Uint256) = is_lt(var_ret, Uint256(low=10, high=0))
     let (__warp_subexpr_1 : Uint256) = is_zero(__warp_subexpr_2)
     if __warp_subexpr_1.low + __warp_subexpr_1.high != 0:
         let __warp_break_0 : Uint256 = Uint256(low=1, high=0)
@@ -185,3 +183,4 @@ func __main_meat{
     assert 0 = 1
     jmp rel 0
 end
+
