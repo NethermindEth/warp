@@ -174,6 +174,15 @@ class NotImplementedStarkNet(metaclass=PrettyType):
         )
 
 
+class NotSupported(metaclass=PrettyType):
+    def get_function_call(self, _args: Sequence[str]):
+        raise Exception(
+            f"Your Solidity contract makes use of {str(type(self)).lower()},"
+            f"which is not supported."
+            f"Please remove references to {str(type(self)).lower()}"
+        )
+
+
 # ============ Comparisons ============
 class IsZero(StaticHandler):
     def __init__(self):
@@ -562,6 +571,10 @@ class Delegatecall(StaticHandler):
         )
 
 
+class CallCode(NotSupported):
+    pass
+
+
 class ExtCodeSize(DynamicHandler):
     def __init__(self, cairo_functions: CairoFunctions):
         super().__init__(lambda: cairo_functions.constant_function(1))
@@ -683,6 +696,14 @@ class Number(NotImplementedStarkNet):
     pass
 
 
+class Origin(NotImplementedStarkNet):
+    pass
+
+
+class Pc(NotSupported):
+    pass
+
+
 class SetImmutable(NotImplementedStarkNet):
     pass
 
@@ -712,6 +733,7 @@ def get_default_builtins(
         "blockhash": BlockHash(),
         "byte": Byte(),
         "call": Call(),
+        "callcode": CallCode(),
         "calldatacopy": CallDataCopy(),
         "calldataload": CallDataLoad(),
         "calldatasize": CallDataSize(),
@@ -760,6 +782,8 @@ def get_default_builtins(
         "not": Not(),
         "number": Number(),
         "or": Or(),
+        "origin": Origin(),
+        "pc": Pc(),
         "pedersen": Pedersen(),
         "return": Return(),
         "returndatacopy": ReturnDataCopy(),
