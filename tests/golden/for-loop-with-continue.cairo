@@ -13,6 +13,10 @@ from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import Uint256, uint256_not, uint256_sub
 
+func __warp_identity_Uint256(arg0 : Uint256) -> (arg0 : Uint256):
+    return (arg0)
+end
+
 func __warp_constant_0() -> (res : Uint256):
     return (Uint256(low=0, high=0))
 end
@@ -53,9 +57,10 @@ end
 
 func __constructor_meat{memory_dict : DictAccess*, msize, range_check_ptr}() -> ():
     alloc_locals
-    uint256_mstore(offset=Uint256(low=64, high=0), value=Uint256(low=128, high=0))
-    let (__warp_subexpr_0 : Uint256) = __warp_constant_0()
-    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
+    let (__warp_subexpr_0 : Uint256) = __warp_identity_Uint256(Uint256(low=128, high=0))
+    uint256_mstore(offset=Uint256(low=64, high=0), value=__warp_subexpr_0)
+    let (__warp_subexpr_1 : Uint256) = __warp_constant_0()
+    if __warp_subexpr_1.low + __warp_subexpr_1.high != 0:
         assert 0 = 1
         jmp rel 0
     else:
@@ -157,9 +162,9 @@ end
 
 func __warp_if_1{
         bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
-        msize, range_check_ptr, termination_token}(__warp_subexpr_0 : Uint256) -> ():
+        msize, range_check_ptr, termination_token}(__warp_subexpr_1 : Uint256) -> ():
     alloc_locals
-    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
+    if __warp_subexpr_1.low + __warp_subexpr_1.high != 0:
         __warp_block_0()
         return ()
     else:
@@ -171,15 +176,15 @@ func __main_meat{
         bitwise_ptr : BitwiseBuiltin*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
         msize, range_check_ptr, termination_token}() -> ():
     alloc_locals
-    uint256_mstore(offset=Uint256(low=64, high=0), value=Uint256(low=128, high=0))
-    let (__warp_subexpr_2 : Uint256) = calldatasize()
-    let (__warp_subexpr_1 : Uint256) = is_lt(__warp_subexpr_2, Uint256(low=4, high=0))
-    let (__warp_subexpr_0 : Uint256) = is_zero(__warp_subexpr_1)
-    __warp_if_1(__warp_subexpr_0)
+    let (__warp_subexpr_0 : Uint256) = __warp_identity_Uint256(Uint256(low=128, high=0))
+    uint256_mstore(offset=Uint256(low=64, high=0), value=__warp_subexpr_0)
+    let (__warp_subexpr_3 : Uint256) = calldatasize()
+    let (__warp_subexpr_2 : Uint256) = is_lt(__warp_subexpr_3, Uint256(low=4, high=0))
+    let (__warp_subexpr_1 : Uint256) = is_zero(__warp_subexpr_2)
+    __warp_if_1(__warp_subexpr_1)
     if termination_token == 1:
         return ()
     end
     assert 0 = 1
     jmp rel 0
 end
-

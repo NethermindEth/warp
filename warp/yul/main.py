@@ -49,7 +49,6 @@ class bcolors:
 def transpile_from_solidity(
     sol_src_path, main_contract, optimizers_order="VFoLRFD"
 ) -> dict:
-    sol_src_path_modified = str(sol_src_path)[:-4] + "_marked.sol"
     if not shutil.which(AST_GENERATOR):
         sys.exit(f"Please install {AST_GENERATOR} first")
 
@@ -74,17 +73,12 @@ def transpile_from_solidity(
         )
         raise e
 
-    output = get_for_contract(sol_src_path_modified, main_contract, ["abi"])
+    output = get_for_contract(sol_src_path, main_contract, ["abi"])
     warp_assert(output, f"Couldn't extract {main_contract}'s abi from {sol_src_path}")
     (abi,) = output
-
     codes = json.loads(result.stdout)
     yul_ast = parse_to_normalized_ast(codes)
     cairo_code = transpile_from_yul(yul_ast, optimizers_order)
-    try:
-        os.remove(sol_src_path_modified)
-    except FileNotFoundError:
-        pass  # for reentrancy
     return {"cairo_code": cairo_code, "sol_abi": abi}
 
 

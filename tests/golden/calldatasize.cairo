@@ -13,6 +13,10 @@ from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_fp_and_pc
 from starkware.cairo.common.uint256 import Uint256
 
+func __warp_identity_Uint256(arg0 : Uint256) -> (arg0 : Uint256):
+    return (arg0)
+end
+
 func __warp_constant_0() -> (res : Uint256):
     return (Uint256(low=0, high=0))
 end
@@ -53,9 +57,10 @@ end
 
 func __constructor_meat{memory_dict : DictAccess*, msize, range_check_ptr}() -> ():
     alloc_locals
-    uint256_mstore(offset=Uint256(low=64, high=0), value=Uint256(low=128, high=0))
-    let (__warp_subexpr_0 : Uint256) = __warp_constant_0()
-    if __warp_subexpr_0.low + __warp_subexpr_0.high != 0:
+    let (__warp_subexpr_0 : Uint256) = __warp_identity_Uint256(Uint256(low=128, high=0))
+    uint256_mstore(offset=Uint256(low=64, high=0), value=__warp_subexpr_0)
+    let (__warp_subexpr_1 : Uint256) = __warp_constant_0()
+    if __warp_subexpr_1.low + __warp_subexpr_1.high != 0:
         assert 0 = 1
         jmp rel 0
     else:
@@ -136,4 +141,3 @@ func __main_meat{
     assert 0 = 1
     jmp rel 0
 end
-
