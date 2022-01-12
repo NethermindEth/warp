@@ -1,15 +1,10 @@
 from __future__ import annotations
 
 import dataclasses
-import json
-import os
 import re
-import shutil
-import subprocess
 import sys
 
 import warp.yul.ast as ast
-from warp.kudu import kudu_exe
 from warp.yul.BuiltinHandler import get_default_builtins
 from warp.yul.ConstantFolder import ConstantFolder
 from warp.yul.DeadcodeEliminator import DeadcodeEliminator
@@ -27,9 +22,8 @@ from warp.yul.RevertNormalizer import RevertNormalizer
 from warp.yul.ScopeFlattener import ScopeFlattener
 from warp.yul.SwitchToIfVisitor import SwitchToIfVisitor
 from warp.yul.ToCairoVisitor import ToCairoVisitor
-from warp.yul.utils import get_for_contract
+from warp.yul.utils import get_requests
 from warp.yul.VariableInliner import VariableInliner
-from warp.yul.WarpException import warp_assert
 
 
 @dataclasses.dataclass()
@@ -46,46 +40,11 @@ class bcolors:
 
 
 def transpile_from_solidity(
-    sol_src_path, main_contract, optimizers_order="VFoLRFD"
+    filepath, main_contract, optimizers_order="VFoLRFD"
 ) -> dict:
-    sol_src_path_modified = str(sol_src_path)[:-4] + "_marked.sol"
-    try:
-        with kudu_exe() as exe:
-            result = subprocess.run(
-                [exe, "--yul-json-ast", sol_src_path, main_contract],
-                check=True,
-                capture_output=True,
-            )
-        if result.stderr:
-            print(
-                bcolors.FAIL
-                + bcolors.BOLD
-                + result.stderr.decode("utf-8")
-                + bcolors.ENDC,
-                file=sys.stderr,
-            )
-    except subprocess.CalledProcessError as e:
-        print(
-            bcolors.FAIL + bcolors.BOLD + e.stderr.decode("utf-8") + bcolors.ENDC,
-            file=sys.stderr,
-        )
-        raise e
-
-    decoded_stdout = result.stdout.decode("utf-8")
-    if "Compilation error : Warp does not support" in decoded_stdout:
-        sys.exit(decoded_stdout)
-
-    output = get_for_contract(sol_src_path_modified, main_contract, ["abi"])
-    warp_assert(output, f"Couldn't extract {main_contract}'s abi from {sol_src_path}")
-    (abi,) = output
-
-    codes = json.loads(result.stdout)
-    yul_ast = parse_to_normalized_ast(codes)
+    abi, yul_json = get_requests(filepath, main_contract, ["abi", "ir-optimized-ast"])
+    yul_ast = parse_to_normalized_ast(yul_json)
     cairo_code = transpile_from_yul(yul_ast, optimizers_order)
-    try:
-        os.remove(sol_src_path_modified)
-    except FileNotFoundError:
-        pass  # for reentrancy
     return {"cairo_code": cairo_code, "sol_abi": abi}
 
 

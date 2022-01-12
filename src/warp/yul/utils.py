@@ -3,8 +3,11 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
+from typing import Sequence
 
-from warp.kudu import kudu_exe
+from warp.nethersolc import nethersolc_exe
+from warp.yul.WarpException import WarpException
 
 UPPERCASE_PATTERN = re.compile(r"[A-Z]")
 
@@ -41,69 +44,28 @@ def camelize(snake_case: str) -> str:
     return "".join(x.capitalize() for x in parts)
 
 
-def clean_path(sol_source):
-    if sol_source.startswith("./"):
-        return sol_source[2:]
-    else:
-        return sol_source
+def get_solc_json(requests: Sequence[str], filepath: os.PathLike) -> dict:
+    with nethersolc_exe() as exe:
+        try:
+            output_result = subprocess.run(
+                [exe, "--optimize", "--combined-json", ",".join(requests), filepath],
+                check=True,
+                capture_output=True,
+            )
+        except subprocess.CalledProcessError as e:
+            err_msg = f"nethersolc call failed: {e.stderr.decode('utf-8')}"
+            raise WarpException(err_msg) from e
+
+    return json.loads(output_result.stdout)
 
 
-def get_kudu_output(args: list[str], sol_source) -> dict:
-    args = ",".join(args)
-    with kudu_exe() as exe:
-        output_str = (
-            os.popen(f"{exe} --combined-json {args} {sol_source}").read().strip()
-        )
-    output = json.loads(output_str)
-    for contract in output["contracts"].keys():
-        output_str = output_str.replace(contract, os.path.abspath(contract))
-    return json.loads(output_str)
-
-
-def get_public_functions(sol_source: str, main_contract: str) -> list[str]:
-    get_source_version(sol_source)
-    sol_source = os.path.abspath(clean_path(sol_source))
-    hashes = get_kudu_output(["hashes"], sol_source)
-    public_functions = set()
-    for v in hashes["contracts"][f"{sol_source}:{main_contract}"]["hashes"].keys():
-        public_functions.add(f"fun_{v[:v.find('(')]}")
-    return list(public_functions)
-
-
-def get_function_mutabilities(sol_source, main_contract):
-    get_source_version(sol_source)
-    sol_source = os.path.abspath(clean_path(sol_source))
-    function_visibilities = dict()
-    abi = get_kudu_output(["abi"], sol_source)
-    for v in abi["contracts"][f"{sol_source}:{main_contract}"]["abi"]:
-        if v["type"] == "function":
-            function_visibilities[v["name"]] = v["stateMutability"]
-    return function_visibilities
-
-
-def get_for_contract(sol_source, target_contract, output_values):
-    get_source_version(sol_source)
-    compiled = get_kudu_output(output_values, sol_source)
-    for contract, values in compiled["contracts"].items():
+def get_requests(filepath, target_contract, requests) -> Sequence:
+    output = get_solc_json(requests, filepath)
+    for contract, values in output["contracts"].items():
         name = contract[contract.find(":") + 1 :]
         if name == target_contract:
-            return [values[x] for x in output_values]
-    return None
-
-
-def get_source_version(sol_source: str) -> float:
-    with open(sol_source) as f:
-        src = f.read()
-    code_split = src.split("\n")
-    for line in code_split:
-        if "pragma" in line:
-            ver: float = float(line[line.index("0.") + 2 :].replace(";", ""))
-            if ver < 7.6:
-                raise Exception(
-                    "Please use a version of solidity that is at least 0.7.6"
-                )
-            return ver
-    raise Exception("No Solidity version specified in contract")
+            return tuple(values[x] for x in requests)
+    raise WarpException(f"Contract {target_contract} is not found in {filepath}")
 
 
 def cairoize_bytes(bs: bytes, shifted=False) -> tuple[list[int], int]:

@@ -5,7 +5,7 @@ import platform
 import subprocess
 from ast import literal_eval
 from enum import Enum
-from pathlib import Path, PurePath
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import click
@@ -13,7 +13,7 @@ import pkg_resources
 import pytest
 from importlib_resources import files
 
-from warp.kudu import get_system_suffix
+from warp.nethersolc import get_system_suffix
 
 
 class Command(Enum):
