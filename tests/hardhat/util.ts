@@ -47,7 +47,7 @@ export async function starknet_deploy(
 
 export async function transpile(contractPath: string, mainContract: string) {
   await sh(
-    `warp --network ALPHA transpile --cairo-output ${contractPath} ${mainContract}`,
+    `warp transpile --cairo-output ${contractPath} ${mainContract}`,
   );
-  await sh(`warp --network ALPHA transpile ${contractPath} ${mainContract}`);
+  await sh(`warp transpile ${contractPath} ${mainContract}`);
 }

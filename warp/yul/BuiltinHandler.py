@@ -529,6 +529,8 @@ class GasPrice(DynamicHandler):
     def __init__(self, cairo_functions: CairoFunctions):
         super().__init__(lambda: cairo_functions.constant_function(10))
 
+    def is_terminating(self) -> bool:
+        return False
 
 class Call(StaticHandler):
     def __init__(self):
@@ -655,8 +657,8 @@ class GasLimit(NotImplementedStarkNet):
     pass
 
 
-class GasPrice(NotImplementedStarkNet):
-    pass
+# class GasPrice(NotImplementedStarkNet):
+#     pass
 
 
 class Invalid(NotImplementedStarkNet):

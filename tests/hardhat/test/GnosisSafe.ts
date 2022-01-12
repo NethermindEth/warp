@@ -47,15 +47,14 @@ describe('Gnosis Safe', function () {
       [owner, addr1, ...addrs] = await ethers.getSigners();
       gnosis = await Gnosis.deploy();
       await gnosis.deployed();
-      console.log(gnosis.functions);
 
       // ========================================================
       // StarkNet Deployment
       // ========================================================
-      // const response = await starknet_deploy([], 'GnosisSafe.cairo', 'GnosisSafe.json');
-      // c_GnosisAddressBN = BigNumber.from(response.data.contract_address);
-      // c_GnosisAddress = c_GnosisAddressBN._hex;
-      // console.log(c_GnosisAddress);
+      const response = await starknet_deploy([], 'GnosisSafe.cairo', 'GnosisSafe.json');
+      c_GnosisAddressBN = BigNumber.from(response.data.contract_address);
+      c_GnosisAddress = c_GnosisAddressBN._hex;
+      console.log(c_GnosisAddress);
     });
 
     // it('Deploy Solidity & Cairo GnosisSafeProxy', async function() {
