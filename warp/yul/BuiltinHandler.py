@@ -578,6 +578,11 @@ class CallValue(DynamicHandler):
         return super().get_function_call([])
 
 
+class MemoryGuard(DynamicHandler):
+    def __init__(self, cairo_functions: CairoFunctions):
+        super().__init__(lambda: cairo_functions.identity_function(["Uint256"]))
+
+
 class BaseFee(NotImplementedStarkNet):
     pass
 
@@ -744,6 +749,7 @@ def get_default_builtins(
         "log3": Log3(),
         "log4": Log4(),
         "lt": Lt(),
+        "memoryguard": MemoryGuard(cairo_functions),
         "mload": MLoad(),
         "mod": Mod(),
         "msize": MSize(),
