@@ -85,8 +85,6 @@ export class ASTMapper extends ASTVisitor<ASTNode> {
 
   context: ASTContext;
 
-  compilerVersion: string;
-
   genId(): number {
     return this.idGen.next().value;
   }
