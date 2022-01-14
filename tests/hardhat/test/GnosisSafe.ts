@@ -8,6 +8,8 @@ import { transpile, sh, starknet_deploy } from '../util';
 
 describe('Gnosis Safe', function () {
   this.timeout(380_000);
+  let Token: ContractFactory;
+  let token: Contract;
   let Gnosis: ContractFactory;
   let GnosisProxy: ContractFactory;
   let gnosisProxy: Contract;
@@ -19,6 +21,8 @@ describe('Gnosis Safe', function () {
   // eslint-disable-next-line no-unused-vars
   let addrs: SignerWithAddress[];
   // Prepend all Starknet/Cairo variables with c_
+  let c_TokenAddress: string;
+  let c_TokenAddressBN: BigNumber;
   let c_GnosisAddress: string;
   let c_GnosisAddressBN: BigNumber;
   let c_GnosisProxyAddress: string;
@@ -36,6 +40,29 @@ describe('Gnosis Safe', function () {
     //   await sh('mv contracts/gnosis-safe/proxies/GnosisSafeProxy.json artifacts/cairo');
     //   await sh('mv contracts/gnosis-safe/proxies/GnosisSafeProxy.cairo contracts/cairo');
     // });
+    // it('Transpile Solidity to Cairo', async function () {
+    //   await transpile('contracts/Token.sol', 'Token');
+    //   await sh('mv contracts/Token.json artifacts/cairo');
+    //   await sh('mv contracts/Token.cairo contracts/cairo');
+    // });
+
+    it('Deploy Solidity & Cairo ERC20', async function () {
+      // ========================================================
+      // Solidity Deployment
+      // ========================================================
+      Token = await ethers.getContractFactory('contracts/Token.sol:Token');
+      [owner, addr1, ...addrs] = await ethers.getSigners();
+      const pToken = Token.deploy();
+
+      // ========================================================
+      // StarkNet Deployment
+      // ========================================================
+      const response = await starknet_deploy([], "Token.cairo", "Token.json");
+      c_TokenAddressBN = BigNumber.from(response.data.contract_address);
+      c_TokenAddress = c_TokenAddressBN._hex;
+      [token] = await Promise.all([pToken]);
+      console.log(c_TokenAddress);
+    });
 
     it('Deploy Solidity & Cairo GnosisSafe', async function () {
       // ========================================================
@@ -57,24 +84,24 @@ describe('Gnosis Safe', function () {
       console.log(c_GnosisAddress);
     });
 
-    // it('Deploy Solidity & Cairo GnosisSafeProxy', async function() {
-    //   // ========================================================
-    //   // Solidity Deployment
-    //   // ========================================================
-    //   GnosisProxy = await ethers.getContractFactory(
-    //     'contracts/gnosis-safe/proxies/GnosisSafeProxy.sol:GnosisSafeProxy',
-    //   );
-    //   [owner, addr1, ...addrs] = await ethers.getSigners();
-    //   gnosisProxy = await GnosisProxy.deploy(gnosis.address);
-    //   await gnosisProxy.deployed();
+    it('Deploy Solidity & Cairo GnosisSafeProxy', async function() {
+      // ========================================================
+      // Solidity Deployment
+      // ========================================================
+      GnosisProxy = await ethers.getContractFactory(
+        'contracts/gnosis-safe/proxies/GnosisSafeProxy.sol:GnosisSafeProxy',
+      );
+      [owner, addr1, ...addrs] = await ethers.getSigners();
+      gnosisProxy = await GnosisProxy.deploy(gnosis.address);
+      await gnosisProxy.deployed();
 
-    //   // ========================================================
-    //   // StarkNet Deployment
-    //   // ========================================================
-    //   const response = await starknet_deploy([c_GnosisAddress], 'GnosisSafeProxy.cairo', 'GnosisSafeProxy.json');
-    //   c_GnosisProxyAddressBN = BigNumber.from(response.data.contract_address);
-    //   c_GnosisProxyAddress = c_GnosisProxyAddressBN._hex;
-    //   console.log(c_GnosisProxyAddress);
-    // });
+      // ========================================================
+      // StarkNet Deployment
+      // ========================================================
+      const response = await starknet_deploy([c_GnosisAddress], 'GnosisSafeProxy.cairo', 'GnosisSafeProxy.json');
+      c_GnosisProxyAddressBN = BigNumber.from(response.data.contract_address);
+      c_GnosisProxyAddress = c_GnosisProxyAddressBN._hex;
+      console.log(c_GnosisProxyAddress);
+    });
   });
 });
