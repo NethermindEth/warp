@@ -1,15 +1,11 @@
-import {
-  CompileResult,
-  ASTReader,
-  compileSol,
-  ASTWriter,
-  PrettyFormatter,
-  SourceUnit,
-  CompileFailedError,
-} from 'solc-typed-ast';
-import { AST } from './ast/mapper';
+import { ASTWriter, PrettyFormatter, CompileFailedError } from 'solc-typed-ast';
+import { TranspilationOptions } from '.';
+import { AST } from './ast/ast';
+import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
 import {
+  AddressArgumentPusher,
+  AddressEliminator,
   AnnotateImplicits,
   UnloadingAssignment,
   VariableDeclarationInitialiser,
@@ -20,45 +16,33 @@ import {
   StorageVariableAccessRewriter,
   ExpressionSplitter,
   LiteralExpressionEvaluator,
+  ImplicitConversionToExplicit,
+  ExternImporter,
+  IdentifierMangler,
+  StorageAllocator,
+  TupleAssignmentSplitter,
+  MemoryHandler,
+  Uint256Importer,
+  IntBoundCalculator,
 } from './passes';
-import { ImplicitConversionToExplicit } from './passes/implicitConversionToExplicit';
+import { RejectUnsupportedFeatures } from './passes/rejectUnsupportedFeatures';
+import { DefaultASTPrinter } from './utils/astPrinter';
+import { parsePassOrder } from './utils/cliOptionParsing';
+import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
+import { printCompileErrors, runSanityCheck } from './utils/utils';
 
-export function transpile(file: string): string[] | null {
-  let result: CompileResult;
-
-  try {
-    result = compileSol(file, 'auto', []);
-    const reader = new ASTReader();
-    const sourceUnits = reader.read(result.data);
-    return sourceUnits.map((s) => transpileSourceUnit(s, result.compilerVersion));
-  } catch (e) {
-    if (e instanceof CompileFailedError) {
-      console.log('---Compile Failed---');
-      e.failures.forEach((failure) => {
-        console.log(`Compiler version ${failure.compilerVersion} reported errors:`);
-        failure.errors.forEach((error, index) => {
-          console.log(`    --${index + 1}--`);
-          const errorLines = error.split('\n');
-          errorLines.forEach((line) => console.log(`    ${line}`));
-        });
-      });
-    } else {
-      console.log('Unexpected error during transpilation');
-      console.log(e);
-    }
-    return null;
-  }
+export function transpile(ast: AST, options: TranspilationOptions): string {
+  const cairoAST = applyPasses(ast, options);
+  const writer = new ASTWriter(
+    CairoASTMapping(cairoAST, options.strict ?? false),
+    new PrettyFormatter(4, 0),
+    ast.compilerVersion,
+  );
+  return writer.write(ast.root);
 }
 
-export function transpileSourceUnit(contract: SourceUnit, compilerVersion: string): string {
-  const node = applyPasses({ ast: contract, compilerVersion, imports: null, functionImplicits: null });
-  const formatter = new PrettyFormatter(4, 0);
-  const { ast, ...options } = node;
-  const writer = new ASTWriter(CairoASTMapping(options), formatter, compilerVersion);
-  return writer.write(ast);
-}
-
-export function applyPasses(ast: AST): AST {
+// Options used: order, printTrees, checkTrees, strict
+function applyPasses(ast: AST, options: TranspilationOptions): AST {
   // TODO: Indentifier mangler
   // TODO: StorageVarPass:
   // TODO: Semantic pass to check that mapping access are fully applied
@@ -70,17 +54,73 @@ export function applyPasses(ast: AST): AST {
   // TODO: Replace all arrays with array type plus length pointer.
   // TODO: Replace reference writes with object copies. (use array length as an optimization) Update array lengths
   // TODO: Implement Custom Node for Builtins
-  // TODO: replace type(X).min and type(X).max with the corresponing constant value
-  ast = new LiteralExpressionEvaluator().map(ast);
-  ast = new UnloadingAssignment().map(ast);
-  ast = new VariableDeclarationInitialiser().map(ast);
-  ast = new ImplicitConversionToExplicit().map(ast);
-  ast = new BuiltinHandler().map(ast);
-  ast = new ForLoopSimplifier().map(ast);
-  ast = new ReturnInserter().map(ast);
-  ast = new VariableDeclarationExpressionSplitter().map(ast);
-  ast = new StorageVariableAccessRewriter().map(ast);
-  ast = new ExpressionSplitter().map(ast);
-  ast = new AnnotateImplicits().map(ast);
-  return ast;
+  // TODO: add expected prerequisites to each pass
+  const passes: Map<string, ASTMapper> = new Map([
+    ['Ru', new RejectUnsupportedFeatures()],
+    ['Ib', new IntBoundCalculator()],
+    ['M', new IdentifierMangler()],
+    ['Sa', new StorageAllocator()],
+    ['Ei', new ExternImporter()],
+    ['L', new LiteralExpressionEvaluator()],
+    ['T', new TupleAssignmentSplitter()],
+    ['Ae', new AddressEliminator()],
+    ['Aap', new AddressArgumentPusher()],
+    ['U', new UnloadingAssignment()],
+    ['V', new VariableDeclarationInitialiser()],
+    ['F', new ForLoopSimplifier()],
+    ['Vs', new VariableDeclarationExpressionSplitter()],
+    ['Me', new MemoryHandler()],
+    ['S', new StorageVariableAccessRewriter()],
+    ['I', new ImplicitConversionToExplicit()],
+    ['B', new BuiltinHandler()],
+    ['R', new ReturnInserter()],
+    ['E', new ExpressionSplitter()],
+    ['An', new AnnotateImplicits()],
+    ['Ui', new Uint256Importer()],
+  ]);
+
+  const passesInOrder: ASTMapper[] = parsePassOrder(options.order, passes);
+  if (options.printTrees) {
+    console.log('---Input---');
+    console.log(DefaultASTPrinter.print(ast.root));
+  }
+
+  if (options.checkTrees || options.strict) {
+    const success = runSanityCheck(ast, options.checkTrees ?? false);
+    if (!success && options.strict) {
+      throw new TranspileFailedError('AST failed internal consistency check before transpilation');
+    }
+  }
+
+  const finalAst = passesInOrder.reduce((ast, mapper) => {
+    const newAst = mapper.map(ast);
+    if (options.printTrees) {
+      console.log(`\n---After running ${mapper.getPassName()}---`);
+      console.log(DefaultASTPrinter.print(ast.root));
+    }
+    if (options.checkTrees || options.strict) {
+      const success = runSanityCheck(ast, options.checkTrees ?? false);
+      if (!success && options.strict) {
+        throw new TranspileFailedError(
+          'AST failed internal consistency check during transpilation',
+        );
+      }
+    }
+    return newAst;
+  }, ast);
+
+  return finalAst;
+}
+
+export function handleTranspilationError(e: unknown) {
+  if (e instanceof CompileFailedError) {
+    printCompileErrors(e);
+    console.log('Cannot start transpilation');
+  } else if (e instanceof TranspilationAbandonedError) {
+    console.log(`Transpilation abandoned ${e.message}`);
+  } else {
+    console.log('Unexpected error during transpilation');
+    console.log(e);
+    console.log('Transpilation failed');
+  }
 }

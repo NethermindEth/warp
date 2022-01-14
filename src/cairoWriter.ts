@@ -10,7 +10,6 @@ import {
   EnumValue,
   ErrorDefinition,
   EventDefinition,
-  FunctionDefinition,
   ModifierDefinition,
   StructDefinition,
   VariableDeclaration,
@@ -34,7 +33,6 @@ import {
   ModifierInvocation,
   OverrideSpecifier,
   ParameterList,
-  PragmaDirective,
   SourceUnit,
   StructuredDocumentation,
   UsingForDirective,
@@ -71,30 +69,33 @@ import {
   MappingType,
   PointerType,
 } from 'solc-typed-ast';
-import { Imports } from './ast/visitor';
-import {
-  CairoAssert,
-  CairoFunctionCall,
-  CairoStorageVariable,
-  CairoStorageVariableKind,
-} from './ast/cairoNodes';
+import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
 import { primitiveTypeToCairo, divmod, importsWriter, canonicalMangler } from './utils/utils';
 import { getMappingTypes } from './utils/mappings';
 import { cairoType, getCairoType } from './typeWriter';
-import { writeImplicits } from './utils/implicits';
-import { AST, FunctionImplicits } from './ast/mapper';
+import { Implicits, writeImplicits } from './utils/implicits';
+import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
+import { AST } from './ast/ast';
+import { notUndefined } from './utils/typeConstructs';
+import { printNode } from './utils/astPrinter';
 
 const INDENT = ' '.repeat(4);
 
-type CairoWriterOptions = Omit<AST, 'ast'>;
-
-export abstract class CairoASTNodeWriter extends ASTNodeWriter implements CairoWriterOptions {
-  imports: Imports;
-  functionImplicits: FunctionImplicits;
-  compilerVersion: string;
-  constructor(options: CairoWriterOptions) {
+export abstract class CairoASTNodeWriter extends ASTNodeWriter {
+  ast: AST;
+  throwOnUnimplemented: boolean;
+  constructor(ast: AST, throwOnUnimplemented: boolean) {
     super();
-    Object.assign(this, options);
+    this.ast = ast;
+    this.throwOnUnimplemented = throwOnUnimplemented;
+  }
+
+  logNotImplemented(message: string) {
+    if (this.throwOnUnimplemented) {
+      throw new NotSupportedYetError(message);
+    } else {
+      console.log(message);
+    }
   }
 }
 
@@ -119,6 +120,10 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
   writeInner(node: VariableDeclaration, writer: ASTWriter): SrcDesc {
     if (node.stateVariable) {
       let vals = [];
+      assert(
+        node.vType !== undefined,
+        'VariableDeclaration.vType should only be undefined for Solidity < 0.5.0',
+      );
       const nodeType = getNodeType(node.vType, writer.targetCompilerVersion);
       if (nodeType instanceof PointerType && nodeType.to instanceof MappingType) {
         vals = getMappingTypes(nodeType.to);
@@ -143,12 +148,48 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
 
 class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
   writeInner(node: VariableDeclarationStatement, writer: ASTWriter): SrcDesc {
+    assert(
+      node.vInitialValue !== undefined,
+      'Variables should be initialised. Did you use VariableDeclarationInitialiser?',
+    );
+
     const declarations = node.vDeclarations.map((value) => writer.write(value));
-    if (node.vDeclarations.length > 1) {
+    if (node.vDeclarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
       return [`let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)}`];
     }
 
     return [`let ${declarations[0]} = ${writer.write(node.vInitialValue)}`];
+  }
+}
+
+// This avoids revoked reference in simple situations, but not comprehensively
+// TODO handle if reference revoking
+class IfStatementWriter extends CairoASTNodeWriter {
+  writeInner(node: IfStatement, writer: ASTWriter): SrcDesc {
+    const saveImplicits = [...this.ast.getImplicitsAt(node)].map(
+      (implicit: Implicits) => `${INDENT}tempvar ${implicit} = ${implicit}`,
+    );
+    const trueBody = writer.write(node.vTrueBody).split('\n');
+    const falseBody =
+      node.vFalseBody === undefined ? [] : writer.write(node.vFalseBody).split('\n');
+    [trueBody, falseBody].forEach((statements) => {
+      const last = statements.pop();
+      if (last === undefined) {
+        statements.push(...saveImplicits);
+      } else if (last.trim().startsWith('return')) {
+        statements.push(...saveImplicits);
+        statements.push(last);
+      } else {
+        statements.push(last);
+        statements.push(...saveImplicits);
+      }
+    });
+    return [
+      [`if ${writer.write(node.vCondition)} != 0:`, ...trueBody, 'else:', ...falseBody, 'end']
+        .filter(notUndefined)
+        .flat()
+        .join('\n'),
+    ];
   }
 }
 
@@ -158,21 +199,33 @@ class TupleExpressionWriter extends CairoASTNodeWriter {
   }
 }
 
-class PragmaDirectiveWriter extends CairoASTNodeWriter {
-  writeInner(_node: PragmaDirective, _writer: ASTWriter): SrcDesc {
-    return [['%lang starknet', '%builtins pedersen range_check bitwise'].join('\n')];
-  }
-}
-
 class SourceUnitWriter extends CairoASTNodeWriter {
   writeInner(node: SourceUnit, writer: ASTWriter): SrcDesc {
-    const pragmas = node.vPragmaDirectives.map((v) => writer.write(v));
+    const builtins = this.ast.getRequiredBuiltins();
+    const builtinsDirective =
+      builtins.size === 0 ? '' : [...builtins].reduce((acc, b) => `${acc} ${b}`, '%builtins');
 
-    const imports = importsWriter(this.imports);
+    const imports = importsWriter(this.ast.imports);
+
+    const generatedUtilFunctions = this.ast.cairoUtilFuncGen.write();
+
+    const structs = node.vStructs.map((v) => writer.write(v));
+
+    const functions = node.vFunctions.map((v) => writer.write(v));
 
     const contracts = node.vContracts.map((v) => writer.write(v));
 
-    return [[...pragmas, [imports], ...contracts].join('\n\n\n')];
+    return [
+      [
+        '%lang starknet',
+        builtinsDirective,
+        [imports],
+        generatedUtilFunctions,
+        ...structs,
+        ...functions,
+        ...contracts,
+      ].join('\n\n\n'),
+    ];
   }
 }
 
@@ -182,6 +235,7 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
     writer
       .write(v)
       .split('\n')
+      .filter((line) => line.trim().startsWith('func') || line.trim().startsWith('end'))
       .map((l) => INDENT + l)
       .join('\n'),
   );
@@ -193,31 +247,42 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
   ];
 }
 
-class ContractDefinitionWriter extends CairoASTNodeWriter {
-  writeInner(node: ContractDefinition, writer: ASTWriter): SrcDesc {
+class CairoContractWriter extends CairoASTNodeWriter {
+  writeInner(node: CairoContract, writer: ASTWriter): SrcDesc {
     if (node.kind == ContractKind.Interface) {
       return writeContractInterface(node, writer);
     }
+
+    // TODO handle cases where solidity contract defined a constructor
+    const constructor = node.hasConstructor
+      ? [
+          '@constructor',
+          'func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():',
+          writer.write(node.initialisationBlock),
+          '    return()',
+          'end',
+        ].join('\n')
+      : '';
 
     const structs = node.vStructs.map((value) => writer.write(value));
 
     const enums = node.vEnums.map((value) => writer.write(value));
 
-    const stateVars = node.vStateVariables.map((value) => writer.write(value));
-
     const functions = node.vFunctions.map((value) => writer.write(value));
     // todo create these structs
-    return [[...structs, ...enums, ...stateVars, ...functions].join('\n\n')];
+    return [[constructor, ...structs, ...enums, ...functions].join('\n\n')];
   }
 
-  writeWhole(node: ContractDefinition, writer: ASTWriter): SrcDesc {
+  writeWhole(node: CairoContract, writer: ASTWriter): SrcDesc {
     return [`# Contract Def ${node.name}\n\n${this.writeInner(node, writer)}`];
   }
 }
 
 class NotImplementedWriter extends CairoASTNodeWriter {
   writeInner(node: ASTNode, _: ASTWriter): SrcDesc {
-    console.log(`${node.type} not implemented yet`);
+    this.logNotImplemented(
+      `${node.type} to cairo not implemented yet (found at ${printNode(node)})`,
+    );
     return [``];
   }
 }
@@ -232,8 +297,8 @@ class ParameterListWriter extends CairoASTNodeWriter {
   }
 }
 
-class FunctionDefinitionWriter extends CairoASTNodeWriter {
-  writeInner(node: FunctionDefinition, writer: ASTWriter): SrcDesc {
+class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
+  writeInner(node: CairoFunctionDefinition, writer: ASTWriter): SrcDesc {
     let name = node.name;
     let decorator = [FunctionVisibility.Public, FunctionVisibility.External].includes(
       node.visibility,
@@ -245,19 +310,27 @@ class FunctionDefinitionWriter extends CairoASTNodeWriter {
     const args = writer.write(node.vParameters);
     const body = node.vBody ? writer.write(node.vBody) : [];
     const returns = writer.write(node.vReturnParameters);
-    const writtenImplicits = writeImplicits(this.functionImplicits.get(node.name));
+    const warpMemory = node.implicits.has('warp_memory');
+    if (warpMemory) node.implicits.delete('warp_memory');
+    const writtenImplicits = writeImplicits(node.implicits);
     const implicits = writtenImplicits ? `{${writtenImplicits}}` : '';
+    let returnClause = ` -> (${returns})`;
     switch (node.kind) {
       case FunctionKind.Constructor:
         decorator = '@constructor';
         name = 'constructor';
+        returnClause = '';
     }
     return [
       [
         ...(decorator ? [decorator] : []),
-        `func ${name}${implicits}(${args}) -> (${returns}):`,
+        `func ${name}${implicits}(${args})${returnClause}:`,
         `${INDENT}alloc_locals`,
+        ...(warpMemory
+          ? ['let (local warp_memory : MemCell*) = warp_memory_init()', 'with warp_memory:']
+          : []),
         ...(body ? [body] : []),
+        ...(warpMemory ? ['end'] : []),
         `end`,
       ].join('\n'),
     ];
@@ -269,7 +342,12 @@ class BlockWriter extends CairoASTNodeWriter {
     return [
       node.vStatements
         .map((value) => writer.write(value))
-        .map((v) => INDENT + v)
+        .map((v) =>
+          v
+            .split('\n')
+            .map((line) => INDENT + line)
+            .join('\n'),
+        )
         .join('\n'),
     ];
   }
@@ -280,7 +358,10 @@ class ReturnWriter extends CairoASTNodeWriter {
     let returns = '()';
     if (node.vExpression) {
       const expWriten = writer.write(node.vExpression);
-      returns = node.vExpression instanceof TupleExpression ? expWriten : `(${expWriten})`;
+      returns =
+        node.vExpression instanceof TupleExpression || node.vExpression instanceof FunctionCall
+          ? expWriten
+          : `(${expWriten})`;
     }
     return [`return ${returns}`];
   }
@@ -304,7 +385,7 @@ class LiteralWriter extends CairoASTNodeWriter {
           case 'felt':
             return [node.value];
           default:
-            throw new Error('Attempted to write unexpected cairo type');
+            throw new TranspileFailedError('Attempted to write unexpected cairo type');
         }
       case LiteralKind.Bool:
         return [node.value === 'true' ? '1' : '0'];
@@ -318,9 +399,8 @@ class LiteralWriter extends CairoASTNodeWriter {
         return [`"${cairoString}"`];
       }
       case LiteralKind.HexString:
-        console.log('HexStr not implemented yet');
+        this.logNotImplemented('HexStr not implemented yet');
         return ['<hexStr>'];
-      // throw Error("Hexstring not implemented yet");
     }
   }
 }
@@ -335,27 +415,31 @@ class FunctionCallWriter extends CairoASTNodeWriter {
   writeInner(node: FunctionCall, writer: ASTWriter): SrcDesc {
     switch (node.kind) {
       case FunctionCallKind.FunctionCall:
-      case FunctionCallKind.TypeConversion:
+      case FunctionCallKind.TypeConversion: {
         const args = node.vArguments.map((v) => writer.write(v)).join(', ');
         const func = writer.write(node.vExpression);
         return [`${func}(${args})`];
+      }
       case FunctionCallKind.StructConstructorCall:
-        console.log('StructConstructorCall is not implemented yet');
+        this.logNotImplemented('StructConstructorCall is not implemented yet');
         return ['<FuntionallCall.StructConstructorCall>'];
     }
   }
 }
 
-class IndexAccessWriter extends CairoASTNodeWriter {
-  writeInner(node: IndexAccess, writer: ASTWriter): SrcDesc {
-    return [`${writer.write(node.vBaseExpression)}+${writer.write(node.vIndexExpression)}`];
-  }
-}
-
 class UncheckedBlockWriter extends CairoASTNodeWriter {
   writeInner(node: UncheckedBlock, writer: ASTWriter): SrcDesc {
-    const sttms = node.vStatements.map((v) => writer.write(v));
-    return [`${sttms}`];
+    return [
+      node.vStatements
+        .map((value) => writer.write(value))
+        .map((v) =>
+          v
+            .split('\n')
+            .map((line) => INDENT + line)
+            .join('\n'),
+        )
+        .join('\n'),
+    ];
   }
 }
 
@@ -387,12 +471,12 @@ class AssignmentWriter extends CairoASTNodeWriter {
   writeInner(node: Assignment, writer: ASTWriter): SrcDesc {
     assert(node.operator === '=', `Unexpected operator ${node.operator}`);
     const nodes = [node.vLeftHandSide, node.vRightHandSide].map((v) => writer.write(v));
-    return [`${nodes[0]} ${node.operator} ${nodes[1]}`];
+    return [`let ${nodes[0]} ${node.operator} ${nodes[1]}`];
   }
 }
 
 class EnumDefinitionWriter extends CairoASTNodeWriter {
-  writeInner(node: EnumDefinition, writer: ASTWriter): SrcDesc {
+  writeInner(node: EnumDefinition, _writer: ASTWriter): SrcDesc {
     return [
       [
         ...node.vMembers.map((v, i) => {
@@ -404,25 +488,6 @@ class EnumDefinitionWriter extends CairoASTNodeWriter {
   }
 }
 
-class CairoStorageVariableWriter extends CairoASTNodeWriter {
-  writeInner(node: CairoStorageVariable, writer: ASTWriter): SrcDesc {
-    if (node.isEnum) {
-      console.log('CairoStorageVariable.isEnum');
-      return ['<CairoStorageVariable.isEnum>'];
-    }
-
-    const name = writer.write(node.name);
-    const args = node.args.map((v) => writer.write(v)).join(', ');
-    switch (node.kind) {
-      case CairoStorageVariableKind.Read:
-        return [`${name}.read(${args})`];
-
-      case CairoStorageVariableKind.Write:
-        return [`${name}.write(${args})`];
-    }
-  }
-}
-
 class CairoAssertWriter extends CairoASTNodeWriter {
   writeInner(node: CairoAssert, writer: ASTWriter): SrcDesc {
     const args = [node.leftHandSide, node.rightHandSide].map((v) => writer.write(v));
@@ -430,65 +495,65 @@ class CairoAssertWriter extends CairoASTNodeWriter {
   }
 }
 
-export const CairoASTMapping = (options: CairoWriterOptions) =>
+export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
   new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([
-    [ElementaryTypeName, new NotImplementedWriter(options)],
-    [ArrayTypeName, new NotImplementedWriter(options)],
-    [Mapping, new NotImplementedWriter(options)],
-    [UserDefinedTypeName, new NotImplementedWriter(options)],
-    [FunctionTypeName, new NotImplementedWriter(options)],
-    [Literal, new LiteralWriter(options)],
-    [Identifier, new IdentifierWriter(options)],
-    [IdentifierPath, new NotImplementedWriter(options)],
-    [FunctionCallOptions, new NotImplementedWriter(options)],
-    [FunctionCall, new FunctionCallWriter(options)],
-    [MemberAccess, new MemberAccessWriter(options)],
-    [IndexAccess, new IndexAccessWriter(options)],
-    [IndexRangeAccess, new NotImplementedWriter(options)],
-    [UnaryOperation, new NotImplementedWriter(options)],
-    [BinaryOperation, new BinaryOperationWriter(options)],
-    [Conditional, new NotImplementedWriter(options)],
-    [ElementaryTypeNameExpression, new NotImplementedWriter(options)],
-    [NewExpression, new NotImplementedWriter(options)],
-    [TupleExpression, new TupleExpressionWriter(options)],
-    [ExpressionStatement, new ExpressionStatementWriter(options)],
-    [Assignment, new AssignmentWriter(options)],
-    [VariableDeclaration, new VariableDeclarationWriter(options)],
-    [Block, new BlockWriter(options)],
-    [UncheckedBlock, new UncheckedBlockWriter(options)],
-    [VariableDeclarationStatement, new VariableDeclarationStatementWriter(options)],
-    [IfStatement, new NotImplementedWriter(options)],
-    [ForStatement, new NotImplementedWriter(options)],
-    [WhileStatement, new NotImplementedWriter(options)],
-    [DoWhileStatement, new NotImplementedWriter(options)],
-    [Return, new ReturnWriter(options)],
-    [EmitStatement, new NotImplementedWriter(options)],
-    [RevertStatement, new NotImplementedWriter(options)],
-    [PlaceholderStatement, new NotImplementedWriter(options)],
-    [InlineAssembly, new NotImplementedWriter(options)],
-    [TryCatchClause, new NotImplementedWriter(options)],
-    [TryStatement, new NotImplementedWriter(options)],
-    [Break, new NotImplementedWriter(options)],
-    [Continue, new NotImplementedWriter(options)],
-    [Throw, new NotImplementedWriter(options)],
-    [ParameterList, new ParameterListWriter(options)],
-    [ModifierInvocation, new NotImplementedWriter(options)],
-    [OverrideSpecifier, new NotImplementedWriter(options)],
-    [FunctionDefinition, new FunctionDefinitionWriter(options)],
-    [ModifierDefinition, new NotImplementedWriter(options)],
-    [ErrorDefinition, new NotImplementedWriter(options)],
-    [EventDefinition, new NotImplementedWriter(options)],
-    [StructDefinition, new StructDefinitionWriter(options)],
-    [EnumValue, new NotImplementedWriter(options)],
-    [EnumDefinition, new EnumDefinitionWriter(options)],
-    [UsingForDirective, new NotImplementedWriter(options)],
-    [InheritanceSpecifier, new NotImplementedWriter(options)],
-    [ContractDefinition, new ContractDefinitionWriter(options)],
-    [StructuredDocumentation, new NotImplementedWriter(options)],
-    [ImportDirective, new NotImplementedWriter(options)],
-    [PragmaDirective, new PragmaDirectiveWriter(options)],
-    [SourceUnit, new SourceUnitWriter(options)],
-    [CairoStorageVariable, new CairoStorageVariableWriter(options)],
-    [CairoAssert, new CairoAssertWriter(options)],
-    [CairoFunctionCall, new FunctionCallWriter(options)],
+    [ElementaryTypeName, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [ArrayTypeName, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [Mapping, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [UserDefinedTypeName, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [FunctionTypeName, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [Literal, new LiteralWriter(ast, throwOnUnimplemented)],
+    [Identifier, new IdentifierWriter(ast, throwOnUnimplemented)],
+    [IdentifierPath, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [FunctionCallOptions, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [FunctionCall, new FunctionCallWriter(ast, throwOnUnimplemented)],
+    [MemberAccess, new MemberAccessWriter(ast, throwOnUnimplemented)],
+    [IndexAccess, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [IndexRangeAccess, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [UnaryOperation, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [BinaryOperation, new BinaryOperationWriter(ast, throwOnUnimplemented)],
+    [Conditional, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [ElementaryTypeNameExpression, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [NewExpression, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [TupleExpression, new TupleExpressionWriter(ast, throwOnUnimplemented)],
+    [ExpressionStatement, new ExpressionStatementWriter(ast, throwOnUnimplemented)],
+    [Assignment, new AssignmentWriter(ast, throwOnUnimplemented)],
+    [VariableDeclaration, new VariableDeclarationWriter(ast, throwOnUnimplemented)],
+    [Block, new BlockWriter(ast, throwOnUnimplemented)],
+    [UncheckedBlock, new UncheckedBlockWriter(ast, throwOnUnimplemented)],
+    [
+      VariableDeclarationStatement,
+      new VariableDeclarationStatementWriter(ast, throwOnUnimplemented),
+    ],
+    [IfStatement, new IfStatementWriter(ast, throwOnUnimplemented)],
+    [ForStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [WhileStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [DoWhileStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [Return, new ReturnWriter(ast, throwOnUnimplemented)],
+    [EmitStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [RevertStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [PlaceholderStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [InlineAssembly, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [TryCatchClause, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [TryStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [Break, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [Continue, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [Throw, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [ParameterList, new ParameterListWriter(ast, throwOnUnimplemented)],
+    [ModifierInvocation, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [OverrideSpecifier, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [CairoFunctionDefinition, new CairoFunctionDefinitionWriter(ast, throwOnUnimplemented)],
+    [ModifierDefinition, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [ErrorDefinition, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [EventDefinition, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [StructDefinition, new StructDefinitionWriter(ast, throwOnUnimplemented)],
+    [EnumValue, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [EnumDefinition, new EnumDefinitionWriter(ast, throwOnUnimplemented)],
+    [UsingForDirective, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [InheritanceSpecifier, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [CairoContract, new CairoContractWriter(ast, throwOnUnimplemented)],
+    [StructuredDocumentation, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [ImportDirective, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [SourceUnit, new SourceUnitWriter(ast, throwOnUnimplemented)],
+    [CairoAssert, new CairoAssertWriter(ast, throwOnUnimplemented)],
   ]);

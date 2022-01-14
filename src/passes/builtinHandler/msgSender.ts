@@ -1,90 +1,52 @@
-import {
-  ASTNode,
-  MemberAccess,
-  Identifier,
-  FunctionDefinition,
-  FunctionCallKind,
-  ElementaryTypeName,
-  FunctionKind,
-  FunctionVisibility,
-  FunctionStateMutability,
-  ParameterList,
-  VariableDeclaration,
-  DataLocation,
-  StateVariableVisibility,
-  Mutability,
-} from 'solc-typed-ast';
+import { MemberAccess, Identifier, FunctionCallKind, FunctionCall } from 'solc-typed-ast';
+import { AST } from '../../ast/ast';
 import { BuiltinMapper } from '../../ast/builtinMapper';
-import { CairoFunctionCall } from '../../ast/cairoNodes';
 
 export class MsgSender extends BuiltinMapper {
   builtinDefs = {
-    get_caller_address: () =>
-      new FunctionDefinition(
-        this.genId(),
-        '',
-        'FunctionDefinition',
-        -1,
-        FunctionKind.Function,
-        'get_caller_address',
-        false,
-        FunctionVisibility.Private,
-        FunctionStateMutability.NonPayable,
-        false,
-        new ParameterList(this.genId(), '', 'ParameterList', []),
-        new ParameterList(this.genId(), '', 'ParameterList', [
-          new VariableDeclaration(
-            this.genId(),
-            '',
-            'VariableDeclaration',
-            false,
-            false,
-            'address',
-            -1,
-            false,
-            DataLocation.Memory,
-            StateVariableVisibility.Internal,
-            Mutability.Mutable,
-            'address',
-            undefined,
-            new ElementaryTypeName(this.genId(), '', 'ElementaryTypeName', 'address', 'address'),
-          ),
-        ]),
-        [],
-      ),
+    // This is only called via BuiltinMapper, and only once
+    get_caller_address: this.createBuiltInDef(
+      'get_caller_address',
+      [],
+      [['address', 'address']],
+      ['syscall_ptr'],
+    ),
   };
 
-  visitMemberAccess(node: MemberAccess): ASTNode {
-    this.addImport({
-      'starkware.starknet.common.syscalls': new Set(['get_caller_address']),
-    });
+  visitMemberAccess(node: MemberAccess, ast: AST): void {
     if (
       node.vExpression instanceof Identifier &&
       node.vExpression.name === 'msg' &&
       node.memberName === 'sender'
     ) {
-      return new CairoFunctionCall(
-        this.genId(),
-        node.src,
-        'FunctionCall',
-        'address',
-        FunctionCallKind.FunctionCall,
-        new Identifier(
-          this.genId(),
+      ast.addImports({
+        'starkware.starknet.common.syscalls': new Set(['get_caller_address']),
+      });
+      ast.replaceNode(
+        node,
+        new FunctionCall(
+          ast.reserveId(),
           node.src,
-          'Identifier',
+          'FunctionCall',
           'address',
-          'get_caller_address',
-          this.getDefId('get_caller_address'),
+          FunctionCallKind.FunctionCall,
+          new Identifier(
+            ast.reserveId(),
+            node.src,
+            'Identifier',
+            'address',
+            'get_caller_address',
+            this.getDefId('get_caller_address', ast),
+            node.raw,
+          ),
+          [],
+          [],
           node.raw,
         ),
-        [],
-        [],
-        node.raw,
-        ['syscall_ptr'],
       );
     } else {
-      return node;
+      // This pass is specifically searching for msg.sender, a.msg.sender should be ignored, so don't recurse
+      return;
     }
   }
 }

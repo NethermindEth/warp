@@ -1,104 +1,201 @@
+import assert = require('assert');
 import {
   Assignment,
-  ASTNode,
   BinaryOperation,
   ElementaryTypeName,
   ElementaryTypeNameExpression,
   Expression,
   FunctionCall,
   FunctionCallKind,
+  FunctionType,
   getNodeType,
-  VariableDeclaration,
+  PointerType,
+  UserDefinedTypeName,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
+import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { compareTypeSize } from '../utils/utils';
+import { printNode } from '../utils/astPrinter';
+import { NotSupportedYetError } from '../utils/errors';
+import { compareTypeSize, getDeclaredTypeString } from '../utils/utils';
+
+// TODO conclusively handle all edge cases
+// TODO for example operations between literals and non-literals truncate the literal,
+// they do not upcast the non-literal
 
 export class ImplicitConversionToExplicit extends ASTMapper {
-  generateExplicitConversion(typeTo: string, expression: Expression): FunctionCall {
+  generateExplicitConversion(typeTo: string, expression: Expression, ast: AST): FunctionCall {
     return new FunctionCall(
-      this.genId(),
+      ast.reserveId(),
       expression.src,
       'FunctionCall',
       typeTo,
       FunctionCallKind.TypeConversion,
       new ElementaryTypeNameExpression(
-        this.genId(),
+        ast.reserveId(),
         expression.src,
         'ElementaryTypeNameExpression',
         `type(${typeTo})`,
-        new ElementaryTypeName(this.genId(), expression.src, 'ElementaryTypeName', typeTo, typeTo),
+        new ElementaryTypeName(
+          ast.reserveId(),
+          expression.src,
+          'ElementaryTypeName',
+          typeTo,
+          typeTo,
+        ),
       ),
       [expression],
     );
   }
 
-  visitBinaryOperation(node: BinaryOperation): ASTNode {
-    const args = [
-      this.visit(node.vLeftExpression),
-      this.visit(node.vRightExpression),
-    ] as Expression[];
+  visitBinaryOperation(node: BinaryOperation, ast: AST): void {
+    this.commonVisit(node, ast);
 
-    const argTypes = args.map((v) => getNodeType(v, this.compilerVersion));
+    const argTypes = [node.vLeftExpression, node.vRightExpression].map((v) =>
+      getNodeType(v, ast.compilerVersion),
+    );
     const res = compareTypeSize(argTypes[0], argTypes[1]);
 
     if (res === -1) {
-      args[0] = this.generateExplicitConversion(argTypes[1].pp(), args[0] as Expression);
+      // argTypes[1] > argTypes[0]
+      node.vLeftExpression = this.generateExplicitConversion(
+        argTypes[1].pp(),
+        node.vLeftExpression,
+        ast,
+      );
+      ast.registerChild(node.vLeftExpression, node);
     } else if (res === 1) {
-      args[1] = this.generateExplicitConversion(argTypes[0].pp(), args[1] as Expression);
+      // argTypes[0] > argTypes[1]
+      node.vRightExpression = this.generateExplicitConversion(
+        argTypes[0].pp(),
+        node.vRightExpression,
+        ast,
+      );
+      ast.registerChild(node.vRightExpression, node);
     }
 
-    const ret = new BinaryOperation(
-      this.genId(),
-      node.src,
-      node.type,
-      node.typeString,
-      node.operator,
-      args[0],
-      args[1],
-      node.raw,
-    );
-    return ret;
+    return;
   }
 
-  visitAssignment(node: Assignment): ASTNode {
-    const children = [
-      this.visit(node.vLeftHandSide),
-      this.visit(node.vRightHandSide),
-    ] as Expression[];
+  // Implicit conversions are not deep
+  // e.g. int32 = int16 + int8 -> int32 = int32(int16 + int16(int8)), not int32(int16) + int32(int8)
+  // Handle signedness conversions (careful about difference between 0.7.0 and 0.8.0)
 
-    const childrenTypes = children.map((v) => getNodeType(v, this.compilerVersion));
-    const res = compareTypeSize(childrenTypes[0], childrenTypes[1]);
+  visitAssignment(node: Assignment, ast: AST): void {
+    this.commonVisit(node, ast);
 
-    return new Assignment(
-      this.genId(),
-      node.src,
-      node.type,
-      node.typeString,
-      node.operator,
-      children[0],
-      res === 0 ? children[1] : this.generateExplicitConversion(childrenTypes[0].pp(), children[1]),
+    const childrenTypes = [node.vLeftHandSide, node.vRightHandSide].map((v) =>
+      getNodeType(v, ast.compilerVersion),
     );
+    const res = compareTypeSize(childrenTypes[0], childrenTypes[1]);
+    if (res === 1) {
+      // sizeof(lhs) > sizeof(rhs)
+      node.vRightHandSide = this.generateExplicitConversion(
+        childrenTypes[0].pp(),
+        node.vRightHandSide,
+        ast,
+      );
+      ast.registerChild(node.vRightHandSide, node);
+    }
+    return;
   }
 
-  visitVariableDeclarationStatement(node: VariableDeclarationStatement): ASTNode {
-    // Assuming all variable declaratoins are split and have an initial value
-    const visitedValue = this.visit(node.vInitialValue) as Expression;
-    const childrenTypes = [
-      getNodeType(node.vDeclarations[0], this.compilerVersion),
-      getNodeType(visitedValue, this.compilerVersion),
-    ];
-    const res = compareTypeSize(childrenTypes[0], childrenTypes[1]);
+  visitVariableDeclarationStatement(node: VariableDeclarationStatement, ast: AST): void {
+    this.commonVisit(node, ast);
 
-    return new VariableDeclarationStatement(
-      this.genId(),
-      node.src,
-      node.type,
-      node.assignments,
-      this.visitList(node.vDeclarations) as VariableDeclaration[],
-      res === 0
-        ? visitedValue
-        : this.generateExplicitConversion(childrenTypes[0].pp(), visitedValue),
+    assert(
+      node.vInitialValue !== undefined,
+      'Implicit conversion to explicit expects variables to be initialised (did you run variable declaration initialiser?)',
     );
+    // Assuming all variable declarations are split and have an initial value
+
+    // TODO test tuple of structs
+    if (node.vInitialValue.typeString.startsWith('tuple(')) {
+      assert(
+        getDeclaredTypeString(node) === node.vInitialValue.typeString,
+        `ImplicitConversionToExplicit expects tuple declarations to type match exactly. ${getDeclaredTypeString(
+          node,
+        )} != ${node.vInitialValue.typeString}`,
+      );
+      return;
+    }
+
+    const declaration = node.vDeclarations[0];
+
+    // TODO handle or rule out implicit conversions of structs
+    if (declaration.vType instanceof UserDefinedTypeName) {
+      return;
+    }
+
+    const declarationType = getNodeType(declaration, ast.compilerVersion);
+    const initialValType = getNodeType(node.vInitialValue, ast.compilerVersion);
+
+    if (
+      initialValType instanceof PointerType &&
+      initialValType.location === declaration.storageLocation
+    ) {
+      if (compareTypeSize(declarationType, initialValType.to) !== 0) {
+        throw new NotSupportedYetError(
+          `${initialValType.pp()} to ${declarationType.pp()} (${
+            declaration.storageLocation
+          }) not implemented yet`,
+        );
+      }
+      return;
+    }
+
+    const res = compareTypeSize(declarationType, initialValType);
+
+    if (res === 1) {
+      node.vInitialValue = this.generateExplicitConversion(
+        declarationType.pp(),
+        node.vInitialValue,
+        ast,
+      );
+      ast.registerChild(node.vInitialValue, node);
+    }
+
+    return;
+  }
+
+  visitFunctionCall(node: FunctionCall, ast: AST): void {
+    this.commonVisit(node, ast);
+
+    if (
+      node.kind === FunctionCallKind.TypeConversion ||
+      node.vReferencedDeclaration === undefined
+    ) {
+      return;
+    }
+
+    if (node.kind === FunctionCallKind.StructConstructorCall) {
+      if (node.vArguments.length === 0) return;
+      throw new NotSupportedYetError(
+        'Implicit conversion to explicit not supported yet for struct constructor arguments',
+      );
+    }
+
+    const functionType = getNodeType(node.vExpression, ast.compilerVersion);
+    assert(
+      functionType instanceof FunctionType,
+      `TypeNode for ${printNode(node.vExpression)} was expected to be a FunctionType, got ${
+        functionType.constructor.name
+      }`,
+    );
+
+    const parameters = functionType.parameters;
+
+    node.vArguments.slice(-parameters.length).forEach((argument, index) => {
+      const argumentType = getNodeType(argument, ast.compilerVersion);
+
+      const res = compareTypeSize(argumentType, parameters[index]);
+      if (res !== 0) {
+        ast.replaceNode(
+          argument,
+          this.generateExplicitConversion(parameters[index].pp(), argument, ast),
+          node,
+        );
+      }
+    });
   }
 }

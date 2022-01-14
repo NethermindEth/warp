@@ -23,6 +23,8 @@ export class CairoAssert extends CairoASTNode {
     this.leftHandSide = leftHandSide;
     this.rightHandSide = rightHandSide;
     this.assertEq = assertEq;
+
+    this.acceptChildren();
   }
 
   get children(): readonly ASTNode[] {

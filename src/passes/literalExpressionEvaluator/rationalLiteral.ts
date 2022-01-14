@@ -1,3 +1,5 @@
+import { TranspileFailedError } from '../../utils/errors';
+
 export class RationalLiteral {
   private numerator: bigint;
   private denominator: bigint;
@@ -10,7 +12,7 @@ export class RationalLiteral {
       this.numerator = -numerator;
       this.denominator = -denominator;
     } else {
-      throw new Error('Attempted rational division by 0');
+      throw new TranspileFailedError('Attempted rational division by 0');
     }
   }
 
@@ -147,9 +149,12 @@ function scientificNotationToLiteral(value: string): RationalLiteral {
   const coefficient: RationalLiteral = parts[0].includes('.')
     ? decimalToLiteral(parts[0])
     : intToLiteral(parts[0]);
-  const exponent: bigint = BigInt(parts[1]);
+  const exponent = BigInt(parts[1]);
   const rationalExponentFactor = new RationalLiteral(10n, 1n).exp(
     new RationalLiteral(exponent, 1n),
   );
+  if (rationalExponentFactor === null) {
+    throw new TranspileFailedError('Exponentiation failed when parsing scientific notation');
+  }
   return coefficient.multiply(rationalExponentFactor);
 }

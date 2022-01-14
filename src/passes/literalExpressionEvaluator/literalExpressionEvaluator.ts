@@ -1,5 +1,4 @@
 import {
-  ASTNode,
   BinaryOperation,
   Expression,
   Literal,
@@ -7,7 +6,9 @@ import {
   TupleExpression,
   UnaryOperation,
 } from 'solc-typed-ast';
+import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
+import { TranspileFailedError } from '../../utils/errors';
 import { toHexString, unitValue } from '../../utils/utils';
 import { RationalLiteral, stringToLiteralValue } from './rationalLiteral';
 
@@ -26,57 +27,65 @@ import { RationalLiteral, stringToLiteralValue } from './rationalLiteral';
 */
 
 export class LiteralExpressionEvaluator extends ASTMapper {
-  visitPossibleLiteralExpression(node: UnaryOperation | BinaryOperation | Literal): ASTNode {
+  visitPossibleLiteralExpression(node: UnaryOperation | BinaryOperation | Literal, ast: AST): void {
     // It is sometimes possible to avoid any calculation and take the value from the type
     // This is not always possible because boolean literals do not contain their value in the type,
     // and because very large int and rational literals omit some digits
     const result = createLiteralFromType(node.typeString) ?? evaluateLiteralExpression(node);
 
+    // TODO add generalised checking that child nodes that are removed aren't referenced elsewhere
+
     if (result === null) {
-      return this.commonVisit(node);
+      this.commonVisit(node, ast);
     } else if (typeof result === 'boolean') {
       const valueString = result ? 'true' : 'false';
-      return new Literal(
-        this.genId(),
-        node.src,
-        'Literal',
-        node.typeString,
-        LiteralKind.Bool,
-        toHexString(valueString),
-        valueString,
-        undefined,
-        node.raw,
+      ast.replaceNode(
+        node,
+        new Literal(
+          node.id,
+          node.src,
+          'Literal',
+          node.typeString,
+          LiteralKind.Bool,
+          toHexString(valueString),
+          valueString,
+          undefined,
+          node.raw,
+        ),
       );
     } else {
       const intValue = result.toInteger();
       if (intValue === null) {
-        throw new Error('Attempted to make node for non-integral literal');
+        throw new TranspileFailedError('Attempted to make node for non-integral literal');
       }
 
-      return new Literal(
-        this.genId(),
-        node.src,
-        'Literal',
-        node.typeString,
-        LiteralKind.Number,
-        intValue.toString(16),
-        intValue.toString(10),
-        undefined,
-        node.raw,
+      ast.replaceNode(
+        node,
+        new Literal(
+          node.id,
+          node.src,
+          'Literal',
+          node.typeString,
+          LiteralKind.Number,
+          intValue.toString(16),
+          intValue.toString(10),
+          undefined,
+          node.raw,
+        ),
       );
     }
   }
 
-  visitBinaryOperation(node: BinaryOperation): ASTNode {
-    return this.visitPossibleLiteralExpression(node);
+  visitBinaryOperation(node: BinaryOperation, ast: AST): void {
+    this.visitPossibleLiteralExpression(node, ast);
   }
 
-  visitLiteral(node: Literal): ASTNode {
-    return this.visitPossibleLiteralExpression(node);
+  visitLiteral(node: Literal, ast: AST): void {
+    this.visitPossibleLiteralExpression(node, ast);
   }
 
-  visitUnaryOperation(node: UnaryOperation): ASTNode {
-    return this.visitPossibleLiteralExpression(node);
+  visitUnaryOperation(node: UnaryOperation, ast: AST): void {
+    this.visitPossibleLiteralExpression(node, ast);
   }
 }
 
@@ -96,7 +105,11 @@ function evaluateLiteralExpression(node: Expression): RationalLiteral | boolean 
 }
 
 function evaluateLiteral(node: Literal): RationalLiteral | boolean | null {
-  if (node.kind === LiteralKind.Number) {
+  // Other passes can produce numeric literals from statements that the solidity compiler does not treat as constant
+  // These should not be evaluated with compile time arbitrary precision arithmetic
+  // A pass could potentially evaluate them at compile time,
+  // but this would purely be an optimisation and not required for correctness
+  if (node.kind === LiteralKind.Number && isConstType(node.typeString)) {
     const value = stringToLiteralValue(node.value);
     return value.multiply(new RationalLiteral(BigInt(unitValue(node.subdenomination)), 1n));
   } else if (node.kind === LiteralKind.Bool) {
@@ -113,12 +126,12 @@ function evaluateUnaryLiteral(node: UnaryOperation): RationalLiteral | boolean |
   switch (node.operator) {
     case '-':
       if (typeof op === 'boolean') {
-        throw new Error('Attempted to apply unary numeric negation to boolean');
+        throw new TranspileFailedError('Attempted to apply unary numeric negation to boolean');
       }
       return op.multiply(new RationalLiteral(-1n, 1n));
     case '!':
       if (typeof op !== 'boolean') {
-        throw new Error('Attempted to apply boolean negation to RationalLiteral');
+        throw new TranspileFailedError('Attempted to apply boolean negation to RationalLiteral');
       }
       return !op;
     default:
@@ -143,6 +156,8 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
         return left && right;
       case '||':
         return left || right;
+      default:
+        throw new TranspileFailedError(`Unexpected boolean x boolean operator ${node.operator}`);
     }
   } else if (typeof left !== 'boolean' && typeof right !== 'boolean') {
     switch (node.operator) {
@@ -170,9 +185,11 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
         return left.equalValueOf(right);
       case '!=':
         return !left.equalValueOf(right);
+      default:
+        throw new TranspileFailedError(`Unexpected number x number operator ${node.operator}`);
     }
   } else {
-    throw new Error('Mismatching literal arguments');
+    throw new TranspileFailedError('Mismatching literal arguments');
   }
 }
 
@@ -182,6 +199,10 @@ function evaluateTupleLiteral(node: TupleExpression): RationalLiteral | boolean 
   }
 
   return null;
+}
+
+function isConstType(typeString: string): boolean {
+  return typeString.startsWith('int_const') || typeString.startsWith('rational_const');
 }
 
 function createLiteralFromType(typeString: string): RationalLiteral | null {

@@ -1,152 +1,162 @@
 import assert = require('assert');
 import {
-  AddressType,
-  ASTNode,
   BinaryOperation,
   BytesType,
-  DataLocation,
   ElementaryTypeNameExpression,
-  Expression,
   FunctionCall,
   FunctionCallKind,
-  FunctionDefinition,
-  FunctionKind,
-  FunctionStateMutability,
-  FunctionVisibility,
   getNodeType,
   Identifier,
+  IntLiteralType,
   IntType,
   Literal,
   LiteralKind,
-  Mutability,
-  ParameterList,
-  StateVariableVisibility,
   TypeNameType,
-  VariableDeclaration,
 } from 'solc-typed-ast';
+import { AST } from '../../ast/ast';
 import { BuiltinMapper } from '../../ast/builtinMapper';
+import { NotSupportedYetError } from '../../utils/errors';
 
 export class ExplicitConversionToFunc extends BuiltinMapper {
   builtinDefs = {
-    felt_to_uint256: () =>
-      new FunctionDefinition(
-        this.genId(),
-        '',
-        'FunctionDefinition',
-        -1,
-        FunctionKind.Function,
-        'felt_to_uint256',
-        false,
-        FunctionVisibility.Default,
-        FunctionStateMutability.Pure,
-        false,
-        new ParameterList(this.genId(), '', 'ParameterList', [
-          new VariableDeclaration(
-            this.genId(),
-            '',
-            'VariableDeclaration',
-            false,
-            false,
-            'in',
-            -1,
-            false,
-            DataLocation.Default,
-            StateVariableVisibility.Default,
-            Mutability.Mutable,
-            'uint*',
-          ),
-        ]),
-        new ParameterList(this.genId(), '', 'ParamterList', [
-          new VariableDeclaration(
-            this.genId(),
-            '',
-            'VariableDeclaration',
-            false,
-            false,
-            'out',
-            -1,
-            false,
-            DataLocation.Default,
-            StateVariableVisibility.Default,
-            Mutability.Mutable,
-            'uint256',
-          ),
-        ]),
-        [],
-      ),
+    felt_to_uint256: this.createBuiltInDef(
+      'felt_to_uint256',
+      [['in', 'felt']],
+      [['out', 'uint256']],
+      ['range_check_ptr'],
+    ),
   };
-  visitFunctionCall(node: FunctionCall): ASTNode {
-    if (node.kind !== FunctionCallKind.TypeConversion) return node;
+  visitFunctionCall(node: FunctionCall, ast: AST): void {
+    this.commonVisit(node, ast);
+    if (node.kind !== FunctionCallKind.TypeConversion) return;
     assert(
       node.vExpression instanceof ElementaryTypeNameExpression,
       `Unexpected node type ${node.vExpression.type}`,
     );
     assert(node.vArguments.length === 1, `Expecting typeconversion to have one child`);
 
-    const arg = this.visit(node.vArguments[0]) as Expression;
-
     // Since we are only considering type conversions typeTo will always be a TypeNameType
-    const typeTo = (getNodeType(node.vExpression, this.compilerVersion) as TypeNameType).type;
-    const argType = getNodeType(arg, this.compilerVersion);
+    const typeNameType = getNodeType(node.vExpression, ast.compilerVersion);
+    assert(
+      typeNameType instanceof TypeNameType,
+      `Got non-typename type ${typeNameType.pp()} when parsing conversion function ${
+        node.vFunctionName
+      }`,
+    );
+    const typeTo = typeNameType.type;
+    const argType = getNodeType(node.vArguments[0], ast.compilerVersion);
 
     if (typeTo instanceof BytesType && argType instanceof BytesType) {
       // TODO: Implement bytes to bytes conversion
-      return node;
+      throw new NotSupportedYetError('Bytes to bytes conversion not implemented yet');
     }
 
-    if (typeTo instanceof IntType && argType instanceof IntType) {
-      const argTypeSize = argType.nBits;
-
+    if (typeTo instanceof IntType) {
       const typeToSize = typeTo.nBits;
+      // TODO this doesn't cover all possible cases
+      // e.g. literals between 2^251 and 2^256
+      // TODO refactor repeated code
+      // TODO conversions should be possible at compile time
+      if (argType instanceof IntLiteralType) {
+        if (typeToSize !== 256) {
+          const maskSize = '0x'.concat('f'.repeat(typeToSize / 4));
 
-      if (argTypeSize <= typeToSize) {
-        // We don't need to do anything for upcasting if its not being casted to a uint256
-        if (typeToSize !== 256) return arg;
-        else {
-          this.addImport({ utils: new Set(['felt_to_uint256']) });
-          return new FunctionCall(
-            this.genId(),
+          // TODO check this logic, specifically about the type of this literal
+          const maskSizeLiteral = new Literal(
+            ast.reserveId(),
             node.src,
-            'FunctionCall',
-            typeTo.pp(),
-            FunctionCallKind.FunctionCall,
+            'Literal',
+            node.vArguments[0].typeString,
+            LiteralKind.Number,
+            // TODO test what hexstring hexadecimal number literals like this use (I think it's hex of the ascii)
+            maskSize,
+            maskSize,
+          );
+
+          ast.replaceNode(
+            node,
+            new BinaryOperation(
+              ast.reserveId(),
+              node.src,
+              'BinaryOperation',
+              typeTo.pp(),
+              '&&',
+              node.vArguments[0],
+              maskSizeLiteral,
+            ),
+          );
+        } else if (typeToSize === 256) {
+          ast.addImports({ 'warplib.math.utils': new Set(['felt_to_uint256']) });
+          ast.replaceNode(
+            node.vExpression,
             new Identifier(
-              this.genId(),
+              ast.reserveId(),
               node.src,
               'Identifier',
-              typeTo.pp(),
+              // TODO check what correct typestring should be here (is it typeTo.pp, shouldn't that always be the same?)
+              node.typeString,
               'felt_to_uint256',
-              this.getDefId('felt_to_uint256'),
+              this.getDefId('felt_to_uint256', ast),
             ),
-            [arg],
           );
+          return;
         }
       }
+      if (argType instanceof IntType) {
+        const argTypeSize = argType.nBits;
+        // TODO what if arg type size is already 256?
+        if (argTypeSize <= typeToSize) {
+          // We don't need to do anything for upcasting if its not being casted to a uint256
+          if (typeToSize !== 256) {
+            // TODO prove whether or not it's possible for something to reference this call by id
+            ast.replaceNode(node, node.vArguments[0]);
+            return;
+          } else {
+            ast.addImports({ 'warplib.math.utils': new Set(['felt_to_uint256']) });
+            ast.replaceNode(
+              node.vExpression,
+              new Identifier(
+                ast.reserveId(),
+                node.src,
+                'Identifier',
+                // TODO check what correct typestring should be here (is it typeTo.pp, shouldn't that always be the same?)
+                node.typeString,
+                'felt_to_uint256',
+                this.getDefId('felt_to_uint256', ast),
+              ),
+            );
+            return;
+          }
+        }
 
-      const maskSize = '0x'.concat('f'.repeat(typeToSize / 4));
+        const maskSize = '0x'.concat('f'.repeat(typeToSize / 4));
 
-      const maskSizeLiteral = new Literal(
-        this.genId(),
-        node.src,
-        'Literal',
-        arg.typeString,
-        LiteralKind.Number,
-        maskSize,
-        maskSize,
-      );
+        // TODO check this logic, specifically about the type of this literal
+        const maskSizeLiteral = new Literal(
+          ast.reserveId(),
+          node.src,
+          'Literal',
+          node.vArguments[0].typeString,
+          LiteralKind.Number,
+          // TODO test what hexstring hexadecimal number literals like this use (I think it's hex of the ascii)
+          maskSize,
+          maskSize,
+        );
 
-      const ret = new BinaryOperation(
-        this.genId(),
-        node.src,
-        'BinaryOperation',
-        typeTo.pp(),
-        '&&',
-        arg,
-        maskSizeLiteral,
-      );
-
-      return ret;
+        ast.replaceNode(
+          node,
+          new BinaryOperation(
+            ast.reserveId(),
+            node.src,
+            'BinaryOperation',
+            typeTo.pp(),
+            '&&',
+            node.vArguments[0],
+            maskSizeLiteral,
+          ),
+        );
+      }
     }
-    return node;
+    return;
   }
 }

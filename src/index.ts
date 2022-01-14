@@ -1,57 +1,62 @@
 import { Command } from 'commander';
+import { AST } from './ast/ast';
+import { isValidSolFile, outputResult } from './io';
+import { compileSolFile } from './solCompile';
+import { runTests } from './testing';
+import { handleTranspilationError, transpile } from './transpiler';
+import { analyseSol } from './utils/analyseSol';
 
-import * as fs from 'fs';
-import {
-  CompileResult,
-  compileSol,
-  ASTReader,
-  DefaultASTWriterMapping,
-  ASTWriter,
-  LatestCompilerVersion,
-  PrettyFormatter,
-} from 'solc-typed-ast';
+export type TranspilationOptions = {
+  checkTrees?: boolean;
+  order?: string;
+  printTrees?: boolean;
+  strict?: boolean;
+};
 
-import { applyPasses, transpile } from './transpiler';
+export type OutputOptions = {
+  compileCairo?: boolean;
+  compileErrors?: boolean;
+  output?: string;
+  result: boolean;
+};
 
 const program = new Command();
 
-program.command('transpile <file>').action((file) => {
-  if (fs.existsSync(file)) {
-    const transpilationResult = transpile(file);
-    if (transpilationResult === null) {
-      console.log('Transpilation failed');
-    } else {
-      console.log(transpilationResult.join('\n\n\n'));
+program
+  .command('transpile <file>')
+  .option('--compile-cairo')
+  .option('--no-compile-errors')
+  .option('--check-trees')
+  .option('--order <passOrder>')
+  .option('-o, --output <path>')
+  .option('--print-trees')
+  .option('--no-result')
+  .option('--strict')
+  .action((file: string, options: TranspilationOptions & OutputOptions) => {
+    if (!isValidSolFile(file)) return;
+    try {
+      compileSolFile(file)
+        .map((ast: AST) => ({
+          name: ast.root.absolutePath,
+          cairo: transpile(ast, options),
+        }))
+        .map(({ name, cairo }) => {
+          outputResult(name, cairo, options);
+        });
+    } catch (e) {
+      handleTranspilationError(e);
     }
-  }
-});
+  });
 
-program.command('print <file>').action((file) => {
-  let result: CompileResult;
+program
+  .command('test')
+  .option('-f --force')
+  .option('-r --results')
+  .option('-u --unsafe')
+  .action((options) =>
+    runTests(options.force ?? false, options.results ?? false, options.unsafe ?? false),
+  );
 
-  try {
-    result = compileSol(file, 'auto', []);
-    const reader = new ASTReader();
-    const sourceUnits = reader.read(result.data);
-    const formatter = new PrettyFormatter(4, 0);
-    const writer = new ASTWriter(DefaultASTWriterMapping, formatter, LatestCompilerVersion);
+program.command('analyse <file>').action((file: string) => analyseSol(file));
 
-    console.log(
-      sourceUnits
-        .map((s) =>
-          writer.write(
-            applyPasses({
-              ast: s,
-              compilerVersion: result.compilerVersion,
-              imports: null,
-              functionImplicits: null,
-            }).ast,
-          ),
-        )
-        .join('\n\n\n'),
-    );
-  } catch (e) {
-    console.log(e);
-  }
-});
 program.parse(process.argv);

@@ -1,4 +1,5 @@
-import { ASTMapper, AST } from '../../ast/mapper';
+import { AST } from '../../ast/ast';
+import { ASTMapper } from '../../ast/mapper';
 import { BinaryOperations } from './binaryOperations';
 import { ExplicitConversionToFunc } from './explicitConversionToFunc';
 import { MsgSender } from './msgSender';

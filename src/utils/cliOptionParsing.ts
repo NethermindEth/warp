@@ -10,18 +10,18 @@ export function parsePassOrder(
   }
 
   //We want keys in order of longest first otherwise 'Vs' would match 'V' and then error on 's'
-  const keys = [...passes.keys()].sort((a, b) => b.length - a.length);
+  const sortedPassMap = [...passes.entries()].sort(([a], [b]) => b.length - a.length);
   const passesInOrder = [];
   let remainingOrder = order;
 
   while (remainingOrder.length > 0) {
-    const keyToUse = keys.find((key) => remainingOrder.startsWith(key));
-    if (keyToUse === undefined) {
+    const foundPass = sortedPassMap.find(([key]) => remainingOrder.startsWith(key));
+    if (foundPass === undefined) {
       throw new PassOrderParseError(remainingOrder, order, [...passes.keys()]);
     }
-
-    passesInOrder.push(passes.get(keyToUse));
-    remainingOrder = remainingOrder.slice(keyToUse.length);
+    const [key, nextPass] = foundPass;
+    passesInOrder.push(nextPass);
+    remainingOrder = remainingOrder.slice(key.length);
   }
 
   return passesInOrder;

@@ -1,31 +1,28 @@
 import { Assignment, BinaryOperation } from 'solc-typed-ast';
+import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { cloneExpression } from '../utils/cloning';
 
 export class UnloadingAssignment extends ASTMapper {
-  visitAssignment(node: Assignment) {
-    if (node.operator === '=') return node;
+  visitAssignment(node: Assignment, ast: AST): void {
+    if (node.operator === '=') return;
+    const lhsValue = cloneExpression(node.vLeftHandSide, ast);
 
-    // Extract "+" from "+="
+    // Extract e.g. "+" from "+="
     const operator = node.operator.slice(0, node.operator.length - 1);
-    const rhs = new BinaryOperation(
-      this.genId(),
-      node.src,
-      node.type,
-      node.typeString,
-      operator,
-      node.vLeftHandSide,
+    node.operator = '=';
+    ast.replaceNode(
       node.vRightHandSide,
-    );
-
-    return new Assignment(
-      this.genId(),
-      node.src,
-      node.type,
-      node.typeString,
-      '=',
-      node.vLeftHandSide,
-      rhs,
-      node.raw,
+      new BinaryOperation(
+        ast.reserveId(),
+        node.src,
+        'BinaryOperation',
+        node.typeString,
+        operator,
+        lhsValue,
+        node.vRightHandSide,
+      ),
+      node,
     );
   }
 }

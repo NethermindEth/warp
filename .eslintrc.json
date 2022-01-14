@@ -5,6 +5,11 @@
     "es2020": true,
     "node": true
   },
-  "extends": ["plugin:prettier/recommended", "eslint:recommended"],
+  "extends": [
+    "plugin:prettier/recommended",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
   "ignorePatterns": "build"
 }

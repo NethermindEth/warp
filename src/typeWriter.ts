@@ -18,16 +18,19 @@ import {
   EnumDefinition,
   ContractDefinition,
 } from 'solc-typed-ast';
-import {canonicalMangler} from './utils/utils';
+import { printTypeNode } from './utils/astPrinter';
+import { TranspileFailedError } from './utils/errors';
+import { canonicalMangler } from './utils/utils';
 
 export function getCairoType(node: Expression | VariableDeclaration, compilerVersion: string) {
+  if (node.typeString === 'felt') return 'felt';
   return cairoType(getNodeType(node, compilerVersion));
 }
 export function cairoType(tp: TypeNode): string {
   if (tp instanceof IntType) {
-    return tp.nBits > 251 ? "Uint256" : "felt";
+    return tp.nBits > 251 ? 'Uint256' : 'felt';
   } else if (tp instanceof ArrayType) {
-    return `${cairoType(tp.elementT)}*`;
+    return `felt`;
   } else if (tp instanceof BoolType) {
     return `felt`;
   } else if (tp instanceof BytesType) {
@@ -41,10 +44,10 @@ export function cairoType(tp: TypeNode): string {
   } else if (tp instanceof BuiltinStructType) {
     return canonicalMangler(tp.name);
   } else if (tp instanceof MappingType) {
-    return `${cairoType(tp.keyType)} => ${cairoType(tp.valueType)}`;
+    return `felt`;
   } else if (tp instanceof UserDefinedType) {
     if (tp.definition instanceof EnumDefinition) {
-      return "felt";
+      return 'felt';
     }
     if (tp.definition instanceof ContractDefinition) {
       // This should be an address
@@ -54,9 +57,9 @@ export function cairoType(tp: TypeNode): string {
   } else if (tp instanceof FunctionType) {
     return `felt*`;
   } else if (tp instanceof PointerType) {
-    return cairoType(tp.to)
+    return cairoType(tp.to);
   } else {
-    console.log(tp)
-    throw new Error(`Don't know how to convert type ${JSON.stringify(tp.constructor.name)}`)
+    console.log(tp);
+    throw new TranspileFailedError(`Attempted to convert unexpected TypeNode ${printTypeNode(tp)}`);
   }
 }

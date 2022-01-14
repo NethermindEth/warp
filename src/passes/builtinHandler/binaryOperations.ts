@@ -1,182 +1,42 @@
 import {
-  ASTNode,
   BinaryOperation,
-  Expression,
   FunctionCallKind,
   getNodeType,
   Identifier,
   UncheckedBlock,
-  ElementaryTypeName,
-  FunctionDefinition,
-  FunctionKind,
-  FunctionVisibility,
-  FunctionStateMutability,
-  ParameterList,
-  VariableDeclaration,
-  DataLocation,
-  StateVariableVisibility,
-  Mutability,
+  FunctionCall,
 } from 'solc-typed-ast';
 import { BuiltinMapper } from '../../ast/builtinMapper';
 import { compareTypeSize, primitiveTypeToCairo } from '../../utils/utils';
-import { CairoFunctionCall } from '../../ast/cairoNodes';
+import { AST, Imports } from '../../ast/ast';
+import { TranspileFailedError } from '../../utils/errors';
 
+// TODO remake this to respect bit-widths
 export class BinaryOperations extends BuiltinMapper {
-  feltTypeName = () =>
-    new ElementaryTypeName(
-      this.genId(),
-      '',
-      'TypeName',
-      'felt',
-      'felt',
-      undefined,
-      'BINARY_BUILTIN',
-    );
-  uintTypeName = () =>
-    new ElementaryTypeName(
-      this.genId(),
-      '',
-      'TypeName',
-      'uint256',
-      'uint',
-      undefined,
-      'BINARY_BUILTIN',
-    );
   builtinDefs = {
-    binaryopFelt: () =>
-      new FunctionDefinition(
-        this.genId(),
-        '',
-        'FunctionDefinition',
-        -1,
-        FunctionKind.Function,
-        'binaryopFelt',
-        false,
-        FunctionVisibility.Internal,
-        FunctionStateMutability.NonPayable,
-        false,
-        new ParameterList(this.genId(), '', 'ParameterList', [
-          new VariableDeclaration(
-            this.genId(),
-            '',
-            'VariableDeclaration',
-            false,
-            false,
-            'arg1',
-            -1,
-            false,
-            DataLocation.Memory,
-            StateVariableVisibility.Private,
-            Mutability.Mutable,
-            'felt',
-            undefined,
-            this.feltTypeName(),
-          ),
-          new VariableDeclaration(
-            this.genId(),
-            '',
-            'VariableDeclaration',
-            false,
-            false,
-            'arg1',
-            -1,
-            false,
-            DataLocation.Memory,
-            StateVariableVisibility.Private,
-            Mutability.Mutable,
-            'felt',
-            undefined,
-            this.feltTypeName(),
-          ),
-        ]),
-        new ParameterList(this.genId(), '', 'ParameterList', [
-          new VariableDeclaration(
-            this.genId(),
-            '',
-            'VariableDeclaration',
-            false,
-            false,
-            'ret',
-            -1,
-            false,
-            DataLocation.Memory,
-            StateVariableVisibility.Private,
-            Mutability.Mutable,
-            'felt',
-            undefined,
-            this.feltTypeName(),
-          ),
-        ]),
-        [],
-      ),
-    binaryopUint256: () =>
-      new FunctionDefinition(
-        this.genId(),
-        '',
-        'FunctionDefinition',
-        -1,
-        FunctionKind.Function,
-        'binaryopUint256',
-        false,
-        FunctionVisibility.Internal,
-        FunctionStateMutability.NonPayable,
-        false,
-        new ParameterList(this.genId(), '', 'ParameterList', [
-          new VariableDeclaration(
-            this.genId(),
-            '',
-            'VariableDeclaration',
-            false,
-            false,
-            'arg1',
-            -1,
-            false,
-            DataLocation.Memory,
-            StateVariableVisibility.Private,
-            Mutability.Mutable,
-            'uint256',
-            undefined,
-            this.uintTypeName(),
-          ),
-          new VariableDeclaration(
-            this.genId(),
-            '',
-            'VariableDeclaration',
-            false,
-            false,
-            'arg1',
-            -1,
-            false,
-            DataLocation.Memory,
-            StateVariableVisibility.Private,
-            Mutability.Mutable,
-            'uint256',
-            undefined,
-            this.uintTypeName(),
-          ),
-        ]),
-        new ParameterList(this.genId(), '', 'ParameterList', [
-          new VariableDeclaration(
-            this.genId(),
-            '',
-            'VariableDeclaration',
-            false,
-            false,
-            'ret',
-            -1,
-            false,
-            DataLocation.Memory,
-            StateVariableVisibility.Private,
-            Mutability.Mutable,
-            'uint256',
-            undefined,
-            this.uintTypeName(),
-          ),
-        ]),
-        [],
-      ),
+    binaryopFelt: this.createBuiltInDef(
+      'binaryopFelt',
+      [
+        ['arg1', 'felt'],
+        ['arg2', 'felt'],
+      ],
+      [['ret', 'felt']],
+      // Include both currently because some operations require them
+      // This should be made more accurate when BinaryOperations is remade
+      ['bitwise_ptr', 'range_check_ptr'],
+    ),
+    binaryopUint256: this.createBuiltInDef(
+      'binaryopUint256',
+      [
+        ['arg1', 'uint256'],
+        ['arg2', 'uint256'],
+      ],
+      [['ret', 'uint256']],
+      ['bitwise_ptr', 'range_check_ptr'],
+    ),
   };
 
+  // Unchecked blocks cannot be nested so we only need a boolean
   inUncheckedBlock: boolean;
 
   constructor() {
@@ -184,35 +44,18 @@ export class BinaryOperations extends BuiltinMapper {
     this.inUncheckedBlock = false;
   }
 
-  visitUncheckedBlock(node: UncheckedBlock): ASTNode {
+  visitUncheckedBlock(node: UncheckedBlock, ast: AST): void {
     this.inUncheckedBlock = true;
-    const block = new UncheckedBlock(
-      this.genId(),
-      node.src,
-      node.type,
-      this.visitList(node.vStatements),
-      node.documentation,
-      node.raw,
-    );
+    this.commonVisit(node, ast);
     this.inUncheckedBlock = false;
-    return block;
   }
 
-  visitBinaryOperation(n: BinaryOperation): ASTNode {
-    const node = new BinaryOperation(
-      this.genId(),
-      n.src,
-      n.type,
-      n.typeString,
-      n.operator,
-      this.visit(n.vLeftExpression) as Expression,
-      this.visit(n.vRightExpression) as Expression,
-      n.raw,
-    );
+  visitBinaryOperation(node: BinaryOperation, ast: AST): void {
+    this.commonVisit(node, ast);
     const biggerType =
       compareTypeSize(
-        getNodeType(node.vLeftExpression, this.compilerVersion),
-        getNodeType(node.vRightExpression, this.compilerVersion),
+        getNodeType(node.vLeftExpression, ast.compilerVersion),
+        getNodeType(node.vRightExpression, ast.compilerVersion),
       ) <= 0
         ? node.vRightExpression.typeString
         : node.vLeftExpression.typeString;
@@ -221,10 +64,12 @@ export class BinaryOperations extends BuiltinMapper {
     switch (node.operator) {
       case '+':
       case '-':
+      case '*':
+      case '=':
+        if (isFelt) return;
+      //falls through
       case '!=':
       case '==':
-      case '=':
-        if (isFelt) return node;
       case '/':
       case '>':
       case '<':
@@ -235,86 +80,101 @@ export class BinaryOperations extends BuiltinMapper {
       case '^':
       case '>>':
       case '<<':
-        return this.generateCallForOperator(node, cairoType);
+      case '&':
+      case '|': {
+        const [replacement, imports] = this.generateCallForOperator(node, cairoType, ast);
+        ast.replaceNode(node, replacement);
+        ast.addImports(imports);
+        return;
+      }
       default:
-        return node;
+        console.log(`WARNING: Found unexpected operator ${node.operator}`);
+        return;
     }
   }
 
-  generateCallForOperator(node: BinaryOperation, cairoType: string) {
-    const operation = this.binaryOperationBasedOnType(cairoType, node.operator);
-    this.addImport({
-      [`math.${cairoType.toLowerCase()}`]: new Set([`${operation}`]),
-    });
+  // Called after having already recursed through this BinaryOperation and back
+  generateCallForOperator(
+    node: BinaryOperation,
+    cairoType: string,
+    ast: AST,
+  ): [FunctionCall, Imports] {
+    const [operation, imports] = this.binaryOperationBasedOnType(cairoType, node.operator);
 
-    const args = [node.vLeftExpression, node.vRightExpression].map((v) =>
-      this.visit(v),
-    ) as Expression[];
-    const iden = new Identifier(
-      this.genId(),
-      node.src,
-      node.type,
-      node.typeString,
-      operation,
-      this.functionDefReferenceBasedOnType(node.typeString),
-      node.raw,
-    );
-
-    return new CairoFunctionCall(
-      this.genId(),
-      node.src,
-      node.type,
-      node.typeString,
-      FunctionCallKind.FunctionCall,
-      iden,
-      args,
-      undefined,
-      undefined,
-      ['range_check_ptr'],
-    );
+    return [
+      new FunctionCall(
+        ast.reserveId(),
+        node.src,
+        'FunctionCall',
+        node.typeString,
+        FunctionCallKind.FunctionCall,
+        new Identifier(
+          ast.reserveId(),
+          node.src,
+          'Identifier',
+          node.typeString,
+          operation,
+          this.functionDefReferenceBasedOnType(node.typeString, ast),
+          node.raw,
+        ),
+        [node.vLeftExpression, node.vRightExpression],
+      ),
+      imports,
+    ];
   }
 
-  binaryOperationBasedOnType(typeString: string, operator: string): string {
+  binaryOperationBasedOnType(typeString: string, operator: string): [string, Imports] {
     const inner = () => {
-      const call = infixOperatorToCall[operator];
+      const call = infixOperatorToCall.get(operator);
+      if (call === undefined) {
+        throw new TranspileFailedError(`Found unexpected operator ${operator}`);
+      }
       switch (typeString) {
         case 'Uint256':
-          return `uint256_${call}`;
-        case 'felt':
-          return call;
+          return `u256_${call}`;
         default:
           return `${typeString}_${call}`;
       }
     };
-    return this.inUncheckedBlock ? `unsafe_${inner()}` : inner();
+    const operatorFunc = this.inUncheckedBlock ? `unsafe_${inner()}` : inner();
+    let imports = {};
+    if (typeString === 'Uint256') {
+      imports = { 'warplib.math.uint256': new Set([operatorFunc]) };
+    } else if (typeString === 'felt') {
+      imports = { 'warplib.math.logic': new Set([operatorFunc]) };
+    }
+    return [operatorFunc, imports];
   }
 
-  functionDefReferenceBasedOnType(typeString: string) {
+  functionDefReferenceBasedOnType(typeString: string, ast: AST) {
     switch (typeString) {
       case 'int':
       case 'uint':
       case 'uint256':
       case 'int256':
-        return this.getDefId('binaryopUint256');
+        return this.getDefId('binaryopUint256', ast);
       default:
-        return this.getDefId('binaryopFelt');
+        return this.getDefId('binaryopFelt', ast);
     }
   }
 }
 
-const infixOperatorToCall = {
-  '+': 'add',
-  '-': 'sub',
-  '/': 'div',
-  '==': 'eq',
-  '=': '=',
-  '<': 'is_lt',
-  '>': 'is_gt',
-  '<=': 'is_lte',
-  '>=': 'is_gte',
-  '&&': 'and',
-  '||': 'or',
-  '^': 'xor',
-  '>>': 'shr',
-  '<<': 'shl',
-};
+const infixOperatorToCall = new Map([
+  ['+', 'add'],
+  ['-', 'sub'],
+  ['/', 'div'],
+  ['==', 'eq'],
+  ['!=', 'neq'],
+  ['=', '='],
+  ['<', 'lt'],
+  ['>', 'gt'],
+  ['<=', 'lte'],
+  ['>=', 'gte'],
+  ['&&', 'and'],
+  ['||', 'or'],
+  ['^', 'xor'],
+  ['>>', 'shr'],
+  ['<<', 'shl'],
+  ['&', 'bitwise_and'],
+  ['|', 'bitwise_or'],
+]);
