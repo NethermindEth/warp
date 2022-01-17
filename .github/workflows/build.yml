@@ -1,0 +1,45 @@
+name: Warp CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+          cache: 'yarn'
+
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7 # Cairo was tested with this version
+
+      - name: Install Cairo
+        run: |
+          apt install -y libgmp3-dev
+          pip3 install ecdsa fastecdsa sympy
+          pip3 install cairo-lang
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Project compilation
+        run: yarn tsc
+
+      - name: Test code compilation
+        run: bin/warp test
+
+      - name: Test code execution
+        run: |
+          yarn testnet &
+          yarn test
