@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from ast import literal_eval
-
 import warp.yul.ast as ast
-from warp.yul.utils import camelize, is_statement, remove_prefix
-from warp.yul.WarpException import WarpException, warp_assert
+from warp.yul.utils import camelize, remove_prefix
+from warp.yul.WarpException import WarpException, warp_assert, warp_assert_statement
 
 _node_to_parser = {}
 
@@ -49,11 +47,7 @@ def parse_expression(yul_ast) -> ast.Expression:
 
 def parse_statement(yul_ast) -> ast.Statement:
     node = parse_node(yul_ast)
-    warp_assert(
-        is_statement(node),
-        f"Expected yul_ast.Statement, got {type(node)}",
-    )
-    return node
+    return warp_assert_statement(node, f"Expected yul_ast.Statement, got {type(node)}")
 
 
 @register_parser
@@ -118,7 +112,7 @@ def parse_variable_declaration(yul_ast) -> ast.VariableDeclaration:
 
 @register_parser
 def parse_block(yul_ast) -> ast.Block:
-    statements = [parse_statement(x) for x in yul_ast["statements"]]
+    statements = tuple(parse_statement(x) for x in yul_ast["statements"])
     return ast.Block(statements=statements)
 
 

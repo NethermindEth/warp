@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from typing import Union
 
 import warp.yul.ast as ast
 from warp.yul.AstVisitor import AstVisitor
@@ -117,7 +118,7 @@ class AstParser:
         assert self.get_word(tabs) == "Block:", "This node should be of type Block"
         self.pos += 1
 
-        return ast.Block(statements=self.parse_list(tabs, self.parse_statement))
+        return ast.Block(statements=tuple(self.parse_list(tabs, self.parse_statement)))
 
     def parse_function_definition(self) -> ast.FunctionDefinition:
         tabs = self.get_tabs()
@@ -252,8 +253,7 @@ class AstParser:
         tabs = self.get_tabs()
         node_type_name = self.get_word(tabs).split(":")[0]
         assert node_type_name in statements, "Not a valid statement"
-
-        return self.parse_node()
+        return ast.assert_statement(self.parse_node())
 
     def parse_expression(self) -> ast.Expression:
         tabs = self.get_tabs()
@@ -263,8 +263,7 @@ class AstParser:
             "Identifier",
             "FunctionCall",
         ], "Node type must be an expression"
-
-        return self.parse_node()
+        return ast.assert_expression(self.parse_node())
 
     def parse_list(self, tabs, parser):
         items = []

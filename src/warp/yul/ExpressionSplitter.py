@@ -30,6 +30,7 @@ class ExpressionSplitter(AstMapper):
         self.env: Optional[BlockEnv] = None
 
     def visit_function_call(self, node: ast.FunctionCall):
+        assert self.env
         if len(self.path) == 1:  # no parent
             return ast.FunctionCall(node.function_name, self.visit_list(node.arguments))
         parent = self.path[-2]
@@ -42,6 +43,7 @@ class ExpressionSplitter(AstMapper):
 
     def visit_block(self, node: ast.Block):
         with self._new_block():
+            assert self.env
             new_stmts = []
             for stmt in node.statements:
                 new_stmt = self.visit(stmt)
@@ -55,7 +57,7 @@ class ExpressionSplitter(AstMapper):
             return ast.Block(tuple(new_stmts))
 
     @contextmanager
-    def _new_block(self) -> BlockEnv:
+    def _new_block(self):
         with self.name_gen.new_block():
             old_env = self.env
             self.env = BlockEnv(self.name_gen)

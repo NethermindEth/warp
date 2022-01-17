@@ -4,7 +4,7 @@ from typing import Dict
 from starkware.starknet.services.api.contract_definition import ContractDefinition
 from starkware.starknet.testing.starknet import Starknet
 
-from testnet.util import StarknetDevnetException, TxStatus, fixed_length_hex
+from .util import StarknetDevnetException, TxStatus, fixed_length_hex
 
 
 class Choice(Enum):

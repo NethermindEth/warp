@@ -25,7 +25,7 @@ class TxStatus(Enum):
     """The transaction was accepted on-chain."""
 
 
-def custom_int(arg: str) -> str:
+def custom_int(arg: str) -> int:
     base = 16 if arg.startswith("0x") else 10
     return int(arg, base)
 
