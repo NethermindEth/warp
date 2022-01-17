@@ -12,3 +12,4 @@ cairo-lang==0.6.2
 aiohttp<4,>=3.7.4
 eth-utils<1.10
 click
+importlib_resources>=5.2

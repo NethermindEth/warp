@@ -5,10 +5,9 @@ import platform
 import stat
 import subprocess
 import sys
-from pathlib import PurePath
 from typing import Optional
 
-import pkg_resources
+from importlib_resources import as_file, files
 
 exec_name = "kudu"
 
@@ -16,30 +15,28 @@ exec_name = "kudu"
 def get_system_suffix(system: str) -> Optional[str]:
     system = system.lower()
     if system == "linux":
-        return "bin/linux/"
+        return "linux"
     elif system == "darwin":
         version = platform.mac_ver()[0]
         major, minor = map(int, version.split(".")[:2])
         if major >= 11:
-            return "bin/macos/11/"
+            return "macos_11"
         elif (major, minor) == (10, 14):
-            return "bin/macos/10/14/"
+            return "macos_10_14"
         elif (major, minor) == (10, 15):
-            return "bin/macos/10/"
+            return "macos_10_15"
+    return None
 
 
 def main(argv):
     suffix = get_system_suffix(platform.system())
     if not suffix:
         raise RuntimeError(f"Unsupported OS: {platform.platform()}")
-    warp_location = PurePath(pkg_resources.get_distribution("sol-warp").location)
-    exec_location = warp_location / suffix / exec_name
-    st_mode = os.stat(exec_location).st_mode
-    os.chmod(exec_location, stat.S_IEXEC | st_mode)
-    res = subprocess.run(
-        [exec_location, *argv[1:]], stdout=sys.stdout, stderr=sys.stderr
-    )
-    sys.exit(res.returncode)
+    with as_file(files("warp") / "bin" / suffix / exec_name) as exe:
+        st_mode = os.stat(exe).st_mode
+        os.chmod(exe, stat.S_IEXEC | st_mode)
+        res = subprocess.run([exe, *argv[1:]], stdout=sys.stdout, stderr=sys.stderr)
+        sys.exit(res.returncode)
 
 
 if __name__ == "__main__":

@@ -1,20 +1,23 @@
-import asyncio
 import tempfile
 from pathlib import Path
 
 import pytest
-from cli.encoding import get_cairo_calldata, get_ctor_evm_calldata, get_evm_calldata
 from starkware.starknet.compiler.compile import (
     compile_starknet_codes,
     compile_starknet_files,
 )
 from starkware.starknet.testing.state import StarknetState
 from starkware.starkware_utils.error_handling import StarkException
-from yul.main import transpile_from_solidity
-from yul.starknet_utils import deploy_contract, invoke_method
 
-WARP_ROOT = Path(__file__).parents[2]
-CAIRO_PATH = WARP_ROOT / "warp" / "cairo-src"
+from tests.utils import CAIRO_PATH, WARP_ROOT
+from warp.cli.encoding import (
+    get_cairo_calldata,
+    get_ctor_evm_calldata,
+    get_evm_calldata,
+)
+from warp.yul.main import transpile_from_solidity
+from warp.yul.starknet_utils import deploy_contract, invoke_method
+
 TEST_DIR = Path(__file__).parent
 
 

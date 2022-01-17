@@ -6,11 +6,11 @@ from tempfile import mkdtemp
 import pytest
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
-from yul.main import transpile_from_solidity
-from yul.starknet_utils import deploy_contract, invoke_method
 
-WARP_ROOT = Path(__file__).parents[2]
-CAIRO_PATH = WARP_ROOT / "warp" / "cairo-src"
+from tests.utils import CAIRO_PATH
+from warp.yul.main import transpile_from_solidity
+from warp.yul.starknet_utils import deploy_contract, invoke_method
+
 TEST_DIR = Path(__file__).parent
 
 

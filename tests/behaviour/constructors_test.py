@@ -2,22 +2,19 @@ import asyncio
 import os
 
 import pytest
-from cli.encoding import get_ctor_evm_calldata
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
-from yul.main import transpile_from_solidity
-from yul.starknet_utils import deploy_contract, invoke_method
 
-from warp.logging.generateMarkdown import steps_in_function
+from tests.logging.generateMarkdown import steps_in_function
+from tests.utils import CAIRO_PATH
+from warp.yul.main import transpile_from_solidity
+from warp.yul.starknet_utils import deploy_contract, invoke_method
 
-warp_root = os.path.abspath(os.path.join(__file__, "../../.."))
 test_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 @pytest.mark.asyncio
 async def test_constructors():
-    cairo_path = f"{warp_root}/warp/cairo-src"
-
     dyn_constructor = os.path.join(test_dir, "constructors_dyn.cairo")
     dyn_constructor_sol = os.path.join(test_dir, "constructors_dyn.sol")
 
@@ -25,7 +22,7 @@ async def test_constructors():
     non_dyn_constructor_sol = os.path.join(test_dir, "constructors_nonDyn.sol")
 
     dyn_contract_def = compile_starknet_files(
-        [dyn_constructor], debug_info=True, cairo_path=[cairo_path]
+        [dyn_constructor], debug_info=True, cairo_path=[CAIRO_PATH]
     )
     dyn_info = transpile_from_solidity(dyn_constructor_sol, "WARP")
     dyn_inputs = [
@@ -33,9 +30,8 @@ async def test_constructors():
         (12345, 23),
         250,
     ]
-    dyn_constructor_calldata = get_ctor_evm_calldata(dyn_info["sol_abi"], dyn_inputs)
     non_dyn_contract_def = compile_starknet_files(
-        [non_dyn_constructor], debug_info=True, cairo_path=[cairo_path]
+        [non_dyn_constructor], debug_info=True, cairo_path=[CAIRO_PATH]
     )
     non_dyn_info = transpile_from_solidity(non_dyn_constructor_sol, "WARP")
     non_dyn_inputs = [0x50C2AE5414B02BC962289B3A696F55DFF8B00836519B7, 26, 7432533231]
