@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 extend-exclude = '''
@@ -21,3 +21,53 @@ extend-exclude = '''
 [tool.isort]
 profile = "black"
 skip_gitignore = true
+
+[tool.poetry]
+name = "sol-warp"
+version = "0.2.12"
+description = "A Solidity to Cairo Transpiler"
+authors = ["Nethermind <hello@nethermind.io>"]
+license = "Apache 2.0"
+readme = "README.md"
+repository = "https://github.com/NethermindEth/warp"
+keywords = [
+    "Ethereum",
+    "Layer2",
+    "ETH",
+    "StarkNet",
+    "Nethermind",
+    "StarkWare",
+    "transpilation",
+    "warp",
+    "transpiler",
+    "cairo",
+    ]
+classifiers = [
+    "Programming Language :: Python :: 3.7",
+    "License :: OSI Approved :: Apache Software License",
+    ]
+packages = [ { include = "warp", from = "src" } ]
+include = [
+    "src/cairo-src/**/*.cairo",
+    "src/bin/**/kudu",
+    ]
+
+[tool.poetry.scripts]
+warp = "warp.cli.cli:main"
+
+[tool.poetry.dependencies]
+python = ">=3.7,<3.10"
+cairo-lang = "0.6.2"
+web3 = ""
+eth-abi = ""
+click = ""
+aiohttp = ""
+importlib_resources = ""
+
+[tool.poetry.dev-dependencies]
+isort = ""
+black = ""
+pytype = "^2022.1.13"
+pytest = ""
+pytest-parallel = ""
+pytest-check = ""

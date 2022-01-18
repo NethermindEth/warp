@@ -5,15 +5,10 @@ BATS_FILES := $(patsubst $(GOLDEN_DIR)/%.template,$(BATS_DIR)/test-%.bats,$(TEMP
 TEST_FILES := $(shell find ./tests -type f ! -name '*.temp*') # exclude temporary files
 SRC_FILES := $(shell find ./src/warp/ -type f)
 KUDU_FILES := $(shell find ./src/warp/bin -name kudu)
-PY_REQUIREMENTS := requirements.txt
 NPROCS := $(shell getconf _NPROCESSORS_ONLN)
 
-warp: .warp-activation-token
-.PHONY: warp
-
-.warp-activation-token: $(SRC_FILES) $(KUDU_FILES) ./scripts/kudu setup.py $(PY_REQUIREMENTS)
-	python setup.py install
-	touch .warp-activation-token
+warp: $(SRC_FILES) $(KUDU_FILES) pyproject.toml
+	poetry install
 
 test: test_bats test_yul benchmark
 .PHONY: test
