@@ -23,15 +23,12 @@ jobs:
         uses: ./.github/actions/set-up-cairo
 
       - name: Install dependencies
-        run: yarn
-
-      - name: Project compilation
-        run: yarn tsc
+        run: make
 
       - name: Test code compilation
-        run: bin/warp test
+        run: make test_compilation
 
       - name: Test code execution
         run: |
           yarn testnet &
-          yarn test
+          make test_execution
