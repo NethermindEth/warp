@@ -91,7 +91,7 @@ warp deploy CONTRACT.json
 To invoke a public/external method use:
 
 ```
-warp invoke --program CONTRACT.json --address ADDRESS --function FUNCTION_NAME --inputs "INPUTS"
+warp invoke --program CONTRACT.json --address ADDRESS --function FUNCTION_NAME --inputs 'INPUTS'
 ```
 
 Here's an example that shows you the format of the inputs for `inputs`:
@@ -114,8 +114,8 @@ The command to call this function would be:
 
 ```bash
 warp invoke --program CONTRACT.json --address ADDRESS --function validate \
-        --inputs "[0x07964d2123425737cd3663bec47c68db37dc61d83fee74fc192d50a59fb7ab56,
-        (26, 200), 7432533831]"
+        --inputs '[0x07964d2123425737cd3663bec47c68db37dc61d83fee74fc192d50a59fb7ab56,
+        (26, 200), 7432533831]'
 ```
 
 The `--inputs` flag, if not empty, should always be an 'array'. As you can see, we have
@@ -124,7 +124,12 @@ declaration order (i.e `age` first, `person` second). If the first argument to t
 `validate` function was an array of uint's, then we'd pass it in as you'd expect:
 
 ```bash
---inputs = "[[42,1722,7], (26, 200), 7432533831]"
+--inputs = '[[42,1722,7], (26, 200), 7432533831]'
+```
+
+If you're passing in the `bytes` Solidity type as an argument, use the python syntax, for example:
+```bash
+--inputs = '[[10,20], b"\x01\x02"]'
 ```
 
 You can check the status of your transaction with:
@@ -132,6 +137,44 @@ You can check the status of your transaction with:
 ```
 warp status TX_HASH
 ```
+
+## Solidity Constructs Currently Not Supported
+
+
+|  Support Status                 | Symbol            | 
+|:-------------------------------:|:-----------------:|
+| Will likely never be supported  | :x:               |
+| Support will land soon          | :hammer_and_pick: |
+| Will be supported in the future | :exclamation:     |
+| Currently Unkown                | :question:        |
+
+<center>
+
+| Solidity          |  Support Status                 |
+|:-----------------:|:-------------------------------:|
+| events            |  :hammer_and_pick:              |
+| msg.value         |  :x:                            |
+| msg.data          |  :hammer_and_pick:              |
+| msg.sig           |  :hammer_and_pick:              |
+| tx.origin         |  :exclamation:                  |
+| tx.gasprice       |  :question:                     |
+| block.basefee     |  :x:                            |
+| block.chainid     |  :exclamation:                  |
+| block.coinbase    |  :question:                     |
+| block.difficulty  |  :x:                            |
+| block.gaslimit    |  :question:                     |
+| block.number      |  :hammer_and_pick:              |
+| block.timestamp   |  :hammer_and_pick:              |
+| gasleft()         |  :question:                     |
+| functions as data |  :x:                            |
+| precompiles       |  :exclamation:                  |
+| create/create2    |  :exclamation:                  |
+| Selfdestruct      |  :x:                            |
+| BlockHash         |  :exclamation:                  |
+| codeCopy          |  :question:                     |
+| codeSize          |  :question:                     |
+
+</center>
 
 ## Want to contribute? :thumbsup:
 
