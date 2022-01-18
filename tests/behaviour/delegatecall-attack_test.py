@@ -54,13 +54,13 @@ async def test_attack():
 
     starknet = await StarknetState.empty()
     # step 1
-    lib_address = await deploy_contract(starknet, lib_info, lib_def)
+    lib_address: int = await deploy_contract(starknet, lib_info, lib_def)
     # step 2
-    hackme_address = await deploy_contract(
+    hackme_address: int = await deploy_contract(
         starknet, hackme_info, hackme_def, lib_address
     )
     # step 3
-    attack_address = await deploy_contract(
+    attack_address: int = await deploy_contract(
         starknet, attack_info, attack_def, hackme_address
     )
     # step 4

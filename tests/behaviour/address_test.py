@@ -19,7 +19,7 @@ async def test_address():
     )
 
     starknet = await StarknetState.empty()
-    contract_address = await deploy_contract(
+    contract_address: int = await deploy_contract(
         starknet, program_info, contract_definition
     )
     high, low = divmod(contract_address, 2 ** 128)

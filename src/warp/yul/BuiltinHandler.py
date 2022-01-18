@@ -549,7 +549,7 @@ class Timestamp(StaticHandler):
         super().__init__(
             function_name="timestamp",
             module="evm.yul_api",
-            used_implicits=("syscall_ptr"),
+            used_implicits=("syscall_ptr",),
         )
 
 
@@ -558,7 +558,7 @@ class Number(StaticHandler):
         super().__init__(
             function_name="block_number",
             module="evm.yul_api",
-            used_implicits=("syscall_ptr"),
+            used_implicits=("syscall_ptr",),
         )
 
 

@@ -163,8 +163,6 @@ warp status TX_HASH
 | block.coinbase    |  :question:                     |
 | block.difficulty  |  :x:                            |
 | block.gaslimit    |  :question:                     |
-| block.number      |  :hammer_and_pick:              |
-| block.timestamp   |  :hammer_and_pick:              |
 | gasleft()         |  :question:                     |
 | functions as data |  :x:                            |
 | precompiles       |  :exclamation:                  |

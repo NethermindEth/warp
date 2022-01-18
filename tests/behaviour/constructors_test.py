@@ -36,7 +36,7 @@ async def test_constructors():
     non_dyn_info = transpile_from_solidity(non_dyn_constructor_sol, "WARP")
     non_dyn_inputs = [0x50C2AE5414B02BC962289B3A696F55DFF8B00836519B7, 26, 7432533231]
     starknet = await StarknetState.empty()
-    dyn_address, non_dyn_address = await asyncio.gather(
+    (dyn_address, non_dyn_address) = await asyncio.gather(
         deploy_contract(starknet, dyn_info, dyn_contract_def, *dyn_inputs),
         deploy_contract(starknet, non_dyn_info, non_dyn_contract_def, *non_dyn_inputs),
     )

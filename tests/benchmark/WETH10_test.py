@@ -87,7 +87,7 @@ async def test_starknet():
     )
 
     starknet = await StarknetState.empty()
-    contract_address = await deploy_contract(starknet, program_info, contractDef)
+    contract_address: int = await deploy_contract(starknet, program_info, contractDef)
     bytecode_details("WETH10_warp", contractDef.program.data, "WETH10")
     size_of_file("WETH10_warp", program_cairo, "WETH10")
 

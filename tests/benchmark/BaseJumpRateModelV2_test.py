@@ -73,7 +73,7 @@ async def test_starknet():
     )
 
     starknet = await StarknetState.empty()
-    contract_address = await deploy_contract(
+    contract_address: int = await deploy_contract(
         starknet, program_info, contractDef, *constructor_inputs
     )
 

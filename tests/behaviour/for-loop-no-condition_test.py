@@ -30,7 +30,7 @@ async def test():
     def_ = compile_starknet_files([cairo], debug_info=True, cairo_path=[CAIRO_PATH])
 
     starknet = await StarknetState.empty()
-    address = await deploy_contract(starknet, info, def_)
+    address: int = await deploy_contract(starknet, info, def_)
     res = await invoke_method(starknet, info, address, "f")
     assert res.retdata == [32, 2, 0, 10]
     shutil.rmtree(tmpdir)
