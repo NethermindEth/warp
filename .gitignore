@@ -17,7 +17,6 @@ develop-eggs/
 dist/
 downloads/
 eggs/
-*.lock
 .eggs/
 lib/
 lib64/
@@ -64,7 +63,7 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
-starknet-artifacts 
+starknet-artifacts
 warp_artifacts
 
 

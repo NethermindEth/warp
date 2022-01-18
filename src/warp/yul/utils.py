@@ -4,6 +4,8 @@ import json
 import os
 import re
 
+from warp.kudu import kudu_exe
+
 UPPERCASE_PATTERN = re.compile(r"[A-Z]")
 
 
@@ -42,7 +44,10 @@ def clean_path(sol_source):
 
 def get_kudu_output(args: list[str], sol_source) -> dict:
     args = ",".join(args)
-    output_str = os.popen(f"kudu --combined-json {args} {sol_source}").read().strip()
+    with kudu_exe() as exe:
+        output_str = (
+            os.popen(f"{exe} --combined-json {args} {sol_source}").read().strip()
+        )
     output = json.loads(output_str)
     for contract in output["contracts"].keys():
         output_str = output_str.replace(contract, os.path.abspath(contract))

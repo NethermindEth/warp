@@ -30,15 +30,17 @@ jobs:
         with:
           python-version: 3.7 # Cairo was tested with this version
 
+      - name: Install poetry
+        run: curl -sSL https://install.python-poetry.org | python3 -
+
       - name: Install Warp to pull in dependencies
         run: make
 
       - name: Typecheck
         run: |
-          pip install pytype==2022.01.13
-          pytype . \
+          poetry run pytype . \
             --keep-going \
-            --exclude ./tests/semantic/solidity ./src/testnet ./build \
+            --exclude ./tests/semantic/solidity ./src/testnet ./dist \
             --jobs auto
 
   test-complete:
@@ -46,7 +48,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: NethermindEth/warp-build-action@v1
+      - uses: NethermindEth/warp-build-action@v2
 
       - name: Setup a local devnet
         run: |
@@ -59,10 +61,10 @@ jobs:
       - name: Test golden tests
         run: |
           export STARKNET_NETWORK=localhost:5000
-          make test_bats
+          poetry run make test_bats
 
       - name: Test yul tests
-        run: make test_yul
+        run: poetry run make test_yul
 
   benchmark:
     runs-on: ubuntu-latest
@@ -81,13 +83,13 @@ jobs:
         run: |
           echo "source_hash=${{ github.sha }}" >> $GITHUB_ENV
 
-      - uses: NethermindEth/warp-build-action@v1
+      - uses: NethermindEth/warp-build-action@v2
 
       - name: Create benchmarks
         run: |
           mkdir -p benchmark/stats benchmark/tmp
-          python -m pytest tests/behaviour/ -v --tb=short --workers=auto
-          make benchmark
+          poetry run python -m pytest tests/behaviour/ -v --tb=short --workers=auto
+          poetry run make benchmark
           mv ./benchmark/stats/stats.md "./benchmark/stats/${{ env.source_hash }}.md"
 
       - name: Push benchmarks to another repository

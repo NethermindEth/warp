@@ -9,6 +9,7 @@ import subprocess
 import sys
 
 import warp.yul.ast as ast
+from warp.kudu import kudu_exe
 from warp.yul.BuiltinHandler import get_default_builtins
 from warp.yul.ConstantFolder import ConstantFolder
 from warp.yul.DeadcodeEliminator import DeadcodeEliminator
@@ -30,8 +31,6 @@ from warp.yul.utils import get_for_contract
 from warp.yul.VariableInliner import VariableInliner
 from warp.yul.WarpException import warp_assert
 
-AST_GENERATOR = "kudu"
-
 
 @dataclasses.dataclass()
 class bcolors:
@@ -50,15 +49,13 @@ def transpile_from_solidity(
     sol_src_path, main_contract, optimizers_order="VFoLRFD"
 ) -> dict:
     sol_src_path_modified = str(sol_src_path)[:-4] + "_marked.sol"
-    if not shutil.which(AST_GENERATOR):
-        sys.exit(f"Please install {AST_GENERATOR} first")
-
     try:
-        result = subprocess.run(
-            [AST_GENERATOR, "--yul-json-ast", sol_src_path, main_contract],
-            check=True,
-            capture_output=True,
-        )
+        with kudu_exe() as exe:
+            result = subprocess.run(
+                [exe, "--yul-json-ast", sol_src_path, main_contract],
+                check=True,
+                capture_output=True,
+            )
         if result.stderr:
             print(
                 bcolors.FAIL
