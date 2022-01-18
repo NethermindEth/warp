@@ -36,8 +36,10 @@ async def test_starknet():
     )
 
     starknet = await StarknetState.empty()
-    erc20_address = await deploy_contract(starknet, erc20_info, erc20_contractDef)
-    caller_address = await deploy_contract(starknet, caller_info, caller_contractDef)
+    erc20_address: int = await deploy_contract(starknet, erc20_info, erc20_contractDef)
+    caller_address: int = await deploy_contract(
+        starknet, caller_info, caller_contractDef
+    )
 
     mint_res = await invoke_method(
         starknet,

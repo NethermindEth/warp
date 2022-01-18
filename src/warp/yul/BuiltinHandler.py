@@ -544,6 +544,24 @@ class Delegatecall(StaticHandler):
         )
 
 
+class Timestamp(StaticHandler):
+    def __init__(self):
+        super().__init__(
+            function_name="timestamp",
+            module="evm.yul_api",
+            used_implicits=("syscall_ptr",),
+        )
+
+
+class Number(StaticHandler):
+    def __init__(self):
+        super().__init__(
+            function_name="block_number",
+            module="evm.yul_api",
+            used_implicits=("syscall_ptr",),
+        )
+
+
 class CallCode(NotImplementedStarkNet):
     pass
 
@@ -665,10 +683,6 @@ class Log4(NotImplementedStarkNet):
     pass
 
 
-class Number(NotImplementedStarkNet):
-    pass
-
-
 class Origin(NotImplementedStarkNet):
     pass
 
@@ -686,10 +700,6 @@ class SelfDestruct(NotImplementedStarkNet):
 
 
 class SelfBalance(NotImplementedStarkNet):
-    pass
-
-
-class Timestamp(NotImplementedStarkNet):
     pass
 
 

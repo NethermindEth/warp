@@ -1,4 +1,4 @@
-from typing import Any, Iterable
+from typing import Any, Iterable, Tuple
 
 from starkware.starknet.business_logic.internal_transaction_interface import (
     TransactionExecutionInfo,
@@ -38,6 +38,7 @@ async def deploy_contract(
 ) -> int:
     evm_calldata = get_ctor_evm_calldata(program_info["sol_abi"], args)
     cairo_calldata = get_cairo_calldata(evm_calldata)
-    return await starknet.deploy(
+    (address, txInfo) = await starknet.deploy(
         contract_definition=contract_definition, constructor_calldata=cairo_calldata
     )
+    return address

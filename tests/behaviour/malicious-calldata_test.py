@@ -45,14 +45,17 @@ def friendly_def(friendly_info):
 
 @pytest.fixture
 async def friendly_address(starknet, friendly_info, friendly_def):
-    return await deploy_contract(starknet, friendly_info, friendly_def, 8)
+    addr: int = await deploy_contract(starknet, friendly_info, friendly_def, 8)
+    return addr
 
 
 @pytest.mark.asyncio
 async def test_normal_contract_call(
     starknet, friendly_info, friendly_def, friendly_address
 ):
-    friendly_address2 = await deploy_contract(starknet, friendly_info, friendly_def, 13)
+    friendly_address2: int = await deploy_contract(
+        starknet, friendly_info, friendly_def, 13
+    )
     result = await invoke_method(
         starknet, friendly_info, friendly_address, "call_friend", friendly_address2
     )
@@ -97,7 +100,7 @@ async def test_malicious_direct_call(starknet, friendly_info, friendly_address):
 async def test_malicious_contract_call(starknet, friendly_info, friendly_address):
     hacker_file = TEST_DIR / "hacker.cairo"
     hacker_def = compile_starknet_files([str(hacker_file)], debug_info=True)
-    hacker_address = await starknet.deploy(hacker_def, [])
+    (hacker_address, _) = await starknet.deploy(hacker_def, [])
 
     exc_msg = rf"Value {2**128}, in range check builtin \d*, is out of range \[0, {2**128}\)\."
     with pytest.raises(StarkException, match=exc_msg):
