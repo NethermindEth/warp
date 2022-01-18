@@ -8,10 +8,10 @@ install:
 compile:
 	yarn tsc
 
-test_compilation: install compile
+test_compilation:
 	bin/warp test --unsafe -f
 
-test_execution: install compile
+test_execution:
 	yarn test
 
 test: test_compilation test_execution
