@@ -19,16 +19,8 @@ jobs:
           node-version: '16.x'
           cache: 'yarn'
 
-      - name: Setup Python
-        uses: actions/setup-python@v2.2.2
-        with:
-          python-version: 3.7 # Cairo was tested with this version
-
-      - name: Install Cairo
-        run: |
-          apt install -y libgmp3-dev
-          pip3 install ecdsa fastecdsa sympy
-          pip3 install cairo-lang
+      - name: Setup Cairo
+        uses: ./.github/actions/set-up-cairo
 
       - name: Install dependencies
         run: yarn
