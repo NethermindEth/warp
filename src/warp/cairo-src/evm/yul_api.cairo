@@ -10,6 +10,8 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_label_location
 from starkware.starknet.common.syscalls import call_contract, delegate_call, get_contract_address
+from starkware.starknet.common.syscalls import (
+    get_block_number, get_block_timestamp)
 
 from evm.calls import general_call, returndata_write
 from evm.exec_env import ExecutionEnvironment
@@ -20,6 +22,16 @@ func address{syscall_ptr : felt*, range_check_ptr}() -> (contract_address : Uint
     let (felt_address) = get_contract_address()
     let (uint_address) = felt_to_uint256(felt_address)
     return (uint_address)
+end
+
+func timestamp{syscall_ptr : felt*}() -> (res: Uint256):
+    let (stamp) = get_block_timestamp()
+    return (res=Uint256(stamp,0))
+end
+
+func block_number{syscall_ptr : felt*}() -> (res: Uint256):
+    let (number) = get_block_number()
+    return (res=Uint256(number,0))
 end
 
 func warp_return{
