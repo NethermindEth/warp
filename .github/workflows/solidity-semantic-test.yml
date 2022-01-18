@@ -1,0 +1,17 @@
+name: solidity-semantic-tests
+
+on:
+  workflow_dispatch:
+    inputs:
+
+jobs:
+  semantic_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: NethermindEth/warp-build-action@v2
+
+      - name: Run solidity semantic tests
+        run: poetry run make test_semantics
+
