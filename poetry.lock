@@ -59,17 +59,6 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
-name = "attrdict"
-version = "2.0.1"
-description = "A dict with attribute-style access"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-six = "*"
-
-[[package]]
 name = "attrs"
 version = "21.4.0"
 description = "Classes Without Boilerplate"
@@ -93,6 +82,14 @@ python-versions = ">=3.5"
 
 [package.extras]
 tests = ["mypy", "PyHamcrest (>=2.0.2)", "pytest (>=4.6)", "pytest-benchmark", "pytest-cov", "pytest-flake8"]
+
+[[package]]
+name = "bitarray"
+version = "1.2.2"
+description = "efficient arrays of booleans -- C extension"
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "black"
@@ -247,27 +244,27 @@ tools = ["hypothesis (>=3.6.1,<4)"]
 
 [[package]]
 name = "eth-account"
-version = "0.4.0"
+version = "0.5.6"
 description = "eth-account: Sign Ethereum transactions and messages with local private keys"
 category = "main"
 optional = false
 python-versions = ">=3.6, <4"
 
 [package.dependencies]
-attrdict = ">=2.0.0,<3"
+bitarray = ">=1.2.1,<1.3.0"
 eth-abi = ">=2.0.0b7,<3"
 eth-keyfile = ">=0.5.0,<0.6.0"
-eth-keys = ">=0.2.1,<0.3.0"
-eth-rlp = ">=0.1.2,<1"
+eth-keys = ">=0.2.1,<0.3.2 || >0.3.2,<0.4.0"
+eth-rlp = ">=0.1.2,<2"
 eth-utils = ">=1.3.0,<2"
 hexbytes = ">=0.1.0,<1"
-rlp = ">=1.0.0,<2"
+rlp = ">=1.0.0,<3"
 
 [package.extras]
-dev = ["bumpversion (>=0.5.3,<1)", "pytest-watch (>=4.1.0,<5)", "wheel", "twine", "ipython", "hypothesis (>=4.18.0,<5)", "pytest (>=4.4.0,<5)", "pytest-xdist", "tox (>=2.9.1,<3)", "flake8 (==3.4.1)", "isort (>=4.2.15,<5)", "pydocstyle (>=3.0.0,<4)", "Sphinx (>=1.6.5,<2)", "sphinx-rtd-theme (>=0.1.9)"]
-doc = ["Sphinx (>=1.6.5,<2)", "sphinx-rtd-theme (>=0.1.9)"]
-lint = ["flake8 (==3.4.1)", "isort (>=4.2.15,<5)", "pydocstyle (>=3.0.0,<4)"]
-test = ["hypothesis (>=4.18.0,<5)", "pytest (>=4.4.0,<5)", "pytest-xdist", "tox (>=2.9.1,<3)"]
+dev = ["bumpversion (>=0.5.3,<1)", "pytest-watch (>=4.1.0,<5)", "wheel", "twine", "ipython", "hypothesis (>=4.18.0,<5)", "pytest (==5.4.1)", "pytest-xdist", "tox (==3.14.6)", "flake8 (==3.7.9)", "isort (>=4.2.15,<5)", "mypy (==0.770)", "pydocstyle (>=5.0.0,<6)", "Sphinx (>=1.6.5,<2)", "sphinx-rtd-theme (>=0.1.9,<1)", "towncrier (>=19.2.0,<20)"]
+doc = ["Sphinx (>=1.6.5,<2)", "sphinx-rtd-theme (>=0.1.9,<1)", "towncrier (>=19.2.0,<20)"]
+lint = ["flake8 (==3.7.9)", "isort (>=4.2.15,<5)", "mypy (==0.770)", "pydocstyle (>=5.0.0,<6)"]
+test = ["hypothesis (>=4.18.0,<5)", "pytest (==5.4.1)", "pytest-xdist", "tox (==3.14.6)"]
 
 [[package]]
 name = "eth-hash"
@@ -864,18 +861,17 @@ testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xm
 
 [[package]]
 name = "pytest-asyncio"
-version = "0.17.2"
+version = "0.17.0"
 description = "Pytest support for asyncio"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
-pytest = ">=6.1.0"
-typing-extensions = {version = ">=4.0", markers = "python_version < \"3.8\""}
+pytest = ">=5.4.0"
 
 [package.extras]
-testing = ["coverage (==6.2)", "hypothesis (>=5.7.1)", "flaky (>=3.5.0)", "mypy (==0.931)"]
+testing = ["coverage (==6.2)", "hypothesis (>=5.7.1)", "flaky (>=3.5.0)"]
 
 [[package]]
 name = "pytest-check"
@@ -1065,11 +1061,11 @@ test = ["pytest", "typing-extensions", "mypy"]
 
 [[package]]
 name = "typing-extensions"
-version = "4.0.1"
-description = "Backported and Experimental Type Hints for Python 3.6+"
+version = "3.10.0.2"
+description = "Backported and Experimental Type Hints for Python 3.5+"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = "*"
 
 [[package]]
 name = "typing-inspect"
@@ -1106,7 +1102,7 @@ python-versions = "*"
 
 [[package]]
 name = "web3"
-version = "5.3.1"
+version = "5.12.2"
 description = "Web3.py"
 category = "main"
 optional = false
@@ -1114,25 +1110,25 @@ python-versions = ">=3.6,<4"
 
 [package.dependencies]
 eth-abi = ">=2.0.0b6,<3.0.0"
-eth-account = ">=0.4.0,<0.5.0"
+eth-account = ">=0.5.3,<0.6.0"
 eth-hash = {version = ">=0.2.0,<1.0.0", extras = ["pycryptodome"]}
 eth-typing = ">=2.0.0,<3.0.0"
-eth-utils = ">=1.8.3,<2.0.0"
+eth-utils = ">=1.9.5,<2.0.0"
 hexbytes = ">=0.1.0,<1.0.0"
-ipfshttpclient = ">=0.4.12,<1"
-jsonschema = ">=3.0.0,<4.0.0"
+ipfshttpclient = ">=0.4.13,<1"
+jsonschema = ">=3.2.0,<4.0.0"
 lru-dict = ">=1.1.6,<2.0.0"
-mypy-extensions = ">=0.4.1,<1.0.0"
 protobuf = ">=3.10.0,<4"
 pypiwin32 = {version = ">=223", markers = "platform_system == \"Windows\""}
 requests = ">=2.16.0,<3.0.0"
+typing-extensions = {version = ">=3.7.4.1,<4", markers = "python_version < \"3.8\""}
 websockets = ">=8.1.0,<9.0.0"
 
 [package.extras]
-dev = ["eth-tester[py-evm] (==v0.2.0-beta.2)", "py-geth (>=2.0.1,<3.0.0)", "flake8 (==3.4.1)", "isort (>=4.2.15,<4.3.5)", "mypy (==0.730)", "mock", "sphinx-better-theme (>=0.1.4)", "click (>=5.1)", "configparser (==3.5.0)", "contextlib2 (>=0.5.4)", "py-geth (>=1.4.0)", "py-solc (>=0.4.0)", "pytest (>=4.4.0,<5.0.0)", "sphinx", "sphinx-rtd-theme (>=0.1.9)", "toposort (>=1.4)", "towncrier (>=19.2.0,<20)", "urllib3", "web3 (>=2.1.0)", "wheel", "bumpversion", "flaky (>=3.3.0)", "hypothesis (>=3.31.2)", "pytest-asyncio (>=0.10.0,<0.11)", "pytest-mock (>=1.10,<2)", "pytest-pythonpath (>=0.3)", "pytest-watch (>=4.2,<5)", "pytest-xdist (>=1.29,<2)", "setuptools (>=36.2.0)", "tox (>=1.8.0)", "tqdm (>4.32,<5)", "twine (>=1.13,<2)", "when-changed (>=0.3.0,<0.4)"]
-docs = ["mock", "sphinx-better-theme (>=0.1.4)", "click (>=5.1)", "configparser (==3.5.0)", "contextlib2 (>=0.5.4)", "py-geth (>=1.4.0)", "py-solc (>=0.4.0)", "pytest (>=4.4.0,<5.0.0)", "sphinx", "sphinx-rtd-theme (>=0.1.9)", "toposort (>=1.4)", "towncrier (>=19.2.0,<20)", "urllib3", "web3 (>=2.1.0)", "wheel"]
+dev = ["eth-tester[py-evm] (==v0.5.0-beta.2)", "py-geth (>=2.4.0,<3)", "flake8 (==3.4.1)", "isort (>=4.2.15,<4.3.5)", "mypy (==0.730)", "mock", "sphinx-better-theme (>=0.1.4)", "click (>=5.1)", "configparser (==3.5.0)", "contextlib2 (>=0.5.4)", "py-solc (>=0.4.0)", "pytest (>=4.4.0,<5.0.0)", "sphinx (>=2.4.4,<3)", "sphinx-rtd-theme (>=0.1.9)", "toposort (>=1.4)", "towncrier (>=19.2.0,<20)", "urllib3", "web3 (>=2.1.0)", "wheel", "bumpversion", "flaky (>=3.3.0)", "hypothesis (>=3.31.2)", "pytest-asyncio (>=0.10.0,<0.11)", "pytest-mock (>=1.10,<2)", "pytest-pythonpath (>=0.3)", "pytest-watch (>=4.2,<5)", "pytest-xdist (>=1.29,<2)", "setuptools (>=36.2.0)", "tox (>=1.8.0)", "tqdm (>4.32,<5)", "twine (>=1.13,<2)", "when-changed (>=0.3.0,<0.4)"]
+docs = ["mock", "sphinx-better-theme (>=0.1.4)", "click (>=5.1)", "configparser (==3.5.0)", "contextlib2 (>=0.5.4)", "py-geth (>=2.4.0,<3)", "py-solc (>=0.4.0)", "pytest (>=4.4.0,<5.0.0)", "sphinx (>=2.4.4,<3)", "sphinx-rtd-theme (>=0.1.9)", "toposort (>=1.4)", "towncrier (>=19.2.0,<20)", "urllib3", "web3 (>=2.1.0)", "wheel"]
 linter = ["flake8 (==3.4.1)", "isort (>=4.2.15,<4.3.5)", "mypy (==0.730)"]
-tester = ["eth-tester[py-evm] (==v0.2.0-beta.2)", "py-geth (>=2.0.1,<3.0.0)"]
+tester = ["eth-tester[py-evm] (==v0.5.0-beta.2)", "py-geth (>=2.4.0,<3)"]
 
 [[package]]
 name = "websockets"
@@ -1170,7 +1166,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<3.10"
-content-hash = "f9f3def7af570ec32ed0dfb038a21a46ea0284de63f8c58bc2342d7923dfd240"
+content-hash = "0e7c461c84bf8ce6f59a1646970f41e2950334db4110c7aa7cd52e50b97a5f61"
 
 [metadata.files]
 aiohttp = [
@@ -1263,10 +1259,6 @@ atomicwrites = [
     {file = "atomicwrites-1.4.0-py2.py3-none-any.whl", hash = "sha256:6d1784dea7c0c8d4a5172b6c620f40b6e4cbfdf96d783691f2e1302a7b88e197"},
     {file = "atomicwrites-1.4.0.tar.gz", hash = "sha256:ae70396ad1a434f9c7046fd2dd196fc04b12f9e91ffb859164193be8b6168a7a"},
 ]
-attrdict = [
-    {file = "attrdict-2.0.1-py2.py3-none-any.whl", hash = "sha256:9432e3498c74ff7e1b20b3d93b45d766b71cbffa90923496f82c4ae38b92be34"},
-    {file = "attrdict-2.0.1.tar.gz", hash = "sha256:35c90698b55c683946091177177a9e9c0713a0860f0e049febd72649ccd77b70"},
-]
 attrs = [
     {file = "attrs-21.4.0-py2.py3-none-any.whl", hash = "sha256:2d27e3784d7a565d36ab851fe94887c5eccd6a463168875832a1be79c82828b4"},
     {file = "attrs-21.4.0.tar.gz", hash = "sha256:626ba8234211db98e869df76230a137c4c40a12d72445c45d5f5b716f076e2fd"},
@@ -1274,6 +1266,9 @@ attrs = [
 base58 = [
     {file = "base58-2.1.1-py3-none-any.whl", hash = "sha256:11a36f4d3ce51dfc1043f3218591ac4eb1ceb172919cebe05b52a5bcc8d245c2"},
     {file = "base58-2.1.1.tar.gz", hash = "sha256:c5d0cb3f5b6e81e8e35da5754388ddcc6d0d14b6c6a132cb93d69ed580a7278c"},
+]
+bitarray = [
+    {file = "bitarray-1.2.2.tar.gz", hash = "sha256:27a69ffcee3b868abab3ce8b17c69e02b63e722d4d64ffd91d659f81e9984954"},
 ]
 black = [
     {file = "black-21.12b0-py3-none-any.whl", hash = "sha256:a615e69ae185e08fdd73e4715e260e2479c861b5740057fde6e8b4e3b7dd589f"},
@@ -1314,8 +1309,8 @@ eth-abi = [
     {file = "eth_abi-2.1.1.tar.gz", hash = "sha256:4bb1d87bb6605823379b07f6c02c8af45df01a27cc85bd6abb7cf1446ce7d188"},
 ]
 eth-account = [
-    {file = "eth-account-0.4.0.tar.gz", hash = "sha256:fa8308c1d280cfde28455d8c031c3a048c8811e502e750ec0d2cff76988dcd0b"},
-    {file = "eth_account-0.4.0-py3-none-any.whl", hash = "sha256:bf857f800a3cb6a7d0535850dfc229fbfb9d04b124cdd0969881d6d5ec9cb645"},
+    {file = "eth-account-0.5.6.tar.gz", hash = "sha256:baef80956e88af5643f8602e72aab6bcd91d8a9f71dd03c7a7f1145f5e6fd694"},
+    {file = "eth_account-0.5.6-py3-none-any.whl", hash = "sha256:d324daf5a40bd5bdaf5ddaebfec71e7440b21f9ae4989921ce1253d63f8fe436"},
 ]
 eth-hash = [
     {file = "eth-hash-0.2.0.tar.gz", hash = "sha256:499dc02d098f69856d1a6dd005529c16174157d4fb2a9fe20c41f69e39f8f176"},
@@ -1783,8 +1778,8 @@ pytest = [
     {file = "pytest-6.2.5.tar.gz", hash = "sha256:131b36680866a76e6781d13f101efb86cf674ebb9762eb70d3082b6f29889e89"},
 ]
 pytest-asyncio = [
-    {file = "pytest-asyncio-0.17.2.tar.gz", hash = "sha256:6d895b02432c028e6957d25fc936494e78c6305736e785d9fee408b1efbc7ff4"},
-    {file = "pytest_asyncio-0.17.2-py3-none-any.whl", hash = "sha256:e0fe5dbea40516b661ef1bcfe0bd9461c2847c4ef4bb40012324f2454fb7d56d"},
+    {file = "pytest-asyncio-0.17.0.tar.gz", hash = "sha256:c98e0e04ae5910bbcc219f52bdf871bd1d392f624ef77c49c236613c0b6d8ee1"},
+    {file = "pytest_asyncio-0.17.0-py3-none-any.whl", hash = "sha256:b41c3ff0ec5b5b144459aa1c53a866f67278177f6d4f3ef6874bd864fc82834d"},
 ]
 pytest-check = [
     {file = "pytest_check-1.0.4-py3-none-any.whl", hash = "sha256:aacc9500178611f8ad075a7c46ce8de8ac34f05270eee28f223fb0c8622fbfbe"},
@@ -1917,8 +1912,9 @@ typeguard = [
     {file = "typeguard-2.13.3.tar.gz", hash = "sha256:00edaa8da3a133674796cf5ea87d9f4b4c367d77476e185e80251cc13dfbb8c4"},
 ]
 typing-extensions = [
-    {file = "typing_extensions-4.0.1-py3-none-any.whl", hash = "sha256:7f001e5ac290a0c0401508864c7ec868be4e701886d5b573a9528ed3973d9d3b"},
-    {file = "typing_extensions-4.0.1.tar.gz", hash = "sha256:4ca091dea149f945ec56afb48dae714f21e8692ef22a395223bcd328961b6a0e"},
+    {file = "typing_extensions-3.10.0.2-py2-none-any.whl", hash = "sha256:d8226d10bc02a29bcc81df19a26e56a9647f8b0a6d4a83924139f4a8b01f17b7"},
+    {file = "typing_extensions-3.10.0.2-py3-none-any.whl", hash = "sha256:f1d25edafde516b146ecd0613dabcc61409817af4766fbbcfb8d1ad4ec441a34"},
+    {file = "typing_extensions-3.10.0.2.tar.gz", hash = "sha256:49f75d16ff11f1cd258e1b988ccff82a3ca5570217d7ad8c5f48205dd99a677e"},
 ]
 typing-inspect = [
     {file = "typing_inspect-0.7.1-py2-none-any.whl", hash = "sha256:b1f56c0783ef0f25fb064a01be6e5407e54cf4a4bf4f3ba3fe51e0bd6dcea9e5"},
@@ -1933,8 +1929,8 @@ varint = [
     {file = "varint-1.0.2.tar.gz", hash = "sha256:a6ecc02377ac5ee9d65a6a8ad45c9ff1dac8ccee19400a5950fb51d594214ca5"},
 ]
 web3 = [
-    {file = "web3-5.3.1-py3-none-any.whl", hash = "sha256:c6ea8e7877dcd2c3699b790ea1326192553676b98228680f733607e646b78553"},
-    {file = "web3-5.3.1.tar.gz", hash = "sha256:c876b622f26609b5da5ca9b902016e19b791b38122bd294b5f27dc195652e3c1"},
+    {file = "web3-5.12.2-py3-none-any.whl", hash = "sha256:be8e36b69c475055110ed7fde33c4197f3465410abe6843d3f8109c50ac5b0f7"},
+    {file = "web3-5.12.2.tar.gz", hash = "sha256:94b3e6dc1ce7e921322ffa188960c6853f276060b0741a738fe7ba407b4cf063"},
 ]
 websockets = [
     {file = "websockets-8.1-cp36-cp36m-macosx_10_6_intel.whl", hash = "sha256:3762791ab8b38948f0c4d281c8b2ddfa99b7e510e46bd8dfa942a5fff621068c"},
