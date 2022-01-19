@@ -587,6 +587,77 @@ class MemoryGuard(DynamicHandler):
         super().__init__(lambda: cairo_functions.identity_function(["Uint256"]))
 
 
+# ============ Events ============
+class Log0(StaticHandler):
+    def __init__(self):
+        super().__init__(
+            function_name="log0",
+            module="evm.yul_api",
+            used_implicits=(
+                "syscall_ptr",
+                "memory_dict",
+                "range_check_ptr",
+                "bitwise_ptr",
+            ),
+        )
+
+
+class Log1(StaticHandler):
+    def __init__(self):
+        super().__init__(
+            function_name="log1",
+            module="evm.yul_api",
+            used_implicits=(
+                "syscall_ptr",
+                "memory_dict",
+                "range_check_ptr",
+                "bitwise_ptr",
+            ),
+        )
+
+
+class Log2(StaticHandler):
+    def __init__(self):
+        super().__init__(
+            function_name="log2",
+            module="evm.yul_api",
+            used_implicits=(
+                "syscall_ptr",
+                "memory_dict",
+                "range_check_ptr",
+                "bitwise_ptr",
+            ),
+        )
+
+
+class Log3(StaticHandler):
+    def __init__(self):
+        super().__init__(
+            function_name="log3",
+            module="evm.yul_api",
+            used_implicits=(
+                "syscall_ptr",
+                "memory_dict",
+                "range_check_ptr",
+                "bitwise_ptr",
+            ),
+        )
+
+
+class Log4(StaticHandler):
+    def __init__(self):
+        super().__init__(
+            function_name="log4",
+            module="evm.yul_api",
+            used_implicits=(
+                "syscall_ptr",
+                "memory_dict",
+                "range_check_ptr",
+                "bitwise_ptr",
+            ),
+        )
+
+
 class BaseFee(NotImplementedStarkNet):
     pass
 
@@ -660,26 +731,6 @@ class LinkerSymbol(NotImplementedStarkNet):
 
 
 class LoadImmutable(NotImplementedStarkNet):
-    pass
-
-
-class Log0(NotImplementedStarkNet):
-    pass
-
-
-class Log1(NotImplementedStarkNet):
-    pass
-
-
-class Log2(NotImplementedStarkNet):
-    pass
-
-
-class Log3(NotImplementedStarkNet):
-    pass
-
-
-class Log4(NotImplementedStarkNet):
     pass
 
 
