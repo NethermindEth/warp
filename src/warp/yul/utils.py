@@ -9,6 +9,12 @@ from warp.kudu import kudu_exe
 UPPERCASE_PATTERN = re.compile(r"[A-Z]")
 
 
+def spit(fname, content):
+    """Writes 'content' to the file named 'fname'"""
+    with open(fname, "w") as f:
+        f.write(content)
+
+
 def remove_prefix(text, prefix):
     if text.startswith(prefix):
         return text[len(prefix) :]
