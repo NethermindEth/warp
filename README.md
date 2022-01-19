@@ -159,8 +159,6 @@ warp status TX_HASH
 |:-----------------:|:-------------------------------:|
 | try/catch         |  :question:                     |
 | msg.value         |  :x:                            |
-| msg.data          |  :hammer_and_pick:              |
-| msg.sig           |  :hammer_and_pick:              |
 | tx.origin         |  :exclamation:                  |
 | tx.gasprice       |  :question:                     |
 | block.basefee     |  :x:                            |
