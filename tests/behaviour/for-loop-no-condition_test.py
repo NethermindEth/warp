@@ -10,14 +10,9 @@ from starkware.starknet.testing.state import StarknetState
 from tests.utils import CAIRO_PATH
 from warp.yul.main import transpile_from_solidity
 from warp.yul.starknet_utils import deploy_contract, invoke_method
+from warp.yul.utils import spit
 
 TEST_DIR = Path(__file__).parent
-
-
-def spit(fname, content):
-    """Writes 'content' to the file named 'fname'"""
-    with open(fname, "w") as f:
-        f.write(content)
 
 
 @pytest.mark.asyncio

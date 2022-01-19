@@ -152,7 +152,7 @@ warp status TX_HASH
 
 | Solidity          |  Support Status                 |
 |:-----------------:|:-------------------------------:|
-| events            |  :hammer_and_pick:              |
+| try/catch         |  :question:                     |
 | msg.value         |  :x:                            |
 | msg.data          |  :hammer_and_pick:              |
 | msg.sig           |  :hammer_and_pick:              |
