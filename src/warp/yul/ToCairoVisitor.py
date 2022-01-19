@@ -38,7 +38,6 @@ COMMON_IMPORTS = {
 }
 
 MAIN_PREAMBLE = """%lang starknet
-%builtins pedersen range_check bitwise
 """
 
 
