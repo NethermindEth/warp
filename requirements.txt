@@ -13,3 +13,4 @@ aiohttp<4,>=3.7.4
 eth-utils<1.10
 click
 importlib_resources>=5.2
+pytest-xdist

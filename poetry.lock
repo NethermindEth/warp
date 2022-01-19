@@ -374,6 +374,17 @@ lint = ["black (>=18.6b4,<19)", "flake8 (>=3.7.0,<4.0.0)", "isort (==4.3.18)", "
 test = ["hypothesis (>=4.43.0,<5.0.0)", "pytest (>=3.4.1,<4.0.0)", "pytest-pythonpath (>=0.3,<1.0)"]
 
 [[package]]
+name = "execnet"
+version = "1.9.0"
+description = "execnet: rapid multi-Python deployment"
+category = "dev"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+
+[package.extras]
+testing = ["pre-commit"]
+
+[[package]]
 name = "fastecdsa"
 version = "2.2.3"
 description = "Fast elliptic curve digital signatures"
@@ -881,6 +892,18 @@ pytest = ">=6.0.0"
 test = ["tox"]
 
 [[package]]
+name = "pytest-forked"
+version = "1.4.0"
+description = "run tests in isolated forked subprocesses"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+py = "*"
+pytest = ">=3.10"
+
+[[package]]
 name = "pytest-parallel"
 version = "0.1.1"
 description = "a pytest plugin for parallel and concurrent testing"
@@ -891,6 +914,24 @@ python-versions = "*"
 [package.dependencies]
 pytest = ">=3.0.0"
 tblib = "*"
+
+[[package]]
+name = "pytest-xdist"
+version = "2.5.0"
+description = "pytest xdist plugin for distributed testing and loop-on-failing modes"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+execnet = ">=1.1"
+pytest = ">=6.2.0"
+pytest-forked = "*"
+
+[package.extras]
+psutil = ["psutil (>=3.0)"]
+setproctitle = ["setproctitle"]
+testing = ["filelock"]
 
 [[package]]
 name = "pytype"
@@ -1149,7 +1190,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<3.10"
-content-hash = "35e11bcbada3df2ad2f46ba78892c353cebd05ee861543a74de095daa677aa8b"
+content-hash = "212d74c66ed69cdccf9c3c077c3c6520b8fb95a7a6a3abbf15434ad0c35a682e"
 
 [metadata.files]
 aiohttp = [
@@ -1319,6 +1360,10 @@ eth-typing = [
 eth-utils = [
     {file = "eth-utils-1.9.5.tar.gz", hash = "sha256:ac168aaa241fa0665e758b04009259d1b2b35daa0615fc563aad29f9ffc64d56"},
     {file = "eth_utils-1.9.5-py3-none-any.whl", hash = "sha256:11597842b0148c39d2638ad55897f9243479a8369be713b238b0684f8750215e"},
+]
+execnet = [
+    {file = "execnet-1.9.0-py2.py3-none-any.whl", hash = "sha256:a295f7cc774947aac58dde7fdc85f4aa00c42adf5d8f5468fc630c1acf30a142"},
+    {file = "execnet-1.9.0.tar.gz", hash = "sha256:8f694f3ba9cc92cab508b152dcfe322153975c29bda272e2fd7f3f00f36e47c5"},
 ]
 fastecdsa = [
     {file = "fastecdsa-2.2.3-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:c1f27c5b37aee4bafa8ee304f6da3382ba90200a6998764b3cedba506ef03ff5"},
@@ -1765,9 +1810,17 @@ pytest-check = [
     {file = "pytest_check-1.0.4-py3-none-any.whl", hash = "sha256:aacc9500178611f8ad075a7c46ce8de8ac34f05270eee28f223fb0c8622fbfbe"},
     {file = "pytest_check-1.0.4.tar.gz", hash = "sha256:c93eee5a98bcd28634a4ec657ab62c46d25fa384300811e5a925d9c4d98b9540"},
 ]
+pytest-forked = [
+    {file = "pytest-forked-1.4.0.tar.gz", hash = "sha256:8b67587c8f98cbbadfdd804539ed5455b6ed03802203485dd2f53c1422d7440e"},
+    {file = "pytest_forked-1.4.0-py3-none-any.whl", hash = "sha256:bbbb6717efc886b9d64537b41fb1497cfaf3c9601276be8da2cccfea5a3c8ad8"},
+]
 pytest-parallel = [
     {file = "pytest-parallel-0.1.1.tar.gz", hash = "sha256:9aac3fc199a168c0a8559b60249d9eb254de7af58c12cee0310b54d4affdbfab"},
     {file = "pytest_parallel-0.1.1-py3-none-any.whl", hash = "sha256:9e3703015b0eda52be9e07d2ba3498f09340a56d5c79a39b50f22fc5c38212fe"},
+]
+pytest-xdist = [
+    {file = "pytest-xdist-2.5.0.tar.gz", hash = "sha256:4580deca3ff04ddb2ac53eba39d76cb5dd5edeac050cb6fbc768b0dd712b4edf"},
+    {file = "pytest_xdist-2.5.0-py3-none-any.whl", hash = "sha256:6fe5c74fec98906deb8f2d2b616b5c782022744978e7bd4695d39c8f42d0ce65"},
 ]
 pytype = [
     {file = "pytype-2022.1.13-cp37-cp37m-macosx_10_14_x86_64.whl", hash = "sha256:0d11bc4e609ed8309c09fc67f3ba08bc109f0b9d4995c69d45e25068f2bdda2e"},
