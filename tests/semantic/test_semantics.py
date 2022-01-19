@@ -100,7 +100,9 @@ def split_expectations(expectations):
 def get_expectations(contract_file):
     split_path = Path(contract_file).parts
     libsolidity_folder_index = split_path.index("libsolidity")
-    contract_path = f"tests/semantic/solidity/test/{Path(*split_path[libsolidity_folder_index:])}"
+    contract_path = (
+        f"tests/semantic/solidity/test/{Path(*split_path[libsolidity_folder_index:])}"
+    )
     expectations = test_calldata[contract_path]
 
     if not expectations:
