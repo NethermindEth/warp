@@ -138,10 +138,6 @@ contract WETH10 is IWETH10 {
         return balanceOf[address(this)] + flashMinted;
     }
 
-    receive() external payable {
-        balanceOf[msg.sender] += msg.value;
-    }
-
     function deposit(uint256 value) external payable override {
         balanceOf[msg.sender] += value;
     }

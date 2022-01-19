@@ -1,5 +1,4 @@
 %lang starknet
-%builtins pedersen range_check bitwise
 
 from evm.array import validate_array
 from evm.calls import calldataload, calldatasize
@@ -190,4 +189,3 @@ func __main_meat{
     assert 0 = 1
     jmp rel 0
 end
-

@@ -36,9 +36,6 @@ async def test_starknet():
     steps_in_function("WETH10", "totalSupply", exec_info, "WETH10")
     assert exec_info.result._asdict()["res"] == 0
 
-    # exec_info = await contract.receive(100).invoke()
-    # steps_in_function("WETH10", "receive", exec_info)
-
     exec_info = await contract.deposit(100).invoke()
     steps_in_function("WETH10", "deposit", exec_info, "WETH10")
 

@@ -59,6 +59,7 @@ async def test_normal_contract_call(
     result = await invoke_method(
         starknet, friendly_info, friendly_address, "call_friend", friendly_address2
     )
+    print(result.retdata)
     assert result.retdata == [32, 2, 0, 13]
 
 

@@ -1,5 +1,4 @@
 %lang starknet
-%builtins pedersen range_check bitwise
 
 from evm.array import validate_array
 from evm.calls import calldatacopy, calldataload, calldatasize, caller, returndata_copy
@@ -319,4 +318,3 @@ func __main_meat{
     warp_return(Uint256(0, 0), Uint256(0, 0))
     return ()
 end
-
