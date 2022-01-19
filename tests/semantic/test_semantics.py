@@ -86,9 +86,10 @@ def split_expectations(expectations):
     contract_expectations = []
 
     for e in expectations:
-        constructor_expectations.append(e) if e[
-            "signature"
-        ] == "constructor()" else contract_expectations.append(e)
+        if e["signature"] == "constructor()":
+            constructor_expectations.append(e)
+        else:
+            contract_expectations.append(e)
 
     if len(constructor_expectations) == 1:
         return constructor_expectations[0]["callData"], contract_expectations
@@ -99,7 +100,7 @@ def split_expectations(expectations):
 def get_expectations(contract_file):
     split_path = Path(contract_file).parts
     libsolidity_folder_index = split_path.index("libsolidity")
-    contract_path = f"tests/semantic/solidity/test/{str(Path(*split_path[libsolidity_folder_index:]))}"
+    contract_path = f"tests/semantic/solidity/test/{Path(*split_path[libsolidity_folder_index:])}"
     expectations = test_calldata[contract_path]
 
     if not expectations:

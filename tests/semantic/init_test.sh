@@ -20,6 +20,6 @@ else
   popd || exit
 
   scripts/isoltest --print-test-expectations\
-    --testpath tests/semantic/solidity/test/libsolidity/semanticTests/ >\
-    tests/semantic/test_calldata.json
+    --testpath tests/semantic/solidity/test/libsolidity/semanticTests/ \
+    > tests/semantic/test_calldata.json
 fi
