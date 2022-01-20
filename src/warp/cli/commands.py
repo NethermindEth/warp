@@ -1,9 +1,6 @@
-import json
 import os
 import subprocess
-from typing import Any, Dict, Optional, Sequence, Union
-
-import aiohttp
+from typing import Sequence
 
 from warp.cli.encoding import (
     get_cairo_calldata,
