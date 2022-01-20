@@ -88,10 +88,4 @@ def starknet_deploy(
 
 
 async def _status(tx_hash, network):
-    print(
-        os.popen(
-            f"starknet tx_status "
-            f"--hash {tx_hash} "
-            f"--network {network} "
-        ).read()
-    )
+    print(os.popen(f"starknet tx_status --hash {tx_hash} --network {network}").read())
