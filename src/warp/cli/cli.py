@@ -5,7 +5,7 @@ import platform
 import subprocess
 from ast import literal_eval
 from enum import Enum
-from pathlib import PurePath
+from pathlib import Path, PurePath
 from tempfile import NamedTemporaryFile
 
 import click
@@ -177,13 +177,9 @@ def status(tx_hash, network):
 def test():
     suffix = get_system_suffix(platform.system())
     contracts_dir = os.path.join(os.getcwd(), "contracts")
-    tool_path = os.path.abspath(
-        os.path.join(
-            PurePath(pkg_resources.get_distribution("sol-warp").location),
-            "warp",
-            "test-tool",
-        )
-    )
+    tool_path = (
+        Path(pkg_resources.get_distribution("sol-warp").location) / "warp" / "test_tool"
+    ).resolve()
     isoltest_path = files("warp") / "bin" / suffix / "isoltest"
     test_calldata_path = os.path.join(contracts_dir, "test_calldata.json")
     test_calldata = subprocess.run(

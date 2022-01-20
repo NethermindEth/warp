@@ -147,7 +147,7 @@ warp status TX_HASH
 
 ## Testing with Warp
 
-You'll find an example of how to write tests in your solidity contract, and then call `warp test` to run them in `src/warp/test-tool/example`.
+You'll find an example of how to write tests in your solidity contract, and then call `warp test` to run them in `src/warp/test_tool/example`.
 For the tests to work, you'll need to run `warp test` from a parent directory where your solidity contracts are in a directory named `contracts`, 
 as per the example mentioned above.
 
