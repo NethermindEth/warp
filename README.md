@@ -8,10 +8,15 @@ Warp brings Solidity to StarkNet, making it possible to transpile Ethereum smart
 
 ## Table of Contents :clipboard:
 
-- [Installation](#installation-gear)
-- [Usage](#usage-computer)
-- [Want to contribute?](#want-to-contribute-thumbsup)
-- [License](#license-warning)
+- [NOTE](#note)
+- [Warp](#warp)
+  - [Table of Contents :clipboard:](#table-of-contents-clipboard)
+  - [Installation :gear:](#installation-gear)
+  - [Setting up autocompletion](#setting-up-autocompletion)
+  - [Usage :computer:](#usage-computer)
+  - [Solidity Constructs Currently Not Supported](#solidity-constructs-currently-not-supported)
+  - [Want to contribute? :thumbsup:](#want-to-contribute-thumbsup)
+  - [License](#license)
 
 ## Installation :gear:
 

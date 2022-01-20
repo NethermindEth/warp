@@ -1,10 +1,6 @@
-import json
 import os
 import subprocess
-from typing import Any, Dict, Optional, Sequence, Union
-
-import aiohttp
-from starkware.starknet.services.api.gateway.transaction import Transaction
+from typing import Sequence
 
 from warp.cli.encoding import (
     get_cairo_calldata,
@@ -13,21 +9,6 @@ from warp.cli.encoding import (
 )
 
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../.."))
-
-
-async def send_req(method, url, tx: Optional[Union[str, Dict[str, Any]]] = None):
-    if tx is not None:
-        async with aiohttp.ClientSession() as session:
-            async with session.request(
-                method=method, url=url, data=Transaction.Schema().dumps(obj=tx)
-            ) as response:
-                text = await response.text()
-                return text
-    else:
-        async with aiohttp.ClientSession() as session:
-            async with session.request(method=method, url=url, data=None) as response:
-                text = await response.text()
-                return text
 
 
 # returns true/false on transaction success/failure
@@ -103,7 +84,5 @@ def starknet_deploy(
     return compiled_contract
 
 
-async def _status(tx_hash):
-    status = f"https://alpha3.starknet.io/feeder_gateway/get_transaction_status?transactionHash={tx_hash}"
-    res = await send_req("GET", status)
-    print(json.loads(res))
+async def _status(tx_hash, network):
+    print(os.popen(f"starknet tx_status --hash {tx_hash} --network {network}").read())

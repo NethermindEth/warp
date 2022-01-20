@@ -148,14 +148,21 @@ def deploy(program, constructor_args, network):
 
 @warp.command()
 @click.argument("tx_hash", nargs=1, required=True)
-def status(tx_hash):
+@click.option(
+    "--network",
+    envvar="STARKNET_NETWORK",
+    required=True,
+    help="A StarkNet network to use. "
+    "Either specify it as the option value or set an environment variable STARKNET_NETWORK.",
+)
+def status(tx_hash, network):
     """
     TX_HASH: The transaction hash printed to stdout after invoking/deployment.\n
     To check the status of the invoke/deployment.
     """
     from warp.cli.commands import _status
 
-    asyncio.run(_status(tx_hash))
+    asyncio.run(_status(tx_hash, network))
 
 
 def main():

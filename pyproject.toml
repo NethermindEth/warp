@@ -61,7 +61,6 @@ cairo-lang = "0.7.0"
 web3 = ">=5.12"
 eth-abi = ""
 click = ""
-aiohttp = ""
 importlib_resources = ""
 
 [tool.poetry.dev-dependencies]
