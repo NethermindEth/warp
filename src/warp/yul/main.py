@@ -25,6 +25,7 @@ from warp.yul.parse_object import parse_to_normalized_ast
 from warp.yul.Renamer import MangleNamesVisitor
 from warp.yul.RevertNormalizer import RevertNormalizer
 from warp.yul.ScopeFlattener import ScopeFlattener
+from warp.yul.source_filter import ensure_compilable
 from warp.yul.SwitchToIfVisitor import SwitchToIfVisitor
 from warp.yul.ToCairoVisitor import ToCairoVisitor
 from warp.yul.utils import get_for_contract
@@ -48,6 +49,7 @@ class bcolors:
 def transpile_from_solidity(
     sol_src_path, main_contract, optimizers_order="VFoLRFD"
 ) -> dict:
+    ensure_compilable(sol_src_path)
     sol_src_path_modified = str(sol_src_path)[:-4] + "_marked.sol"
     try:
         with kudu_exe() as exe:
@@ -64,6 +66,7 @@ def transpile_from_solidity(
                 + bcolors.ENDC,
                 file=sys.stderr,
             )
+
     except subprocess.CalledProcessError as e:
         print(
             bcolors.FAIL + bcolors.BOLD + e.stderr.decode("utf-8") + bcolors.ENDC,

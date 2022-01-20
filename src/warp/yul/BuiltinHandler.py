@@ -7,6 +7,7 @@ from typing import Callable, Mapping, Optional, Sequence
 
 from warp.yul.FunctionGenerator import CairoFunctions, FunctionInfo
 from warp.yul.Imports import Imports
+from warp.yul.source_filter import see
 
 UINT256_MODULE = "starkware.cairo.common.uint256"
 
@@ -151,8 +152,9 @@ class NotImplementedStarkNet(StaticHandler):
 
     def get_function_call(self, _args: Sequence[str]):
         raise RuntimeError(
-            f"WARNING: This contract referenced '{type(self).__name__.lower()}' "
+            f"WARNING: This contract's compile YUL referenced '{type(self).__name__.lower()}' "
             f"which is not yet supported."
+            f"\n\n\t{see}"
         )
 
 
