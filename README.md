@@ -37,6 +37,7 @@ sudo apt install -y libboost-all-dev
 sudo apt-get install -y python3.7-venv
 python3.7 -m venv ~/warp
 source ~/warp/bin/activate
+pip install z3-solver
 ```
 
 MacOs:
@@ -45,6 +46,7 @@ MacOs:
 brew install python@3.7
 brew install gmp
 brew install boost
+brew install z3
 python3.7 -m venv ~/warp
 source ~/warp/bin/activate
 ```

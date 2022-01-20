@@ -195,7 +195,7 @@ def test():
     with open(test_calldata_path, "w") as f:
         f.write(test_calldata)
 
-    pytest.main(["-v", "-n=auto", f"{tool_path}"])
+    pytest.main(["-v", f"{tool_path}"])
     os.remove(test_calldata_path)
 
 
