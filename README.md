@@ -172,8 +172,6 @@ warp status TX_HASH
 | create/create2    |  :exclamation:                  |
 | Selfdestruct      |  :x:                            |
 | BlockHash         |  :exclamation:                  |
-| codeCopy          |  :question:                     |
-| codeSize          |  :question:                     |
 
 
 | Yul               |  Support Status                 |
@@ -181,6 +179,8 @@ warp status TX_HASH
 | loadimmutable     |  :hammer_and_pick:              |
 | setimmutable      |  :hammer_and_pick:              |
 | linkersymbol      |  :question:                     |
+| codeCopy          |  :question:                     |
+| codeSize          |  :question:                     |
 
 Run `solc --optimize --ir-optimized <file>` to see if your Solidity results in
 any of these YUL constructs.
