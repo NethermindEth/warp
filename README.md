@@ -175,6 +175,16 @@ warp status TX_HASH
 | codeCopy          |  :question:                     |
 | codeSize          |  :question:                     |
 
+
+| Yul               |  Support Status                 |
+|:-----------------:|:-------------------------------:|
+| loadimmutable     |  :hammer_and_pick:              |
+| setimmutable      |  :hammer_and_pick:              |
+| linkersymbol      |  :question:                     |
+
+Run `solc --optimize --ir-optimized <file>` to see if your Solidity results in
+any of these YUL constructs.
+
 </center>
 
 ## Want to contribute? :thumbsup:
