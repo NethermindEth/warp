@@ -1,11 +1,19 @@
 import asyncio
 import json
 import os
+import platform
+import subprocess
 from ast import literal_eval
 from enum import Enum
+from pathlib import PurePath
 from tempfile import NamedTemporaryFile
 
 import click
+import pkg_resources
+import pytest
+from importlib_resources import files
+
+from warp.kudu import get_system_suffix
 
 
 class Command(Enum):
@@ -163,6 +171,32 @@ def status(tx_hash, network):
     from warp.cli.commands import _status
 
     asyncio.run(_status(tx_hash, network))
+
+
+@warp.command()
+def test():
+    suffix = get_system_suffix(platform.system())
+    contracts_dir = os.path.join(os.getcwd(), "contracts")
+    tool_path = os.path.abspath(
+        os.path.join(
+            PurePath(pkg_resources.get_distribution("sol-warp").location),
+            "warp",
+            "test-tool",
+        )
+    )
+    isoltest_path = files("warp") / "bin" / suffix / "isoltest"
+    test_calldata_path = os.path.join(contracts_dir, "test_calldata.json")
+    test_calldata = subprocess.run(
+        [isoltest_path, "--print-test-expectations", "--testpath", contracts_dir],
+        check=True,
+        capture_output=True,
+    ).stdout.decode("utf-8")
+
+    with open(test_calldata_path, "w") as f:
+        f.write(test_calldata)
+
+    pytest.main(["-v", "-n=auto", f"{tool_path}"])
+    os.remove(test_calldata_path)
 
 
 def main():

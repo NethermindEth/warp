@@ -50,6 +50,7 @@ packages = [ { include = "warp", from = "src" } ]
 include = [
     "src/cairo-src/**/*.cairo",
     "src/bin/**/kudu",
+    "src/bin/**/isoltest"
     ]
 
 [tool.poetry.scripts]
