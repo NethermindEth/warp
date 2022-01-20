@@ -48,8 +48,9 @@ classifiers = [
     ]
 packages = [ { include = "warp", from = "src" } ]
 include = [
-    "src/cairo-src/**/*.cairo",
-    "src/bin/**/kudu",
+    "cairo-src/**/*.cairo",
+    "src/warp/bin/**/kudu",
+    "src/warp/bin/**/isoltest"
     ]
 
 [tool.poetry.scripts]
@@ -57,6 +58,9 @@ warp = "warp.cli.cli:main"
 
 [tool.poetry.dependencies]
 python = ">=3.7,<3.10"
+pytest = ""
+pytest-check = ""
+pytest-xdist = "^2.5.0"
 cairo-lang = "0.7.0"
 web3 = ">=5.12"
 eth-abi = ""

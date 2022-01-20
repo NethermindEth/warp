@@ -37,6 +37,7 @@ sudo apt install -y libboost-all-dev
 sudo apt-get install -y python3.7-venv
 python3.7 -m venv ~/warp
 source ~/warp/bin/activate
+pip install z3-solver
 ```
 
 MacOs:
@@ -45,6 +46,7 @@ MacOs:
 brew install python@3.7
 brew install gmp
 brew install boost
+brew install z3
 python3.7 -m venv ~/warp
 source ~/warp/bin/activate
 ```
@@ -142,6 +144,12 @@ You can check the status of your transaction with:
 ```
 warp status TX_HASH
 ```
+
+## Testing with Warp
+
+You'll find an example of how to write tests in your solidity contract, and then call `warp test` to run them in `src/warp/test_tool/example`.
+For the tests to work, you'll need to run `warp test` from a parent directory where your solidity contracts are in a directory named `contracts`, 
+as per the example mentioned above.
 
 ## Solidity Constructs Currently Not Supported
 
