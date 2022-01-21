@@ -21,7 +21,9 @@ def get_system_suffix(system: str) -> Optional[str]:
     elif system == "darwin":
         version = platform.mac_ver()[0]
         major, minor = map(int, version.split(".")[:2])
-        if major >= 11:
+        if major >= 12:
+            return "macos_12"
+        elif major >= 11:
             return "macos_11"
         elif (major, minor) == (10, 14):
             return "macos_10_14"
