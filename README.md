@@ -1,6 +1,3 @@
-# NOTE
-
-Warp is under heavy development and is currently not stable. A stable release will be released in the coming weeks.
 
 # Warp
 
