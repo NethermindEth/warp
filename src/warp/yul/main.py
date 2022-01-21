@@ -71,7 +71,7 @@ def transpile_from_solidity(
         )
         raise e
 
-    decoded_stdout = result.stdout.decode('utf-8')
+    decoded_stdout = result.stdout.decode("utf-8")
     if "Compilation error : Warp does not support" in decoded_stdout:
         sys.exit(decoded_stdout)
 

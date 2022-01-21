@@ -11,24 +11,30 @@ from warp.cli.encoding import (
 WARP_ROOT = os.path.abspath(os.path.join(__file__, "../.."))
 
 
-# returns true/false on transaction success/failure
-async def _invoke(
-    contract_base, program_info: dict, address, function, evm_inputs, network: str
+async def _invoke_or_call(
+    contract_base,
+    program_info: dict,
+    address,
+    function,
+    evm_inputs,
+    network: str,
+    call: bool,
 ):
     evm_calldata = get_evm_calldata(program_info["sol_abi"], function, evm_inputs)
     cairo_calldata = get_cairo_calldata(evm_calldata)
-    starknet_invoke(contract_base, address, cairo_calldata, network)
+    starknet_invoke_or_call(contract_base, address, cairo_calldata, network, call)
     return True
 
 
-def starknet_invoke(
-    contract_base, address, cairo_calldata: Sequence[int], network: str
+def starknet_invoke_or_call(
+    contract_base, address, cairo_calldata: Sequence[int], network: str, call: bool
 ):
     abi = f"{contract_base}_abi.json"
     inputs = " ".join(map(str, cairo_calldata))
+    call_or_invoke = "call" if call else "invoke"
     print(
         os.popen(
-            f"starknet invoke "
+            f"starknet {call_or_invoke} "
             f"--address {address} "
             f"--abi {abi} "
             f"--function __main "
