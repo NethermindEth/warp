@@ -71,6 +71,10 @@ def transpile_from_solidity(
         )
         raise e
 
+    decoded_stdout = result.stdout.decode('utf-8')
+    if "Compilation error : Warp does not support" in decoded_stdout:
+        sys.exit(decoded_stdout)
+
     output = get_for_contract(sol_src_path_modified, main_contract, ["abi"])
     warp_assert(output, f"Couldn't extract {main_contract}'s abi from {sol_src_path}")
     (abi,) = output

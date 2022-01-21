@@ -24,7 +24,7 @@ skip_gitignore = true
 
 [tool.poetry]
 name = "sol-warp"
-version = "0.5.3"
+version = "1.0.0"
 description = "A Solidity to Cairo Transpiler"
 authors = ["Nethermind <hello@nethermind.io>"]
 license = "Apache 2.0"
