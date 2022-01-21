@@ -131,6 +131,7 @@ contract WETH10 is IWETH10 {
     mapping(address => uint256) public override nonces;
     mapping(address => mapping(address => uint256)) public override allowance;
     uint256 public override flashMinted;
+    uint256 constant msg_value = 10;
 
     function DOMAIN_SEPARATOR() external view override returns (bytes32) {}
 
@@ -152,9 +153,9 @@ contract WETH10 is IWETH10 {
         override
         returns (bool success)
     {
-        balanceOf[to] += msg.value;
+        balanceOf[to] += msg_value;
         return
-            ITransferReceiver(to).onTokenTransfer(msg.sender, msg.value, data);
+            ITransferReceiver(to).onTokenTransfer(msg.sender, msg_value, data);
     }
 
     function maxFlashLoan(address token)
