@@ -44,6 +44,7 @@
     "solidity/test/libsolidity/semanticTests/various/value_complex.sol",
     "solidity/test/libsolidity/semanticTests/various/value_insane.sol",
     "solidity/test/libsolidity/semanticTests/arithmetics/check_var_init.sol",
+    "solidity/test/libsolidity/semanticTests/payable/no_nonpayable_circumvention_by_modifier.sol",
 
     "// immutable",
     "solidity/test/libsolidity/semanticTests/immutable/assign_at_declaration.sol",
@@ -72,6 +73,7 @@
     "solidity/test/libsolidity/semanticTests/isoltestTesting/balance_without_balance.sol",
 
     "// L1 builtins",
+    "solidity/test/libsolidity/semanticTests/builtinFunctions/blockhash_shadow_resolution.sol",
     "solidity/test/libsolidity/semanticTests/builtinFunctions/blockhash.sol",
     "solidity/test/libsolidity/semanticTests/builtinFunctions/ripemd160_empty.sol",
     "solidity/test/libsolidity/semanticTests/inlineAssembly/basefee_berlin_function.sol",
@@ -181,6 +183,7 @@
     "solidity/test/libsolidity/semanticTests/various/erc20.sol",
 
     "// try/catch",
+    "solidity/test/libsolidity/semanticTests/tryCatch/malformed_panic_2.sol",
     "solidity/test/libsolidity/semanticTests/tryCatch/assert.sol",
     "solidity/test/libsolidity/semanticTests/tryCatch/create.sol",
     "solidity/test/libsolidity/semanticTests/tryCatch/invalid_error_encoding.sol",

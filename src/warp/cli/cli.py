@@ -96,14 +96,61 @@ def invoke(program, address, function, inputs, network):
     """
     Invoke the given function from a contract on StarkNet
     """
-    from warp.cli.commands import _invoke
+    from warp.cli.commands import _invoke_or_call
 
     inputs = literal_eval(inputs)
     contract_base = program[: -len(".json")]
     with open(program, "r") as f:
         program_info = json.load(f)
     asyncio.run(
-        _invoke(contract_base, program_info, address, function, inputs, network)
+        _invoke_or_call(
+            contract_base, program_info, address, function, inputs, network, call=False
+        )
+    )
+
+
+@warp.command()
+@click.option(
+    "--program",
+    required=True,
+    type=click.Path(exists=True, dir_okay=False),
+    help="the path to the transpiled program JSON file",
+)
+@click.option("--address", required=True, help="contract address")
+@click.option(
+    "--function",
+    required=True,
+    help="the name of the function to invoke, as defined in the Solidity contract",
+)
+@click.option(
+    "--inputs",
+    required=True,
+    help=(
+        "function arguments passed as a python literal enclosed in double quotes. "
+        "Either [] or () can be used for grouping as Solidity structs or arrays"
+    ),
+)
+@click.option(
+    "--network",
+    envvar="STARKNET_NETWORK",
+    required=True,
+    help="A StarkNet network to use. "
+    "Either specify it as the option value or set an environment variable STARKNET_NETWORK.",
+)
+def call(program, address, function, inputs, network):
+    """
+    Call the given view function from a contract on StarkNet
+    """
+    from warp.cli.commands import _invoke_or_call
+
+    inputs = literal_eval(inputs)
+    contract_base = program[: -len(".json")]
+    with open(program, "r") as f:
+        program_info = json.load(f)
+    asyncio.run(
+        _invoke_or_call(
+            contract_base, program_info, address, function, inputs, network, call=True
+        )
     )
 
 
