@@ -25,7 +25,7 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe: boolean =
     postTestCleanup();
   } else if (!preTestChecks()) return;
   findCairoSourceFilePaths('warplib', true).forEach((file) => {
-    runCairoFileTest(file, results, onlyResults);
+    runCairoFileTest(file, results, onlyResults, true);
   });
   findSolSourceFilePaths('example-contracts', true).forEach((file) =>
     runSolFileTest(file, results, onlyResults, unsafe),
@@ -94,11 +94,15 @@ function runCairoFileTest(
   file: string,
   results: Map<string, ResultType>,
   onlyResults: boolean,
+  throwError: boolean = false,
 ): void {
   if (!onlyResults) console.log(`Compiling ${file}`);
   if (compileCairo(file)) {
     results.set(removeExtension(file), 'Success');
   } else {
+    if (throwError) {
+      throw new Error(`Compilation of ${file} failed`);
+    }
     results.set(removeExtension(file), 'CairoCompileFailed');
   }
 }
