@@ -8,6 +8,29 @@ on:
   pull_request:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: |
+          yarn
+          pipx install black[colors]
+          pipx install cairo-lang
+
+      - name: Check formatting
+        run: |
+          yarn lint
+          black starknet-testnet/ --check --verbose --diff --color
+          find warplib/ -iname *.cairo -exec cairo-format -c {} +
+
   build:
     runs-on: ubuntu-latest
     steps:
@@ -25,7 +48,9 @@ jobs:
           python-version: 3.7 # Cairo was tested with this version
 
       - name: Install dependencies
-        run: make
+        run: |
+          make
+          make compile
 
       - name: Test code compilation
         run: make test_compilation

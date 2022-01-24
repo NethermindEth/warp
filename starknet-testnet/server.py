@@ -10,32 +10,36 @@ CORS(app)
 
 starknet_wrapper = StarknetWrapper()
 
+
 @app.route("/ping", methods=["GET"])
 def ping():
     return jsonify({"return_data": "pong"})
+
 
 @app.route("/pingpost", methods=["POST"])
 async def pingpost():
     return jsonify({"return_data": "pong"})
 
+
 @app.route("/deploy", methods=["POST"])
 async def deploy():
-  from starkware.starknet.compiler.compile import compile_starknet_files
-  from starkware.starknet.services.api.contract_definition import (
-      ContractDefinition,
-  )
-  from starknet_utils import deploy_contract
+    from starkware.starknet.compiler.compile import compile_starknet_files
+    from starkware.starknet.services.api.contract_definition import (
+        ContractDefinition,
+    )
+    from starknet_utils import deploy_contract
 
-  data = request.get_json()
-  state = await starknet_wrapper.get_state()
-  # input = data["input"]
-  compiled_cairo = open(data["compiled_cairo"]).read()
-  contract_def: ContractDefinition = ContractDefinition.loads(compiled_cairo)
+    data = request.get_json()
+    state = await starknet_wrapper.get_state()
+    # input = data["input"]
+    compiled_cairo = open(data["compiled_cairo"]).read()
+    contract_def: ContractDefinition = ContractDefinition.loads(compiled_cairo)
 
-  # TODO Include input
-  contract_address = await state.deploy(contract_def, [])
-  starknet_wrapper.address2contract[hex(contract_address)] = contract_def
-  return jsonify({"contract_address": hex(contract_address)})
+    # TODO Include input
+    contract_address = await state.deploy(contract_def, [])
+    starknet_wrapper.address2contract[hex(contract_address)] = contract_def
+    return jsonify({"contract_address": hex(contract_address)})
+
 
 @app.route("/invoke", methods=["POST"])
 async def invoke():
@@ -51,9 +55,7 @@ async def invoke():
         caller_address=0,
     )
     # Can add extra fields in here if and when tests need them
-    return jsonify({"transaction_info": {
-        "return_data": res.retdata
-    }})
+    return jsonify({"transaction_info": {"return_data": res.retdata}})
 
 
 def main():

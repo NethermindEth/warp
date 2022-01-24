@@ -14,6 +14,7 @@ from web3._utils.abi import (
 from web3._utils.contracts import get_function_info
 from web3.types import ABI, ABIFunction
 
+
 def cairoize_bytes(bs: bytes, shifted=False) -> tuple(List[int], int):
     """Represent bytes as an array of 128-bit big-endian integers and
     return a number of unused bytes in the last array cell.
@@ -28,7 +29,6 @@ def cairoize_bytes(bs: bytes, shifted=False) -> tuple(List[int], int):
     bs = bs.ljust(len(bs) + unused_bytes, b"\x00")
     arr = [int.from_bytes(bs[i : i + 16], "big") for i in range(0, len(bs), 16)]
     return (arr, unused_bytes)
-
 
 
 def encode_address(x):
