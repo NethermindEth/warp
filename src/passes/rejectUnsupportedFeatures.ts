@@ -4,7 +4,7 @@ import { ASTMapper } from '../ast/mapper';
 import { WillNotSupportError } from '../utils/errors';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
-  visitInlineAssembly(node: InlineAssembly, ast: AST): void {
+  visitInlineAssembly(_node: InlineAssembly, _ast: AST): void {
     throw new WillNotSupportError('Yul blocks are not supported');
   }
 }

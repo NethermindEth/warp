@@ -1,5 +1,4 @@
 import {
-  ASTNode,
   UserDefinedTypeName,
   Identifier,
   IdentifierPath,
@@ -97,7 +96,7 @@ export class IdentifierMangler extends ASTMapper {
     this.commonVisit(node, ast);
   }
 
-  visitIdentifier(node: Identifier, ast: AST): void {
+  visitIdentifier(node: Identifier, _ast: AST): void {
     this.updateQueue.push(() => {
       if (
         node.vIdentifierType === ExternalReferenceType.UserDefined &&

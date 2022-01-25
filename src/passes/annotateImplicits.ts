@@ -70,7 +70,7 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
     return union(this.visitFunctionDefinition(this.root, ast), this.commonVisit(this.root, ast));
   }
 
-  visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): Set<Implicits> {
+  visitCairoFunctionDefinition(node: CairoFunctionDefinition, _ast: AST): Set<Implicits> {
     this.visited.add(node);
     return node.implicits;
   }
