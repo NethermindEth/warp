@@ -1,36 +1,37 @@
-import { ASTWriter, PrettyFormatter, CompileFailedError } from 'solc-typed-ast';
-import { TranspilationOptions } from '.';
-import { AST } from './ast/ast';
-import { ASTMapper } from './ast/mapper';
-import { CairoASTMapping } from './cairoWriter';
+import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
 import {
   AddressArgumentPusher,
   AddressEliminator,
   AnnotateImplicits,
-  UnloadingAssignment,
-  VariableDeclarationInitialiser,
   BuiltinHandler,
-  ForLoopToWhile,
-  ReturnInserter,
-  VariableDeclarationExpressionSplitter,
-  StorageVariableAccessRewriter,
   ExpressionSplitter,
-  LiteralExpressionEvaluator,
-  ImplicitConversionToExplicit,
   ExternImporter,
   IdentifierMangler,
-  StorageAllocator,
-  TupleAssignmentSplitter,
-  MemoryHandler,
-  Uint256Importer,
+  ImplicitConversionToExplicit,
   IntBoundCalculator,
+  LiteralExpressionEvaluator,
+  MemoryHandler,
+  ReturnInserter,
+  StorageAllocator,
+  StorageVariableAccessRewriter,
+  TupleAssignmentSplitter,
+  Uint256Importer,
+  UnloadingAssignment,
+  VariableDeclarationExpressionSplitter,
+  VariableDeclarationInitialiser,
 } from './passes';
-import { RejectUnsupportedFeatures } from './passes/rejectUnsupportedFeatures';
-import { CairoToSolASTWriterMapping } from './solWriter';
-import { DefaultASTPrinter } from './utils/astPrinter';
-import { parsePassOrder } from './utils/cliOptionParsing';
 import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
 import { printCompileErrors, runSanityCheck } from './utils/utils';
+
+import { AST } from './ast/ast';
+import { ASTMapper } from './ast/mapper';
+import { CairoASTMapping } from './cairoWriter';
+import { CairoToSolASTWriterMapping } from './solWriter';
+import { DefaultASTPrinter } from './utils/astPrinter';
+import { ForLoopToWhile } from './passes/forLoopToWhile';
+import { RejectUnsupportedFeatures } from './passes/rejectUnsupportedFeatures';
+import { TranspilationOptions } from '.';
+import { parsePassOrder } from './utils/cliOptionParsing';
 
 export function transpile(ast: AST, options: TranspilationOptions): string {
   const cairoAST = applyPasses(ast, options);
