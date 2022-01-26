@@ -26,6 +26,7 @@ import {
   IntBoundCalculator,
 } from './passes';
 import { RejectUnsupportedFeatures } from './passes/rejectUnsupportedFeatures';
+import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { parsePassOrder } from './utils/cliOptionParsing';
 import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
@@ -39,6 +40,16 @@ export function transpile(ast: AST, options: TranspilationOptions): string {
     ast.compilerVersion,
   );
   return writer.write(ast.root);
+}
+
+export function transform(ast: AST, options: TranspilationOptions): string {
+  const cairoAST = applyPasses(ast, options);
+  const writer = new ASTWriter(
+    CairoToSolASTWriterMapping,
+    new PrettyFormatter(4, 0),
+    ast.compilerVersion,
+  );
+  return writer.write(cairoAST.root);
 }
 
 // Options used: order, printTrees, checkTrees, strict

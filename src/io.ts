@@ -94,3 +94,36 @@ export function outputResult(solidityPath: string, cairo: string, options: Outpu
     }
   }
 }
+
+export function outputSol(solidityPath: string, solidity: string, options: OutputOptions): void {
+  const inputFileNameRoot = solidityPath.endsWith('.sol')
+    ? solidityPath.slice(0, -4)
+    : solidityPath;
+  const transpiledSolSourceOutput = `${inputFileNameRoot}_warp.sol`;
+
+  let outputPath: string;
+
+  if (options.output === undefined) {
+    outputPath = '.warp_temp.sol';
+    if (options.result) {
+      console.log(`#--- ${transpiledSolSourceOutput} ---\n${solidity}\n#---`);
+    }
+  } else {
+    if (fs.existsSync(options.output)) {
+      const targetInformation = fs.lstatSync(options.output);
+      if (targetInformation.isDirectory()) {
+        outputPath = transpiledSolSourceOutput;
+      } else if (targetInformation.isFile()) {
+        outputPath = options.output;
+      } else {
+        // TODO decide on type
+        throw new TranspileFailedError(
+          `output path ${options.output} is neither a file nor directory`,
+        );
+      }
+    } else {
+      outputPath = options.output;
+    }
+    fs.writeFileSync(outputPath, solidity);
+  }
+}

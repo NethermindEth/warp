@@ -1,9 +1,9 @@
 import { Command } from 'commander';
 import { AST } from './ast/ast';
-import { isValidSolFile, outputResult } from './io';
+import { isValidSolFile, outputResult, outputSol } from './io';
 import { compileSolFile } from './solCompile';
 import { runTests } from './testing';
-import { handleTranspilationError, transpile } from './transpiler';
+import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
 
 export type TranspilationOptions = {
@@ -42,6 +42,31 @@ program
         }))
         .map(({ name, cairo }) => {
           outputResult(name, cairo, options);
+        });
+    } catch (e) {
+      handleTranspilationError(e);
+    }
+  });
+
+program
+  .command('transform <file>')
+  .option('--no-compile-errors')
+  .option('--check-trees')
+  .option('--order <passOrder>')
+  .option('-o, --output <path>')
+  .option('--print-trees')
+  .option('--no-result')
+  .option('--strict')
+  .action((file: string, options: TranspilationOptions & OutputOptions) => {
+    if (!isValidSolFile(file)) return;
+    try {
+      compileSolFile(file)
+        .map((ast: AST) => ({
+          name: ast.root.absolutePath,
+          solidity: transform(ast, options),
+        }))
+        .map(({ name, solidity }) => {
+          outputSol(name, solidity, options);
         });
     } catch (e) {
       handleTranspilationError(e);
