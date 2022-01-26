@@ -271,7 +271,6 @@ class CairoContractWriter extends CairoASTNodeWriter {
     const enums = node.vEnums.map((value) => writer.write(value));
 
     const functions = node.vFunctions.map((value) => writer.write(value));
-    // todo create these structs
 
     const events = node.vEvents.map((value) => writer.write(value));
     return [[constructor, ...events, ...structs, ...enums, ...functions].join('\n\n')];
@@ -495,7 +494,7 @@ class EnumDefinitionWriter extends CairoASTNodeWriter {
 class EventDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: EventDefinition, writer: ASTWriter): SrcDesc {
     const args: string = writer.write(node.vParameters);
-    return [`@event\nfunc ${node.name}(${args}):\nend`];
+    return [`@event,func ${node.name}(${args}):,end`];
   }
 }
 
