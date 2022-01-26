@@ -494,7 +494,7 @@ class EnumDefinitionWriter extends CairoASTNodeWriter {
 class EventDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: EventDefinition, writer: ASTWriter): SrcDesc {
     const args: string = writer.write(node.vParameters);
-    return [`@event,func ${node.name}(${args}):,end`];
+    return [`@event\nfunc ${node.name}(${args}):\nend`];
   }
 }
 
