@@ -4,15 +4,16 @@ from starkware.cairo.common.math import assert_not_zero, unsigned_div_rem
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.pow import pow
 from starkware.cairo.common.uint256 import (
-    Uint256, uint256_add, uint256_and, uint256_cond_neg, uint256_eq, uint256_lt, uint256_mul, uint256_or, uint256_pow2,
-    uint256_shl, uint256_signed_div_rem, uint256_signed_lt, uint256_sub, uint256_unsigned_div_rem, uint256_xor)
+    Uint256, uint256_add, uint256_and, uint256_cond_neg, uint256_eq, uint256_lt, uint256_mul,
+    uint256_or, uint256_pow2, uint256_shl, uint256_signed_div_rem, uint256_signed_lt, uint256_sub,
+    uint256_unsigned_div_rem, uint256_xor)
 
 from warplib.math.pow2 import pow2
 
 const UINT128_BOUND = 2 ** 128
 
 func u256_from_parts(low : felt, high : felt) -> (result : Uint256):
-    return (result = Uint256(low, high))
+    return (result=Uint256(low, high))
 end
 
 func u256_add{range_check_ptr}(x : Uint256, y : Uint256) -> (result : Uint256):
@@ -51,18 +52,21 @@ end
 
 func u256_neq{range_check_ptr}(x : Uint256, y : Uint256) -> (result : felt):
     let (result : felt) = uint256_eq(x, y)
-    return (result=1-result)
+    return (result=1 - result)
 end
 
-func u256_bitwise_and{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(x: Uint256, y: Uint256) -> (result: Uint256):
+func u256_bitwise_and{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(x : Uint256, y : Uint256) -> (
+        result : Uint256):
     return uint256_and(x, y)
 end
 
-func u256_bitwise_or{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(x: Uint256, y: Uint256) -> (result: Uint256):
+func u256_bitwise_or{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(x : Uint256, y : Uint256) -> (
+        result : Uint256):
     return uint256_or(x, y)
 end
 
-func u256_xor{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(x: Uint256, y: Uint256) -> (result: Uint256):
+func u256_xor{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(x : Uint256, y : Uint256) -> (
+        result : Uint256):
     return uint256_xor(x, y)
 end
 
@@ -71,16 +75,16 @@ func u256_lt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : felt):
     return uint256_lt(op1, op2)
 end
 
-func u256_gte{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> ( result : felt):
+func u256_gte{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : felt):
     let (lt : felt) = uint256_lt(op1, op2)
-    return (result = 1-lt)
+    return (result=1 - lt)
 end
 
-func u256_gt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> ( result : felt):
+func u256_gt{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : felt):
     alloc_locals
     let (local lt : felt) = uint256_lt(op1, op2)
     let (local eq : felt) = uint256_eq(op1, op2)
-    return (result = (1-lt) * (1-eq))
+    return (result=(1 - lt) * (1 - eq))
 end
 
 func u256_low(in : Uint256) -> (low : felt):

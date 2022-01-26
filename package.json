@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "yarn tsc -w",
     "prepare": "husky install",
-    "lint": "eslint ./src/**/*.ts --ignore-path .gitignore",
+    "lint": "eslint ./src/** --ignore-path .gitignore",
     "lint:fix": "npm run lint -- --fix",
     "test": "npx mocha \"tests/**/*.test.ts\" --extension ts --require hardhat/register.js --require \"mocha-steps\" --parallel --exit",
     "testnet": "python3 starknet-testnet/server.py"
