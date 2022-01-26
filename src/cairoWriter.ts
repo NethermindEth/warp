@@ -1,81 +1,83 @@
 import assert = require('assert');
+
 import {
   ASTNode,
   ASTNodeConstructor,
-  FunctionKind,
-  LiteralKind,
+  ASTNodeWriter,
+  ASTWriter,
+  ArrayTypeName,
+  Assignment,
+  BinaryOperation,
+  Block,
+  Break,
+  Conditional,
+  Continue,
   ContractDefinition,
   ContractKind,
+  DoWhileStatement,
+  ElementaryTypeName,
+  ElementaryTypeNameExpression,
+  EmitStatement,
   EnumDefinition,
   EnumValue,
   ErrorDefinition,
   EventDefinition,
-  ModifierDefinition,
-  StructDefinition,
-  VariableDeclaration,
-  Assignment,
-  BinaryOperation,
-  Conditional,
-  ElementaryTypeNameExpression,
-  FunctionCall,
-  FunctionCallOptions,
-  Identifier,
-  IndexAccess,
-  IndexRangeAccess,
-  Literal,
-  MemberAccess,
-  NewExpression,
-  TupleExpression,
-  UnaryOperation,
-  IdentifierPath,
-  ImportDirective,
-  InheritanceSpecifier,
-  ModifierInvocation,
-  OverrideSpecifier,
-  ParameterList,
-  SourceUnit,
-  StructuredDocumentation,
-  UsingForDirective,
-  Block,
-  Break,
-  Continue,
-  DoWhileStatement,
-  EmitStatement,
   ExpressionStatement,
   ForStatement,
+  FunctionCall,
+  FunctionCallKind,
+  FunctionCallOptions,
+  FunctionKind,
+  FunctionStateMutability,
+  FunctionTypeName,
+  FunctionVisibility,
+  Identifier,
+  IdentifierPath,
   IfStatement,
+  ImportDirective,
+  IndexAccess,
+  IndexRangeAccess,
+  InheritanceSpecifier,
   InlineAssembly,
+  Literal,
+  LiteralKind,
+  Mapping,
+  MappingType,
+  MemberAccess,
+  ModifierDefinition,
+  ModifierInvocation,
+  NewExpression,
+  OverrideSpecifier,
+  ParameterList,
   PlaceholderStatement,
+  PointerType,
   Return,
   RevertStatement,
+  SourceUnit,
+  SrcDesc,
+  StructDefinition,
+  StructuredDocumentation,
   Throw,
   TryCatchClause,
   TryStatement,
+  TupleExpression,
+  UnaryOperation,
   UncheckedBlock,
+  UserDefinedTypeName,
+  UsingForDirective,
+  VariableDeclaration,
   VariableDeclarationStatement,
   WhileStatement,
-  ArrayTypeName,
-  ElementaryTypeName,
-  FunctionTypeName,
-  Mapping,
-  UserDefinedTypeName,
-  ASTNodeWriter,
-  ASTWriter,
-  FunctionVisibility,
-  FunctionStateMutability,
-  SrcDesc,
-  FunctionCallKind,
   getNodeType,
-  MappingType,
-  PointerType,
 } from 'solc-typed-ast';
 import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
-import { primitiveTypeToCairo, divmod, importsWriter, canonicalMangler } from './utils/utils';
-import { getMappingTypes } from './utils/mappings';
-import { cairoType, getCairoType } from './typeWriter';
 import { Implicits, writeImplicits } from './utils/implicits';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
+import { cairoType, getCairoType } from './typeWriter';
+import { canonicalMangler, divmod, importsWriter, primitiveTypeToCairo } from './utils/utils';
+
 import { AST } from './ast/ast';
+import { getMappingTypes } from './utils/mappings';
 import { notUndefined } from './utils/typeConstructs';
 import { printNode } from './utils/astPrinter';
 
@@ -269,8 +271,9 @@ class CairoContractWriter extends CairoASTNodeWriter {
     const enums = node.vEnums.map((value) => writer.write(value));
 
     const functions = node.vFunctions.map((value) => writer.write(value));
-    // todo create these structs
-    return [[constructor, ...structs, ...enums, ...functions].join('\n\n')];
+
+    const events = node.vEvents.map((value) => writer.write(value));
+    return [[constructor, ...events, ...structs, ...enums, ...functions].join('\n\n')];
   }
 
   writeWhole(node: CairoContract, writer: ASTWriter): SrcDesc {
@@ -488,6 +491,20 @@ class EnumDefinitionWriter extends CairoASTNodeWriter {
   }
 }
 
+class EventDefinitionWriter extends CairoASTNodeWriter {
+  writeInner(node: EventDefinition, writer: ASTWriter): SrcDesc {
+    const args: string = writer.write(node.vParameters);
+    return [`@event,func ${node.name}(${args}):,end`];
+  }
+}
+
+class EmitStatementWriter extends CairoASTNodeWriter {
+  writeInner(node: EmitStatement, writer: ASTWriter): SrcDesc {
+    const args: string = node.vEventCall.vArguments.map((v) => writer.write(v)).join(', ');
+    return [`${node.vEventCall.vFunctionName}.emit(${args})`];
+  }
+}
+
 class CairoAssertWriter extends CairoASTNodeWriter {
   writeInner(node: CairoAssert, writer: ASTWriter): SrcDesc {
     const args = [node.leftHandSide, node.rightHandSide].map((v) => writer.write(v));
@@ -497,63 +514,63 @@ class CairoAssertWriter extends CairoASTNodeWriter {
 
 export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
   new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([
-    [ElementaryTypeName, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [ArrayTypeName, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [Mapping, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [UserDefinedTypeName, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [Assignment, new AssignmentWriter(ast, throwOnUnimplemented)],
+    [BinaryOperation, new BinaryOperationWriter(ast, throwOnUnimplemented)],
+    [Block, new BlockWriter(ast, throwOnUnimplemented)],
+    [Break, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [CairoAssert, new CairoAssertWriter(ast, throwOnUnimplemented)],
+    [CairoContract, new CairoContractWriter(ast, throwOnUnimplemented)],
+    [CairoFunctionDefinition, new CairoFunctionDefinitionWriter(ast, throwOnUnimplemented)],
+    [Conditional, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [Continue, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [DoWhileStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [ElementaryTypeName, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [ElementaryTypeNameExpression, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [EmitStatement, new EmitStatementWriter(ast, throwOnUnimplemented)],
+    [EnumDefinition, new EnumDefinitionWriter(ast, throwOnUnimplemented)],
+    [EnumValue, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [ErrorDefinition, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [EventDefinition, new EventDefinitionWriter(ast, throwOnUnimplemented)],
+    [ExpressionStatement, new ExpressionStatementWriter(ast, throwOnUnimplemented)],
+    [ForStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [FunctionCall, new FunctionCallWriter(ast, throwOnUnimplemented)],
+    [FunctionCallOptions, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [FunctionTypeName, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [Literal, new LiteralWriter(ast, throwOnUnimplemented)],
     [Identifier, new IdentifierWriter(ast, throwOnUnimplemented)],
     [IdentifierPath, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [FunctionCallOptions, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [FunctionCall, new FunctionCallWriter(ast, throwOnUnimplemented)],
-    [MemberAccess, new MemberAccessWriter(ast, throwOnUnimplemented)],
+    [IfStatement, new IfStatementWriter(ast, throwOnUnimplemented)],
+    [ImportDirective, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [IndexAccess, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [IndexRangeAccess, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [UnaryOperation, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [BinaryOperation, new BinaryOperationWriter(ast, throwOnUnimplemented)],
-    [Conditional, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [ElementaryTypeNameExpression, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [InheritanceSpecifier, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [InlineAssembly, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [Literal, new LiteralWriter(ast, throwOnUnimplemented)],
+    [Mapping, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [MemberAccess, new MemberAccessWriter(ast, throwOnUnimplemented)],
+    [ModifierDefinition, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [ModifierInvocation, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [NewExpression, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [OverrideSpecifier, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [ParameterList, new ParameterListWriter(ast, throwOnUnimplemented)],
+    [PlaceholderStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [Return, new ReturnWriter(ast, throwOnUnimplemented)],
+    [RevertStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [SourceUnit, new SourceUnitWriter(ast, throwOnUnimplemented)],
+    [StructDefinition, new StructDefinitionWriter(ast, throwOnUnimplemented)],
+    [StructuredDocumentation, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [Throw, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [TryCatchClause, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [TryStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [TupleExpression, new TupleExpressionWriter(ast, throwOnUnimplemented)],
-    [ExpressionStatement, new ExpressionStatementWriter(ast, throwOnUnimplemented)],
-    [Assignment, new AssignmentWriter(ast, throwOnUnimplemented)],
-    [VariableDeclaration, new VariableDeclarationWriter(ast, throwOnUnimplemented)],
-    [Block, new BlockWriter(ast, throwOnUnimplemented)],
+    [UnaryOperation, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [UncheckedBlock, new UncheckedBlockWriter(ast, throwOnUnimplemented)],
+    [UserDefinedTypeName, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [UsingForDirective, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [VariableDeclaration, new VariableDeclarationWriter(ast, throwOnUnimplemented)],
     [
       VariableDeclarationStatement,
       new VariableDeclarationStatementWriter(ast, throwOnUnimplemented),
     ],
-    [IfStatement, new IfStatementWriter(ast, throwOnUnimplemented)],
-    [ForStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [WhileStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [DoWhileStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [Return, new ReturnWriter(ast, throwOnUnimplemented)],
-    [EmitStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [RevertStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [PlaceholderStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [InlineAssembly, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [TryCatchClause, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [TryStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [Break, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [Continue, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [Throw, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [ParameterList, new ParameterListWriter(ast, throwOnUnimplemented)],
-    [ModifierInvocation, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [OverrideSpecifier, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [CairoFunctionDefinition, new CairoFunctionDefinitionWriter(ast, throwOnUnimplemented)],
-    [ModifierDefinition, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [ErrorDefinition, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [EventDefinition, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [StructDefinition, new StructDefinitionWriter(ast, throwOnUnimplemented)],
-    [EnumValue, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [EnumDefinition, new EnumDefinitionWriter(ast, throwOnUnimplemented)],
-    [UsingForDirective, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [InheritanceSpecifier, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [CairoContract, new CairoContractWriter(ast, throwOnUnimplemented)],
-    [StructuredDocumentation, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [ImportDirective, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [SourceUnit, new SourceUnitWriter(ast, throwOnUnimplemented)],
-    [CairoAssert, new CairoAssertWriter(ast, throwOnUnimplemented)],
   ]);
