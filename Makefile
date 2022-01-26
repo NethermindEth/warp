@@ -4,6 +4,7 @@
 install:
 	yarn
 	python -m pip install -r requirements.txt
+	sudo add-apt-repository ppa:ethereum/ethereum; sudo apt update; sudo apt install solc
 
 compile:
 	yarn tsc

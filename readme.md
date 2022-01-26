@@ -4,6 +4,9 @@ To get the dependencies:
 yarn
 ```
 
+Additionally, solc 0.8.11 must be installed and usable via 'solc'
+Instructions can be found at https://docs.soliditylang.org/en/v0.8.11/installing-solidity.html
+
 Compile the project:
 
 ```bash
