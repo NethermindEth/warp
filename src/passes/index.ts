@@ -4,7 +4,7 @@ export * from './annotateImplicits';
 export * from './builtinHandler';
 export * from './expressionSplitter';
 export * from './externImporter';
-export * from './forLoopSimplifier';
+export * from './forLoopToWhile';
 export * from './identifierMangler';
 export * from './implicitConversionToExplicit';
 export * from './intBoundCalculator';
