@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 import warp.yul.ast as ast
 from warp.yul.utils import camelize, remove_prefix
 from warp.yul.WarpException import WarpException, warp_assert, warp_assert_statement
@@ -36,7 +38,7 @@ def parse_node(yul_ast) -> ast.Node:
         return parser(yul_ast)
 
 
-def parse_expression(yul_ast, func_name: str = None) -> ast.Expression:
+def parse_expression(yul_ast, func_name: Optional[str] = None) -> ast.Expression:
     if yul_ast["nodeType"] == "YulIdentifier":
         return parse_identifier(yul_ast)
     elif yul_ast["nodeType"] == "YulLiteral":

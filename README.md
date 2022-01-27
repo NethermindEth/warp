@@ -1,4 +1,3 @@
-
 # Warp
 
 Warp brings Solidity to StarkNet, making it possible to transpile Ethereum smart contracts to Cairo, and use them on StarkNet.
@@ -132,6 +131,7 @@ declaration order (i.e `age` first, `person` second). If the first argument to t
 ```
 
 If you're passing in the `bytes` Solidity type as an argument, use the python syntax, for example:
+
 ```bash
 --inputs = '[[10,20], b"\x01\x02"]'
 ```
@@ -145,47 +145,43 @@ warp status TX_HASH
 ## Testing with Warp
 
 You'll find an example of how to write tests in your solidity contract, and then call `warp test` to run them in `src/warp/test_tool/example`.
-For the tests to work, you'll need to run `warp test` from a parent directory where your solidity contracts are in a directory named `contracts`, 
+For the tests to work, you'll need to run `warp test` from a parent directory where your solidity contracts are in a directory named `contracts`,
 as per the example mentioned above.
 
 ## Solidity Constructs Currently Not Supported
 
-
-|  Support Status                 | Symbol            | 
-|:-------------------------------:|:-----------------:|
-| Will likely never be supported  | :x:               |
-| Support will land soon          | :hammer_and_pick: |
-| Will be supported in the future | :exclamation:     |
-| Currently Unkown                | :question:        |
+|         Support Status          |      Symbol       |
+| :-----------------------------: | :---------------: |
+| Will likely never be supported  |        :x:        |
+|     Support will land soon      | :hammer_and_pick: |
+| Will be supported in the future |   :exclamation:   |
+|        Currently Unkown         |    :question:     |
 
 <center>
 
-| Solidity          |  Support Status                 |
-|:-----------------:|:-------------------------------:|
-| try/catch         |  :question:                     |
-| msg.value         |  :x:                            |
-| tx.origin         |  :exclamation:                  |
-| tx.gasprice       |  :question:                     |
-| block.basefee     |  :x:                            |
-| block.chainid     |  :exclamation:                  |
-| block.coinbase    |  :question:                     |
-| block.difficulty  |  :x:                            |
-| block.gaslimit    |  :question:                     |
-| gasleft()         |  :question:                     |
-| functions as data |  :x:                            |
-| precompiles       |  :exclamation:                  |
-| create/create2    |  :exclamation:                  |
-| Selfdestruct      |  :x:                            |
-| BlockHash         |  :exclamation:                  |
+|     Solidity      | Support Status |
+| :---------------: | :------------: |
+|     try/catch     |   :question:   |
+|     msg.value     |      :x:       |
+|     tx.origin     | :exclamation:  |
+|    tx.gasprice    |   :question:   |
+|   block.basefee   |      :x:       |
+|   block.chainid   | :exclamation:  |
+|  block.coinbase   |   :question:   |
+| block.difficulty  |      :x:       |
+|  block.gaslimit   |   :question:   |
+|     gasleft()     |   :question:   |
+| functions as data |      :x:       |
+|    precompiles    | :exclamation:  |
+|  create/create2   | :exclamation:  |
+|   Selfdestruct    |      :x:       |
+|     BlockHash     | :exclamation:  |
 
-
-| Yul               |  Support Status                 |
-|:-----------------:|:-------------------------------:|
-| loadimmutable     |  :hammer_and_pick:              |
-| setimmutable      |  :hammer_and_pick:              |
-| linkersymbol      |  :question:                     |
-| codeCopy          |  :question:                     |
-| codeSize          |  :question:                     |
+|     Yul      | Support Status |
+| :----------: | :------------: |
+| linkersymbol |   :question:   |
+|   codeCopy   |   :question:   |
+|   codeSize   |   :question:   |
 
 Run `solc --optimize --ir-optimized <file>` to see if your Solidity results in
 any of these YUL constructs.

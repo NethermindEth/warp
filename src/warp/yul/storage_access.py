@@ -29,10 +29,6 @@ def generate_setter_body(setter_var: str, args: Iterable[str]) -> str:
 
 def generate_storage_var_declaration(var: StorageVar) -> str:
     warp_assert(
-        all(x == "Uint256" for x in var.arg_types),
-        "We don't support storage variables parameterized by types other than Uint256",
-    )
-    warp_assert(
         var.res_type == "Uint256",
         "We don't support storage variables that return types other than Uint256",
     )
