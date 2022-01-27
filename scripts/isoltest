@@ -14,10 +14,13 @@ from importlib_resources import as_file, files
 exec_name = "isoltest"
 
 
-def get_system_suffix(system: str) -> Optional[str]:
+def get_system_suffix(system: str, machine: str) -> Optional[str]:
     system = system.lower()
     if system == "linux":
-        return "linux"
+        if machine == "aarch64":
+            return "linux_arm"
+        elif machine == "x86_64":
+            return "linux_x86"
     elif system == "darwin":
         return "darwin"
     return None
@@ -25,7 +28,7 @@ def get_system_suffix(system: str) -> Optional[str]:
 
 @contextmanager
 def isoltest_exe() -> Generator[pathlib.Path, None, None]:
-    suffix = get_system_suffix(platform.system())
+    suffix = get_system_suffix(platform.system(), platform.machine())
     if not suffix:
         raise RuntimeError(f"Unsupported OS: {platform.platform()}")
     with as_file(files("warp") / "bin" / suffix / exec_name) as exe:

@@ -222,7 +222,7 @@ def status(tx_hash, network):
 
 @warp.command()
 def test():
-    suffix = get_system_suffix(platform.system())
+    suffix = get_system_suffix(platform.system(), platform.machine())
     contracts_dir = os.path.join(os.getcwd(), "contracts")
     tool_path = (
         Path(pkg_resources.get_distribution("sol-warp").location) / "warp" / "test_tool"
