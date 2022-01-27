@@ -1,0 +1,10 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ubuntu/warp-temporary
+hooks:
+  AfterInstall:
+    - location: scripts/copy_binaries.sh
+  ApplicationStart:
+    - location: scripts/run_test_semantics.sh
