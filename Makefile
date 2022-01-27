@@ -4,10 +4,10 @@ TEMPLATES := $(wildcard $(GOLDEN_DIR)/*.template)
 BATS_FILES := $(patsubst $(GOLDEN_DIR)/%.template,$(BATS_DIR)/test-%.bats,$(TEMPLATES))
 TEST_FILES := $(shell find ./tests -type f ! -name '*.temp*') # exclude temporary files
 SRC_FILES := $(shell find ./src/warp/ -type f)
-KUDU_FILES := $(shell find ./src/warp/bin -name kudu)
+NETHERSOLC_FILES := $(shell find ./src/warp/bin -name nethersolc)
 NPROCS := $(shell getconf _NPROCESSORS_ONLN)
 
-warp: $(SRC_FILES) $(KUDU_FILES) pyproject.toml
+warp: $(SRC_FILES) $(NETHERSOLC_FILES) pyproject.toml
 	poetry install
 
 test: test_bats test_yul benchmark

@@ -49,7 +49,7 @@ classifiers = [
 packages = [ { include = "warp", from = "src" } ]
 include = [
     "cairo-src/**/*.cairo",
-    "src/warp/bin/**/kudu",
+    "src/warp/bin/**/nethersolc",
     "src/warp/bin/**/isoltest"
     ]
 
