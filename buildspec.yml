@@ -9,7 +9,8 @@ phases:
     commands:
       - apt update
       - apt install -y software-properties-common
-      - add-apt-repository -y ppa:deadsnakes/ppa ppa:ubuntu-toolchain-r/test 
+      - add-apt-repository -y ppa:deadsnakes/ppa
+      - add-apt-repository -y ppa:ubuntu-toolchain-r/test
       - apt update
       - apt install -y libfmt-dev libgmp3-dev libboost-all-dev gcc-11 g++-11
       - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11
