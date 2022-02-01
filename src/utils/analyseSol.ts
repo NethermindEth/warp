@@ -7,7 +7,7 @@ export function analyseSol(file: string) {
     console.log(`${file} is not a valid solidity file`);
   }
 
-  compileSolFile(file).forEach((ast) => {
+  compileSolFile(file, true).forEach((ast) => {
     console.log(`---${ast.root.absolutePath}---`);
     console.log(DefaultASTPrinter.print(ast.root));
   });

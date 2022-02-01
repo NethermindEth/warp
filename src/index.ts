@@ -6,6 +6,10 @@ import { runTests } from './testing';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
 
+export type CompilationOptions = {
+  warnings: boolean;
+};
+
 export type TranspilationOptions = {
   checkTrees?: boolean;
   highlight?: string;
@@ -22,6 +26,8 @@ export type OutputOptions = {
   result: boolean;
 };
 
+type CliOptions = CompilationOptions & TranspilationOptions & OutputOptions;
+
 const program = new Command();
 
 program
@@ -37,10 +43,11 @@ program
   .option('--strict')
   // Stops transpilation after the specified pass
   .option('--until <pass>')
-  .action((file: string, options: TranspilationOptions & OutputOptions) => {
+  .option('--no-warnings')
+  .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
     try {
-      compileSolFile(file)
+      compileSolFile(file, options.warnings)
         .map((ast: AST) => ({
           name: ast.root.absolutePath,
           cairo: transpile(ast, options),
@@ -64,10 +71,11 @@ program
   .option('--no-result')
   .option('--strict')
   .option('--until <pass>')
-  .action((file: string, options: TranspilationOptions & OutputOptions) => {
+  .option('--no-warnings')
+  .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
     try {
-      compileSolFile(file)
+      compileSolFile(file, options.warnings)
         .map((ast: AST) => ({
           name: ast.root.absolutePath,
           solidity: transform(ast, options),

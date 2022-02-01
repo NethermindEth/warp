@@ -63,7 +63,7 @@ function runSolFileTest(
 ): void {
   console.log(`Warping ${file}`);
   try {
-    compileSolFile(file)
+    compileSolFile(file, false)
       .map((ast) => transpile(ast, { strict: true }))
       .forEach((cairo) => fs.writeFileSync(`${file.slice(0, -4)}.cairo`, cairo));
     results.set(removeExtension(file), 'Success');
