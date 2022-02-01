@@ -9,7 +9,7 @@ phases:
       - add-apt-repository -y ppa:deadsnakes/ppa
       - apt update
       - add-apt-repository -y ppa:ubuntu-toolchain-r/test
-      - apt install -y python3.7-dev python3.7 python3.7-venv libfmt-dev libz3-dev libgmp3-dev libboost-all-dev gcc-11 g++-11
+      - apt install -y python3.7-dev python3.7 python3.7-venv libfmt-dev libz3-dev libgmp3-dev libboost-all-dev gcc-11 g++-11 libcvc4-dev
       - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11
       - update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11
   build:
