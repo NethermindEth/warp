@@ -2,21 +2,20 @@
 version: 0.2
 
 phases:
+  install:
+    runtime-versions:
+      python: 3.7
   pre_build:
     commands:
       - apt update
       - apt install -y software-properties-common
-      - add-apt-repository -y ppa:deadsnakes/ppa
+      - add-apt-repository -y ppa:deadsnakes/ppa ppa:ubuntu-toolchain-r/test 
       - apt update
-      - add-apt-repository -y ppa:ubuntu-toolchain-r/test
-      - apt install -y python3.7-dev python3.7 python3.7-venv libfmt-dev libz3-dev libgmp3-dev libboost-all-dev build-essential gcc-11 g++-11 libcvc4-dev
+      - apt install -y libfmt-dev libgmp3-dev libboost-all-dev gcc-11 g++-11
       - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11
       - update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11
-      - curl -sSL https://install.python-poetry.org | python3.7 -
+      - curl -sSL https://install.python-poetry.org | python -
   build:
     commands:
       - export PATH="/root/.local/bin:$PATH"
       - poetry run make test_semantics
-  post_build:
-    commands:
-      - echo Build completed on `date`
