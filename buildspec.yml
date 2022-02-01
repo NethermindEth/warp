@@ -17,7 +17,7 @@ phases:
       - python3.7 -m venv venv
       - . venv/bin/activate
       - pip install poetry
-      - make test_semantics
+      - poetry run make test_semantics
   post_build:
     commands:
       - echo Build completed on `date`
