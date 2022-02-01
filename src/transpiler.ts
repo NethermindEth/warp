@@ -91,7 +91,10 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['Ui', new Uint256Importer()],
   ]);
 
-  const passesInOrder: ASTMapper[] = parsePassOrder(options.order, passes);
+  const passesInOrder: ASTMapper[] = parsePassOrder(options.order, options.until, passes);
+  if (options.highlight) {
+    DefaultASTPrinter.highlightId(parseInt(options.highlight));
+  }
   if (options.printTrees) {
     console.log('---Input---');
     console.log(DefaultASTPrinter.print(ast.root));

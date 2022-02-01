@@ -3,10 +3,11 @@ import { ASTMapper } from '../ast/mapper';
 
 export function parsePassOrder(
   order: string | undefined,
+  until: string | undefined,
   passes: Map<string, ASTMapper>,
 ): ASTMapper[] {
   if (order === undefined) {
-    return [...passes.values()];
+    order = [...passes.keys()].reduce((acc, key) => `${acc}${key}`, '');
   }
 
   //We want keys in order of longest first otherwise 'Vs' would match 'V' and then error on 's'
@@ -21,6 +22,7 @@ export function parsePassOrder(
     }
     const [key, nextPass] = foundPass;
     passesInOrder.push(nextPass);
+    if (key === until) break;
     remainingOrder = remainingOrder.slice(key.length);
   }
 

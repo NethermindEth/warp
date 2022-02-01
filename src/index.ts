@@ -8,9 +8,11 @@ import { analyseSol } from './utils/analyseSol';
 
 export type TranspilationOptions = {
   checkTrees?: boolean;
+  highlight?: string;
   order?: string;
   printTrees?: boolean;
   strict?: boolean;
+  until?: string;
 };
 
 export type OutputOptions = {
@@ -27,11 +29,14 @@ program
   .option('--compile-cairo')
   .option('--no-compile-errors')
   .option('--check-trees')
+  .option('--highlight <id>')
   .option('--order <passOrder>')
   .option('-o, --output <path>')
   .option('--print-trees')
   .option('--no-result')
   .option('--strict')
+  // Stops transpilation after the specified pass
+  .option('--until <pass>')
   .action((file: string, options: TranspilationOptions & OutputOptions) => {
     if (!isValidSolFile(file)) return;
     try {
@@ -52,11 +57,13 @@ program
   .command('transform <file>')
   .option('--no-compile-errors')
   .option('--check-trees')
+  .option('--highlight <id>')
   .option('--order <passOrder>')
   .option('-o, --output <path>')
   .option('--print-trees')
   .option('--no-result')
   .option('--strict')
+  .option('--until <pass>')
   .action((file: string, options: TranspilationOptions & OutputOptions) => {
     if (!isValidSolFile(file)) return;
     try {
