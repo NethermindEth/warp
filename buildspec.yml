@@ -15,7 +15,7 @@ phases:
       - curl -sSL https://install.python-poetry.org | python3.7 -
   build:
     commands:
-      - export PATH="/home/ubuntu/.local/bin:$PATH"
+      - export PATH="/root/.local/bin:$PATH"
       - poetry run make test_semantics
   post_build:
     commands:
