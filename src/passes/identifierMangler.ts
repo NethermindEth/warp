@@ -52,7 +52,9 @@ import {
   PragmaDirective,
   SourceUnit,
   ExternalReferenceType,
+  FunctionVisibility,
 } from 'solc-typed-ast';
+import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../ast/ast';
 import { CairoAssert } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
@@ -71,7 +73,12 @@ export class IdentifierMangler extends ASTMapper {
   }
 
   // This strategy should allow checked demangling post transpilation for a more readable result
-  createNewFunctionName(existingName: string): string {
+  createNewExternalFunctionName(fd: FunctionDefinition): string {
+    return `${fd.name}_${fd.canonicalSignatureHash(ABIEncoderVersion.V2)}`;
+  }
+
+  // This strategy should allow checked demangling post transpilation for a more readable result
+  createNewInternalFunctionName(existingName: string): string {
     return `__warp_usrfn${this.lastUsedFunctionId++}_${existingName}`;
   }
 
@@ -231,7 +238,14 @@ export class IdentifierMangler extends ASTMapper {
   }
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     // TODO switch based on type
-    node.name = this.createNewFunctionName(node.name);
+    switch (node.visibility) {
+      case FunctionVisibility.External:
+      case FunctionVisibility.Public:
+        node.name = this.createNewExternalFunctionName(node);
+        break;
+      default:
+        node.name = this.createNewInternalFunctionName(node.name);
+    }
     this.commonVisit(node, ast);
   }
   visitModifierDefinition(node: ModifierDefinition, ast: AST): void {

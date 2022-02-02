@@ -34,13 +34,13 @@ describe('warp-ts', function () {
   });
 
   step('Contract member function is invokable', async function () {
-    const response = await invoke(c_ContractAddress, '__warp_usrfn0_test');
+    const response = await invoke(c_ContractAddress, 'test_f8a8fd6d');
     expect(response.status).to.equal(200);
     expect(response.return_data).to.deep.equal([]);
   });
 
   step('Contract member function returns a value', async function () {
-    const response = await invoke(c_ContractAddress, '__warp_usrfn1_returnTest');
+    const response = await invoke(c_ContractAddress, 'returnTest_57ecc147');
     expect(response.status).to.equal(200);
     expect(response.return_data).to.deep.equal([12, 0]);
   });
