@@ -19,7 +19,7 @@ from warp.yul.Imports import format_imports, merge_imports
 from warp.yul.NameGenerator import NameGenerator
 from warp.yul.storage_access import generate_storage_var_declaration
 
-UINT128_BOUND = 2 ** 128
+UINT128_BOUND = 2**128
 
 COMMON_IMPORTS = {
     "starkware.cairo.common.registers": {"get_fp_and_pc"},

@@ -66,7 +66,7 @@ class CairoFunctions:
         name = f"__warp_constant_{constant}"
 
         def inner():
-            high, low = divmod(constant, 2 ** 128)
+            high, low = divmod(constant, 2**128)
             return "\n".join(
                 [
                     f"func {name}() -> (res: Uint256):",
