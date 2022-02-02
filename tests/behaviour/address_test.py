@@ -22,7 +22,7 @@ async def test_address():
     contract_address: int = await deploy_contract(
         starknet, program_info, contract_definition
     )
-    high, low = divmod(contract_address, 2 ** 128)
+    high, low = divmod(contract_address, 2**128)
 
     res = await invoke_method(starknet, program_info, contract_address, "getAddress")
     assert res.retdata == [32, 2, high, low]

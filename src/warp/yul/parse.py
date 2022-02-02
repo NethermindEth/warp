@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 import warp.yul.ast as ast
 from warp.yul.utils import camelize, remove_prefix
 from warp.yul.WarpException import WarpException, warp_assert, warp_assert_statement
@@ -36,11 +38,15 @@ def parse_node(yul_ast) -> ast.Node:
         return parser(yul_ast)
 
 
-def parse_expression(yul_ast) -> ast.Expression:
+def parse_expression(yul_ast, func_name: Optional[str] = None) -> ast.Expression:
     if yul_ast["nodeType"] == "YulIdentifier":
         return parse_identifier(yul_ast)
     elif yul_ast["nodeType"] == "YulLiteral":
-        return parse_literal(yul_ast)
+        return (
+            parse_literal(yul_ast)
+            if func_name not in ["setimmutable", "loadimmutable"]
+            else parse_literal_immutable(yul_ast)
+        )
     else:
         return parse_function_call(yul_ast)
 
@@ -79,6 +85,19 @@ def parse_literal(yul_ast) -> ast.Literal:
         assert False, "Invalid Literal node"
 
 
+def parse_literal_immutable(yul_ast) -> ast.Literal:
+    kind = yul_ast["kind"]
+    if kind == "number":
+        return ast.Literal(read_int(yul_ast["value"]))
+    elif kind == "bool":
+        return ast.Literal(yul_ast["value"] == "true")
+    elif kind == "string":
+        yul_string = yul_ast["value"]
+        return ast.Literal(yul_string)
+    else:
+        assert False, "Invalid Literal node"
+
+
 @register_parser
 def parse_identifier(yul_ast) -> ast.Identifier:
     return ast.Identifier(yul_ast["name"])
@@ -94,7 +113,7 @@ def parse_assignment(yul_ast) -> ast.Assignment:
 @register_parser
 def parse_function_call(yul_ast) -> ast.FunctionCall:
     fun_name = parse_identifier(yul_ast["functionName"])
-    args = [parse_expression(x) for x in yul_ast["arguments"]]
+    args = [parse_expression(x, fun_name.name) for x in yul_ast["arguments"]]
     return ast.FunctionCall(fun_name, args)
 
 

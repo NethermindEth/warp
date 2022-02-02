@@ -7,6 +7,7 @@ from typing import Callable, Mapping, Optional, Sequence
 
 from warp.yul.FunctionGenerator import CairoFunctions, FunctionInfo
 from warp.yul.Imports import Imports
+from warp.yul.WarpException import WarpException
 
 UINT256_MODULE = "starkware.cairo.common.uint256"
 
@@ -493,7 +494,7 @@ class Address(StaticHandler):
 
 class Gas(DynamicHandler):
     def __init__(self, cairo_functions: CairoFunctions):
-        super().__init__(lambda: cairo_functions.constant_function(10 ** 40))
+        super().__init__(lambda: cairo_functions.constant_function(10**40))
 
     def get_function_call(self, function_args: Sequence[str]) -> str:
         return super().get_function_call([])
@@ -730,8 +731,17 @@ class LinkerSymbol(NotImplementedStarkNet):
     pass
 
 
-class LoadImmutable(NotImplementedStarkNet):
-    pass
+class LoadImmutable(DynamicHandler):
+    def __init__(self, cairo_functions: CairoFunctions, imm_dict: dict[str, int]):
+        super().__init__(cairo_functions.load_immutable_function)
+        self.imm_dict = imm_dict
+
+    def get_function_call(self, function_args: Sequence[str]) -> str:
+        (arg,) = function_args
+        id = self.imm_dict.get(arg)
+        if id == None:
+            raise WarpException("Unknown immutable name, cannot be loaded")
+        return super().get_function_call([str(id)])
 
 
 class Origin(NotImplementedStarkNet):
@@ -742,8 +752,16 @@ class Pc(NotImplementedStarkNet):
     pass
 
 
-class SetImmutable(NotImplementedStarkNet):
-    pass
+class SetImmutable(DynamicHandler):
+    def __init__(self, cairo_functions: CairoFunctions, imm_dict: dict[str, int]):
+        super().__init__(cairo_functions.set_immutable_function)
+        self.imm_dict = imm_dict
+
+    def get_function_call(self, function_args: Sequence[str]):
+        _, arg, value = function_args
+        if arg not in self.imm_dict:
+            self.imm_dict[arg] = len(self.imm_dict)
+        return super().get_function_call([str(self.imm_dict.get(arg)), value])
 
 
 class SelfDestruct(NotImplementedStarkNet):
@@ -758,6 +776,7 @@ def get_default_builtins(
     cairo_functions: CairoFunctions,
 ) -> Mapping[str, BuiltinHandler]:
     """Returns a mapping from default Yul builtins to their handlers."""
+    immutable_dict = {}
     return {
         "add": Add(),
         "addmod": AddMod(),
@@ -798,7 +817,7 @@ def get_default_builtins(
         "iszero": IsZero(),
         "keccak256": SHA3(),
         "linkersymbol": LinkerSymbol(),
-        "loadimmutable": LoadImmutable(),
+        "loadimmutable": LoadImmutable(cairo_functions, immutable_dict),
         "log0": Log0(),
         "log1": Log1(),
         "log2": Log2(),
@@ -826,7 +845,7 @@ def get_default_builtins(
         "sdiv": Sdiv(),
         "selfbalance": SelfBalance(),
         "selfdestruct": SelfDestruct(),
-        "setimmutable": SetImmutable(),
+        "setimmutable": SetImmutable(cairo_functions, immutable_dict),
         "sgt": Sgt(),
         "shl": Shl(),
         "shr": Shr(),
