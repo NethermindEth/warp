@@ -16,8 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-        with:
-          ref: 'feature/codebuild'
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -37,4 +35,4 @@ jobs:
         env:
           requester: ${{ github.actor }}
           event-name: ${{ github.event_name }}
-          sourceVersion: 'manual_codebuild'
+          sourceVersion: 'develop'
