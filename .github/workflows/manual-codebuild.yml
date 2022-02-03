@@ -5,15 +5,12 @@ on:
     inputs:
       pull_request:
         description: 'Pull request you'd like to build'
-        required: false
-        type: string
+        required: true
         default: 'latest'
 
 jobs:
-  build-dockers:
-    if: github.repository_owner == 'NethermindEth'
-    runs-on: ubuntu-latest
+  check_variable:
     steps:
-      - name: Echo PR
-        run: |
-          echo $PULL_REQUEST
+      - name: check variable
+        if: github.event.inputs.pull_request == 'latest'
+        run: echo 'PR is latest'
