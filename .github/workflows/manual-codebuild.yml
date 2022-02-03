@@ -32,7 +32,8 @@ jobs:
           project-name: warp
           env-vars-for-codebuild: |
             requester,
-            event-name
+            event-name,
+            sourceVersion
         env:
           requester: ${{ github.actor }}
           event-name: ${{ github.event_name }}
