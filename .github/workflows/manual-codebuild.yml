@@ -3,7 +3,7 @@ name: Manually Trigger AWS CodeBuild
 on:
   workflow_dispatch:
     inputs:
-      pr_number:
+      yeet:
         description: 'Pull request you'd like to build'
         required: true
         default: 'latest'
@@ -12,5 +12,5 @@ jobs:
   check_variable:
     steps:
       - name: check variable
-        if: github.event.inputs.pr_number == 'latest'
+        if: github.event.inputs.yeet == 'latest'
         run: echo 'PR is latest'
