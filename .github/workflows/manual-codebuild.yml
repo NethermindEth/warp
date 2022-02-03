@@ -1,4 +1,4 @@
-name: Manually Trigger AWS CodeBuild
+name: Manual CodeBuild Trigger
 
 on: 
   push:
@@ -36,3 +36,4 @@ jobs:
         env:
           requester: ${{ github.actor }}
           event-name: ${{ github.event_name }}
+          sourceVersion: 'feature/codebuild'
