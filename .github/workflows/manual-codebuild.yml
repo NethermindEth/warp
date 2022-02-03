@@ -1,12 +1,15 @@
 name: Manually Trigger AWS CodeBuild
 
 on: 
-  workflow_dispatch:
-    inputs:
-      pull_request_number:
-        description: Pull request you'd like to build
-        required: true
-        default: latest
+  push:
+    branches:
+      - 'manual_codebuild'
+  # workflow_dispatch:
+  #   inputs:
+  #     pull_request_number:
+  #       description: Pull request you'd like to build
+  #       required: true
+  #       default: latest
 
 jobs:
   check_variable:
@@ -14,3 +17,5 @@ jobs:
       - name: check variable
         if: github.event.inputs.pull_request_number == 'latest'
         run: echo 'PR is latest'
+      - name: Get current PR
+        run: echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }'
