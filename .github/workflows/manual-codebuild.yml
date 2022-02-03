@@ -3,10 +3,16 @@ name: Manually Trigger AWS CodeBuild
 on: 
   workflow_dispatch:
     inputs:
-      logLevel:
-        description: 'Pull request you'd like to build'    
+      version:
+        description: Version
+        default: v1.0.0
         required: true
-        default: 'latest'
+  # workflow_dispatch:
+  #   inputs:
+  #     logLevel:
+  #       description: 'Pull request you'd like to build'    
+  #       required: true
+  #       default: 'latest'
 
 jobs:
   check_variable:
