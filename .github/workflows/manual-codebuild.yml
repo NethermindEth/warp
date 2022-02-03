@@ -1,0 +1,18 @@
+name: 'Manually Trigger AWS CodeBuild'
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: 'Pull request you'd like to build'
+        required: true
+        default: 'latest'
+
+jobs:
+  build-dockers:
+    if: github.repository_owner == 'NethermindEth'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo PR
+        run: |
+          echo $GITHUB_EVENT_PATH
