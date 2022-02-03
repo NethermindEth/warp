@@ -19,7 +19,7 @@ jobs:
         id: findPr
         with:
           # Can be "open", "closed", or "all".  Defaults to "open".
-          state: open
+          state: all
       - run: echo "Your PR is ${PR}"
         env:
           PR: ${{ steps.findPr.outputs.pr }}
