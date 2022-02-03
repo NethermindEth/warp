@@ -7,8 +7,6 @@ on:
         description: 'Pull request you'd like to build'    
         required: true
         default: 'latest'
-      tags:
-        description: 'Test scenario tags'
 
 jobs:
   check_variable:
