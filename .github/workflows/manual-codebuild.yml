@@ -7,12 +7,10 @@ on:
         description: Version
         default: v1.0.0
         required: true
-  # workflow_dispatch:
-  #   inputs:
-  #     logLevel:
-  #       description: 'Pull request you'd like to build'    
-  #       required: true
-  #       default: 'latest'
+      logLevel:
+        description: Pull request you'd like to build
+        required: true
+        default: latest
 
 jobs:
   check_variable:
