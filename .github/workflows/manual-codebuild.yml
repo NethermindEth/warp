@@ -3,9 +3,10 @@ name: Manually Trigger AWS CodeBuild
 on:
   workflow_dispatch:
     inputs:
-      pr:
+      pull_request:
         description: 'Pull request you'd like to build'
         required: false
+        type: string
         default: 'latest'
 
 jobs:
@@ -15,4 +16,4 @@ jobs:
     steps:
       - name: Echo PR
         run: |
-          echo $GITHUB_EVENT_PATH
+          echo $PULL_REQUEST
