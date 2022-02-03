@@ -12,7 +12,8 @@ on:
   #       default: latest
 
 jobs:
-  check_variable:
+  check_variables:
+    runs-on: ubuntu-latest
     steps:
       - name: check variable
         if: github.event.inputs.pull_request_number == 'latest'
