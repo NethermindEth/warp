@@ -12,16 +12,18 @@ import {
   Mapping,
 } from 'solc-typed-ast';
 import { ASTMapper } from '../ast/mapper';
-import { cloneTypeName } from '../utils/cloning';
+import { cloneExpression, cloneTypeName } from '../utils/cloning';
 import { AST } from '../ast/ast';
-import { printNode } from '../utils/astPrinter';
+import { printNode, printTypeNode } from '../utils/astPrinter';
 import { CairoContract } from '../ast/cairoNodes';
-import { toHexString } from '../utils/utils';
+import { toHexString, typeNameFromTypeNode } from '../utils/utils';
 import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
 
 export class StorageVariableAccessRewriter extends ASTMapper {
   visitAssignment(node: Assignment, ast: AST): void {
     if (node.vLeftHandSide instanceof Identifier) {
+      // Replace writes to storage variables with functions
+      // other assignments to identifiers work as is
       const decl = node.vLeftHandSide.vReferencedDeclaration;
       if (decl === undefined || !(decl instanceof VariableDeclaration && decl.stateVariable)) {
         this.commonVisit(node, ast);
@@ -51,9 +53,35 @@ export class StorageVariableAccessRewriter extends ASTMapper {
       // Recurse only to the right, because the lhs is now handled
       // TODO check for any cases this doesn't cover
       this.dispatchVisit(node.vRightHandSide, ast);
-      return;
+    } else if (node.vLeftHandSide instanceof IndexAccess) {
+      const lhsType = getNodeType(node.vLeftHandSide.vBaseExpression, ast.compilerVersion);
+      if (lhsType instanceof PointerType && lhsType.to instanceof MappingType) {
+        const mapping = node.vLeftHandSide.vBaseExpression;
+        const index = node.vLeftHandSide.vIndexExpression;
+        assert(index !== undefined, 'Write to index access requires defined index');
+        const writeValue = node.vRightHandSide;
+        const mappingTypeName = new Mapping(
+          ast.reserveId(),
+          '',
+          'Mapping',
+          lhsType.to.pp(),
+          typeNameFromTypeNode(lhsType.to.keyType, ast),
+          typeNameFromTypeNode(lhsType.to.valueType, ast),
+        );
+        const replacementFunc = ast.cairoUtilFuncGen.writeMapping(
+          mapping,
+          index,
+          mappingTypeName,
+          writeValue,
+        );
+        ast.replaceNode(node, replacementFunc);
+        this.dispatchVisit(replacementFunc, ast);
+      } else {
+        throw new NotSupportedYetError(`Write to ${printTypeNode(lhsType)} not implemented yet`);
+      }
+    } else {
+      this.commonVisit(node, ast);
     }
-    this.commonVisit(node, ast);
   }
 
   visitIdentifier(node: Identifier, ast: AST): void {
@@ -70,30 +98,41 @@ export class StorageVariableAccessRewriter extends ASTMapper {
 
     const typeName = cloneTypeName(decl.vType, ast);
 
-    const parent = node.parent;
-    assert(parent !== undefined, `Visited identifier with undefined parent: ${printNode(node)}`);
+    if (typeName instanceof Mapping) {
+      const replacementValue = decl.vValue;
+      assert(
+        replacementValue !== undefined,
+        `StorageVariableAccessRewriter expects mappings to be initialised, did you run storageAllocator? Found at ${printNode(
+          node,
+        )}`,
+      );
+      ast.replaceNode(node, cloneExpression(replacementValue, ast));
+    } else {
+      const parent = node.parent;
+      assert(parent !== undefined, `Visited identifier with undefined parent: ${printNode(node)}`);
 
-    const allocation = node.getClosestParentByType(CairoContract)?.storageAllocations.get(decl);
-    assert(
-      allocation !== undefined,
-      'StorageVariableAccessRewriter expects storage variables to have assigned locations. Did you run storageAllocator?',
-    );
-    ast.replaceNode(
-      node,
-      ast.cairoUtilFuncGen.storageRead(
-        new Literal(
-          ast.reserveId(),
-          '',
-          'Literal',
-          `int_const ${allocation}`,
-          LiteralKind.Number,
-          toHexString(`${allocation}`),
-          `${allocation}`,
+      const allocation = node.getClosestParentByType(CairoContract)?.storageAllocations.get(decl);
+      assert(
+        allocation !== undefined,
+        'StorageVariableAccessRewriter expects storage variables to have assigned locations. Did you run storageAllocator?',
+      );
+      ast.replaceNode(
+        node,
+        ast.cairoUtilFuncGen.storageRead(
+          new Literal(
+            ast.reserveId(),
+            '',
+            'Literal',
+            `int_const ${allocation}`,
+            LiteralKind.Number,
+            toHexString(`${allocation}`),
+            `${allocation}`,
+          ),
+          typeName,
         ),
-        typeName,
-      ),
-      parent,
-    );
+        parent,
+      );
+    }
   }
 
   // TODO: Implement enum versions of the storage variable

@@ -64,8 +64,6 @@ export class cairoUtilFuncGen {
   // cairoType -> code
   private generatedStorageReads: Map<string, CairoFunction> = new Map();
   private generatedStorageWrites: Map<string, CairoFunction> = new Map();
-  // keyType -> valueType -> code
-  private generatedMappingReads: Map<string, Map<string, CairoFunction>> = new Map();
   // element cairoType -> code
   private generatedNews: Map<string, CairoFunction> = new Map();
   // readType -> code
@@ -93,9 +91,6 @@ export class cairoUtilFuncGen {
       ...[...this.generatedMemoryWrites.values()].map((func) => func.code),
       ...[...this.generatedStorageReads.values()].map((func) => func.code),
       ...[...this.generatedStorageWrites.values()].map((func) => func.code),
-      ...[...this.generatedMappingReads.values()]
-        .flatMap((map) => [...map.values()])
-        .map((func) => func.code),
     ].join('\n\n');
   }
 
@@ -126,13 +121,7 @@ export class cairoUtilFuncGen {
     const functionStub = createCairoFunctionStub(
       name,
       [
-        [
-          'name',
-          typeNameFromTypeNode(
-            getNodeType(indexAccess.vBaseExpression, this.ast.compilerVersion),
-            this.ast,
-          ),
-        ],
+        ['name', indexAccess.vBaseExpression],
         ['index', this.uint256TypeName()],
       ],
       [['val', typeNameFromTypeNode(getNodeType(indexAccess, this.ast.compilerVersion), this.ast)]],
@@ -232,6 +221,31 @@ export class cairoUtilFuncGen {
     return this.createCallToStub(functionStub, [mapping, key]);
   }
 
+  writeMapping(
+    mapping: Expression,
+    key: Expression,
+    mappingTypeName: Mapping,
+    writeValue: Expression,
+  ): FunctionCall {
+    const keyType = cairoType(typeNameToTypeNode(mappingTypeName.vKeyType)).toString();
+    const valueType = cairoType(typeNameToTypeNode(mappingTypeName.vValueType)).toString();
+    const name = `${
+      this.mappings.get(keyType)?.get(valueType)?.name ?? this.createMapping(keyType, valueType)
+    }.write`;
+    const functionStub = createCairoFunctionStub(
+      name,
+      [
+        ['name', cloneTypeName(mappingTypeName, this.ast)],
+        ['key', mappingTypeName.vKeyType],
+        ['writeValue', mappingTypeName.vValueType],
+      ],
+      [['val', cloneTypeName(mappingTypeName.vValueType, this.ast)]],
+      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
+      this.ast,
+    );
+    return this.createCallToStub(functionStub, [mapping, key, writeValue]);
+  }
+
   //-------------------private cairo implementation generators-----------------
 
   private createCallToStub(stub: CairoFunctionDefinition, args: Expression[]): FunctionCall {
@@ -245,7 +259,7 @@ export class cairoUtilFuncGen {
         this.ast.reserveId(),
         '',
         'Identifier',
-        getFunctionTypeString(stub),
+        getFunctionTypeString(stub, this.ast.compilerVersion),
         stub.name,
         stub.id,
       ),
@@ -270,13 +284,13 @@ export class cairoUtilFuncGen {
   }
 
   private createMemoryRead(typeToRead: CairoType): string {
-    const funcName = `WM_READ${this.generatedStorageReads.size}`;
+    const funcName = `WM_READ${this.generatedMemoryReads.size}`;
     const commands: ReadSerialisationCommand[] = serialiseReads(typeToRead);
     const resultCairoType = typeToRead.toString();
     const queue: string[] = [];
     let readCounter = 0;
     let packCounter = 0;
-    this.generatedStorageReads.set(resultCairoType, {
+    this.generatedMemoryReads.set(resultCairoType, {
       name: funcName,
       code: [
         `func ${funcName}{range_check_ptr, warp_memory: MemCell*}(name: felt, offset: Uint256) ->(val: ${resultCairoType}):`,
@@ -285,7 +299,7 @@ export class cairoUtilFuncGen {
           if (command.tag === 'READ') {
             queue.push(`read${readCounter}`);
             const readCode = [
-              `    let (idx: Uint256) = warp_idx(offset, 1, ${readCounter})`,
+              `    let (idx: Uint256) = warp_idx(offset, ${typeToRead.width}, ${readCounter})`,
               `    let (local read${readCounter}: felt) = warp_memory_read(warp_memory, name, idx)`,
             ].join('\n');
             ++readCounter;

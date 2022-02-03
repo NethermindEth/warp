@@ -5,6 +5,9 @@ import {
   ExpressionStatement,
   getNodeType,
   Identifier,
+  Literal,
+  LiteralKind,
+  Mapping,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -13,17 +16,33 @@ import { ASTMapper } from '../ast/mapper';
 import { cloneExpression } from '../utils/cloning';
 import { implicitImports } from '../utils/implicits';
 import { getFeltWidth } from '../utils/serialisation';
+import { toHexString } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     let usedMemory = 0;
+    let mappingCount = 0;
     const allocations: Map<VariableDeclaration, number> = new Map();
     const initialisationBlock = new Block(ast.reserveId(), node.src, 'Block', []);
     node.vStateVariables.forEach((v) => {
-      const width = getFeltWidth(getNodeType(v, ast.compilerVersion));
-      allocations.set(v, usedMemory);
-      usedMemory += width;
-      extractInitialisation(v, initialisationBlock, ast);
+      if (v.vType instanceof Mapping) {
+        v.vValue = new Literal(
+          ast.reserveId(),
+          '',
+          'Literal',
+          v.typeString,
+          LiteralKind.Number,
+          toHexString(`${mappingCount}`),
+          `${mappingCount}`,
+        );
+        v.vValue.parent = v;
+        ++mappingCount;
+      } else {
+        const width = getFeltWidth(getNodeType(v, ast.compilerVersion));
+        allocations.set(v, usedMemory);
+        usedMemory += width;
+        extractInitialisation(v, initialisationBlock, ast);
+      }
     });
     ast.replaceNode(
       node,

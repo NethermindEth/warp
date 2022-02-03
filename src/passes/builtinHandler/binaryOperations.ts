@@ -162,6 +162,7 @@ export class BinaryOperations extends BuiltinMapper {
 const infixOperatorToCall = new Map([
   ['+', 'add'],
   ['-', 'sub'],
+  ['*', 'mul'],
   ['/', 'div'],
   ['==', 'eq'],
   ['!=', 'neq'],

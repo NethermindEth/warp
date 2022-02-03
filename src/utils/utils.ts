@@ -19,6 +19,8 @@ import {
   LiteralKind,
   FunctionDefinition,
   FunctionVisibility,
+  getNodeType,
+  DataLocation,
 } from 'solc-typed-ast';
 import { AST, Imports } from '../ast/ast';
 import { isSane } from './astChecking';
@@ -248,7 +250,16 @@ export function mapRange<T>(n: number, func: (n: number) => T): T[] {
 
 export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
   let result: TypeName | null = null;
-  if (node instanceof ArrayType) {
+  if (node instanceof AddressType) {
+    result = new ElementaryTypeName(
+      ast.reserveId(),
+      '',
+      'ElementaryTypeName',
+      node.pp(),
+      node.pp(),
+      node.payable ? 'payable' : 'nonpayable',
+    );
+  } else if (node instanceof ArrayType) {
     result = new ArrayTypeName(
       ast.reserveId(),
       '',
@@ -290,17 +301,30 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
   return result;
 }
 
-export function getFunctionTypeString(node: FunctionDefinition): string {
-  const inputs = node.vParameters.vParameters.map((decl) => decl.typeString).join(', ');
+export function getFunctionTypeString(node: FunctionDefinition, compilerVersion: string): string {
+  const inputs = node.vParameters.vParameters
+    .map((decl) => {
+      const baseType = getNodeType(decl, compilerVersion);
+      if (baseType instanceof ArrayType || baseType instanceof UserDefinedType) {
+        if (decl.storageLocation === DataLocation.Default) {
+          throw new NotSupportedYetError(
+            'Default location ref parameter to string not supported yet',
+          );
+        }
+        return `${baseType.pp()} ${decl.storageLocation}`;
+      }
+      return baseType.pp();
+    })
+    .join(', ');
   const visibility =
     node.visibility === FunctionVisibility.Private || FunctionVisibility.Default
       ? ''
-      : node.visibility;
+      : ` ${node.visibility}`;
   const outputs =
     node.vReturnParameters.vParameters.length === 0
       ? ''
       : `returns (${node.vReturnParameters.vParameters.map((decl) => decl.typeString).join(', ')})`;
-  return `function (${inputs}) ${visibility} ${node.stateMutability} ${outputs}`;
+  return `function (${inputs})${visibility}${node.stateMutability} ${outputs}`;
 }
 
 export function getReturnTypeString(node: FunctionDefinition): string {

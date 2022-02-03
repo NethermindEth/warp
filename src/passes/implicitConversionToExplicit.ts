@@ -185,10 +185,18 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 
     const parameters = functionType.parameters;
 
+    //Ignore any arguments prepended by AddressArgumentPusher
     node.vArguments.slice(-parameters.length).forEach((argument, index) => {
-      const argumentType = getNodeType(argument, ast.compilerVersion);
+      let argumentType = getNodeType(argument, ast.compilerVersion);
+      let nonPtrParamType = parameters[index];
+      while (argumentType instanceof PointerType) {
+        argumentType = argumentType.to;
+      }
+      while (nonPtrParamType instanceof PointerType) {
+        nonPtrParamType = nonPtrParamType.to;
+      }
 
-      const res = compareTypeSize(argumentType, parameters[index]);
+      const res = compareTypeSize(argumentType, nonPtrParamType);
       if (res !== 0) {
         ast.replaceNode(
           argument,

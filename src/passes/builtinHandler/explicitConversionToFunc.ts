@@ -3,6 +3,7 @@ import {
   BinaryOperation,
   BytesType,
   ElementaryTypeNameExpression,
+  Expression,
   FunctionCall,
   FunctionCallKind,
   getNodeType,
@@ -16,6 +17,7 @@ import {
 import { AST } from '../../ast/ast';
 import { BuiltinMapper } from '../../ast/builtinMapper';
 import { NotSupportedYetError } from '../../utils/errors';
+import { toHexString } from '../../utils/utils';
 
 export class ExplicitConversionToFunc extends BuiltinMapper {
   builtinDefs = {
@@ -53,39 +55,12 @@ export class ExplicitConversionToFunc extends BuiltinMapper {
 
     if (typeTo instanceof IntType) {
       const typeToSize = typeTo.nBits;
-      // TODO this doesn't cover all possible cases
-      // e.g. literals between 2^251 and 2^256
       // TODO refactor repeated code
-      // TODO conversions should be possible at compile time
       if (argType instanceof IntLiteralType) {
-        if (typeToSize !== 256) {
-          const maskSize = '0x'.concat('f'.repeat(typeToSize / 4));
-
-          // TODO check this logic, specifically about the type of this literal
-          const maskSizeLiteral = new Literal(
-            ast.reserveId(),
-            node.src,
-            'Literal',
-            node.vArguments[0].typeString,
-            LiteralKind.Number,
-            // TODO test what hexstring hexadecimal number literals like this use (I think it's hex of the ascii)
-            maskSize,
-            maskSize,
-          );
-
-          ast.replaceNode(
-            node,
-            new BinaryOperation(
-              ast.reserveId(),
-              node.src,
-              'BinaryOperation',
-              typeTo.pp(),
-              '&&',
-              node.vArguments[0],
-              maskSizeLiteral,
-            ),
-          );
+        if (typeTo.nBits !== 256) {
+          ast.replaceNode(node, truncateLiteral(node.vArguments[0], typeTo, ast));
         } else if (typeToSize === 256) {
+          // TODO do this conversion at compile time
           ast.addImports({ 'warplib.math.utils': new Set(['felt_to_uint256']) });
           ast.replaceNode(
             node.vExpression,
@@ -158,5 +133,48 @@ export class ExplicitConversionToFunc extends BuiltinMapper {
       }
     }
     return;
+  }
+}
+
+function truncateLiteral(arg0: Expression, typeTo: IntType, ast: AST): Expression {
+  if (arg0 instanceof Literal) {
+    const value = BigInt(arg0.value);
+    let truncated: string;
+    if (value >= 0n) {
+      const bits = value.toString(2);
+      truncated = BigInt(`0b${bits.slice(-typeTo.nBits)}`).toString(10);
+    } else {
+      const bits = (-value).toString(2);
+      const inverted = [...bits].map((c) => (c === '0' ? '1' : '0')).join('');
+      const twosComplement = BigInt((BigInt(inverted) + 1n).toString());
+      const signExtensionBitCount = typeTo.nBits > bits.length ? typeTo.nBits - bits.length : 0;
+      truncated = BigInt(`0b${'1'.repeat(signExtensionBitCount)}${twosComplement}`).toString(10);
+    }
+    arg0.value = truncated;
+    arg0.hexValue = toHexString(truncated);
+    arg0.typeString = typeTo.pp();
+    return arg0;
+  } else {
+    const maskSize = '0x'.concat('f'.repeat(typeTo.nBits / 4));
+
+    const maskSizeLiteral = new Literal(
+      ast.reserveId(),
+      arg0.src,
+      'Literal',
+      typeTo.pp(),
+      LiteralKind.Number,
+      toHexString(maskSize),
+      maskSize,
+    );
+
+    return new BinaryOperation(
+      ast.reserveId(),
+      arg0.src,
+      'BinaryOperation',
+      typeTo.pp(),
+      '&&',
+      arg0,
+      maskSizeLiteral,
+    );
   }
 }
