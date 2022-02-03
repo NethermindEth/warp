@@ -1,11 +1,11 @@
-name: 'Manually Trigger AWS CodeBuild'
+name: Manually Trigger AWS CodeBuild
 
 on:
   workflow_dispatch:
     inputs:
       pr:
         description: 'Pull request you'd like to build'
-        required: true
+        required: false
         default: 'latest'
 
 jobs:
