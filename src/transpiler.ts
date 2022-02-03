@@ -1,7 +1,6 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
 import {
-  AddressArgumentPusher,
-  AddressEliminator,
+  AddressHandler,
   AnnotateImplicits,
   BuiltinHandler,
   ExpressionSplitter,
@@ -75,8 +74,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['Ei', new ExternImporter()],
     ['L', new LiteralExpressionEvaluator()],
     ['T', new TupleAssignmentSplitter()],
-    ['Ae', new AddressEliminator()],
-    ['Aap', new AddressArgumentPusher()],
+    ['Ah', new AddressHandler()],
     ['U', new UnloadingAssignment()],
     ['V', new VariableDeclarationInitialiser()],
     ['F', new ForLoopToWhile()],

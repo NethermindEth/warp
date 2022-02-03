@@ -1,5 +1,4 @@
-export * from './addressArgumentPusher';
-export * from './addressEliminator';
+export * from './addressHandler';
 export * from './annotateImplicits';
 export * from './builtinHandler';
 export * from './expressionSplitter';

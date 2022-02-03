@@ -7,9 +7,10 @@ import {
   MemberAccess,
   UserDefinedType,
 } from 'solc-typed-ast';
-import { AST } from '../ast/ast';
-import { ASTMapper } from '../ast/mapper';
+import { AST } from '../../ast/ast';
+import { ASTMapper } from '../../ast/mapper';
 
+// Note: This pass has been deprecated
 export class AddressEliminator extends ASTMapper {
   // Replaces `address(t)` with `t` when t is a contract type
   visitFunctionCall(node: FunctionCall, ast: AST): void {
