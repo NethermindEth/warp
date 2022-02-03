@@ -15,8 +15,11 @@ jobs:
   check_variables:
     runs-on: ubuntu-latest
     steps:
-      - name: check variable
-        if: github.event.inputs.pull_request_number == 'latest'
-        run: echo 'PR is latest'
-      - name: Get current PR
-        run: echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }'
+      - uses: jwalton/gh-find-current-pr@v1
+        id: findPr
+        with:
+          # Can be "open", "closed", or "all".  Defaults to "open".
+          state: open
+      - run: echo "Your PR is ${PR}"
+        env:
+          PR: ${{ steps.findPr.outputs.pr }}
