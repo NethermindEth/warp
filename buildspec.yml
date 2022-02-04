@@ -7,7 +7,9 @@ phases:
   pre_build:
     commands:
       - apt-get update && apt upgrade -y
-      - apt-get install -y software-properties-common
+      - apt-get install -y software-properties-common python3-pip
+      - python3 -m pip install --no-input --user pipx
+      - python3 -m pipx ensurepath
 
       # lint dependencies
       - pipx install black[colors]
@@ -31,3 +33,7 @@ phases:
       - find src/warp/cairo-src/ -iname *.cairo -exec cairo-format -c {} +
 
       # - poetry run make test_semantics
+
+
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+/home/nethermind/.local/bin:/home/nethermind/.local/bin:/home/nethermind/.local/bin
