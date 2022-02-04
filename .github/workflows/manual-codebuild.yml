@@ -37,9 +37,9 @@ jobs:
           sourceVersion: 'develop'
       
       - name: test build failure if statement
-        if: steps.codebuild.outcome == 'failure'
+        if: steps.codebuild.outcome == 'success'
         run: |
-          "echo codebuild failed :))"
+          "echo codebuild success :))"
       
       - name: echo codebuild outcome
         run: "echo ${{ steps.codebuild.outcome }}"
