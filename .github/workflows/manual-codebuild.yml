@@ -39,7 +39,10 @@ jobs:
       - name: test build failure if statement
         if: steps.codebuild.outcome == 'failure'
         run: |
-          echo "codebuild failed :))"
+          "echo codebuild failed :))"
+      
+      - name: echo codebuild outcome
+        run: "echo ${{ steps.codebuild.outcome }}"
 
       # - name: Auto-Approve Pull Request
       #   uses: hmarr/auto-approve-action@v2
