@@ -36,10 +36,9 @@ jobs:
           event-name: ${{ github.event_name }}
           sourceVersion: 'develop'
       
-      - name: test build failure if statement
+      - name: test build success if statement
         if: steps.codebuild.outcome == 'success'
-        run: |
-          "echo codebuild success :))"
+        run: "echo ${{ steps.codebuild.outcome }}"
       
       - name: echo codebuild outcome
         run: "echo ${{ steps.codebuild.outcome }}"
