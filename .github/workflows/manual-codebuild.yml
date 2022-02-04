@@ -1,5 +1,8 @@
 name: Manual CodeBuild Trigger
 
+permissions:
+  pull-requests: write
+
 on: 
   pull_request_target:
     branches:
