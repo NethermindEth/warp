@@ -41,5 +41,5 @@ jobs:
         uses: hmarr/auto-approve-action@v2.1.0
         if: steps.codebuild.outcome == 'success' && github.actor == 'nickkjolsing'
         with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-          pull-request-number: '229'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: 229
