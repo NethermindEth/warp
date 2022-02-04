@@ -1,18 +1,10 @@
 name: Manual CodeBuild Trigger
 
-permissions:
-  pull-requests: write
-
 on: 
   push:
     branches:
       - 'manual_codebuild'
-  pull_request_target:
-    types:
-      - opened
-    branches:
-      - 'develop'
-      - 'manual_codebuild'
+
   # workflow_dispatch:
   #   inputs:
   #     pull_request_number:
@@ -50,3 +42,4 @@ jobs:
         if: steps.codebuild.outcome == 'success' && github.actor == 'nickkjolsing'
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
+          pull-request-number: '229'
