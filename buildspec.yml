@@ -12,9 +12,7 @@ phases:
       - python3 -m pipx ensurepath
 
       # lint dependencies
-      - pipx install black[colors]
-      - pipx install isort[colors]
-      - pipx install cairo-lang
+
 
       # - apt install -y software-properties-common
       # - add-apt-repository -y ppa:deadsnakes/ppa
@@ -27,6 +25,9 @@ phases:
   build:
     commands:
       - "echo Phase 1: Lint!"
+      - pipx install black[colors]
+      - pipx install isort[colors]
+      - pipx install cairo-lang
       - black . --check --verbose --diff --color
       - isort . --check --verbose --diff --color
       - isort --ext cairo src/warp/cairo-src --check --verbose --diff --color
