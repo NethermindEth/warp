@@ -2,6 +2,9 @@ name: Manual CodeBuild Trigger
 
 on:
   pull_request_target:
+    types:
+      - opened
+      - reopened
     branches:
       - 'develop'
       - 'manual_codebuild'
