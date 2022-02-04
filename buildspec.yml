@@ -6,9 +6,14 @@ phases:
       python: 3.7
   pre_build:
     commands:
-      - apt update
-      - pwd
-      - ls -la
+      - apt update && apt upgrade -y
+      - apt install -y software-properties-common
+
+      # lint dependencies
+      - pipx install black[colors]
+      - pipx install isort[colors]
+      - pipx install cairo-lang
+
       # - apt install -y software-properties-common
       # - add-apt-repository -y ppa:deadsnakes/ppa
       # - add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -19,7 +24,10 @@ phases:
       # - curl -sSL https://install.python-poetry.org | python -
   build:
     commands:
-      # - export PATH="/root/.local/bin:$PATH"
-      - pwd
-      - ls -la
+      - "echo Phase 1: Lint!"
+      - black . --check --verbose --diff --color
+      - isort . --check --verbose --diff --color
+      - isort --ext cairo src/warp/cairo-src --check --verbose --diff --color
+      - find src/warp/cairo-src/ -iname *.cairo -exec cairo-format -c {} +
+
       # - poetry run make test_semantics
