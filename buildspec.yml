@@ -7,6 +7,8 @@ phases:
   pre_build:
     commands:
       - apt update
+      - pwd
+      - ls -la
       # - apt install -y software-properties-common
       # - add-apt-repository -y ppa:deadsnakes/ppa
       # - add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -17,5 +19,7 @@ phases:
       # - curl -sSL https://install.python-poetry.org | python -
   build:
     commands:
-      - export PATH="/root/.local/bin:$PATH"
+      # - export PATH="/root/.local/bin:$PATH"
+      - pwd
+      - ls -la
       # - poetry run make test_semantics
