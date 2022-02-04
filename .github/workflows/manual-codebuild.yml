@@ -1,14 +1,17 @@
 name: Manual CodeBuild Trigger
 
+permissions:
+  pull-requests: write
+
 on: 
   pull_request_target:
     branches:
       - 'manual_codebuild'
+      - 'manual_codebuild_PRTrigger'
 
   # push:
   #   branches:
   #     - 'manual_codebuild'
-#test
 
   # workflow_dispatch:
   #   inputs:
