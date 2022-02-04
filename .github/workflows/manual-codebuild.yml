@@ -36,15 +36,8 @@ jobs:
           event-name: ${{ github.event_name }}
           sourceVersion: 'develop'
       
-      - name: test build success if statement
+      - name: Auto-Approve Pull Request
+        uses: hmarr/auto-approve-action@v2
         if: steps.codebuild.outcome == 'success'
-        run: "echo ${{ steps.codebuild.outcome }}"
-      
-      - name: echo codebuild outcome
-        run: "echo ${{ steps.codebuild.outcome }}"
-
-      # - name: Auto-Approve Pull Request
-      #   uses: hmarr/auto-approve-action@v2
-      #   if: steps.codebuild.outcome == 'success'
-      #   with:
-      #     github-token: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
