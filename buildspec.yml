@@ -6,8 +6,8 @@ phases:
       python: 3.7
   pre_build:
     commands:
-      - apt update && apt upgrade -y
-      - apt install -y software-properties-common
+      - apt-get update && apt upgrade -y
+      - apt-get install -y software-properties-common
 
       # lint dependencies
       - pipx install black[colors]
