@@ -1,15 +1,17 @@
 name: Manual CodeBuild Trigger
 
 on: 
-  # push:
-  #   branches:
-  #     - 'manual_codebuild'
   pull_request_target:
     types: 
       - opened
     branches:
       - 'develop'
       - 'manual_codebuild'
+
+  # push:
+  #   branches:
+  #     - 'manual_codebuild'
+
 
   # workflow_dispatch:
   #   inputs:
