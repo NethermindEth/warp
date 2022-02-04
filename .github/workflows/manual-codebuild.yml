@@ -23,6 +23,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Run CodeBuild
+        id: codebuild
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
           project-name: warp
@@ -34,3 +35,14 @@ jobs:
           requester: ${{ github.actor }}
           event-name: ${{ github.event_name }}
           sourceVersion: 'develop'
+      
+      - name: test build failure if statement
+        if: steps.codebuild.outcome == 'failure'
+        run: |
+          echo "codebuild failed :))"
+
+      # - name: Auto-Approve Pull Request
+      #   uses: hmarr/auto-approve-action@v2
+      #   if: steps.codebuild.outcome == 'success'
+      #   with:
+      #     github-token: "${{ secrets.GITHUB_TOKEN }}"

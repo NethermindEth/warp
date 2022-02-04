@@ -6,31 +6,15 @@ phases:
       python: 3.7
   pre_build:
     commands:
-      - apt-get update && apt upgrade -y
-      - apt-get install -y software-properties-common python3-pip
-      - python3 -m pip install --no-input --user pipx
-      - python3 -m pipx ensurepath
-
-      # lint dependencies
-
-
-      # - apt install -y software-properties-common
-      # - add-apt-repository -y ppa:deadsnakes/ppa
-      # - add-apt-repository -y ppa:ubuntu-toolchain-r/test
-      # - apt update
-      # - apt install -y libfmt-dev libgmp3-dev libboost-all-dev gcc-11 g++-11
-      # - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11
-      # - update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11
-      # - curl -sSL https://install.python-poetry.org | python -
+      - add-apt-repository -y ppa:deadsnakes/ppa
+      - add-apt-repository -y ppa:ubuntu-toolchain-r/test
+      - apt-get update
+      - apt-get install -y software-properties-common
+      - apt-get install -y libfmt-dev libgmp3-dev libboost-all-dev gcc-11 g++-11
+      - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11
+      - update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11
+      - curl -sSL https://install.python-poetry.org | python -
   build:
     commands:
-      - "echo Phase 1: Lint!"
-      - pipx install black[colors]
-      - pipx install isort[colors]
-      - pipx install cairo-lang
-      - black . --check --verbose --diff --color
-      - isort . --check --verbose --diff --color
-      - isort --ext cairo src/warp/cairo-src --check --verbose --diff --color
-      - find src/warp/cairo-src/ -iname *.cairo -exec cairo-format -c {} +
-
-      # - poetry run make test_semantics
+      - export PATH="/root/.local/bin:$PATH"
+      - poetry run make test_semantics
