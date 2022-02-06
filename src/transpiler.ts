@@ -15,7 +15,6 @@ import {
   StorageVariableAccessRewriter,
   TupleAssignmentSplitter,
   Uint256Importer,
-  UnaryOpToBinaryOp,
   UnloadingAssignment,
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
@@ -69,7 +68,6 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
   // TODO: add expected prerequisites to each pass
   const passes: Map<string, ASTMapper> = new Map([
     ['Ru', new RejectUnsupportedFeatures()],
-    ['U2b', new UnaryOpToBinaryOp()],
     ['Ib', new IntBoundCalculator()],
     ['M', new IdentifierMangler()],
     ['Sa', new StorageAllocator()],

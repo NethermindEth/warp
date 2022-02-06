@@ -4,10 +4,11 @@ import {
   FunctionCall,
   VariableDeclarationStatement,
   ExpressionStatement,
+  Assignment,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { cloneTypeName } from '../utils/cloning';
+import { cloneExpression, cloneTypeName } from '../utils/cloning';
 import { counterGenerator } from '../utils/utils';
 
 function* expressionGenerator(prefix: string): Generator<string, string, unknown> {
@@ -19,6 +20,18 @@ function* expressionGenerator(prefix: string): Generator<string, string, unknown
 
 export class ExpressionSplitter extends ASTMapper {
   eGen = expressionGenerator('__warp_se');
+
+  visitAssignment(node: Assignment, ast: AST): void {
+    this.commonVisit(node, ast);
+    if (!(node.parent instanceof ExpressionStatement)) {
+      const replacement = cloneExpression(node.vLeftHandSide, ast);
+      ast.replaceNode(node, replacement);
+      ast.insertStatementBefore(
+        replacement,
+        new ExpressionStatement(ast.reserveId(), '', 'ExpressionStatement', node),
+      );
+    }
+  }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     this.commonVisit(node, ast);

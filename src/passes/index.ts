@@ -14,7 +14,6 @@ export * from './storageAllocator';
 export * from './storageVariableAccessRewriter';
 export * from './tupleAssignmentSplitter';
 export * from './uint256Importer';
-export * from './unaryOpToBinaryOp';
 export * from './unloadingAssignment';
 export * from './variableDeclarationExpressionSplitter';
 export * from './variableDeclarationInitialiser';
