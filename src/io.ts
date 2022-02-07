@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { OutputOptions } from '.';
-import { compileCairo } from './starknetCompile';
+import { compileCairo } from './starknetCli';
 import { TranspileFailedError } from './utils/errors';
 
 export function isValidSolFile(path: string, printError = true): boolean {

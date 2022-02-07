@@ -1,7 +1,7 @@
 import { CompileFailedError } from 'solc-typed-ast';
 import { findAllFiles, findCairoSourceFilePaths, findSolSourceFilePaths } from './io';
 import { compileSolFile } from './solCompile';
-import { compileCairo } from './starknetCompile';
+import { compileCairo } from './starknetCli';
 import { transpile } from './transpiler';
 import {
   NotSupportedYetError,
@@ -97,7 +97,7 @@ function runCairoFileTest(
   throwError = false,
 ): void {
   if (!onlyResults) console.log(`Compiling ${file}`);
-  if (compileCairo(file)) {
+  if (compileCairo(file).success) {
     results.set(removeExtension(file), 'Success');
   } else {
     if (throwError) {

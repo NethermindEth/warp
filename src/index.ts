@@ -5,6 +5,12 @@ import { compileSolFile } from './solCompile';
 import { runTests } from './testing';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
+import {
+  runStarknetCallOrInvoke,
+  runStarknetDeploy,
+  runStarknetDeployAccount,
+  runStarknetStatus,
+} from './starknetCli';
 
 export type CompilationOptions = {
   warnings: boolean;
@@ -98,5 +104,96 @@ program
   );
 
 program.command('analyse <file>').action((file: string) => analyseSol(file));
+
+export interface IOptionalNetwork {
+  network?: string;
+}
+
+program
+  .command('status <tx_hash>')
+  .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
+  .action((tx_hash: string, options: IOptionalNetwork) => {
+    runStarknetStatus(tx_hash, options);
+  });
+
+interface IDeployProps_ {
+  inputs?: string[];
+}
+export type IDeployProps = IDeployProps_ & IOptionalNetwork;
+
+program
+  .command('deploy <file>')
+  .option(
+    '--inputs <inputs...>',
+    'Arguments to be passed to constructor of the program.',
+    undefined,
+  )
+  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .action((file: string, options: IDeployProps) => {
+    runStarknetDeploy(file, options);
+  });
+
+interface IOptionalWallet {
+  wallet?: string;
+}
+
+interface IDeployAccountProps_ {
+  account?: string;
+}
+export type IDeployAccountProps = IDeployAccountProps_ & IOptionalNetwork & IOptionalWallet;
+
+program
+  .command('deploy_account')
+  .option(
+    '--account',
+    'The name of the account. If not given, the "__default__" will be used.',
+    '__default__',
+  )
+  .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
+  .option(
+    '--wallet <wallet>',
+    'The name of the wallet, including the python module and wallet class.',
+    process.env.STARKNET_WALLET,
+  )
+  .action((options: IDeployAccountProps) => {
+    runStarknetDeployAccount(options);
+  });
+
+interface ICallOrInvokeProps_ {
+  address: string;
+  function: string;
+  inputs?: string[];
+}
+export type ICallOrInvokeProps = ICallOrInvokeProps_ & IOptionalNetwork & IOptionalWallet;
+
+program
+  .command('invoke <file>')
+  .requiredOption('--address <address>', 'Address of contract to invoke.')
+  .requiredOption('--function <function>', 'Function to invoke.')
+  .option('--inputs <inputs...>', 'Input to function.', undefined)
+  .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
+  .option(
+    '--wallet <wallet>',
+    'The name of the wallet, including the python module and wallet class.',
+    process.env.STARKNET_WALLET,
+  )
+  .action((file: string, options: ICallOrInvokeProps) => {
+    runStarknetCallOrInvoke(file, false, options);
+  });
+
+program
+  .command('call <file>')
+  .requiredOption('--address <address>', 'Address of contract to call.')
+  .requiredOption('--function <function>', 'Function to call.')
+  .option('--inputs <inputs...>', 'Input to function.', undefined)
+  .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
+  .option(
+    '--wallet <wallet>',
+    'The name of the wallet, including the python module and wallet class.',
+    process.env.STARKNET_WALLET,
+  )
+  .action((file: string, options: ICallOrInvokeProps) => {
+    runStarknetCallOrInvoke(file, true, options);
+  });
 
 program.parse(process.argv);
