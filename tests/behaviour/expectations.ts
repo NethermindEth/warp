@@ -72,6 +72,10 @@ export const expectations = flatten(
           new File('uint256', [
             Expect.Simple('addition', [], ['42', '0']),
             Expect.Simple('multiplication', [], ['28782', '0']),
+            Expect.Simple('preIncrement', ['10', '0'], ['11', '0', '11', '0']),
+            Expect.Simple('postIncrement', ['10', '0'], ['11', '0', '10', '0']),
+            Expect.Simple('preDecrement', ['10', '0'], ['9', '0', '9', '0']),
+            Expect.Simple('postDecrement', ['10', '0'], ['9', '0', '10', '0']),
           ]),
         ]),
         new Dir('memory', [
