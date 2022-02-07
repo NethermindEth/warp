@@ -474,10 +474,7 @@ class AssignmentWriter extends CairoASTNodeWriter {
   writeInner(node: Assignment, writer: ASTWriter): SrcDesc {
     assert(node.operator === '=', `Unexpected operator ${node.operator}`);
     const nodes = [node.vLeftHandSide, node.vRightHandSide].map((v) => writer.write(v));
-    if (node.vRightHandSide.type === 'FunctionCall') {
-      return [`let (${nodes[0]} : ${node.vLeftHandSide.typeString}) ${node.operator} ${nodes[1]}`];
-    }
-    return [`let ${nodes[0]} ${node.operator} : ${node.vLeftHandSide.typeString} ${nodes[1]}`];
+    return [`let ${nodes[0]} ${node.operator} ${nodes[1]}`];
   }
 }
 
