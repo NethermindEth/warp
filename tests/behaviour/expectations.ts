@@ -46,6 +46,16 @@ export const expectations = flatten(
           Expect.Simple('test', [], []),
           Expect.Simple('returnTest', [], ['12', '0']),
         ]),
+        new Dir('assignments', [
+          new File('functionSingle', [
+            Expect.Simple('test', ['3'], ['3']),
+            Expect.Simple('test256', ['3', '4'], ['3', '4']),
+          ]),
+          new File('scalar', [
+            Expect.Simple('test', ['3'], ['3']),
+            Expect.Simple('test256', ['3', '4'], ['3', '4']),
+          ]),
+        ]),
         new Dir('ERC20', [
           new File('ERC20', [
             new Expect('mint', [
