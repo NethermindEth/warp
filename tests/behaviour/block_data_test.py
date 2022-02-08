@@ -1,6 +1,7 @@
 import os
 
 import pytest
+from starkware.starknet.business_logic.state import BlockInfo
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starknet.testing.state import StarknetState
 
@@ -26,6 +27,10 @@ async def test_starknet():
     )
 
     starknet = await StarknetState.empty()
+    starknet.state.block_info = BlockInfo(
+        block_number=0xDEADBEEF, block_timestamp=0xCAFEBABE
+    )
+
     block_data_address: int = await deploy_contract(
         starknet, block_data_info, block_data_contractDef
     )
@@ -37,10 +42,10 @@ async def test_starknet():
         32,
         2,
         0,
-        3618502788666131213697322783095070105623107215331596699973092056135872020480,
+        0xDEADBEEF,
     ]
 
     block_timestamp = await invoke_method(
         starknet, block_data_info, block_data_address, "getBlockTimeStamp"
     )
-    assert block_timestamp.retdata == [32, 2, 0, 0]
+    assert block_timestamp.retdata == [32, 2, 0, 0xCAFEBABE]

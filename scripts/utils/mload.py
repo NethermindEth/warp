@@ -25,7 +25,7 @@ def byte_to_hex(x: int) -> str:
 
 
 def uint128_to_hex(x: int) -> str:
-    assert 0 <= x < 2 ** 128
+    assert 0 <= x < 2**128
     return hex(x)[2:].zfill(32)
 
 

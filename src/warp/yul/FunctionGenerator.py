@@ -66,7 +66,7 @@ class CairoFunctions:
         name = f"__warp_constant_{constant}"
 
         def inner():
-            high, low = divmod(constant, 2 ** 128)
+            high, low = divmod(constant, 2**128)
             return "\n".join(
                 [
                     f"func {name}() -> (res: Uint256):",
@@ -188,3 +188,65 @@ class CairoFunctions:
 
         self.generator.create_function(name, inner)
         return FunctionInfo(name=name, implicits=implicits, kwarg_names=())
+
+    def nop(self) -> FunctionInfo:
+        """Creates a no-operation function"""
+        name = f"__warp_nop"
+
+        def inner():
+            return "\n".join(
+                [
+                    f"func {name}() :",
+                    f"return ()",
+                    f"end\n",
+                ]
+            )
+
+        self.generator.create_function(name, inner)
+        return FunctionInfo(name=name, implicits=(), kwarg_names=())
+
+    def set_immutable_function(self) -> FunctionInfo:
+        name = "setimmutable"
+        implicits = ("range_check_ptr", "pedersen_ptr", "syscall_ptr")
+
+        def inner():
+            implicits_str = (
+                "{" + ", ".join(print_implicit(x) for x in sorted(implicits)) + "}"
+            )
+            return "\n".join(
+                [
+                    f"func {name}{implicits_str}(key, value: Uint256):",
+                    generate_setter_body("__immutables", ("key", "value")),
+                    "end\n",
+                ]
+            )
+
+        self.generator.create_function(name, inner)
+        self.storage_vars.add(
+            StorageVar(name="__immutables", arg_types=("felt",), res_type="Uint256")
+        )
+        return FunctionInfo(
+            name=name, implicits=implicits, kwarg_names=("key", "value")
+        )
+
+    def load_immutable_function(self) -> FunctionInfo:
+        name = "loadimmutable"
+        implicits = ("range_check_ptr", "pedersen_ptr", "syscall_ptr")
+
+        def inner():
+            implicits_str = (
+                "{" + ", ".join(print_implicit(x) for x in sorted(implicits)) + "}"
+            )
+            return "\n".join(
+                [
+                    f"func {name}{implicits_str}(key) -> (value: Uint256):",
+                    generate_getter_body("__immutables", ("key",), "value"),
+                    "end\n",
+                ]
+            )
+
+        self.generator.create_function(name, inner)
+        self.storage_vars.add(
+            StorageVar(name="__immutables", arg_types=("felt",), res_type="Uint256")
+        )
+        return FunctionInfo(name=name, implicits=implicits, kwarg_names=("key",))

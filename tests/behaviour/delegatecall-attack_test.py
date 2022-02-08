@@ -67,6 +67,6 @@ async def test_attack():
     await invoke_method(starknet, attack_info, attack_address, "attack")
     # step 5
     result = await invoke_method(starknet, hackme_info, hackme_address, "owner")
-    high, low = divmod(attack_address, 2 ** 128)
+    high, low = divmod(attack_address, 2**128)
     assert result.retdata == [32, 2, high, low]
     shutil.rmtree(tmpdir)

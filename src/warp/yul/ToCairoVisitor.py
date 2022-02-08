@@ -19,7 +19,7 @@ from warp.yul.Imports import format_imports, merge_imports
 from warp.yul.NameGenerator import NameGenerator
 from warp.yul.storage_access import generate_storage_var_declaration
 
-UINT128_BOUND = 2 ** 128
+UINT128_BOUND = 2**128
 
 COMMON_IMPORTS = {
     "starkware.cairo.common.registers": {"get_fp_and_pc"},
@@ -91,6 +91,8 @@ class ToCairoVisitor(AstVisitor):
         return f"{node.name} : {node.type}"
 
     def visit_literal(self, node: ast.Literal) -> str:
+        if isinstance(node.value, str):
+            return f"'{node.value}'"
         v = int(node.value)  # to convert bools: True -> 1, False -> 0
         high, low = divmod(v, UINT128_BOUND)
         return f"Uint256(low={low}, high={high})"

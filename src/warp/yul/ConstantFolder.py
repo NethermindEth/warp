@@ -12,7 +12,7 @@ REDUCERS = {
     "mul": lambda x, y: x * y,
     "div": lambda x, y: x / y if y != 0 else 0,
     "mod": lambda x, y: x % y if y != 0 else 0,
-    "exp": lambda x, y: x ** y,
+    "exp": lambda x, y: x**y,
     "not": lambda x: ~x % uint256,
     "eq": lambda x, y: int(x == y),
     "and": lambda x, y: x & y,
@@ -25,7 +25,7 @@ REDUCERS = {
 }
 
 
-uint256 = 2 ** 256
+uint256 = 2**256
 
 
 def overflow_check(res):

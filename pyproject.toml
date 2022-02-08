@@ -66,6 +66,7 @@ web3 = ">=5.12"
 eth-abi = ""
 click = ""
 importlib_resources = ""
+black = "22.1.0"
 
 [tool.poetry.dev-dependencies]
 isort = ""
