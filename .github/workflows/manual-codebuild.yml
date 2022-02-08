@@ -5,21 +5,6 @@ permissions:
 
 on: 
   pull_request_target:
-    branches:
-      - 'manual_codebuild'
-      - 'manual_codebuild_PRTrigger'
-
-  # push:
-  #   branches:
-  #     - 'manual_codebuild'
-
-
-  # workflow_dispatch:
-  #   inputs:
-  #     pull_request_number:
-  #       description: Pull request you'd like to build
-  #       required: true
-  #       default: latest
 
 jobs:
   run_codebuild:
