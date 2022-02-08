@@ -48,6 +48,7 @@ jobs:
       
       - name: Auto-Approve Pull Request
         uses: hmarr/auto-approve-action@v2.1.0
-        if: steps.codebuild.outcome == 'success' && github.actor == 'nickkjolsing'
+        #if: steps.codebuild.outcome == 'success'
+        if: success()
         with:
           github-token: ${{ secrets.APPROVAL_TOKEN }}
