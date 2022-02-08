@@ -10,7 +10,6 @@ on:
       - 'manual_codebuild_PRTrigger'
 
 
-
   # push:
   #   branches:
   #     - 'manual_codebuild'
