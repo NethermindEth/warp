@@ -125,5 +125,3 @@ dist
 
 # tests
 starknet-testnet/__pycache__/*
-tests/artifacts/*
-!tests/artifacts/.gitkeep

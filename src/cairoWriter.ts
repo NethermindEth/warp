@@ -255,17 +255,6 @@ class CairoContractWriter extends CairoASTNodeWriter {
       return writeContractInterface(node, writer);
     }
 
-    // TODO handle cases where solidity contract defined a constructor
-    const constructor = node.hasConstructor
-      ? [
-          '@constructor',
-          'func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():',
-          writer.write(node.initialisationBlock),
-          '    return()',
-          'end',
-        ].join('\n')
-      : '';
-
     const structs = node.vStructs.map((value) => writer.write(value));
 
     const enums = node.vEnums.map((value) => writer.write(value));
@@ -273,7 +262,7 @@ class CairoContractWriter extends CairoASTNodeWriter {
     const functions = node.vFunctions.map((value) => writer.write(value));
 
     const events = node.vEvents.map((value) => writer.write(value));
-    return [[constructor, ...events, ...structs, ...enums, ...functions].join('\n\n')];
+    return [[...events, ...structs, ...enums, ...functions].join('\n\n')];
   }
 
   writeWhole(node: CairoContract, writer: ASTWriter): SrcDesc {

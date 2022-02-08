@@ -22,7 +22,7 @@ import { TranspileFailedError } from '../utils/errors';
 import { CairoBuiltin, implicitOrdering, Implicits, requiredBuiltin } from '../utils/implicits';
 import { notNull } from '../utils/typeConstructs';
 import { mergeImports } from '../utils/utils';
-import { CairoContract, CairoFunctionDefinition } from './cairoNodes';
+import { CairoFunctionDefinition } from './cairoNodes';
 
 export type Imports = { [module: string]: Set<string> };
 export type FunctionImplicits = Map<string, Set<Implicits>>;
@@ -114,14 +114,6 @@ export class AST {
     this.root.walk((node: ASTNode) => {
       if (node instanceof CairoFunctionDefinition) {
         node.implicits.forEach((i) => implicitsUsed.add(i));
-      }
-      if (node instanceof CairoContract) {
-        // TODO remove this once cairo contract is set up to make a CairoFunctionDefinition for the constructor
-        if (node.hasConstructor) {
-          implicitsUsed.add('syscall_ptr');
-          implicitsUsed.add('pedersen_ptr');
-          implicitsUsed.add('range_check_ptr');
-        }
       }
     });
     return new Set(

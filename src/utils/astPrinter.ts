@@ -103,7 +103,17 @@ export const DefaultASTPrinter = new ASTPrinter()
         })
         .join();
     },
-  });
+  })
+  .lookFor({
+    prop: 'implicits',
+    nodeType: 'CairoFunctionDefinition',
+    print: (x: unknown) => {
+      if (!(x instanceof Set)) throw new Error('Implicits not a set');
+      return `${[...x.entries()]}`;
+    },
+  })
+  .lookFor('visibility')
+  .lookFor('stateMutability');
 
 export function printNode(node: ASTNode): string {
   return `${node.type} #${node.id}`;

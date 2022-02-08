@@ -22,16 +22,6 @@ class CairoContractSolWriter extends ASTNodeWriter {
       result.push('<cairo information - multiline end>\n\n');
     }
 
-    if (node.initialisationBlock.vStatements.length > 0) {
-      result.push(
-        ...[
-          '<cairo information - multiline start> initialisation block',
-          `constructor ${writer.write(node.initialisationBlock)}`,
-          '<cairo information - multiline end>\n\n',
-        ].join('\n'),
-      );
-    }
-
     const solContract = new ContractDefinition(
       node.id,
       node.src,

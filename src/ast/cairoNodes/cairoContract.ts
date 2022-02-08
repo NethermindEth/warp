@@ -1,6 +1,5 @@
 import {
   ASTNode,
-  Block,
   ContractDefinition,
   ContractKind,
   StructuredDocumentation,
@@ -10,8 +9,6 @@ import {
 // TODO merge initialisationBlock with the constructor if there is one, or add one if not
 export class CairoContract extends ContractDefinition {
   storageAllocations: Map<VariableDeclaration, number>;
-
-  initialisationBlock: Block;
 
   constructor(
     id: number,
@@ -25,7 +22,6 @@ export class CairoContract extends ContractDefinition {
     linearizedBaseContracts: number[],
     usedErrors: number[],
     storageAllocations: Map<VariableDeclaration, number>,
-    initialisationBlock: Block,
     documentation?: string | StructuredDocumentation,
     children?: Iterable<ASTNode>,
     nameLocation?: string,
@@ -48,15 +44,6 @@ export class CairoContract extends ContractDefinition {
       raw,
     );
     this.storageAllocations = storageAllocations;
-    this.initialisationBlock = initialisationBlock;
     this.acceptChildren();
-  }
-
-  get children(): readonly ASTNode[] {
-    return this.pickNodes(this.initialisationBlock, super.children);
-  }
-
-  get hasConstructor(): boolean {
-    return this.initialisationBlock.children.length > 0;
   }
 }

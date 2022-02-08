@@ -85,6 +85,11 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
       result.add('range_check_ptr');
       result.add('syscall_ptr');
     }
+    if (node.isConstructor) {
+      result.add('syscall_ptr');
+      result.add('pedersen_ptr');
+      result.add('range_check_ptr');
+    }
     if (node === this.root) return result;
     return union(result, this.commonVisit(node, ast));
   }

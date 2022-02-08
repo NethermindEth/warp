@@ -62,7 +62,7 @@ import {
 } from 'solc-typed-ast';
 import { pp } from 'solc-typed-ast/dist/misc/index';
 import { AST } from '../ast/ast';
-import { CairoAssert, CairoContract } from '../ast/cairoNodes';
+import { CairoAssert } from '../ast/cairoNodes';
 
 // This is the solc-typed-ast AST checking code, with additions for CairoAssert and CairoContract
 
@@ -477,11 +477,7 @@ export function checkSane(unit: SourceUnit, ctx: ASTContext): void {
         fields.push('documentation');
       }
 
-      if (node instanceof CairoContract) {
-        checkDirectChildren(node, ...fields, 'initialisationBlock');
-      } else {
-        checkDirectChildren(node, ...fields);
-      }
+      checkDirectChildren(node, ...fields);
     } else if (node instanceof EnumDefinition) {
       checkVFieldCtx(node, 'vScope', ctx);
 

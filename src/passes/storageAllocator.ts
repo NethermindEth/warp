@@ -1,29 +1,35 @@
+import assert = require('assert');
 import {
   Assignment,
   Block,
   ContractDefinition,
   ExpressionStatement,
+  FunctionDefinition,
+  FunctionKind,
+  FunctionStateMutability,
+  FunctionVisibility,
   getNodeType,
   Identifier,
   Literal,
   LiteralKind,
   Mapping,
+  ParameterList,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
-import { cloneExpression } from '../utils/cloning';
 import { implicitImports } from '../utils/implicits';
 import { getFeltWidth } from '../utils/serialisation';
 import { toHexString } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
+    const initialisationBlock = new Block(ast.reserveId(), '', 'Block', []);
+
     let usedMemory = 0;
     let mappingCount = 0;
     const allocations: Map<VariableDeclaration, number> = new Map();
-    const initialisationBlock = new Block(ast.reserveId(), node.src, 'Block', []);
     node.vStateVariables.forEach((v) => {
       if (v.vType instanceof Mapping) {
         v.vValue = new Literal(
@@ -44,6 +50,7 @@ export class StorageAllocator extends ASTMapper {
         extractInitialisation(v, initialisationBlock, ast);
       }
     });
+    insertIntoConstructor(initialisationBlock, node, ast);
     ast.replaceNode(
       node,
       new CairoContract(
@@ -58,13 +65,46 @@ export class StorageAllocator extends ASTMapper {
         node.linearizedBaseContracts,
         node.usedErrors,
         allocations,
-        initialisationBlock,
         node.documentation,
         node.children,
         node.nameLocation,
         node.raw,
       ),
     );
+  }
+}
+
+function insertIntoConstructor(initialisationBlock: Block, contract: ContractDefinition, ast: AST) {
+  const constructor = contract.vConstructor;
+  if (constructor === undefined) {
+    const newConstructor = new FunctionDefinition(
+      ast.reserveId(),
+      '',
+      'FunctionDefinition',
+      contract.id,
+      FunctionKind.Constructor,
+      '',
+      false,
+      FunctionVisibility.Public,
+      FunctionStateMutability.NonPayable,
+      true,
+      new ParameterList(ast.reserveId(), '', 'ParameterList', []),
+      new ParameterList(ast.reserveId(), '', 'ParameterList', []),
+      [],
+      undefined,
+      initialisationBlock,
+    );
+    contract.appendChild(newConstructor);
+    ast.registerChild(newConstructor, contract);
+  } else {
+    const body = constructor.vBody;
+    assert(body !== undefined, 'Expected existing constructor to be implemented');
+    initialisationBlock.children
+      .slice()
+      .reverse()
+      .forEach((statement) => {
+        body.insertAtBeginning(statement);
+      });
   }
 }
 
@@ -90,12 +130,12 @@ function extractInitialisation(node: VariableDeclaration, initialisationBlock: B
           node.name,
           node.id,
         ),
-        // TODO potentially move this rather than cloning it
-        // Requires care wrt other passes that expect defined variables
-        cloneExpression(node.vValue, ast),
+        node.vValue,
       ),
     ),
   );
+
+  node.vValue = undefined;
 
   // TODO move these into the implicits of the CairoFunctionDefinition for the constructor
   ast.addImports(implicitImports['syscall_ptr']);
