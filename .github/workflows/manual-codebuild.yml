@@ -5,10 +5,6 @@ permissions:
 
 on: 
   pull_request_target:
-    branches:
-      - 'manual_codebuild'
-      - 'manual_codebuild_PRTrigger'
-
 
   # push:
   #   branches:
