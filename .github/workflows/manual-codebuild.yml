@@ -1,0 +1,38 @@
+name: Manual CodeBuild Trigger
+
+permissions:
+  pull-requests: write
+
+on: 
+  pull_request_target:
+
+jobs:
+  run_codebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Run CodeBuild
+        id: codebuild
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: warp
+          env-vars-for-codebuild: |
+            requester,
+            event-name,
+            sourceVersion
+        env:
+          requester: ${{ github.actor }}
+          event-name: ${{ github.event_name }}
+          sourceVersion: 'develop'
+      
+      - name: Auto-Approve Pull Request
+        uses: hmarr/auto-approve-action@v2.1.0
+        if: success()
+        with:
+          github-token: ${{ secrets.APPROVAL_TOKEN }}
