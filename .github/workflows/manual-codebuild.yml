@@ -1,4 +1,4 @@
-name: Manual CodeBuild Trigger
+name: CodeBuild Slack Notifications
 
 permissions:
   pull-requests: write
@@ -9,8 +9,8 @@ on:
 
 jobs:
   run_codebuild:
+    if: github.event.review.state == 'approved'
     runs-on: ubuntu-latest
-    if: ${{ github.event.review.state }} == 'approved'
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
