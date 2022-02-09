@@ -12,4 +12,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
-        run: echo github.event.review.state
+        run: echo ${{ github.event.review.state }}
