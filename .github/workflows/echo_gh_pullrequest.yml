@@ -1,11 +1,14 @@
-name: CodeBuild Slack Notifications
+name: Github Event Review State
 
 permissions:
   pull-requests: write
 
 
 on:
-  push
+  push:
+  pull_request_review:
+    types: [submitted]
+
     
 jobs:
   run_codebuild:
