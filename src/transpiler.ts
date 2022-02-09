@@ -9,6 +9,7 @@ import {
   ImplicitConversionToExplicit,
   IntBoundCalculator,
   LiteralExpressionEvaluator,
+  LoopFunctionaliser,
   MemoryHandler,
   ReturnInserter,
   StorageAllocator,
@@ -16,6 +17,7 @@ import {
   TupleAssignmentSplitter,
   Uint256Importer,
   UnloadingAssignment,
+  UnreachableStatementPruner,
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
 } from './passes';
@@ -27,7 +29,6 @@ import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
-import { ForLoopToWhile } from './passes/forLoopToWhile';
 import { RejectUnsupportedFeatures } from './passes/rejectUnsupportedFeatures';
 import { TranspilationOptions } from '.';
 import { parsePassOrder } from './utils/cliOptionParsing';
@@ -73,16 +74,17 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['Sa', new StorageAllocator()],
     ['Ei', new ExternImporter()],
     ['L', new LiteralExpressionEvaluator()],
+    ['Lf', new LoopFunctionaliser()],
     ['T', new TupleAssignmentSplitter()],
     ['Ah', new AddressHandler()],
     ['U', new UnloadingAssignment()],
     ['V', new VariableDeclarationInitialiser()],
-    ['F', new ForLoopToWhile()],
     ['Vs', new VariableDeclarationExpressionSplitter()],
     ['Me', new MemoryHandler()],
     ['S', new StorageVariableAccessRewriter()],
     ['I', new ImplicitConversionToExplicit()],
     ['B', new BuiltinHandler()],
+    ['Us', new UnreachableStatementPruner()],
     ['R', new ReturnInserter()],
     ['E', new ExpressionSplitter()],
     ['An', new AnnotateImplicits()],

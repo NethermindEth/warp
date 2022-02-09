@@ -78,6 +78,15 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('expressions', [new File('ineffectual', [Expect.Simple('test', ['1'], ['1'])])]),
+        new Dir('loops', [
+          new File('loops', [
+            Expect.Simple('forLoop', ['3'], ['8']),
+            Expect.Simple('whileLoop', ['10'], ['10']),
+            Expect.Simple('breaks', ['5'], ['5']),
+            Expect.Simple('continues', ['4'], ['24']),
+          ]),
+        ]),
         new Dir('maths', [
           new File('uint256', [
             Expect.Simple('addition', [], ['42', '0']),

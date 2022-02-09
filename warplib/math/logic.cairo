@@ -8,8 +8,24 @@ func felt_eq(lhs : felt, rhs : felt) -> (result : felt):
     end
 end
 
+func felt_neq(lhs : felt, rhs : felt) -> (result : felt):
+    if lhs == rhs:
+        return (result=0)
+    else:
+        return (result=1)
+    end
+end
+
 func felt_gt{range_check_ptr : felt}(lhs : felt, rhs : felt) -> (result : felt):
     return is_le(rhs, lhs)
+end
+
+func felt_lt{range_check_ptr : felt}(lhs : felt, rhs : felt) -> (result : felt):
+    if lhs == rhs:
+        return (0)
+    else:
+        return is_le(lhs, rhs)
+    end
 end
 
 func felt_and(lhs : felt, rhs : felt) -> (result : felt):

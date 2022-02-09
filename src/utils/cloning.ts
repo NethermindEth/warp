@@ -3,12 +3,16 @@ import {
   BinaryOperation,
   ElementaryTypeName,
   Expression,
+  ExpressionStatement,
   FunctionCall,
   Identifier,
   IndexAccess,
   Literal,
   Mapping,
+  Statement,
   TypeName,
+  UnaryOperation,
+  VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { NotSupportedYetError } from './errors';
@@ -71,6 +75,17 @@ export function cloneExpression(node: Expression, ast: AST): Expression {
       cloneExpression(node.vRightExpression, ast),
       node.raw,
     );
+  } else if (exactInstanceOf(node, UnaryOperation)) {
+    newNode = new UnaryOperation(
+      ast.reserveId(),
+      node.src,
+      'UnaryOperation',
+      node.typeString,
+      node.prefix,
+      node.operator,
+      cloneExpression(node.vSubExpression, ast),
+      node.raw,
+    );
   } else {
     throw new NotSupportedYetError(`Cloning ${node.type} expressions not implemented yet`);
   }
@@ -113,6 +128,52 @@ export function cloneTypeName(node: TypeName, ast: AST): TypeName {
     );
   } else {
     throw new NotSupportedYetError(`Cloning ${node.type} typenames not implemented yet`);
+  }
+
+  ast.setContextRecursive(newNode);
+  return newNode;
+}
+
+export function cloneVariableDeclaration(node: VariableDeclaration, ast: AST): VariableDeclaration {
+  if (node.vOverrideSpecifier !== undefined) {
+    throw new NotSupportedYetError('Override Specifiers not implemented yet');
+  }
+
+  return new VariableDeclaration(
+    ast.reserveId(),
+    node.src,
+    node.type,
+    node.constant,
+    node.indexed,
+    node.name,
+    node.scope,
+    node.stateVariable,
+    node.storageLocation,
+    node.visibility,
+    node.mutability,
+    node.typeString,
+    node.documentation,
+    node.vType === undefined ? undefined : cloneTypeName(node.vType, ast),
+    undefined,
+    node.vValue === undefined ? undefined : cloneExpression(node.vValue, ast),
+    node.nameLocation,
+  );
+}
+
+export function cloneStatement(node: Statement, ast: AST): Statement {
+  let newNode: Statement;
+
+  if (exactInstanceOf(node, ExpressionStatement)) {
+    newNode = new ExpressionStatement(
+      ast.reserveId(),
+      node.src,
+      'ExpressionStatement',
+      cloneExpression(node.vExpression, ast),
+      node.documentation,
+      node.raw,
+    );
+  } else {
+    throw new NotSupportedYetError(`Cloning ${node.type} statement not implemented yet`);
   }
 
   ast.setContextRecursive(newNode);

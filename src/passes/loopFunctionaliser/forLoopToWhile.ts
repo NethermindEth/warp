@@ -1,18 +1,21 @@
 import {
   Block,
+  Continue,
   ForStatement,
   Literal,
   LiteralKind,
   VariableDeclarationStatement,
   WhileStatement,
 } from 'solc-typed-ast';
-import { AST } from '../ast/ast';
-import { ASTMapper } from '../ast/mapper';
-import { toHexString } from '../utils/utils';
+import { AST } from '../../ast/ast';
+import { ASTMapper } from '../../ast/mapper';
+import { cloneStatement } from '../../utils/cloning';
+import { toHexString } from '../../utils/utils';
 
-// TODO rewrite this to replace all loops with whiles and functionalise whiles
 export class ForLoopToWhile extends ASTMapper {
   visitForStatement(node: ForStatement, ast: AST): void {
+    this.commonVisit(node, ast);
+
     const innerLoopStatements = node.vLoopExpression
       ? [node.vBody, node.vLoopExpression]
       : [node.vBody];
@@ -60,6 +63,16 @@ export class ForLoopToWhile extends ASTMapper {
         );
       }
       ast.insertStatementBefore(replacementWhile, node.vInitializationExpression);
+    }
+  }
+
+  visitContinue(node: Continue, ast: AST): void {
+    // TODO change this once DoWhile is implemented
+    const currentLoop = node.getClosestParentBySelector(
+      (n) => n instanceof ForStatement || n instanceof WhileStatement,
+    );
+    if (currentLoop instanceof ForStatement && currentLoop.vLoopExpression) {
+      ast.insertStatementBefore(node, cloneStatement(currentLoop.vLoopExpression, ast));
     }
   }
 }

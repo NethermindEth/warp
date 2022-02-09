@@ -90,7 +90,7 @@ export class AST {
     return replacementIdentifer;
   }
 
-  getContainingScope(node: Expression): number {
+  getContainingScope(node: ASTNode): number {
     const scope = node.getClosestParentBySelector(
       (node) => node instanceof Block || node instanceof UncheckedBlock,
     );
@@ -122,6 +122,52 @@ export class AST {
         .map((i) => requiredBuiltin[i])
         .filter(notNull),
     );
+  }
+
+  insertStatementAfter(existingNode: ASTNode, newStatement: Statement) {
+    const existingStatementRoot = existingNode.getClosestParentByType(SourceUnit);
+    assert(
+      existingStatementRoot !== undefined,
+      `Attempted to insert statement ${printNode(newStatement)} before ${printNode(
+        existingNode,
+      )} which is not a child of a source unit`,
+    );
+    assert(
+      existingStatementRoot === this.root,
+      `Existing node root: #${existingStatementRoot.id} does not match root #${this.root.id}`,
+    );
+
+    // Find the statement that newStatement needs to go in front of
+    const existingStatement =
+      existingNode instanceof Statement || existingNode instanceof StatementWithChildren
+        ? existingNode
+        : existingNode.getClosestParentBySelector<Statement>(
+            (parent) => parent instanceof Statement || parent instanceof StatementWithChildren,
+          );
+
+    assert(
+      existingStatement !== undefined,
+      `Unable to find containing statement for ${printNode(existingNode)}`,
+    );
+
+    if (
+      existingStatement.parent instanceof Block ||
+      existingStatement.parent instanceof UncheckedBlock
+    ) {
+      // This sets the parent but not the context
+      existingStatement.parent.insertAfter(newStatement, existingStatement);
+      this.setContextRecursive(newStatement);
+      return;
+    }
+
+    const parent = existingStatement.parent;
+    // Blocks are not instances of Statements, but they satisy typescript shaped typing rules to be classed as Statements
+    // TODO potentially handle src better
+    const replacementBlock = new Block(this.reserveId(), existingStatement.src, 'Block', [
+      existingStatement,
+      newStatement,
+    ]);
+    this.replaceNode(existingStatement, replacementBlock, parent);
   }
 
   insertStatementBefore(existingNode: ASTNode, newStatement: Statement) {
@@ -160,13 +206,14 @@ export class AST {
       return;
     }
 
+    const parent = existingStatement.parent;
     // Blocks are not instances of Statements, but they satisy typescript shaped typing rules to be classed as Statements
     // TODO potentially handle src better
     const replacementBlock = new Block(-1, existingStatement.src, 'Block', [
       newStatement,
       existingStatement,
     ]);
-    this.replaceNode(existingStatement, replacementBlock);
+    this.replaceNode(existingStatement, replacementBlock, parent);
   }
 
   registerChild(child: ASTNode, parent: ASTNode): number {
@@ -177,6 +224,26 @@ export class AST {
       `Child ${printNode(child)} not found in parent ${printNode(parent)}'s children`,
     );
     return child.id;
+  }
+
+  removeStatement(statement: Statement): void {
+    const parent = statement.parent;
+    assert(parent !== undefined, `${printNode(statement)} has no parent`);
+    if (parent instanceof StatementWithChildren) {
+      parent.removeChild(statement);
+    } else {
+      this.replaceNode(
+        statement,
+        new Block(
+          this.reserveId(),
+          statement.src,
+          'Block',
+          [],
+          statement.documentation,
+          statement.raw,
+        ),
+      );
+    }
   }
 
   // TODO tighten these restraints

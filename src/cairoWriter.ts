@@ -70,16 +70,15 @@ import {
   WhileStatement,
   getNodeType,
 } from 'solc-typed-ast';
-import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
-import { Implicits, writeImplicits } from './utils/implicits';
-import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
-import { cairoType, getCairoType } from './typeWriter';
-import { canonicalMangler, divmod, importsWriter, primitiveTypeToCairo } from './utils/utils';
-
 import { AST } from './ast/ast';
+import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
+import { cairoType, getCairoType } from './typeWriter';
+import { printNode } from './utils/astPrinter';
+import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
+import { Implicits, writeImplicits } from './utils/implicits';
 import { getMappingTypes } from './utils/mappings';
 import { notUndefined } from './utils/typeConstructs';
-import { printNode } from './utils/astPrinter';
+import { canonicalMangler, divmod, importsWriter, primitiveTypeToCairo } from './utils/utils';
 
 const INDENT = ' '.repeat(4);
 
@@ -360,8 +359,17 @@ class ReturnWriter extends CairoASTNodeWriter {
 }
 
 class ExpressionStatementWriter extends CairoASTNodeWriter {
+  newVarCounter = 0;
   writeInner(node: ExpressionStatement, writer: ASTWriter): SrcDesc {
-    return [`${writer.write(node.vExpression)}`];
+    if (
+      node.vExpression instanceof FunctionCall ||
+      node.vExpression instanceof Assignment ||
+      node.vExpression instanceof CairoAssert
+    ) {
+      return [`${writer.write(node.vExpression)}`];
+    } else {
+      return [`let __warp_uv${this.newVarCounter++} = ${writer.write(node.vExpression)}`];
+    }
   }
 }
 

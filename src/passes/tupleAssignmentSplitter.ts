@@ -8,6 +8,7 @@ import {
   ExpressionStatement,
   Identifier,
   Mutability,
+  Return,
   StateVariableVisibility,
   TupleExpression,
   VariableDeclaration,
@@ -15,6 +16,9 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { printNode } from '../utils/astPrinter';
+import { cloneVariableDeclaration } from '../utils/cloning';
+import { notNull } from '../utils/typeConstructs';
 
 // Converts a non-declaration tuple assignment into a declaration of temporary variables,
 // and piecewise assignments (x,y) = (y,x) -> (int a, int b) = (y,x); x = a; y = b;
@@ -36,6 +40,46 @@ export class TupleAssignmentSplitter extends ASTMapper {
     }
   }
 
+  visitReturn(node: Return, ast: AST): void {
+    this.commonVisit(node, ast);
+
+    if (node.vFunctionReturnParameters.vParameters.length > 1) {
+      const returnExpression = node.vExpression;
+      assert(
+        returnExpression !== undefined,
+        `Tuple return ${printNode(node)} has undefined value. Expects ${
+          node.vFunctionReturnParameters.vParameters.length
+        } parameters`,
+      );
+      const vars = node.vFunctionReturnParameters.vParameters.map((v) =>
+        cloneVariableDeclaration(v, ast),
+      );
+      ast.insertStatementBefore(
+        node,
+        new VariableDeclarationStatement(
+          ast.reserveId(),
+          '',
+          'VariableDeclarationStatement',
+          vars.map((d) => d.id),
+          vars,
+          returnExpression,
+        ),
+      );
+
+      node.vExpression = new TupleExpression(
+        ast.reserveId(),
+        '',
+        'TupleExpression',
+        returnExpression.typeString,
+        false,
+        vars.map(
+          (v) => new Identifier(ast.reserveId(), '', 'Identifier', v.typeString, v.name, v.id),
+        ),
+      );
+      ast.registerChild(node.vExpression, node);
+    }
+  }
+
   splitTupleAssignment(node: Assignment, ast: AST): Block {
     const lhs = node.vLeftHandSide;
     assert(
@@ -47,37 +91,35 @@ export class TupleAssignmentSplitter extends ASTMapper {
     const blockId = ast.setContextRecursive(block);
 
     const tempVars = new Map<Expression, VariableDeclaration>(
-      lhs.vOriginalComponents
-        .filter((n): n is Expression => n !== null)
-        .map((child) => {
-          // TODO cover all edge cases surrounding which type of typename can go here
-          const typeName = new ElementaryTypeName(
-            ast.reserveId(),
-            node.src,
-            'ElementaryTypeName',
-            `${child.typeString}`,
-            child.typeString,
-          );
-          ast.setContextRecursive(typeName);
-          const decl = new VariableDeclaration(
-            ast.reserveId(),
-            node.src,
-            'VariableDeclaration',
-            true,
-            false,
-            this.newTempVarName(),
-            blockId,
-            false,
-            DataLocation.Default,
-            StateVariableVisibility.Default,
-            Mutability.Constant,
-            child.typeString,
-            undefined,
-            typeName,
-          );
-          ast.setContextRecursive(decl);
-          return [child, decl];
-        }),
+      lhs.vOriginalComponents.filter(notNull).map((child) => {
+        // TODO cover all edge cases surrounding which type of typename can go here
+        const typeName = new ElementaryTypeName(
+          ast.reserveId(),
+          node.src,
+          'ElementaryTypeName',
+          `${child.typeString}`,
+          child.typeString,
+        );
+        ast.setContextRecursive(typeName);
+        const decl = new VariableDeclaration(
+          ast.reserveId(),
+          node.src,
+          'VariableDeclaration',
+          true,
+          false,
+          this.newTempVarName(),
+          blockId,
+          false,
+          DataLocation.Default,
+          StateVariableVisibility.Default,
+          Mutability.Constant,
+          child.typeString,
+          undefined,
+          typeName,
+        );
+        ast.setContextRecursive(decl);
+        return [child, decl];
+      }),
     );
 
     const tempTupleDeclaration = new VariableDeclarationStatement(

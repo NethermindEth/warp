@@ -21,6 +21,8 @@ import {
   FunctionVisibility,
   getNodeType,
   DataLocation,
+  VariableDeclaration,
+  Identifier,
 } from 'solc-typed-ast';
 import { AST, Imports } from '../ast/ast';
 import { isSane } from './astChecking';
@@ -331,5 +333,29 @@ export function getReturnTypeString(node: FunctionDefinition): string {
   const returns = node.vReturnParameters.vParameters;
   if (returns.length === 0) return 'tuple()';
   if (returns.length === 1) return returns[0].typeString;
-  return `tuple(${returns.map((decl) => decl.typeString).join(', ')})`;
+  return `tuple(${returns.map((decl) => decl.typeString).join(',')})`;
+}
+
+export function createIdentifier(variable: VariableDeclaration, ast: AST): Identifier {
+  return new Identifier(
+    ast.reserveId(),
+    '',
+    'Identifier',
+    variable.typeString,
+    variable.name,
+    variable.id,
+  );
+}
+
+export function createBoolLiteral(value: boolean, ast: AST): Literal {
+  const valueString = value ? 'true' : 'false';
+  return new Literal(
+    ast.reserveId(),
+    '',
+    'Literal',
+    'bool',
+    LiteralKind.Bool,
+    toHexString(valueString),
+    valueString,
+  );
 }
