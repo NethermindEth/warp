@@ -3,10 +3,10 @@ name: CodeBuild Slack Notifications
 permissions:
   pull-requests: write
 
-on: 
-  pull_request_review: 
+on:
+  pull_request_review:
     types: [submitted]
-
+    
 jobs:
   run_codebuild:
     if: github.event.review.state == 'approved'
