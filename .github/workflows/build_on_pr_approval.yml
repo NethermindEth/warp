@@ -1,4 +1,4 @@
-name: CodeBuild Slack Notifications
+name: CodeBuild on Pull Request Approval
 
 permissions:
   pull-requests: write
