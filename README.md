@@ -1,3 +1,5 @@
+<img src="https://github.com/NethermindEth/warp/resources/WARP.svg" width="900" height="512" />
+
 # Warp
 
 Warp brings Solidity to StarkNet, making it possible to transpile Ethereum smart contracts to Cairo, and use them on StarkNet.
