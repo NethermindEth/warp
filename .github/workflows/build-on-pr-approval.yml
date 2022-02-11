@@ -1,13 +1,15 @@
-name: Manual CodeBuild Trigger
+name: CodeBuild on Pull Request Approval
 
 permissions:
   pull-requests: write
 
-on: 
-  pull_request_target:
-
+on:
+  pull_request_review:
+    types: [submitted]
+    
 jobs:
   run_codebuild:
+    if: github.event.review.state == 'approved'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
