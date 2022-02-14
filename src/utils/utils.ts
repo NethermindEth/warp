@@ -280,6 +280,8 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
             node.size.toString(),
           ),
     );
+  } else if (node instanceof BoolType) {
+    result = new ElementaryTypeName(ast.reserveId(), '', 'ElementaryTypeName', 'bool', 'bool');
   } else if (node instanceof IntLiteralType) {
     console.log(`WARNING: assigning int248 type to int literal ${node.pp()}`);
     return new ElementaryTypeName(ast.reserveId(), '', 'ElementaryTypeName', 'int248', 'int248');

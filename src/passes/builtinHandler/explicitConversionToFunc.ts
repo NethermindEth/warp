@@ -61,7 +61,7 @@ export class ExplicitConversionToFunc extends BuiltinMapper {
           ast.replaceNode(node, truncateLiteral(node.vArguments[0], typeTo, ast));
         } else if (typeToSize === 256) {
           // TODO do this conversion at compile time
-          ast.addImports({ 'warplib.math.utils': new Set(['felt_to_uint256']) });
+          ast.addImports({ 'warplib.maths.utils': new Set(['felt_to_uint256']) });
           ast.replaceNode(
             node.vExpression,
             new Identifier(
@@ -87,7 +87,7 @@ export class ExplicitConversionToFunc extends BuiltinMapper {
             ast.replaceNode(node, node.vArguments[0]);
             return;
           } else {
-            ast.addImports({ 'warplib.math.utils': new Set(['felt_to_uint256']) });
+            ast.addImports({ 'warplib.maths.utils': new Set(['felt_to_uint256']) });
             ast.replaceNode(
               node.vExpression,
               new Identifier(

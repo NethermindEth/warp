@@ -1,6 +1,6 @@
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_eq, uint256_mul
-from warplib.math.utils import felt_to_uint256
+from warplib.maths.utils import felt_to_uint256
 
 # ------------------------------------------------------------------------------
 # Warp memory schema

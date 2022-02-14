@@ -6,7 +6,7 @@ import { deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
 import { expectations } from './expectations';
 
 describe('Transpile solidity', function () {
-  this.timeout(180000);
+  this.timeout(1800000);
 
   let transpileResults: SafePromise<{ stderr: string }>[];
 
@@ -32,7 +32,7 @@ describe('Transpile solidity', function () {
 });
 
 describe('Transpiled contracts are valid cairo', function () {
-  this.timeout(180000);
+  this.timeout(1800000);
 
   let compileResults: SafePromise<{ stderr: string }>[];
 
@@ -55,7 +55,7 @@ describe('Transpiled contracts are valid cairo', function () {
 const deployedAddresses: Map<string, string> = new Map();
 
 describe('Compiled contracts are deployable', function () {
-  this.timeout(180000);
+  this.timeout(1800000);
 
   // let deployResults: SafePromise<string>[];
   const deployResults: ({ success: true; result: string } | { success: false; result: unknown })[] =
@@ -86,7 +86,7 @@ describe('Compiled contracts are deployable', function () {
 });
 
 describe('Deployed contracts have correct behaviour', function () {
-  this.timeout(180000);
+  this.timeout(1800000);
 
   for (const fileTest of expectations) {
     describe(fileTest.name, function () {

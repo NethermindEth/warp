@@ -25,6 +25,9 @@ jobs:
           pipx install black[colors]
           pipx install cairo-lang
 
+      - name: Build warplib
+        run: yarn warplib
+
       - name: Check formatting
         run: |
           yarn lint
@@ -51,6 +54,9 @@ jobs:
         run: |
           make
           make compile
+
+      - name: Build warplib
+        run: yarn warplib
 
       - name: Test code compilation
         run: make test_compilation

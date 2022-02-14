@@ -1,16 +1,16 @@
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { BinaryOperations } from './binaryOperations';
+import { MathsOperationToFunction } from './MathsOperationToFunction';
 import { ExplicitConversionToFunc } from './explicitConversionToFunc';
 import { MsgSender } from './msgSender';
 import { Require } from './require';
 
 export class BuiltinHandler extends ASTMapper {
-  map(node: AST): AST {
-    node = new MsgSender().map(node);
-    node = new Require().map(node);
-    node = new ExplicitConversionToFunc().map(node);
-    node = new BinaryOperations().map(node);
-    return node;
+  map(ast: AST): AST {
+    ast = new MsgSender().map(ast);
+    ast = new Require().map(ast);
+    ast = new ExplicitConversionToFunc().map(ast);
+    ast = new MathsOperationToFunction().map(ast);
+    return ast;
   }
 }

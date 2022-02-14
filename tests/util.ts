@@ -1,3 +1,4 @@
+import assert = require('assert');
 import axios, { AxiosResponse } from 'axios';
 import { exec } from 'child_process';
 import * as fs from 'fs';
@@ -62,4 +63,12 @@ export function cleanupSync(path: string): void {
   if (fs.existsSync(path)) {
     fs.unlinkSync(path);
   }
+}
+
+export function validateInput(input: string): void {
+  const num = BigInt(input);
+  assert(
+    num >= 0n,
+    "Negative numbers should not be passed to tests, please convert to two's complement",
+  );
 }

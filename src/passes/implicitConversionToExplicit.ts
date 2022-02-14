@@ -51,6 +51,8 @@ export class ImplicitConversionToExplicit extends ASTMapper {
   visitBinaryOperation(node: BinaryOperation, ast: AST): void {
     this.commonVisit(node, ast);
 
+    if (node.operator === '<<' || node.operator === '>>') return;
+
     const argTypes = [node.vLeftExpression, node.vRightExpression].map((v) =>
       getNodeType(v, ast.compilerVersion),
     );
@@ -73,8 +75,6 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       );
       ast.registerChild(node.vRightExpression, node);
     }
-
-    return;
   }
 
   // Implicit conversions are not deep

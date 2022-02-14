@@ -505,7 +505,7 @@ function cairoType(tp: TypeNode): CairoType {
   }
 }
 
-function createCairoFunctionStub(
+export function createCairoFunctionStub(
   name: string,
   inputs: [string, TypeName][],
   returns: [string, TypeName][],

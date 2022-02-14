@@ -24,9 +24,6 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe = false) {
   if (force) {
     postTestCleanup();
   } else if (!preTestChecks()) return;
-  findCairoSourceFilePaths('warplib', true).forEach((file) => {
-    runCairoFileTest(file, results, onlyResults, unsafe);
-  });
   findSolSourceFilePaths('example-contracts', true).forEach((file) =>
     runSolFileTest(file, results, onlyResults, unsafe),
   );

@@ -15,8 +15,11 @@
     "prepare": "husky install",
     "lint": "eslint ./src/** --ignore-path .gitignore",
     "lint:fix": "npm run lint -- --fix",
-    "test": "yarn tsc; npx mocha \"tests/**/*.test.ts\" --extension ts --require ts-node/register --parallel --exit",
-    "testnet": "python3 starknet-testnet/server.py"
+    "test": "yarn warplib; npx mocha \"tests/**/*.test.ts\" --extension ts --require ts-node/register --parallel --exit",
+    "test:lib": "yarn warplib; npx mocha tests/warplib.test.ts --extension ts --require ts-node/register --exit",
+    "test:behaviour": "yarn tsc; npx mocha tests/behaviour/behaviour.test.ts --extension ts --require ts-node/register --exit",
+    "testnet": "python3 starknet-testnet/server.py",
+    "warplib": "yarn tsc; node ./build/warplib/generateWarplib.js"
   },
   "prettier": {
     "printWidth": 100,
