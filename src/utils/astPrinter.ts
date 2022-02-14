@@ -67,7 +67,7 @@ export class ASTPrinter {
     );
 
     const printedRoot = this.idsToHighlight.includes(root.id)
-      ? underline(printNode(root))
+      ? cyan(underline(printNode(root)))
       : printNode(root);
 
     return `${printedRoot}${propString}${subtrees.join('')}`;
@@ -125,4 +125,8 @@ export function printTypeNode(node: TypeNode): string {
 
 function underline(text: string): string {
   return `${text}\n${'-'.repeat(text.length)}`;
+}
+
+function cyan(text: string): string {
+  return `\x1b[36m${text}\x1b[0m`;
 }
