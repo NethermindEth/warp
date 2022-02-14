@@ -16,5 +16,6 @@ export * from './tupleAssignmentSplitter';
 export * from './uint256Importer';
 export * from './unloadingAssignment';
 export * from './unreachableStatementPruner';
+export * from './usingForResolver';
 export * from './variableDeclarationExpressionSplitter';
 export * from './variableDeclarationInitialiser';

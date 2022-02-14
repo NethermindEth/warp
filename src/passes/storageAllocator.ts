@@ -3,6 +3,7 @@ import {
   Assignment,
   Block,
   ContractDefinition,
+  ContractKind,
   ExpressionStatement,
   FunctionDefinition,
   FunctionKind,
@@ -75,6 +76,8 @@ export class StorageAllocator extends ASTMapper {
 }
 
 function insertIntoConstructor(initialisationBlock: Block, contract: ContractDefinition, ast: AST) {
+  if (contract.kind !== ContractKind.Contract) return;
+
   const constructor = contract.vConstructor;
   if (constructor === undefined) {
     const newConstructor = new FunctionDefinition(

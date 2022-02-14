@@ -18,6 +18,7 @@ import {
   Uint256Importer,
   UnloadingAssignment,
   UnreachableStatementPruner,
+  UsingForResolver,
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
 } from './passes';
@@ -69,6 +70,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
   // TODO: add expected prerequisites to each pass
   const passes: Map<string, ASTMapper> = new Map([
     ['Ru', new RejectUnsupportedFeatures()],
+    ['Ufr', new UsingForResolver()],
     ['Ib', new IntBoundCalculator()],
     ['M', new IdentifierMangler()],
     ['Sa', new StorageAllocator()],

@@ -122,6 +122,7 @@ dist
 
 # python virtual environment
 .venv/
+venv
 
 # tests
 starknet-testnet/__pycache__/*
