@@ -359,6 +359,12 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('mangled_identifiers', [
+          new File('free_function', [
+            Expect.Simple('f', [], ['20']),
+            Expect.Simple('s', [], ['10']),
+          ]),
+        ]),
       ]),
     ]),
   ]),

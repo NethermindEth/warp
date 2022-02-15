@@ -64,14 +64,6 @@ export class IdentifierMangler extends ASTMapper {
   lastUsedFunctionId = 0;
   lastUsedTypeId = 0;
 
-  updateQueue: (() => void)[] = [];
-
-  map(ast: AST): AST {
-    this.dispatchVisit(ast.root, ast);
-    this.updateQueue.forEach((callBack) => callBack());
-    return ast;
-  }
-
   // This strategy should allow checked demangling post transpilation for a more readable result
   createNewExternalFunctionName(fd: FunctionDefinition): string {
     return `${fd.name}_${fd.canonicalSignatureHash(ABIEncoderVersion.V2)}`;
@@ -91,28 +83,24 @@ export class IdentifierMangler extends ASTMapper {
   }
 
   visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {
-    this.updateQueue.push(() => {
-      if (
-        node.vReferencedDeclaration instanceof UserDefinedValueTypeDefinition ||
-        node.vReferencedDeclaration instanceof StructDefinition
-      ) {
-        node.name = node.vReferencedDeclaration.name;
-      }
-    });
+    if (
+      node.vReferencedDeclaration instanceof UserDefinedValueTypeDefinition ||
+      node.vReferencedDeclaration instanceof StructDefinition
+    ) {
+      node.name = node.vReferencedDeclaration.name;
+    }
 
     this.commonVisit(node, ast);
   }
 
   visitIdentifier(node: Identifier, _ast: AST): void {
-    this.updateQueue.push(() => {
-      if (
-        node.vIdentifierType === ExternalReferenceType.UserDefined &&
-        (node.vReferencedDeclaration instanceof VariableDeclaration ||
-          node.vReferencedDeclaration instanceof FunctionDefinition)
-      ) {
-        node.name = node.vReferencedDeclaration.name;
-      }
-    });
+    if (
+      node.vIdentifierType === ExternalReferenceType.UserDefined &&
+      (node.vReferencedDeclaration instanceof VariableDeclaration ||
+        node.vReferencedDeclaration instanceof FunctionDefinition)
+    ) {
+      node.name = node.vReferencedDeclaration.name;
+    }
   }
   visitIdentifierPath(node: IdentifierPath, ast: AST): void {
     this.commonVisit(node, ast);
@@ -126,20 +114,18 @@ export class IdentifierMangler extends ASTMapper {
   }
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     this.commonVisit(node, ast);
-    this.updateQueue.push(() => {
-      const declaration = node.vReferencedDeclaration;
+    const declaration = node.vReferencedDeclaration;
 
-      if (declaration === undefined) {
-        // No declaration means this is a solidity internal identifier
-        return;
-      } else if (
-        declaration instanceof FunctionDefinition ||
-        declaration instanceof VariableDeclaration ||
-        declaration instanceof EnumValue
-      ) {
-        node.memberName = declaration.name;
-      }
-    });
+    if (declaration === undefined) {
+      // No declaration means this is a solidity internal identifier
+      return;
+    } else if (
+      declaration instanceof FunctionDefinition ||
+      declaration instanceof VariableDeclaration ||
+      declaration instanceof EnumValue
+    ) {
+      node.memberName = declaration.name;
+    }
   }
   visitIndexAccess(node: IndexAccess, ast: AST): void {
     this.commonVisit(node, ast);
@@ -236,7 +222,7 @@ export class IdentifierMangler extends ASTMapper {
   visitOverrideSpecifier(node: OverrideSpecifier, ast: AST): void {
     this.commonVisit(node, ast);
   }
-  visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
+  mangleFunctionDefinition(node: FunctionDefinition): void {
     // TODO switch based on type
     switch (node.visibility) {
       case FunctionVisibility.External:
@@ -246,6 +232,8 @@ export class IdentifierMangler extends ASTMapper {
       default:
         node.name = this.createNewInternalFunctionName(node.name);
     }
+  }
+  visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     this.commonVisit(node, ast);
   }
   visitModifierDefinition(node: ModifierDefinition, ast: AST): void {
@@ -282,6 +270,9 @@ export class IdentifierMangler extends ASTMapper {
   visitInheritanceSpecifier(node: InheritanceSpecifier, ast: AST): void {
     this.commonVisit(node, ast);
   }
+  mangleContractDefinition(node: ContractDefinition): void {
+    node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n));
+  }
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     //TODO implement
     this.commonVisit(node, ast);
@@ -297,6 +288,8 @@ export class IdentifierMangler extends ASTMapper {
     this.commonVisit(node, ast);
   }
   visitSourceUnit(node: SourceUnit, ast: AST): void {
+    node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n));
+    node.vContracts.forEach((n) => this.mangleContractDefinition(n));
     this.commonVisit(node, ast);
   }
   visitCairoAssert(node: CairoAssert, ast: AST): void {
