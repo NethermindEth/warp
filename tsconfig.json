@@ -8,7 +8,8 @@
     "allowJs": true,
     "checkJs": true,
     "outDir": "./build",
-    "strict": true
+    "strict": true,
+    "sourceMap": true
   },
   "include": ["./src"]
 }

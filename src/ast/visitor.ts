@@ -59,10 +59,16 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
   WhileStatement,
+  TypeName,
+  Expression,
+  Statement,
+  StatementWithChildren,
+  ASTNodeWithChildren,
 } from 'solc-typed-ast';
 import { CairoAssert, CairoFunctionDefinition } from './cairoNodes';
 
 import { AST } from './ast';
+import CairoASTNode from './cairoNodes/cairoASTNode';
 
 export abstract class ASTVisitor<T> {
   getPassName(): string {
@@ -140,134 +146,133 @@ export abstract class ASTVisitor<T> {
   }
   abstract commonVisit(node: ASTNode, ast: AST): T;
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): T {
-    // TODO implement this for other subtypes
     return this.visitFunctionDefinition(node, ast);
   }
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitTypeName(node, ast);
   }
   visitArrayTypeName(node: ArrayTypeName, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitTypeName(node, ast);
   }
   visitMapping(node: Mapping, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitTypeName(node, ast);
   }
   visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitTypeName(node, ast);
   }
   visitFunctionTypeName(node: FunctionTypeName, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitTypeName(node, ast);
   }
   visitLiteral(node: Literal, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitExpression(node, ast);
   }
   visitIdentifier(node: Identifier, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitExpression(node, ast);
   }
   visitIdentifierPath(node: IdentifierPath, ast: AST): T {
     return this.commonVisit(node, ast);
   }
   visitFunctionCallOptions(node: FunctionCallOptions, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitExpression(node, ast);
   }
   visitFunctionCall(node: FunctionCall, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitExpression(node, ast);
   }
   visitMemberAccess(node: MemberAccess, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitExpression(node, ast);
   }
   visitIndexAccess(node: IndexAccess, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitExpression(node, ast);
   }
   visitIndexRangeAccess(node: IndexRangeAccess, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitExpression(node, ast);
   }
   visitUnaryOperation(node: UnaryOperation, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitExpression(node, ast);
   }
   visitBinaryOperation(node: BinaryOperation, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitExpression(node, ast);
   }
   visitConditional(node: Conditional, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitExpression(node, ast);
   }
   visitElementaryTypeNameExpression(node: ElementaryTypeNameExpression, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitExpression(node, ast);
   }
   visitNewExpression(node: NewExpression, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitExpression(node, ast);
   }
   visitTupleExpression(node: TupleExpression, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitExpression(node, ast);
   }
   visitExpressionStatement(node: ExpressionStatement, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitAssignment(node: Assignment, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitExpression(node, ast);
   }
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): T {
     return this.commonVisit(node, ast);
   }
   visitBlock(node: Block, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatementWithChildren(node, ast);
   }
   visitUncheckedBlock(node: UncheckedBlock, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatementWithChildren(node, ast);
   }
   visitVariableDeclarationStatement(node: VariableDeclarationStatement, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitIfStatement(node: IfStatement, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitForStatement(node: ForStatement, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitWhileStatement(node: WhileStatement, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitDoWhileStatement(node: DoWhileStatement, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitReturn(node: Return, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitEmitStatement(node: EmitStatement, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitRevertStatement(node: RevertStatement, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitPlaceholderStatement(node: PlaceholderStatement, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitInlineAssembly(node: InlineAssembly, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitTryCatchClause(node: TryCatchClause, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitTryStatement(node: TryStatement, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitBreak(node: Break, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitContinue(node: Continue, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitThrow(node: Throw, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitStatement(node, ast);
   }
   visitParameterList(node: ParameterList, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitASTNodeWithChildren(node, ast);
   }
   visitModifierInvocation(node: ModifierInvocation, ast: AST): T {
     return this.commonVisit(node, ast);
   }
   visitOverrideSpecifier(node: OverrideSpecifier, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitASTNodeWithChildren(node, ast);
   }
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): T {
     return this.commonVisit(node, ast);
@@ -282,13 +287,13 @@ export abstract class ASTVisitor<T> {
     return this.commonVisit(node, ast);
   }
   visitStructDefinition(node: StructDefinition, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitASTNodeWithChildren(node, ast);
   }
   visitEnumValue(node: EnumValue, ast: AST): T {
     return this.commonVisit(node, ast);
   }
   visitEnumDefinition(node: EnumDefinition, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitASTNodeWithChildren(node, ast);
   }
   visitUserDefinedValueTypeDefinition(node: UserDefinedValueTypeDefinition, ast: AST): T {
     return this.commonVisit(node, ast);
@@ -300,7 +305,7 @@ export abstract class ASTVisitor<T> {
     return this.commonVisit(node, ast);
   }
   visitContractDefinition(node: ContractDefinition, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitASTNodeWithChildren(node, ast);
   }
   visitStructuredDocumentation(node: StructuredDocumentation, ast: AST): T {
     return this.commonVisit(node, ast);
@@ -312,9 +317,27 @@ export abstract class ASTVisitor<T> {
     return this.commonVisit(node, ast);
   }
   visitSourceUnit(node: SourceUnit, ast: AST): T {
-    return this.commonVisit(node, ast);
+    return this.visitASTNodeWithChildren(node, ast);
   }
   visitCairoAssert(node: CairoAssert, ast: AST): T {
+    return this.visitCairoASTNode(node, ast);
+  }
+  visitTypeName(node: TypeName, ast: AST): T {
+    return this.commonVisit(node, ast);
+  }
+  visitExpression(node: Expression, ast: AST): T {
+    return this.commonVisit(node, ast);
+  }
+  visitStatement(node: Statement, ast: AST): T {
+    return this.commonVisit(node, ast);
+  }
+  visitStatementWithChildren(node: StatementWithChildren<Statement>, ast: AST): T {
+    return this.commonVisit(node, ast);
+  }
+  visitASTNodeWithChildren(node: ASTNodeWithChildren<ASTNode>, ast: AST): T {
+    return this.commonVisit(node, ast);
+  }
+  visitCairoASTNode(node: CairoASTNode, ast: AST): T {
     return this.commonVisit(node, ast);
   }
 }
