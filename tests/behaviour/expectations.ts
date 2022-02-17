@@ -303,6 +303,10 @@ export const expectations = flatten(
             Expect.Simple('subtraction8safe', ['20', '180'], null, 'overflow'),
             Expect.Simple('subtraction8unsafe', ['32', '20'], ['12']),
             Expect.Simple('subtraction8unsafe', ['2', '180'], ['78'], 'overflow'),
+            Expect.Simple('subtraction8signedsafe', ['31', '2'], ['29']),
+            Expect.Simple('subtraction8signedsafe', ['20', '180'], ['96'], 'overflow'),
+            Expect.Simple('subtraction8signedunsafe', ['32', '20'], ['12']),
+            Expect.Simple('subtraction8signedunsafe', ['20', '180'], ['96'], 'overflow'),
             Expect.Simple('subtraction200safe', ['60', '8'], ['52']),
             Expect.Simple(
               'subtraction200safe',
@@ -322,6 +326,28 @@ export const expectations = flatten(
             Expect.Simple('subtraction256unsafe', ['20', '4', '5', '2'], ['15', '2']),
             Expect.Simple(
               'subtraction256unsafe',
+              ['20', '4', '50', '2'],
+              ['340282366920938463463374607431768211426', '1'],
+              'overflow',
+            ),
+            Expect.Simple('subtraction256signedsafe', ['20', '4', '5', '2'], ['15', '2']),
+            Expect.Simple(
+              'subtraction256signedsafe',
+              ['0', '0', '1', '0'],
+              [
+                '340282366920938463463374607431768211455',
+                '340282366920938463463374607431768211455',
+              ],
+            ),
+            Expect.Simple(
+              'subtraction256signedsafe',
+              ['20', '1', '5', '2'],
+              ['15', '340282366920938463463374607431768211455'],
+              'overflow',
+            ),
+            Expect.Simple('subtraction256signedunsafe', ['20', '4', '5', '2'], ['15', '2']),
+            Expect.Simple(
+              'subtraction256signedunsafe',
               ['20', '4', '50', '2'],
               ['340282366920938463463374607431768211426', '1'],
               'overflow',
