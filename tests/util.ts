@@ -41,7 +41,7 @@ export function initialiseArtifactsDirectory() {
 }
 
 export function transpile(contractPath: string, cairoOutputPath: string) {
-  return sh(`bin/warp transpile ${contractPath} --output ${cairoOutputPath}`);
+  return sh(`bin/warp transpile ${contractPath} --output ${cairoOutputPath} --strict`);
 }
 
 export function starknetCompile(cairoPath: string, jsonOutputPath: string) {
