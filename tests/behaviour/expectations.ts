@@ -333,6 +333,14 @@ export const expectations = flatten(
             Expect.Simple('subtraction256signedsafe', ['20', '4', '5', '2'], ['15', '2']),
             Expect.Simple(
               'subtraction256signedsafe',
+              ['0', '0', '1', '0'],
+              [
+                '340282366920938463463374607431768211455',
+                '340282366920938463463374607431768211455',
+              ],
+            ),
+            Expect.Simple(
+              'subtraction256signedsafe',
               ['20', '1', '5', '2'],
               ['15', '340282366920938463463374607431768211455'],
               'overflow',
