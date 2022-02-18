@@ -53,6 +53,21 @@ function formatInput(fileName: string): SolcInput {
 }
 
 function cliCompile(input: SolcInput): unknown {
+  const compilerVersion = getCompilerVersion();
+  // Check for solc v0.8.7 and before
+  const pattern = /0+\.[0-8]+\.[0-7]+/;
+  const match = pattern.exec(compilerVersion);
+  if (match) {
+    // For solc v0.8.7 and before, set the allow path
+    const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
+    const filePath = Object.keys(input.sources)[0];
+    const allowPath = `${currentDirectory}/${filePath}`;
+    return JSON.parse(
+      execSync(`solc --standard-json --allow-paths ${allowPath}`, {
+        input: JSON.stringify(input),
+      }).toString(),
+    );
+  }
   return JSON.parse(execSync(`solc --standard-json`, { input: JSON.stringify(input) }).toString());
 }
 
