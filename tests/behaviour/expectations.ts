@@ -130,6 +130,16 @@ export const expectations = flatten(
               'overflow',
             ),
             Expect.Simple('addition256signedsafe', ['20', '1', '5', '2'], ['25', '3']),
+            Expect.Simple(
+              'addition256signedsafe',
+              [
+                '340282366920938463463374607431768211455',
+                '340282366920938463463374607431768211455',
+                '1',
+                '0',
+              ],
+              ['0', '0'],
+            ),
             Expect.Simple('addition256signedunsafe', ['20', '1', '5', '2'], ['25', '3']),
           ]),
           new File('bitwise_and', [
