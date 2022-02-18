@@ -3,6 +3,7 @@ import {
   AddressHandler,
   AnnotateImplicits,
   BuiltinHandler,
+  DeleteHandler,
   ExpressionSplitter,
   ExternImporter,
   IdentifierMangler,
@@ -11,6 +12,7 @@ import {
   LiteralExpressionEvaluator,
   LoopFunctionaliser,
   MemoryHandler,
+  RejectUnsupportedFeatures,
   ReturnInserter,
   StorageAllocator,
   StorageVariableAccessRewriter,
@@ -30,7 +32,6 @@ import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
-import { RejectUnsupportedFeatures } from './passes/rejectUnsupportedFeatures';
 import { TranspilationOptions } from '.';
 import { parsePassOrder } from './utils/cliOptionParsing';
 
@@ -82,6 +83,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['U', new UnloadingAssignment()],
     ['V', new VariableDeclarationInitialiser()],
     ['Vs', new VariableDeclarationExpressionSplitter()],
+    ['Dh', new DeleteHandler()],
     ['Me', new MemoryHandler()],
     ['S', new StorageVariableAccessRewriter()],
     ['I', new ImplicitConversionToExplicit()],

@@ -1,6 +1,7 @@
 export * from './addressHandler';
 export * from './annotateImplicits';
 export * from './builtinHandler';
+export * from './deleteHandler';
 export * from './expressionSplitter';
 export * from './externImporter';
 export * from './identifierMangler';
@@ -9,6 +10,7 @@ export * from './intBoundCalculator';
 export * from './literalExpressionEvaluator/literalExpressionEvaluator';
 export * from './loopFunctionaliser';
 export * from './memoryHandler';
+export * from './rejectUnsupportedFeatures';
 export * from './returnInserter';
 export * from './storageAllocator';
 export * from './storageVariableAccessRewriter';

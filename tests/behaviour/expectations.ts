@@ -391,6 +391,70 @@ export const expectations = flatten(
             Expect.Simple('s', [], ['10']),
           ]),
         ]),
+        new Dir('delete', [
+          // ---- "address" functionCall to cairo not implemented yet ----
+          // new File('address', [
+          //   Expect.Simple('f', [], ['23', '0']),
+          // ]),
+
+          // ---- ArrayType not implemented yet (fails on StorageAllocator) ----
+          // new File('array_static', [
+          //   new Expect('delete', [
+          //     ['get', ['2', '0'], ['3', '0'], '0'],
+          //     ['clearAt', ['2', '0'], [], '0'],
+          //     ['get', ['2', '0'], ['0', '0'], '0'],
+          //     ['get', ['0', '0'], ['1', '0'], '0'],
+          //     ['clear', [], [], '0'],
+          //     ['getLength', [], ['4', '0'], '0'],
+          //     ['get', ['0', '0'], ['0', '0'], '0'],
+          //   ]),
+          // ]),
+
+          // ---- ArrayType not implemented yet (fails on StorageAllocator) ----
+          // new File('array_dynamic', [
+          //   new Expect('delete', [
+          //     ['initialize', [], [], '0'],
+          //     ['clearAt', ['2', '0'], [], '0'],
+          //     ['get', ['2', '0'], ['0', '0'], '0'],
+          //     ['get', ['0', '0'], ['8', '0'], '0'],
+          //     ['clear', [], [], '0'],
+          //     ['getLength', [], ['0', '0'], '0'],
+          //   ]),
+          // ]),
+
+          // ---- BoolType not implemented yet (fails on StorageAllocator) ----
+          // new File('boolean', [
+          //   Expect.Simple('boolean', [], ['0']),
+          // ]),
+
+          // ---- UserDefinedType not implemented yet (fails on StorageAllocator) ----
+          // new File('enum', [
+          //   new Expect('delete', [
+          //     ['set', ['3'], [], '0'],
+          //     ['reset', [], [], '0'],
+          //     ['get', [], ['0'], '0'],
+          //   ]),
+          // ]),
+
+          new File('int', [
+            new Expect('delete', [
+              ['totalSupply', [], ['100000000000000', '0'], '0'],
+              ['reset', [], [], '0'],
+              ['totalSupply', [], ['0', '0'], '0'],
+              ['addValue', ['25', '0'], ['25', '0'], '0'],
+            ]),
+          ]),
+
+          // ---- UserDefinedType not implemented yet (fails on StorageAllocator) ----
+          // new File('struct', [
+          //   new Expect('delete', [
+          //     ['getRadious', [], ['5', '0'], '0'],
+          //     ['reset', [], [], '0'],
+          //     ['getRadious', [], ['0', '0'], '0'],
+          //     ['getPoint', [], ['0', '0', '0', '0'], '0'],
+          //   ]),
+          // ]),
+        ]),
       ]),
     ]),
   ]),

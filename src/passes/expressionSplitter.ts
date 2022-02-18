@@ -1,10 +1,10 @@
 import assert = require('assert');
 import {
-  FunctionDefinition,
-  FunctionCall,
-  VariableDeclarationStatement,
-  ExpressionStatement,
   Assignment,
+  ExpressionStatement,
+  FunctionCall,
+  FunctionDefinition,
+  VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';

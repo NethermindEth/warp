@@ -1,9 +1,9 @@
 import {
-  UncheckedBlock,
   BinaryOperation,
-  UnaryOperation,
   Literal,
   LiteralKind,
+  UnaryOperation,
+  UncheckedBlock,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
@@ -72,6 +72,12 @@ export class MathsOperationToFunction extends ASTMapper {
       ['-', () => functionaliseNegate(node, ast)],
       ['~', () => functionaliseBitwiseNot(node, ast)],
       ['!', () => replaceNot(node, ast)],
+      [
+        'delete',
+        () => {
+          return;
+        },
+      ],
     ]);
 
     const thunk = operatorMap.get(node.operator);
