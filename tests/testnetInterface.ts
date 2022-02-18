@@ -1,5 +1,5 @@
-import axios from 'axios';
 import { BigNumber } from 'ethers';
+import axios from 'axios';
 
 export type InvokeResponse =
   | {
@@ -21,7 +21,6 @@ export async function deploy(jsonPath: string, input: string[]): Promise<string>
     compiled_cairo: jsonPath,
     input,
   });
-
   return BigNumber.from(response.data.contract_address)._hex;
 }
 

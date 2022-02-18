@@ -1,34 +1,38 @@
 import assert = require('assert');
+
+import { AST, Imports } from '../ast/ast';
 import {
   AddressType,
-  BoolType,
-  IntType,
-  TypeNode,
-  EtherUnit,
-  TimeUnit,
-  IntLiteralType,
-  VariableDeclarationStatement,
-  UserDefinedType,
-  CompileFailedError,
-  PointerType,
   ArrayType,
-  ElementaryTypeName,
-  TypeName,
   ArrayTypeName,
-  Literal,
-  LiteralKind,
+  BoolType,
+  CompileFailedError,
+  DataLocation,
+  ElementaryTypeName,
+  EtherUnit,
   FunctionDefinition,
   FunctionVisibility,
-  getNodeType,
-  DataLocation,
-  VariableDeclaration,
   Identifier,
+  IntLiteralType,
+  IntType,
+  Literal,
+  LiteralKind,
+  Mapping,
+  MappingType,
+  PointerType,
+  TimeUnit,
+  TypeName,
+  TypeNode,
+  UserDefinedType,
+  VariableDeclaration,
+  VariableDeclarationStatement,
+  getNodeType,
 } from 'solc-typed-ast';
-import { AST, Imports } from '../ast/ast';
-import { isSane } from './astChecking';
-import { printNode, printTypeNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
+import { printNode, printTypeNode } from './astPrinter';
+
 import { Class } from './typeConstructs';
+import { isSane } from './astChecking';
 
 export function divmod(x: number, y: number): [number, number] {
   return [Math.floor(x / y), x % y];
@@ -295,6 +299,15 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
     );
   } else if (node instanceof PointerType) {
     result = typeNameFromTypeNode(node.to, ast);
+  } else if (node instanceof MappingType) {
+    result = new Mapping(
+      ast.reserveId(),
+      '',
+      'Mapping',
+      node.pp(),
+      typeNameFromTypeNode(node.keyType, ast),
+      typeNameFromTypeNode(node.valueType, ast),
+    );
   }
 
   if (result === null) {

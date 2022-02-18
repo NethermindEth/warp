@@ -1,23 +1,26 @@
 import assert = require('assert');
+
 import {
   Assignment,
+  FunctionCall,
   Identifier,
-  VariableDeclaration,
   IndexAccess,
-  getNodeType,
   Literal,
   LiteralKind,
-  PointerType,
-  MappingType,
   Mapping,
+  MappingType,
+  PointerType,
+  VariableDeclaration,
+  getNodeType,
 } from 'solc-typed-ast';
-import { ASTMapper } from '../ast/mapper';
-import { cloneExpression, cloneTypeName } from '../utils/cloning';
-import { AST } from '../ast/ast';
-import { printNode, printTypeNode } from '../utils/astPrinter';
-import { CairoContract } from '../ast/cairoNodes';
-import { toHexString, typeNameFromTypeNode } from '../utils/utils';
 import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
+import { cloneExpression, cloneTypeName } from '../utils/cloning';
+import { printNode, printTypeNode } from '../utils/astPrinter';
+import { toHexString, typeNameFromTypeNode } from '../utils/utils';
+
+import { AST } from '../ast/ast';
+import { ASTMapper } from '../ast/mapper';
+import { CairoContract } from '../ast/cairoNodes';
 
 export class StorageVariableAccessRewriter extends ASTMapper {
   visitAssignment(node: Assignment, ast: AST): void {
@@ -139,8 +142,7 @@ export class StorageVariableAccessRewriter extends ASTMapper {
   //   visitMemberAccess(node: MemberAccess): ASTNode {
   //     if (node.vExpression
   //   }
-
-  visitIndexAccess(node: IndexAccess, ast: AST): void {
+  replaceStorageVariableAccess(node: IndexAccess, ast: AST): FunctionCall {
     if (node.vIndexExpression === undefined) {
       throw new WillNotSupportError(
         `Undefined index access not handled yet. Is this in abi.decode?`,
@@ -148,26 +150,42 @@ export class StorageVariableAccessRewriter extends ASTMapper {
     }
 
     const baseType = getNodeType(node.vBaseExpression, ast.compilerVersion);
-
     if (baseType instanceof PointerType) {
       if (baseType.to instanceof MappingType) {
         const base = node.vBaseExpression;
-        assert(base instanceof Identifier);
-        const decl = base.vReferencedDeclaration;
-        assert(decl instanceof VariableDeclaration);
-        assert(decl.vType !== undefined);
-        const type = cloneTypeName(decl.vType, ast);
-        assert(type instanceof Mapping);
-        const replacementFunc = ast.cairoUtilFuncGen.readMapping(
-          node.vBaseExpression,
-          node.vIndexExpression,
-          type,
-        );
-        ast.replaceNode(node, replacementFunc);
-        this.commonVisit(replacementFunc, ast);
-        return;
+        const base_type = getNodeType(node.vBaseExpression, ast.compilerVersion);
+        let base_type_to;
+        if (base_type instanceof PointerType && base_type.to instanceof MappingType)
+          base_type_to = typeNameFromTypeNode(base_type.to, ast);
+        if (base instanceof IndexAccess && base_type_to instanceof Mapping) {
+          const funcCall = this.replaceStorageVariableAccess(base, ast);
+          const replacementFunc_inner = ast.cairoUtilFuncGen.readMapping(
+            funcCall,
+            node.vIndexExpression,
+            base_type_to,
+          );
+          return replacementFunc_inner;
+        } else if (base instanceof Identifier) {
+          assert(base instanceof Identifier);
+          const decl = base.vReferencedDeclaration;
+          assert(decl instanceof VariableDeclaration);
+          assert(decl.vType !== undefined);
+          const type = cloneTypeName(decl.vType, ast);
+          assert(type instanceof Mapping);
+          const replacementFunc = ast.cairoUtilFuncGen.readMapping(
+            node.vBaseExpression,
+            node.vIndexExpression,
+            type,
+          );
+          return replacementFunc;
+        }
       }
     }
     throw new NotSupportedYetError(`Unhandled index access case ${printNode(node)}`);
+  }
+  visitIndexAccess(node: IndexAccess, ast: AST): void {
+    const replacementFunc = this.replaceStorageVariableAccess(node, ast);
+    ast.replaceNode(node, replacementFunc);
+    this.dispatchVisit(replacementFunc, ast);
   }
 }

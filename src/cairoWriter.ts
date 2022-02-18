@@ -70,15 +70,16 @@ import {
   WhileStatement,
   getNodeType,
 } from 'solc-typed-ast';
-import { AST } from './ast/ast';
 import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
-import { cairoType, getCairoType } from './typeWriter';
-import { printNode } from './utils/astPrinter';
-import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
 import { Implicits, writeImplicits } from './utils/implicits';
+import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
+import { cairoType, getCairoType } from './typeWriter';
+import { canonicalMangler, divmod, importsWriter, primitiveTypeToCairo } from './utils/utils';
+
+import { AST } from './ast/ast';
 import { getMappingTypes } from './utils/mappings';
 import { notUndefined } from './utils/typeConstructs';
-import { canonicalMangler, divmod, importsWriter, primitiveTypeToCairo } from './utils/utils';
+import { printNode } from './utils/astPrinter';
 
 const INDENT = ' '.repeat(4);
 
@@ -418,6 +419,13 @@ class FunctionCallWriter extends CairoASTNodeWriter {
       case FunctionCallKind.TypeConversion: {
         const args = node.vArguments.map((v) => writer.write(v)).join(', ');
         const func = writer.write(node.vExpression);
+        const arg = node.vArguments[0];
+        if (node.vFunctionName === 'address' && arg instanceof Literal) {
+          const val: BigInt = BigInt(arg.value);
+          // Make sure literal < 2**251
+          assert(val < BigInt('0x800000000000000000000000000000000000000000000000000000000000000'));
+          return [`${args[0]}`];
+        }
         return [`${func}(${args})`];
       }
       case FunctionCallKind.StructConstructorCall:
@@ -509,6 +517,13 @@ class CairoAssertWriter extends CairoASTNodeWriter {
   }
 }
 
+class ElementaryTypeNameExpressionWriter extends CairoASTNodeWriter {
+  writeInner(node: ElementaryTypeNameExpression, _writer: ASTWriter): SrcDesc {
+    assert(node.typeString === 'type(address)');
+    return [``];
+  }
+}
+
 export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
   new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([
     [ArrayTypeName, new NotImplementedWriter(ast, throwOnUnimplemented)],
@@ -523,7 +538,10 @@ export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
     [Continue, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [DoWhileStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [ElementaryTypeName, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [ElementaryTypeNameExpression, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [
+      ElementaryTypeNameExpression,
+      new ElementaryTypeNameExpressionWriter(ast, throwOnUnimplemented),
+    ],
     [EmitStatement, new EmitStatementWriter(ast, throwOnUnimplemented)],
     [EnumDefinition, new EnumDefinitionWriter(ast, throwOnUnimplemented)],
     [EnumValue, new NotImplementedWriter(ast, throwOnUnimplemented)],
