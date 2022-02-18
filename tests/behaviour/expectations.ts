@@ -58,6 +58,40 @@ export const expectations = flatten(
             Expect.Simple('test256', ['3', '4'], ['3', '4']),
           ]),
         ]),
+        // covers nested mappings
+        new Dir('Dai', [
+          new File('dai', [
+            new Expect('mint', [
+              ['mint', ['1', '10000', '0'], ['1'], '1'],
+              ['getBalance', ['1'], ['10000', '0'], '1'],
+            ]),
+            new Expect('transfer', [
+              ['transfer', ['2', '4000', '0'], ['1'], '1'],
+              ['getBalance', ['2'], ['4000', '0'], '1'],
+              ['getBalance', ['1'], ['6000', '0'], '1'],
+            ]),
+            new Expect('approve', [
+              ['approve', ['3', '300', '0'], ['1'], '2'],
+              ['getAllowance', ['2', '3'], ['300', '0'], '2'],
+            ]),
+            new Expect('transferFrom', [
+              ['transferFrom', ['2', '1', '200', '0'], ['1'], '3'],
+              ['getBalance', ['2'], ['3800', '0'], '1'],
+              ['getBalance', ['1'], ['6200', '0'], '1'],
+            ]),
+            new Expect('allowance after transferFrom', [
+              ['getAllowance', ['2', '3'], ['100', '0'], '2'],
+            ]),
+            new Expect('increase allowance', [
+              ['increaseAllowance', ['3', '100', '0'], ['1'], '2'],
+              ['getAllowance', ['2', '3'], ['200', '0'], '2'],
+            ]),
+            new Expect('decrease allowance', [
+              ['decreaseAllowance', ['3', '131', '0'], ['1'], '2'],
+              ['getAllowance', ['2', '3'], ['69', '0'], '2'],
+            ]),
+          ]),
+        ]),
         new Dir('ERC20', [
           new File('ERC20', [
             new Expect('mint', [

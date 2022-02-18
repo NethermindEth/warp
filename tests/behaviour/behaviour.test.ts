@@ -1,8 +1,10 @@
-import { expect } from 'chai';
-import { describe } from 'mocha';
-import { cleanupSync, SafePromise, starknetCompile, transpile, wrapPromise } from '../util';
 import * as fs from 'fs';
+
+import { SafePromise, cleanupSync, starknetCompile, transpile, wrapPromise } from '../util';
 import { deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
+
+import { describe } from 'mocha';
+import { expect } from 'chai';
 import { expectations } from './expectations';
 
 describe('Transpile solidity', function () {
