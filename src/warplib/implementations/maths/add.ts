@@ -76,9 +76,13 @@ export function add_signed(): void {
         return [
           `func warp_add_signed256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
           `        lhs : Uint256, rhs : Uint256) -> (res : Uint256):`,
+          `    let (lhs_extend) = bitwise_and(lhs.high, ${msb(128)})`,
+          `    let (rhs_extend) = bitwise_and(rhs.high, ${msb(128)})`,
           `    let (res : Uint256, carry : felt) = uint256_add(lhs, rhs)`,
+          `    let carry_extend = lhs_extend + rhs_extend + carry*${msb(128)}`,
           `    let (msb) = bitwise_and(res.high, ${msb(128)})`,
-          `    assert (msb + carry) * (${msb(128)} - msb + 1 - carry) = 0`,
+          `    let (carry_lsb) = bitwise_and(carry_extend, ${msb(128)})`,
+          `    assert msb = carry_lsb`,
           `    return (res)`,
           `end`,
         ];
