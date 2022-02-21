@@ -380,7 +380,7 @@ class LiteralWriter extends CairoASTNodeWriter {
       case LiteralKind.Number:
         switch (primitiveTypeToCairo(node.typeString)) {
           case 'Uint256': {
-            const [high, low] = divmod(parseInt(node.value, 10), Math.pow(2, 128));
+            const [high, low] = divmod(BigInt(node.value), BigInt(Math.pow(2, 128)));
             return [`Uint256(low=${low}, high=${high})`];
           }
           case 'felt':
