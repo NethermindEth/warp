@@ -34,8 +34,10 @@ import { printNode, printTypeNode } from './astPrinter';
 import { Class } from './typeConstructs';
 import { isSane } from './astChecking';
 
-export function divmod(x: number, y: number): [number, number] {
-  return [Math.floor(x / y), x % y];
+export function divmod(x: bigint, y: bigint): [BigInt, BigInt] {
+  const div: BigInt = BigInt(x / y);
+  const rem: BigInt = BigInt(x % y);
+  return [div, rem];
 }
 
 export function primitiveTypeToCairo(typeString: string): 'Uint256' | 'felt' {
