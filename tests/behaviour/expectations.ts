@@ -261,6 +261,16 @@ export const expectations = flatten(
             ),
           ]),
         ]),
+        new Dir('inheritance', [
+          new Dir('functions', [
+            new File('base', 'Base', [Expect.Simple('g', ['3'], ['3'])]),
+            new File('mid', 'Mid', [Expect.Simple('g', ['10'], ['20'])]),
+            new File('derived', 'Derived', [Expect.Simple('f', ['5'], ['15'])]),
+          ]),
+          new Dir('variables', [
+            new File('derived', 'Derived', [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
+          ]),
+        ]),
         new Dir('loops', [
           File.Simple('loops', [
             Expect.Simple('forLoop', ['3'], ['8']),

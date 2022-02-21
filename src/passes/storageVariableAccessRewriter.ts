@@ -113,10 +113,17 @@ export class StorageVariableAccessRewriter extends ASTMapper {
       const parent = node.parent;
       assert(parent !== undefined, `Visited identifier with undefined parent: ${printNode(node)}`);
 
-      const allocation = node.getClosestParentByType(CairoContract)?.storageAllocations.get(decl);
+      const contract = node.getClosestParentByType(CairoContract);
+      assert(
+        contract !== undefined,
+        `Unable to find contract for state variable ${printNode(node)}`,
+      );
+      const allocation = contract?.storageAllocations.get(decl);
       assert(
         allocation !== undefined,
-        'StorageVariableAccessRewriter expects storage variables to have assigned locations. Did you run storageAllocator?',
+        `${printNode(decl)} has no assigned location in ${printNode(
+          contract,
+        )}. Did you run storageAllocator?`,
       );
       ast.replaceNode(
         node,

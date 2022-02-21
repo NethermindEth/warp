@@ -47,7 +47,10 @@ export class ExpressionSplitter extends ASTMapper {
     }
 
     const returnTypes = node.vReferencedDeclaration.vReturnParameters.vParameters;
-    assert(returnTypes.length === 1);
+    assert(
+      returnTypes.length === 1,
+      `Expected ${node.vReferencedDeclaration.name} to have only 1 return type`,
+    );
 
     assert(
       returnTypes[0].vType !== undefined,

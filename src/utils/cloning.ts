@@ -3,61 +3,102 @@ import {
   Assignment,
   ASTNode,
   BinaryOperation,
+  Block,
   ElementaryTypeName,
   ExpressionStatement,
   FunctionCall,
+  FunctionDefinition,
   Identifier,
+  IdentifierPath,
   ImportDirective,
   IndexAccess,
   Literal,
   Mapping,
+  ModifierInvocation,
+  OverrideSpecifier,
+  ParameterList,
+  Return,
   UnaryOperation,
+  UserDefinedTypeName,
   VariableDeclaration,
+  VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
+import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { printNode } from './astPrinter';
-import { NotSupportedYetError } from './errors';
+import { NotSupportedYetError, TranspileFailedError } from './errors';
 import { notNull } from './typeConstructs';
 
+// TODO update referenced declarations
 export function cloneASTNode<T extends ASTNode>(node: T, ast: AST): T {
+  const idRemappings = new Map<number, number>();
+  const clonedNode = cloneASTNodeImpl(node, ast, idRemappings);
+  clonedNode.walk((node: ASTNode) => {
+    if (node instanceof Identifier || node instanceof UserDefinedTypeName) {
+      node.referencedDeclaration =
+        idRemappings.get(node.referencedDeclaration) ?? node.referencedDeclaration;
+    } else if (node instanceof Return) {
+      node.functionReturnParameters =
+        idRemappings.get(node.functionReturnParameters) ?? node.functionReturnParameters;
+    } else if (node instanceof VariableDeclarationStatement) {
+      node.assignments = node.assignments.map((assignment) => {
+        if (assignment === null) return null;
+        return idRemappings.get(assignment) ?? assignment;
+      });
+    } else if (
+      node instanceof FunctionDefinition ||
+      node instanceof VariableDeclaration ||
+      node instanceof ImportDirective
+    ) {
+      node.scope = idRemappings.get(node.scope) ?? node.scope;
+    }
+  });
+  return clonedNode;
+}
+
+function cloneASTNodeImpl<T extends ASTNode>(
+  node: T,
+  ast: AST,
+  remappedIds: Map<number, number>,
+): T {
   let newNode: ASTNode | null = null;
 
   // Expressions
   if (node instanceof Assignment) {
     newNode = new Assignment(
-      ast.reserveId(),
+      replaceId(node.id, ast, remappedIds),
       node.src,
       'Assignment',
       node.typeString,
       node.operator,
-      cloneASTNode(node.vLeftHandSide, ast),
-      cloneASTNode(node.vRightHandSide, ast),
+      cloneASTNodeImpl(node.vLeftHandSide, ast, remappedIds),
+      cloneASTNodeImpl(node.vRightHandSide, ast, remappedIds),
       node.raw,
     );
   } else if (node instanceof BinaryOperation) {
     newNode = new BinaryOperation(
-      ast.reserveId(),
+      replaceId(node.id, ast, remappedIds),
       node.src,
       'BinaryOperation',
       node.typeString,
       node.operator,
-      cloneASTNode(node.vLeftExpression, ast),
-      cloneASTNode(node.vRightExpression, ast),
+      cloneASTNodeImpl(node.vLeftExpression, ast, remappedIds),
+      cloneASTNodeImpl(node.vRightExpression, ast, remappedIds),
       node.raw,
     );
   } else if (node instanceof IndexAccess) {
     newNode = new IndexAccess(
-      ast.reserveId(),
+      replaceId(node.id, ast, remappedIds),
       node.src,
       'IndexAccess',
       node.typeString,
-      cloneASTNode(node.vBaseExpression, ast),
-      node.vIndexExpression && cloneASTNode(node.vIndexExpression, ast),
+      cloneASTNodeImpl(node.vBaseExpression, ast, remappedIds),
+      node.vIndexExpression && cloneASTNodeImpl(node.vIndexExpression, ast, remappedIds),
       node.raw,
     );
   } else if (node instanceof Identifier) {
     newNode = new Identifier(
-      ast.reserveId(),
+      replaceId(node.id, ast, remappedIds),
       node.src,
       'Identifier',
       node.typeString,
@@ -67,19 +108,19 @@ export function cloneASTNode<T extends ASTNode>(node: T, ast: AST): T {
     );
   } else if (node instanceof FunctionCall) {
     newNode = new FunctionCall(
-      ast.reserveId(),
+      replaceId(node.id, ast, remappedIds),
       node.src,
       'FunctionCall',
       node.typeString,
       node.kind,
-      cloneASTNode(node.vExpression, ast),
-      node.vArguments.map((arg) => cloneASTNode(arg, ast)),
+      cloneASTNodeImpl(node.vExpression, ast, remappedIds),
+      node.vArguments.map((arg) => cloneASTNodeImpl(arg, ast, remappedIds)),
       node.fieldNames,
       node.raw,
     );
   } else if (node instanceof Literal) {
     newNode = new Literal(
-      ast.reserveId(),
+      replaceId(node.id, ast, remappedIds),
       node.src,
       'Literal',
       node.typeString,
@@ -91,19 +132,19 @@ export function cloneASTNode<T extends ASTNode>(node: T, ast: AST): T {
     );
   } else if (node instanceof UnaryOperation) {
     newNode = new UnaryOperation(
-      ast.reserveId(),
+      replaceId(node.id, ast, remappedIds),
       node.src,
-      'UnaryOperation',
+      'ArrayTypeName',
       node.typeString,
       node.prefix,
       node.operator,
-      cloneASTNode(node.vSubExpression, ast),
+      cloneASTNodeImpl(node.vSubExpression, ast, remappedIds),
       node.raw,
     );
     // TypeNames
   } else if (node instanceof ElementaryTypeName) {
     newNode = new ElementaryTypeName(
-      ast.reserveId(),
+      replaceId(node.id, ast, remappedIds),
       node.src,
       'ElementaryTypeName',
       node.typeString,
@@ -113,44 +154,124 @@ export function cloneASTNode<T extends ASTNode>(node: T, ast: AST): T {
     );
   } else if (node instanceof Mapping) {
     newNode = new Mapping(
-      ast.reserveId(),
+      replaceId(node.id, ast, remappedIds),
       node.src,
       'Mapping',
       node.typeString,
-      cloneASTNode(node.vKeyType, ast),
-      cloneASTNode(node.vValueType, ast),
+      cloneASTNodeImpl(node.vKeyType, ast, remappedIds),
+      cloneASTNodeImpl(node.vValueType, ast, remappedIds),
       node.raw,
     );
   } else if (node instanceof ArrayTypeName) {
     newNode = new ArrayTypeName(
-      ast.reserveId(),
+      replaceId(node.id, ast, remappedIds),
       node.src,
-      'ArrayTypeName',
+      'Mapping',
       node.typeString,
-      cloneASTNode(node.vBaseType, ast),
+      cloneASTNodeImpl(node.vBaseType, ast, remappedIds),
       node.vLength,
       node.raw,
     );
+  } else if (node instanceof UserDefinedTypeName) {
+    newNode = new UserDefinedTypeName(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'UserDefinedTypeName',
+      node.typeString,
+      node.name,
+      node.referencedDeclaration,
+      node.path ? cloneASTNodeImpl(node.path, ast, remappedIds) : undefined,
+      node.raw,
+    );
     // Statements
+  } else if (node instanceof Block) {
+    newNode = new Block(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'Block',
+      node.vStatements.map((s) => cloneASTNodeImpl(s, ast, remappedIds)),
+      node.documentation,
+      node.raw,
+    );
   } else if (node instanceof ExpressionStatement) {
     newNode = new ExpressionStatement(
-      ast.reserveId(),
+      replaceId(node.id, ast, remappedIds),
       node.src,
       'ExpressionStatement',
-      cloneASTNode(node.vExpression, ast),
+      cloneASTNodeImpl(node.vExpression, ast, remappedIds),
+      node.documentation,
+      node.raw,
+    );
+  } else if (node instanceof Return) {
+    newNode = new Return(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'Return',
+      node.functionReturnParameters,
+      node.vExpression && cloneASTNodeImpl(node.vExpression, ast, remappedIds),
+      node.documentation,
+      node.raw,
+    );
+  } else if (node instanceof VariableDeclarationStatement) {
+    newNode = new VariableDeclarationStatement(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'VariableDeclarationStatement',
+      node.assignments,
+      node.vDeclarations.map((decl) => cloneASTNodeImpl(decl, ast, remappedIds)),
+      node.vInitialValue && cloneASTNodeImpl(node.vInitialValue, ast, remappedIds),
       node.documentation,
       node.raw,
     );
     // Resolvable
-  } else if (node instanceof VariableDeclaration) {
-    if (node.vOverrideSpecifier !== undefined) {
-      throw new NotSupportedYetError('Override Specifiers not implemented yet');
-    }
-
-    newNode = new VariableDeclaration(
-      ast.reserveId(),
+  } else if (node instanceof CairoFunctionDefinition) {
+    newNode = new CairoFunctionDefinition(
+      replaceId(node.id, ast, remappedIds),
       node.src,
-      node.type,
+      'CairoFunctionDefinition',
+      node.scope,
+      node.kind,
+      node.name,
+      node.virtual,
+      node.visibility,
+      node.stateMutability,
+      node.isConstructor,
+      cloneASTNodeImpl(node.vParameters, ast, remappedIds),
+      cloneASTNodeImpl(node.vReturnParameters, ast, remappedIds),
+      node.vModifiers.map((m) => cloneASTNodeImpl(m, ast, remappedIds)),
+      new Set([...node.implicits]),
+      node.vOverrideSpecifier && cloneASTNodeImpl(node.vOverrideSpecifier, ast, remappedIds),
+      node.vBody && cloneASTNodeImpl(node.vBody, ast, remappedIds),
+      node.documentation,
+      node.nameLocation,
+      node.raw,
+    );
+  } else if (node instanceof FunctionDefinition) {
+    newNode = new FunctionDefinition(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'FunctionDefinition',
+      node.scope,
+      node.kind,
+      node.name,
+      node.virtual,
+      node.visibility,
+      node.stateMutability,
+      node.isConstructor,
+      cloneASTNodeImpl(node.vParameters, ast, remappedIds),
+      cloneASTNodeImpl(node.vReturnParameters, ast, remappedIds),
+      node.vModifiers.map((m) => cloneASTNodeImpl(m, ast, remappedIds)),
+      node.vOverrideSpecifier && cloneASTNodeImpl(node.vOverrideSpecifier, ast, remappedIds),
+      node.vBody && cloneASTNodeImpl(node.vBody, ast, remappedIds),
+      node.documentation,
+      node.nameLocation,
+      node.raw,
+    );
+  } else if (node instanceof VariableDeclaration) {
+    newNode = new VariableDeclaration(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'VariableDeclaration',
       node.constant,
       node.indexed,
       node.name,
@@ -161,22 +282,65 @@ export function cloneASTNode<T extends ASTNode>(node: T, ast: AST): T {
       node.mutability,
       node.typeString,
       node.documentation,
-      node.vType === undefined ? undefined : cloneASTNode(node.vType, ast),
-      undefined,
-      node.vValue === undefined ? undefined : cloneASTNode(node.vValue, ast),
+      node.vType && cloneASTNodeImpl(node.vType, ast, remappedIds),
+      node.vOverrideSpecifier && cloneASTNodeImpl(node.vOverrideSpecifier, ast, remappedIds),
+      node.vValue && cloneASTNodeImpl(node.vValue, ast, remappedIds),
       node.nameLocation,
     );
   } else if (node instanceof ImportDirective) {
     newNode = new ImportDirective(
-      ast.reserveId(),
+      replaceId(node.id, ast, remappedIds),
       node.src,
-      node.type,
+      'ImportDirective',
       node.file,
       node.absolutePath,
       node.unitAlias,
-      node.symbolAliases,
+      node.symbolAliases.map((alias) => ({
+        foreign:
+          typeof alias.foreign === 'number'
+            ? alias.foreign
+            : cloneASTNodeImpl(alias.foreign, ast, remappedIds),
+        local: alias.local,
+      })),
       node.scope,
       node.sourceUnit,
+      node.raw,
+    );
+    //ASTNodeWithChildren
+  } else if (node instanceof ParameterList) {
+    newNode = new ParameterList(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'ParameterList',
+      [...node.vParameters].map((p) => cloneASTNodeImpl(p, ast, remappedIds)),
+      node.raw,
+    );
+    //Misc
+  } else if (node instanceof IdentifierPath) {
+    newNode = new IdentifierPath(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'IdentifierPath',
+      node.name,
+      node.referencedDeclaration,
+      node.raw,
+    );
+  } else if (node instanceof ModifierInvocation) {
+    newNode = new ModifierInvocation(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'ModifierInvocation',
+      cloneASTNodeImpl(node.vModifierName, ast, remappedIds),
+      node.vArguments.map((a) => cloneASTNodeImpl(a, ast, remappedIds)),
+      node.kind,
+      node.raw,
+    );
+  } else if (node instanceof OverrideSpecifier) {
+    newNode = new OverrideSpecifier(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'OverrideSpecifier',
+      [...node.vOverrides].map((o) => cloneASTNodeImpl(o, ast, remappedIds)),
       node.raw,
     );
   }
@@ -192,4 +356,13 @@ export function cloneASTNode<T extends ASTNode>(node: T, ast: AST): T {
 
 function sameType<T extends ASTNode>(newNode: ASTNode, ref: T): newNode is T {
   return newNode instanceof ref.constructor && ref instanceof newNode.constructor;
+}
+
+function replaceId(oldId: number, ast: AST, remappedIds: Map<number, number>): number {
+  const id = ast.reserveId();
+  if (remappedIds.has(oldId)) {
+    throw new TranspileFailedError(`Attempted to replace id ${oldId} twice`);
+  }
+  remappedIds.set(oldId, id);
+  return id;
 }

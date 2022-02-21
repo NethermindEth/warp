@@ -85,8 +85,8 @@ export const DefaultASTPrinter = new ASTPrinter()
   .lookFor('returnTypes')
   .lookFor('typeString')
   .lookFor('symbolAliases')
-  .lookFor('scope')
   .lookFor('absolutePath')
+  .lookFor('scope')
   .lookFor({
     prop: 'context',
     nodeType: 'SourceUnit',
@@ -116,7 +116,14 @@ export const DefaultASTPrinter = new ASTPrinter()
     },
   })
   .lookFor('visibility')
-  .lookFor('stateMutability');
+  .lookFor('stateMutability')
+  .lookFor({
+    prop: 'linearizedBaseContracts',
+    print: (x: unknown) => {
+      if (!Array.isArray(x)) throw new Error('linearizedBaseContracts not an array');
+      return x.map((elem) => `${elem}`).join(', ');
+    },
+  });
 
 export function printNode(node: ASTNode): string {
   return `${node.type} #${node.id}`;
