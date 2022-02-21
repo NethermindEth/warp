@@ -1,4 +1,4 @@
-import { IntType, MappingType, PointerType, TypeNode } from 'solc-typed-ast';
+import { IntType, MappingType, PointerType, TypeNode, UserDefinedType } from 'solc-typed-ast';
 import { printTypeNode } from './astPrinter';
 import { NotSupportedYetError } from './errors';
 
@@ -8,6 +8,10 @@ export function getFeltWidth(type: TypeNode): number {
     return type.nBits < 256 ? 1 : 2;
   } else if (type instanceof PointerType) {
     if (type.to instanceof MappingType) {
+      return 1;
+    }
+  } else if (type instanceof UserDefinedType) {
+    if (type.pp().startsWith('enum ')) {
       return 1;
     }
   }

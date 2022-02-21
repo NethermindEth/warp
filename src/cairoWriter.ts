@@ -453,17 +453,6 @@ class UncheckedBlockWriter extends CairoASTNodeWriter {
 
 class MemberAccessWriter extends CairoASTNodeWriter {
   writeInner(node: MemberAccess, writer: ASTWriter): SrcDesc {
-    const exp = node.vExpression;
-    if (exp instanceof Identifier) {
-      if (
-        exp.vIdentifierType === 'userDefined' &&
-        exp.vReferencedDeclaration instanceof EnumDefinition
-      ) {
-        const defName = exp.vReferencedDeclaration.canonicalName;
-        return [canonicalMangler(`${defName}.${node.memberName}`)];
-      }
-    }
-
     return [`${writer.write(node.vExpression)}.${node.memberName}`];
   }
 }
@@ -484,15 +473,9 @@ class AssignmentWriter extends CairoASTNodeWriter {
 }
 
 class EnumDefinitionWriter extends CairoASTNodeWriter {
-  writeInner(node: EnumDefinition, _writer: ASTWriter): SrcDesc {
-    return [
-      [
-        ...node.vMembers.map((v, i) => {
-          const name = canonicalMangler(`${node.canonicalName}.${v.name}`);
-          return `const ${name} = ${i}`;
-        }),
-      ].join('\n'),
-    ];
+  writeInner(_node: EnumDefinition, _writer: ASTWriter): SrcDesc {
+    // EnumDefinition nodes do not need to be printed because they would have been replaced by integer literals.
+    return [``];
   }
 }
 

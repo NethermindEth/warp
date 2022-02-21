@@ -92,6 +92,37 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('enums', [
+          new File('singleEnum', [
+            Expect.Simple('get', [], ['0']),
+            new Expect('set', [
+              ['set', ['254'], [], '0'],
+              ['get', [], ['254'], '0'],
+            ]),
+            new Expect('callSetInternally', [
+              ['callSetInternally', ['128'], [], '0'],
+              ['get', [], ['128'], '0'],
+            ]),
+            new Expect('cancel', [
+              ['cancel', [], [], '0'],
+              ['get', [], ['255'], '0'],
+            ]),
+          ]),
+          new File('doubleEnum', [
+            Expect.Simple('a', [], ['2']),
+            Expect.Simple('getTopEnum', [], ['0']),
+            new Expect('setB', [
+              ['setB', [], [], '0'],
+              ['a', [], ['1'], '0'],
+              ['getTopEnum', [], ['4'], '0'],
+            ]),
+            new Expect('setBAgain', [
+              ['setB', [], [], '0'],
+              ['a', [], ['0'], '0'],
+              ['getTopEnum', [], ['1'], '0'],
+            ]),
+          ]),
+        ]),
         new Dir('ERC20', [
           new File('ERC20', [
             new Expect('mint', [

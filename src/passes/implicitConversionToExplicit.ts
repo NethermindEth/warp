@@ -122,6 +122,11 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 
     const declaration = node.vDeclarations[0];
 
+    // Skip enums - implicit conversion is not allowed
+    if (declaration.typeString.startsWith('enum ')) {
+      return;
+    }
+
     // TODO handle or rule out implicit conversions of structs
     if (declaration.vType instanceof UserDefinedTypeName) {
       return;
@@ -189,6 +194,12 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     node.vArguments.slice(-parameters.length).forEach((argument, index) => {
       let argumentType = getNodeType(argument, ast.compilerVersion);
       let nonPtrParamType = parameters[index];
+
+      // Skip enums - implicit conversion is not allowed
+      if (nonPtrParamType.pp().startsWith('enum ')) {
+        return;
+      }
+
       while (argumentType instanceof PointerType) {
         argumentType = argumentType.to;
       }
