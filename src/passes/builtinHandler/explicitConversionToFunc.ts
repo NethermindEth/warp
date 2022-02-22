@@ -16,6 +16,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { BuiltinMapper } from '../../ast/builtinMapper';
+import { printNode } from '../../utils/astPrinter';
 import { NotSupportedYetError } from '../../utils/errors';
 import { toHexString } from '../../utils/utils';
 
@@ -57,27 +58,8 @@ export class ExplicitConversionToFunc extends BuiltinMapper {
       const typeToSize = typeTo.nBits;
       // TODO refactor repeated code
       if (argType instanceof IntLiteralType) {
-        if (typeTo.nBits !== 256) {
-          ast.replaceNode(node, truncateLiteral(node.vArguments[0], typeTo, ast));
-        } else if (typeToSize === 256) {
-          // TODO do this conversion at compile time
-          ast.addImports({ 'warplib.maths.utils': new Set(['felt_to_uint256']) });
-          ast.replaceNode(
-            node.vExpression,
-            new Identifier(
-              ast.reserveId(),
-              node.src,
-              'Identifier',
-              // TODO check what correct typestring should be here (is it typeTo.pp, shouldn't that always be the same?)
-              node.typeString,
-              'felt_to_uint256',
-              this.getDefId('felt_to_uint256', ast),
-            ),
-          );
-          return;
-        }
-      }
-      if (argType instanceof IntType) {
+        ast.replaceNode(node, literalToTypedInt(node.vArguments[0], typeTo));
+      } else if (argType instanceof IntType) {
         const argTypeSize = argType.nBits;
         // TODO what if arg type size is already 256?
         if (argTypeSize <= typeToSize) {
@@ -136,45 +118,33 @@ export class ExplicitConversionToFunc extends BuiltinMapper {
   }
 }
 
-function truncateLiteral(arg0: Expression, typeTo: IntType, ast: AST): Expression {
-  if (arg0 instanceof Literal) {
-    const value = BigInt(arg0.value);
-    let truncated: string;
-    if (value >= 0n) {
-      const bits = value.toString(2);
-      truncated = BigInt(`0b${bits.slice(-typeTo.nBits)}`).toString(10);
-    } else {
-      const bits = (-value).toString(2);
-      const inverted = [...bits].map((c) => (c === '0' ? '1' : '0')).join('');
-      const twosComplement = BigInt((BigInt(inverted) + 1n).toString());
-      const signExtensionBitCount = typeTo.nBits > bits.length ? typeTo.nBits - bits.length : 0;
-      truncated = BigInt(`0b${'1'.repeat(signExtensionBitCount)}${twosComplement}`).toString(10);
-    }
-    arg0.value = truncated;
-    arg0.hexValue = toHexString(truncated);
-    arg0.typeString = typeTo.pp();
-    return arg0;
+// This both truncates values that are too large to fit in the given type range,
+// and also converts negative literals to two's complement
+function literalToTypedInt(arg: Expression, typeTo: IntType): Expression {
+  assert(
+    arg instanceof Literal,
+    `Found non-literal ${printNode(arg)} to have literal type ${arg.typeString}`,
+  );
+
+  const value = BigInt(arg.value);
+  let truncated: string;
+
+  if (value >= 0n) {
+    // Non-negative values just need to be truncated to the given bitWidth
+    const bits = value.toString(2);
+    truncated = BigInt(`0b${bits.slice(-typeTo.nBits)}`).toString(10);
   } else {
-    const maskSize = '0x'.concat('f'.repeat(typeTo.nBits / 4));
-
-    const maskSizeLiteral = new Literal(
-      ast.reserveId(),
-      arg0.src,
-      'Literal',
-      typeTo.pp(),
-      LiteralKind.Number,
-      toHexString(maskSize),
-      maskSize,
-    );
-
-    return new BinaryOperation(
-      ast.reserveId(),
-      arg0.src,
-      'BinaryOperation',
-      typeTo.pp(),
-      '&&',
-      arg0,
-      maskSizeLiteral,
-    );
+    // Negative values need to be converted to two's complement
+    // This is done by flipping the bits, adding one, and truncating
+    const absBits = (-value).toString(2);
+    const allBits = `${'0'.repeat(Math.max(typeTo.nBits - absBits.length, 0))}${absBits}`;
+    const inverted = `0b${[...allBits].map((c) => (c === '0' ? '1' : '0')).join('')}`;
+    const twosComplement = (BigInt(inverted) + 1n).toString(2).slice(-typeTo.nBits);
+    truncated = BigInt(`0b${twosComplement}`).toString(10);
   }
+
+  arg.value = truncated;
+  arg.hexValue = toHexString(truncated);
+  arg.typeString = typeTo.pp();
+  return arg;
 }

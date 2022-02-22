@@ -9,5 +9,10 @@ contract Warp {
   function bounds() pure public {
     uint8 a = type(uint8).max;
     uint8 b = type(uint8).min;
+    uint256 big = type(uint256).max;
+    int256 bigSigned = type(int256).max;
+    uint256 bigMin = type(uint256).min;
+    int256 bigMinSigned = type(int256).min;
+    int256 c = -4;
   }
 }

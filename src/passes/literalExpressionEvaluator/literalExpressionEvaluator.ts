@@ -9,7 +9,7 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { TranspileFailedError } from '../../utils/errors';
-import { toHexString, unitValue } from '../../utils/utils';
+import { generateLiteralTypeString, toHexString, unitValue } from '../../utils/utils';
 import { RationalLiteral, stringToLiteralValue } from './rationalLiteral';
 
 /*
@@ -59,16 +59,18 @@ export class LiteralExpressionEvaluator extends ASTMapper {
         throw new TranspileFailedError('Attempted to make node for non-integral literal');
       }
 
+      const valueString = intValue.toString(10);
+
       ast.replaceNode(
         node,
         new Literal(
           node.id,
           node.src,
           'Literal',
-          node.typeString,
+          generateLiteralTypeString(valueString),
           LiteralKind.Number,
-          intValue.toString(16),
-          intValue.toString(10),
+          toHexString(valueString),
+          valueString,
           undefined,
           node.raw,
         ),

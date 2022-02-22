@@ -8,7 +8,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { toHexString } from '../utils/utils';
+import { generateLiteralTypeString, toHexString } from '../utils/utils';
 
 function calculateMin(type: IntType): string {
   if (type.signed) {
@@ -47,7 +47,7 @@ export class IntBoundCalculator extends ASTMapper {
         ast.reserveId(),
         node.src,
         'Literal',
-        node.typeString,
+        generateLiteralTypeString(valueString),
         LiteralKind.Number,
         toHexString(valueString),
         valueString,
