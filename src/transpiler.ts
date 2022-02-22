@@ -1,5 +1,6 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
 import {
+  GettersPublicStateVars,
   AddressHandler,
   AnnotateImplicits,
   BuiltinHandler,
@@ -74,6 +75,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['Ru', new RejectUnsupportedFeatures()],
     ['Ufr', new UsingForResolver()],
     ['Ib', new IntBoundCalculator()],
+    ['Gp', new GettersPublicStateVars()],
     ['M', new IdentifierMangler()],
     ['Sa', new StorageAllocator()],
     ['Ec', new EnumConverter()],
