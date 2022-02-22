@@ -537,13 +537,17 @@ export const expectations = flatten(
 
 //-----------------------------------------------------------------------------
 
-function flatten(test: Dir | File): File[] {
+function flatten(test: Dir | File, filter?: string): File[] {
   if (test instanceof Dir) {
     return test.tests.flatMap((subTest) => {
       subTest.name = `${test.name}/${subTest.name}`;
-      return flatten(subTest);
+      return flatten(subTest, filter);
     });
   } else {
-    return [test];
+    if (filter === undefined || test.name.includes(filter)) {
+      return [test];
+    } else {
+      return [];
+    }
   }
 }
