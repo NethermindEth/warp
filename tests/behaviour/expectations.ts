@@ -48,6 +48,7 @@ export const expectations = flatten(
           Expect.Simple('test', [], []),
           Expect.Simple('returnTest', [], ['12', '0']),
         ]),
+        new Dir('public_state', [new File('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
         new Dir('assignments', [
           new File('functionSingle', [
             Expect.Simple('test', ['3'], ['3']),
