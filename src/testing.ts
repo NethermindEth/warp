@@ -7,6 +7,7 @@ import {
   NotSupportedYetError,
   TranspilationAbandonedError,
   WillNotSupportError,
+  error,
 } from './utils/errors';
 import { printCompileErrors } from './utils/utils';
 import * as fs from 'fs';
@@ -98,7 +99,7 @@ function runCairoFileTest(
     results.set(removeExtension(file), 'Success');
   } else {
     if (throwError) {
-      throw new Error(`Compilation of ${file} failed`);
+      throw new Error(error(`Compilation of ${file} failed`));
     }
     results.set(removeExtension(file), 'CairoCompileFailed');
   }

@@ -45,7 +45,7 @@ import {
   CairoUint256,
 } from './utils/cairoTypeSystem';
 import { cloneTypeName } from './utils/cloning';
-import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
+import { NotSupportedYetError, TranspileFailedError, error } from './utils/errors';
 import { Implicits } from './utils/implicits';
 import {
   getFunctionTypeString,
@@ -501,7 +501,7 @@ function cairoType(tp: TypeNode): CairoType {
     console.log('WARNING: serialising pointer type. Check this manually');
     return new CairoFelt();
   } else {
-    throw new Error(`Don't know how to convert type ${printTypeNode(tp)}`);
+    throw new Error(error(`Don't know how to convert type ${printTypeNode(tp)}`));
   }
 }
 

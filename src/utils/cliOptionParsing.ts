@@ -1,5 +1,6 @@
 import { InvalidArgumentError } from 'commander';
 import { ASTMapper } from '../ast/mapper';
+import { error } from './errors';
 
 export function parsePassOrder(
   order: string | undefined,
@@ -34,6 +35,6 @@ class PassOrderParseError extends InvalidArgumentError {
     const errorMessage = `Unable to parse options ${remainingPassOrder} of ${passOrder}`;
     const validOptionList = `Valid options are ${validOptions.join()}`;
     const example = `For example, --order ${validOptions.join('')}`;
-    super(`${errorMessage}\n${validOptionList}\n${example}`);
+    super(error(`${errorMessage}\n${validOptionList}\n${example}`));
   }
 }

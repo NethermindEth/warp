@@ -1,6 +1,7 @@
 import assert = require('assert');
 import { execSync } from 'child_process';
 import { IDeployProps, ICallOrInvokeProps, IOptionalNetwork, IDeployAccountProps } from './index';
+import { logError } from './utils/errors';
 
 export function compileCairo(
   filePath: string,
@@ -22,7 +23,7 @@ export function compileCairo(
     return { success: true, resultPath, abiPath };
   } catch (e) {
     if (e instanceof Error) {
-      console.log('Compile failed');
+      logError('Compile failed');
       return { success: false, resultPath: undefined, abiPath: undefined };
     } else {
       throw e;
@@ -42,7 +43,7 @@ function runStarknetCompile(filePath: string, cliOptions: Map<string, string>) {
 
 export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
   if (option.network == undefined) {
-    console.error(
+    logError(
       `Error: Exception: feeder_gateway_url must be specified with the "status" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
     );
     return;
@@ -53,20 +54,20 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
       stdio: 'inherit',
     });
   } catch {
-    console.log('starknet tx_status failed');
+    logError('starknet tx_status failed');
   }
 }
 
 export function runStarknetDeploy(filePath: string, options: IDeployProps) {
   if (options.network == undefined) {
-    console.error(
+    logError(
       `Error: Exception: feeder_gateway_url must be specified with the "deploy" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
     );
     return;
   }
   const { success, resultPath } = compileCairo(filePath, '../warplib');
   if (!success) {
-    console.error(`Compilation of contract ${filePath} failed`);
+    logError(`Compilation of contract ${filePath} failed`);
     return;
   }
 
@@ -77,19 +78,19 @@ export function runStarknetDeploy(filePath: string, options: IDeployProps) {
       stdio: 'inherit',
     });
   } catch {
-    console.log('starknet deploy failed');
+    logError('starknet deploy failed');
   }
 }
 
 export function runStarknetDeployAccount(options: IDeployAccountProps) {
   if (options.wallet == undefined) {
-    console.error(
+    logError(
       `Error: AssertionError: --wallet must be specified with the "deploy_account" subcommand.`,
     );
     return;
   }
   if (options.network == undefined) {
-    console.error(
+    logError(
       `Error: Exception: feeder_gateway_url must be specified with the "deploy_account" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
     );
     return;
@@ -103,7 +104,7 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
       },
     );
   } catch {
-    console.log('starknet deploy failed');
+    logError('starknet deploy failed');
   }
 }
 
@@ -115,7 +116,7 @@ export function runStarknetCallOrInvoke(
   const callOrInvoke = isCall ? 'call' : 'invoke';
 
   if (options.network == undefined) {
-    console.error(
+    logError(
       `Error: Exception: feeder_gateway_url must be specified with the "${callOrInvoke}" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
     );
     return;
@@ -125,7 +126,7 @@ export function runStarknetCallOrInvoke(
 
   const { success, abiPath } = compileCairo(filePath, '../warplib');
   if (!success) {
-    console.error(`Compilation of contract ${filePath} failed`);
+    logError(`Compilation of contract ${filePath} failed`);
     return;
   }
 
@@ -137,7 +138,7 @@ export function runStarknetCallOrInvoke(
       { stdio: 'inherit' },
     );
   } catch {
-    console.log(`starknet ${callOrInvoke} failed`);
+    logError(`starknet ${callOrInvoke} failed`);
   }
 }
 
