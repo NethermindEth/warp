@@ -2,7 +2,7 @@ import assert = require('assert');
 import { ASTReader, CompileFailedError } from 'solc-typed-ast';
 import { AST } from './ast/ast';
 import { execSync } from 'child_process';
-import { TranspileFailedError } from './utils/errors';
+import { TranspileFailedError, error } from './utils/errors';
 
 export function compileSolFile(file: string, printWarnings: boolean): AST[] {
   const result = cliCompile(formatInput(file));
@@ -70,7 +70,7 @@ function getCompilerVersion(): string {
 function printErrors(cliOutput: unknown, printWarnings: boolean): void {
   assert(
     typeof cliOutput === 'object' && cliOutput !== null,
-    `Obtained unexpected output from solc: ${cliOutput}`,
+    error(`Obtained unexpected output from solc: ${cliOutput}`),
   );
   const errorsAndWarnings = Object.entries(cliOutput).find(
     ([propName]) => propName === 'errors',
@@ -78,7 +78,7 @@ function printErrors(cliOutput: unknown, printWarnings: boolean): void {
   if (errorsAndWarnings === undefined) return;
   assert(
     errorsAndWarnings instanceof Array,
-    `Solc error output of unexpected type. ${errorsAndWarnings}`,
+    error(`Solc error output of unexpected type. ${errorsAndWarnings}`),
   );
 
   // This also includes output of type info
@@ -102,7 +102,9 @@ function printErrors(cliOutput: unknown, printWarnings: boolean): void {
   if (errors.length !== 0) {
     throw new CompileFailedError([
       {
-        errors: errors.map((error) => error.formattedMessage ?? `${error.type}: ${error.message}`),
+        errors: errors.map(
+          (error) => error.formattedMessage ?? error(`${error.type}: ${error.message}`),
+        ),
         compilerVersion: getCompilerVersion(),
       },
     ]);

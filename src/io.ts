@@ -1,21 +1,21 @@
 import * as fs from 'fs';
 import { OutputOptions } from '.';
 import { compileCairo } from './starknetCli';
-import { TranspileFailedError } from './utils/errors';
+import { TranspileFailedError, logError } from './utils/errors';
 
 export function isValidSolFile(path: string, printError = true): boolean {
   if (!fs.existsSync(path)) {
-    if (printError) console.log(`${path} doesn't exist`);
+    if (printError) logError(`${path} doesn't exist`);
     return false;
   }
 
   if (!fs.lstatSync(path).isFile()) {
-    if (printError) console.log(`${path} is not a file`);
+    if (printError) logError(`${path} is not a file`);
     return false;
   }
 
   if (!path.endsWith('.sol')) {
-    if (printError) console.log(`${path} is not a solidity source file`);
+    if (printError) logError(`${path} is not a solidity source file`);
     return false;
   }
 

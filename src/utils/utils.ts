@@ -28,7 +28,7 @@ import {
   VariableDeclarationStatement,
   getNodeType,
 } from 'solc-typed-ast';
-import { NotSupportedYetError, TranspileFailedError } from './errors';
+import { NotSupportedYetError, TranspileFailedError, logError } from './errors';
 import { printNode, printTypeNode } from './astPrinter';
 
 import { Class } from './typeConstructs';
@@ -241,13 +241,13 @@ export function getDeclaredTypeString(declaration: VariableDeclarationStatement)
 }
 
 export function printCompileErrors(e: CompileFailedError): void {
-  console.log('---Compile Failed---');
+  logError('---Compile Failed---');
   e.failures.forEach((failure) => {
-    console.log(`Compiler version ${failure.compilerVersion} reported errors:`);
+    logError(`Compiler version ${failure.compilerVersion} reported errors:`);
     failure.errors.forEach((error, index) => {
-      console.log(`    --${index + 1}--`);
+      logError(`    --${index + 1}--`);
       const errorLines = error.split('\n');
-      errorLines.forEach((line) => console.log(`    ${line}`));
+      errorLines.forEach((line) => logError(`    ${line}`));
     });
   });
 }
