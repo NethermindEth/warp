@@ -11,6 +11,7 @@ import {
   runStarknetDeployAccount,
   runStarknetStatus,
 } from './starknetCli';
+import chalk from 'chalk';
 
 export type CompilationOptions = {
   warnings: boolean;
@@ -195,5 +196,8 @@ program
   .action((file: string, options: ICallOrInvokeProps) => {
     runStarknetCallOrInvoke(file, true, options);
   });
+
+const blue = chalk.bold.blue;
+program.command('version').action(() => console.log(blue('Warp Version 0.1.0')));
 
 program.parse(process.argv);
