@@ -376,3 +376,10 @@ export function createBoolLiteral(value: boolean, ast: AST): Literal {
     valueString,
   );
 }
+
+export function generateLiteralTypeString(value: string): string {
+  if (value.length > 32) {
+    value = `${value.slice(4)}...(${value.length - 8} digits omitted)...${value.slice(-4)}`;
+  }
+  return `int_const ${value}`;
+}
