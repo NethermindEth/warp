@@ -1,10 +1,12 @@
 import assert = require('assert');
-import { ASTReader, CompileFailedError } from 'solc-typed-ast';
+import * as fs from 'fs';
+import { ASTReader, CompileFailedError, extractSpecifiersFromSource } from 'solc-typed-ast';
 import { AST } from './ast/ast';
 import { execSync } from 'child_process';
 import { TranspileFailedError, error } from './utils/errors';
 
 export function compileSolFile(file: string, printWarnings: boolean): AST[] {
+  const requiredSolcVersion = getSolFilePragma(file);
   const result = cliCompile(formatInput(file));
   printErrors(result, printWarnings);
   const reader = new ASTReader();
@@ -13,6 +15,12 @@ export function compileSolFile(file: string, printWarnings: boolean): AST[] {
   assert(compilerVersion !== undefined, 'compileSol should return a defined compiler version');
   // Reverse the list so that each AST can only depend on ASTs earlier in the list
   return sourceUnits.map((node) => new AST(node, compilerVersion)).reverse();
+}
+
+function getSolFilePragma(file: string): string {
+  const content = fs.readFileSync(file, { encoding: 'utf-8' });
+  const requiredSolcVersion = extractSpecifiersFromSource(content)[0];
+  return requiredSolcVersion;
 }
 
 type SolcInput = {
