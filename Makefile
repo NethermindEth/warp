@@ -10,7 +10,7 @@ compile:
 	yarn tsc
 
 test_compilation:
-	bin/warp test --unsafe -f
+	bin/warp test --exact -f
 
 test_execution:
 	yarn test

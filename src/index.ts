@@ -100,8 +100,14 @@ program
   .option('-f --force')
   .option('-r --results')
   .option('-u --unsafe')
+  .option('-e --exact')
   .action((options) =>
-    runTests(options.force ?? false, options.results ?? false, options.unsafe ?? false),
+    runTests(
+      options.force ?? false,
+      options.results ?? false,
+      options.unsafe ?? false,
+      options.exact ?? false,
+    ),
   );
 
 program.command('analyse <file>').action((file: string) => analyseSol(file));
