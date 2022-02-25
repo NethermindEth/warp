@@ -69,11 +69,11 @@ function cliCompile(input: SolcInput, solcVersion: string): unknown {
   // Determine compiler version to use
   const solcCommand = solcVersion.startsWith('0.7.') ? `./solc-v0.7.6` : `solc`;
 
-  // Check for solc v0.8.7 and before
-  const pattern = /0+\.[0-8]+\.[0-7]+/;
-  const match = pattern.exec(solcVersion);
-  if (match) {
-    // For solc v0.8.7 and before, set the allow path
+  // Check if compiler version used is v0.7.6
+  // For solc v0.8.7 and before, we need to set the allow path.
+  // Since we are using latest version of v0.8.x, we do not need to set allow path
+  // for v0.8.x contracts.
+  if (solcVersion.startsWith('0.7.')) {
     const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
     const filePath = Object.keys(input.sources)[0];
     const allowPath = `${currentDirectory}/${filePath}`;
