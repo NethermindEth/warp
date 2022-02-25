@@ -1,11 +1,18 @@
 import assert = require('assert');
-import { ASTReader, CompileFailedError } from 'solc-typed-ast';
+import * as fs from 'fs';
+import {
+  ASTReader,
+  CompileFailedError,
+  extractSpecifiersFromSource,
+  getCompilerVersionsBySpecifiers,
+} from 'solc-typed-ast';
 import { AST } from './ast/ast';
 import { execSync } from 'child_process';
 import { TranspileFailedError, error } from './utils/errors';
 
 export function compileSolFile(file: string, printWarnings: boolean): AST[] {
-  const result = cliCompile(formatInput(file));
+  const requiredSolcVersion = getSolFileVersion(file);
+  const result = cliCompile(formatInput(file), requiredSolcVersion);
   printErrors(result, printWarnings);
   const reader = new ASTReader();
   const sourceUnits = reader.read(result);
@@ -13,6 +20,17 @@ export function compileSolFile(file: string, printWarnings: boolean): AST[] {
   assert(compilerVersion !== undefined, 'compileSol should return a defined compiler version');
   // Reverse the list so that each AST can only depend on ASTs earlier in the list
   return sourceUnits.map((node) => new AST(node, compilerVersion)).reverse();
+}
+
+const supportedVersions = ['0.8.12', '0.7.6'];
+
+function getSolFileVersion(file: string): string {
+  const content = fs.readFileSync(file, { encoding: 'utf-8' });
+  const pragma = extractSpecifiersFromSource(content);
+  const retrievedVersions = getCompilerVersionsBySpecifiers(pragma, supportedVersions);
+  const version =
+    retrievedVersions.length !== 0 ? retrievedVersions.sort().reverse()[0] : supportedVersions[0];
+  return version;
 }
 
 type SolcInput = {
@@ -52,8 +70,27 @@ function formatInput(fileName: string): SolcInput {
   };
 }
 
-function cliCompile(input: SolcInput): unknown {
-  return JSON.parse(execSync(`solc --standard-json`, { input: JSON.stringify(input) }).toString());
+function cliCompile(input: SolcInput, solcVersion: string): unknown {
+  // Determine compiler version to use
+  const solcCommand = solcVersion.startsWith('0.7.') ? `./solc-v0.7.6` : `solc`;
+
+  // Check if compiler version used is v0.7.6
+  // For solc v0.8.7 and before, we need to set the allow path.
+  // Since we are using latest version of v0.8.x, we do not need to set allow path
+  // for v0.8.x contracts.
+  if (solcVersion.startsWith('0.7.')) {
+    const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
+    const filePath = Object.keys(input.sources)[0];
+    const allowPath = `${currentDirectory}/${filePath}`;
+    return JSON.parse(
+      execSync(`${solcCommand} --standard-json --allow-paths ${allowPath}`, {
+        input: JSON.stringify(input),
+      }).toString(),
+    );
+  }
+  return JSON.parse(
+    execSync(`${solcCommand} --standard-json`, { input: JSON.stringify(input) }).toString(),
+  );
 }
 
 function getCompilerVersion(): string {
