@@ -138,12 +138,12 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
 export function handleTranspilationError(e: unknown) {
   if (e instanceof CompileFailedError) {
     printCompileErrors(e);
-    console.log('Cannot start transpilation');
+    console.error('Cannot start transpilation');
   } else if (e instanceof TranspilationAbandonedError) {
-    console.log(`Transpilation abandoned ${e.message}`);
+    console.error(`Transpilation abandoned ${e.message}`);
   } else {
-    console.log('Unexpected error during transpilation');
-    console.log(e);
-    console.log('Transpilation failed');
+    console.error('Unexpected error during transpilation');
+    console.error(e);
+    console.error('Transpilation failed');
   }
 }

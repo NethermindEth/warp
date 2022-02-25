@@ -26,9 +26,9 @@ describe('Transpile solidity', function () {
   for (let i = 0; i < expectations.length; ++i) {
     it(expectations[i].name, async function () {
       const res = await transpileResults[i];
-      expect(res.success, `${res.result}`);
       expect(res.result, 'warp-ts printed errors').to.include({ stderr: '' });
       expect(fs.existsSync(expectations[i].cairo), 'Transpilation failed').to.be.true;
+      expect(res.success, `${res.result}`);
     });
   }
 });
@@ -36,20 +36,27 @@ describe('Transpile solidity', function () {
 describe('Transpiled contracts are valid cairo', function () {
   this.timeout(1800000);
 
-  let compileResults: SafePromise<{ stderr: string }>[];
+  let compileResults: (SafePromise<{ stderr: string }> | null)[];
 
   before(function () {
     compileResults = expectations.map((fileTest) =>
-      wrapPromise(starknetCompile(fileTest.cairo, fileTest.compiled)),
+      fs.existsSync(fileTest.cairo)
+        ? wrapPromise(starknetCompile(fileTest.cairo, fileTest.compiled))
+        : null,
     );
   });
 
   for (let i = 0; i < expectations.length; ++i) {
     it(expectations[i].name, async function () {
-      const res = await compileResults[i];
-      expect(res.success, `${res.result}`);
-      expect(res.result, 'starknet-compile printed errors').to.include({ stderr: '' });
-      expect(fs.existsSync(expectations[i].compiled), 'Compilation failed').to.be.true;
+      const unresolvedResult = compileResults[i];
+      if (unresolvedResult === null) {
+        this.skip();
+      } else {
+        const res = await unresolvedResult;
+        expect(res.result, 'starknet-compile printed errors').to.include({ stderr: '' });
+        expect(fs.existsSync(expectations[i].compiled), 'Compilation failed').to.be.true;
+        expect(res.success, `${res.result}`);
+      }
     });
   }
 });
@@ -60,8 +67,11 @@ describe('Compiled contracts are deployable', function () {
   this.timeout(1800000);
 
   // let deployResults: SafePromise<string>[];
-  const deployResults: ({ success: true; result: string } | { success: false; result: unknown })[] =
-    [];
+  const deployResults: (
+    | { success: true; result: string }
+    | { success: false; result: unknown }
+    | null
+  )[] = [];
 
   before(async function () {
     const testnetContactable = await ensureTestnetContactable(10000);
@@ -70,8 +80,11 @@ describe('Compiled contracts are deployable', function () {
     //   wrapPromise(deploy(fileTest.compiled, [])),
     // );
     for (const fileTest of expectations) {
-      const result = await wrapPromise(deploy(fileTest.compiled, []));
-      deployResults.push(result);
+      if (fs.existsSync(fileTest.compiled) && fs.readFileSync(fileTest.compiled).length > 0) {
+        deployResults.push(await wrapPromise(deploy(fileTest.compiled, [])));
+      } else {
+        deployResults.push(null);
+      }
     }
   });
 
@@ -79,9 +92,13 @@ describe('Compiled contracts are deployable', function () {
     it(expectations[i].name, async function () {
       // const response = await deployResults[i];
       const response = deployResults[i];
-      expect(response.success, 'Deploy request failed').to.be.true;
-      if (response.success) {
-        deployedAddresses.set(expectations[i].name, response.result);
+      if (response === null) {
+        this.skip();
+      } else {
+        expect(response.success, 'Deploy request failed').to.be.true;
+        if (response.success) {
+          deployedAddresses.set(expectations[i].name, response.result);
+        }
       }
     });
   }

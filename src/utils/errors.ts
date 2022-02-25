@@ -2,7 +2,7 @@ import chalk from 'chalk';
 export const error = chalk.red.bold;
 
 export function logError(message: string): void {
-  console.log(error(message));
+  console.error(error(message));
 }
 
 export class TranspilationAbandonedError extends Error {
@@ -12,18 +12,6 @@ export class TranspilationAbandonedError extends Error {
 }
 
 // For features that will not be supported unless Cairo changes to make implementing them feasible
-export class WillNotSupportError extends TranspilationAbandonedError {
-  constructor(message: string) {
-    super(error(message));
-  }
-}
-export class NotSupportedYetError extends TranspilationAbandonedError {
-  constructor(message: string) {
-    super(error(message));
-  }
-}
-export class TranspileFailedError extends TranspilationAbandonedError {
-  constructor(message: string) {
-    super(error(message));
-  }
-}
+export class WillNotSupportError extends TranspilationAbandonedError {}
+export class NotSupportedYetError extends TranspilationAbandonedError {}
+export class TranspileFailedError extends TranspilationAbandonedError {}
