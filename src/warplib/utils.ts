@@ -3,16 +3,16 @@ import { execSync } from 'child_process';
 import * as fs from 'fs';
 import {
   BinaryOperation,
+  Expression,
   FunctionCall,
   FunctionCallKind,
   getNodeType,
   Identifier,
   IntType,
-  UnaryOperation,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { createCairoFunctionStub } from '../cairoUtilFuncGen';
 import { printNode, printTypeNode } from '../utils/astPrinter';
+import { createCairoFunctionStub } from '../utils/functionStubbing';
 import { Implicits } from '../utils/implicits';
 import { mapRange, typeNameFromTypeNode } from '../utils/utils';
 
@@ -26,7 +26,7 @@ export function pow2(n: number): bigint {
 
 export function uint256(n: bigint): string {
   const low = n % 2n ** 128n;
-  const high = n - low;
+  const high = (n - low) / 2n ** 128n;
   return `Uint256(0x${low.toString(16)}, 0x${high.toString(16)})`;
 }
 
@@ -177,12 +177,14 @@ export function Comparison(
 }
 
 export function IntFunction(
-  node: UnaryOperation,
+  node: Expression,
+  argument: Expression,
   name: string,
+  fileName: string,
   implicits: (wide: boolean) => Implicits[],
   ast: AST,
 ): void {
-  const opType = getNodeType(node.vSubExpression, ast.compilerVersion);
+  const opType = getNodeType(argument, ast.compilerVersion);
   const retType = getNodeType(node, ast.compilerVersion);
   assert(retType instanceof IntType, `Expected IntType for ${name}, got ${printTypeNode(retType)}`);
   const fullName = `warp_${name}${retType.nBits}`;
@@ -204,13 +206,13 @@ export function IntFunction(
       ast.reserveId(),
       '',
       'Identifier',
-      `function (${node.vSubExpression.typeString}) returns (${node.typeString})`,
+      `function (${argument.typeString}) returns (${node.typeString})`,
       fullName,
       stub.id,
     ),
-    [node.vSubExpression],
+    [argument],
   );
 
   ast.replaceNode(node, call);
-  ast.addImports({ [name]: new Set([fullName]) });
+  ast.addImports({ [`warplib.maths.${fileName}`]: new Set([fullName]) });
 }

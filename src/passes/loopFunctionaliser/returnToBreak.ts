@@ -20,7 +20,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
 import { cloneVariableDeclaration } from '../../utils/cloning';
-import { createBoolLiteral, createIdentifier } from '../../utils/utils';
+import { createBoolLiteral, createIdentifier } from '../../utils/nodeTemplates';
 import { toSingleExpression } from './utils';
 
 export class ReturnToBreak extends ASTMapper {

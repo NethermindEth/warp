@@ -16,8 +16,8 @@ import {
   UserDefinedTypeName,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { createIdentifier } from '../utils/utils';
 import { cloneTypeName } from '../utils/cloning';
+import { createIdentifier } from '../utils/nodeTemplates';
 export class GettersPublicStateVars extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     //TODO add support for struct/mapping public state variables

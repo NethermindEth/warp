@@ -8,8 +8,8 @@ import {
   IntType,
 } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
-import { createCairoFunctionStub } from '../../../cairoUtilFuncGen';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
+import { createCairoFunctionStub } from '../../../utils/functionStubbing';
 import { typeNameFromTypeNode } from '../../../utils/utils';
 import { generateFile, forAllWidths } from '../../utils';
 

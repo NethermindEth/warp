@@ -59,6 +59,58 @@ export const expectations = flatten(
             Expect.Simple('test256', ['3', '4'], ['3', '4']),
           ]),
         ]),
+        new Dir('conversions', [
+          new File('signedIdentity', [
+            Expect.Simple('implicit', ['210', '11', '12'], ['210', '11', '12']),
+            Expect.Simple('explicit', ['200', '300', '400'], ['200', '300', '400']),
+          ]),
+          new File('signedNarrowing', [
+            Expect.Simple(
+              'explicit',
+              ['63005', '1000', '2000'],
+              ['29', '70778732319555200400381918345807787983848'],
+            ),
+          ]),
+          new File('signedWidening', [
+            Expect.Simple('implicit', ['10'], ['10', '10', '0']),
+            Expect.Simple(
+              'implicit',
+              ['250'],
+              [
+                '65530',
+                '340282366920938463463374607431768211450',
+                '340282366920938463463374607431768211455',
+              ],
+            ),
+            Expect.Simple('explicit', ['20'], ['20', '20', '0']),
+            Expect.Simple(
+              'explicit',
+              ['240'],
+              [
+                '65520',
+                '340282366920938463463374607431768211440',
+                '340282366920938463463374607431768211455',
+              ],
+            ),
+          ]),
+          new File('unsignedIdentity', [
+            Expect.Simple('implicit', ['210', '11', '12'], ['210', '11', '12']),
+            Expect.Simple('explicit', ['200', '300', '400'], ['200', '300', '400']),
+          ]),
+          new File('unsignedNarrowing', [
+            Expect.Simple(
+              'explicit',
+              ['63005', '1000', '2000'],
+              ['29', '70778732319555200400381918345807787983848'],
+            ),
+          ]),
+          new File('unsignedWidening', [
+            Expect.Simple('implicit', ['10'], ['10', '10', '0']),
+            Expect.Simple('implicit', ['250'], ['250', '250', '0']),
+            Expect.Simple('explicit', ['20'], ['20', '20', '0']),
+            Expect.Simple('explicit', ['240'], ['240', '240', '0']),
+          ]),
+        ]),
         // covers nested mappings
         new Dir('Dai', [
           new File('dai', [

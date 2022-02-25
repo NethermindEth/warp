@@ -1,58 +1,24 @@
 import assert = require('assert');
 import {
-  AddressType,
-  ArrayType,
   ArrayTypeName,
-  BoolType,
-  BuiltinStructType,
-  BuiltinType,
-  BytesType,
-  DataLocation,
   ElementaryTypeName,
   Expression,
   FunctionCall,
-  FunctionCallKind,
-  FunctionKind,
-  FunctionStateMutability,
-  FunctionType,
-  FunctionVisibility,
   getNodeType,
-  Identifier,
   IndexAccess,
-  IntType,
   Literal,
   Mapping,
-  MappingType,
-  Mutability,
-  ParameterList,
-  PointerType,
-  StateVariableVisibility,
-  StringType,
   TypeName,
   typeNameToTypeNode,
   TypeNode,
-  UserDefinedType,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from './ast/ast';
-import { CairoFunctionDefinition } from './ast/cairoNodes';
-import { printTypeNode } from './utils/astPrinter';
-import {
-  CairoFelt,
-  CairoStruct,
-  CairoTuple,
-  CairoType,
-  CairoUint256,
-} from './utils/cairoTypeSystem';
+import { CairoFelt, CairoStruct, CairoTuple, CairoType } from './utils/cairoTypeSystem';
 import { cloneTypeName } from './utils/cloning';
-import { NotSupportedYetError, TranspileFailedError, error } from './utils/errors';
-import { Implicits } from './utils/implicits';
-import {
-  getFunctionTypeString,
-  getReturnTypeString,
-  mapRange,
-  typeNameFromTypeNode,
-} from './utils/utils';
+import { TranspileFailedError } from './utils/errors';
+import { createCairoFunctionStub, createCallToStub } from './utils/functionStubbing';
+import { mapRange, typeNameFromTypeNode } from './utils/utils';
 
 type CairoFunction = {
   name: string;
@@ -97,7 +63,7 @@ export class cairoUtilFuncGen {
   //----------------public solidity function call generators-------------------
 
   newDynArray(len: Expression, arrayType: ArrayTypeName): FunctionCall {
-    const elementCairoType = cairoType(typeNameToTypeNode(arrayType.vBaseType));
+    const elementCairoType = CairoType.fromSol(typeNameToTypeNode(arrayType.vBaseType), this.ast);
     const name =
       this.generatedNews.get(elementCairoType.toString())?.name ??
       this.createMemoryNew(elementCairoType);
@@ -108,13 +74,16 @@ export class cairoUtilFuncGen {
       ['range_check_ptr', 'warp_memory'],
       this.ast,
     );
-    return this.createCallToStub(functionStub, [len]);
+    return createCallToStub(functionStub, [len], this.ast);
   }
 
   memoryRead(indexAccess: IndexAccess): FunctionCall {
     const index = indexAccess.vIndexExpression;
     assert(index !== undefined);
-    const cairoTypeToRead = cairoType(getNodeType(indexAccess, this.ast.compilerVersion));
+    const cairoTypeToRead = CairoType.fromSol(
+      getNodeType(indexAccess, this.ast.compilerVersion),
+      this.ast,
+    );
     const name =
       this.generatedMemoryReads.get(cairoTypeToRead.toString())?.name ??
       this.createMemoryRead(cairoTypeToRead);
@@ -128,7 +97,7 @@ export class cairoUtilFuncGen {
       ['range_check_ptr', 'warp_memory'],
       this.ast,
     );
-    return this.createCallToStub(functionStub, [indexAccess.vBaseExpression, index]);
+    return createCallToStub(functionStub, [indexAccess.vBaseExpression, index], this.ast);
   }
 
   memoryWrite(indexAccess: IndexAccess, writeValue: Expression): FunctionCall {
@@ -136,7 +105,7 @@ export class cairoUtilFuncGen {
     assert(index !== undefined);
     const assignedType = getNodeType(indexAccess, this.ast.compilerVersion);
     const assignedTypeName = typeNameFromTypeNode(assignedType, this.ast);
-    const assignedCairoType = cairoType(assignedType);
+    const assignedCairoType = CairoType.fromSol(assignedType, this.ast);
     const name =
       this.generatedMemoryWrites.get(assignedCairoType.toString())?.name ??
       this.createMemoryWrite(assignedCairoType);
@@ -157,12 +126,16 @@ export class cairoUtilFuncGen {
       ['range_check_ptr', 'warp_memory'],
       this.ast,
     );
-    return this.createCallToStub(functionStub, [indexAccess.vBaseExpression, index, writeValue]);
+    return createCallToStub(
+      functionStub,
+      [indexAccess.vBaseExpression, index, writeValue],
+      this.ast,
+    );
   }
 
   storageRead(storageLocation: Literal, type: TypeName): FunctionCall {
     const valueType = typeNameToTypeNode(type);
-    const resultCairoType = cairoType(valueType);
+    const resultCairoType = CairoType.fromSol(valueType, this.ast);
     const name =
       this.generatedStorageReads.get(resultCairoType.toString())?.name ??
       this.createStorageRead(resultCairoType);
@@ -173,7 +146,7 @@ export class cairoUtilFuncGen {
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
     );
-    return this.createCallToStub(functionStub, [storageLocation]);
+    return createCallToStub(functionStub, [storageLocation], this.ast);
   }
 
   storageWrite(
@@ -187,7 +160,7 @@ export class cairoUtilFuncGen {
     );
     const typeToWrite = typeNameToTypeNode(declaration.vType);
     const name =
-      this.generatedStorageWrites.get(cairoType(typeToWrite).toString())?.name ??
+      this.generatedStorageWrites.get(CairoType.fromSol(typeToWrite, this.ast).toString())?.name ??
       this.createStorageWrite(typeToWrite);
     const functionStub = createCairoFunctionStub(
       name,
@@ -199,12 +172,18 @@ export class cairoUtilFuncGen {
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
     );
-    return this.createCallToStub(functionStub, [storageLocation, writeValue]);
+    return createCallToStub(functionStub, [storageLocation, writeValue], this.ast);
   }
 
   readMapping(mapping: Expression, key: Expression, mappingTypeName: Mapping): FunctionCall {
-    const keyType = cairoType(typeNameToTypeNode(mappingTypeName.vKeyType)).toString();
-    const valueType = cairoType(typeNameToTypeNode(mappingTypeName.vValueType)).toString();
+    const keyType = CairoType.fromSol(
+      typeNameToTypeNode(mappingTypeName.vKeyType),
+      this.ast,
+    ).toString();
+    const valueType = CairoType.fromSol(
+      typeNameToTypeNode(mappingTypeName.vValueType),
+      this.ast,
+    ).toString();
     const name = `${
       this.mappings.get(keyType)?.get(valueType)?.name ?? this.createMapping(keyType, valueType)
     }.read`;
@@ -218,7 +197,7 @@ export class cairoUtilFuncGen {
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
     );
-    return this.createCallToStub(functionStub, [mapping, key]);
+    return createCallToStub(functionStub, [mapping, key], this.ast);
   }
 
   writeMapping(
@@ -227,8 +206,14 @@ export class cairoUtilFuncGen {
     mappingTypeName: Mapping,
     writeValue: Expression,
   ): FunctionCall {
-    const keyType = cairoType(typeNameToTypeNode(mappingTypeName.vKeyType)).toString();
-    const valueType = cairoType(typeNameToTypeNode(mappingTypeName.vValueType)).toString();
+    const keyType = CairoType.fromSol(
+      typeNameToTypeNode(mappingTypeName.vKeyType),
+      this.ast,
+    ).toString();
+    const valueType = CairoType.fromSol(
+      typeNameToTypeNode(mappingTypeName.vValueType),
+      this.ast,
+    ).toString();
     const name = `${
       this.mappings.get(keyType)?.get(valueType)?.name ?? this.createMapping(keyType, valueType)
     }.write`;
@@ -243,29 +228,10 @@ export class cairoUtilFuncGen {
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
     );
-    return this.createCallToStub(functionStub, [mapping, key, writeValue]);
+    return createCallToStub(functionStub, [mapping, key, writeValue], this.ast);
   }
 
   //-------------------private cairo implementation generators-----------------
-
-  private createCallToStub(stub: CairoFunctionDefinition, args: Expression[]): FunctionCall {
-    return new FunctionCall(
-      this.ast.reserveId(),
-      '',
-      'FunctionCall',
-      getReturnTypeString(stub),
-      FunctionCallKind.FunctionCall,
-      new Identifier(
-        this.ast.reserveId(),
-        '',
-        'Identifier',
-        getFunctionTypeString(stub, this.ast.compilerVersion),
-        stub.name,
-        stub.id,
-      ),
-      args,
-    );
-  }
 
   private createMemoryNew(elementType: CairoType): string {
     const name = `WM_NEW${this.generatedNews.size}`;
@@ -393,7 +359,7 @@ export class cairoUtilFuncGen {
   }
 
   private createStorageWrite(typeToWrite: TypeNode): string {
-    const cairoTypeToWrite = cairoType(typeToWrite);
+    const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
     const cairoTypeString = cairoTypeToWrite.toString();
     const funcName = `WS_WRITE${this.generatedStorageWrites.size}`;
     this.generatedStorageWrites.set(cairoTypeString, {
@@ -471,86 +437,4 @@ function serialiseReads(type: CairoType): ReadSerialisationCommand[] {
     ];
   }
   throw new TranspileFailedError('Solidity should not evluate to cairo pointers');
-}
-
-// Sync this with the one in typewriter.ts
-function cairoType(tp: TypeNode): CairoType {
-  if (tp instanceof IntType) {
-    return tp.nBits > 251 ? CairoUint256 : new CairoFelt();
-  } else if (tp instanceof ArrayType) {
-    return new CairoFelt();
-  } else if (tp instanceof BoolType) {
-    return new CairoFelt();
-  } else if (tp instanceof BytesType) {
-    throw new NotSupportedYetError('Serialising BytesType not supported yet');
-  } else if (tp instanceof StringType) {
-    return new CairoFelt();
-  } else if (tp instanceof AddressType) {
-    return new CairoFelt();
-  } else if (tp instanceof BuiltinType) {
-    throw new NotSupportedYetError('Serialising BuiltinType not supported yet');
-  } else if (tp instanceof BuiltinStructType) {
-    throw new NotSupportedYetError('Serialising BuiltinStructType not supported yet');
-  } else if (tp instanceof MappingType) {
-    return new CairoFelt();
-  } else if (tp instanceof UserDefinedType) {
-    throw new NotSupportedYetError('Serialising UserDefinedType not supported yet');
-  } else if (tp instanceof FunctionType) {
-    throw new NotSupportedYetError('Serialising FunctionType not supported yet');
-  } else if (tp instanceof PointerType) {
-    console.log('WARNING: serialising pointer type. Check this manually');
-    return new CairoFelt();
-  } else {
-    throw new Error(error(`Don't know how to convert type ${printTypeNode(tp)}`));
-  }
-}
-
-export function createCairoFunctionStub(
-  name: string,
-  inputs: [string, TypeName][],
-  returns: [string, TypeName][],
-  implicits: Implicits[],
-  ast: AST,
-): CairoFunctionDefinition {
-  const createParameters = (inputs: [string, TypeName][]) =>
-    inputs.map(
-      ([name, type]) =>
-        new VariableDeclaration(
-          ast.reserveId(),
-          '',
-          'VariableDeclaration',
-          false,
-          false,
-          name,
-          -1,
-          false,
-          DataLocation.Memory,
-          StateVariableVisibility.Private,
-          Mutability.Mutable,
-          type.typeString,
-          undefined,
-          type,
-        ),
-    );
-
-  const funcDef = new CairoFunctionDefinition(
-    ast.reserveId(),
-    '',
-    'CairoFunctionDefinition',
-    -1,
-    FunctionKind.Function,
-    name,
-    false,
-    FunctionVisibility.Private,
-    FunctionStateMutability.NonPayable,
-    false,
-    new ParameterList(ast.reserveId(), '', 'ParameterList', createParameters(inputs)),
-    new ParameterList(ast.reserveId(), '', 'ParameterList', createParameters(returns)),
-    [],
-    new Set(implicits),
-  );
-
-  ast.setContextRecursive(funcDef);
-
-  return funcDef;
 }

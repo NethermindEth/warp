@@ -1,4 +1,4 @@
-import { signed_int_conversions } from './implementations/conversions/int';
+import { int_conversions } from './implementations/conversions/int';
 import { add, add_unsafe, add_signed, add_signed_unsafe } from './implementations/maths/add';
 import { bitwise_not } from './implementations/maths/bitwise_not';
 import { div_signed } from './implementations/maths/div';
@@ -63,4 +63,4 @@ bitwise_not();
 
 // ---conversions---
 
-signed_int_conversions();
+int_conversions();

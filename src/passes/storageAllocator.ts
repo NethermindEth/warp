@@ -20,8 +20,8 @@ import {
 import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
+import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
 import { implicitImports } from '../utils/implicits';
-import { getFeltWidth } from '../utils/serialisation';
 import { toHexString } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {
@@ -45,7 +45,11 @@ export class StorageAllocator extends ASTMapper {
         v.vValue.parent = v;
         ++mappingCount;
       } else {
-        const width = getFeltWidth(getNodeType(v, ast.compilerVersion));
+        const width = CairoType.fromSol(
+          getNodeType(v, ast.compilerVersion),
+          ast,
+          TypeConversionContext.StorageAllocation,
+        ).width;
         allocations.set(v, usedMemory);
         usedMemory += width;
         extractInitialisation(v, initialisationBlock, ast);

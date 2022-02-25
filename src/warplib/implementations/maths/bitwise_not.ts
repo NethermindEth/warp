@@ -34,5 +34,5 @@ export function functionaliseBitwiseNot(node: UnaryOperation, ast: AST): void {
     if (wide) return ['range_check_ptr'];
     else return ['bitwise_ptr'];
   };
-  IntFunction(node, 'bitwise_not', implicitsFn, ast);
+  IntFunction(node, node.vSubExpression, 'bitwise_not', 'bitwise_not', implicitsFn, ast);
 }

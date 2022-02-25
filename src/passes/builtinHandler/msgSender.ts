@@ -1,18 +1,10 @@
-import { MemberAccess, Identifier, FunctionCallKind, FunctionCall } from 'solc-typed-ast';
+import { MemberAccess, Identifier } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { BuiltinMapper } from '../../ast/builtinMapper';
+import { ASTMapper } from '../../ast/mapper';
+import { createCairoFunctionStub, createCallToStub } from '../../utils/functionStubbing';
+import { createAddressNonPayableTypeName } from '../../utils/nodeTemplates';
 
-export class MsgSender extends BuiltinMapper {
-  builtinDefs = {
-    // This is only called via BuiltinMapper, and only once
-    get_caller_address: this.createBuiltInDef(
-      'get_caller_address',
-      [],
-      [['address', 'address']],
-      ['syscall_ptr'],
-    ),
-  };
-
+export class MsgSender extends ASTMapper {
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     if (
       node.vExpression instanceof Identifier &&
@@ -24,24 +16,16 @@ export class MsgSender extends BuiltinMapper {
       });
       ast.replaceNode(
         node,
-        new FunctionCall(
-          ast.reserveId(),
-          node.src,
-          'FunctionCall',
-          'address',
-          FunctionCallKind.FunctionCall,
-          new Identifier(
-            ast.reserveId(),
-            node.src,
-            'Identifier',
-            'address',
+        createCallToStub(
+          createCairoFunctionStub(
             'get_caller_address',
-            this.getDefId('get_caller_address', ast),
-            node.raw,
+            [],
+            [['address', createAddressNonPayableTypeName(ast)]],
+            ['syscall_ptr'],
+            ast,
           ),
           [],
-          [],
-          node.raw,
+          ast,
         ),
       );
     } else {

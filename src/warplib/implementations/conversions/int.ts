@@ -1,6 +1,11 @@
-import { bound, forAllWidths, generateFile, mask, msb, uint256 } from '../../utils';
+import assert = require('assert');
+import { FunctionCall, getNodeType, IntType } from 'solc-typed-ast';
+import { AST } from '../../../ast/ast';
+import { printNode, printTypeNode } from '../../../utils/astPrinter';
+import { Implicits } from '../../../utils/implicits';
+import { bound, forAllWidths, generateFile, IntFunction, mask, msb, uint256 } from '../../utils';
 
-export function signed_int_conversions(): void {
+export function int_conversions(): void {
   generateFile(
     'int_conversions',
     [
@@ -9,64 +14,120 @@ export function signed_int_conversions(): void {
       'from starkware.cairo.common.math import split_felt',
       'from starkware.cairo.common.uint256 import Uint256, uint256_add',
     ],
-    forAllWidths((from) => {
-      return forAllWidths((to) => {
-        if (from < to) {
-          if (to === 256) {
-            return [
-              `func warp_int${from}_to_int${to}{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(op : felt) -> (res : Uint256):`,
-              `    let (msb) = bitwise_and(op, ${msb(from)})`,
-              `    let (high, low) = split_felt(op)`,
-              `    let naiveExtension = Uint256(low, high)`,
-              `    if msb == 0:`,
-              `        return (naiveExtension)`,
-              `    else:`,
-              `        let (res, _) = uint256_add(naiveExtension, ${uint256(
-                sign_extend_value(from, to),
-              )})`,
-              `        return (res)`,
-              `    end`,
-              'end',
-            ];
-          } else {
-            return [
-              `func warp_int${from}_to_int${to}{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(op : felt) -> (res : felt):`,
-              `    let (msb) = bitwise_and(op, ${msb(from)})`,
-              `    if msb == 0:`,
-              `        return (op)`,
-              `    else:`,
-              `        return (op + 0x${sign_extend_value(from, to).toString(16)})`,
-              `    end`,
-              'end',
-            ];
-          }
-        } else if (from === to) {
-          return [];
-        } else {
-          if (from === 256) {
-            if (to > 128) {
+    [
+      ...forAllWidths((from) => {
+        return forAllWidths((to) => {
+          if (from < to) {
+            if (to === 256) {
               return [
-                `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : Uint256) -> (res : felt):`,
-                `    let (high) = bitwise_and(op.high,${mask(to - 128)})`,
-                `    return (op.low + ${bound(128)} * high)`,
-                `end`,
+                `func warp_int${from}_to_int256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(op : felt) -> (res : Uint256):`,
+                `    let (msb) = bitwise_and(op, ${msb(from)})`,
+                `    let (high, low) = split_felt(op)`,
+                `    let naiveExtension = Uint256(low, high)`,
+                `    if msb == 0:`,
+                `        return (naiveExtension)`,
+                `    else:`,
+                `        let (res, _) = uint256_add(naiveExtension, ${uint256(
+                  sign_extend_value(from, to),
+                )})`,
+                `        return (res)`,
+                `    end`,
+                'end',
               ];
             } else {
               return [
-                `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : Uint256) -> (res : felt):`,
-                `    return bitwise_and(op.low, ${mask(to)})`,
+                `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : felt) -> (res : felt):`,
+                `    let (msb) = bitwise_and(op, ${msb(from)})`,
+                `    if msb == 0:`,
+                `        return (op)`,
+                `    else:`,
+                `        return (op + 0x${sign_extend_value(from, to).toString(16)})`,
+                `    end`,
+                'end',
+              ];
+            }
+          } else if (from === to) {
+            return [];
+          } else {
+            if (from === 256) {
+              if (to > 128) {
+                return [
+                  `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : Uint256) -> (res : felt):`,
+                  `    let (high) = bitwise_and(op.high,${mask(to - 128)})`,
+                  `    return (op.low + ${bound(128)} * high)`,
+                  `end`,
+                ];
+              } else {
+                return [
+                  `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : Uint256) -> (res : felt):`,
+                  `    return bitwise_and(op.low, ${mask(to)})`,
+                  `end`,
+                ];
+              }
+            } else {
+              return [
+                `func warp_int${from}_to_int${to}{bitwise_ptr : BitwiseBuiltin*}(op : felt) -> (res : felt):`,
+                `    return bitwise_and(op, ${mask(to)})`,
                 `end`,
               ];
             }
-          } else {
-            return [];
           }
-        }
-      });
-    }),
+        });
+      }),
+      '',
+      'func warp_uint256{range_check_ptr}(op : felt) -> (res : Uint256):',
+      '    let split = split_felt(op)',
+      '    return (Uint256(low=split.low, high=split.high))',
+      'end',
+    ],
   );
 }
 
 function sign_extend_value(from: number, to: number): bigint {
   return 2n ** BigInt(to) - 2n ** BigInt(from);
+}
+
+// TODO this will need updating once solc0.7.0 is supported again
+export function functionaliseIntConversion(conversion: FunctionCall, ast: AST): void {
+  const arg = conversion.vArguments[0];
+  const fromType = getNodeType(arg, ast.compilerVersion);
+  assert(
+    fromType instanceof IntType,
+    `Argument of int conversion expected to be int type. Got ${printTypeNode(
+      fromType,
+    )} at ${printNode(conversion)}`,
+  );
+  const toType = getNodeType(conversion, ast.compilerVersion);
+  assert(
+    toType instanceof IntType,
+    `Int conversion expected to be int type. Got ${printTypeNode(toType)} at ${printNode(
+      conversion,
+    )}`,
+  );
+
+  if (fromType.nBits < 256 && toType.nBits === 256 && !fromType.signed && !toType.signed) {
+    IntFunction(
+      conversion,
+      conversion.vArguments[0],
+      'uint',
+      'int_conversions',
+      () => ['range_check_ptr'],
+      ast,
+    );
+    return;
+  } else if (
+    fromType.nBits === toType.nBits ||
+    (fromType.nBits < toType.nBits && !fromType.signed && !toType.signed)
+  ) {
+    ast.replaceNode(conversion, arg);
+    return;
+  } else {
+    const name = `${fromType.pp().startsWith('u') ? fromType.pp().slice(1) : fromType.pp()}_to_int`;
+    const implicitsFn = (wide: boolean): Implicits[] => {
+      if (wide) return ['range_check_ptr', 'bitwise_ptr'];
+      return ['bitwise_ptr'];
+    };
+    IntFunction(conversion, conversion.vArguments[0], name, 'int_conversions', implicitsFn, ast);
+    return;
+  }
 }

@@ -1,34 +1,24 @@
 import assert = require('assert');
 import {
-  BinaryOperation,
-  BytesType,
+  AddressType,
   ElementaryTypeNameExpression,
   Expression,
   FunctionCall,
   FunctionCallKind,
   getNodeType,
-  Identifier,
   IntLiteralType,
   IntType,
   Literal,
-  LiteralKind,
   TypeNameType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { BuiltinMapper } from '../../ast/builtinMapper';
-import { printNode } from '../../utils/astPrinter';
+import { printNode, printTypeNode } from '../../utils/astPrinter';
+import { ASTMapper } from '../../ast/mapper';
 import { NotSupportedYetError } from '../../utils/errors';
 import { toHexString } from '../../utils/utils';
+import { functionaliseIntConversion } from '../../warplib/implementations/conversions/int';
 
-export class ExplicitConversionToFunc extends BuiltinMapper {
-  builtinDefs = {
-    felt_to_uint256: this.createBuiltInDef(
-      'felt_to_uint256',
-      [['in', 'felt']],
-      [['out', 'uint256']],
-      ['range_check_ptr'],
-    ),
-  };
+export class ExplicitConversionToFunc extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     this.commonVisit(node, ast);
     if (node.kind !== FunctionCallKind.TypeConversion) return;
@@ -49,72 +39,23 @@ export class ExplicitConversionToFunc extends BuiltinMapper {
     const typeTo = typeNameType.type;
     const argType = getNodeType(node.vArguments[0], ast.compilerVersion);
 
-    if (typeTo instanceof BytesType && argType instanceof BytesType) {
-      // TODO: Implement bytes to bytes conversion
-      throw new NotSupportedYetError('Bytes to bytes conversion not implemented yet');
-    }
-
     if (typeTo instanceof IntType) {
-      const typeToSize = typeTo.nBits;
-      // TODO refactor repeated code
       if (argType instanceof IntLiteralType) {
         ast.replaceNode(node, literalToTypedInt(node.vArguments[0], typeTo));
       } else if (argType instanceof IntType) {
-        const argTypeSize = argType.nBits;
-        // TODO what if arg type size is already 256?
-        if (argTypeSize <= typeToSize) {
-          // We don't need to do anything for upcasting if its not being casted to a uint256
-          if (typeToSize !== 256) {
-            // TODO prove whether or not it's possible for something to reference this call by id
-            ast.replaceNode(node, node.vArguments[0]);
-            return;
-          } else {
-            ast.addImports({ 'warplib.maths.utils': new Set(['felt_to_uint256']) });
-            ast.replaceNode(
-              node.vExpression,
-              new Identifier(
-                ast.reserveId(),
-                node.src,
-                'Identifier',
-                // TODO check what correct typestring should be here (is it typeTo.pp, shouldn't that always be the same?)
-                node.typeString,
-                'felt_to_uint256',
-                this.getDefId('felt_to_uint256', ast),
-              ),
-            );
-            return;
-          }
-        }
-
-        const maskSize = '0x'.concat('f'.repeat(typeToSize / 4));
-
-        // TODO check this logic, specifically about the type of this literal
-        const maskSizeLiteral = new Literal(
-          ast.reserveId(),
-          node.src,
-          'Literal',
-          node.vArguments[0].typeString,
-          LiteralKind.Number,
-          // TODO test what hexstring hexadecimal number literals like this use (I think it's hex of the ascii)
-          maskSize,
-          maskSize,
-        );
-
-        ast.replaceNode(
-          node,
-          new BinaryOperation(
-            ast.reserveId(),
-            node.src,
-            'BinaryOperation',
-            typeTo.pp(),
-            '&&',
-            node.vArguments[0],
-            maskSizeLiteral,
-          ),
-        );
+        functionaliseIntConversion(node, ast);
       }
+      return;
     }
-    return;
+
+    if (typeTo instanceof AddressType) {
+      ast.replaceNode(node, node.vArguments[0]);
+      return;
+    }
+
+    throw new NotSupportedYetError(
+      `${printTypeNode(argType)} to ${printTypeNode(typeTo)} conversion not supported yet`,
+    );
   }
 }
 

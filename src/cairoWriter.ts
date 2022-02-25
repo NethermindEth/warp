@@ -73,13 +73,13 @@ import {
 import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
 import { Implicits, writeImplicits } from './utils/implicits';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
-import { cairoType, getCairoType } from './typeWriter';
 import { canonicalMangler, divmod, importsWriter, primitiveTypeToCairo } from './utils/utils';
 
 import { AST } from './ast/ast';
 import { getMappingTypes } from './utils/mappings';
 import { notUndefined } from './utils/typeConstructs';
 import { printNode } from './utils/astPrinter';
+import { CairoType } from './utils/cairoTypeSystem';
 
 const INDENT = ' '.repeat(4);
 
@@ -109,7 +109,10 @@ class StructDefinitionWriter extends CairoASTNodeWriter {
         ...node.vMembers
           .map(
             (value) =>
-              `member ${value.name} : ${getCairoType(value, writer.targetCompilerVersion)}`,
+              `member ${value.name} : ${CairoType.fromSol(
+                getNodeType(value, writer.targetCompilerVersion),
+                this.ast,
+              )}`,
           )
           .map((v) => INDENT + v),
         `end`,
@@ -132,7 +135,7 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
       } else {
         vals.push(nodeType);
       }
-      vals = vals.map((value) => cairoType(value));
+      vals = vals.map((value) => CairoType.fromSol(value, this.ast).toString());
       const keys = vals.slice(0, vals.length - 1).map((t, i) => `key${i}: ${t}`);
       const returns = vals.slice(vals.length - 1, vals.length);
       return [
@@ -144,7 +147,12 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
       ];
     }
 
-    return [`${node.name} : ${getCairoType(node, writer.targetCompilerVersion)}`];
+    return [
+      `${node.name} : ${CairoType.fromSol(
+        getNodeType(node, writer.targetCompilerVersion),
+        this.ast,
+      )}`,
+    ];
   }
 }
 
@@ -282,7 +290,7 @@ class NotImplementedWriter extends CairoASTNodeWriter {
 class ParameterListWriter extends CairoASTNodeWriter {
   writeInner(node: ParameterList, writer: ASTWriter): SrcDesc {
     const params = node.vParameters.map((value, i) => {
-      const tp = getCairoType(value, writer.targetCompilerVersion);
+      const tp = CairoType.fromSol(getNodeType(value, writer.targetCompilerVersion), this.ast);
       return value.name ? `${value.name} : ${tp}` : `ret${i} : ${tp}`;
     });
     return [params.join(', ')];

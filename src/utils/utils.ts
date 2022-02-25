@@ -12,7 +12,6 @@ import {
   EtherUnit,
   FunctionDefinition,
   FunctionVisibility,
-  Identifier,
   IntLiteralType,
   IntType,
   Literal,
@@ -24,7 +23,6 @@ import {
   TypeName,
   TypeNode,
   UserDefinedType,
-  VariableDeclaration,
   VariableDeclarationStatement,
   getNodeType,
 } from 'solc-typed-ast';
@@ -351,30 +349,6 @@ export function getReturnTypeString(node: FunctionDefinition): string {
   if (returns.length === 0) return 'tuple()';
   if (returns.length === 1) return returns[0].typeString;
   return `tuple(${returns.map((decl) => decl.typeString).join(',')})`;
-}
-
-export function createIdentifier(variable: VariableDeclaration, ast: AST): Identifier {
-  return new Identifier(
-    ast.reserveId(),
-    '',
-    'Identifier',
-    variable.typeString,
-    variable.name,
-    variable.id,
-  );
-}
-
-export function createBoolLiteral(value: boolean, ast: AST): Literal {
-  const valueString = value ? 'true' : 'false';
-  return new Literal(
-    ast.reserveId(),
-    '',
-    'Literal',
-    'bool',
-    LiteralKind.Bool,
-    toHexString(valueString),
-    valueString,
-  );
 }
 
 export function generateLiteralTypeString(value: string): string {

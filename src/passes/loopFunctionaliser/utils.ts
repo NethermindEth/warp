@@ -23,7 +23,8 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { cloneVariableDeclaration } from '../../utils/cloning';
-import { createIdentifier, getFunctionTypeString, getReturnTypeString } from '../../utils/utils';
+import { createIdentifier } from '../../utils/nodeTemplates';
+import { getFunctionTypeString, getReturnTypeString } from '../../utils/utils';
 
 export function collectUnboundVariables(node: ASTNode): Map<VariableDeclaration, Identifier[]> {
   const internalDeclarations = node

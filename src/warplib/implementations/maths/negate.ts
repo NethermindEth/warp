@@ -37,5 +37,5 @@ export function functionaliseNegate(node: UnaryOperation, ast: AST): void {
     if (wide) return ['range_check_ptr'];
     else return ['bitwise_ptr'];
   };
-  IntFunction(node, 'negate', implicitsFn, ast);
+  IntFunction(node, node.vSubExpression, 'negate', 'negate', implicitsFn, ast);
 }
