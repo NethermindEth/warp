@@ -23,7 +23,7 @@ function getSolFileVersion(file: string): string {
   const pattern = /(?<!<)(?<!>)[0-9]+\.[0-9]+\.[0-9]+/g;
   const match = pragma.match(pattern);
   if (match !== null) {
-    return match[0];
+    return match.sort().reverse()[0];
   }
   return '';
 }
