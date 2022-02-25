@@ -6,8 +6,8 @@ import { execSync } from 'child_process';
 import { TranspileFailedError, error } from './utils/errors';
 
 export function compileSolFile(file: string, printWarnings: boolean): AST[] {
-  const requiredSolcVersion = getSolFilePragma(file);
-  const result = cliCompile(formatInput(file));
+  const requiredSolcVersion = getSolFileVersion(file);
+  const result = cliCompile(formatInput(file), requiredSolcVersion);
   printErrors(result, printWarnings);
   const reader = new ASTReader();
   const sourceUnits = reader.read(result);
@@ -17,10 +17,15 @@ export function compileSolFile(file: string, printWarnings: boolean): AST[] {
   return sourceUnits.map((node) => new AST(node, compilerVersion)).reverse();
 }
 
-function getSolFilePragma(file: string): string {
+function getSolFileVersion(file: string): string {
   const content = fs.readFileSync(file, { encoding: 'utf-8' });
-  const requiredSolcVersion = extractSpecifiersFromSource(content)[0];
-  return requiredSolcVersion;
+  const pragma = extractSpecifiersFromSource(content)[0];
+  const pattern = /[0-9]+\.[0-9]+\.[0-9]+/;
+  const match = pragma.match(pattern);
+  if (match !== null) {
+    return match[0];
+  }
+  return '';
 }
 
 type SolcInput = {
@@ -60,23 +65,27 @@ function formatInput(fileName: string): SolcInput {
   };
 }
 
-function cliCompile(input: SolcInput): unknown {
-  const compilerVersion = getCompilerVersion();
+function cliCompile(input: SolcInput, solcVersion: string): unknown {
+  // Determine compiler version to use
+  const solcCommand = solcVersion.startsWith('0.7.') ? `./solc-v0.7.6` : `solc`;
+
   // Check for solc v0.8.7 and before
   const pattern = /0+\.[0-8]+\.[0-7]+/;
-  const match = pattern.exec(compilerVersion);
+  const match = pattern.exec(solcVersion);
   if (match) {
     // For solc v0.8.7 and before, set the allow path
     const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
     const filePath = Object.keys(input.sources)[0];
     const allowPath = `${currentDirectory}/${filePath}`;
     return JSON.parse(
-      execSync(`solc --standard-json --allow-paths ${allowPath}`, {
+      execSync(`${solcCommand} --standard-json --allow-paths ${allowPath}`, {
         input: JSON.stringify(input),
       }).toString(),
     );
   }
-  return JSON.parse(execSync(`solc --standard-json`, { input: JSON.stringify(input) }).toString());
+  return JSON.parse(
+    execSync(`${solcCommand} --standard-json`, { input: JSON.stringify(input) }).toString(),
+  );
 }
 
 function getCompilerVersion(): string {
