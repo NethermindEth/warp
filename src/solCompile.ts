@@ -1,6 +1,11 @@
 import assert = require('assert');
 import * as fs from 'fs';
-import { ASTReader, CompileFailedError, extractSpecifiersFromSource } from 'solc-typed-ast';
+import {
+  ASTReader,
+  CompileFailedError,
+  extractSpecifiersFromSource,
+  getCompilerVersionsBySpecifiers,
+} from 'solc-typed-ast';
 import { AST } from './ast/ast';
 import { execSync } from 'child_process';
 import { TranspileFailedError, error } from './utils/errors';
@@ -17,15 +22,14 @@ export function compileSolFile(file: string, printWarnings: boolean): AST[] {
   return sourceUnits.map((node) => new AST(node, compilerVersion)).reverse();
 }
 
+const supportedVersions = ['0.8.12', '0.7.6'];
+
 function getSolFileVersion(file: string): string {
   const content = fs.readFileSync(file, { encoding: 'utf-8' });
   const pragma = extractSpecifiersFromSource(content)[0];
-  const pattern = /(?<!<)(?<!>)[0-9]+\.[0-9]+\.[0-9]+/g;
-  const match = pragma.match(pattern);
-  if (match !== null) {
-    return match.sort().reverse()[0];
-  }
-  return '';
+  const retrievedVersions = getCompilerVersionsBySpecifiers([pragma], supportedVersions);
+  const version = retrievedVersions.length !== 0 ? retrievedVersions[0] : supportedVersions[0];
+  return version;
 }
 
 type SolcInput = {
