@@ -50,7 +50,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example-contracts/libraries/using_for_star', 'NotSupportedYet'],
   ['example-contracts/literalOperations', 'Success'],
   ['example-contracts/loops/for-loop-with-break', 'Success'],
-  ['example-contracts/loops/for-loop-with-continue', 'NotSupportedYet'],
+  ['example-contracts/loops/for-loop-with-continue', 'Success'],
   ['example-contracts/loops/for-loop-with-nested-return', 'Success'],
   ['example-contracts/mutableReferences/memory', 'Success'],
   ['example-contracts/mutableReferences/mutableReferences', 'NotSupportedYet'],

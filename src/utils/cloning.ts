@@ -1,5 +1,6 @@
 import {
   ArrayTypeName,
+  Assignment,
   BinaryOperation,
   ElementaryTypeName,
   Expression,
@@ -20,7 +21,29 @@ import { exactInstanceOf } from './utils';
 
 export function cloneExpression(node: Expression, ast: AST): Expression {
   let newNode: Expression;
-  if (exactInstanceOf(node, IndexAccess)) {
+  if (exactInstanceOf(node, Assignment)) {
+    newNode = new Assignment(
+      ast.reserveId(),
+      node.src,
+      'Assignment',
+      node.typeString,
+      node.operator,
+      cloneExpression(node.vLeftHandSide, ast),
+      cloneExpression(node.vRightHandSide, ast),
+      node.raw,
+    );
+  } else if (exactInstanceOf(node, BinaryOperation)) {
+    newNode = new BinaryOperation(
+      ast.reserveId(),
+      node.src,
+      'BinaryOperation',
+      node.typeString,
+      node.operator,
+      cloneExpression(node.vLeftExpression, ast),
+      cloneExpression(node.vRightExpression, ast),
+      node.raw,
+    );
+  } else if (exactInstanceOf(node, IndexAccess)) {
     newNode = new IndexAccess(
       ast.reserveId(),
       node.src,
@@ -62,17 +85,6 @@ export function cloneExpression(node: Expression, ast: AST): Expression {
       node.hexValue,
       node.value,
       node.subdenomination,
-      node.raw,
-    );
-  } else if (exactInstanceOf(node, BinaryOperation)) {
-    newNode = new BinaryOperation(
-      ast.reserveId(),
-      node.src,
-      'BinaryOperation',
-      node.typeString,
-      node.operator,
-      cloneExpression(node.vLeftExpression, ast),
-      cloneExpression(node.vRightExpression, ast),
       node.raw,
     );
   } else if (exactInstanceOf(node, UnaryOperation)) {
