@@ -109,6 +109,21 @@ export const expectations = flatten(
               ['get', [], ['255'], '0'],
             ]),
           ]),
+          new File('singleEnum7', [
+            Expect.Simple('get', [], ['0']),
+            new Expect('set', [
+              ['set', ['257'], [], '0'],
+              ['get', [], ['257'], '0'],
+            ]),
+            new Expect('callSetInternally', [
+              ['callSetInternally', ['128'], [], '0'],
+              ['get', [], ['128'], '0'],
+            ]),
+            new Expect('cancel', [
+              ['cancel', [], [], '0'],
+              ['get', [], ['259'], '0'],
+            ]),
+          ]),
           new File('doubleEnum', [
             Expect.Simple('a', [], ['2']),
             Expect.Simple('getTopEnum', [], ['0']),
