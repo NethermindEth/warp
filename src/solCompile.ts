@@ -26,9 +26,10 @@ const supportedVersions = ['0.8.12', '0.7.6'];
 
 function getSolFileVersion(file: string): string {
   const content = fs.readFileSync(file, { encoding: 'utf-8' });
-  const pragma = extractSpecifiersFromSource(content)[0];
-  const retrievedVersions = getCompilerVersionsBySpecifiers([pragma], supportedVersions);
-  const version = retrievedVersions.length !== 0 ? retrievedVersions[0] : supportedVersions[0];
+  const pragma = extractSpecifiersFromSource(content);
+  const retrievedVersions = getCompilerVersionsBySpecifiers(pragma, supportedVersions);
+  const version =
+    retrievedVersions.length !== 0 ? retrievedVersions.sort().reverse()[0] : supportedVersions[0];
   return version;
 }
 
