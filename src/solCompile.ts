@@ -20,7 +20,7 @@ export function compileSolFile(file: string, printWarnings: boolean): AST[] {
 function getSolFileVersion(file: string): string {
   const content = fs.readFileSync(file, { encoding: 'utf-8' });
   const pragma = extractSpecifiersFromSource(content)[0];
-  const pattern = /[0-9]+\.[0-9]+\.[0-9]+/;
+  const pattern = /(?<!<)(?<!>)[0-9]+\.[0-9]+\.[0-9]+/g;
   const match = pragma.match(pattern);
   if (match !== null) {
     return match[0];
