@@ -66,7 +66,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example-contracts/tupleAssignment7', 'Success'],
   ['example-contracts/tupleAssignment8', 'SolCompileFailed'],
   ['example-contracts/typeConversion/explicitTypeConversion', 'Success'],
-  ['example-contracts/typeConversion/implicitReturnConversion', 'CairoCompileFailed'],
+  ['example-contracts/typeConversion/implicitReturnConversion', 'Success'],
   ['example-contracts/typeConversion/implicit_type_conv', 'Success'],
   ['example-contracts/typeConversion/shifts', 'Success'],
   ['example-contracts/typeMinMax', 'Success'],

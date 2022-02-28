@@ -357,3 +357,10 @@ export function generateLiteralTypeString(value: string): string {
   }
   return `int_const ${value}`;
 }
+
+export function dereferenceType(typeNode: TypeNode): TypeNode {
+  while (typeNode instanceof PointerType) {
+    typeNode = typeNode.to;
+  }
+  return typeNode;
+}

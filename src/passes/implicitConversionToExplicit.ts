@@ -10,6 +10,7 @@ import {
   FunctionType,
   getNodeType,
   PointerType,
+  Return,
   UserDefinedTypeName,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
@@ -17,7 +18,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { NotSupportedYetError } from '../utils/errors';
-import { compareTypeSize, getDeclaredTypeString } from '../utils/utils';
+import { compareTypeSize, dereferenceType, getDeclaredTypeString } from '../utils/utils';
 
 // TODO conclusively handle all edge cases
 // TODO for example operations between literals and non-literals truncate the literal,
@@ -46,6 +47,44 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       ),
       [expression],
     );
+  }
+
+  visitReturn(node: Return, ast: AST): void {
+    this.commonVisit(node, ast);
+
+    const funcDef = node.vFunctionReturnParameters.vParameters;
+
+    if (node.vExpression == undefined) return;
+
+    // Return type should be a single value
+    if (funcDef.length > 1) return;
+
+    // TODO test tuple of structs
+    if (node.vExpression.typeString.startsWith('tuple(')) return;
+
+    // Skip enums - implicit conversion is not allowed
+    if (funcDef[0].typeString.startsWith('enum ')) return;
+
+    // TODO handle or rule out implicit conversions of structs
+    if (funcDef[0].vType instanceof UserDefinedTypeName) return;
+    else {
+      const retParamType = dereferenceType(
+        getNodeType(node.vFunctionReturnParameters.vParameters[0], ast.compilerVersion),
+      );
+      const retValueType = dereferenceType(getNodeType(node.vExpression, ast.compilerVersion));
+      const res = compareTypeSize(retParamType, retValueType);
+
+      if (res == 1) {
+        const castedReturnExp = this.generateExplicitConversion(
+          funcDef[0].typeString,
+          node.vExpression,
+          ast,
+        );
+        node.vExpression = castedReturnExp;
+        ast.registerChild(castedReturnExp, node);
+      }
+    }
+    return;
   }
 
   visitBinaryOperation(node: BinaryOperation, ast: AST): void {
@@ -192,19 +231,12 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 
     //Ignore any arguments prepended by AddressArgumentPusher
     node.vArguments.slice(-parameters.length).forEach((argument, index) => {
-      let argumentType = getNodeType(argument, ast.compilerVersion);
-      let nonPtrParamType = parameters[index];
+      const argumentType = dereferenceType(getNodeType(argument, ast.compilerVersion));
+      const nonPtrParamType = dereferenceType(parameters[index]);
 
       // Skip enums - implicit conversion is not allowed
       if (nonPtrParamType.pp().startsWith('enum ')) {
         return;
-      }
-
-      while (argumentType instanceof PointerType) {
-        argumentType = argumentType.to;
-      }
-      while (nonPtrParamType instanceof PointerType) {
-        nonPtrParamType = nonPtrParamType.to;
       }
 
       const res = compareTypeSize(argumentType, nonPtrParamType);
