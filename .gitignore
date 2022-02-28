@@ -126,3 +126,6 @@ venv
 
 # tests
 starknet-testnet/__pycache__/*
+
+# Solidity versions
+solc-v0.7.6
