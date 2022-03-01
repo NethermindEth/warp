@@ -17,7 +17,7 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { cloneVariableDeclaration } from '../utils/cloning';
+import { cloneResolvable } from '../utils/cloning';
 import { notNull } from '../utils/typeConstructs';
 
 // Converts a non-declaration tuple assignment into a declaration of temporary variables,
@@ -51,9 +51,7 @@ export class TupleAssignmentSplitter extends ASTMapper {
           node.vFunctionReturnParameters.vParameters.length
         } parameters`,
       );
-      const vars = node.vFunctionReturnParameters.vParameters.map((v) =>
-        cloneVariableDeclaration(v, ast),
-      );
+      const vars = node.vFunctionReturnParameters.vParameters.map((v) => cloneResolvable(v, ast));
       ast.insertStatementBefore(
         node,
         new VariableDeclarationStatement(

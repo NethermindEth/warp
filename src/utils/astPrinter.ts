@@ -76,6 +76,7 @@ export class ASTPrinter {
 
 export const DefaultASTPrinter = new ASTPrinter()
   .lookFor('name')
+  .lookFor('canonicalName')
   .lookFor('memberName')
   .lookFor('operator')
   .lookFor('value')
@@ -84,6 +85,8 @@ export const DefaultASTPrinter = new ASTPrinter()
   .lookFor('returnTypes')
   .lookFor('typeString')
   .lookFor('symbolAliases')
+  .lookFor('scope')
+  .lookFor('absolutePath')
   .lookFor({
     prop: 'context',
     nodeType: 'SourceUnit',

@@ -40,12 +40,12 @@ export function initialiseArtifactsDirectory() {
   fs.mkdirSync('tests/artifacts');
 }
 
-export function transpile(contractPath: string, cairoOutputPath: string) {
-  return sh(`bin/warp transpile ${contractPath} --output ${cairoOutputPath} --strict`);
+export function transpile(contractPath: string) {
+  return sh(`bin/warp transpile ${contractPath} --strict`);
 }
 
 export function starknetCompile(cairoPath: string, jsonOutputPath: string) {
-  return sh(`starknet-compile ${cairoPath} --output ${jsonOutputPath}`);
+  return sh(`starknet-compile --cairo_path warp_output ${cairoPath} --output ${jsonOutputPath}`);
 }
 
 export type SafePromise<T> = Promise<

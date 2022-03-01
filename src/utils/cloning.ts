@@ -1,4 +1,5 @@
 import {
+  AnyResolvable,
   ArrayTypeName,
   Assignment,
   BinaryOperation,
@@ -7,6 +8,7 @@ import {
   ExpressionStatement,
   FunctionCall,
   Identifier,
+  ImportDirective,
   IndexAccess,
   Literal,
   Mapping,
@@ -103,6 +105,7 @@ export function cloneExpression(node: Expression, ast: AST): Expression {
   }
 
   ast.setContextRecursive(newNode);
+  ast.copyRegisteredImports(node, newNode);
   return newNode;
 }
 
@@ -143,33 +146,8 @@ export function cloneTypeName(node: TypeName, ast: AST): TypeName {
   }
 
   ast.setContextRecursive(newNode);
+  ast.copyRegisteredImports(node, newNode);
   return newNode;
-}
-
-export function cloneVariableDeclaration(node: VariableDeclaration, ast: AST): VariableDeclaration {
-  if (node.vOverrideSpecifier !== undefined) {
-    throw new NotSupportedYetError('Override Specifiers not implemented yet');
-  }
-
-  return new VariableDeclaration(
-    ast.reserveId(),
-    node.src,
-    node.type,
-    node.constant,
-    node.indexed,
-    node.name,
-    node.scope,
-    node.stateVariable,
-    node.storageLocation,
-    node.visibility,
-    node.mutability,
-    node.typeString,
-    node.documentation,
-    node.vType === undefined ? undefined : cloneTypeName(node.vType, ast),
-    undefined,
-    node.vValue === undefined ? undefined : cloneExpression(node.vValue, ast),
-    node.nameLocation,
-  );
 }
 
 export function cloneStatement(node: Statement, ast: AST): Statement {
@@ -189,5 +167,57 @@ export function cloneStatement(node: Statement, ast: AST): Statement {
   }
 
   ast.setContextRecursive(newNode);
+  ast.copyRegisteredImports(node, newNode);
+  return newNode;
+}
+
+export function cloneResolvable(node: VariableDeclaration, ast: AST): VariableDeclaration;
+export function cloneResolvable(node: ImportDirective, ast: AST): ImportDirective;
+
+export function cloneResolvable(node: AnyResolvable, ast: AST): AnyResolvable {
+  let newNode: AnyResolvable;
+  if (node instanceof VariableDeclaration) {
+    if (node.vOverrideSpecifier !== undefined) {
+      throw new NotSupportedYetError('Override Specifiers not implemented yet');
+    }
+
+    newNode = new VariableDeclaration(
+      ast.reserveId(),
+      node.src,
+      node.type,
+      node.constant,
+      node.indexed,
+      node.name,
+      node.scope,
+      node.stateVariable,
+      node.storageLocation,
+      node.visibility,
+      node.mutability,
+      node.typeString,
+      node.documentation,
+      node.vType === undefined ? undefined : cloneTypeName(node.vType, ast),
+      undefined,
+      node.vValue === undefined ? undefined : cloneExpression(node.vValue, ast),
+      node.nameLocation,
+    );
+  } else if (node instanceof ImportDirective) {
+    newNode = new ImportDirective(
+      ast.reserveId(),
+      node.src,
+      node.type,
+      node.file,
+      node.absolutePath,
+      node.unitAlias,
+      node.symbolAliases,
+      node.scope,
+      node.sourceUnit,
+      node.raw,
+    );
+  } else {
+    throw new NotSupportedYetError(`Cloning ${node.type} is not implemented yet`);
+  }
+
+  ast.setContextRecursive(newNode);
+  ast.copyRegisteredImports(node, newNode);
   return newNode;
 }

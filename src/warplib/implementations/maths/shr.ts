@@ -249,5 +249,5 @@ export function functionaliseShr(node: BinaryOperation, ast: AST): void {
   );
 
   ast.replaceNode(node, call);
-  ast.addImports({ [importName]: new Set([fullName]) });
+  ast.registerImport(call, importName, fullName);
 }

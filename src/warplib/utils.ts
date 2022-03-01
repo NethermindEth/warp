@@ -118,7 +118,7 @@ export function IntxIntFunction(
   );
 
   ast.replaceNode(node, call);
-  ast.addImports({ [importName]: new Set([fullName]) });
+  ast.registerImport(call, importName, fullName);
 }
 
 export function Comparison(
@@ -173,7 +173,7 @@ export function Comparison(
   );
 
   ast.replaceNode(node, call);
-  ast.addImports({ [importName]: new Set([fullName]) });
+  ast.registerImport(call, importName, fullName);
 }
 
 export function IntFunction(
@@ -214,5 +214,5 @@ export function IntFunction(
   );
 
   ast.replaceNode(node, call);
-  ast.addImports({ [`warplib.maths.${fileName}`]: new Set([fullName]) });
+  ast.registerImport(call, `warplib.maths.${fileName}`, fullName);
 }

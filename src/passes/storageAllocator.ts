@@ -21,7 +21,6 @@ import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { implicitImports } from '../utils/implicits';
 import { toHexString } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {
@@ -143,9 +142,4 @@ function extractInitialisation(node: VariableDeclaration, initialisationBlock: B
   );
 
   node.vValue = undefined;
-
-  // TODO move these into the implicits of the CairoFunctionDefinition for the constructor
-  ast.addImports(implicitImports['syscall_ptr']);
-  ast.addImports(implicitImports['pedersen_ptr']);
-  ast.addImports(implicitImports['range_check_ptr']);
 }

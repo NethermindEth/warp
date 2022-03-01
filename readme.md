@@ -28,7 +28,7 @@ yarn tsc
 To transpile a contract:
 
 ```bash
-bin/warp transpile example-contracts/ERC20.sol
+bin/warp transpile example_contracts/ERC20.sol
 ```
 
 ## Testing
@@ -51,7 +51,7 @@ https://www.cairo-lang.org/docs/quickstart.html
 To examine a solidity file in unwarped AST form:
 
 ```bash
-bin/warp analyse example-contracts/ERC20.sol
+bin/warp analyse example_contracts/ERC20.sol
 ```
 
 ---New tests---

@@ -39,19 +39,21 @@ export class StorageVariableAccessRewriter extends ASTMapper {
       );
       ast.replaceNode(
         node,
-        ast.cairoUtilFuncGen.storageWrite(
-          decl,
-          new Literal(
-            ast.reserveId(),
-            '',
-            'Literal',
-            `int_const ${allocation}`,
-            LiteralKind.Number,
-            toHexString(`${allocation}`),
-            `${allocation}`,
+        ast
+          .getUtilFuncGen(node)
+          .storageWrite(
+            decl,
+            new Literal(
+              ast.reserveId(),
+              '',
+              'Literal',
+              `int_const ${allocation}`,
+              LiteralKind.Number,
+              toHexString(`${allocation}`),
+              `${allocation}`,
+            ),
+            node.vRightHandSide,
           ),
-          node.vRightHandSide,
-        ),
       );
       // Recurse only to the right, because the lhs is now handled
       // TODO check for any cases this doesn't cover
@@ -71,12 +73,9 @@ export class StorageVariableAccessRewriter extends ASTMapper {
           typeNameFromTypeNode(lhsType.to.keyType, ast),
           typeNameFromTypeNode(lhsType.to.valueType, ast),
         );
-        const replacementFunc = ast.cairoUtilFuncGen.writeMapping(
-          mapping,
-          index,
-          mappingTypeName,
-          writeValue,
-        );
+        const replacementFunc = ast
+          .getUtilFuncGen(node)
+          .writeMapping(mapping, index, mappingTypeName, writeValue);
         ast.replaceNode(node, replacementFunc);
         this.dispatchVisit(replacementFunc, ast);
       } else {
@@ -121,18 +120,20 @@ export class StorageVariableAccessRewriter extends ASTMapper {
       );
       ast.replaceNode(
         node,
-        ast.cairoUtilFuncGen.storageRead(
-          new Literal(
-            ast.reserveId(),
-            '',
-            'Literal',
-            `int_const ${allocation}`,
-            LiteralKind.Number,
-            toHexString(`${allocation}`),
-            `${allocation}`,
+        ast
+          .getUtilFuncGen(node)
+          .storageRead(
+            new Literal(
+              ast.reserveId(),
+              '',
+              'Literal',
+              `int_const ${allocation}`,
+              LiteralKind.Number,
+              toHexString(`${allocation}`),
+              `${allocation}`,
+            ),
+            typeName,
           ),
-          typeName,
-        ),
         parent,
       );
     }
@@ -159,11 +160,9 @@ export class StorageVariableAccessRewriter extends ASTMapper {
           base_type_to = typeNameFromTypeNode(base_type.to, ast);
         if (base instanceof IndexAccess && base_type_to instanceof Mapping) {
           const funcCall = this.replaceStorageVariableAccess(base, ast);
-          const replacementFunc_inner = ast.cairoUtilFuncGen.readMapping(
-            funcCall,
-            node.vIndexExpression,
-            base_type_to,
-          );
+          const replacementFunc_inner = ast
+            .getUtilFuncGen(node)
+            .readMapping(funcCall, node.vIndexExpression, base_type_to);
           return replacementFunc_inner;
         } else if (base instanceof Identifier) {
           assert(base instanceof Identifier);
@@ -172,11 +171,9 @@ export class StorageVariableAccessRewriter extends ASTMapper {
           assert(decl.vType !== undefined);
           const type = cloneTypeName(decl.vType, ast);
           assert(type instanceof Mapping);
-          const replacementFunc = ast.cairoUtilFuncGen.readMapping(
-            node.vBaseExpression,
-            node.vIndexExpression,
-            type,
-          );
+          const replacementFunc = ast
+            .getUtilFuncGen(node)
+            .readMapping(node.vBaseExpression, node.vIndexExpression, type);
           return replacementFunc;
         }
       }

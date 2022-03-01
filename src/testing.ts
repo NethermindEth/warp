@@ -9,7 +9,7 @@ import {
   WillNotSupportError,
   error,
 } from './utils/errors';
-import { printCompileErrors } from './utils/utils';
+import { groupBy, printCompileErrors } from './utils/utils';
 import * as fs from 'fs';
 
 type ResultType =
@@ -20,60 +20,69 @@ type ResultType =
   | 'WillNotSupport'
   | 'TranspilationFailed';
 
+const ResultTypeOrder = [
+  'Success',
+  'CairoCompileFailed',
+  'NotSupportedYet',
+  'TranspilationFailed',
+  'WillNotSupport',
+  'SolCompileFailed',
+];
+
 const expectedResults = new Map<string, ResultType>([
-  ['example-contracts/ERC20', 'Success'],
-  ['example-contracts/ERC20_storage', 'Success'],
-  ['example-contracts/c2c', 'NotSupportedYet'],
-  ['example-contracts/calldatacopy', 'WillNotSupport'],
-  ['example-contracts/calldataload', 'WillNotSupport'],
-  ['example-contracts/calldatasize', 'WillNotSupport'],
-  ['example-contracts/constructors_dyn', 'NotSupportedYet'],
-  ['example-contracts/constructors_nonDyn', 'NotSupportedYet'],
-  ['example-contracts/dai', 'Success'],
-  ['example-contracts/delete', 'SolCompileFailed'],
-  ['example-contracts/enums', 'Success'],
-  ['example-contracts/enums7', 'Success'],
-  ['example-contracts/errorHandling/assert', 'Success'],
-  ['example-contracts/errorHandling/require', 'Success'],
-  ['example-contracts/errorHandling/revert', 'CairoCompileFailed'],
-  ['example-contracts/events', 'Success'],
-  ['example-contracts/freeFunction', 'Success'],
-  ['example-contracts/function-with-nested-return', 'Success'],
-  ['example-contracts/functionArgumentConversions', 'Success'],
-  ['example-contracts/idManglingTest8', 'Success'],
-  ['example-contracts/idManglingTest9', 'Success'],
-  ['example-contracts/if-flattening', 'CairoCompileFailed'],
-  ['example-contracts/interfaces', 'NotSupportedYet'],
-  ['example-contracts/invalidSolidity', 'SolCompileFailed'],
-  ['example-contracts/lib', 'Success'],
-  ['example-contracts/libraries/using_for_simple', 'CairoCompileFailed'],
-  ['example-contracts/libraries/using_for_star', 'NotSupportedYet'],
-  ['example-contracts/literalOperations', 'Success'],
-  ['example-contracts/loops/for-loop-with-break', 'Success'],
-  ['example-contracts/loops/for-loop-with-continue', 'Success'],
-  ['example-contracts/loops/for-loop-with-nested-return', 'Success'],
-  ['example-contracts/mutableReferences/memory', 'Success'],
-  ['example-contracts/mutableReferences/mutableReferences', 'NotSupportedYet'],
-  ['example-contracts/mutableReferences/scalarStorage', 'Success'],
-  ['example-contracts/payable-function', 'Success'],
-  ['example-contracts/pure-function', 'NotSupportedYet'],
-  ['example-contracts/return-var-capturing', 'Success'],
-  ['example-contracts/returndatasize', 'WillNotSupport'],
-  ['example-contracts/simple-storage-var', 'Success'],
-  ['example-contracts/sstore-sload', 'WillNotSupport'],
-  ['example-contracts/state_variables', 'Success'],
-  ['example-contracts/structs', 'Success'],
-  ['example-contracts/tupleAssignment7', 'Success'],
-  ['example-contracts/tupleAssignment8', 'SolCompileFailed'],
-  ['example-contracts/typeConversion/explicitTypeConversion', 'Success'],
-  ['example-contracts/typeConversion/implicitReturnConversion', 'Success'],
-  ['example-contracts/typeConversion/implicit_type_conv', 'Success'],
-  ['example-contracts/typeConversion/shifts', 'Success'],
-  ['example-contracts/typeMinMax', 'Success'],
-  ['example-contracts/units', 'Success'],
-  ['example-contracts/usingReturnValues', 'Success'],
-  ['example-contracts/variable-declarations', 'NotSupportedYet'],
-  ['example-contracts/view-function', 'Success'],
+  ['example_contracts/ERC20', 'Success'],
+  ['example_contracts/ERC20_storage', 'Success'],
+  ['example_contracts/c2c', 'NotSupportedYet'],
+  ['example_contracts/calldatacopy', 'WillNotSupport'],
+  ['example_contracts/calldataload', 'WillNotSupport'],
+  ['example_contracts/calldatasize', 'WillNotSupport'],
+  ['example_contracts/constructors_dyn', 'NotSupportedYet'],
+  ['example_contracts/constructors_nonDyn', 'NotSupportedYet'],
+  ['example_contracts/dai', 'Success'],
+  ['example_contracts/delete', 'SolCompileFailed'],
+  ['example_contracts/enums', 'Success'],
+  ['example_contracts/enums7', 'Success'],
+  ['example_contracts/errorHandling/assert', 'Success'],
+  ['example_contracts/errorHandling/require', 'Success'],
+  ['example_contracts/errorHandling/revert', 'CairoCompileFailed'],
+  ['example_contracts/events', 'Success'],
+  ['example_contracts/freeFunction', 'Success'],
+  ['example_contracts/function-with-nested-return', 'Success'],
+  ['example_contracts/functionArgumentConversions', 'Success'],
+  ['example_contracts/idManglingTest8', 'Success'],
+  ['example_contracts/idManglingTest9', 'Success'],
+  ['example_contracts/if-flattening', 'CairoCompileFailed'],
+  ['example_contracts/interfaces', 'NotSupportedYet'],
+  ['example_contracts/invalidSolidity', 'SolCompileFailed'],
+  ['example_contracts/lib', 'Success'],
+  ['example_contracts/libraries/using_for_simple', 'Success'],
+  ['example_contracts/libraries/using_for_star', 'NotSupportedYet'],
+  ['example_contracts/literalOperations', 'Success'],
+  ['example_contracts/loops/for-loop-with-break', 'Success'],
+  ['example_contracts/loops/for-loop-with-continue', 'Success'],
+  ['example_contracts/loops/for-loop-with-nested-return', 'Success'],
+  ['example_contracts/mutableReferences/memory', 'Success'],
+  ['example_contracts/mutableReferences/mutableReferences', 'NotSupportedYet'],
+  ['example_contracts/mutableReferences/scalarStorage', 'Success'],
+  ['example_contracts/payable-function', 'Success'],
+  ['example_contracts/pure-function', 'NotSupportedYet'],
+  ['example_contracts/return-var-capturing', 'Success'],
+  ['example_contracts/returndatasize', 'WillNotSupport'],
+  ['example_contracts/simple-storage-var', 'Success'],
+  ['example_contracts/sstore-sload', 'WillNotSupport'],
+  ['example_contracts/state_variables', 'Success'],
+  ['example_contracts/structs', 'Success'],
+  ['example_contracts/tupleAssignment7', 'Success'],
+  ['example_contracts/tupleAssignment8', 'SolCompileFailed'],
+  ['example_contracts/typeConversion/explicitTypeConversion', 'Success'],
+  ['example_contracts/typeConversion/implicitReturnConversion', 'Success'],
+  ['example_contracts/typeConversion/implicit_type_conv', 'Success'],
+  ['example_contracts/typeConversion/shifts', 'Success'],
+  ['example_contracts/typeMinMax', 'Success'],
+  ['example_contracts/units', 'Success'],
+  ['example_contracts/usingReturnValues', 'Success'],
+  ['example_contracts/variable-declarations', 'NotSupportedYet'],
+  ['example_contracts/view-function', 'Success'],
 ]);
 
 export function runTests(force: boolean, onlyResults: boolean, unsafe = false, exact = false) {
@@ -81,10 +90,10 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe = false, e
   if (force) {
     postTestCleanup();
   } else if (!preTestChecks()) return;
-  findSolSourceFilePaths('example-contracts', true).forEach((file) =>
+  findSolSourceFilePaths('example_contracts', true).forEach((file) =>
     runSolFileTest(file, results, onlyResults, unsafe),
   );
-  findCairoSourceFilePaths('example-contracts', true).forEach((file) => {
+  findCairoSourceFilePaths('example_contracts', true).forEach((file) => {
     runCairoFileTest(file, results, onlyResults);
   });
   const testsWithUnexpectedResults = getTestsWithUnexpectedResults(results);
@@ -100,13 +109,13 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe = false, e
 }
 
 function preTestChecks(): boolean {
-  if (!checkNoCairo('example-contracts')) {
+  if (!checkNoCairo('example_contracts')) {
     console.log(
-      'Please remove all .cairo files from example-contracts, or run with -f to delete them',
+      'Please remove all .cairo files from example_contracts, or run with -f to delete them',
     );
     return false;
   }
-  if (!checkNoJson('example-contracts')) {
+  if (!checkNoJson('example_contracts')) {
     console.log('Please remove all json files from warplib, or run with -f to delete them');
     return false;
   }
@@ -125,9 +134,9 @@ function runSolFileTest(
 ): void {
   console.log(`Warping ${file}`);
   try {
-    compileSolFile(file, false)
-      .map((ast) => transpile(ast, { strict: true }))
-      .forEach((cairo) => fs.writeFileSync(`${file.slice(0, -4)}.cairo`, cairo));
+    transpile(compileSolFile(file, false), { strict: true }).forEach(([file, cairo]) =>
+      fs.writeFileSync(`${file.slice(0, -4)}.cairo`, cairo),
+    );
     results.set(removeExtension(file), 'Success');
   } catch (e) {
     if (e instanceof CompileFailedError) {
@@ -169,11 +178,25 @@ function runCairoFileTest(
   }
 }
 
+function combineResults(results: ResultType[]): ResultType {
+  return results.reduce((prev, current) =>
+    ResultTypeOrder.indexOf(prev) > ResultTypeOrder.indexOf(current) ? prev : current,
+  );
+}
+
 function getTestsWithUnexpectedResults(results: Map<string, ResultType>): string[] {
   const testsWithUnexpectedResults: string[] = [];
-  [...results.entries()].forEach((e) => {
+  const groupedResults = groupBy([...results.entries()], ([file, _]) => {
+    return file.endsWith('__WARP_FREE__')
+      ? file.slice(0, file.length - '__WARP_FREE__'.length)
+      : file.split('__WARP_CONTRACT__')[0];
+  });
+  [...groupedResults.entries()].forEach((e) => {
     const expected = expectedResults.get(e[0]);
-    if (e[1] != expected) {
+    const collectiveResult = combineResults(
+      [...e[1]].reduce((res, [_, result]) => [...res, result], <ResultType[]>[]),
+    );
+    if (collectiveResult !== expected) {
       testsWithUnexpectedResults.push(e[0]);
     }
   });
@@ -211,8 +234,8 @@ function checkNoJson(path: string): boolean {
 
 function postTestCleanup(): void {
   deleteJson('warplib');
-  deleteCairoSource('example-contracts');
-  deleteJson('example-contracts');
+  deleteCairoSource('example_contracts');
+  deleteJson('example_contracts');
 }
 
 function deleteCairoSource(path: string): void {

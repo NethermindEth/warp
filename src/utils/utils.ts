@@ -1,6 +1,6 @@
 import assert = require('assert');
 
-import { AST, Imports } from '../ast/ast';
+import { AST } from '../ast/ast';
 import {
   AddressType,
   ArrayType,
@@ -59,24 +59,6 @@ export function union<T>(setA: Set<T>, setB: Set<T>) {
     _union.add(elem);
   }
   return _union;
-}
-
-export function mergeImports(importsA: Imports, importsB: Imports): Imports {
-  if (!importsA) return importsB;
-  if (!importsB) return importsA;
-
-  Object.entries(importsB).forEach(([mod, imports]) => {
-    const currentImports = importsA[mod];
-    importsA[mod] = currentImports ? union(currentImports, imports) : imports;
-  });
-
-  return importsA;
-}
-
-export function importsWriter(imports: Imports): string {
-  return Object.entries(imports)
-    .map(([file, vals]) => `from ${file} import ${[...vals].join(', ')}`)
-    .join('\n');
 }
 
 export function sizeOfType(type: TypeNode): number {
@@ -363,4 +345,27 @@ export function dereferenceType(typeNode: TypeNode): TypeNode {
     typeNode = typeNode.to;
   }
   return typeNode;
+}
+
+export function mergeImports(
+  a: Map<string, Set<string>>,
+  b: Map<string, Set<string>>,
+): Map<string, Set<string>> {
+  const mergedImports: Map<string, Set<string>> = a;
+  b.forEach((importedSymbols, location) => {
+    const acc = mergedImports.get(location) ?? new Set<string>();
+    importedSymbols.forEach((s) => acc.add(s));
+    mergedImports.set(location, acc);
+  });
+  return mergedImports;
+}
+
+export function groupBy<V, K>(arr: V[], groupFunc: (arg: V) => K): Map<K, Set<V>> {
+  const grouped = new Map<K, Set<V>>();
+  arr.forEach((v) => {
+    const key = groupFunc(v);
+    const s = grouped.get(key) ?? new Set([]);
+    grouped.set(key, new Set([...s, v]));
+  });
+  return grouped;
 }

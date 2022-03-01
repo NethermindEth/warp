@@ -73,7 +73,7 @@ import {
 import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
 import { Implicits, writeImplicits } from './utils/implicits';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
-import { canonicalMangler, divmod, importsWriter, primitiveTypeToCairo } from './utils/utils';
+import { canonicalMangler, divmod, primitiveTypeToCairo } from './utils/utils';
 
 import { AST } from './ast/ast';
 import { getMappingTypes } from './utils/mappings';
@@ -209,15 +209,20 @@ class TupleExpressionWriter extends CairoASTNodeWriter {
   }
 }
 
+function writeImports(imports: Map<string, Set<string>>): string {
+  return [...imports.entries()]
+    .map(
+      ([location, importedSymbols]) =>
+        `from ${location} import ${[...importedSymbols.keys()].join(', ')}`,
+    )
+    .join('\n');
+}
+
 class SourceUnitWriter extends CairoASTNodeWriter {
   writeInner(node: SourceUnit, writer: ASTWriter): SrcDesc {
-    const builtins = this.ast.getRequiredBuiltins();
-    const builtinsDirective =
-      builtins.size === 0 ? '' : [...builtins].reduce((acc, b) => `${acc} ${b}`, '%builtins');
+    const imports = writeImports(this.ast.getImports(node));
 
-    const imports = importsWriter(this.ast.imports);
-
-    const generatedUtilFunctions = this.ast.cairoUtilFuncGen.write();
+    const generatedUtilFunctions = this.ast.getUtilFuncGen(node).write();
 
     const structs = node.vStructs.map((v) => writer.write(v));
 
@@ -228,7 +233,6 @@ class SourceUnitWriter extends CairoASTNodeWriter {
     return [
       [
         '%lang starknet',
-        builtinsDirective,
         [imports],
         generatedUtilFunctions,
         ...structs,
@@ -270,7 +274,14 @@ class CairoContractWriter extends CairoASTNodeWriter {
     const functions = node.vFunctions.map((value) => writer.write(value));
 
     const events = node.vEvents.map((value) => writer.write(value));
-    return [[...events, ...structs, ...enums, ...functions].join('\n\n')];
+
+    const body = [...structs, ...enums, ...functions]
+      .join('\n\n')
+      .split('\n')
+      .map((l) => (l.length > 0 ? INDENT + l : l))
+      .join('\n');
+
+    return [[...events, `namespace ${node.name}:\n\n${body}\n\nend`].join('\n\n')];
   }
 
   writeWhole(node: CairoContract, writer: ASTWriter): SrcDesc {

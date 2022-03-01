@@ -1,33 +1,32 @@
 import {
-  ContractDefinition,
   EnumDefinition,
   enumToIntType,
+  Expression,
+  getNodeType,
   Identifier,
   Literal,
   LiteralKind,
   MemberAccess,
-  SourceUnit,
+  UserDefinedType,
   UserDefinedTypeName,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { TranspileFailedError } from '../utils/errors';
 import { toHexString, typeNameFromTypeNode } from '../utils/utils';
 
 export class EnumConverter extends ASTMapper {
-  // Enum ID -> Enum member name -> Integer literal
-  enumToMemberToIntLiteral: { [id: number]: { [id: string]: number } } = {};
-  // ID of declared var of enum type -> integer typestring
-  // Typestring is subsequently used by getNodeType in implicitConversionToExplicit pass
-  enumVarDeclToIntTypestring: { [id: number]: string } = {};
+  getEnumValue(node: EnumDefinition, memberName: string): number {
+    const val = node.vMembers.map((ev) => ev.name).indexOf(memberName);
+    if (val < 0) {
+      throw new TranspileFailedError(`${memberName} is not a member of ${node.name}`);
+    }
+    return val;
+  }
 
-  visitEnumDefinition(node: EnumDefinition, ast: AST): void {
-    const enumValues: { [id: string]: number } = {};
-    node.vMembers.forEach((member, idx) => {
-      enumValues[member.name] = idx;
-    });
-    this.enumToMemberToIntLiteral[node.id] = enumValues;
-    this.commonVisit(node, ast);
+  replacementTypeString(enumDef: EnumDefinition): string {
+    return enumToIntType(enumDef).pp();
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
@@ -37,19 +36,31 @@ export class EnumConverter extends ASTMapper {
         const replacementIntType = enumToIntType(enumDef);
         const replacementIntTypeName = typeNameFromTypeNode(replacementIntType, ast);
         ast.replaceNode(node.vType, replacementIntTypeName);
-        this.enumVarDeclToIntTypestring[node.id] = replacementIntType.pp();
+
+        const replacementTypeString = replacementIntType.pp();
+        node.typeString = replacementTypeString;
       }
     }
+  }
+
+  visitExpression(node: Expression, ast: AST): void {
     this.commonVisit(node, ast);
+    const nType = getNodeType(node, ast.compilerVersion);
+    if (nType instanceof UserDefinedType) {
+      const enumDef = nType.definition;
+      if (enumDef instanceof EnumDefinition) {
+        node.typeString = this.replacementTypeString(enumDef);
+      }
+    }
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     this.commonVisit(node, ast);
     if (node.vExpression instanceof Identifier) {
-      const referencedDeclarationId = node.vExpression.referencedDeclaration;
-      if (referencedDeclarationId in this.enumToMemberToIntLiteral) {
+      const enumDef = node.vExpression.vReferencedDeclaration;
+      if (enumDef instanceof EnumDefinition) {
         // replace member access node with literal
-        const intLiteral = this.enumToMemberToIntLiteral[referencedDeclarationId][node.memberName];
+        const intLiteral = this.getEnumValue(enumDef, node.memberName);
         const intLiteralString = intLiteral.toString();
         ast.replaceNode(
           node,
@@ -67,30 +78,5 @@ export class EnumConverter extends ASTMapper {
         );
       }
     }
-  }
-
-  visitIdentifier(node: Identifier, ast: AST): void {
-    this.commonVisit(node, ast);
-    const referencedDeclarationId = node.referencedDeclaration;
-    if (referencedDeclarationId in this.enumVarDeclToIntTypestring) {
-      node.typeString = this.enumVarDeclToIntTypestring[referencedDeclarationId];
-    }
-  }
-
-  visitContractDefinition(node: ContractDefinition, ast: AST): void {
-    // Guarantee contract enum definitions and state variable declarations
-    // are visited before use
-    node.vEnums.forEach((n) => this.visitEnumDefinition(n, ast));
-    node.vStateVariables.forEach((n) => this.visitVariableDeclaration(n, ast));
-    this.commonVisit(node, ast);
-  }
-
-  visitSourceUnit(node: SourceUnit, ast: AST): void {
-    // Guarantee file level enum definitions and variable declarations
-    // are visited before use
-    node.vEnums.forEach((n) => this.visitEnumDefinition(n, ast));
-    node.vVariables.forEach((n) => this.visitVariableDeclaration(n, ast));
-    node.vContracts.forEach((n) => this.visitContractDefinition(n, ast));
-    this.commonVisit(node, ast);
   }
 }

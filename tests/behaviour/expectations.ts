@@ -1,19 +1,24 @@
 import { validateInput } from '../util';
+import { mangleContractFilePath } from '../../src/passes/sourceUnitSplitter';
 
 class Dir {
   constructor(public name: string, public tests: (Dir | File)[]) {}
 }
 
 export class File {
-  constructor(public name: string, public expectations: Expect[]) {}
+  constructor(public name: string, public contract: string, public expectations: Expect[]) {}
   get sol() {
     return `${this.name}.sol`;
   }
   get cairo() {
-    return `${this.name}.cairo`;
+    return `warp_output/${mangleContractFilePath(this.name, this.contract)}.cairo`;
   }
   get compiled() {
-    return `${this.name}.json`;
+    return `warp_output/${mangleContractFilePath(this.name, this.contract)}.json`;
+  }
+
+  static Simple(name: string, expectations: Expect[]) {
+    return new File(name, 'WARP', expectations);
   }
 }
 
@@ -44,34 +49,34 @@ export const expectations = flatten(
   new Dir('tests', [
     new Dir('behaviour', [
       new Dir('contracts', [
-        new File('example', [
+        File.Simple('example', [
           Expect.Simple('test', [], []),
           Expect.Simple('returnTest', [], ['12', '0']),
         ]),
-        new Dir('public_state', [new File('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
+        new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
         new Dir('assignments', [
-          new File('functionSingle', [
+          File.Simple('functionSingle', [
             Expect.Simple('test', ['3'], ['3']),
             Expect.Simple('test256', ['3', '4'], ['3', '4']),
           ]),
-          new File('scalar', [
+          File.Simple('scalar', [
             Expect.Simple('test', ['3'], ['3']),
             Expect.Simple('test256', ['3', '4'], ['3', '4']),
           ]),
         ]),
         new Dir('conversions', [
-          new File('signedIdentity', [
+          File.Simple('signedIdentity', [
             Expect.Simple('implicit', ['210', '11', '12'], ['210', '11', '12']),
             Expect.Simple('explicit', ['200', '300', '400'], ['200', '300', '400']),
           ]),
-          new File('signedNarrowing', [
+          File.Simple('signedNarrowing', [
             Expect.Simple(
               'explicit',
               ['63005', '1000', '2000'],
               ['29', '70778732319555200400381918345807787983848'],
             ),
           ]),
-          new File('signedWidening', [
+          File.Simple('signedWidening', [
             Expect.Simple('implicit', ['10'], ['10', '10', '0']),
             Expect.Simple(
               'implicit',
@@ -93,18 +98,18 @@ export const expectations = flatten(
               ],
             ),
           ]),
-          new File('unsignedIdentity', [
+          File.Simple('unsignedIdentity', [
             Expect.Simple('implicit', ['210', '11', '12'], ['210', '11', '12']),
             Expect.Simple('explicit', ['200', '300', '400'], ['200', '300', '400']),
           ]),
-          new File('unsignedNarrowing', [
+          File.Simple('unsignedNarrowing', [
             Expect.Simple(
               'explicit',
               ['63005', '1000', '2000'],
               ['29', '70778732319555200400381918345807787983848'],
             ),
           ]),
-          new File('unsignedWidening', [
+          File.Simple('unsignedWidening', [
             Expect.Simple('implicit', ['10'], ['10', '10', '0']),
             Expect.Simple('implicit', ['250'], ['250', '250', '0']),
             Expect.Simple('explicit', ['20'], ['20', '20', '0']),
@@ -113,7 +118,7 @@ export const expectations = flatten(
         ]),
         // covers nested mappings
         new Dir('Dai', [
-          new File('dai', [
+          new File('dai', 'Dai', [
             new Expect('mint', [
               ['mint', ['1', '10000', '0'], ['1'], '1'],
               ['getBalance', ['1'], ['10000', '0'], '1'],
@@ -146,7 +151,7 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('enums', [
-          new File('singleEnum', [
+          File.Simple('singleEnum', [
             Expect.Simple('get', [], ['0']),
             new Expect('set', [
               ['set', ['254'], [], '0'],
@@ -161,7 +166,7 @@ export const expectations = flatten(
               ['get', [], ['255'], '0'],
             ]),
           ]),
-          new File('singleEnum7', [
+          File.Simple('singleEnum7', [
             Expect.Simple('get', [], ['0']),
             new Expect('set', [
               ['set', ['257'], [], '0'],
@@ -176,7 +181,7 @@ export const expectations = flatten(
               ['get', [], ['259'], '0'],
             ]),
           ]),
-          new File('doubleEnum', [
+          File.Simple('doubleEnum', [
             Expect.Simple('a', [], ['2']),
             Expect.Simple('getTopEnum', [], ['0']),
             new Expect('setB', [
@@ -192,7 +197,7 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('ERC20', [
-          new File('ERC20', [
+          File.Simple('ERC20', [
             new Expect('mint', [
               ['mint', ['1', '5', '0'], ['1'], '0'],
               ['balanceOf', ['1'], ['5', '0'], '0'],
@@ -214,8 +219,8 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('expressions', [
-          new File('ineffectual', [Expect.Simple('test', ['1'], ['1'])]),
-          new File('literals', [
+          File.Simple('ineffectual', [Expect.Simple('test', ['1'], ['1'])]),
+          File.Simple('literals', [
             Expect.Simple('unsignedNarrow', [], ['255', '251', '0', '0']),
             Expect.Simple('signedNarrow', [], ['127', '120', '0', '156', '128']),
             Expect.Simple(
@@ -257,7 +262,7 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('loops', [
-          new File('loops', [
+          File.Simple('loops', [
             Expect.Simple('forLoop', ['3'], ['8']),
             Expect.Simple('whileLoop', ['10'], ['10']),
             Expect.Simple('breaks', ['5'], ['5']),
@@ -265,7 +270,7 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('maths', [
-          new File('addition', [
+          File.Simple('addition', [
             Expect.Simple('addition8safe', ['3', '20'], ['23']),
             Expect.Simple('addition8safe', ['200', '180'], null, 'overflow'),
             Expect.Simple('addition8unsafe', ['3', '20'], ['23']),
@@ -317,7 +322,7 @@ export const expectations = flatten(
             ),
             Expect.Simple('addition256signedunsafe', ['20', '1', '5', '2'], ['25', '3']),
           ]),
-          new File('bitwise_and', [
+          File.Simple('bitwise_and', [
             Expect.Simple('bitwise_and8safe', ['15', '45'], ['13']),
             Expect.Simple('bitwise_and8signedsafe', ['15', '45'], ['13']),
             Expect.Simple('bitwise_and8unsafe', ['15', '45'], ['13']),
@@ -327,7 +332,7 @@ export const expectations = flatten(
             Expect.Simple('bitwise_and256unsafe', ['15', '90', '45', '80'], ['13', '80']),
             Expect.Simple('bitwise_and256signedunsafe', ['15', '90', '45', '80'], ['13', '80']),
           ]),
-          new File('bitwise_or', [
+          File.Simple('bitwise_or', [
             Expect.Simple('bitwise_or8safe', ['14', '57'], ['63']),
             Expect.Simple('bitwise_or8signedsafe', ['14', '57'], ['63']),
             Expect.Simple('bitwise_or8unsafe', ['14', '57'], ['63']),
@@ -337,13 +342,13 @@ export const expectations = flatten(
             Expect.Simple('bitwise_or256unsafe', ['14', '13', '57', '100'], ['63', '109']),
             Expect.Simple('bitwise_or256signedunsafe', ['14', '13', '57', '100'], ['63', '109']),
           ]),
-          new File('decrement', [
+          File.Simple('decrement', [
             Expect.Simple('preDecrementStatement', ['10'], ['9']),
             Expect.Simple('postDecrementStatement', ['10'], ['9']),
             Expect.Simple('preDecrementExpression', ['10'], ['9', '9']),
             Expect.Simple('postDecrementExpression', ['10'], ['10', '9']),
           ]),
-          new File('division', [
+          File.Simple('division', [
             Expect.Simple('division8safe', ['100', '5'], ['20']),
             Expect.Simple('division8signedsafe', ['100', '5'], ['20']),
             Expect.Simple('division8unsafe', ['100', '5'], ['20']),
@@ -353,7 +358,7 @@ export const expectations = flatten(
             Expect.Simple('division256unsafe', ['100', '20', '5', '0'], ['20', '4']),
             Expect.Simple('division256signedunsafe', ['100', '20', '5', '0'], ['20', '4']),
           ]),
-          new File('eq', [
+          File.Simple('eq', [
             Expect.Simple('eq8safe', ['1', '2'], ['0']),
             Expect.Simple('eq8signedsafe', ['1', '1'], ['1']),
             Expect.Simple('eq8unsafe', ['1', '1'], ['1']),
@@ -363,7 +368,7 @@ export const expectations = flatten(
             Expect.Simple('eq256unsafe', ['1', '2', '1', '3'], ['0']),
             Expect.Simple('eq256signedunsafe', ['1', '2', '1', '2'], ['1']),
           ]),
-          new File('exp', [
+          File.Simple('exp', [
             Expect.Simple('exp8safe', ['0', '0'], ['0']),
             Expect.Simple('exp8signedsafe', ['255', '10'], ['1']),
             Expect.Simple('exp8unsafe', ['100', '1'], ['100']),
@@ -373,7 +378,7 @@ export const expectations = flatten(
             Expect.Simple('exp256unsafe', ['2', '0', '3', '0'], ['8', '0']),
             Expect.Simple('exp256signedunsafe', ['0', '0', '0', '0'], ['0', '0']),
           ]),
-          new File('ge', [
+          File.Simple('ge', [
             Expect.Simple('ge8safe', ['1', '2'], ['0']),
             Expect.Simple('ge8signedsafe', ['255', '1'], ['0']),
             Expect.Simple('ge8unsafe', ['2', '1'], ['1']),
@@ -383,7 +388,7 @@ export const expectations = flatten(
             Expect.Simple('ge256unsafe', ['1', '5', '3', '2'], ['1']),
             Expect.Simple('ge256signedunsafe', ['1', '1', '1', '1'], ['1']),
           ]),
-          new File('gt', [
+          File.Simple('gt', [
             Expect.Simple('gt8safe', ['1', '2'], ['0']),
             Expect.Simple('gt8signedsafe', ['255', '1'], ['0']),
             Expect.Simple('gt8unsafe', ['2', '1'], ['1']),
@@ -393,13 +398,13 @@ export const expectations = flatten(
             Expect.Simple('gt256unsafe', ['1', '5', '3', '2'], ['1']),
             Expect.Simple('gt256signedunsafe', ['1', '1', '1', '1'], ['0']),
           ]),
-          new File('increment', [
+          File.Simple('increment', [
             Expect.Simple('preIncrementStatement', ['10'], ['11']),
             Expect.Simple('postIncrementStatement', ['10'], ['11']),
             Expect.Simple('preIncrementExpression', ['10'], ['11', '11']),
             Expect.Simple('postIncrementExpression', ['10'], ['10', '11']),
           ]),
-          new File('le', [
+          File.Simple('le', [
             Expect.Simple('le8safe', ['1', '2'], ['1']),
             Expect.Simple('le8signedsafe', ['255', '1'], ['1']),
             Expect.Simple('le8unsafe', ['2', '1'], ['0']),
@@ -409,7 +414,7 @@ export const expectations = flatten(
             Expect.Simple('le256unsafe', ['1', '5', '3', '2'], ['0']),
             Expect.Simple('le256signedunsafe', ['1', '1', '1', '1'], ['1']),
           ]),
-          new File('lt', [
+          File.Simple('lt', [
             Expect.Simple('lt8safe', ['1', '2'], ['1']),
             Expect.Simple('lt8signedsafe', ['255', '1'], ['1']),
             Expect.Simple('lt8unsafe', ['2', '1'], ['0']),
@@ -419,7 +424,7 @@ export const expectations = flatten(
             Expect.Simple('lt256unsafe', ['1', '5', '3', '2'], ['0']),
             Expect.Simple('lt256signedunsafe', ['1', '1', '1', '1'], ['0']),
           ]),
-          new File('multiplication', [
+          File.Simple('multiplication', [
             Expect.Simple('multiplication8safe', ['4', '6'], ['24']),
             Expect.Simple('multiplication8safe', ['100', '40'], null, 'overflow'),
             Expect.Simple('multiplication8unsafe', ['4', '6'], ['24']),
@@ -437,7 +442,7 @@ export const expectations = flatten(
             Expect.Simple('multiplication256signedsafe', ['20', '1', '5', '0'], ['100', '5']),
             Expect.Simple('multiplication256signedunsafe', ['20', '0', '5', '1'], ['100', '20']),
           ]),
-          new File('neq', [
+          File.Simple('neq', [
             Expect.Simple('neq8safe', ['1', '2'], ['1']),
             Expect.Simple('neq8signedsafe', ['1', '1'], ['0']),
             Expect.Simple('neq8unsafe', ['1', '1'], ['0']),
@@ -447,7 +452,7 @@ export const expectations = flatten(
             Expect.Simple('neq256unsafe', ['1', '2', '1', '3'], ['1']),
             Expect.Simple('neq256signedunsafe', ['1', '2', '1', '2'], ['0']),
           ]),
-          new File('shl', [
+          File.Simple('shl', [
             Expect.Simple('shl8safe', ['3', '4'], ['48']),
             Expect.Simple('shl8unsafe', ['3', '4'], ['48']),
             Expect.Simple('shl8signedsafe', ['3', '4'], ['48']),
@@ -465,7 +470,7 @@ export const expectations = flatten(
             Expect.Simple('shl256_256signedsafe', ['3', '5', '4', '0'], ['48', '80']),
             Expect.Simple('shl256_256signedunsafe', ['3', '5', '4', '0'], ['48', '80']),
           ]),
-          new File('shr', [
+          File.Simple('shr', [
             Expect.Simple('shr8safe', ['100', '2'], ['25']),
             Expect.Simple('shr8unsafe', ['100', '2'], ['25']),
             Expect.Simple('shr8signedsafe', ['100', '2'], ['25']),
@@ -483,7 +488,7 @@ export const expectations = flatten(
             Expect.Simple('shr256_256signedsafe', ['100', '20', '2', '0'], ['25', '5']),
             Expect.Simple('shr256_256signedunsafe', ['100', '20', '2', '0'], ['25', '5']),
           ]),
-          new File('subtraction', [
+          File.Simple('subtraction', [
             Expect.Simple('subtraction8safe', ['31', '2'], ['29']),
             Expect.Simple('subtraction8safe', ['20', '180'], null, 'overflow'),
             Expect.Simple('subtraction8unsafe', ['32', '20'], ['12']),
@@ -538,7 +543,7 @@ export const expectations = flatten(
               'overflow',
             ),
           ]),
-          new File('xor', [
+          File.Simple('xor', [
             Expect.Simple('xor8safe', ['10', '24'], ['18']),
             Expect.Simple('xor8signedsafe', ['10', '24'], ['18']),
             Expect.Simple('xor8unsafe', ['10', '24'], ['18']),
@@ -550,13 +555,13 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('memory', [
-          new File('dynamicArrays', [
+          File.Simple('dynamicArrays', [
             Expect.Simple('uint8writes', [], ['45']),
             Expect.Simple('uint256writes', [], ['45', '0']),
           ]),
         ]),
         new Dir('storage', [
-          new File('scalars', [
+          File.Simple('scalars', [
             Expect.Simple('getValues', [], ['2', '4']),
             Expect.Simple('readValues', [], ['2', '4']),
             new Expect('setOnce', [
@@ -571,19 +576,19 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('mangled_identifiers', [
-          new File('free_function', [
+          File.Simple('free_function', [
             Expect.Simple('f', [], ['20']),
             Expect.Simple('s', [], ['10']),
           ]),
         ]),
         new Dir('delete', [
           // ---- "address" functionCall to cairo not implemented yet ----
-          // new File('address', [
+          // File.Simple('address', [
           //   Expect.Simple('f', [], ['23', '0']),
           // ]),
 
           // ---- ArrayType not implemented yet (fails on StorageAllocator) ----
-          // new File('array_static', [
+          // File.Simple('array_static', [
           //   new Expect('delete', [
           //     ['get', ['2', '0'], ['3', '0'], '0'],
           //     ['clearAt', ['2', '0'], [], '0'],
@@ -596,7 +601,7 @@ export const expectations = flatten(
           // ]),
 
           // ---- ArrayType not implemented yet (fails on StorageAllocator) ----
-          // new File('array_dynamic', [
+          // File.Simple('array_dynamic', [
           //   new Expect('delete', [
           //     ['initialize', [], [], '0'],
           //     ['clearAt', ['2', '0'], [], '0'],
@@ -608,12 +613,12 @@ export const expectations = flatten(
           // ]),
 
           // ---- BoolType not implemented yet (fails on StorageAllocator) ----
-          // new File('boolean', [
+          // File.Simple('boolean', [
           //   Expect.Simple('boolean', [], ['0']),
           // ]),
 
           // ---- UserDefinedType not implemented yet (fails on StorageAllocator) ----
-          // new File('enum', [
+          // File.Simple('enum', [
           //   new Expect('delete', [
           //     ['set', ['3'], [], '0'],
           //     ['reset', [], [], '0'],
@@ -621,7 +626,7 @@ export const expectations = flatten(
           //   ]),
           // ]),
 
-          new File('int', [
+          File.Simple('int', [
             new Expect('delete', [
               ['totalSupply', [], ['100000000000000', '0'], '0'],
               ['reset', [], [], '0'],
@@ -631,7 +636,7 @@ export const expectations = flatten(
           ]),
 
           // ---- UserDefinedType not implemented yet (fails on StorageAllocator) ----
-          // new File('struct', [
+          // File.Simple('struct', [
           //   new Expect('delete', [
           //     ['getRadious', [], ['5', '0'], '0'],
           //     ['reset', [], [], '0'],

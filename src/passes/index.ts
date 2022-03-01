@@ -13,6 +13,7 @@ export * from './loopFunctionaliser';
 export * from './memoryHandler';
 export * from './rejectUnsupportedFeatures';
 export * from './returnInserter';
+export * from './sourceUnitSplitter';
 export * from './storageAllocator';
 export * from './storageVariableAccessRewriter';
 export * from './tupleAssignmentSplitter';

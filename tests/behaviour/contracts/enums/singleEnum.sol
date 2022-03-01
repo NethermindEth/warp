@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract Enum {
+contract WARP {
 
   function get() public view returns (Status) {
     return _status;

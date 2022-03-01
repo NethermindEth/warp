@@ -7,12 +7,12 @@ import { ReturnToBreak } from './returnToBreak';
 import { WhileLoopToFunction } from './whileLoopToFunction';
 
 export class LoopFunctionaliser extends ASTMapper {
-  map(ast: AST): AST {
-    ast = new ForLoopToWhile().map(ast);
-    ast = new ReturnToBreak().map(ast);
-    ast = new WhileLoopToFunction().map(ast);
-    ast = new BreakToReturn().map(ast);
-    ast = new ContinueToLoopCall().map(ast);
+  static map(ast: AST): AST {
+    ast = ForLoopToWhile.map(ast);
+    ast = ReturnToBreak.map(ast);
+    ast = WhileLoopToFunction.map(ast);
+    ast = BreakToReturn.map(ast);
+    ast = ContinueToLoopCall.map(ast);
     return ast;
   }
 }

@@ -129,3 +129,6 @@ starknet-testnet/__pycache__/*
 
 # Solidity versions
 solc-v0.7.6
+
+# output from warp
+warp_output/

@@ -11,37 +11,35 @@ import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { ASTVisitor } from '../ast/visitor';
 import { printNode } from '../utils/astPrinter';
-import { implicitImports, Implicits } from '../utils/implicits';
+import { Implicits, registerImportsForImplicit } from '../utils/implicits';
 import { union } from '../utils/utils';
 
 export class AnnotateImplicits extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     const implicits = new ImplicitCollector(node).collect(ast);
-    ast.replaceNode(
-      node,
-      new CairoFunctionDefinition(
-        node.id,
-        node.src,
-        'CairoFunctionDefinition',
-        node.scope,
-        node.kind,
-        node.name,
-        node.virtual,
-        node.visibility,
-        node.stateMutability,
-        node.isConstructor,
-        node.vParameters,
-        node.vReturnParameters,
-        node.vModifiers,
-        implicits,
-        node.vOverrideSpecifier,
-        node.vBody,
-        node.documentation,
-        node.nameLocation,
-        node.raw,
-      ),
+    const annotatedFunction = new CairoFunctionDefinition(
+      node.id,
+      node.src,
+      'CairoFunctionDefinition',
+      node.scope,
+      node.kind,
+      node.name,
+      node.virtual,
+      node.visibility,
+      node.stateMutability,
+      node.isConstructor,
+      node.vParameters,
+      node.vReturnParameters,
+      node.vModifiers,
+      implicits,
+      node.vOverrideSpecifier,
+      node.vBody,
+      node.documentation,
+      node.nameLocation,
+      node.raw,
     );
-    implicits.forEach((i) => ast.addImports(implicitImports[i]));
+    ast.replaceNode(node, annotatedFunction);
+    implicits.forEach((i) => registerImportsForImplicit(ast, annotatedFunction, i));
     node.children.forEach((child) => this.dispatchVisit(child, ast));
   }
 }
@@ -104,8 +102,9 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
       this.dispatchVisit(node.vReferencedDeclaration, ast).forEach((defn) => result.add(defn));
     }
 
+    const sourceUnit = node.getClosestParentByType(SourceUnit);
     const referencedSourceUnit = node.vReferencedDeclaration?.getClosestParentByType(SourceUnit);
-    if (referencedSourceUnit !== ast.root) {
+    if (referencedSourceUnit !== sourceUnit) {
       result.add('range_check_ptr');
       result.add('syscall_ptr');
     }

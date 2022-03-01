@@ -23,10 +23,9 @@ export class MemoryHandler extends ASTMapper {
     if (node.vLeftHandSide instanceof IndexAccess) {
       const baseType = getNodeType(node.vLeftHandSide.vBaseExpression, ast.compilerVersion);
       if (baseType instanceof PointerType && baseType.location === DataLocation.Memory) {
-        const replacementFunc = ast.cairoUtilFuncGen.memoryWrite(
-          node.vLeftHandSide,
-          node.vRightHandSide,
-        );
+        const replacementFunc = ast
+          .getUtilFuncGen(node)
+          .memoryWrite(node.vLeftHandSide, node.vRightHandSide);
         ast.replaceNode(node, replacementFunc);
         this.dispatchVisit(replacementFunc, ast);
         return;
@@ -48,7 +47,7 @@ export class MemoryHandler extends ASTMapper {
     }
     ast.replaceNode(
       node,
-      ast.cairoUtilFuncGen.newDynArray(node.vArguments[0], node.vExpression.vTypeName),
+      ast.getUtilFuncGen(node).newDynArray(node.vArguments[0], node.vExpression.vTypeName),
     );
   }
 
@@ -62,7 +61,7 @@ export class MemoryHandler extends ASTMapper {
     const baseType = getNodeType(node.vBaseExpression, ast.compilerVersion);
     if (baseType instanceof PointerType && baseType.location === DataLocation.Memory) {
       if (baseType.to instanceof ArrayType) {
-        const replacementFunc = ast.cairoUtilFuncGen.memoryRead(node);
+        const replacementFunc = ast.getUtilFuncGen(node).memoryRead(node);
         ast.replaceNode(node, replacementFunc);
         this.dispatchVisit(replacementFunc, ast);
         return;

@@ -1,4 +1,5 @@
-import { Imports } from '../ast/ast';
+import { ASTNode } from 'solc-typed-ast';
+import { AST } from '../ast/ast';
 
 export type Implicits =
   | 'bitwise_ptr'
@@ -28,13 +29,20 @@ export const implicitTypes: { [key in Implicits]: string } = {
   warp_memory: 'MemCell*',
 };
 
-export const implicitImports: { [key in Implicits]: Imports } = {
-  bitwise_ptr: { 'starkware.cairo.common.cairo_builtins': new Set(['BitwiseBuiltin']) },
-  pedersen_ptr: { 'starkware.cairo.common.cairo_builtins': new Set(['HashBuiltin']) },
-  range_check_ptr: {},
-  syscall_ptr: {},
-  warp_memory: { 'warplib.memory': new Set(['MemCell', 'warp_memory_init']) },
-};
+export function registerImportsForImplicit(ast: AST, node: ASTNode, implicit: Implicits) {
+  switch (implicit) {
+    case 'bitwise_ptr':
+      ast.registerImport(node, 'starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
+      break;
+    case 'pedersen_ptr':
+      ast.registerImport(node, 'starkware.cairo.common.cairo_builtins', 'HashBuiltin');
+      break;
+    case 'warp_memory':
+      ast.registerImport(node, 'warplib.memory', 'MemCell');
+      ast.registerImport(node, 'warplib.memory', 'warp_memory_init');
+      break;
+  }
+}
 
 export const requiredBuiltin: { [key in Implicits]: CairoBuiltin | null } = {
   bitwise_ptr: 'bitwise',

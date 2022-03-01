@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import { OutputOptions } from '.';
 import { compileCairo } from './starknetCli';
 import { TranspileFailedError, logError } from './utils/errors';
@@ -52,78 +52,41 @@ function evaluateDirectory(path: string, recurse: boolean): string[] {
   });
 }
 
-export function outputResult(solidityPath: string, cairo: string, options: OutputOptions): void {
+export function outputResult(
+  solidityPath: string,
+  code: string,
+  options: OutputOptions,
+  suffix: string,
+): void {
   const inputFileNameRoot = solidityPath.endsWith('.sol')
-    ? solidityPath.slice(0, -4)
+    ? solidityPath.slice(0, -'.sol'.length)
     : solidityPath;
-  const cairoSourceOutput = `${inputFileNameRoot}.cairo`;
+  const codeOutput = `${inputFileNameRoot}${suffix}`;
 
-  let outputPath: string;
-
-  if (options.output === undefined) {
-    outputPath = '.warp_temp.cairo';
+  if (options.outputDir === undefined) {
     if (options.result) {
-      console.log(`#--- ${cairoSourceOutput} ---\n${cairo}\n#---`);
+      console.log(`#--- ${codeOutput} ---\n${code}\n#---`);
     }
   } else {
-    if (fs.existsSync(options.output)) {
-      const targetInformation = fs.lstatSync(options.output);
-      if (targetInformation.isDirectory()) {
-        outputPath = cairoSourceOutput;
-      } else if (targetInformation.isFile()) {
-        outputPath = options.output;
-      } else {
-        // TODO decide on type
+    if (fs.existsSync(options.outputDir)) {
+      const targetInformation = fs.lstatSync(options.outputDir);
+      if (!targetInformation.isDirectory()) {
         throw new TranspileFailedError(
-          `output path ${options.output} is neither a file nor directory`,
+          `Cannot output to ${options.outputDir}. Output-dir must be a directory`,
         );
       }
-    } else {
-      outputPath = options.output;
     }
-    fs.writeFileSync(outputPath, cairo);
-  }
+    const fullCodeOutPath = `${options.outputDir}/${codeOutput}`;
+    fs.outputFileSync(fullCodeOutPath, code);
 
-  if (options.compileCairo) {
-    if (options.output === undefined) {
-      fs.writeFileSync(outputPath, cairo);
-    }
-    compileCairo(outputPath);
-    if (options.output === undefined) {
-      fs.unlinkSync(outputPath);
-    }
-  }
-}
-
-export function outputSol(solidityPath: string, solidity: string, options: OutputOptions): void {
-  const inputFileNameRoot = solidityPath.endsWith('.sol')
-    ? solidityPath.slice(0, -4)
-    : solidityPath;
-  const transpiledSolSourceOutput = `${inputFileNameRoot}_warp.sol`;
-
-  let outputPath: string;
-
-  if (options.output === undefined) {
-    outputPath = '.warp_temp.sol';
-    if (options.result) {
-      console.log(`#--- ${transpiledSolSourceOutput} ---\n${solidity}\n#---`);
-    }
-  } else {
-    if (fs.existsSync(options.output)) {
-      const targetInformation = fs.lstatSync(options.output);
-      if (targetInformation.isDirectory()) {
-        outputPath = transpiledSolSourceOutput;
-      } else if (targetInformation.isFile()) {
-        outputPath = options.output;
-      } else {
-        // TODO decide on type
-        throw new TranspileFailedError(
-          `output path ${options.output} is neither a file nor directory`,
-        );
+    if (options.compileCairo) {
+      const { resultPath, abiPath } = compileCairo(fullCodeOutPath, options.outputDir);
+      if (resultPath) {
+        fs.unlinkSync(resultPath);
       }
-    } else {
-      outputPath = options.output;
+      if (abiPath) {
+        fs.unlinkSync(abiPath);
+      }
     }
-    fs.writeFileSync(outputPath, solidity);
   }
 }

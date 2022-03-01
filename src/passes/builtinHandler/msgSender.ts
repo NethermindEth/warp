@@ -11,22 +11,22 @@ export class MsgSender extends ASTMapper {
       node.vExpression.name === 'msg' &&
       node.memberName === 'sender'
     ) {
-      ast.addImports({
-        'starkware.starknet.common.syscalls': new Set(['get_caller_address']),
-      });
-      ast.replaceNode(
-        node,
-        createCallToStub(
-          createCairoFunctionStub(
-            'get_caller_address',
-            [],
-            [['address', createAddressNonPayableTypeName(ast)]],
-            ['syscall_ptr'],
-            ast,
-          ),
+      const replacementCall = createCallToStub(
+        createCairoFunctionStub(
+          'get_caller_address',
           [],
+          [['address', createAddressNonPayableTypeName(ast)]],
+          ['syscall_ptr'],
           ast,
         ),
+        [],
+        ast,
+      );
+      ast.replaceNode(node, replacementCall);
+      ast.registerImport(
+        replacementCall,
+        'starkware.starknet.common.syscalls',
+        'get_caller_address',
       );
     } else {
       // This pass is specifically searching for msg.sender, a.msg.sender should be ignored, so don't recurse

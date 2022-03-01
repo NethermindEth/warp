@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.6;
 
-contract Warp {
+contract WARP {
     // This contract cannot call the free function s
     function f() public returns (uint8) {
         return g();

@@ -16,36 +16,61 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
-import { cairoUtilFuncGen } from '../cairoUtilFuncGen';
+import { CairoUtilFuncGen } from '../cairoUtilFuncGen';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
-import { CairoBuiltin, implicitOrdering, Implicits, requiredBuiltin } from '../utils/implicits';
-import { notNull } from '../utils/typeConstructs';
+import { Implicits } from '../utils/implicits';
 import { mergeImports } from '../utils/utils';
 import { CairoFunctionDefinition } from './cairoNodes';
 
-export type Imports = { [module: string]: Set<string> };
 export type FunctionImplicits = Map<string, Set<Implicits>>;
 
 export class AST {
+  // SourceUnit id -> CairoUtilFuncGen
+  private cairoUtilFuncGen: Map<number, CairoUtilFuncGen> = new Map();
   context: ASTContext;
-  cairoUtilFuncGen: cairoUtilFuncGen;
+  // node requiring cairo import -> file to import from -> symbols to import
+  imports: Map<ASTNode, Map<string, Set<string>>> = new Map();
+
   readonly tempId = -1;
-  constructor(
-    public root: SourceUnit,
-    public compilerVersion: string,
-    public imports: Imports = {},
-  ) {
-    this.context = root.requiredContext;
-    this.cairoUtilFuncGen = new cairoUtilFuncGen(this);
+
+  constructor(public roots: SourceUnit[], public compilerVersion: string) {
+    assert(
+      roots.length > 0,
+      'An ast must have at least one root so that the context can be set correctly',
+    );
+    assert(
+      roots.every((sourceUnit) => sourceUnit.requiredContext === roots[0].requiredContext),
+      'All contexts should be the same, otherwise they are from seperate solc-typed-ast compiles and they will have no relationship to each other.',
+    );
+    this.context = roots[0].requiredContext;
     assert(
       this.context.locate(this.tempId) === undefined,
       `Attempted to create an AST with a context that already has ${this.tempId} registered`,
     );
   }
 
-  addImports(newImports: Imports) {
-    this.imports = mergeImports(this.imports, newImports);
+  copyRegisteredImports(oldNode: ASTNode, newNode: ASTNode): void {
+    const oldNodeImports = this.imports.get(oldNode) ?? new Map<string, Set<string>>();
+    const newNodeImports = new Map(
+      [...oldNodeImports.entries()].map(([file, symbols]) => [file, new Set([...symbols.keys()])]),
+    );
+    this.imports.set(newNode, newNodeImports);
+  }
+
+  getUtilFuncGen(node: ASTNode): CairoUtilFuncGen {
+    const sourceUnit = node instanceof SourceUnit ? node : node.getClosestParentByType(SourceUnit);
+    assert(
+      sourceUnit !== undefined,
+      'Could not find the sourceUnit to attach the nodes generated functions to',
+    );
+    const gen = this.cairoUtilFuncGen.get(sourceUnit.id);
+    if (gen === undefined) {
+      const newGen = new CairoUtilFuncGen(this);
+      this.cairoUtilFuncGen.set(sourceUnit.id, newGen);
+      return newGen;
+    }
+    return gen;
   }
 
   extractToConstant(node: Expression, vType: TypeName, newName: string): Identifier {
@@ -109,19 +134,18 @@ export class AST {
     return containingFunction.implicits;
   }
 
-  getRequiredBuiltins(): Set<CairoBuiltin> {
-    const implicitsUsed: Set<Implicits> = new Set();
-    this.root.walk((node: ASTNode) => {
-      if (node instanceof CairoFunctionDefinition) {
-        node.implicits.forEach((i) => implicitsUsed.add(i));
-      }
-    });
-    return new Set(
-      [...implicitsUsed]
-        .sort(implicitOrdering)
-        .map((i) => requiredBuiltin[i])
-        .filter(notNull),
+  getImports(sourceUnit: SourceUnit): Map<string, Set<string>> {
+    assert(
+      this.roots.includes(sourceUnit),
+      `Tried to get imports associated with ${printNode(
+        sourceUnit,
+      )}, which is not one of the roots of the AST`,
     );
+    const reachableNodeImports = sourceUnit
+      .getChildren(true)
+      .map((node) => this.imports.get(node) ?? new Map<string, Set<string>>());
+    const utilFunctionImports = this.getUtilFuncGen(sourceUnit)?.imports;
+    return reachableNodeImports.reduce(mergeImports, utilFunctionImports);
   }
 
   insertStatementAfter(existingNode: ASTNode, newStatement: Statement) {
@@ -133,8 +157,10 @@ export class AST {
       )} which is not a child of a source unit`,
     );
     assert(
-      existingStatementRoot === this.root,
-      `Existing node root: #${existingStatementRoot.id} does not match root #${this.root.id}`,
+      this.roots.includes(existingStatementRoot),
+      `Existing node root: #${existingStatementRoot.id} is not in the ast roots: ${this.roots.map(
+        (su) => '#' + su.id,
+      )}`,
     );
 
     // Find the statement that newStatement needs to go in front of
@@ -179,8 +205,10 @@ export class AST {
       )} which is not a child of a source unit`,
     );
     assert(
-      existingStatementRoot === this.root,
-      `Existing node root: #${existingStatementRoot.id} does not match root #${this.root.id}`,
+      this.roots.includes(existingStatementRoot),
+      `Existing node root: #${existingStatementRoot.id} is not in the ast roots: ${this.roots.map(
+        (su) => '#' + su.id,
+      )}`,
     );
 
     // Find the statement that newStatement needs to go in front of
@@ -226,6 +254,14 @@ export class AST {
     return child.id;
   }
 
+  registerImport(node: ASTNode, location: string, name: string): void {
+    const nodeImports = this.imports.get(node) ?? new Map<string, Set<string>>();
+    const fileImports = nodeImports.get(location) ?? new Set<string>();
+    fileImports.add(name);
+    nodeImports.set(location, fileImports);
+    this.imports.set(node, nodeImports);
+  }
+
   removeStatement(statement: Statement): void {
     const parent = statement.parent;
     assert(parent !== undefined, `${printNode(statement)} has no parent`);
@@ -248,9 +284,19 @@ export class AST {
 
   // TODO tighten these restraints
   // Reference notes/astnodetypes.ts for exact restrictions on what can safely be replaced with what
-  replaceNode(oldNode: Expression, newNode: Expression, parent?: ASTNode): number;
-  replaceNode(oldNode: Statement, newNode: Statement, parent?: ASTNode): number;
-  replaceNode(oldNode: ASTNode, newNode: ASTNode, parent?: ASTNode): number {
+  replaceNode(
+    oldNode: Expression,
+    newNode: Expression,
+    parent?: ASTNode,
+    copyImports?: boolean,
+  ): number;
+  replaceNode(
+    oldNode: Statement,
+    newNode: Statement,
+    parent?: ASTNode,
+    copyImports?: boolean,
+  ): number;
+  replaceNode(oldNode: ASTNode, newNode: ASTNode, parent?: ASTNode, copyImports = false): number {
     if (oldNode === newNode) {
       console.log('WARNING: Attempted to replace node with itself');
       return oldNode.id;
@@ -272,6 +318,9 @@ export class AST {
     replaceNode(oldNode, newNode, parent);
     this.context.unregister(oldNode);
     this.setContextRecursive(newNode);
+    if (copyImports) {
+      this.copyRegisteredImports(oldNode, newNode);
+    }
     return newNode.id;
   }
 

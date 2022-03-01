@@ -1,3 +1,4 @@
+import assert = require('assert');
 import {
   Assignment,
   ASTNode,
@@ -22,7 +23,7 @@ import {
   WhileStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { cloneVariableDeclaration } from '../../utils/cloning';
+import { cloneResolvable } from '../../utils/cloning';
 import { createIdentifier } from '../../utils/nodeTemplates';
 import { getFunctionTypeString, getReturnTypeString } from '../../utils/utils';
 
@@ -63,7 +64,10 @@ export function extractToFunction(
   variables: VariableDeclaration[],
   ast: AST,
 ): FunctionDefinition {
-  const scope = node.getClosestParentByType<ContractDefinition>(ContractDefinition) ?? ast.root;
+  const scope =
+    node.getClosestParentByType<ContractDefinition>(ContractDefinition) ??
+    node.getClosestParentByType(SourceUnit);
+  assert(scope !== undefined, "Couldn't find WhileStatement's function target root");
 
   const retParamsId = ast.reserveId();
   const defId = ast.reserveId();
@@ -88,13 +92,13 @@ export function extractToFunction(
       ast.reserveId(),
       '',
       'ParameterList',
-      variables.map((v) => cloneVariableDeclaration(v, ast)),
+      variables.map((v) => cloneResolvable(v, ast)),
     ),
     new ParameterList(
       retParamsId,
       '',
       'ParameterList',
-      variables.map((v) => cloneVariableDeclaration(v, ast)),
+      variables.map((v) => cloneResolvable(v, ast)),
     ),
     [],
     undefined,

@@ -25,7 +25,7 @@ type CairoFunction = {
   code: string;
 };
 
-export class cairoUtilFuncGen {
+export class CairoUtilFuncGen {
   private ast: AST;
   // cairoType -> code
   private generatedStorageReads: Map<string, CairoFunction> = new Map();
@@ -40,6 +40,9 @@ export class cairoUtilFuncGen {
   // keytype -> valuetype -> associated storage var
   private mappings: Map<string, Map<string, CairoFunction>> = new Map();
   private mappingId = 0;
+
+  // import file -> import symbols
+  imports: Map<string, Set<string>> = new Map();
 
   constructor(ast: AST) {
     this.ast = ast;
@@ -244,8 +247,10 @@ export class cairoUtilFuncGen {
         'end',
       ].join('\n'),
     });
-    this.ast.addImports({ ['starkware.cairo.common.uint256']: new Set(['uint256_mul']) });
-    this.ast.addImports({ ['warplib.memory']: new Set(['MemCell', 'warp_create_array']) });
+    this.requireImport('starkware.cairo.common.uint256', 'uint256_mul');
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('warplib.memory', 'MemCell');
+    this.requireImport('warplib.memory', 'warp_create_array');
     return name;
   }
 
@@ -289,9 +294,9 @@ export class cairoUtilFuncGen {
         'end',
       ].join('\n'),
     });
-    this.ast.addImports({
-      ['warplib.memory']: new Set(['MemCell', 'warp_idx', 'warp_memory_read']),
-    });
+    this.requireImport('warplib.memory', 'MemCell');
+    this.requireImport('warplib.memory', 'warp_idx');
+    this.requireImport('warplib.memory', 'warp_memory_read');
     return funcName;
   }
 
@@ -315,9 +320,9 @@ export class cairoUtilFuncGen {
         'end',
       ].join('\n'),
     });
-    this.ast.addImports({
-      ['warplib.memory']: new Set(['MemCell', 'warp_idx', 'warp_memory_write']),
-    });
+    this.requireImport('warplib.memory', 'MemCell');
+    this.requireImport('warplib.memory', 'warp_idx');
+    this.requireImport('warplib.memory', 'warp_memory_write');
     return name;
   }
 
@@ -405,6 +410,12 @@ export class cairoUtilFuncGen {
     );
     this.ast.setContextRecursive(typeName);
     return typeName;
+  }
+
+  private requireImport(location: string, name: string): void {
+    const existingImports = this.imports.get(location) ?? new Set<string>();
+    existingImports.add(name);
+    this.imports.set(location, existingImports);
   }
 }
 

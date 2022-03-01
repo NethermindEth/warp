@@ -18,9 +18,7 @@ describe('Transpile solidity', function () {
       cleanupSync(fileTest.compiled);
     }
 
-    transpileResults = expectations.map((fileTest) =>
-      wrapPromise(transpile(fileTest.sol, fileTest.cairo)),
-    );
+    transpileResults = expectations.map((fileTest) => wrapPromise(transpile(fileTest.sol)));
   });
 
   for (let i = 0; i < expectations.length; ++i) {

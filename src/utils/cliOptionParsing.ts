@@ -5,8 +5,8 @@ import { error } from './errors';
 export function parsePassOrder(
   order: string | undefined,
   until: string | undefined,
-  passes: Map<string, ASTMapper>,
-): ASTMapper[] {
+  passes: Map<string, typeof ASTMapper>,
+): typeof ASTMapper[] {
   if (order === undefined) {
     order = [...passes.keys()].reduce((acc, key) => `${acc}${key}`, '');
   }

@@ -9,8 +9,11 @@ export class ASTMapper extends ASTVisitor<void> {
     node.children.slice().forEach((child) => this.dispatchVisit(child, ast));
   }
 
-  map(ast: AST): AST {
-    this.dispatchVisit(ast.root, ast);
+  static map(ast: AST): AST {
+    ast.roots.forEach((root) => {
+      const mapper = new this();
+      mapper.dispatchVisit(root, ast);
+    });
     return ast;
   }
 }

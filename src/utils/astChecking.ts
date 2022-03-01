@@ -333,7 +333,9 @@ export function checkSane(unit: SourceUnit, ctx: ASTContext): void {
   for (const node of unit.getChildren(true)) {
     if (!inCtx(node, ctx)) {
       throw new InsaneASTError(
-        `Child ${pp(node)} in different context: ${ctx.id} from expected ${ctx.id}`,
+        `Child ${pp(node)} in different context: ${node.requiredContext.id} from expected ${
+          ctx.id
+        }`,
       );
     }
 
@@ -672,6 +674,7 @@ function checkIdNonNegative(node: ASTNode) {
   node.children.forEach((child) => checkIdNonNegative(child));
 }
 
+FunctionDefinition;
 /**
  * Check that a single SourceUnit has a sane structure. This checks that:
  *  - All reachable nodes belong to the same context, have their parent/sibling set correctly.
@@ -684,19 +687,21 @@ function checkIdNonNegative(node: ASTNode) {
  * not performance critical.
  */
 export function isSane(ast: AST): boolean {
-  try {
-    checkSane(ast.root, ast.context);
-    checkContextsDefined(ast.root);
-    checkIdNonNegative(ast.root);
-  } catch (e) {
-    if (e instanceof InsaneASTError) {
-      console.error(e);
+  return ast.roots.every((root) => {
+    try {
+      checkSane(root, ast.context);
+      checkContextsDefined(root);
+      checkIdNonNegative(root);
+    } catch (e) {
+      if (e instanceof InsaneASTError) {
+        console.error(e);
 
-      return false;
+        return false;
+      }
+
+      throw e;
     }
 
-    throw e;
-  }
-
-  return true;
+    return true;
+  });
 }

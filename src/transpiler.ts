@@ -16,6 +16,7 @@ import {
   MemoryHandler,
   RejectUnsupportedFeatures,
   ReturnInserter,
+  SourceUnitSplitter,
   StorageAllocator,
   StorageVariableAccessRewriter,
   TupleAssignmentSplitter,
@@ -37,75 +38,66 @@ import { DefaultASTPrinter } from './utils/astPrinter';
 import { TranspilationOptions } from '.';
 import { parsePassOrder } from './utils/cliOptionParsing';
 
-export function transpile(ast: AST, options: TranspilationOptions): string {
+type CairoSource = [file: string, source: string];
+
+export function transpile(ast: AST, options: TranspilationOptions): CairoSource[] {
   const cairoAST = applyPasses(ast, options);
   const writer = new ASTWriter(
     CairoASTMapping(cairoAST, options.strict ?? false),
     new PrettyFormatter(4, 0),
     ast.compilerVersion,
   );
-  return writer.write(ast.root);
+  return cairoAST.roots.map((sourceUnit) => [sourceUnit.absolutePath, writer.write(sourceUnit)]);
 }
 
-export function transform(ast: AST, options: TranspilationOptions): string {
+export function transform(ast: AST, options: TranspilationOptions): CairoSource[] {
   const cairoAST = applyPasses(ast, options);
   const writer = new ASTWriter(
     CairoToSolASTWriterMapping,
     new PrettyFormatter(4, 0),
     ast.compilerVersion,
   );
-  return writer.write(cairoAST.root);
+  return cairoAST.roots.map((sourceUnit) => [sourceUnit.absolutePath, writer.write(sourceUnit)]);
 }
 
 // Options used: order, printTrees, checkTrees, strict
 function applyPasses(ast: AST, options: TranspilationOptions): AST {
-  // TODO: Indentifier mangler
-  // TODO: StorageVarPass:
-  // TODO: Semantic pass to check that mapping access are fully applied
-  // TODO: mapper creates an enum for each storage var mapping type
-  // TODO: mapper replaces all 'non storage' declarations with instance of enum (will always be defined because of solidity restriction, they must be initialised)
-  // TODO: mapper replace index accesses with the function calling the right storage var
-
-  // TODO: assignment needs to switch on the type rhs expression to decide between let(felt) vs assert(felt* array)
-  // TODO: Replace all arrays with array type plus length pointer.
-  // TODO: Replace reference writes with object copies. (use array length as an optimization) Update array lengths
-  // TODO: Implement Custom Node for Builtins
-  // TODO: add expected prerequisites to each pass
-  const passes: Map<string, ASTMapper> = new Map([
-    ['Ru', new RejectUnsupportedFeatures()],
-    ['Ufr', new UsingForResolver()],
-    ['Ib', new IntBoundCalculator()],
-    ['Gp', new GettersPublicStateVars()],
-    ['M', new IdentifierMangler()],
-    ['Sa', new StorageAllocator()],
-    ['Ec', new EnumConverter()],
-    ['Ei', new ExternImporter()],
-    ['L', new LiteralExpressionEvaluator()],
-    ['Lf', new LoopFunctionaliser()],
-    ['T', new TupleAssignmentSplitter()],
-    ['Ah', new AddressHandler()],
-    ['U', new UnloadingAssignment()],
-    ['V', new VariableDeclarationInitialiser()],
-    ['Vs', new VariableDeclarationExpressionSplitter()],
-    ['Dh', new DeleteHandler()],
-    ['Me', new MemoryHandler()],
-    ['I', new ImplicitConversionToExplicit()],
-    ['S', new StorageVariableAccessRewriter()],
-    ['B', new BuiltinHandler()],
-    ['Us', new UnreachableStatementPruner()],
-    ['R', new ReturnInserter()],
-    ['E', new ExpressionSplitter()],
-    ['An', new AnnotateImplicits()],
-    ['Ui', new Uint256Importer()],
+  const passes: Map<string, typeof ASTMapper> = new Map([
+    ['Ss', SourceUnitSplitter],
+    ['Ru', RejectUnsupportedFeatures],
+    ['L', LiteralExpressionEvaluator],
+    ['Ufr', UsingForResolver],
+    ['Gp', GettersPublicStateVars],
+    ['Ib', IntBoundCalculator],
+    ['M', IdentifierMangler],
+    ['Sa', StorageAllocator],
+    ['Ec', EnumConverter],
+    ['Ei', ExternImporter],
+    ['Lf', LoopFunctionaliser],
+    ['T', TupleAssignmentSplitter],
+    ['Ah', AddressHandler],
+    ['U', UnloadingAssignment],
+    ['V', VariableDeclarationInitialiser],
+    ['Vs', VariableDeclarationExpressionSplitter],
+    ['Dh', DeleteHandler],
+    ['Me', MemoryHandler],
+    ['I', ImplicitConversionToExplicit],
+    ['S', StorageVariableAccessRewriter],
+    ['B', BuiltinHandler],
+    ['Us', UnreachableStatementPruner],
+    ['R', ReturnInserter],
+    ['E', ExpressionSplitter],
+    ['An', AnnotateImplicits],
+    ['Ui', Uint256Importer],
   ]);
 
-  const passesInOrder: ASTMapper[] = parsePassOrder(options.order, options.until, passes);
+  const passesInOrder: typeof ASTMapper[] = parsePassOrder(options.order, options.until, passes);
   if (options.highlight) {
     DefaultASTPrinter.highlightId(parseInt(options.highlight));
   }
   if (options.printTrees) {
     console.log('---Input---');
-    console.log(DefaultASTPrinter.print(ast.root));
+    ast.roots.map((root) => console.log(DefaultASTPrinter.print(root)));
   }
 
   if (options.checkTrees || options.strict) {
@@ -119,7 +111,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     const newAst = mapper.map(ast);
     if (options.printTrees) {
       console.log(`\n---After running ${mapper.getPassName()}---`);
-      console.log(DefaultASTPrinter.print(ast.root));
+      ast.roots.map((root) => console.log(DefaultASTPrinter.print(root)));
     }
     if (options.checkTrees || options.strict) {
       const success = runSanityCheck(ast, options.checkTrees ?? false);

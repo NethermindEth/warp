@@ -1,6 +1,5 @@
 import { Command } from 'commander';
-import { AST } from './ast/ast';
-import { isValidSolFile, outputResult, outputSol } from './io';
+import { isValidSolFile, outputResult } from './io';
 import { compileSolFile } from './solCompile';
 import { runTests } from './testing';
 import { handleTranspilationError, transform, transpile } from './transpiler';
@@ -29,7 +28,7 @@ export type TranspilationOptions = {
 export type OutputOptions = {
   compileCairo?: boolean;
   compileErrors?: boolean;
-  output?: string;
+  outputDir?: string;
   result: boolean;
 };
 
@@ -44,7 +43,7 @@ program
   .option('--check-trees')
   .option('--highlight <id>')
   .option('--order <passOrder>')
-  .option('-o, --output <path>')
+  .option('-o, --output-dir <path>', undefined, 'warp_output')
   .option('--print-trees')
   .option('--no-result')
   .option('--strict')
@@ -54,14 +53,9 @@ program
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
     try {
-      compileSolFile(file, options.warnings)
-        .map((ast: AST) => ({
-          name: ast.root.absolutePath,
-          cairo: transpile(ast, options),
-        }))
-        .map(({ name, cairo }) => {
-          outputResult(name, cairo, options);
-        });
+      transpile(compileSolFile(file, options.warnings), options).map(([name, cairo]) => {
+        outputResult(name, cairo, options, '.cairo');
+      });
     } catch (e) {
       handleTranspilationError(e);
     }
@@ -73,7 +67,7 @@ program
   .option('--check-trees')
   .option('--highlight <id>')
   .option('--order <passOrder>')
-  .option('-o, --output <path>')
+  .option('-o, --output-dir <path>')
   .option('--print-trees')
   .option('--no-result')
   .option('--strict')
@@ -82,14 +76,9 @@ program
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
     try {
-      compileSolFile(file, options.warnings)
-        .map((ast: AST) => ({
-          name: ast.root.absolutePath,
-          solidity: transform(ast, options),
-        }))
-        .map(({ name, solidity }) => {
-          outputSol(name, solidity, options);
-        });
+      transform(compileSolFile(file, options.warnings), options).map(([name, solidity]) => {
+        outputResult(name, solidity, options, '_warp.sol');
+      });
     } catch (e) {
       handleTranspilationError(e);
     }

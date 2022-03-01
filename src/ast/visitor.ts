@@ -71,8 +71,8 @@ import { AST } from './ast';
 import CairoASTNode from './cairoNodes/cairoASTNode';
 
 export abstract class ASTVisitor<T> {
-  getPassName(): string {
-    return this.constructor.name;
+  static getPassName(): string {
+    return this.name;
   }
   dispatchVisit(node: ASTNode, ast: AST): T {
     let res: T | null = null;

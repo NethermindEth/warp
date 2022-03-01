@@ -34,7 +34,7 @@ export function compileCairo(
 function runStarknetCompile(filePath: string, cliOptions: Map<string, string>) {
   console.log(`Running starknet compile with cairoPath ${cliOptions.get('cairo_path')}`);
   execSync(
-    `starknet-compile ${filePath} ${[...cliOptions.entries()]
+    `starknet-compile --cairo_path warp_output ${filePath} ${[...cliOptions.entries()]
       .map(([key, value]) => `--${key} ${value}`)
       .join(' ')}`,
     { stdio: 'inherit' },
