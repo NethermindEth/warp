@@ -1,10 +1,9 @@
 import {
-  AnyResolvable,
   ArrayTypeName,
   Assignment,
+  ASTNode,
   BinaryOperation,
   ElementaryTypeName,
-  Expression,
   ExpressionStatement,
   FunctionCall,
   Identifier,
@@ -12,50 +11,51 @@ import {
   IndexAccess,
   Literal,
   Mapping,
-  Statement,
-  TypeName,
   UnaryOperation,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
+import { printNode } from './astPrinter';
 import { NotSupportedYetError } from './errors';
-import { exactInstanceOf } from './utils';
+import { notNull } from './typeConstructs';
 
-export function cloneExpression(node: Expression, ast: AST): Expression {
-  let newNode: Expression;
-  if (exactInstanceOf(node, Assignment)) {
+export function cloneASTNode<T extends ASTNode>(node: T, ast: AST): T {
+  let newNode: ASTNode | null = null;
+
+  // Expressions
+  if (node instanceof Assignment) {
     newNode = new Assignment(
       ast.reserveId(),
       node.src,
       'Assignment',
       node.typeString,
       node.operator,
-      cloneExpression(node.vLeftHandSide, ast),
-      cloneExpression(node.vRightHandSide, ast),
+      cloneASTNode(node.vLeftHandSide, ast),
+      cloneASTNode(node.vRightHandSide, ast),
       node.raw,
     );
-  } else if (exactInstanceOf(node, BinaryOperation)) {
+  } else if (node instanceof BinaryOperation) {
     newNode = new BinaryOperation(
       ast.reserveId(),
       node.src,
       'BinaryOperation',
       node.typeString,
       node.operator,
-      cloneExpression(node.vLeftExpression, ast),
-      cloneExpression(node.vRightExpression, ast),
+      cloneASTNode(node.vLeftExpression, ast),
+      cloneASTNode(node.vRightExpression, ast),
       node.raw,
     );
-  } else if (exactInstanceOf(node, IndexAccess)) {
+  } else if (node instanceof IndexAccess) {
     newNode = new IndexAccess(
       ast.reserveId(),
       node.src,
       'IndexAccess',
       node.typeString,
-      cloneExpression(node.vBaseExpression, ast),
-      node.vIndexExpression && cloneExpression(node.vIndexExpression, ast),
+      cloneASTNode(node.vBaseExpression, ast),
+      node.vIndexExpression && cloneASTNode(node.vIndexExpression, ast),
       node.raw,
     );
-  } else if (exactInstanceOf(node, Identifier)) {
+  } else if (node instanceof Identifier) {
     newNode = new Identifier(
       ast.reserveId(),
       node.src,
@@ -65,19 +65,19 @@ export function cloneExpression(node: Expression, ast: AST): Expression {
       node.referencedDeclaration,
       node.raw,
     );
-  } else if (exactInstanceOf(node, FunctionCall)) {
+  } else if (node instanceof FunctionCall) {
     newNode = new FunctionCall(
       ast.reserveId(),
       node.src,
       'FunctionCall',
       node.typeString,
       node.kind,
-      cloneExpression(node.vExpression, ast),
-      node.vArguments.map((arg) => cloneExpression(arg, ast)),
+      cloneASTNode(node.vExpression, ast),
+      node.vArguments.map((arg) => cloneASTNode(arg, ast)),
       node.fieldNames,
       node.raw,
     );
-  } else if (exactInstanceOf(node, Literal)) {
+  } else if (node instanceof Literal) {
     newNode = new Literal(
       ast.reserveId(),
       node.src,
@@ -89,7 +89,7 @@ export function cloneExpression(node: Expression, ast: AST): Expression {
       node.subdenomination,
       node.raw,
     );
-  } else if (exactInstanceOf(node, UnaryOperation)) {
+  } else if (node instanceof UnaryOperation) {
     newNode = new UnaryOperation(
       ast.reserveId(),
       node.src,
@@ -97,21 +97,11 @@ export function cloneExpression(node: Expression, ast: AST): Expression {
       node.typeString,
       node.prefix,
       node.operator,
-      cloneExpression(node.vSubExpression, ast),
+      cloneASTNode(node.vSubExpression, ast),
       node.raw,
     );
-  } else {
-    throw new NotSupportedYetError(`Cloning ${node.type} expressions not implemented yet`);
-  }
-
-  ast.setContextRecursive(newNode);
-  ast.copyRegisteredImports(node, newNode);
-  return newNode;
-}
-
-export function cloneTypeName(node: TypeName, ast: AST): TypeName {
-  let newNode: TypeName;
-  if (exactInstanceOf(node, ElementaryTypeName)) {
+    // TypeNames
+  } else if (node instanceof ElementaryTypeName) {
     newNode = new ElementaryTypeName(
       ast.reserveId(),
       node.src,
@@ -121,62 +111,38 @@ export function cloneTypeName(node: TypeName, ast: AST): TypeName {
       node.stateMutability,
       node.raw,
     );
-  } else if (exactInstanceOf(node, Mapping)) {
+  } else if (node instanceof Mapping) {
     newNode = new Mapping(
       ast.reserveId(),
       node.src,
       'Mapping',
       node.typeString,
-      cloneTypeName(node.vKeyType, ast),
-      cloneTypeName(node.vValueType, ast),
+      cloneASTNode(node.vKeyType, ast),
+      cloneASTNode(node.vValueType, ast),
       node.raw,
     );
-  } else if (exactInstanceOf(node, ArrayTypeName)) {
+  } else if (node instanceof ArrayTypeName) {
     newNode = new ArrayTypeName(
       ast.reserveId(),
       node.src,
       'ArrayTypeName',
       node.typeString,
-      cloneTypeName(node.vBaseType, ast),
+      cloneASTNode(node.vBaseType, ast),
       node.vLength,
       node.raw,
     );
-  } else {
-    throw new NotSupportedYetError(`Cloning ${node.type} typenames not implemented yet`);
-  }
-
-  ast.setContextRecursive(newNode);
-  ast.copyRegisteredImports(node, newNode);
-  return newNode;
-}
-
-export function cloneStatement(node: Statement, ast: AST): Statement {
-  let newNode: Statement;
-
-  if (exactInstanceOf(node, ExpressionStatement)) {
+    // Statements
+  } else if (node instanceof ExpressionStatement) {
     newNode = new ExpressionStatement(
       ast.reserveId(),
       node.src,
       'ExpressionStatement',
-      cloneExpression(node.vExpression, ast),
+      cloneASTNode(node.vExpression, ast),
       node.documentation,
       node.raw,
     );
-  } else {
-    throw new NotSupportedYetError(`Cloning ${node.type} statement not implemented yet`);
-  }
-
-  ast.setContextRecursive(newNode);
-  ast.copyRegisteredImports(node, newNode);
-  return newNode;
-}
-
-export function cloneResolvable(node: VariableDeclaration, ast: AST): VariableDeclaration;
-export function cloneResolvable(node: ImportDirective, ast: AST): ImportDirective;
-
-export function cloneResolvable(node: AnyResolvable, ast: AST): AnyResolvable {
-  let newNode: AnyResolvable;
-  if (node instanceof VariableDeclaration) {
+    // Resolvable
+  } else if (node instanceof VariableDeclaration) {
     if (node.vOverrideSpecifier !== undefined) {
       throw new NotSupportedYetError('Override Specifiers not implemented yet');
     }
@@ -195,9 +161,9 @@ export function cloneResolvable(node: AnyResolvable, ast: AST): AnyResolvable {
       node.mutability,
       node.typeString,
       node.documentation,
-      node.vType === undefined ? undefined : cloneTypeName(node.vType, ast),
+      node.vType === undefined ? undefined : cloneASTNode(node.vType, ast),
       undefined,
-      node.vValue === undefined ? undefined : cloneExpression(node.vValue, ast),
+      node.vValue === undefined ? undefined : cloneASTNode(node.vValue, ast),
       node.nameLocation,
     );
   } else if (node instanceof ImportDirective) {
@@ -213,11 +179,17 @@ export function cloneResolvable(node: AnyResolvable, ast: AST): AnyResolvable {
       node.sourceUnit,
       node.raw,
     );
-  } else {
-    throw new NotSupportedYetError(`Cloning ${node.type} is not implemented yet`);
   }
 
-  ast.setContextRecursive(newNode);
-  ast.copyRegisteredImports(node, newNode);
-  return newNode;
+  if (notNull(newNode) && sameType(newNode, node)) {
+    ast.setContextRecursive(newNode);
+    ast.copyRegisteredImports(node, newNode);
+    return newNode;
+  } else {
+    throw new NotSupportedYetError(`Unable to clone ${printNode(node)}`);
+  }
+}
+
+function sameType<T extends ASTNode>(newNode: ASTNode, ref: T): newNode is T {
+  return newNode instanceof ref.constructor && ref instanceof newNode.constructor;
 }

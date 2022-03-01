@@ -16,7 +16,7 @@ import {
   UserDefinedTypeName,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { cloneTypeName } from '../utils/cloning';
+import { cloneASTNode } from '../utils/cloning';
 import { createIdentifier } from '../utils/nodeTemplates';
 export class GettersPublicStateVars extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
@@ -51,7 +51,7 @@ export class GettersPublicStateVars extends ASTMapper {
               Mutability.Mutable,
               v.typeString,
               undefined,
-              stateVarType ? cloneTypeName(stateVarType, ast) : undefined,
+              stateVarType ? cloneASTNode(stateVarType, ast) : undefined,
             ),
           ]);
 

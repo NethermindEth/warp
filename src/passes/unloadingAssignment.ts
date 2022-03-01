@@ -1,13 +1,13 @@
 import { Assignment, BinaryOperation, Literal, LiteralKind, UnaryOperation } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { cloneExpression } from '../utils/cloning';
+import { cloneASTNode } from '../utils/cloning';
 import { toHexString } from '../utils/utils';
 
 export class UnloadingAssignment extends ASTMapper {
   visitAssignment(node: Assignment, ast: AST): void {
     if (node.operator === '=') return;
-    const lhsValue = cloneExpression(node.vLeftHandSide, ast);
+    const lhsValue = cloneASTNode(node.vLeftHandSide, ast);
 
     // Extract e.g. "+" from "+="
     const operator = node.operator.slice(0, node.operator.length - 1);
@@ -60,7 +60,7 @@ export class UnloadingAssignment extends ASTMapper {
         node.typeString,
         node.operator === '++' ? '-' : '+',
         compoundAssignment,
-        cloneExpression(literalOne, ast),
+        cloneASTNode(literalOne, ast),
       );
       compoundAssignment.id = ast.reserveId();
       ast.replaceNode(node, subtraction);

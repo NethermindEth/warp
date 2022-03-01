@@ -15,7 +15,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from './ast/ast';
 import { CairoFelt, CairoStruct, CairoTuple, CairoType } from './utils/cairoTypeSystem';
-import { cloneTypeName } from './utils/cloning';
+import { cloneASTNode } from './utils/cloning';
 import { TranspileFailedError } from './utils/errors';
 import { createCairoFunctionStub, createCallToStub } from './utils/functionStubbing';
 import { mapRange, typeNameFromTypeNode } from './utils/utils';
@@ -125,7 +125,7 @@ export class CairoUtilFuncGen {
         ['index', this.uint256TypeName()],
         ['value', assignedTypeName],
       ],
-      [['assignedValue', cloneTypeName(assignedTypeName, this.ast)]],
+      [['assignedValue', cloneASTNode(assignedTypeName, this.ast)]],
       ['range_check_ptr', 'warp_memory'],
       this.ast,
     );
@@ -169,9 +169,9 @@ export class CairoUtilFuncGen {
       name,
       [
         ['loc', storageLocation],
-        ['value', cloneTypeName(declaration.vType, this.ast)],
+        ['value', cloneASTNode(declaration.vType, this.ast)],
       ],
-      [['res', cloneTypeName(declaration.vType, this.ast)]],
+      [['res', cloneASTNode(declaration.vType, this.ast)]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
     );
@@ -223,11 +223,11 @@ export class CairoUtilFuncGen {
     const functionStub = createCairoFunctionStub(
       name,
       [
-        ['name', cloneTypeName(mappingTypeName, this.ast)],
+        ['name', cloneASTNode(mappingTypeName, this.ast)],
         ['key', mappingTypeName.vKeyType],
         ['writeValue', mappingTypeName.vValueType],
       ],
-      [['val', cloneTypeName(mappingTypeName.vValueType, this.ast)]],
+      [['val', cloneASTNode(mappingTypeName.vValueType, this.ast)]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
     );

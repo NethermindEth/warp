@@ -14,7 +14,7 @@ import {
   getNodeType,
 } from 'solc-typed-ast';
 import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
-import { cloneExpression, cloneTypeName } from '../utils/cloning';
+import { cloneASTNode } from '../utils/cloning';
 import { printNode, printTypeNode } from '../utils/astPrinter';
 import { toHexString, typeNameFromTypeNode } from '../utils/utils';
 
@@ -98,7 +98,7 @@ export class StorageVariableAccessRewriter extends ASTMapper {
       'VariableDeclaration.vType should be defined for compiler versions > 0.4.x',
     );
 
-    const typeName = cloneTypeName(decl.vType, ast);
+    const typeName = cloneASTNode(decl.vType, ast);
 
     if (typeName instanceof Mapping) {
       const replacementValue = decl.vValue;
@@ -108,7 +108,7 @@ export class StorageVariableAccessRewriter extends ASTMapper {
           node,
         )}`,
       );
-      ast.replaceNode(node, cloneExpression(replacementValue, ast));
+      ast.replaceNode(node, cloneASTNode(replacementValue, ast));
     } else {
       const parent = node.parent;
       assert(parent !== undefined, `Visited identifier with undefined parent: ${printNode(node)}`);
@@ -169,7 +169,7 @@ export class StorageVariableAccessRewriter extends ASTMapper {
           const decl = base.vReferencedDeclaration;
           assert(decl instanceof VariableDeclaration);
           assert(decl.vType !== undefined);
-          const type = cloneTypeName(decl.vType, ast);
+          const type = cloneASTNode(decl.vType, ast);
           assert(type instanceof Mapping);
           const replacementFunc = ast
             .getUtilFuncGen(node)

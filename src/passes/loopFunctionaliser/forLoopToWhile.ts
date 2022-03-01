@@ -9,7 +9,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { cloneStatement } from '../../utils/cloning';
+import { cloneASTNode } from '../../utils/cloning';
 import { toHexString } from '../../utils/utils';
 
 export class ForLoopToWhile extends ASTMapper {
@@ -72,7 +72,7 @@ export class ForLoopToWhile extends ASTMapper {
       (n) => n instanceof ForStatement || n instanceof WhileStatement,
     );
     if (currentLoop instanceof ForStatement && currentLoop.vLoopExpression) {
-      ast.insertStatementBefore(node, cloneStatement(currentLoop.vLoopExpression, ast));
+      ast.insertStatementBefore(node, cloneASTNode(currentLoop.vLoopExpression, ast));
     }
   }
 }

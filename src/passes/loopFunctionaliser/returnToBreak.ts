@@ -20,7 +20,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
 import { createBoolLiteral, createIdentifier } from '../../utils/nodeTemplates';
-import { cloneResolvable } from '../../utils/cloning';
+import { cloneASTNode } from '../../utils/cloning';
 import { toSingleExpression } from './utils';
 
 export class ReturnToBreak extends ASTMapper {
@@ -141,7 +141,7 @@ function insertReturnValueDeclaration(node: Block, ast: AST): VariableDeclaratio
   }
 
   const declarations = containingFunction.vReturnParameters.vParameters.map((v) =>
-    cloneResolvable(v, ast),
+    cloneASTNode(v, ast),
   );
   declarations.forEach((v) => (v.name = `__warp_rv${retVarCounter++}`));
 

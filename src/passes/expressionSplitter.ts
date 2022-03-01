@@ -8,7 +8,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { cloneExpression, cloneTypeName } from '../utils/cloning';
+import { cloneASTNode } from '../utils/cloning';
 import { counterGenerator } from '../utils/utils';
 
 function* expressionGenerator(prefix: string): Generator<string, string, unknown> {
@@ -24,7 +24,7 @@ export class ExpressionSplitter extends ASTMapper {
   visitAssignment(node: Assignment, ast: AST): void {
     this.commonVisit(node, ast);
     if (!(node.parent instanceof ExpressionStatement)) {
-      const replacement = cloneExpression(node.vLeftHandSide, ast);
+      const replacement = cloneASTNode(node.vLeftHandSide, ast);
       ast.replaceNode(node, replacement);
       ast.insertStatementBefore(
         replacement,
@@ -54,6 +54,6 @@ export class ExpressionSplitter extends ASTMapper {
       'Return types should not be undefined since solidity 0.5.0',
     );
 
-    ast.extractToConstant(node, cloneTypeName(returnTypes[0].vType, ast), this.eGen.next().value);
+    ast.extractToConstant(node, cloneASTNode(returnTypes[0].vType, ast), this.eGen.next().value);
   }
 }

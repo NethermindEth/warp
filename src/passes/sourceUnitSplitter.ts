@@ -9,7 +9,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { cloneResolvable } from '../utils/cloning';
+import { cloneASTNode } from '../utils/cloning';
 import * as path from 'path';
 
 type Scoped = FunctionDefinition | ContractDefinition | VariableDeclaration | StructDefinition;
@@ -31,7 +31,7 @@ function splitSourceUnit(sourceUnit: SourceUnit, ast: AST): SourceUnit[] {
 
   const freeSourceUnitId = ast.reserveId();
   const freeSourceChildren = [
-    ...sourceUnit.vImportDirectives.map((id) => cloneResolvable(id, ast)),
+    ...sourceUnit.vImportDirectives.map((id) => cloneASTNode(id, ast)),
     ...sourceUnit.vEnums,
     ...sourceUnit.vErrors,
     ...sourceUnit.vUserDefinedValueTypes,
@@ -61,7 +61,7 @@ function splitSourceUnit(sourceUnit: SourceUnit, ast: AST): SourceUnit[] {
       mangleContractFilePath(filePathRoot, contract.name) + '.sol',
       new Map(),
       [
-        ...sourceUnit.vImportDirectives.map((iD) => cloneResolvable(iD, ast)),
+        ...sourceUnit.vImportDirectives.map((iD) => cloneASTNode(iD, ast)),
         ...updateScope([contract], contractSourceUnitId),
       ],
     );

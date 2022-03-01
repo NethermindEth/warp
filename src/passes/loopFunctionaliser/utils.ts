@@ -23,7 +23,7 @@ import {
   WhileStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { cloneResolvable } from '../../utils/cloning';
+import { cloneASTNode } from '../../utils/cloning';
 import { createIdentifier } from '../../utils/nodeTemplates';
 import { getFunctionTypeString, getReturnTypeString } from '../../utils/utils';
 
@@ -92,13 +92,13 @@ export function extractToFunction(
       ast.reserveId(),
       '',
       'ParameterList',
-      variables.map((v) => cloneResolvable(v, ast)),
+      variables.map((v) => cloneASTNode(v, ast)),
     ),
     new ParameterList(
       retParamsId,
       '',
       'ParameterList',
-      variables.map((v) => cloneResolvable(v, ast)),
+      variables.map((v) => cloneASTNode(v, ast)),
     ),
     [],
     undefined,
