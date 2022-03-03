@@ -4,6 +4,8 @@ import {
   ASTNode,
   BinaryOperation,
   Block,
+  Break,
+  Continue,
   ElementaryTypeName,
   ExpressionStatement,
   FunctionCall,
@@ -11,6 +13,7 @@ import {
   Identifier,
   IdentifierPath,
   ImportDirective,
+  IfStatement,
   IndexAccess,
   Literal,
   Mapping,
@@ -193,12 +196,27 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.documentation,
       node.raw,
     );
+  } else if (node instanceof Break) {
+    newNode = cloneBreak(node, ast, remappedIds);
+  } else if (node instanceof Continue) {
+    newNode = cloneContinue(node, ast, remappedIds);
   } else if (node instanceof ExpressionStatement) {
     newNode = new ExpressionStatement(
       replaceId(node.id, ast, remappedIds),
       node.src,
       'ExpressionStatement',
       cloneASTNodeImpl(node.vExpression, ast, remappedIds),
+      node.documentation,
+      node.raw,
+    );
+  } else if (node instanceof IfStatement) {
+    newNode = new IfStatement(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'IfStatement',
+      cloneASTNodeImpl(node.vCondition, ast, remappedIds),
+      cloneASTNodeImpl(node.vTrueBody, ast, remappedIds),
+      node.vFalseBody && cloneASTNodeImpl(node.vFalseBody, ast, remappedIds),
       node.documentation,
       node.raw,
     );
@@ -365,4 +383,28 @@ function replaceId(oldId: number, ast: AST, remappedIds: Map<number, number>): n
   }
   remappedIds.set(oldId, id);
   return id;
+}
+
+// Defining a seperate function instead of inling the code is a workaround to make the typechecker
+// happy, since it can't distinguish between T & Break and T in cloneASTNode<T extends ASTNode>.
+function cloneBreak(node: Break, ast: AST, remappedIds: Map<number, number>): Break {
+  return new Break(
+    replaceId(node.id, ast, remappedIds),
+    node.src,
+    'Break',
+    node.documentation,
+    node.raw,
+  );
+}
+
+// Defining a seperate function instead of inling the code is a workaround to make the typechecker
+// happy, since it can't distinguish  between T & Continue and T in cloneASTNode<T extends ASTNode>.
+function cloneContinue(node: Continue, ast: AST, remappedIds: Map<number, number>): Continue {
+  return new Continue(
+    replaceId(node.id, ast, remappedIds),
+    node.src,
+    'Continue',
+    node.documentation,
+    node.raw,
+  );
 }

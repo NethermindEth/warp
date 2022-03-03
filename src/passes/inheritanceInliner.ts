@@ -5,6 +5,7 @@ import {
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
+  FunctionKind,
   FunctionVisibility,
   Identifier,
   MemberAccess,
@@ -15,7 +16,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
-import { TranspileFailedError } from '../utils/errors';
+import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { createIdentifier } from '../utils/nodeTemplates';
 import { getFunctionTypeString, getReturnTypeString } from '../utils/utils';
 
@@ -26,7 +27,6 @@ export class InheritanceInliner extends ASTMapper {
       // and we only care about those which inherit from something else
       return;
     }
-    printBaseContracts(node);
 
     const functionRemapping: Map<number, FunctionDefinition> = new Map();
     const variableRemapping: Map<number, VariableDeclaration> = new Map();
@@ -34,8 +34,6 @@ export class InheritanceInliner extends ASTMapper {
     addPrivateSuperFunctions(node, functionRemapping, ast);
     addNonoverridenPublicFunctions(node, functionRemapping, ast);
     addStorageVariables(node, variableRemapping, ast);
-    console.log([...functionRemapping.entries()].map(([id, def]) => `${id} -> ${def.name}`));
-    console.log([...variableRemapping.entries()].map(([id, def]) => `${id} -> ${def.name}`));
     updateReferencedDeclarations(node, functionRemapping, ast);
     updateReferencedDeclarations(node, variableRemapping, ast);
     this.commonVisit(node, ast);
@@ -71,12 +69,10 @@ function addPrivateSuperFunctions(
   ast: AST,
 ): void {
   getBaseContracts(node).forEach((base, depth) => {
-    console.log(`Adding private super functions for ${base.name}`);
     base.vFunctions
       // TODO implement constructors
       .filter((func) => !func.isConstructor)
       .map((func) => {
-        console.log(`    Adding ${func.name}`);
         const clonedFunction = cloneASTNode(func, ast);
         idRemapping.set(func.id, clonedFunction);
         clonedFunction.name = `${clonedFunction.name}_s${depth + 1}`;
@@ -166,15 +162,6 @@ function updateReferencedDeclarations(
   });
 }
 
-function printBaseContracts(node: ContractDefinition): void {
-  if (node.vLinearizedBaseContracts.length === 0) {
-    console.log(`Contract ${node.name} has no base contracts`);
-  } else {
-    console.log(`Contract ${node.name} has base contracts: `);
-    node.vLinearizedBaseContracts.forEach((b) => console.log(b.name));
-  }
-}
-
 function getBaseContracts(node: ContractDefinition): ContractDefinition[] {
   return node.vLinearizedBaseContracts.slice(1);
 }
@@ -228,17 +215,29 @@ function createDelegatingFunction(
 ): FunctionDefinition {
   const inputParams = cloneASTNode(funcToCopy.vParameters, ast);
   const retParams = cloneASTNode(funcToCopy.vReturnParameters, ast);
+  assert(
+    funcToCopy.kind === FunctionKind.Function,
+    `Attempted to copy non-member function ${funcToCopy.name}`,
+  );
+  assert(
+    funcToCopy.visibility === FunctionVisibility.Public ||
+      funcToCopy.visibility === FunctionVisibility.External,
+    `Attempted to copy non public/external function ${funcToCopy.name}`,
+  );
+  if (funcToCopy.isConstructor) {
+    throw new NotSupportedYetError(`Inherited constructors is not implemented yet`);
+  }
   const newFunc = new FunctionDefinition(
     ast.reserveId(),
     funcToCopy.src,
     'FunctionDefinition',
     scope,
-    funcToCopy.kind, // Should be Function
+    funcToCopy.kind,
     funcToCopy.name,
     funcToCopy.virtual,
-    funcToCopy.visibility, // Should be public or external
+    funcToCopy.visibility,
     funcToCopy.stateMutability,
-    funcToCopy.isConstructor, // Should be false
+    funcToCopy.isConstructor,
     inputParams,
     retParams,
     funcToCopy.vModifiers.map((m) => cloneASTNode(m, ast)),
