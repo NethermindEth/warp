@@ -3,9 +3,12 @@ pragma solidity ^0.8.6;
 // SPDX-License-Identifier: MIT
 
 contract WARP {
-  function shouldFail() pure public {
+  function shouldFail(bool a) pure public {
     uint8 x = 1;
-    return assert(x == 2 );
+    if (a) {
+      assert(x == 2);
+    }
+    assert(x == 21 );
   }
 
   function willPass() pure public {

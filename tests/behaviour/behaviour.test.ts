@@ -114,6 +114,7 @@ describe('Deployed contracts have correct behaviour', function () {
             inputs,
             expectedResult,
             caller_address,
+            error_message,
           ] of functionExpectation.steps) {
             const address = deployedAddresses.get(fileTest.name);
             if (address === undefined) this.skip();
@@ -127,6 +128,9 @@ describe('Deployed contracts have correct behaviour', function () {
 
               if (expectedResult === null) {
                 expect(response.threw, 'Function should throw').to.be.true;
+                error_message !== undefined &&
+                  response.error_message !== undefined &&
+                  expect(response.error_message.includes(error_message)).to.be.true;
               } else {
                 expect(response.threw, 'Function should not throw').to.be.false;
                 expect(response.return_data, 'Return data should match expectation').to.deep.equal(

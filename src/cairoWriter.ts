@@ -416,7 +416,7 @@ class LiteralWriter extends CairoASTNodeWriter {
           .filter((v) => v.charCodeAt(0) < 127)
           .join('')
           .substring(0, 32);
-        return [`"${cairoString}"`];
+        return [`'${cairoString}'`];
       }
       case LiteralKind.HexString:
         this.logNotImplemented('HexStr not implemented yet');
@@ -514,8 +514,17 @@ class EmitStatementWriter extends CairoASTNodeWriter {
 
 class CairoAssertWriter extends CairoASTNodeWriter {
   writeInner(node: CairoAssert, writer: ASTWriter): SrcDesc {
-    const args = [node.leftHandSide, node.rightHandSide].map((v) => writer.write(v));
-    return [`${node.name} ${args[0]} ${node.assertEq ? '=' : '!='} ${args[1]}`];
+    const assertExpr = `assert ${writer.write(node.vExpression)} = 1`;
+
+    if (node.assertMessage === null) {
+      return [assertExpr];
+    } else {
+      return [
+        [`with_attr error_message("${node.assertMessage}"):`, `${INDENT}${assertExpr}`, `end`].join(
+          '\n',
+        ),
+      ];
+    }
   }
 }
 

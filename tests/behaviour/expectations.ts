@@ -30,6 +30,7 @@ class Expect {
       inputs: string[],
       returns: string[] | null,
       caller_address: string,
+      error_message?: string,
     ][],
   ) {
     steps.forEach(([_, inputs, returns]) => {
@@ -581,12 +582,34 @@ export const expectations = flatten(
             Expect.Simple('s', [], ['10']),
           ]),
         ]),
+        new Dir('error_handling', [
+          File.Simple('revert', [
+            new Expect('conditionalRevert', [['couldFail', ['2'], ['4', '0'], '0']]),
+            new Expect('conditionalRevert should fail', [
+              ['couldFail', ['1'], null, '0', 'I am failing'],
+            ]),
+            new Expect('revertBothBranches', [
+              ['definitelyFailsWithMsg', [], null, '0', 'I am failing'],
+            ]),
+            new Expect('revertBothBranches fails with no message', [
+              // fails without a message
+              ['definitelyFailsNoMsg', [], null, '0'],
+            ]),
+          ]),
+          File.Simple('assert', [
+            new Expect('assert should pass', [['willPass', [], [], '0']]),
+            new Expect('assert should fail', [['shouldFail', ['1'], null, '0']]),
+          ]),
+          File.Simple('require', [
+            new Expect('require should pass', [['willPass', [], [], '0']]),
+            new Expect('require should fail', [['shouldFail', [], null, '0', 'why is x not 2???']]),
+          ]),
+        ]),
         new Dir('delete', [
           // ---- "address" functionCall to cairo not implemented yet ----
           // File.Simple('address', [
           //   Expect.Simple('f', [], ['23', '0']),
           // ]),
-
           // ---- ArrayType not implemented yet (fails on StorageAllocator) ----
           // File.Simple('array_static', [
           //   new Expect('delete', [

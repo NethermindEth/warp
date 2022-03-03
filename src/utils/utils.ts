@@ -25,6 +25,8 @@ import {
   UserDefinedType,
   VariableDeclarationStatement,
   getNodeType,
+  StringLiteralType,
+  StringType,
 } from 'solc-typed-ast';
 import { NotSupportedYetError, TranspileFailedError, logError } from './errors';
 import { printNode, printTypeNode } from './astPrinter';
@@ -66,6 +68,11 @@ export function sizeOfType(type: TypeNode): number {
   // We do not respect size of address type
   else if (type instanceof AddressType) return 251;
   else if (type instanceof BoolType) return 8;
+  // We only support short-strings for now.
+  // That is why all strings are just felts.
+  else if (type instanceof StringLiteralType) return 251;
+  else if (type instanceof StringType) return 251;
+
   throw new NotSupportedYetError(`Don't know the size of ${printTypeNode(type)}`);
 }
 

@@ -85,11 +85,7 @@ class CairoFunctionDefinitionSolWriter extends ASTNodeWriter {
 class CairoAssertSolWriter extends ASTNodeWriter {
   writeInner(node: CairoAssert, writer: ASTWriter): SrcDesc {
     const result: SrcDesc = [];
-    result.push(
-      `<cairo information> assert ${writer.write(node.leftHandSide)} = ${writer.write(
-        node.rightHandSide,
-      )}`,
-    );
+    result.push(`<cairo information> assert ${writer.write(node.vExpression)} = 1`);
     return result;
   }
 }
