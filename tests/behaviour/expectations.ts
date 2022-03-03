@@ -268,6 +268,11 @@ export const expectations = flatten(
             Expect.Simple('whileLoop', ['10'], ['10']),
             Expect.Simple('breaks', ['5'], ['5']),
             Expect.Simple('continues', ['4'], ['24']),
+            Expect.Simple('doWhile', ['0', '4'], ['5']),
+            Expect.Simple('doWhile', ['7', '6'], ['8']),
+            Expect.Simple('doWhile_continue', ['1'], ['1']),
+            Expect.Simple('doWhile_return', ['4'], ['2']),
+            Expect.Simple('doWhile_break', ['0', '2'], ['2']),
           ]),
         ]),
         new Dir('maths', [

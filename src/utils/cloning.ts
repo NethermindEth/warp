@@ -3,14 +3,19 @@ import {
   Assignment,
   ASTNode,
   BinaryOperation,
+  Block,
+  Break,
+  Continue,
   ElementaryTypeName,
   ExpressionStatement,
   FunctionCall,
   Identifier,
   ImportDirective,
+  IfStatement,
   IndexAccess,
   Literal,
   Mapping,
+  Return,
   UnaryOperation,
   VariableDeclaration,
 } from 'solc-typed-ast';
@@ -141,6 +146,40 @@ export function cloneASTNode<T extends ASTNode>(node: T, ast: AST): T {
       node.documentation,
       node.raw,
     );
+  } else if (node instanceof Block) {
+    newNode = new Block(
+      ast.reserveId(),
+      node.src,
+      'Block',
+      node.vStatements.map((v) => cloneASTNode(v, ast)),
+      node.documentation,
+      node.raw,
+    );
+  } else if (node instanceof IfStatement) {
+    newNode = new IfStatement(
+      ast.reserveId(),
+      node.src,
+      'IfStatement',
+      cloneASTNode(node.vCondition, ast),
+      cloneASTNode(node.vTrueBody, ast),
+      node.vFalseBody ? cloneASTNode(node.vFalseBody, ast) : undefined,
+      node.documentation,
+      node.raw,
+    );
+  } else if (node instanceof Return) {
+    newNode = new Return(
+      ast.reserveId(),
+      node.src,
+      'Return',
+      node.functionReturnParameters,
+      node.vExpression ? cloneASTNode(node.vExpression, ast) : undefined,
+      node.documentation,
+      node.raw,
+    );
+  } else if (node instanceof Break) {
+    newNode = cloneBreak(node, ast);
+  } else if (node instanceof Continue) {
+    newNode = cloneContinue(node, ast);
     // Resolvable
   } else if (node instanceof VariableDeclaration) {
     if (node.vOverrideSpecifier !== undefined) {
@@ -192,4 +231,16 @@ export function cloneASTNode<T extends ASTNode>(node: T, ast: AST): T {
 
 function sameType<T extends ASTNode>(newNode: ASTNode, ref: T): newNode is T {
   return newNode instanceof ref.constructor && ref instanceof newNode.constructor;
+}
+
+// Defining a seperate function instead of inling the code is a workaround to make the typechecker
+// happy, since it can't distinguish between a Statement and Break.
+function cloneBreak(node: Break, ast: AST): Break {
+  return new Break(ast.reserveId(), node.src, 'Break', node.documentation, node.raw);
+}
+
+// Defining a seperate function instead of inling the code is a workaround to make the typechecker
+// happy, since it can't distinguish between a Statement and Continue.
+function cloneContinue(node: Continue, ast: AST): Continue {
+  return new Continue(ast.reserveId(), node.src, 'Continue', node.documentation, node.raw);
 }

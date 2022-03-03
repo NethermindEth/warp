@@ -45,4 +45,45 @@ contract WARP {
     }
     return x;
   }
+
+  function doWhile(uint8 init, uint8 target) pure public returns (uint8) {
+    do {
+      init++;
+    } while(init <= target);
+
+    return init;
+  }
+
+  function doWhile_break(uint8 init, uint8 target) pure public returns (uint8) {
+    do {
+      if (init == target) break;
+      init++;
+    } while(init <= target * 2);
+
+    return init;
+  }
+
+  function doWhile_continue(uint8 target) pure public returns (uint8) {
+    uint8 x = 0;
+
+    do {
+      x++;
+      if (x == target) continue;
+    } while(x != target);
+
+    return x;
+  }
+
+  function doWhile_return(uint8 target) pure public returns (uint8) {
+    uint8 x = 0;
+
+    do {
+      x++;
+      if (x == 2) {
+        return x;
+      }
+    } while(x <= target);
+
+    return x;
+  }
 }

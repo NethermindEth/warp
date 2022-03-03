@@ -1,18 +1,41 @@
-import { VariableDeclaration, WhileStatement } from 'solc-typed-ast';
+import { DoWhileStatement, FunctionDefinition, WhileStatement } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { collectUnboundVariables, createOuterCall, extractToFunction } from './utils';
+import {
+  collectUnboundVariables,
+  createOuterCall,
+  extractDoWhileToFunction,
+  extractWhileToFunction,
+} from './utils';
 
 export class WhileLoopToFunction extends ASTMapper {
-  returnFlags: Map<WhileStatement, VariableDeclaration> = new Map();
+  constructor(private loopToContinueFunction: Map<number, FunctionDefinition>) {
+    super();
+  }
 
-  visitWhileStatement(node: WhileStatement, ast: AST): void {
+  loopToFunction(node: WhileStatement | DoWhileStatement, ast: AST): void {
     // Visit innermost loops first
     this.commonVisit(node, ast);
+    const loopExtractionFn =
+      node instanceof DoWhileStatement ? extractDoWhileToFunction : extractWhileToFunction;
 
     const unboundVariables = collectUnboundVariables(node);
-    const functionDef = extractToFunction(node, [...unboundVariables.keys()], ast);
+
+    const functionDef = loopExtractionFn(
+      node,
+      [...unboundVariables.keys()],
+      this.loopToContinueFunction,
+      ast,
+    );
     const outerCall = createOuterCall(node, unboundVariables, functionDef, ast);
     ast.replaceNode(node, outerCall);
+  }
+
+  visitWhileStatement(node: WhileStatement, ast: AST): void {
+    this.loopToFunction(node, ast);
+  }
+
+  visitDoWhileStatement(node: DoWhileStatement, ast: AST): void {
+    this.loopToFunction(node, ast);
   }
 }
