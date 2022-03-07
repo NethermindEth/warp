@@ -4,6 +4,7 @@ import {
   ASTNode,
   Block,
   ContractDefinition,
+  DoWhileStatement,
   Expression,
   ExpressionStatement,
   FunctionCall,
@@ -59,9 +60,10 @@ export function collectUnboundVariables(node: ASTNode): Map<VariableDeclaration,
 
 let loopFnCounter = 0;
 
-export function extractToFunction(
+export function extractWhileToFunction(
   node: WhileStatement,
   variables: VariableDeclaration[],
+  loopToContinueFunction: Map<number, FunctionDefinition>,
   ast: AST,
 ): FunctionDefinition {
   const scope =
@@ -105,6 +107,8 @@ export function extractToFunction(
     funcBody,
   );
 
+  loopToContinueFunction.set(defId, funcDef);
+
   scope.insertAtBeginning(funcDef);
   ast.registerChild(funcDef, scope);
 
@@ -120,6 +124,117 @@ export function extractToFunction(
   );
 
   return funcDef;
+}
+
+export function extractDoWhileToFunction(
+  node: DoWhileStatement,
+  variables: VariableDeclaration[],
+  loopToContinueFunction: Map<number, FunctionDefinition>,
+  ast: AST,
+): FunctionDefinition {
+  const scope =
+    node.getClosestParentByType<ContractDefinition>(ContractDefinition) ??
+    node.getClosestParentByType(SourceUnit);
+  assert(scope !== undefined, "Couldn't find DoWhileStatement's function target root");
+
+  const doWhileDefName = `__warp_do_while_${loopFnCounter++}`;
+  const doWhileRetId = ast.reserveId();
+  const doWhileFuncId = ast.reserveId();
+  const doWhileBody = new Block(ast.reserveId(), '', 'Block', [
+    createStartingIf(node.vCondition, node.vBody, variables, doWhileRetId, ast),
+  ]);
+
+  const doWhileFuncDef = new FunctionDefinition(
+    doWhileFuncId,
+    node.src,
+    'FunctionDefinition',
+    scope.id,
+    scope instanceof SourceUnit ? FunctionKind.Free : FunctionKind.Function,
+    doWhileDefName,
+    false,
+    FunctionVisibility.Private,
+    FunctionStateMutability.NonPayable,
+    false,
+    new ParameterList(
+      ast.reserveId(),
+      '',
+      'ParameterList',
+      variables.map((v) => cloneASTNode(v, ast)),
+    ),
+    new ParameterList(
+      doWhileRetId,
+      '',
+      'ParameterList',
+      variables.map((v) => cloneASTNode(v, ast)),
+    ),
+    [],
+    undefined,
+    doWhileBody,
+  );
+
+  scope.insertAtBeginning(doWhileFuncDef);
+  ast.registerChild(doWhileFuncDef, scope);
+  loopToContinueFunction.set(doWhileFuncId, doWhileFuncDef);
+
+  ast.insertStatementAfter(
+    node.vBody,
+    new Return(
+      ast.reserveId(),
+      '',
+      'Return',
+      doWhileFuncDef.vReturnParameters.id,
+      createLoopCall(doWhileFuncDef, variables, ast),
+    ),
+  );
+
+  const doBlockDefName = `__warp_do_${loopFnCounter++}`;
+  const doBlockReturnId = ast.reserveId();
+  const doBlockFuncId = ast.reserveId();
+
+  const doBlockBody = new Block(ast.reserveId(), '', 'Block', [
+    cloneASTNode(node.vBody, ast),
+    new Return(
+      ast.reserveId(),
+      '',
+      'Return',
+      doBlockReturnId,
+      createLoopCall(doWhileFuncDef, variables, ast),
+    ),
+  ]);
+
+  const doBlockFuncDef = new FunctionDefinition(
+    doBlockFuncId,
+    node.src,
+    'FunctionDefinition',
+    scope.id,
+    scope instanceof SourceUnit ? FunctionKind.Free : FunctionKind.Function,
+    doBlockDefName,
+    false,
+    FunctionVisibility.Private,
+    FunctionStateMutability.NonPayable,
+    false,
+    new ParameterList(
+      ast.reserveId(),
+      '',
+      'ParameterList',
+      variables.map((v) => cloneASTNode(v, ast)),
+    ),
+    new ParameterList(
+      doBlockReturnId,
+      '',
+      'ParameterList',
+      variables.map((v) => cloneASTNode(v, ast)),
+    ),
+    [],
+    undefined,
+    doBlockBody,
+  );
+
+  scope.insertAtBeginning(doBlockFuncDef);
+  ast.registerChild(doBlockFuncDef, scope);
+  loopToContinueFunction.set(doBlockFuncId, doWhileFuncDef);
+
+  return doBlockFuncDef;
 }
 
 function createStartingIf(

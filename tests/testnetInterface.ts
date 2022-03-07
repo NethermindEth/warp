@@ -7,12 +7,14 @@ export type InvokeResponse =
       steps: number;
       threw: false;
       return_data: string[];
+      error_message: undefined;
     }
   | {
       status: number;
       steps: null;
       threw: true;
       return_data: null;
+      error_message: string;
     };
 
 // Returns address of deployed contract or throws
@@ -43,12 +45,14 @@ export async function invoke(
         steps: null,
         threw: true,
         return_data: null,
+        error_message: response.data.transaction_info.message,
       }
     : {
         status: response.status,
         steps: response.data.execution_info?.steps ?? null,
         threw: false,
         return_data: response.data.transaction_info.return_data,
+        error_message: undefined,
       };
 }
 

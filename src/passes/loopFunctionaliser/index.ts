@@ -1,3 +1,4 @@
+import { FunctionDefinition } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { BreakToReturn } from './breakToReturn';
@@ -8,11 +9,15 @@ import { WhileLoopToFunction } from './whileLoopToFunction';
 
 export class LoopFunctionaliser extends ASTMapper {
   static map(ast: AST): AST {
-    ast = ForLoopToWhile.map(ast);
-    ast = ReturnToBreak.map(ast);
-    ast = WhileLoopToFunction.map(ast);
-    ast = BreakToReturn.map(ast);
-    ast = ContinueToLoopCall.map(ast);
+    ast.roots.forEach((root) => {
+      const loopToContinueFunction: Map<number, FunctionDefinition> = new Map();
+
+      new ForLoopToWhile().dispatchVisit(root, ast);
+      new ReturnToBreak().dispatchVisit(root, ast);
+      new WhileLoopToFunction(loopToContinueFunction).dispatchVisit(root, ast);
+      new BreakToReturn().dispatchVisit(root, ast);
+      new ContinueToLoopCall(loopToContinueFunction).dispatchVisit(root, ast);
+    });
     return ast;
   }
 }

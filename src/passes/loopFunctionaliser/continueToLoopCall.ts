@@ -6,11 +6,21 @@ import { printNode } from '../../utils/astPrinter';
 import { createLoopCall } from './utils';
 
 export class ContinueToLoopCall extends ASTMapper {
+  constructor(private loopToContinueFunction: Map<number, FunctionDefinition>) {
+    super();
+  }
+
   visitContinue(node: Continue, ast: AST): void {
     const containingFunction = node.getClosestParentByType(FunctionDefinition);
     assert(
       containingFunction !== undefined,
       `Unable to find containing function for ${printNode(node)}`,
+    );
+
+    const continueFunction = this.loopToContinueFunction.get(containingFunction.id);
+    assert(
+      continueFunction instanceof FunctionDefinition,
+      `Unable to find continue function for ${printNode(containingFunction)}`,
     );
 
     ast.replaceNode(
@@ -19,8 +29,8 @@ export class ContinueToLoopCall extends ASTMapper {
         ast.reserveId(),
         node.src,
         'Return',
-        containingFunction.vReturnParameters.id,
-        createLoopCall(containingFunction, containingFunction.vParameters.vParameters, ast),
+        continueFunction.vReturnParameters.id,
+        createLoopCall(continueFunction, continueFunction.vParameters.vParameters, ast),
       ),
     );
   }

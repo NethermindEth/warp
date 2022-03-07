@@ -654,7 +654,7 @@ export function checkSane(unit: SourceUnit, ctx: ASTContext): void {
       checkVFieldCtx(node, 'vSubExpression', ctx);
       checkDirectChildren(node, 'vSubExpression');
     } else if (node instanceof CairoAssert) {
-      checkDirectChildren(node, 'leftHandSide', 'rightHandSide');
+      checkDirectChildren(node, 'vExpression');
     } else {
       throw new Error(`Unknown ASTNode type ${node.constructor.name}`);
     }

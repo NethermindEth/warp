@@ -5,6 +5,7 @@ import {
   Block,
   Break,
   DataLocation,
+  DoWhileStatement,
   ElementaryTypeName,
   ExpressionStatement,
   FunctionDefinition,
@@ -24,16 +25,18 @@ import { cloneASTNode } from '../../utils/cloning';
 import { toSingleExpression } from './utils';
 
 export class ReturnToBreak extends ASTMapper {
-  returnFlags: Map<WhileStatement, VariableDeclaration> = new Map();
+  returnFlags: Map<WhileStatement | DoWhileStatement, VariableDeclaration> = new Map();
   returnVariables: Map<FunctionDefinition, VariableDeclaration[]> = new Map();
 
-  currentOuterLoop: WhileStatement | null = null;
+  currentOuterLoop: WhileStatement | DoWhileStatement | null = null;
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (!node.vBody) return;
 
     const loopsWithReturns = node.getChildrenBySelector(
-      (n) => n instanceof WhileStatement && n.getChildren().some((n) => n instanceof Return),
+      (n) =>
+        (n instanceof WhileStatement || n instanceof DoWhileStatement) &&
+        n.getChildren().some((n) => n instanceof Return),
     );
 
     if (loopsWithReturns.length > 0) {
@@ -43,7 +46,7 @@ export class ReturnToBreak extends ASTMapper {
     }
   }
 
-  visitWhileStatement(node: WhileStatement, ast: AST): void {
+  visitLoop(node: WhileStatement | DoWhileStatement, ast: AST): void {
     if (this.currentOuterLoop === null) {
       if (node.getChildren().some((n) => n instanceof Return)) {
         // Create variables to store the values to return,
@@ -69,6 +72,14 @@ export class ReturnToBreak extends ASTMapper {
     }
   }
 
+  visitWhileStatement(node: WhileStatement, ast: AST): void {
+    this.visitLoop(node, ast);
+  }
+
+  visitDoWhileStatement(node: DoWhileStatement, ast: AST) {
+    this.visitLoop(node, ast);
+  }
+
   visitReturn(node: Return, ast: AST): void {
     //We only want to process returns inside loops
     if (this.currentOuterLoop) {
@@ -79,7 +90,10 @@ export class ReturnToBreak extends ASTMapper {
     }
   }
 
-  createReturnFlag(containingWhile: WhileStatement, ast: AST): VariableDeclaration {
+  createReturnFlag(
+    containingWhile: WhileStatement | DoWhileStatement,
+    ast: AST,
+  ): VariableDeclaration {
     const decl = new VariableDeclaration(
       ast.reserveId(),
       '',
@@ -110,7 +124,7 @@ export class ReturnToBreak extends ASTMapper {
     return decl;
   }
 
-  getReturnFlag(whileStatement: WhileStatement): VariableDeclaration {
+  getReturnFlag(whileStatement: WhileStatement | DoWhileStatement): VariableDeclaration {
     const existing = this.returnFlags.get(whileStatement);
     assert(existing !== undefined, `${printNode(whileStatement)} has no return flag`);
     return existing;
@@ -161,7 +175,7 @@ function insertReturnValueDeclaration(node: Block, ast: AST): VariableDeclaratio
 }
 
 function insertOuterLoopRetFlagCheck(
-  node: WhileStatement,
+  node: WhileStatement | DoWhileStatement,
   retFlag: VariableDeclaration,
   retVars: VariableDeclaration[],
   ast: AST,
@@ -192,7 +206,11 @@ function insertOuterLoopRetFlagCheck(
   );
 }
 
-function insertInnerLoopRetFlagCheck(node: WhileStatement, retFlag: VariableDeclaration, ast: AST) {
+function insertInnerLoopRetFlagCheck(
+  node: WhileStatement | DoWhileStatement,
+  retFlag: VariableDeclaration,
+  ast: AST,
+) {
   ast.insertStatementAfter(
     node,
     new IfStatement(

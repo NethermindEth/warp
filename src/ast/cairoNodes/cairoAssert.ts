@@ -1,33 +1,26 @@
 import { ASTNode, Expression } from 'solc-typed-ast';
-import CairoASTNode from './cairoASTNode';
 
-export class CairoAssert extends CairoASTNode {
-  name: string;
+export class CairoAssert extends Expression {
+  assertMessage: string | null;
 
-  leftHandSide: Expression;
-
-  rightHandSide: Expression;
-
-  assertEq: boolean;
+  vExpression: Expression;
 
   constructor(
     id: number,
     src: string,
     type: string,
-    leftHandSide: Expression,
-    rightHandSide: Expression,
-    assertEq = true,
+    expression: Expression,
+    assertMessage: string | null = null,
+    raw?: unknown,
   ) {
-    super(id, src, type);
-    this.name = 'assert';
-    this.leftHandSide = leftHandSide;
-    this.rightHandSide = rightHandSide;
-    this.assertEq = assertEq;
+    super(id, src, type, 'tuple()', raw);
+    this.vExpression = expression;
+    this.assertMessage = assertMessage;
 
     this.acceptChildren();
   }
 
   get children(): readonly ASTNode[] {
-    return this.pickNodes(this.leftHandSide, this.rightHandSide);
+    return this.pickNodes(this.vExpression);
   }
 }
