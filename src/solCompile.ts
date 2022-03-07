@@ -16,7 +16,6 @@ export function compileSolFile(file: string, printWarnings: boolean): AST {
   printErrors(result, printWarnings);
   const reader = new ASTReader();
   const sourceUnits = reader.read(result);
-  sourceUnits.forEach((s) => console.log(s.absolutePath));
   const compilerVersion = getCompilerVersion();
   assert(compilerVersion !== undefined, 'compileSol should return a defined compiler version');
   return new AST(sourceUnits, compilerVersion);
