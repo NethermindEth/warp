@@ -241,40 +241,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.documentation,
       node.raw,
     );
-  } else if (node instanceof Block) {
-    newNode = new Block(
-      replaceId(node, ast, remappedIds),
-      node.src,
-      'Block',
-      node.vStatements.map((v) => cloneASTNodeImpl(v, ast, remappedIds)),
-      node.documentation,
-      node.raw,
-    );
-  } else if (node instanceof IfStatement) {
-    newNode = new IfStatement(
-      replaceId(node, ast, remappedIds),
-      node.src,
-      'IfStatement',
-      cloneASTNodeImpl(node.vCondition, ast, remappedIds),
-      cloneASTNodeImpl(node.vTrueBody, ast, remappedIds),
-      node.vFalseBody ? cloneASTNodeImpl(node.vFalseBody, ast, remappedIds) : undefined,
-      node.documentation,
-      node.raw,
-    );
-  } else if (node instanceof Return) {
-    newNode = new Return(
-      replaceId(node.id, ast, remappedIds),
-      node.src,
-      'Return',
-      node.functionReturnParameters,
-      node.vExpression ? cloneASTNodeImpl(node.vExpression, ast, remappedIds) : undefined,
-      node.documentation,
-      node.raw,
-    );
-  } else if (node instanceof Break) {
-    newNode = cloneBreak(node, ast, remappedIds);
-  } else if (node instanceof Continue) {
-    newNode = cloneContinue(node, ast, remappedIds);
     // Resolvable
   } else if (node instanceof CairoFunctionDefinition) {
     newNode = new CairoFunctionDefinition(
