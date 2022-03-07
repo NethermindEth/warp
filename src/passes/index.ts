@@ -7,6 +7,7 @@ export * from './expressionSplitter';
 export * from './externImporter';
 export * from './identifierMangler';
 export * from './implicitConversionToExplicit';
+export * from './inheritanceInliner';
 export * from './intBoundCalculator';
 export * from './literalExpressionEvaluator/literalExpressionEvaluator';
 export * from './loopFunctionaliser';

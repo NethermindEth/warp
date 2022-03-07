@@ -18,7 +18,6 @@ export function compileSolFile(file: string, printWarnings: boolean): AST {
   const sourceUnits = reader.read(result);
   const compilerVersion = getCompilerVersion();
   assert(compilerVersion !== undefined, 'compileSol should return a defined compiler version');
-  // Reverse the list so that each AST can only depend on ASTs earlier in the list
   return new AST(sourceUnits, compilerVersion);
 }
 
