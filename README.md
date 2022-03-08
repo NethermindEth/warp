@@ -85,6 +85,12 @@ You can transpile your Solidity contracts with:
 warp transpile FILE_PATH CONTRACT_NAME
 ```
 
+To see the cairo output of the transpilation process:
+
+```
+warp transpile FILE_PATH CONTRACT_NAME --cairo-output
+```
+
 `CONTRACT_NAME` is the name of the primary contract (non-interface, non-library, non-abstract contract) that you wish to transpile
 
 To deploy the transpiled program to Starknet use:
