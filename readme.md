@@ -81,6 +81,6 @@ yarn test
 Contributions are welcome but please reach out to the team before attempting
 any large modifications to the source. You can get an overview of the project's
 progress on [our notion
-board](https://www.notion.so/nethermind/eab63c6df3f7442c8761bc65d7b45e82?v=d9efd18a8a9947e9b760f3959e43a4fc)
+board](https://nethermind.notion.site/eab63c6df3f7442c8761bc65d7b45e82?v=d9efd18a8a9947e9b760f3959e43a4fc)
 along with good starting issues and descriptions of the intended solutions for
 a number of others.
