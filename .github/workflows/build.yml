@@ -58,8 +58,8 @@ jobs:
       - name: Build warplib
         run: yarn warplib
 
-      #       - name: Test code compilation
-      #         run: make test_compilation
+      - name: Test code compilation
+        run: make test_compilation
 
       - name: Test code execution
         run: |
