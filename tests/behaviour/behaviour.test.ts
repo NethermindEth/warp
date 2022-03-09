@@ -133,9 +133,10 @@ describe('Deployed contracts have correct behaviour', function () {
                   expect(response.error_message.includes(error_message)).to.be.true;
               } else {
                 expect(response.threw, 'Function should not throw').to.be.false;
-                expect(response.return_data, 'Return data should match expectation').to.deep.equal(
-                  expectedResult,
-                );
+                expect(
+                  response.return_data,
+                  `Return data should match expectation for args ${inputs}`,
+                ).to.deep.equal(expectedResult);
               }
             }
           }

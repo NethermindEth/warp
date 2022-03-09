@@ -40,6 +40,10 @@ export function divmod(x: bigint, y: bigint): [BigInt, BigInt] {
   return [div, rem];
 }
 
+export function divmodBigInt(x: bigint, y: bigint): [bigint, bigint] {
+  return [x / y, x % y];
+}
+
 export function primitiveTypeToCairo(typeString: string): 'Uint256' | 'felt' {
   switch (typeString) {
     case 'uint':
@@ -375,4 +379,20 @@ export function groupBy<V, K>(arr: V[], groupFunc: (arg: V) => K): Map<K, Set<V>
     grouped.set(key, new Set([...s, v]));
   });
   return grouped;
+}
+
+export function bigintToTwosCompliment(val: bigint, width: number): bigint {
+  if (val >= 0n) {
+    // Non-negative values just need to be truncated to the given bitWidth
+    const bits = val.toString(2);
+    return BigInt(`0b${bits.slice(-width)}`);
+  } else {
+    // Negative values need to be converted to two's complement
+    // This is done by flipping the bits, adding one, and truncating
+    const absBits = (-val).toString(2);
+    const allBits = `${'0'.repeat(Math.max(width - absBits.length, 0))}${absBits}`;
+    const inverted = `0b${[...allBits].map((c) => (c === '0' ? '1' : '0')).join('')}`;
+    const twosComplement = (BigInt(inverted) + 1n).toString(2).slice(-width);
+    return BigInt(`0b${twosComplement}`);
+  }
 }

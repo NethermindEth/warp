@@ -58,7 +58,13 @@ bin/warp analyse example_contracts/ERC20.sol
 The old tests check for successfully compiling cairo code
 The new tests check for correctly running cairo code
 
-First, in a separate terminal, start a starknet-testnet server:
+First run the setup script:
+
+```bash
+tests/behaviour/setup.sh
+```
+
+Second, in a separate terminal, start a starknet-testnet server:
 
 ```bash
 yarn testnet
