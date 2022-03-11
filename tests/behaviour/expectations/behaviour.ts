@@ -217,6 +217,108 @@ export const expectations = flatten(
             ),
           ]),
         ]),
+        new Dir('external_input_checks', [
+          File.Simple('external_input_checks', [
+            new Expect('testing solidity pure public signed int8 lower bound', [
+              ['testInt8', ['0'], ['0'], '0'],
+            ]),
+            new Expect('testing solidity pure public signed int8 upper bound', [
+              ['testInt8', ['255'], ['255'], '0'],
+            ]),
+            new Expect('testing solidity pure public signed int8 overflow', [
+              [
+                'testInt8',
+                ['256'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Value must be less than 2**8',
+              ],
+            ]),
+            new Expect('testing solidity pure external signed int8 overflow', [
+              [
+                'testInt8External',
+                ['256'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Value must be less than 2**8',
+              ],
+            ]),
+            new Expect('testing solidity pure public unsigned int32 overflow', [
+              [
+                'testUint32',
+                ['4294967296'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Value must be less than 2**32',
+              ],
+            ]),
+            new Expect('testing solidity unsigned view public int32 in upper bound', [
+              ['testUint32', ['4294967295'], ['4294967295'], '0'],
+            ]),
+            new Expect('testing solidity signed int248 upper bound', [
+              [
+                'testInt248',
+                ['452312848583266388373324160190187140051835877600158453279131187530910662655'],
+                ['452312848583266388373324160190187140051835877600158453279131187530910662655'],
+                '0',
+              ],
+            ]),
+            new Expect('testing soldity unsigned int248 overflow', [
+              [
+                'testInt248',
+                ['452312848583266388373324160190187140051835877600158453279131187530910662656'],
+                null,
+                '0',
+              ],
+            ]),
+            new Expect('testing solidity unsigned int256 in bounds', [
+              [
+                'testInt256',
+                ['0', '340282366920938463463374607431768211455'],
+                ['0', '340282366920938463463374607431768211455'],
+                '0',
+              ],
+            ]),
+            new Expect('testing soldity unsigned int256 in bounds', [
+              [
+                'testInt256',
+                ['340282366920938463463374607431768211455', '0'],
+                ['340282366920938463463374607431768211455', '0'],
+                '0',
+              ],
+            ]),
+            new Expect('testing solidity unsigned int256 lower out of bounds', [
+              [
+                'testInt256',
+                ['0', '340282366920938463463374607431768211456'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128.',
+              ],
+            ]),
+            new Expect('testing solidity unsigned int256 high out of bounds', [
+              [
+                'testInt256',
+                ['340282366920938463463374607431768211456', '0'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128.',
+              ],
+            ]),
+            new Expect('testing solidity unsigned int256 lower and high out of bounds', [
+              [
+                'testInt256',
+                [
+                  '340282366920938463463374607431768211456',
+                  '340282366920938463463374607431768211456',
+                ],
+                null,
+                '0',
+                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128.',
+              ],
+            ]),
+          ]),
+        ]),
         new Dir('inheritance', [
           new Dir('functions', [
             new File('base', 'Base', [Expect.Simple('g', ['3'], ['3'])]),

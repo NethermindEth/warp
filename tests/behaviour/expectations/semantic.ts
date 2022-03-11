@@ -64,7 +64,6 @@ const uint128 = BigInt('0x100000000000000000000000000000000');
 
 // ----------------------- Gather all the tests ------------------------------
 // This could benefit from some parallelism
-// This needs to be a reduce instead of filter because of the type system
 function isValidTestName(testFileName: string) {
   let file = testFileName;
   while (file !== '.' && file !== '/') {
@@ -73,6 +72,7 @@ function isValidTestName(testFileName: string) {
   }
   return false;
 }
+// This needs to be a reduce instead of filter because of the type system
 const validTests = Object.entries(tests).reduce(
   (tests: [string, ITestCalldata[]][], [f, v]) =>
     v !== null && isValidTestName(f) ? tests.concat([[f, v]]) : tests,
@@ -82,6 +82,9 @@ const validTests = Object.entries(tests).reduce(
 // ------------------------ Export the tests ---------------------------------
 
 export const expectations: File[] = validTests.map(([file, tests]) => {
+  // The solidity test dsl assumes the last contract defined in the file is
+  // the target of the function calls. solc-typed-ast sorts the contracts
+  // so we need to do a dumb regex to find the right contract
   const contractNames = [...readFileSync(file, 'utf-8').matchAll(/contract (\w+)/g)].map(
     ([_, name]) => name,
   );
@@ -100,10 +103,6 @@ function transcodeTests(
   expectations: ITestCalldata[],
   lastContract: string,
 ): Expect[] {
-  // The solidity test dsl assumes the last contract defined in the file is
-  // the target of the function calls. solc-typed-ast sorts the contracts
-  // so we need to do a dumb regex to find the right contract
-
   // Get the abi of the contract for web3
   const source = compileSol(file, 'auto', []);
   const contracts: { [key: string]: { abi: FunABI[] } } = source.data.contracts[file];
@@ -152,13 +151,15 @@ function transcodeTest(
     throw new InvalidTestError(
       `No function definition found for test case ${signature} in the ast.\n` +
         `Defined functions:\n` +
-        `\t${defs.map((d) =>
-          d instanceof FunctionDefinition
-            ? d.canonicalSignature(ABIEncoderVersion.V2)
-            : d instanceof VariableDeclaration
-            ? d.getterCanonicalSignature(ABIEncoderVersion.V2)
-            : '',
-        )}`,
+        `\t${defs.map((d) => {
+          if (d instanceof FunctionDefinition) {
+            return d.canonicalSignature(ABIEncoderVersion.V2);
+          }
+          if (d instanceof VariableDeclaration) {
+            return d.getterCanonicalSignature(ABIEncoderVersion.V2);
+          }
+          return `Unknown def ${d}`;
+        })}`,
     );
   }
   if (defs.length > 1) {
@@ -191,7 +192,7 @@ function transcodeTest(
 
   const inputTypeNodes =
     funcDef instanceof FunctionDefinition
-      ? funcDef.vParameters.vParameters.map((cd) => getNodeType(cd, 'compilerVersion'))
+      ? funcDef.vParameters.vParameters.map((cd) => getNodeType(cd, compilerVersion))
       : funcDef.getterFunType().parameters;
   const outputTypeNodes =
     funcDef instanceof FunctionDefinition
