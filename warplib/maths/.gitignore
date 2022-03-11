@@ -48,3 +48,6 @@ bitwise_not.cairo
 // ---conversions---
 
 int_conversions.cairo
+
+// ---external-input-input-checks---
+external_input_checks.cairo
