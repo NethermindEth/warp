@@ -6,14 +6,11 @@ import { CairoUtilFuncGenBase, CairoFunction, add } from './base';
 import { serialiseReads } from './serialisation';
 
 export class StorageReadGen extends CairoUtilFuncGenBase {
-  private generatedStorageReads: Map<string, CairoFunction> = new Map();
+  private generatedFunctions: Map<string, CairoFunction> = new Map();
 
-  // Concatenate all the generated cairo code into a single string
   getGeneratedCode(): string {
-    return [...this.generatedStorageReads.values()].map((func) => func.code).join('\n\n');
+    return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
   }
-
-  //----------------public solidity function call generators-------------------
 
   gen(storageLocation: Expression, type: TypeName, nodeInSourceUnit?: ASTNode): FunctionCall {
     const valueType = getNodeType(storageLocation, this.ast.compilerVersion);
@@ -29,7 +26,6 @@ export class StorageReadGen extends CairoUtilFuncGenBase {
       [['val', cloneASTNode(type, this.ast)]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
-      // TODO add optional source unit parameter to all other methods
       nodeInSourceUnit ?? storageLocation,
     );
     return createCallToStub(functionStub, [storageLocation], this.ast);
@@ -37,15 +33,15 @@ export class StorageReadGen extends CairoUtilFuncGenBase {
 
   private getOrCreate(typeToRead: CairoType): string {
     const key = typeToRead.fullStringRepresentation;
-    const existing = this.generatedStorageReads.get(key);
+    const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
     }
 
-    const funcName = `WS${this.generatedStorageReads.size}_READ_${typeToRead.typeName}`;
+    const funcName = `WS${this.generatedFunctions.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
     const [reads, pack] = serialiseReads(typeToRead, readFelt, readId);
-    this.generatedStorageReads.set(key, {
+    this.generatedFunctions.set(key, {
       name: funcName,
       code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) ->(val: ${resultCairoType}):`,

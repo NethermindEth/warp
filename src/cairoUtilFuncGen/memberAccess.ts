@@ -16,11 +16,10 @@ import { CairoUtilFuncGenBase, CairoFunction, add } from './base';
 
 export class MemberAccessGen extends CairoUtilFuncGenBase {
   // cairoType -> property name -> code
-  private generatedStorageStructMemberAccesses: Map<string, Map<string, CairoFunction>> = new Map();
+  private generatedFunctions: Map<string, Map<string, CairoFunction>> = new Map();
 
-  // Concatenate all the generated cairo code into a single string
   getGeneratedCode(): string {
-    return [...this.generatedStorageStructMemberAccesses.values()]
+    return [...this.generatedFunctions.values()]
       .flatMap((map) => [...map.values()])
       .map((cairoMapping) => cairoMapping.code)
       .join('\n\n');
@@ -53,7 +52,7 @@ export class MemberAccessGen extends CairoUtilFuncGenBase {
 
   private getOrCreate(structCairoType: CairoType, memberName: string): string {
     const existingMemberAccesses =
-      this.generatedStorageStructMemberAccesses.get(structCairoType.fullStringRepresentation) ??
+      this.generatedFunctions.get(structCairoType.fullStringRepresentation) ??
       new Map<string, CairoFunction>();
     const existing = existingMemberAccesses.get(memberName);
     if (existing !== undefined) {
@@ -68,7 +67,7 @@ export class MemberAccessGen extends CairoUtilFuncGenBase {
 
     const offset = structCairoType.offsetOf(memberName);
     const funcName = `MEMBER${countNestedMapItems(
-      this.generatedStorageStructMemberAccesses,
+      this.generatedFunctions,
     )}_${structName}_${memberName}`;
 
     existingMemberAccesses.set(memberName, {
@@ -80,10 +79,7 @@ export class MemberAccessGen extends CairoUtilFuncGenBase {
       ].join('\n'),
     });
 
-    this.generatedStorageStructMemberAccesses.set(
-      structCairoType.fullStringRepresentation,
-      existingMemberAccesses,
-    );
+    this.generatedFunctions.set(structCairoType.fullStringRepresentation, existingMemberAccesses);
     return funcName;
   }
 }

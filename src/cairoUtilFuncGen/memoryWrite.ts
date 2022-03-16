@@ -9,11 +9,10 @@ import { CairoFunction, CairoUtilFuncGenBase } from './base';
 
 export class MemoryWriteGen extends CairoUtilFuncGenBase {
   // writeType -> code
-  private generatedMemoryWrites: Map<string, CairoFunction> = new Map();
+  private generatedFunctions: Map<string, CairoFunction> = new Map();
 
-  // Concatenate all the generated cairo code into a single string
   getGeneratedCode(): string {
-    return [...this.generatedMemoryWrites.values()].map((func) => func.code).join('\n\n');
+    return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
   }
 
   gen(indexAccess: IndexAccess, writeValue: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
@@ -50,15 +49,15 @@ export class MemoryWriteGen extends CairoUtilFuncGenBase {
 
   private getOrCreate(assignedCairoType: CairoType): string {
     const key = assignedCairoType.fullStringRepresentation;
-    const existing = this.generatedMemoryWrites.get(key);
+    const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
     }
 
-    const name = `WM_WRITE${this.generatedMemoryWrites.size}`;
+    const name = `WM_WRITE${this.generatedFunctions.size}`;
     const valueTypeString = assignedCairoType.toString();
     const width = assignedCairoType.width;
-    this.generatedMemoryWrites.set(key, {
+    this.generatedFunctions.set(key, {
       name,
       code: [
         `func ${name}{range_check_ptr, warp_memory: MemCell*}(name: felt, index: Uint256, value: ${valueTypeString}) -> (val: ${valueTypeString}):`,

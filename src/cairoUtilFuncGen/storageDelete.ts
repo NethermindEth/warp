@@ -7,7 +7,6 @@ import { add, CairoFunction, CairoUtilFuncGenBase } from './base';
 export class StorageDeleteGen extends CairoUtilFuncGenBase {
   private generatedFunctions: Map<string, CairoFunction> = new Map();
 
-  // Concatenate all the generated cairo code into a single string
   getGeneratedCode(): string {
     return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
   }

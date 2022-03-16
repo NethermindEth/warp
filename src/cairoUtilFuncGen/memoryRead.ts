@@ -9,11 +9,11 @@ import { serialiseReads } from './serialisation';
 
 export class MemoryReadGen extends CairoUtilFuncGenBase {
   // readType -> code
-  private generatedMemoryReads: Map<string, CairoFunction> = new Map();
+  private generatedFunctions: Map<string, CairoFunction> = new Map();
 
   // Concatenate all the generated cairo code into a single string
   getGeneratedCode(): string {
-    return [...this.generatedMemoryReads.values()].map((func) => func.code).join('\n\n');
+    return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
   }
 
   gen(indexAccess: IndexAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
@@ -46,17 +46,17 @@ export class MemoryReadGen extends CairoUtilFuncGenBase {
 
   private getOrCreate(typeToRead: CairoType): string {
     const key = typeToRead.fullStringRepresentation;
-    const existing = this.generatedMemoryReads.get(key);
+    const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
     }
 
-    const funcName = `WM_READ${this.generatedMemoryReads.size}`;
+    const funcName = `WM_READ${this.generatedFunctions.size}`;
     // TODO check whether IDs are needed to be separate from felts in memory
     const readFunc = readFelt(typeToRead.width);
     const [reads, pack] = serialiseReads(typeToRead, readFunc, readFunc);
     const resultCairoType = typeToRead.toString();
-    this.generatedMemoryReads.set(key, {
+    this.generatedFunctions.set(key, {
       name: funcName,
       code: [
         `func ${funcName}{range_check_ptr, warp_memory: MemCell*}(name: felt, offset: Uint256) ->(val: ${resultCairoType}):`,

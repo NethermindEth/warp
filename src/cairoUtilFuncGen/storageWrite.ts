@@ -6,11 +6,10 @@ import { typeNameFromTypeNode } from '../utils/utils';
 import { add, CairoFunction, CairoUtilFuncGenBase } from './base';
 
 export class StorageWriteGen extends CairoUtilFuncGenBase {
-  private generatedStorageWrites: Map<string, CairoFunction> = new Map();
+  private generatedFunctions: Map<string, CairoFunction> = new Map();
 
-  // Concatenate all the generated cairo code into a single string
   getGeneratedCode(): string {
-    return [...this.generatedStorageWrites.values()].map((func) => func.code).join('\n\n');
+    return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
   }
 
   gen(
@@ -42,14 +41,14 @@ export class StorageWriteGen extends CairoUtilFuncGenBase {
       TypeConversionContext.StorageAllocation,
     );
     const key = cairoTypeToWrite.fullStringRepresentation;
-    const existing = this.generatedStorageWrites.get(key);
+    const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
     }
 
     const cairoTypeString = cairoTypeToWrite.toString();
-    const funcName = `WS_WRITE${this.generatedStorageWrites.size}`;
-    this.generatedStorageWrites.set(key, {
+    const funcName = `WS_WRITE${this.generatedFunctions.size}`;
+    this.generatedFunctions.set(key, {
       name: funcName,
       code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt, value: ${cairoTypeString}) -> (res: ${cairoTypeString}):`,

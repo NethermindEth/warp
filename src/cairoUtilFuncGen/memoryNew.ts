@@ -12,11 +12,10 @@ import { CairoFunction, CairoUtilFuncGenBase } from './base';
 
 export class MemoryNewGen extends CairoUtilFuncGenBase {
   // element cairoType -> code
-  private generatedNews: Map<string, CairoFunction> = new Map();
+  private generatedFunctions: Map<string, CairoFunction> = new Map();
 
-  // Concatenate all the generated cairo code into a single string
   getGeneratedCode(): string {
-    return [...this.generatedNews.values()].map((func) => func.code).join('\n\n');
+    return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
   }
 
   gen(len: Expression, arrayType: ArrayTypeName, nodeInSourceUnit?: ASTNode): FunctionCall {
@@ -35,13 +34,13 @@ export class MemoryNewGen extends CairoUtilFuncGenBase {
 
   private getOrCreate(elementType: CairoType): string {
     const key = elementType.fullStringRepresentation;
-    const existing = this.generatedNews.get(key);
+    const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
     }
 
-    const name = `WM_NEW${this.generatedNews.size}`;
-    this.generatedNews.set(key, {
+    const name = `WM_NEW${this.generatedFunctions.size}`;
+    this.generatedFunctions.set(key, {
       name,
       code: [
         `func ${name}{range_check_ptr, warp_memory: MemCell*}(len: Uint256) -> (name: felt):`,
