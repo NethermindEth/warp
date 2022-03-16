@@ -1,5 +1,4 @@
 import assert = require('assert');
-import axios, { AxiosResponse } from 'axios';
 import { exec } from 'child_process';
 import * as fs from 'fs';
 
@@ -13,31 +12,6 @@ export async function sh(cmd: string): Promise<{ stdout: string; stderr: string 
       }
     });
   });
-}
-
-export async function starknet_invoke(
-  address: string,
-  functionName: string,
-  inputs: string[],
-  cairo_contract: string,
-  program_info: string,
-): Promise<AxiosResponse<any, any>> {
-  const response = await axios.post('http://localhost:5000/gateway/add_transaction', {
-    tx_type: 'invoke',
-    address: address,
-    function: functionName,
-    cairo_contract: cairo_contract,
-    program_info: program_info,
-    input: inputs,
-  });
-  return response;
-}
-
-export function initialiseArtifactsDirectory() {
-  if (fs.existsSync('tests/artifacts')) {
-    fs.rmdirSync('tests/artifacts', { recursive: true });
-  }
-  fs.mkdirSync('tests/artifacts');
 }
 
 export function transpile(contractPath: string) {

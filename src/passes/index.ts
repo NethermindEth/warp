@@ -16,7 +16,7 @@ export * from './rejectUnsupportedFeatures';
 export * from './returnInserter';
 export * from './sourceUnitSplitter';
 export * from './storageAllocator';
-export * from './storageVariableAccessRewriter';
+export * from './storage';
 export * from './tupleAssignmentSplitter';
 export * from './uint256Importer';
 export * from './unloadingAssignment';

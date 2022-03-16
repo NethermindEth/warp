@@ -8,7 +8,10 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
+import { TranspileFailedError } from '../utils/errors';
+import { createEmptyTuple } from '../utils/nodeTemplates';
 import { counterGenerator } from '../utils/utils';
 
 function* expressionGenerator(prefix: string): Generator<string, string, unknown> {
@@ -47,16 +50,26 @@ export class ExpressionSplitter extends ASTMapper {
     }
 
     const returnTypes = node.vReferencedDeclaration.vReturnParameters.vParameters;
-    assert(
-      returnTypes.length === 1,
-      `Expected ${node.vReferencedDeclaration.name} to have only 1 return type`,
-    );
-
-    assert(
-      returnTypes[0].vType !== undefined,
-      'Return types should not be undefined since solidity 0.5.0',
-    );
-
-    ast.extractToConstant(node, cloneASTNode(returnTypes[0].vType, ast), this.eGen.next().value);
+    if (returnTypes.length === 0) {
+      const parent = node.parent;
+      assert(parent !== undefined, `${printNode(node)} ${node.vFunctionName} has no parent`);
+      ast.replaceNode(node, createEmptyTuple(ast));
+      ast.insertStatementBefore(
+        parent,
+        new ExpressionStatement(ast.reserveId(), '', 'ExpressionStatement', node),
+      );
+    } else if (returnTypes.length === 1) {
+      assert(
+        returnTypes[0].vType !== undefined,
+        'Return types should not be undefined since solidity 0.5.0',
+      );
+      ast.extractToConstant(node, cloneASTNode(returnTypes[0].vType, ast), this.eGen.next().value);
+    } else {
+      throw new TranspileFailedError(
+        `ExpressionSplitter expects functions to have at most 1 return argument. ${printNode(
+          node,
+        )} ${node.vFunctionName} has ${returnTypes.length}`,
+      );
+    }
   }
 }

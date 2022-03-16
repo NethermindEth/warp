@@ -15,7 +15,7 @@ import { AST } from '../../ast/ast';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { ASTMapper } from '../../ast/mapper';
 import { NotSupportedYetError } from '../../utils/errors';
-import { bigintToTwosCompliment, toHexString } from '../../utils/utils';
+import { bigintToTwosComplement, toHexString } from '../../utils/utils';
 import { functionaliseIntConversion } from '../../warplib/implementations/conversions/int';
 
 export class ExplicitConversionToFunc extends ASTMapper {
@@ -67,7 +67,7 @@ function literalToTypedInt(arg: Expression, typeTo: IntType): Expression {
     `Found non-literal ${printNode(arg)} to have literal type ${arg.typeString}`,
   );
 
-  const truncated = bigintToTwosCompliment(BigInt(arg.value), typeTo.nBits).toString(10);
+  const truncated = bigintToTwosComplement(BigInt(arg.value), typeTo.nBits).toString(10);
 
   arg.value = truncated;
   arg.hexValue = toHexString(truncated);

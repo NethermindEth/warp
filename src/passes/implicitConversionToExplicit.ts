@@ -1,5 +1,6 @@
 import assert = require('assert');
 import {
+  ArrayType,
   Assignment,
   BinaryOperation,
   ElementaryTypeName,
@@ -11,13 +12,18 @@ import {
   getNodeType,
   PointerType,
   Return,
+  StructDefinition,
+  TypeNameType,
+  TypeNode,
+  UserDefinedType,
   UserDefinedTypeName,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { printNode } from '../utils/astPrinter';
+import { printNode, printTypeNode } from '../utils/astPrinter';
 import { NotSupportedYetError } from '../utils/errors';
+import { error } from '../utils/formatting';
 import { compareTypeSize, dereferenceType, getDeclaredTypeString } from '../utils/utils';
 
 // TODO conclusively handle all edge cases
@@ -178,7 +184,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       initialValType instanceof PointerType &&
       initialValType.location === declaration.storageLocation
     ) {
-      if (compareTypeSize(declarationType, initialValType.to) !== 0) {
+      if (compareTypeSize(declarationType, initialValType) !== 0) {
         throw new NotSupportedYetError(
           `${initialValType.pp()} to ${declarationType.pp()} (${
             declaration.storageLocation
@@ -203,6 +209,9 @@ export class ImplicitConversionToExplicit extends ASTMapper {
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
+    if (node.fieldNames !== undefined) {
+      throw new NotSupportedYetError(`Functions with named arguments are not supported yet`);
+    }
     this.commonVisit(node, ast);
 
     if (
@@ -213,40 +222,80 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     }
 
     if (node.kind === FunctionCallKind.StructConstructorCall) {
-      if (node.vArguments.length === 0) return;
-      throw new NotSupportedYetError(
-        'Implicit conversion to explicit not supported yet for struct constructor arguments',
-      );
+      this.visitStructConstructorArguments(node, ast);
+    } else {
+      this.visitFunctionCallArguments(node, ast);
     }
+  }
 
+  visitStructConstructorArguments(node: FunctionCall, ast: AST): void {
+    const structType = getNodeType(node.vExpression, ast.compilerVersion);
+    assert(
+      structType instanceof TypeNameType &&
+        structType.type instanceof PointerType &&
+        structType.type.to instanceof UserDefinedType,
+      error(
+        `TypeNode for ${printNode(
+          node.vExpression,
+        )} was expected to be a TypeNameType(PointerType(UserDefinedType, storage)), got ${printTypeNode(
+          structType,
+          true,
+        )}`,
+      ),
+    );
+    const structDef = structType.type.to.definition;
+    assert(structDef instanceof StructDefinition);
+    const parameters = structDef.vMembers;
+    node.vArguments.forEach((arg, idx) =>
+      this.processArgumentConversion(
+        node,
+        getNodeType(parameters[idx], ast.compilerVersion),
+        arg,
+        ast,
+      ),
+    );
+  }
+
+  visitFunctionCallArguments(node: FunctionCall, ast: AST): void {
     const functionType = getNodeType(node.vExpression, ast.compilerVersion);
     assert(
       functionType instanceof FunctionType,
-      `TypeNode for ${printNode(node.vExpression)} was expected to be a FunctionType, got ${
-        functionType.constructor.name
-      }`,
+      error(
+        `TypeNode for ${printNode(
+          node.vExpression,
+        )} was expected to be a FunctionType, got ${printTypeNode(functionType, true)}`,
+      ),
     );
 
     const parameters = functionType.parameters;
 
-    //Ignore any arguments prepended by AddressArgumentPusher
-    node.vArguments.slice(-parameters.length).forEach((argument, index) => {
-      const argumentType = dereferenceType(getNodeType(argument, ast.compilerVersion));
-      const nonPtrParamType = dereferenceType(parameters[index]);
+    node.vArguments.forEach((arg, idx) =>
+      this.processArgumentConversion(node, parameters[idx], arg, ast),
+    );
+  }
 
-      // Skip enums - implicit conversion is not allowed
-      if (nonPtrParamType.pp().startsWith('enum ')) {
-        return;
-      }
+  processArgumentConversion(
+    func: FunctionCall,
+    paramType: TypeNode,
+    arg: Expression,
+    ast: AST,
+  ): void {
+    const rawArgType = getNodeType(arg, ast.compilerVersion);
+    if (rawArgType instanceof PointerType || rawArgType instanceof ArrayType) {
+      // TODO do this properly when implementing storage <-> memory
+      return;
+    }
+    const argumentType = dereferenceType(rawArgType);
+    const nonPtrParamType = dereferenceType(paramType);
 
-      const res = compareTypeSize(argumentType, nonPtrParamType);
-      if (res !== 0) {
-        ast.replaceNode(
-          argument,
-          this.generateExplicitConversion(parameters[index].pp(), argument, ast),
-          node,
-        );
-      }
-    });
+    // Skip enums - implicit conversion is not allowed
+    if (nonPtrParamType.pp().startsWith('enum ')) {
+      return;
+    }
+
+    const res = compareTypeSize(argumentType, nonPtrParamType);
+    if (res !== 0) {
+      ast.replaceNode(arg, this.generateExplicitConversion(paramType.pp(), arg, ast), func);
+    }
   }
 }

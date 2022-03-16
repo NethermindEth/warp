@@ -1,6 +1,6 @@
 import { InvalidArgumentError } from 'commander';
 import { ASTMapper } from '../ast/mapper';
-import { error } from './errors';
+import { error } from './formatting';
 
 export function parsePassOrder(
   order: string | undefined,

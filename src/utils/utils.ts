@@ -12,6 +12,7 @@ import {
   EtherUnit,
   FunctionDefinition,
   FunctionVisibility,
+  IdentifierPath,
   IntLiteralType,
   IntType,
   Literal,
@@ -23,6 +24,7 @@ import {
   TypeName,
   TypeNode,
   UserDefinedType,
+  UserDefinedTypeName,
   VariableDeclarationStatement,
   getNodeType,
   StringLiteralType,
@@ -38,10 +40,6 @@ export function divmod(x: bigint, y: bigint): [BigInt, BigInt] {
   const div: BigInt = BigInt(x / y);
   const rem: BigInt = BigInt(x % y);
   return [div, rem];
-}
-
-export function divmodBigInt(x: bigint, y: bigint): [bigint, bigint] {
-  return [x / y, x % y];
 }
 
 export function primitiveTypeToCairo(typeString: string): 'Uint256' | 'felt' {
@@ -293,13 +291,31 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
   } else if (node instanceof PointerType) {
     result = typeNameFromTypeNode(node.to, ast);
   } else if (node instanceof MappingType) {
+    const key = typeNameFromTypeNode(node.keyType, ast);
+    const value = typeNameFromTypeNode(node.valueType, ast);
     result = new Mapping(
       ast.reserveId(),
       '',
       'Mapping',
+      `mapping(${key.typeString} => ${value.typeString})`,
+      key,
+      value,
+    );
+  } else if (node instanceof UserDefinedType) {
+    return new UserDefinedTypeName(
+      ast.reserveId(),
+      '',
+      'UserDefinedTypeName',
       node.pp(),
-      typeNameFromTypeNode(node.keyType, ast),
-      typeNameFromTypeNode(node.valueType, ast),
+      node.definition.name,
+      node.definition.id,
+      new IdentifierPath(
+        ast.reserveId(),
+        '',
+        'IdentifierPath',
+        node.definition.name,
+        node.definition.id,
+      ),
     );
   }
 
@@ -334,7 +350,7 @@ export function getFunctionTypeString(node: FunctionDefinition, compilerVersion:
     node.vReturnParameters.vParameters.length === 0
       ? ''
       : `returns (${node.vReturnParameters.vParameters.map((decl) => decl.typeString).join(', ')})`;
-  return `function (${inputs})${visibility}${node.stateMutability} ${outputs}`;
+  return `function (${inputs})${visibility} ${node.stateMutability} ${outputs}`;
 }
 
 export function getReturnTypeString(node: FunctionDefinition): string {
@@ -358,17 +374,15 @@ export function dereferenceType(typeNode: TypeNode): TypeNode {
   return typeNode;
 }
 
-export function mergeImports(
-  a: Map<string, Set<string>>,
-  b: Map<string, Set<string>>,
-): Map<string, Set<string>> {
-  const mergedImports: Map<string, Set<string>> = a;
-  b.forEach((importedSymbols, location) => {
-    const acc = mergedImports.get(location) ?? new Set<string>();
-    importedSymbols.forEach((s) => acc.add(s));
-    mergedImports.set(location, acc);
-  });
-  return mergedImports;
+export function mergeImports(...maps: Map<string, Set<string>>[]): Map<string, Set<string>> {
+  return maps.reduce((acc, curr) => {
+    curr.forEach((importedSymbols, location) => {
+      const accSet = acc.get(location) ?? new Set<string>();
+      importedSymbols.forEach((s) => accSet.add(s));
+      acc.set(location, accSet);
+    });
+    return acc;
+  }, new Map<string, Set<string>>());
 }
 
 export function groupBy<V, K>(arr: V[], groupFunc: (arg: V) => K): Map<K, Set<V>> {
@@ -381,7 +395,11 @@ export function groupBy<V, K>(arr: V[], groupFunc: (arg: V) => K): Map<K, Set<V>
   return grouped;
 }
 
-export function bigintToTwosCompliment(val: bigint, width: number): bigint {
+export function countNestedMapItems(map: Map<unknown, Map<unknown, unknown>>): number {
+  return [...map.values()].reduce((acc, curr) => acc + curr.size, 0);
+}
+
+export function bigintToTwosComplement(val: bigint, width: number): bigint {
   if (val >= 0n) {
     // Non-negative values just need to be truncated to the given bitWidth
     const bits = val.toString(2);

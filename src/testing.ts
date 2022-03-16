@@ -7,10 +7,10 @@ import {
   NotSupportedYetError,
   TranspilationAbandonedError,
   WillNotSupportError,
-  error,
 } from './utils/errors';
 import { groupBy, printCompileErrors } from './utils/utils';
 import * as fs from 'fs';
+import { error } from './utils/formatting';
 
 type ResultType =
   | 'CairoCompileFailed'

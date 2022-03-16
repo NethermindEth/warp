@@ -58,21 +58,6 @@ export class AST {
     this.imports.set(newNode, newNodeImports);
   }
 
-  getUtilFuncGen(node: ASTNode): CairoUtilFuncGen {
-    const sourceUnit = node instanceof SourceUnit ? node : node.getClosestParentByType(SourceUnit);
-    assert(
-      sourceUnit !== undefined,
-      'Could not find the sourceUnit to attach the nodes generated functions to',
-    );
-    const gen = this.cairoUtilFuncGen.get(sourceUnit.id);
-    if (gen === undefined) {
-      const newGen = new CairoUtilFuncGen(this);
-      this.cairoUtilFuncGen.set(sourceUnit.id, newGen);
-      return newGen;
-    }
-    return gen;
-  }
-
   extractToConstant(node: Expression, vType: TypeName, newName: string): Identifier {
     const scope = this.getContainingScope(node);
     const replacementVariable = new VariableDeclaration(
@@ -115,6 +100,19 @@ export class AST {
     return replacementIdentifer;
   }
 
+  getContainingRoot(node: ASTNode): SourceUnit {
+    if (node instanceof SourceUnit) return node;
+
+    const root = node.getClosestParentByType(SourceUnit);
+    assert(root !== undefined, `Could not find root source unit for ${printNode(node)}`);
+    assert(
+      this.roots.includes(root),
+      `Found ${printNode(root)} as root of ${printNode(node)}, but this is not in the AST roots`,
+    );
+
+    return root;
+  }
+
   getContainingScope(node: ASTNode): number {
     const scope = node.getClosestParentBySelector(
       (node) => node instanceof Block || node instanceof UncheckedBlock,
@@ -144,8 +142,23 @@ export class AST {
     const reachableNodeImports = sourceUnit
       .getChildren(true)
       .map((node) => this.imports.get(node) ?? new Map<string, Set<string>>());
-    const utilFunctionImports = this.getUtilFuncGen(sourceUnit)?.imports;
-    return reachableNodeImports.reduce(mergeImports, utilFunctionImports);
+    const utilFunctionImports = this.getUtilFuncGen(sourceUnit)?.getImports();
+    return mergeImports(utilFunctionImports, ...reachableNodeImports);
+  }
+
+  getUtilFuncGen(node: ASTNode): CairoUtilFuncGen {
+    const sourceUnit = node instanceof SourceUnit ? node : node.getClosestParentByType(SourceUnit);
+    assert(
+      sourceUnit !== undefined,
+      'Could not find the sourceUnit to attach the nodes generated functions to',
+    );
+    const gen = this.cairoUtilFuncGen.get(sourceUnit.id);
+    if (gen === undefined) {
+      const newGen = new CairoUtilFuncGen(this);
+      this.cairoUtilFuncGen.set(sourceUnit.id, newGen);
+      return newGen;
+    }
+    return gen;
   }
 
   insertStatementAfter(existingNode: ASTNode, newStatement: Statement) {
@@ -298,7 +311,7 @@ export class AST {
   ): number;
   replaceNode(oldNode: ASTNode, newNode: ASTNode, parent?: ASTNode, copyImports = false): number {
     if (oldNode === newNode) {
-      console.log('WARNING: Attempted to replace node with itself');
+      console.log(`WARNING: Attempted to replace node ${printNode(oldNode)} with itself`);
       return oldNode.id;
     }
     if (parent === undefined) {
@@ -313,6 +326,10 @@ export class AST {
         }
         oldNode.parent = undefined;
       }
+    } else if (newNode.getChildren(true).includes(parent)) {
+      throw new TranspileFailedError(
+        `Attempted to insert a subtree containing the given parent node ${printNode(parent)}`,
+      );
     }
 
     replaceNode(oldNode, newNode, parent);

@@ -18,6 +18,7 @@ export class MsgSender extends ASTMapper {
           [['address', createAddressNonPayableTypeName(ast)]],
           ['syscall_ptr'],
           ast,
+          node,
         ),
         [],
         ast,
