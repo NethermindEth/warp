@@ -26,9 +26,6 @@ export * from './unreachableStatementPruner';
 export * from './usingForResolver';
 export * from './variableDeclarationExpressionSplitter';
 export * from './variableDeclarationInitialiser';
-<<<<<<< HEAD
 export * from './generateGetters';
 export * from './namedArgsRemover';
-=======
-export * from './gettersPublicStateVars';
->>>>>>> Fixed returnInserter and added ReturnInitializer
+

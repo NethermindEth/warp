@@ -3,11 +3,11 @@ pragma solidity ^0.8.6;
 
 contract WARP {
     
-    function test1(uint8 a) pure public returns (uint8 ) {
+    function default_returnInsert(uint8 a) pure public returns (uint8 ) {
         a++;
     }
 
-    function test2(uint8 x) pure public returns (uint8) {
+    function condition_returnInsert(uint8 x) pure public returns (uint8) {
         if (x == 1) {
             return ++x;
         } else if (x == 2){
@@ -17,7 +17,7 @@ contract WARP {
         }
     }
 
-    function test3(uint a) pure public {
+    function revert_returnInserter(uint a) pure public {
         if (a == 1) {
             return revert();
         } else {
@@ -25,20 +25,16 @@ contract WARP {
         }
     }
 
-    function test4(uint a) pure public returns(uint){
+    function conditions_no_returnInsert(uint8 a) pure public returns(uint8){
         if (a == 1) {
-            return a++;
+            return ++a;
         } else {
             return a;
         }
     }
 
-    function test5(uint8 x, uint8 y) pure public returns (uint8 z) {
+    function returnInsert_with_require(uint8 x, uint8 y) pure public returns (uint8 z) {
         require((z = x + y) >= x);
     }
-
-    function test6(uint256 x, uint256 y) pure public returns (uint256 z) {
-        require((z = x - y) <= x);
-    }   
 
 }
