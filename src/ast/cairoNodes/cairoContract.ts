@@ -9,6 +9,7 @@ import {
 // TODO merge initialisationBlock with the constructor if there is one, or add one if not
 export class CairoContract extends ContractDefinition {
   storageAllocations: Map<VariableDeclaration, number>;
+  usedStorage: number;
 
   constructor(
     id: number,
@@ -22,6 +23,7 @@ export class CairoContract extends ContractDefinition {
     linearizedBaseContracts: number[],
     usedErrors: number[],
     storageAllocations: Map<VariableDeclaration, number>,
+    usedStorage: number,
     documentation?: string | StructuredDocumentation,
     children?: Iterable<ASTNode>,
     nameLocation?: string,
@@ -44,6 +46,7 @@ export class CairoContract extends ContractDefinition {
       raw,
     );
     this.storageAllocations = storageAllocations;
+    this.usedStorage = usedStorage;
     this.acceptChildren();
   }
 }

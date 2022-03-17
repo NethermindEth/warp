@@ -1,10 +1,10 @@
 import { Dir, Value, File } from './types';
 
-export function flatten(test: Dir | File, filter?: string): File[] {
+export function flatten(test: Dir | File): File[] {
   if (test instanceof Dir) {
     return test.tests.flatMap((subTest) => {
       subTest.name = `${test.name}/${subTest.name}`;
-      return flatten(subTest, filter);
+      return flatten(subTest);
     });
   } else {
     return [test];

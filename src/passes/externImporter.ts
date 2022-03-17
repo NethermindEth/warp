@@ -1,4 +1,4 @@
-import { assert } from 'console';
+import assert = require('assert');
 import {
   ContractDefinition,
   EnumDefinition,

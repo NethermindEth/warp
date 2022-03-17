@@ -79,7 +79,8 @@ import { AST } from './ast/ast';
 import { getMappingTypes } from './utils/mappings';
 import { notUndefined } from './utils/typeConstructs';
 import { printNode } from './utils/astPrinter';
-import { CairoType } from './utils/cairoTypeSystem';
+import { CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
+import { removeExcessNewlines } from './utils/formatting';
 
 const INDENT = ' '.repeat(4);
 
@@ -105,13 +106,14 @@ class StructDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: StructDefinition, writer: ASTWriter): SrcDesc {
     return [
       [
-        `struct ${canonicalMangler(node.canonicalName)}:`,
+        `struct ${canonicalMangler(node.name)}:`,
         ...node.vMembers
           .map(
             (value) =>
               `member ${value.name} : ${CairoType.fromSol(
                 getNodeType(value, writer.targetCompilerVersion),
                 this.ast,
+                TypeConversionContext.StorageAllocation,
               )}`,
           )
           .map((v) => INDENT + v),
@@ -147,12 +149,7 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
       ];
     }
 
-    return [
-      `${node.name} : ${CairoType.fromSol(
-        getNodeType(node, writer.targetCompilerVersion),
-        this.ast,
-      )}`,
-    ];
+    return [node.name];
   }
 }
 
@@ -205,24 +202,28 @@ function writeImports(imports: Map<string, Set<string>>): string {
 
 class SourceUnitWriter extends CairoASTNodeWriter {
   writeInner(node: SourceUnit, writer: ASTWriter): SrcDesc {
-    const generatedUtilFunctions = this.ast.getUtilFuncGen(node).write();
-
-    const structs = node.vStructs.map((v) => writer.write(v));
+    const structs = [...node.vStructs, ...node.vContracts.flatMap((c) => c.vStructs)].map((v) =>
+      writer.write(v),
+    );
 
     const functions = node.vFunctions.map((v) => writer.write(v));
 
     const contracts = node.vContracts.map((v) => writer.write(v));
 
+    const generatedUtilFunctions = this.ast.getUtilFuncGen(node).getGeneratedCode();
     const imports = writeImports(this.ast.getImports(node));
     return [
-      [
-        '%lang starknet',
-        [imports],
-        generatedUtilFunctions,
-        ...structs,
-        ...functions,
-        ...contracts,
-      ].join('\n\n\n'),
+      removeExcessNewlines(
+        [
+          '%lang starknet',
+          [imports],
+          ...structs,
+          generatedUtilFunctions,
+          ...functions,
+          ...contracts,
+        ].join('\n\n\n'),
+        3,
+      ),
     ];
   }
 }
@@ -251,7 +252,11 @@ class CairoContractWriter extends CairoASTNodeWriter {
       return writeContractInterface(node, writer);
     }
 
-    const structs = node.vStructs.map((value) => writer.write(value));
+    const variables = [...node.storageAllocations.entries()].map(
+      ([decl, loc]) => `const ${decl.name} = ${loc}`,
+    );
+
+    // Don't need to write structs, SourceUnitWriter so already
 
     const enums = node.vEnums.map((value) => writer.write(value));
 
@@ -259,13 +264,40 @@ class CairoContractWriter extends CairoASTNodeWriter {
 
     const events = node.vEvents.map((value) => writer.write(value));
 
-    const body = [...structs, ...enums, ...functions]
+    const body = [...variables, ...enums, ...functions]
       .join('\n\n')
       .split('\n')
       .map((l) => (l.length > 0 ? INDENT + l : l))
       .join('\n');
 
-    return [[...events, `namespace ${node.name}:\n\n${body}\n\nend`].join('\n\n')];
+    const storageCode =
+      node.usedStorage > 0
+        ? [
+            '@storage_var',
+            'func WARP_STORAGE(index: felt) -> (val: felt):',
+            'end',
+            '@storage_var',
+            'func WARP_USED_STORAGE() -> (val: felt):',
+            'end',
+            '@storage_var',
+            'func WARP_NAMEGEN() -> (name: felt):',
+            'end',
+            'func readId{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (val: felt):',
+            '    alloc_locals',
+            '    let (id) = WARP_STORAGE.read(loc)',
+            '    if id == 0:',
+            '        let (id) = WARP_NAMEGEN.read()',
+            '        WARP_NAMEGEN.write(id + 1)',
+            '        WARP_STORAGE.write(loc, id + 1)',
+            '        return (id + 1)',
+            '    else:',
+            '        return (id)',
+            '    end',
+            'end',
+          ].join('\n')
+        : '';
+
+    return [[...events, storageCode, `namespace ${node.name}:\n\n${body}\n\nend`].join('\n\n')];
   }
 
   writeWhole(node: CairoContract, writer: ASTWriter): SrcDesc {
@@ -294,6 +326,7 @@ class ParameterListWriter extends CairoASTNodeWriter {
 
 class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: CairoFunctionDefinition, writer: ASTWriter): SrcDesc {
+    if (node.isStub) return [''];
     let name = node.name;
     let decorator = [FunctionVisibility.Public, FunctionVisibility.External].includes(
       node.visibility,
@@ -315,18 +348,26 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     const writtenImplicits = writeImplicits(node.implicits);
     const implicits = writtenImplicits ? `{${writtenImplicits}}` : '';
     let returnClause = ` -> (${returns})`;
-    switch (node.kind) {
-      case FunctionKind.Constructor:
-        decorator = '@constructor';
-        name = 'constructor';
-        returnClause = '';
+
+    let constructorStorageAllocation: string | null = null;
+    if (node.kind === FunctionKind.Constructor) {
+      decorator = '@constructor';
+      name = 'constructor';
+      returnClause = '';
+      const contract = node.vScope;
+      assert(contract instanceof CairoContract);
+      if (contract.usedStorage !== 0) {
+        constructorStorageAllocation = `${INDENT}WARP_USED_STORAGE.write(${contract.usedStorage})`;
+      }
     }
+
     return [
       [
         ...(decorator ? [decorator] : []),
         `func ${name}${implicits}(${args})${returnClause}:`,
         `${INDENT}alloc_locals`,
         ...externalInputChecks,
+        ...(constructorStorageAllocation ? [constructorStorageAllocation] : []),
         ...(warpMemory
           ? ['let (local warp_memory : MemCell*) = warp_memory_init()', 'with warp_memory:']
           : []),
@@ -444,24 +485,20 @@ class IdentifierWriter extends CairoASTNodeWriter {
 
 class FunctionCallWriter extends CairoASTNodeWriter {
   writeInner(node: FunctionCall, writer: ASTWriter): SrcDesc {
-    switch (node.kind) {
-      case FunctionCallKind.FunctionCall:
-      case FunctionCallKind.TypeConversion: {
-        const args = node.vArguments.map((v) => writer.write(v)).join(', ');
-        const func = writer.write(node.vExpression);
-        const arg = node.vArguments[0];
-        if (node.vFunctionName === 'address' && arg instanceof Literal) {
-          const val: BigInt = BigInt(arg.value);
-          // Make sure literal < 2**251
-          assert(val < BigInt('0x800000000000000000000000000000000000000000000000000000000000000'));
-          return [`${args[0]}`];
-        }
-        return [`${func}(${args})`];
-      }
-      case FunctionCallKind.StructConstructorCall:
-        this.logNotImplemented('StructConstructorCall is not implemented yet');
-        return ['<FuntionallCall.StructConstructorCall>'];
+    if (
+      node.kind === FunctionCallKind.TypeConversion &&
+      node.vFunctionName === 'address' &&
+      node.vArguments[0] instanceof Literal
+    ) {
+      const val: BigInt = BigInt(node.vArguments[0].value);
+      // Make sure literal < 2**251
+      assert(val < BigInt('0x800000000000000000000000000000000000000000000000000000000000000'));
+      return [`${writer.write(node.vArguments[0])}`];
     }
+
+    const args = node.vArguments.map((v) => writer.write(v)).join(', ');
+    const func = writer.write(node.vExpression);
+    return [`${func}(${args})`];
   }
 }
 

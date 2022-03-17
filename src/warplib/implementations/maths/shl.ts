@@ -94,6 +94,7 @@ export function functionaliseShl(node: BinaryOperation, ast: AST): void {
     [['res', typeNameFromTypeNode(retType, ast)]],
     lhsType.nBits === 256 ? ['range_check_ptr'] : ['range_check_ptr', 'bitwise_ptr'],
     ast,
+    node,
   );
   const call = new FunctionCall(
     ast.reserveId(),

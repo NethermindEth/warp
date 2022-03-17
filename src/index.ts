@@ -18,7 +18,7 @@ export type CompilationOptions = {
 
 export type TranspilationOptions = {
   checkTrees?: boolean;
-  highlight?: string;
+  highlight?: string[];
   order?: string;
   printTrees?: boolean;
   strict?: boolean;
@@ -41,7 +41,7 @@ program
   .option('--compile-cairo')
   .option('--no-compile-errors')
   .option('--check-trees')
-  .option('--highlight <id>')
+  .option('--highlight <ids...>')
   .option('--order <passOrder>')
   .option('-o, --output-dir <path>', undefined, 'warp_output')
   .option('--print-trees')
@@ -65,7 +65,7 @@ program
   .command('transform <file>')
   .option('--no-compile-errors')
   .option('--check-trees')
-  .option('--highlight <id>')
+  .option('--highlight <ids...>')
   .option('--order <passOrder>')
   .option('-o, --output-dir <path>')
   .option('--print-trees')
@@ -99,7 +99,15 @@ program
     ),
   );
 
-program.command('analyse <file>').action((file: string) => analyseSol(file));
+export type AnalyseOptions = {
+  highlight?: string[];
+};
+
+program
+  .command('analyse <file>')
+  .option('--highlight <ids...>')
+  .option('--typeNodes')
+  .action((file: string, options: AnalyseOptions) => analyseSol(file, options));
 
 export interface IOptionalNetwork {
   network?: string;

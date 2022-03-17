@@ -1,4 +1,14 @@
-import { ASTContext, ASTNode, TypeNode } from 'solc-typed-ast';
+import {
+  ArrayType,
+  ASTContext,
+  ASTNode,
+  MappingType,
+  PointerType,
+  TypeNameType,
+  TypeNode,
+} from 'solc-typed-ast';
+import { AnalyseOptions } from '..';
+import { cyan, underline } from './formatting';
 import { extractProperty } from './utils';
 
 type PropPrinter = {
@@ -16,6 +26,10 @@ type PropSearch = {
 export class ASTPrinter {
   propPrinters: PropPrinter[] = [];
   idsToHighlight: number[] = [];
+
+  applyOptions(options: AnalyseOptions) {
+    options.highlight?.forEach((id) => this.highlightId(parseInt(id)));
+  }
 
   lookFor(propSearch: string | PropSearch): ASTPrinter {
     if (typeof propSearch === 'string') {
@@ -75,68 +89,105 @@ export class ASTPrinter {
 }
 
 export const DefaultASTPrinter = new ASTPrinter()
-  .lookFor('name')
-  .lookFor('canonicalName')
-  .lookFor('memberName')
-  .lookFor('operator')
-  .lookFor('value')
-  .lookFor('fieldNames')
-  .lookFor('referencedDeclaration')
-  .lookFor('returnTypes')
-  .lookFor('typeString')
-  .lookFor('symbolAliases')
   .lookFor('absolutePath')
-  .lookFor('scope')
+  .lookFor('canonicalName')
   .lookFor({
     prop: 'context',
     nodeType: 'SourceUnit',
-    print: (x: unknown) => `${x instanceof ASTContext ? x.id : 'not a context'}`,
+    print: context,
   })
-  .lookFor('storageLocation')
-  .lookFor({
-    prop: 'storageAllocations',
-    nodeType: 'CairoContract',
-    print: (x: unknown) => {
-      if (!(x instanceof Map)) throw new Error('storage allocations not a map');
-      return [...x.entries()]
-        .map(([n, v]) => {
-          if (!(n instanceof ASTNode))
-            throw new Error(`n should be astnode, found ${n.constructor.name}`);
-          return `#${n.id}->${v}`;
-        })
-        .join();
-    },
-  })
+  .lookFor('fieldNames')
   .lookFor({
     prop: 'implicits',
     nodeType: 'CairoFunctionDefinition',
-    print: (x: unknown) => {
-      if (!(x instanceof Set)) throw new Error('Implicits not a set');
-      return `${[...x.entries()]}`;
-    },
+    print: implicits,
   })
-  .lookFor('visibility')
-  .lookFor('stateMutability')
   .lookFor({
     prop: 'linearizedBaseContracts',
-    print: (x: unknown) => {
-      if (!Array.isArray(x)) throw new Error('linearizedBaseContracts not an array');
-      return x.map((elem) => `${elem}`).join(', ');
-    },
-  });
+    print: linearizedBaseContracts,
+  })
+  .lookFor('memberName')
+  .lookFor('name')
+  .lookFor('operator')
+  .lookFor('referencedDeclaration')
+  .lookFor('returnTypes')
+  .lookFor('scope')
+  .lookFor('stateMutability')
+  .lookFor({
+    prop: 'storageAllocations',
+    nodeType: 'CairoContract',
+    print: storageAllocations,
+  })
+  .lookFor('storageLocation')
+  .lookFor({
+    prop: 'symbolAliases',
+    print: symbolAliases,
+  })
+  .lookFor('typeString')
+  .lookFor('value')
+  .lookFor('visibility');
 
 export function printNode(node: ASTNode): string {
   return `${node.type} #${node.id}`;
 }
 
-export function printTypeNode(node: TypeNode): string {
-  return `${node.pp()} (${node.constructor.name})`;
+export function printTypeNode(node: TypeNode, detail?: boolean): string {
+  let type = `${node.constructor.name}`;
+  if (detail) {
+    type = `${printTypeNodeTypes(node)}`;
+  }
+  return `${node.pp()} (${type})`;
 }
 
-function underline(text: string): string {
-  return `${text}\n${'-'.repeat(text.length)}`;
+function printTypeNodeTypes(node: TypeNode): string {
+  let subTypes = '';
+  if (node instanceof ArrayType) {
+    subTypes = `(${printTypeNodeTypes(node.elementT)}, ${node.size})`;
+  } else if (node instanceof MappingType) {
+    subTypes = `(${printTypeNodeTypes(node.keyType)}, ${printTypeNodeTypes(node.valueType)})`;
+  } else if (node instanceof PointerType) {
+    subTypes = `(${printTypeNodeTypes(node.to)}, ${node.location})`;
+  } else if (node instanceof TypeNameType) {
+    subTypes = `(${printTypeNodeTypes(node.type)})`;
+  }
+  return `${node.constructor.name} ${subTypes}`;
 }
 
-function cyan(text: string): string {
-  return `\x1b[36m${text}\x1b[0m`;
+// Property printing functions-------------------------------------------------
+
+function context(x: unknown): string {
+  return `${x instanceof ASTContext ? x.id : 'not a context'}`;
+}
+
+function implicits(x: unknown): string {
+  if (!(x instanceof Set)) throw new Error('Implicits not a set');
+  return `${[...x.values()]}`;
+}
+
+function linearizedBaseContracts(x: unknown): string {
+  if (!Array.isArray(x)) throw new Error('linearizedBaseContracts not an array');
+  return x.map((elem) => `${elem}`).join(', ');
+}
+
+function storageAllocations(x: unknown): string {
+  if (!(x instanceof Map)) throw new Error('storage allocations not a map');
+  return [...x.entries()]
+    .map(([n, v]) => {
+      if (!(n instanceof ASTNode))
+        throw new Error(`n should be astnode, found ${n.constructor.name}`);
+      return `#${n.id}->${v}`;
+    })
+    .join();
+}
+
+function symbolAliases(x: unknown): string {
+  if (!(x instanceof Array)) throw new Error('symbolAliases not a array');
+  return `[${x
+    .map(
+      (alias) =>
+        `foreign: ${
+          alias.foreign instanceof ASTNode ? printNode(alias.foreign) : `${alias.foreign}`
+        } local: ${alias.local}`,
+    )
+    .join(', ')}]`;
 }

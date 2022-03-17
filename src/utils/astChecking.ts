@@ -17,12 +17,14 @@ import {
   EnumValue,
   ErrorDefinition,
   EventDefinition,
+  Expression,
   ExpressionStatement,
   ForStatement,
   FunctionCall,
   FunctionCallOptions,
   FunctionDefinition,
   FunctionTypeName,
+  getNodeType,
   Identifier,
   IdentifierPath,
   IfStatement,
@@ -63,6 +65,7 @@ import {
 import { pp } from 'solc-typed-ast/dist/misc/index';
 import { AST } from '../ast/ast';
 import { CairoAssert } from '../ast/cairoNodes';
+import { ASTMapper } from '../ast/mapper';
 
 // This is the solc-typed-ast AST checking code, with additions for CairoAssert and CairoContract
 
@@ -687,6 +690,8 @@ FunctionDefinition;
  * not performance critical.
  */
 export function isSane(ast: AST): boolean {
+  NodeTypeResolutionChecker.map(ast);
+
   return ast.roots.every((root) => {
     try {
       checkSane(root, ast.context);
@@ -704,4 +709,16 @@ export function isSane(ast: AST): boolean {
 
     return true;
   });
+}
+
+class NodeTypeResolutionChecker extends ASTMapper {
+  visitSourceUnit(node: SourceUnit, ast: AST): void {
+    node
+      .getChildren()
+      .filter(
+        (child): child is Expression | VariableDeclaration =>
+          child instanceof Expression || child instanceof VariableDeclaration,
+      )
+      .forEach((child) => getNodeType(child, ast.compilerVersion));
+  }
 }

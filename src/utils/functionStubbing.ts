@@ -1,4 +1,5 @@
 import {
+  ASTNode,
   DataLocation,
   Expression,
   FunctionCall,
@@ -25,7 +26,10 @@ export function createCairoFunctionStub(
   returns: [string, TypeName][],
   implicits: Implicits[],
   ast: AST,
+  nodeInSourceUnit: ASTNode,
 ): CairoFunctionDefinition {
+  const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
+  const funcDefId = ast.reserveId();
   const createParameters = (inputs: [string, TypeName][]) =>
     inputs.map(
       ([name, type]) =>
@@ -36,9 +40,9 @@ export function createCairoFunctionStub(
           false,
           false,
           name,
-          -1,
+          funcDefId,
           false,
-          DataLocation.Memory,
+          DataLocation.Storage,
           StateVariableVisibility.Private,
           Mutability.Mutable,
           type.typeString,
@@ -48,10 +52,10 @@ export function createCairoFunctionStub(
     );
 
   const funcDef = new CairoFunctionDefinition(
-    ast.reserveId(),
+    funcDefId,
     '',
     'CairoFunctionDefinition',
-    -1,
+    sourceUnit.id,
     FunctionKind.Function,
     name,
     false,
@@ -62,9 +66,11 @@ export function createCairoFunctionStub(
     new ParameterList(ast.reserveId(), '', 'ParameterList', createParameters(returns)),
     [],
     new Set(implicits),
+    true,
   );
 
   ast.setContextRecursive(funcDef);
+  sourceUnit.insertAtBeginning(funcDef);
 
   return funcDef;
 }

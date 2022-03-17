@@ -1,9 +1,21 @@
-import { Conditional, ErrorDefinition, InlineAssembly, RevertStatement } from 'solc-typed-ast';
+import {
+  IndexAccess,
+  InlineAssembly,
+  RevertStatement,
+  ErrorDefinition,
+  Conditional,
+} from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { WillNotSupportError } from '../utils/errors';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
+  visitIndexAccess(node: IndexAccess, ast: AST): void {
+    if (node.vIndexExpression === undefined) {
+      throw new WillNotSupportError(`Undefined index access not supported. Is this in abi.decode?`);
+    }
+    this.visitExpression(node, ast);
+  }
   visitInlineAssembly(_node: InlineAssembly, _ast: AST): void {
     throw new WillNotSupportError('Yul blocks are not supported');
   }

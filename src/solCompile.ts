@@ -8,7 +8,8 @@ import {
   getCompilerVersionsBySpecifiers,
 } from 'solc-typed-ast';
 import { AST } from './ast/ast';
-import { error, TranspileFailedError } from './utils/errors';
+import { TranspileFailedError } from './utils/errors';
+import { error } from './utils/formatting';
 
 export function compileSolFile(file: string, printWarnings: boolean): AST {
   const requiredSolcVersion = getSolFileVersion(file);

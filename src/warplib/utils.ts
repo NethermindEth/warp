@@ -99,6 +99,7 @@ export function IntxIntFunction(
     [['res', typeNameFromTypeNode(retType, ast)]],
     implicits(retType.nBits, retType.signed),
     ast,
+    node,
   );
   const call = new FunctionCall(
     ast.reserveId(),
@@ -153,6 +154,7 @@ export function Comparison(
     [['res', typeNameFromTypeNode(retType, ast)]],
     implicits(wide, signed),
     ast,
+    node,
   );
 
   const call = new FunctionCall(
@@ -194,6 +196,7 @@ export function IntFunction(
     [['res', typeNameFromTypeNode(retType, ast)]],
     implicits(retType.nBits === 256),
     ast,
+    node,
   );
 
   const call = new FunctionCall(

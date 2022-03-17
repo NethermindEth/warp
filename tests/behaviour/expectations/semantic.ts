@@ -33,7 +33,7 @@ import { File, Expect } from './types';
 import { NotSupportedYetError } from '../../../src/utils/errors';
 import { compileSolFile } from '../../../src/solCompile';
 import { printTypeNode } from '../../../src/utils/astPrinter';
-import { bigintToTwosCompliment, divmodBigInt } from '../../../src/utils/utils';
+import { bigintToTwosComplement, divmod } from '../../../src/utils/utils';
 
 // this format will cause problems with overloading
 export interface Parameter {
@@ -233,12 +233,12 @@ export function encodeValue(tp: TypeNode, value: SolValue): string[] {
     }
     let val: bigint;
     try {
-      val = bigintToTwosCompliment(BigInt(value.toString()), tp.nBits);
+      val = bigintToTwosComplement(BigInt(value.toString()), tp.nBits);
     } catch {
       throw new Error(`Can't encode ${value} as intType`);
     }
     if (tp.nBits > 251) {
-      const [high, low] = divmodBigInt(val, uint128);
+      const [high, low] = divmod(val, uint128);
       return [low.toString(), high.toString()];
     } else {
       return [val.toString()];
