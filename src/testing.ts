@@ -51,7 +51,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/functionArgumentConversions', 'Success'],
   ['example_contracts/idManglingTest8', 'Success'],
   ['example_contracts/idManglingTest9', 'Success'],
-  ['example_contracts/if-flattening', 'CairoCompileFailed'],
+  ['example_contracts/if-flattening', 'Success'],
   ['example_contracts/inheritance/simple', 'Success'],
   ['example_contracts/inheritance/super/base', 'Success'],
   ['example_contracts/inheritance/super/derived', 'Success'],

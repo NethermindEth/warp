@@ -27,6 +27,7 @@ import {
   UsingForResolver,
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
+  IfFunctionaliser,
 } from './passes';
 import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
 import { printCompileErrors, runSanityCheck } from './utils/utils';
@@ -86,6 +87,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['I', ImplicitConversionToExplicit],
     ['S', StorageVariableAccessRewriter],
     ['B', BuiltinHandler],
+    ['If', IfFunctionaliser],
     ['Us', UnreachableStatementPruner],
     ['R', ReturnInserter],
     ['E', ExpressionSplitter],

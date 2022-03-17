@@ -17,7 +17,7 @@ import { AST } from './ast/ast';
 import { CairoFelt, CairoStruct, CairoTuple, CairoType } from './utils/cairoTypeSystem';
 import { cloneASTNode } from './utils/cloning';
 import { TranspileFailedError } from './utils/errors';
-import { createCairoFunctionStub, createCallToStub } from './utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from './utils/functionStubbing';
 import { mapRange, typeNameFromTypeNode } from './utils/utils';
 
 type CairoFunction = {
@@ -77,7 +77,7 @@ export class CairoUtilFuncGen {
       ['range_check_ptr', 'warp_memory'],
       this.ast,
     );
-    return createCallToStub(functionStub, [len], this.ast);
+    return createCallToFunction(functionStub, [len], this.ast);
   }
 
   memoryRead(indexAccess: IndexAccess): FunctionCall {
@@ -100,7 +100,7 @@ export class CairoUtilFuncGen {
       ['range_check_ptr', 'warp_memory'],
       this.ast,
     );
-    return createCallToStub(functionStub, [indexAccess.vBaseExpression, index], this.ast);
+    return createCallToFunction(functionStub, [indexAccess.vBaseExpression, index], this.ast);
   }
 
   memoryWrite(indexAccess: IndexAccess, writeValue: Expression): FunctionCall {
@@ -129,7 +129,7 @@ export class CairoUtilFuncGen {
       ['range_check_ptr', 'warp_memory'],
       this.ast,
     );
-    return createCallToStub(
+    return createCallToFunction(
       functionStub,
       [indexAccess.vBaseExpression, index, writeValue],
       this.ast,
@@ -149,7 +149,7 @@ export class CairoUtilFuncGen {
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
     );
-    return createCallToStub(functionStub, [storageLocation], this.ast);
+    return createCallToFunction(functionStub, [storageLocation], this.ast);
   }
 
   storageWrite(
@@ -175,7 +175,7 @@ export class CairoUtilFuncGen {
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
     );
-    return createCallToStub(functionStub, [storageLocation, writeValue], this.ast);
+    return createCallToFunction(functionStub, [storageLocation, writeValue], this.ast);
   }
 
   readMapping(mapping: Expression, key: Expression, mappingTypeName: Mapping): FunctionCall {
@@ -200,7 +200,7 @@ export class CairoUtilFuncGen {
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
     );
-    return createCallToStub(functionStub, [mapping, key], this.ast);
+    return createCallToFunction(functionStub, [mapping, key], this.ast);
   }
 
   writeMapping(
@@ -231,7 +231,7 @@ export class CairoUtilFuncGen {
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
     );
-    return createCallToStub(functionStub, [mapping, key, writeValue], this.ast);
+    return createCallToFunction(functionStub, [mapping, key, writeValue], this.ast);
   }
 
   //-------------------private cairo implementation generators-----------------

@@ -1,7 +1,7 @@
 import { MemberAccess, Identifier } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { createCairoFunctionStub, createCallToStub } from '../../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
 import { createAddressNonPayableTypeName } from '../../utils/nodeTemplates';
 
 export class MsgSender extends ASTMapper {
@@ -11,7 +11,7 @@ export class MsgSender extends ASTMapper {
       node.vExpression.name === 'msg' &&
       node.memberName === 'sender'
     ) {
-      const replacementCall = createCallToStub(
+      const replacementCall = createCallToFunction(
         createCairoFunctionStub(
           'get_caller_address',
           [],
