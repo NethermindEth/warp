@@ -21,13 +21,16 @@ import { createIdentifier } from '../utils/nodeTemplates';
 import { collectUnboundVariables } from './loopFunctionaliser/utils';
 
 // TODO check if one branch has a return in it
-// TODO split taking into account nested blocks
 
 export class IfFunctionaliser extends ASTMapper {
   visitIfStatement(node: IfStatement, ast: AST): void {
+    this.visitStatement(node, ast);
+
     const block = getContainingBlock(node);
 
     const postIfStatements = splitBlock(block, node, ast);
+    if (postIfStatements.children.length === 0) return;
+
     const originalFunction = getContainingFunction(node);
 
     const [funcDef, funcCall] = createSplitFunction(originalFunction, postIfStatements, ast);
@@ -38,11 +41,13 @@ export class IfFunctionaliser extends ASTMapper {
 }
 
 function getContainingBlock(node: IfStatement): Block {
-  const block = node.getClosestParentBySelector<Block>(
-    (node) => node instanceof Block || node instanceof UncheckedBlock,
+  const containingFunction = getContainingFunction(node);
+
+  assert(
+    containingFunction.vBody !== undefined,
+    error(`Unable to find parent of ${printNode(node)}`),
   );
-  assert(block !== undefined, error(`Unable to find parent of ${printNode(node)}`));
-  return block;
+  return containingFunction.vBody;
 }
 
 function getContainingFunction(node: IfStatement): FunctionDefinition {
@@ -52,16 +57,45 @@ function getContainingFunction(node: IfStatement): FunctionDefinition {
 }
 
 function splitBlock(block: Block, split: Statement, ast: AST): Block {
-  const splitIndex = block.children.findIndex((statement) => statement === split);
-  assert(splitIndex !== -1);
-  const newBlock = new Block(ast.reserveId(), '', 'Block', []);
-  console.log('Splitting');
-  while (block.children.length > splitIndex + 1) {
-    const child = block.children[splitIndex + 1];
-    block.removeChild(child);
-    newBlock.appendChild(child);
-    console.log(`Appending ${printNode(child)}`);
-  }
+  const res = splitBlockImpl(block, split, ast);
+  assert(
+    res !== null,
+    `Attempted to split ${printNode(block)} around ${printNode(split)}, which is not a child`,
+  );
+  return res;
+}
+
+function splitBlockImpl(block: Block, split: Statement, ast: AST): Block | null {
+  const splitIndex = block.getChildren().findIndex((statement) => statement === split);
+  if (splitIndex === -1) return null;
+  const newBlock =
+    block instanceof UncheckedBlock
+      ? new UncheckedBlock(ast.reserveId(), '', 'UncheckedBlock', [])
+      : new Block(ast.reserveId(), '', 'Block', []);
+  assert(
+    newBlock instanceof block.constructor && block instanceof newBlock.constructor,
+    `Encountered unexpected block subclass ${block.constructor.name} when splitting`,
+  );
+
+  let foundSplitPoint = false;
+  block.children.forEach((child) => {
+    if (foundSplitPoint) {
+      assert(
+        child instanceof Statement,
+        `Found non-statement ${printNode(child)} as child of ${printNode(block)}`,
+      );
+      block.removeChild(child);
+      newBlock.appendChild(child);
+    } else if (child === split) {
+      foundSplitPoint = true;
+    } else if (
+      (child instanceof Block || child instanceof UncheckedBlock) &&
+      child.getChildren().includes(split)
+    ) {
+      newBlock.appendChild(splitBlock(child, split, ast));
+      foundSplitPoint = true;
+    }
+  });
   return newBlock;
 }
 
