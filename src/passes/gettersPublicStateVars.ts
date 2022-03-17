@@ -185,7 +185,6 @@ function genReturnExpression(
       struct A{ uint a; address b; mapping(int => int) c; }
       mapping(uint => mapping(address => A[])) c;
     The return expression would be a tuple (c[i0][i1][i2].a , c[i0][i1][i2].b)
-
     baseExpression: is the expression that has been generated in 
     the previous call of genReturnExpression
     e.g `c[i0][i1][i2]` in `c[i0][i1][i2].a`

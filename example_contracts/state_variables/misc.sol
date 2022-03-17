@@ -9,7 +9,6 @@ pragma solidity ^0.8.6;
 contract WARP {
 
   // User Defined Types
-  
   struct A {
     int256 a;
     mapping(address => address) b;

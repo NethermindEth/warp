@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+      - warp-ts
   pull_request:
 
 jobs:

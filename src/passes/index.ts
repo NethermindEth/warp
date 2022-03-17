@@ -25,3 +25,5 @@ export * from './usingForResolver';
 export * from './variableDeclarationExpressionSplitter';
 export * from './variableDeclarationInitialiser';
 export * from './gettersPublicStateVars';
+export * from './namedArgsRemover';
+export * from './fixFunctionCallReferences';
