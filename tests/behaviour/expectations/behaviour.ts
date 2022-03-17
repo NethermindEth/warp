@@ -379,6 +379,19 @@ export const expectations = flatten(
             Expect.Simple('doWhile_break', ['0', '2'], ['2']),
           ]),
         ]),
+        new Dir('returns', [
+          File.Simple('returnInserter', [
+            Expect.Simple('test1', ['6'], ['0']),
+            Expect.Simple('test2', ['1'], ['2']),
+            Expect.Simple('test2', ['2'], ['0']),
+            Expect.Simple('test3', ['3'], null),
+            Expect.Simple('test5', ['3', '5'], ['8']),
+          ]),
+          File.Simple('returnInitializer', [
+            Expect.Simple('f0', ['3', '8'], ['3', '8']),
+            Expect.Simple('f1', ['7'], ['9', '7']),
+          ]),
+        ]),
         new Dir('maths', [
           File.Simple('addition', [
             Expect.Simple('addition8safe', ['3', '20'], ['23']),

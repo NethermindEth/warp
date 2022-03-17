@@ -15,6 +15,7 @@ export * from './loopFunctionaliser';
 export * from './memoryHandler';
 export * from './rejectUnsupportedFeatures';
 export * from './returnInserter';
+export * from './ReturnVariableInitializer';
 export * from './sourceUnitSplitter';
 export * from './storageAllocator';
 export * from './storageVariableAccessRewriter';
@@ -25,5 +26,9 @@ export * from './unreachableStatementPruner';
 export * from './usingForResolver';
 export * from './variableDeclarationExpressionSplitter';
 export * from './variableDeclarationInitialiser';
+<<<<<<< HEAD
 export * from './generateGetters';
 export * from './namedArgsRemover';
+=======
+export * from './gettersPublicStateVars';
+>>>>>>> Fixed returnInserter and added ReturnInitializer
