@@ -314,7 +314,7 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('external_input_checks', [
-          File.Simple('external_input_checks', [
+          File.Simple('int_', [
             new Expect('testing solidity pure public signed int8 lower bound', [
               ['testInt8', ['0'], ['0'], '0'],
             ]),
@@ -411,6 +411,40 @@ export const expectations = flatten(
                 null,
                 '0',
                 'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128.',
+              ],
+            ]),
+          ]),
+          File.Simple('enum_', [
+            new Expect('testing that enum in range does not throw error', [
+              ['externalFunction', ['0'], ['0'], '0'],
+            ]),
+            new Expect('testing that enum in range does not throw error', [
+              ['externalFunction', ['2'], ['2'], '0'],
+            ]),
+            new Expect('testing that enum out of range throws error', [
+              [
+                'externalFunction',
+                ['3'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Values passed to must be in enum range (0, 2].',
+              ],
+            ]),
+          ]),
+          File.Simple('bool_', [
+            new Expect('testing that false does not throw error', [
+              ['externalFunction', ['0'], ['0'], '0'],
+            ]),
+            new Expect('testing that true does not throw error', [
+              ['externalFunction', ['1'], ['1'], '0'],
+            ]),
+            new Expect('testing that 2 throws error', [
+              [
+                'externalFunction',
+                ['3'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
               ],
             ]),
           ]),

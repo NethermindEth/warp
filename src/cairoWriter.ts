@@ -350,11 +350,6 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
         ? '@view'
         : '@external'
       : '';
-
-    const externalInputChecks =
-      decorator === '@external' || decorator === '@view'
-        ? this.generateExternalInputChecks(node)
-        : [];
     const args = writer.write(node.vParameters);
     const body = node.vBody ? writer.write(node.vBody) : [];
     const returns = writer.write(node.vReturnParameters);
@@ -381,7 +376,6 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
         ...(decorator ? [decorator] : []),
         `func ${name}${implicits}(${args})${returnClause}:`,
         `${INDENT}alloc_locals`,
-        ...externalInputChecks,
         ...(constructorStorageAllocation ? [constructorStorageAllocation] : []),
         ...(warpMemory
           ? ['let (local warp_memory : MemCell*) = warp_memory_init()', 'with warp_memory:']
@@ -391,27 +385,6 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
         `end`,
       ].join('\n'),
     ];
-  }
-
-  private generateExternalInputChecks(node: CairoFunctionDefinition): string[] {
-    const inputChecks: string[] = [];
-    node.vParameters.vParameters.forEach((parameter) => {
-      if (
-        parameter.typeString.slice(0, 4) === 'uint' ||
-        parameter.typeString.slice(0, 3) === 'int'
-      ) {
-        assert(parameter.vType instanceof ElementaryTypeName);
-        const int_width = parameter.typeString.replace('u', '');
-        const functionCall = `${INDENT}warp_external_input_check_${int_width}(${parameter.name})`;
-        inputChecks.push(functionCall);
-        this.ast.registerImport(
-          node,
-          'warplib.maths.external_input_checks',
-          `warp_external_input_check_${int_width}`,
-        );
-      }
-    });
-    return inputChecks;
   }
 }
 
