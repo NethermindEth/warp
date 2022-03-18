@@ -6,19 +6,18 @@ import {
   FunctionVisibility,
   Statement,
   ExpressionStatement,
-  FunctionCall,
 } from 'solc-typed-ast';
 import { ASTMapper } from '../../ast/mapper';
 
 export class EnumBoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    const external = [FunctionVisibility.Public, FunctionVisibility.External].includes(
+    const externalFunction = [FunctionVisibility.Public, FunctionVisibility.External].includes(
       node.visibility,
     );
-    if (external) {
+    if (externalFunction) {
       node.vParameters.vParameters.forEach((parameter) => {
         if (parameter.typeString.slice(0, 4) === 'enum' && parameter.name != undefined) {
-          const newIdentifier = new Identifier(
+          const enumStubArgument = new Identifier(
             ast.reserveId(),
             '',
             'Identifier',
@@ -26,15 +25,17 @@ export class EnumBoundChecker extends ASTMapper {
             parameter.name,
             parameter.id,
           );
+
           const enumAssertStatment = ast
             .getUtilFuncGen(node)
-            .externalInputChecks.enum.gen(parameter, newIdentifier);
+            .externalInputChecks.enum.gen(parameter, enumStubArgument);
           const expressionStatement = new ExpressionStatement(
             ast.reserveId(),
             '',
             'ExpressionStatement',
             enumAssertStatment,
           );
+
           const functionBlock = node.vBody;
           assert(functionBlock != undefined);
           if (functionBlock.getChildren().length === 0) {
@@ -43,15 +44,10 @@ export class EnumBoundChecker extends ASTMapper {
             const firstStatement = functionBlock.getChildrenByType(Statement)[0];
             ast.insertStatementBefore(firstStatement, expressionStatement);
           }
-
           ast.setContextRecursive(expressionStatement);
         }
       });
     }
     this.commonVisit(node, ast);
-  }
-
-  visitFunctionCall(node: FunctionCall, ast: AST): void {
-    console.log(node);
   }
 }

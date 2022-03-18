@@ -26,5 +26,9 @@ contract WARP {
     function testInt256(int256 x) pure public returns (int256){
         return x;
     }
-
+    
+    function testInt256Int8(int16 x, int8 y) pure public returns (int16){
+        int16 returnValue = x + int16(y);
+        return returnValue;
+    }
 }

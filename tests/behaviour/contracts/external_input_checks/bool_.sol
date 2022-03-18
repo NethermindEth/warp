@@ -4,11 +4,22 @@ pragma solidity ^0.8.6;
 
 contract WARP {
 
-  bool stateBoolVariable;
+  bool stateBoolVariable1;
+  bool stateBoolVariable2;
 
-  function externalFunction(bool x) public returns (bool){
-    stateBoolVariable = x;
-    return stateBoolVariable;
+  function publicFunction(bool x) public returns (bool){
+    stateBoolVariable1 = x;
+    return stateBoolVariable1;
+  }
+  function externalFunction(bool x) external returns (bool){
+    stateBoolVariable1 = x;
+    return stateBoolVariable1;
+  }
+  
+  function externalFunction2Inputs(bool x, bool y) external returns (bool){
+    stateBoolVariable1 = x;
+    stateBoolVariable2 = x;
+    return y;
   }
   
 }

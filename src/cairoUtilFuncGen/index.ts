@@ -17,8 +17,6 @@ import { DynArrayLengthGen } from './dynArrayLength';
 import { DynArrayPopGen } from './dynArrayPop';
 import { StorageDeleteGen } from './storageDelete';
 import { EnumBoundCheckGen } from './enumBoundCheck';
-import { BoolBoundCheckGen } from './boolBoundCheck';
-import { IntBoundCheckGen } from './intBoundCheck';
 
 export class CairoUtilFuncGen {
   memory: {
@@ -43,8 +41,6 @@ export class CairoUtilFuncGen {
   };
   externalInputChecks: {
     enum: EnumBoundCheckGen;
-    bool: BoolBoundCheckGen;
-    int: IntBoundCheckGen;
   };
   private implementation: {
     dynArray: DynArrayGen;
@@ -76,8 +72,6 @@ export class CairoUtilFuncGen {
     };
     this.externalInputChecks = {
       enum: new EnumBoundCheckGen(ast),
-      bool: new BoolBoundCheckGen(ast),
-      int: new IntBoundCheckGen(ast),
     };
   }
 

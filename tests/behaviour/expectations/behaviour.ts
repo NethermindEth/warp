@@ -413,35 +413,95 @@ export const expectations = flatten(
                 'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128.',
               ],
             ]),
+            new Expect('testing that more than 1 assert is placed when there are two inputs', [
+              [
+                'testInt256Int8',
+                ['18', '256'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**8.',
+              ],
+            ]),
+            new Expect('testing that more than 1 assert is placed when there are two inputs', [
+              [
+                'testInt256Int8',
+                ['65536', '255'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**16.',
+              ],
+            ]),
           ]),
           File.Simple('enum_', [
             new Expect('testing that enum in range does not throw error', [
-              ['externalFunction', ['0'], ['0'], '0'],
+              ['publicFunction', ['0'], ['0'], '0'],
             ]),
             new Expect('testing that enum in range does not throw error', [
-              ['externalFunction', ['2'], ['2'], '0'],
+              ['publicFunction', ['2'], ['2'], '0'],
             ]),
-            new Expect('testing that enum out of range throws error', [
+            new Expect('testing public function with enum out of range throws error', [
               [
-                'externalFunction',
+                'publicFunction',
                 ['3'],
                 null,
                 '0',
                 'Error: value out-of-bounds. Values passed to must be in enum range (0, 2].',
               ],
             ]),
+            new Expect(
+              'testing external function with more than 1 input has multiple asserts are placed pt. 1',
+              [
+                [
+                  'externalFunction2Inputs',
+                  ['2', '4'],
+                  null,
+                  '0',
+                  'Error: value out-of-bounds. Values passed to must be in enum range (0, 3].',
+                ],
+              ],
+            ),
+            new Expect(
+              'testing external function with more than 1 input has multiple asserts are placed pt. 2',
+              [
+                [
+                  'externalFunction2Inputs',
+                  ['3', '3'],
+                  null,
+                  '0',
+                  'Error: value out-of-bounds. Values passed to must be in enum range (0, 2].',
+                ],
+              ],
+            ),
           ]),
           File.Simple('bool_', [
-            new Expect('testing that false does not throw error', [
-              ['externalFunction', ['0'], ['0'], '0'],
+            new Expect('testing that false input does not throw error', [
+              ['publicFunction', ['0'], ['0'], '0'],
             ]),
-            new Expect('testing that true does not throw error', [
+            new Expect('testing that true input does not throw error', [
               ['externalFunction', ['1'], ['1'], '0'],
             ]),
-            new Expect('testing that 2 throws error', [
+            new Expect('testing that public function with out of bounds input throws error', [
               [
                 'externalFunction',
                 ['3'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
+              ],
+            ]),
+            new Expect('testing external function and more than 1 input asserts are placed pt. 1', [
+              [
+                'externalFunction2Inputs',
+                ['3', '0'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
+              ],
+            ]),
+            new Expect('testing external function and more than 1 input asserts are placed pt. 2', [
+              [
+                'externalFunction2Inputs',
+                ['0', '3'],
                 null,
                 '0',
                 'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
