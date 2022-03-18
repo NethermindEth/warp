@@ -147,7 +147,6 @@ describe('Deployed contracts have correct behaviour', function () {
 
   after(function () {
     for (const fileTest of expectations) {
-      cleanupSync(fileTest.cairo);
       cleanupSync(fileTest.compiled);
     }
   });

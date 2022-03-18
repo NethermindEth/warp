@@ -71,7 +71,7 @@ import {
   getNodeType,
 } from 'solc-typed-ast';
 import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
-import { Implicits, writeImplicits } from './utils/implicits';
+import { writeImplicits } from './utils/implicits';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
 import { canonicalMangler, divmod, primitiveTypeToCairo } from './utils/utils';
 

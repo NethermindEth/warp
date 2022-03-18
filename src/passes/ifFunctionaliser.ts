@@ -23,24 +23,57 @@ import { collectUnboundVariables } from './loopFunctionaliser/utils';
 // TODO check if one branch has a return in it
 
 export class IfFunctionaliser extends ASTMapper {
-  visitIfStatement(node: IfStatement, ast: AST): void {
-    this.visitStatement(node, ast);
+  generatedFunctionCount: Map<FunctionDefinition, number> = new Map();
 
+  visitIfStatement(node: IfStatement, ast: AST): void {
     const block = getContainingBlock(node);
 
     const postIfStatements = splitBlock(block, node, ast);
-    if (postIfStatements.children.length === 0) return;
+    if (postIfStatements.children.length === 0) {
+      this.visitStatement(node, ast);
+      return;
+    }
 
     const originalFunction = getContainingFunction(node);
 
-    const [funcDef, funcCall] = createSplitFunction(originalFunction, postIfStatements, ast);
+    const [funcDef, funcCall] = createSplitFunction(
+      originalFunction,
+      postIfStatements,
+      this.generatedFunctionCount.get(originalFunction) ?? 0,
+      ast,
+    );
+    this.generatedFunctionCount.set(
+      originalFunction,
+      (this.generatedFunctionCount.get(originalFunction) ?? 0) + 1,
+    );
 
     addSplitFunctionToScope(originalFunction, funcDef, ast);
     addCallsToSplitFunction(node, originalFunction, funcCall, ast);
+
+    ensureBothBranchesAreBlocks(node, ast);
+
+    this.visitStatement(node, ast);
   }
 }
 
 function getContainingBlock(node: IfStatement): Block {
+  const outerIf = node.getClosestParentByType(IfStatement);
+
+  if (outerIf !== undefined) {
+    let block: Statement;
+    if (outerIf.vTrueBody.getChildren(true).includes(node)) {
+      block = outerIf.vTrueBody;
+    } else {
+      assert(outerIf.vFalseBody !== undefined);
+      block = outerIf.vFalseBody;
+    }
+    assert(
+      block instanceof Block || block instanceof UncheckedBlock,
+      `Attempted to functionalise inner if ${printNode(node)} without wrapping`,
+    );
+    return block;
+  }
+
   const containingFunction = getContainingFunction(node);
 
   assert(
@@ -88,12 +121,13 @@ function splitBlockImpl(block: Block, split: Statement, ast: AST): Block | null 
       newBlock.appendChild(child);
     } else if (child === split) {
       foundSplitPoint = true;
-    } else if (
-      (child instanceof Block || child instanceof UncheckedBlock) &&
-      child.getChildren().includes(split)
-    ) {
-      newBlock.appendChild(splitBlock(child, split, ast));
+    } else if (child.getChildren().includes(split)) {
       foundSplitPoint = true;
+      if (child instanceof Block || child instanceof UncheckedBlock) {
+        newBlock.appendChild(splitBlock(child, split, ast));
+      } else {
+        assert(false);
+      }
     }
   });
   return newBlock;
@@ -102,6 +136,7 @@ function splitBlockImpl(block: Block, split: Statement, ast: AST): Block | null 
 function createSplitFunction(
   existingFunction: FunctionDefinition,
   body: Block,
+  counter: number,
   ast: AST,
 ): [FunctionDefinition, FunctionCall] {
   // Collect variables referenced in the split function that need to be passed in
@@ -121,7 +156,7 @@ function createSplitFunction(
     'FunctionDefinition',
     existingFunction.scope,
     existingFunction.kind === FunctionKind.Free ? FunctionKind.Free : FunctionKind.Function,
-    generateNewFunctionName(existingFunction.name),
+    `${existingFunction.name}_part${counter + 1}`,
     false,
     FunctionVisibility.Private,
     existingFunction.stateMutability,
@@ -138,20 +173,6 @@ function createSplitFunction(
   const call = createCallToFunction(funcDef, args, ast);
 
   return [funcDef, call];
-}
-
-function generateNewFunctionName(name: string): string {
-  const alreadySplitTest = new RegExp('_part[0-9]+$');
-  const match = name.search(alreadySplitTest);
-  if (match === -1) {
-    return `${name}_part2`;
-  } else {
-    // Extract the number from the end of the function name,
-    // then replace it with its incremented value
-    const numStart = match + '_part'.length;
-    const splitCount = parseInt(name.slice(numStart));
-    return `${name.slice(0, numStart)}${splitCount + 1}`;
-  }
 }
 
 function addSplitFunctionToScope(
@@ -182,6 +203,22 @@ function addCallsToSplitFunction(
     ast.insertStatementAfter(node.vFalseBody, cloneASTNode(returnStatement, ast));
   } else {
     node.vFalseBody = cloneASTNode(returnStatement, ast);
+    ast.registerChild(node.vFalseBody, node);
+  }
+}
+
+function ensureBothBranchesAreBlocks(node: IfStatement, ast: AST): void {
+  if (!(node.vTrueBody instanceof Block) && !(node.vTrueBody instanceof UncheckedBlock)) {
+    node.vTrueBody = new Block(ast.reserveId(), '', 'Block', [node.vTrueBody]);
+    ast.registerChild(node.vTrueBody, node);
+  }
+
+  if (
+    node.vFalseBody &&
+    !(node.vFalseBody instanceof Block) &&
+    !(node.vFalseBody instanceof UncheckedBlock)
+  ) {
+    node.vFalseBody = new Block(ast.reserveId(), '', 'Block', [node.vFalseBody]);
     ast.registerChild(node.vFalseBody, node);
   }
 }
