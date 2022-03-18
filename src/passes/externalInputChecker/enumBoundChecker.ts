@@ -29,6 +29,7 @@ export class EnumBoundChecker extends ASTMapper {
           const enumAssertStatment = ast
             .getUtilFuncGen(node)
             .externalInputChecks.enum.gen(parameter, enumStubArgument);
+
           const expressionStatement = new ExpressionStatement(
             ast.reserveId(),
             '',
@@ -37,11 +38,13 @@ export class EnumBoundChecker extends ASTMapper {
           );
 
           const functionBlock = node.vBody;
+
           assert(functionBlock != undefined);
           if (functionBlock.getChildren().length === 0) {
             functionBlock.appendChild(expressionStatement);
           } else {
             const firstStatement = functionBlock.getChildrenByType(Statement)[0];
+
             ast.insertStatementBefore(firstStatement, expressionStatement);
           }
           ast.setContextRecursive(expressionStatement);

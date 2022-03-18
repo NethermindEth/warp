@@ -24,6 +24,7 @@ export class BooleanBoundChecker extends ASTMapper {
       node.vParameters.vParameters.forEach((parameter) => {
         if (parameter.typeString === 'bool' && parameter.vType instanceof ElementaryTypeName) {
           const intType = new BoolType();
+
           const functionStub = createCairoFunctionStub(
             'warp_external_input_check_bool',
             [['boolValue', typeNameFromTypeNode(intType, ast)]],
@@ -57,11 +58,13 @@ export class BooleanBoundChecker extends ASTMapper {
           );
 
           const functionBlock = node.vBody;
+
           assert(functionBlock != undefined);
           if (functionBlock.getChildren().length === 0) {
             functionBlock.appendChild(expressionStatement);
           } else {
             const firstStatement = functionBlock.getChildrenByType(Statement)[0];
+
             ast.insertStatementBefore(firstStatement, expressionStatement);
           }
           ast.setContextRecursive(expressionStatement);
