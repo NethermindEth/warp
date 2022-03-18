@@ -38,7 +38,7 @@ source ~/warp/bin/activate
 pip install z3-solver
 ```
 
-MacOs:
+MacOS:
 
 ```
 brew install python@3.7
@@ -49,10 +49,22 @@ python3.7 -m venv ~/warp
 source ~/warp/bin/activate
 ```
 
-Install Warp:
+
+### Installing from pip
 
 ```
 pip install sol-warp
+```
+
+### Installing from sources
+[Install poetry](https://python-poetry.org/docs/#installation)
+
+Then:
+```
+git clone git@github.com:NethermindEth/warp.git
+cd warp
+poetry build
+pip install dist/sol_warp-$VERSION.whl
 ```
 
 ## Setting up autocompletion
