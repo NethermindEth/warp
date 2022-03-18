@@ -29,7 +29,7 @@ import { AST } from '../../ast/ast';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { cloneASTNode } from '../../utils/cloning';
 import { createIdentifier } from '../../utils/nodeTemplates';
-import { toSingleExpression } from '../loopFunctionaliser/utils';
+import { toSingleExpression } from '../../utils/functionGeneration';
 
 function genReturnVariables(
   vType: TypeName | undefined,

@@ -21,6 +21,7 @@ import {
   ModifierInvocation,
   OverrideSpecifier,
   ParameterList,
+  PlaceholderStatement,
   Return,
   UnaryOperation,
   UserDefinedTypeName,
@@ -403,6 +404,15 @@ function cloneASTNodeImpl<T extends ASTNode>(
       replaceId(node.id, ast, remappedIds),
       node.src,
       [...node.vOverrides].map((o) => cloneASTNodeImpl(o, ast, remappedIds)),
+      node.raw,
+    );
+  } else if (node instanceof PlaceholderStatement) {
+    newNode = new PlaceholderStatement(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'PlaceholderStatement',
+      // TODO - It gives an error when writing node.documentation
+      undefined,
       node.raw,
     );
   }

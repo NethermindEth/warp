@@ -3,7 +3,7 @@ import { Break, FunctionDefinition } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
-import { createReturn } from './utils';
+import { createReturn } from '../../utils/functionGeneration';
 
 export class BreakToReturn extends ASTMapper {
   visitBreak(node: Break, ast: AST): void {

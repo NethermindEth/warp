@@ -8,7 +8,6 @@ import {
   Expression,
   ExpressionStatement,
   FunctionCall,
-  FunctionCallKind,
   FunctionDefinition,
   FunctionKind,
   FunctionStateMutability,
@@ -19,14 +18,17 @@ import {
   Return,
   SourceUnit,
   Statement,
-  TupleExpression,
   VariableDeclaration,
   WhileStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { cloneASTNode } from '../../utils/cloning';
+import {
+  createReturn,
+  generateFunctionCall,
+  toSingleExpression,
+} from '../../utils/functionGeneration';
 import { createIdentifier } from '../../utils/nodeTemplates';
-import { getFunctionTypeString, getReturnTypeString } from '../../utils/utils';
 
 export function collectUnboundVariables(node: ASTNode): Map<VariableDeclaration, Identifier[]> {
   const internalDeclarations = node
@@ -241,46 +243,15 @@ function createStartingIf(
   );
 }
 
-export function createReturn(
-  declarations: VariableDeclaration[],
-  retParamListId: number,
-  ast: AST,
-): Return {
-  const returnIdentifiers = declarations.map((d) => createIdentifier(d, ast));
-  const retValue = toSingleExpression(returnIdentifiers, ast);
-  return new Return(ast.reserveId(), '', retParamListId, retValue);
-}
-
-export function toSingleExpression(expressions: Expression[], ast: AST): Expression {
-  if (expressions.length === 1) return expressions[0];
-
-  return new TupleExpression(
-    ast.reserveId(),
-    '',
-    `tuple(${expressions.map((e) => e.typeString).join(',')})`,
-    false,
-    expressions,
-  );
-}
-
 export function createLoopCall(
   loopFunction: FunctionDefinition,
   variables: VariableDeclaration[],
   ast: AST,
 ): FunctionCall {
-  return new FunctionCall(
-    ast.reserveId(),
-    '',
-    getReturnTypeString(loopFunction),
-    FunctionCallKind.FunctionCall,
-    new Identifier(
-      ast.reserveId(),
-      '',
-      getFunctionTypeString(loopFunction, ast.compilerVersion),
-      loopFunction.name,
-      loopFunction.id,
-    ),
+  return generateFunctionCall(
+    loopFunction,
     variables.map((v) => createIdentifier(v, ast)),
+    ast,
   );
 }
 
@@ -299,13 +270,13 @@ export function createOuterCall(
     resultIdentifiers.length === 0
       ? createLoopCall(functionDef, [...unboundVariables.keys()], ast)
       : new Assignment(
-          ast.reserveId(),
-          '',
-          assignmentValue.typeString,
-          '=',
-          assignmentValue,
-          createLoopCall(functionDef, [...unboundVariables.keys()], ast),
-        ),
+        ast.reserveId(),
+        '',
+        assignmentValue.typeString,
+        '=',
+        assignmentValue,
+        createLoopCall(functionDef, [...unboundVariables.keys()], ast),
+      ),
     node.documentation,
     node.raw,
   );

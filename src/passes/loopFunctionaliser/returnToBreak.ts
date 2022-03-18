@@ -22,7 +22,7 @@ import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
 import { createBoolLiteral, createIdentifier } from '../../utils/nodeTemplates';
 import { cloneASTNode } from '../../utils/cloning';
-import { toSingleExpression } from './utils';
+import { toSingleExpression } from '../../utils/functionGeneration';
 
 export class ReturnToBreak extends ASTMapper {
   returnFlags: Map<WhileStatement | DoWhileStatement, VariableDeclaration> = new Map();
