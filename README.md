@@ -163,7 +163,7 @@ as per the example mentioned above.
 | Will likely never be supported  |        :x:        |
 |     Support will land soon      | :hammer_and_pick: |
 | Will be supported in the future |   :exclamation:   |
-|        Currently Unkown         |    :question:     |
+|        Currently Unknown        |    :question:     |
 
 <center>
 
