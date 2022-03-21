@@ -319,6 +319,32 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('if', [
+          File.Simple('localVariables', [
+            Expect.Simple('ifNoElse', ['1'], ['1'], 'true branch'),
+            Expect.Simple('ifNoElse', ['0'], ['0'], 'false branch'),
+            Expect.Simple('ifWithElse', ['1'], ['1'], 'true branch'),
+            Expect.Simple('ifWithElse', ['0'], ['0'], 'false branch'),
+          ]),
+          File.Simple('returns', [
+            Expect.Simple('ifNoElse', ['1'], ['1'], 'true branch'),
+            Expect.Simple('ifNoElse', ['0'], ['0'], 'false branch'),
+            Expect.Simple('ifWithElse', ['1'], ['1'], 'true branch'),
+            Expect.Simple('ifWithElse', ['0'], ['0'], 'false branch'),
+            Expect.Simple('unreachableCode', ['1'], ['1'], 'true branch'),
+            Expect.Simple('unreachableCode', ['0'], ['0'], 'false branch'),
+          ]),
+          File.Simple('nesting', [
+            Expect.Simple('nestedIfs', ['1', '1'], ['3', '1'], 'true/true'),
+            Expect.Simple('nestedIfs', ['1', '0'], ['2', '1'], 'true/false'),
+            Expect.Simple('nestedIfs', ['0', '1'], ['1', '0'], 'false/true'),
+            Expect.Simple('nestedIfs', ['0', '0'], ['0', '0'], 'false/false'),
+            Expect.Simple('uncheckedBlock', ['1'], ['255'], 'true branch'),
+            Expect.Simple('uncheckedBlock', ['0'], ['254'], 'true branch'),
+            Expect.Simple('loops', ['1'], ['1'], 'true branch'),
+            Expect.Simple('loops', ['0'], ['0'], 'false branch'),
+          ]),
+        ]),
         new Dir('inheritance', [
           new Dir('functions', [
             new File('base', 'Base', [Expect.Simple('g', ['3'], ['3'])]),

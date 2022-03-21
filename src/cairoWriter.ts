@@ -71,7 +71,7 @@ import {
   getNodeType,
 } from 'solc-typed-ast';
 import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
-import { Implicits, writeImplicits } from './utils/implicits';
+import { writeImplicits } from './utils/implicits';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
 import { canonicalMangler, divmod, primitiveTypeToCairo } from './utils/utils';
 
@@ -172,30 +172,15 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
   }
 }
 
-// This avoids revoked reference in simple situations, but not comprehensively
-// TODO handle if reference revoking
 class IfStatementWriter extends CairoASTNodeWriter {
   writeInner(node: IfStatement, writer: ASTWriter): SrcDesc {
-    const saveImplicits = [...this.ast.getImplicitsAt(node)].map(
-      (implicit: Implicits) => `${INDENT}tempvar ${implicit} = ${implicit}`,
-    );
-    const trueBody = writer.write(node.vTrueBody).split('\n');
-    const falseBody =
-      node.vFalseBody === undefined ? [] : writer.write(node.vFalseBody).split('\n');
-    [trueBody, falseBody].forEach((statements) => {
-      const last = statements.pop();
-      if (last === undefined) {
-        statements.push(...saveImplicits);
-      } else if (last.trim().startsWith('return')) {
-        statements.push(...saveImplicits);
-        statements.push(last);
-      } else {
-        statements.push(last);
-        statements.push(...saveImplicits);
-      }
-    });
     return [
-      [`if ${writer.write(node.vCondition)} != 0:`, ...trueBody, 'else:', ...falseBody, 'end']
+      [
+        `if ${writer.write(node.vCondition)} != 0:`,
+        writer.write(node.vTrueBody),
+        ...(node.vFalseBody ? ['else:', writer.write(node.vFalseBody)] : []),
+        'end',
+      ]
         .filter(notUndefined)
         .flat()
         .join('\n'),

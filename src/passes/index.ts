@@ -6,6 +6,7 @@ export * from './enumConverter';
 export * from './expressionSplitter';
 export * from './externImporter';
 export * from './identifierMangler';
+export * from './ifFunctionaliser';
 export * from './implicitConversionToExplicit';
 export * from './inheritanceInliner';
 export * from './intBoundCalculator';
