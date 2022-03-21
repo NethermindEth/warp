@@ -719,6 +719,8 @@ class NodeTypeResolutionChecker extends ASTMapper {
         (child): child is Expression | VariableDeclaration =>
           child instanceof Expression || child instanceof VariableDeclaration,
       )
+      // solc-typed-ast cannot type rational_consts
+      .filter((value) => !value.typeString.startsWith('rational_const '))
       .forEach((child) => getNodeType(child, ast.compilerVersion));
   }
 }

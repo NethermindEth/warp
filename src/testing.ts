@@ -79,7 +79,8 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/state_variables/enums', 'Success'],
   ['example_contracts/state_variables/arrays', 'NotSupportedYet'],
   ['example_contracts/state_variables/mappings', 'Success'],
-  ['example_contracts/state_variables/structs', 'Success'],
+  // Requires memory structs and reference type returns from public functions
+  ['example_contracts/state_variables/structs', 'CairoCompileFailed'],
   ['example_contracts/state_variables/misc', 'NotSupportedYet'],
   ['example_contracts/structs', 'Success'],
   ['example_contracts/tupleAssignment7', 'Success'],
