@@ -1,5 +1,7 @@
 pragma solidity ^0.8.11;
 
+// SPDX-License-Identifier: MIT
+
 contract WARP {
   mapping(uint8 => mapping(uint8 => uint8)) map1;
   mapping(uint8 => mapping(uint8 => uint8)) map2;
