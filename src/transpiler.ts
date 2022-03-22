@@ -28,6 +28,7 @@ import {
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
   IfFunctionaliser,
+  PublicFunctionSplitter,
 } from './passes';
 import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
 import { printCompileErrors, runSanityCheck } from './utils/utils';
@@ -64,6 +65,7 @@ export function transform(ast: AST, options: TranspilationOptions): CairoSource[
 
 function applyPasses(ast: AST, options: TranspilationOptions): AST {
   const passes: Map<string, typeof ASTMapper> = new Map([
+    ['Aa', PublicFunctionSplitter],
     ['Ss', SourceUnitSplitter],
     ['Ru', RejectUnsupportedFeatures],
     ['L', LiteralExpressionEvaluator],
