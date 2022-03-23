@@ -4,6 +4,7 @@ import {
   ArrayType,
   BoolType,
   BytesType,
+  ContractDefinition,
   StringType,
   AddressType,
   BuiltinType,
@@ -95,6 +96,8 @@ export abstract class CairoType {
             ),
           );
         }
+      } else if (tp.definition instanceof ContractDefinition) {
+        return new CairoFelt();
       }
       throw new NotSupportedYetError(
         `Serialising ${tp.definition.type} UserDefinedType not supported yet. Found at ${printNode(

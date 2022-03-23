@@ -31,6 +31,7 @@ import {
   FunctionStateMutability,
   FunctionTypeName,
   FunctionVisibility,
+  getNodeType,
   Identifier,
   IdentifierPath,
   IfStatement,
@@ -63,12 +64,12 @@ import {
   TupleExpression,
   UnaryOperation,
   UncheckedBlock,
+  UserDefinedType,
   UserDefinedTypeName,
   UsingForDirective,
   VariableDeclaration,
   VariableDeclarationStatement,
   WhileStatement,
-  getNodeType,
 } from 'solc-typed-ast';
 import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
 import { writeImplicits } from './utils/implicits';
@@ -444,17 +445,40 @@ class IdentifierWriter extends CairoASTNodeWriter {
 
 class FunctionCallWriter extends CairoASTNodeWriter {
   writeInner(node: FunctionCall, writer: ASTWriter): SrcDesc {
+    const args = node.vArguments.map((v) => writer.write(v)).join(', ');
+    const func = writer.write(node.vExpression);
     switch (node.kind) {
-      case FunctionCallKind.FunctionCall:
+      case FunctionCallKind.FunctionCall: {
+        if (node.vExpression instanceof MemberAccess) {
+          // check if node.vExpression.vExpression.typeString includes "contract"
+          const nodeType = getNodeType(node.vExpression.vExpression, writer.targetCompilerVersion);
+          if (
+            nodeType instanceof UserDefinedType &&
+            nodeType.definition instanceof ContractDefinition
+          ) {
+            const contractType = nodeType.definition.name;
+            const memberName = node.vExpression.memberName;
+            const contract = writer.write(node.vExpression.vExpression);
+            return [`${contractType}.${memberName}(${contract}${args ? ', ' : ''}${args})`];
+          }
+        }
+        return [`${func}(${args})`];
+      }
+
       case FunctionCallKind.TypeConversion: {
-        const args = node.vArguments.map((v) => writer.write(v)).join(', ');
-        const func = writer.write(node.vExpression);
         const arg = node.vArguments[0];
         if (node.vFunctionName === 'address' && arg instanceof Literal) {
           const val: BigInt = BigInt(arg.value);
           // Make sure literal < 2**251
           assert(val < BigInt('0x800000000000000000000000000000000000000000000000000000000000000'));
           return [`${args[0]}`];
+        }
+        const nodeType = getNodeType(node.vExpression, writer.targetCompilerVersion);
+        if (
+          nodeType instanceof UserDefinedType &&
+          nodeType.definition instanceof ContractDefinition
+        ) {
+          return [`${args}`];
         }
         return [`${func}(${args})`];
       }

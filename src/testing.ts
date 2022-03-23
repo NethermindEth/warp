@@ -46,6 +46,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/errorHandling/require', 'Success'],
   ['example_contracts/errorHandling/revert', 'Success'],
   ['example_contracts/events', 'Success'],
+  ['example_contracts/external_function', 'NotSupportedYet'],
   ['example_contracts/freeFunction', 'Success'],
   ['example_contracts/function-with-nested-return', 'Success'],
   ['example_contracts/functionArgumentConversions', 'Success'],
