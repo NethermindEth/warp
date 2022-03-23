@@ -10,6 +10,17 @@ export const expectations = flatten(
           Expect.Simple('returnTest', [], ['12', '0']),
         ]),
         new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
+        new Dir('named_args', [
+          File.Simple('function', [
+            Expect.Simple('f', [], []),
+            Expect.Simple('k', [], ['365', '0']),
+            Expect.Simple('v', [], ['234', '0']),
+          ]),
+          // File.Simple('constructor', [
+          //   // (1, 2, (45, 1))
+          //   Expect.Simple('data', [], ['1', '0', '2', '0', '45', '0', '1', '0']),
+          // ]),
+        ]),
         new Dir('assignments', [
           File.Simple('functionSingle', [
             Expect.Simple('test', ['3'], ['3']),

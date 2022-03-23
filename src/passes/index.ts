@@ -25,4 +25,5 @@ export * from './unreachableStatementPruner';
 export * from './usingForResolver';
 export * from './variableDeclarationExpressionSplitter';
 export * from './variableDeclarationInitialiser';
-export * from './gettersPublicStateVars';
+export * from './generateGetters';
+export * from './namedArgsRemover';
