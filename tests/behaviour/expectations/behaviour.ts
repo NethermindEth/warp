@@ -827,6 +827,12 @@ export const expectations = flatten(
               ['getMember', [], ['10', '11'], '0'],
             ]),
           ]),
+          File.Simple('passingArguments', [
+            Expect.Simple('passArray', [], ['4']),
+            Expect.Simple('passInt', [], ['0', '0']),
+            Expect.Simple('passMap', [], ['20']),
+            Expect.Simple('passStruct', [], ['5']),
+          ]),
         ]),
         File.Simple('example', [
           Expect.Simple('test', [], []),

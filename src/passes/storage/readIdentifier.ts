@@ -4,6 +4,7 @@ import {
   Assignment,
   ASTNode,
   BinaryOperation,
+  Expression,
   FunctionCall,
   getNodeType,
   IndexAccess,
@@ -34,7 +35,9 @@ export class ReadIdentifier extends ASTMapper {
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    node.vArguments.forEach((arg) => this.reads.add(arg));
+    node.vArguments.forEach((arg) => {
+      if (isValueType(arg, ast)) this.reads.add(arg);
+    });
     this.visitExpression(node, ast);
   }
 
@@ -82,4 +85,10 @@ export class ReadIdentifier extends ASTMapper {
     }
     this.visitStatement(node, ast);
   }
+}
+
+function isValueType(node: Expression, ast: AST): boolean {
+  const type = getNodeType(node, ast.compilerVersion);
+  if (type instanceof PointerType) return false;
+  return true;
 }
