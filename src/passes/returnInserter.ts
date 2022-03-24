@@ -13,7 +13,7 @@ export class ReturnInserter extends ASTMapper {
 
     if (controlFlows.some((flow) => !flow.some((s) => s instanceof Return))) {
       const retVars = node.vReturnParameters.vParameters;
-      var expression;
+      let expression;
       if (retVars.length !== 0) {
         expression = toSingleExpression(
           retVars.map((r) => createIdentifier(r, ast)),

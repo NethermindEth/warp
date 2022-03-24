@@ -28,4 +28,3 @@ export * from './variableDeclarationExpressionSplitter';
 export * from './variableDeclarationInitialiser';
 export * from './generateGetters';
 export * from './namedArgsRemover';
-
