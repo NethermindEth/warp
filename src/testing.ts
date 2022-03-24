@@ -70,7 +70,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/mutableReferences/memory', 'Success'],
   ['example_contracts/mutableReferences/mutableReferences', 'Success'],
   ['example_contracts/mutableReferences/scalarStorage', 'Success'],
-  ['example_contracts/namedArgs/constructor', 'NotSupportedYet'],
+  ['example_contracts/namedArgs/constructor', 'Success'],
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
   ['example_contracts/namedArgs/function', 'Success'],
   ['example_contracts/payable-function', 'Success'],

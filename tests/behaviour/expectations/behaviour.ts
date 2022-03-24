@@ -769,10 +769,14 @@ export const expectations = flatten(
             Expect.Simple('k', [], ['365', '0']),
             Expect.Simple('v', [], ['234', '0']),
           ]),
-          // File.Simple('constructor', [
-          //   // (1, 2, (45, 1))
-          //   Expect.Simple('data', [], ['1', '0', '2', '0', '45', '0', '1', '0']),
-          // ]),
+          File.Simple('constructor', [
+            // (1, 2, (45, 1), [1,2,3])
+            Expect.Simple(
+              'getData',
+              [],
+              ['1', '0', '2', '0', '45', '0', '1', '0', '1', '0', '2', '0', '3', '0'],
+            ),
+          ]),
         ]),
         new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
         new Dir('storage', [
