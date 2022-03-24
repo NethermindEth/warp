@@ -13,5 +13,5 @@ contract C {
         A b;
         uint8[3] data;
     }
-    B public data = B({a:1, data :[1,2,3], b: A({c:1, a:45}), z:2});
+    B data = B({a:1, data :[1,2,3], b: A({c:1, a:45}), z:2});
 }
