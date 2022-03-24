@@ -382,10 +382,9 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     const inputChecks: string[] = [];
     node.vParameters.vParameters.forEach((parameter) => {
       if (
-        parameter.typeString.slice(0, 4) === 'uint' ||
-        parameter.typeString.slice(0, 3) === 'int'
+        parameter.vType instanceof ElementaryTypeName &&
+        (parameter.typeString.slice(0, 4) === 'uint' || parameter.typeString.slice(0, 3) === 'int')
       ) {
-        assert(parameter.vType instanceof ElementaryTypeName);
         const int_width = parameter.typeString.replace('u', '');
         const functionCall = `${INDENT}warp_external_input_check_${int_width}(${parameter.name})`;
         inputChecks.push(functionCall);

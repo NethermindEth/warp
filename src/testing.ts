@@ -67,7 +67,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/loops/for-loop-with-continue', 'Success'],
   ['example_contracts/loops/for-loop-with-nested-return', 'Success'],
   ['example_contracts/mutableReferences/memory', 'Success'],
-  ['example_contracts/mutableReferences/mutableReferences', 'NotSupportedYet'],
+  ['example_contracts/mutableReferences/mutableReferences', 'Success'],
   ['example_contracts/mutableReferences/scalarStorage', 'Success'],
   ['example_contracts/payable-function', 'Success'],
   ['example_contracts/pure-function', 'NotSupportedYet'],

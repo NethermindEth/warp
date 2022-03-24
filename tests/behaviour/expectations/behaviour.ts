@@ -796,6 +796,18 @@ export const expectations = flatten(
             Expect.Simple('nonFeltKey', ['4', '5', '6'], ['6'], 'stepCheck'),
           ]),
           File.Simple('nesting', [Expect.Simple('nesting', [], ['5'])]),
+          File.Simple('passingArguments', [
+            Expect.Simple('passArray', [], ['4']),
+            Expect.Simple('passInt', [], ['0', '0']),
+            Expect.Simple('passMap', [], ['20']),
+            Expect.Simple('passStruct', [], ['5']),
+          ]),
+          File.Simple('returns', [
+            Expect.Simple('ints', [], ['3']),
+            Expect.Simple('arrays', [], ['2', '2']),
+            Expect.Simple('mappings', [], ['2', '4']),
+            Expect.Simple('structs', [], ['2']),
+          ]),
           File.Simple('scalars', [
             Expect.Simple('getValues', [], ['2', '4']),
             Expect.Simple('readValues', [], ['2', '4']),
@@ -826,12 +838,6 @@ export const expectations = flatten(
               ['assign', ['10', '11'], [], '0'],
               ['getMember', [], ['10', '11'], '0'],
             ]),
-          ]),
-          File.Simple('passingArguments', [
-            Expect.Simple('passArray', [], ['4']),
-            Expect.Simple('passInt', [], ['0', '0']),
-            Expect.Simple('passMap', [], ['20']),
-            Expect.Simple('passStruct', [], ['5']),
           ]),
         ]),
         File.Simple('example', [
