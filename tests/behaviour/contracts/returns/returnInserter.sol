@@ -37,4 +37,12 @@ contract WARP {
         require((z = x + y) >= x);
     }
 
+    function ifFunctionaliser_returnInserter(uint8 x) public pure returns (uint8 i, uint8 j) {
+        if (x == 1) {
+            i = 1;
+        } else {
+            i = 2;
+        }
+    }
+
 }

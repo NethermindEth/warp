@@ -77,7 +77,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/pure-function', 'NotSupportedYet'],
   ['example_contracts/return-var-capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],
-  ['example_contracts/returnInserter', 'CairoCompileFailed'],
+  ['example_contracts/returnInserter', 'Success'],
   ['example_contracts/simple-storage-var', 'Success'],
   ['example_contracts/sstore-sload', 'WillNotSupport'],
   ['example_contracts/state_variables/scalars', 'Success'],

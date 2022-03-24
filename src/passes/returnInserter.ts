@@ -13,15 +13,19 @@ export class ReturnInserter extends ASTMapper {
 
     if (controlFlows.some((flow) => !flow.some((s) => s instanceof Return))) {
       const retVars = node.vReturnParameters.vParameters;
+      var expression;
+      if (retVars.length !== 0) {
+        expression = toSingleExpression(
+          retVars.map((r) => createIdentifier(r, ast)),
+          ast,
+        );
+      }
       const newReturn = new Return(
         ast.reserveId(),
         node.src,
         'Return',
         node.vReturnParameters.id,
-        toSingleExpression(
-          retVars.map((r) => createIdentifier(r, ast)),
-          ast,
-        ),
+        expression,
       );
       node.vBody.appendChild(newReturn);
       ast.registerChild(newReturn, node.vBody);

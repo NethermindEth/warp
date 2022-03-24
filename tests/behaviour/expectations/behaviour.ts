@@ -392,10 +392,11 @@ export const expectations = flatten(
             Expect.Simple('revert_returnInserter', ['3'], null),
             Expect.Simple('conditions_no_returnInsert', ['9'], ['9']),
             Expect.Simple('returnInsert_with_require', ['3', '5'], ['8']),
+            Expect.Simple('ifFunctionaliser_returnInserter', ['2'], ['2', '0']),
           ]),
           File.Simple('returnInitializer', [
-            Expect.Simple('f0', ['3', '8'], ['3', '8']),
-            Expect.Simple('f1', ['7'], ['9', '7']),
+            Expect.Simple('withReturn', ['3', '8'], ['3', '8']),
+            Expect.Simple('insertReturn', ['7'], ['9', '7']),
           ]),
         ]),
         new Dir('maths', [

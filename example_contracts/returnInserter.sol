@@ -3,7 +3,7 @@ pragma solidity ^0.8.6;
 
 contract WARP {
 
-    function test(uint8 x) public pure returns (uint8 i, uint j) {
+    function ifFunctionaliser_returnInserter(uint8 x) public pure returns (uint8 i, uint j) {
         if (x == 1) {
             i = 1;
         } else {
