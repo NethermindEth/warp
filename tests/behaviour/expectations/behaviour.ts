@@ -379,6 +379,26 @@ export const expectations = flatten(
             Expect.Simple('doWhile_break', ['0', '2'], ['2']),
           ]),
         ]),
+        new Dir('returns', [
+          File.Simple('returnInserter', [
+            Expect.Simple('default_returnInsert', ['6'], ['0']),
+            Expect.Simple('condition_returnInsert', ['1'], ['2'], 'Return from conditional branch'),
+            Expect.Simple(
+              'condition_returnInsert',
+              ['2'],
+              ['0'],
+              'Default return if not returned from conditional branch',
+            ),
+            Expect.Simple('revert_returnInserter', ['3'], null),
+            Expect.Simple('conditions_no_returnInsert', ['9'], ['9']),
+            Expect.Simple('returnInsert_with_require', ['3', '5'], ['8']),
+            Expect.Simple('ifFunctionaliser_returnInserter', ['2'], ['2', '0']),
+          ]),
+          File.Simple('returnInitializer', [
+            Expect.Simple('withReturn', ['3', '8'], ['3', '8']),
+            Expect.Simple('insertReturn', ['7'], ['9', '7']),
+          ]),
+        ]),
         new Dir('maths', [
           File.Simple('addition', [
             Expect.Simple('addition8safe', ['3', '20'], ['23']),

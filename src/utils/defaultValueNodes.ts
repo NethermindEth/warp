@@ -38,8 +38,8 @@ export function getDefaultValue(
   if (nodeType instanceof AddressType) return addressDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof ArrayType) return arrayDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof BoolType) return boolDefault(parentNode, ast);
-  else if (nodeType instanceof IntType) return intDefault(parentNode, ast);
-  else if (nodeType instanceof MappingType) return intDefault(parentNode, ast);
+  else if (nodeType instanceof IntType) return intDefault(nodeType, parentNode, ast);
+  else if (nodeType instanceof MappingType) return intDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof PointerType) return pointerDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof StringType) return stringDefault(parentNode, ast);
   else if (nodeType instanceof UserDefinedType) return userDefDefault(nodeType, parentNode, ast);
@@ -47,17 +47,21 @@ export function getDefaultValue(
     throw new NotSupportedYetError(`Not supported operation delete on ${printTypeNode(nodeType)}`);
 }
 
-function intDefault(node: Expression | VariableDeclaration, ast: AST): Expression {
+function intDefault(
+  node: TypeNode,
+  parentNode: Expression | VariableDeclaration,
+  ast: AST,
+): Expression {
   return new Literal(
     ast.reserveId(),
-    node.src,
+    parentNode.src,
     'Literal',
-    'int_const 0',
+    node.pp(),
     LiteralKind.Number,
     toHexString('0'),
     '0',
     undefined,
-    node.raw,
+    parentNode.raw,
   );
 }
 
@@ -100,7 +104,7 @@ function addressDefault(
         nodeType.payable ? 'payable' : 'nonpayable',
       ),
     ),
-    [intDefault(node, ast)],
+    [intDefault(nodeType, node, ast)],
     undefined,
     node.raw,
   );
@@ -133,7 +137,7 @@ function arrayDefault(
           new ElementaryTypeName(ast.reserveId(), '', 'ElementaryTypeName', tString, tString),
         ),
       ),
-      [intDefault(parentNode, ast)],
+      [intDefault(nodeType, parentNode, ast)],
       undefined,
       parentNode.raw,
     );
