@@ -1,7 +1,7 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
 import {
   GettersPublicStateVars,
-  AddressHandler,
+  // AddressHandler,
   AnnotateImplicits,
   BuiltinHandler,
   DeleteHandler,
@@ -65,8 +65,8 @@ export function transform(ast: AST, options: TranspilationOptions): CairoSource[
 
 function applyPasses(ast: AST, options: TranspilationOptions): AST {
   const passes: Map<string, typeof ASTMapper> = new Map([
-    ['Aa', PublicFunctionSplitter],
     ['Ss', SourceUnitSplitter],
+    ['Pfs', PublicFunctionSplitter],
     ['Ru', RejectUnsupportedFeatures],
     ['L', LiteralExpressionEvaluator],
     ['Ufr', UsingForResolver],
@@ -80,7 +80,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['Lf', LoopFunctionaliser],
     ['If', IfFunctionaliser],
     ['T', TupleAssignmentSplitter],
-    ['Ah', AddressHandler],
+    //['Ah', AddressHandler],
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
     ['Vs', VariableDeclarationExpressionSplitter],
