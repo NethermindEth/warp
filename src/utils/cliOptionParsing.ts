@@ -1,6 +1,16 @@
+import assert = require('assert');
 import { InvalidArgumentError } from 'commander';
 import { ASTMapper } from '../ast/mapper';
 import { error } from './formatting';
+
+class PassOrderParseError extends InvalidArgumentError {
+  constructor(passOrder: string, remainingPassOrder: string, validOptions: string[]) {
+    const errorMessage = `Unable to parse options ${remainingPassOrder} of ${passOrder}`;
+    const validOptionList = `Valid options are ${validOptions.join()}`;
+    const example = `For example, --order ${validOptions.join('')}`;
+    super(error(`${errorMessage}\n${validOptionList}\n${example}`));
+  }
+}
 
 export function parsePassOrder(
   order: string | undefined,
@@ -30,11 +40,17 @@ export function parsePassOrder(
   return passesInOrder;
 }
 
-class PassOrderParseError extends InvalidArgumentError {
-  constructor(passOrder: string, remainingPassOrder: string, validOptions: string[]) {
-    const errorMessage = `Unable to parse options ${remainingPassOrder} of ${passOrder}`;
-    const validOptionList = `Valid options are ${validOptions.join()}`;
-    const example = `For example, --order ${validOptions.join('')}`;
-    super(error(`${errorMessage}\n${validOptionList}\n${example}`));
-  }
+export function createPassMap(
+  passes: [key: string, pass: typeof ASTMapper][],
+): Map<string, typeof ASTMapper> {
+  // By asserting that each key is the first one like it, we ensure that each key is unique
+  assert(passes.every(([key], index) => passes.findIndex(([k]) => k === key) === index));
+  assert(passes.every(([key]) => isCorrectCase(key)));
+  return new Map(passes);
+}
+
+function isCorrectCase(key: string): boolean {
+  return [...key].every((letter, index) =>
+    index === 0 ? letter >= 'A' && letter <= 'Z' : letter >= 'a' || letter <= 'z',
+  );
 }
