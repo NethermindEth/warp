@@ -13,6 +13,7 @@ import {
 import { ASTMapper } from '../../ast/mapper';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
 import { typeNameFromTypeNode } from '../../utils/utils';
+import assert = require('assert');
 
 export class IntBoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
@@ -63,25 +64,23 @@ export class IntBoundChecker extends ASTMapper {
   }
 
   private insertFunctionCall(node: FunctionDefinition, functionCall: FunctionCall, ast: AST): void {
-    if (node.vBody !== undefined) {
-      const expressionStatement = new ExpressionStatement(
-        ast.reserveId(),
-        '',
-        'ExpressionStatement',
-        functionCall,
-      );
+    const expressionStatement = new ExpressionStatement(
+      ast.reserveId(),
+      '',
+      'ExpressionStatement',
+      functionCall,
+    );
 
-      const functionBlock = node.vBody;
+    const functionBlock = node.vBody;
+    assert(functionBlock !== undefined);
+    if (functionBlock.getChildren().length === 0) {
+      functionBlock.appendChild(expressionStatement);
+    } else {
+      const firstStatement = functionBlock.getChildrenByType(Statement)[0];
 
-      if (functionBlock.getChildren().length === 0) {
-        functionBlock.appendChild(expressionStatement);
-      } else {
-        const firstStatement = functionBlock.getChildrenByType(Statement)[0];
-
-        ast.insertStatementBefore(firstStatement, expressionStatement);
-      }
-
-      ast.setContextRecursive(expressionStatement);
+      ast.insertStatementBefore(firstStatement, expressionStatement);
     }
+
+    ast.setContextRecursive(expressionStatement);
   }
 }

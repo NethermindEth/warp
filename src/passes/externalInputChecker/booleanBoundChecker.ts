@@ -16,8 +16,6 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { typeNameFromTypeNode } from '../../utils/utils';
 
 export class BooleanBoundChecker extends ASTMapper {
-  private generatedBoolCheck = false;
-
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (FunctionVisibility.External === node.visibility) {
       node.vParameters.vParameters.forEach((parameter) => {
@@ -70,7 +68,7 @@ export class BooleanBoundChecker extends ASTMapper {
 
     const functionBlock = node.vBody;
 
-    assert(functionBlock != undefined);
+    assert(functionBlock !== undefined);
     if (functionBlock.getChildren().length === 0) {
       functionBlock.appendChild(expressionStatement);
     } else {

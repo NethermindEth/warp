@@ -54,7 +54,7 @@ export class EnumBoundChecker extends ASTMapper {
 
     const functionBlock = node.vBody;
 
-    assert(functionBlock != undefined);
+    assert(functionBlock !== undefined);
     if (functionBlock.getChildren().length === 0) {
       functionBlock.appendChild(expressionStatement);
     } else {
