@@ -5,20 +5,20 @@ pragma solidity ^0.8.10;
 
 contract A{
     uint a;
-	function f() public {
+    function f() public {
         a = 2;
     }
 }
 contract B{
-	A public b;
+    A public b;
     struct AA{
         uint x;
         uint y;
     }
 }
 contract C{
-	B public a;
-	function foo() public{
-		a.b().f();
-	}
+    B public a;
+    function foo() public{
+        a.b().f();
+    }
 }
