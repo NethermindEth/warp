@@ -1042,6 +1042,20 @@ export const expectations = flatten(
           Expect.Simple('test', [], []),
           Expect.Simple('returnTest', [], ['12', '0']),
         ]),
+        new Dir('modifiers', [
+          File.Simple('modifier', [
+            Expect.Simple('f', ['90000', '0'], ['1000', '0']),
+            Expect.Simple('f', ['110000', '0'], ['0', '0']),
+          ]),
+          File.Simple('multipleModifiers', [
+            new Expect('modifier', [
+              ['openEvent', [], [], '0'],
+              ['donate', ['238', '0'], ['238', '0'], '0'],
+              ['donate', ['100', '0'], ['338', '0'], '0'],
+              ['closeEvent', [], [], '0'],
+            ]),
+          ]),
+        ]),
       ]),
     ]),
   ]),

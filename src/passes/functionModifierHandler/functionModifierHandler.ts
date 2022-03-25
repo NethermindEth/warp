@@ -116,7 +116,7 @@ export class FunctionModifierHandler extends ASTMapper {
     ast: AST,
   ): FunctionDefinition {
     const scope = node.vScope;
-    const functionName = `__warp_${node.name}_${this.count++}`;
+    const functionName = `__warp_${modifier.name}_${this.count++}`;
 
     const functionParams = functionToCall.vParameters.vParameters.map((v) =>
       this.createParameter(v, ast),
@@ -190,7 +190,6 @@ export class FunctionModifierHandler extends ASTMapper {
   }
 
   createParameter(v: VariableDeclaration, ast: AST): VariableDeclaration {
-    // TODO - Investigate if it is really possible to clone the variableDec here
     const variable = cloneASTNode(v, ast);
     variable.name = `__warp_parameter${this.count++}`;
     return variable;
@@ -202,10 +201,14 @@ export class FunctionModifierHandler extends ASTMapper {
     return param;
   }
 
+  // TODO - Check how to get modifier code when `vModifier` is a Contract Definition
+  // Note: There is a possibility that constructor of the current contract
+  //       invokes a constructor of the super contract.
+  //       The `ContractDefinition` of a super contract is the value in such case.
   getModifier(vModifier: ModifierDefinition | ContractDefinition): ModifierDefinition {
     if (vModifier instanceof ModifierDefinition) return vModifier;
-    console.log(vModifier);
-    console.log(vModifier.vModifiers);
+    // console.log(vModifier);
+    // console.log(vModifier.vModifiers);
     throw new Error('Method not implemented');
   }
 }
