@@ -1,5 +1,4 @@
-import chalk from 'chalk';
-export const error = chalk.red.bold;
+import { error } from './formatting';
 
 export function logError(message: string): void {
   console.error(error(message));

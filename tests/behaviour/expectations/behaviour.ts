@@ -5,22 +5,6 @@ export const expectations = flatten(
   new Dir('tests', [
     new Dir('behaviour', [
       new Dir('contracts', [
-        File.Simple('example', [
-          Expect.Simple('test', [], []),
-          Expect.Simple('returnTest', [], ['12', '0']),
-        ]),
-        new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
-        new Dir('named_args', [
-          File.Simple('function', [
-            Expect.Simple('f', [], []),
-            Expect.Simple('k', [], ['365', '0']),
-            Expect.Simple('v', [], ['234', '0']),
-          ]),
-          // File.Simple('constructor', [
-          //   // (1, 2, (45, 1))
-          //   Expect.Simple('data', [], ['1', '0', '2', '0', '45', '0', '1', '0']),
-          // ]),
-        ]),
         new Dir('assignments', [
           File.Simple('functionSingle', [
             Expect.Simple('test', ['3'], ['3']),
@@ -117,6 +101,84 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('delete', [
+          File.Simple('address', [Expect.Simple('f', [], ['23', '0'])]),
+
+          File.Simple('array_static', [
+            new Expect('delete', [
+              ['set', ['2', '0', '3', '4'], ['3', '4'], '0'],
+              ['clearAt', ['2', '0'], [], '0'],
+              ['get', ['2', '0'], ['0', '0'], '0'],
+              ['set', ['0', '0', '1', '2'], ['1', '2'], '0'],
+              ['clear', [], [], '0'],
+              ['getLength', [], ['4', '0'], '0'],
+              ['get', ['0', '0'], ['0', '0'], '0'],
+              ['get', ['2', '0'], ['0', '0'], '0'],
+            ]),
+          ]),
+
+          File.Simple('array_dynamic', [
+            new Expect('delete', [
+              ['initialize', [], [], '0'],
+              ['clearAt', ['2', '0'], [], '0'],
+              ['get', ['2', '0'], ['0'], '0'],
+              ['get', ['0', '0'], ['8'], '0'],
+              ['clear', [], [], '0'],
+              ['getLength', [], ['0', '0'], '0'],
+            ]),
+          ]),
+
+          File.Simple('boolean', [
+            Expect.Simple('boolean', ['1'], ['0'], 'delete true = false'),
+            Expect.Simple('boolean', ['0'], ['0'], 'delete false = false'),
+            new Expect('delete state boolean', [
+              ['flag', [], ['1'], '0'],
+              ['deleteFlag', [], [], '0'],
+              ['flag', [], ['0'], '0'],
+            ]),
+          ]),
+
+          File.Simple('enum', [
+            new Expect('delete', [
+              ['set', ['3'], [], '0'],
+              ['reset', [], [], '0'],
+              ['get', [], ['0'], '0'],
+            ]),
+          ]),
+
+          File.Simple('int', [
+            new Expect('delete', [
+              ['totalSupply', [], ['100000000000000', '0'], '0'],
+              ['reset', [], [], '0'],
+              ['totalSupply', [], ['0', '0'], '0'],
+              ['addValue', ['25', '0'], ['25', '0'], '0'],
+            ]),
+          ]),
+
+          File.Simple('struct', [
+            new Expect('deleteWholeStruct', [
+              ['setRadius', ['1', '2'], [], '0'],
+              ['setPoint', ['3', '4', '5', '6'], [], '0'],
+              ['getRadius', [], ['1', '2'], '0'],
+              ['getPoint', [], ['3', '4', '5', '6'], '0'],
+              ['deleteCircle', [], [], '0'],
+              ['getRadius', [], ['0', '0'], '0'],
+              ['getPoint', [], ['0', '0', '0', '0'], '0'],
+            ]),
+            new Expect('deleteInnerStruct', [
+              ['setPoint', ['3', '4', '5', '6'], [], '0'],
+              ['getPoint', [], ['3', '4', '5', '6'], '0'],
+              ['deletePoint', [], [], '0'],
+              ['getPoint', [], ['0', '0', '0', '0'], '0'],
+            ]),
+            new Expect('deleteScalarMember', [
+              ['setRadius', ['1', '2'], [], '0'],
+              ['getRadius', [], ['1', '2'], '0'],
+              ['deleteRadius', [], [], '0'],
+              ['getRadius', [], ['0', '0'], '0'],
+            ]),
+          ]),
+        ]),
         new Dir('enums', [
           File.Simple('singleEnum', [
             Expect.Simple('get', [], ['0']),
@@ -183,6 +245,29 @@ export const expectations = flatten(
               ['balanceOf', ['4'], ['200', '0'], '0'],
               ['balanceOf', ['5'], ['400', '0'], '0'],
             ]),
+          ]),
+        ]),
+        new Dir('error_handling', [
+          File.Simple('revert', [
+            new Expect('conditionalRevert', [['couldFail', ['2'], ['4', '0'], '0']]),
+            new Expect('conditionalRevert should fail', [
+              ['couldFail', ['1'], null, '0', 'I am failing'],
+            ]),
+            new Expect('revertBothBranches', [
+              ['definitelyFailsWithMsg', [], null, '0', 'I am failing'],
+            ]),
+            new Expect('revertBothBranches fails with no message', [
+              // fails without a message
+              ['definitelyFailsNoMsg', [], null, '0'],
+            ]),
+          ]),
+          File.Simple('assert', [
+            new Expect('assert should pass', [['willPass', [], [], '0']]),
+            new Expect('assert should fail', [['shouldFail', ['1'], null, '0']]),
+          ]),
+          File.Simple('require', [
+            new Expect('require should pass', [['willPass', [], [], '0']]),
+            new Expect('require should fail', [['shouldFail', [], null, '0', 'why is x not 2???']]),
           ]),
         ]),
         new Dir('expressions', [
@@ -379,24 +464,10 @@ export const expectations = flatten(
             Expect.Simple('doWhile_break', ['0', '2'], ['2']),
           ]),
         ]),
-        new Dir('returns', [
-          File.Simple('returnInserter', [
-            Expect.Simple('default_returnInsert', ['6'], ['0']),
-            Expect.Simple('condition_returnInsert', ['1'], ['2'], 'Return from conditional branch'),
-            Expect.Simple(
-              'condition_returnInsert',
-              ['2'],
-              ['0'],
-              'Default return if not returned from conditional branch',
-            ),
-            Expect.Simple('revert_returnInserter', ['3'], null),
-            Expect.Simple('conditions_no_returnInsert', ['9'], ['9']),
-            Expect.Simple('returnInsert_with_require', ['3', '5'], ['8']),
-            Expect.Simple('ifFunctionaliser_returnInserter', ['2'], ['2', '0']),
-          ]),
-          File.Simple('returnInitializer', [
-            Expect.Simple('withReturn', ['3', '8'], ['3', '8']),
-            Expect.Simple('insertReturn', ['7'], ['9', '7']),
+        new Dir('mangled_identifiers', [
+          File.Simple('free_function', [
+            Expect.Simple('f', [], ['20']),
+            Expect.Simple('s', [], ['10']),
           ]),
         ]),
         new Dir('maths', [
@@ -686,11 +757,92 @@ export const expectations = flatten(
         ]),
         new Dir('memory', [
           File.Simple('dynamicArrays', [
-            Expect.Simple('uint8writes', [], ['45']),
-            Expect.Simple('uint256writes', [], ['45', '0']),
+            Expect.Simple('uint8new', [], ['0', '0']),
+            Expect.Simple('uint8write', ['5'], ['0', '5']),
+            Expect.Simple('uint256new', [], ['0', '0', '0', '0']),
+            Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
+          ]),
+        ]),
+        new Dir('named_args', [
+          File.Simple('function', [
+            Expect.Simple('f', [], []),
+            Expect.Simple('k', [], ['365', '0']),
+            Expect.Simple('v', [], ['234', '0']),
+          ]),
+          File.Simple('constructor', [
+            // (1, 2, (45, 1), [1,2,3])
+            Expect.Simple(
+              'getData',
+              [],
+              ['1', '0', '2', '0', '45', '0', '1', '0', '1', '0', '2', '0', '3', '0'],
+            ),
+          ]),
+        ]),
+        new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
+        new Dir('returns', [
+          File.Simple('returnInserter', [
+            Expect.Simple('default_returnInsert', ['6'], ['0']),
+            Expect.Simple('condition_returnInsert', ['1'], ['2'], 'Return from conditional branch'),
+            Expect.Simple(
+              'condition_returnInsert',
+              ['2'],
+              ['0'],
+              'Default return if not returned from conditional branch',
+            ),
+            Expect.Simple('revert_returnInserter', ['3'], null),
+            Expect.Simple('conditions_no_returnInsert', ['9'], ['9']),
+            Expect.Simple('returnInsert_with_require', ['3', '5'], ['8']),
+            Expect.Simple('ifFunctionaliser_returnInserter', ['2'], ['2', '0']),
+          ]),
+          File.Simple('returnInitializer', [
+            Expect.Simple('withReturn', ['3', '8'], ['3', '8']),
+            Expect.Simple('insertReturn', ['7'], ['9', '7']),
           ]),
         ]),
         new Dir('storage', [
+          File.Simple('dynamic_arrays', [
+            Expect.Simple('get', ['0', '0'], null, 'out of range get should fail'),
+            Expect.Simple('set', ['0', '0', '0'], null, 'out of range set should fail'),
+            Expect.Simple('length', [], ['0', '0'], 'length should start as 0'),
+            Expect.Simple('pushNoArg', [], ['0']),
+            Expect.Simple('length', [], ['1', '0'], 'length should increase after push'),
+            Expect.Simple('get', ['0', '0'], ['0']),
+            Expect.Simple('get', ['1', '0'], null, 'out of range get should fail'),
+            Expect.Simple('pushNoArg', [], ['0']),
+            Expect.Simple('length', [], ['2', '0'], 'length should increase after push'),
+            Expect.Simple('get', ['1', '0'], ['0']),
+            Expect.Simple('get', ['2', '0'], null, 'out of range get should fail'),
+            new Expect('set', [
+              ['set', ['0', '0', '4'], ['4'], '0'],
+              ['get', ['0', '0'], ['4'], '0'],
+            ]),
+            Expect.Simple('pop', [], []),
+            Expect.Simple('length', [], ['1', '0'], 'length should decrease after pop'),
+            Expect.Simple('get', ['0', '0'], ['4']),
+            Expect.Simple('pop', [], []),
+            Expect.Simple('length', [], ['0', '0'], 'length should decrease after pop'),
+            Expect.Simple('get', ['0', '0'], null),
+            Expect.Simple('pop', [], null, 'attempting to pop an empty array should fail'),
+          ]),
+          File.Simple('mappings', [
+            Expect.Simple('nestedMappings', ['3'], ['3']),
+            Expect.Simple('nestedMappings', ['4'], ['4'], 'stepCheck'),
+            Expect.Simple('nonFeltKey', ['3', '4', '5'], ['5']),
+            Expect.Simple('nonFeltKey', ['4', '5', '6'], ['6'], 'stepCheck'),
+          ]),
+          File.Simple('nesting', [Expect.Simple('nesting', [], ['5'])]),
+          File.Simple('passingArguments', [
+            Expect.Simple('passArray', [], ['4']),
+            Expect.Simple('passInt', [], ['0', '0']),
+            Expect.Simple('passMap', [], ['20']),
+            Expect.Simple('passStruct', [], ['5']),
+          ]),
+          File.Simple('returns', [
+            Expect.Simple('ints', [], ['3']),
+            Expect.Simple('arrays', [], ['2', '2']),
+            Expect.Simple('mappings', [], ['2', '4']),
+            Expect.Simple('structs', [], ['2']),
+          ]),
           File.Simple('scalars', [
             Expect.Simple('getValues', [], ['2', '4']),
             Expect.Simple('readValues', [], ['2', '4']),
@@ -704,98 +856,28 @@ export const expectations = flatten(
               ['getValues', [], ['11', '32'], '0'],
             ]),
           ]),
-        ]),
-        new Dir('mangled_identifiers', [
-          File.Simple('free_function', [
-            Expect.Simple('f', [], ['20']),
-            Expect.Simple('s', [], ['10']),
+          File.Simple('static_arrays', [
+            Expect.Simple('length', [], ['5', '0']),
+            Expect.Simple('get', ['2', '0'], ['0'], 'initial value'),
+            Expect.Simple('get', ['5', '0'], null, 'out of range'),
+            Expect.Simple('set', ['3', '0', '10'], ['10']),
+            Expect.Simple('get', ['3', '0'], ['10'], 'set value should persist'),
           ]),
-        ]),
-        new Dir('error_handling', [
-          File.Simple('revert', [
-            new Expect('conditionalRevert', [['couldFail', ['2'], ['4', '0'], '0']]),
-            new Expect('conditionalRevert should fail', [
-              ['couldFail', ['1'], null, '0', 'I am failing'],
+          File.Simple('structs', [
+            Expect.Simple('getMember', [], ['0', '0']),
+            new Expect('setMember', [
+              ['setMember', ['5', '10'], [], '0'],
+              ['getMember', [], ['5', '10'], '0'],
             ]),
-            new Expect('revertBothBranches', [
-              ['definitelyFailsWithMsg', [], null, '0', 'I am failing'],
+            new Expect('struct constructor', [
+              ['assign', ['10', '11'], [], '0'],
+              ['getMember', [], ['10', '11'], '0'],
             ]),
-            new Expect('revertBothBranches fails with no message', [
-              // fails without a message
-              ['definitelyFailsNoMsg', [], null, '0'],
-            ]),
-          ]),
-          File.Simple('assert', [
-            new Expect('assert should pass', [['willPass', [], [], '0']]),
-            new Expect('assert should fail', [['shouldFail', ['1'], null, '0']]),
-          ]),
-          File.Simple('require', [
-            new Expect('require should pass', [['willPass', [], [], '0']]),
-            new Expect('require should fail', [['shouldFail', [], null, '0', 'why is x not 2???']]),
           ]),
         ]),
-        new Dir('delete', [
-          // ---- "address" functionCall to cairo not implemented yet ----
-          // File.Simple('address', [
-          //   Expect.Simple('f', [], ['23', '0']),
-          // ]),
-          // ---- ArrayType not implemented yet (fails on StorageAllocator) ----
-          // File.Simple('array_static', [
-          //   new Expect('delete', [
-          //     ['get', ['2', '0'], ['3', '0'], '0'],
-          //     ['clearAt', ['2', '0'], [], '0'],
-          //     ['get', ['2', '0'], ['0', '0'], '0'],
-          //     ['get', ['0', '0'], ['1', '0'], '0'],
-          //     ['clear', [], [], '0'],
-          //     ['getLength', [], ['4', '0'], '0'],
-          //     ['get', ['0', '0'], ['0', '0'], '0'],
-          //   ]),
-          // ]),
-
-          // ---- ArrayType not implemented yet (fails on StorageAllocator) ----
-          // File.Simple('array_dynamic', [
-          //   new Expect('delete', [
-          //     ['initialize', [], [], '0'],
-          //     ['clearAt', ['2', '0'], [], '0'],
-          //     ['get', ['2', '0'], ['0', '0'], '0'],
-          //     ['get', ['0', '0'], ['8', '0'], '0'],
-          //     ['clear', [], [], '0'],
-          //     ['getLength', [], ['0', '0'], '0'],
-          //   ]),
-          // ]),
-
-          // ---- BoolType not implemented yet (fails on StorageAllocator) ----
-          // File.Simple('boolean', [
-          //   Expect.Simple('boolean', [], ['0']),
-          // ]),
-
-          // ---- UserDefinedType not implemented yet (fails on StorageAllocator) ----
-          // File.Simple('enum', [
-          //   new Expect('delete', [
-          //     ['set', ['3'], [], '0'],
-          //     ['reset', [], [], '0'],
-          //     ['get', [], ['0'], '0'],
-          //   ]),
-          // ]),
-
-          File.Simple('int', [
-            new Expect('delete', [
-              ['totalSupply', [], ['100000000000000', '0'], '0'],
-              ['reset', [], [], '0'],
-              ['totalSupply', [], ['0', '0'], '0'],
-              ['addValue', ['25', '0'], ['25', '0'], '0'],
-            ]),
-          ]),
-
-          // ---- UserDefinedType not implemented yet (fails on StorageAllocator) ----
-          // File.Simple('struct', [
-          //   new Expect('delete', [
-          //     ['getRadious', [], ['5', '0'], '0'],
-          //     ['reset', [], [], '0'],
-          //     ['getRadious', [], ['0', '0'], '0'],
-          //     ['getPoint', [], ['0', '0', '0', '0'], '0'],
-          //   ]),
-          // ]),
+        File.Simple('example', [
+          Expect.Simple('test', [], []),
+          Expect.Simple('returnTest', [], ['12', '0']),
         ]),
       ]),
     ]),

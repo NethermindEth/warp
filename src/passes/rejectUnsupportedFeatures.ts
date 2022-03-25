@@ -1,9 +1,26 @@
-import { Conditional, ErrorDefinition, InlineAssembly, RevertStatement } from 'solc-typed-ast';
+import {
+  IndexAccess,
+  InlineAssembly,
+  RevertStatement,
+  ErrorDefinition,
+  Conditional,
+  VariableDeclaration,
+  DataLocation,
+  getNodeType,
+  UserDefinedType,
+} from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { WillNotSupportError } from '../utils/errors';
+import { printNode } from '../utils/astPrinter';
+import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
+  visitIndexAccess(node: IndexAccess, ast: AST): void {
+    if (node.vIndexExpression === undefined) {
+      throw new WillNotSupportError(`Undefined index access not supported. Is this in abi.decode?`);
+    }
+    this.visitExpression(node, ast);
+  }
   visitInlineAssembly(_node: InlineAssembly, _ast: AST): void {
     throw new WillNotSupportError('Yul blocks are not supported');
   }
@@ -15,5 +32,15 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
   visitConditional(_node: Conditional, _ast: AST): void {
     throw new WillNotSupportError('Conditional expressions (ternary operator) are not supported');
+  }
+  visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
+    if (
+      node.storageLocation === DataLocation.Memory &&
+      getNodeType(node, ast.compilerVersion) instanceof UserDefinedType
+    ) {
+      throw new NotSupportedYetError(
+        `Memory structs not supported yet, found at ${printNode(node)}`,
+      );
+    }
   }
 }

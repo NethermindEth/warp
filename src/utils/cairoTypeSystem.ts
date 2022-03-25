@@ -20,7 +20,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from './astPrinter';
-import { NotSupportedYetError } from './errors';
+import { NotSupportedYetError, TranspileFailedError } from './errors';
 
 export enum TypeConversionContext {
   Ref,
@@ -28,7 +28,12 @@ export enum TypeConversionContext {
 }
 
 export abstract class CairoType {
+  // This gives the cairo typestring for the represented type
   abstract toString(): string;
+  abstract get fullStringRepresentation(): string;
+  get typeName(): string {
+    return this.toString();
+  }
   abstract get width(): number;
   // An array of the member-accesses required to access all the underlying felts
   abstract serialiseMembers(name: string): string[];
@@ -41,16 +46,10 @@ export abstract class CairoType {
     if (tp instanceof AddressType) {
       return new CairoFelt();
     } else if (tp instanceof ArrayType) {
-      if (context === TypeConversionContext.Ref) {
+      if (tp.size === undefined) {
+        return new WarpLocation();
+      } else if (context === TypeConversionContext.Ref) {
         return new CairoFelt();
-      } else if (tp.size === undefined) {
-        return new CairoStruct(
-          'warp_dynamic_storage_array',
-          new Map([
-            ['name', new CairoFelt()],
-            ['length', new CairoFelt()],
-          ]),
-        );
       } else {
         const elementType = CairoType.fromSol(tp.elementT, ast, context);
         const narrowedLength = parseInt(tp.size.toString());
@@ -74,8 +73,11 @@ export abstract class CairoType {
     } else if (tp instanceof IntType) {
       return tp.nBits > 251 ? CairoUint256 : new CairoFelt();
     } else if (tp instanceof MappingType) {
-      return new CairoFelt();
+      return new WarpLocation();
     } else if (tp instanceof PointerType) {
+      if (context === TypeConversionContext.StorageAllocation) {
+        return CairoType.fromSol(tp.to, ast, context);
+      }
       return new CairoFelt();
     } else if (tp instanceof StringType) {
       return new CairoFelt();
@@ -110,7 +112,10 @@ export abstract class CairoType {
   }
 }
 
-export class CairoFelt implements CairoType {
+export class CairoFelt extends CairoType {
+  get fullStringRepresentation(): string {
+    return '[Felt]';
+  }
   toString(): string {
     return 'felt';
   }
@@ -122,8 +127,15 @@ export class CairoFelt implements CairoType {
   }
 }
 
-export class CairoStruct implements CairoType {
-  constructor(public name: string, public members: Map<string, CairoType>) {}
+export class CairoStruct extends CairoType {
+  constructor(public name: string, public members: Map<string, CairoType>) {
+    super();
+  }
+  get fullStringRepresentation(): string {
+    return `[Struct ${this.name}]${[...this.members.entries()].map(
+      ([name, type]) => `(${name}: ${type.fullStringRepresentation})`,
+    )}`;
+  }
   toString(): string {
     return this.name;
   }
@@ -135,12 +147,30 @@ export class CairoStruct implements CairoType {
       type.serialiseMembers(`${name}.${memberName}`),
     );
   }
+  offsetOf(memberName: string): number {
+    let offset = 0;
+    for (const [name, type] of this.members) {
+      if (name === memberName) return offset;
+      offset += type.width;
+    }
+    throw new TranspileFailedError(
+      `Attempted to find offset of non-existant member ${memberName} in ${this.name}`,
+    );
+  }
 }
 
-export class CairoTuple implements CairoType {
-  constructor(public members: CairoType[]) {}
+export class CairoTuple extends CairoType {
+  constructor(public members: CairoType[]) {
+    super();
+  }
+  get fullStringRepresentation(): string {
+    return `[Tuple]${this.members.map((type) => `(${type.fullStringRepresentation})`)}`;
+  }
   toString(): string {
-    return `(${this.members.map((m) => m.toString).join(', ')})`;
+    return `(${this.members.map((m) => m.toString()).join(', ')})`;
+  }
+  get typeName(): string {
+    return `${this.members.map((m) => m.typeName).join('x')}`;
   }
   get width(): number {
     return this.members.reduce((acc, t) => acc + t.width, 0);
@@ -152,8 +182,13 @@ export class CairoTuple implements CairoType {
   }
 }
 
-export class CairoPointer implements CairoType {
-  constructor(public to: CairoType) {}
+export class CairoPointer extends CairoType {
+  constructor(public to: CairoType) {
+    super();
+  }
+  get fullStringRepresentation(): string {
+    return `[Pointer](${this.to.fullStringRepresentation})`;
+  }
   toString(): string {
     return `${this.to.toString()}*`;
   }
@@ -162,6 +197,16 @@ export class CairoPointer implements CairoType {
   }
   serialiseMembers(name: string): string[] {
     return [name];
+  }
+}
+
+export class WarpLocation extends CairoFelt {
+  get typeName(): string {
+    // TODO make sure that struct names get mangled
+    return 'warp_id';
+  }
+  get fullStringRepresentation(): string {
+    return `[Id]`;
   }
 }
 

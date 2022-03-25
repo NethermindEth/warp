@@ -25,6 +25,8 @@ import {
   UserDefinedTypeName,
   VariableDeclaration,
   VariableDeclarationStatement,
+  MemberAccess,
+  ElementaryTypeNameExpression,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
@@ -66,7 +68,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
 ): T {
   let newNode: ASTNode | null = null;
 
-  // Expressions
+  // Expressions---------------------------------------------------------------
   if (node instanceof Assignment) {
     newNode = new Assignment(
       replaceId(node.id, ast, remappedIds),
@@ -89,6 +91,29 @@ function cloneASTNodeImpl<T extends ASTNode>(
       cloneASTNodeImpl(node.vRightExpression, ast, remappedIds),
       node.raw,
     );
+  } else if (node instanceof ElementaryTypeNameExpression) {
+    newNode = new ElementaryTypeNameExpression(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'ElementaryTypeNameExpression',
+      node.typeString,
+      typeof node.typeName === 'string'
+        ? node.typeName
+        : cloneASTNodeImpl(node.typeName, ast, remappedIds),
+      node.raw,
+    );
+  } else if (node instanceof FunctionCall) {
+    newNode = new FunctionCall(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'FunctionCall',
+      node.typeString,
+      node.kind,
+      cloneASTNodeImpl(node.vExpression, ast, remappedIds),
+      node.vArguments.map((arg) => cloneASTNodeImpl(arg, ast, remappedIds)),
+      node.fieldNames,
+      node.raw,
+    );
   } else if (node instanceof IndexAccess) {
     newNode = new IndexAccess(
       replaceId(node.id, ast, remappedIds),
@@ -109,18 +134,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.referencedDeclaration,
       node.raw,
     );
-  } else if (node instanceof FunctionCall) {
-    newNode = new FunctionCall(
-      replaceId(node.id, ast, remappedIds),
-      node.src,
-      'FunctionCall',
-      node.typeString,
-      node.kind,
-      cloneASTNodeImpl(node.vExpression, ast, remappedIds),
-      node.vArguments.map((arg) => cloneASTNodeImpl(arg, ast, remappedIds)),
-      node.fieldNames,
-      node.raw,
-    );
   } else if (node instanceof Literal) {
     newNode = new Literal(
       replaceId(node.id, ast, remappedIds),
@@ -131,6 +144,17 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.hexValue,
       node.value,
       node.subdenomination,
+      node.raw,
+    );
+  } else if (node instanceof MemberAccess) {
+    newNode = new MemberAccess(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'MemberAccess',
+      node.typeString,
+      cloneASTNodeImpl(node.vExpression, ast, remappedIds),
+      node.memberName,
+      node.referencedDeclaration,
       node.raw,
     );
   } else if (node instanceof UnaryOperation) {
@@ -144,7 +168,17 @@ function cloneASTNodeImpl<T extends ASTNode>(
       cloneASTNodeImpl(node.vSubExpression, ast, remappedIds),
       node.raw,
     );
-    // TypeNames
+    // TypeNames---------------------------------------------------------------
+  } else if (node instanceof ArrayTypeName) {
+    newNode = new ArrayTypeName(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'Mapping',
+      node.typeString,
+      cloneASTNodeImpl(node.vBaseType, ast, remappedIds),
+      node.vLength && cloneASTNodeImpl(node.vLength, ast, remappedIds),
+      node.raw,
+    );
   } else if (node instanceof ElementaryTypeName) {
     newNode = new ElementaryTypeName(
       replaceId(node.id, ast, remappedIds),
@@ -165,16 +199,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
       cloneASTNodeImpl(node.vValueType, ast, remappedIds),
       node.raw,
     );
-  } else if (node instanceof ArrayTypeName) {
-    newNode = new ArrayTypeName(
-      replaceId(node.id, ast, remappedIds),
-      node.src,
-      'Mapping',
-      node.typeString,
-      cloneASTNodeImpl(node.vBaseType, ast, remappedIds),
-      node.vLength,
-      node.raw,
-    );
   } else if (node instanceof UserDefinedTypeName) {
     newNode = new UserDefinedTypeName(
       replaceId(node.id, ast, remappedIds),
@@ -186,7 +210,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.path ? cloneASTNodeImpl(node.path, ast, remappedIds) : undefined,
       node.raw,
     );
-    // Statements
+    // Statements--------------------------------------------------------------
   } else if (node instanceof Block) {
     newNode = new Block(
       replaceId(node.id, ast, remappedIds),
@@ -241,7 +265,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.documentation,
       node.raw,
     );
-    // Resolvable
+    // Resolvable--------------------------------------------------------------
   } else if (node instanceof CairoFunctionDefinition) {
     newNode = new CairoFunctionDefinition(
       replaceId(node.id, ast, remappedIds),
@@ -258,6 +282,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
       cloneASTNodeImpl(node.vReturnParameters, ast, remappedIds),
       node.vModifiers.map((m) => cloneASTNodeImpl(m, ast, remappedIds)),
       new Set([...node.implicits]),
+      node.isStub,
       node.vOverrideSpecifier && cloneASTNodeImpl(node.vOverrideSpecifier, ast, remappedIds),
       node.vBody && cloneASTNodeImpl(node.vBody, ast, remappedIds),
       node.documentation,
@@ -324,7 +349,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.sourceUnit,
       node.raw,
     );
-    //ASTNodeWithChildren
+    //ASTNodeWithChildren------------------------------------------------------
   } else if (node instanceof ParameterList) {
     newNode = new ParameterList(
       replaceId(node.id, ast, remappedIds),
@@ -333,7 +358,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
       [...node.vParameters].map((p) => cloneASTNodeImpl(p, ast, remappedIds)),
       node.raw,
     );
-    //Misc
+    //Misc---------------------------------------------------------------------
   } else if (node instanceof IdentifierPath) {
     newNode = new IdentifierPath(
       replaceId(node.id, ast, remappedIds),

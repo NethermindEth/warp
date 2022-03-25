@@ -21,7 +21,7 @@ import {
   ReturnVariableInitializer,
   SourceUnitSplitter,
   StorageAllocator,
-  StorageVariableAccessRewriter,
+  Storage,
   TupleAssignmentSplitter,
   Uint256Importer,
   UnloadingAssignment,
@@ -64,7 +64,6 @@ export function transform(ast: AST, options: TranspilationOptions): CairoSource[
   return cairoAST.roots.map((sourceUnit) => [sourceUnit.absolutePath, writer.write(sourceUnit)]);
 }
 
-// Options used: order, printTrees, checkTrees, strict
 function applyPasses(ast: AST, options: TranspilationOptions): AST {
   const passes: Map<string, typeof ASTMapper> = new Map([
     ['Ss', SourceUnitSplitter],
@@ -88,10 +87,10 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
     ['Vs', VariableDeclarationExpressionSplitter],
-    ['Dh', DeleteHandler],
     ['Me', MemoryHandler],
+    ['S', Storage],
+    ['Dh', DeleteHandler],
     ['I', ImplicitConversionToExplicit],
-    ['S', StorageVariableAccessRewriter],
     ['B', BuiltinHandler],
     ['Us', UnreachableStatementPruner],
     ['E', ExpressionSplitter],
@@ -100,35 +99,17 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
   ]);
 
   const passesInOrder: typeof ASTMapper[] = parsePassOrder(options.order, options.until, passes);
-  if (options.highlight) {
-    DefaultASTPrinter.highlightId(parseInt(options.highlight));
-  }
-  if (options.printTrees) {
-    console.log('---Input---');
-    ast.roots.map((root) => console.log(DefaultASTPrinter.print(root)));
-  }
+  DefaultASTPrinter.applyOptions(options);
 
-  if (options.checkTrees || options.strict) {
-    const success = runSanityCheck(ast, options.checkTrees ?? false);
-    if (!success && options.strict) {
-      throw new TranspileFailedError('AST failed internal consistency check before transpilation');
-    }
-  }
+  printPassName('Input', options);
+  printAST(ast, options);
+  checkAST(ast, options, 'None run');
 
   const finalAst = passesInOrder.reduce((ast, mapper) => {
+    printPassName(mapper.getPassName(), options);
     const newAst = mapper.map(ast);
-    if (options.printTrees) {
-      console.log(`\n---After running ${mapper.getPassName()}---`);
-      ast.roots.map((root) => console.log(DefaultASTPrinter.print(root)));
-    }
-    if (options.checkTrees || options.strict) {
-      const success = runSanityCheck(ast, options.checkTrees ?? false);
-      if (!success && options.strict) {
-        throw new TranspileFailedError(
-          'AST failed internal consistency check during transpilation',
-        );
-      }
-    }
+    printAST(ast, options);
+    checkAST(ast, options, mapper.getPassName());
     return newAst;
   }, ast);
 
@@ -145,5 +126,30 @@ export function handleTranspilationError(e: unknown) {
     console.error('Unexpected error during transpilation');
     console.error(e);
     console.error('Transpilation failed');
+  }
+}
+
+// Transpilation printing
+function printPassName(name: string, options: TranspilationOptions) {
+  if (options.printTrees) console.log(`---${name}---`);
+}
+
+function printAST(ast: AST, options: TranspilationOptions) {
+  if (options.printTrees) {
+    ast.roots.map((root) => {
+      console.log(DefaultASTPrinter.print(root));
+      console.log();
+    });
+  }
+}
+
+function checkAST(ast: AST, options: TranspilationOptions, mostRecentPassName: string) {
+  if (options.checkTrees || options.strict) {
+    const success = runSanityCheck(ast, options.checkTrees ?? false);
+    if (!success && options.strict) {
+      throw new TranspileFailedError(
+        `AST failed internal consistency check. Most recently run pass: ${mostRecentPassName}`,
+      );
+    }
   }
 }

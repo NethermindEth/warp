@@ -25,7 +25,7 @@ export class MemoryHandler extends ASTMapper {
       if (baseType instanceof PointerType && baseType.location === DataLocation.Memory) {
         const replacementFunc = ast
           .getUtilFuncGen(node)
-          .memoryWrite(node.vLeftHandSide, node.vRightHandSide);
+          .memory.write.gen(node.vLeftHandSide, node.vRightHandSide);
         ast.replaceNode(node, replacementFunc);
         this.dispatchVisit(replacementFunc, ast);
         return;
@@ -47,7 +47,7 @@ export class MemoryHandler extends ASTMapper {
     }
     ast.replaceNode(
       node,
-      ast.getUtilFuncGen(node).newDynArray(node.vArguments[0], node.vExpression.vTypeName),
+      ast.getUtilFuncGen(node).memory.new.gen(node.vArguments[0], node.vExpression.vTypeName),
     );
   }
 
@@ -61,7 +61,7 @@ export class MemoryHandler extends ASTMapper {
     const baseType = getNodeType(node.vBaseExpression, ast.compilerVersion);
     if (baseType instanceof PointerType && baseType.location === DataLocation.Memory) {
       if (baseType.to instanceof ArrayType) {
-        const replacementFunc = ast.getUtilFuncGen(node).memoryRead(node);
+        const replacementFunc = ast.getUtilFuncGen(node).memory.read.gen(node);
         ast.replaceNode(node, replacementFunc);
         this.dispatchVisit(replacementFunc, ast);
         return;

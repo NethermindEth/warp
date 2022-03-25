@@ -11,7 +11,7 @@ from warplib.maths.utils import felt_to_uint256
 #
 # Special cells:
 # Name = 0, offset = 0 contains the most recently generated name
-# For arrays, the length is stored at offsets that
+# For arrays, the length is stored at offsets that are invalid uint256s
 # ------------------------------------------------------------------------------
 
 struct MemCell:

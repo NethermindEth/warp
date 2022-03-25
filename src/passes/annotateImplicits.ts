@@ -15,6 +15,10 @@ import { Implicits, registerImportsForImplicit } from '../utils/implicits';
 import { union } from '../utils/utils';
 
 export class AnnotateImplicits extends ASTMapper {
+  visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
+    this.commonVisit(node, ast);
+  }
+
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     const implicits = new ImplicitCollector(node).collect(ast);
     const annotatedFunction = new CairoFunctionDefinition(
@@ -32,6 +36,7 @@ export class AnnotateImplicits extends ASTMapper {
       node.vReturnParameters,
       node.vModifiers,
       implicits,
+      false,
       node.vOverrideSpecifier,
       node.vBody,
       node.documentation,

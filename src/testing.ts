@@ -7,10 +7,10 @@ import {
   NotSupportedYetError,
   TranspilationAbandonedError,
   WillNotSupportError,
-  error,
 } from './utils/errors';
 import { groupBy, printCompileErrors } from './utils/utils';
 import * as fs from 'fs';
+import { error } from './utils/formatting';
 
 type ResultType =
   | 'CairoCompileFailed'
@@ -68,9 +68,9 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/loops/for-loop-with-continue', 'Success'],
   ['example_contracts/loops/for-loop-with-nested-return', 'Success'],
   ['example_contracts/mutableReferences/memory', 'Success'],
-  ['example_contracts/mutableReferences/mutableReferences', 'NotSupportedYet'],
+  ['example_contracts/mutableReferences/mutableReferences', 'Success'],
   ['example_contracts/mutableReferences/scalarStorage', 'Success'],
-  ['example_contracts/namedArgs/constructor', 'NotSupportedYet'],
+  ['example_contracts/namedArgs/constructor', 'Success'],
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
   ['example_contracts/namedArgs/function', 'Success'],
   ['example_contracts/payable-function', 'Success'],
@@ -84,7 +84,8 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/state_variables/enums', 'Success'],
   ['example_contracts/state_variables/arrays', 'NotSupportedYet'],
   ['example_contracts/state_variables/mappings', 'Success'],
-  ['example_contracts/state_variables/structs', 'Success'],
+  // Requires memory structs and reference type returns from public functions
+  ['example_contracts/state_variables/structs', 'CairoCompileFailed'],
   ['example_contracts/state_variables/misc', 'NotSupportedYet'],
   ['example_contracts/structs', 'Success'],
   ['example_contracts/tupleAssignment7', 'Success'],

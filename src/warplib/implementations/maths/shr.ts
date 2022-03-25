@@ -230,6 +230,7 @@ export function functionaliseShr(node: BinaryOperation, ast: AST): void {
     [['res', typeNameFromTypeNode(retType, ast)]],
     ['range_check_ptr', 'bitwise_ptr'],
     ast,
+    node,
   );
   const call = new FunctionCall(
     ast.reserveId(),

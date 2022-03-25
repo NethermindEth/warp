@@ -1,15 +1,15 @@
 pragma solidity ^0.8.0;
 //SPDX-License-Identifier: MIT
 contract WARP {
-    uint8[] arr = new uint8[](3);
+    uint8[] arr;
 
     function initialize() public {
-        arr[0] = 8;
-        arr[1] = 10;
-        arr[2] = 9;
+        arr.push(8);
+        arr.push(9);
+        arr.push(10);
     }
     
-    function get(uint i) public view returns (uint) {
+    function get(uint i) public view returns (uint8) {
         return arr[i];
     }
 

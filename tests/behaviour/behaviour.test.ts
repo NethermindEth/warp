@@ -25,7 +25,10 @@ describe('Transpile solidity', function () {
     it(expectations[i].name, async function () {
       const res = await transpileResults[i];
       expect(res.result, 'warp-ts printed errors').to.include({ stderr: '' });
-      expect(fs.existsSync(expectations[i].cairo), 'Transpilation failed').to.be.true;
+      expect(
+        fs.existsSync(expectations[i].cairo),
+        'Transpilation failed, cannot find output file',
+      ).to.be.true;
       expect(res.success, `${res.result}`);
     });
   }
@@ -117,13 +120,17 @@ describe('Deployed contracts have correct behaviour', function () {
             error_message,
           ] of functionExpectation.steps) {
             const address = deployedAddresses.get(fileTest.name);
+
             if (address === undefined) this.skip();
+
             const mangledFuncName = findMethod(funcName, fileTest.compiled);
             if (mangledFuncName === null) {
               expect(mangledFuncName, `Unable to find function ${funcName}`).to.not.be.null;
             } else {
               const response = await invoke(address, mangledFuncName, inputs, caller_address);
+
               console.log(`${fileTest.name} - ${mangledFuncName}: ${response.steps} steps`);
+
               expect(response.status, 'Unhandled starknet-testnet error').to.equal(200);
 
               if (expectedResult === null) {
@@ -132,11 +139,13 @@ describe('Deployed contracts have correct behaviour', function () {
                   response.error_message !== undefined &&
                   expect(response.error_message.includes(error_message)).to.be.true;
               } else {
-                expect(response.threw, 'Function should not throw').to.be.false;
                 expect(
-                  response.return_data,
-                  `Return data should match expectation for args ${inputs}`,
-                ).to.deep.equal(expectedResult);
+                  response.threw,
+                  `Function should not throw, but threw with message: ${response.error_message}`,
+                ).to.be.false;
+                expect(response.return_data, 'Return data should match expectation').to.deep.equal(
+                  expectedResult,
+                );
               }
             }
           }

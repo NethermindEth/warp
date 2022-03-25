@@ -77,8 +77,13 @@ export class IdentifierMangler extends ASTMapper {
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
-    node.name = this.createNewVariableName(node.name);
+    if (!node.stateVariable) {
+      this.mangleVariableDeclaration(node);
+    }
     this.commonVisit(node, ast);
+  }
+  mangleVariableDeclaration(node: VariableDeclaration): void {
+    node.name = this.createNewVariableName(node.name);
   }
   mangleFunctionDefinition(node: FunctionDefinition): void {
     // TODO switch based on type
@@ -93,6 +98,7 @@ export class IdentifierMangler extends ASTMapper {
   }
   mangleContractDefinition(node: ContractDefinition): void {
     node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n));
+    node.vStateVariables.forEach((v) => this.mangleVariableDeclaration(v));
   }
   visitSourceUnit(node: SourceUnit, ast: AST): void {
     node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n));

@@ -10,7 +10,6 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
-import * as path from 'path';
 
 type Scoped = FunctionDefinition | ContractDefinition | VariableDeclaration | StructDefinition;
 
@@ -78,20 +77,19 @@ function splitSourceUnit(sourceUnit: SourceUnit, ast: AST): SourceUnit[] {
         const iDir = new ImportDirective(
           ast.reserveId(),
           importSu.src,
-          importSu.type,
+          'ImportDirective',
           importSu.absolutePath,
           importSu.absolutePath,
-          path.basename(importSu.absolutePath),
-          getAllSourceUnitDefinitions(su).map((node) => ({
+          '',
+          getAllSourceUnitDefinitions(importSu).map((node) => ({
             foreign: node.id,
             local: node.name,
           })),
           su.id,
           importSu.id,
         );
-        su.appendChild(iDir);
-        su.acceptChildren();
-        ast.setContextRecursive(iDir);
+        su.insertAtBeginning(iDir);
+        ast.registerChild(iDir, su);
       }),
   );
 

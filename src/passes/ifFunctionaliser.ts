@@ -15,12 +15,10 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
-import { error } from '../utils/errors';
+import { error } from '../utils/formatting';
 import { createCallToFunction } from '../utils/functionStubbing';
 import { createIdentifier } from '../utils/nodeTemplates';
 import { collectUnboundVariables } from './loopFunctionaliser/utils';
-
-// TODO check if one branch has a return in it
 
 export class IfFunctionaliser extends ASTMapper {
   generatedFunctionCount: Map<FunctionDefinition, number> = new Map();
