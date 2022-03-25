@@ -76,7 +76,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['M', IdentifierMangler],
     ['Ii', InheritanceInliner],
     ['Sa', StorageAllocator],
-    ['Eb', ExternalInputChecker],
+    ['Eic', ExternalInputChecker],
     ['Ec', EnumConverter],
     ['Ei', ExternImporter],
     ['Lf', LoopFunctionaliser],
