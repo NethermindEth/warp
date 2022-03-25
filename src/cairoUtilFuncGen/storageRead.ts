@@ -1,7 +1,7 @@
 import { Expression, TypeName, ASTNode, FunctionCall, getNodeType } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
 import { cloneASTNode } from '../utils/cloning';
-import { createCairoFunctionStub, createCallToStub } from '../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
 import { CairoUtilFuncGenBase, CairoFunction, add } from './base';
 import { serialiseReads } from './serialisation';
 
@@ -28,7 +28,7 @@ export class StorageReadGen extends CairoUtilFuncGenBase {
       this.ast,
       nodeInSourceUnit ?? storageLocation,
     );
-    return createCallToStub(functionStub, [storageLocation], this.ast);
+    return createCallToFunction(functionStub, [storageLocation], this.ast);
   }
 
   private getOrCreate(typeToRead: CairoType): string {

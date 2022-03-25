@@ -9,7 +9,7 @@ import {
   IntType,
 } from 'solc-typed-ast';
 import assert = require('assert');
-import { createCairoFunctionStub, createCallToStub } from '../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
 import { typeNameFromTypeNode } from '../utils/utils';
 
 const INDENT = ' '.repeat(4);
@@ -40,7 +40,7 @@ export class EnumBoundCheckGen extends CairoUtilFuncGenBase {
       this.ast,
       enumVarDec,
     );
-    return createCallToStub(functionStub, [functionInput], this.ast);
+    return createCallToFunction(functionStub, [functionInput], this.ast);
   }
 
   private getOrCreate(enumDef: EnumDefinition): string {

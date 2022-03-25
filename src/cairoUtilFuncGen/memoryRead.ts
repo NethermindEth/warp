@@ -1,7 +1,7 @@
 import assert = require('assert');
 import { IndexAccess, FunctionCall, getNodeType, ASTNode } from 'solc-typed-ast';
 import { CairoType } from '../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToStub } from '../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
 import { createUint256TypeName } from '../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../utils/utils';
 import { CairoFunction, CairoUtilFuncGenBase } from './base';
@@ -41,7 +41,7 @@ export class MemoryReadGen extends CairoUtilFuncGenBase {
       this.ast,
       nodeInSourceUnit ?? indexAccess,
     );
-    return createCallToStub(functionStub, [indexAccess.vBaseExpression, index], this.ast);
+    return createCallToFunction(functionStub, [indexAccess.vBaseExpression, index], this.ast);
   }
 
   private getOrCreate(typeToRead: CairoType): string {

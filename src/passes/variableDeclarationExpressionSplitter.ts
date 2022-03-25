@@ -70,91 +70,83 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
 
   // e.g. (int a, int b, , ) = (e(), , g(),); => int a = e(); int b; g();
   splitDeclaration(node: VariableDeclarationStatement, ast: AST): Statement[] {
-    if (node.vDeclarations.length === 1) {
-      return [node];
-    }
-
     const initialValue = node.vInitialValue;
-
     assert(
       initialValue !== undefined,
       'Expected variables to be initialised when running variable declaration expression splitter (did you run variable declaration initialiser?)',
     );
 
+    const initialValueType = getNodeType(initialValue, ast.compilerVersion);
+
+    if (!(initialValueType instanceof TupleType)) {
+      return [node];
+    }
+
     // In the case of (int a, int b) = f(), types that don't exactly match need to be extracted
     if (initialValue instanceof FunctionCall) {
-      const returnType = getNodeType(initialValue, ast.compilerVersion);
-      if (returnType instanceof TupleType) {
-        const newDeclarationStatements: VariableDeclarationStatement[] = [];
+      const newDeclarationStatements: VariableDeclarationStatement[] = [];
 
-        const newAssignedIds = node.assignments.map((id, index) => {
-          if (id === null) return null;
+      const newAssignedIds = node.assignments.map((id, index) => {
+        if (id === null) return null;
 
-          const oldDeclaration = node.vDeclarations.find((decl) => decl.id === id);
-          assert(
-            oldDeclaration !== undefined,
-            `${printNode(node)} has no declaration for id ${id}`,
+        const oldDeclaration = node.vDeclarations.find((decl) => decl.id === id);
+        assert(oldDeclaration !== undefined, `${printNode(node)} has no declaration for id ${id}`);
+
+        if (oldDeclaration.typeString === initialValueType.elements[index].pp()) {
+          // If types are correct there's no need to create a new variable
+          return id;
+        } else {
+          //TODO handle non-elementary types
+          // This is the replacement variable in the tuple assignment
+          const newDeclaration = new VariableDeclaration(
+            ast.reserveId(),
+            node.src,
+            'VariableDeclaration',
+            true,
+            false,
+            this.generateNewConstantName(),
+            oldDeclaration.scope,
+            false,
+            DataLocation.Default,
+            StateVariableVisibility.Default,
+            Mutability.Constant,
+            initialValueType.elements[index].pp(),
+            undefined,
+            new ElementaryTypeName(
+              ast.reserveId(),
+              node.src,
+              'ElementaryTypeName',
+              `${initialValueType.elements[index].pp()}`,
+              initialValueType.elements[index].pp(),
+            ),
           );
+          node.vDeclarations.push(newDeclaration);
+          ast.registerChild(newDeclaration, node);
 
-          if (oldDeclaration.typeString === returnType.elements[index].pp()) {
-            // If types are correct there's no need to create a new variable
-            return id;
-          } else {
-            //TODO handle non-elementary types
-            // This is the replacement variable in the tuple assignment
-            const newDeclaration = new VariableDeclaration(
+          // We now declare the variable that used to be inside the tuple
+          const newDeclarationStatement = new VariableDeclarationStatement(
+            ast.reserveId(),
+            node.src,
+            'VariableDeclarationStatement',
+            [oldDeclaration.id],
+            [oldDeclaration],
+            new Identifier(
               ast.reserveId(),
               node.src,
-              'VariableDeclaration',
-              true,
-              false,
-              this.generateNewConstantName(),
-              oldDeclaration.scope,
-              false,
-              DataLocation.Default,
-              StateVariableVisibility.Default,
-              Mutability.Constant,
-              returnType.elements[index].pp(),
-              undefined,
-              new ElementaryTypeName(
-                ast.reserveId(),
-                node.src,
-                'ElementaryTypeName',
-                `${returnType.elements[index].pp()}`,
-                returnType.elements[index].pp(),
-              ),
-            );
-            node.vDeclarations.push(newDeclaration);
-            ast.registerChild(newDeclaration, node);
-
-            // We now declare the variable that used to be inside the tuple
-            const newDeclarationStatement = new VariableDeclarationStatement(
-              ast.reserveId(),
-              node.src,
-              'VariableDeclarationStatement',
-              [oldDeclaration.id],
-              [oldDeclaration],
-              new Identifier(
-                ast.reserveId(),
-                node.src,
-                'Identifier',
-                newDeclaration.typeString,
-                newDeclaration.name,
-                newDeclaration.id,
-              ),
-            );
-            newDeclarationStatements.push(newDeclarationStatement);
-            ast.setContextRecursive(newDeclarationStatement);
-            return newDeclaration.id;
-          }
-        });
-        node.assignments = newAssignedIds;
-        node.vDeclarations = node.vDeclarations.filter((decl) =>
-          node.assignments.includes(decl.id),
-        );
-        return [node, ...newDeclarationStatements];
-      }
-      return [node];
+              'Identifier',
+              newDeclaration.typeString,
+              newDeclaration.name,
+              newDeclaration.id,
+            ),
+          );
+          newDeclarationStatements.push(newDeclarationStatement);
+          ast.setContextRecursive(newDeclarationStatement);
+          return newDeclaration.id;
+        }
+      });
+      node.assignments = newAssignedIds;
+      node.vDeclarations = node.vDeclarations.filter((decl) => node.assignments.includes(decl.id));
+      return [node, ...newDeclarationStatements];
     } else if (initialValue instanceof TupleExpression) {
       // Since Solidity 0.5.0 tuples on either side of an assignment must be of equal size
 

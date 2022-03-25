@@ -8,7 +8,7 @@ import {
   PointerType,
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToStub } from '../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
 import { createUint256Literal, createUint256TypeName } from '../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../utils/utils';
 import { CairoUtilFuncGenBase } from './base';
@@ -48,7 +48,7 @@ export class StaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
       nodeInSourceUnit ?? node,
     );
 
-    return createCallToStub(
+    return createCallToFunction(
       functionStub,
       [
         node.vBaseExpression,

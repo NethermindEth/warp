@@ -8,7 +8,7 @@ import {
   PointerType,
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToStub } from '../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
 import { typeNameFromTypeNode } from '../utils/utils';
 import { CairoFunction, CairoUtilFuncGenBase } from './base';
 
@@ -44,7 +44,7 @@ export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
       nodeInSourceUnit ?? node,
     );
 
-    return createCallToStub(functionStub, [base, index], this.ast);
+    return createCallToFunction(functionStub, [base, index], this.ast);
   }
 
   private getOrCreate(indexType: CairoType, valueType: CairoType): string {

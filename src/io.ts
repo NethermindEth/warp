@@ -1,3 +1,4 @@
+import { execSync } from 'child_process';
 import * as fs from 'fs-extra';
 import { OutputOptions } from '.';
 import { compileCairo } from './starknetCli';
@@ -78,6 +79,7 @@ export function outputResult(
     }
     const fullCodeOutPath = `${options.outputDir}/${codeOutput}`;
     fs.outputFileSync(fullCodeOutPath, code);
+    formatOutput(fullCodeOutPath);
 
     if (options.compileCairo) {
       const { resultPath, abiPath } = compileCairo(fullCodeOutPath, options.outputDir);
@@ -89,4 +91,8 @@ export function outputResult(
       }
     }
   }
+}
+
+function formatOutput(filePath: string): void {
+  execSync(`cairo-format -i ${filePath}`);
 }

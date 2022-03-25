@@ -509,6 +509,32 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('if', [
+          File.Simple('localVariables', [
+            Expect.Simple('ifNoElse', ['1'], ['1'], 'true branch'),
+            Expect.Simple('ifNoElse', ['0'], ['0'], 'false branch'),
+            Expect.Simple('ifWithElse', ['1'], ['1'], 'true branch'),
+            Expect.Simple('ifWithElse', ['0'], ['0'], 'false branch'),
+          ]),
+          File.Simple('returns', [
+            Expect.Simple('ifNoElse', ['1'], ['1'], 'true branch'),
+            Expect.Simple('ifNoElse', ['0'], ['0'], 'false branch'),
+            Expect.Simple('ifWithElse', ['1'], ['1'], 'true branch'),
+            Expect.Simple('ifWithElse', ['0'], ['0'], 'false branch'),
+            Expect.Simple('unreachableCode', ['1'], ['1'], 'true branch'),
+            Expect.Simple('unreachableCode', ['0'], ['0'], 'false branch'),
+          ]),
+          File.Simple('nesting', [
+            Expect.Simple('nestedIfs', ['1', '1'], ['3', '1'], 'true/true'),
+            Expect.Simple('nestedIfs', ['1', '0'], ['2', '1'], 'true/false'),
+            Expect.Simple('nestedIfs', ['0', '1'], ['1', '0'], 'false/true'),
+            Expect.Simple('nestedIfs', ['0', '0'], ['0', '0'], 'false/false'),
+            Expect.Simple('uncheckedBlock', ['1'], ['255'], 'true branch'),
+            Expect.Simple('uncheckedBlock', ['0'], ['254'], 'true branch'),
+            Expect.Simple('loops', ['1'], ['1'], 'true branch'),
+            Expect.Simple('loops', ['0'], ['0'], 'false branch'),
+          ]),
+        ]),
         new Dir('inheritance', [
           new Dir('functions', [
             new File('base', 'Base', [Expect.Simple('g', ['3'], ['3'])]),
@@ -831,6 +857,21 @@ export const expectations = flatten(
             Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
           ]),
         ]),
+        new Dir('named_args', [
+          File.Simple('function', [
+            Expect.Simple('f', [], []),
+            Expect.Simple('k', [], ['365', '0']),
+            Expect.Simple('v', [], ['234', '0']),
+          ]),
+          File.Simple('constructor', [
+            // (1, 2, (45, 1), [1,2,3])
+            Expect.Simple(
+              'getData',
+              [],
+              ['1', '0', '2', '0', '45', '0', '1', '0', '1', '0', '2', '0', '3', '0'],
+            ),
+          ]),
+        ]),
         new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
         new Dir('storage', [
           File.Simple('dynamic_arrays', [
@@ -864,6 +905,18 @@ export const expectations = flatten(
             Expect.Simple('nonFeltKey', ['4', '5', '6'], ['6'], 'stepCheck'),
           ]),
           File.Simple('nesting', [Expect.Simple('nesting', [], ['5'])]),
+          File.Simple('passingArguments', [
+            Expect.Simple('passArray', [], ['4']),
+            Expect.Simple('passInt', [], ['0', '0']),
+            Expect.Simple('passMap', [], ['20']),
+            Expect.Simple('passStruct', [], ['5']),
+          ]),
+          File.Simple('returns', [
+            Expect.Simple('ints', [], ['3']),
+            Expect.Simple('arrays', [], ['2', '2']),
+            Expect.Simple('mappings', [], ['2', '4']),
+            Expect.Simple('structs', [], ['2']),
+          ]),
           File.Simple('scalars', [
             Expect.Simple('getValues', [], ['2', '4']),
             Expect.Simple('readValues', [], ['2', '4']),

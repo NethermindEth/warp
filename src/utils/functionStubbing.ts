@@ -4,6 +4,7 @@ import {
   Expression,
   FunctionCall,
   FunctionCallKind,
+  FunctionDefinition,
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
@@ -74,8 +75,8 @@ export function createCairoFunctionStub(
   return funcDef;
 }
 
-export function createCallToStub(
-  stub: CairoFunctionDefinition,
+export function createCallToFunction(
+  stub: FunctionDefinition,
   args: Expression[],
   ast: AST,
 ): FunctionCall {

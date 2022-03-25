@@ -6,7 +6,7 @@ import {
   ASTNode,
 } from 'solc-typed-ast';
 import { CairoType } from '../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToStub } from '../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
 import { createUint256TypeName } from '../utils/nodeTemplates';
 import { CairoFunction, CairoUtilFuncGenBase } from './base';
 
@@ -29,7 +29,7 @@ export class MemoryNewGen extends CairoUtilFuncGenBase {
       this.ast,
       nodeInSourceUnit ?? len,
     );
-    return createCallToStub(functionStub, [len], this.ast);
+    return createCallToFunction(functionStub, [len], this.ast);
   }
 
   private getOrCreate(elementType: CairoType): string {

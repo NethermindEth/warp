@@ -9,7 +9,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToStub } from '../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
 import { typeNameFromTypeNode } from '../utils/utils';
 import { CairoFunction, CairoUtilFuncGenBase } from './base';
 import { DynArrayGen } from './dynArray';
@@ -42,7 +42,7 @@ export class DynArrayPopGen extends CairoUtilFuncGenBase {
       nodeInSourceUnit ?? pop,
     );
 
-    return createCallToStub(functionStub, [pop.vExpression.vExpression], this.ast);
+    return createCallToFunction(functionStub, [pop.vExpression.vExpression], this.ast);
   }
 
   private getOrCreate(elementType: CairoType): string {

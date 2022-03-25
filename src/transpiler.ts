@@ -1,6 +1,5 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
 import {
-  GettersPublicStateVars,
   AddressHandler,
   AnnotateImplicits,
   BuiltinHandler,
@@ -8,6 +7,7 @@ import {
   EnumConverter,
   ExpressionSplitter,
   ExternImporter,
+  PublicStateVarsGetterGenerator,
   IdentifierMangler,
   ImplicitConversionToExplicit,
   InheritanceInliner,
@@ -15,6 +15,7 @@ import {
   LiteralExpressionEvaluator,
   LoopFunctionaliser,
   MemoryHandler,
+  NamedArgsRemover,
   RejectUnsupportedFeatures,
   ReturnInserter,
   SourceUnitSplitter,
@@ -28,6 +29,7 @@ import {
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
   ExternalInputChecker,
+  IfFunctionaliser,
 } from './passes';
 import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
 import { printCompileErrors, runSanityCheck } from './utils/utils';
@@ -68,7 +70,8 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['Ru', RejectUnsupportedFeatures],
     ['L', LiteralExpressionEvaluator],
     ['Ufr', UsingForResolver],
-    ['Gp', GettersPublicStateVars],
+    ['Na', NamedArgsRemover],
+    ['Gp', PublicStateVarsGetterGenerator],
     ['Ib', IntBoundCalculator],
     ['M', IdentifierMangler],
     ['Ii', InheritanceInliner],
@@ -77,6 +80,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['Ec', EnumConverter],
     ['Ei', ExternImporter],
     ['Lf', LoopFunctionaliser],
+    ['If', IfFunctionaliser],
     ['T', TupleAssignmentSplitter],
     ['Ah', AddressHandler],
     ['U', UnloadingAssignment],

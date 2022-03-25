@@ -4,12 +4,14 @@ import {
   Assignment,
   ASTNode,
   BinaryOperation,
+  Expression,
   FunctionCall,
   getNodeType,
   IndexAccess,
   MappingType,
   PointerType,
   Return,
+  TupleExpression,
   UnaryOperation,
   VariableDeclaration,
   VariableDeclarationStatement,
@@ -34,7 +36,9 @@ export class ReadIdentifier extends ASTMapper {
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    node.vArguments.forEach((arg) => this.reads.add(arg));
+    node.vArguments.forEach((arg) => {
+      if (isValueType(arg, ast)) this.reads.add(arg);
+    });
     this.visitExpression(node, ast);
   }
 
@@ -53,13 +57,14 @@ export class ReadIdentifier extends ASTMapper {
   }
 
   visitReturn(node: Return, ast: AST): void {
-    if (node.vExpression && node.vFunctionReturnParameters.vParameters.length > 0) {
-      this.reads.add(node.vExpression);
+    if (node.vExpression) {
+      this.registerValueTypes(node.vExpression, ast);
     }
     this.visitStatement(node, ast);
   }
 
   visitUnaryOperation(node: UnaryOperation, ast: AST): void {
+    // Delete specifically works on references, all other unary operators work on values
     if (node.operator !== 'delete') {
       this.reads.add(node.vSubExpression);
     }
@@ -68,18 +73,29 @@ export class ReadIdentifier extends ASTMapper {
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     if (node.vValue) {
-      this.reads.add(node.vValue);
+      this.registerValueTypes(node.vValue, ast);
     }
     this.commonVisit(node, ast);
   }
 
   visitVariableDeclarationStatement(node: VariableDeclarationStatement, ast: AST): void {
     if (node.vInitialValue) {
-      const type = getNodeType(node.vInitialValue, ast.compilerVersion);
-      if (!(type instanceof PointerType)) {
-        this.reads.add(node.vInitialValue);
-      }
+      this.registerValueTypes(node.vInitialValue, ast);
     }
     this.visitStatement(node, ast);
   }
+
+  registerValueTypes(node: Expression, ast: AST): void {
+    const expressions = node instanceof TupleExpression ? node.vComponents : [node];
+
+    expressions.forEach((r) => {
+      if (isValueType(r, ast)) this.reads.add(r);
+    });
+  }
+}
+
+function isValueType(node: Expression, ast: AST): boolean {
+  const type = getNodeType(node, ast.compilerVersion);
+  if (type instanceof PointerType) return false;
+  return true;
 }

@@ -10,7 +10,7 @@ import {
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext, CairoStruct } from '../utils/cairoTypeSystem';
 import { cloneASTNode } from '../utils/cloning';
-import { createCairoFunctionStub, createCallToStub } from '../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
 import { typeNameFromTypeNode, countNestedMapItems } from '../utils/utils';
 import { CairoUtilFuncGenBase, CairoFunction, add } from './base';
 
@@ -47,7 +47,7 @@ export class MemberAccessGen extends CairoUtilFuncGenBase {
       this.ast,
       nodeInSourceUnit ?? memberAccess,
     );
-    return createCallToStub(functionStub, [memberAccess.vExpression], this.ast);
+    return createCallToFunction(functionStub, [memberAccess.vExpression], this.ast);
   }
 
   private getOrCreate(structCairoType: CairoType, memberName: string): string {

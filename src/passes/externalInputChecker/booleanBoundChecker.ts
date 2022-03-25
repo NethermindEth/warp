@@ -10,7 +10,7 @@ import {
   BoolType,
 } from 'solc-typed-ast';
 import { ASTMapper } from '../../ast/mapper';
-import { createCairoFunctionStub, createCallToStub } from '../../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 
 export class BooleanBoundChecker extends ASTMapper {
@@ -43,7 +43,7 @@ export class BooleanBoundChecker extends ASTMapper {
             parameter.id,
           );
 
-          const functionCall = createCallToStub(functionStub, [boolStubArgument], ast);
+          const functionCall = createCallToFunction(functionStub, [boolStubArgument], ast);
           ast.registerImport(
             functionCall,
             'warplib.maths.external_input_check_bool',

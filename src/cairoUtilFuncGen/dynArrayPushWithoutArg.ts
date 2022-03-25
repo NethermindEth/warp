@@ -2,7 +2,7 @@ import assert = require('assert');
 import { ASTNode, FunctionCall, getNodeType, MemberAccess } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToStub } from '../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
 import { typeNameFromTypeNode } from '../utils/utils';
 import { CairoFunction, CairoUtilFuncGenBase } from './base';
 import { DynArrayGen } from './dynArray';
@@ -34,8 +34,7 @@ export class DynArrayPushWithoutArgGen extends CairoUtilFuncGenBase {
       this.ast,
       nodeInSourceUnit ?? push,
     );
-
-    return createCallToStub(functionStub, [push.vExpression.vExpression], this.ast);
+    return createCallToFunction(functionStub, [push.vExpression.vExpression], this.ast);
   }
 
   private getOrCreate(elementType: CairoType): string {

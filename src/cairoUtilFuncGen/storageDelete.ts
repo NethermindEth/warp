@@ -1,6 +1,6 @@
 import { ASTNode, Expression, FunctionCall, getNodeType, TypeNode } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToStub } from '../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
 import { mapRange, typeNameFromTypeNode } from '../utils/utils';
 import { add, CairoFunction, CairoUtilFuncGenBase } from './base';
 
@@ -24,7 +24,7 @@ export class StorageDeleteGen extends CairoUtilFuncGenBase {
       nodeInSourceUnit ?? node,
     );
 
-    return createCallToStub(functionStub, [node], this.ast);
+    return createCallToFunction(functionStub, [node], this.ast);
   }
 
   private getOrCreate(type: TypeNode): string {

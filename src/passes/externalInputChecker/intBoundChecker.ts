@@ -9,7 +9,7 @@ import {
   IntType,
 } from 'solc-typed-ast';
 import { ASTMapper } from '../../ast/mapper';
-import { createCairoFunctionStub, createCallToStub } from '../../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 
 export class IntBoundChecker extends ASTMapper {
@@ -50,7 +50,7 @@ export class IntBoundChecker extends ASTMapper {
             parameter,
           );
 
-          const functionCall = createCallToStub(functionStub, [intStubArgument], ast);
+          const functionCall = createCallToFunction(functionStub, [intStubArgument], ast);
           ast.registerImport(functionCall, 'warplib.maths.external_input_check_ints', name);
 
           const expressionStatement = new ExpressionStatement(
