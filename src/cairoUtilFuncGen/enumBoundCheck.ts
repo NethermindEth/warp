@@ -23,10 +23,11 @@ export class EnumBoundCheckGen extends CairoUtilFuncGenBase {
   }
 
   gen(enumVarDec: VariableDeclaration, functionInput: Expression): FunctionCall {
-    const enumDefId = enumVarDec.raw?.typeName.referencedDeclaration;
-    const enumDef = enumVarDec.context?.map.get(enumDefId);
+    const enumType = enumVarDec.vType;
+    assert(enumType instanceof UserDefinedTypeName);
+    const enumDef = enumType.vReferencedDeclaration;
 
-    assert(enumDef instanceof EnumDefinition && enumVarDec.vType instanceof UserDefinedTypeName);
+    assert(enumDef instanceof EnumDefinition);
 
     const name = this.getOrCreate(enumDef);
     const intType = new IntType(8, false);
