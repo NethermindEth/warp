@@ -7,10 +7,6 @@ contract WARP {
   bool stateBoolVariable1;
   bool stateBoolVariable2;
 
-  function publicFunction(bool x) public returns (bool){
-    stateBoolVariable1 = x;
-    return stateBoolVariable1;
-  }
   function externalFunction(bool x) external returns (bool){
     stateBoolVariable1 = x;
     return stateBoolVariable1;

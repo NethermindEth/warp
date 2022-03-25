@@ -9,7 +9,7 @@ contract WARP {
   enumSet1 currentEnumValue1;
   enumSet2 currentEnumValue2;
 
-  function publicFunction(enumSet1 enumInput) public returns (enumSet1) {
+  function externalFunction(enumSet1 enumInput) external returns (enumSet1) {
     currentEnumValue1 = enumInput;
     return currentEnumValue1;
   }

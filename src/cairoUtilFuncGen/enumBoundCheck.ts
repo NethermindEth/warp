@@ -28,7 +28,6 @@ export class EnumBoundCheckGen extends CairoUtilFuncGenBase {
     const enumDef = enumType.vReferencedDeclaration;
 
     assert(enumDef instanceof EnumDefinition);
-
     const name = this.getOrCreate(enumDef);
     const intType = new IntType(8, false);
     // const enumType = cloneASTNode(enumVarDec.vType, this.ast);

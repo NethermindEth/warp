@@ -315,13 +315,13 @@ export const expectations = flatten(
         ]),
         new Dir('external_input_checks', [
           File.Simple('int_', [
-            new Expect('testing solidity pure public signed int8 lower bound', [
+            new Expect('testing solidity pure external signed int8 lower bound', [
               ['testInt8', ['0'], ['0'], '0'],
             ]),
-            new Expect('testing solidity pure public signed int8 upper bound', [
+            new Expect('testing solidity pure external signed int8 upper bound', [
               ['testInt8', ['255'], ['255'], '0'],
             ]),
-            new Expect('testing solidity pure public signed int8 overflow', [
+            new Expect('testing solidity pure external signed int8 overflow', [
               [
                 'testInt8',
                 ['256'],
@@ -330,16 +330,7 @@ export const expectations = flatten(
                 'Error: value out-of-bounds. Value must be less than 2**8',
               ],
             ]),
-            new Expect('testing solidity pure external signed int8 overflow', [
-              [
-                'testInt8External',
-                ['256'],
-                null,
-                '0',
-                'Error: value out-of-bounds. Value must be less than 2**8',
-              ],
-            ]),
-            new Expect('testing solidity pure public unsigned int32 overflow', [
+            new Expect('testing solidity pure exernal unsigned int32 overflow', [
               [
                 'testUint32',
                 ['4294967296'],
@@ -348,7 +339,7 @@ export const expectations = flatten(
                 'Error: value out-of-bounds. Value must be less than 2**32',
               ],
             ]),
-            new Expect('testing solidity unsigned view public int32 in upper bound', [
+            new Expect('testing solidity unsigned view external int32 in upper bound', [
               ['testUint32', ['4294967295'], ['4294967295'], '0'],
             ]),
             new Expect('testing solidity signed int248 upper bound', [
@@ -434,14 +425,14 @@ export const expectations = flatten(
           ]),
           File.Simple('enum_', [
             new Expect('testing that enum in range does not throw error', [
-              ['publicFunction', ['0'], ['0'], '0'],
+              ['externalFunction', ['0'], ['0'], '0'],
             ]),
             new Expect('testing that enum in range does not throw error', [
-              ['publicFunction', ['2'], ['2'], '0'],
+              ['externalFunction', ['2'], ['2'], '0'],
             ]),
             new Expect('testing public function with enum out of range throws error', [
               [
-                'publicFunction',
+                'externalFunction',
                 ['3'],
                 null,
                 '0',
@@ -475,12 +466,12 @@ export const expectations = flatten(
           ]),
           File.Simple('bool_', [
             new Expect('testing that false input does not throw error', [
-              ['publicFunction', ['0'], ['0'], '0'],
+              ['externalFunction', ['0'], ['0'], '0'],
             ]),
             new Expect('testing that true input does not throw error', [
               ['externalFunction', ['1'], ['1'], '0'],
             ]),
-            new Expect('testing that public function with out of bounds input throws error', [
+            new Expect('testing that external function with out of bounds input throws error', [
               [
                 'externalFunction',
                 ['3'],
