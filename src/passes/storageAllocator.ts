@@ -27,7 +27,7 @@ export class StorageAllocator extends ASTMapper {
     let usedStorage = 0;
     const allocations: Map<VariableDeclaration, number> = new Map();
     node.vStateVariables.forEach((v) => {
-      if (isCairoConstant(v)) {
+      if (!isCairoConstant(v)) {
         const width = CairoType.fromSol(
           getNodeType(v, ast.compilerVersion),
           ast,
