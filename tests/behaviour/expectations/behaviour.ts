@@ -67,6 +67,19 @@ export const expectations = flatten(
             Expect.Simple('explicit', ['240'], ['240', '240', '0']),
           ]),
         ]),
+        new Dir('constants', [
+          File.Simple('simpleConstants', [
+            Expect.Simple('getX', [], ['247']),
+            Expect.Simple('stateVarOp', [], ['9']),
+            Expect.Simple('constantOp', [], ['249']),
+            Expect.Simple('pureOp', [], ['512']),
+            Expect.Simple('pureOpWithValue', ['32'], ['288']),
+            new Expect('changeStateVar', [
+              ['changeStateVar', [], [], '0'],
+              ['getX', [], ['503'], '0'],
+            ]),
+          ]),
+        ]),
         // covers nested mappings
         new Dir('Dai', [
           new File('dai', 'Dai', [
@@ -451,6 +464,7 @@ export const expectations = flatten(
             new File('derived', 'Derived', [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
           ]),
         ]),
+        /*
         new Dir('loops', [
           File.Simple('loops', [
             Expect.Simple('forLoop', ['3'], ['8']),
@@ -879,6 +893,7 @@ export const expectations = flatten(
           Expect.Simple('test', [], []),
           Expect.Simple('returnTest', [], ['12', '0']),
         ]),
+        */
       ]),
     ]),
   ]),
