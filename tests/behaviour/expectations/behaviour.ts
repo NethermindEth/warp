@@ -864,6 +864,42 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
+        new Dir('returns', [
+          File.Simple('returnInserter', [
+            Expect.Simple('default_returnInsert', ['6'], ['0']),
+            Expect.Simple('condition_returnInsert', ['1'], ['2'], 'Return from conditional branch'),
+            Expect.Simple(
+              'condition_returnInsert',
+              ['2'],
+              ['0'],
+              'Default return if not returned from conditional branch',
+            ),
+            Expect.Simple('revert_returnInserter', ['3'], null),
+            Expect.Simple('conditions_no_returnInsert', ['9'], ['9']),
+            Expect.Simple('returnInsert_with_require', ['3', '5'], ['8']),
+            Expect.Simple('ifFunctionaliser_returnInserter', ['2'], ['2', '0']),
+          ]),
+          File.Simple('returnInitializer', [
+            Expect.Simple('withReturn', ['3', '8'], ['3', '8']),
+            Expect.Simple('insertReturn', ['7'], ['9', '7']),
+          ]),
+        ]),
+        new Dir('named_args', [
+          File.Simple('function', [
+            Expect.Simple('f', [], []),
+            Expect.Simple('k', [], ['365', '0']),
+            Expect.Simple('v', [], ['234', '0']),
+          ]),
+          File.Simple('constructor', [
+            // (1, 2, (45, 1), [1,2,3])
+            Expect.Simple(
+              'getData',
+              [],
+              ['1', '0', '2', '0', '45', '0', '1', '0', '1', '0', '2', '0', '3', '0'],
+            ),
+          ]),
+        ]),
+        new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
         new Dir('storage', [
           File.Simple('dynamic_arrays', [
             Expect.Simple('get', ['0', '0'], null, 'out of range get should fail'),

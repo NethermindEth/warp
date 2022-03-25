@@ -18,6 +18,7 @@ import { DynArrayPopGen } from './dynArrayPop';
 import { StorageDeleteGen } from './storageDelete';
 import { EnumBoundCheckGen } from './enumBoundCheck';
 
+
 export class CairoUtilFuncGen {
   memory: {
     new: MemoryNewGen;
@@ -42,6 +43,7 @@ export class CairoUtilFuncGen {
   externalInputChecks: {
     enum: EnumBoundCheckGen;
   };
+
   private implementation: {
     dynArray: DynArrayGen;
   };

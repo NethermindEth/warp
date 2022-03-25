@@ -48,7 +48,8 @@ export class DeleteHandler extends ASTMapper {
           node.documentation,
           node.raw,
         );
-        ast.replaceNode(node, statement, node.parent);
+        ast.insertStatementBefore(node, statement);
+        node.vExpression = undefined;
         this.commonVisit(statement, ast);
         visited = true;
       }
