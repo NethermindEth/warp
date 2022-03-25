@@ -100,6 +100,12 @@ export const expectations = flatten(
             ],
           ),
         ]),
+        new Dir('conditionals', [
+          File.Simple('conditionals', [
+            Expect.Simple('simpleScalar', ['1', '2', '3'], ['3'], 'false branch'),
+            Expect.Simple('simpleScalar', ['1', '2', '3'], ['2'], 'true branch'),
+          ]),
+        ]),
         new Dir('constants', [
           File.Simple('simpleConstants', [
             Expect.Simple('getX', [], ['247']),
