@@ -134,7 +134,3 @@ solc-v0.7.6
 warp_output/
 example_contracts/**/*.cairo
 example_contracts/**/*.json
-
-# warplib cairo
-warplib/maths/*.cairo.json
-warplib/*.cairo.json
