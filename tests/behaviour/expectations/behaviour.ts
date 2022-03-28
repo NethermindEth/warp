@@ -314,7 +314,7 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('external_input_checks', [
-          File.Simple('int_', [
+          File.Simple('int', [
             new Expect('testing solidity pure external signed int8 lower bound', [
               ['testInt8', ['0'], ['0'], '0'],
             ]),
@@ -423,7 +423,7 @@ export const expectations = flatten(
               ],
             ]),
           ]),
-          File.Simple('enum_', [
+          File.Simple('enum', [
             new Expect('testing that enum in range does not throw error', [
               ['externalFunction', ['0'], ['0'], '0'],
             ]),
@@ -464,7 +464,7 @@ export const expectations = flatten(
               ],
             ),
           ]),
-          File.Simple('bool_', [
+          File.Simple('bool', [
             new Expect('testing that false input does not throw error', [
               ['externalFunction', ['0'], ['0'], '0'],
             ]),

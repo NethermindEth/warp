@@ -2,25 +2,26 @@ import assert = require('assert');
 import { AST } from '../../ast/ast';
 import {
   FunctionDefinition,
-  Identifier,
   FunctionVisibility,
   Statement,
   ExpressionStatement,
-  ElementaryTypeName,
   BoolType,
   VariableDeclaration,
   FunctionCall,
+  getNodeType,
 } from 'solc-typed-ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
 import { typeNameFromTypeNode } from '../../utils/utils';
+import { createIdentifier } from '../../utils/nodeTemplates';
 
 export class BooleanBoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    if (FunctionVisibility.External === node.visibility) {
+    if (FunctionVisibility.External === node.visibility && node.vBody !== undefined) {
       node.vParameters.vParameters.forEach((parameter) => {
-        if (parameter.typeString === 'bool' && parameter.vType instanceof ElementaryTypeName) {
-          const functionCall = this.generateFunctionCall(parameter, ast);
+        const typeNode = getNodeType(parameter, ast.compilerVersion);
+        if (typeNode instanceof BoolType) {
+          const functionCall = this.generateFunctionCall(parameter, typeNode, ast);
           this.insertFunctionCall(node, functionCall, ast);
         }
       });
@@ -28,26 +29,21 @@ export class BooleanBoundChecker extends ASTMapper {
     this.commonVisit(node, ast);
   }
 
-  private generateFunctionCall(parameter: VariableDeclaration, ast: AST): FunctionCall {
-    const boolType = new BoolType();
-
+  private generateFunctionCall(
+    parameter: VariableDeclaration,
+    typeNode: BoolType,
+    ast: AST,
+  ): FunctionCall {
     const functionStub = createCairoFunctionStub(
       'warp_external_input_check_bool',
-      [['boolValue', typeNameFromTypeNode(boolType, ast)]],
+      [['boolValue', typeNameFromTypeNode(typeNode, ast)]],
       [],
       ['syscall_ptr', 'range_check_ptr'],
       ast,
       parameter,
     );
 
-    const boolStubArgument = new Identifier(
-      ast.reserveId(),
-      '',
-      'Identifier',
-      parameter.typeString,
-      parameter.name,
-      parameter.id,
-    );
+    const boolStubArgument = createIdentifier(parameter, ast);
 
     const functionCall = createCallToFunction(functionStub, [boolStubArgument], ast);
     ast.registerImport(

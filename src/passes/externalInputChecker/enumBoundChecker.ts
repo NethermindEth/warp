@@ -2,7 +2,6 @@ import assert = require('assert');
 import { AST } from '../../ast/ast';
 import {
   FunctionDefinition,
-  Identifier,
   FunctionVisibility,
   Statement,
   ExpressionStatement,
@@ -10,10 +9,11 @@ import {
   FunctionCall,
 } from 'solc-typed-ast';
 import { ASTMapper } from '../../ast/mapper';
+import { createIdentifier } from '../../utils/nodeTemplates';
 
 export class EnumBoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    if (FunctionVisibility.External === node.visibility) {
+    if (FunctionVisibility.External === node.visibility && node.vBody !== undefined) {
       node.vParameters.vParameters.forEach((parameter) => {
         if (parameter.typeString.slice(0, 4) === 'enum' && parameter.name !== undefined) {
           const functionCall = this.generateFunctionCall(node, parameter, ast);
@@ -29,14 +29,7 @@ export class EnumBoundChecker extends ASTMapper {
     parameter: VariableDeclaration,
     ast: AST,
   ): FunctionCall {
-    const enumStubArgument = new Identifier(
-      ast.reserveId(),
-      '',
-      'Identifier',
-      parameter.typeString,
-      parameter.name,
-      parameter.id,
-    );
+    const enumStubArgument = createIdentifier(parameter, ast);
     const functionCall = ast
       .getUtilFuncGen(node)
       .externalInputChecks.enum.gen(parameter, enumStubArgument);

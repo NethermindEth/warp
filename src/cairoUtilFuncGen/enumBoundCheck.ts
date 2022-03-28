@@ -6,11 +6,10 @@ import {
   VariableDeclaration,
   UserDefinedTypeName,
   FunctionCall,
-  IntType,
 } from 'solc-typed-ast';
 import assert = require('assert');
 import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
-import { typeNameFromTypeNode } from '../utils/utils';
+import { cloneASTNode } from '../utils/cloning';
 
 const INDENT = ' '.repeat(4);
 
@@ -23,17 +22,17 @@ export class EnumBoundCheckGen extends CairoUtilFuncGenBase {
   }
 
   gen(enumVarDec: VariableDeclaration, functionInput: Expression): FunctionCall {
-    const enumType = enumVarDec.vType;
-    assert(enumType instanceof UserDefinedTypeName);
+    assert(enumVarDec.vType instanceof UserDefinedTypeName);
+    const enumType = cloneASTNode(enumVarDec.vType, this.ast);
     const enumDef = enumType.vReferencedDeclaration;
 
     assert(enumDef instanceof EnumDefinition);
     const name = this.getOrCreate(enumDef);
-    const intType = new IntType(8, false);
-    // const enumType = cloneASTNode(enumVarDec.vType, this.ast);
+
+    const enumTypeCloned = cloneASTNode(enumType, this.ast);
     const functionStub = createCairoFunctionStub(
       name,
-      [['enumValue', typeNameFromTypeNode(intType, this.ast)]],
+      [['enumValue', enumTypeCloned]],
       [],
       ['syscall_ptr', 'range_check_ptr'],
       this.ast,

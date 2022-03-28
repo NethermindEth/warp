@@ -34,7 +34,7 @@ export class DynArrayPushWithoutArgGen extends CairoUtilFuncGenBase {
       this.ast,
       nodeInSourceUnit ?? push,
     );
-     
+
     return createCallToFunction(functionStub, [push.vExpression.vExpression], this.ast);
   }
 
