@@ -40,7 +40,7 @@ import { CairoASTMapping } from './cairoWriter';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { TranspilationOptions } from '.';
-import { parsePassOrder } from './utils/cliOptionParsing';
+import { createPassMap, parsePassOrder } from './utils/cliOptionParsing';
 
 type CairoSource = [file: string, source: string];
 
@@ -65,7 +65,7 @@ export function transform(ast: AST, options: TranspilationOptions): CairoSource[
 }
 
 function applyPasses(ast: AST, options: TranspilationOptions): AST {
-  const passes: Map<string, typeof ASTMapper> = new Map([
+  const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Ss', SourceUnitSplitter],
     ['Ru', RejectUnsupportedFeatures],
     ['L', LiteralExpressionEvaluator],
