@@ -12,4 +12,4 @@ function filterTests(tests: File[], filter = process.env.FILTER): File[] {
   return tests.filter((test) => test.name.includes(filter));
 }
 
-export const expectations = filterTests([...behaviour, ...semantic], 'value_passing');
+export const expectations = filterTests([...behaviour, ...semantic]);

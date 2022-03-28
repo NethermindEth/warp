@@ -3,6 +3,7 @@ import {
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
+  Identifier,
   MemberAccess,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -10,7 +11,10 @@ import { ASTMapper } from '../../ast/mapper';
 import assert = require('assert');
 
 export class PublicFunctionCallModifier extends ASTMapper {
-  constructor(public publicToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>) {
+  constructor(
+    public publicToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>,
+    public publicToInternalFunctionMap: Map<string, string>,
+  ) {
     super();
   }
   /*
@@ -18,6 +22,7 @@ export class PublicFunctionCallModifier extends ASTMapper {
   into internal and external functions it will point the function calls to the external function 
   */
   visitFunctionCall(node: FunctionCall, ast: AST): void {
+    // Changing Contract 2 Contract calls (Not Supported Yet)
     if (
       node.vExpression instanceof MemberAccess &&
       node.kind === FunctionCallKind.FunctionCall &&
@@ -33,6 +38,14 @@ export class PublicFunctionCallModifier extends ASTMapper {
 
       node.vExpression.memberName = replacementFunction.name;
       node.vExpression.referencedDeclaration = replacementFunction.id;
+    } else if (
+      node.kind === FunctionCallKind.FunctionCall &&
+      node.vReferencedDeclaration?.getClosestParentByType(ContractDefinition) ===
+        node.getClosestParentByType(ContractDefinition) &&
+      this.publicToInternalFunctionMap.get(node.vIdentifier) != undefined
+    ) {
+      assert(node.vExpression instanceof Identifier);
+      node.vExpression.name = this.publicToInternalFunctionMap.get(node.vIdentifier) as string;
     }
     this.commonVisit(node, ast);
   }

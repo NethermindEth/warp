@@ -6,7 +6,6 @@ import {
   FunctionCall,
   FunctionCallKind,
   getNodeType,
-  Identifier,
   IntLiteralType,
   IntType,
   Literal,
@@ -22,8 +21,7 @@ import { functionaliseIntConversion } from '../../warplib/implementations/conver
 export class ExplicitConversionToFunc extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     this.commonVisit(node, ast);
-    if (node.kind !== FunctionCallKind.TypeConversion || node.vExpression instanceof Identifier)
-      return;
+    if (node.kind !== FunctionCallKind.TypeConversion) return;
     assert(
       node.vExpression instanceof ElementaryTypeNameExpression,
       `Unexpected node type ${node.vExpression.type}`,

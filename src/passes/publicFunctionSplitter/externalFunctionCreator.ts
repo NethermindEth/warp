@@ -13,7 +13,12 @@ import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction } from '../../utils/functionStubbing';
 
 export class ExternalFunctionCreator extends ASTMapper {
-  constructor(public publicToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>) {
+  suffix = '_internal';
+
+  constructor(
+    public publicToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>,
+    public publicToInernalFunctionMap: Map<string, string>,
+  ) {
     super();
   }
   /*
@@ -26,9 +31,9 @@ export class ExternalFunctionCreator extends ASTMapper {
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (FunctionVisibility.Public === node.visibility) {
+      this.modifyPublicFunction(node);
       const newExternalFunction = this.createExternalFunction(node, ast);
       //node.visibility = FunctionVisibility.Internal;
-      this.modifyPublicFunction(node);
       // Changes the orginal function from public to internal
       this.publicToExternalFunctionMap.set(node, newExternalFunction);
     }
@@ -37,14 +42,16 @@ export class ExternalFunctionCreator extends ASTMapper {
 
   private modifyPublicFunction(node: FunctionDefinition): FunctionDefinition {
     node.visibility = FunctionVisibility.Internal;
+    this.publicToInernalFunctionMap.set(node.name, node.name + this.suffix);
+    node.name = node.name + this.suffix;
     return node;
   }
 
   private createExternalFunction(node: FunctionDefinition, ast: AST): FunctionDefinition {
     // Creating the Function
     const newExternalFunction = cloneASTNode(node, ast);
+    newExternalFunction.name = node.name.replace(this.suffix, '');
     newExternalFunction.visibility = FunctionVisibility.External;
-    newExternalFunction.name = node.name + '_external';
 
     // Creating the Function Call to be placed in return
     const FunctionCallArguments: Expression[] = newExternalFunction.vParameters.vParameters.map(
