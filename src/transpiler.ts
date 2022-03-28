@@ -29,6 +29,7 @@ import {
   UsingForResolver,
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
+  ExternalInputChecker,
   IfFunctionaliser,
 } from './passes';
 import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
@@ -76,6 +77,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['M', IdentifierMangler],
     ['Ii', InheritanceInliner],
     ['Sa', StorageAllocator],
+    ['Eic', ExternalInputChecker],
     ['Ec', EnumConverter],
     ['Ei', ExternImporter],
     ['Lf', LoopFunctionaliser],

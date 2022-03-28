@@ -16,6 +16,7 @@ import { StaticArrayIndexAccessGen } from './staticArrayIndexAccess';
 import { DynArrayLengthGen } from './dynArrayLength';
 import { DynArrayPopGen } from './dynArrayPop';
 import { StorageDeleteGen } from './storageDelete';
+import { EnumBoundCheckGen } from './enumBoundCheck';
 
 export class CairoUtilFuncGen {
   memory: {
@@ -38,6 +39,10 @@ export class CairoUtilFuncGen {
     staticArrayIndexAccess: StaticArrayIndexAccessGen;
     write: StorageWriteGen;
   };
+  externalInputChecks: {
+    enum: EnumBoundCheckGen;
+  };
+
   private implementation: {
     dynArray: DynArrayGen;
   };
@@ -65,6 +70,9 @@ export class CairoUtilFuncGen {
       read: new StorageReadGen(ast),
       staticArrayIndexAccess: new StaticArrayIndexAccessGen(ast),
       write: new StorageWriteGen(ast),
+    };
+    this.externalInputChecks = {
+      enum: new EnumBoundCheckGen(ast),
     };
   }
 
