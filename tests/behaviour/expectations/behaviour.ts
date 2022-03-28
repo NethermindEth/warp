@@ -763,6 +763,11 @@ export const expectations = flatten(
             Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
           ]),
         ]),
+        new Dir('public_func_splitter', [
+          File.Simple('value_passing', [
+            Expect.Simple('value_passing_external', ['1'], ['15'], '0'),
+          ]),
+        ]),
         new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
         new Dir('storage', [
           File.Simple('dynamic_arrays', [

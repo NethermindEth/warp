@@ -1,4 +1,3 @@
-import assert = require('assert');
 import {
   Block,
   ContractDefinition,
@@ -14,11 +13,7 @@ import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction } from '../../utils/functionStubbing';
 
 export class ExternalFunctionCreator extends ASTMapper {
-  constructor(
-    //public publicFunctionIdMap: Map<number, number>,
-    //public publicFunctionNamesMap: Map<string, string>,
-    public publicToExternalFunctionMapMaster: Map<FunctionDefinition, FunctionDefinition>,
-  ) {
+  constructor(public publicToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>) {
     super();
   }
   /*
@@ -35,7 +30,7 @@ export class ExternalFunctionCreator extends ASTMapper {
       //node.visibility = FunctionVisibility.Internal;
       this.modifyPublicFunction(node);
       // Changes the orginal function from public to internal
-      this.publicToExternalFunctionMapMaster.set(node, newExternalFunction);
+      this.publicToExternalFunctionMap.set(node, newExternalFunction);
     }
     this.commonVisit(node, ast);
   }
@@ -52,16 +47,18 @@ export class ExternalFunctionCreator extends ASTMapper {
     newExternalFunction.name = node.name + '_external';
 
     // Creating the Function Call to be placed in return
-    const FunctionCallArguments: Expression[] = node.vParameters.vParameters.map((parameter) => {
-      return new Identifier(
-        ast.reserveId(),
-        '',
-        'Identifier',
-        parameter.typeString,
-        parameter.name,
-        parameter.id,
-      );
-    });
+    const FunctionCallArguments: Expression[] = newExternalFunction.vParameters.vParameters.map(
+      (parameter) => {
+        return new Identifier(
+          ast.reserveId(),
+          '',
+          'Identifier',
+          parameter.typeString,
+          parameter.name,
+          parameter.id,
+        );
+      },
+    );
     const internalFunctionCall = createCallToFunction(node, FunctionCallArguments, ast);
 
     // Creating return that the function call will sit in.
@@ -79,8 +76,6 @@ export class ExternalFunctionCreator extends ASTMapper {
       : (newExternalFunction.vBody = newExternalFunctionBody);
     //newExternalFunction.vBody?.appendChild(newExternalFunctionBody);
     node.getClosestParentByType(ContractDefinition)?.appendChild(newExternalFunction);
-    const contractNode = node.getClosestParentByType(ContractDefinition);
-    assert(contractNode !== undefined);
     ast.setContextRecursive(newExternalFunction);
 
     return newExternalFunction;
