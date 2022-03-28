@@ -29,10 +29,9 @@ export class EnumBoundCheckGen extends CairoUtilFuncGenBase {
     assert(enumDef instanceof EnumDefinition);
     const name = this.getOrCreate(enumDef);
 
-    const enumTypeCloned = cloneASTNode(enumType, this.ast);
     const functionStub = createCairoFunctionStub(
       name,
-      [['enumValue', enumTypeCloned]],
+      [['enumValue', enumType]],
       [],
       ['syscall_ptr', 'range_check_ptr'],
       this.ast,
