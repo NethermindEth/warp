@@ -848,12 +848,6 @@ export const expectations = flatten(
             Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
           ]),
         ]),
-        new Dir('public_func_splitter', [
-          File.Simple('value_passing', [
-            Expect.Simple('valuePassing', ['1'], ['15'], '0'),
-            Expect.Simple('valuePassingMemberAccess', ['1'], ['15'], '0'),
-          ]),
-        ]),
         new Dir('named_args', [
           File.Simple('function', [
             Expect.Simple('f', [], []),
@@ -867,6 +861,12 @@ export const expectations = flatten(
               [],
               ['1', '0', '2', '0', '45', '0', '1', '0', '1', '0', '2', '0', '3', '0'],
             ),
+          ]),
+        ]),
+        new Dir('public_func_splitter', [
+          File.Simple('value_passing', [
+            Expect.Simple('valuePassing', ['1'], ['15'], '0'),
+            Expect.Simple('valuePassingMemberAccess', ['1'], ['15'], '0'),
           ]),
         ]),
         new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
