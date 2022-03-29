@@ -80,7 +80,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['Sa', StorageAllocator],
     ['Eic', ExternalInputChecker],
     ['Ec', EnumConverter],
-    ['Aa', PublicFunctionSplitter],
+    ['Pfs', PublicFunctionSplitter],
     ['Ei', ExternImporter],
     ['Lf', LoopFunctionaliser],
     ['R', ReturnInserter],
@@ -100,7 +100,6 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
     ['Ui', Uint256Importer],
-    //['Pfs', PublicFunctionSplitter],
   ]);
 
   const passesInOrder: typeof ASTMapper[] = parsePassOrder(options.order, options.until, passes);

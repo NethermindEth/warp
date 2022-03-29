@@ -2,7 +2,7 @@ pragma solidity ^0.8.0;
 
 //SPDX-License-Identifier: MIT
 
-contract Warp {
+contract WARP {
   uint8 a = 3;
   
   function test(uint8 a) pure public returns (uint8) {
@@ -15,7 +15,7 @@ contract Warp {
 contract WarpCaller {
     
     function callTest(address addr) pure public returns(uint8) {
-        Warp c = Warp(addr);
+        WARP c = WARP(addr);
         return c.test(100);
     }
     

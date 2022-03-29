@@ -849,7 +849,10 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('public_func_splitter', [
-          File.Simple('value_passing', [Expect.Simple('value_passing', ['1'], ['15'], '0')]),
+          File.Simple('value_passing', [
+            Expect.Simple('valuePassing', ['1'], ['15'], '0'),
+            Expect.Simple('valuePassingMemberAccess', ['1'], ['15'], '0'),
+          ]),
         ]),
         new Dir('named_args', [
           File.Simple('function', [
