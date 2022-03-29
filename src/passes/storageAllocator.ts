@@ -11,6 +11,7 @@ import {
   FunctionVisibility,
   getNodeType,
   Identifier,
+  Mutability,
   ParameterList,
   VariableDeclaration,
 } from 'solc-typed-ast';
@@ -18,7 +19,6 @@ import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { isCairoConstant } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
@@ -27,7 +27,7 @@ export class StorageAllocator extends ASTMapper {
     let usedStorage = 0;
     const allocations: Map<VariableDeclaration, number> = new Map();
     node.vStateVariables.forEach((v) => {
-      if (!isCairoConstant(v)) {
+      if (v.mutability !== Mutability.Constant) {
         const width = CairoType.fromSol(
           getNodeType(v, ast.compilerVersion),
           ast,

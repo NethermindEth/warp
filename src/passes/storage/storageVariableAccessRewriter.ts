@@ -9,6 +9,7 @@ import {
   VariableDeclaration,
   getNodeType,
   MemberAccess,
+  Mutability,
   DataLocation,
   ASTNode,
   FunctionCall,
@@ -19,7 +20,7 @@ import { printNode, printTypeNode } from '../../utils/astPrinter';
 
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { isCairoConstant, typeNameFromTypeNode } from '../../utils/utils';
+import { typeNameFromTypeNode } from '../../utils/utils';
 import { error } from '../../utils/formatting';
 
 export class StorageVariableAccessRewriter extends ASTMapper {
@@ -56,7 +57,7 @@ export class StorageVariableAccessRewriter extends ASTMapper {
       error('VariableDeclaration.vType should be defined for compiler versions > 0.4.x'),
     );
 
-    if (!isCairoConstant(decl)) {
+    if (decl.mutability !== Mutability.Constant) {
       const parent = node.parent;
       const replacementFunc = ast.getUtilFuncGen(node).storage.read.gen(node, decl.vType);
       ast.replaceNode(node, replacementFunc, parent);
