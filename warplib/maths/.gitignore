@@ -50,4 +50,5 @@ bitwise_not.cairo
 int_conversions.cairo
 
 // ---external-input-input-checks---
-external_input_checks.cairo
+external_input_check_ints.cairo
+// external_input_check_bool.cairo - handwritten

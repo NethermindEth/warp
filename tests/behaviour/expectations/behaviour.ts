@@ -327,14 +327,14 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('external_input_checks', [
-          File.Simple('external_input_checks', [
-            new Expect('testing solidity pure public signed int8 lower bound', [
+          File.Simple('int', [
+            new Expect('testing solidity pure external signed int8 lower bound', [
               ['testInt8', ['0'], ['0'], '0'],
             ]),
-            new Expect('testing solidity pure public signed int8 upper bound', [
+            new Expect('testing solidity pure external signed int8 upper bound', [
               ['testInt8', ['255'], ['255'], '0'],
             ]),
-            new Expect('testing solidity pure public signed int8 overflow', [
+            new Expect('testing solidity pure external signed int8 overflow', [
               [
                 'testInt8',
                 ['256'],
@@ -343,16 +343,7 @@ export const expectations = flatten(
                 'Error: value out-of-bounds. Value must be less than 2**8',
               ],
             ]),
-            new Expect('testing solidity pure external signed int8 overflow', [
-              [
-                'testInt8External',
-                ['256'],
-                null,
-                '0',
-                'Error: value out-of-bounds. Value must be less than 2**8',
-              ],
-            ]),
-            new Expect('testing solidity pure public unsigned int32 overflow', [
+            new Expect('testing solidity pure exernal unsigned int32 overflow', [
               [
                 'testUint32',
                 ['4294967296'],
@@ -361,7 +352,7 @@ export const expectations = flatten(
                 'Error: value out-of-bounds. Value must be less than 2**32',
               ],
             ]),
-            new Expect('testing solidity unsigned view public int32 in upper bound', [
+            new Expect('testing solidity unsigned view external int32 in upper bound', [
               ['testUint32', ['4294967295'], ['4294967295'], '0'],
             ]),
             new Expect('testing solidity signed int248 upper bound', [
@@ -424,6 +415,100 @@ export const expectations = flatten(
                 null,
                 '0',
                 'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**128.',
+              ],
+            ]),
+            new Expect('testing that more than 1 assert is placed when there are two inputs', [
+              [
+                'testInt256Int8',
+                ['18', '256'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**8.',
+              ],
+            ]),
+            new Expect('testing that more than 1 assert is placed when there are two inputs', [
+              [
+                'testInt256Int8',
+                ['65536', '255'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**16.',
+              ],
+            ]),
+          ]),
+          File.Simple('enum', [
+            new Expect('testing that enum in range does not throw error', [
+              ['externalFunction', ['0'], ['0'], '0'],
+            ]),
+            new Expect('testing that enum in range does not throw error', [
+              ['externalFunction', ['2'], ['2'], '0'],
+            ]),
+            new Expect('testing public function with enum out of range throws error', [
+              [
+                'externalFunction',
+                ['3'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Values passed to must be in enum range (0, 2].',
+              ],
+            ]),
+            new Expect(
+              'testing external function with more than 1 input has multiple asserts are placed pt. 1',
+              [
+                [
+                  'externalFunction2Inputs',
+                  ['2', '4'],
+                  null,
+                  '0',
+                  'Error: value out-of-bounds. Values passed to must be in enum range (0, 3].',
+                ],
+              ],
+            ),
+            new Expect(
+              'testing external function with more than 1 input has multiple asserts are placed pt. 2',
+              [
+                [
+                  'externalFunction2Inputs',
+                  ['3', '3'],
+                  null,
+                  '0',
+                  'Error: value out-of-bounds. Values passed to must be in enum range (0, 2].',
+                ],
+              ],
+            ),
+          ]),
+          File.Simple('bool', [
+            new Expect('testing that false input does not throw error', [
+              ['externalFunction', ['0'], ['0'], '0'],
+            ]),
+            new Expect('testing that true input does not throw error', [
+              ['externalFunction', ['1'], ['1'], '0'],
+            ]),
+            new Expect('testing that external function with out of bounds input throws error', [
+              [
+                'externalFunction',
+                ['3'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
+              ],
+            ]),
+            new Expect('testing external function and more than 1 input asserts are placed pt. 1', [
+              [
+                'externalFunction2Inputs',
+                ['3', '0'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
+              ],
+            ]),
+            new Expect('testing external function and more than 1 input asserts are placed pt. 2', [
+              [
+                'externalFunction2Inputs',
+                ['0', '3'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
               ],
             ]),
           ]),
@@ -813,6 +898,22 @@ export const expectations = flatten(
             Expect.Simple('insertReturn', ['7'], ['9', '7']),
           ]),
         ]),
+        new Dir('named_args', [
+          File.Simple('function', [
+            Expect.Simple('f', [], []),
+            Expect.Simple('k', [], ['365', '0']),
+            Expect.Simple('v', [], ['234', '0']),
+          ]),
+          File.Simple('constructor', [
+            // (1, 2, (45, 1), [1,2,3])
+            Expect.Simple(
+              'getData',
+              [],
+              ['1', '0', '2', '0', '45', '0', '1', '0', '1', '0', '2', '0', '3', '0'],
+            ),
+          ]),
+        ]),
+        new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
         new Dir('storage', [
           File.Simple('dynamic_arrays', [
             Expect.Simple('get', ['0', '0'], null, 'out of range get should fail'),

@@ -234,7 +234,20 @@ function printResults(results: Map<string, ResultType>, unexpectedResults: strin
     unexpectedResults.map((o) => {
       console.log(`\nTest: ${o}.sol`);
       console.log(`Expected outcome: ${expectedResults.get(o)}`);
-      console.log(`Actual outcome: ${results.get(o)}`);
+      console.log(`Actual outcome:`);
+      const Actual = new Map<string, ResultType>();
+      results.forEach((value, key) => {
+        if (key.includes(o)) {
+          Actual.set(key, value);
+        }
+      });
+      Actual.forEach((value, key) => {
+        if (key.includes('WARP')) {
+          console.log(key + '.cairo' + ' : ' + value);
+        } else {
+          console.log(key + '.sol' + ' : ' + value);
+        }
+      });
     });
     console.log('\n');
   }
