@@ -13,6 +13,7 @@ import {
   PointerType,
   Return,
   StructDefinition,
+  TupleType,
   TypeNameType,
   TypeNode,
   UserDefinedType,
@@ -24,7 +25,7 @@ import { ASTMapper } from '../ast/mapper';
 import { printNode, printTypeNode } from '../utils/astPrinter';
 import { NotSupportedYetError } from '../utils/errors';
 import { error } from '../utils/formatting';
-import { compareTypeSize, dereferenceType, getDeclaredTypeString } from '../utils/utils';
+import { compareTypeSize, dereferenceType } from '../utils/utils';
 
 // TODO conclusively handle all edge cases
 // TODO for example operations between literals and non-literals truncate the literal,
@@ -154,14 +155,9 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     );
     // Assuming all variable declarations are split and have an initial value
 
-    // TODO test tuple of structs
-    if (node.vInitialValue.typeString.startsWith('tuple(')) {
-      assert(
-        getDeclaredTypeString(node) === node.vInitialValue.typeString,
-        `ImplicitConversionToExplicit expects tuple declarations to type match exactly. ${getDeclaredTypeString(
-          node,
-        )} != ${node.vInitialValue.typeString} at ${printNode(node)}`,
-      );
+    // VariableDeclarationExpressionSplitter must be run before this pass
+    const initialValType = getNodeType(node.vInitialValue, ast.compilerVersion);
+    if (initialValType instanceof TupleType || initialValType instanceof PointerType) {
       return;
     }
 
@@ -178,21 +174,6 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     }
 
     const declarationType = getNodeType(declaration, ast.compilerVersion);
-    const initialValType = getNodeType(node.vInitialValue, ast.compilerVersion);
-
-    if (
-      initialValType instanceof PointerType &&
-      initialValType.location === declaration.storageLocation
-    ) {
-      if (compareTypeSize(declarationType, initialValType) !== 0) {
-        throw new NotSupportedYetError(
-          `${initialValType.pp()} to ${declarationType.pp()} (${
-            declaration.storageLocation
-          }) not implemented yet`,
-        );
-      }
-      return;
-    }
 
     const res = compareTypeSize(declarationType, initialValType);
 

@@ -1,6 +1,5 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
 import {
-  GettersPublicStateVars,
   AddressHandler,
   AnnotateImplicits,
   BuiltinHandler,
@@ -8,6 +7,7 @@ import {
   EnumConverter,
   ExpressionSplitter,
   ExternImporter,
+  PublicStateVarsGetterGenerator,
   IdentifierMangler,
   ImplicitConversionToExplicit,
   InheritanceInliner,
@@ -15,8 +15,10 @@ import {
   LiteralExpressionEvaluator,
   LoopFunctionaliser,
   MemoryHandler,
+  NamedArgsRemover,
   RejectUnsupportedFeatures,
   ReturnInserter,
+  ReturnVariableInitializer,
   SourceUnitSplitter,
   StorageAllocator,
   Storage,
@@ -27,6 +29,7 @@ import {
   UsingForResolver,
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
+  ExternalInputChecker,
   IfFunctionaliser,
   PublicFunctionSplitter,
 } from './passes';
@@ -39,7 +42,7 @@ import { CairoASTMapping } from './cairoWriter';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { TranspilationOptions } from '.';
-import { parsePassOrder } from './utils/cliOptionParsing';
+import { createPassMap, parsePassOrder } from './utils/cliOptionParsing';
 
 type CairoSource = [file: string, source: string];
 
@@ -64,20 +67,24 @@ export function transform(ast: AST, options: TranspilationOptions): CairoSource[
 }
 
 function applyPasses(ast: AST, options: TranspilationOptions): AST {
-  const passes: Map<string, typeof ASTMapper> = new Map([
+  const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Ss', SourceUnitSplitter],
     ['Ru', RejectUnsupportedFeatures],
-    ['L', LiteralExpressionEvaluator], //
-    ['Ufr', UsingForResolver], //
-    ['Gp', GettersPublicStateVars],
-    ['Ib', IntBoundCalculator], //
-    ['M', IdentifierMangler], //
-    ['Ii', InheritanceInliner], //
+    ['L', LiteralExpressionEvaluator],
+    ['Ufr', UsingForResolver],
+    ['Na', NamedArgsRemover],
+    ['Gp', PublicStateVarsGetterGenerator],
+    ['Ib', IntBoundCalculator],
+    ['M', IdentifierMangler],
+    ['Ii', InheritanceInliner],
     ['Sa', StorageAllocator],
+    ['Eic', ExternalInputChecker],
     ['Ec', EnumConverter],
     ['Aa', PublicFunctionSplitter],
     ['Ei', ExternImporter],
     ['Lf', LoopFunctionaliser],
+    ['R', ReturnInserter],
+    ['Rv', ReturnVariableInitializer],
     ['If', IfFunctionaliser],
     ['T', TupleAssignmentSplitter],
     ['Ah', AddressHandler],
@@ -90,7 +97,6 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['I', ImplicitConversionToExplicit],
     ['B', BuiltinHandler],
     ['Us', UnreachableStatementPruner],
-    ['R', ReturnInserter],
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
     ['Ui', Uint256Importer],

@@ -31,6 +31,7 @@ import {
   FunctionStateMutability,
   FunctionTypeName,
   FunctionVisibility,
+  getNodeType,
   Identifier,
   IdentifierPath,
   IfStatement,
@@ -63,12 +64,12 @@ import {
   TupleExpression,
   UnaryOperation,
   UncheckedBlock,
+  UserDefinedType,
   UserDefinedTypeName,
   UsingForDirective,
   VariableDeclaration,
   VariableDeclarationStatement,
   WhileStatement,
-  getNodeType,
 } from 'solc-typed-ast';
 import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
 import { writeImplicits } from './utils/implicits';
@@ -335,11 +336,6 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
         ? '@view'
         : '@external'
       : '';
-
-    const externalInputChecks =
-      decorator === '@external' || decorator === '@view'
-        ? this.generateExternalInputChecks(node)
-        : [];
     const args = writer.write(node.vParameters);
     const body = node.vBody ? writer.write(node.vBody) : [];
     const returns = writer.write(node.vReturnParameters);
@@ -366,7 +362,6 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
         ...(decorator ? [decorator] : []),
         `func ${name}${implicits}(${args})${returnClause}:`,
         `${INDENT}alloc_locals`,
-        ...externalInputChecks,
         ...(constructorStorageAllocation ? [constructorStorageAllocation] : []),
         ...(warpMemory
           ? ['let (local warp_memory : MemCell*) = warp_memory_init()', 'with warp_memory:']
@@ -376,27 +371,6 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
         `end`,
       ].join('\n'),
     ];
-  }
-
-  private generateExternalInputChecks(node: CairoFunctionDefinition): string[] {
-    const inputChecks: string[] = [];
-    node.vParameters.vParameters.forEach((parameter) => {
-      if (
-        parameter.typeString.slice(0, 4) === 'uint' ||
-        parameter.typeString.slice(0, 3) === 'int'
-      ) {
-        assert(parameter.vType instanceof ElementaryTypeName);
-        const int_width = parameter.typeString.replace('u', '');
-        const functionCall = `${INDENT}warp_external_input_check_${int_width}(${parameter.name})`;
-        inputChecks.push(functionCall);
-        this.ast.registerImport(
-          node,
-          'warplib.maths.external_input_checks',
-          `warp_external_input_check_${int_width}`,
-        );
-      }
-    });
-    return inputChecks;
   }
 }
 
@@ -485,20 +459,47 @@ class IdentifierWriter extends CairoASTNodeWriter {
 
 class FunctionCallWriter extends CairoASTNodeWriter {
   writeInner(node: FunctionCall, writer: ASTWriter): SrcDesc {
-    if (
-      node.kind === FunctionCallKind.TypeConversion &&
-      node.vFunctionName === 'address' &&
-      node.vArguments[0] instanceof Literal
-    ) {
-      const val: BigInt = BigInt(node.vArguments[0].value);
-      // Make sure literal < 2**251
-      assert(val < BigInt('0x800000000000000000000000000000000000000000000000000000000000000'));
-      return [`${writer.write(node.vArguments[0])}`];
-    }
-
     const args = node.vArguments.map((v) => writer.write(v)).join(', ');
     const func = writer.write(node.vExpression);
-    return [`${func}(${args})`];
+    switch (node.kind) {
+      case FunctionCallKind.FunctionCall: {
+        if (node.vExpression instanceof MemberAccess) {
+          // check if node.vExpression.vExpression.typeString includes "contract"
+          const nodeType = getNodeType(node.vExpression.vExpression, writer.targetCompilerVersion);
+          if (
+            nodeType instanceof UserDefinedType &&
+            nodeType.definition instanceof ContractDefinition
+          ) {
+            const contractType = nodeType.definition.name;
+            const memberName = node.vExpression.memberName;
+            const contract = writer.write(node.vExpression.vExpression);
+            return [`${contractType}.${memberName}(${contract}${args ? ', ' : ''}${args})`];
+          }
+        }
+        return [`${func}(${args})`];
+      }
+
+      case FunctionCallKind.StructConstructorCall:
+        return [`${func}(${args})`];
+
+      case FunctionCallKind.TypeConversion: {
+        const arg = node.vArguments[0];
+        if (node.vFunctionName === 'address' && arg instanceof Literal) {
+          const val: BigInt = BigInt(arg.value);
+          // Make sure literal < 2**251
+          assert(val < BigInt('0x800000000000000000000000000000000000000000000000000000000000000'));
+          return [`${args[0]}`];
+        }
+        const nodeType = getNodeType(node.vExpression, writer.targetCompilerVersion);
+        if (
+          nodeType instanceof UserDefinedType &&
+          nodeType.definition instanceof ContractDefinition
+        ) {
+          return [`${args}`];
+        }
+        return [`${func}(${args})`];
+      }
+    }
   }
 }
 

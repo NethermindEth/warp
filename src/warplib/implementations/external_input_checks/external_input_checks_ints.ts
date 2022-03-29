@@ -35,6 +35,6 @@ const BitBoundChecker: Array<string> = [
   }),
 ];
 
-export function external_input_checks(): void {
-  generateFile('external_input_checks', import_strings, [...BitBoundChecker]);
+export function external_input_check_ints(): void {
+  generateFile('external_input_check_ints', import_strings, [...BitBoundChecker]);
 }

@@ -46,6 +46,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/errorHandling/require', 'Success'],
   ['example_contracts/errorHandling/revert', 'Success'],
   ['example_contracts/events', 'Success'],
+  ['example_contracts/external_function', 'NotSupportedYet'],
   ['example_contracts/freeFunction', 'Success'],
   ['example_contracts/function-with-nested-return', 'Success'],
   ['example_contracts/functionArgumentConversions', 'Success'],
@@ -67,12 +68,16 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/loops/for-loop-with-continue', 'Success'],
   ['example_contracts/loops/for-loop-with-nested-return', 'Success'],
   ['example_contracts/mutableReferences/memory', 'Success'],
-  ['example_contracts/mutableReferences/mutableReferences', 'NotSupportedYet'],
+  ['example_contracts/mutableReferences/mutableReferences', 'Success'],
   ['example_contracts/mutableReferences/scalarStorage', 'Success'],
+  ['example_contracts/namedArgs/constructor', 'Success'],
+  ['example_contracts/namedArgs/events_and_errors', 'Success'],
+  ['example_contracts/namedArgs/function', 'Success'],
   ['example_contracts/payable-function', 'Success'],
   ['example_contracts/pure-function', 'NotSupportedYet'],
   ['example_contracts/return-var-capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],
+  ['example_contracts/returnInserter', 'Success'],
   ['example_contracts/simple-storage-var', 'Success'],
   ['example_contracts/sstore-sload', 'WillNotSupport'],
   ['example_contracts/state_variables/scalars', 'Success'],
@@ -229,7 +234,20 @@ function printResults(results: Map<string, ResultType>, unexpectedResults: strin
     unexpectedResults.map((o) => {
       console.log(`\nTest: ${o}.sol`);
       console.log(`Expected outcome: ${expectedResults.get(o)}`);
-      console.log(`Actual outcome: ${results.get(o)}`);
+      console.log(`Actual outcome:`);
+      const Actual = new Map<string, ResultType>();
+      results.forEach((value, key) => {
+        if (key.includes(o)) {
+          Actual.set(key, value);
+        }
+      });
+      Actual.forEach((value, key) => {
+        if (key.includes('WARP')) {
+          console.log(key + '.cairo' + ' : ' + value);
+        } else {
+          console.log(key + '.sol' + ' : ' + value);
+        }
+      });
     });
     console.log('\n');
   }

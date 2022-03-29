@@ -83,7 +83,7 @@ function getContainingBlock(node: IfStatement): Block {
 
 function getContainingFunction(node: IfStatement): FunctionDefinition {
   const func = node.getClosestParentByType(FunctionDefinition);
-  assert(func !== undefined, `Unable to find containing function for ${node}`);
+  assert(func !== undefined, `Unable to find containing function for ${printNode(node)}`);
   return func;
 }
 
@@ -97,7 +97,9 @@ function splitBlock(block: Block, split: Statement, ast: AST): Block {
 }
 
 function splitBlockImpl(block: Block, split: Statement, ast: AST): Block | null {
-  const splitIndex = block.getChildren().findIndex((statement) => statement === split);
+  const splitIndex = block
+    .getChildren()
+    .findIndex((statement) => statement.getChildren(true).includes(split));
   if (splitIndex === -1) return null;
   const newBlock =
     block instanceof UncheckedBlock
@@ -109,25 +111,32 @@ function splitBlockImpl(block: Block, split: Statement, ast: AST): Block | null 
   );
 
   let foundSplitPoint = false;
+  const statementsToExtract: Statement[] = [];
   block.children.forEach((child) => {
     if (foundSplitPoint) {
       assert(
         child instanceof Statement,
         `Found non-statement ${printNode(child)} as child of ${printNode(block)}`,
       );
-      block.removeChild(child);
-      newBlock.appendChild(child);
+      statementsToExtract.push(child);
     } else if (child === split) {
       foundSplitPoint = true;
     } else if (child.getChildren().includes(split)) {
       foundSplitPoint = true;
       if (child instanceof Block || child instanceof UncheckedBlock) {
-        newBlock.appendChild(splitBlock(child, split, ast));
+        statementsToExtract.push(splitBlock(child, split, ast));
       } else {
         assert(false);
       }
     }
   });
+  statementsToExtract.forEach((child) => {
+    if (block.children.includes(child)) {
+      block.removeChild(child);
+    }
+    newBlock.appendChild(child);
+  });
+
   return newBlock;
 }
 

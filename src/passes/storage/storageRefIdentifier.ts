@@ -1,6 +1,7 @@
 import {
   ASTNode,
   DataLocation,
+  Expression,
   getNodeType,
   Identifier,
   IndexAccess,
@@ -16,17 +17,21 @@ export class StorageRefIdentifier extends ASTMapper {
     super();
   }
 
+  visitExpression(node: Expression, ast: AST): void {
+    const type = getNodeType(node, ast.compilerVersion);
+    if (type instanceof PointerType && type.location === DataLocation.Storage) {
+      this.storageRefs.add(node);
+    }
+
+    this.commonVisit(node, ast);
+  }
+
   visitIdentifier(node: Identifier, ast: AST): void {
     if (
       node.vReferencedDeclaration instanceof VariableDeclaration &&
       node.vReferencedDeclaration.stateVariable
     ) {
       this.storageRefs.add(node);
-    } else {
-      const type = getNodeType(node, ast.compilerVersion);
-      if (type instanceof PointerType && type.location === DataLocation.Storage) {
-        this.storageRefs.add(node);
-      }
     }
 
     this.visitExpression(node, ast);
@@ -35,12 +40,7 @@ export class StorageRefIdentifier extends ASTMapper {
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     this.visitExpression(node, ast);
 
-    const type = getNodeType(node, ast.compilerVersion);
-
-    if (
-      this.storageRefs.has(node.vExpression) ||
-      (type instanceof PointerType && type.location === DataLocation.Storage)
-    ) {
+    if (this.storageRefs.has(node.vExpression)) {
       this.storageRefs.add(node);
     }
   }
@@ -48,12 +48,7 @@ export class StorageRefIdentifier extends ASTMapper {
   visitIndexAccess(node: IndexAccess, ast: AST): void {
     this.visitExpression(node, ast);
 
-    const type = getNodeType(node, ast.compilerVersion);
-
-    if (
-      this.storageRefs.has(node.vBaseExpression) ||
-      (type instanceof PointerType && type.location === DataLocation.Storage)
-    ) {
+    if (this.storageRefs.has(node.vBaseExpression)) {
       this.storageRefs.add(node);
     }
   }

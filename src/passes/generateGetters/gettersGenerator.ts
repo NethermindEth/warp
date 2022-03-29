@@ -1,4 +1,4 @@
-import { ASTMapper } from '../ast/mapper';
+import { ASTMapper } from '../../ast/mapper';
 
 import {
   ArrayTypeName,
@@ -25,11 +25,11 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 
-import { AST } from '../ast/ast';
-import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
-import { cloneASTNode } from '../utils/cloning';
-import { createIdentifier } from '../utils/nodeTemplates';
-import { toSingleExpression } from './loopFunctionaliser/utils';
+import { AST } from '../../ast/ast';
+import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
+import { cloneASTNode } from '../../utils/cloning';
+import { createIdentifier } from '../../utils/nodeTemplates';
+import { toSingleExpression } from '../loopFunctionaliser/utils';
 
 function genReturnVariables(
   vType: TypeName | undefined,
@@ -262,7 +262,11 @@ function genReturnExpression(
   }
 }
 
-export class GettersPublicStateVars extends ASTMapper {
+export class GettersGenerator extends ASTMapper {
+  constructor(private getterFunctions: Map<VariableDeclaration, FunctionDefinition>) {
+    super();
+  }
+
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     node.vStateVariables.forEach((v) => {
       /*
@@ -317,6 +321,7 @@ export class GettersPublicStateVars extends ASTMapper {
           undefined,
           getterBlock,
         );
+        this.getterFunctions.set(v, getter);
         node.appendChild(getter);
         ast.registerChild(getter, node);
       }
