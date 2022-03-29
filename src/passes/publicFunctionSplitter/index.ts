@@ -7,7 +7,7 @@ import { FunctionDefinition } from 'solc-typed-ast';
 export class PublicFunctionSplitter extends ASTMapper {
   static map(ast: AST): AST {
     const publicToExternalFunctionMap = new Map<FunctionDefinition, FunctionDefinition>();
-    const publicToInternalFunctionMap = new Map<string, string>();
+    const publicToInternalFunctionMap = new Map<FunctionDefinition, string>();
     ast.roots.forEach((root) => {
       new ExternalFunctionCreator(
         publicToExternalFunctionMap,

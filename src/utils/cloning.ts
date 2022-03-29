@@ -27,6 +27,8 @@ import {
   VariableDeclarationStatement,
   MemberAccess,
   ElementaryTypeNameExpression,
+  TupleExpression,
+  UncheckedBlock,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
@@ -157,6 +159,19 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.referencedDeclaration,
       node.raw,
     );
+  } else if (node instanceof TupleExpression) {
+    const tupleComponents = node.vOriginalComponents.map((component) => {
+      return component !== null ? cloneASTNodeImpl(component, ast, remappedIds) : null;
+    });
+    newNode = new TupleExpression(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'TupleExpression',
+      node.typeString,
+      node.isInlineArray,
+      tupleComponents,
+      node.raw,
+    );
   } else if (node instanceof UnaryOperation) {
     newNode = new UnaryOperation(
       replaceId(node.id, ast, remappedIds),
@@ -216,6 +231,15 @@ function cloneASTNodeImpl<T extends ASTNode>(
       replaceId(node.id, ast, remappedIds),
       node.src,
       'Block',
+      node.vStatements.map((s) => cloneASTNodeImpl(s, ast, remappedIds)),
+      node.documentation,
+      node.raw,
+    );
+  } else if (node instanceof UncheckedBlock) {
+    newNode = new UncheckedBlock(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'UncheckedBlock',
       node.vStatements.map((s) => cloneASTNodeImpl(s, ast, remappedIds)),
       node.documentation,
       node.raw,

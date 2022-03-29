@@ -65,7 +65,7 @@ export function transform(ast: AST, options: TranspilationOptions): CairoSource[
 
 function applyPasses(ast: AST, options: TranspilationOptions): AST {
   const passes: Map<string, typeof ASTMapper> = new Map([
-    ['Aa', PublicFunctionSplitter],
+    //['Aa', PublicFunctionSplitter],
     ['Ss', SourceUnitSplitter],
     ['Ru', RejectUnsupportedFeatures],
     ['L', LiteralExpressionEvaluator],
@@ -94,6 +94,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
     ['Ui', Uint256Importer],
+    ['Pfs', PublicFunctionSplitter],
   ]);
 
   const passesInOrder: typeof ASTMapper[] = parsePassOrder(options.order, options.until, passes);
