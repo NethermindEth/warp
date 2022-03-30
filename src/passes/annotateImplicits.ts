@@ -83,7 +83,8 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
     if (
       node.implemented &&
       (node.visibility === FunctionVisibility.Public ||
-        node.visibility === FunctionVisibility.External)
+        node.visibility === FunctionVisibility.External ||
+        node.visibility === FunctionVisibility.Internal)
     ) {
       result.add('range_check_ptr');
       result.add('syscall_ptr');

@@ -18,25 +18,26 @@ export class PublicFunctionCallModifier extends ASTMapper {
   and if they are calling functions from the same contract it will change the functionCall to have the added suffix.
   */
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    const functionDefintion = node.vReferencedDeclaration as FunctionDefinition;
-    const replacementFunction = this.internalToExternalFunctionMap.get(functionDefintion);
+    const functionDefintion = node.vReferencedDeclaration;
     if (
       node.kind === FunctionCallKind.FunctionCall &&
-      replacementFunction !== undefined &&
+      functionDefintion instanceof FunctionDefinition &&
       (node.vExpression instanceof MemberAccess || node.vExpression instanceof Identifier)
     ) {
+      const replacementFunction = this.internalToExternalFunctionMap.get(functionDefintion);
       if (
+        replacementFunction !== undefined &&
         node.vReferencedDeclaration?.getClosestParentByType(ContractDefinition) !==
-        node.getClosestParentByType(ContractDefinition)
+          node.getClosestParentByType(ContractDefinition)
       ) {
         // Changes the referenced function to the external function since this is a cross contract call.
         node.vExpression.referencedDeclaration = replacementFunction.id;
       } else {
         // Modifies the function call to have the function.name + suffix.
-        const newFuncName = functionDefintion.name as string;
+        const modifiedFuncName = functionDefintion.name;
         node.vExpression instanceof Identifier
-          ? (node.vExpression.name = newFuncName)
-          : (node.vExpression.memberName = newFuncName);
+          ? (node.vExpression.name = modifiedFuncName)
+          : (node.vExpression.memberName = modifiedFuncName);
       }
     }
     this.commonVisit(node, ast);
