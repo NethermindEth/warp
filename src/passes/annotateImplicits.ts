@@ -122,6 +122,7 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
   visitEventDefinition(node: EventDefinition, ast: AST): Set<Implicits> {
     const result = this.commonVisit(node, ast);
     result.add('syscall_ptr');
+    result.add('range_check_ptr');
     return result;
   }
 }
