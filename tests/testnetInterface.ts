@@ -66,7 +66,6 @@ export async function ensureTestnetContactable(timeout: number): Promise<boolean
     try {
       const response = await axiosInstance.get('http://127.0.0.1:5000/ping');
       if (response.status >= 200 && response.status < 300) break;
-      console.log(response);
     } catch (e) {
       // We purposefully catch and discard any errors and try again until timeout
     }
