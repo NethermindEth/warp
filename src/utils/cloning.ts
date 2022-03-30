@@ -235,15 +235,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.documentation,
       node.raw,
     );
-  } else if (node instanceof UncheckedBlock) {
-    newNode = new UncheckedBlock(
-      replaceId(node.id, ast, remappedIds),
-      node.src,
-      'UncheckedBlock',
-      node.vStatements.map((s) => cloneASTNodeImpl(s, ast, remappedIds)),
-      node.documentation,
-      node.raw,
-    );
   } else if (node instanceof Break) {
     newNode = cloneBreak(node, ast, remappedIds);
   } else if (node instanceof Continue) {
@@ -286,6 +277,15 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.assignments,
       node.vDeclarations.map((decl) => cloneASTNodeImpl(decl, ast, remappedIds)),
       node.vInitialValue && cloneASTNodeImpl(node.vInitialValue, ast, remappedIds),
+      node.documentation,
+      node.raw,
+    );
+  } else if (node instanceof UncheckedBlock) {
+    newNode = new UncheckedBlock(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      'UncheckedBlock',
+      node.vStatements.map((s) => cloneASTNodeImpl(s, ast, remappedIds)),
       node.documentation,
       node.raw,
     );
