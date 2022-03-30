@@ -1,6 +1,7 @@
 import assert = require('assert');
 import {
   ASTNode,
+  EventDefinition,
   FunctionCall,
   FunctionDefinition,
   FunctionVisibility,
@@ -56,6 +57,7 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
     super();
     this.root = root;
   }
+
   commonVisit(node: ASTNode, ast: AST): Set<Implicits> {
     assert(!this.visited.has(node), `Implicit collected visited ${printNode(node)} twice`);
     this.visited.add(node);
@@ -101,7 +103,8 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
     const result = this.commonVisit(node, ast);
     if (
       node.vReferencedDeclaration !== this.root &&
-      node.vReferencedDeclaration instanceof FunctionDefinition &&
+      (node.vReferencedDeclaration instanceof FunctionDefinition ||
+        node.vReferencedDeclaration instanceof EventDefinition) &&
       !this.visited.has(node.vReferencedDeclaration)
     ) {
       this.dispatchVisit(node.vReferencedDeclaration, ast).forEach((defn) => result.add(defn));
@@ -113,6 +116,13 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
       result.add('range_check_ptr');
       result.add('syscall_ptr');
     }
+    return result;
+  }
+
+  visitEventDefinition(node: EventDefinition, ast: AST): Set<Implicits> {
+    const result = this.commonVisit(node, ast);
+    result.add('syscall_ptr');
+    result.add('range_check_ptr');
     return result;
   }
 }
