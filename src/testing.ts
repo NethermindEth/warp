@@ -33,6 +33,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/ERC20', 'Success'],
   ['example_contracts/ERC20_storage', 'Success'],
   ['example_contracts/c2c', 'NotSupportedYet'],
+  ['example_contracts/contract_to_contract', 'NotSupportedYet'],
   ['example_contracts/calldatacopy', 'WillNotSupport'],
   ['example_contracts/calldataload', 'WillNotSupport'],
   ['example_contracts/calldatasize', 'WillNotSupport'],

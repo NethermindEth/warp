@@ -39,10 +39,9 @@ export class ExternalFunctionCreator extends ASTMapper {
     this.commonVisit(node, ast);
   }
 
-  private modifyPublicFunction(node: FunctionDefinition): FunctionDefinition {
+  private modifyPublicFunction(node: FunctionDefinition): void {
     node.visibility = FunctionVisibility.Internal;
     node.name = node.name + this.suffix;
-    return node;
   }
 
   private createExternalFunctionDefintion(node: FunctionDefinition, ast: AST): FunctionDefinition {
