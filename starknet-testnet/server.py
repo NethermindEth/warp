@@ -88,10 +88,10 @@ async def invoke():
 def main():
     from util import parse_args
 
-    # reduce startup logging
-    os.environ["WERKZEUG_RUN_MAIN"] = "true"
-
     args = parse_args()
+
+    print(vars(args))
+
     app.run(**vars(args))
 
 
