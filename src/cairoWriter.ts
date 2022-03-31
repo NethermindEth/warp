@@ -72,16 +72,16 @@ import {
   WhileStatement,
 } from 'solc-typed-ast';
 import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
-import { writeImplicits } from './utils/implicits';
+import { implicitOrdering, implicitTypes } from './utils/implicits';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
 import { canonicalMangler, divmod, primitiveTypeToCairo } from './utils/utils';
 
 import { AST } from './ast/ast';
 import { getMappingTypes } from './utils/mappings';
-import { notUndefined } from './utils/typeConstructs';
+import { notNull, notUndefined } from './utils/typeConstructs';
 import { printNode } from './utils/astPrinter';
 import { CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
-import { removeExcessNewlines } from './utils/formatting';
+import { error, removeExcessNewlines } from './utils/formatting';
 
 const INDENT = ' '.repeat(4);
 
@@ -328,49 +328,92 @@ class ParameterListWriter extends CairoASTNodeWriter {
 class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: CairoFunctionDefinition, writer: ASTWriter): SrcDesc {
     if (node.isStub) return [''];
-    let name = node.name;
-    let decorator = [FunctionVisibility.Public, FunctionVisibility.External].includes(
-      node.visibility,
-    )
+
+    const name = this.getName(node);
+    const decorator = this.getDecorator(node);
+    const args = writer.write(node.vParameters);
+    const body = this.getBody(node, writer);
+    const returns = this.getReturns(node, writer);
+    const implicits = this.getImplicits(node);
+
+    return [
+      [decorator, `func ${name}${implicits}(${args})${returns}:`, body, `end`]
+        .filter(notNull)
+        .join('\n'),
+    ];
+  }
+
+  private getDecorator(node: CairoFunctionDefinition): string | null {
+    if (node.kind === FunctionKind.Constructor) return '@constructor';
+    return node.visibility === FunctionVisibility.External
       ? [FunctionStateMutability.Pure, FunctionStateMutability.View].includes(node.stateMutability)
         ? '@view'
         : '@external'
-      : '';
-    const args = writer.write(node.vParameters);
-    const body = node.vBody ? writer.write(node.vBody) : [];
-    const returns = writer.write(node.vReturnParameters);
-    const warpMemory = node.implicits.has('warp_memory');
-    if (warpMemory) node.implicits.delete('warp_memory');
-    const writtenImplicits = writeImplicits(node.implicits);
-    const implicits = writtenImplicits ? `{${writtenImplicits}}` : '';
-    let returnClause = ` -> (${returns})`;
+      : null;
+  }
 
-    let constructorStorageAllocation: string | null = null;
+  private getName(node: CairoFunctionDefinition): string {
+    if (node.kind === FunctionKind.Constructor) return 'constructor';
+    return node.name;
+  }
+
+  private getBody(node: CairoFunctionDefinition, writer: ASTWriter): string | null {
+    if (node.vBody === undefined) return null;
+
+    if (node.visibility !== FunctionVisibility.External || !node.implicits.has('warp_memory')) {
+      return ['alloc_locals', this.getConstructorStorageAllocation(node), writer.write(node.vBody)]
+        .filter(notNull)
+        .join('\n');
+    }
+
+    assert(node.vBody.children.length > 0, error(`${printNode(node)} has an empty body`));
+    const returnStatement = node.vBody.children[node.vBody.children.length - 1];
+    assert(
+      returnStatement instanceof Return,
+      error(`${printNode(node)} does not end with a return`),
+    );
+    node.vBody.removeChild(returnStatement);
+
+    return [
+      'alloc_locals',
+      this.getConstructorStorageAllocation(node),
+      'let (local warp_memory : DictAccess*) = default_dict_new(0)',
+      'local warp_memory_start: DictAccess* = warp_memory',
+      'with warp_memory:',
+      writer.write(node.vBody),
+      'end',
+      'default_dict_finalize(warp_memory_start, warp_memory, 0)',
+      writer.write(returnStatement),
+    ]
+      .filter(notNull)
+      .join('\n');
+  }
+
+  private getReturns(node: CairoFunctionDefinition, writer: ASTWriter): string {
+    if (node.kind === FunctionKind.Constructor) return '';
+    return `-> (${writer.write(node.vReturnParameters)})`;
+  }
+
+  private getImplicits(node: CairoFunctionDefinition): string {
+    const implicits = [...node.implicits.values()].filter(
+      (i) => node.visibility !== FunctionVisibility.External || i !== 'warp_memory',
+    );
+    if (implicits.length === 0) return '';
+    return `{${implicits
+      .sort(implicitOrdering)
+      .map((implicit) => `${implicit} : ${implicitTypes[implicit]}`)
+      .join(', ')}}`;
+  }
+
+  private getConstructorStorageAllocation(node: CairoFunctionDefinition): string | null {
     if (node.kind === FunctionKind.Constructor) {
-      decorator = '@constructor';
-      name = 'constructor';
-      returnClause = '';
       const contract = node.vScope;
       assert(contract instanceof CairoContract);
       if (contract.usedStorage !== 0) {
-        constructorStorageAllocation = `${INDENT}WARP_USED_STORAGE.write(${contract.usedStorage})`;
+        return `WARP_USED_STORAGE.write(${contract.usedStorage})`;
       }
     }
-
-    return [
-      [
-        ...(decorator ? [decorator] : []),
-        `func ${name}${implicits}(${args})${returnClause}:`,
-        `${INDENT}alloc_locals`,
-        ...(constructorStorageAllocation ? [constructorStorageAllocation] : []),
-        ...(warpMemory
-          ? ['let (local warp_memory : MemCell*) = warp_memory_init()', 'with warp_memory:']
-          : []),
-        ...(body ? [body] : []),
-        ...(warpMemory ? ['end'] : []),
-        `end`,
-      ].join('\n'),
-    ];
+    return null;
   }
 }
 

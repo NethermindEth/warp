@@ -1,5 +1,3 @@
-import { CairoUtilFuncGenBase } from './base';
-import { CairoFunction } from './base';
 import {
   EnumDefinition,
   Expression,
@@ -10,17 +8,11 @@ import {
 import assert = require('assert');
 import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
 import { cloneASTNode } from '../utils/cloning';
+import { StringIndexedFuncGen } from './base';
 
 const INDENT = ' '.repeat(4);
 
-export class EnumBoundCheckGen extends CairoUtilFuncGenBase {
-  //Enum -> Assert Code
-  private generatedEnumBoundChecks: Map<string, CairoFunction> = new Map();
-
-  getGeneratedCode(): string {
-    return [...this.generatedEnumBoundChecks.values()].map((func) => func.code).join('\n\n');
-  }
-
+export class EnumBoundCheckGen extends StringIndexedFuncGen {
   gen(enumVarDec: VariableDeclaration, functionInput: Expression): FunctionCall {
     assert(enumVarDec.vType instanceof UserDefinedTypeName);
     const enumType = cloneASTNode(enumVarDec.vType, this.ast);
@@ -42,7 +34,7 @@ export class EnumBoundCheckGen extends CairoUtilFuncGenBase {
 
   private getOrCreate(enumDef: EnumDefinition): string {
     const key = enumDef.name;
-    const existing = this.generatedEnumBoundChecks.get(key);
+    const existing = this.generatedFunctions.get(key);
     if (existing != undefined) {
       return existing.name;
     }
@@ -50,7 +42,7 @@ export class EnumBoundCheckGen extends CairoUtilFuncGenBase {
     const name = `ENUM_ASSERT_${enumDef.name}`;
     const numMembers = enumDef.vMembers.length;
 
-    this.generatedEnumBoundChecks.set(name, {
+    this.generatedFunctions.set(name, {
       name: name,
       code: [
         `func ${name}{syscall_ptr: felt*, range_check_ptr : felt}(x : felt):`,

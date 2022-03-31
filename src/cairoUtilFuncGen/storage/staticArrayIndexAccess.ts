@@ -7,13 +7,13 @@ import {
   IndexAccess,
   PointerType,
 } from 'solc-typed-ast';
-import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
-import { createUint256Literal, createUint256TypeName } from '../utils/nodeTemplates';
-import { typeNameFromTypeNode } from '../utils/utils';
-import { CairoUtilFuncGenBase } from './base';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
+import { createUint256TypeName, createUint256Literal } from '../../utils/nodeTemplates';
+import { typeNameFromTypeNode } from '../../utils/utils';
+import { CairoUtilFuncGenBase } from '../base';
 
-export class StaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
+export class StorageStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
   private generatedFunction: string | null = null;
 
   getGeneratedCode(): string {

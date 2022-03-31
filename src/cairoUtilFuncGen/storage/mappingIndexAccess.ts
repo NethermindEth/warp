@@ -7,17 +7,12 @@ import {
   MappingType,
   PointerType,
 } from 'solc-typed-ast';
-import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
-import { typeNameFromTypeNode } from '../utils/utils';
-import { CairoFunction, CairoUtilFuncGenBase } from './base';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
+import { typeNameFromTypeNode } from '../../utils/utils';
+import { StringIndexedFuncGen } from '../base';
 
-export class MappingIndexAccessGen extends CairoUtilFuncGenBase {
-  private generatedFunctions: Map<string, CairoFunction> = new Map();
-  getGeneratedCode(): string {
-    return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
-  }
-
+export class MappingIndexAccessGen extends StringIndexedFuncGen {
   gen(node: IndexAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
     const base = node.vBaseExpression;
     const index = node.vIndexExpression;

@@ -414,3 +414,9 @@ export function bigintToTwosComplement(val: bigint, width: number): bigint {
     return BigInt(`0b${twosComplement}`);
   }
 }
+
+export function narrowBigInt(n: bigint): number | null {
+  const narrowed = parseInt(n.toString());
+  if (BigInt(narrowed) !== n) return null;
+  return narrowed;
+}

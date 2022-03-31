@@ -1,20 +1,15 @@
 import assert = require('assert');
 import { ASTNode, FunctionCall, getNodeType, MemberAccess } from 'solc-typed-ast';
-import { AST } from '../ast/ast';
-import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
-import { typeNameFromTypeNode } from '../utils/utils';
-import { CairoFunction, CairoUtilFuncGenBase } from './base';
+import { AST } from '../../ast/ast';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
+import { typeNameFromTypeNode } from '../../utils/utils';
+import { StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
-export class DynArrayPushWithoutArgGen extends CairoUtilFuncGenBase {
+export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
   constructor(private dynArrayGen: DynArrayGen, ast: AST) {
     super(ast);
-  }
-
-  private generatedFunctions: Map<string, CairoFunction> = new Map();
-  getGeneratedCode(): string {
-    return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
   }
 
   gen(push: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {

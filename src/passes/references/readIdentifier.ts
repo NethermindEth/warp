@@ -4,9 +4,11 @@ import {
   Assignment,
   ASTNode,
   BinaryOperation,
+  DataLocation,
   Expression,
   FunctionCall,
   getNodeType,
+  Identifier,
   IndexAccess,
   MappingType,
   PointerType,
@@ -25,7 +27,14 @@ export class ReadIdentifier extends ASTMapper {
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
-    this.reads.add(node.vRightHandSide);
+    if (
+      !(node.vLeftHandSide instanceof Identifier) ||
+      (node.vLeftHandSide instanceof Identifier &&
+        node.vLeftHandSide.vReferencedDeclaration instanceof VariableDeclaration &&
+        node.vLeftHandSide.vReferencedDeclaration.stateVariable)
+    ) {
+      this.reads.add(node.vRightHandSide);
+    }
     this.visitExpression(node, ast);
   }
 
@@ -46,6 +55,7 @@ export class ReadIdentifier extends ASTMapper {
     const baseType = getNodeType(node.vBaseExpression, ast.compilerVersion);
     if (
       baseType instanceof PointerType &&
+      baseType.location === DataLocation.Storage &&
       (baseType.to instanceof MappingType ||
         (baseType.to instanceof ArrayType && baseType.to.size === undefined))
     ) {

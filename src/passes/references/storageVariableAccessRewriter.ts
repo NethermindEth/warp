@@ -43,7 +43,6 @@ export class StorageVariableAccessRewriter extends ASTMapper {
       return;
     }
 
-    // This is a read. Writes are caught by visitAssignment
     const decl = node.vReferencedDeclaration;
     if (decl === undefined || !(decl instanceof VariableDeclaration)) {
       throw new NotSupportedYetError(
@@ -131,8 +130,6 @@ export class StorageVariableAccessRewriter extends ASTMapper {
       }
       return;
     }
-
-    throw new NotSupportedYetError(`Unhandled index access case ${printNode(node)}`);
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {

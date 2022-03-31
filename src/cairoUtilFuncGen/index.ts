@@ -1,27 +1,33 @@
 import { AST } from '../ast/ast';
 import { mergeImports } from '../utils/utils';
 import { CairoUtilFuncGenBase } from './base';
-import { DynArrayGen } from './dynArray';
-import { DynArrayIndexAccessGen } from './dynArrayIndexAccess';
-import { DynArrayPushWithoutArgGen } from './dynArrayPushWithoutArg';
-import { DynArrayPushWithArgGen } from './dynArrayPushWithArg';
-import { MappingIndexAccessGen } from './mappingIndexAccess';
-import { MemberAccessGen } from './memberAccess';
-import { MemoryNewGen } from './memoryNew';
-import { MemoryReadGen } from './memoryRead';
-import { MemoryWriteGen } from './memoryWrite';
-import { StorageReadGen } from './storageRead';
-import { StorageWriteGen } from './storageWrite';
-import { StaticArrayIndexAccessGen } from './staticArrayIndexAccess';
-import { DynArrayLengthGen } from './dynArrayLength';
-import { DynArrayPopGen } from './dynArrayPop';
-import { StorageDeleteGen } from './storageDelete';
 import { EnumBoundCheckGen } from './enumBoundCheck';
+import { MemoryArrayLiteralGen } from './memory/arrayLiteral';
+import { MemoryMemberAccessGen } from './memory/memoryMemberAccess';
+import { MemoryReadGen } from './memory/memoryRead';
+import { MemoryStructGen } from './memory/memoryStruct';
+import { MemoryWriteGen } from './memory/memoryWrite';
+import { MemoryStaticArrayIndexAccessGen } from './memory/staticIndexAccess';
+import { DynArrayGen } from './storage/dynArray';
+import { DynArrayIndexAccessGen } from './storage/dynArrayIndexAccess';
+import { DynArrayLengthGen } from './storage/dynArrayLength';
+import { DynArrayPopGen } from './storage/dynArrayPop';
+import { DynArrayPushWithArgGen } from './storage/dynArrayPushWithArg';
+import { DynArrayPushWithoutArgGen } from './storage/dynArrayPushWithoutArg';
+import { MappingIndexAccessGen } from './storage/mappingIndexAccess';
+import { StorageStaticArrayIndexAccessGen } from './storage/staticArrayIndexAccess';
+import { StorageDeleteGen } from './storage/storageDelete';
+import { StorageMemberAccessGen } from './storage/storageMemberAccess';
+import { StorageReadGen } from './storage/storageRead';
+import { StorageWriteGen } from './storage/storageWrite';
 
 export class CairoUtilFuncGen {
   memory: {
-    new: MemoryNewGen;
+    arrayLiteral: MemoryArrayLiteralGen;
+    memberAccess: MemoryMemberAccessGen;
     read: MemoryReadGen;
+    staticArrayIndexAccess: MemoryStaticArrayIndexAccessGen;
+    struct: MemoryStructGen;
     write: MemoryWriteGen;
   };
   storage: {
@@ -34,9 +40,9 @@ export class CairoUtilFuncGen {
       withoutArg: DynArrayPushWithoutArgGen;
     };
     mappingIndexAccess: MappingIndexAccessGen;
-    memberAccess: MemberAccessGen;
+    memberAccess: StorageMemberAccessGen;
     read: StorageReadGen;
-    staticArrayIndexAccess: StaticArrayIndexAccessGen;
+    staticArrayIndexAccess: StorageStaticArrayIndexAccessGen;
     write: StorageWriteGen;
   };
   externalInputChecks: {
@@ -52,8 +58,11 @@ export class CairoUtilFuncGen {
       dynArray: new DynArrayGen(ast),
     };
     this.memory = {
-      new: new MemoryNewGen(ast),
+      arrayLiteral: new MemoryArrayLiteralGen(ast),
+      memberAccess: new MemoryMemberAccessGen(ast),
       read: new MemoryReadGen(ast),
+      staticArrayIndexAccess: new MemoryStaticArrayIndexAccessGen(ast),
+      struct: new MemoryStructGen(ast),
       write: new MemoryWriteGen(ast),
     };
     this.storage = {
@@ -66,9 +75,9 @@ export class CairoUtilFuncGen {
         withoutArg: new DynArrayPushWithoutArgGen(this.implementation.dynArray, ast),
       },
       mappingIndexAccess: new MappingIndexAccessGen(ast),
-      memberAccess: new MemberAccessGen(ast),
+      memberAccess: new StorageMemberAccessGen(ast),
       read: new StorageReadGen(ast),
-      staticArrayIndexAccess: new StaticArrayIndexAccessGen(ast),
+      staticArrayIndexAccess: new StorageStaticArrayIndexAccessGen(ast),
       write: new StorageWriteGen(ast),
     };
     this.externalInputChecks = {

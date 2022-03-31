@@ -1,12 +1,7 @@
-import { CairoType } from '../utils/cairoTypeSystem';
-import { CairoFunction, CairoUtilFuncGenBase } from './base';
+import { CairoType } from '../../utils/cairoTypeSystem';
+import { StringIndexedFuncGen } from '../base';
 
-export class DynArrayGen extends CairoUtilFuncGenBase {
-  private generatedFunctions: Map<string, CairoFunction> = new Map();
-  getGeneratedCode(): string {
-    return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
-  }
-
+export class DynArrayGen extends StringIndexedFuncGen {
   gen(valueCairoType: CairoType): [data: string, len: string] {
     const key = valueCairoType.fullStringRepresentation;
     const existing = this.generatedFunctions.get(key);

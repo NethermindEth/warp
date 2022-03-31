@@ -1,6 +1,6 @@
 from starkware.cairo.common.math import split_felt, unsigned_div_rem
 from starkware.cairo.common.math_cmp import is_le
-from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.uint256 import Uint256, uint256_le
 
 func get_max{range_check_ptr}(op1, op2) -> (result):
     let (le) = is_le(op1, op2)
@@ -53,4 +53,11 @@ end
 
 func uint256_to_address_felt(x : Uint256) -> (address : felt):
     return (x.low + x.high * 2 ** 128)
+end
+
+func narrow_safe{range_check_ptr}(x: Uint256) -> (val: felt):
+    let (boundHigh, boundLow) = split_felt(-1)
+    let (inRange) = uint256_le(x, Uint256(boundLow, boundHigh))
+    assert inRange = 1
+    return (x.low + 2**128 * x.high)
 end

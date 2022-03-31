@@ -8,16 +8,17 @@ import {
   UserDefinedType,
   VariableDeclaration,
 } from 'solc-typed-ast';
-import { CairoType, TypeConversionContext, CairoStruct } from '../utils/cairoTypeSystem';
-import { cloneASTNode } from '../utils/cloning';
-import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
-import { typeNameFromTypeNode, countNestedMapItems } from '../utils/utils';
-import { CairoUtilFuncGenBase, CairoFunction, add } from './base';
+import { CairoType, TypeConversionContext, CairoStruct } from '../../utils/cairoTypeSystem';
+import { cloneASTNode } from '../../utils/cloning';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
+import { typeNameFromTypeNode, countNestedMapItems } from '../../utils/utils';
+import { CairoUtilFuncGenBase, CairoFunction, add } from '../base';
 
-export class MemberAccessGen extends CairoUtilFuncGenBase {
+export class MemoryMemberAccessGen extends CairoUtilFuncGenBase {
   // cairoType -> property name -> code
   private generatedFunctions: Map<string, Map<string, CairoFunction>> = new Map();
 
+  // Concatenate all the generated cairo code into a single string
   getGeneratedCode(): string {
     return [...this.generatedFunctions.values()]
       .flatMap((map) => [...map.values()])
@@ -32,7 +33,7 @@ export class MemberAccessGen extends CairoUtilFuncGenBase {
     const structCairoType = CairoType.fromSol(
       solType,
       this.ast,
-      TypeConversionContext.StorageAllocation,
+      TypeConversionContext.MemoryAllocation,
     );
     const name = this.getOrCreate(structCairoType, memberAccess.memberName);
     const referencedDeclaration = memberAccess.vReferencedDeclaration;
@@ -66,7 +67,7 @@ export class MemberAccessGen extends CairoUtilFuncGenBase {
     );
 
     const offset = structCairoType.offsetOf(memberName);
-    const funcName = `MEMBER${countNestedMapItems(
+    const funcName = `WM${countNestedMapItems(
       this.generatedFunctions,
     )}_${structName}_${memberName}`;
 

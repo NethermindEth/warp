@@ -1,17 +1,11 @@
 import { Expression, FunctionCall, TypeNode, getNodeType, ASTNode } from 'solc-typed-ast';
-import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { cloneASTNode } from '../utils/cloning';
-import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
-import { typeNameFromTypeNode } from '../utils/utils';
-import { add, CairoFunction, CairoUtilFuncGenBase } from './base';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { cloneASTNode } from '../../utils/cloning';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
+import { typeNameFromTypeNode } from '../../utils/utils';
+import { add, StringIndexedFuncGen } from '../base';
 
-export class StorageWriteGen extends CairoUtilFuncGenBase {
-  private generatedFunctions: Map<string, CairoFunction> = new Map();
-
-  getGeneratedCode(): string {
-    return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
-  }
-
+export class StorageWriteGen extends StringIndexedFuncGen {
   gen(
     storageLocation: Expression,
     writeValue: Expression,

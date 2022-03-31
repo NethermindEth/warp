@@ -847,6 +847,18 @@ export const expectations = flatten(
             Expect.Simple('uint256new', [], ['0', '0', '0', '0']),
             Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
           ]),
+          File.Simple('staticArrays', [
+            Expect.Simple('uint8default', [], ['0', '0']),
+            Expect.Simple('uint8write', ['5'], ['0', '5']),
+            Expect.Simple('uint256default', [], ['0', '0', '0', '0']),
+            Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
+          ]),
+          File.Simple('structs', [
+            Expect.Simple('createDefault', [], ['0', '0', '0']),
+            Expect.Simple('createManual', ['1', '2', '3'], ['1', '2', '3']),
+            Expect.Simple('writeMembers', ['1', '2', '3'], ['1', '2', '3']),
+            Expect.Simple('references', ['1', '2', '3'], ['1', '2', '3']),
+          ]),
         ]),
         new Dir('named_args', [
           File.Simple('function', [

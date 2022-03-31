@@ -28,6 +28,14 @@ export abstract class CairoUtilFuncGenBase {
   }
 }
 
+export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
+  protected generatedFunctions: Map<string, CairoFunction> = new Map();
+
+  getGeneratedCode(): string {
+    return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
+  }
+}
+
 export function add(base: string, offset: number): string {
   return offset === 0 ? base : `${base} + ${offset}`;
 }

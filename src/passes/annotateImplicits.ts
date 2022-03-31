@@ -45,6 +45,7 @@ export class AnnotateImplicits extends ASTMapper {
       node.raw,
     );
     ast.replaceNode(node, annotatedFunction);
+    ast.copyRegisteredImports(node, annotatedFunction);
     implicits.forEach((i) => registerImportsForImplicit(ast, annotatedFunction, i));
     node.children.forEach((child) => this.dispatchVisit(child, ast));
   }

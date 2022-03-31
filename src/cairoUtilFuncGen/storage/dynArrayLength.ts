@@ -1,10 +1,10 @@
 import { MemberAccess, ArrayType, FunctionCall, ASTNode } from 'solc-typed-ast';
-import { AST } from '../ast/ast';
-import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
-import { createUint256TypeName } from '../utils/nodeTemplates';
-import { typeNameFromTypeNode } from '../utils/utils';
-import { CairoUtilFuncGenBase } from './base';
+import { AST } from '../../ast/ast';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
+import { createUint256TypeName } from '../../utils/nodeTemplates';
+import { typeNameFromTypeNode } from '../../utils/utils';
+import { CairoUtilFuncGenBase } from '../base';
 import { DynArrayGen } from './dynArray';
 
 export class DynArrayLengthGen extends CairoUtilFuncGenBase {
