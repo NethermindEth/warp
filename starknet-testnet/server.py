@@ -44,7 +44,6 @@ async def deploy():
     print(execution_info)
     print("----------\n")
     starknet_wrapper.address2contract[hex(contract_address)] = contract_def
-    print(BENCHMARK, '==========================================')
     if BENCHMARK:
         steps_in_function_deploy(data["compiled_cairo"], execution_info)
         builtin_instance_count(data["compiled_cairo"], execution_info)
