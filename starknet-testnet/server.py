@@ -50,7 +50,9 @@ async def deploy():
     return jsonify(
         {
             "contract_address": hex(contract_address),
-            "execution_info": {"steps": execution_info.call_info.cairo_usage.n_steps},
+            "execution_info": {
+                "steps": execution_info.call_info.execution_resources.n_steps
+            },
         }
     )
 
@@ -69,6 +71,7 @@ async def invoke():
             selector=data["function"],
             calldata=[int(x) for x in data["input"]],
             caller_address=int(data["caller_address"], 0),
+            max_fee=0,
         )
         print("-----Invoke info-----")
         print(execution_info)
@@ -80,11 +83,11 @@ async def invoke():
         return jsonify(
             {
                 "execution_info": {
-                    "steps": execution_info.call_info.cairo_usage.n_steps
+                    "steps": execution_info.call_info.execution_resources.n_steps
                 },
                 "transaction_info": {
                     "threw": False,
-                    "return_data": [str(x) for x in execution_info.retdata],
+                    "return_data": [str(x) for x in execution_info.call_info.retdata],
                 },
             }
         )
