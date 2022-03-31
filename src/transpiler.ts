@@ -32,6 +32,7 @@ import {
   VariableDeclarationInitialiser,
   ExternalInputChecker,
   IfFunctionaliser,
+  PublicFunctionSplitter,
 } from './passes';
 import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
 import { printCompileErrors, runSanityCheck } from './utils/utils';
@@ -81,6 +82,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['Sa', StorageAllocator],
     ['Eic', ExternalInputChecker],
     ['Ec', EnumConverter],
+    ['Pfs', PublicFunctionSplitter],
     ['Ei', ExternImporter],
     ['Lf', LoopFunctionaliser],
     ['R', ReturnInserter],

@@ -59,7 +59,8 @@ def parse_args():
         help=f"Specify the port to listen at; defaults to {DEFAULT_PORT}",
         default=DEFAULT_PORT,
     )
-    return parser.parse_args()
+    args, unknown = parser.parse_known_args()
+    return args
 
 
 class StarknetDevnetException(StarkException):

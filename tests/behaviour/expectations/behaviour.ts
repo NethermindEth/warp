@@ -929,6 +929,12 @@ export const expectations = flatten(
             ),
           ]),
         ]),
+        new Dir('public_func_splitter', [
+          File.Simple('value_passing', [
+            Expect.Simple('valuePassing', ['1'], ['15'], '0'),
+            Expect.Simple('valuePassingMemberAccess', ['1'], ['15'], '0'),
+          ]),
+        ]),
         new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
         new Dir('returns', [
           File.Simple('returnInserter', [
