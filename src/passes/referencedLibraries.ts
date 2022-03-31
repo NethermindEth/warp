@@ -8,12 +8,15 @@ export class ReferencedLibraries extends ASTMapper {
     if (node.kind === ContractKind.Library) {
       libraries.push(node.id);
     } else {
-      libraries.forEach((lib) => {
-        if (node.linearizedBaseContracts.includes(lib) === false) {
-          node.linearizedBaseContracts.push(lib);
-        }
-      });
+      if (libraries.length > 0) {
+        libraries.forEach((lib) => {
+          if (!node.linearizedBaseContracts.includes(lib)) {
+            node.linearizedBaseContracts.push(lib);
+          }
+        });
+      }
     }
+    console.log(node.vLinearizedBaseContracts);
     this.commonVisit(node, ast);
   }
 }
