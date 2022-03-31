@@ -40,7 +40,9 @@ async def deploy():
     return jsonify(
         {
             "contract_address": hex(contract_address),
-            "execution_info": {"steps": execution_info.call_info.execution_resources.n_steps},
+            "execution_info": {
+                "steps": execution_info.call_info.execution_resources.n_steps
+            },
         }
     )
 
