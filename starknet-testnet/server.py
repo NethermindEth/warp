@@ -44,6 +44,7 @@ async def deploy():
     print(execution_info)
     print("----------\n")
     starknet_wrapper.address2contract[hex(contract_address)] = contract_def
+    print(BENCHMARK, '==========================================')
     if BENCHMARK:
         steps_in_function_deploy(data["compiled_cairo"], execution_info)
         builtin_instance_count(data["compiled_cairo"], execution_info)
@@ -112,7 +113,7 @@ def main():
 
 
 if __name__ == "__main__":
-    if sys.argv[1] != None and sys.argv[1] == "benchmark":
+    if "benchmark" in sys.argv:
         BENCHMARK = True
         os.makedirs(os.path.join(os.getcwd(), "benchmark/json"), exist_ok=True)
         os.makedirs(os.path.join(os.getcwd(), "benchmark/stats"), exist_ok=True)
