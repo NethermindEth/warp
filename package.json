@@ -20,6 +20,7 @@
     "test:lib": "yarn warplib && npx mocha tests/warplib.test.ts --extension ts --require ts-node/register --exit",
     "test:behaviour": "yarn tsc && npx mocha tests/behaviour/behaviour.test.ts --extension ts --require ts-node/register --exit",
     "testnet": "python3 starknet-testnet/server.py",
+    "testnet-b": "python3 starknet-testnet/server.py benchmark",
     "warplib": "yarn tsc; node ./build/warplib/generateWarplib.js"
   },
   "prettier": {

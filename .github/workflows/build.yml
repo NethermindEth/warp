@@ -64,5 +64,34 @@ jobs:
 
       - name: Test code execution
         run: |
-          yarn testnet &
+          yarn testnet-b &
           make test_execution
+
+      - name: Setup source hash (pull_request)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          git fetch origin "${{ github.head_ref }}":"${{ github.head_ref }}" --depth 1
+          source_hash="$(git rev-parse ${{ github.head_ref }})"
+          echo "source_hash=$source_hash" >> $GITHUB_ENV
+
+      - name: Setup source hash (push)
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          echo "source_hash=${{ github.sha }}" >> $GITHUB_ENV
+
+      - name: Create markdown file
+        run: |
+          mv benchmark/json/data.json benchmark/json/${{ env.source_hash }}.json
+          python ./starknet-testnet/generateMarkdown.py ${{ env.source_hash }}
+
+      - name: Push benchmarks to another repository
+        uses: dmnemec/copy_file_to_another_repo_action@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source_file: 'benchmark'
+          destination_repo: 'NethermindEth/warp-ts-benchmark'
+          commit_message: ${{ env.source_hash }}
+          destination_branch: master
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          user_name: 'Github Actions'

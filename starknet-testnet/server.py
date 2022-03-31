@@ -1,4 +1,10 @@
 import os
+import sys
+from generateMarkdown import (
+    builtin_instance_count,
+    steps_in_function_deploy,
+    steps_in_function_invoke,
+)
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -6,6 +12,7 @@ from starknet_wrapper import StarknetWrapper
 
 app = Flask(__name__)
 CORS(app)
+BENCHMARK = False
 
 starknet_wrapper = StarknetWrapper()
 
@@ -37,6 +44,9 @@ async def deploy():
     print(execution_info)
     print("----------\n")
     starknet_wrapper.address2contract[hex(contract_address)] = contract_def
+    if BENCHMARK:
+        steps_in_function_deploy(data["compiled_cairo"], execution_info)
+        builtin_instance_count(data["compiled_cairo"], execution_info)
     return jsonify(
         {
             "contract_address": hex(contract_address),
@@ -66,6 +76,9 @@ async def invoke():
         print("-----Invoke info-----")
         print(execution_info)
         print("----------\n")
+        if BENCHMARK:
+            steps_in_function_invoke(data["function"], execution_info)
+
         # Can add extra fields in here if and when tests need them
         return jsonify(
             {
@@ -99,4 +112,8 @@ def main():
 
 
 if __name__ == "__main__":
+    if sys.argv[1] != None and sys.argv[1] == "benchmark":
+        BENCHMARK = True
+        os.makedirs(os.path.join(os.getcwd(), "benchmark/json"), exist_ok=True)
+        os.makedirs(os.path.join(os.getcwd(), "benchmark/stats"), exist_ok=True)
     main()
