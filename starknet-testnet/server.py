@@ -112,7 +112,7 @@ def main():
 
 
 if __name__ == "__main__":
-    if "benchmark" in sys.argv:
+    if len(sys.argv) >= 2 and sys.argv[1] == "benchmark":
         BENCHMARK = True
         os.makedirs(os.path.join(os.getcwd(), "benchmark/json"), exist_ok=True)
         os.makedirs(os.path.join(os.getcwd(), "benchmark/stats"), exist_ok=True)
