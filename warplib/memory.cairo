@@ -129,5 +129,6 @@ func wm_alloc{range_check_ptr, warp_memory : DictAccess*}(space : Uint256) -> (s
     let (newFreeCell256 : Uint256, carry) = uint256_add(freeCell256, space)
     assert carry = 0
     let (newFreeCell) = narrow_safe(newFreeCell256)
+    dict_write{dict_ptr=warp_memory}(0, newFreeCell)
     return (newFreeCell)
 end
