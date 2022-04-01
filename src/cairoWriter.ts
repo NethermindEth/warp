@@ -70,6 +70,7 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
   WhileStatement,
+  TypeNameType,
 } from 'solc-typed-ast';
 import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
 import { writeImplicits } from './utils/implicits';
@@ -494,6 +495,13 @@ class FunctionCallWriter extends CairoASTNodeWriter {
         if (
           nodeType instanceof UserDefinedType &&
           nodeType.definition instanceof ContractDefinition
+        ) {
+          return [`${args}`];
+        }
+        if (
+          nodeType instanceof TypeNameType &&
+          nodeType.type instanceof UserDefinedType &&
+          nodeType.type.definition instanceof ContractDefinition
         ) {
           return [`${args}`];
         }

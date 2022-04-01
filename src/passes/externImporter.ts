@@ -15,7 +15,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { NotSupportedYetError } from '../utils/errors';
-import * as pathLib from 'path';
+import { formatPath } from '../utils/utils';
 
 export class ExternImporter extends ASTMapper {
   visitIdentifier(node: Identifier, ast: AST): void {
@@ -29,11 +29,7 @@ export class ExternImporter extends ASTMapper {
     assert(sourceUnit !== undefined, 'Trying to import a definition into an unknown source unit');
     if (declarationSourceUnit === undefined || sourceUnit === declarationSourceUnit) return;
 
-    if (
-      declaration instanceof ContractDefinition ||
-      declaration instanceof FunctionDefinition ||
-      declaration instanceof EnumDefinition
-    ) {
+    if (declaration instanceof FunctionDefinition || declaration instanceof EnumDefinition) {
       ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
     }
 
@@ -47,10 +43,4 @@ export class ExternImporter extends ASTMapper {
       throw new NotSupportedYetError(`Importing ${printNode(declaration)} not implemented yet`);
     }
   }
-}
-
-function formatPath(path: string): string {
-  assert(path.length > 0, 'Attempted to format empty import path');
-  const base = path.endsWith('.sol') ? path.slice(0, -'.sol'.length) : path;
-  return base.replaceAll(pathLib.sep, '.');
 }

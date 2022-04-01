@@ -1,11 +1,11 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
 import {
-  AddressHandler,
   AnnotateImplicits,
   BuiltinHandler,
   DeleteHandler,
   EnumConverter,
   ExpressionSplitter,
+  ExternalContractInterfaceInserter,
   ExternImporter,
   PublicStateVarsGetterGenerator,
   IdentifierMangler,
@@ -74,6 +74,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['Na', NamedArgsRemover],
     ['Gp', PublicStateVarsGetterGenerator],
     ['Ib', IntBoundCalculator],
+    ['Eci', ExternalContractInterfaceInserter],
     ['M', IdentifierMangler],
     ['Ii', InheritanceInliner],
     ['Sa', StorageAllocator],
@@ -85,7 +86,6 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['Rv', ReturnVariableInitializer],
     ['If', IfFunctionaliser],
     ['T', TupleAssignmentSplitter],
-    ['Ah', AddressHandler],
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
     ['Vs', VariableDeclarationExpressionSplitter],

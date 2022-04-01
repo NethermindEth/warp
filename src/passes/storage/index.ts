@@ -10,6 +10,7 @@ import { StorageVariableAccessRewriter } from './storageVariableAccessRewriter';
 export class Storage extends ASTMapper {
   static map(ast: AST): AST {
     ast.roots.forEach((root) => {
+      console.log('start from here!!', root.absolutePath);
       const reads: Set<ASTNode> = new Set();
       const storageRefs: Set<ASTNode> = new Set();
 
@@ -18,6 +19,7 @@ export class Storage extends ASTMapper {
       new StorageDelete(storageRefs).dispatchVisit(root, ast);
       new ArrayFunctions(reads, storageRefs).dispatchVisit(root, ast);
       new StorageVariableAccessRewriter(reads, storageRefs).dispatchVisit(root, ast);
+      console.log('done from here!!');
     });
     return ast;
   }

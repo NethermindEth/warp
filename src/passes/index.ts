@@ -1,4 +1,3 @@
-export * from './addressHandler';
 export * from './annotateImplicits';
 export * from './builtinHandler';
 export * from './deleteHandler';
@@ -29,3 +28,4 @@ export * from './variableDeclarationInitialiser';
 export * from './externalInputChecker';
 export * from './generateGetters';
 export * from './namedArgsRemover';
+export * from './externalContractInterfaceInserter';
