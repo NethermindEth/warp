@@ -22,7 +22,7 @@ def steps_in_function_deploy(contract_name: str, result: TransactionExecutionInf
 
     benchmark_data.setdefault(contract_name, {})[
         "steps"
-    ] = result.call_info.cairo_usage.n_steps
+    ] = result.call_info.execution_resources.n_steps
 
     with open(json_path, "w") as json_file:
         json.dump(benchmark_data, json_file, indent=3)
@@ -38,7 +38,7 @@ def steps_in_function_invoke(contract_name: str, result: TransactionExecutionInf
 
     benchmark_data.setdefault("_".join(contract_name.split("_")[:-1]), {})[
         "steps"
-    ] = result.call_info.cairo_usage.n_steps
+    ] = result.call_info.execution_resources.n_steps
 
     with open(json_path, "w") as json_file:
         json.dump(benchmark_data, json_file, indent=3)
@@ -54,7 +54,7 @@ def builtin_instance_count(contract_name: str, result: TransactionExecutionInfo)
 
     benchmark_data.setdefault(contract_name, {})[
         "builtin_instances"
-    ] = result.call_info.cairo_usage.builtin_instance_counter
+    ] = result.call_info.execution_resources.builtin_instance_counter
 
     with open(json_path, "w") as json_file:
         json.dump(benchmark_data, json_file, indent=3)
