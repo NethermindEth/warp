@@ -47,58 +47,18 @@ export class FunctionModifierHandler extends ASTMapper {
     );
     const functionBody = new Block(ast.reserveId(), '', 'Block', [returnStatement]);
 
-    ast.replaceNode(
-      node,
-      new FunctionDefinition(
-        node.id,
-        node.src,
-        node.type,
-        node.scope,
-        node.kind,
-        node.name,
-        node.virtual,
-        node.visibility,
-        node.stateMutability,
-        node.isConstructor,
-        node.vParameters,
-        node.vReturnParameters,
-        [],
-        node.vOverrideSpecifier,
-        functionBody,
-        node.documentation,
-        node.nameLocation,
-        node.raw,
-      ),
-    );
+    node.vModifiers = [];
+    node.vBody = functionBody;
+    ast.registerChild(functionBody, node);
   }
 
   extractOriginalFunction(node: FunctionDefinition, ast: AST): FunctionDefinition {
     const scope = node.vScope;
-    const defName = `__warp_original_function_${node.name}`;
 
-    const funcDef = new FunctionDefinition(
-      ast.reserveId(),
-      node.src,
-      'FunctionDefinition',
-      scope.id,
-      scope instanceof SourceUnit ? FunctionKind.Free : FunctionKind.Function,
-      defName,
-      node.virtual,
-      FunctionVisibility.Internal,
-      node.stateMutability,
-      false,
-      createParameterList(
-        node.vParameters.vParameters.map((v) => cloneASTNode(v, ast)),
-        ast,
-      ),
-      createParameterList(
-        node.vReturnParameters.vParameters.map((v) => cloneASTNode(v, ast)),
-        ast,
-      ),
-      [],
-      undefined,
-      node.vBody,
-    );
+    const funcDef = cloneASTNode(node, ast);
+    funcDef.name = `__warp_original_function_${node.name}`;
+    funcDef.visibility = FunctionVisibility.Internal;
+    funcDef.vModifiers = [];
 
     scope.insertAtBeginning(funcDef);
     ast.registerChild(funcDef, scope);

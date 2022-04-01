@@ -16,7 +16,7 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
-import { CairoUtilFuncGen } from '../cairoUtilFuncGen/index';
+import { CairoUtilFuncGen } from '../cairoUtilFuncGen';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { Implicits } from '../utils/implicits';
