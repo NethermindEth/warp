@@ -16,6 +16,7 @@
     "lint": "eslint ./src/** --ignore-path .gitignore",
     "lint:tests": "eslint ./tests/** --ignore-path .gitignore --fix",
     "lint:fix": "npm run lint -- --fix",
+    "formatlib": "find warplib/ -iname *.cairo -exec cairo-format -i {} +",
     "test": "yarn warplib && tests/behaviour/setup.sh && npx mocha \"tests/**/*.test.ts\" --extension ts --require ts-node/register --parallel --exit",
     "test:lib": "yarn warplib && npx mocha tests/warplib.test.ts --extension ts --require ts-node/register --exit",
     "test:behaviour": "yarn tsc && npx mocha tests/behaviour/behaviour.test.ts --extension ts --require ts-node/register --exit",
