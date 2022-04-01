@@ -29,6 +29,7 @@ import {
   getNodeType,
   StringLiteralType,
   StringType,
+  EnumDefinition,
 } from 'solc-typed-ast';
 import { NotSupportedYetError, TranspileFailedError, logError } from './errors';
 import { printNode, printTypeNode } from './astPrinter';
@@ -326,13 +327,18 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
   ast.setContextRecursive(result);
   return result;
 }
-
 export function getFunctionTypeString(node: FunctionDefinition, compilerVersion: string): string {
   const inputs = node.vParameters.vParameters
     .map((decl) => {
       const baseType = getNodeType(decl, compilerVersion);
       if (baseType instanceof ArrayType || baseType instanceof UserDefinedType) {
         if (decl.storageLocation === DataLocation.Default) {
+          if (
+            decl.vType instanceof UserDefinedTypeName &&
+            decl.vType.vReferencedDeclaration instanceof EnumDefinition
+          ) {
+            return `${baseType.pp()}`;
+          }
           throw new NotSupportedYetError(
             'Default location ref parameter to string not supported yet',
           );
