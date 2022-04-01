@@ -1,13 +1,10 @@
 import {
-  Assignment,
   Block,
   ContractDefinition,
   Expression,
-  ExpressionStatement,
   FunctionDefinition,
   FunctionKind,
   FunctionVisibility,
-  getNodeType,
   ModifierDefinition,
   Return,
   SourceUnit,
@@ -17,7 +14,6 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
-import { getDefaultValue } from '../../utils/defaultValueNodes';
 import { createReturn, generateFunctionCall } from '../../utils/functionGeneration';
 import { createIdentifier, createParameterList } from '../../utils/nodeTemplates';
 import { FunctionModifierInliner } from './functionModifierInliner';
@@ -96,7 +92,7 @@ export class FunctionModifierHandler extends ASTMapper {
         ast,
       ),
       createParameterList(
-        node.vParameters.vParameters.map((v) => cloneASTNode(v, ast)),
+        node.vReturnParameters.vParameters.map((v) => cloneASTNode(v, ast)),
         ast,
       ),
       [],
@@ -123,32 +119,10 @@ export class FunctionModifierHandler extends ASTMapper {
     );
     const modParams = modifier.vParameters.vParameters.map((v) => cloneASTNode(v, ast));
     const params = [...modParams, ...functionParams];
-    const retParams = node.vParameters.vParameters.map((v) => this.getNamedParam(v, ast));
+    const retParams = node.vReturnParameters.vParameters.map((v) => this.getNamedParam(v, ast));
     const retParamList = createParameterList(retParams, ast);
 
     let statements: Statement[] = [];
-
-    // Initialize return variables
-    if (retParams.length > 0) {
-      for (const variable of retParams) {
-        statements.push(
-          new ExpressionStatement(
-            ast.reserveId(),
-            '',
-            'ExpressionStatement',
-            new Assignment(
-              ast.reserveId(),
-              '',
-              'Assignment',
-              variable.typeString,
-              '=',
-              createIdentifier(variable, ast),
-              getDefaultValue(getNodeType(variable, ast.compilerVersion), variable, ast),
-            ),
-          ),
-        );
-      }
-    }
 
     // Add body of modifier
     if (modifier.vBody !== undefined) {
