@@ -55,9 +55,9 @@ func uint256_to_address_felt(x : Uint256) -> (address : felt):
     return (x.low + x.high * 2 ** 128)
 end
 
-func narrow_safe{range_check_ptr}(x: Uint256) -> (val: felt):
+func narrow_safe{range_check_ptr}(x : Uint256) -> (val : felt):
     let (boundHigh, boundLow) = split_felt(-1)
     let (inRange) = uint256_le(x, Uint256(boundLow, boundHigh))
     assert inRange = 1
-    return (x.low + 2**128 * x.high)
+    return (x.low + 2 ** 128 * x.high)
 end
