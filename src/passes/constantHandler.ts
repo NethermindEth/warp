@@ -17,7 +17,7 @@ export class ConstantHandler extends ASTMapper {
   // Visit all functions and inject 256 bit constants into the functions that
   // refer to these constants. Constants less than 256 bits are handled as native
   // Cairo constants that are directly printed in cairoWriter.ts
-  // Note that all constants and are excluded from the storage passes.
+  // Note that all constants are excluded from the storage passes.
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (node.vBody === undefined) return;

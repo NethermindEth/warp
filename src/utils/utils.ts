@@ -417,7 +417,7 @@ export function bigintToTwosComplement(val: bigint, width: number): bigint {
   }
 }
 
-export function isCairoConstant(node: VariableDeclaration) {
+export function isCairoConstant(node: VariableDeclaration): boolean {
   if (node.mutability === Mutability.Constant && node.vValue instanceof Literal) {
     if (node.vType instanceof ElementaryTypeName) {
       return primitiveTypeToCairo(node.vType.name) === 'felt';
