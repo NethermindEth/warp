@@ -19,12 +19,14 @@ import {
   LiteralKind,
   Mapping,
   MappingType,
+  Mutability,
   PointerType,
   TimeUnit,
   TypeName,
   TypeNode,
   UserDefinedType,
   UserDefinedTypeName,
+  VariableDeclaration,
   VariableDeclarationStatement,
   getNodeType,
   StringLiteralType,
@@ -413,4 +415,13 @@ export function bigintToTwosComplement(val: bigint, width: number): bigint {
     const twosComplement = (BigInt(inverted) + 1n).toString(2).slice(-width);
     return BigInt(`0b${twosComplement}`);
   }
+}
+
+export function isCairoConstant(node: VariableDeclaration): boolean {
+  if (node.mutability === Mutability.Constant && node.vValue instanceof Literal) {
+    if (node.vType instanceof ElementaryTypeName) {
+      return primitiveTypeToCairo(node.vType.name) === 'felt';
+    }
+  }
+  return false;
 }
