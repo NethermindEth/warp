@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   ArrayType,
   Assignment,
@@ -36,21 +36,13 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     return new FunctionCall(
       ast.reserveId(),
       expression.src,
-      'FunctionCall',
       typeTo,
       FunctionCallKind.TypeConversion,
       new ElementaryTypeNameExpression(
         ast.reserveId(),
         expression.src,
-        'ElementaryTypeNameExpression',
         `type(${typeTo})`,
-        new ElementaryTypeName(
-          ast.reserveId(),
-          expression.src,
-          'ElementaryTypeName',
-          typeTo,
-          typeTo,
-        ),
+        new ElementaryTypeName(ast.reserveId(), expression.src, typeTo, typeTo),
       ),
       [expression],
     );

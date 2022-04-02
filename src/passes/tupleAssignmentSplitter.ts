@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   Assignment,
   Block,
@@ -57,7 +57,6 @@ export class TupleAssignmentSplitter extends ASTMapper {
         new VariableDeclarationStatement(
           ast.reserveId(),
           '',
-          'VariableDeclarationStatement',
           vars.map((d) => d.id),
           vars,
           returnExpression,
@@ -67,12 +66,9 @@ export class TupleAssignmentSplitter extends ASTMapper {
       node.vExpression = new TupleExpression(
         ast.reserveId(),
         '',
-        'TupleExpression',
         returnExpression.typeString,
         false,
-        vars.map(
-          (v) => new Identifier(ast.reserveId(), '', 'Identifier', v.typeString, v.name, v.id),
-        ),
+        vars.map((v) => new Identifier(ast.reserveId(), '', v.typeString, v.name, v.id)),
       );
       ast.registerChild(node.vExpression, node);
     }
@@ -85,7 +81,7 @@ export class TupleAssignmentSplitter extends ASTMapper {
       `Split tuple assignment was called on non-tuple assignment ${node.type} # ${node.id}`,
     );
 
-    const block = new Block(ast.reserveId(), node.src, 'Block', []);
+    const block = new Block(ast.reserveId(), node.src, []);
     const blockId = ast.setContextRecursive(block);
 
     const tempVars = new Map<Expression, VariableDeclaration>(
@@ -94,7 +90,6 @@ export class TupleAssignmentSplitter extends ASTMapper {
         const typeName = new ElementaryTypeName(
           ast.reserveId(),
           node.src,
-          'ElementaryTypeName',
           `${child.typeString}`,
           child.typeString,
         );
@@ -102,7 +97,6 @@ export class TupleAssignmentSplitter extends ASTMapper {
         const decl = new VariableDeclaration(
           ast.reserveId(),
           node.src,
-          'VariableDeclaration',
           true,
           false,
           this.newTempVarName(),
@@ -123,7 +117,6 @@ export class TupleAssignmentSplitter extends ASTMapper {
     const tempTupleDeclaration = new VariableDeclarationStatement(
       ast.reserveId(),
       node.src,
-      'VariableDeclarationStatement',
       lhs.vOriginalComponents.map((n) => (n === null ? null : tempVars.get(n)?.id ?? null)),
       [...tempVars.values()],
       node.vRightHandSide,
@@ -134,22 +127,13 @@ export class TupleAssignmentSplitter extends ASTMapper {
         new ExpressionStatement(
           ast.reserveId(),
           node.src,
-          'ExpressionStatement',
           new Assignment(
             ast.reserveId(),
             node.src,
-            'Assignment',
             target.typeString,
             '=',
             target,
-            new Identifier(
-              ast.reserveId(),
-              node.src,
-              'Identifier',
-              tempVar.typeString,
-              tempVar.name,
-              tempVar.id,
-            ),
+            new Identifier(ast.reserveId(), node.src, tempVar.typeString, tempVar.name, tempVar.id),
           ),
         ),
     );

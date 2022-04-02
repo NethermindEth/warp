@@ -23,7 +23,6 @@ export class DeleteHandler extends ASTMapper {
           new Assignment(
             ast.reserveId(),
             node.src,
-            'Assignment',
             nodeType.pp(),
             '=',
             node.vSubExpression,
@@ -43,7 +42,6 @@ export class DeleteHandler extends ASTMapper {
         const statement = new ExpressionStatement(
           ast.reserveId(),
           node.src,
-          'ExpressionStatement',
           node.vExpression,
           node.documentation,
           node.raw,

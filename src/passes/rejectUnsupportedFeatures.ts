@@ -8,6 +8,7 @@ import {
   DataLocation,
   getNodeType,
   UserDefinedType,
+  UsingForDirective,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -40,6 +41,13 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     ) {
       throw new NotSupportedYetError(
         `Memory structs not supported yet, found at ${printNode(node)}`,
+      );
+    }
+  }
+  visitUsingForDirective(node: UsingForDirective, _ast: AST): void {
+    if (node.vLibraryName === undefined) {
+      throw new NotSupportedYetError(
+        `Non-library using fors not supported yet, found at ${printNode(node)}`,
       );
     }
   }

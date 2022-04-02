@@ -27,7 +27,6 @@ export class ForLoopToWhile extends ASTMapper {
       : new Literal(
           ast.reserveId(),
           '',
-          'Literal',
           'bool',
           LiteralKind.Bool,
           toHexString('true'),
@@ -39,21 +38,13 @@ export class ForLoopToWhile extends ASTMapper {
     const replacementWhile = new WhileStatement(
       ast.reserveId(),
       node.src,
-      'WhileStatement',
       loopCondition,
-      new Block(ast.reserveId(), node.src, 'Block', innerLoopStatements),
+      new Block(ast.reserveId(), node.src, innerLoopStatements),
     );
 
     const replacementId = ast.replaceNode(
       node,
-      new Block(
-        ast.reserveId(),
-        node.src,
-        'Block',
-        [replacementWhile],
-        node.documentation,
-        node.raw,
-      ),
+      new Block(ast.reserveId(), node.src, [replacementWhile], node.documentation, node.raw),
     );
 
     if (node.vInitializationExpression !== undefined) {

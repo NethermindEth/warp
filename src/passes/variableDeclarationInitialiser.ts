@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   TypeName,
   ElementaryTypeName,
@@ -17,7 +17,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { TranspileFailedError } from '../utils/errors';
+import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 
 export class VariableDeclarationInitialiser extends ASTMapper {
   visitVariableDeclarationStatement(node: VariableDeclarationStatement, ast: AST): void {
@@ -44,7 +44,6 @@ export class VariableDeclarationInitialiser extends ASTMapper {
         return new Literal(
           ast.reserveId(),
           node.src,
-          'Literal',
           node.typeString,
           LiteralKind.Number,
           '0',
@@ -56,7 +55,6 @@ export class VariableDeclarationInitialiser extends ASTMapper {
         return new Literal(
           ast.reserveId(),
           node.src,
-          'Literal',
           node.typeString,
           LiteralKind.Number,
           '0',
@@ -73,17 +71,9 @@ export class VariableDeclarationInitialiser extends ASTMapper {
         return new FunctionCall(
           ast.reserveId(),
           node.src,
-          'FunctionCall',
           node.typeString,
           FunctionCallKind.StructConstructorCall,
-          new Identifier(
-            ast.reserveId(),
-            node.src,
-            'Identifier',
-            node.typeString,
-            tDec.name,
-            tDec.id,
-          ),
+          new Identifier(ast.reserveId(), node.src, node.typeString, tDec.name, tDec.id),
           args,
         );
       }
@@ -91,11 +81,12 @@ export class VariableDeclarationInitialiser extends ASTMapper {
       // TODO implement, in solidity calling an unitialised function object result in a panic error
       // This is equivalent to assert(false) in solidity, and not require(false)
       case FunctionTypeName:
-        assert(false, 'Auto-initialising function objects not yet supported');
-        break;
+        throw new NotSupportedYetError('Auto-initialising function objects not yet supported');
 
       default:
-        assert(false, `Attempted to auto-initialise unexpected node type ${node.type}`);
+        throw new TranspileFailedError(
+          `Attempted to auto-initialise unexpected node type ${node.type}`,
+        );
     }
   }
 }

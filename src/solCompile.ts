@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import {

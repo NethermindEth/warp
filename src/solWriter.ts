@@ -25,7 +25,6 @@ class CairoContractSolWriter extends ASTNodeWriter {
     const solContract = new ContractDefinition(
       node.id,
       node.src,
-      'ContractDefinition',
       node.name,
       node.scope,
       node.kind,
@@ -60,7 +59,6 @@ class CairoFunctionDefinitionSolWriter extends ASTNodeWriter {
     const solFunctionDefinition = new FunctionDefinition(
       node.id,
       node.src,
-      'FunctionDefinition',
       node.scope,
       node.kind,
       node.name,

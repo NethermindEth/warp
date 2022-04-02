@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   FunctionCall,
   TupleExpression,
@@ -15,12 +15,12 @@ import {
   Mutability,
   ElementaryTypeName,
   DataLocation,
-  Identifier,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
+import { createIdentifier } from '../utils/nodeTemplates';
 import { notNull } from '../utils/typeConstructs';
 
 // TODO check for case where a for loop contains a single tuple declaration as its body
@@ -101,7 +101,6 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
           const newDeclaration = new VariableDeclaration(
             ast.reserveId(),
             node.src,
-            'VariableDeclaration',
             true,
             false,
             this.generateNewConstantName(),
@@ -115,7 +114,6 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
             new ElementaryTypeName(
               ast.reserveId(),
               node.src,
-              'ElementaryTypeName',
               `${initialValueType.elements[index].pp()}`,
               initialValueType.elements[index].pp(),
             ),
@@ -127,17 +125,9 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
           const newDeclarationStatement = new VariableDeclarationStatement(
             ast.reserveId(),
             node.src,
-            'VariableDeclarationStatement',
             [oldDeclaration.id],
             [oldDeclaration],
-            new Identifier(
-              ast.reserveId(),
-              node.src,
-              'Identifier',
-              newDeclaration.typeString,
-              newDeclaration.name,
-              newDeclaration.id,
-            ),
+            createIdentifier(newDeclaration, ast),
           );
           newDeclarationStatements.push(newDeclarationStatement);
           ast.setContextRecursive(newDeclarationStatement);
@@ -161,7 +151,6 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
             return new ExpressionStatement(
               ast.reserveId(),
               initialValue.src, // TODO could make this more accurate
-              'ExpressionStatement',
               exprToAssign,
               tupleIndex === 0 ? node.documentation : undefined,
               tupleIndex === 0 ? node.raw : undefined,
@@ -175,7 +164,6 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
             return new VariableDeclarationStatement(
               ast.reserveId(),
               node.src, // TODO could make this more accurate
-              'VariableDeclarationStatement',
               [declId],
               [decl],
               exprToAssign ?? undefined,

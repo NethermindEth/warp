@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   BinaryOperation,
   FunctionCall,
@@ -235,13 +235,11 @@ export function functionaliseShr(node: BinaryOperation, ast: AST): void {
   const call = new FunctionCall(
     ast.reserveId(),
     node.src,
-    'FunctionCall',
     node.typeString,
     FunctionCallKind.FunctionCall,
     new Identifier(
       ast.reserveId(),
       '',
-      'Identifier',
       `function (${node.vLeftExpression.typeString}, ${node.vRightExpression.typeString}) returns (${node.typeString})`,
       fullName,
       stub.id,

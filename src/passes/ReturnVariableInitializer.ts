@@ -18,7 +18,6 @@ export class ReturnVariableInitializer extends ASTMapper {
         const newDeclStatement = new VariableDeclarationStatement(
           ast.reserveId(),
           '',
-          'VariableDeclarationStatement',
           [newDecl.id],
           [newDecl],
           getDefaultValue(getNodeType(decl, ast.compilerVersion), newDecl, ast),

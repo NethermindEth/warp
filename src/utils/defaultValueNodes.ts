@@ -55,7 +55,6 @@ function intDefault(
   return new Literal(
     ast.reserveId(),
     parentNode.src,
-    'Literal',
     node.pp(),
     LiteralKind.Number,
     toHexString('0'),
@@ -69,7 +68,6 @@ function boolDefault(node: Expression | VariableDeclaration, ast: AST): Expressi
   return new Literal(
     ast.reserveId(),
     node.src,
-    'Literal',
     'bool',
     LiteralKind.Bool,
     toHexString('0'),
@@ -87,18 +85,15 @@ function addressDefault(
   return new FunctionCall(
     ast.reserveId(),
     node.src,
-    'FunctionCall',
     nodeType.pp(),
     FunctionCallKind.TypeConversion,
     new ElementaryTypeNameExpression(
       ast.reserveId(),
       '',
-      'ElementaryTypeNameExpression',
       `type(${nodeType.pp()})`,
       new ElementaryTypeName(
         ast.reserveId(),
         '',
-        'ElementaryTypeName',
         'address',
         'address',
         nodeType.payable ? 'payable' : 'nonpayable',
@@ -121,20 +116,17 @@ function arrayDefault(
     return new FunctionCall(
       ast.reserveId(),
       parentNode.src,
-      'FunctionCall',
       `${tString}[] memory`,
       FunctionCallKind.FunctionCall,
       new NewExpression(
         ast.reserveId(),
         '',
-        'NewExpression',
         `function (uint256) pure returns (${tString}[] memory)`,
         new ArrayTypeName(
           ast.reserveId(),
           '',
-          'ArrayTypeName',
           `${tString}[]`,
-          new ElementaryTypeName(ast.reserveId(), '', 'ElementaryTypeName', tString, tString),
+          new ElementaryTypeName(ast.reserveId(), '', tString, tString),
         ),
       ),
       [intDefault(nodeType, parentNode, ast)],
@@ -150,7 +142,6 @@ function arrayDefault(
     return new TupleExpression(
       ast.reserveId(),
       parentNode.src,
-      'TupleExpression',
       `${getTupleTypeString(nodeType)} memory`,
       true,
       expList,
@@ -163,7 +154,6 @@ function stringDefault(node: Expression | VariableDeclaration, ast: AST): Expres
   return new Literal(
     ast.reserveId(),
     node.src,
-    'Literal',
     'literal_string ""',
     LiteralKind.String,
     toHexString('0'),
@@ -198,16 +188,8 @@ function enumDefault(
   return new MemberAccess(
     ast.reserveId(),
     parentNode.src,
-    'MemberAccess',
     node.pp(),
-    new Identifier(
-      ast.reserveId(),
-      '',
-      'Identifier',
-      `type(${node.pp()})`,
-      definition.name,
-      definition.id,
-    ),
+    new Identifier(ast.reserveId(), '', `type(${node.pp()})`, definition.name, definition.id),
     defaultValue.name,
     defaultValue.id,
     parentNode.raw,
@@ -227,13 +209,11 @@ function structDefault(
   return new FunctionCall(
     ast.reserveId(),
     node.src,
-    'FunctionCall',
     `struct ${structNode.canonicalName} memory`,
     FunctionCallKind.StructConstructorCall,
     new Identifier(
       ast.reserveId(),
       '',
-      'Identifier',
       `type(struct ${structNode.canonicalName} storage pointer)`,
       structNode.name,
       structNode.id,

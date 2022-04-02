@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   ASTNode,
   EventDefinition,
@@ -25,7 +25,6 @@ export class AnnotateImplicits extends ASTMapper {
     const annotatedFunction = new CairoFunctionDefinition(
       node.id,
       node.src,
-      'CairoFunctionDefinition',
       node.scope,
       node.kind,
       node.name,

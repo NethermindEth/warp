@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 
 import { AST } from '../ast/ast';
 import {
@@ -251,7 +251,6 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
     result = new ElementaryTypeName(
       ast.reserveId(),
       '',
-      'ElementaryTypeName',
       node.pp(),
       node.pp(),
       node.payable ? 'payable' : 'nonpayable',
@@ -260,7 +259,6 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
     result = new ArrayTypeName(
       ast.reserveId(),
       '',
-      'ArrayTypeName',
       node.pp(),
       typeNameFromTypeNode(node.elementT, ast),
       node.size === undefined
@@ -268,7 +266,6 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
         : new Literal(
             ast.reserveId(),
             '',
-            'Literal',
             `int_const ${node.size.toString()}`,
             LiteralKind.Number,
             toHexString(node.size.toString()),
@@ -276,18 +273,12 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
           ),
     );
   } else if (node instanceof BoolType) {
-    result = new ElementaryTypeName(ast.reserveId(), '', 'ElementaryTypeName', 'bool', 'bool');
+    result = new ElementaryTypeName(ast.reserveId(), '', 'bool', 'bool');
   } else if (node instanceof IntLiteralType) {
     console.log(`WARNING: assigning int248 type to int literal ${node.pp()}`);
-    return new ElementaryTypeName(ast.reserveId(), '', 'ElementaryTypeName', 'int248', 'int248');
+    return new ElementaryTypeName(ast.reserveId(), '', 'int248', 'int248');
   } else if (node instanceof IntType) {
-    result = new ElementaryTypeName(
-      ast.reserveId(),
-      '',
-      'ElementaryTypeName',
-      node.pp(),
-      node.pp(),
-    );
+    result = new ElementaryTypeName(ast.reserveId(), '', node.pp(), node.pp());
   } else if (node instanceof PointerType) {
     result = typeNameFromTypeNode(node.to, ast);
   } else if (node instanceof MappingType) {
@@ -296,7 +287,6 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
     result = new Mapping(
       ast.reserveId(),
       '',
-      'Mapping',
       `mapping(${key.typeString} => ${value.typeString})`,
       key,
       value,
@@ -305,17 +295,10 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
     return new UserDefinedTypeName(
       ast.reserveId(),
       '',
-      'UserDefinedTypeName',
       node.pp(),
       node.definition.name,
       node.definition.id,
-      new IdentifierPath(
-        ast.reserveId(),
-        '',
-        'IdentifierPath',
-        node.definition.name,
-        node.definition.id,
-      ),
+      new IdentifierPath(ast.reserveId(), '', node.definition.name, node.definition.id),
     );
   }
 

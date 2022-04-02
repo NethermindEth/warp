@@ -64,7 +64,6 @@ export class ArrayFunctions extends ASTMapper {
           new Literal(
             ast.reserveId(),
             node.src,
-            'Literal',
             generateLiteralTypeString(size),
             LiteralKind.Number,
             toHexString(size),

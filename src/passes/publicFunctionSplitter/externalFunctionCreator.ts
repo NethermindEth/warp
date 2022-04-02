@@ -45,7 +45,7 @@ export class ExternalFunctionCreator extends ASTMapper {
   }
 
   private createExternalFunctionDefintion(node: FunctionDefinition, ast: AST): FunctionDefinition {
-    const newBlock = new Block(ast.reserveId(), '', 'Block', []);
+    const newBlock = new Block(ast.reserveId(), '', []);
     const internalFunctionBody = node.vBody;
     node.vBody = undefined;
     const externalFunction = cloneASTNode(node, ast);
@@ -72,7 +72,6 @@ export class ExternalFunctionCreator extends ASTMapper {
     const newReturnFunctionCall = new Return(
       ast.reserveId(),
       '',
-      'Return',
       externalFunction.vReturnParameters.id,
       internalFunctionCall,
     );
