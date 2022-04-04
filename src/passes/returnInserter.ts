@@ -23,7 +23,6 @@ export class ReturnInserter extends ASTMapper {
       const newReturn = new Return(
         ast.reserveId(),
         node.src,
-        'Return',
         node.vReturnParameters.id,
         expression,
       );

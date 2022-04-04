@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   ContractDefinition,
   ContractKind,
@@ -11,6 +11,8 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { printNode } from '../utils/astPrinter';
+import { error } from '../utils/formatting';
 
 const Star = null;
 type Star = typeof Star;
@@ -20,6 +22,14 @@ export class UsingForResolver extends ASTMapper {
 
   visitContractDefinition(node: ContractDefinition, ast: AST) {
     node.vUsingForDirectives.forEach((usingForNode) => {
+      assert(
+        usingForNode.vLibraryName !== undefined,
+        error(
+          `UsingForResolver expects all using directives to have a library name. ${printNode(
+            usingForNode,
+          )} does not`,
+        ),
+      );
       this.typeToLibrary.set(
         usingForNode?.vTypeName?.typeString || Star,
         usingForNode.vLibraryName,
@@ -59,7 +69,6 @@ export class UsingForResolver extends ASTMapper {
     const libraryIdentifier = new Identifier(
       ast.reserveId(),
       '',
-      'Identifier',
       `type(library ${contract.name})`,
       contract.name,
       contract.id,

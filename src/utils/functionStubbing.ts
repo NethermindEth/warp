@@ -36,7 +36,6 @@ export function createCairoFunctionStub(
         new VariableDeclaration(
           ast.reserveId(),
           '',
-          'VariableDeclaration',
           false,
           false,
           name,
@@ -54,7 +53,6 @@ export function createCairoFunctionStub(
   const funcDef = new CairoFunctionDefinition(
     funcDefId,
     '',
-    'CairoFunctionDefinition',
     sourceUnit.id,
     FunctionKind.Function,
     name,
@@ -62,8 +60,8 @@ export function createCairoFunctionStub(
     FunctionVisibility.Private,
     FunctionStateMutability.NonPayable,
     false,
-    new ParameterList(ast.reserveId(), '', 'ParameterList', createParameters(inputs)),
-    new ParameterList(ast.reserveId(), '', 'ParameterList', createParameters(returns)),
+    new ParameterList(ast.reserveId(), '', createParameters(inputs)),
+    new ParameterList(ast.reserveId(), '', createParameters(returns)),
     [],
     new Set(implicits),
     true,
@@ -83,13 +81,11 @@ export function createCallToFunction(
   return new FunctionCall(
     ast.reserveId(),
     '',
-    'FunctionCall',
     getReturnTypeString(stub),
     FunctionCallKind.FunctionCall,
     new Identifier(
       ast.reserveId(),
       '',
-      'Identifier',
       getFunctionTypeString(stub, ast.compilerVersion),
       stub.name,
       stub.id,

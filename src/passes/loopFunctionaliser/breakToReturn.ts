@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import { Break, FunctionDefinition } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';

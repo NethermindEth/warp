@@ -21,6 +21,7 @@ import {
   compileSol,
   resolveAny,
   getNodeType,
+  CompileResult,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import * as path from 'path';
@@ -28,12 +29,12 @@ import tests from '../test_calldata';
 import { InvalidTestError, NotYetSuportedTestCaseError } from '../errors';
 
 import whiteList from './semantic_whitelist';
-import { File, Expect } from './types';
 
 import { NotSupportedYetError } from '../../../src/utils/errors';
 import { compileSolFile } from '../../../src/solCompile';
 import { printTypeNode } from '../../../src/utils/astPrinter';
 import { bigintToTwosComplement, divmod } from '../../../src/utils/utils';
+import { AsyncTest, Expect } from './types';
 
 // this format will cause problems with overloading
 export interface Parameter {
@@ -81,7 +82,12 @@ const validTests = Object.entries(tests).reduce(
 
 // ------------------------ Export the tests ---------------------------------
 
-export const expectations: File[] = validTests.map(([file, tests]) => {
+// solc-typed-ast downloads compilers on demand, running a single compilation fully
+// before the others ensures that the compiler is set up properly before being used
+// asynchronously
+const initialRun: Promise<CompileResult> = compileSol(validTests[0][0], 'auto', []);
+
+export const expectations: AsyncTest[] = validTests.map(([file, tests]): AsyncTest => {
   // The solidity test dsl assumes the last contract defined in the file is
   // the target of the function calls. solc-typed-ast sorts the contracts
   // so we need to do a dumb regex to find the right contract
@@ -89,22 +95,25 @@ export const expectations: File[] = validTests.map(([file, tests]) => {
     ([_, name]) => name,
   );
   const lastContract = contractNames[contractNames.length - 1];
-  return new File(
-    file.substring(0, file.length - '.sol'.length),
+  const truncatedFileName = file.substring(0, file.length - '.sol'.length);
+  return new AsyncTest(
+    truncatedFileName,
     lastContract,
-    transcodeTests(file, tests, lastContract),
+    transcodeTests(file, tests, lastContract, initialRun),
   );
 });
 
 // ------------------------ Transcode the tests ------------------------------
 
-function transcodeTests(
+async function transcodeTests(
   file: string,
   expectations: ITestCalldata[],
   lastContract: string,
-): Expect[] {
+  initialRun: Promise<CompileResult>,
+): Promise<Expect[]> {
+  await initialRun;
   // Get the abi of the contract for web3
-  const source = compileSol(file, 'auto', []);
+  const source = await compileSol(file, 'auto', []);
   const contracts: { [key: string]: { abi: FunABI[] } } = source.data.contracts[file];
   const abi = contracts[lastContract].abi;
 

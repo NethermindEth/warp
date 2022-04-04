@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   ContractDefinition,
   FunctionDefinition,
@@ -41,7 +41,6 @@ function splitSourceUnit(sourceUnit: SourceUnit, ast: AST): SourceUnit[] {
   const freeSourceUnit = new SourceUnit(
     freeSourceUnitId,
     sourceUnit.src,
-    sourceUnit.type,
     '',
     0,
     mangleFreeFilePath(filePathRoot) + '.sol',
@@ -54,7 +53,6 @@ function splitSourceUnit(sourceUnit: SourceUnit, ast: AST): SourceUnit[] {
     return new SourceUnit(
       contractSourceUnitId,
       '',
-      sourceUnit.type,
       '',
       0,
       mangleContractFilePath(filePathRoot, contract.name) + '.sol',
@@ -77,7 +75,6 @@ function splitSourceUnit(sourceUnit: SourceUnit, ast: AST): SourceUnit[] {
         const iDir = new ImportDirective(
           ast.reserveId(),
           importSu.src,
-          'ImportDirective',
           importSu.absolutePath,
           importSu.absolutePath,
           '',

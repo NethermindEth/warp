@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import { FunctionCall, getNodeType, IntType } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';

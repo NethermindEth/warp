@@ -1,6 +1,7 @@
 export * from './addressHandler';
 export * from './annotateImplicits';
 export * from './builtinHandler';
+export * from './constantHandler';
 export * from './deleteHandler';
 export * from './enumConverter';
 export * from './expressionSplitter';

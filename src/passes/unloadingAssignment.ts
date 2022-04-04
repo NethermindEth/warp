@@ -17,7 +17,6 @@ export class UnloadingAssignment extends ASTMapper {
       new BinaryOperation(
         ast.reserveId(),
         node.src,
-        'BinaryOperation',
         node.typeString,
         operator,
         lhsValue,
@@ -35,7 +34,6 @@ export class UnloadingAssignment extends ASTMapper {
     const literalOne = new Literal(
       ast.reserveId(),
       node.src,
-      'Literal',
       'int_const 1',
       LiteralKind.Number,
       toHexString('1'),
@@ -45,7 +43,6 @@ export class UnloadingAssignment extends ASTMapper {
     const compoundAssignment = new Assignment(
       node.id,
       node.src,
-      'Assignment',
       node.typeString,
       `${node.operator[0]}=`,
       node.vSubExpression,
@@ -56,7 +53,6 @@ export class UnloadingAssignment extends ASTMapper {
       const subtraction = new BinaryOperation(
         node.id,
         node.src,
-        'BinaryOperation',
         node.typeString,
         node.operator === '++' ? '-' : '+',
         compoundAssignment,

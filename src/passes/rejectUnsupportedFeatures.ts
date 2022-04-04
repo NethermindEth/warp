@@ -4,10 +4,12 @@ import {
   RevertStatement,
   ErrorDefinition,
   Conditional,
+  UsingForDirective,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { WillNotSupportError } from '../utils/errors';
+import { printNode } from '../utils/astPrinter';
+import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   visitIndexAccess(node: IndexAccess, ast: AST): void {
@@ -27,5 +29,12 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
   visitConditional(_node: Conditional, _ast: AST): void {
     throw new WillNotSupportError('Conditional expressions (ternary operator) are not supported');
+  }
+  visitUsingForDirective(node: UsingForDirective, _ast: AST): void {
+    if (node.vLibraryName === undefined) {
+      throw new NotSupportedYetError(
+        `Non-library using fors not supported yet, found at ${printNode(node)}`,
+      );
+    }
   }
 }

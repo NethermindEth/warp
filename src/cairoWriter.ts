@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 
 import {
   ASTNode,
@@ -82,6 +82,7 @@ import { notNull, notUndefined } from './utils/typeConstructs';
 import { printNode } from './utils/astPrinter';
 import { CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
 import { error, removeExcessNewlines } from './utils/formatting';
+import { isCairoConstant } from './utils/utils';
 
 const INDENT = ' '.repeat(4);
 
@@ -126,6 +127,12 @@ class StructDefinitionWriter extends CairoASTNodeWriter {
 
 class VariableDeclarationWriter extends CairoASTNodeWriter {
   writeInner(node: VariableDeclaration, writer: ASTWriter): SrcDesc {
+    if ((node.stateVariable || node.parent instanceof SourceUnit) && isCairoConstant(node)) {
+      assert(node.vValue !== undefined, 'Constant should have a defined value.');
+      const constantValue = writer.write(node.vValue);
+      const res = [`const ${node.name} = ${constantValue}`];
+      return res;
+    }
     if (node.stateVariable) {
       let vals = [];
       assert(
@@ -141,6 +148,7 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
       vals = vals.map((value) => CairoType.fromSol(value, this.ast).toString());
       const keys = vals.slice(0, vals.length - 1).map((t, i) => `key${i}: ${t}`);
       const returns = vals.slice(vals.length - 1, vals.length);
+
       return [
         [
           `@storage_var`,
@@ -207,6 +215,10 @@ class SourceUnitWriter extends CairoASTNodeWriter {
       writer.write(v),
     );
 
+    const userDefinedConstants = node.vVariables
+      .filter((v) => isCairoConstant(v))
+      .map((value) => writer.write(value));
+
     const functions = node.vFunctions.map((v) => writer.write(v));
 
     const contracts = node.vContracts.map((v) => writer.write(v));
@@ -219,6 +231,7 @@ class SourceUnitWriter extends CairoASTNodeWriter {
           '%lang starknet',
           [imports],
           ...structs,
+          ...userDefinedConstants,
           generatedUtilFunctions,
           ...functions,
           ...contracts,
@@ -261,11 +274,15 @@ class CairoContractWriter extends CairoASTNodeWriter {
 
     const enums = node.vEnums.map((value) => writer.write(value));
 
+    const userDefinedConstants = node.vStateVariables
+      .filter((sv) => isCairoConstant(sv))
+      .map((value) => writer.write(value));
+
     const functions = node.vFunctions.map((value) => writer.write(value));
 
     const events = node.vEvents.map((value) => writer.write(value));
 
-    const body = [...variables, ...enums, ...functions]
+    const body = [...variables, ...enums, ...userDefinedConstants, ...functions]
       .join('\n\n')
       .split('\n')
       .map((l) => (l.length > 0 ? INDENT + l : l))

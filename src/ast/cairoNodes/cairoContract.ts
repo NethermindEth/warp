@@ -14,7 +14,6 @@ export class CairoContract extends ContractDefinition {
   constructor(
     id: number,
     src: string,
-    type: string,
     name: string,
     scope: number,
     kind: ContractKind,
@@ -32,7 +31,6 @@ export class CairoContract extends ContractDefinition {
     super(
       id,
       src,
-      type,
       name,
       scope,
       kind,

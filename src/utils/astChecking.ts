@@ -336,9 +336,7 @@ export function checkSane(unit: SourceUnit, ctx: ASTContext): void {
   for (const node of unit.getChildren(true)) {
     if (!inCtx(node, ctx)) {
       throw new InsaneASTError(
-        `Child ${pp(node)} in different context: ${node.requiredContext.id} from expected ${
-          ctx.id
-        }`,
+        `Child ${pp(node)} in different context: ${ctx.id} from expected ${ctx.id}`,
       );
     }
 
@@ -401,6 +399,7 @@ export function checkSane(unit: SourceUnit, ctx: ASTContext): void {
         'vVariables',
         'vErrors',
         'vUserDefinedValueTypes',
+        'vUsingForDirectives',
       );
     } else if (node instanceof ImportDirective) {
       /**
@@ -444,7 +443,7 @@ export function checkSane(unit: SourceUnit, ctx: ASTContext): void {
       checkVFieldCtx(node, 'vParameters', ctx);
       checkDirectChildren(node, 'vParameters');
     } else if (node instanceof UsingForDirective) {
-      checkDirectChildren(node, 'vLibraryName', 'vTypeName');
+      checkDirectChildren(node, 'vLibraryName', 'vFunctionList', 'vTypeName');
     } else if (node instanceof ContractDefinition) {
       checkFieldAndVFieldMatch(node, 'scope', 'vScope');
       checkVFieldCtx(node, 'vScope', ctx);
@@ -677,7 +676,6 @@ function checkIdNonNegative(node: ASTNode) {
   node.children.forEach((child) => checkIdNonNegative(child));
 }
 
-FunctionDefinition;
 /**
  * Check that a single SourceUnit has a sane structure. This checks that:
  *  - All reachable nodes belong to the same context, have their parent/sibling set correctly.
@@ -719,8 +717,6 @@ class NodeTypeResolutionChecker extends ASTMapper {
         (child): child is Expression | VariableDeclaration =>
           child instanceof Expression || child instanceof VariableDeclaration,
       )
-      // solc-typed-ast cannot type rational_consts
-      .filter((value) => !value.typeString.startsWith('rational_const '))
       .forEach((child) => getNodeType(child, ast.compilerVersion));
   }
 }

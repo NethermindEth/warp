@@ -5,7 +5,7 @@ import {
   UserDefinedTypeName,
   FunctionCall,
 } from 'solc-typed-ast';
-import assert = require('assert');
+import assert from 'assert';
 import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
 import { cloneASTNode } from '../utils/cloning';
 import { StringIndexedFuncGen } from './base';

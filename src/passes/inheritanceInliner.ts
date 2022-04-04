@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   Block,
   ContractDefinition,
@@ -150,7 +150,6 @@ function updateReferencedDeclarations(
           new Identifier(
             ast.reserveId(),
             node.src,
-            'Identifier',
             node.typeString,
             remapping.name,
             remapping.id,
@@ -230,7 +229,6 @@ function createDelegatingFunction(
   const newFunc = new FunctionDefinition(
     ast.reserveId(),
     funcToCopy.src,
-    'FunctionDefinition',
     scope,
     funcToCopy.kind,
     funcToCopy.name,
@@ -242,22 +240,19 @@ function createDelegatingFunction(
     retParams,
     funcToCopy.vModifiers.map((m) => cloneASTNode(m, ast)),
     undefined,
-    new Block(ast.reserveId(), '', 'Block', [
+    new Block(ast.reserveId(), '', [
       new Return(
         ast.reserveId(),
         '',
-        'Return',
         retParams.id,
         new FunctionCall(
           ast.reserveId(),
           '',
-          'FunctionCall',
           getReturnTypeString(delegate),
           FunctionCallKind.FunctionCall,
           new Identifier(
             ast.reserveId(),
             '',
-            'Identifier',
             getFunctionTypeString(delegate, ast.compilerVersion),
             delegate.name,
             delegate.id,
