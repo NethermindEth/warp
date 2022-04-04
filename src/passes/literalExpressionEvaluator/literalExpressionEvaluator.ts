@@ -44,7 +44,6 @@ export class LiteralExpressionEvaluator extends ASTMapper {
         new Literal(
           node.id,
           node.src,
-          'Literal',
           node.typeString,
           LiteralKind.Bool,
           toHexString(valueString),
@@ -66,7 +65,6 @@ export class LiteralExpressionEvaluator extends ASTMapper {
         new Literal(
           node.id,
           node.src,
-          'Literal',
           generateLiteralTypeString(valueString),
           LiteralKind.Number,
           toHexString(valueString),

@@ -37,13 +37,11 @@ export class AddressEliminator extends ASTMapper {
         new FunctionCall(
           ast.reserveId(),
           node.vExpression.src,
-          'FunctionCall',
           `contract ${tp.definition.name}`,
           FunctionCallKind.TypeConversion,
           new Identifier(
             ast.reserveId(),
             node.vExpression.src,
-            'Identifier',
             `type(contract ${tp.definition.name})`,
             tp.definition.name,
             tp.definition.id,

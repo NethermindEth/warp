@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   Assignment,
   Block,
@@ -22,7 +22,7 @@ import { isCairoConstant } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
-    const initialisationBlock = new Block(ast.reserveId(), '', 'Block', []);
+    const initialisationBlock = new Block(ast.reserveId(), '', []);
 
     let usedStorage = 0;
     const allocations: Map<VariableDeclaration, number> = new Map();
@@ -44,7 +44,6 @@ export class StorageAllocator extends ASTMapper {
       new CairoContract(
         node.id,
         node.src,
-        'CairoContract',
         node.name,
         node.scope,
         node.kind,
@@ -71,7 +70,6 @@ function insertIntoConstructor(initialisationBlock: Block, contract: ContractDef
     const newConstructor = new FunctionDefinition(
       ast.reserveId(),
       '',
-      'FunctionDefinition',
       contract.id,
       FunctionKind.Constructor,
       '',
@@ -79,8 +77,8 @@ function insertIntoConstructor(initialisationBlock: Block, contract: ContractDef
       FunctionVisibility.Public,
       FunctionStateMutability.NonPayable,
       true,
-      new ParameterList(ast.reserveId(), '', 'ParameterList', []),
-      new ParameterList(ast.reserveId(), '', 'ParameterList', []),
+      new ParameterList(ast.reserveId(), '', []),
+      new ParameterList(ast.reserveId(), '', []),
       [],
       undefined,
       initialisationBlock,
@@ -106,21 +104,12 @@ function extractInitialisation(node: VariableDeclaration, initialisationBlock: B
     new ExpressionStatement(
       ast.reserveId(),
       node.src,
-      'ExpressionStatement',
       new Assignment(
         ast.reserveId(),
         node.src,
-        'Assignment',
         node.typeString,
         '=',
-        new Identifier(
-          ast.reserveId(),
-          node.src,
-          'Identifier',
-          node.typeString,
-          node.name,
-          node.id,
-        ),
+        new Identifier(ast.reserveId(), node.src, node.typeString, node.name, node.id),
         node.vValue,
       ),
     ),

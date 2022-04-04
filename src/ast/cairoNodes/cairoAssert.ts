@@ -8,12 +8,11 @@ export class CairoAssert extends Expression {
   constructor(
     id: number,
     src: string,
-    type: string,
     expression: Expression,
     assertMessage: string | null = null,
     raw?: unknown,
   ) {
-    super(id, src, type, 'tuple()', raw);
+    super(id, src, 'tuple()', raw);
     this.vExpression = expression;
     this.assertMessage = assertMessage;
 

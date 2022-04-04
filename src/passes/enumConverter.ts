@@ -67,7 +67,6 @@ export class EnumConverter extends ASTMapper {
           new Literal(
             ast.reserveId(),
             node.src,
-            'Literal',
             `int_const ${intLiteral}`,
             LiteralKind.Number,
             toHexString(intLiteralString),

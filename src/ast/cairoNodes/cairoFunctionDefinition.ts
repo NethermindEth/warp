@@ -18,7 +18,6 @@ export class CairoFunctionDefinition extends FunctionDefinition {
   constructor(
     id: number,
     src: string,
-    type: string,
     scope: number,
     kind: FunctionKind,
     name: string,
@@ -40,7 +39,6 @@ export class CairoFunctionDefinition extends FunctionDefinition {
     super(
       id,
       src,
-      type,
       scope,
       kind,
       name,

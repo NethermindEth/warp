@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import { Continue, FunctionDefinition, Return } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
@@ -28,7 +28,6 @@ export class ContinueToLoopCall extends ASTMapper {
       new Return(
         ast.reserveId(),
         node.src,
-        'Return',
         continueFunction.vReturnParameters.id,
         createLoopCall(continueFunction, continueFunction.vParameters.vParameters, ast),
       ),

@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   Assignment,
   ExpressionStatement,
@@ -29,10 +29,7 @@ export class ExpressionSplitter extends ASTMapper {
     if (!(node.parent instanceof ExpressionStatement)) {
       const replacement = cloneASTNode(node.vLeftHandSide, ast);
       ast.replaceNode(node, replacement);
-      ast.insertStatementBefore(
-        replacement,
-        new ExpressionStatement(ast.reserveId(), '', 'ExpressionStatement', node),
-      );
+      ast.insertStatementBefore(replacement, new ExpressionStatement(ast.reserveId(), '', node));
     }
   }
 
@@ -54,10 +51,7 @@ export class ExpressionSplitter extends ASTMapper {
       const parent = node.parent;
       assert(parent !== undefined, `${printNode(node)} ${node.vFunctionName} has no parent`);
       ast.replaceNode(node, createEmptyTuple(ast));
-      ast.insertStatementBefore(
-        parent,
-        new ExpressionStatement(ast.reserveId(), '', 'ExpressionStatement', node),
-      );
+      ast.insertStatementBefore(parent, new ExpressionStatement(ast.reserveId(), '', node));
     } else if (returnTypes.length === 1) {
       assert(
         returnTypes[0].vType !== undefined,

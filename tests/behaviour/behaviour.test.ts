@@ -6,13 +6,14 @@ import { deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
 import { describe } from 'mocha';
 import { expect } from 'chai';
 import { expectations } from './expectations';
+import { AsyncTest, Expect } from './expectations/types';
 
 describe('Transpile solidity', function () {
   this.timeout(1800000);
 
   let transpileResults: SafePromise<{ stderr: string }>[];
 
-  before(function () {
+  before(async function () {
     for (const fileTest of expectations) {
       cleanupSync(fileTest.cairo);
       cleanupSync(fileTest.compiled);
@@ -109,49 +110,25 @@ describe('Deployed contracts have correct behaviour', function () {
   this.timeout(1800000);
 
   for (const fileTest of expectations) {
-    describe(fileTest.name, function () {
-      for (const functionExpectation of fileTest.expectations) {
-        it(functionExpectation.name, async function () {
-          for (const [
-            funcName,
-            inputs,
-            expectedResult,
-            caller_address,
-            error_message,
-          ] of functionExpectation.steps) {
+    if (fileTest.expectations instanceof Promise) {
+      it(fileTest.name, async function () {
+        const address = deployedAddresses.get(fileTest.name);
+        if (address === undefined) this.skip();
+        const expects = await fileTest.expectations;
+        await Promise.all(expects.map((expect) => behaviourTest(expect, fileTest, address)));
+      });
+    } else {
+      const expects = fileTest.expectations;
+      describe(fileTest.name, async function () {
+        for (const functionExpectation of expects) {
+          it(functionExpectation.name, async function () {
             const address = deployedAddresses.get(fileTest.name);
-
             if (address === undefined) this.skip();
-
-            const mangledFuncName = findMethod(funcName, fileTest.compiled);
-            if (mangledFuncName === null) {
-              expect(mangledFuncName, `Unable to find function ${funcName}`).to.not.be.null;
-            } else {
-              const response = await invoke(address, mangledFuncName, inputs, caller_address);
-
-              console.log(`${fileTest.name} - ${mangledFuncName}: ${response.steps} steps`);
-
-              expect(response.status, 'Unhandled starknet-testnet error').to.equal(200);
-
-              if (expectedResult === null) {
-                expect(response.threw, 'Function should throw').to.be.true;
-                error_message !== undefined &&
-                  response.error_message !== undefined &&
-                  expect(response.error_message.includes(error_message)).to.be.true;
-              } else {
-                expect(
-                  response.threw,
-                  `Function should not throw, but threw with message: ${response.error_message}`,
-                ).to.be.false;
-                expect(response.return_data, 'Return data should match expectation').to.deep.equal(
-                  expectedResult,
-                );
-              }
-            }
-          }
-        });
-      }
-    });
+            await behaviourTest(functionExpectation, fileTest, address);
+          });
+        }
+      });
+    }
   }
 
   after(function () {
@@ -160,6 +137,48 @@ describe('Deployed contracts have correct behaviour', function () {
     }
   });
 });
+
+async function behaviourTest(
+  functionExpectation: Expect,
+  fileTest: AsyncTest,
+  address: string,
+): Promise<void> {
+  for (const [
+    funcName,
+    inputs,
+    expectedResult,
+    caller_address,
+    error_message,
+  ] of functionExpectation.steps) {
+    const name = functionExpectation.name;
+    const mangledFuncName = findMethod(funcName, fileTest.compiled);
+    if (mangledFuncName === null) {
+      expect(mangledFuncName, `${name} - Unable to find function ${funcName}`).to.not.be.null;
+    } else {
+      const response = await invoke(address, mangledFuncName, inputs, caller_address);
+
+      console.log(`${fileTest.name} - ${mangledFuncName}: ${response.steps} steps`);
+
+      expect(response.status, `${name} - Unhandled starknet-testnet error`).to.equal(200);
+
+      if (expectedResult === null) {
+        expect(response.threw, `${name} - Function should throw`).to.be.true;
+        error_message !== undefined &&
+          response.error_message !== undefined &&
+          expect(response.error_message.includes(error_message)).to.be.true;
+      } else {
+        expect(
+          response.threw,
+          `${name} - Function should not throw, but threw with message: ${response.error_message}`,
+        ).to.be.false;
+        expect(
+          response.return_data,
+          `${name} - Return data should match expectation`,
+        ).to.deep.equal(expectedResult);
+      }
+    }
+  }
+}
 
 // This is specifically the part of the type of the output data findMethod is interested in
 type CompiledCairo = {

@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import { AST } from '../../ast/ast';
 import {
   FunctionDefinition,
@@ -55,12 +55,7 @@ export class BooleanBoundChecker extends ASTMapper {
   }
 
   private insertFunctionCall(node: FunctionDefinition, functionCall: FunctionCall, ast: AST): void {
-    const expressionStatement = new ExpressionStatement(
-      ast.reserveId(),
-      '',
-      'ExpressionStatement',
-      functionCall,
-    );
+    const expressionStatement = new ExpressionStatement(ast.reserveId(), '', functionCall);
 
     const functionBlock = node.vBody;
 

@@ -11,7 +11,6 @@ export class ShortCircuitToConditional extends ASTMapper {
       const replacementExpression = new Conditional(
         ast.reserveId(),
         node.src,
-        'Conditional',
         'bool',
         node.vLeftExpression,
         node.vRightExpression,
@@ -25,7 +24,6 @@ export class ShortCircuitToConditional extends ASTMapper {
       const replacementExpression = new Conditional(
         ast.reserveId(),
         node.src,
-        'Conditional',
         'bool',
         node.vLeftExpression,
         createBoolLiteral(true, ast),

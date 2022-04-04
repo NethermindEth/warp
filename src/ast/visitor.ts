@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 
 import {
   ASTNode,
@@ -68,7 +68,6 @@ import {
 import { CairoAssert, CairoFunctionDefinition } from './cairoNodes';
 
 import { AST } from './ast';
-import CairoASTNode from './cairoNodes/cairoASTNode';
 
 export abstract class ASTVisitor<T> {
   static getPassName(): string {
@@ -320,7 +319,7 @@ export abstract class ASTVisitor<T> {
     return this.visitASTNodeWithChildren(node, ast);
   }
   visitCairoAssert(node: CairoAssert, ast: AST): T {
-    return this.visitCairoASTNode(node, ast);
+    return this.visitExpression(node, ast);
   }
   visitTypeName(node: TypeName, ast: AST): T {
     return this.commonVisit(node, ast);
@@ -335,9 +334,6 @@ export abstract class ASTVisitor<T> {
     return this.commonVisit(node, ast);
   }
   visitASTNodeWithChildren(node: ASTNodeWithChildren<ASTNode>, ast: AST): T {
-    return this.commonVisit(node, ast);
-  }
-  visitCairoASTNode(node: CairoASTNode, ast: AST): T {
     return this.commonVisit(node, ast);
   }
 }
