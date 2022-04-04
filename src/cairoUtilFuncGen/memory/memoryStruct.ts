@@ -37,17 +37,10 @@ export class MemoryStructGen extends StringIndexedFuncGen {
           new UserDefinedTypeName(
             this.ast.reserveId(),
             '',
-            'UserDefinedTypeName',
             `struct ${structDef.canonicalName}`,
             undefined,
             structDef.id,
-            new IdentifierPath(
-              this.ast.reserveId(),
-              '',
-              'IdentifierPath',
-              structDef.name,
-              structDef.id,
-            ),
+            new IdentifierPath(this.ast.reserveId(), '', structDef.name, structDef.id),
           ),
         ],
       ],
