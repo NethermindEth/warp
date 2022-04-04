@@ -41,7 +41,6 @@ export class ConstantHandler extends ASTMapper {
       const newDecl = new VariableDeclaration(
         ast.reserveId(),
         node.src,
-        'VariableDeclaration',
         true,
         false,
         `${decl.name}_${node.name}`,
@@ -55,7 +54,6 @@ export class ConstantHandler extends ASTMapper {
         new ElementaryTypeName(
           ast.reserveId(),
           node.src,
-          'ElementaryTypeName',
           `${decl.vValue.typeString}`,
           decl.vValue.typeString,
         ),
@@ -67,13 +65,11 @@ export class ConstantHandler extends ASTMapper {
       const newDeclStmt = new VariableDeclarationStatement(
         ast.reserveId(),
         decl.src,
-        'VariableDeclarationStatement',
         [newDecl.id],
         [newDecl],
         new Literal(
           ast.reserveId(),
           '',
-          'Literal',
           decl.vValue.typeString,
           decl.vValue.kind,
           decl.vValue.hexValue,
