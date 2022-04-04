@@ -212,7 +212,7 @@ function insertInnerLoopRetFlagCheck(
       ast.reserveId(),
       '',
       createIdentifier(retFlag, ast),
-      new Break(ast.reserveId(), '', 'Break'),
+      new Break(ast.reserveId(), ''),
     ),
   );
 }
