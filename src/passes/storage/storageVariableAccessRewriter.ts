@@ -19,7 +19,7 @@ import { printNode, printTypeNode } from '../../utils/astPrinter';
 
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { typeNameFromTypeNode } from '../../utils/utils';
+import { isCairoConstant, typeNameFromTypeNode } from '../../utils/utils';
 import { error } from '../../utils/formatting';
 
 export class StorageVariableAccessRewriter extends ASTMapper {
@@ -56,12 +56,14 @@ export class StorageVariableAccessRewriter extends ASTMapper {
       error('VariableDeclaration.vType should be defined for compiler versions > 0.4.x'),
     );
 
-    const parent = node.parent;
-    const replacementFunc = ast.getUtilFuncGen(node).storage.read.gen(node, decl.vType);
-    ast.replaceNode(node, replacementFunc, parent);
-    // Do not recurse
-    // The only argument to replacementFunc is node,
-    // recursing would cause an infinite loop
+    if (!isCairoConstant(decl)) {
+      const parent = node.parent;
+      const replacementFunc = ast.getUtilFuncGen(node).storage.read.gen(node, decl.vType);
+      ast.replaceNode(node, replacementFunc, parent);
+      // Do not recurse
+      // The only argument to replacementFunc is node,
+      // recursing would cause an infinite loop
+    }
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {

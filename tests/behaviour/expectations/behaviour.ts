@@ -67,6 +67,71 @@ export const expectations = flatten(
             Expect.Simple('explicit', ['240'], ['240', '240', '0']),
           ]),
         ]),
+        new Dir('constants', [
+          File.Simple('simpleConstants', [
+            Expect.Simple('getX', [], ['247']),
+            Expect.Simple('stateVarOp', [], ['9']),
+            Expect.Simple('constantOp', [], ['249']),
+            Expect.Simple('pureOp', [], ['512']),
+            Expect.Simple('pureOpWithValue', ['32'], ['288']),
+            new Expect('changeStateVar', [
+              ['changeStateVar', [], [], '0'],
+              ['getX', [], ['503'], '0'],
+            ]),
+          ]),
+          File.Simple('simpleConstantsUint256', [
+            Expect.Simple('getX', [], ['0', '255211775190703847597530955573826158592']),
+            Expect.Simple(
+              'stateVarOp',
+              [],
+              ['340282366920938463463374607431768211455', '85070591730234615865843651857942052863'],
+            ),
+            Expect.Simple(
+              'constantOp',
+              [],
+              [
+                '340282366920938463463374607431768211455',
+                '164824271477329568240072075474762727423',
+              ],
+            ),
+            Expect.Simple(
+              'pureOp',
+              [],
+              ['68056473384187692692674921486353642291', '68056473384187692692674921486353642291'],
+            ),
+            Expect.Simple(
+              'pureOpWithValue',
+              ['1', '0'],
+              [
+                '340282366920938463463374607431768211454',
+                '340282366920938463463374607431768211455',
+              ],
+            ),
+            Expect.Simple(
+              'pureOpWithValueTwo',
+              [
+                '340282366920938463463374607431768211455',
+                '340282366920938463463374607431768211455',
+              ],
+              [
+                '340282366920938463463374607431768211454',
+                '340282366920938463463374607431768211455',
+              ],
+            ),
+            new Expect('changeStateVar', [
+              ['changeStateVar', [], [], '0'],
+              [
+                'getX',
+                [],
+                [
+                  '340282366920938463463374607431768211455',
+                  '340282366920938458741008124562122997759',
+                ],
+                '0',
+              ],
+            ]),
+          ]),
+        ]),
         // covers nested mappings
         new Dir('Dai', [
           new File('dai', 'Dai', [
@@ -536,6 +601,7 @@ export const expectations = flatten(
             new File('derived', 'Derived', [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
           ]),
         ]),
+        /*
         new Dir('loops', [
           File.Simple('loops', [
             Expect.Simple('forLoop', ['3'], ['8']),
@@ -986,6 +1052,7 @@ export const expectations = flatten(
           Expect.Simple('test', [], []),
           Expect.Simple('returnTest', [], ['12', '0']),
         ]),
+        */
       ]),
     ]),
   ]),

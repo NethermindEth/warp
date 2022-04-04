@@ -18,6 +18,7 @@ import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
+import { isCairoConstant } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
@@ -26,14 +27,16 @@ export class StorageAllocator extends ASTMapper {
     let usedStorage = 0;
     const allocations: Map<VariableDeclaration, number> = new Map();
     node.vStateVariables.forEach((v) => {
-      const width = CairoType.fromSol(
-        getNodeType(v, ast.compilerVersion),
-        ast,
-        TypeConversionContext.StorageAllocation,
-      ).width;
-      allocations.set(v, usedStorage);
-      usedStorage += width;
-      extractInitialisation(v, initialisationBlock, ast);
+      if (!isCairoConstant(v)) {
+        const width = CairoType.fromSol(
+          getNodeType(v, ast.compilerVersion),
+          ast,
+          TypeConversionContext.StorageAllocation,
+        ).width;
+        allocations.set(v, usedStorage);
+        usedStorage += width;
+        extractInitialisation(v, initialisationBlock, ast);
+      }
     });
     insertIntoConstructor(initialisationBlock, node, ast);
     ast.replaceNode(
