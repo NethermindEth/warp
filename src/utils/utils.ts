@@ -38,6 +38,8 @@ import { printNode, printTypeNode } from './astPrinter';
 import { Class } from './typeConstructs';
 import { isSane } from './astChecking';
 
+import * as pathLib from 'path';
+
 export function divmod(x: bigint, y: bigint): [BigInt, BigInt] {
   const div: BigInt = BigInt(x / y);
   const rem: BigInt = BigInt(x % y);
@@ -407,4 +409,10 @@ export function isCairoConstant(node: VariableDeclaration): boolean {
     }
   }
   return false;
+}
+
+export function formatPath(path: string): string {
+  assert(path.length > 0, 'Attempted to format empty import path');
+  const base = path.endsWith('.sol') ? path.slice(0, -'.sol'.length) : path;
+  return base.replaceAll(pathLib.sep, '.');
 }

@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   ContractDefinition,
+  ContractKind,
   EnumDefinition,
   ErrorDefinition,
   FunctionDefinition,
@@ -15,7 +16,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { NotSupportedYetError } from '../utils/errors';
-import * as pathLib from 'path';
+import { formatPath } from '../utils/utils';
 
 export class ExternImporter extends ASTMapper {
   visitIdentifier(node: Identifier, ast: AST): void {
@@ -30,9 +31,9 @@ export class ExternImporter extends ASTMapper {
     if (declarationSourceUnit === undefined || sourceUnit === declarationSourceUnit) return;
 
     if (
-      declaration instanceof ContractDefinition ||
       declaration instanceof FunctionDefinition ||
-      declaration instanceof EnumDefinition
+      declaration instanceof EnumDefinition ||
+      (declaration instanceof ContractDefinition && declaration.kind === ContractKind.Library)
     ) {
       ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
     }
@@ -47,10 +48,4 @@ export class ExternImporter extends ASTMapper {
       throw new NotSupportedYetError(`Importing ${printNode(declaration)} not implemented yet`);
     }
   }
-}
-
-function formatPath(path: string): string {
-  assert(path.length > 0, 'Attempted to format empty import path');
-  const base = path.endsWith('.sol') ? path.slice(0, -'.sol'.length) : path;
-  return base.replaceAll(pathLib.sep, '.');
 }

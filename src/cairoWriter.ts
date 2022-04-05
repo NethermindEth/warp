@@ -70,6 +70,7 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
   WhileStatement,
+  TypeNameType,
 } from 'solc-typed-ast';
 import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
 import { writeImplicits } from './utils/implicits';
@@ -83,6 +84,7 @@ import { printNode } from './utils/astPrinter';
 import { CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
 import { removeExcessNewlines } from './utils/formatting';
 import { isCairoConstant } from './utils/utils';
+import { ExternalContractInterfaceInserter } from './utils/externalContractInterfaceInserter';
 
 const INDENT = ' '.repeat(4);
 
@@ -225,6 +227,14 @@ class SourceUnitWriter extends CairoASTNodeWriter {
 
     const generatedUtilFunctions = this.ast.getUtilFuncGen(node).getGeneratedCode();
     const imports = writeImports(this.ast.getImports(node));
+
+    const extContractInterfaces: Map<number, ContractDefinition> = new Map();
+    new ExternalContractInterfaceInserter(extContractInterfaces).dispatchVisit(node, this.ast);
+
+    const externalContractInterfaces = [...extContractInterfaces.values()].map((value) =>
+      writeContractInterface(value, writer),
+    );
+
     return [
       removeExcessNewlines(
         [
@@ -234,6 +244,7 @@ class SourceUnitWriter extends CairoASTNodeWriter {
           ...userDefinedConstants,
           generatedUtilFunctions,
           ...functions,
+          ...externalContractInterfaces,
           ...contracts,
         ].join('\n\n\n'),
         3,
@@ -252,10 +263,13 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
       .map((l) => INDENT + l)
       .join('\n'),
   );
+
+  // remove @interface from node.name
+  const name = node.name.replace('@interface', '');
   return [
     [
       ...structs,
-      [`@contract_interface`, `namespace ${node.name}:`, ...functions, `end`].join('\n'),
+      [`@contract_interface`, `namespace ${name}:`, ...functions, `end`].join('\n'),
     ].join('\n'),
   ];
 }
@@ -511,6 +525,13 @@ class FunctionCallWriter extends CairoASTNodeWriter {
         if (
           nodeType instanceof UserDefinedType &&
           nodeType.definition instanceof ContractDefinition
+        ) {
+          return [`${args}`];
+        }
+        if (
+          nodeType instanceof TypeNameType &&
+          nodeType.type instanceof UserDefinedType &&
+          nodeType.type.definition instanceof ContractDefinition
         ) {
           return [`${args}`];
         }

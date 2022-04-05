@@ -1,6 +1,5 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
 import {
-  AddressHandler,
   AnnotateImplicits,
   BuiltinHandler,
   ConstantHandler,
@@ -89,7 +88,6 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['Rv', ReturnVariableInitializer],
     ['If', IfFunctionaliser],
     ['T', TupleAssignmentSplitter],
-    ['Ah', AddressHandler],
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
     ['Vs', VariableDeclarationExpressionSplitter],
