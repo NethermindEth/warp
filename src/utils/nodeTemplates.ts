@@ -65,5 +65,7 @@ export function createParameterList(
   params: Iterable<VariableDeclaration>,
   ast: AST,
 ): ParameterList {
-  return new ParameterList(ast.reserveId(), '', 'ParameterList', params);
+  const paramList = new ParameterList(ast.reserveId(), '', params);
+  ast.setContextRecursive(paramList);
+  return paramList;
 }

@@ -20,13 +20,11 @@ export function generateFunctionCall(
   return new FunctionCall(
     ast.reserveId(),
     '',
-    'FunctionCall',
     getReturnTypeString(functionDef),
     FunctionCallKind.FunctionCall,
     new Identifier(
       ast.reserveId(),
       '',
-      'Identifier',
       getFunctionTypeString(functionDef, ast.compilerVersion),
       functionDef.name,
       functionDef.id,
@@ -42,7 +40,7 @@ export function createReturn(
 ): Return {
   const returnIdentifiers = declarations.map((d) => createIdentifier(d, ast));
   const retValue = toSingleExpression(returnIdentifiers, ast);
-  return new Return(ast.reserveId(), '', 'Return', retParamListId, retValue);
+  return new Return(ast.reserveId(), '', retParamListId, retValue);
 }
 
 export function toSingleExpression(expressions: Expression[], ast: AST): Expression {
@@ -51,7 +49,6 @@ export function toSingleExpression(expressions: Expression[], ast: AST): Express
   return new TupleExpression(
     ast.reserveId(),
     '',
-    'Tuple',
     `tuple(${expressions.map((e) => e.typeString).join(',')})`,
     false,
     expressions,

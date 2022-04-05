@@ -920,6 +920,30 @@ export const expectations = flatten(
             Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
           ]),
         ]),
+        new Dir('modifiers', [
+          File.Simple('modifier', [
+            Expect.Simple('f', ['90000', '0'], ['10000', '0']),
+            Expect.Simple('f', ['110000', '0'], ['0', '0']),
+          ]),
+          File.Simple('multipleModifiers', [
+            new Expect('modifier', [
+              ['openEvent', [], [], '0'],
+              ['donate', ['238', '0'], ['238', '0'], '0'],
+              ['donate', ['100', '0'], ['338', '0'], '0'],
+              ['donate', ['50', '0'], null, '0', 'Value for donation must be bigger than 100'],
+              ['balance', [], ['338', '0'], '0'],
+              ['closeEvent', [], [], '0'],
+              [
+                'donate',
+                ['500', '0'],
+                null,
+                '0',
+                'The event must be open in order to receive donations',
+              ],
+              ['balance', [], ['0', '0'], '0'],
+            ]),
+          ]),
+        ]),
         new Dir('named_args', [
           File.Simple('function', [
             Expect.Simple('f', [], []),
@@ -1041,20 +1065,6 @@ export const expectations = flatten(
         File.Simple('example', [
           Expect.Simple('test', [], []),
           Expect.Simple('returnTest', [], ['12', '0']),
-        ]),
-        new Dir('modifiers', [
-          File.Simple('modifier', [
-            Expect.Simple('f', ['90000', '0'], ['10000', '0']),
-            Expect.Simple('f', ['110000', '0'], ['0', '0']),
-          ]),
-          File.Simple('multipleModifiers', [
-            new Expect('modifier', [
-              ['openEvent', [], [], '0'],
-              ['donate', ['238', '0'], ['238', '0'], '0'],
-              ['donate', ['100', '0'], ['338', '0'], '0'],
-              ['closeEvent', [], [], '0'],
-            ]),
-          ]),
         ]),
       ]),
     ]),

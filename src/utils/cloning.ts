@@ -257,6 +257,8 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.documentation,
       node.raw,
     );
+  } else if (node instanceof PlaceholderStatement) {
+    newNode = clonePlaceholder(node, ast, remappedIds);
   } else if (node instanceof Return) {
     newNode = new Return(
       replaceId(node.id, ast, remappedIds),
@@ -406,8 +408,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
       [...node.vOverrides].map((o) => cloneASTNodeImpl(o, ast, remappedIds)),
       node.raw,
     );
-  } else if (node instanceof PlaceholderStatement) {
-    newNode = clonePlaceholder(node, ast, remappedIds);
   }
 
   if (notNull(newNode) && sameType(newNode, node)) {
@@ -415,7 +415,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
     ast.copyRegisteredImports(node, newNode);
     return newNode;
   } else {
-    console.log(node);
     throw new NotSupportedYetError(`Unable to clone ${printNode(node)}`);
   }
 }

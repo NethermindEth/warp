@@ -8,6 +8,6 @@ export class ModifierRemover extends ASTMapper {
   visitModifierDefinition(node: ModifierDefinition, _ast: AST) {
     const parent = node.getClosestParentByType(ContractDefinition);
     assert(parent !== undefined, `Unable to find parent of ${printNode(node)}`);
-    parent?.removeChild(node);
+    parent.removeChild(node);
   }
 }

@@ -270,13 +270,13 @@ export function createOuterCall(
     resultIdentifiers.length === 0
       ? createLoopCall(functionDef, [...unboundVariables.keys()], ast)
       : new Assignment(
-        ast.reserveId(),
-        '',
-        assignmentValue.typeString,
-        '=',
-        assignmentValue,
-        createLoopCall(functionDef, [...unboundVariables.keys()], ast),
-      ),
+          ast.reserveId(),
+          '',
+          assignmentValue.typeString,
+          '=',
+          assignmentValue,
+          createLoopCall(functionDef, [...unboundVariables.keys()], ast),
+        ),
     node.documentation,
     node.raw,
   );

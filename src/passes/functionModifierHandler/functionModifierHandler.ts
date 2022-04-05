@@ -14,6 +14,7 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
+import { NotSupportedYetError } from '../../utils/errors';
 import { createReturn, generateFunctionCall } from '../../utils/functionGeneration';
 import { createIdentifier, createParameterList } from '../../utils/nodeTemplates';
 import { FunctionModifierInliner } from './functionModifierInliner';
@@ -41,11 +42,10 @@ export class FunctionModifierHandler extends ASTMapper {
     const returnStatement = new Return(
       ast.reserveId(),
       '',
-      'Return',
       node.vReturnParameters.id,
       generateFunctionCall(functionToCall, argsList, ast),
     );
-    const functionBody = new Block(ast.reserveId(), '', 'Block', [returnStatement]);
+    const functionBody = new Block(ast.reserveId(), '', [returnStatement]);
 
     node.vModifiers = [];
     node.vBody = functionBody;
@@ -102,7 +102,6 @@ export class FunctionModifierHandler extends ASTMapper {
     const funcDef = new FunctionDefinition(
       ast.reserveId(),
       '',
-      'FunctionDefinition',
       scope.id,
       scope instanceof SourceUnit ? FunctionKind.Free : FunctionKind.Function,
       functionName,
@@ -114,7 +113,7 @@ export class FunctionModifierHandler extends ASTMapper {
       retParamList,
       [],
       undefined,
-      new Block(ast.reserveId(), '', 'Block', statements),
+      new Block(ast.reserveId(), '', statements),
     );
 
     // Insert node into ast
@@ -135,14 +134,13 @@ export class FunctionModifierHandler extends ASTMapper {
     return param;
   }
 
-  // TODO - Check how to get modifier code when `vModifier` is a Contract Definition
+  // TODO - Get modifier code when `vModifier` is a Contract Definition
+  //        (it should be solved when dealing with inheritance)
   // Note: There is a possibility that constructor of the current contract
   //       invokes a constructor of the super contract.
   //       The `ContractDefinition` of a super contract is the value in such case.
   getModifier(vModifier: ModifierDefinition | ContractDefinition): ModifierDefinition {
     if (vModifier instanceof ModifierDefinition) return vModifier;
-    // console.log(vModifier);
-    // console.log(vModifier.vModifiers);
-    throw new Error('Method not implemented');
+    throw new NotSupportedYetError('Modifiers Inheritance is not supported yet');
   }
 }

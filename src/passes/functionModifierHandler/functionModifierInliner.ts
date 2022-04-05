@@ -35,7 +35,7 @@ export class FunctionModifierInliner extends ASTMapper {
   }
 
   visitPlaceholderStatement(node: PlaceholderStatement, ast: AST) {
-    const args = this.parameters?.map((v) => createIdentifier(v, ast));
+    const args = this.parameters.map((v) => createIdentifier(v, ast));
     const resultIdentifiers = this.retVariables.map((v) => createIdentifier(v, ast));
     const assignmentValue = toSingleExpression(resultIdentifiers, ast);
 
@@ -44,13 +44,11 @@ export class FunctionModifierInliner extends ASTMapper {
       new ExpressionStatement(
         ast.reserveId(),
         node.src,
-        'ExpressionStatement',
         this.retVariables.length === 0
           ? generateFunctionCall(this.currentFunction, args, ast)
           : new Assignment(
               ast.reserveId(),
               '',
-              'Assignment',
               assignmentValue.typeString,
               '=',
               assignmentValue,
