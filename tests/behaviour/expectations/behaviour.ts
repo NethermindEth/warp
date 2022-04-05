@@ -601,7 +601,6 @@ export const expectations = flatten(
             new File('derived', 'Derived', [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
           ]),
         ]),
-        /*
         new Dir('loops', [
           File.Simple('loops', [
             Expect.Simple('forLoop', ['3'], ['8']),
@@ -1052,7 +1051,6 @@ export const expectations = flatten(
           Expect.Simple('test', [], []),
           Expect.Simple('returnTest', [], ['12', '0']),
         ]),
-        */
       ]),
     ]),
   ]),
