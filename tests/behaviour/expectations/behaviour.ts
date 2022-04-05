@@ -15,58 +15,6 @@ export const expectations = flatten(
             Expect.Simple('test256', ['3', '4'], ['3', '4']),
           ]),
         ]),
-        new Dir('conversions', [
-          File.Simple('signedIdentity', [
-            Expect.Simple('implicit', ['210', '11', '12'], ['210', '11', '12']),
-            Expect.Simple('explicit', ['200', '300', '400'], ['200', '300', '400']),
-          ]),
-          File.Simple('signedNarrowing', [
-            Expect.Simple(
-              'explicit',
-              ['63005', '1000', '2000'],
-              ['29', '70778732319555200400381918345807787983848'],
-            ),
-          ]),
-          File.Simple('signedWidening', [
-            Expect.Simple('implicit', ['10'], ['10', '10', '0']),
-            Expect.Simple(
-              'implicit',
-              ['250'],
-              [
-                '65530',
-                '340282366920938463463374607431768211450',
-                '340282366920938463463374607431768211455',
-              ],
-            ),
-            Expect.Simple('explicit', ['20'], ['20', '20', '0']),
-            Expect.Simple(
-              'explicit',
-              ['240'],
-              [
-                '65520',
-                '340282366920938463463374607431768211440',
-                '340282366920938463463374607431768211455',
-              ],
-            ),
-          ]),
-          File.Simple('unsignedIdentity', [
-            Expect.Simple('implicit', ['210', '11', '12'], ['210', '11', '12']),
-            Expect.Simple('explicit', ['200', '300', '400'], ['200', '300', '400']),
-          ]),
-          File.Simple('unsignedNarrowing', [
-            Expect.Simple(
-              'explicit',
-              ['63005', '1000', '2000'],
-              ['29', '70778732319555200400381918345807787983848'],
-            ),
-          ]),
-          File.Simple('unsignedWidening', [
-            Expect.Simple('implicit', ['10'], ['10', '10', '0']),
-            Expect.Simple('implicit', ['250'], ['250', '250', '0']),
-            Expect.Simple('explicit', ['20'], ['20', '20', '0']),
-            Expect.Simple('explicit', ['240'], ['240', '240', '0']),
-          ]),
-        ]),
         new Dir('constants', [
           File.Simple('simpleConstants', [
             Expect.Simple('getX', [], ['247']),
@@ -130,6 +78,58 @@ export const expectations = flatten(
                 '0',
               ],
             ]),
+          ]),
+        ]),
+        new Dir('conversions', [
+          File.Simple('signedIdentity', [
+            Expect.Simple('implicit', ['210', '11', '12'], ['210', '11', '12']),
+            Expect.Simple('explicit', ['200', '300', '400'], ['200', '300', '400']),
+          ]),
+          File.Simple('signedNarrowing', [
+            Expect.Simple(
+              'explicit',
+              ['63005', '1000', '2000'],
+              ['29', '70778732319555200400381918345807787983848'],
+            ),
+          ]),
+          File.Simple('signedWidening', [
+            Expect.Simple('implicit', ['10'], ['10', '10', '0']),
+            Expect.Simple(
+              'implicit',
+              ['250'],
+              [
+                '65530',
+                '340282366920938463463374607431768211450',
+                '340282366920938463463374607431768211455',
+              ],
+            ),
+            Expect.Simple('explicit', ['20'], ['20', '20', '0']),
+            Expect.Simple(
+              'explicit',
+              ['240'],
+              [
+                '65520',
+                '340282366920938463463374607431768211440',
+                '340282366920938463463374607431768211455',
+              ],
+            ),
+          ]),
+          File.Simple('unsignedIdentity', [
+            Expect.Simple('implicit', ['210', '11', '12'], ['210', '11', '12']),
+            Expect.Simple('explicit', ['200', '300', '400'], ['200', '300', '400']),
+          ]),
+          File.Simple('unsignedNarrowing', [
+            Expect.Simple(
+              'explicit',
+              ['63005', '1000', '2000'],
+              ['29', '70778732319555200400381918345807787983848'],
+            ),
+          ]),
+          File.Simple('unsignedWidening', [
+            Expect.Simple('implicit', ['10'], ['10', '10', '0']),
+            Expect.Simple('implicit', ['250'], ['250', '250', '0']),
+            Expect.Simple('explicit', ['20'], ['20', '20', '0']),
+            Expect.Simple('explicit', ['240'], ['240', '240', '0']),
           ]),
         ]),
         // covers nested mappings
@@ -955,22 +955,6 @@ export const expectations = flatten(
             Expect.Simple('insertReturn', ['7'], ['9', '7']),
           ]),
         ]),
-        new Dir('named_args', [
-          File.Simple('function', [
-            Expect.Simple('f', [], []),
-            Expect.Simple('k', [], ['365', '0']),
-            Expect.Simple('v', [], ['234', '0']),
-          ]),
-          File.Simple('constructor', [
-            // (1, 2, (45, 1), [1,2,3])
-            Expect.Simple(
-              'getData',
-              [],
-              ['1', '0', '2', '0', '45', '0', '1', '0', '1', '0', '2', '0', '3', '0'],
-            ),
-          ]),
-        ]),
-        new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
         new Dir('storage', [
           File.Simple('dynamic_arrays', [
             Expect.Simple('get', ['0', '0'], null, 'out of range get should fail'),
