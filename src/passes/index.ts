@@ -18,6 +18,7 @@ export * from './literalExpressionEvaluator/literalExpressionEvaluator';
 export * from './loopFunctionaliser';
 export * from './namedArgsRemover';
 export * from './publicFunctionSplitter';
+export * from './referencedLibraries';
 export * from './rejectUnsupportedFeatures';
 export * from './returnInserter';
 export * from './ReturnVariableInitializer';

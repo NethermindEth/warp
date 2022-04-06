@@ -601,6 +601,13 @@ export const expectations = flatten(
             new File('derived', 'Derived', [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
           ]),
         ]),
+        new Dir('libraries', [
+          File.Simple('using_for', [
+            Expect.Simple('libFunction', ['1'], ['0'], 'uint256/true branch'),
+          ]),
+          File.Simple('importLibs', [Expect.Simple('addSub', ['5', '4'], ['9', '1'])]),
+          File.Simple('LibInLib', [Expect.Simple('mulDiv', ['5', '2'], ['10', '2', '1'])]),
+        ]),
         new Dir('loops', [
           File.Simple('loops', [
             Expect.Simple('forLoop', ['3'], ['8']),
@@ -923,6 +930,30 @@ export const expectations = flatten(
             Expect.Simple('createManual', ['1', '2', '3'], ['1', '2', '3']),
             Expect.Simple('writeMembers', ['1', '2', '3'], ['1', '2', '3']),
             Expect.Simple('references', ['1', '2', '3'], ['1', '2', '3']),
+          ]),
+        ]),
+        new Dir('modifiers', [
+          File.Simple('modifier', [
+            Expect.Simple('f', ['90000', '0'], ['10000', '0']),
+            Expect.Simple('f', ['110000', '0'], ['0', '0']),
+          ]),
+          File.Simple('multipleModifiers', [
+            new Expect('modifier', [
+              ['openEvent', [], [], '0'],
+              ['donate', ['238', '0'], ['238', '0'], '0'],
+              ['donate', ['100', '0'], ['338', '0'], '0'],
+              ['donate', ['50', '0'], null, '0', 'Value for donation must be bigger than 100'],
+              ['balance', [], ['338', '0'], '0'],
+              ['closeEvent', [], [], '0'],
+              [
+                'donate',
+                ['500', '0'],
+                null,
+                '0',
+                'The event must be open in order to receive donations',
+              ],
+              ['balance', [], ['0', '0'], '0'],
+            ]),
           ]),
         ]),
         new Dir('modifiers', [
