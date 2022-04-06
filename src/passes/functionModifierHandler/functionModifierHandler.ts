@@ -19,6 +19,17 @@ import { createReturn, generateFunctionCall } from '../../utils/functionGenerati
 import { createIdentifier, createParameterList } from '../../utils/nodeTemplates';
 import { FunctionModifierInliner } from './functionModifierInliner';
 
+/*  This pass handles functions with modifiers.
+    
+    Modifier invocations are processed in the same order of appearance.
+    The i-th modifier invocation is transformed into a function which contains the code 
+    of the corresponding modifier. Wherever there is a placeholder, this is replaced 
+    with a call to the function that results of transforming the function with modifiers
+    from (i + 1) to n.
+    When there are no more modifier invocations left, it simply calls the function which 
+    contains the original function code.
+*/
+
 export class FunctionModifierHandler extends ASTMapper {
   count = 0;
 

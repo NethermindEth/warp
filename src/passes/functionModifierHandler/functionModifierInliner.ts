@@ -16,6 +16,12 @@ import {
 } from '../../utils/functionGeneration';
 import { createIdentifier } from '../../utils/nodeTemplates';
 
+/*  ModifierInliner starts to walk the ast through a Modifier node as a root.
+    Whenever it reaches a placeholder, it replaces it with a call to `currentFunction`.
+    When it reaches a return statement, it is replaced with a new return accordingly 
+    with `retVariables`
+*/
+
 export class FunctionModifierInliner extends ASTMapper {
   currentFunction: FunctionDefinition;
   parameters: VariableDeclaration[];

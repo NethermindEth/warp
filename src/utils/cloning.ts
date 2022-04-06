@@ -241,7 +241,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.src,
       cloneASTNodeImpl(node.vBody, ast, remappedIds),
       node.vInitializationExpression &&
-      cloneASTNodeImpl(node.vInitializationExpression, ast, remappedIds),
+        cloneASTNodeImpl(node.vInitializationExpression, ast, remappedIds),
       node.vCondition && cloneASTNodeImpl(node.vCondition, ast, remappedIds),
       node.vLoopExpression && cloneASTNodeImpl(node.vLoopExpression, ast, remappedIds),
       node.documentation,
