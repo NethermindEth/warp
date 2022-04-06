@@ -27,6 +27,7 @@ export enum TypeConversionContext {
   MemoryAllocation,
   Ref,
   StorageAllocation,
+  Declaration,
 }
 
 export abstract class CairoType {

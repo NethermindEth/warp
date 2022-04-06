@@ -335,7 +335,11 @@ class NotImplementedWriter extends CairoASTNodeWriter {
 class ParameterListWriter extends CairoASTNodeWriter {
   writeInner(node: ParameterList, writer: ASTWriter): SrcDesc {
     const params = node.vParameters.map((value, i) => {
-      const tp = CairoType.fromSol(getNodeType(value, writer.targetCompilerVersion), this.ast);
+      const tp = CairoType.fromSol(
+        getNodeType(value, writer.targetCompilerVersion),
+        this.ast,
+        TypeConversionContext.Declaration,
+      );
       return value.name ? `${value.name} : ${tp}` : `ret${i} : ${tp}`;
     });
     return [params.join(', ')];

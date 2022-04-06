@@ -10,6 +10,7 @@ import {
   DataLocation,
   ElementaryTypeName,
   EtherUnit,
+  EnumDefinition,
   FunctionDefinition,
   FunctionVisibility,
   IdentifierPath,
@@ -318,6 +319,12 @@ export function getFunctionTypeString(node: FunctionDefinition, compilerVersion:
       const baseType = getNodeType(decl, compilerVersion);
       if (baseType instanceof ArrayType || baseType instanceof UserDefinedType) {
         if (decl.storageLocation === DataLocation.Default) {
+          if (
+            decl.vType instanceof UserDefinedTypeName &&
+            decl.vType.vReferencedDeclaration instanceof EnumDefinition
+          ) {
+            return `${baseType.pp()}`;
+          }
           throw new NotSupportedYetError(
             'Default location ref parameter to string not supported yet',
           );
