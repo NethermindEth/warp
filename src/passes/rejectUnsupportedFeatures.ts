@@ -9,6 +9,7 @@ import {
   getNodeType,
   UserDefinedType,
   UsingForDirective,
+  ImportDirective,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -43,12 +44,24 @@ export class RejectUnsupportedFeatures extends ASTMapper {
         `Memory structs not supported yet, found at ${printNode(node)}`,
       );
     }
+    this.commonVisit(node, ast);
   }
-  visitUsingForDirective(node: UsingForDirective, _ast: AST): void {
+  visitUsingForDirective(node: UsingForDirective, ast: AST): void {
     if (node.vLibraryName === undefined) {
       throw new NotSupportedYetError(
         `Non-library using fors not supported yet, found at ${printNode(node)}`,
       );
     }
+    this.commonVisit(node, ast);
+  }
+  visitImportDirective(node: ImportDirective, _ast: AST): void {
+    if (node.children.length !== 0) {
+      throw new NotSupportedYetError(
+        `Specific imports are not supported yet, found at ${printNode(
+          node,
+        )}. Please use whole-file imports until this is implemented`,
+      );
+    }
+    // No need to recurse, since we throw if it has any children
   }
 }
