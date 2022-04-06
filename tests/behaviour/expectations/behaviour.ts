@@ -601,6 +601,13 @@ export const expectations = flatten(
             new File('derived', 'Derived', [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
           ]),
         ]),
+        new Dir('libraries', [
+          File.Simple('using_for', [
+            Expect.Simple('libFunction', ['1'], ['0'], 'uint256/true branch'),
+          ]),
+          File.Simple('importLibs', [Expect.Simple('addSub', ['5', '4'], ['9', '1'])]),
+          File.Simple('LibInLib', [Expect.Simple('mulDiv', ['5', '2'], ['10', '2', '1'])]),
+        ]),
         new Dir('loops', [
           File.Simple('loops', [
             Expect.Simple('forLoop', ['3'], ['8']),

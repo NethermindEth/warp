@@ -14,6 +14,7 @@ export * from './intBoundCalculator';
 export * from './literalExpressionEvaluator/literalExpressionEvaluator';
 export * from './loopFunctionaliser';
 export * from './memoryHandler';
+export * from './referencedLibraries';
 export * from './rejectUnsupportedFeatures';
 export * from './returnInserter';
 export * from './ReturnVariableInitializer';

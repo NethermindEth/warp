@@ -8,6 +8,7 @@ import {
   Continue,
   ElementaryTypeName,
   ExpressionStatement,
+  ForStatement,
   FunctionCall,
   FunctionDefinition,
   Identifier,
@@ -29,6 +30,7 @@ import {
   ElementaryTypeNameExpression,
   TupleExpression,
   UncheckedBlock,
+  WhileStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
@@ -232,6 +234,18 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.documentation,
       node.raw,
     );
+  } else if (node instanceof ForStatement) {
+    newNode = new ForStatement(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      cloneASTNodeImpl(node.vBody, ast, remappedIds),
+      node.vInitializationExpression &&
+        cloneASTNodeImpl(node.vInitializationExpression, ast, remappedIds),
+      node.vCondition && cloneASTNodeImpl(node.vCondition, ast, remappedIds),
+      node.vLoopExpression && cloneASTNodeImpl(node.vLoopExpression, ast, remappedIds),
+      node.documentation,
+      node.raw,
+    );
   } else if (node instanceof IfStatement) {
     newNode = new IfStatement(
       replaceId(node.id, ast, remappedIds),
@@ -258,6 +272,15 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.assignments,
       node.vDeclarations.map((decl) => cloneASTNodeImpl(decl, ast, remappedIds)),
       node.vInitialValue && cloneASTNodeImpl(node.vInitialValue, ast, remappedIds),
+      node.documentation,
+      node.raw,
+    );
+  } else if (node instanceof WhileStatement) {
+    newNode = new WhileStatement(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.vCondition && cloneASTNodeImpl(node.vCondition, ast, remappedIds),
+      node.vBody && cloneASTNodeImpl(node.vBody, ast, remappedIds),
       node.documentation,
       node.raw,
     );
