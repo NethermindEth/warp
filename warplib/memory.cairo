@@ -51,7 +51,8 @@ end
 # -----------------Arrays-----------------
 
 func wm_index_static{range_check_ptr}(
-        arrayLoc : felt, index : Uint256, width : Uint256, length : Uint256) -> (loc : felt):
+    arrayLoc : felt, index : Uint256, width : Uint256, length : Uint256
+) -> (loc : felt):
     # Check that the array index is valid
     let (inRange) = uint256_lt(index, length)
     assert inRange = 1
@@ -72,7 +73,8 @@ func wm_index_static{range_check_ptr}(
 end
 
 func wm_index_dyn{range_check_ptr, warp_memory : DictAccess*}(
-        arrayLoc : felt, index : Uint256, width : Uint256) -> (loc : felt):
+    arrayLoc : felt, index : Uint256, width : Uint256
+) -> (loc : felt):
     alloc_locals
     # Get the length of the array and check that the index is within bounds
     let (length : Uint256) = wm_read_256(arrayLoc)
@@ -93,7 +95,8 @@ func wm_index_dyn{range_check_ptr, warp_memory : DictAccess*}(
 end
 
 func wm_new{range_check_ptr, warp_memory : DictAccess*}(len : Uint256, elemWidth : Uint256) -> (
-        loc : felt):
+    loc : felt
+):
     alloc_locals
     # Calculate space needed for array elements
     let (feltLength : Uint256, overflow : Uint256) = uint256_mul(len, elemWidth)
