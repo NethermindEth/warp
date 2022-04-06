@@ -13,6 +13,7 @@ import {
   ASTNode,
   FunctionCall,
   ArrayType,
+  Expression,
 } from 'solc-typed-ast';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
@@ -23,7 +24,11 @@ import { isCairoConstant, typeNameFromTypeNode } from '../../utils/utils';
 import { error } from '../../utils/formatting';
 
 export class StorageVariableAccessRewriter extends ASTMapper {
-  constructor(public reads: Set<ASTNode>, public storageRefs: Set<ASTNode>) {
+  constructor(
+    public reads: Set<ASTNode>,
+    public storageRefs: Set<ASTNode>,
+    public expectedDataLocations: Map<Expression, DataLocation>,
+  ) {
     super();
   }
 
@@ -38,7 +43,12 @@ export class StorageVariableAccessRewriter extends ASTMapper {
   }
 
   visitIdentifier(node: Identifier, ast: AST): void {
-    if (!this.reads.has(node) || !this.storageRefs.has(node)) {
+    if (
+      !this.storageRefs.has(node) ||
+      (!this.reads.has(node) &&
+        this.expectedDataLocations.get(node) !== DataLocation.Default &&
+        this.expectedDataLocations.get(node) !== DataLocation.Memory)
+    ) {
       this.visitExpression(node, ast);
       return;
     }

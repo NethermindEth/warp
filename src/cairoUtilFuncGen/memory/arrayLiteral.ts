@@ -1,6 +1,6 @@
 import assert = require('assert');
 import { ArrayType, FunctionCall, getNodeType, TupleExpression, TypeNode } from 'solc-typed-ast';
-import { printNode, printTypeNode } from '../../utils/astPrinter';
+import { printNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
 import { notNull } from '../../utils/typeConstructs';
@@ -15,7 +15,6 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
 
     const type = dereferenceType(getNodeType(node, this.ast.compilerVersion));
     assert(type instanceof ArrayType);
-    console.log(printTypeNode(type.elementT));
 
     assert(type.size !== undefined, `${printNode(node)} has undefined size`);
     const size = narrowBigInt(type.size);
