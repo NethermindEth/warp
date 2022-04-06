@@ -7,6 +7,7 @@ func warp_xor{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : f
 end
 
 func warp_xor256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (
-        res : Uint256):
+    res : Uint256
+):
     return uint256_xor(lhs, rhs)
 end

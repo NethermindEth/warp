@@ -21,7 +21,8 @@ struct MemCell:
 end
 
 func warp_idx{range_check_ptr}(arrayIndex : Uint256, width : felt, offset : felt) -> (
-        feltIndex : Uint256):
+    feltIndex : Uint256
+):
     let (width256) = felt_to_uint256(width)
     let (offset256) = felt_to_uint256(offset)
     let (start : Uint256, overflow : Uint256) = uint256_mul(arrayIndex, width256)
@@ -53,7 +54,8 @@ func warp_create_array{range_check_ptr, warp_memory : MemCell*}(len : Uint256) -
 end
 
 func warp_memory_read{range_check_ptr}(warp_memory : MemCell*, name : felt, offset : Uint256) -> (
-        res : felt):
+    res : felt
+):
     let (is_correct_cell : felt) = _at_current_cell(warp_memory, name, offset)
     if is_correct_cell == 1:
         return (res=warp_memory.value)
@@ -93,7 +95,8 @@ func _set_array_length{warp_memory : MemCell*}(name : felt, len : Uint256) -> ()
 end
 
 func _at_current_cell{range_check_ptr}(warp_memory : MemCell*, name : felt, offset : Uint256) -> (
-        res : felt):
+    res : felt
+):
     if warp_memory.name != name:
         return (0)
     end
@@ -110,7 +113,8 @@ end
 # recurse along the array, setting the length to the length and the values to 0
 # start at curr = 0 and end once curr = len
 func _init_arr{range_check_ptr, warp_memory : MemCell*}(
-        name : felt, len : Uint256, curr : Uint256) -> ():
+    name : felt, len : Uint256, curr : Uint256
+) -> ():
     let (eq : felt) = uint256_eq(curr, len)
     if eq == 0:
         warp_memory_write(name, curr, 0)
