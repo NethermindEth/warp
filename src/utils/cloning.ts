@@ -7,6 +7,7 @@ import {
   Break,
   Continue,
   ElementaryTypeName,
+  ElementaryTypeNameExpression,
   ExpressionStatement,
   ForStatement,
   FunctionCall,
@@ -18,18 +19,18 @@ import {
   IndexAccess,
   Literal,
   Mapping,
+  MemberAccess,
   ModifierInvocation,
   OverrideSpecifier,
   ParameterList,
+  PlaceholderStatement,
   Return,
+  TupleExpression,
   UnaryOperation,
+  UncheckedBlock,
   UserDefinedTypeName,
   VariableDeclaration,
   VariableDeclarationStatement,
-  MemberAccess,
-  ElementaryTypeNameExpression,
-  TupleExpression,
-  UncheckedBlock,
   WhileStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -256,6 +257,8 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.documentation,
       node.raw,
     );
+  } else if (node instanceof PlaceholderStatement) {
+    newNode = clonePlaceholder(node, ast, remappedIds);
   } else if (node instanceof Return) {
     newNode = new Return(
       replaceId(node.id, ast, remappedIds),
@@ -439,4 +442,19 @@ function cloneBreak(node: Break, ast: AST, remappedIds: Map<number, number>): Br
 // happy, since it can't distinguish  between T & Continue and T in cloneASTNode<T extends ASTNode>.
 function cloneContinue(node: Continue, ast: AST, remappedIds: Map<number, number>): Continue {
   return new Continue(replaceId(node.id, ast, remappedIds), node.src, node.documentation, node.raw);
+}
+
+// Defining a seperate function instead of inling the code is a workaround to make the typechecker
+// happy, since it can't distinguish between T & PlaceholderStatement and T in cloneASTNode<T extends ASTNode>.
+function clonePlaceholder(
+  node: PlaceholderStatement,
+  ast: AST,
+  remappedIds: Map<number, number>,
+): PlaceholderStatement {
+  return new PlaceholderStatement(
+    replaceId(node.id, ast, remappedIds),
+    node.src,
+    node.documentation,
+    node.raw,
+  );
 }
