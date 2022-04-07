@@ -146,32 +146,32 @@ export const expectations = flatten(
             'WARP',
           ),
           File.Simple('public_vars', [Expect.Simple('f', [], ['696', '0'])], 'A'),
-          // File.Simple(
-          //   'public_vars',
-          //   [
-          //     Expect.Simple(
-          //       'setA',
-          //       ['address@tests/behaviour/contracts/cross_contract_calls/public_vars.A'],
-          //       [],
-          //     ),
-          //   ],
-          //   'B',
-          // ),
-          // File.Simple(
-          //   'public_vars',
-          //   [
-          //     Expect.Simple(
-          //       'setB',
-          //       [
-          //         'address@tests/behaviour/contracts/cross_contract_calls/public_vars.A',
-          //         'address@tests/behaviour/contracts/cross_contract_calls/public_vars.B',
-          //       ],
-          //       [],
-          //     ),
-          //   ],
-          //   'C',
-          // ),
-          //File.Simple('public_vars', [Expect.Simple('foo', [], ['696', '0'])], 'C'),
+          File.Simple(
+            'public_vars',
+            [
+              Expect.Simple(
+                'setA',
+                ['address@tests/behaviour/contracts/cross_contract_calls/public_vars.A'],
+                [],
+              ),
+            ],
+            'B',
+          ),
+          File.Simple(
+            'public_vars',
+            [
+              Expect.Simple(
+                'setB',
+                [
+                  'address@tests/behaviour/contracts/cross_contract_calls/public_vars.A',
+                  'address@tests/behaviour/contracts/cross_contract_calls/public_vars.B',
+                ],
+                [],
+              ),
+            ],
+            'C',
+          ),
+          File.Simple('public_vars', [Expect.Simple('foo', [], ['696', '0'])], 'C'),
           File.Simple(
             'public_vars',
             [

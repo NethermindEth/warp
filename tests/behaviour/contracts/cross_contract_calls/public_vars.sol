@@ -23,11 +23,16 @@ contract B{
 contract C{
     B public a;
     function foo() public returns (uint){
-        return a.b().f();
+        // remove temporaries
+        B temp1 = a;
+        A temp2 = temp1.b();
+        return temp2.f();
     }
     function setB(address addrA, address addrB) public {
+        // remove temporaries
         a = B(addrB);
-        a.setA(addrA);
+        B temp = a;
+        temp.setA(addrA);
     }
     function f(address addr) public returns (uint){
         return A(addr).f();
