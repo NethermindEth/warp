@@ -19,7 +19,6 @@ import { ASTMapper } from '../../ast/mapper';
 import { NotSupportedYetError } from '../../utils/errors';
 import { bigintToTwosComplement, toHexString } from '../../utils/utils';
 import { functionaliseIntConversion } from '../../warplib/implementations/conversions/int';
-import { cloneASTNode } from '../../utils/cloning';
 
 export class ExplicitConversionToFunc extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -39,11 +38,10 @@ export class ExplicitConversionToFunc extends ASTMapper {
     );
 
     if (
-      typeNameType instanceof TypeNameType &&
       typeNameType.type instanceof UserDefinedType &&
       typeNameType.type.definition instanceof ContractDefinition
     ) {
-      const operand = cloneASTNode(node.vArguments[0], ast);
+      const operand = node.vArguments[0];
       operand.typeString = node.typeString;
       ast.replaceNode(node, operand);
       return;
