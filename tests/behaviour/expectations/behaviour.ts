@@ -79,6 +79,15 @@ export const expectations = flatten(
               ],
             ]),
           ]),
+          new File(
+            'simpleImmutable',
+            'WARP',
+            [
+              Expect.Simple('getUintValue', [], ['0', '256'], '0'),
+              Expect.Simple('addUintValue', ['0', '256'], ['0', '512'], '0'),
+            ],
+            ['0', '256'],
+          ),
         ]),
         new Dir('conversions', [
           File.Simple('signedIdentity', [
