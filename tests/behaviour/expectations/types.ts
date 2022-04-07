@@ -32,8 +32,8 @@ export class Dir {
 export class File {
   constructor(public name: string, public contract: string, public expectations: Expect[]) {}
 
-  static Simple(name: string, expectations: Expect[]) {
-    return new File(name, 'WARP', expectations);
+  static Simple(name: string, expectations: Expect[], contract?: string) {
+    return new File(name, contract ?? 'WARP', expectations);
   }
 }
 

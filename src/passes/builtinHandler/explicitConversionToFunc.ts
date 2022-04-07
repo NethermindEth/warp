@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   AddressType,
+  ContractDefinition,
   ElementaryTypeNameExpression,
   Expression,
   FunctionCall,
@@ -10,6 +11,7 @@ import {
   IntType,
   Literal,
   TypeNameType,
+  UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
@@ -17,24 +19,39 @@ import { ASTMapper } from '../../ast/mapper';
 import { NotSupportedYetError } from '../../utils/errors';
 import { bigintToTwosComplement, toHexString } from '../../utils/utils';
 import { functionaliseIntConversion } from '../../warplib/implementations/conversions/int';
+import { cloneASTNode } from '../../utils/cloning';
 
 export class ExplicitConversionToFunc extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     this.commonVisit(node, ast);
     if (node.kind !== FunctionCallKind.TypeConversion) return;
-    assert(
-      node.vExpression instanceof ElementaryTypeNameExpression,
-      `Unexpected node type ${node.vExpression.type}`,
-    );
+
+    const typeNameType = getNodeType(node.vExpression, ast.compilerVersion);
+
     assert(node.vArguments.length === 1, `Expecting typeconversion to have one child`);
 
     // Since we are only considering type conversions typeTo will always be a TypeNameType
-    const typeNameType = getNodeType(node.vExpression, ast.compilerVersion);
     assert(
       typeNameType instanceof TypeNameType,
       `Got non-typename type ${typeNameType.pp()} when parsing conversion function ${
         node.vFunctionName
       }`,
+    );
+
+    if (
+      typeNameType instanceof TypeNameType &&
+      typeNameType.type instanceof UserDefinedType &&
+      typeNameType.type.definition instanceof ContractDefinition
+    ) {
+      const operand = cloneASTNode(node.vArguments[0], ast);
+      operand.typeString = node.typeString;
+      ast.replaceNode(node, operand);
+      return;
+    }
+
+    assert(
+      node.vExpression instanceof ElementaryTypeNameExpression,
+      `Unexpected node type ${node.vExpression.type}`,
     );
     const typeTo = typeNameType.type;
     const argType = getNodeType(node.vArguments[0], ast.compilerVersion);

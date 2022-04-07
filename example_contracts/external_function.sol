@@ -21,4 +21,11 @@ contract C{
     function foo() public{
         a.b().f();
     }
+    function bar(address addr) public{
+        B c = B(addr);
+        c.b().f();
+    }
+    function boo(address addr) public{
+        B(addr).b().f();
+    }
 }

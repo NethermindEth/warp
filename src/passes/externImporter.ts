@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  ContractKind,
   ContractDefinition,
   EnumDefinition,
   ErrorDefinition,
@@ -30,9 +31,9 @@ export class ExternImporter extends ASTMapper {
     if (declarationSourceUnit === undefined || sourceUnit === declarationSourceUnit) return;
 
     if (
-      declaration instanceof ContractDefinition ||
       declaration instanceof FunctionDefinition ||
-      declaration instanceof EnumDefinition
+      declaration instanceof EnumDefinition ||
+      (declaration instanceof ContractDefinition && declaration.kind === ContractKind.Library)
     ) {
       ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
     }

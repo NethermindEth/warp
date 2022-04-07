@@ -1,4 +1,3 @@
-export * from './addressHandler';
 export * from './annotateImplicits';
 export * from './builtinHandler';
 export * from './constantHandler';
@@ -33,3 +32,4 @@ export * from './unreachableStatementPruner';
 export * from './usingForResolver';
 export * from './variableDeclarationExpressionSplitter';
 export * from './variableDeclarationInitialiser';
+export * from './externalContractHandler';
