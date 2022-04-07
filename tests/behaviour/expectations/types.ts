@@ -5,6 +5,7 @@ export class AsyncTest {
   constructor(
     public name: string,
     public contract: string,
+    public constructorArgs: string[],
     public expectations: Promise<Expect[]> | Expect[],
   ) {}
 
@@ -19,7 +20,7 @@ export class AsyncTest {
   }
 
   static fromSync(test: File): AsyncTest {
-    return new AsyncTest(test.name, test.contract, test.expectations);
+    return new AsyncTest(test.name, test.contract, test.constructorArgs, test.expectations);
   }
 }
 
@@ -30,10 +31,15 @@ export class Dir {
 }
 
 export class File {
-  constructor(public name: string, public contract: string, public expectations: Expect[]) {}
+  constructor(
+    public name: string,
+    public contract: string,
+    public constructorArgs: string[],
+    public expectations: Expect[],
+  ) {}
 
   static Simple(name: string, expectations: Expect[], contract?: string) {
-    return new File(name, contract ?? 'WARP', expectations);
+    return new File(name, contract ?? 'WARP', [], expectations);
   }
 }
 
