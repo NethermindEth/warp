@@ -168,13 +168,7 @@ export const expectations = flatten(
                 ],
                 [],
               ),
-            ],
-            'C',
-          ),
-          File.Simple('public_vars', [Expect.Simple('foo', [], ['696', '0'])], 'C'),
-          File.Simple(
-            'public_vars',
-            [
+              Expect.Simple('foo', [], ['696', '0']),
               Expect.Simple(
                 'f',
                 ['address@tests/behaviour/contracts/cross_contract_calls/simple.A'],
