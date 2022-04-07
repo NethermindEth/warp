@@ -99,7 +99,10 @@ describe('Compiled contracts are deployable', function () {
       } else {
         expect(response.success, 'Deploy request failed').to.be.true;
         if (response.success) {
-          deployedAddresses.set(expectations[i].name, response.result);
+          deployedAddresses.set(
+            `${expectations[i].name}.${expectations[i].contract}`,
+            response.result,
+          );
         }
       }
     });
@@ -112,7 +115,7 @@ describe('Deployed contracts have correct behaviour', function () {
   for (const fileTest of expectations) {
     if (fileTest.expectations instanceof Promise) {
       it(fileTest.name, async function () {
-        const address = deployedAddresses.get(fileTest.name);
+        const address = deployedAddresses.get(`${fileTest.name}.${fileTest.contract}`);
         if (address === undefined) this.skip();
         const expects = await fileTest.expectations;
         await Promise.all(expects.map((expect) => behaviourTest(expect, fileTest, address)));
@@ -122,7 +125,7 @@ describe('Deployed contracts have correct behaviour', function () {
       describe(fileTest.name, async function () {
         for (const functionExpectation of expects) {
           it(functionExpectation.name, async function () {
-            const address = deployedAddresses.get(fileTest.name);
+            const address = deployedAddresses.get(`${fileTest.name}.${fileTest.contract}`);
             if (address === undefined) this.skip();
             await behaviourTest(functionExpectation, fileTest, address);
           });
@@ -152,11 +155,21 @@ async function behaviourTest(
   ] of functionExpectation.steps) {
     const name = functionExpectation.name;
     const mangledFuncName = findMethod(funcName, fileTest.compiled);
+    const replaced_inputs = inputs.map((input) => {
+      if (input.startsWith('address@')) {
+        input = input.replace('address@', '');
+        const value = deployedAddresses.get(input);
+        if (value === undefined) {
+          expect.fail(`${name} failed, cannot find address ${input}`);
+        }
+        return BigInt(value).toString();
+      }
+      return input;
+    });
     if (mangledFuncName === null) {
       expect(mangledFuncName, `${name} - Unable to find function ${funcName}`).to.not.be.null;
     } else {
-      const response = await invoke(address, mangledFuncName, inputs, caller_address);
-
+      const response = await invoke(address, mangledFuncName, replaced_inputs, caller_address);
       console.log(`${fileTest.name} - ${mangledFuncName}: ${response.steps} steps`);
 
       expect(response.status, `${name} - Unhandled starknet-testnet error`).to.equal(200);

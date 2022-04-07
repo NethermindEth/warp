@@ -141,6 +141,52 @@ export const expectations = flatten(
             Expect.Simple('explicit', ['240'], ['240', '240', '0']),
           ]),
         ]),
+        new Dir('cross_contract_calls', [
+          File.Simple('simple', [Expect.Simple('f', [], ['69', '0'])], 'A'),
+          File.Simple(
+            'simple',
+            [
+              Expect.Simple(
+                'f',
+                ['address@tests/behaviour/contracts/cross_contract_calls/simple.A'],
+                ['69', '0'],
+              ),
+            ],
+            'WARP',
+          ),
+          File.Simple('public_vars', [Expect.Simple('f', [], ['696', '0'])], 'A'),
+          File.Simple(
+            'public_vars',
+            [
+              Expect.Simple(
+                'setA',
+                ['address@tests/behaviour/contracts/cross_contract_calls/public_vars.A'],
+                [],
+              ),
+            ],
+            'B',
+          ),
+          File.Simple(
+            'public_vars',
+            [
+              Expect.Simple(
+                'setB',
+                [
+                  'address@tests/behaviour/contracts/cross_contract_calls/public_vars.A',
+                  'address@tests/behaviour/contracts/cross_contract_calls/public_vars.B',
+                ],
+                [],
+              ),
+              Expect.Simple('foo', [], ['696', '0']),
+              Expect.Simple(
+                'f',
+                ['address@tests/behaviour/contracts/cross_contract_calls/simple.A'],
+                ['69', '0'],
+              ),
+            ],
+            'C',
+          ),
+        ]),
         // covers nested mappings
         new Dir('Dai', [
           new File(

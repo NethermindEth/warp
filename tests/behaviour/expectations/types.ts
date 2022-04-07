@@ -38,8 +38,8 @@ export class File {
     public expectations: Expect[],
   ) {}
 
-  static Simple(name: string, expectations: Expect[]) {
-    return new File(name, 'WARP', [], expectations);
+  static Simple(name: string, expectations: Expect[], contract?: string) {
+    return new File(name, contract ?? 'WARP', [], expectations);
   }
 }
 

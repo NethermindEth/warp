@@ -252,10 +252,13 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
       .map((l) => INDENT + l)
       .join('\n'),
   );
+  // Handle the workaround of genContractInterface function of externalContractInterfaceInserter.ts
+  // Remove `@interface` to get the actual contract interface name
+  const name = node.name.replace('@interface', '');
   return [
     [
       ...structs,
-      [`@contract_interface`, `namespace ${node.name}:`, ...functions, `end`].join('\n'),
+      [`@contract_interface`, `namespace ${name}:`, ...functions, `end`].join('\n'),
     ].join('\n'),
   ];
 }
