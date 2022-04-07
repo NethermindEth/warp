@@ -30,3 +30,4 @@ export * from './publicFunctionSplitter';
 export * from './externalInputChecker';
 export * from './generateGetters';
 export * from './namedArgsRemover';
+export * from './externalArgumentModifier';
