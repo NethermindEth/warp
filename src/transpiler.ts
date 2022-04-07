@@ -10,7 +10,6 @@ import {
   ExternalInputChecker,
   ExternImporter,
   ExternalArgumentModifier,
-  PublicStateVarsGetterGenerator,
   IdentifierMangler,
   IfFunctionaliser,
   ImplicitConversionToExplicit,
