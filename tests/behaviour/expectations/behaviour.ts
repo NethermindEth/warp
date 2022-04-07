@@ -82,11 +82,11 @@ export const expectations = flatten(
           new File(
             'simpleImmutable',
             'WARP',
+            ['0', '256'],
             [
               Expect.Simple('getUintValue', [], ['0', '256'], '0'),
               Expect.Simple('addUintValue', ['0', '256'], ['0', '512'], '0'),
             ],
-            ['0', '256'],
           ),
         ]),
         new Dir('conversions', [
@@ -146,6 +146,7 @@ export const expectations = flatten(
           new File(
             'dai',
             'Dai',
+            [],
             [
               new Expect('mint', [
                 ['mint', ['1', '10000', '0'], ['1'], '1'],
@@ -177,7 +178,6 @@ export const expectations = flatten(
                 ['getAllowance', ['2', '3'], ['69', '0'], '2'],
               ]),
             ],
-            [],
           ),
         ]),
         new Dir('delete', [
@@ -607,12 +607,12 @@ export const expectations = flatten(
         ]),
         new Dir('inheritance', [
           new Dir('functions', [
-            new File('base', 'Base', [Expect.Simple('g', ['3'], ['3'])], []),
-            new File('mid', 'Mid', [Expect.Simple('g', ['10'], ['20'])], []),
-            new File('derived', 'Derived', [Expect.Simple('f', ['5'], ['15'])], []),
+            new File('base', 'Base', [], [Expect.Simple('g', ['3'], ['3'])]),
+            new File('mid', 'Mid', [], [Expect.Simple('g', ['10'], ['20'])]),
+            new File('derived', 'Derived', [], [Expect.Simple('f', ['5'], ['15'])]),
           ]),
           new Dir('variables', [
-            new File('derived', 'Derived', [Expect.Simple('f', [], ['36', '0', '24', '0'])], []),
+            new File('derived', 'Derived', [], [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
           ]),
         ]),
         new Dir('libraries', [

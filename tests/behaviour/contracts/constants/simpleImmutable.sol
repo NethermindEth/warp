@@ -12,7 +12,7 @@ contract WARP {
     return uintValue;
   }
 
-	function addUintValue(uint x) public view returns (uint) {
-		return uintValue + x;
-	}
+  function addUintValue(uint x) public view returns (uint) {
+    return uintValue + x;
+  }
 }

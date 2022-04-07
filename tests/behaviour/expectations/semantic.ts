@@ -99,8 +99,8 @@ export const expectations: AsyncTest[] = validTests.map(([file, tests]): AsyncTe
   return new AsyncTest(
     truncatedFileName,
     lastContract,
-    transcodeTests(file, tests, lastContract, initialRun),
     [],
+    transcodeTests(file, tests, lastContract, initialRun),
   );
 });
 
