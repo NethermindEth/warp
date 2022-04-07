@@ -7,7 +7,9 @@ import {
   Break,
   Continue,
   ElementaryTypeName,
+  ElementaryTypeNameExpression,
   ExpressionStatement,
+  ForStatement,
   FunctionCall,
   FunctionDefinition,
   Identifier,
@@ -17,18 +19,19 @@ import {
   IndexAccess,
   Literal,
   Mapping,
+  MemberAccess,
   ModifierInvocation,
   OverrideSpecifier,
   ParameterList,
+  PlaceholderStatement,
   Return,
+  TupleExpression,
   UnaryOperation,
+  UncheckedBlock,
   UserDefinedTypeName,
   VariableDeclaration,
   VariableDeclarationStatement,
-  MemberAccess,
-  ElementaryTypeNameExpression,
-  TupleExpression,
-  UncheckedBlock,
+  WhileStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
@@ -232,6 +235,18 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.documentation,
       node.raw,
     );
+  } else if (node instanceof ForStatement) {
+    newNode = new ForStatement(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      cloneASTNodeImpl(node.vBody, ast, remappedIds),
+      node.vInitializationExpression &&
+        cloneASTNodeImpl(node.vInitializationExpression, ast, remappedIds),
+      node.vCondition && cloneASTNodeImpl(node.vCondition, ast, remappedIds),
+      node.vLoopExpression && cloneASTNodeImpl(node.vLoopExpression, ast, remappedIds),
+      node.documentation,
+      node.raw,
+    );
   } else if (node instanceof IfStatement) {
     newNode = new IfStatement(
       replaceId(node.id, ast, remappedIds),
@@ -242,6 +257,8 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.documentation,
       node.raw,
     );
+  } else if (node instanceof PlaceholderStatement) {
+    newNode = clonePlaceholder(node, ast, remappedIds);
   } else if (node instanceof Return) {
     newNode = new Return(
       replaceId(node.id, ast, remappedIds),
@@ -258,6 +275,15 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.assignments,
       node.vDeclarations.map((decl) => cloneASTNodeImpl(decl, ast, remappedIds)),
       node.vInitialValue && cloneASTNodeImpl(node.vInitialValue, ast, remappedIds),
+      node.documentation,
+      node.raw,
+    );
+  } else if (node instanceof WhileStatement) {
+    newNode = new WhileStatement(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.vCondition && cloneASTNodeImpl(node.vCondition, ast, remappedIds),
+      node.vBody && cloneASTNodeImpl(node.vBody, ast, remappedIds),
       node.documentation,
       node.raw,
     );
@@ -397,6 +423,8 @@ function sameType<T extends ASTNode>(newNode: ASTNode, ref: T): newNode is T {
   return newNode instanceof ref.constructor && ref instanceof newNode.constructor;
 }
 
+// When cloning large chunks of the AST, id based references in the resulting subtree
+// should refer to newly created nodes, as such we build up a map of id to original -> id of clone
 function replaceId(oldId: number, ast: AST, remappedIds: Map<number, number>): number {
   const id = ast.reserveId();
   if (remappedIds.has(oldId)) {
@@ -406,14 +434,25 @@ function replaceId(oldId: number, ast: AST, remappedIds: Map<number, number>): n
   return id;
 }
 
-// Defining a seperate function instead of inling the code is a workaround to make the typechecker
-// happy, since it can't distinguish between T & Break and T in cloneASTNode<T extends ASTNode>.
+// For some types the typechecker can't distinguish between T & U and T in cloneASTNode<T extends ASTNode>
+// In such cases separate functions need to be created and called from within cloneASTNodeImpl
 function cloneBreak(node: Break, ast: AST, remappedIds: Map<number, number>): Break {
   return new Break(replaceId(node.id, ast, remappedIds), node.src, node.documentation, node.raw);
 }
 
-// Defining a seperate function instead of inling the code is a workaround to make the typechecker
-// happy, since it can't distinguish  between T & Continue and T in cloneASTNode<T extends ASTNode>.
 function cloneContinue(node: Continue, ast: AST, remappedIds: Map<number, number>): Continue {
   return new Continue(replaceId(node.id, ast, remappedIds), node.src, node.documentation, node.raw);
+}
+
+function clonePlaceholder(
+  node: PlaceholderStatement,
+  ast: AST,
+  remappedIds: Map<number, number>,
+): PlaceholderStatement {
+  return new PlaceholderStatement(
+    replaceId(node.id, ast, remappedIds),
+    node.src,
+    node.documentation,
+    node.raw,
+  );
 }
