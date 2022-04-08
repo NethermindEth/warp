@@ -6,6 +6,7 @@ import {
   TupleExpression,
   ParameterList,
   VariableDeclaration,
+  DataLocation,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { toHexString } from './utils';
@@ -36,8 +37,14 @@ export function createEmptyTuple(ast: AST): TupleExpression {
   return node;
 }
 
-export function createIdentifier(variable: VariableDeclaration, ast: AST): Identifier {
-  const node = new Identifier(ast.reserveId(), '', variable.typeString, variable.name, variable.id);
+export function createIdentifier(
+  variable: VariableDeclaration,
+  ast: AST,
+  dataLocation?: DataLocation,
+): Identifier {
+  const typeString =
+    dataLocation !== undefined ? variable.typeString + ' ' + dataLocation : variable.typeString;
+  const node = new Identifier(ast.reserveId(), '', typeString, variable.name, variable.id);
   ast.setContextRecursive(node);
   return node;
 }

@@ -22,16 +22,11 @@ import { collectUnboundVariables } from './loopFunctionaliser/utils';
 
 export class ExternalArgumentModifier extends ASTMapper {
   /*
-
-  Looks for all memory struct VariableDeclarations in FunctionDefinitions. e.g FunctionExample(structDef memory structVar).
-  For this memory struct to be implemented in our own memory system it needs to be registered and allocated. 
-  There are passes later in the transpiler process that can take care of writing the struct into memory, we will just have 
-  to create a memory struct in the function body for the later passes to work correctly.
-
-  The processes of adding the struct to memory is as follows:
-  Create a VariableDeclarationStatement that declares a memory struct with an initial value equal to the VariableDeclaration
-  in the FunctionDefinition. Change the VariableDeclaration in the FunctionDefinition to have storageLocation = calldata.
-  Change all identifiers in the function.vBody to refer to new memory struct instead of the now calldata struct.
+  Pass Explanation:
+  Memory structs passed to external functions need to be registered and allocated to the WARP memory system. 
+  This is done by turning the memory struct in into a calldata struct and inserting a VariableDeclarationStatment that
+  creates a struct in memory in the function body. This will then be picked up in the References pass and the Struct will 
+  persist in the WARP memory system.
 
   before pass:
   struct structDef {
@@ -53,9 +48,9 @@ export class ExternalArgumentModifier extends ASTMapper {
     structDef memory structA_mem = structDef(structA.member1, structA.member 2)
     return structA_mem.member1;
   }
+  
+  This only needs to be done for external functions since internal functions will use the references of the WARP memory system.
   */
-  // oldToNewStructMapping = new Map<VariableDeclaration, VariableDeclaration>();
-  // identifiersNotToBeChanged = new Array<Identifier>();
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (node.visibility === FunctionVisibility.External && node.vBody !== undefined) {
@@ -78,7 +73,12 @@ export class ExternalArgumentModifier extends ASTMapper {
           node.vBody?.insertAtBeginning(varDeclStatement);
           varDecIdentifierMap
             .get(varDecl)
-            ?.forEach((identifier) => replaceNode(identifier, createIdentifier(memoryStruct, ast)));
+            ?.forEach((identifier) =>
+              replaceNode(
+                identifier,
+                createIdentifier(memoryStruct, ast, memoryStruct.storageLocation),
+              ),
+            );
         }
       });
       ast.setContextRecursive(node);
@@ -91,11 +91,6 @@ export class ExternalArgumentModifier extends ASTMapper {
     memoryStruct: VariableDeclaration,
     ast: AST,
   ): VariableDeclarationStatement {
-    //const memoryStruct = cloneASTNode(calldataStruct, ast);
-    //memoryStruct.name = calldataStruct.name + '_mem';
-    //memoryStruct.storageLocation = DataLocation.Memory;
-    //this.oldToNewStructMapping.set(calldataStruct, memoryStruct);
-    // const callDataVarDecl = createIdentifier(memoryStruct, ast);
     const structDeclarationStatement = new VariableDeclarationStatement(
       ast.reserveId(),
       '',
@@ -103,7 +98,6 @@ export class ExternalArgumentModifier extends ASTMapper {
       [memoryStruct],
       this.createStructConstructor(calldataStruct, memoryStruct, ast),
     );
-    // this.identifiersNotToBeChanged.push(callDataVarDecl);
     return structDeclarationStatement;
   }
 
@@ -158,8 +152,7 @@ export class ExternalArgumentModifier extends ASTMapper {
         varDecl.vType.vReferencedDeclaration instanceof StructDefinition,
     );
     const memberAccessArray = varDecl.vType.vReferencedDeclaration.vMembers.map((member) => {
-      const newIdentifier = createIdentifier(varDecl, ast);
-      //this.identifiersNotToBeChanged.push(newIdentifier);
+      const newIdentifier = createIdentifier(varDecl, ast, varDecl.storageLocation);
       return new MemberAccess(
         ast.reserveId(),
         '',
@@ -171,16 +164,4 @@ export class ExternalArgumentModifier extends ASTMapper {
     });
     return memberAccessArray;
   }
-
-  // visitIdentifier(node: Identifier, ast: AST): void {
-  //   if (
-  //     node.vReferencedDeclaration instanceof VariableDeclaration &&
-  //     this.oldToNewStructMapping.get(node.vReferencedDeclaration) !== undefined &&
-  //     !this.identifiersNotToBeChanged.includes(node)
-  //   ) {
-  //     const newVarDecl = this.oldToNewStructMapping.get(node.vReferencedDeclaration);
-  //     assert(newVarDecl !== undefined);
-  //     ast.replaceNode(node, createIdentifier(newVarDecl, ast));
-  //   }
-  // }
 }

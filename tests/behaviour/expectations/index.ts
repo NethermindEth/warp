@@ -17,4 +17,4 @@ function filterTests(
   return tests.filter((test) => test.name.includes(filter));
 }
 
-export const expectations = filterTests(behaviour, semantic, 'external_function_inputs');
+export const expectations = filterTests(behaviour, semantic);
