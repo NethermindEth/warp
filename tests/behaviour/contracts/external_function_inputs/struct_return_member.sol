@@ -10,7 +10,6 @@ struct structDef {
 }
 
     function testReturnMember(structDef memory structA) pure external returns (uint8) {
-        structDef memory r = structDef(1, 2);
         return structA.member1;
     }
 
