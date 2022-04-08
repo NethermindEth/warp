@@ -8,6 +8,7 @@ import {
   FunctionVisibility,
   Identifier,
   MemberAccess,
+  replaceNode,
   StructDefinition,
   UserDefinedTypeName,
   VariableDeclaration,
@@ -17,6 +18,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
 import { createIdentifier } from '../utils/nodeTemplates';
+import { collectUnboundVariables } from './loopFunctionaliser/utils';
 
 export class ExternalArgumentModifier extends ASTMapper {
   /*
@@ -52,52 +54,56 @@ export class ExternalArgumentModifier extends ASTMapper {
     return structA_mem.member1;
   }
   */
-  oldToNewStructMapping = new Map<VariableDeclaration, VariableDeclaration>();
-  identifiersNotToBeChanged = new Array<Identifier>();
+  // oldToNewStructMapping = new Map<VariableDeclaration, VariableDeclaration>();
+  // identifiersNotToBeChanged = new Array<Identifier>();
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    const memoryStructs = new Array<VariableDeclaration>();
-    if (node.visibility === FunctionVisibility.External) {
+    if (node.visibility === FunctionVisibility.External && node.vBody !== undefined) {
+      const varDecIdentifierMap = collectUnboundVariables(node.vBody);
       node.vParameters.vParameters.forEach((varDecl) => {
         if (
           varDecl.storageLocation === DataLocation.Memory &&
           varDecl.vType instanceof UserDefinedTypeName &&
           varDecl.vType.vReferencedDeclaration instanceof StructDefinition
         ) {
-          memoryStructs.push(varDecl);
+          // memoryStructs.push(varDecl);
+          const memoryStruct = cloneASTNode(varDecl, ast);
+          memoryStruct.name = memoryStruct.name + '_mem';
           varDecl.storageLocation = DataLocation.CallData;
+          const varDeclStatement = this.createVariableDeclarationStatement(
+            varDecl,
+            memoryStruct,
+            ast,
+          );
+          node.vBody?.insertAtBeginning(varDeclStatement);
+          varDecIdentifierMap
+            .get(varDecl)
+            ?.forEach((identifier) => replaceNode(identifier, createIdentifier(memoryStruct, ast)));
         }
       });
-      if (memoryStructs.length > 0) {
-        const variableDeclarationStatements = memoryStructs.map((varDecl) => {
-          return this.createVariableDeclarationStatement(varDecl, ast);
-        });
-        variableDeclarationStatements.forEach((statement) => {
-          node.vBody?.insertAtBeginning(statement);
-        });
-        ast.setContextRecursive(node);
-      }
+      ast.setContextRecursive(node);
     }
     this.commonVisit(node, ast);
   }
 
   private createVariableDeclarationStatement(
     calldataStruct: VariableDeclaration,
+    memoryStruct: VariableDeclaration,
     ast: AST,
   ): VariableDeclarationStatement {
-    const memoryStruct = cloneASTNode(calldataStruct, ast);
-    memoryStruct.name = calldataStruct.name + '_mem';
-    memoryStruct.storageLocation = DataLocation.Memory;
-    this.oldToNewStructMapping.set(calldataStruct, memoryStruct);
-    const callDataVarDecl = createIdentifier(memoryStruct, ast);
+    //const memoryStruct = cloneASTNode(calldataStruct, ast);
+    //memoryStruct.name = calldataStruct.name + '_mem';
+    //memoryStruct.storageLocation = DataLocation.Memory;
+    //this.oldToNewStructMapping.set(calldataStruct, memoryStruct);
+    // const callDataVarDecl = createIdentifier(memoryStruct, ast);
     const structDeclarationStatement = new VariableDeclarationStatement(
       ast.reserveId(),
       '',
-      [1],
+      [memoryStruct.id],
       [memoryStruct],
       this.createStructConstructor(calldataStruct, memoryStruct, ast),
     );
-    this.identifiersNotToBeChanged.push(callDataVarDecl);
+    // this.identifiersNotToBeChanged.push(callDataVarDecl);
     return structDeclarationStatement;
   }
 
@@ -152,14 +158,8 @@ export class ExternalArgumentModifier extends ASTMapper {
         varDecl.vType.vReferencedDeclaration instanceof StructDefinition,
     );
     const memberAccessArray = varDecl.vType.vReferencedDeclaration.vMembers.map((member) => {
-      const newIdentifier = new Identifier(
-        ast.reserveId(),
-        '',
-        varDecl.typeString,
-        varDecl.name,
-        varDecl.id,
-      );
-      this.identifiersNotToBeChanged.push(newIdentifier);
+      const newIdentifier = createIdentifier(varDecl, ast);
+      //this.identifiersNotToBeChanged.push(newIdentifier);
       return new MemberAccess(
         ast.reserveId(),
         '',
@@ -172,15 +172,15 @@ export class ExternalArgumentModifier extends ASTMapper {
     return memberAccessArray;
   }
 
-  visitIdentifier(node: Identifier, ast: AST): void {
-    if (
-      node.vReferencedDeclaration instanceof VariableDeclaration &&
-      this.oldToNewStructMapping.get(node.vReferencedDeclaration) !== undefined &&
-      !this.identifiersNotToBeChanged.includes(node)
-    ) {
-      const newVarDecl = this.oldToNewStructMapping.get(node.vReferencedDeclaration);
-      assert(newVarDecl !== undefined);
-      ast.replaceNode(node, createIdentifier(newVarDecl, ast));
-    }
-  }
+  // visitIdentifier(node: Identifier, ast: AST): void {
+  //   if (
+  //     node.vReferencedDeclaration instanceof VariableDeclaration &&
+  //     this.oldToNewStructMapping.get(node.vReferencedDeclaration) !== undefined &&
+  //     !this.identifiersNotToBeChanged.includes(node)
+  //   ) {
+  //     const newVarDecl = this.oldToNewStructMapping.get(node.vReferencedDeclaration);
+  //     assert(newVarDecl !== undefined);
+  //     ast.replaceNode(node, createIdentifier(newVarDecl, ast));
+  //   }
+  // }
 }
