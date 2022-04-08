@@ -660,6 +660,54 @@ export const expectations = flatten(
           new Dir('variables', [
             new File('derived', 'Derived', [], [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
           ]),
+          new Dir('modifiers', [
+            new File(
+              'modifierInheritance',
+              'D',
+              [],
+              [
+                new Expect('modifier', [
+                  ['withdraw', ['5000', '0'], ['95000', '0'], '0'],
+                  ['lock', [], [], '0'],
+                  ['withdraw', ['280', '0'], null, '0', 'Can not call this function when locked'],
+                  ['clear', [], [], '0'],
+                  ['withdraw', ['280', '0'], ['0', '0'], '0'],
+                ]),
+              ],
+            ),
+            new File(
+              'modifierOverriding',
+              'C',
+              [],
+              [
+                new Expect('modifier', [
+                  [
+                    'withdraw',
+                    ['10000', '0'],
+                    null,
+                    '0',
+                    'Value to withdraw must be smaller than the current balance',
+                  ],
+                  [
+                    'withdraw',
+                    ['100', '0'],
+                    null,
+                    '0',
+                    'Value to withdraw must be bigger than the limit',
+                  ],
+                  ['withdraw', ['5500', '0'], null, '0', 'Balance must be bigger than 1000'],
+                  ['withdraw', ['5000', '0'], ['1000', '0'], '0'],
+                  [
+                    'withdraw',
+                    ['100', '0'],
+                    null,
+                    '0',
+                    'Value to withdraw must be bigger than the limit',
+                  ],
+                ]),
+              ],
+            ),
+          ]),
         ]),
         new Dir('libraries', [
           File.Simple('using_for', [
