@@ -82,10 +82,12 @@ export const expectations = flatten(
           new File(
             'simpleImmutable',
             'WARP',
-            ['0', '256'],
+            ['0', '256', '512'],
             [
               Expect.Simple('getUintValue', [], ['0', '256'], '0'),
+              Expect.Simple('getIntValue', [], ['512'], '0'),
               Expect.Simple('addUintValue', ['0', '256'], ['0', '512'], '0'),
+              Expect.Simple('addIntValue', ['256'], ['768'], '0'),
             ],
           ),
         ]),
