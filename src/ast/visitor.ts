@@ -65,7 +65,7 @@ import {
   StatementWithChildren,
   ASTNodeWithChildren,
 } from 'solc-typed-ast';
-import { CairoAssert, CairoFunctionDefinition } from './cairoNodes';
+import { CairoAssert, CairoContract, CairoFunctionDefinition } from './cairoNodes';
 
 import { AST } from './ast';
 
@@ -83,69 +83,77 @@ export abstract class ASTVisitor<T> {
   }
   dispatchVisit(node: ASTNode, ast: AST): T {
     let res: T | null = null;
-    if (node instanceof CairoFunctionDefinition) res = this.visitCairoFunctionDefinition(node, ast);
-    else if (node instanceof CairoAssert) res = this.visitCairoAssert(node, ast);
-    else if (node instanceof ElementaryTypeName) res = this.visitElementaryTypeName(node, ast);
-    else if (node instanceof ArrayTypeName) res = this.visitArrayTypeName(node, ast);
-    else if (node instanceof Mapping) res = this.visitMapping(node, ast);
-    else if (node instanceof UserDefinedTypeName) res = this.visitUserDefinedTypeName(node, ast);
-    else if (node instanceof FunctionTypeName) res = this.visitFunctionTypeName(node, ast);
-    else if (node instanceof Literal) res = this.visitLiteral(node, ast);
-    else if (node instanceof Identifier) res = this.visitIdentifier(node, ast);
-    else if (node instanceof IdentifierPath) res = this.visitIdentifierPath(node, ast);
-    else if (node instanceof FunctionCallOptions) res = this.visitFunctionCallOptions(node, ast);
-    else if (node instanceof FunctionCall) res = this.visitFunctionCall(node, ast);
-    else if (node instanceof MemberAccess) res = this.visitMemberAccess(node, ast);
-    else if (node instanceof IndexAccess) res = this.visitIndexAccess(node, ast);
-    else if (node instanceof IndexRangeAccess) res = this.visitIndexRangeAccess(node, ast);
-    else if (node instanceof UnaryOperation) res = this.visitUnaryOperation(node, ast);
+    // ASTNodeWithChildren
+    if (node instanceof CairoContract) res = this.visitCairoContract(node, ast);
+    else if (node instanceof ContractDefinition) res = this.visitContractDefinition(node, ast);
+    else if (node instanceof EnumDefinition) res = this.visitEnumDefinition(node, ast);
+    else if (node instanceof OverrideSpecifier) res = this.visitOverrideSpecifier(node, ast);
+    else if (node instanceof ParameterList) res = this.visitParameterList(node, ast);
+    else if (node instanceof SourceUnit) res = this.visitSourceUnit(node, ast);
+    //  StatementWithChildren
+    else if (node instanceof Block) res = this.visitBlock(node, ast);
+    else if (node instanceof UncheckedBlock) res = this.visitUncheckedBlock(node, ast);
+    else if (node instanceof StructDefinition) res = this.visitStructDefinition(node, ast);
+    else if (node instanceof EnumValue) res = this.visitEnumValue(node, ast);
+    else if (node instanceof ErrorDefinition) res = this.visitErrorDefinition(node, ast);
+    else if (node instanceof EventDefinition) res = this.visitEventDefinition(node, ast);
+    // Expression
+    else if (node instanceof Assignment) res = this.visitAssignment(node, ast);
     else if (node instanceof BinaryOperation) res = this.visitBinaryOperation(node, ast);
+    else if (node instanceof CairoAssert) res = this.visitCairoAssert(node, ast);
     else if (node instanceof Conditional) res = this.visitConditional(node, ast);
     else if (node instanceof ElementaryTypeNameExpression)
       res = this.visitElementaryTypeNameExpression(node, ast);
+    else if (node instanceof FunctionCall) res = this.visitFunctionCall(node, ast);
+    else if (node instanceof FunctionCallOptions) res = this.visitFunctionCallOptions(node, ast);
+    else if (node instanceof IndexAccess) res = this.visitIndexAccess(node, ast);
+    else if (node instanceof IndexRangeAccess) res = this.visitIndexRangeAccess(node, ast);
+    else if (node instanceof MemberAccess) res = this.visitMemberAccess(node, ast);
     else if (node instanceof NewExpression) res = this.visitNewExpression(node, ast);
+    //  PrimaryExpression
+    else if (node instanceof Identifier) res = this.visitIdentifier(node, ast);
+    else if (node instanceof Literal) res = this.visitLiteral(node, ast);
     else if (node instanceof TupleExpression) res = this.visitTupleExpression(node, ast);
-    else if (node instanceof ExpressionStatement) res = this.visitExpressionStatement(node, ast);
-    else if (node instanceof Assignment) res = this.visitAssignment(node, ast);
-    else if (node instanceof VariableDeclaration) res = this.visitVariableDeclaration(node, ast);
-    else if (node instanceof Block) res = this.visitBlock(node, ast);
-    else if (node instanceof UncheckedBlock) res = this.visitUncheckedBlock(node, ast);
-    else if (node instanceof VariableDeclarationStatement)
-      res = this.visitVariableDeclarationStatement(node, ast);
-    else if (node instanceof IfStatement) res = this.visitIfStatement(node, ast);
-    else if (node instanceof ForStatement) res = this.visitForStatement(node, ast);
-    else if (node instanceof WhileStatement) res = this.visitWhileStatement(node, ast);
-    else if (node instanceof DoWhileStatement) res = this.visitDoWhileStatement(node, ast);
-    else if (node instanceof Return) res = this.visitReturn(node, ast);
-    else if (node instanceof EmitStatement) res = this.visitEmitStatement(node, ast);
-    else if (node instanceof RevertStatement) res = this.visitRevertStatement(node, ast);
-    else if (node instanceof PlaceholderStatement) res = this.visitPlaceholderStatement(node, ast);
+    else if (node instanceof UnaryOperation) res = this.visitUnaryOperation(node, ast);
+    else if (node instanceof CairoFunctionDefinition)
+      res = this.visitCairoFunctionDefinition(node, ast);
+    else if (node instanceof FunctionDefinition) res = this.visitFunctionDefinition(node, ast);
+    else if (node instanceof IdentifierPath) res = this.visitIdentifierPath(node, ast);
+    else if (node instanceof ImportDirective) res = this.visitImportDirective(node, ast);
+    else if (node instanceof InheritanceSpecifier) res = this.visitInheritanceSpecifier(node, ast);
     else if (node instanceof InlineAssembly) res = this.visitInlineAssembly(node, ast);
-    else if (node instanceof TryCatchClause) res = this.visitTryCatchClause(node, ast);
-    else if (node instanceof TryStatement) res = this.visitTryStatement(node, ast);
+    else if (node instanceof ModifierDefinition) res = this.visitModifierDefinition(node, ast);
+    else if (node instanceof ModifierInvocation) res = this.visitModifierInvocation(node, ast);
+    else if (node instanceof PragmaDirective) res = this.visitPragmaDirective(node, ast);
+    // Statement
     else if (node instanceof Break) res = this.visitBreak(node, ast);
     else if (node instanceof Continue) res = this.visitContinue(node, ast);
+    else if (node instanceof DoWhileStatement) res = this.visitDoWhileStatement(node, ast);
+    else if (node instanceof EmitStatement) res = this.visitEmitStatement(node, ast);
+    else if (node instanceof ExpressionStatement) res = this.visitExpressionStatement(node, ast);
+    else if (node instanceof ForStatement) res = this.visitForStatement(node, ast);
+    else if (node instanceof IfStatement) res = this.visitIfStatement(node, ast);
+    else if (node instanceof PlaceholderStatement) res = this.visitPlaceholderStatement(node, ast);
+    else if (node instanceof Return) res = this.visitReturn(node, ast);
+    else if (node instanceof RevertStatement) res = this.visitRevertStatement(node, ast);
     else if (node instanceof Throw) res = this.visitThrow(node, ast);
-    else if (node instanceof ParameterList) res = this.visitParameterList(node, ast);
-    else if (node instanceof ModifierInvocation) res = this.visitModifierInvocation(node, ast);
-    else if (node instanceof OverrideSpecifier) res = this.visitOverrideSpecifier(node, ast);
-    else if (node instanceof FunctionDefinition) res = this.visitFunctionDefinition(node, ast);
-    else if (node instanceof ModifierDefinition) res = this.visitModifierDefinition(node, ast);
-    else if (node instanceof ErrorDefinition) res = this.visitErrorDefinition(node, ast);
-    else if (node instanceof EventDefinition) res = this.visitEventDefinition(node, ast);
-    else if (node instanceof StructDefinition) res = this.visitStructDefinition(node, ast);
-    else if (node instanceof EnumValue) res = this.visitEnumValue(node, ast);
-    else if (node instanceof EnumDefinition) res = this.visitEnumDefinition(node, ast);
+    else if (node instanceof TryCatchClause) res = this.visitTryCatchClause(node, ast);
+    else if (node instanceof TryStatement) res = this.visitTryStatement(node, ast);
+    else if (node instanceof VariableDeclarationStatement)
+      res = this.visitVariableDeclarationStatement(node, ast);
+    else if (node instanceof WhileStatement) res = this.visitWhileStatement(node, ast);
+    else if (node instanceof StructuredDocumentation)
+      res = this.visitStructuredDocumentation(node, ast);
+    // TypeName
+    else if (node instanceof ArrayTypeName) res = this.visitArrayTypeName(node, ast);
+    else if (node instanceof ElementaryTypeName) res = this.visitElementaryTypeName(node, ast);
+    else if (node instanceof FunctionTypeName) res = this.visitFunctionTypeName(node, ast);
+    else if (node instanceof Mapping) res = this.visitMapping(node, ast);
+    else if (node instanceof UserDefinedTypeName) res = this.visitUserDefinedTypeName(node, ast);
     else if (node instanceof UserDefinedValueTypeDefinition)
       res = this.visitUserDefinedValueTypeDefinition(node, ast);
     else if (node instanceof UsingForDirective) res = this.visitUsingForDirective(node, ast);
-    else if (node instanceof InheritanceSpecifier) res = this.visitInheritanceSpecifier(node, ast);
-    else if (node instanceof ContractDefinition) res = this.visitContractDefinition(node, ast);
-    else if (node instanceof StructuredDocumentation)
-      res = this.visitStructuredDocumentation(node, ast);
-    else if (node instanceof ImportDirective) res = this.visitImportDirective(node, ast);
-    else if (node instanceof PragmaDirective) res = this.visitPragmaDirective(node, ast);
-    else if (node instanceof SourceUnit) res = this.visitSourceUnit(node, ast);
+    else if (node instanceof VariableDeclaration) res = this.visitVariableDeclaration(node, ast);
     else {
       assert(false, `Unexpected node: ${node.type}`);
     }
@@ -343,5 +351,8 @@ export abstract class ASTVisitor<T> {
   }
   visitASTNodeWithChildren(node: ASTNodeWithChildren<ASTNode>, ast: AST): T {
     return this.commonVisit(node, ast);
+  }
+  visitCairoContract(node: CairoContract, ast: AST): T {
+    return this.visitContractDefinition(node, ast);
   }
 }
