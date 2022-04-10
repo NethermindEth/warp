@@ -69,6 +69,14 @@ import { CairoAssert, CairoFunctionDefinition } from './cairoNodes';
 
 import { AST } from './ast';
 
+/*
+ Visits every node in a tree in depth first order, calling visitT for each T extends ASTNode
+ CommonVisit is abstract to allow the returned value from visiting the child nodes to affect
+ the result for the parent
+ By default each visitT method calls the visit method for the immediate supertype of T until
+ commonVisit is called, this allows methods such as visitExpression to catch all expressions
+*/
+
 export abstract class ASTVisitor<T> {
   static getPassName(): string {
     return this.name;
