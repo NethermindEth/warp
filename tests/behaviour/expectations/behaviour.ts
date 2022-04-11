@@ -609,7 +609,7 @@ export const expectations = flatten(
           File.Simple('LibInLib', [Expect.Simple('mulDiv', ['5', '2'], ['10', '2', '1'])]),
           new Dir('freeFunctionsLib', [
             File.Simple('direct_and_indirect', [Expect.Simple('freeFuncLib', ['2'], ['5'])]),
-            File.Simple('sameName.sol', [Expect.Simple('freeFuncLib', ['1'], ['0'])]),
+            File.Simple('sameName', [Expect.Simple('freeFuncLib', ['1'], ['0'])]),
           ]),
         ]),
         new Dir('loops', [
