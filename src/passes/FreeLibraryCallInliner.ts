@@ -4,12 +4,13 @@ import {
   FunctionCall,
   FunctionDefinition,
   FunctionKind,
+  FunctionVisibility,
   Identifier,
-  MemberAccess,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
+import { union } from '../utils/utils';
 
 /* 
   Library calls in solidity are delegate calls
@@ -22,70 +23,69 @@ import { cloneASTNode } from '../utils/cloning';
 */
 
 export class FreeLibraryCallInliner extends ASTMapper {
+  funcCounter = 0;
+
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     // Stores old FunctionDefinition and cloned FunctionDefinition
-    const remappingIds = new Map<FunctionDefinition, FunctionDefinition>();
+    const remappings = new Map<FunctionDefinition, FunctionDefinition>();
 
     // Visit all FunctionCalls in a Contract and check if they call
     // free functions that call Library Functions
-    const functionCalls = node.getChildrenByType(FunctionCall);
-    if (functionCalls.length > 0) {
-      functionCalls.forEach((fcall) => {
-        fcall.getChildren().forEach((identifier) => {
-          if (identifier instanceof Identifier) {
-            if (identifier.vReferencedDeclaration instanceof FunctionDefinition) {
-              if (identifier.vReferencedDeclaration.kind === FunctionKind.Free) {
-                const freeFunc = identifier.vReferencedDeclaration;
-                let addNodes = new Map<number, FunctionDefinition>();
-                addNodes.set(freeFunc.id, freeFunc);
-                addNodes = getallFuncNodes(freeFunc, addNodes);
-
-                addNodes.forEach((func, id) => {
-                  const clonedFunction = cloneASTNode(func, ast);
-                  clonedFunction.name = `${clonedFunction.name}_s${id + 1}`;
-                  clonedFunction.visibility = func.visibility;
-                  clonedFunction.scope = node.id;
-                  node.appendChild(clonedFunction);
-                  remappingIds.set(func, clonedFunction);
-                });
-              }
-            }
-          }
-        });
+    node
+      .getChildrenByType(FunctionCall)
+      .map((fCall) => fCall.vReferencedDeclaration)
+      .filter(
+        (definition): definition is FunctionDefinition =>
+          definition instanceof FunctionDefinition && definition.kind === FunctionKind.Free,
+      )
+      .map((freeFunc) => getFunctionsToInline(freeFunc))
+      .reduce(union, new Set<FunctionDefinition>())
+      .forEach((funcToInline) => {
+        const clonedFunction = cloneASTNode(funcToInline, ast);
+        clonedFunction.name = `${clonedFunction.name}_f${this.funcCounter++}`;
+        clonedFunction.visibility = FunctionVisibility.Internal;
+        clonedFunction.scope = node.id;
+        clonedFunction.kind = FunctionKind.Function;
+        node.appendChild(clonedFunction);
+        remappings.set(funcToInline, clonedFunction);
       });
-    }
-    updateReferencedDeclarations(node, remappingIds);
+
+    updateReferencedDeclarations(node, remappings);
   }
 }
 
-// Recursive function to collect all free FunctionDefinition nodes
-// if they call a Library or call another free Function which make
-// Library calls
-function getallFuncNodes(
+// Checks the given free function for library calls, and recurses through any free functions it calls
+// to see if any of them call libraries. All functions reachable from func that call library functions
+// directly or indirectly are returned to be inlined
+function getFunctionsToInline(
   func: FunctionDefinition,
-  funcNodes: Map<number, FunctionDefinition>,
-): Map<number, FunctionDefinition> {
-  func.getChildrenByType(FunctionCall).forEach((fCall) => {
-    // If function call is a Library function
-    if (fCall.vExpression instanceof MemberAccess) {
-      const identifier = fCall.vExpression.getChildrenByType(Identifier);
-      identifier.forEach((node) => {
-        if (node.vReferencedDeclaration instanceof ContractDefinition) {
-          if (node.vReferencedDeclaration.kind === ContractKind.Library) {
-            funcNodes.set(func.id, func);
-          }
-        }
-      });
-    } else if (fCall.vExpression instanceof Identifier) {
-      if (fCall.vExpression.vReferencedDeclaration instanceof FunctionDefinition) {
-        if (fCall.vExpression.vReferencedDeclaration.kind === FunctionKind.Free) {
-          const fNode = fCall.vExpression.vReferencedDeclaration;
-          funcNodes = getallFuncNodes(fNode, funcNodes);
-        }
-      }
-    }
-  });
-  return funcNodes;
+  visited: Set<FunctionDefinition> = new Set(),
+): Set<FunctionDefinition> {
+  return func
+    .getChildrenByType(FunctionCall)
+    .map((fCall) => fCall.vReferencedDeclaration)
+    .filter(
+      (def): def is FunctionDefinition =>
+        def instanceof FunctionDefinition && def.kind === FunctionKind.Free && !visited.has(def),
+    )
+    .map((freeFunc) =>
+      getFunctionsToInline(freeFunc, new Set<FunctionDefinition>([func, ...visited])),
+    )
+    .reduce(union, new Set<FunctionDefinition>(directlyCallsLibraryFunction(func) ? [func] : []));
+}
+
+function directlyCallsLibraryFunction(func: FunctionDefinition): boolean {
+  return (
+    func
+      .getChildrenByType(FunctionCall)
+      .map((fCall) => fCall.vReferencedDeclaration)
+      .filter(
+        (def) =>
+          def instanceof FunctionDefinition &&
+          def.vScope instanceof ContractDefinition &&
+          def.vScope.kind === ContractKind.Library,
+      ).length > 0
+  );
 }
 
 function updateReferencedDeclarations(
