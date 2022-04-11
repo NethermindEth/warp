@@ -15,18 +15,18 @@ library Subtract {
     }
 }
 
-function freeFunction2(uint8 x) pure returns (uint8){
+function freeFunc_indirect(uint8 x) pure returns (uint8){
   return Add.add(x) ;
 }
 
-function freeFunction1(uint8 x) pure returns (uint8) {
-  uint8 y = Subtract.sub(x) + freeFunction2(x);
+function freeFunc_direct(uint8 x) pure returns (uint8) {
+  uint8 y = Subtract.sub(x) + freeFunc_indirect(x);
   return y;
 }
 
 contract WARP {
   function freeFuncLib(uint8 x) pure public returns (uint8) {
-    uint8 y = freeFunction1(x);
+    uint8 y = freeFunc_direct(x);
     return y;
   }
 }
