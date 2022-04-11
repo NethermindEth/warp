@@ -337,10 +337,11 @@ class ParameterListWriter extends CairoASTNodeWriter {
   writeInner(node: ParameterList, writer: ASTWriter): SrcDesc {
     const typeConversionContext =
       node.parent instanceof FunctionDefinition
-        ? node.parent.visibility == FunctionVisibility.External
+        ? node.parent.visibility === FunctionVisibility.External ||
+          node.parent.visibility === FunctionVisibility.Public
           ? TypeConversionContext.Declaration
           : TypeConversionContext.Ref
-        : TypeConversionContext.Ref;
+        : TypeConversionContext.Declaration;
 
     const params = node.vParameters.map((value, i) => {
       const tp = CairoType.fromSol(

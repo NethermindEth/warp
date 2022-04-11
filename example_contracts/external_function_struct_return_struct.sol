@@ -22,5 +22,4 @@ struct structDef {
     function testPublicFunctionReturnStruct(structDef memory structA) pure external returns (structDef memory) {
         return structA;
     }
-    
 }

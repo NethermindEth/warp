@@ -1,12 +1,12 @@
 import {
+  DataLocation,
   ElementaryTypeName,
   Identifier,
   Literal,
   LiteralKind,
-  TupleExpression,
   ParameterList,
+  TupleExpression,
   VariableDeclaration,
-  DataLocation,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { toHexString } from './utils';
@@ -43,7 +43,7 @@ export function createIdentifier(
   dataLocation?: DataLocation,
 ): Identifier {
   const typeString =
-    dataLocation !== undefined ? variable.typeString + ' ' + dataLocation : variable.typeString;
+    dataLocation !== undefined ? `${variable.typeString} ${dataLocation}` : variable.typeString;
   const node = new Identifier(ast.reserveId(), '', typeString, variable.name, variable.id);
   ast.setContextRecursive(node);
   return node;

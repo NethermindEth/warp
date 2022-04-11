@@ -8,7 +8,6 @@ import {
   FunctionVisibility,
   Identifier,
   MemberAccess,
-  replaceNode,
   StructDefinition,
   UserDefinedTypeName,
   VariableDeclaration,
@@ -53,15 +52,21 @@ export class ExternalArgumentModifier extends ASTMapper {
   */
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    if (node.visibility === FunctionVisibility.External && node.vBody !== undefined) {
-      const varDecIdentifierMap = collectUnboundVariables(node.vBody);
-      node.vParameters.vParameters.forEach((varDecl) => {
-        if (
-          varDecl.storageLocation === DataLocation.Memory &&
-          varDecl.vType instanceof UserDefinedTypeName &&
-          varDecl.vType.vReferencedDeclaration instanceof StructDefinition
-        ) {
-          // memoryStructs.push(varDecl);
+    const body = node.vBody;
+    if (
+      (node.visibility === FunctionVisibility.External ||
+        node.visibility === FunctionVisibility.Public) &&
+      body !== undefined
+    ) {
+      [...collectUnboundVariables(body).entries()]
+        .filter(
+          ([decl]) =>
+            node.vParameters.vParameters.includes(decl) &&
+            decl.storageLocation === DataLocation.Memory &&
+            decl.vType instanceof UserDefinedTypeName &&
+            decl.vType.vReferencedDeclaration instanceof StructDefinition,
+        )
+        .map(([varDecl, ids]) => {
           const memoryStruct = cloneASTNode(varDecl, ast);
           memoryStruct.name = memoryStruct.name + '_mem';
           varDecl.storageLocation = DataLocation.CallData;
@@ -70,17 +75,14 @@ export class ExternalArgumentModifier extends ASTMapper {
             memoryStruct,
             ast,
           );
-          node.vBody?.insertAtBeginning(varDeclStatement);
-          varDecIdentifierMap
-            .get(varDecl)
-            ?.forEach((identifier) =>
-              replaceNode(
-                identifier,
-                createIdentifier(memoryStruct, ast, memoryStruct.storageLocation),
-              ),
-            );
-        }
-      });
+          body.insertAtBeginning(varDeclStatement);
+          ids.forEach((identifier) =>
+            ast.replaceNode(
+              identifier,
+              createIdentifier(memoryStruct, ast, memoryStruct.storageLocation),
+            ),
+          );
+        });
       ast.setContextRecursive(node);
     }
     this.commonVisit(node, ast);

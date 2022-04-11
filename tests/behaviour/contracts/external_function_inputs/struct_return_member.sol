@@ -20,6 +20,4 @@ struct structDef {
     function testMultipleStructsPublicFunctionMember(structDef memory structA, uint8 b, structDef memory structC) pure public returns (uint8) {
         return structA.member1 + structC.member2;
     }
-
-
 }
