@@ -7,7 +7,7 @@ export * from './enumConverter';
 export * from './expressionSplitter';
 export * from './externalInputChecker';
 export * from './externImporter';
-export * from './freeFunctions';
+export * from './FreeLibraryCallInliner';
 export * from './functionModifierHandler';
 export * from './generateGetters';
 export * from './identifierMangler';
