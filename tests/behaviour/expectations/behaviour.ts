@@ -378,6 +378,28 @@ export const expectations = flatten(
             ),
           ]),
         ]),
+        new Dir('external_function_inputs', [
+          File.Simple('struct_return_member', [
+            new Expect('testing that memory struct is written to memory and member is returned', [
+              ['testReturnMember', ['1', '2'], ['1'], '0'],
+            ]),
+            new Expect(
+              'testing that multiple memory structs are written to memory and members returned',
+              [['testMultipleStructsMembers', ['1', '2', '0', '8', '10'], ['11'], '0']],
+            ),
+            new Expect(
+              'testing that multiple memory structs are written to memory and members returned and passed correctly between external and internal functions',
+              [
+                [
+                  'testMultipleStructsPublicFunctionMember',
+                  ['1', '2', '0', '8', '10'],
+                  ['11'],
+                  '0',
+                ],
+              ],
+            ),
+          ]),
+        ]),
         new Dir('external_input_checks', [
           File.Simple('int', [
             new Expect('testing solidity pure external signed int8 lower bound', [

@@ -70,6 +70,7 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
   WhileStatement,
+  FunctionDefinition,
 } from 'solc-typed-ast';
 import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
 import { implicitOrdering, implicitTypes } from './utils/implicits';
@@ -334,11 +335,18 @@ class NotImplementedWriter extends CairoASTNodeWriter {
 
 class ParameterListWriter extends CairoASTNodeWriter {
   writeInner(node: ParameterList, writer: ASTWriter): SrcDesc {
+    const typeConversionContext =
+      node.parent instanceof FunctionDefinition
+        ? node.parent.visibility == FunctionVisibility.External
+          ? TypeConversionContext.Declaration
+          : TypeConversionContext.Ref
+        : TypeConversionContext.Ref;
+
     const params = node.vParameters.map((value, i) => {
       const tp = CairoType.fromSol(
         getNodeType(value, writer.targetCompilerVersion),
         this.ast,
-        TypeConversionContext.Declaration,
+        typeConversionContext,
       );
       return value.name ? `${value.name} : ${tp}` : `ret${i} : ${tp}`;
     });

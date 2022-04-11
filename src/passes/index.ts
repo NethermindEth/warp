@@ -5,6 +5,7 @@ export * from './constantHandler';
 export * from './deleteHandler';
 export * from './enumConverter';
 export * from './expressionSplitter';
+export * from './externalArgumentModifier';
 export * from './externalInputChecker';
 export * from './externImporter';
 export * from './functionModifierHandler';
