@@ -48,7 +48,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/errorHandling/revert', 'Success'],
   ['example_contracts/events', 'Success'],
   ['example_contracts/external_function', 'NotSupportedYet'],
-  ['example_contracts/external_function_struct_return_struct', 'NotSupportedYet'],
+  ['example_contracts/external_function_struct_return_struct', 'Success'],
   ['example_contracts/freeFunction', 'Success'],
   ['example_contracts/function-with-nested-return', 'Success'],
   ['example_contracts/functionArgumentConversions', 'Success'],
@@ -85,7 +85,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/state_variables/enums', 'Success'],
   ['example_contracts/state_variables/arrays', 'NotSupportedYet'],
   ['example_contracts/state_variables/mappings', 'Success'],
-  // Requires memory structs and reference type returns from public functions
+  // TODO check why we return full structs
   ['example_contracts/state_variables/structs', 'CairoCompileFailed'],
   ['example_contracts/state_variables/misc', 'NotSupportedYet'],
   ['example_contracts/structs', 'Success'],
@@ -98,7 +98,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeMinMax', 'Success'],
   ['example_contracts/units', 'Success'],
   ['example_contracts/usingReturnValues', 'Success'],
-  ['example_contracts/variable-declarations', 'NotSupportedYet'],
+  ['example_contracts/variable-declarations', 'Success'],
   ['example_contracts/view-function', 'Success'],
 ]);
 

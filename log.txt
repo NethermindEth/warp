@@ -1,0 +1,3949 @@
+---Input---
+SourceUnit #34
+|   absolutePath: example_contracts/mutableReferences/scalarStorage.sol
+|   context: 1
++-PragmaDirective #1
++-ContractDefinition #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 34
+  +-VariableDeclaration #4
+  | |   name: x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  | |     name: int8
+  | |     stateMutability: nonpayable
+  | |     typeString: int8
+  | +-Literal #3
+  |       typeString: int_const 3
+  |       value: 3
+  +-VariableDeclaration #7
+  | |   name: y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #6
+  |       typeString: int_const 5
+  |       value: 5
+  +-VariableDeclaration #10
+  | |   name: z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #9
+  |       typeString: int_const 1
+  |       value: 1
+  +-FunctionDefinition #32
+    |   name: f
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #11
+    +-ParameterList #12
+    +-Block #31
+      +-ExpressionStatement #18
+      | +-Assignment #17
+      |   |   operator: =
+      |   |   typeString: int8
+      |   +-Identifier #13
+      |   |     name: x
+      |   |     referencedDeclaration: 4
+      |   |     typeString: int8
+      |   +-BinaryOperation #16
+      |     |   operator: +
+      |     |   typeString: int8
+      |     +-Identifier #14
+      |     |     name: x
+      |     |     referencedDeclaration: 4
+      |     |     typeString: int8
+      |     +-Literal #15
+      |           typeString: int_const 1
+      |           value: 1
+      +-VariableDeclarationStatement #22
+      | +-VariableDeclaration #20
+      | | |   name: a
+      | | |   scope: 31
+      | | |   storageLocation: default
+      | | |   typeString: int256
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #19
+      | |       name: int256
+      | |       stateMutability: nonpayable
+      | |       typeString: int256
+      | +-Identifier #21
+      |       name: y
+      |       referencedDeclaration: 7
+      |       typeString: int256
+      +-ExpressionStatement #26
+      | +-Assignment #25
+      |   |   operator: =
+      |   |   typeString: int256
+      |   +-Identifier #23
+      |   |     name: y
+      |   |     referencedDeclaration: 7
+      |   |     typeString: int256
+      |   +-Identifier #24
+      |         name: z
+      |         referencedDeclaration: 10
+      |         typeString: int256
+      +-ExpressionStatement #30
+        +-Assignment #29
+          |   operator: =
+          |   typeString: int256
+          +-Identifier #27
+          |     name: z
+          |     referencedDeclaration: 10
+          |     typeString: int256
+          +-Identifier #28
+                name: a
+                referencedDeclaration: 20
+                typeString: int256
+
+---SourceUnitSplitter---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  +-VariableDeclaration #4
+  | |   name: x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  | |     name: int8
+  | |     stateMutability: nonpayable
+  | |     typeString: int8
+  | +-Literal #3
+  |       typeString: int_const 3
+  |       value: 3
+  +-VariableDeclaration #7
+  | |   name: y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #6
+  |       typeString: int_const 5
+  |       value: 5
+  +-VariableDeclaration #10
+  | |   name: z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #9
+  |       typeString: int_const 1
+  |       value: 1
+  +-FunctionDefinition #32
+    |   name: f
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #11
+    +-ParameterList #12
+    +-Block #31
+      +-ExpressionStatement #18
+      | +-Assignment #17
+      |   |   operator: =
+      |   |   typeString: int8
+      |   +-Identifier #13
+      |   |     name: x
+      |   |     referencedDeclaration: 4
+      |   |     typeString: int8
+      |   +-BinaryOperation #16
+      |     |   operator: +
+      |     |   typeString: int8
+      |     +-Identifier #14
+      |     |     name: x
+      |     |     referencedDeclaration: 4
+      |     |     typeString: int8
+      |     +-Literal #15
+      |           typeString: int_const 1
+      |           value: 1
+      +-VariableDeclarationStatement #22
+      | +-VariableDeclaration #20
+      | | |   name: a
+      | | |   scope: 31
+      | | |   storageLocation: default
+      | | |   typeString: int256
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #19
+      | |       name: int256
+      | |       stateMutability: nonpayable
+      | |       typeString: int256
+      | +-Identifier #21
+      |       name: y
+      |       referencedDeclaration: 7
+      |       typeString: int256
+      +-ExpressionStatement #26
+      | +-Assignment #25
+      |   |   operator: =
+      |   |   typeString: int256
+      |   +-Identifier #23
+      |   |     name: y
+      |   |     referencedDeclaration: 7
+      |   |     typeString: int256
+      |   +-Identifier #24
+      |         name: z
+      |         referencedDeclaration: 10
+      |         typeString: int256
+      +-ExpressionStatement #30
+        +-Assignment #29
+          |   operator: =
+          |   typeString: int256
+          +-Identifier #27
+          |     name: z
+          |     referencedDeclaration: 10
+          |     typeString: int256
+          +-Identifier #28
+                name: a
+                referencedDeclaration: 20
+                typeString: int256
+
+---RejectUnsupportedFeatures---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  +-VariableDeclaration #4
+  | |   name: x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  | |     name: int8
+  | |     stateMutability: nonpayable
+  | |     typeString: int8
+  | +-Literal #3
+  |       typeString: int_const 3
+  |       value: 3
+  +-VariableDeclaration #7
+  | |   name: y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #6
+  |       typeString: int_const 5
+  |       value: 5
+  +-VariableDeclaration #10
+  | |   name: z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #9
+  |       typeString: int_const 1
+  |       value: 1
+  +-FunctionDefinition #32
+    |   name: f
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #11
+    +-ParameterList #12
+    +-Block #31
+      +-ExpressionStatement #18
+      | +-Assignment #17
+      |   |   operator: =
+      |   |   typeString: int8
+      |   +-Identifier #13
+      |   |     name: x
+      |   |     referencedDeclaration: 4
+      |   |     typeString: int8
+      |   +-BinaryOperation #16
+      |     |   operator: +
+      |     |   typeString: int8
+      |     +-Identifier #14
+      |     |     name: x
+      |     |     referencedDeclaration: 4
+      |     |     typeString: int8
+      |     +-Literal #15
+      |           typeString: int_const 1
+      |           value: 1
+      +-VariableDeclarationStatement #22
+      | +-VariableDeclaration #20
+      | | |   name: a
+      | | |   scope: 31
+      | | |   storageLocation: default
+      | | |   typeString: int256
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #19
+      | |       name: int256
+      | |       stateMutability: nonpayable
+      | |       typeString: int256
+      | +-Identifier #21
+      |       name: y
+      |       referencedDeclaration: 7
+      |       typeString: int256
+      +-ExpressionStatement #26
+      | +-Assignment #25
+      |   |   operator: =
+      |   |   typeString: int256
+      |   +-Identifier #23
+      |   |     name: y
+      |   |     referencedDeclaration: 7
+      |   |     typeString: int256
+      |   +-Identifier #24
+      |         name: z
+      |         referencedDeclaration: 10
+      |         typeString: int256
+      +-ExpressionStatement #30
+        +-Assignment #29
+          |   operator: =
+          |   typeString: int256
+          +-Identifier #27
+          |     name: z
+          |     referencedDeclaration: 10
+          |     typeString: int256
+          +-Identifier #28
+                name: a
+                referencedDeclaration: 20
+                typeString: int256
+
+---LiteralExpressionEvaluator---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  +-VariableDeclaration #4
+  | |   name: x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  | |     name: int8
+  | |     stateMutability: nonpayable
+  | |     typeString: int8
+  | +-Literal #3
+  |       typeString: int_const 3
+  |       value: 3
+  +-VariableDeclaration #7
+  | |   name: y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #6
+  |       typeString: int_const 5
+  |       value: 5
+  +-VariableDeclaration #10
+  | |   name: z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #9
+  |       typeString: int_const 1
+  |       value: 1
+  +-FunctionDefinition #32
+    |   name: f
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #11
+    +-ParameterList #12
+    +-Block #31
+      +-ExpressionStatement #18
+      | +-Assignment #17
+      |   |   operator: =
+      |   |   typeString: int8
+      |   +-Identifier #13
+      |   |     name: x
+      |   |     referencedDeclaration: 4
+      |   |     typeString: int8
+      |   +-BinaryOperation #16
+      |     |   operator: +
+      |     |   typeString: int8
+      |     +-Identifier #14
+      |     |     name: x
+      |     |     referencedDeclaration: 4
+      |     |     typeString: int8
+      |     +-Literal #15
+      |           typeString: int_const 1
+      |           value: 1
+      +-VariableDeclarationStatement #22
+      | +-VariableDeclaration #20
+      | | |   name: a
+      | | |   scope: 31
+      | | |   storageLocation: default
+      | | |   typeString: int256
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #19
+      | |       name: int256
+      | |       stateMutability: nonpayable
+      | |       typeString: int256
+      | +-Identifier #21
+      |       name: y
+      |       referencedDeclaration: 7
+      |       typeString: int256
+      +-ExpressionStatement #26
+      | +-Assignment #25
+      |   |   operator: =
+      |   |   typeString: int256
+      |   +-Identifier #23
+      |   |     name: y
+      |   |     referencedDeclaration: 7
+      |   |     typeString: int256
+      |   +-Identifier #24
+      |         name: z
+      |         referencedDeclaration: 10
+      |         typeString: int256
+      +-ExpressionStatement #30
+        +-Assignment #29
+          |   operator: =
+          |   typeString: int256
+          +-Identifier #27
+          |     name: z
+          |     referencedDeclaration: 10
+          |     typeString: int256
+          +-Identifier #28
+                name: a
+                referencedDeclaration: 20
+                typeString: int256
+
+---UsingForResolver---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  +-VariableDeclaration #4
+  | |   name: x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  | |     name: int8
+  | |     stateMutability: nonpayable
+  | |     typeString: int8
+  | +-Literal #3
+  |       typeString: int_const 3
+  |       value: 3
+  +-VariableDeclaration #7
+  | |   name: y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #6
+  |       typeString: int_const 5
+  |       value: 5
+  +-VariableDeclaration #10
+  | |   name: z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #9
+  |       typeString: int_const 1
+  |       value: 1
+  +-FunctionDefinition #32
+    |   name: f
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #11
+    +-ParameterList #12
+    +-Block #31
+      +-ExpressionStatement #18
+      | +-Assignment #17
+      |   |   operator: =
+      |   |   typeString: int8
+      |   +-Identifier #13
+      |   |     name: x
+      |   |     referencedDeclaration: 4
+      |   |     typeString: int8
+      |   +-BinaryOperation #16
+      |     |   operator: +
+      |     |   typeString: int8
+      |     +-Identifier #14
+      |     |     name: x
+      |     |     referencedDeclaration: 4
+      |     |     typeString: int8
+      |     +-Literal #15
+      |           typeString: int_const 1
+      |           value: 1
+      +-VariableDeclarationStatement #22
+      | +-VariableDeclaration #20
+      | | |   name: a
+      | | |   scope: 31
+      | | |   storageLocation: default
+      | | |   typeString: int256
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #19
+      | |       name: int256
+      | |       stateMutability: nonpayable
+      | |       typeString: int256
+      | +-Identifier #21
+      |       name: y
+      |       referencedDeclaration: 7
+      |       typeString: int256
+      +-ExpressionStatement #26
+      | +-Assignment #25
+      |   |   operator: =
+      |   |   typeString: int256
+      |   +-Identifier #23
+      |   |     name: y
+      |   |     referencedDeclaration: 7
+      |   |     typeString: int256
+      |   +-Identifier #24
+      |         name: z
+      |         referencedDeclaration: 10
+      |         typeString: int256
+      +-ExpressionStatement #30
+        +-Assignment #29
+          |   operator: =
+          |   typeString: int256
+          +-Identifier #27
+          |     name: z
+          |     referencedDeclaration: 10
+          |     typeString: int256
+          +-Identifier #28
+                name: a
+                referencedDeclaration: 20
+                typeString: int256
+
+---NamedArgsRemover---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  +-VariableDeclaration #4
+  | |   name: x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  | |     name: int8
+  | |     stateMutability: nonpayable
+  | |     typeString: int8
+  | +-Literal #3
+  |       typeString: int_const 3
+  |       value: 3
+  +-VariableDeclaration #7
+  | |   name: y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #6
+  |       typeString: int_const 5
+  |       value: 5
+  +-VariableDeclaration #10
+  | |   name: z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #9
+  |       typeString: int_const 1
+  |       value: 1
+  +-FunctionDefinition #32
+    |   name: f
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #11
+    +-ParameterList #12
+    +-Block #31
+      +-ExpressionStatement #18
+      | +-Assignment #17
+      |   |   operator: =
+      |   |   typeString: int8
+      |   +-Identifier #13
+      |   |     name: x
+      |   |     referencedDeclaration: 4
+      |   |     typeString: int8
+      |   +-BinaryOperation #16
+      |     |   operator: +
+      |     |   typeString: int8
+      |     +-Identifier #14
+      |     |     name: x
+      |     |     referencedDeclaration: 4
+      |     |     typeString: int8
+      |     +-Literal #15
+      |           typeString: int_const 1
+      |           value: 1
+      +-VariableDeclarationStatement #22
+      | +-VariableDeclaration #20
+      | | |   name: a
+      | | |   scope: 31
+      | | |   storageLocation: default
+      | | |   typeString: int256
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #19
+      | |       name: int256
+      | |       stateMutability: nonpayable
+      | |       typeString: int256
+      | +-Identifier #21
+      |       name: y
+      |       referencedDeclaration: 7
+      |       typeString: int256
+      +-ExpressionStatement #26
+      | +-Assignment #25
+      |   |   operator: =
+      |   |   typeString: int256
+      |   +-Identifier #23
+      |   |     name: y
+      |   |     referencedDeclaration: 7
+      |   |     typeString: int256
+      |   +-Identifier #24
+      |         name: z
+      |         referencedDeclaration: 10
+      |         typeString: int256
+      +-ExpressionStatement #30
+        +-Assignment #29
+          |   operator: =
+          |   typeString: int256
+          +-Identifier #27
+          |     name: z
+          |     referencedDeclaration: 10
+          |     typeString: int256
+          +-Identifier #28
+                name: a
+                referencedDeclaration: 20
+                typeString: int256
+
+---PublicStateVarsGetterGenerator---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  +-VariableDeclaration #4
+  | |   name: x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  | |     name: int8
+  | |     stateMutability: nonpayable
+  | |     typeString: int8
+  | +-Literal #3
+  |       typeString: int_const 3
+  |       value: 3
+  +-VariableDeclaration #7
+  | |   name: y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #6
+  |       typeString: int_const 5
+  |       value: 5
+  +-VariableDeclaration #10
+  | |   name: z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #9
+  |       typeString: int_const 1
+  |       value: 1
+  +-FunctionDefinition #32
+    |   name: f
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #11
+    +-ParameterList #12
+    +-Block #31
+      +-ExpressionStatement #18
+      | +-Assignment #17
+      |   |   operator: =
+      |   |   typeString: int8
+      |   +-Identifier #13
+      |   |     name: x
+      |   |     referencedDeclaration: 4
+      |   |     typeString: int8
+      |   +-BinaryOperation #16
+      |     |   operator: +
+      |     |   typeString: int8
+      |     +-Identifier #14
+      |     |     name: x
+      |     |     referencedDeclaration: 4
+      |     |     typeString: int8
+      |     +-Literal #15
+      |           typeString: int_const 1
+      |           value: 1
+      +-VariableDeclarationStatement #22
+      | +-VariableDeclaration #20
+      | | |   name: a
+      | | |   scope: 31
+      | | |   storageLocation: default
+      | | |   typeString: int256
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #19
+      | |       name: int256
+      | |       stateMutability: nonpayable
+      | |       typeString: int256
+      | +-Identifier #21
+      |       name: y
+      |       referencedDeclaration: 7
+      |       typeString: int256
+      +-ExpressionStatement #26
+      | +-Assignment #25
+      |   |   operator: =
+      |   |   typeString: int256
+      |   +-Identifier #23
+      |   |     name: y
+      |   |     referencedDeclaration: 7
+      |   |     typeString: int256
+      |   +-Identifier #24
+      |         name: z
+      |         referencedDeclaration: 10
+      |         typeString: int256
+      +-ExpressionStatement #30
+        +-Assignment #29
+          |   operator: =
+          |   typeString: int256
+          +-Identifier #27
+          |     name: z
+          |     referencedDeclaration: 10
+          |     typeString: int256
+          +-Identifier #28
+                name: a
+                referencedDeclaration: 20
+                typeString: int256
+
+---IntBoundCalculator---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  +-VariableDeclaration #4
+  | |   name: x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  | |     name: int8
+  | |     stateMutability: nonpayable
+  | |     typeString: int8
+  | +-Literal #3
+  |       typeString: int_const 3
+  |       value: 3
+  +-VariableDeclaration #7
+  | |   name: y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #6
+  |       typeString: int_const 5
+  |       value: 5
+  +-VariableDeclaration #10
+  | |   name: z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #9
+  |       typeString: int_const 1
+  |       value: 1
+  +-FunctionDefinition #32
+    |   name: f
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #11
+    +-ParameterList #12
+    +-Block #31
+      +-ExpressionStatement #18
+      | +-Assignment #17
+      |   |   operator: =
+      |   |   typeString: int8
+      |   +-Identifier #13
+      |   |     name: x
+      |   |     referencedDeclaration: 4
+      |   |     typeString: int8
+      |   +-BinaryOperation #16
+      |     |   operator: +
+      |     |   typeString: int8
+      |     +-Identifier #14
+      |     |     name: x
+      |     |     referencedDeclaration: 4
+      |     |     typeString: int8
+      |     +-Literal #15
+      |           typeString: int_const 1
+      |           value: 1
+      +-VariableDeclarationStatement #22
+      | +-VariableDeclaration #20
+      | | |   name: a
+      | | |   scope: 31
+      | | |   storageLocation: default
+      | | |   typeString: int256
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #19
+      | |       name: int256
+      | |       stateMutability: nonpayable
+      | |       typeString: int256
+      | +-Identifier #21
+      |       name: y
+      |       referencedDeclaration: 7
+      |       typeString: int256
+      +-ExpressionStatement #26
+      | +-Assignment #25
+      |   |   operator: =
+      |   |   typeString: int256
+      |   +-Identifier #23
+      |   |     name: y
+      |   |     referencedDeclaration: 7
+      |   |     typeString: int256
+      |   +-Identifier #24
+      |         name: z
+      |         referencedDeclaration: 10
+      |         typeString: int256
+      +-ExpressionStatement #30
+        +-Assignment #29
+          |   operator: =
+          |   typeString: int256
+          +-Identifier #27
+          |     name: z
+          |     referencedDeclaration: 10
+          |     typeString: int256
+          +-Identifier #28
+                name: a
+                referencedDeclaration: 20
+                typeString: int256
+
+---ConstantHandler---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  +-VariableDeclaration #4
+  | |   name: x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  | |     name: int8
+  | |     stateMutability: nonpayable
+  | |     typeString: int8
+  | +-Literal #3
+  |       typeString: int_const 3
+  |       value: 3
+  +-VariableDeclaration #7
+  | |   name: y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #6
+  |       typeString: int_const 5
+  |       value: 5
+  +-VariableDeclaration #10
+  | |   name: z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #9
+  |       typeString: int_const 1
+  |       value: 1
+  +-FunctionDefinition #32
+    |   name: f
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #11
+    +-ParameterList #12
+    +-Block #31
+      +-ExpressionStatement #18
+      | +-Assignment #17
+      |   |   operator: =
+      |   |   typeString: int8
+      |   +-Identifier #13
+      |   |     name: x
+      |   |     referencedDeclaration: 4
+      |   |     typeString: int8
+      |   +-BinaryOperation #16
+      |     |   operator: +
+      |     |   typeString: int8
+      |     +-Identifier #14
+      |     |     name: x
+      |     |     referencedDeclaration: 4
+      |     |     typeString: int8
+      |     +-Literal #15
+      |           typeString: int_const 1
+      |           value: 1
+      +-VariableDeclarationStatement #22
+      | +-VariableDeclaration #20
+      | | |   name: a
+      | | |   scope: 31
+      | | |   storageLocation: default
+      | | |   typeString: int256
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #19
+      | |       name: int256
+      | |       stateMutability: nonpayable
+      | |       typeString: int256
+      | +-Identifier #21
+      |       name: y
+      |       referencedDeclaration: 7
+      |       typeString: int256
+      +-ExpressionStatement #26
+      | +-Assignment #25
+      |   |   operator: =
+      |   |   typeString: int256
+      |   +-Identifier #23
+      |   |     name: y
+      |   |     referencedDeclaration: 7
+      |   |     typeString: int256
+      |   +-Identifier #24
+      |         name: z
+      |         referencedDeclaration: 10
+      |         typeString: int256
+      +-ExpressionStatement #30
+        +-Assignment #29
+          |   operator: =
+          |   typeString: int256
+          +-Identifier #27
+          |     name: z
+          |     referencedDeclaration: 10
+          |     typeString: int256
+          +-Identifier #28
+                name: a
+                referencedDeclaration: 20
+                typeString: int256
+
+---IdentifierMangler---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  | |     name: int8
+  | |     stateMutability: nonpayable
+  | |     typeString: int8
+  | +-Literal #3
+  |       typeString: int_const 3
+  |       value: 3
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #6
+  |       typeString: int_const 5
+  |       value: 5
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #9
+  |       typeString: int_const 1
+  |       value: 1
+  +-FunctionDefinition #32
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #11
+    +-ParameterList #12
+    +-Block #31
+      +-ExpressionStatement #18
+      | +-Assignment #17
+      |   |   operator: =
+      |   |   typeString: int8
+      |   +-Identifier #13
+      |   |     name: __warp_usrid0_x
+      |   |     referencedDeclaration: 4
+      |   |     typeString: int8
+      |   +-BinaryOperation #16
+      |     |   operator: +
+      |     |   typeString: int8
+      |     +-Identifier #14
+      |     |     name: __warp_usrid0_x
+      |     |     referencedDeclaration: 4
+      |     |     typeString: int8
+      |     +-Literal #15
+      |           typeString: int_const 1
+      |           value: 1
+      +-VariableDeclarationStatement #22
+      | +-VariableDeclaration #20
+      | | |   name: __warp_usrid3_a
+      | | |   scope: 31
+      | | |   storageLocation: default
+      | | |   typeString: int256
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #19
+      | |       name: int256
+      | |       stateMutability: nonpayable
+      | |       typeString: int256
+      | +-Identifier #21
+      |       name: __warp_usrid1_y
+      |       referencedDeclaration: 7
+      |       typeString: int256
+      +-ExpressionStatement #26
+      | +-Assignment #25
+      |   |   operator: =
+      |   |   typeString: int256
+      |   +-Identifier #23
+      |   |     name: __warp_usrid1_y
+      |   |     referencedDeclaration: 7
+      |   |     typeString: int256
+      |   +-Identifier #24
+      |         name: __warp_usrid2_z
+      |         referencedDeclaration: 10
+      |         typeString: int256
+      +-ExpressionStatement #30
+        +-Assignment #29
+          |   operator: =
+          |   typeString: int256
+          +-Identifier #27
+          |     name: __warp_usrid2_z
+          |     referencedDeclaration: 10
+          |     typeString: int256
+          +-Identifier #28
+                name: __warp_usrid3_a
+                referencedDeclaration: 20
+                typeString: int256
+
+---ReferencedLibraries---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  | |     name: int8
+  | |     stateMutability: nonpayable
+  | |     typeString: int8
+  | +-Literal #3
+  |       typeString: int_const 3
+  |       value: 3
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #6
+  |       typeString: int_const 5
+  |       value: 5
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #9
+  |       typeString: int_const 1
+  |       value: 1
+  +-FunctionDefinition #32
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #11
+    +-ParameterList #12
+    +-Block #31
+      +-ExpressionStatement #18
+      | +-Assignment #17
+      |   |   operator: =
+      |   |   typeString: int8
+      |   +-Identifier #13
+      |   |     name: __warp_usrid0_x
+      |   |     referencedDeclaration: 4
+      |   |     typeString: int8
+      |   +-BinaryOperation #16
+      |     |   operator: +
+      |     |   typeString: int8
+      |     +-Identifier #14
+      |     |     name: __warp_usrid0_x
+      |     |     referencedDeclaration: 4
+      |     |     typeString: int8
+      |     +-Literal #15
+      |           typeString: int_const 1
+      |           value: 1
+      +-VariableDeclarationStatement #22
+      | +-VariableDeclaration #20
+      | | |   name: __warp_usrid3_a
+      | | |   scope: 31
+      | | |   storageLocation: default
+      | | |   typeString: int256
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #19
+      | |       name: int256
+      | |       stateMutability: nonpayable
+      | |       typeString: int256
+      | +-Identifier #21
+      |       name: __warp_usrid1_y
+      |       referencedDeclaration: 7
+      |       typeString: int256
+      +-ExpressionStatement #26
+      | +-Assignment #25
+      |   |   operator: =
+      |   |   typeString: int256
+      |   +-Identifier #23
+      |   |     name: __warp_usrid1_y
+      |   |     referencedDeclaration: 7
+      |   |     typeString: int256
+      |   +-Identifier #24
+      |         name: __warp_usrid2_z
+      |         referencedDeclaration: 10
+      |         typeString: int256
+      +-ExpressionStatement #30
+        +-Assignment #29
+          |   operator: =
+          |   typeString: int256
+          +-Identifier #27
+          |     name: __warp_usrid2_z
+          |     referencedDeclaration: 10
+          |     typeString: int256
+          +-Identifier #28
+                name: __warp_usrid3_a
+                referencedDeclaration: 20
+                typeString: int256
+
+---InheritanceInliner---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  | |     name: int8
+  | |     stateMutability: nonpayable
+  | |     typeString: int8
+  | +-Literal #3
+  |       typeString: int_const 3
+  |       value: 3
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #6
+  |       typeString: int_const 5
+  |       value: 5
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #9
+  |       typeString: int_const 1
+  |       value: 1
+  +-FunctionDefinition #32
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #11
+    +-ParameterList #12
+    +-Block #31
+      +-ExpressionStatement #18
+      | +-Assignment #17
+      |   |   operator: =
+      |   |   typeString: int8
+      |   +-Identifier #13
+      |   |     name: __warp_usrid0_x
+      |   |     referencedDeclaration: 4
+      |   |     typeString: int8
+      |   +-BinaryOperation #16
+      |     |   operator: +
+      |     |   typeString: int8
+      |     +-Identifier #14
+      |     |     name: __warp_usrid0_x
+      |     |     referencedDeclaration: 4
+      |     |     typeString: int8
+      |     +-Literal #15
+      |           typeString: int_const 1
+      |           value: 1
+      +-VariableDeclarationStatement #22
+      | +-VariableDeclaration #20
+      | | |   name: __warp_usrid3_a
+      | | |   scope: 31
+      | | |   storageLocation: default
+      | | |   typeString: int256
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #19
+      | |       name: int256
+      | |       stateMutability: nonpayable
+      | |       typeString: int256
+      | +-Identifier #21
+      |       name: __warp_usrid1_y
+      |       referencedDeclaration: 7
+      |       typeString: int256
+      +-ExpressionStatement #26
+      | +-Assignment #25
+      |   |   operator: =
+      |   |   typeString: int256
+      |   +-Identifier #23
+      |   |     name: __warp_usrid1_y
+      |   |     referencedDeclaration: 7
+      |   |     typeString: int256
+      |   +-Identifier #24
+      |         name: __warp_usrid2_z
+      |         referencedDeclaration: 10
+      |         typeString: int256
+      +-ExpressionStatement #30
+        +-Assignment #29
+          |   operator: =
+          |   typeString: int256
+          +-Identifier #27
+          |     name: __warp_usrid2_z
+          |     referencedDeclaration: 10
+          |     typeString: int256
+          +-Identifier #28
+                name: __warp_usrid3_a
+                referencedDeclaration: 20
+                typeString: int256
+
+---ModifierHandler---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  | |     name: int8
+  | |     stateMutability: nonpayable
+  | |     typeString: int8
+  | +-Literal #3
+  |       typeString: int_const 3
+  |       value: 3
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #6
+  |       typeString: int_const 5
+  |       value: 5
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  | |     name: int256
+  | |     stateMutability: nonpayable
+  | |     typeString: int256
+  | +-Literal #9
+  |       typeString: int_const 1
+  |       value: 1
+  +-FunctionDefinition #32
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #11
+    +-ParameterList #12
+    +-Block #31
+      +-ExpressionStatement #18
+      | +-Assignment #17
+      |   |   operator: =
+      |   |   typeString: int8
+      |   +-Identifier #13
+      |   |     name: __warp_usrid0_x
+      |   |     referencedDeclaration: 4
+      |   |     typeString: int8
+      |   +-BinaryOperation #16
+      |     |   operator: +
+      |     |   typeString: int8
+      |     +-Identifier #14
+      |     |     name: __warp_usrid0_x
+      |     |     referencedDeclaration: 4
+      |     |     typeString: int8
+      |     +-Literal #15
+      |           typeString: int_const 1
+      |           value: 1
+      +-VariableDeclarationStatement #22
+      | +-VariableDeclaration #20
+      | | |   name: __warp_usrid3_a
+      | | |   scope: 31
+      | | |   storageLocation: default
+      | | |   typeString: int256
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #19
+      | |       name: int256
+      | |       stateMutability: nonpayable
+      | |       typeString: int256
+      | +-Identifier #21
+      |       name: __warp_usrid1_y
+      |       referencedDeclaration: 7
+      |       typeString: int256
+      +-ExpressionStatement #26
+      | +-Assignment #25
+      |   |   operator: =
+      |   |   typeString: int256
+      |   +-Identifier #23
+      |   |     name: __warp_usrid1_y
+      |   |     referencedDeclaration: 7
+      |   |     typeString: int256
+      |   +-Identifier #24
+      |         name: __warp_usrid2_z
+      |         referencedDeclaration: 10
+      |         typeString: int256
+      +-ExpressionStatement #30
+        +-Assignment #29
+          |   operator: =
+          |   typeString: int256
+          +-Identifier #27
+          |     name: __warp_usrid2_z
+          |     referencedDeclaration: 10
+          |     typeString: int256
+          +-Identifier #28
+                name: __warp_usrid3_a
+                referencedDeclaration: 20
+                typeString: int256
+
+---StorageAllocator---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  |   storageAllocations: #4->0,#7->1,#10->3
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  |       name: int8
+  |       stateMutability: nonpayable
+  |       typeString: int8
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-FunctionDefinition #32
+  | |   name: f_26121ff0
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #11
+  | +-ParameterList #12
+  | +-Block #31
+  |   +-ExpressionStatement #18
+  |   | +-Assignment #17
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #13
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-BinaryOperation #16
+  |   |     |   operator: +
+  |   |     |   typeString: int8
+  |   |     +-Identifier #14
+  |   |     |     name: __warp_usrid0_x
+  |   |     |     referencedDeclaration: 4
+  |   |     |     typeString: int8
+  |   |     +-Literal #15
+  |   |           typeString: int_const 1
+  |   |           value: 1
+  |   +-VariableDeclarationStatement #22
+  |   | +-VariableDeclaration #20
+  |   | | |   name: __warp_usrid3_a
+  |   | | |   scope: 31
+  |   | | |   storageLocation: default
+  |   | | |   typeString: int256
+  |   | | |   visibility: internal
+  |   | | +-ElementaryTypeName #19
+  |   | |       name: int256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: int256
+  |   | +-Identifier #21
+  |   |       name: __warp_usrid1_y
+  |   |       referencedDeclaration: 7
+  |   |       typeString: int256
+  |   +-ExpressionStatement #26
+  |   | +-Assignment #25
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #23
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Identifier #24
+  |   |         name: __warp_usrid2_z
+  |   |         referencedDeclaration: 10
+  |   |         typeString: int256
+  |   +-ExpressionStatement #30
+  |     +-Assignment #29
+  |       |   operator: =
+  |       |   typeString: int256
+  |       +-Identifier #27
+  |       |     name: __warp_usrid2_z
+  |       |     referencedDeclaration: 10
+  |       |     typeString: int256
+  |       +-Identifier #28
+  |             name: __warp_usrid3_a
+  |             referencedDeclaration: 20
+  |             typeString: int256
+  +-FunctionDefinition #47
+    |   name: 
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #48
+    +-ParameterList #49
+    +-Block #37
+      +-ExpressionStatement #38
+      | +-Assignment #39
+      |   |   operator: =
+      |   |   typeString: int8
+      |   +-Identifier #40
+      |   |     name: __warp_usrid0_x
+      |   |     referencedDeclaration: 4
+      |   |     typeString: int8
+      |   +-Literal #3
+      |         typeString: int_const 3
+      |         value: 3
+      +-ExpressionStatement #41
+      | +-Assignment #42
+      |   |   operator: =
+      |   |   typeString: int256
+      |   +-Identifier #43
+      |   |     name: __warp_usrid1_y
+      |   |     referencedDeclaration: 7
+      |   |     typeString: int256
+      |   +-Literal #6
+      |         typeString: int_const 5
+      |         value: 5
+      +-ExpressionStatement #44
+        +-Assignment #45
+          |   operator: =
+          |   typeString: int256
+          +-Identifier #46
+          |     name: __warp_usrid2_z
+          |     referencedDeclaration: 10
+          |     typeString: int256
+          +-Literal #9
+                typeString: int_const 1
+                value: 1
+
+---PublicFunctionSplitter---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  |   storageAllocations: #4->0,#7->1,#10->3
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  |       name: int8
+  |       stateMutability: nonpayable
+  |       typeString: int8
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-FunctionDefinition #32
+  | |   name: f_26121ff0_internal
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: internal
+  | +-ParameterList #11
+  | +-ParameterList #12
+  | +-Block #31
+  |   +-ExpressionStatement #18
+  |   | +-Assignment #17
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #13
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-BinaryOperation #16
+  |   |     |   operator: +
+  |   |     |   typeString: int8
+  |   |     +-Identifier #14
+  |   |     |     name: __warp_usrid0_x
+  |   |     |     referencedDeclaration: 4
+  |   |     |     typeString: int8
+  |   |     +-Literal #15
+  |   |           typeString: int_const 1
+  |   |           value: 1
+  |   +-VariableDeclarationStatement #22
+  |   | +-VariableDeclaration #20
+  |   | | |   name: __warp_usrid3_a
+  |   | | |   scope: 31
+  |   | | |   storageLocation: default
+  |   | | |   typeString: int256
+  |   | | |   visibility: internal
+  |   | | +-ElementaryTypeName #19
+  |   | |       name: int256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: int256
+  |   | +-Identifier #21
+  |   |       name: __warp_usrid1_y
+  |   |       referencedDeclaration: 7
+  |   |       typeString: int256
+  |   +-ExpressionStatement #26
+  |   | +-Assignment #25
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #23
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Identifier #24
+  |   |         name: __warp_usrid2_z
+  |   |         referencedDeclaration: 10
+  |   |         typeString: int256
+  |   +-ExpressionStatement #30
+  |     +-Assignment #29
+  |       |   operator: =
+  |       |   typeString: int256
+  |       +-Identifier #27
+  |       |     name: __warp_usrid2_z
+  |       |     referencedDeclaration: 10
+  |       |     typeString: int256
+  |       +-Identifier #28
+  |             name: __warp_usrid3_a
+  |             referencedDeclaration: 20
+  |             typeString: int256
+  +-FunctionDefinition #47
+  | |   name: 
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #48
+  | +-ParameterList #49
+  | +-Block #37
+  |   +-ExpressionStatement #38
+  |   | +-Assignment #39
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #40
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-Literal #3
+  |   |         typeString: int_const 3
+  |   |         value: 3
+  |   +-ExpressionStatement #41
+  |   | +-Assignment #42
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #43
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Literal #6
+  |   |         typeString: int_const 5
+  |   |         value: 5
+  |   +-ExpressionStatement #44
+  |     +-Assignment #45
+  |       |   operator: =
+  |       |   typeString: int256
+  |       +-Identifier #46
+  |       |     name: __warp_usrid2_z
+  |       |     referencedDeclaration: 10
+  |       |     typeString: int256
+  |       +-Literal #9
+  |             typeString: int_const 1
+  |             value: 1
+  +-FunctionDefinition #51
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #52
+    +-ParameterList #53
+    +-Block #50
+      +-Return #56
+        +-FunctionCall #54
+          |   typeString: tuple()
+          +-Identifier #55
+                name: f_26121ff0_internal
+                referencedDeclaration: 32
+                typeString: function () nonpayable 
+
+---ExternalInputChecker---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  |   storageAllocations: #4->0,#7->1,#10->3
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  |       name: int8
+  |       stateMutability: nonpayable
+  |       typeString: int8
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-FunctionDefinition #32
+  | |   name: f_26121ff0_internal
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: internal
+  | +-ParameterList #11
+  | +-ParameterList #12
+  | +-Block #31
+  |   +-ExpressionStatement #18
+  |   | +-Assignment #17
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #13
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-BinaryOperation #16
+  |   |     |   operator: +
+  |   |     |   typeString: int8
+  |   |     +-Identifier #14
+  |   |     |     name: __warp_usrid0_x
+  |   |     |     referencedDeclaration: 4
+  |   |     |     typeString: int8
+  |   |     +-Literal #15
+  |   |           typeString: int_const 1
+  |   |           value: 1
+  |   +-VariableDeclarationStatement #22
+  |   | +-VariableDeclaration #20
+  |   | | |   name: __warp_usrid3_a
+  |   | | |   scope: 31
+  |   | | |   storageLocation: default
+  |   | | |   typeString: int256
+  |   | | |   visibility: internal
+  |   | | +-ElementaryTypeName #19
+  |   | |       name: int256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: int256
+  |   | +-Identifier #21
+  |   |       name: __warp_usrid1_y
+  |   |       referencedDeclaration: 7
+  |   |       typeString: int256
+  |   +-ExpressionStatement #26
+  |   | +-Assignment #25
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #23
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Identifier #24
+  |   |         name: __warp_usrid2_z
+  |   |         referencedDeclaration: 10
+  |   |         typeString: int256
+  |   +-ExpressionStatement #30
+  |     +-Assignment #29
+  |       |   operator: =
+  |       |   typeString: int256
+  |       +-Identifier #27
+  |       |     name: __warp_usrid2_z
+  |       |     referencedDeclaration: 10
+  |       |     typeString: int256
+  |       +-Identifier #28
+  |             name: __warp_usrid3_a
+  |             referencedDeclaration: 20
+  |             typeString: int256
+  +-FunctionDefinition #47
+  | |   name: 
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #48
+  | +-ParameterList #49
+  | +-Block #37
+  |   +-ExpressionStatement #38
+  |   | +-Assignment #39
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #40
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-Literal #3
+  |   |         typeString: int_const 3
+  |   |         value: 3
+  |   +-ExpressionStatement #41
+  |   | +-Assignment #42
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #43
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Literal #6
+  |   |         typeString: int_const 5
+  |   |         value: 5
+  |   +-ExpressionStatement #44
+  |     +-Assignment #45
+  |       |   operator: =
+  |       |   typeString: int256
+  |       +-Identifier #46
+  |       |     name: __warp_usrid2_z
+  |       |     referencedDeclaration: 10
+  |       |     typeString: int256
+  |       +-Literal #9
+  |             typeString: int_const 1
+  |             value: 1
+  +-FunctionDefinition #51
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #52
+    +-ParameterList #53
+    +-Block #50
+      +-Return #56
+        +-FunctionCall #54
+          |   typeString: tuple()
+          +-Identifier #55
+                name: f_26121ff0_internal
+                referencedDeclaration: 32
+                typeString: function () nonpayable 
+
+---EnumConverter---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  |   storageAllocations: #4->0,#7->1,#10->3
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  |       name: int8
+  |       stateMutability: nonpayable
+  |       typeString: int8
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-FunctionDefinition #32
+  | |   name: f_26121ff0_internal
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: internal
+  | +-ParameterList #11
+  | +-ParameterList #12
+  | +-Block #31
+  |   +-ExpressionStatement #18
+  |   | +-Assignment #17
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #13
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-BinaryOperation #16
+  |   |     |   operator: +
+  |   |     |   typeString: int8
+  |   |     +-Identifier #14
+  |   |     |     name: __warp_usrid0_x
+  |   |     |     referencedDeclaration: 4
+  |   |     |     typeString: int8
+  |   |     +-Literal #15
+  |   |           typeString: int_const 1
+  |   |           value: 1
+  |   +-VariableDeclarationStatement #22
+  |   | +-VariableDeclaration #20
+  |   | | |   name: __warp_usrid3_a
+  |   | | |   scope: 31
+  |   | | |   storageLocation: default
+  |   | | |   typeString: int256
+  |   | | |   visibility: internal
+  |   | | +-ElementaryTypeName #19
+  |   | |       name: int256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: int256
+  |   | +-Identifier #21
+  |   |       name: __warp_usrid1_y
+  |   |       referencedDeclaration: 7
+  |   |       typeString: int256
+  |   +-ExpressionStatement #26
+  |   | +-Assignment #25
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #23
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Identifier #24
+  |   |         name: __warp_usrid2_z
+  |   |         referencedDeclaration: 10
+  |   |         typeString: int256
+  |   +-ExpressionStatement #30
+  |     +-Assignment #29
+  |       |   operator: =
+  |       |   typeString: int256
+  |       +-Identifier #27
+  |       |     name: __warp_usrid2_z
+  |       |     referencedDeclaration: 10
+  |       |     typeString: int256
+  |       +-Identifier #28
+  |             name: __warp_usrid3_a
+  |             referencedDeclaration: 20
+  |             typeString: int256
+  +-FunctionDefinition #47
+  | |   name: 
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #48
+  | +-ParameterList #49
+  | +-Block #37
+  |   +-ExpressionStatement #38
+  |   | +-Assignment #39
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #40
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-Literal #3
+  |   |         typeString: int_const 3
+  |   |         value: 3
+  |   +-ExpressionStatement #41
+  |   | +-Assignment #42
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #43
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Literal #6
+  |   |         typeString: int_const 5
+  |   |         value: 5
+  |   +-ExpressionStatement #44
+  |     +-Assignment #45
+  |       |   operator: =
+  |       |   typeString: int256
+  |       +-Identifier #46
+  |       |     name: __warp_usrid2_z
+  |       |     referencedDeclaration: 10
+  |       |     typeString: int256
+  |       +-Literal #9
+  |             typeString: int_const 1
+  |             value: 1
+  +-FunctionDefinition #51
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #52
+    +-ParameterList #53
+    +-Block #50
+      +-Return #56
+        +-FunctionCall #54
+          |   typeString: tuple()
+          +-Identifier #55
+                name: f_26121ff0_internal
+                referencedDeclaration: 32
+                typeString: function () nonpayable 
+
+---ExternalArgumentModifier---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  |   storageAllocations: #4->0,#7->1,#10->3
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  |       name: int8
+  |       stateMutability: nonpayable
+  |       typeString: int8
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-FunctionDefinition #32
+  | |   name: f_26121ff0_internal
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: internal
+  | +-ParameterList #11
+  | +-ParameterList #12
+  | +-Block #31
+  |   +-ExpressionStatement #18
+  |   | +-Assignment #17
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #13
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-BinaryOperation #16
+  |   |     |   operator: +
+  |   |     |   typeString: int8
+  |   |     +-Identifier #14
+  |   |     |     name: __warp_usrid0_x
+  |   |     |     referencedDeclaration: 4
+  |   |     |     typeString: int8
+  |   |     +-Literal #15
+  |   |           typeString: int_const 1
+  |   |           value: 1
+  |   +-VariableDeclarationStatement #22
+  |   | +-VariableDeclaration #20
+  |   | | |   name: __warp_usrid3_a
+  |   | | |   scope: 31
+  |   | | |   storageLocation: default
+  |   | | |   typeString: int256
+  |   | | |   visibility: internal
+  |   | | +-ElementaryTypeName #19
+  |   | |       name: int256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: int256
+  |   | +-Identifier #21
+  |   |       name: __warp_usrid1_y
+  |   |       referencedDeclaration: 7
+  |   |       typeString: int256
+  |   +-ExpressionStatement #26
+  |   | +-Assignment #25
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #23
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Identifier #24
+  |   |         name: __warp_usrid2_z
+  |   |         referencedDeclaration: 10
+  |   |         typeString: int256
+  |   +-ExpressionStatement #30
+  |     +-Assignment #29
+  |       |   operator: =
+  |       |   typeString: int256
+  |       +-Identifier #27
+  |       |     name: __warp_usrid2_z
+  |       |     referencedDeclaration: 10
+  |       |     typeString: int256
+  |       +-Identifier #28
+  |             name: __warp_usrid3_a
+  |             referencedDeclaration: 20
+  |             typeString: int256
+  +-FunctionDefinition #47
+  | |   name: 
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #48
+  | +-ParameterList #49
+  | +-Block #37
+  |   +-ExpressionStatement #38
+  |   | +-Assignment #39
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #40
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-Literal #3
+  |   |         typeString: int_const 3
+  |   |         value: 3
+  |   +-ExpressionStatement #41
+  |   | +-Assignment #42
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #43
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Literal #6
+  |   |         typeString: int_const 5
+  |   |         value: 5
+  |   +-ExpressionStatement #44
+  |     +-Assignment #45
+  |       |   operator: =
+  |       |   typeString: int256
+  |       +-Identifier #46
+  |       |     name: __warp_usrid2_z
+  |       |     referencedDeclaration: 10
+  |       |     typeString: int256
+  |       +-Literal #9
+  |             typeString: int_const 1
+  |             value: 1
+  +-FunctionDefinition #51
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #52
+    +-ParameterList #53
+    +-Block #50
+      +-Return #56
+        +-FunctionCall #54
+          |   typeString: tuple()
+          +-Identifier #55
+                name: f_26121ff0_internal
+                referencedDeclaration: 32
+                typeString: function () nonpayable 
+
+---ExternImporter---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  |   storageAllocations: #4->0,#7->1,#10->3
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  |       name: int8
+  |       stateMutability: nonpayable
+  |       typeString: int8
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-FunctionDefinition #32
+  | |   name: f_26121ff0_internal
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: internal
+  | +-ParameterList #11
+  | +-ParameterList #12
+  | +-Block #31
+  |   +-ExpressionStatement #18
+  |   | +-Assignment #17
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #13
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-BinaryOperation #16
+  |   |     |   operator: +
+  |   |     |   typeString: int8
+  |   |     +-Identifier #14
+  |   |     |     name: __warp_usrid0_x
+  |   |     |     referencedDeclaration: 4
+  |   |     |     typeString: int8
+  |   |     +-Literal #15
+  |   |           typeString: int_const 1
+  |   |           value: 1
+  |   +-VariableDeclarationStatement #22
+  |   | +-VariableDeclaration #20
+  |   | | |   name: __warp_usrid3_a
+  |   | | |   scope: 31
+  |   | | |   storageLocation: default
+  |   | | |   typeString: int256
+  |   | | |   visibility: internal
+  |   | | +-ElementaryTypeName #19
+  |   | |       name: int256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: int256
+  |   | +-Identifier #21
+  |   |       name: __warp_usrid1_y
+  |   |       referencedDeclaration: 7
+  |   |       typeString: int256
+  |   +-ExpressionStatement #26
+  |   | +-Assignment #25
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #23
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Identifier #24
+  |   |         name: __warp_usrid2_z
+  |   |         referencedDeclaration: 10
+  |   |         typeString: int256
+  |   +-ExpressionStatement #30
+  |     +-Assignment #29
+  |       |   operator: =
+  |       |   typeString: int256
+  |       +-Identifier #27
+  |       |     name: __warp_usrid2_z
+  |       |     referencedDeclaration: 10
+  |       |     typeString: int256
+  |       +-Identifier #28
+  |             name: __warp_usrid3_a
+  |             referencedDeclaration: 20
+  |             typeString: int256
+  +-FunctionDefinition #47
+  | |   name: 
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #48
+  | +-ParameterList #49
+  | +-Block #37
+  |   +-ExpressionStatement #38
+  |   | +-Assignment #39
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #40
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-Literal #3
+  |   |         typeString: int_const 3
+  |   |         value: 3
+  |   +-ExpressionStatement #41
+  |   | +-Assignment #42
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #43
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Literal #6
+  |   |         typeString: int_const 5
+  |   |         value: 5
+  |   +-ExpressionStatement #44
+  |     +-Assignment #45
+  |       |   operator: =
+  |       |   typeString: int256
+  |       +-Identifier #46
+  |       |     name: __warp_usrid2_z
+  |       |     referencedDeclaration: 10
+  |       |     typeString: int256
+  |       +-Literal #9
+  |             typeString: int_const 1
+  |             value: 1
+  +-FunctionDefinition #51
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #52
+    +-ParameterList #53
+    +-Block #50
+      +-Return #56
+        +-FunctionCall #54
+          |   typeString: tuple()
+          +-Identifier #55
+                name: f_26121ff0_internal
+                referencedDeclaration: 32
+                typeString: function () nonpayable 
+
+---LoopFunctionaliser---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  |   storageAllocations: #4->0,#7->1,#10->3
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  |       name: int8
+  |       stateMutability: nonpayable
+  |       typeString: int8
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-FunctionDefinition #32
+  | |   name: f_26121ff0_internal
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: internal
+  | +-ParameterList #11
+  | +-ParameterList #12
+  | +-Block #31
+  |   +-ExpressionStatement #18
+  |   | +-Assignment #17
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #13
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-BinaryOperation #16
+  |   |     |   operator: +
+  |   |     |   typeString: int8
+  |   |     +-Identifier #14
+  |   |     |     name: __warp_usrid0_x
+  |   |     |     referencedDeclaration: 4
+  |   |     |     typeString: int8
+  |   |     +-Literal #15
+  |   |           typeString: int_const 1
+  |   |           value: 1
+  |   +-VariableDeclarationStatement #22
+  |   | +-VariableDeclaration #20
+  |   | | |   name: __warp_usrid3_a
+  |   | | |   scope: 31
+  |   | | |   storageLocation: default
+  |   | | |   typeString: int256
+  |   | | |   visibility: internal
+  |   | | +-ElementaryTypeName #19
+  |   | |       name: int256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: int256
+  |   | +-Identifier #21
+  |   |       name: __warp_usrid1_y
+  |   |       referencedDeclaration: 7
+  |   |       typeString: int256
+  |   +-ExpressionStatement #26
+  |   | +-Assignment #25
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #23
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Identifier #24
+  |   |         name: __warp_usrid2_z
+  |   |         referencedDeclaration: 10
+  |   |         typeString: int256
+  |   +-ExpressionStatement #30
+  |     +-Assignment #29
+  |       |   operator: =
+  |       |   typeString: int256
+  |       +-Identifier #27
+  |       |     name: __warp_usrid2_z
+  |       |     referencedDeclaration: 10
+  |       |     typeString: int256
+  |       +-Identifier #28
+  |             name: __warp_usrid3_a
+  |             referencedDeclaration: 20
+  |             typeString: int256
+  +-FunctionDefinition #47
+  | |   name: 
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #48
+  | +-ParameterList #49
+  | +-Block #37
+  |   +-ExpressionStatement #38
+  |   | +-Assignment #39
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #40
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-Literal #3
+  |   |         typeString: int_const 3
+  |   |         value: 3
+  |   +-ExpressionStatement #41
+  |   | +-Assignment #42
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #43
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Literal #6
+  |   |         typeString: int_const 5
+  |   |         value: 5
+  |   +-ExpressionStatement #44
+  |     +-Assignment #45
+  |       |   operator: =
+  |       |   typeString: int256
+  |       +-Identifier #46
+  |       |     name: __warp_usrid2_z
+  |       |     referencedDeclaration: 10
+  |       |     typeString: int256
+  |       +-Literal #9
+  |             typeString: int_const 1
+  |             value: 1
+  +-FunctionDefinition #51
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #52
+    +-ParameterList #53
+    +-Block #50
+      +-Return #56
+        +-FunctionCall #54
+          |   typeString: tuple()
+          +-Identifier #55
+                name: f_26121ff0_internal
+                referencedDeclaration: 32
+                typeString: function () nonpayable 
+
+---ReturnInserter---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  |   storageAllocations: #4->0,#7->1,#10->3
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  |       name: int8
+  |       stateMutability: nonpayable
+  |       typeString: int8
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-FunctionDefinition #32
+  | |   name: f_26121ff0_internal
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: internal
+  | +-ParameterList #11
+  | +-ParameterList #12
+  | +-Block #31
+  |   +-ExpressionStatement #18
+  |   | +-Assignment #17
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #13
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-BinaryOperation #16
+  |   |     |   operator: +
+  |   |     |   typeString: int8
+  |   |     +-Identifier #14
+  |   |     |     name: __warp_usrid0_x
+  |   |     |     referencedDeclaration: 4
+  |   |     |     typeString: int8
+  |   |     +-Literal #15
+  |   |           typeString: int_const 1
+  |   |           value: 1
+  |   +-VariableDeclarationStatement #22
+  |   | +-VariableDeclaration #20
+  |   | | |   name: __warp_usrid3_a
+  |   | | |   scope: 31
+  |   | | |   storageLocation: default
+  |   | | |   typeString: int256
+  |   | | |   visibility: internal
+  |   | | +-ElementaryTypeName #19
+  |   | |       name: int256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: int256
+  |   | +-Identifier #21
+  |   |       name: __warp_usrid1_y
+  |   |       referencedDeclaration: 7
+  |   |       typeString: int256
+  |   +-ExpressionStatement #26
+  |   | +-Assignment #25
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #23
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Identifier #24
+  |   |         name: __warp_usrid2_z
+  |   |         referencedDeclaration: 10
+  |   |         typeString: int256
+  |   +-ExpressionStatement #30
+  |   | +-Assignment #29
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #27
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Identifier #28
+  |   |         name: __warp_usrid3_a
+  |   |         referencedDeclaration: 20
+  |   |         typeString: int256
+  |   +-Return #57
+  +-FunctionDefinition #47
+  | |   name: 
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #48
+  | +-ParameterList #49
+  | +-Block #37
+  |   +-ExpressionStatement #38
+  |   | +-Assignment #39
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #40
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-Literal #3
+  |   |         typeString: int_const 3
+  |   |         value: 3
+  |   +-ExpressionStatement #41
+  |   | +-Assignment #42
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #43
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Literal #6
+  |   |         typeString: int_const 5
+  |   |         value: 5
+  |   +-ExpressionStatement #44
+  |   | +-Assignment #45
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #46
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Literal #9
+  |   |         typeString: int_const 1
+  |   |         value: 1
+  |   +-Return #58
+  +-FunctionDefinition #51
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #52
+    +-ParameterList #53
+    +-Block #50
+      +-Return #56
+        +-FunctionCall #54
+          |   typeString: tuple()
+          +-Identifier #55
+                name: f_26121ff0_internal
+                referencedDeclaration: 32
+                typeString: function () nonpayable 
+
+---ReturnVariableInitializer---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  |   storageAllocations: #4->0,#7->1,#10->3
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  |       name: int8
+  |       stateMutability: nonpayable
+  |       typeString: int8
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-FunctionDefinition #32
+  | |   name: f_26121ff0_internal
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: internal
+  | +-ParameterList #11
+  | +-ParameterList #12
+  | +-Block #31
+  |   +-ExpressionStatement #18
+  |   | +-Assignment #17
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #13
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-BinaryOperation #16
+  |   |     |   operator: +
+  |   |     |   typeString: int8
+  |   |     +-Identifier #14
+  |   |     |     name: __warp_usrid0_x
+  |   |     |     referencedDeclaration: 4
+  |   |     |     typeString: int8
+  |   |     +-Literal #15
+  |   |           typeString: int_const 1
+  |   |           value: 1
+  |   +-VariableDeclarationStatement #22
+  |   | +-VariableDeclaration #20
+  |   | | |   name: __warp_usrid3_a
+  |   | | |   scope: 31
+  |   | | |   storageLocation: default
+  |   | | |   typeString: int256
+  |   | | |   visibility: internal
+  |   | | +-ElementaryTypeName #19
+  |   | |       name: int256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: int256
+  |   | +-Identifier #21
+  |   |       name: __warp_usrid1_y
+  |   |       referencedDeclaration: 7
+  |   |       typeString: int256
+  |   +-ExpressionStatement #26
+  |   | +-Assignment #25
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #23
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Identifier #24
+  |   |         name: __warp_usrid2_z
+  |   |         referencedDeclaration: 10
+  |   |         typeString: int256
+  |   +-ExpressionStatement #30
+  |   | +-Assignment #29
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #27
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Identifier #28
+  |   |         name: __warp_usrid3_a
+  |   |         referencedDeclaration: 20
+  |   |         typeString: int256
+  |   +-Return #57
+  +-FunctionDefinition #47
+  | |   name: 
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #48
+  | +-ParameterList #49
+  | +-Block #37
+  |   +-ExpressionStatement #38
+  |   | +-Assignment #39
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #40
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-Literal #3
+  |   |         typeString: int_const 3
+  |   |         value: 3
+  |   +-ExpressionStatement #41
+  |   | +-Assignment #42
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #43
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Literal #6
+  |   |         typeString: int_const 5
+  |   |         value: 5
+  |   +-ExpressionStatement #44
+  |   | +-Assignment #45
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #46
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Literal #9
+  |   |         typeString: int_const 1
+  |   |         value: 1
+  |   +-Return #58
+  +-FunctionDefinition #51
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #52
+    +-ParameterList #53
+    +-Block #50
+      +-Return #56
+        +-FunctionCall #54
+          |   typeString: tuple()
+          +-Identifier #55
+                name: f_26121ff0_internal
+                referencedDeclaration: 32
+                typeString: function () nonpayable 
+
+---IfFunctionaliser---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  |   storageAllocations: #4->0,#7->1,#10->3
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  |       name: int8
+  |       stateMutability: nonpayable
+  |       typeString: int8
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-FunctionDefinition #32
+  | |   name: f_26121ff0_internal
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: internal
+  | +-ParameterList #11
+  | +-ParameterList #12
+  | +-Block #31
+  |   +-ExpressionStatement #18
+  |   | +-Assignment #17
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #13
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-BinaryOperation #16
+  |   |     |   operator: +
+  |   |     |   typeString: int8
+  |   |     +-Identifier #14
+  |   |     |     name: __warp_usrid0_x
+  |   |     |     referencedDeclaration: 4
+  |   |     |     typeString: int8
+  |   |     +-Literal #15
+  |   |           typeString: int_const 1
+  |   |           value: 1
+  |   +-VariableDeclarationStatement #22
+  |   | +-VariableDeclaration #20
+  |   | | |   name: __warp_usrid3_a
+  |   | | |   scope: 31
+  |   | | |   storageLocation: default
+  |   | | |   typeString: int256
+  |   | | |   visibility: internal
+  |   | | +-ElementaryTypeName #19
+  |   | |       name: int256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: int256
+  |   | +-Identifier #21
+  |   |       name: __warp_usrid1_y
+  |   |       referencedDeclaration: 7
+  |   |       typeString: int256
+  |   +-ExpressionStatement #26
+  |   | +-Assignment #25
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #23
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Identifier #24
+  |   |         name: __warp_usrid2_z
+  |   |         referencedDeclaration: 10
+  |   |         typeString: int256
+  |   +-ExpressionStatement #30
+  |   | +-Assignment #29
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #27
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Identifier #28
+  |   |         name: __warp_usrid3_a
+  |   |         referencedDeclaration: 20
+  |   |         typeString: int256
+  |   +-Return #57
+  +-FunctionDefinition #47
+  | |   name: 
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #48
+  | +-ParameterList #49
+  | +-Block #37
+  |   +-ExpressionStatement #38
+  |   | +-Assignment #39
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #40
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-Literal #3
+  |   |         typeString: int_const 3
+  |   |         value: 3
+  |   +-ExpressionStatement #41
+  |   | +-Assignment #42
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #43
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Literal #6
+  |   |         typeString: int_const 5
+  |   |         value: 5
+  |   +-ExpressionStatement #44
+  |   | +-Assignment #45
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #46
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Literal #9
+  |   |         typeString: int_const 1
+  |   |         value: 1
+  |   +-Return #58
+  +-FunctionDefinition #51
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #52
+    +-ParameterList #53
+    +-Block #50
+      +-Return #56
+        +-FunctionCall #54
+          |   typeString: tuple()
+          +-Identifier #55
+                name: f_26121ff0_internal
+                referencedDeclaration: 32
+                typeString: function () nonpayable 
+
+---TupleAssignmentSplitter---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  |   storageAllocations: #4->0,#7->1,#10->3
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  |       name: int8
+  |       stateMutability: nonpayable
+  |       typeString: int8
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-FunctionDefinition #32
+  | |   name: f_26121ff0_internal
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: internal
+  | +-ParameterList #11
+  | +-ParameterList #12
+  | +-Block #31
+  |   +-ExpressionStatement #18
+  |   | +-Assignment #17
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #13
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-BinaryOperation #16
+  |   |     |   operator: +
+  |   |     |   typeString: int8
+  |   |     +-Identifier #14
+  |   |     |     name: __warp_usrid0_x
+  |   |     |     referencedDeclaration: 4
+  |   |     |     typeString: int8
+  |   |     +-Literal #15
+  |   |           typeString: int_const 1
+  |   |           value: 1
+  |   +-VariableDeclarationStatement #22
+  |   | +-VariableDeclaration #20
+  |   | | |   name: __warp_usrid3_a
+  |   | | |   scope: 31
+  |   | | |   storageLocation: default
+  |   | | |   typeString: int256
+  |   | | |   visibility: internal
+  |   | | +-ElementaryTypeName #19
+  |   | |       name: int256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: int256
+  |   | +-Identifier #21
+  |   |       name: __warp_usrid1_y
+  |   |       referencedDeclaration: 7
+  |   |       typeString: int256
+  |   +-ExpressionStatement #26
+  |   | +-Assignment #25
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #23
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Identifier #24
+  |   |         name: __warp_usrid2_z
+  |   |         referencedDeclaration: 10
+  |   |         typeString: int256
+  |   +-ExpressionStatement #30
+  |   | +-Assignment #29
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #27
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Identifier #28
+  |   |         name: __warp_usrid3_a
+  |   |         referencedDeclaration: 20
+  |   |         typeString: int256
+  |   +-Return #57
+  +-FunctionDefinition #47
+  | |   name: 
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #48
+  | +-ParameterList #49
+  | +-Block #37
+  |   +-ExpressionStatement #38
+  |   | +-Assignment #39
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #40
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-Literal #3
+  |   |         typeString: int_const 3
+  |   |         value: 3
+  |   +-ExpressionStatement #41
+  |   | +-Assignment #42
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #43
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Literal #6
+  |   |         typeString: int_const 5
+  |   |         value: 5
+  |   +-ExpressionStatement #44
+  |   | +-Assignment #45
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #46
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Literal #9
+  |   |         typeString: int_const 1
+  |   |         value: 1
+  |   +-Return #58
+  +-FunctionDefinition #51
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #52
+    +-ParameterList #53
+    +-Block #50
+      +-Return #56
+        +-FunctionCall #54
+          |   typeString: tuple()
+          +-Identifier #55
+                name: f_26121ff0_internal
+                referencedDeclaration: 32
+                typeString: function () nonpayable 
+
+---AddressHandler---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  |   storageAllocations: #4->0,#7->1,#10->3
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  |       name: int8
+  |       stateMutability: nonpayable
+  |       typeString: int8
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-FunctionDefinition #32
+  | |   name: f_26121ff0_internal
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: internal
+  | +-ParameterList #11
+  | +-ParameterList #12
+  | +-Block #31
+  |   +-ExpressionStatement #18
+  |   | +-Assignment #17
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #13
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-BinaryOperation #16
+  |   |     |   operator: +
+  |   |     |   typeString: int8
+  |   |     +-Identifier #14
+  |   |     |     name: __warp_usrid0_x
+  |   |     |     referencedDeclaration: 4
+  |   |     |     typeString: int8
+  |   |     +-Literal #15
+  |   |           typeString: int_const 1
+  |   |           value: 1
+  |   +-VariableDeclarationStatement #22
+  |   | +-VariableDeclaration #20
+  |   | | |   name: __warp_usrid3_a
+  |   | | |   scope: 31
+  |   | | |   storageLocation: default
+  |   | | |   typeString: int256
+  |   | | |   visibility: internal
+  |   | | +-ElementaryTypeName #19
+  |   | |       name: int256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: int256
+  |   | +-Identifier #21
+  |   |       name: __warp_usrid1_y
+  |   |       referencedDeclaration: 7
+  |   |       typeString: int256
+  |   +-ExpressionStatement #26
+  |   | +-Assignment #25
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #23
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Identifier #24
+  |   |         name: __warp_usrid2_z
+  |   |         referencedDeclaration: 10
+  |   |         typeString: int256
+  |   +-ExpressionStatement #30
+  |   | +-Assignment #29
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #27
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Identifier #28
+  |   |         name: __warp_usrid3_a
+  |   |         referencedDeclaration: 20
+  |   |         typeString: int256
+  |   +-Return #57
+  +-FunctionDefinition #47
+  | |   name: 
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #48
+  | +-ParameterList #49
+  | +-Block #37
+  |   +-ExpressionStatement #38
+  |   | +-Assignment #39
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #40
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-Literal #3
+  |   |         typeString: int_const 3
+  |   |         value: 3
+  |   +-ExpressionStatement #41
+  |   | +-Assignment #42
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #43
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Literal #6
+  |   |         typeString: int_const 5
+  |   |         value: 5
+  |   +-ExpressionStatement #44
+  |   | +-Assignment #45
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #46
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Literal #9
+  |   |         typeString: int_const 1
+  |   |         value: 1
+  |   +-Return #58
+  +-FunctionDefinition #51
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #52
+    +-ParameterList #53
+    +-Block #50
+      +-Return #56
+        +-FunctionCall #54
+          |   typeString: tuple()
+          +-Identifier #55
+                name: f_26121ff0_internal
+                referencedDeclaration: 32
+                typeString: function () nonpayable 
+
+---UnloadingAssignment---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  |   storageAllocations: #4->0,#7->1,#10->3
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  |       name: int8
+  |       stateMutability: nonpayable
+  |       typeString: int8
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-FunctionDefinition #32
+  | |   name: f_26121ff0_internal
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: internal
+  | +-ParameterList #11
+  | +-ParameterList #12
+  | +-Block #31
+  |   +-ExpressionStatement #18
+  |   | +-Assignment #17
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #13
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-BinaryOperation #16
+  |   |     |   operator: +
+  |   |     |   typeString: int8
+  |   |     +-Identifier #14
+  |   |     |     name: __warp_usrid0_x
+  |   |     |     referencedDeclaration: 4
+  |   |     |     typeString: int8
+  |   |     +-Literal #15
+  |   |           typeString: int_const 1
+  |   |           value: 1
+  |   +-VariableDeclarationStatement #22
+  |   | +-VariableDeclaration #20
+  |   | | |   name: __warp_usrid3_a
+  |   | | |   scope: 31
+  |   | | |   storageLocation: default
+  |   | | |   typeString: int256
+  |   | | |   visibility: internal
+  |   | | +-ElementaryTypeName #19
+  |   | |       name: int256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: int256
+  |   | +-Identifier #21
+  |   |       name: __warp_usrid1_y
+  |   |       referencedDeclaration: 7
+  |   |       typeString: int256
+  |   +-ExpressionStatement #26
+  |   | +-Assignment #25
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #23
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Identifier #24
+  |   |         name: __warp_usrid2_z
+  |   |         referencedDeclaration: 10
+  |   |         typeString: int256
+  |   +-ExpressionStatement #30
+  |   | +-Assignment #29
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #27
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Identifier #28
+  |   |         name: __warp_usrid3_a
+  |   |         referencedDeclaration: 20
+  |   |         typeString: int256
+  |   +-Return #57
+  +-FunctionDefinition #47
+  | |   name: 
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #48
+  | +-ParameterList #49
+  | +-Block #37
+  |   +-ExpressionStatement #38
+  |   | +-Assignment #39
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #40
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-Literal #3
+  |   |         typeString: int_const 3
+  |   |         value: 3
+  |   +-ExpressionStatement #41
+  |   | +-Assignment #42
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #43
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Literal #6
+  |   |         typeString: int_const 5
+  |   |         value: 5
+  |   +-ExpressionStatement #44
+  |   | +-Assignment #45
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #46
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Literal #9
+  |   |         typeString: int_const 1
+  |   |         value: 1
+  |   +-Return #58
+  +-FunctionDefinition #51
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #52
+    +-ParameterList #53
+    +-Block #50
+      +-Return #56
+        +-FunctionCall #54
+          |   typeString: tuple()
+          +-Identifier #55
+                name: f_26121ff0_internal
+                referencedDeclaration: 32
+                typeString: function () nonpayable 
+
+---VariableDeclarationInitialiser---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  |   storageAllocations: #4->0,#7->1,#10->3
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  |       name: int8
+  |       stateMutability: nonpayable
+  |       typeString: int8
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-FunctionDefinition #32
+  | |   name: f_26121ff0_internal
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: internal
+  | +-ParameterList #11
+  | +-ParameterList #12
+  | +-Block #31
+  |   +-ExpressionStatement #18
+  |   | +-Assignment #17
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #13
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-BinaryOperation #16
+  |   |     |   operator: +
+  |   |     |   typeString: int8
+  |   |     +-Identifier #14
+  |   |     |     name: __warp_usrid0_x
+  |   |     |     referencedDeclaration: 4
+  |   |     |     typeString: int8
+  |   |     +-Literal #15
+  |   |           typeString: int_const 1
+  |   |           value: 1
+  |   +-VariableDeclarationStatement #22
+  |   | +-VariableDeclaration #20
+  |   | | |   name: __warp_usrid3_a
+  |   | | |   scope: 31
+  |   | | |   storageLocation: default
+  |   | | |   typeString: int256
+  |   | | |   visibility: internal
+  |   | | +-ElementaryTypeName #19
+  |   | |       name: int256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: int256
+  |   | +-Identifier #21
+  |   |       name: __warp_usrid1_y
+  |   |       referencedDeclaration: 7
+  |   |       typeString: int256
+  |   +-ExpressionStatement #26
+  |   | +-Assignment #25
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #23
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Identifier #24
+  |   |         name: __warp_usrid2_z
+  |   |         referencedDeclaration: 10
+  |   |         typeString: int256
+  |   +-ExpressionStatement #30
+  |   | +-Assignment #29
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #27
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Identifier #28
+  |   |         name: __warp_usrid3_a
+  |   |         referencedDeclaration: 20
+  |   |         typeString: int256
+  |   +-Return #57
+  +-FunctionDefinition #47
+  | |   name: 
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #48
+  | +-ParameterList #49
+  | +-Block #37
+  |   +-ExpressionStatement #38
+  |   | +-Assignment #39
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #40
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-Literal #3
+  |   |         typeString: int_const 3
+  |   |         value: 3
+  |   +-ExpressionStatement #41
+  |   | +-Assignment #42
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #43
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Literal #6
+  |   |         typeString: int_const 5
+  |   |         value: 5
+  |   +-ExpressionStatement #44
+  |   | +-Assignment #45
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #46
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Literal #9
+  |   |         typeString: int_const 1
+  |   |         value: 1
+  |   +-Return #58
+  +-FunctionDefinition #51
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #52
+    +-ParameterList #53
+    +-Block #50
+      +-Return #56
+        +-FunctionCall #54
+          |   typeString: tuple()
+          +-Identifier #55
+                name: f_26121ff0_internal
+                referencedDeclaration: 32
+                typeString: function () nonpayable 
+
+---VariableDeclarationExpressionSplitter---
+SourceUnit #36
+|   absolutePath: example_contracts/mutableReferences/scalarStorage__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #33
+  |   linearizedBaseContracts: 33
+  |   name: WARP
+  |   scope: 36
+  |   storageAllocations: #4->0,#7->1,#10->3
+  +-VariableDeclaration #4
+  | |   name: __warp_usrid0_x
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2
+  |       name: int8
+  |       stateMutability: nonpayable
+  |       typeString: int8
+  +-VariableDeclaration #7
+  | |   name: __warp_usrid1_y
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #5
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-VariableDeclaration #10
+  | |   name: __warp_usrid2_z
+  | |   scope: 33
+  | |   storageLocation: default
+  | |   typeString: int256
+  | |   visibility: internal
+  | +-ElementaryTypeName #8
+  |       name: int256
+  |       stateMutability: nonpayable
+  |       typeString: int256
+  +-FunctionDefinition #32
+  | |   name: f_26121ff0_internal
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: internal
+  | +-ParameterList #11
+  | +-ParameterList #12
+  | +-Block #31
+  |   +-ExpressionStatement #18
+  |   | +-Assignment #17
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #13
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-BinaryOperation #16
+  |   |     |   operator: +
+  |   |     |   typeString: int8
+  |   |     +-Identifier #14
+  |   |     |     name: __warp_usrid0_x
+  |   |     |     referencedDeclaration: 4
+  |   |     |     typeString: int8
+  |   |     +-Literal #15
+  |   |           typeString: int_const 1
+  |   |           value: 1
+  |   +-VariableDeclarationStatement #22
+  |   | +-VariableDeclaration #20
+  |   | | |   name: __warp_usrid3_a
+  |   | | |   scope: 31
+  |   | | |   storageLocation: default
+  |   | | |   typeString: int256
+  |   | | |   visibility: internal
+  |   | | +-ElementaryTypeName #19
+  |   | |       name: int256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: int256
+  |   | +-Identifier #21
+  |   |       name: __warp_usrid1_y
+  |   |       referencedDeclaration: 7
+  |   |       typeString: int256
+  |   +-ExpressionStatement #26
+  |   | +-Assignment #25
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #23
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Identifier #24
+  |   |         name: __warp_usrid2_z
+  |   |         referencedDeclaration: 10
+  |   |         typeString: int256
+  |   +-ExpressionStatement #30
+  |   | +-Assignment #29
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #27
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Identifier #28
+  |   |         name: __warp_usrid3_a
+  |   |         referencedDeclaration: 20
+  |   |         typeString: int256
+  |   +-Return #57
+  +-FunctionDefinition #47
+  | |   name: 
+  | |   scope: 33
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #48
+  | +-ParameterList #49
+  | +-Block #37
+  |   +-ExpressionStatement #38
+  |   | +-Assignment #39
+  |   |   |   operator: =
+  |   |   |   typeString: int8
+  |   |   +-Identifier #40
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 4
+  |   |   |     typeString: int8
+  |   |   +-Literal #3
+  |   |         typeString: int_const 3
+  |   |         value: 3
+  |   +-ExpressionStatement #41
+  |   | +-Assignment #42
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #43
+  |   |   |     name: __warp_usrid1_y
+  |   |   |     referencedDeclaration: 7
+  |   |   |     typeString: int256
+  |   |   +-Literal #6
+  |   |         typeString: int_const 5
+  |   |         value: 5
+  |   +-ExpressionStatement #44
+  |   | +-Assignment #45
+  |   |   |   operator: =
+  |   |   |   typeString: int256
+  |   |   +-Identifier #46
+  |   |   |     name: __warp_usrid2_z
+  |   |   |     referencedDeclaration: 10
+  |   |   |     typeString: int256
+  |   |   +-Literal #9
+  |   |         typeString: int_const 1
+  |   |         value: 1
+  |   +-Return #58
+  +-FunctionDefinition #51
+    |   name: f_26121ff0
+    |   scope: 33
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #52
+    +-ParameterList #53
+    +-Block #50
+      +-Return #56
+        +-FunctionCall #54
+          |   typeString: tuple()
+          +-Identifier #55
+                name: f_26121ff0_internal
+                referencedDeclaration: 32
+                typeString: function () nonpayable 
+
+---References---
+Assignment #17: actual - default, expected - undefined
+Identifier #13: actual - storage, expected - storage
+BinaryOperation #16: actual - default, expected - storage
+Identifier #14: actual - storage, expected - default
+Literal #15: actual - default, expected - default
+Identifier #21: actual - storage, expected - default
+Assignment #25: actual - default, expected - undefined
+Identifier #23: actual - storage, expected - storage
+Identifier #24: actual - storage, expected - storage
+Assignment #29: actual - default, expected - undefined
+Identifier #27: actual - storage, expected - storage
+Identifier #28: actual - default, expected - storage
+Assignment #39: actual - default, expected - undefined
+Identifier #40: actual - storage, expected - storage
+Literal #3: actual - default, expected - storage
+Assignment #42: actual - default, expected - undefined
+Identifier #43: actual - storage, expected - storage
+Literal #6: actual - default, expected - storage
+Assignment #45: actual - default, expected - undefined
+Identifier #46: actual - storage, expected - storage
+Literal #9: actual - default, expected - storage
+FunctionCall #54: actual - default, expected - default
+Identifier #55: actual - default, expected - undefined
+Visiting Assignment #17
+    storage
+start
+done
+Created FunctionCall #78
+Visiting Identifier #79 WS_WRITE0
+Visiting Identifier #13 __warp_usrid0_x
+Visiting Identifier #68 WS0_READ_felt
+Visiting Identifier #14 __warp_usrid0_x
+storage identifier Identifier #14 __warp_usrid0_x
+Creating storage read for Identifier #14 __warp_usrid0_x
+start
+done
+Visiting Identifier #21 __warp_usrid1_y
+storage identifier Identifier #21 __warp_usrid1_y
+Creating storage read for Identifier #21 __warp_usrid1_y
+start
+done
+Visiting Assignment #25
+    storage
+start
+done
+Created FunctionCall #117
+Visiting Identifier #118 WS_WRITE1
+Visiting Identifier #23 __warp_usrid1_y
+Visiting Identifier #107 WS1_READ_Uint256
+Visiting Identifier #24 __warp_usrid2_z
+Visiting Assignment #29
+    storage
+start
+done
+Created FunctionCall #138
+Visiting Identifier #139 WS_WRITE1
+Visiting Identifier #27 __warp_usrid2_z
+Visiting Identifier #128 WS1_READ_Uint256
+Visiting Identifier #28 __warp_usrid3_a
+Visiting Assignment #39
+    storage
+WARNING: assigning int248 type to int literal int_const 3

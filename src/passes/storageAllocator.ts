@@ -4,6 +4,7 @@ import {
   Block,
   ContractDefinition,
   ContractKind,
+  DataLocation,
   ExpressionStatement,
   FunctionDefinition,
   FunctionKind,
@@ -12,11 +13,13 @@ import {
   getNodeType,
   Identifier,
   ParameterList,
+  typeNameToSpecializedTypeNode,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
+import { printTypeNode } from '../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
 import { isCairoConstant } from '../utils/utils';
 
@@ -100,6 +103,9 @@ function insertIntoConstructor(initialisationBlock: Block, contract: ContractDef
 function extractInitialisation(node: VariableDeclaration, initialisationBlock: Block, ast: AST) {
   if (node.vValue === undefined) return;
 
+  assert(node.vType !== undefined);
+  const type = typeNameToSpecializedTypeNode(node.vType, DataLocation.Storage);
+
   initialisationBlock.appendChild(
     new ExpressionStatement(
       ast.reserveId(),
@@ -107,9 +113,9 @@ function extractInitialisation(node: VariableDeclaration, initialisationBlock: B
       new Assignment(
         ast.reserveId(),
         node.src,
-        node.typeString,
+        type.pp(),
         '=',
-        new Identifier(ast.reserveId(), node.src, node.typeString, node.name, node.id),
+        new Identifier(ast.reserveId(), node.src, type.pp(), node.name, node.id),
         node.vValue,
       ),
     ),

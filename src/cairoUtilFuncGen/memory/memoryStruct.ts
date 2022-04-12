@@ -1,9 +1,12 @@
 import assert = require('assert');
 import {
+  DataLocation,
   FunctionCall,
   getNodeType,
   IdentifierPath,
+  PointerType,
   StructDefinition,
+  typeNameToSpecializedTypeNode,
   UserDefinedTypeName,
 } from 'solc-typed-ast';
 import { CairoStruct, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
@@ -14,6 +17,7 @@ import { add, StringIndexedFuncGen } from '../base';
 
 export class MemoryStructGen extends StringIndexedFuncGen {
   gen(node: FunctionCall): FunctionCall {
+    console.log('mem struct start');
     const structDef = node.vReferencedDeclaration;
     assert(structDef instanceof StructDefinition);
 
@@ -29,7 +33,12 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       name,
       structDef.vMembers.map((decl) => {
         assert(decl.vType !== undefined);
-        return [decl.name, cloneASTNode(decl.vType, this.ast)];
+        const type = typeNameToSpecializedTypeNode(decl.vType, DataLocation.Memory);
+        return [
+          decl.name,
+          cloneASTNode(decl.vType, this.ast),
+          type instanceof PointerType ? type.location : DataLocation.Default,
+        ];
       }),
       [
         [
@@ -42,6 +51,7 @@ export class MemoryStructGen extends StringIndexedFuncGen {
             structDef.id,
             new IdentifierPath(this.ast.reserveId(), '', structDef.name, structDef.id),
           ),
+          DataLocation.Memory,
         ],
       ],
       ['range_check_ptr', 'warp_memory'],
@@ -52,6 +62,8 @@ export class MemoryStructGen extends StringIndexedFuncGen {
     stub.vScope.removeChild(stub);
     structDef.vScope.appendChild(stub);
     structDef.vScope.acceptChildren();
+
+    console.log('mem struct end');
 
     return createCallToFunction(stub, node.vArguments, this.ast);
   }

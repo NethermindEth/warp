@@ -1,12 +1,11 @@
 import assert from 'assert';
-
 import {
+  ArrayTypeName,
+  Assignment,
   ASTNode,
   ASTNodeConstructor,
   ASTNodeWriter,
   ASTWriter,
-  ArrayTypeName,
-  Assignment,
   BinaryOperation,
   Block,
   Break,
@@ -27,6 +26,7 @@ import {
   FunctionCall,
   FunctionCallKind,
   FunctionCallOptions,
+  FunctionDefinition,
   FunctionKind,
   FunctionStateMutability,
   FunctionTypeName,
@@ -70,20 +70,23 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
   WhileStatement,
-  FunctionDefinition,
 } from 'solc-typed-ast';
-import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
-import { implicitOrdering, implicitTypes } from './utils/implicits';
-import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
-import { canonicalMangler, divmod, isExternallyVisible, primitiveTypeToCairo } from './utils/utils';
-
 import { AST } from './ast/ast';
-import { getMappingTypes } from './utils/mappings';
-import { notNull, notUndefined } from './utils/typeConstructs';
+import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
 import { printNode } from './utils/astPrinter';
 import { CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
+import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
-import { isCairoConstant } from './utils/utils';
+import { implicitOrdering, implicitTypes } from './utils/implicits';
+import { getMappingTypes } from './utils/mappings';
+import { notNull, notUndefined } from './utils/typeConstructs';
+import {
+  canonicalMangler,
+  divmod,
+  isCairoConstant,
+  isExternallyVisible,
+  primitiveTypeToCairo,
+} from './utils/utils';
 
 const INDENT = ' '.repeat(4);
 
@@ -425,7 +428,10 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
 
   private getImplicits(node: CairoFunctionDefinition): string {
     const implicits = [...node.implicits.values()].filter(
-      (i) => node.visibility !== FunctionVisibility.External || i !== 'warp_memory',
+      (i) =>
+        (node.visibility !== FunctionVisibility.External &&
+          node.visibility !== FunctionVisibility.Public) ||
+        i !== 'warp_memory',
     );
     if (implicits.length === 0) return '';
     return `{${implicits

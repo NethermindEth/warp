@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   ASTNode,
+  DataLocation,
   FunctionCall,
   getNodeType,
   IndexAccess,
@@ -30,10 +31,11 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
     const functionStub = createCairoFunctionStub(
       name,
       [
-        ['loc', typeNameFromTypeNode(baseType, this.ast)],
-        ['offset', typeNameFromTypeNode(baseType.to.keyType, this.ast)],
+        ['name', typeNameFromTypeNode(baseType, this.ast), DataLocation.Storage],
+        // TODO check that this is always default
+        ['index', typeNameFromTypeNode(baseType.to.keyType, this.ast), DataLocation.Default],
       ],
-      [['resLoc', typeNameFromTypeNode(nodeType, this.ast)]],
+      [['res', typeNameFromTypeNode(nodeType, this.ast)]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       nodeInSourceUnit ?? node,

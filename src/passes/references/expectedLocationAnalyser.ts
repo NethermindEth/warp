@@ -1,15 +1,20 @@
 import assert from 'assert';
 import {
   Assignment,
+  BinaryOperation,
   DataLocation,
   Expression,
   FunctionCall,
   FunctionCallKind,
+  FunctionDefinition,
+  FunctionVisibility,
   getNodeType,
+  IndexAccess,
+  MemberAccess,
   PointerType,
   Return,
   TupleExpression,
-  TupleType,
+  UnaryOperation,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -17,6 +22,7 @@ import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
 import { error } from '../../utils/formatting';
 import { getParameterTypes } from '../../utils/nodeTypeProcessing';
+import { notNull } from '../../utils/typeConstructs';
 
 /*
 Analyses the tree top down, marking nodes with the storage location associated
@@ -28,9 +34,43 @@ Prerequisites
 TupleAssignmentSplitter - Cannot usefully assign a location to tuple returns
 */
 
+// undefined means unused, default means read
+
 export class ExpectedLocationAnalyser extends ASTMapper {
-  constructor(private expectedLocations: Map<Expression, DataLocation>) {
+  constructor(
+    private actualLocations: Map<Expression, DataLocation>,
+    private expectedLocations: Map<Expression, DataLocation>,
+  ) {
     super();
+  }
+
+  visitAssignment(node: Assignment, ast: AST): void {
+    const lhsLocation = this.actualLocations.get(node.vLeftHandSide);
+    if (lhsLocation === DataLocation.Storage) {
+      this.expectedLocations.set(node.vLeftHandSide, lhsLocation);
+      this.expectedLocations.set(node.vRightHandSide, DataLocation.Default);
+    }
+    if (lhsLocation !== undefined) {
+    }
+    this.visitExpression(node, ast);
+  }
+
+  visitBinaryOperation(node: BinaryOperation, ast: AST): void {
+    this.expectedLocations.set(node.vLeftExpression, DataLocation.Default);
+    this.expectedLocations.set(node.vRightExpression, DataLocation.Default);
+    this.visitExpression(node, ast);
+  }
+
+  visitUnaryOperation(node: UnaryOperation, ast: AST): void {
+    if (node.operator === 'delete') {
+      const subExpressionLocation = this.actualLocations.get(node.vSubExpression);
+      if (subExpressionLocation !== undefined) {
+        this.expectedLocations.set(node.vSubExpression, subExpressionLocation);
+      }
+    } else {
+      this.expectedLocations.set(node.vSubExpression, DataLocation.Default);
+    }
+    this.visitExpression(node, ast);
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -41,6 +81,24 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     const parameterTypes = getParameterTypes(node, ast);
     parameterTypes.forEach((t, index) => {
       if (t instanceof PointerType) {
+        if (node.kind === FunctionCallKind.StructConstructorCall) {
+          // The components of a struct being assigned to a location are also being assigned to that location
+          const expectedLocation = this.expectedLocations.get(node);
+          if (expectedLocation !== undefined && expectedLocation !== DataLocation.Default) {
+            this.expectedLocations.set(node.vArguments[index], expectedLocation);
+            return;
+          }
+
+          // If no expected location, check the type associated with the parent struct constructor
+          const structType = getNodeType(node, ast.compilerVersion);
+          assert(structType instanceof PointerType);
+          if (structType.location !== DataLocation.Default) {
+            this.expectedLocations.set(node.vArguments[index], structType.location);
+          } else {
+            //Finally, default to the type in the pointer itself if we can't infer anything else
+            this.expectedLocations.set(node.vArguments[index], t.location);
+          }
+        }
         this.expectedLocations.set(node.vArguments[index], t.location);
       } else {
         this.expectedLocations.set(node.vArguments[index], DataLocation.Default);
@@ -49,19 +107,37 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     this.visitExpression(node, ast);
   }
 
-  visitAssignment(node: Assignment, ast: AST): void {
-    if (node.vLeftHandSide instanceof TupleExpression) {
-      return this.visitExpression(node, ast);
-    }
-    const lhsType = getNodeType(node.vLeftHandSide, ast.compilerVersion);
-    assert(!(lhsType instanceof TupleType));
-    if (lhsType instanceof PointerType) {
-      this.expectedLocations.set(node.vRightHandSide, lhsType.location);
-    }
+  visitIndexAccess(node: IndexAccess, ast: AST): void {
+    assert(node.vIndexExpression !== undefined);
+    const baseLoc = this.actualLocations.get(node.vBaseExpression);
+    assert(baseLoc !== undefined);
+    this.expectedLocations.set(node.vBaseExpression, baseLoc);
+    this.expectedLocations.set(node.vIndexExpression, DataLocation.Default);
+    this.visitExpression(node, ast);
+  }
+
+  visitMemberAccess(node: MemberAccess, ast: AST): void {
+    const baseLoc = this.actualLocations.get(node.vExpression);
+    assert(baseLoc !== undefined);
+    this.expectedLocations.set(node.vExpression, baseLoc);
     this.visitExpression(node, ast);
   }
 
   visitReturn(node: Return, ast: AST): void {
+    const func = node.getClosestParentByType(FunctionDefinition);
+    assert(func !== undefined, `Unable to find containing function for ${printNode(node)}`);
+    if (
+      func.visibility === FunctionVisibility.External ||
+      func.visibility === FunctionVisibility.Public
+    ) {
+      if (node.vExpression) {
+        // External functions need to read out their returns
+        // TODO might need to expand this to be clear that it's a deep read
+        this.expectedLocations.set(node.vExpression, DataLocation.Default);
+      }
+      return this.visitStatement(node, ast);
+    }
+
     const retParams = node.vFunctionReturnParameters.vParameters;
     if (retParams.length === 1) {
       assert(node.vExpression !== undefined, `expected ${printNode(node)} to return a value`);
@@ -92,18 +168,9 @@ export class ExpectedLocationAnalyser extends ASTMapper {
   visitTupleExpression(node: TupleExpression, ast: AST): void {
     const assignedLocation = this.expectedLocations.get(node);
 
-    if (assignedLocation === undefined) return;
+    if (assignedLocation === undefined) return this.visitExpression(node, ast);
 
-    assert(
-      node.isInlineArray,
-      `Unexpectedly assigned non-array tuple ${printNode(node)} as ${assignedLocation}`,
-    );
-
-    node.vOriginalComponents.forEach((element) => {
-      assert(
-        element !== null,
-        `Expected inline array ${printNode(node)} not to contain empty slots`,
-      );
+    node.vOriginalComponents.filter(notNull).forEach((element) => {
       this.expectedLocations.set(element, assignedLocation);
     });
 

@@ -1,84 +1,104 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   ArrayTypeName,
   DataLocation,
   FunctionCall,
   FunctionCallKind,
-  getNodeType,
   NewExpression,
-  PointerType,
   TupleExpression,
   typeNameToTypeNode,
 } from 'solc-typed-ast';
+import { ReferenceSubPass } from './referenceSubPass';
 import { AST } from '../../ast/ast';
-import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
 import { createUint256Literal, createUint256TypeName } from '../../utils/nodeTemplates';
 
-export class MemoryAllocations extends ASTMapper {
+/*
+  Handles expressions that directly insert data into memory: struct constructors, news, and inline arrays
+  Requires expected data location analysis to determine whether to insert objects into memory
+  For memory objects, functions are generated that return a felt associated with the start of the data
+  For others, they are as explicit expressions to be transpiled to cairo
+*/
+export class MemoryAllocations extends ReferenceSubPass {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     this.visitExpression(node, ast);
-    processIfMemoryStructConstructor(node, ast);
-    processIfDynArrayAllocation(node, ast);
+
+    const [actualLoc, expectedLoc] = this.getLocations(node);
+
+    if (
+      node.kind === FunctionCallKind.StructConstructorCall &&
+      this.expectedDataLocations.get(node) === DataLocation.Memory
+    ) {
+      const replacement = ast.getUtilFuncGen(node).memory.struct.gen(node);
+      this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
+    } else if (node.vExpression instanceof NewExpression) {
+      if (this.expectedDataLocations.get(node) === DataLocation.Memory) {
+        this.allocateMemoryDynArray(node, ast);
+      } else {
+        throw new NotSupportedYetError(
+          `Allocating dynamic ${
+            this.expectedDataLocations.get(node) ?? 'unknown-location'
+          } arrays not implemented yet`,
+        );
+      }
+    }
   }
 
   visitTupleExpression(node: TupleExpression, ast: AST): void {
     this.visitExpression(node, ast);
 
+    const [actualLoc, expectedLoc] = this.getLocations(node);
+
     if (!node.isInlineArray) return;
+    console.log('a');
+    if (this.expectedDataLocations.get(node) !== DataLocation.Memory) return;
+    console.log('b');
 
-    ast.replaceNode(node, ast.getUtilFuncGen(node).memory.arrayLiteral.gen(node));
+    const replacement = ast.getUtilFuncGen(node).memory.arrayLiteral.gen(node);
+    this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
   }
-}
 
-function processIfMemoryStructConstructor(node: FunctionCall, ast: AST) {
-  if (node.kind !== FunctionCallKind.StructConstructorCall) return;
+  allocateMemoryDynArray(node: FunctionCall, ast: AST) {
+    assert(node.vExpression instanceof NewExpression);
 
-  const nodeType = getNodeType(node, ast.compilerVersion);
-  assert(nodeType instanceof PointerType);
-  if (nodeType.location !== DataLocation.Memory) return;
+    assert(
+      node.vArguments.length === 1,
+      `Expected new expression ${printNode(node)} to have one argument, has ${
+        node.vArguments.length
+      }`,
+    );
 
-  ast.replaceNode(node, ast.getUtilFuncGen(node).memory.struct.gen(node));
-}
+    const stub = createCairoFunctionStub(
+      'wm_new',
+      [
+        ['len', createUint256TypeName(ast)],
+        ['elemWidth', createUint256TypeName(ast)],
+      ],
+      [['loc', node.vExpression.vTypeName, DataLocation.Memory]],
+      ['range_check_ptr', 'warp_memory'],
+      ast,
+      node,
+    );
 
-function processIfDynArrayAllocation(node: FunctionCall, ast: AST) {
-  if (!(node.vExpression instanceof NewExpression)) return;
+    assert(node.vExpression.vTypeName instanceof ArrayTypeName);
 
-  assert(
-    node.vArguments.length === 1,
-    `Expected new expression ${printNode(node)} to have one argument, has ${
-      node.vArguments.length
-    }`,
-  );
+    const elementCairoType = CairoType.fromSol(
+      typeNameToTypeNode(node.vExpression.vTypeName.vBaseType),
+      ast,
+      TypeConversionContext.MemoryAllocation,
+    );
 
-  const stub = createCairoFunctionStub(
-    'wm_new',
-    [
-      ['len', createUint256TypeName(ast)],
-      ['elemWidth', createUint256TypeName(ast)],
-    ],
-    [['loc', node.vExpression.vTypeName]],
-    ['range_check_ptr', 'warp_memory'],
-    ast,
-    node,
-  );
+    const call = createCallToFunction(
+      stub,
+      [node.vArguments[0], createUint256Literal(BigInt(elementCairoType.width), ast)],
+      ast,
+    );
 
-  assert(node.vExpression.vTypeName instanceof ArrayTypeName);
-
-  const elementCairoType = CairoType.fromSol(
-    typeNameToTypeNode(node.vExpression.vTypeName.vBaseType),
-    ast,
-    TypeConversionContext.MemoryAllocation,
-  );
-
-  const call = createCallToFunction(
-    stub,
-    [node.vArguments[0], createUint256Literal(BigInt(elementCairoType.width), ast)],
-    ast,
-  );
-
-  ast.replaceNode(node, call);
-  ast.registerImport(call, 'warplib.memory', 'wm_new');
+    const [actualLoc, expectedLoc] = this.getLocations(node);
+    this.replace(node, call, undefined, actualLoc, expectedLoc, ast);
+    ast.registerImport(call, 'warplib.memory', 'wm_new');
+  }
 }

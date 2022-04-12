@@ -1,20 +1,18 @@
-import { ASTNode, UnaryOperation } from 'solc-typed-ast';
+import { DataLocation, UnaryOperation } from 'solc-typed-ast';
+import { ReferenceSubPass } from './referenceSubPass';
 import { AST } from '../../ast/ast';
-import { ASTMapper } from '../../ast/mapper';
 
-export class StorageDelete extends ASTMapper {
-  constructor(public storageRefs: Set<ASTNode>) {
-    super();
-  }
-
+export class StorageDelete extends ReferenceSubPass {
   visitUnaryOperation(node: UnaryOperation, ast: AST): void {
     this.visitExpression(node, ast);
 
     if (node.operator !== 'delete') return;
 
-    if (!this.storageRefs.has(node.vSubExpression)) return;
+    const [actualLoc, expectedLoc] = this.getLocations(node);
+
+    if (actualLoc !== DataLocation.Storage) return;
 
     const replacement = ast.getUtilFuncGen(node).storage.delete.gen(node.vSubExpression);
-    ast.replaceNode(node, replacement);
+    this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
   }
 }

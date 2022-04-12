@@ -1,6 +1,7 @@
 export * from './addressHandler';
 export * from './annotateImplicits';
 export * from './builtinHandler';
+export * from './cairoUtilImporter';
 export * from './constantHandler';
 export * from './deleteHandler';
 export * from './enumConverter';
@@ -27,7 +28,6 @@ export * from './sourceUnitSplitter';
 export * from './storageAllocator';
 export * from './references';
 export * from './tupleAssignmentSplitter';
-export * from './uint256Importer';
 export * from './unloadingAssignment';
 export * from './unreachableStatementPruner';
 export * from './usingForResolver';

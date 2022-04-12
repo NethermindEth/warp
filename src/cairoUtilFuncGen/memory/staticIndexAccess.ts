@@ -1,5 +1,5 @@
 import assert = require('assert');
-import { ArrayType, ASTNode, FunctionCall, IndexAccess } from 'solc-typed-ast';
+import { ArrayType, ASTNode, DataLocation, FunctionCall, IndexAccess } from 'solc-typed-ast';
 import { printNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
@@ -20,12 +20,12 @@ export class MemoryStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
     const stub = createCairoFunctionStub(
       'wm_index_static',
       [
-        ['arr', typeNameFromTypeNode(arrayType, this.ast)],
+        ['arr', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Memory],
         ['index', createUint256TypeName(this.ast)],
         ['width', createUint256TypeName(this.ast)],
         ['length', createUint256TypeName(this.ast)],
       ],
-      [['child', typeNameFromTypeNode(arrayType.elementT, this.ast)]],
+      [['child', typeNameFromTypeNode(arrayType.elementT, this.ast), DataLocation.Memory]],
       ['range_check_ptr'],
       this.ast,
       nodeInSourceUnit ?? indexAccess,

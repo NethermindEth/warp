@@ -19,6 +19,7 @@ import { StorageStaticArrayIndexAccessGen } from './storage/staticArrayIndexAcce
 import { StorageDeleteGen } from './storage/storageDelete';
 import { StorageMemberAccessGen } from './storage/storageMemberAccess';
 import { StorageReadGen } from './storage/storageRead';
+import { StorageToMemoryGen } from './storage/storageToMemory';
 import { StorageWriteGen } from './storage/storageWrite';
 
 export class CairoUtilFuncGen {
@@ -43,6 +44,7 @@ export class CairoUtilFuncGen {
     memberAccess: StorageMemberAccessGen;
     read: StorageReadGen;
     staticArrayIndexAccess: StorageStaticArrayIndexAccessGen;
+    toMemory: StorageToMemoryGen;
     write: StorageWriteGen;
   };
   externalInputChecks: {
@@ -65,6 +67,7 @@ export class CairoUtilFuncGen {
       struct: new MemoryStructGen(ast),
       write: new MemoryWriteGen(ast),
     };
+    const storageReadGen = new StorageReadGen(ast);
     this.storage = {
       delete: new StorageDeleteGen(ast),
       dynArrayIndexAccess: new DynArrayIndexAccessGen(this.implementation.dynArray, ast),
@@ -76,8 +79,9 @@ export class CairoUtilFuncGen {
       },
       mappingIndexAccess: new MappingIndexAccessGen(ast),
       memberAccess: new StorageMemberAccessGen(ast),
-      read: new StorageReadGen(ast),
+      read: storageReadGen,
       staticArrayIndexAccess: new StorageStaticArrayIndexAccessGen(ast),
+      toMemory: new StorageToMemoryGen(storageReadGen, ast),
       write: new StorageWriteGen(ast),
     };
     this.externalInputChecks = {

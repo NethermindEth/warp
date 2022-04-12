@@ -326,7 +326,10 @@ export function getFunctionTypeString(node: FunctionDefinition, compilerVersion:
             return `${baseType.pp()}`;
           }
           throw new NotSupportedYetError(
-            'Default location ref parameter to string not supported yet',
+            `Default location ref parameter to string not supported yet: ${printTypeNode(
+              baseType,
+              true,
+            )} in ${node.name}`,
           );
         }
         return `${baseType.pp()} ${decl.storageLocation}`;
@@ -412,6 +415,16 @@ export function narrowBigInt(n: bigint): number | null {
   if (BigInt(narrowed) !== n) return null;
   return narrowed;
 }
+
+// export function isCairoConstant(node: VariableDeclaration): boolean {
+//   return (
+//     node.mutability === Mutability.Constant &&
+//     node.vValue instanceof Literal &&
+//     node.stateVariable &&
+//     node.vType instanceof ElementaryTypeName &&
+//     primitiveTypeToCairo(node.vType.name) === 'felt'
+//   );
+// }
 
 export function isCairoConstant(node: VariableDeclaration): boolean {
   if (node.mutability === Mutability.Constant && node.vValue instanceof Literal) {

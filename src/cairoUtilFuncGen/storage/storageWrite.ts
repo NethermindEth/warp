@@ -1,4 +1,12 @@
-import { Expression, FunctionCall, TypeNode, getNodeType, ASTNode } from 'solc-typed-ast';
+import {
+  Expression,
+  FunctionCall,
+  TypeNode,
+  getNodeType,
+  ASTNode,
+  DataLocation,
+  PointerType,
+} from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
@@ -17,10 +25,20 @@ export class StorageWriteGen extends StringIndexedFuncGen {
     const functionStub = createCairoFunctionStub(
       name,
       [
-        ['loc', argTypeName],
-        ['value', cloneASTNode(argTypeName, this.ast)],
+        ['loc', argTypeName, DataLocation.Storage],
+        [
+          'value',
+          cloneASTNode(argTypeName, this.ast),
+          typeToWrite instanceof PointerType ? DataLocation.Storage : DataLocation.Default,
+        ],
       ],
-      [['res', cloneASTNode(argTypeName, this.ast)]],
+      [
+        [
+          'res',
+          cloneASTNode(argTypeName, this.ast),
+          typeToWrite instanceof PointerType ? DataLocation.Storage : DataLocation.Default,
+        ],
+      ],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       nodeInSourceUnit ?? storageLocation,

@@ -1,5 +1,13 @@
 import assert = require('assert');
-import { ArrayType, FunctionCall, getNodeType, TupleExpression, TypeNode } from 'solc-typed-ast';
+import {
+  ArrayType,
+  DataLocation,
+  FunctionCall,
+  getNodeType,
+  PointerType,
+  TupleExpression,
+  TypeNode,
+} from 'solc-typed-ast';
 import { printNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
@@ -24,8 +32,12 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
 
     const stub = createCairoFunctionStub(
       name,
-      mapRange(size, (n) => [`e${n}`, typeNameFromTypeNode(type.elementT, this.ast)]),
-      [['arr', typeNameFromTypeNode(type, this.ast)]],
+      mapRange(size, (n) => [
+        `e${n}`,
+        typeNameFromTypeNode(type.elementT, this.ast),
+        type.elementT instanceof PointerType ? DataLocation.Memory : DataLocation.Default,
+      ]),
+      [['arr', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
       ['range_check_ptr', 'warp_memory'],
       this.ast,
       node,
