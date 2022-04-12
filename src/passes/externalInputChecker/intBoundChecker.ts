@@ -17,7 +17,11 @@ import { createIdentifier } from '../../utils/nodeTemplates';
 
 export class IntBoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    if (FunctionVisibility.External === node.visibility && node.vBody !== undefined) {
+    if (
+      (FunctionVisibility.External === node.visibility ||
+        FunctionVisibility.Public === node.visibility) &&
+      node.vBody !== undefined
+    ) {
       node.vParameters.vParameters.forEach((parameter) => {
         const typeNode = getNodeType(parameter, ast.compilerVersion);
         if (typeNode instanceof IntType) {

@@ -82,10 +82,21 @@ export const expectations = flatten(
           new File(
             'simpleImmutable',
             'WARP',
-            ['0', '256'],
+            ['0', '256', '512'],
             [
               Expect.Simple('getUintValue', [], ['0', '256'], '0'),
+              Expect.Simple('getIntValue', [], ['512'], '0'),
               Expect.Simple('addUintValue', ['0', '256'], ['0', '512'], '0'),
+              Expect.Simple('addIntValue', ['256'], ['768'], '0'),
+              new Expect('testing constructor argument out of bounds', [
+                [
+                  'constructor',
+                  ['0', '256', '65536'],
+                  null,
+                  '0',
+                  'Error message: Error: value out-of-bounds. Value must be less than 2**16.',
+                ],
+              ]),
             ],
           ),
         ]),
@@ -535,7 +546,7 @@ export const expectations = flatten(
                 ['18', '256'],
                 null,
                 '0',
-                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**8.',
+                'Error: value out-of-bounds. Value must be less than 2**8.',
               ],
             ]),
             new Expect('testing that more than 1 assert is placed when there are two inputs', [
@@ -544,7 +555,7 @@ export const expectations = flatten(
                 ['65536', '255'],
                 null,
                 '0',
-                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**16.',
+                'Error: value out-of-bounds. Value must be less than 2**16.',
               ],
             ]),
           ]),

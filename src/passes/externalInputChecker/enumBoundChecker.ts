@@ -13,7 +13,11 @@ import { createIdentifier } from '../../utils/nodeTemplates';
 
 export class EnumBoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    if (FunctionVisibility.External === node.visibility && node.vBody !== undefined) {
+    if (
+      (FunctionVisibility.External === node.visibility ||
+        FunctionVisibility.Public === node.visibility) &&
+      node.vBody !== undefined
+    ) {
       node.vParameters.vParameters.forEach((parameter) => {
         if (parameter.typeString.slice(0, 4) === 'enum' && parameter.name !== undefined) {
           const functionCall = this.generateFunctionCall(node, parameter, ast);
