@@ -9,6 +9,8 @@ from generateMarkdown import (
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from starknet_wrapper import StarknetWrapper
+from starkware.starkware_utils.error_handling import StarkException
+from starkware.starknet.definitions.error_codes import StarknetErrorCode
 
 app = Flask(__name__)
 CORS(app)
@@ -39,28 +41,38 @@ async def deploy():
     compiled_cairo = open(data["compiled_cairo"]).read()
     contract_def: ContractDefinition = ContractDefinition.loads(compiled_cairo)
 
-    [contract_address, execution_info] = await state.deploy(contract_def, input)
-    print("-----Deploy info-----")
-    print(execution_info)
-    print("----------\n")
-    starknet_wrapper.address2contract[hex(contract_address)] = contract_def
-    if BENCHMARK:
-        steps_in_function_deploy(data["compiled_cairo"], execution_info)
-        builtin_instance_count(data["compiled_cairo"], execution_info)
-    return jsonify(
-        {
-            "contract_address": hex(contract_address),
-            "execution_info": {
-                "steps": execution_info.call_info.execution_resources.n_steps
-            },
-        }
-    )
+    try:
+        [contract_address, execution_info] = await state.deploy(contract_def, input)
+        print("-----Deploy info-----")
+        print(execution_info)
+        print("----------\n")
+        starknet_wrapper.address2contract[hex(contract_address)] = contract_def
+        if BENCHMARK:
+            steps_in_function_deploy(data["compiled_cairo"], execution_info)
+            builtin_instance_count(data["compiled_cairo"], execution_info)
+        return jsonify(
+            {
+                "contract_address": hex(contract_address),
+                "execution_info": {
+                    "steps": execution_info.call_info.execution_resources.n_steps
+                },
+                "transaction_info": {
+                    "threw": False,
+                },
+            }
+        )
+    except StarkException as err:
+        print(err)
+        if err.code == StarknetErrorCode.TRANSACTION_FAILED:
+            return jsonify(
+                {"transaction_info": {"threw": True, "message": err.message}}
+            )
+        else:
+            raise err
 
 
 @app.route("/invoke", methods=["POST"])
 async def invoke():
-    from starkware.starkware_utils.error_handling import StarkException
-    from starkware.starknet.definitions.error_codes import StarknetErrorCode
 
     data = request.get_json()
     state = await starknet_wrapper.get_state()
