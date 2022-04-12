@@ -86,6 +86,17 @@ import { isCairoConstant } from './utils/utils';
 
 const INDENT = ' '.repeat(4);
 
+function getDocumentation(
+  documentation: string | StructuredDocumentation | undefined,
+  writer: ASTWriter,
+): string {
+  return documentation !== undefined
+    ? typeof documentation === 'string'
+      ? `# ${documentation.split('\n').join('\n#')}`
+      : writer.write(documentation)
+    : '';
+}
+
 export abstract class CairoASTNodeWriter extends ASTNodeWriter {
   ast: AST;
   throwOnUnimplemented: boolean;
@@ -125,12 +136,19 @@ class StructDefinitionWriter extends CairoASTNodeWriter {
   }
 }
 
+class StructuredDocumentationWriter extends CairoASTNodeWriter {
+  writeInner(node: StructuredDocumentation, _writer: ASTWriter): SrcDesc {
+    return [`# ${node.text.split('\n').join('\n#')}`];
+  }
+}
+
 class VariableDeclarationWriter extends CairoASTNodeWriter {
   writeInner(node: VariableDeclaration, writer: ASTWriter): SrcDesc {
+    const documentation = getDocumentation(node.documentation, writer);
     if ((node.stateVariable || node.parent instanceof SourceUnit) && isCairoConstant(node)) {
       assert(node.vValue !== undefined, 'Constant should have a defined value.');
       const constantValue = writer.write(node.vValue);
-      const res = [`const ${node.name} = ${constantValue}`];
+      const res = [documentation, `const ${node.name} = ${constantValue}`];
       return res;
     }
     if (node.stateVariable) {
@@ -151,6 +169,7 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
 
       return [
         [
+          documentation,
           `@storage_var`,
           `func ${node.name}(${keys.join(', ')}) -> (res: ${returns[0]}):`,
           `end`,
@@ -169,19 +188,22 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
       'Variables should be initialised. Did you use VariableDeclarationInitialiser?',
     );
 
+    const documentation = getDocumentation(node.documentation, writer);
     const declarations = node.vDeclarations.map((value) => writer.write(value));
     if (node.vDeclarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
       return [`let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)}`];
     }
 
-    return [`let ${declarations[0]} = ${writer.write(node.vInitialValue)}`];
+    return [documentation, `let ${declarations[0]} = ${writer.write(node.vInitialValue)}`];
   }
 }
 
 class IfStatementWriter extends CairoASTNodeWriter {
   writeInner(node: IfStatement, writer: ASTWriter): SrcDesc {
+    const documentation = getDocumentation(node.documentation, writer);
     return [
       [
+        documentation,
         `if ${writer.write(node.vCondition)} != 0:`,
         writer.write(node.vTrueBody),
         ...(node.vFalseBody ? ['else:', writer.write(node.vFalseBody)] : []),
@@ -243,6 +265,7 @@ class SourceUnitWriter extends CairoASTNodeWriter {
 }
 
 function writeContractInterface(node: ContractDefinition, writer: ASTWriter): SrcDesc {
+  const documentation = getDocumentation(node.documentation, writer);
   const structs = node.vStructs.map((value) => writer.write(value));
   const functions = node.vFunctions.map((v) =>
     writer
@@ -257,6 +280,7 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
   const name = node.name.replace('@interface', '');
   return [
     [
+      documentation,
       ...structs,
       [`@contract_interface`, `namespace ${name}:`, ...functions, `end`].join('\n'),
     ].join('\n'),
@@ -272,6 +296,8 @@ class CairoContractWriter extends CairoASTNodeWriter {
     const variables = [...node.storageAllocations.entries()].map(
       ([decl, loc]) => `const ${decl.name} = ${loc}`,
     );
+
+    const documentation = getDocumentation(node.documentation, writer);
 
     // Don't need to write structs, SourceUnitWriter so already
 
@@ -318,7 +344,11 @@ class CairoContractWriter extends CairoASTNodeWriter {
           ].join('\n')
         : '';
 
-    return [[...events, storageCode, `namespace ${node.name}:\n\n${body}\n\nend`].join('\n\n')];
+    return [
+      [documentation, ...events, storageCode, `namespace ${node.name}:\n\n${body}\n\nend`].join(
+        '\n\n',
+      ),
+    ];
   }
 
   writeWhole(node: CairoContract, writer: ASTWriter): SrcDesc {
@@ -356,6 +386,8 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
         ? '@view'
         : '@external'
       : '';
+
+    const documentation = getDocumentation(node.documentation, writer);
     const args = writer.write(node.vParameters);
     const body = node.vBody ? writer.write(node.vBody) : [];
     const returns = writer.write(node.vReturnParameters);
@@ -379,6 +411,7 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
 
     return [
       [
+        documentation,
         ...(decorator ? [decorator] : []),
         `func ${name}${implicits}(${args})${returnClause}:`,
         `${INDENT}alloc_locals`,
@@ -396,7 +429,9 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
 
 class BlockWriter extends CairoASTNodeWriter {
   writeInner(node: Block, writer: ASTWriter): SrcDesc {
+    const documentation = getDocumentation(node.documentation, writer);
     return [
+      documentation,
       node.vStatements
         .map((value) => writer.write(value))
         .map((v) =>
@@ -413,6 +448,7 @@ class BlockWriter extends CairoASTNodeWriter {
 class ReturnWriter extends CairoASTNodeWriter {
   writeInner(node: Return, writer: ASTWriter): SrcDesc {
     let returns = '()';
+    const documentation = getDocumentation(node.documentation, writer);
     if (node.vExpression) {
       const expWriten = writer.write(node.vExpression);
       returns =
@@ -420,21 +456,25 @@ class ReturnWriter extends CairoASTNodeWriter {
           ? expWriten
           : `(${expWriten})`;
     }
-    return [`return ${returns}`];
+    return [documentation, `return ${returns}`];
   }
 }
 
 class ExpressionStatementWriter extends CairoASTNodeWriter {
   newVarCounter = 0;
   writeInner(node: ExpressionStatement, writer: ASTWriter): SrcDesc {
+    const documentation = getDocumentation(node.documentation, writer);
     if (
       node.vExpression instanceof FunctionCall ||
       node.vExpression instanceof Assignment ||
       node.vExpression instanceof CairoAssert
     ) {
-      return [`${writer.write(node.vExpression)}`];
+      return [documentation, `${writer.write(node.vExpression)}`];
     } else {
-      return [`let __warp_uv${this.newVarCounter++} = ${writer.write(node.vExpression)}`];
+      return [
+        documentation,
+        `let __warp_uv${this.newVarCounter++} = ${writer.write(node.vExpression)}`,
+      ];
     }
   }
 }
@@ -525,7 +565,9 @@ class FunctionCallWriter extends CairoASTNodeWriter {
 
 class UncheckedBlockWriter extends CairoASTNodeWriter {
   writeInner(node: UncheckedBlock, writer: ASTWriter): SrcDesc {
+    const documentation = getDocumentation(node.documentation, writer);
     return [
+      documentation,
       node.vStatements
         .map((value) => writer.write(value))
         .map((v) =>
@@ -569,15 +611,17 @@ class EnumDefinitionWriter extends CairoASTNodeWriter {
 
 class EventDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: EventDefinition, writer: ASTWriter): SrcDesc {
+    const documentation = getDocumentation(node.documentation, writer);
     const args: string = writer.write(node.vParameters);
-    return [`@event\nfunc ${node.name}(${args}):\nend`];
+    return [documentation, `@event\nfunc ${node.name}(${args}):\nend`];
   }
 }
 
 class EmitStatementWriter extends CairoASTNodeWriter {
   writeInner(node: EmitStatement, writer: ASTWriter): SrcDesc {
+    const documentation = getDocumentation(node.documentation, writer);
     const args: string = node.vEventCall.vArguments.map((v) => writer.write(v)).join(', ');
-    return [`${node.vEventCall.vFunctionName}.emit(${args})`];
+    return [documentation, `${node.vEventCall.vFunctionName}.emit(${args})`];
   }
 }
 
@@ -653,7 +697,7 @@ export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
     [RevertStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [SourceUnit, new SourceUnitWriter(ast, throwOnUnimplemented)],
     [StructDefinition, new StructDefinitionWriter(ast, throwOnUnimplemented)],
-    [StructuredDocumentation, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [StructuredDocumentation, new StructuredDocumentationWriter(ast, throwOnUnimplemented)],
     [Throw, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [TryCatchClause, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [TryStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
