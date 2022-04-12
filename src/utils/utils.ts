@@ -421,3 +421,9 @@ export function isCairoConstant(node: VariableDeclaration): boolean {
   }
   return false;
 }
+
+export function isExternallyVisible(node: FunctionDefinition): boolean {
+  return (
+    node.visibility === FunctionVisibility.External || node.visibility === FunctionVisibility.Public
+  );
+}

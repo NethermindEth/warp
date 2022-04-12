@@ -49,6 +49,19 @@ export function createIdentifier(
   return node;
 }
 
+export function createNumberLiteral(value: bigint, typeString: string, ast: AST): Literal {
+  const node = new Literal(
+    ast.reserveId(),
+    '',
+    typeString,
+    LiteralKind.Number,
+    toHexString(value.toString()),
+    value.toString(),
+  );
+  ast.setContextRecursive(node);
+  return node;
+}
+
 export function createUint256Literal(value: bigint, ast: AST): Literal {
   const node = new Literal(
     ast.reserveId(),

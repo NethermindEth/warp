@@ -75,7 +75,7 @@ import {
 import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
 import { implicitOrdering, implicitTypes } from './utils/implicits';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
-import { canonicalMangler, divmod, primitiveTypeToCairo } from './utils/utils';
+import { canonicalMangler, divmod, isExternallyVisible, primitiveTypeToCairo } from './utils/utils';
 
 import { AST } from './ast/ast';
 import { getMappingTypes } from './utils/mappings';
@@ -337,8 +337,7 @@ class ParameterListWriter extends CairoASTNodeWriter {
   writeInner(node: ParameterList, writer: ASTWriter): SrcDesc {
     const typeConversionContext =
       node.parent instanceof FunctionDefinition
-        ? node.parent.visibility === FunctionVisibility.External ||
-          node.parent.visibility === FunctionVisibility.Public
+        ? isExternallyVisible(node.parent)
           ? TypeConversionContext.Declaration
           : TypeConversionContext.Ref
         : TypeConversionContext.Declaration;
@@ -390,7 +389,7 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   private getBody(node: CairoFunctionDefinition, writer: ASTWriter): string | null {
     if (node.vBody === undefined) return null;
 
-    if (node.visibility !== FunctionVisibility.External || !node.implicits.has('warp_memory')) {
+    if (!isExternallyVisible(node) || !node.implicits.has('warp_memory')) {
       return ['alloc_locals', this.getConstructorStorageAllocation(node), writer.write(node.vBody)]
         .filter(notNull)
         .join('\n');
@@ -524,6 +523,14 @@ class LiteralWriter extends CairoASTNodeWriter {
   }
 }
 
+class IndexAccessWriter extends CairoASTNodeWriter {
+  writeInner(node: IndexAccess, writer: ASTWriter): SrcDesc {
+    assert(node.vIndexExpression !== undefined);
+    const baseWritten = writer.write(node.vBaseExpression);
+    const indexWritten = writer.write(node.vIndexExpression);
+    return [`${baseWritten}[${indexWritten}]`];
+  }
+}
 class IdentifierWriter extends CairoASTNodeWriter {
   writeInner(node: Identifier, _: ASTWriter): SrcDesc {
     return [`${node.name}`];
@@ -689,7 +696,7 @@ export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
     [IdentifierPath, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [IfStatement, new IfStatementWriter(ast, throwOnUnimplemented)],
     [ImportDirective, new NotImplementedWriter(ast, throwOnUnimplemented)],
-    [IndexAccess, new NotImplementedWriter(ast, throwOnUnimplemented)],
+    [IndexAccess, new IndexAccessWriter(ast, throwOnUnimplemented)],
     [IndexRangeAccess, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [InheritanceSpecifier, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [InlineAssembly, new NotImplementedWriter(ast, throwOnUnimplemented)],

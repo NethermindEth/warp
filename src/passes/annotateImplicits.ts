@@ -4,7 +4,6 @@ import {
   EventDefinition,
   FunctionCall,
   FunctionDefinition,
-  FunctionVisibility,
   SourceUnit,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -13,7 +12,7 @@ import { ASTMapper } from '../ast/mapper';
 import { ASTVisitor } from '../ast/visitor';
 import { printNode } from '../utils/astPrinter';
 import { Implicits, registerImportsForImplicit } from '../utils/implicits';
-import { union } from '../utils/utils';
+import { isExternallyVisible, union } from '../utils/utils';
 
 export class AnnotateImplicits extends ASTMapper {
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
@@ -82,11 +81,7 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): Set<Implicits> {
     const result: Set<Implicits> = new Set();
-    if (
-      node.implemented &&
-      (node.visibility === FunctionVisibility.Public ||
-        node.visibility === FunctionVisibility.External)
-    ) {
+    if (node.implemented && isExternallyVisible(node)) {
       result.add('range_check_ptr');
       result.add('syscall_ptr');
     }

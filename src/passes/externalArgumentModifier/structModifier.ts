@@ -5,7 +5,6 @@ import {
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
-  FunctionVisibility,
   Identifier,
   MemberAccess,
   StructDefinition,
@@ -13,13 +12,14 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
-import { AST } from '../ast/ast';
-import { ASTMapper } from '../ast/mapper';
-import { cloneASTNode } from '../utils/cloning';
-import { createIdentifier } from '../utils/nodeTemplates';
-import { collectUnboundVariables } from './loopFunctionaliser/utils';
+import { AST } from '../../ast/ast';
+import { ASTMapper } from '../../ast/mapper';
+import { cloneASTNode } from '../../utils/cloning';
+import { createIdentifier } from '../../utils/nodeTemplates';
+import { isExternallyVisible } from '../../utils/utils';
+import { collectUnboundVariables } from './../loopFunctionaliser/utils';
 
-export class ExternalArgumentModifier extends ASTMapper {
+export class StructModifier extends ASTMapper {
   /*
   Pass Explanation:
   Memory structs passed to external functions need to be registered and allocated to the WARP memory system. 
@@ -53,11 +53,7 @@ export class ExternalArgumentModifier extends ASTMapper {
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     const body = node.vBody;
-    if (
-      (node.visibility === FunctionVisibility.External ||
-        node.visibility === FunctionVisibility.Public) &&
-      body !== undefined
-    ) {
+    if (isExternallyVisible(node) && body !== undefined) {
       [...collectUnboundVariables(body).entries()]
         .filter(
           ([decl]) =>
@@ -66,7 +62,7 @@ export class ExternalArgumentModifier extends ASTMapper {
             decl.vType instanceof UserDefinedTypeName &&
             decl.vType.vReferencedDeclaration instanceof StructDefinition,
         )
-        .map(([varDecl, ids]) => {
+        .forEach(([varDecl, ids]) => {
           const memoryStruct = cloneASTNode(varDecl, ast);
           memoryStruct.name = memoryStruct.name + '_mem';
           varDecl.storageLocation = DataLocation.CallData;

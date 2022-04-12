@@ -7,7 +7,6 @@ import {
   DataLocation,
   FunctionCall,
   FunctionDefinition,
-  FunctionVisibility,
   getNodeType,
   Identifier,
   IndexAccess,
@@ -24,7 +23,7 @@ import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { error } from '../../utils/formatting';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
 import { createUint256Literal, createUint256TypeName } from '../../utils/nodeTemplates';
-import { dereferenceType, typeNameFromTypeNode } from '../../utils/utils';
+import { dereferenceType, isExternallyVisible, typeNameFromTypeNode } from '../../utils/utils';
 
 export class MemoryAccessRewriter extends ASTMapper {
   constructor(public reads: Set<ASTNode>, public memoryRefs: Set<ASTNode>) {
@@ -135,7 +134,7 @@ export class MemoryAccessRewriter extends ASTMapper {
       return;
     }
 
-    throw new NotSupportedYetError(`Unhandled index access case ${printNode(node)}`);
+    this.visitExpression(node, ast);
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -151,10 +150,7 @@ export class MemoryAccessRewriter extends ASTMapper {
   }
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    if (
-      node.visibility === FunctionVisibility.External ||
-      node.visibility === FunctionVisibility.Public
-    ) {
+    if (isExternallyVisible(node)) {
       ast.registerImport(node, 'starkware.cairo.common.default_dict', 'default_dict_new');
       ast.registerImport(node, 'starkware.cairo.common.default_dict', 'default_dict_finalize');
     }
