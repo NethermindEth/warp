@@ -88,6 +88,15 @@ export const expectations = flatten(
               Expect.Simple('getIntValue', [], ['512'], '0'),
               Expect.Simple('addUintValue', ['0', '256'], ['0', '512'], '0'),
               Expect.Simple('addIntValue', ['256'], ['768'], '0'),
+              new Expect('testing constructor argument out of bounds', [
+                [
+                  'constructor',
+                  ['0', '256', '65536'],
+                  null,
+                  '0',
+                  'Error message: Error: value out-of-bounds. Value must be less than 2**16.',
+                ],
+              ]),
             ],
           ),
         ]),
