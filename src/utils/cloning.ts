@@ -20,6 +20,7 @@ import {
   Literal,
   Mapping,
   MemberAccess,
+  ModifierDefinition,
   ModifierInvocation,
   OverrideSpecifier,
   ParameterList,
@@ -332,6 +333,20 @@ function cloneASTNodeImpl<T extends ASTNode>(
       cloneASTNodeImpl(node.vParameters, ast, remappedIds),
       cloneASTNodeImpl(node.vReturnParameters, ast, remappedIds),
       node.vModifiers.map((m) => cloneASTNodeImpl(m, ast, remappedIds)),
+      node.vOverrideSpecifier && cloneASTNodeImpl(node.vOverrideSpecifier, ast, remappedIds),
+      node.vBody && cloneASTNodeImpl(node.vBody, ast, remappedIds),
+      node.documentation,
+      node.nameLocation,
+      node.raw,
+    );
+  } else if (node instanceof ModifierDefinition) {
+    newNode = new ModifierDefinition(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.name,
+      node.virtual,
+      node.visibility,
+      cloneASTNodeImpl(node.vParameters, ast, remappedIds),
       node.vOverrideSpecifier && cloneASTNodeImpl(node.vOverrideSpecifier, ast, remappedIds),
       node.vBody && cloneASTNodeImpl(node.vBody, ast, remappedIds),
       node.documentation,
