@@ -537,7 +537,7 @@ export const expectations = flatten(
                 ['18', '256'],
                 null,
                 '0',
-                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**8.',
+                'Error: value out-of-bounds. Value must be less than 2**8.',
               ],
             ]),
             new Expect('testing that more than 1 assert is placed when there are two inputs', [
@@ -546,7 +546,7 @@ export const expectations = flatten(
                 ['65536', '255'],
                 null,
                 '0',
-                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**16.',
+                'Error: value out-of-bounds. Value must be less than 2**16.',
               ],
             ]),
           ]),

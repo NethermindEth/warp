@@ -61,11 +61,12 @@ export class Expect {
       error_message?: string,
     ][],
   ) {
-    this.steps = steps.map(([func, inputs, returns, caller_address]) => [
+    this.steps = steps.map(([func, inputs, returns, caller_address, error_message]) => [
       func,
       stringFlatten(inputs),
       returns !== null ? stringFlatten(returns) : null,
       caller_address,
+      error_message,
     ]);
   }
   static Simple(name: string, inputs: string[], returns: string[] | null, tag?: string): Expect {
