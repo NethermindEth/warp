@@ -29,7 +29,8 @@ export class StaticArrayModifier extends ASTMapper {
           ([decl]) =>
             node.vParameters.vParameters.includes(decl) &&
             decl.storageLocation === DataLocation.Memory &&
-            decl.vType instanceof ArrayTypeName,
+            decl.vType instanceof ArrayTypeName &&
+            decl.vType.vLength,
         )
         .forEach(([varDecl, ids]) => {
           const memoryArray = cloneASTNode(varDecl, ast);
