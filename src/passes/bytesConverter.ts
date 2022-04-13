@@ -21,7 +21,7 @@ import { getFunctionTypeString } from '../utils/utils';
 export class BytesConverter extends ASTMapper {
   // Returns true if the typestring is of fixed-size bytes array type
   isFixedBytesArrayType(typeString: string): boolean {
-    if ((typeString.startsWith('byte') && typeString.length > 5) || typeString === 'byte')
+    if ((typeString.startsWith('bytes') && typeString.length > 5) || typeString === 'byte')
       return true;
     return false;
   }
