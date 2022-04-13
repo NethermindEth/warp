@@ -71,7 +71,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     console.log(`Visiting ${printNode(node)}`);
     if (!shouldLeaveAsCairoAssignment(node.vLeftHandSide)) {
       const [actualLoc, expectedLoc] = this.getLocations(node);
-      const writeLoc = this.getLocations(node.vRightHandSide)[1];
+      const writeLoc = this.getLocations(node.vLeftHandSide)[0];
       if (writeLoc === DataLocation.Memory) {
         const replacementFunc = ast
           .getUtilFuncGen(node)
@@ -79,11 +79,9 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
         this.replace(node, replacementFunc, undefined, actualLoc, expectedLoc, ast);
         this.dispatchVisit(replacementFunc, ast);
       } else if (writeLoc === DataLocation.Storage) {
-        console.log('    storage');
         const writeFunc = ast
           .getUtilFuncGen(node)
           .storage.write.gen(node.vLeftHandSide, node.vRightHandSide);
-        console.log(`Created ${printNode(writeFunc)}`);
         this.replace(node, writeFunc, undefined, actualLoc, expectedLoc, ast);
         this.dispatchVisit(writeFunc, ast);
       } else {
@@ -228,7 +226,12 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     if (!node.isInlineArray) return this.visitExpression(node, ast);
 
     const expectedLoc = this.getLocations(node)[1];
-    assert(expectedLoc === DataLocation.Storage || expectedLoc === undefined);
+    assert(
+      expectedLoc === DataLocation.Default || expectedLoc === undefined,
+      `Tuples should have Default or undefined expected location. ${printNode(
+        node,
+      )} has ${expectedLoc}`,
+    );
     this.commonVisit(node, ast);
   }
 }
