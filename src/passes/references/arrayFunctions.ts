@@ -42,7 +42,7 @@ export class ArrayFunctions extends ReferenceSubPass {
 
     if (node.memberName !== 'length') return;
 
-    const [actualLoc, expectedLoc] = this.getLocations(node);
+    const expectedLoc = this.getLocations(node)[1];
 
     const baseType = getNodeType(node.vExpression, ast.compilerVersion);
     if (baseType instanceof PointerType && baseType.to instanceof ArrayType) {
