@@ -461,11 +461,16 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   }
 
   private getImplicits(node: CairoFunctionDefinition): string {
+    // Function in interfaces should not have implicit arguments written out
+    if (node.vScope instanceof ContractDefinition && node.vScope.kind === ContractKind.Interface) {
+      return '';
+    }
+
     const implicits = [...node.implicits.values()].filter(
-      (i) =>
-        (node.visibility !== FunctionVisibility.External &&
-          node.visibility !== FunctionVisibility.Public) ||
-        i !== 'warp_memory',
+      // External functions should not print the warp_memory implicit argument, even
+      // if they use warp_memory internally. Instead their contents are wrapped
+      // in code to initialise warp_memory
+      (i) => !isExternallyVisible(node) || i !== 'warp_memory',
     );
     if (implicits.length === 0) return '';
     return `{${implicits
