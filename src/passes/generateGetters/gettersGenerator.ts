@@ -28,8 +28,70 @@ import {
 import { AST } from '../../ast/ast';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { cloneASTNode } from '../../utils/cloning';
-import { createIdentifier } from '../../utils/nodeTemplates';
+import { createIdentifier, createParameterList } from '../../utils/nodeTemplates';
 import { toSingleExpression } from '../../utils/functionGeneration';
+
+export class GettersGenerator extends ASTMapper {
+  constructor(private getterFunctions: Map<VariableDeclaration, FunctionDefinition>) {
+    super();
+  }
+
+  visitContractDefinition(node: ContractDefinition, ast: AST): void {
+    node.vStateVariables.forEach((v) => {
+      /*
+        Visit every public state variable and Add 
+        FunctionDefinition(getter func) as a child of the current 
+        ContractDefinition node.
+      */
+      const stateVarType = v.vType;
+
+      if (!stateVarType) {
+        // skip getter function generation for state variable
+        return;
+      }
+
+      if (v.stateVariable && v.visibility === StateVariableVisibility.Public) {
+        const funcDefID = ast.reserveId();
+
+        const returnParameterList: ParameterList = createParameterList(
+          genReturnVariables(stateVarType, funcDefID, ast),
+          ast,
+        );
+
+        const fnParams: ParameterList = createParameterList(
+          genFunctionParams(0, stateVarType, funcDefID, ast),
+          ast,
+        );
+
+        const returnExpression: Expression = genReturnExpression(0, fnParams, v, stateVarType, ast);
+
+        const getterBlock = new Block(ast.reserveId(), '', [
+          new Return(ast.reserveId(), '', returnParameterList.id, returnExpression),
+        ]);
+
+        const getter = new FunctionDefinition(
+          funcDefID,
+          '',
+          node.id,
+          FunctionKind.Function,
+          v.name,
+          false,
+          FunctionVisibility.Public,
+          FunctionStateMutability.View,
+          false,
+          fnParams,
+          returnParameterList,
+          [],
+          undefined,
+          getterBlock,
+        );
+        this.getterFunctions.set(v, getter);
+        node.appendChild(getter);
+        ast.registerChild(getter, node);
+      }
+    });
+  }
+}
 
 function genReturnVariables(
   vType: TypeName | undefined,
@@ -253,69 +315,5 @@ function genReturnExpression(
     throw new NotSupportedYetError(
       `Getter fn generation for ${vType?.type} typenames not implemented yet`,
     );
-  }
-}
-
-export class GettersGenerator extends ASTMapper {
-  constructor(private getterFunctions: Map<VariableDeclaration, FunctionDefinition>) {
-    super();
-  }
-
-  visitContractDefinition(node: ContractDefinition, ast: AST): void {
-    node.vStateVariables.forEach((v) => {
-      /*
-        Visit every public state variable and Add 
-        FunctionDefinition(getter func) as a child of the current 
-        ContractDefinition node.
-      */
-      const stateVarType = v.vType;
-
-      if (!stateVarType) {
-        // skip getter function generation for state variable
-        return;
-      }
-
-      if (v.stateVariable && v.visibility === 'public') {
-        const funcDefID = ast.reserveId();
-
-        const returnParameterList: ParameterList = new ParameterList(
-          ast.reserveId(),
-          '',
-          genReturnVariables(stateVarType, funcDefID, ast),
-        );
-
-        const fnParams: ParameterList = new ParameterList(
-          ast.reserveId(),
-          '',
-          genFunctionParams(0, stateVarType, funcDefID, ast),
-        );
-
-        const returnExpression: Expression = genReturnExpression(0, fnParams, v, stateVarType, ast);
-
-        const getterBlock = new Block(ast.reserveId(), '', [
-          new Return(ast.reserveId(), '', returnParameterList.id, returnExpression),
-        ]);
-
-        const getter = new FunctionDefinition(
-          funcDefID,
-          '',
-          node.id,
-          FunctionKind.Function,
-          v.name,
-          false,
-          FunctionVisibility.Public,
-          FunctionStateMutability.View,
-          false,
-          fnParams,
-          returnParameterList,
-          [],
-          undefined,
-          getterBlock,
-        );
-        this.getterFunctions.set(v, getter);
-        node.appendChild(getter);
-        ast.registerChild(getter, node);
-      }
-    });
   }
 }
