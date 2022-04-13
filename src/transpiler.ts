@@ -2,6 +2,7 @@ import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
 import {
   AnnotateImplicits,
   BuiltinHandler,
+  BytesConverter,
   ConstantHandler,
   DeleteHandler,
   EnumConverter,
@@ -73,6 +74,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Ss', SourceUnitSplitter],
     ['Ru', RejectUnsupportedFeatures],
+    ['Bc', BytesConverter],
     ['L', LiteralExpressionEvaluator],
     ['Ufr', UsingForResolver],
     ['Na', NamedArgsRemover],

@@ -1,5 +1,6 @@
 export * from './annotateImplicits';
 export * from './builtinHandler';
+export * from './bytesConverter';
 export * from './constantHandler';
 export * from './deleteHandler';
 export * from './enumConverter';
