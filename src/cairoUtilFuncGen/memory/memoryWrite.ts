@@ -1,4 +1,12 @@
-import { Expression, FunctionCall, TypeNode, getNodeType, ASTNode } from 'solc-typed-ast';
+import {
+  Expression,
+  FunctionCall,
+  TypeNode,
+  getNodeType,
+  ASTNode,
+  DataLocation,
+  PointerType,
+} from 'solc-typed-ast';
 import {
   CairoFelt,
   CairoType,
@@ -18,10 +26,20 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
     const functionStub = createCairoFunctionStub(
       name,
       [
-        ['loc', argTypeName],
-        ['value', cloneASTNode(argTypeName, this.ast)],
+        ['loc', argTypeName, DataLocation.Memory],
+        [
+          'value',
+          cloneASTNode(argTypeName, this.ast),
+          typeToWrite instanceof PointerType ? DataLocation.Memory : DataLocation.Default,
+        ],
       ],
-      [['res', cloneASTNode(argTypeName, this.ast)]],
+      [
+        [
+          'res',
+          cloneASTNode(argTypeName, this.ast),
+          typeToWrite instanceof PointerType ? DataLocation.Memory : DataLocation.Default,
+        ],
+      ],
       ['warp_memory'],
       this.ast,
       nodeInSourceUnit ?? memoryRef,

@@ -7,6 +7,7 @@ import {
   PointerType,
   UserDefinedType,
   VariableDeclaration,
+  DataLocation,
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext, CairoStruct } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
@@ -41,8 +42,8 @@ export class StorageMemberAccessGen extends CairoUtilFuncGenBase {
     assert(outType !== undefined);
     const functionStub = createCairoFunctionStub(
       name,
-      [['loc', typeNameFromTypeNode(solType, this.ast)]],
-      [['memberLoc', cloneASTNode(outType, this.ast)]],
+      [['loc', typeNameFromTypeNode(solType, this.ast), DataLocation.Storage]],
+      [['memberLoc', cloneASTNode(outType, this.ast), DataLocation.Storage]],
       [],
       this.ast,
       nodeInSourceUnit ?? memberAccess,

@@ -1,4 +1,4 @@
-import { MemberAccess, ArrayType, FunctionCall, ASTNode } from 'solc-typed-ast';
+import { MemberAccess, ArrayType, FunctionCall, ASTNode, DataLocation } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
@@ -23,7 +23,7 @@ export class DynArrayLengthGen extends CairoUtilFuncGenBase {
 
     const functionStub = createCairoFunctionStub(
       `${lengthName}.read`,
-      [['name', typeNameFromTypeNode(arrayType, this.ast)]],
+      [['name', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
       [['len', createUint256TypeName(this.ast)]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,

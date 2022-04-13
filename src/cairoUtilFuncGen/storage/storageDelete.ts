@@ -1,4 +1,11 @@
-import { ASTNode, Expression, FunctionCall, getNodeType, TypeNode } from 'solc-typed-ast';
+import {
+  ASTNode,
+  DataLocation,
+  Expression,
+  FunctionCall,
+  getNodeType,
+  TypeNode,
+} from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
 import { typeNameFromTypeNode, mapRange } from '../../utils/utils';
@@ -11,7 +18,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
     const functionStub = createCairoFunctionStub(
       functionName,
-      [['loc', typeNameFromTypeNode(nodeType, this.ast)]],
+      [['loc', typeNameFromTypeNode(nodeType, this.ast), DataLocation.Storage]],
       [],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,

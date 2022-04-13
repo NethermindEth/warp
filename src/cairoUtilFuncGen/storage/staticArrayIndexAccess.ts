@@ -2,6 +2,7 @@ import assert from 'assert';
 import {
   ArrayType,
   ASTNode,
+  DataLocation,
   FunctionCall,
   getNodeType,
   IndexAccess,
@@ -37,12 +38,12 @@ export class StorageStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
     const functionStub = createCairoFunctionStub(
       name,
       [
-        ['loc', typeNameFromTypeNode(arrayType, this.ast)],
+        ['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage],
         ['index', createUint256TypeName(this.ast)],
         ['size', createUint256TypeName(this.ast)],
         ['limit', createUint256TypeName(this.ast)],
       ],
-      [['resLoc', typeNameFromTypeNode(valueType, this.ast)]],
+      [['resLoc', typeNameFromTypeNode(valueType, this.ast), DataLocation.Storage]],
       ['range_check_ptr'],
       this.ast,
       nodeInSourceUnit ?? node,

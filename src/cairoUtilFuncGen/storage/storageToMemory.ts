@@ -18,6 +18,8 @@ import { dereferenceType, typeNameFromTypeNode } from '../../utils/utils';
 import { CairoUtilFuncGenBase } from '../base';
 import { StorageReadGen } from './storageRead';
 
+// NOT FINISHED
+
 export class StorageToMemoryGen extends CairoUtilFuncGenBase {
   getGeneratedCode(): string {
     // TODO implement

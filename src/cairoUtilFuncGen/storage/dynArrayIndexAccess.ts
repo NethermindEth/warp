@@ -2,6 +2,7 @@ import assert from 'assert';
 import {
   ArrayType,
   ASTNode,
+  DataLocation,
   FunctionCall,
   getNodeType,
   IndexAccess,
@@ -35,10 +36,10 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
     const functionStub = createCairoFunctionStub(
       name,
       [
-        ['loc', typeNameFromTypeNode(baseType, this.ast)],
+        ['loc', typeNameFromTypeNode(baseType, this.ast), DataLocation.Storage],
         ['offset', createUint256TypeName(this.ast)],
       ],
-      [['resLoc', typeNameFromTypeNode(nodeType, this.ast)]],
+      [['resLoc', typeNameFromTypeNode(nodeType, this.ast), DataLocation.Storage]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       nodeInSourceUnit ?? node,
