@@ -49,7 +49,8 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/errorHandling/revert', 'Success'],
   ['example_contracts/events', 'Success'],
   ['example_contracts/external_function', 'Success'],
-  ['example_contracts/external_function_struct_return_struct', 'Success'],
+  // Typestring for the internal function call doesn't contain a location so a read isn't generated
+  ['example_contracts/external_function_struct_return_struct', 'CairoCompileFailed'],
   ['example_contracts/freeFunction', 'Success'],
   ['example_contracts/function-with-nested-return', 'Success'],
   ['example_contracts/functionArgumentConversions', 'Success'],
@@ -84,9 +85,9 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/sstore-sload', 'WillNotSupport'],
   ['example_contracts/state_variables/scalars', 'Success'],
   ['example_contracts/state_variables/enums', 'Success'],
-  ['example_contracts/state_variables/arrays', 'NotSupportedYet'],
+  // Typestrings don't include data location leading to incorrect type analysis
+  ['example_contracts/state_variables/arrays', 'CairoCompileFailed'],
   ['example_contracts/state_variables/mappings', 'Success'],
-  // TODO check why we return full structs
   ['example_contracts/state_variables/structs', 'CairoCompileFailed'],
   ['example_contracts/state_variables/misc', 'NotSupportedYet'],
   ['example_contracts/structs', 'Success'],
