@@ -19,7 +19,6 @@ import {
 import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
-import { printTypeNode } from '../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
 import { isCairoConstant } from '../utils/utils';
 
