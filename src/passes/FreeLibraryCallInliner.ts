@@ -61,7 +61,7 @@ function getFunctionsToInline(
   func: FunctionDefinition,
   visited: Set<FunctionDefinition> = new Set(),
 ): Set<FunctionDefinition> {
-  return func
+  const funcsToInline = func
     .getChildrenByType(FunctionCall)
     .map((fCall) => fCall.vReferencedDeclaration)
     .filter(
@@ -71,7 +71,12 @@ function getFunctionsToInline(
     .map((freeFunc) =>
       getFunctionsToInline(freeFunc, new Set<FunctionDefinition>([func, ...visited])),
     )
-    .reduce(union, new Set<FunctionDefinition>(directlyCallsLibraryFunction(func) ? [func] : []));
+    .reduce(union, new Set<FunctionDefinition>());
+
+  if (funcsToInline.size > 0 || directlyCallsLibraryFunction(func)) {
+    funcsToInline.add(func);
+  }
+  return funcsToInline;
 }
 
 function directlyCallsLibraryFunction(func: FunctionDefinition): boolean {
