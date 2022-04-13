@@ -16,6 +16,8 @@ import {
   ArrayTypeName,
   FunctionCallKind,
   TupleExpression,
+  UserDefinedType,
+  ContractDefinition,
 } from 'solc-typed-ast';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
@@ -145,7 +147,13 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     }
 
     const type = getNodeType(node.vExpression, ast.compilerVersion);
-    assert(type instanceof PointerType);
+    if (!(type instanceof PointerType)) {
+      assert(
+        type instanceof UserDefinedType && type.definition instanceof ContractDefinition,
+        `Unexpected unhandled non-pointer non-contract member access. Found at ${printNode(node)}`,
+      );
+      return this.visitExpression(node, ast);
+    }
 
     const utilFuncGen = ast.getUtilFuncGen(node);
     // To transform a struct member access to cairo, there are two steps
