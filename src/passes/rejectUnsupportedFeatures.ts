@@ -10,6 +10,8 @@ import {
   UserDefinedType,
   UsingForDirective,
   ImportDirective,
+  MemberAccess,
+  AddressType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -63,5 +65,27 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       );
     }
     // No need to recurse, since we throw if it has any children
+  }
+  visitMemberAccess(node: MemberAccess, ast: AST): void {
+    if (!(getNodeType(node.vExpression, ast.compilerVersion) instanceof AddressType)) {
+      this.visitExpression(node, ast);
+      return;
+    }
+
+    const members: string[] = [
+      'balance',
+      'code',
+      'codehash',
+      'transfer',
+      'send',
+      'call',
+      'delegatecall',
+      'staticcall',
+    ];
+    if (members.includes(node.memberName))
+      throw new WillNotSupportError(
+        `Members of addresses are not supported. Found at ${printNode(node)}`,
+      );
+    this.visitExpression(node, ast);
   }
 }
