@@ -13,6 +13,7 @@ export function flatten(test: Dir | File): File[] {
 
 function stringFlatten_(val: Value): string[] {
   if (typeof val === 'string' || typeof val === 'number') {
+    if (typeof val === 'string' && val.startsWith('address@')) return [val];
     return [BigInt(val).toString()];
   }
   if (Array.isArray(val)) {

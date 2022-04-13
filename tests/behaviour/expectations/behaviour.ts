@@ -79,6 +79,26 @@ export const expectations = flatten(
               ],
             ]),
           ]),
+          new File(
+            'simpleImmutable',
+            'WARP',
+            ['0', '256', '512'],
+            [
+              Expect.Simple('getUintValue', [], ['0', '256'], '0'),
+              Expect.Simple('getIntValue', [], ['512'], '0'),
+              Expect.Simple('addUintValue', ['0', '256'], ['0', '512'], '0'),
+              Expect.Simple('addIntValue', ['256'], ['768'], '0'),
+              new Expect('testing constructor argument out of bounds', [
+                [
+                  'constructor',
+                  ['0', '256', '65536'],
+                  null,
+                  '0',
+                  'Error message: Error: value out-of-bounds. Value must be less than 2**16.',
+                ],
+              ]),
+            ],
+          ),
         ]),
         new Dir('conversions', [
           File.Simple('signedIdentity', [
@@ -132,39 +152,90 @@ export const expectations = flatten(
             Expect.Simple('explicit', ['240'], ['240', '240', '0']),
           ]),
         ]),
+        new Dir('cross_contract_calls', [
+          File.Simple('simple', [Expect.Simple('f', [], ['69', '0'])], 'A'),
+          File.Simple(
+            'simple',
+            [
+              Expect.Simple(
+                'f',
+                ['address@tests/behaviour/contracts/cross_contract_calls/simple.A'],
+                ['69', '0'],
+              ),
+            ],
+            'WARP',
+          ),
+          File.Simple('public_vars', [Expect.Simple('f', [], ['696', '0'])], 'A'),
+          File.Simple(
+            'public_vars',
+            [
+              Expect.Simple(
+                'setA',
+                ['address@tests/behaviour/contracts/cross_contract_calls/public_vars.A'],
+                [],
+              ),
+            ],
+            'B',
+          ),
+          File.Simple(
+            'public_vars',
+            [
+              Expect.Simple(
+                'setB',
+                [
+                  'address@tests/behaviour/contracts/cross_contract_calls/public_vars.A',
+                  'address@tests/behaviour/contracts/cross_contract_calls/public_vars.B',
+                ],
+                [],
+              ),
+              Expect.Simple('foo', [], ['696', '0']),
+              Expect.Simple(
+                'f',
+                ['address@tests/behaviour/contracts/cross_contract_calls/simple.A'],
+                ['69', '0'],
+              ),
+            ],
+            'C',
+          ),
+        ]),
         // covers nested mappings
         new Dir('Dai', [
-          new File('dai', 'Dai', [
-            new Expect('mint', [
-              ['mint', ['1', '10000', '0'], ['1'], '1'],
-              ['getBalance', ['1'], ['10000', '0'], '1'],
-            ]),
-            new Expect('transfer', [
-              ['transfer', ['2', '4000', '0'], ['1'], '1'],
-              ['getBalance', ['2'], ['4000', '0'], '1'],
-              ['getBalance', ['1'], ['6000', '0'], '1'],
-            ]),
-            new Expect('approve', [
-              ['approve', ['3', '300', '0'], ['1'], '2'],
-              ['getAllowance', ['2', '3'], ['300', '0'], '2'],
-            ]),
-            new Expect('transferFrom', [
-              ['transferFrom', ['2', '1', '200', '0'], ['1'], '3'],
-              ['getBalance', ['2'], ['3800', '0'], '1'],
-              ['getBalance', ['1'], ['6200', '0'], '1'],
-            ]),
-            new Expect('allowance after transferFrom', [
-              ['getAllowance', ['2', '3'], ['100', '0'], '2'],
-            ]),
-            new Expect('increase allowance', [
-              ['increaseAllowance', ['3', '100', '0'], ['1'], '2'],
-              ['getAllowance', ['2', '3'], ['200', '0'], '2'],
-            ]),
-            new Expect('decrease allowance', [
-              ['decreaseAllowance', ['3', '131', '0'], ['1'], '2'],
-              ['getAllowance', ['2', '3'], ['69', '0'], '2'],
-            ]),
-          ]),
+          new File(
+            'dai',
+            'Dai',
+            [],
+            [
+              new Expect('mint', [
+                ['mint', ['1', '10000', '0'], ['1'], '1'],
+                ['getBalance', ['1'], ['10000', '0'], '1'],
+              ]),
+              new Expect('transfer', [
+                ['transfer', ['2', '4000', '0'], ['1'], '1'],
+                ['getBalance', ['2'], ['4000', '0'], '1'],
+                ['getBalance', ['1'], ['6000', '0'], '1'],
+              ]),
+              new Expect('approve', [
+                ['approve', ['3', '300', '0'], ['1'], '2'],
+                ['getAllowance', ['2', '3'], ['300', '0'], '2'],
+              ]),
+              new Expect('transferFrom', [
+                ['transferFrom', ['2', '1', '200', '0'], ['1'], '3'],
+                ['getBalance', ['2'], ['3800', '0'], '1'],
+                ['getBalance', ['1'], ['6200', '0'], '1'],
+              ]),
+              new Expect('allowance after transferFrom', [
+                ['getAllowance', ['2', '3'], ['100', '0'], '2'],
+              ]),
+              new Expect('increase allowance', [
+                ['increaseAllowance', ['3', '100', '0'], ['1'], '2'],
+                ['getAllowance', ['2', '3'], ['200', '0'], '2'],
+              ]),
+              new Expect('decrease allowance', [
+                ['decreaseAllowance', ['3', '131', '0'], ['1'], '2'],
+                ['getAllowance', ['2', '3'], ['69', '0'], '2'],
+              ]),
+            ],
+          ),
         ]),
         new Dir('delete', [
           File.Simple('address', [Expect.Simple('f', [], ['23', '0'])]),
@@ -497,7 +568,7 @@ export const expectations = flatten(
                 ['18', '256'],
                 null,
                 '0',
-                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**8.',
+                'Error: value out-of-bounds. Value must be less than 2**8.',
               ],
             ]),
             new Expect('testing that more than 1 assert is placed when there are two inputs', [
@@ -506,7 +577,7 @@ export const expectations = flatten(
                 ['65536', '255'],
                 null,
                 '0',
-                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**16.',
+                'Error: value out-of-bounds. Value must be less than 2**16.',
               ],
             ]),
           ]),
@@ -615,12 +686,60 @@ export const expectations = flatten(
         ]),
         new Dir('inheritance', [
           new Dir('functions', [
-            new File('base', 'Base', [Expect.Simple('g', ['3'], ['3'])]),
-            new File('mid', 'Mid', [Expect.Simple('g', ['10'], ['20'])]),
-            new File('derived', 'Derived', [Expect.Simple('f', ['5'], ['15'])]),
+            new File('base', 'Base', [], [Expect.Simple('g', ['3'], ['3'])]),
+            new File('mid', 'Mid', [], [Expect.Simple('g', ['10'], ['20'])]),
+            new File('derived', 'Derived', [], [Expect.Simple('f', ['5'], ['15'])]),
           ]),
           new Dir('variables', [
-            new File('derived', 'Derived', [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
+            new File('derived', 'Derived', [], [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
+          ]),
+          new Dir('modifiers', [
+            new File(
+              'modifierInheritance',
+              'D',
+              [],
+              [
+                new Expect('modifier', [
+                  ['withdraw', ['5000', '0'], ['95000', '0'], '0'],
+                  ['lock', [], [], '0'],
+                  ['withdraw', ['280', '0'], null, '0', 'Can not call this function when locked'],
+                  ['clear', [], [], '0'],
+                  ['withdraw', ['280', '0'], ['0', '0'], '0'],
+                ]),
+              ],
+            ),
+            new File(
+              'modifierOverriding',
+              'C',
+              [],
+              [
+                new Expect('modifier', [
+                  [
+                    'withdraw',
+                    ['10000', '0'],
+                    null,
+                    '0',
+                    'Value to withdraw must be smaller than the current balance',
+                  ],
+                  [
+                    'withdraw',
+                    ['100', '0'],
+                    null,
+                    '0',
+                    'Value to withdraw must be bigger than the limit',
+                  ],
+                  ['withdraw', ['5500', '0'], null, '0', 'Balance must be bigger than 1000'],
+                  ['withdraw', ['5000', '0'], ['1000', '0'], '0'],
+                  [
+                    'withdraw',
+                    ['100', '0'],
+                    null,
+                    '0',
+                    'Value to withdraw must be bigger than the limit',
+                  ],
+                ]),
+              ],
+            ),
           ]),
         ]),
         new Dir('libraries', [

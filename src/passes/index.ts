@@ -1,4 +1,3 @@
-export * from './addressHandler';
 export * from './annotateImplicits';
 export * from './builtinHandler';
 export * from './cairoUtilImporter';
@@ -7,6 +6,7 @@ export * from './deleteHandler';
 export * from './enumConverter';
 export * from './expressionSplitter';
 export * from './externalArgumentModifier';
+export * from './externalContractHandler';
 export * from './externalInputChecker';
 export * from './externImporter';
 export * from './functionModifierHandler';

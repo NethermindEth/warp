@@ -8,7 +8,9 @@ import {
   FunctionKind,
   FunctionVisibility,
   Identifier,
+  IdentifierPath,
   MemberAccess,
+  ModifierDefinition,
   Return,
   VariableDeclaration,
 } from 'solc-typed-ast';
@@ -30,12 +32,16 @@ export class InheritanceInliner extends ASTMapper {
 
     const functionRemapping: Map<number, FunctionDefinition> = new Map();
     const variableRemapping: Map<number, VariableDeclaration> = new Map();
+    const modifierRemapping: Map<number, ModifierDefinition> = new Map();
 
     addPrivateSuperFunctions(node, functionRemapping, ast);
     addNonoverridenPublicFunctions(node, functionRemapping, ast);
     addStorageVariables(node, variableRemapping, ast);
+    addNonOverridenModifiers(node, modifierRemapping, ast);
+
     updateReferencedDeclarations(node, functionRemapping, ast);
     updateReferencedDeclarations(node, variableRemapping, ast);
+    updateReferencedDeclarations(node, modifierRemapping, ast);
     this.commonVisit(node, ast);
   }
 
@@ -130,13 +136,37 @@ function addStorageVariables(
   });
 }
 
+function addNonOverridenModifiers(
+  node: ContractDefinition,
+  idRemapping: Map<number, ModifierDefinition>,
+  ast: AST,
+) {
+  const modifierNames = new Set<string>();
+
+  node.vModifiers.forEach((modifier) => {
+    modifierNames.add(modifier.name);
+  });
+
+  getBaseContracts(node).forEach((contract) => {
+    contract.vModifiers.forEach((modifier) => {
+      const sz = modifierNames.size;
+      modifierNames.add(modifier.name);
+      if (modifierNames.size > sz) {
+        const clonedModifier = cloneASTNode(modifier, ast);
+        idRemapping.set(modifier.id, clonedModifier);
+        node.appendChild(clonedModifier);
+      }
+    });
+  });
+}
+
 function updateReferencedDeclarations(
   node: ContractDefinition,
-  idRemapping: Map<number, VariableDeclaration | FunctionDefinition>,
+  idRemapping: Map<number, VariableDeclaration | FunctionDefinition | ModifierDefinition>,
   ast: AST,
 ) {
   node.walkChildren((node) => {
-    if (node instanceof Identifier) {
+    if (node instanceof Identifier || node instanceof IdentifierPath) {
       const remapping = idRemapping.get(node.referencedDeclaration);
       if (remapping !== undefined) {
         node.referencedDeclaration = remapping.id;

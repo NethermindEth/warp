@@ -17,13 +17,43 @@ export type InvokeResponse =
       error_message: string;
     };
 
-// Returns address of deployed contract or throws
-export async function deploy(jsonPath: string, input: string[]): Promise<string> {
+export type DeployResponse =
+  | {
+      status: number;
+      steps: number;
+      threw: false;
+      contract_address: string;
+      error_message: undefined;
+    }
+  | {
+      status: number;
+      steps: null;
+      threw: true;
+      contract_address: null;
+      error_message: string;
+    };
+
+export async function deploy(jsonPath: string, input: string[]): Promise<DeployResponse> {
   const response = await axios.post('http://127.0.0.1:5000/deploy', {
     compiled_cairo: jsonPath,
     input,
   });
-  return BigNumber.from(response.data.contract_address)._hex;
+
+  return response.data.transaction_info.threw
+    ? {
+        status: response.status,
+        steps: null,
+        threw: true,
+        contract_address: null,
+        error_message: response.data.transaction_info.message,
+      }
+    : {
+        status: response.status,
+        steps: response.data.execution_info?.steps ?? null,
+        threw: false,
+        contract_address: BigNumber.from(response.data.contract_address)._hex,
+        error_message: undefined,
+      };
 }
 
 export async function invoke(

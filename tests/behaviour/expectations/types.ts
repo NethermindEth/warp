@@ -1,3 +1,4 @@
+import assert from 'assert';
 import { mangleContractFilePath } from '../../../src/passes/sourceUnitSplitter';
 import { stringFlatten } from './utils';
 
@@ -5,6 +6,7 @@ export class AsyncTest {
   constructor(
     public name: string,
     public contract: string,
+    public constructorArgs: string[],
     public expectations: Promise<Expect[]> | Expect[],
   ) {}
 
@@ -19,7 +21,7 @@ export class AsyncTest {
   }
 
   static fromSync(test: File): AsyncTest {
-    return new AsyncTest(test.name, test.contract, test.expectations);
+    return new AsyncTest(test.name, test.contract, test.constructorArgs, test.expectations);
   }
 }
 
@@ -30,10 +32,15 @@ export class Dir {
 }
 
 export class File {
-  constructor(public name: string, public contract: string, public expectations: Expect[]) {}
+  constructor(
+    public name: string,
+    public contract: string,
+    public constructorArgs: string[],
+    public expectations: Expect[],
+  ) {}
 
-  static Simple(name: string, expectations: Expect[]) {
-    return new File(name, 'WARP', expectations);
+  static Simple(name: string, expectations: Expect[], contract?: string) {
+    return new File(name, contract ?? 'WARP', [], expectations);
   }
 }
 
@@ -55,12 +62,20 @@ export class Expect {
       error_message?: string,
     ][],
   ) {
-    this.steps = steps.map(([func, inputs, returns, caller_address]) => [
-      func,
-      stringFlatten(inputs),
-      returns !== null ? stringFlatten(returns) : null,
-      caller_address,
-    ]);
+    this.steps = steps.map(([func, inputs, returns, caller_address, error_message]) => {
+      if (func === 'constructor')
+        assert(
+          returns === null,
+          `Expected return value for failing constructor tests should be null`,
+        );
+      return [
+        func,
+        stringFlatten(inputs),
+        returns !== null ? stringFlatten(returns) : null,
+        caller_address,
+        error_message,
+      ];
+    });
   }
   static Simple(name: string, inputs: string[], returns: string[] | null, tag?: string): Expect {
     return new Expect(tag ? `${name}: ${tag}` : name, [[name, inputs, returns, '0']]);

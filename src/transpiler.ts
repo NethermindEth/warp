@@ -4,7 +4,6 @@ import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
 import {
-  AddressHandler,
   AnnotateImplicits,
   BuiltinHandler,
   CairoUtilImporter,
@@ -13,6 +12,7 @@ import {
   EnumConverter,
   ExpressionSplitter,
   ExternalArgumentModifier,
+  ExternalContractHandler,
   ExternalInputChecker,
   ExternImporter,
   IdentifierMangler,
@@ -81,6 +81,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['M', IdentifierMangler],
     ['Rl', ReferencedLibraries],
     ['Ii', InheritanceInliner],
+    ['Ech', ExternalContractHandler],
     ['Mh', ModifierHandler],
     ['Sa', StorageAllocator],
     ['Pfs', PublicFunctionSplitter],
@@ -93,7 +94,6 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['Rv', ReturnVariableInitializer],
     ['If', IfFunctionaliser],
     ['T', TupleAssignmentSplitter],
-    ['Ah', AddressHandler],
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
     ['Vs', VariableDeclarationExpressionSplitter],
