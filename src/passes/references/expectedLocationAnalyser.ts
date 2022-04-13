@@ -19,6 +19,7 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
+import { TranspileFailedError } from '../../utils/errors';
 import { error } from '../../utils/formatting';
 import { getParameterTypes } from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
@@ -49,9 +50,25 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     if (lhsLocation === DataLocation.Storage) {
       this.expectedLocations.set(node.vLeftHandSide, lhsLocation);
       this.expectedLocations.set(node.vRightHandSide, DataLocation.Default);
-    }
-    if (lhsLocation !== undefined) {
-      // TODO fill in cases
+    } else if (lhsLocation === DataLocation.Memory) {
+      this.expectedLocations.set(node.vLeftHandSide, lhsLocation);
+      const rhsLocation = this.actualLocations.get(node.vRightHandSide);
+      assert(
+        rhsLocation !== undefined,
+        `${printNode(node.vRightHandSide)} has no known location, needed for memory assignment`,
+      );
+      this.expectedLocations.set(node.vRightHandSide, rhsLocation);
+    } else if (lhsLocation === DataLocation.CallData) {
+      throw new TranspileFailedError(
+        `Left hand side of assignment has calldata location ${printNode(node)}`,
+      );
+    } else if (lhsLocation === DataLocation.Default) {
+      this.expectedLocations.set(node.vLeftHandSide, lhsLocation);
+      this.expectedLocations.set(node.vRightHandSide, DataLocation.Default);
+    } else {
+      throw new TranspileFailedError(
+        `Left hand side of assignment has undefined location ${printNode(node)}`,
+      );
     }
     this.visitExpression(node, ast);
   }
