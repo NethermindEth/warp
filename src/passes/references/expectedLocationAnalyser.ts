@@ -7,7 +7,6 @@ import {
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
-  FunctionVisibility,
   getNodeType,
   IndexAccess,
   MemberAccess,
@@ -23,6 +22,7 @@ import { printNode } from '../../utils/astPrinter';
 import { error } from '../../utils/formatting';
 import { getParameterTypes } from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
+import { isExternallyVisible } from '../../utils/utils';
 
 /*
 Analyses the tree top down, marking nodes with the storage location associated
@@ -51,6 +51,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
       this.expectedLocations.set(node.vRightHandSide, DataLocation.Default);
     }
     if (lhsLocation !== undefined) {
+      // TODO fill in cases
     }
     this.visitExpression(node, ast);
   }
@@ -126,10 +127,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
   visitReturn(node: Return, ast: AST): void {
     const func = node.getClosestParentByType(FunctionDefinition);
     assert(func !== undefined, `Unable to find containing function for ${printNode(node)}`);
-    if (
-      func.visibility === FunctionVisibility.External ||
-      func.visibility === FunctionVisibility.Public
-    ) {
+    if (isExternallyVisible(func)) {
       if (node.vExpression) {
         // External functions need to read out their returns
         // TODO might need to expand this to be clear that it's a deep read
