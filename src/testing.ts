@@ -32,13 +32,16 @@ const ResultTypeOrder = [
 const expectedResults = new Map<string, ResultType>([
   ['example_contracts/ERC20', 'Success'],
   ['example_contracts/ERC20_storage', 'Success'],
+  // Uses conditionals
   ['example_contracts/c2c', 'NotSupportedYet'],
   ['example_contracts/contract_to_contract', 'Success'],
   ['example_contracts/calldatacopy', 'WillNotSupport'],
   ['example_contracts/calldataload', 'WillNotSupport'],
   ['example_contracts/calldatasize', 'WillNotSupport'],
   ['example_contracts/comments', 'Success'],
+  // Uses conditionals
   ['example_contracts/constructors_dyn', 'NotSupportedYet'],
+  // Uses conditionals
   ['example_contracts/constructors_nonDyn', 'NotSupportedYet'],
   ['example_contracts/dai', 'Success'],
   ['example_contracts/delete', 'SolCompileFailed'],
@@ -62,6 +65,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/inheritance/super/derived', 'Success'],
   ['example_contracts/inheritance/super/mid', 'Success'],
   ['example_contracts/inheritance/variables', 'Success'],
+  // Requires struct imports
   ['example_contracts/interfaces', 'NotSupportedYet'],
   ['example_contracts/invalidSolidity', 'SolCompileFailed'],
   ['example_contracts/lib', 'Success'],
