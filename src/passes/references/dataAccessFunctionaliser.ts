@@ -135,7 +135,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     const expectedLoc = this.getLocations(node)[1];
     if (node.kind === FunctionCallKind.StructConstructorCall) {
       // Memory struct constructor calls should have been replaced by memoryAllocations
-      assert(expectedLoc === DataLocation.Storage);
+      assert(expectedLoc === DataLocation.Default);
       return this.commonVisit(node, ast);
     } else {
       return this.visitExpression(node, ast);
