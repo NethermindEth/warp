@@ -2,16 +2,20 @@ import assert from 'assert';
 import {
   Block,
   ContractDefinition,
+  Expression,
+  ExpressionStatement,
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
   FunctionKind,
+  FunctionStateMutability,
   FunctionVisibility,
   Identifier,
   IdentifierPath,
   MemberAccess,
   ModifierDefinition,
   Return,
+  Statement,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -19,7 +23,8 @@ import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
 import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
-import { createIdentifier } from '../utils/nodeTemplates';
+import { generateFunctionCall } from '../utils/functionGeneration';
+import { createBlock, createIdentifier, createParameterList } from '../utils/nodeTemplates';
 import { getFunctionTypeString, getReturnTypeString, isExternallyVisible } from '../utils/utils';
 
 export class InheritanceInliner extends ASTMapper {
@@ -34,6 +39,7 @@ export class InheritanceInliner extends ASTMapper {
     const variableRemapping: Map<number, VariableDeclaration> = new Map();
     const modifierRemapping: Map<number, ModifierDefinition> = new Map();
 
+    solveConstructorInheritance(node, ast);
     addPrivateSuperFunctions(node, functionRemapping, ast);
     addNonoverridenPublicFunctions(node, functionRemapping, ast);
     addStorageVariables(node, variableRemapping, ast);
@@ -285,4 +291,113 @@ function createDelegatingFunction(
   );
   ast.setContextRecursive(newFunc);
   return newFunc;
+}
+function solveConstructorInheritance(node: ContractDefinition, ast: AST) {
+  // collect arguments passed to constructors of linearized contracts
+  const args: Map<number, Expression[]> = new Map();
+  const constructors: Map<number, FunctionDefinition> = new Map();
+  node.vLinearizedBaseContracts.forEach((contract) => {
+    const constructorFunc = contract.vConstructor;
+    if (constructorFunc !== undefined) constructors.set(contract.id, constructorFunc);
+    getArguments(contract, constructorFunc, args, ast);
+  });
+
+  // call constructors following linearization rules
+  let statements: Statement[] = [];
+  node.linearizedBaseContracts
+    .slice(1)
+    .reverse()
+    .forEach((contractId) => {
+      const constructorFunc = constructors.get(contractId);
+      if (constructorFunc !== undefined) {
+        const newFunc = createFunctionFromConstructor(constructorFunc, contractId, node, ast);
+        node.appendChild(newFunc);
+
+        const argList = args.get(contractId) ?? [];
+        assert(
+          constructorFunc.vParameters.vParameters.length === argList.length,
+          `Wrong number of arguments in constructor`,
+        );
+
+        const stmt = new ExpressionStatement(
+          ast.reserveId(),
+          '',
+          generateFunctionCall(newFunc, argList, ast),
+        );
+        statements.push(stmt);
+      }
+    });
+
+  // add calls to constructor functions inside this contract constructor
+  if (statements.length > 0) {
+    const selfConstructor = node.vConstructor ?? createDefaultConstructor(node, ast);
+    if (selfConstructor.vBody === undefined) generateBody(statements, selfConstructor, ast);
+    else {
+      const newBody = createBlock(
+        statements.concat(cloneASTNode(selfConstructor.vBody, ast).vStatements),
+        ast,
+      );
+      ast.replaceNode(selfConstructor.vBody, newBody, selfConstructor);
+    }
+  }
+}
+
+function getArguments(
+  contract: ContractDefinition,
+  constructorFunc: FunctionDefinition | undefined,
+  args: Map<number, Expression[]>,
+  ast: AST,
+) {
+  if (constructorFunc !== undefined) {
+    constructorFunc.vModifiers.forEach((modInvocation) => {
+      const contractDef = modInvocation.vModifier;
+      if (contractDef instanceof ContractDefinition)
+        args.set(contractDef.id, modInvocation.vArguments);
+    });
+  }
+
+  contract.vInheritanceSpecifiers.forEach((specifier) => {
+    const contractId = specifier.vBaseType.referencedDeclaration;
+    const argList = args.get(contractId);
+    if (argList === undefined || argList.length < specifier.vArguments.length)
+      args.set(contractId, specifier.vArguments);
+  });
+}
+
+function createFunctionFromConstructor(
+  constructorFunc: FunctionDefinition,
+  id: number,
+  node: ContractDefinition,
+  ast: AST,
+): FunctionDefinition {
+  const newFunc = cloneASTNode(constructorFunc, ast);
+  newFunc.kind = FunctionKind.Function;
+  newFunc.name = `__warp_constructor_${id}`;
+  newFunc.visibility = FunctionVisibility.Private;
+  newFunc.isConstructor = false;
+
+  return newFunc;
+}
+
+function createDefaultConstructor(node: ContractDefinition, ast: AST): FunctionDefinition {
+  return new FunctionDefinition(
+    ast.reserveId(),
+    '',
+    node.id,
+    FunctionKind.Constructor,
+    '',
+    false,
+    FunctionVisibility.Public,
+    FunctionStateMutability.NonPayable,
+    true,
+    createParameterList([], ast),
+    createParameterList([], ast),
+    [],
+  );
+}
+
+function generateBody(statements: Statement[], constructorFunc: FunctionDefinition, ast: AST) {
+  const newBody = createBlock(statements, ast);
+  constructorFunc.vBody = newBody;
+  ast.registerChild(newBody, constructorFunc);
 }
