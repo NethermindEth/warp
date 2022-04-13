@@ -53,9 +53,7 @@ export class MemoryAllocations extends ReferenceSubPass {
     const [actualLoc, expectedLoc] = this.getLocations(node);
 
     if (!node.isInlineArray) return;
-    console.log('a');
     if (this.expectedDataLocations.get(node) !== DataLocation.Memory) return;
-    console.log('b');
 
     const replacement = ast.getUtilFuncGen(node).memory.arrayLiteral.gen(node);
     this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);

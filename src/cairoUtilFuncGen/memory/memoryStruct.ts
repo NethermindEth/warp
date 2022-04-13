@@ -17,7 +17,6 @@ import { add, StringIndexedFuncGen } from '../base';
 
 export class MemoryStructGen extends StringIndexedFuncGen {
   gen(node: FunctionCall): FunctionCall {
-    console.log('mem struct start');
     const structDef = node.vReferencedDeclaration;
     assert(structDef instanceof StructDefinition);
 
@@ -62,8 +61,6 @@ export class MemoryStructGen extends StringIndexedFuncGen {
     stub.vScope.removeChild(stub);
     structDef.vScope.appendChild(stub);
     structDef.vScope.acceptChildren();
-
-    console.log('mem struct end');
 
     return createCallToFunction(stub, node.vArguments, this.ast);
   }

@@ -68,7 +68,6 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
-    console.log(`Visiting ${printNode(node)}`);
     if (!shouldLeaveAsCairoAssignment(node.vLeftHandSide)) {
       const [actualLoc, expectedLoc] = this.getLocations(node);
       const writeLoc = this.getLocations(node.vLeftHandSide)[0];
@@ -93,7 +92,6 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
   }
 
   visitIdentifier(node: Identifier, ast: AST): void {
-    console.log(`Visiting ${printNode(node)} ${node.name}`);
     const [actualLoc, expectedLoc] = this.getLocations(node);
     // Only replace the identifier with a read function if we need to extract the data
     if (expectedLoc === undefined || expectedLoc === actualLoc) {
@@ -114,9 +112,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     );
 
     if (actualLoc === DataLocation.Storage) {
-      console.log(`storage identifier ${printNode(node)} ${node.name}`);
       if (!isCairoConstant(decl)) {
-        console.log(`Creating storage read for ${printNode(node)} ${node.name}`);
         const parent = node.parent;
         const replacementFunc = ast.getUtilFuncGen(node).storage.read.gen(node, decl.vType);
         this.replace(node, replacementFunc, parent, actualLoc, expectedLoc, ast);
@@ -173,7 +169,6 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
   }
 
   visitIndexAccess(node: IndexAccess, ast: AST): void {
-    console.log(`Visiting ${printNode(node)}`);
     assert(node.vIndexExpression !== undefined);
 
     const [actualLoc, expectedLoc] = this.getLocations(node);

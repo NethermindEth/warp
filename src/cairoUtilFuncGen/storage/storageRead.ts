@@ -22,7 +22,6 @@ export class StorageReadGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
     const name = this.getOrCreate(resultCairoType);
-    console.log('start');
     const functionStub = createCairoFunctionStub(
       name,
       [['loc', cloneASTNode(type, this.ast), DataLocation.Storage]],
@@ -37,7 +36,6 @@ export class StorageReadGen extends StringIndexedFuncGen {
       this.ast,
       nodeInSourceUnit ?? storageLocation,
     );
-    console.log('done');
     return createCallToFunction(functionStub, [storageLocation], this.ast);
   }
 
