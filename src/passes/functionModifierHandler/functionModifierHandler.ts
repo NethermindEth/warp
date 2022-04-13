@@ -1,6 +1,5 @@
 import {
   Block,
-  ContractDefinition,
   Expression,
   FunctionDefinition,
   FunctionKind,
@@ -14,7 +13,6 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
-import { NotSupportedYetError } from '../../utils/errors';
 import { createReturn, generateFunctionCall } from '../../utils/functionGeneration';
 import { createIdentifier, createParameterList } from '../../utils/nodeTemplates';
 import { FunctionModifierInliner } from './functionModifierInliner';
@@ -38,8 +36,9 @@ export class FunctionModifierHandler extends ASTMapper {
 
     let functionToCall = this.extractOriginalFunction(node, ast);
     for (let i = node.vModifiers.length - 1; i >= 0; i--) {
-      const modifier = this.getModifier(node.vModifiers[i].vModifier);
-      functionToCall = this.getFunctionFromModifier(node, modifier, functionToCall, ast);
+      const modifier = node.vModifiers[i].vModifier;
+      if (modifier instanceof ModifierDefinition)
+        functionToCall = this.getFunctionFromModifier(node, modifier, functionToCall, ast);
     }
 
     const functionArgs = node.vParameters.vParameters.map((v) => createIdentifier(v, ast));
@@ -143,15 +142,5 @@ export class FunctionModifierHandler extends ASTMapper {
     const param = cloneASTNode(v, ast);
     param.name = `__warp_ret_parameter${this.count++}`;
     return param;
-  }
-
-  // TODO - Get modifier code when `vModifier` is a Contract Definition
-  //        (it should be solved when dealing with inheritance)
-  // Note: There is a possibility that constructor of the current contract
-  //       invokes a constructor of the super contract.
-  //       The `ContractDefinition` of a super contract is the value in such case.
-  getModifier(vModifier: ModifierDefinition | ContractDefinition): ModifierDefinition {
-    if (vModifier instanceof ModifierDefinition) return vModifier;
-    throw new NotSupportedYetError('Modifiers Inheritance is not supported yet');
   }
 }

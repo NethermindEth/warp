@@ -299,11 +299,11 @@ function solveConstructorInheritance(node: ContractDefinition, ast: AST) {
   node.vLinearizedBaseContracts.forEach((contract) => {
     const constructorFunc = contract.vConstructor;
     if (constructorFunc !== undefined) constructors.set(contract.id, constructorFunc);
-    getArguments(contract, constructorFunc, args, ast);
+    getArguments(contract, constructorFunc, args);
   });
 
   // call constructors following linearization rules
-  let statements: Statement[] = [];
+  const statements: Statement[] = [];
   node.linearizedBaseContracts
     .slice(1)
     .reverse()
@@ -346,7 +346,6 @@ function getArguments(
   contract: ContractDefinition,
   constructorFunc: FunctionDefinition | undefined,
   args: Map<number, Expression[]>,
-  ast: AST,
 ) {
   if (constructorFunc !== undefined) {
     constructorFunc.vModifiers.forEach((modInvocation) => {
