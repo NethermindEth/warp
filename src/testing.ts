@@ -238,12 +238,16 @@ function printResults(results: Map<string, ResultType>, unexpectedResults: strin
       console.log(`Actual outcome:`);
       const Actual = new Map<string, ResultType>();
       results.forEach((value, key) => {
-        if (key.includes(o)) {
+        if (
+          key === o ||
+          key.startsWith(`${o}__WARP_CONTRACT__`) ||
+          key.startsWith(`${o}__WARP_FREE__`)
+        ) {
           Actual.set(key, value);
         }
       });
       Actual.forEach((value, key) => {
-        if (key.includes('WARP')) {
+        if (key.includes('__WARP_CONTRACT__') || key.includes('__WARP_FREE__')) {
           console.log(key + '.cairo' + ' : ' + value);
         } else {
           console.log(key + '.sol' + ' : ' + value);
