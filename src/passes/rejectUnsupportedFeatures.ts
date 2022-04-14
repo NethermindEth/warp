@@ -4,7 +4,6 @@ import {
   RevertStatement,
   ErrorDefinition,
   Conditional,
-  ImportDirective,
   MappingType,
   MemberAccess,
   PointerType,
@@ -49,16 +48,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     )
       throw new NotSupportedYetError('Mappings with structs are not supported yet');
     this.commonVisit(node, ast);
-  }
-  visitImportDirective(node: ImportDirective, _ast: AST): void {
-    if (node.children.length !== 0) {
-      throw new NotSupportedYetError(
-        `Specific imports are not supported yet, found at ${printNode(
-          node,
-        )}. Please use whole-file imports until this is implemented`,
-      );
-    }
-    // No need to recurse, since we throw if it has any children
   }
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     if (!(getNodeType(node.vExpression, ast.compilerVersion) instanceof AddressType)) {
