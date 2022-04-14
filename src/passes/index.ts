@@ -33,6 +33,7 @@ export * from './references';
 export * from './tupleAssignmentSplitter';
 export * from './unloadingAssignment';
 export * from './unreachableStatementPruner';
+export * from './userDefinedTypesConverter';
 export * from './usingForResolver';
 export * from './variableDeclarationExpressionSplitter';
 export * from './variableDeclarationInitialiser';
