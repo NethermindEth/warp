@@ -1,17 +1,21 @@
-import assert from 'assert';
 import {
+  ArrayType,
   ArrayTypeName,
   Assignment,
   BinaryOperation,
   DataLocation,
   ElementaryTypeName,
+  FixedBytesType,
   FunctionCall,
   FunctionDefinition,
+  getNodeType,
   Identifier,
   IndexAccess,
+  IntType,
   Literal,
   MemberAccess,
   UnaryOperation,
+  typeNameToTypeNode,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -23,93 +27,83 @@ import { getFunctionTypeString } from '../utils/utils';
 */
 
 export class BytesConverter extends ASTMapper {
-  getFixedBytesArrayMatch(typeString: string): string[] | null {
-    const pattern = /^bytes(?:[1-9]$|[1-2]\d$|3[0-2]$)/;
-    return typeString.match(pattern);
-  }
-
-  // Returns true if the typestring is of fixed-size bytes array type
-  isFixedBytesArrayType(typeString: string): boolean {
-    const matches = this.getFixedBytesArrayMatch(typeString);
-    if (matches !== null) return true;
-    return false;
-  }
-
-  // Returns the unsigned integer replacement typestring for a fixed-size bytes array.
-  replacementTypeString(typeString: string): string {
-    assert(this.isFixedBytesArrayType(typeString), 'Node is not of fixed-size bytes type');
-    const byteArraySize = parseInt(typeString.slice(5));
-    return `uint${byteArraySize * 8}`;
-  }
-
   // Returns the integer value in string for a literal of integer constant type.
   // Fixed-size bytes arrays declarations are literals of integer constant type, but with hex values.
-  getLiteralIntValueFromTypeString(node: Literal): number {
-    assert(node.typeString.startsWith('int_const '));
-    const intString = node.typeString.slice(10);
-    return parseInt(intString) || 0;
+  replacementLiteralIntValue(node: Literal): string {
+    const literalInt = BigInt(node.value);
+    return literalInt.toString();
+  }
+
+  replacementTypeNode(typeNode: FixedBytesType): IntType {
+    return new IntType(typeNode.size * 8, false, undefined);
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
-    if (this.isFixedBytesArrayType(node.typeString)) {
-      node.typeString = this.replacementTypeString(node.typeString);
-
-      if (node.vRightHandSide instanceof Literal) {
-        const literalIntValue = this.getLiteralIntValueFromTypeString(node.vRightHandSide);
-        node.vRightHandSide.value = literalIntValue.toString();
-      }
+    const typeNode = getNodeType(node, ast.compilerVersion);
+    if (typeNode instanceof FixedBytesType) {
+      const replacementTypeNode = this.replacementTypeNode(typeNode);
+      node.typeString = replacementTypeNode.pp();
     }
     this.commonVisit(node, ast);
   }
 
   visitBinaryOperation(node: BinaryOperation, ast: AST): void {
-    if (this.isFixedBytesArrayType(node.typeString)) {
-      node.typeString = this.replacementTypeString(node.typeString);
+    const typeNode = getNodeType(node, ast.compilerVersion);
+    if (typeNode instanceof FixedBytesType) {
+      const replacementTypeNode = this.replacementTypeNode(typeNode);
+      node.typeString = replacementTypeNode.pp();
     }
     this.commonVisit(node, ast);
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    if (this.isFixedBytesArrayType(node.typeString)) {
-      node.typeString = this.replacementTypeString(node.typeString);
+    const typeNode = getNodeType(node, ast.compilerVersion);
+    if (typeNode instanceof FixedBytesType) {
+      const replacementTypeNode = this.replacementTypeNode(typeNode);
+      node.typeString = replacementTypeNode.pp();
     }
     this.commonVisit(node, ast);
   }
 
   visitIdentifier(node: Identifier, ast: AST): void {
     if (node.vReferencedDeclaration instanceof VariableDeclaration) {
-      if (this.isFixedBytesArrayType(node.typeString)) {
-        node.typeString = this.replacementTypeString(node.typeString);
-      } else if (node.vReferencedDeclaration.vType instanceof ArrayTypeName) {
-        this.commonVisit(node.vReferencedDeclaration, ast);
-
+      const nodeType = getNodeType(node.vReferencedDeclaration, ast.compilerVersion);
+      if (nodeType instanceof ArrayType) {
         if (node.vReferencedDeclaration.storageLocation === DataLocation.Default)
-          node.typeString = `${node.vReferencedDeclaration.typeString} storage ref`;
+          node.typeString = `${nodeType.pp()} storage ref`;
         else if (node.vReferencedDeclaration.storageLocation === DataLocation.Memory)
-          node.typeString = `${node.vReferencedDeclaration.typeString} memory`;
+          node.typeString = `${nodeType.pp()} memory`;
+      } else {
+        node.typeString = nodeType.pp();
       }
     } else if (node.vReferencedDeclaration instanceof FunctionDefinition) {
       // Visit FunctionDefinition to ensure variable declarations for bytesN have
       // been replaced with uintN.
       this.commonVisit(node.vReferencedDeclaration, ast);
-      const updatedTypeString = getFunctionTypeString(
-        node.vReferencedDeclaration,
-        ast.compilerVersion,
-      );
-      node.typeString = updatedTypeString;
+      node.typeString = getFunctionTypeString(node.vReferencedDeclaration, ast.compilerVersion);
     }
   }
 
   visitIndexAccess(node: IndexAccess, ast: AST): void {
-    if (this.isFixedBytesArrayType(node.typeString)) {
-      node.typeString = this.replacementTypeString(node.typeString);
+    const typeNode = getNodeType(node, ast.compilerVersion);
+    if (typeNode instanceof FixedBytesType) {
+      const replacementTypeNode = this.replacementTypeNode(typeNode);
+      node.typeString = replacementTypeNode.pp();
     }
     this.commonVisit(node, ast);
   }
 
+  visitLiteral(node: Literal, _: AST): void {
+    if (node.typeString.startsWith('int_const ') && node.value.startsWith('0x')) {
+      node.value = this.replacementLiteralIntValue(node);
+    }
+  }
+
   visitMemberAccess(node: MemberAccess, ast: AST): void {
-    if (this.isFixedBytesArrayType(node.typeString)) {
-      node.typeString = this.replacementTypeString(node.typeString);
+    const typeNode = getNodeType(node, ast.compilerVersion);
+    if (typeNode instanceof FixedBytesType) {
+      const replacementTypeNode = this.replacementTypeNode(typeNode);
+      node.typeString = replacementTypeNode.pp();
     } else if (
       node.vExpression instanceof Identifier &&
       node.vExpression.vReferencedDeclaration instanceof VariableDeclaration &&
@@ -123,43 +117,41 @@ export class BytesConverter extends ASTMapper {
   }
 
   visitUnaryOperation(node: UnaryOperation, ast: AST): void {
-    if (this.isFixedBytesArrayType(node.typeString)) {
-      node.typeString = this.replacementTypeString(node.typeString);
+    const typeNode = getNodeType(node, ast.compilerVersion);
+    if (typeNode instanceof FixedBytesType) {
+      const replacementTypeNode = this.replacementTypeNode(typeNode);
+      node.typeString = replacementTypeNode.pp();
     }
     this.commonVisit(node, ast);
   }
 
-  visitVariableDeclaration(node: VariableDeclaration, _: AST): void {
-    if (
-      node.vType instanceof ElementaryTypeName &&
-      this.isFixedBytesArrayType(node.vType.typeString)
-    ) {
-      const replacementIntTypeString = this.replacementTypeString(node.vType.typeString);
-      node.typeString = node.vType.name = node.vType.typeString = replacementIntTypeString;
+  visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
+    if (node.vType instanceof ElementaryTypeName) {
+      const typeNode = typeNameToTypeNode(node.vType);
+      if (typeNode instanceof FixedBytesType) {
+        const replacementTypeNode = this.replacementTypeNode(typeNode);
+        node.typeString = node.vType.typeString = node.vType.name = replacementTypeNode.pp();
 
-      if (node.vValue && node.vValue instanceof Literal) {
-        const literalIntValue = this.getLiteralIntValueFromTypeString(node.vValue);
-        node.vValue.value = literalIntValue.toString();
+        if (node.vValue instanceof Literal) {
+          const literalIntValue = this.replacementLiteralIntValue(node.vValue);
+          node.vValue.value = literalIntValue;
+        }
       }
     } else if (
       node.vType instanceof ArrayTypeName &&
-      node.vType.vBaseType instanceof ElementaryTypeName &&
-      this.isFixedBytesArrayType(node.vType.vBaseType.typeString)
+      node.vType.vBaseType instanceof ElementaryTypeName
     ) {
-      const byteString = this.getFixedBytesArrayMatch(node.vType.vBaseType.typeString);
-      assert(
-        byteString !== null && byteString.length === 1,
-        'Unable to retrieve fixed-sized bytes array base type for array',
-      );
+      const baseTypeNode = typeNameToTypeNode(node.vType.vBaseType);
 
-      const replacementIntTypeString = this.replacementTypeString(node.vType.vBaseType.typeString);
-      node.vType.vBaseType.typeString = node.vType.vBaseType.name = replacementIntTypeString;
-
-      const replacementArrayIntTypeString = node.vType.typeString.replace(
-        byteString[0],
-        replacementIntTypeString,
-      );
-      node.typeString = node.vType.typeString = replacementArrayIntTypeString;
+      if (baseTypeNode instanceof FixedBytesType) {
+        const replacementBaseTypeNode = this.replacementTypeNode(baseTypeNode);
+        node.vType.vBaseType.typeString = node.vType.vBaseType.name = replacementBaseTypeNode.pp();
+        node.typeString = node.vType.typeString = node.vType.typeString.replace(
+          baseTypeNode.pp(),
+          replacementBaseTypeNode.pp(),
+        );
+      }
     }
+    this.commonVisit(node, ast);
   }
 }
