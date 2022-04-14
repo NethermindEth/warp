@@ -75,7 +75,9 @@ export class IdentifierMangler extends ASTMapper {
       node.memberName = declaration.name;
     }
   }
-
+  visitStructDefinition(_node: StructDefinition, _ast: AST): void {
+    return;
+  }
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     if (!node.stateVariable) {
       this.mangleVariableDeclaration(node);
@@ -84,6 +86,9 @@ export class IdentifierMangler extends ASTMapper {
   }
   mangleVariableDeclaration(node: VariableDeclaration): void {
     node.name = this.createNewVariableName(node.name);
+  }
+  mangleStructDefinition(node: StructDefinition): void {
+    node.vMembers.forEach((m) => this.mangleVariableDeclaration(m));
   }
   mangleFunctionDefinition(node: FunctionDefinition): void {
     // TODO switch based on type
@@ -97,10 +102,12 @@ export class IdentifierMangler extends ASTMapper {
     }
   }
   mangleContractDefinition(node: ContractDefinition): void {
+    node.vStructs.forEach((s) => this.mangleStructDefinition(s));
     node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n));
     node.vStateVariables.forEach((v) => this.mangleVariableDeclaration(v));
   }
   visitSourceUnit(node: SourceUnit, ast: AST): void {
+    node.vStructs.forEach((s) => this.mangleStructDefinition(s));
     node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n));
     node.vContracts.forEach((n) => this.mangleContractDefinition(n));
     this.commonVisit(node, ast);

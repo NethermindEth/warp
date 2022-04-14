@@ -187,6 +187,14 @@ export const expectations = flatten(
             'C',
           ),
         ]),
+        new Dir('using_for', [
+          File.Simple('simple', [Expect.Simple('bar', [], ['6', '0'])]),
+          File.Simple('library', [
+            Expect.Simple('foox', [], ['6', '0']),
+            Expect.Simple('bary', [], ['2', '0']),
+            Expect.Simple('baz', [], ['1', '0']),
+          ]),
+        ]),
         // covers nested mappings
         new Dir('Dai', [
           new File(
