@@ -66,15 +66,17 @@ export class BytesConverter extends ASTMapper {
   }
 
   visitIdentifier(node: Identifier, ast: AST): void {
-    if (node.vReferencedDeclaration instanceof VariableDeclaration) {
-      const nodeType = getNodeType(node.vReferencedDeclaration, ast.compilerVersion);
-      if (nodeType instanceof ArrayType) {
+    const typeNode = getNodeType(node, ast.compilerVersion);
+    if (typeNode instanceof FixedBytesType) {
+      const replacementTypeNode = this.replacementTypeNode(typeNode);
+      node.typeString = replacementTypeNode.pp();
+    } else if (node.vReferencedDeclaration instanceof VariableDeclaration) {
+      const referencedTypeNode = getNodeType(node.vReferencedDeclaration, ast.compilerVersion);
+      if (referencedTypeNode instanceof ArrayType) {
         if (node.vReferencedDeclaration.storageLocation === DataLocation.Default)
-          node.typeString = `${nodeType.pp()} storage ref`;
+          node.typeString = `${referencedTypeNode.pp()} storage ref`;
         else if (node.vReferencedDeclaration.storageLocation === DataLocation.Memory)
-          node.typeString = `${nodeType.pp()} memory`;
-      } else {
-        node.typeString = nodeType.pp();
+          node.typeString = `${referencedTypeNode.pp()} memory`;
       }
     } else if (node.vReferencedDeclaration instanceof FunctionDefinition) {
       // Visit FunctionDefinition to ensure variable declarations for bytesN have
@@ -142,7 +144,6 @@ export class BytesConverter extends ASTMapper {
       node.vType.vBaseType instanceof ElementaryTypeName
     ) {
       const baseTypeNode = typeNameToTypeNode(node.vType.vBaseType);
-
       if (baseTypeNode instanceof FixedBytesType) {
         const replacementBaseTypeNode = this.replacementTypeNode(baseTypeNode);
         node.vType.vBaseType.typeString = node.vType.vBaseType.name = replacementBaseTypeNode.pp();
