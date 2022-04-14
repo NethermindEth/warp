@@ -108,13 +108,16 @@ export class BytesConverter extends ASTMapper {
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
-    if (node.vReferencedDeclaration)
-      console.log('Member access - referenced Declaration: ' + node.vReferencedDeclaration.id);
-    if (node.vExpression)
-      console.log('Member access - referenced Declaration: ' + node.vExpression.id);
-
     if (this.isFixedBytesArrayType(node.typeString)) {
       node.typeString = this.replacementTypeString(node.typeString);
+    } else if (
+      node.vExpression instanceof Identifier &&
+      node.vExpression.vReferencedDeclaration instanceof VariableDeclaration &&
+      node.vExpression.vReferencedDeclaration.vType instanceof ArrayTypeName &&
+      node.memberName === 'push'
+    ) {
+      const replacementTypeString = `function (${node.vExpression.vReferencedDeclaration.vType.vBaseType.typeString})`;
+      node.typeString = replacementTypeString;
     }
     this.commonVisit(node, ast);
   }
