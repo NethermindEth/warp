@@ -16,6 +16,16 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('bytes', [
+          File.Simple('byteArrays', [
+            Expect.Simple('getC', ['1'], ['9029']),
+            Expect.Simple('getStorageBytesArray', [], ['13398']),
+            Expect.Simple('getMemoryBytesArray', [], ['9029']),
+            Expect.Simple('getStorageBytesDynArray', [], ['4660']),
+          ]),
+          File.Simple('byteStructs', [
+            Expect.Simple('getB3A', [], ['4660']),
+            Expect.Simple('getBsC', [], ['18']),
+          ]),
           new File(
             'fixedSizeBytesArrays',
             'WARP',
