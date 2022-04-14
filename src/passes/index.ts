@@ -8,6 +8,7 @@ export * from './expressionSplitter';
 export * from './externalContractHandler';
 export * from './externalInputChecker';
 export * from './externImporter';
+export * from './FreeLibraryCallInliner';
 export * from './functionModifierHandler';
 export * from './generateGetters';
 export * from './identifierMangler';
