@@ -13,7 +13,7 @@ import {
 import { AST } from '../../ast/ast';
 import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
-import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
+import { TranspileFailedError } from '../../utils/errors';
 import { createIdentifier } from '../../utils/nodeTemplates';
 import { getFunctionTypeString, getReturnTypeString } from '../../utils/utils';
 import { getBaseContracts } from './utils';
@@ -27,7 +27,6 @@ export function addPrivateSuperFunctions(
 ): void {
   getBaseContracts(node).forEach((base, depth) => {
     base.vFunctions
-      // TODO implement constructors
       .filter((func) => !func.isConstructor)
       .map((func) => {
         const clonedFunction = cloneASTNode(func, ast);
@@ -112,8 +111,6 @@ function createDelegatingFunction(
   scope: number,
   ast: AST,
 ): FunctionDefinition {
-  const inputParams = cloneASTNode(funcToCopy.vParameters, ast);
-  const retParams = cloneASTNode(funcToCopy.vReturnParameters, ast);
   assert(
     funcToCopy.kind === FunctionKind.Function,
     `Attempted to copy non-member function ${funcToCopy.name}`,
@@ -123,45 +120,37 @@ function createDelegatingFunction(
       funcToCopy.visibility === FunctionVisibility.External,
     `Attempted to copy non public/external function ${funcToCopy.name}`,
   );
-  if (funcToCopy.isConstructor) {
-    throw new NotSupportedYetError(`Inherited constructors is not implemented yet`);
-  }
-  const newFunc = new FunctionDefinition(
-    ast.reserveId(),
-    funcToCopy.src,
-    scope,
-    funcToCopy.kind,
-    funcToCopy.name,
-    funcToCopy.virtual,
-    funcToCopy.visibility,
-    funcToCopy.stateMutability,
-    funcToCopy.isConstructor,
-    inputParams,
-    retParams,
-    funcToCopy.vModifiers.map((m) => cloneASTNode(m, ast)),
-    undefined,
-    new Block(ast.reserveId(), '', [
-      new Return(
+
+  const newFunc = cloneASTNode(funcToCopy, ast);
+  newFunc.scope = scope;
+  newFunc.vOverrideSpecifier = undefined;
+  const newBody = new Block(ast.reserveId(), '', [
+    new Return(
+      ast.reserveId(),
+      '',
+      newFunc.vReturnParameters.id,
+      new FunctionCall(
         ast.reserveId(),
         '',
-        retParams.id,
-        new FunctionCall(
+        getReturnTypeString(delegate),
+        FunctionCallKind.FunctionCall,
+        new Identifier(
           ast.reserveId(),
           '',
-          getReturnTypeString(delegate),
-          FunctionCallKind.FunctionCall,
-          new Identifier(
-            ast.reserveId(),
-            '',
-            getFunctionTypeString(delegate, ast.compilerVersion),
-            delegate.name,
-            delegate.id,
-          ),
-          inputParams.vParameters.map((v) => createIdentifier(v, ast)),
+          getFunctionTypeString(delegate, ast.compilerVersion),
+          delegate.name,
+          delegate.id,
         ),
+        newFunc.vParameters.vParameters.map((v) => createIdentifier(v, ast)),
       ),
-    ]),
-  );
+    ),
+  ]);
+
+  if (newFunc.vBody === undefined) {
+    newFunc.vBody = newBody;
+    ast.registerChild(newBody, newFunc);
+  } else ast.replaceNode(newFunc.vBody, newBody);
+
   ast.setContextRecursive(newFunc);
   return newFunc;
 }

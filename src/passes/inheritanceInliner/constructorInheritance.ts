@@ -9,6 +9,7 @@ import {
   FunctionVisibility,
   Statement,
   VariableDeclaration,
+  VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { cloneASTNode } from '../../utils/cloning';
@@ -26,13 +27,24 @@ export function solveConstructorInheritance(node: ContractDefinition, ast: AST) 
     if (constructorFunc !== undefined) constructors.set(contract.id, constructorFunc);
   });
 
+  const selfConstructor = node.vConstructor ?? createDefaultConstructor(node, ast);
+
   // collect arguments passed to constructors of linearized contracts
   const statements: Statement[] = [];
   const args: Map<number, Expression[]> = new Map();
   const mappedVars: Map<number, VariableDeclaration> = new Map();
   node.vLinearizedBaseContracts.forEach((contract) => {
     const constructorFunc = constructors.get(contract.id);
-    collectArguments(contract, constructorFunc, constructors, args, mappedVars, statements, ast);
+    collectArguments(
+      contract,
+      constructorFunc,
+      constructors,
+      args,
+      mappedVars,
+      statements,
+      selfConstructor.id,
+      ast,
+    );
   });
 
   // call constructors following linearization rules
@@ -62,7 +74,6 @@ export function solveConstructorInheritance(node: ContractDefinition, ast: AST) 
 
   // add calls to constructor functions inside this contract constructor
   if (statements.length > 0) {
-    const selfConstructor = node.vConstructor ?? createDefaultConstructor(node, ast);
     if (selfConstructor.vBody === undefined) generateBody(statements, selfConstructor, ast);
     else {
       const body = selfConstructor.vBody;
@@ -73,6 +84,7 @@ export function solveConstructorInheritance(node: ContractDefinition, ast: AST) 
           body.insertAtBeginning(stmt);
         });
     }
+    ast.setContextRecursive(selfConstructor);
   }
 }
 
@@ -83,6 +95,7 @@ function collectArguments(
   args: Map<number, Expression[]>,
   idRemapping: Map<number, VariableDeclaration>,
   statements: Statement[],
+  scope: number,
   ast: AST,
 ) {
   contract.vInheritanceSpecifiers.forEach((specifier) => {
@@ -99,6 +112,7 @@ function collectArguments(
         constructor.vParameters.vParameters,
         idRemapping,
         statements,
+        scope,
         ast,
       );
       args.set(contractId, argList);
@@ -121,6 +135,7 @@ function collectArguments(
             constructor.vParameters.vParameters,
             idRemapping,
             statements,
+            scope,
             ast,
           );
           args.set(contractDef.id, argList);
@@ -147,7 +162,7 @@ function createFunctionFromConstructor(
 }
 
 function createDefaultConstructor(node: ContractDefinition, ast: AST): FunctionDefinition {
-  return new FunctionDefinition(
+  const newFunc = new FunctionDefinition(
     ast.reserveId(),
     '',
     node.id,
@@ -161,6 +176,8 @@ function createDefaultConstructor(node: ContractDefinition, ast: AST): FunctionD
     createParameterList([], ast),
     [],
   );
+  node.appendChild(newFunc);
+  return newFunc;
 }
 
 function generateBody(statements: Statement[], constructorFunc: FunctionDefinition, ast: AST) {
@@ -174,21 +191,23 @@ function getArguments(
   parameters: VariableDeclaration[],
   idRemapping: Map<number, VariableDeclaration>,
   statements: Statement[],
+  scope: number,
   ast: AST,
 ): Expression[] {
   const size = args.length;
-  let argList: Expression[] = [];
+  const argList: Expression[] = [];
   for (let i = 0; i < size; ++i) {
     const newArg = cloneASTNode(args[i], ast);
     updateReferencedDeclarations(newArg, idRemapping, ast);
     const newVar = cloneASTNode(parameters[i], ast);
     newVar.name = `__warp_constructor_parameter_${count++}`;
-    newVar.vValue = newArg;
-    ast.registerChild(newArg, newVar);
+    newVar.scope = scope;
 
     idRemapping.set(parameters[i].id, newVar);
-    statements.push(newVar);
     argList.push(createIdentifier(newVar, ast));
+    statements.push(
+      new VariableDeclarationStatement(ast.reserveId(), '', [newVar.id], [newVar], newArg),
+    );
   }
   return argList;
 }

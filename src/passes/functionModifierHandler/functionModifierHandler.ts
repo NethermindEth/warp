@@ -1,3 +1,4 @@
+import assert from 'assert';
 import {
   Block,
   Expression,
@@ -32,13 +33,17 @@ export class FunctionModifierHandler extends ASTMapper {
   count = 0;
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
+    this.removeNonModifierInvocations(node);
     if (node.vModifiers.length === 0) return this.commonVisit(node, ast);
 
     let functionToCall = this.extractOriginalFunction(node, ast);
     for (let i = node.vModifiers.length - 1; i >= 0; i--) {
       const modifier = node.vModifiers[i].vModifier;
-      if (modifier instanceof ModifierDefinition)
-        functionToCall = this.getFunctionFromModifier(node, modifier, functionToCall, ast);
+      assert(
+        modifier instanceof ModifierDefinition,
+        `Unexpected call to contract ${modifier.id} constructor`,
+      );
+      functionToCall = this.getFunctionFromModifier(node, modifier, functionToCall, ast);
     }
 
     const functionArgs = node.vParameters.vParameters.map((v) => createIdentifier(v, ast));
@@ -60,6 +65,13 @@ export class FunctionModifierHandler extends ASTMapper {
     node.vModifiers = [];
     node.vBody = functionBody;
     ast.registerChild(functionBody, node);
+  }
+
+  removeNonModifierInvocations(node: FunctionDefinition) {
+    const modifiers = node.vModifiers.filter((modInvocation) => {
+      return modInvocation.vModifier instanceof ModifierDefinition;
+    });
+    node.vModifiers = modifiers;
   }
 
   extractOriginalFunction(node: FunctionDefinition, ast: AST): FunctionDefinition {

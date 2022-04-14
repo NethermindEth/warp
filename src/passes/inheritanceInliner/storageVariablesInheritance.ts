@@ -19,6 +19,7 @@ export function addStorageVariables(
 
   inheritedVariables.forEach((variable) => {
     const newVariable = cloneASTNode(variable, ast);
+    newVariable.scope = node.id;
     node.insertAtBeginning(newVariable);
     idRemapping.set(variable.id, newVariable);
   });
