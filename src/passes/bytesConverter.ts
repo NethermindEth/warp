@@ -1,12 +1,16 @@
 import assert from 'assert';
 import {
+  ArrayTypeName,
   Assignment,
   BinaryOperation,
+  DataLocation,
   ElementaryTypeName,
   FunctionCall,
   FunctionDefinition,
   Identifier,
+  IndexAccess,
   Literal,
+  MemberAccess,
   UnaryOperation,
   VariableDeclaration,
 } from 'solc-typed-ast';
@@ -19,21 +23,22 @@ import { getFunctionTypeString } from '../utils/utils';
 */
 
 export class BytesConverter extends ASTMapper {
+  getFixedBytesArrayMatch(typeString: string): string[] | null {
+    const pattern = /^bytes(?:[1-9]$|[1-2]\d$|3[0-2]$)/;
+    return typeString.match(pattern);
+  }
+
   // Returns true if the typestring is of fixed-size bytes array type
   isFixedBytesArrayType(typeString: string): boolean {
-    if ((typeString.startsWith('bytes') && typeString.length > 5) || typeString === 'byte')
-      return true;
+    const matches = this.getFixedBytesArrayMatch(typeString);
+    if (matches !== null) return true;
     return false;
   }
 
   // Returns the unsigned integer replacement typestring for a fixed-size bytes array.
   replacementTypeString(typeString: string): string {
     assert(this.isFixedBytesArrayType(typeString), 'Node is not of fixed-size bytes type');
-    const byteArraySize = typeString === 'byte' ? 1 : parseInt(typeString.slice(5));
-    assert(
-      1 <= byteArraySize && byteArraySize <= 32,
-      'Fixed-size bytes must be of size between 1 and 32',
-    );
+    const byteArraySize = parseInt(typeString.slice(5));
     return `uint${byteArraySize * 8}`;
   }
 
@@ -41,13 +46,18 @@ export class BytesConverter extends ASTMapper {
   // Fixed-size bytes arrays declarations are literals of integer constant type, but with hex values.
   getLiteralIntValueFromTypeString(node: Literal): number {
     assert(node.typeString.startsWith('int_const '));
-    const intString = node.typeString.slice(11);
+    const intString = node.typeString.slice(10);
     return parseInt(intString) || 0;
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
     if (this.isFixedBytesArrayType(node.typeString)) {
       node.typeString = this.replacementTypeString(node.typeString);
+
+      if (node.vRightHandSide instanceof Literal) {
+        const literalIntValue = this.getLiteralIntValueFromTypeString(node.vRightHandSide);
+        node.vRightHandSide.value = literalIntValue.toString();
+      }
     }
     this.commonVisit(node, ast);
   }
@@ -70,6 +80,13 @@ export class BytesConverter extends ASTMapper {
     if (node.vReferencedDeclaration instanceof VariableDeclaration) {
       if (this.isFixedBytesArrayType(node.typeString)) {
         node.typeString = this.replacementTypeString(node.typeString);
+      } else if (node.vReferencedDeclaration.vType instanceof ArrayTypeName) {
+        this.commonVisit(node.vReferencedDeclaration, ast);
+
+        if (node.vReferencedDeclaration.storageLocation === DataLocation.Default)
+          node.typeString = `${node.vReferencedDeclaration.typeString} storage ref`;
+        else if (node.vReferencedDeclaration.storageLocation === DataLocation.Memory)
+          node.typeString = `${node.vReferencedDeclaration.typeString} memory`;
       }
     } else if (node.vReferencedDeclaration instanceof FunctionDefinition) {
       // Visit FunctionDefinition to ensure variable declarations for bytesN have
@@ -81,6 +98,25 @@ export class BytesConverter extends ASTMapper {
       );
       node.typeString = updatedTypeString;
     }
+  }
+
+  visitIndexAccess(node: IndexAccess, ast: AST): void {
+    if (this.isFixedBytesArrayType(node.typeString)) {
+      node.typeString = this.replacementTypeString(node.typeString);
+    }
+    this.commonVisit(node, ast);
+  }
+
+  visitMemberAccess(node: MemberAccess, ast: AST): void {
+    if (node.vReferencedDeclaration)
+      console.log('Member access - referenced Declaration: ' + node.vReferencedDeclaration.id);
+    if (node.vExpression)
+      console.log('Member access - referenced Declaration: ' + node.vExpression.id);
+
+    if (this.isFixedBytesArrayType(node.typeString)) {
+      node.typeString = this.replacementTypeString(node.typeString);
+    }
+    this.commonVisit(node, ast);
   }
 
   visitUnaryOperation(node: UnaryOperation, ast: AST): void {
@@ -102,6 +138,25 @@ export class BytesConverter extends ASTMapper {
         const literalIntValue = this.getLiteralIntValueFromTypeString(node.vValue);
         node.vValue.value = literalIntValue.toString();
       }
+    } else if (
+      node.vType instanceof ArrayTypeName &&
+      node.vType.vBaseType instanceof ElementaryTypeName &&
+      this.isFixedBytesArrayType(node.vType.vBaseType.typeString)
+    ) {
+      const byteString = this.getFixedBytesArrayMatch(node.vType.vBaseType.typeString);
+      assert(
+        byteString !== null && byteString.length === 1,
+        'Unable to retrieve fixed-sized bytes array base type for array',
+      );
+
+      const replacementIntTypeString = this.replacementTypeString(node.vType.vBaseType.typeString);
+      node.vType.vBaseType.typeString = node.vType.vBaseType.name = replacementIntTypeString;
+
+      const replacementArrayIntTypeString = node.vType.typeString.replace(
+        byteString[0],
+        replacementIntTypeString,
+      );
+      node.typeString = node.vType.typeString = replacementArrayIntTypeString;
     }
   }
 }
