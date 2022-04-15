@@ -66,7 +66,7 @@ export function addNonoverridenPublicFunctions(
 }
 
 // Get all visible function names accessible from a contract
-function squashInterface(node: ContractDefinition): Set<string> {
+function getVisibleFunctions(node: ContractDefinition): Set<string> {
   const visibleFunctions = new Set(
     node.vFunctions
       .filter(
@@ -76,16 +76,24 @@ function squashInterface(node: ContractDefinition): Set<string> {
       )
       .map((func) => func.name),
   );
-  const bases = getBaseContracts(node);
-  if (bases.length > 0) {
-    const inheritedVisibleFunctions = squashInterface(bases[0]);
-    inheritedVisibleFunctions.forEach((f) => visibleFunctions.add(f));
-  }
 
   return visibleFunctions;
 }
 
-function resolveFunctionName(node: ContractDefinition, functionName: string): FunctionDefinition {
+function squashInterface(node: ContractDefinition): Set<string> {
+  const visibleFunctions = getVisibleFunctions(node);
+  getBaseContracts(node).forEach((contract) => {
+    const inheritedVisibleFunctions = getVisibleFunctions(contract);
+    inheritedVisibleFunctions.forEach((f) => visibleFunctions.add(f));
+  });
+
+  return visibleFunctions;
+}
+
+function findFunctionName(
+  node: ContractDefinition,
+  functionName: string,
+): FunctionDefinition | undefined {
   const matches = node.vFunctions.filter((f) => f.name === functionName);
   if (matches.length > 1) {
     throw new TranspileFailedError(
@@ -95,14 +103,21 @@ function resolveFunctionName(node: ContractDefinition, functionName: string): Fu
     );
   } else if (matches.length === 1) {
     return matches[0];
-  } else {
-    const base = getBaseContracts(node);
-    if (base.length === 0)
-      throw new TranspileFailedError(
-        `Failed to find ${functionName} in ${printNode(node)} ${node.name}`,
-      );
-    return resolveFunctionName(base[0], functionName);
+  } else return undefined;
+}
+
+function resolveFunctionName(node: ContractDefinition, functionName: string): FunctionDefinition {
+  let matches = findFunctionName(node, functionName);
+  if (matches !== undefined) return matches;
+
+  for (let base of getBaseContracts(node)) {
+    matches = findFunctionName(base, functionName);
+    if (matches !== undefined) return matches;
   }
+
+  throw new TranspileFailedError(
+    `Failed to find ${functionName} in ${printNode(node)} ${node.name}`,
+  );
 }
 
 function createDelegatingFunction(
