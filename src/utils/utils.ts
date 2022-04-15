@@ -32,6 +32,7 @@ import {
   getNodeType,
   StringLiteralType,
   StringType,
+  ContractDefinition,
 } from 'solc-typed-ast';
 import { NotSupportedYetError, TranspileFailedError, logError } from './errors';
 import { printNode, printTypeNode } from './astPrinter';
@@ -321,7 +322,8 @@ export function getFunctionTypeString(node: FunctionDefinition, compilerVersion:
         if (decl.storageLocation === DataLocation.Default) {
           if (
             decl.vType instanceof UserDefinedTypeName &&
-            decl.vType.vReferencedDeclaration instanceof EnumDefinition
+            (decl.vType.vReferencedDeclaration instanceof EnumDefinition ||
+              decl.vType.vReferencedDeclaration instanceof ContractDefinition)
           ) {
             return `${baseType.pp()}`;
           }
