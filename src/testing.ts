@@ -96,9 +96,13 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeConversion/shifts', 'Success'],
   ['example_contracts/typeMinMax', 'Success'],
   ['example_contracts/units', 'Success'],
-  ['example_contracts/using_for/imports/global_directive', 'NotSupportedYet'],
+  // Memory structs are not supported yet
   ['example_contracts/using_for/imports/user_defined', 'NotSupportedYet'],
+  // global_directive.sol imports user_defined.sol contract
+  ['example_contracts/using_for/imports/global_directive', 'NotSupportedYet'],
+  // Serialising FunctionType is not supported yet
   ['example_contracts/using_for/function', 'NotSupportedYet'],
+  // InheritanceInliner pass is not allowing to copy non public/external function
   ['example_contracts/using_for/private', 'TranspilationFailed'],
   ['example_contracts/using_for/library', 'Success'],
   ['example_contracts/using_for/simple', 'Success'],

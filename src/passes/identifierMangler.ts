@@ -76,6 +76,8 @@ export class IdentifierMangler extends ASTMapper {
     }
   }
   visitStructDefinition(_node: StructDefinition, _ast: AST): void {
+    // struct definitions should already have been mangled at this point
+    // by visitContractDefinition and visitSourceUnit
     return;
   }
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {

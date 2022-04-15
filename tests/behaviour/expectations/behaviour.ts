@@ -189,13 +189,13 @@ export const expectations = flatten(
         ]),
         new Dir('using_for', [
           File.Simple('simple', [
-            Expect.Simple('bar', [], ['6', '0']),
-            Expect.Simple('fum', [], ['60', '0']),
+            Expect.Simple('callOnIdentifier', [], ['6', '0']),
+            Expect.Simple('callOnFunctionCall', [], ['60', '0']),
           ]),
           File.Simple('library', [
-            Expect.Simple('foox', [], ['6', '0']),
-            Expect.Simple('bary', [], ['2', '0']),
-            Expect.Simple('baz', [], ['1', '0']),
+            Expect.Simple('callOnIdentifierAdd', [], ['6', '0']),
+            Expect.Simple('callOnIdentifierMul', [], ['2', '0']),
+            Expect.Simple('callLibFunction', [], ['1', '0']),
           ]),
         ]),
         // covers nested mappings
