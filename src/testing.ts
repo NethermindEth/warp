@@ -98,6 +98,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/units', 'Success'],
   ['example_contracts/using_for/imports/global_directive', 'NotSupportedYet'],
   ['example_contracts/using_for/imports/user_defined', 'NotSupportedYet'],
+  ['example_contracts/using_for/function', 'NotSupportedYet'],
   ['example_contracts/using_for/private', 'TranspilationFailed'],
   ['example_contracts/using_for/library', 'Success'],
   ['example_contracts/using_for/simple', 'Success'],

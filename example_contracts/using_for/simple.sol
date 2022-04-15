@@ -16,4 +16,7 @@ contract WARP{
     function bar() public view returns (uint256) {
         return a.f() + a.g();
     }
+    function fum() public pure returns (uint256) {
+        return uint256(30).f() + uint256(30).g(); 
+    }
 }

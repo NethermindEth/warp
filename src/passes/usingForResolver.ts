@@ -6,7 +6,6 @@ import {
   Identifier,
   MemberAccess,
   SourceUnit,
-  VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -40,8 +39,11 @@ export class UsingForResolver extends ASTMapper {
     const referencedFn = memberAccessNode.vReferencedDeclaration;
     if (!(referencedFn instanceof FunctionDefinition)) return;
 
-    if (!(memberAccessNode.vExpression instanceof Identifier)) return;
-    if (!(memberAccessNode.vExpression.vReferencedDeclaration instanceof VariableDeclaration))
+    if (
+      memberAccessNode.vExpression instanceof Identifier &&
+      memberAccessNode.vExpression.vReferencedDeclaration instanceof ContractDefinition &&
+      memberAccessNode.vExpression.vReferencedDeclaration.kind === ContractKind.Library
+    )
       return;
 
     const referencedFnScope = referencedFn.vScope;
