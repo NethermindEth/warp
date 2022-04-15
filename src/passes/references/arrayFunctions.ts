@@ -18,7 +18,7 @@ export class ArrayFunctions extends ReferenceSubPass {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     this.visitExpression(node, ast);
 
-    // This pass is specifically looking for the inbuilt functions push and pop
+    // This pass is specifically looking for predefined solidity members
     if (node.vFunctionCallType !== ExternalReferenceType.Builtin) return;
 
     const [actualLoc, expectedLoc] = this.getLocations(node);
@@ -30,10 +30,11 @@ export class ArrayFunctions extends ReferenceSubPass {
       let replacement: FunctionCall;
       if (node.vArguments.length > 0) {
         replacement = ast.getUtilFuncGen(node).storage.dynArrayPush.withArg.gen(node);
+        this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
       } else {
         replacement = ast.getUtilFuncGen(node).storage.dynArrayPush.withoutArg.gen(node);
+        this.replace(node, replacement, undefined, DataLocation.Storage, expectedLoc, ast);
       }
-      this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
     }
   }
 
