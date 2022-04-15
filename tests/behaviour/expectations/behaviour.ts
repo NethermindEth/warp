@@ -197,6 +197,9 @@ export const expectations = flatten(
             Expect.Simple('callOnIdentifierMul', [], ['2', '0']),
             Expect.Simple('callLibFunction', [], ['1', '0']),
           ]),
+          File.Simple('private', [
+            Expect.Simple('callOnIdentifier', ['23', '0', '3', '0'], ['69', '0']),
+          ]),
         ]),
         // covers nested mappings
         new Dir('Dai', [

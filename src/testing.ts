@@ -102,8 +102,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/using_for/imports/global_directive', 'NotSupportedYet'],
   // Serialising FunctionType is not supported yet
   ['example_contracts/using_for/function', 'NotSupportedYet'],
-  // InheritanceInliner pass is not allowing to copy non public/external function
-  ['example_contracts/using_for/private', 'TranspilationFailed'],
+  ['example_contracts/using_for/private', 'Success'],
   ['example_contracts/using_for/library', 'Success'],
   ['example_contracts/using_for/simple', 'Success'],
   ['example_contracts/usingReturnValues', 'Success'],
