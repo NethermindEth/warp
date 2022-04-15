@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  ArrayType,
   Assignment,
   BinaryOperation,
   DataLocation,
@@ -129,7 +130,12 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     assert(node.vIndexExpression !== undefined);
     const baseLoc = this.actualLocations.get(node.vBaseExpression);
     assert(baseLoc !== undefined);
-    this.expectedLocations.set(node.vBaseExpression, baseLoc);
+    const type = getNodeType(node.vBaseExpression, ast.compilerVersion);
+    if (type instanceof PointerType && type.to instanceof ArrayType && type.to.size === undefined) {
+      this.expectedLocations.set(node.vBaseExpression, DataLocation.Default);
+    } else {
+      this.expectedLocations.set(node.vBaseExpression, baseLoc);
+    }
     this.expectedLocations.set(node.vIndexExpression, DataLocation.Default);
     this.visitExpression(node, ast);
   }
