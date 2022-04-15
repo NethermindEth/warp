@@ -817,6 +817,19 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('inheritance', [
+          new Dir('constructors', [
+            new File(
+              'constructors',
+              'C',
+              [],
+              [
+                Expect.Simple('a', [], ['6', '0']),
+                Expect.Simple('b', [], ['11', '0']),
+                Expect.Simple('c', [], ['10', '0']),
+                Expect.Simple('d', [], ['4', '0']),
+              ],
+            ),
+          ]),
           new Dir('functions', [
             new File('base', 'Base', [], [Expect.Simple('g', ['3'], ['3'])]),
             new File('mid', 'Mid', [], [Expect.Simple('g', ['10'], ['20'])]),

@@ -110,7 +110,7 @@ function resolveFunctionName(node: ContractDefinition, functionName: string): Fu
   let matches = findFunctionName(node, functionName);
   if (matches !== undefined) return matches;
 
-  for (let base of getBaseContracts(node)) {
+  for (const base of getBaseContracts(node)) {
     matches = findFunctionName(base, functionName);
     if (matches !== undefined) return matches;
   }

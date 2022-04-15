@@ -20,7 +20,10 @@ import { updateReferencedDeclarations } from './utils';
 let count = 0;
 
 export function solveConstructorInheritance(node: ContractDefinition, ast: AST) {
-  // collect all constructors
+  // Contracts marked as abstract won't be deployed
+  if (node.abstract) return;
+
+  // Collect all constructors
   const constructors: Map<number, FunctionDefinition> = new Map();
   node.vLinearizedBaseContracts.forEach((contract) => {
     const constructorFunc = contract.vConstructor;
@@ -29,7 +32,7 @@ export function solveConstructorInheritance(node: ContractDefinition, ast: AST) 
 
   const selfConstructor = node.vConstructor ?? createDefaultConstructor(node, ast);
 
-  // collect arguments passed to constructors of linearized contracts
+  // Collect arguments passed to constructors of linearized contracts
   const statements: Statement[] = [];
   const args: Map<number, Expression[]> = new Map();
   const mappedVars: Map<number, VariableDeclaration> = new Map();
@@ -47,7 +50,9 @@ export function solveConstructorInheritance(node: ContractDefinition, ast: AST) 
     );
   });
 
-  // call constructors following linearization rules
+  // Create calls to constructor functions:
+  // Constructors must be called in the order of linearized contracts,
+  // from the "most base-like" to the "most derived"
   node.linearizedBaseContracts
     .slice(1)
     .reverse()
@@ -72,7 +77,7 @@ export function solveConstructorInheritance(node: ContractDefinition, ast: AST) 
       }
     });
 
-  // add calls to constructor functions inside this contract constructor
+  // Add generated function calls to the body of this contract's constructor
   if (statements.length > 0) {
     if (selfConstructor.vBody === undefined) generateBody(statements, selfConstructor, ast);
     else {
@@ -88,6 +93,9 @@ export function solveConstructorInheritance(node: ContractDefinition, ast: AST) 
   }
 }
 
+// Arguments to constructors can be passed either directly (in the inheritance specifiers)
+// or indirectly (as modifier invocations of the constructor function of a derived contract),
+// both ways are not allowed.
 function collectArguments(
   contract: ContractDefinition,
   constructorFunc: FunctionDefinition | undefined,
