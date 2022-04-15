@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  Block,
   ContractDefinition,
   Expression,
   ExpressionStatement,
@@ -183,6 +184,8 @@ function createDefaultConstructor(node: ContractDefinition, ast: AST): FunctionD
     createParameterList([], ast),
     createParameterList([], ast),
     [],
+    undefined,
+    new Block(ast.reserveId(), '', []),
   );
   node.appendChild(newFunc);
   return newFunc;

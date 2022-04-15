@@ -20,6 +20,7 @@ import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
+import { createParameterList } from '../utils/nodeTemplates';
 import { isCairoConstant } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {
@@ -79,8 +80,8 @@ function insertIntoConstructor(initialisationBlock: Block, contract: ContractDef
       FunctionVisibility.Public,
       FunctionStateMutability.NonPayable,
       true,
-      new ParameterList(ast.reserveId(), '', []),
-      new ParameterList(ast.reserveId(), '', []),
+      createParameterList([], ast),
+      createParameterList([], ast),
       [],
       undefined,
       initialisationBlock,
