@@ -74,6 +74,8 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/loops/for-loop-with-break', 'Success'],
   ['example_contracts/loops/for-loop-with-continue', 'Success'],
   ['example_contracts/loops/for-loop-with-nested-return', 'Success'],
+  // Deleting a storage dynamic array doesn't currently affect references to elements
+  ['example_contracts/mutableReferences/deepDelete', 'NotSupportedYet'],
   ['example_contracts/mutableReferences/memory', 'Success'],
   ['example_contracts/mutableReferences/mutableReferences', 'Success'],
   ['example_contracts/mutableReferences/scalarStorage', 'Success'],
