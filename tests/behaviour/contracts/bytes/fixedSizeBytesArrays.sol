@@ -53,12 +53,13 @@ contract WARP {
 		return ~a;
 	}
 
-	function _nestedBitwiseAnd(bytes2 j) internal view returns (bytes2) {
-		return a & j;
+	function _nestedBitwiseOp(bytes2 j, bytes2 l) internal view returns (bytes2) {
+    bytes2 temp = a ^ l;
+		return temp & j;
 	}
 
-	function nestedBitwiseAnd(bytes2 k, bytes2 i) public view returns (bytes2) {
-		bytes2 temp = _nestedBitwiseAnd(k);
+	function nestedBitwiseOp(bytes2 k, bytes2 i) public view returns (bytes2) {
+		bytes2 temp = _nestedBitwiseOp(k, i);
 		return i & temp;
 	}
 }
