@@ -34,14 +34,14 @@ export class BytesConverter extends ASTMapper {
     return literalInt.toString();
   }
 
-  replacementTypeNode(typeNode: FixedBytesType): IntType {
+  replacementIntTypeNode(typeNode: FixedBytesType): IntType {
     return new IntType(typeNode.size * 8, false, undefined);
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FixedBytesType) {
-      const replacementTypeNode = this.replacementTypeNode(typeNode);
+      const replacementTypeNode = this.replacementIntTypeNode(typeNode);
       node.typeString = replacementTypeNode.pp();
     }
     this.commonVisit(node, ast);
@@ -50,7 +50,7 @@ export class BytesConverter extends ASTMapper {
   visitBinaryOperation(node: BinaryOperation, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FixedBytesType) {
-      const replacementTypeNode = this.replacementTypeNode(typeNode);
+      const replacementTypeNode = this.replacementIntTypeNode(typeNode);
       node.typeString = replacementTypeNode.pp();
     }
     this.commonVisit(node, ast);
@@ -59,7 +59,7 @@ export class BytesConverter extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FixedBytesType) {
-      const replacementTypeNode = this.replacementTypeNode(typeNode);
+      const replacementTypeNode = this.replacementIntTypeNode(typeNode);
       node.typeString = replacementTypeNode.pp();
     }
     this.commonVisit(node, ast);
@@ -68,7 +68,7 @@ export class BytesConverter extends ASTMapper {
   visitIdentifier(node: Identifier, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FixedBytesType) {
-      const replacementTypeNode = this.replacementTypeNode(typeNode);
+      const replacementTypeNode = this.replacementIntTypeNode(typeNode);
       node.typeString = replacementTypeNode.pp();
     } else if (node.vReferencedDeclaration instanceof VariableDeclaration) {
       const referencedTypeNode = getNodeType(node.vReferencedDeclaration, ast.compilerVersion);
@@ -89,7 +89,7 @@ export class BytesConverter extends ASTMapper {
   visitIndexAccess(node: IndexAccess, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FixedBytesType) {
-      const replacementTypeNode = this.replacementTypeNode(typeNode);
+      const replacementTypeNode = this.replacementIntTypeNode(typeNode);
       node.typeString = replacementTypeNode.pp();
     }
     this.commonVisit(node, ast);
@@ -104,7 +104,7 @@ export class BytesConverter extends ASTMapper {
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FixedBytesType) {
-      const replacementTypeNode = this.replacementTypeNode(typeNode);
+      const replacementTypeNode = this.replacementIntTypeNode(typeNode);
       node.typeString = replacementTypeNode.pp();
     } else if (
       node.vExpression instanceof Identifier &&
@@ -112,8 +112,7 @@ export class BytesConverter extends ASTMapper {
       node.vExpression.vReferencedDeclaration.vType instanceof ArrayTypeName &&
       node.memberName === 'push'
     ) {
-      const replacementTypeString = `function (${node.vExpression.vReferencedDeclaration.vType.vBaseType.typeString})`;
-      node.typeString = replacementTypeString;
+      node.typeString = `function (${node.vExpression.vReferencedDeclaration.vType.vBaseType.typeString})`;
     }
     this.commonVisit(node, ast);
   }
@@ -121,7 +120,7 @@ export class BytesConverter extends ASTMapper {
   visitUnaryOperation(node: UnaryOperation, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FixedBytesType) {
-      const replacementTypeNode = this.replacementTypeNode(typeNode);
+      const replacementTypeNode = this.replacementIntTypeNode(typeNode);
       node.typeString = replacementTypeNode.pp();
     }
     this.commonVisit(node, ast);
@@ -131,13 +130,8 @@ export class BytesConverter extends ASTMapper {
     if (node.vType instanceof ElementaryTypeName) {
       const typeNode = typeNameToTypeNode(node.vType);
       if (typeNode instanceof FixedBytesType) {
-        const replacementTypeNode = this.replacementTypeNode(typeNode);
+        const replacementTypeNode = this.replacementIntTypeNode(typeNode);
         node.typeString = node.vType.typeString = node.vType.name = replacementTypeNode.pp();
-
-        if (node.vValue instanceof Literal) {
-          const literalIntValue = this.replacementLiteralIntValue(node.vValue);
-          node.vValue.value = literalIntValue;
-        }
       }
     } else if (
       node.vType instanceof ArrayTypeName &&
@@ -145,7 +139,7 @@ export class BytesConverter extends ASTMapper {
     ) {
       const baseTypeNode = typeNameToTypeNode(node.vType.vBaseType);
       if (baseTypeNode instanceof FixedBytesType) {
-        const replacementBaseTypeNode = this.replacementTypeNode(baseTypeNode);
+        const replacementBaseTypeNode = this.replacementIntTypeNode(baseTypeNode);
         node.vType.vBaseType.typeString = node.vType.vBaseType.name = replacementBaseTypeNode.pp();
         node.typeString = node.vType.typeString = node.vType.typeString.replace(
           baseTypeNode.pp(),
