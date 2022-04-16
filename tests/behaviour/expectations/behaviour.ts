@@ -66,6 +66,8 @@ export const expectations = flatten(
             Expect.Simple('explicit', ['20'], ['20', '20', '0']),
             Expect.Simple('explicit', ['240'], ['240', '240', '0']),
           ]),
+
+          File.Simple('widthsignchange', [Expect.Simple('widthsign', ['60069'], ['4294961829'])]),
         ]),
         // covers nested mappings
         new Dir('Dai', [
