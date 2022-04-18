@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   Assignment,
   ASTNode,
@@ -8,7 +8,6 @@ import {
   Expression,
   ExpressionStatement,
   FunctionCall,
-  FunctionCallKind,
   FunctionDefinition,
   FunctionKind,
   FunctionStateMutability,
@@ -19,14 +18,17 @@ import {
   Return,
   SourceUnit,
   Statement,
-  TupleExpression,
   VariableDeclaration,
   WhileStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { cloneASTNode } from '../../utils/cloning';
+import {
+  createReturn,
+  generateFunctionCall,
+  toSingleExpression,
+} from '../../utils/functionGeneration';
 import { createIdentifier } from '../../utils/nodeTemplates';
-import { getFunctionTypeString, getReturnTypeString } from '../../utils/utils';
 
 export function collectUnboundVariables(node: ASTNode): Map<VariableDeclaration, Identifier[]> {
   const internalDeclarations = node
@@ -75,14 +77,13 @@ export function extractWhileToFunction(
   const defId = ast.reserveId();
   const defName = `__warp_while${loopFnCounter++}`;
 
-  const funcBody = new Block(ast.reserveId(), '', 'Block', [
+  const funcBody = new Block(ast.reserveId(), '', [
     createStartingIf(node.vCondition, node.vBody, variables, retParamsId, ast),
   ]);
 
   const funcDef = new FunctionDefinition(
     defId,
     node.src,
-    'FunctionDefinition',
     scope.id,
     scope instanceof SourceUnit ? FunctionKind.Free : FunctionKind.Function,
     defName,
@@ -93,13 +94,11 @@ export function extractWhileToFunction(
     new ParameterList(
       ast.reserveId(),
       '',
-      'ParameterList',
       variables.map((v) => cloneASTNode(v, ast)),
     ),
     new ParameterList(
       retParamsId,
       '',
-      'ParameterList',
       variables.map((v) => cloneASTNode(v, ast)),
     ),
     [],
@@ -117,7 +116,6 @@ export function extractWhileToFunction(
     new Return(
       ast.reserveId(),
       '',
-      'Return',
       funcDef.vReturnParameters.id,
       createLoopCall(funcDef, variables, ast),
     ),
@@ -140,14 +138,13 @@ export function extractDoWhileToFunction(
   const doWhileDefName = `__warp_do_while_${loopFnCounter++}`;
   const doWhileRetId = ast.reserveId();
   const doWhileFuncId = ast.reserveId();
-  const doWhileBody = new Block(ast.reserveId(), '', 'Block', [
+  const doWhileBody = new Block(ast.reserveId(), '', [
     createStartingIf(node.vCondition, node.vBody, variables, doWhileRetId, ast),
   ]);
 
   const doWhileFuncDef = new FunctionDefinition(
     doWhileFuncId,
     node.src,
-    'FunctionDefinition',
     scope.id,
     scope instanceof SourceUnit ? FunctionKind.Free : FunctionKind.Function,
     doWhileDefName,
@@ -158,13 +155,11 @@ export function extractDoWhileToFunction(
     new ParameterList(
       ast.reserveId(),
       '',
-      'ParameterList',
       variables.map((v) => cloneASTNode(v, ast)),
     ),
     new ParameterList(
       doWhileRetId,
       '',
-      'ParameterList',
       variables.map((v) => cloneASTNode(v, ast)),
     ),
     [],
@@ -181,7 +176,6 @@ export function extractDoWhileToFunction(
     new Return(
       ast.reserveId(),
       '',
-      'Return',
       doWhileFuncDef.vReturnParameters.id,
       createLoopCall(doWhileFuncDef, variables, ast),
     ),
@@ -191,12 +185,11 @@ export function extractDoWhileToFunction(
   const doBlockReturnId = ast.reserveId();
   const doBlockFuncId = ast.reserveId();
 
-  const doBlockBody = new Block(ast.reserveId(), '', 'Block', [
+  const doBlockBody = new Block(ast.reserveId(), '', [
     cloneASTNode(node.vBody, ast),
     new Return(
       ast.reserveId(),
       '',
-      'Return',
       doBlockReturnId,
       createLoopCall(doWhileFuncDef, variables, ast),
     ),
@@ -205,7 +198,6 @@ export function extractDoWhileToFunction(
   const doBlockFuncDef = new FunctionDefinition(
     doBlockFuncId,
     node.src,
-    'FunctionDefinition',
     scope.id,
     scope instanceof SourceUnit ? FunctionKind.Free : FunctionKind.Function,
     doBlockDefName,
@@ -216,13 +208,11 @@ export function extractDoWhileToFunction(
     new ParameterList(
       ast.reserveId(),
       '',
-      'ParameterList',
       variables.map((v) => cloneASTNode(v, ast)),
     ),
     new ParameterList(
       doBlockReturnId,
       '',
-      'ParameterList',
       variables.map((v) => cloneASTNode(v, ast)),
     ),
     [],
@@ -247,33 +237,9 @@ function createStartingIf(
   return new IfStatement(
     ast.reserveId(),
     '',
-    'IfStatement',
     condition,
     body,
     createReturn(variables, retParamsId, ast),
-  );
-}
-
-export function createReturn(
-  declarations: VariableDeclaration[],
-  retParamListId: number,
-  ast: AST,
-): Return {
-  const returnIdentifiers = declarations.map((d) => createIdentifier(d, ast));
-  const retValue = toSingleExpression(returnIdentifiers, ast);
-  return new Return(ast.reserveId(), '', 'Return', retParamListId, retValue);
-}
-
-export function toSingleExpression(expressions: Expression[], ast: AST): Expression {
-  if (expressions.length === 1) return expressions[0];
-
-  return new TupleExpression(
-    ast.reserveId(),
-    '',
-    'Tuple',
-    `tuple(${expressions.map((e) => e.typeString).join(',')})`,
-    false,
-    expressions,
   );
 }
 
@@ -282,21 +248,10 @@ export function createLoopCall(
   variables: VariableDeclaration[],
   ast: AST,
 ): FunctionCall {
-  return new FunctionCall(
-    ast.reserveId(),
-    '',
-    'FunctionCall',
-    getReturnTypeString(loopFunction),
-    FunctionCallKind.FunctionCall,
-    new Identifier(
-      ast.reserveId(),
-      '',
-      'Identifier',
-      getFunctionTypeString(loopFunction, ast.compilerVersion),
-      loopFunction.name,
-      loopFunction.id,
-    ),
+  return generateFunctionCall(
+    loopFunction,
     variables.map((v) => createIdentifier(v, ast)),
+    ast,
   );
 }
 
@@ -312,13 +267,11 @@ export function createOuterCall(
   return new ExpressionStatement(
     ast.reserveId(),
     node.src,
-    'ExpressionStatement',
     resultIdentifiers.length === 0
       ? createLoopCall(functionDef, [...unboundVariables.keys()], ast)
       : new Assignment(
           ast.reserveId(),
           '',
-          'Assignment',
           assignmentValue.typeString,
           '=',
           assignmentValue,

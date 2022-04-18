@@ -13,7 +13,8 @@ const MASK128 = 2 ** 128 - 1
 const BOUND128 = 2 ** 128
 
 func warp_sub256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (
-        res : Uint256):
+    res : Uint256
+):
     let (safe) = uint256_le(rhs, lhs)
     assert safe = 1
     # preemptively borrow from bit128

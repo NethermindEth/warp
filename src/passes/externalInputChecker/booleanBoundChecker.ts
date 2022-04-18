@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import { AST } from '../../ast/ast';
 import {
   FunctionDefinition,
@@ -17,7 +17,11 @@ import { createIdentifier } from '../../utils/nodeTemplates';
 
 export class BooleanBoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    if (FunctionVisibility.External === node.visibility && node.vBody !== undefined) {
+    if (
+      (FunctionVisibility.External === node.visibility ||
+        FunctionVisibility.Public === node.visibility) &&
+      node.vBody !== undefined
+    ) {
       node.vParameters.vParameters.forEach((parameter) => {
         const typeNode = getNodeType(parameter, ast.compilerVersion);
         if (typeNode instanceof BoolType) {
@@ -55,12 +59,7 @@ export class BooleanBoundChecker extends ASTMapper {
   }
 
   private insertFunctionCall(node: FunctionDefinition, functionCall: FunctionCall, ast: AST): void {
-    const expressionStatement = new ExpressionStatement(
-      ast.reserveId(),
-      '',
-      'ExpressionStatement',
-      functionCall,
-    );
+    const expressionStatement = new ExpressionStatement(ast.reserveId(), '', functionCall);
 
     const functionBlock = node.vBody;
 

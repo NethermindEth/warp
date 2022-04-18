@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   Block,
   ContractDefinition,
@@ -8,7 +8,9 @@ import {
   FunctionKind,
   FunctionVisibility,
   Identifier,
+  IdentifierPath,
   MemberAccess,
+  ModifierDefinition,
   Return,
   VariableDeclaration,
 } from 'solc-typed-ast';
@@ -30,12 +32,16 @@ export class InheritanceInliner extends ASTMapper {
 
     const functionRemapping: Map<number, FunctionDefinition> = new Map();
     const variableRemapping: Map<number, VariableDeclaration> = new Map();
+    const modifierRemapping: Map<number, ModifierDefinition> = new Map();
 
     addPrivateSuperFunctions(node, functionRemapping, ast);
     addNonoverridenPublicFunctions(node, functionRemapping, ast);
     addStorageVariables(node, variableRemapping, ast);
+    addNonOverridenModifiers(node, modifierRemapping, ast);
+
     updateReferencedDeclarations(node, functionRemapping, ast);
     updateReferencedDeclarations(node, variableRemapping, ast);
+    updateReferencedDeclarations(node, modifierRemapping, ast);
     this.commonVisit(node, ast);
   }
 
@@ -130,13 +136,37 @@ function addStorageVariables(
   });
 }
 
+function addNonOverridenModifiers(
+  node: ContractDefinition,
+  idRemapping: Map<number, ModifierDefinition>,
+  ast: AST,
+) {
+  const modifierNames = new Set<string>();
+
+  node.vModifiers.forEach((modifier) => {
+    modifierNames.add(modifier.name);
+  });
+
+  getBaseContracts(node).forEach((contract) => {
+    contract.vModifiers.forEach((modifier) => {
+      const sz = modifierNames.size;
+      modifierNames.add(modifier.name);
+      if (modifierNames.size > sz) {
+        const clonedModifier = cloneASTNode(modifier, ast);
+        idRemapping.set(modifier.id, clonedModifier);
+        node.appendChild(clonedModifier);
+      }
+    });
+  });
+}
+
 function updateReferencedDeclarations(
   node: ContractDefinition,
-  idRemapping: Map<number, VariableDeclaration | FunctionDefinition>,
+  idRemapping: Map<number, VariableDeclaration | FunctionDefinition | ModifierDefinition>,
   ast: AST,
 ) {
   node.walkChildren((node) => {
-    if (node instanceof Identifier) {
+    if (node instanceof Identifier || node instanceof IdentifierPath) {
       const remapping = idRemapping.get(node.referencedDeclaration);
       if (remapping !== undefined) {
         node.referencedDeclaration = remapping.id;
@@ -150,7 +180,6 @@ function updateReferencedDeclarations(
           new Identifier(
             ast.reserveId(),
             node.src,
-            'Identifier',
             node.typeString,
             remapping.name,
             remapping.id,
@@ -219,18 +248,13 @@ function createDelegatingFunction(
     funcToCopy.kind === FunctionKind.Function,
     `Attempted to copy non-member function ${funcToCopy.name}`,
   );
-  assert(
-    funcToCopy.visibility === FunctionVisibility.Public ||
-      funcToCopy.visibility === FunctionVisibility.External,
-    `Attempted to copy non public/external function ${funcToCopy.name}`,
-  );
+
   if (funcToCopy.isConstructor) {
     throw new NotSupportedYetError(`Inherited constructors is not implemented yet`);
   }
   const newFunc = new FunctionDefinition(
     ast.reserveId(),
     funcToCopy.src,
-    'FunctionDefinition',
     scope,
     funcToCopy.kind,
     funcToCopy.name,
@@ -242,22 +266,19 @@ function createDelegatingFunction(
     retParams,
     funcToCopy.vModifiers.map((m) => cloneASTNode(m, ast)),
     undefined,
-    new Block(ast.reserveId(), '', 'Block', [
+    new Block(ast.reserveId(), '', [
       new Return(
         ast.reserveId(),
         '',
-        'Return',
         retParams.id,
         new FunctionCall(
           ast.reserveId(),
           '',
-          'FunctionCall',
           getReturnTypeString(delegate),
           FunctionCallKind.FunctionCall,
           new Identifier(
             ast.reserveId(),
             '',
-            'Identifier',
             getFunctionTypeString(delegate, ast.compilerVersion),
             delegate.name,
             delegate.id,

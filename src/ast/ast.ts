@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   ASTContext,
   ASTNode,
@@ -63,7 +63,6 @@ export class AST {
     const replacementVariable = new VariableDeclaration(
       this.tempId,
       node.src,
-      'VariableDeclaration',
       true,
       false,
       newName,
@@ -80,7 +79,6 @@ export class AST {
     const declaration = new VariableDeclarationStatement(
       this.tempId,
       node.src,
-      'VariableDeclarationStatement',
       [replacementVariable.id],
       [replacementVariable],
     );
@@ -88,7 +86,6 @@ export class AST {
     const replacementIdentifer = new Identifier(
       this.tempId,
       node.src,
-      'Identifier',
       node.typeString,
       newName,
       replacementVariable.id,
@@ -202,7 +199,7 @@ export class AST {
     const parent = existingStatement.parent;
     // Blocks are not instances of Statements, but they satisy typescript shaped typing rules to be classed as Statements
     // TODO potentially handle src better
-    const replacementBlock = new Block(this.reserveId(), existingStatement.src, 'Block', [
+    const replacementBlock = new Block(this.reserveId(), existingStatement.src, [
       existingStatement,
       newStatement,
     ]);
@@ -250,7 +247,7 @@ export class AST {
     const parent = existingStatement.parent;
     // Blocks are not instances of Statements, but they satisy typescript shaped typing rules to be classed as Statements
     // TODO potentially handle src better
-    const replacementBlock = new Block(-1, existingStatement.src, 'Block', [
+    const replacementBlock = new Block(this.reserveId(), existingStatement.src, [
       newStatement,
       existingStatement,
     ]);
@@ -283,14 +280,7 @@ export class AST {
     } else {
       this.replaceNode(
         statement,
-        new Block(
-          this.reserveId(),
-          statement.src,
-          'Block',
-          [],
-          statement.documentation,
-          statement.raw,
-        ),
+        new Block(this.reserveId(), statement.src, [], statement.documentation, statement.raw),
       );
     }
   }

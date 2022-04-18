@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   Expression,
   ExpressionStatement,
@@ -50,11 +50,9 @@ export class Require extends ASTMapper {
       return new ExpressionStatement(
         ast.reserveId(),
         expression.src,
-        'ExpressionStatement',
         new CairoAssert(
           ast.reserveId(),
           expression.src,
-          'CairoAssert',
           expression.vArguments[0],
           requireMessage,
           expression.raw,
@@ -67,11 +65,9 @@ export class Require extends ASTMapper {
       return new ExpressionStatement(
         ast.reserveId(),
         expression.src,
-        'ExpressionStatment',
         new CairoAssert(
           ast.reserveId(),
           expression.src,
-          'CairoAssert',
           createBoolLiteral(false, ast),
           revertMessage,
           expression.raw,

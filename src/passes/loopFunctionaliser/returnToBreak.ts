@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   Assignment,
   ASTNode,
@@ -22,7 +22,7 @@ import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
 import { createBoolLiteral, createIdentifier } from '../../utils/nodeTemplates';
 import { cloneASTNode } from '../../utils/cloning';
-import { toSingleExpression } from './utils';
+import { toSingleExpression } from '../../utils/functionGeneration';
 
 export class ReturnToBreak extends ASTMapper {
   returnFlags: Map<WhileStatement | DoWhileStatement, VariableDeclaration> = new Map();
@@ -97,7 +97,6 @@ export class ReturnToBreak extends ASTMapper {
     const decl = new VariableDeclaration(
       ast.reserveId(),
       '',
-      'VariableDeclaration',
       false,
       false,
       `__warp_rf${this.returnFlags.size}`,
@@ -108,12 +107,11 @@ export class ReturnToBreak extends ASTMapper {
       Mutability.Mutable,
       'bool',
       undefined,
-      new ElementaryTypeName(ast.reserveId(), '', 'ElementaryTypeName', 'bool', 'bool'),
+      new ElementaryTypeName(ast.reserveId(), '', 'bool', 'bool'),
     );
     const declStatement = new VariableDeclarationStatement(
       ast.reserveId(),
       '',
-      'VariableDeclarationStatement',
       [decl.id],
       [decl],
       createBoolLiteral(false, ast),
@@ -162,7 +160,6 @@ function insertReturnValueDeclaration(node: Block, ast: AST): VariableDeclaratio
   const declarationStatement = new VariableDeclarationStatement(
     ast.reserveId(),
     '',
-    'VariableDeclarationStatement',
     declarations.map((n) => n.id),
     declarations,
     // TODO initial value once default value function is done
@@ -190,12 +187,10 @@ function insertOuterLoopRetFlagCheck(
     new IfStatement(
       ast.reserveId(),
       '',
-      'IfStatement',
       createIdentifier(retFlag, ast),
       new Return(
         ast.reserveId(),
         '',
-        'Return',
         containingFunction.vReturnParameters.id,
         toSingleExpression(
           retVars.map((r) => createIdentifier(r, ast)),
@@ -216,9 +211,8 @@ function insertInnerLoopRetFlagCheck(
     new IfStatement(
       ast.reserveId(),
       '',
-      'IfStatement',
       createIdentifier(retFlag, ast),
-      new Break(ast.reserveId(), '', 'Break'),
+      new Break(ast.reserveId(), ''),
     ),
   );
 }
@@ -229,11 +223,9 @@ function replaceWithBreak(node: Return, retFlag: VariableDeclaration, ast: AST) 
     new ExpressionStatement(
       ast.reserveId(),
       '',
-      'ExpressionStatement',
       new Assignment(
         ast.reserveId(),
         '',
-        'Assignment',
         'bool',
         '=',
         createIdentifier(retFlag, ast),
@@ -241,10 +233,7 @@ function replaceWithBreak(node: Return, retFlag: VariableDeclaration, ast: AST) 
       ),
     ),
   );
-  ast.replaceNode(
-    node,
-    new Break(ast.reserveId(), node.src, 'Break', node.documentation, node.raw),
-  );
+  ast.replaceNode(node, new Break(ast.reserveId(), node.src, node.documentation, node.raw));
 }
 
 function storeRetValues(node: Return, retVars: VariableDeclaration[], ast: AST) {
@@ -258,8 +247,7 @@ function storeRetValues(node: Return, retVars: VariableDeclaration[], ast: AST) 
   const valueCapture = new ExpressionStatement(
     ast.reserveId(),
     '',
-    'ExpressionStatement',
-    new Assignment(ast.reserveId(), '', 'Assignment', lhs.typeString, '=', lhs, node.vExpression),
+    new Assignment(ast.reserveId(), '', lhs.typeString, '=', lhs, node.vExpression),
   );
 
   ast.insertStatementBefore(node, valueCapture);

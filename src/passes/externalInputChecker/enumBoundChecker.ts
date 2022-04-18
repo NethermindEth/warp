@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import { AST } from '../../ast/ast';
 import {
   FunctionDefinition,
@@ -13,7 +13,11 @@ import { createIdentifier } from '../../utils/nodeTemplates';
 
 export class EnumBoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    if (FunctionVisibility.External === node.visibility && node.vBody !== undefined) {
+    if (
+      (FunctionVisibility.External === node.visibility ||
+        FunctionVisibility.Public === node.visibility) &&
+      node.vBody !== undefined
+    ) {
       node.vParameters.vParameters.forEach((parameter) => {
         if (parameter.typeString.slice(0, 4) === 'enum' && parameter.name !== undefined) {
           const functionCall = this.generateFunctionCall(node, parameter, ast);
@@ -38,12 +42,7 @@ export class EnumBoundChecker extends ASTMapper {
   }
 
   private insertFunctionCall(node: FunctionDefinition, functionCall: FunctionCall, ast: AST): void {
-    const expressionStatement = new ExpressionStatement(
-      ast.reserveId(),
-      '',
-      'ExpressionStatement',
-      functionCall,
-    );
+    const expressionStatement = new ExpressionStatement(ast.reserveId(), '', functionCall);
 
     const functionBlock = node.vBody;
 

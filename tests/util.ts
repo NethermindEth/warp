@@ -1,6 +1,6 @@
-import assert = require('assert');
-import { exec } from 'child_process';
 import * as fs from 'fs';
+import assert from 'assert';
+import { exec } from 'child_process';
 
 export async function sh(cmd: string): Promise<{ stdout: string; stderr: string }> {
   return new Promise(function (resolve, reject) {

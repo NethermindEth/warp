@@ -46,7 +46,6 @@ export class IntBoundCalculator extends ASTMapper {
       new Literal(
         ast.reserveId(),
         node.src,
-        'Literal',
         generateLiteralTypeString(valueString),
         LiteralKind.Number,
         toHexString(valueString),

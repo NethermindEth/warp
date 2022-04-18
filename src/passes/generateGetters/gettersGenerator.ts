@@ -29,7 +29,7 @@ import { AST } from '../../ast/ast';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { cloneASTNode } from '../../utils/cloning';
 import { createIdentifier } from '../../utils/nodeTemplates';
-import { toSingleExpression } from '../loopFunctionaliser/utils';
+import { toSingleExpression } from '../../utils/functionGeneration';
 
 function genReturnVariables(
   vType: TypeName | undefined,
@@ -49,7 +49,6 @@ function genReturnVariables(
     return new VariableDeclaration(
       ast.reserveId(),
       '',
-      'VariableDeclaration',
       false,
       false,
       '',
@@ -125,7 +124,6 @@ function genFunctionParams(
       new VariableDeclaration(
         ast.reserveId(),
         '',
-        'VariableDeclaration',
         false,
         false,
         `_i${varCount}`,
@@ -136,7 +134,7 @@ function genFunctionParams(
         Mutability.Mutable,
         'uint256',
         undefined,
-        new ElementaryTypeName(ast.reserveId(), '', 'ElementaryTypeName', 'uint256', 'uint256'),
+        new ElementaryTypeName(ast.reserveId(), '', 'uint256', 'uint256'),
       ),
       ...genFunctionParams(varCount + 1, vType.vBaseType, funcDefID, ast),
     ];
@@ -145,7 +143,6 @@ function genFunctionParams(
       new VariableDeclaration(
         ast.reserveId(),
         '',
-        'VariableDeclaration',
         false,
         false,
         `_i${varCount}`,
@@ -198,7 +195,6 @@ function genReturnExpression(
     const baseExp: IndexAccess = new IndexAccess(
       ast.reserveId(),
       '',
-      'IndexAccess',
       vType.vBaseType.typeString,
       baseExpression ?? createIdentifier(v, ast),
       createIdentifier(fnParams.vParameters[idx], ast),
@@ -208,7 +204,6 @@ function genReturnExpression(
     const baseExp: IndexAccess = new IndexAccess(
       ast.reserveId(),
       '',
-      'IndexAccess',
       vType.vValueType.typeString,
       baseExpression ?? createIdentifier(v, ast),
       createIdentifier(fnParams.vParameters[idx], ast),
@@ -232,7 +227,6 @@ function genReturnExpression(
         const memberAccessExp: MemberAccess = new MemberAccess(
           ast.reserveId(),
           '',
-          'MemberAccess',
           m.vType.typeString,
           baseExpression ?? createIdentifier(v, ast),
           m.name,
@@ -287,27 +281,24 @@ export class GettersGenerator extends ASTMapper {
         const returnParameterList: ParameterList = new ParameterList(
           ast.reserveId(),
           '',
-          'ParameterList',
           genReturnVariables(stateVarType, funcDefID, ast),
         );
 
         const fnParams: ParameterList = new ParameterList(
           ast.reserveId(),
           '',
-          'ParameterList',
           genFunctionParams(0, stateVarType, funcDefID, ast),
         );
 
         const returnExpression: Expression = genReturnExpression(0, fnParams, v, stateVarType, ast);
 
-        const getterBlock = new Block(ast.reserveId(), '', 'Block', [
-          new Return(ast.reserveId(), '', 'Return', returnParameterList.id, returnExpression),
+        const getterBlock = new Block(ast.reserveId(), '', [
+          new Return(ast.reserveId(), '', returnParameterList.id, returnExpression),
         ]);
 
         const getter = new FunctionDefinition(
           funcDefID,
           '',
-          'FunctionDefinition',
           node.id,
           FunctionKind.Function,
           v.name,

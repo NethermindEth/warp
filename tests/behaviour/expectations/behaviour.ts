@@ -15,6 +15,91 @@ export const expectations = flatten(
             Expect.Simple('test256', ['3', '4'], ['3', '4']),
           ]),
         ]),
+        new Dir('constants', [
+          File.Simple('simpleConstants', [
+            Expect.Simple('getX', [], ['247']),
+            Expect.Simple('stateVarOp', [], ['9']),
+            Expect.Simple('constantOp', [], ['249']),
+            Expect.Simple('pureOp', [], ['512']),
+            Expect.Simple('pureOpWithValue', ['32'], ['288']),
+            new Expect('changeStateVar', [
+              ['changeStateVar', [], [], '0'],
+              ['getX', [], ['503'], '0'],
+            ]),
+          ]),
+          File.Simple('simpleConstantsUint256', [
+            Expect.Simple('getX', [], ['0', '255211775190703847597530955573826158592']),
+            Expect.Simple(
+              'stateVarOp',
+              [],
+              ['340282366920938463463374607431768211455', '85070591730234615865843651857942052863'],
+            ),
+            Expect.Simple(
+              'constantOp',
+              [],
+              [
+                '340282366920938463463374607431768211455',
+                '164824271477329568240072075474762727423',
+              ],
+            ),
+            Expect.Simple(
+              'pureOp',
+              [],
+              ['68056473384187692692674921486353642291', '68056473384187692692674921486353642291'],
+            ),
+            Expect.Simple(
+              'pureOpWithValue',
+              ['1', '0'],
+              [
+                '340282366920938463463374607431768211454',
+                '340282366920938463463374607431768211455',
+              ],
+            ),
+            Expect.Simple(
+              'pureOpWithValueTwo',
+              [
+                '340282366920938463463374607431768211455',
+                '340282366920938463463374607431768211455',
+              ],
+              [
+                '340282366920938463463374607431768211454',
+                '340282366920938463463374607431768211455',
+              ],
+            ),
+            new Expect('changeStateVar', [
+              ['changeStateVar', [], [], '0'],
+              [
+                'getX',
+                [],
+                [
+                  '340282366920938463463374607431768211455',
+                  '340282366920938458741008124562122997759',
+                ],
+                '0',
+              ],
+            ]),
+          ]),
+          new File(
+            'simpleImmutable',
+            'WARP',
+            ['0', '256', '512'],
+            [
+              Expect.Simple('getUintValue', [], ['0', '256'], '0'),
+              Expect.Simple('getIntValue', [], ['512'], '0'),
+              Expect.Simple('addUintValue', ['0', '256'], ['0', '512'], '0'),
+              Expect.Simple('addIntValue', ['256'], ['768'], '0'),
+              new Expect('testing constructor argument out of bounds', [
+                [
+                  'constructor',
+                  ['0', '256', '65536'],
+                  null,
+                  '0',
+                  'Error message: Error: value out-of-bounds. Value must be less than 2**16.',
+                ],
+              ]),
+            ],
+          ),
+        ]),
         new Dir('conversions', [
           File.Simple('signedIdentity', [
             Expect.Simple('implicit', ['210', '11', '12'], ['210', '11', '12']),
@@ -83,37 +168,42 @@ export const expectations = flatten(
 
         // covers nested mappings
         new Dir('Dai', [
-          new File('dai', 'Dai', [
-            new Expect('mint', [
-              ['mint', ['1', '10000', '0'], ['1'], '1'],
-              ['getBalance', ['1'], ['10000', '0'], '1'],
-            ]),
-            new Expect('transfer', [
-              ['transfer', ['2', '4000', '0'], ['1'], '1'],
-              ['getBalance', ['2'], ['4000', '0'], '1'],
-              ['getBalance', ['1'], ['6000', '0'], '1'],
-            ]),
-            new Expect('approve', [
-              ['approve', ['3', '300', '0'], ['1'], '2'],
-              ['getAllowance', ['2', '3'], ['300', '0'], '2'],
-            ]),
-            new Expect('transferFrom', [
-              ['transferFrom', ['2', '1', '200', '0'], ['1'], '3'],
-              ['getBalance', ['2'], ['3800', '0'], '1'],
-              ['getBalance', ['1'], ['6200', '0'], '1'],
-            ]),
-            new Expect('allowance after transferFrom', [
-              ['getAllowance', ['2', '3'], ['100', '0'], '2'],
-            ]),
-            new Expect('increase allowance', [
-              ['increaseAllowance', ['3', '100', '0'], ['1'], '2'],
-              ['getAllowance', ['2', '3'], ['200', '0'], '2'],
-            ]),
-            new Expect('decrease allowance', [
-              ['decreaseAllowance', ['3', '131', '0'], ['1'], '2'],
-              ['getAllowance', ['2', '3'], ['69', '0'], '2'],
-            ]),
-          ]),
+          new File(
+            'dai',
+            'Dai',
+            [],
+            [
+              new Expect('mint', [
+                ['mint', ['1', '10000', '0'], ['1'], '1'],
+                ['getBalance', ['1'], ['10000', '0'], '1'],
+              ]),
+              new Expect('transfer', [
+                ['transfer', ['2', '4000', '0'], ['1'], '1'],
+                ['getBalance', ['2'], ['4000', '0'], '1'],
+                ['getBalance', ['1'], ['6000', '0'], '1'],
+              ]),
+              new Expect('approve', [
+                ['approve', ['3', '300', '0'], ['1'], '2'],
+                ['getAllowance', ['2', '3'], ['300', '0'], '2'],
+              ]),
+              new Expect('transferFrom', [
+                ['transferFrom', ['2', '1', '200', '0'], ['1'], '3'],
+                ['getBalance', ['2'], ['3800', '0'], '1'],
+                ['getBalance', ['1'], ['6200', '0'], '1'],
+              ]),
+              new Expect('allowance after transferFrom', [
+                ['getAllowance', ['2', '3'], ['100', '0'], '2'],
+              ]),
+              new Expect('increase allowance', [
+                ['increaseAllowance', ['3', '100', '0'], ['1'], '2'],
+                ['getAllowance', ['2', '3'], ['200', '0'], '2'],
+              ]),
+              new Expect('decrease allowance', [
+                ['decreaseAllowance', ['3', '131', '0'], ['1'], '2'],
+                ['getAllowance', ['2', '3'], ['69', '0'], '2'],
+              ]),
+            ],
+          ),
         ]),
         new Dir('delete', [
           File.Simple('address', [Expect.Simple('f', [], ['23', '0'])]),
@@ -424,7 +514,7 @@ export const expectations = flatten(
                 ['18', '256'],
                 null,
                 '0',
-                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**8.',
+                'Error: value out-of-bounds. Value must be less than 2**8.',
               ],
             ]),
             new Expect('testing that more than 1 assert is placed when there are two inputs', [
@@ -433,7 +523,7 @@ export const expectations = flatten(
                 ['65536', '255'],
                 null,
                 '0',
-                'Error: value out-of-bounds. Values passed to high and low members of Uint256 must be less than 2**16.',
+                'Error: value out-of-bounds. Value must be less than 2**16.',
               ],
             ]),
           ]),
@@ -542,12 +632,71 @@ export const expectations = flatten(
         ]),
         new Dir('inheritance', [
           new Dir('functions', [
-            new File('base', 'Base', [Expect.Simple('g', ['3'], ['3'])]),
-            new File('mid', 'Mid', [Expect.Simple('g', ['10'], ['20'])]),
-            new File('derived', 'Derived', [Expect.Simple('f', ['5'], ['15'])]),
+            new File('base', 'Base', [], [Expect.Simple('g', ['3'], ['3'])]),
+            new File('mid', 'Mid', [], [Expect.Simple('g', ['10'], ['20'])]),
+            new File('derived', 'Derived', [], [Expect.Simple('f', ['5'], ['15'])]),
           ]),
           new Dir('variables', [
-            new File('derived', 'Derived', [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
+            new File('derived', 'Derived', [], [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
+          ]),
+          new Dir('modifiers', [
+            new File(
+              'modifierInheritance',
+              'D',
+              [],
+              [
+                new Expect('modifier', [
+                  ['withdraw', ['5000', '0'], ['95000', '0'], '0'],
+                  ['lock', [], [], '0'],
+                  ['withdraw', ['280', '0'], null, '0', 'Can not call this function when locked'],
+                  ['clear', [], [], '0'],
+                  ['withdraw', ['280', '0'], ['0', '0'], '0'],
+                ]),
+              ],
+            ),
+            new File(
+              'modifierOverriding',
+              'C',
+              [],
+              [
+                new Expect('modifier', [
+                  [
+                    'withdraw',
+                    ['10000', '0'],
+                    null,
+                    '0',
+                    'Value to withdraw must be smaller than the current balance',
+                  ],
+                  [
+                    'withdraw',
+                    ['100', '0'],
+                    null,
+                    '0',
+                    'Value to withdraw must be bigger than the limit',
+                  ],
+                  ['withdraw', ['5500', '0'], null, '0', 'Balance must be bigger than 1000'],
+                  ['withdraw', ['5000', '0'], ['1000', '0'], '0'],
+                  [
+                    'withdraw',
+                    ['100', '0'],
+                    null,
+                    '0',
+                    'Value to withdraw must be bigger than the limit',
+                  ],
+                ]),
+              ],
+            ),
+          ]),
+        ]),
+        new Dir('libraries', [
+          File.Simple('using_for', [
+            Expect.Simple('libFunction', ['1'], ['0'], 'uint256/true branch'),
+          ]),
+          File.Simple('importLibs', [Expect.Simple('addSub', ['5', '4'], ['9', '1'])]),
+          File.Simple('LibInLib', [Expect.Simple('mulDiv', ['5', '2'], ['10', '2', '1'])]),
+          new Dir('freeFunctionsLib', [
+            File.Simple('direct_and_indirect', [Expect.Simple('freeFuncLib', ['2'], ['5'])]),
+            File.Simple('sameName', [Expect.Simple('freeFuncLib', ['1'], ['0'])]),
           ]),
         ]),
         new Dir('loops', [
@@ -862,6 +1011,30 @@ export const expectations = flatten(
             Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
           ]),
         ]),
+        new Dir('modifiers', [
+          File.Simple('modifier', [
+            Expect.Simple('f', ['90000', '0'], ['10000', '0']),
+            Expect.Simple('f', ['110000', '0'], ['0', '0']),
+          ]),
+          File.Simple('multipleModifiers', [
+            new Expect('modifier', [
+              ['openEvent', [], [], '0'],
+              ['donate', ['238', '0'], ['238', '0'], '0'],
+              ['donate', ['100', '0'], ['338', '0'], '0'],
+              ['donate', ['50', '0'], null, '0', 'Value for donation must be bigger than 100'],
+              ['balance', [], ['338', '0'], '0'],
+              ['closeEvent', [], [], '0'],
+              [
+                'donate',
+                ['500', '0'],
+                null,
+                '0',
+                'The event must be open in order to receive donations',
+              ],
+              ['balance', [], ['0', '0'], '0'],
+            ]),
+          ]),
+        ]),
         new Dir('named_args', [
           File.Simple('function', [
             Expect.Simple('f', [], []),
@@ -875,6 +1048,12 @@ export const expectations = flatten(
               [],
               ['1', '0', '2', '0', '45', '0', '1', '0', '1', '0', '2', '0', '3', '0'],
             ),
+          ]),
+        ]),
+        new Dir('public_func_splitter', [
+          File.Simple('value_passing', [
+            Expect.Simple('valuePassing', ['1'], ['15'], '0'),
+            Expect.Simple('valuePassingMemberAccess', ['1'], ['15'], '0'),
           ]),
         ]),
         new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
@@ -898,22 +1077,6 @@ export const expectations = flatten(
             Expect.Simple('insertReturn', ['7'], ['9', '7']),
           ]),
         ]),
-        new Dir('named_args', [
-          File.Simple('function', [
-            Expect.Simple('f', [], []),
-            Expect.Simple('k', [], ['365', '0']),
-            Expect.Simple('v', [], ['234', '0']),
-          ]),
-          File.Simple('constructor', [
-            // (1, 2, (45, 1), [1,2,3])
-            Expect.Simple(
-              'getData',
-              [],
-              ['1', '0', '2', '0', '45', '0', '1', '0', '1', '0', '2', '0', '3', '0'],
-            ),
-          ]),
-        ]),
-        new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
         new Dir('storage', [
           File.Simple('dynamic_arrays', [
             Expect.Simple('get', ['0', '0'], null, 'out of range get should fail'),

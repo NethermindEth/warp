@@ -7,6 +7,7 @@ func warp_bitwise_and{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> 
 end
 
 func warp_bitwise_and256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
-        lhs : Uint256, rhs : Uint256) -> (res : Uint256):
+    lhs : Uint256, rhs : Uint256
+) -> (res : Uint256):
     return uint256_and(lhs, rhs)
 end

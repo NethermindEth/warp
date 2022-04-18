@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import {
@@ -104,13 +104,11 @@ export function IntxIntFunction(
   const call = new FunctionCall(
     ast.reserveId(),
     node.src,
-    'FunctionCall',
     node.typeString,
     FunctionCallKind.FunctionCall,
     new Identifier(
       ast.reserveId(),
       '',
-      'Identifier',
       `function (${node.typeString}, ${node.typeString}) returns (${node.typeString})`,
       fullName,
       stub.id,
@@ -160,13 +158,11 @@ export function Comparison(
   const call = new FunctionCall(
     ast.reserveId(),
     node.src,
-    'FunctionCall',
     node.typeString,
     FunctionCallKind.FunctionCall,
     new Identifier(
       ast.reserveId(),
       '',
-      'Identifier',
       `function (${node.vLeftExpression.typeString}, ${node.vRightExpression.typeString}) returns (${node.typeString})`,
       fullName,
       stub.id,
@@ -202,13 +198,11 @@ export function IntFunction(
   const call = new FunctionCall(
     ast.reserveId(),
     node.src,
-    'FunctionCall',
     node.typeString,
     FunctionCallKind.FunctionCall,
     new Identifier(
       ast.reserveId(),
       '',
-      'Identifier',
       `function (${argument.typeString}) returns (${node.typeString})`,
       fullName,
       stub.id,

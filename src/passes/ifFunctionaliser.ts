@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import {
   Block,
   FunctionCall,
@@ -103,8 +103,8 @@ function splitBlockImpl(block: Block, split: Statement, ast: AST): Block | null 
   if (splitIndex === -1) return null;
   const newBlock =
     block instanceof UncheckedBlock
-      ? new UncheckedBlock(ast.reserveId(), '', 'UncheckedBlock', [])
-      : new Block(ast.reserveId(), '', 'Block', []);
+      ? new UncheckedBlock(ast.reserveId(), '', [])
+      : new Block(ast.reserveId(), '', []);
   assert(
     newBlock instanceof block.constructor && block instanceof newBlock.constructor,
     `Encountered unexpected block subclass ${block.constructor.name} when splitting`,
@@ -160,7 +160,6 @@ function createSplitFunction(
   const funcDef = new FunctionDefinition(
     ast.reserveId(),
     '',
-    'FunctionDefinition',
     existingFunction.scope,
     existingFunction.kind === FunctionKind.Free ? FunctionKind.Free : FunctionKind.Function,
     `${existingFunction.name}_part${counter + 1}`,
@@ -168,7 +167,7 @@ function createSplitFunction(
     FunctionVisibility.Private,
     existingFunction.stateMutability,
     false,
-    new ParameterList(ast.reserveId(), '', 'ParameterList', inputParams),
+    new ParameterList(ast.reserveId(), '', inputParams),
     cloneASTNode(existingFunction.vReturnParameters, ast),
     [],
     undefined,
@@ -200,7 +199,6 @@ function addCallsToSplitFunction(
   const returnStatement = new Return(
     ast.reserveId(),
     '',
-    'Return',
     originalFunction.vReturnParameters.id,
     call,
   );
@@ -216,7 +214,7 @@ function addCallsToSplitFunction(
 
 function ensureBothBranchesAreBlocks(node: IfStatement, ast: AST): void {
   if (!(node.vTrueBody instanceof Block) && !(node.vTrueBody instanceof UncheckedBlock)) {
-    node.vTrueBody = new Block(ast.reserveId(), '', 'Block', [node.vTrueBody]);
+    node.vTrueBody = new Block(ast.reserveId(), '', [node.vTrueBody]);
     ast.registerChild(node.vTrueBody, node);
   }
 
@@ -225,7 +223,7 @@ function ensureBothBranchesAreBlocks(node: IfStatement, ast: AST): void {
     !(node.vFalseBody instanceof Block) &&
     !(node.vFalseBody instanceof UncheckedBlock)
   ) {
-    node.vFalseBody = new Block(ast.reserveId(), '', 'Block', [node.vFalseBody]);
+    node.vFalseBody = new Block(ast.reserveId(), '', [node.vFalseBody]);
     ast.registerChild(node.vFalseBody, node);
   }
 }

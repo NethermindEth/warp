@@ -12,12 +12,16 @@ import {
 import { ASTMapper } from '../../ast/mapper';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import assert = require('assert');
+import assert from 'assert';
 import { createIdentifier } from '../../utils/nodeTemplates';
 
 export class IntBoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    if (FunctionVisibility.External === node.visibility && node.vBody !== undefined) {
+    if (
+      (FunctionVisibility.External === node.visibility ||
+        FunctionVisibility.Public === node.visibility) &&
+      node.vBody !== undefined
+    ) {
       node.vParameters.vParameters.forEach((parameter) => {
         const typeNode = getNodeType(parameter, ast.compilerVersion);
         if (typeNode instanceof IntType) {
@@ -56,12 +60,7 @@ export class IntBoundChecker extends ASTMapper {
   }
 
   private insertFunctionCall(node: FunctionDefinition, functionCall: FunctionCall, ast: AST): void {
-    const expressionStatement = new ExpressionStatement(
-      ast.reserveId(),
-      '',
-      'ExpressionStatement',
-      functionCall,
-    );
+    const expressionStatement = new ExpressionStatement(ast.reserveId(), '', functionCall);
 
     const functionBlock = node.vBody;
     assert(functionBlock !== undefined);

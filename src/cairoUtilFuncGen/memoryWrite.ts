@@ -1,4 +1,4 @@
-import assert = require('assert');
+import assert from 'assert';
 import { IndexAccess, Expression, FunctionCall, getNodeType, ASTNode } from 'solc-typed-ast';
 import { CairoType } from '../utils/cairoTypeSystem';
 import { cloneASTNode } from '../utils/cloning';
