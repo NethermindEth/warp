@@ -17,6 +17,12 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { add, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
 
+/*
+  Produces functions that when given a start location in warp_memory, deserialise all necessary
+  felts to produce a full value. For example, a function to read a Uint256 reads the given location
+  and the next one, and combines them into a Uint256 struct
+*/
+
 export class MemoryReadGen extends StringIndexedFuncGen {
   gen(memoryRef: Expression, type: TypeName, nodeInSourceUnit?: ASTNode): FunctionCall {
     const valueType = getNodeType(memoryRef, this.ast.compilerVersion);

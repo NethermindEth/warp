@@ -15,6 +15,13 @@ export type CairoFunction = {
   code: string;
 };
 
+/*
+  Base class for all specific cairo function generators
+  These exist for cases where a transform we need is too specific to cairo to
+  be doable by directly changing the solidity AST, so a stubbed FunctionDefintion
+  is created and called in the AST, and a cairo definition for the function is either
+  directly added to the output code, or one in warplib is referenced
+*/
 export abstract class CairoUtilFuncGenBase {
   protected ast: AST;
   protected imports: Map<string, Set<string>> = new Map();
@@ -38,6 +45,10 @@ export abstract class CairoUtilFuncGenBase {
   }
 }
 
+/*
+  Most subclasses of CairoUtilFuncGenBase index their CairoFunctions off a single string,
+  usually the cairo type of the input that the function's code depends on
+*/
 export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
   protected generatedFunctions: Map<string, CairoFunction> = new Map();
 
@@ -46,6 +57,7 @@ export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
   }
 }
 
+// Quick shortcut for writing `${base} + ${offset}` that also shortens it in the case of +0
 export function add(base: string, offset: number): string {
   return offset === 0 ? base : `${base} + ${offset}`;
 }
@@ -54,6 +66,9 @@ export function locationIfPointer(type: TypeNode, location: DataLocation): DataL
   return type instanceof PointerType ? location : DataLocation.Default;
 }
 
+// This is needed because index access and member access functions return pointers, even if the data
+// pointed to is a basic type, whereas read and write functions need to only return pointers if the
+// data they're reading or writing is a complex type
 export function locationIfComplexType(type: TypeNode, location: DataLocation): DataLocation {
   const base = dereferenceType(type);
   if (

@@ -15,6 +15,10 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { uint256 } from '../../warplib/utils';
 import { add, StringIndexedFuncGen } from '../base';
 
+/*
+  Produces functions to allocate memory structs, assign their members, and return their location
+  This replaces StructConstructorCalls referencing memory with normal FunctionCalls
+*/
 export class MemoryStructGen extends StringIndexedFuncGen {
   gen(node: FunctionCall): FunctionCall {
     const structDef = node.vReferencedDeclaration;

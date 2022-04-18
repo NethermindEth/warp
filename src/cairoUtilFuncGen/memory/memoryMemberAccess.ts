@@ -15,6 +15,13 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { typeNameFromTypeNode, countNestedMapItems } from '../../utils/utils';
 import { CairoUtilFuncGenBase, CairoFunction, add } from '../base';
 
+/*
+  Produces a separate function for each struct type and member name, that when given
+  the location of a struct produces the location of that member
+  The actual code in the function is very simple, but is placed in a cairo function
+  so that it doesn't get converted into fixed-width solidity arithmetic. A CairoExpression
+  node could serve as an optimisation here
+*/
 export class MemoryMemberAccessGen extends CairoUtilFuncGenBase {
   // cairoType -> property name -> code
   private generatedFunctions: Map<string, Map<string, CairoFunction>> = new Map();

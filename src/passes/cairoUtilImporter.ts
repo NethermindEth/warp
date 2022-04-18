@@ -4,6 +4,12 @@ import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { primitiveTypeToCairo } from '../utils/utils';
 
+/*
+  Analyses the tree after all processing has been done to find code the relies on
+  cairo imports that are not easy to add elsewhere. For example it's easy to import
+  the warplib maths functions as they are added to the code, but for determining if
+  Uint256 needs to be imported, it's easier to do it here
+*/
 export class CairoUtilImporter extends ASTMapper {
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
     if (primitiveTypeToCairo(node.name) === 'Uint256') {

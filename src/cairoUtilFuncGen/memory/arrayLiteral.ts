@@ -15,6 +15,11 @@ import { dereferenceType, mapRange, narrowBigInt, typeNameFromTypeNode } from '.
 import { uint256 } from '../../warplib/utils';
 import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
 
+/*
+  Converts [a,b,c] into WM0_arr(a,b,c), which allocates new space in warp_memory
+  and assigns the given values into that space, returning the location of the
+  start of the array
+*/
 export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
   gen(node: TupleExpression): FunctionCall {
     const elements = node.vOriginalComponents.filter(notNull);

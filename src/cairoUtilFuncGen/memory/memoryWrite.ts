@@ -18,6 +18,10 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, StringIndexedFuncGen } from '../base';
 
+/*
+  Produces functions to write a given value into warp_memory, returning that value (to simulate assignments)
+  This involves serialising the data into a series of felts and writing each one into the DictAccess
+*/
 export class MemoryWriteGen extends StringIndexedFuncGen {
   gen(memoryRef: Expression, writeValue: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
     const typeToWrite = getNodeType(memoryRef, this.ast.compilerVersion);

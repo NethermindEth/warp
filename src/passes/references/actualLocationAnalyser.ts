@@ -69,26 +69,3 @@ export class ActualLocationAnalyser extends ASTMapper {
     }
   }
 }
-
-// TODO determine whether it's better to use this function or the above pass
-// export function getLocation(node: Expression, ast: AST): DataLocation {
-//   // Storage var identifiers can be of scalar types, so would not be picked up
-//   // by the PointerType check
-//   if (
-//     node instanceof Identifier &&
-//     node.vReferencedDeclaration instanceof VariableDeclaration &&
-//     node.vReferencedDeclaration.stateVariable
-//   ) {
-//     return DataLocation.Storage;
-//   } else if (node instanceof MemberAccess) {
-//     return getLocation(node.vExpression, ast);
-//   } else if (node instanceof IndexAccess) {
-//     return getLocation(node.vBaseExpression, ast);
-//   }
-
-//   const type = getNodeType(node, ast.compilerVersion);
-//   if (type instanceof PointerType) {
-//     return type.location;
-//   }
-//   return DataLocation.Default;
-// }

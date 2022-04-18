@@ -430,16 +430,6 @@ export function narrowBigInt(n: bigint): number | null {
   return narrowed;
 }
 
-// export function isCairoConstant(node: VariableDeclaration): boolean {
-//   return (
-//     node.mutability === Mutability.Constant &&
-//     node.vValue instanceof Literal &&
-//     node.stateVariable &&
-//     node.vType instanceof ElementaryTypeName &&
-//     primitiveTypeToCairo(node.vType.name) === 'felt'
-//   );
-// }
-
 export function isCairoConstant(node: VariableDeclaration): boolean {
   if (node.mutability === Mutability.Constant && node.vValue instanceof Literal) {
     if (node.vType instanceof ElementaryTypeName) {

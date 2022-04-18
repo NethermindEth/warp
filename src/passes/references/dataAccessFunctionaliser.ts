@@ -31,6 +31,21 @@ import { cloneASTNode } from '../../utils/cloning';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { ReferenceSubPass } from './referenceSubPass';
 
+/*
+  Uses the analyses of ActualLocationAnalyser and ExpectedLocationAnalyser to
+  replace all references to memory and storage with the appropriate functions
+  acting on warp_memory and WARP_STORAGE respectively.
+
+  For example:
+  Actual - storage, expected - default, this is a read of a storage variable, and
+  so the appropriate cairoUtilFuncGen is invoked to replace the expression with a
+  read function
+
+  Most cases are handled by visitExpression, with special cases handled by the more
+  specific visit methods. E.g. visitAssignment creating write functions, or visitIdentifier
+  having its own rules because 'x = y' changes what x points to, whereas 'x.a = y' writes to
+  where x.a points to
+*/
 export class DataAccessFunctionaliser extends ReferenceSubPass {
   visitExpression(node: Expression, ast: AST): void {
     const [actualLoc, expectedLoc] = this.getLocations(node);

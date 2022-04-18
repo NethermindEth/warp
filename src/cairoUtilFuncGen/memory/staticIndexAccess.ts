@@ -7,6 +7,13 @@ import { createUint256Literal, createUint256TypeName } from '../../utils/nodeTem
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { CairoUtilFuncGenBase } from '../base';
 
+/*
+  Produces function stubs for index accesses into statically sized memory arrays
+  The actual implementation of this is written in warplib, but for consistency with other
+  such cases, this is implemented as a CairoUtilFuncGenBase that produces no code
+  The associated warplib function takes the width of the datatype and the length of the array
+  as parameters to avoid bloating the code with separate functions for each case
+*/
 export class MemoryStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
   getGeneratedCode(): string {
     return '';

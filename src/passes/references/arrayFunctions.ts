@@ -14,6 +14,16 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { generateLiteralTypeString, toHexString } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
 
+/*
+  Replaces array members (push, pop, length) with standalone functions that implement
+  the same purpose in our models of storage and memory.
+  Functions like push and pop are special cases due to not having a referenced
+  FunctionDefinition and being member functions of non-contract objects, so
+  it's easiest to handle them separately before dataAccessFunctionaliser
+  Additionally length needs to be separated as it's handled differently to most member
+  accesses (length is handled as a function that directly returns the length, whereas
+  most member access become a read/write function and an offset function)
+*/
 export class ArrayFunctions extends ReferenceSubPass {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     this.visitExpression(node, ast);

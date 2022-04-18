@@ -14,6 +14,16 @@ import { AST } from '../../ast/ast';
 import { NotSupportedYetError } from '../../utils/errors';
 import { printNode } from '../../utils/astPrinter';
 
+/*
+  Delete is the one operator that treats storage references as references
+  and doesn't just read from them and use that value, so it is handled separately
+  The generated functions overwrite the pointed-to location with zeros.
+
+  Dynamic arrays to complex types currently pose an issue as due to the double-pointer
+  nature of dynamic arrays they'll need their own implementation to delete data that
+  can be pointed to by local references. For simple types they work by deleting the
+  initial pointer to the array, making the data unaccessible
+*/
 export class StorageDelete extends ReferenceSubPass {
   visitUnaryOperation(node: UnaryOperation, ast: AST): void {
     this.visitExpression(node, ast);
