@@ -4,7 +4,6 @@ import {
   RevertStatement,
   ErrorDefinition,
   Conditional,
-  UsingForDirective,
   ImportDirective,
   MemberAccess,
   AddressType,
