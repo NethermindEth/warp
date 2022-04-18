@@ -63,7 +63,6 @@ export class UsingForResolver extends ASTMapper {
       ast.registerChild(memberAccessNode.vExpression, node);
       memberAccessNode.vExpression = libraryIdentifier;
       memberAccessNode.memberName = referencedFn.name;
-      memberAccessNode.referencedDeclaration = referencedFn.id;
       ast.registerChild(libraryIdentifier, memberAccessNode);
     }
 

@@ -248,11 +248,7 @@ function createDelegatingFunction(
     funcToCopy.kind === FunctionKind.Function,
     `Attempted to copy non-member function ${funcToCopy.name}`,
   );
-  // assert(
-  //   funcToCopy.visibility === FunctionVisibility.Public ||
-  //     funcToCopy.visibility === FunctionVisibility.External,
-  //   `Attempted to copy non public/external function ${funcToCopy.name}`,
-  // );
+
   if (funcToCopy.isConstructor) {
     throw new NotSupportedYetError(`Inherited constructors is not implemented yet`);
   }
