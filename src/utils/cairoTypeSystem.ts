@@ -28,7 +28,7 @@ export enum TypeConversionContext {
   MemoryAllocation,
   Ref,
   StorageAllocation,
-  Declaration,
+  Declaration, //Change this to externalFuncDefinition
 }
 
 export abstract class CairoType {
@@ -82,6 +82,9 @@ export abstract class CairoType {
     } else if (tp instanceof MappingType) {
       return new WarpLocation();
     } else if (tp instanceof PointerType) {
+      if (context === TypeConversionContext.Declaration) {
+        return new CairoPointer(CairoType.fromSol(tp.to, ast, context));
+      }
       if (context !== TypeConversionContext.Ref) {
         return CairoType.fromSol(tp.to, ast, context);
       }

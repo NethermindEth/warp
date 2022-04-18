@@ -14,6 +14,7 @@ import { DynArrayLengthGen } from './storage/dynArrayLength';
 import { DynArrayPopGen } from './storage/dynArrayPop';
 import { DynArrayPushWithArgGen } from './storage/dynArrayPushWithArg';
 import { DynArrayPushWithoutArgGen } from './storage/dynArrayPushWithoutArg';
+import { ExternalDynArrayAllocator } from './externalDynArrayInput';
 import { MappingIndexAccessGen } from './storage/mappingIndexAccess';
 import { StorageStaticArrayIndexAccessGen } from './storage/staticArrayIndexAccess';
 import { StorageDeleteGen } from './storage/storageDelete';
@@ -47,8 +48,9 @@ export class CairoUtilFuncGen {
     toMemory: StorageToMemoryGen;
     write: StorageWriteGen;
   };
-  externalInputChecks: {
-    enum: EnumBoundCheckGen;
+  externalFunctions: {
+    inputsChecks: { enum: EnumBoundCheckGen };
+    inputs: { dynArray: ExternalDynArrayAllocator };
   };
 
   private implementation: {
@@ -84,8 +86,9 @@ export class CairoUtilFuncGen {
       toMemory: new StorageToMemoryGen(storageReadGen, ast),
       write: new StorageWriteGen(ast),
     };
-    this.externalInputChecks = {
-      enum: new EnumBoundCheckGen(ast),
+    this.externalFunctions = {
+      inputsChecks: { enum: new EnumBoundCheckGen(ast) },
+      inputs: { dynArray: new ExternalDynArrayAllocator(ast) },
     };
   }
 
