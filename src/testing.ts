@@ -113,6 +113,15 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeConversion/shifts', 'Success'],
   ['example_contracts/typeMinMax', 'Success'],
   ['example_contracts/units', 'Success'],
+  // Memory structs are not supported yet
+  ['example_contracts/using_for/imports/user_defined', 'NotSupportedYet'],
+  // global_directive.sol imports user_defined.sol contract
+  ['example_contracts/using_for/imports/global_directive', 'NotSupportedYet'],
+  // Serialising FunctionType is not supported yet
+  ['example_contracts/using_for/function', 'NotSupportedYet'],
+  ['example_contracts/using_for/private', 'Success'],
+  ['example_contracts/using_for/library', 'Success'],
+  ['example_contracts/using_for/simple', 'Success'],
   ['example_contracts/usingReturnValues', 'Success'],
   ['example_contracts/variable-declarations', 'Success'],
   ['example_contracts/view-function', 'Success'],
