@@ -67,8 +67,20 @@ export const expectations = flatten(
             Expect.Simple('explicit', ['240'], ['240', '240', '0']),
           ]),
 
-          File.Simple('widthsignchange', [Expect.Simple('widthsign', ['60069'], ['4294961829'])]),
+          File.Simple('widthsignwideningItoUchange', [
+            Expect.Simple('widthsignWitou', ['60069'], ['4294961829']),
+          ]),
+          File.Simple('widthsignnarrowingItoUchange', [
+            Expect.Simple('widthsignNitou', ['4294912623'], ['10863']),
+          ]),
+          File.Simple('widthsignwideningUtoIchange', [
+            Expect.Simple('widthsignWutoi', ['32767'], ['32767']),
+          ]),
+          File.Simple('widthsignnarrowingUtoIchange', [
+            Expect.Simple('widthsignNutoi', ['32768'], ['32768']),
+          ]),
         ]),
+
         // covers nested mappings
         new Dir('Dai', [
           new File('dai', 'Dai', [
