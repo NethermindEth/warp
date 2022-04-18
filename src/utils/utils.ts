@@ -304,6 +304,8 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
       node.definition.id,
       new IdentifierPath(ast.reserveId(), '', node.definition.name, node.definition.id),
     );
+  } else if (node instanceof StringType) {
+    return new ElementaryTypeName(ast.reserveId(), '', 'string', 'string', 'nonpayable');
   }
 
   if (result === null) {
@@ -353,8 +355,18 @@ export function getFunctionTypeString(node: FunctionDefinition, compilerVersion:
 export function getReturnTypeString(node: FunctionDefinition): string {
   const returns = node.vReturnParameters.vParameters;
   if (returns.length === 0) return 'tuple()';
-  if (returns.length === 1) return returns[0].typeString;
-  return `tuple(${returns.map((decl) => decl.typeString).join(',')})`;
+  if (returns.length === 1)
+    return `${returns[0].typeString}${
+      returns[0].storageLocation === DataLocation.Default ? '' : ` ${returns[0].storageLocation}`
+    }`;
+  return `tuple(${returns
+    .map(
+      (decl) =>
+        `${decl.typeString}${
+          decl.storageLocation === DataLocation.Default ? '' : ` ${decl.storageLocation}`
+        }`,
+    )
+    .join(',')})`;
 }
 
 export function generateLiteralTypeString(value: string): string {

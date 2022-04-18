@@ -157,8 +157,10 @@ function genReturnVariables(
         returnVariables.push(...genReturnVariables(v.vType, funcDefID, ast));
       });
       if (!canStructBeReturned) return returnVariables;
+      return [newVarDecl(DataLocation.Memory)];
+    } else {
+      return [newVarDecl()];
     }
-    return [newVarDecl(DataLocation.Memory)];
   } else {
     throw new NotSupportedYetError(
       `Getter fn generation for ${vType.type} typenames not implemented yet`,

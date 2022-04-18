@@ -53,7 +53,6 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/events', 'Success'],
   ['example_contracts/external_function', 'Success'],
   // Typestring for the internal function call doesn't contain a location so a read isn't generated
-  ['example_contracts/external_function_struct_return_struct', 'CairoCompileFailed'],
   ['example_contracts/freeFunction', 'Success'],
   ['example_contracts/function-with-nested-return', 'Success'],
   ['example_contracts/functionArgumentConversions', 'Success'],
@@ -91,6 +90,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
   ['example_contracts/namedArgs/function', 'Success'],
   ['example_contracts/payable-function', 'Success'],
+  // Struct outside of contract
   ['example_contracts/pure-function', 'NotSupportedYet'],
   ['example_contracts/return-var-capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],

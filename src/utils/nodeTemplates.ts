@@ -42,8 +42,11 @@ export function createIdentifier(
   ast: AST,
   dataLocation?: DataLocation,
 ): Identifier {
+  const location = dataLocation ?? variable.storageLocation;
   const typeString =
-    dataLocation !== undefined ? `${variable.typeString} ${dataLocation}` : variable.typeString;
+    location !== undefined
+      ? `${variable.typeString} ${location === DataLocation.Default ? '' : location}`
+      : variable.typeString;
   const node = new Identifier(ast.reserveId(), '', typeString, variable.name, variable.id);
   ast.setContextRecursive(node);
   return node;

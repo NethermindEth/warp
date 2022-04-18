@@ -12,7 +12,7 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
-import { createIdentifier, createUint256Literal } from '../../utils/nodeTemplates';
+import { createIdentifier, createNumberLiteral } from '../../utils/nodeTemplates';
 import { isExternallyVisible, mapRange } from '../../utils/utils';
 import { collectUnboundVariables } from '../loopFunctionaliser/utils';
 
@@ -43,10 +43,7 @@ export class StaticArrayModifier extends ASTMapper {
           );
           body.insertAtBeginning(varDeclStatement);
           ids.forEach((identifier) =>
-            ast.replaceNode(
-              identifier,
-              createIdentifier(memoryArray, ast, memoryArray.storageLocation),
-            ),
+            ast.replaceNode(identifier, createIdentifier(memoryArray, ast)),
           );
         });
       ast.setContextRecursive(node);
@@ -100,8 +97,8 @@ export class StaticArrayModifier extends ASTMapper {
           ast.reserveId(),
           '',
           arrayDef.vBaseType.typeString,
-          createIdentifier(calldataArray, ast, calldataArray.storageLocation),
-          createUint256Literal(BigInt(i), ast),
+          createIdentifier(calldataArray, ast),
+          createNumberLiteral(BigInt(i), 'uint248', ast),
         ),
     );
   }

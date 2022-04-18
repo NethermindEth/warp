@@ -1,7 +1,6 @@
 import { DataLocation, Expression } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { printNode } from '../../utils/astPrinter';
 import { ActualLocationAnalyser } from './actualLocationAnalyser';
 import { ArrayFunctions } from './arrayFunctions';
 import { DataAccessFunctionaliser } from './dataAccessFunctionaliser';
@@ -40,7 +39,6 @@ export class References extends ASTMapper {
         root,
         ast,
       );
-      printLocations(actualDataLocations, expectedDataLocations);
       new MemoryAllocations(actualDataLocations, expectedDataLocations).dispatchVisit(root, ast);
       new ArrayFunctions(actualDataLocations, expectedDataLocations).dispatchVisit(root, ast);
       new StorageDelete(actualDataLocations, expectedDataLocations).dispatchVisit(root, ast);
@@ -53,13 +51,13 @@ export class References extends ASTMapper {
   }
 }
 
-function printLocations(
-  actualDataLocations: Map<Expression, DataLocation>,
-  expectedDataLocations: Map<Expression, DataLocation>,
-): void {
-  [...actualDataLocations.entries()].forEach(([expr, loc]) => {
-    console.log(
-      `${printNode(expr)}: actual - ${loc}, expected - ${expectedDataLocations.get(expr)}`,
-    );
-  });
-}
+// function printLocations(
+//   actualDataLocations: Map<Expression, DataLocation>,
+//   expectedDataLocations: Map<Expression, DataLocation>,
+// ): void {
+//   [...actualDataLocations.entries()].forEach(([expr, loc]) => {
+//     console.log(
+//       `${printNode(expr)}: actual - ${loc}, expected - ${expectedDataLocations.get(expr)}`,
+//     );
+//   });
+// }

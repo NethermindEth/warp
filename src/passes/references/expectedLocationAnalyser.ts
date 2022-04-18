@@ -131,7 +131,12 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     const baseLoc = this.actualLocations.get(node.vBaseExpression);
     assert(baseLoc !== undefined);
     const type = getNodeType(node.vBaseExpression, ast.compilerVersion);
-    if (type instanceof PointerType && type.to instanceof ArrayType && type.to.size === undefined) {
+    if (
+      type instanceof PointerType &&
+      type.location === DataLocation.Storage &&
+      type.to instanceof ArrayType &&
+      type.to.size === undefined
+    ) {
       this.expectedLocations.set(node.vBaseExpression, DataLocation.Default);
     } else {
       this.expectedLocations.set(node.vBaseExpression, baseLoc);

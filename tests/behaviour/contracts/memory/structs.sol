@@ -39,7 +39,7 @@ contract WARP {
       return (s.a, s.b);
     }
 
-    function ouptut(uint8 a, uint256 b) pure public returns (S memory) {
+    function output(uint8 a, uint256 b) pure public returns (S memory) {
       return S(a,b);
     }
 }

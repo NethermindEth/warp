@@ -26,6 +26,7 @@ export class ArrayFunctions extends ReferenceSubPass {
     if (node.vFunctionName === 'pop') {
       const replacement = ast.getUtilFuncGen(node).storage.dynArrayPop.gen(node);
       this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
+      this.expectedDataLocations.set(replacement.vArguments[0], DataLocation.Default);
     } else if (node.vFunctionName === 'push') {
       let replacement: FunctionCall;
       if (node.vArguments.length > 0) {

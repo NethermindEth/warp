@@ -5,7 +5,6 @@ import {
   FunctionCall,
   getNodeType,
   DataLocation,
-  PointerType,
 } from 'solc-typed-ast';
 import {
   CairoFelt,
@@ -30,13 +29,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
     const functionStub = createCairoFunctionStub(
       name,
       [['loc', cloneASTNode(type, this.ast), DataLocation.Memory]],
-      [
-        [
-          'val',
-          cloneASTNode(type, this.ast),
-          valueType instanceof PointerType ? DataLocation.Memory : DataLocation.Default,
-        ],
-      ],
+      [['val', cloneASTNode(type, this.ast), DataLocation.Default]],
       ['range_check_ptr', 'warp_memory'],
       this.ast,
       nodeInSourceUnit ?? memoryRef,

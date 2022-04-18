@@ -4,7 +4,6 @@ import {
   DataLocation,
   FunctionCall,
   getNodeType,
-  PointerType,
   TupleExpression,
   TypeNode,
 } from 'solc-typed-ast';
@@ -14,7 +13,7 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { notNull } from '../../utils/typeConstructs';
 import { dereferenceType, mapRange, narrowBigInt, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { add, StringIndexedFuncGen } from '../base';
+import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
 
 export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
   gen(node: TupleExpression): FunctionCall {
@@ -35,7 +34,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       mapRange(size, (n) => [
         `e${n}`,
         typeNameFromTypeNode(type.elementT, this.ast),
-        type.elementT instanceof PointerType ? DataLocation.Memory : DataLocation.Default,
+        locationIfComplexType(type.elementT, DataLocation.Memory),
       ]),
       [['arr', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
       ['range_check_ptr', 'warp_memory'],

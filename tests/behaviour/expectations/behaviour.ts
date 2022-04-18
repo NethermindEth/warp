@@ -471,6 +471,16 @@ export const expectations = flatten(
               ],
             ),
           ]),
+          File.Simple('struct_return_struct', [
+            new Expect(
+              'testing that memory struct is written to memory and full struct is returned from external function',
+              [['testReturnStruct', ['1', '2'], ['1', '2'], '0']],
+            ),
+            new Expect(
+              'testing that memory struct is written to memory and full struct is returned from pubic function',
+              [['testReturnStructPublic', ['1', '2'], ['1', '2'], '0']],
+            ),
+          ]),
           File.Simple('static_array_return_index', [
             new Expect(
               'testing a static array of ints can be passed into an external function and written to memory and index returned.',

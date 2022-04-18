@@ -1,4 +1,14 @@
+import {
+  ArrayType,
+  DataLocation,
+  MappingType,
+  PointerType,
+  StructDefinition,
+  TypeNode,
+  UserDefinedType,
+} from 'solc-typed-ast';
 import { AST } from '../ast/ast';
+import { dereferenceType } from '../utils/utils';
 
 export type CairoFunction = {
   name: string;
@@ -38,4 +48,21 @@ export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
 
 export function add(base: string, offset: number): string {
   return offset === 0 ? base : `${base} + ${offset}`;
+}
+
+export function locationIfPointer(type: TypeNode, location: DataLocation): DataLocation {
+  return type instanceof PointerType ? location : DataLocation.Default;
+}
+
+export function locationIfComplexType(type: TypeNode, location: DataLocation): DataLocation {
+  const base = dereferenceType(type);
+  if (
+    base instanceof ArrayType ||
+    base instanceof MappingType ||
+    (base instanceof UserDefinedType && base.definition instanceof StructDefinition)
+  ) {
+    return location;
+  } else {
+    return DataLocation.Default;
+  }
 }

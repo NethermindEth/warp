@@ -5,12 +5,11 @@ import {
   FunctionCall,
   getNodeType,
   DataLocation,
-  PointerType,
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
-import { add, StringIndexedFuncGen } from '../base';
+import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
 
 export class StorageReadGen extends StringIndexedFuncGen {
@@ -29,7 +28,7 @@ export class StorageReadGen extends StringIndexedFuncGen {
         [
           'val',
           cloneASTNode(type, this.ast),
-          valueType instanceof PointerType ? DataLocation.Storage : DataLocation.Default,
+          locationIfComplexType(valueType, DataLocation.Storage),
         ],
       ],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],

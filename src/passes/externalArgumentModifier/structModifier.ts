@@ -73,10 +73,7 @@ export class StructModifier extends ASTMapper {
           );
           body.insertAtBeginning(varDeclStatement);
           ids.forEach((identifier) =>
-            ast.replaceNode(
-              identifier,
-              createIdentifier(memoryStruct, ast, memoryStruct.storageLocation),
-            ),
+            ast.replaceNode(identifier, createIdentifier(memoryStruct, ast)),
           );
         });
       ast.setContextRecursive(node);
@@ -150,7 +147,7 @@ export class StructModifier extends ASTMapper {
         varDecl.vType.vReferencedDeclaration instanceof StructDefinition,
     );
     const memberAccessArray = varDecl.vType.vReferencedDeclaration.vMembers.map((member) => {
-      const newIdentifier = createIdentifier(varDecl, ast, varDecl.storageLocation);
+      const newIdentifier = createIdentifier(varDecl, ast);
       return new MemberAccess(
         ast.reserveId(),
         '',

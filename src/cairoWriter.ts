@@ -270,7 +270,6 @@ class SourceUnitWriter extends CairoASTNodeWriter {
 
 function writeContractInterface(node: ContractDefinition, writer: ASTWriter): SrcDesc {
   const documentation = getDocumentation(node.documentation, writer);
-  const structs = node.vStructs.map((value) => writer.write(value));
   const functions = node.vFunctions.map((v) =>
     writer
       .write(v)
@@ -285,7 +284,6 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
   return [
     [
       documentation,
-      ...structs,
       [`@contract_interface`, `namespace ${name}:`, ...functions, `end`].join('\n'),
     ].join('\n'),
   ];
