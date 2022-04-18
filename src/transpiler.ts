@@ -75,12 +75,12 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Ss', SourceUnitSplitter],
     ['Ru', RejectUnsupportedFeatures],
-    ['Bc', BytesConverter],
     ['L', LiteralExpressionEvaluator],
     ['Ufr', UsingForResolver],
     ['Na', NamedArgsRemover],
     ['Gp', PublicStateVarsGetterGenerator],
     ['Ib', IntBoundCalculator],
+    ['Bc', BytesConverter],
     ['Ch', ConstantHandler],
     ['M', IdentifierMangler],
     ['Fi', FreeLibraryCallInliner],
