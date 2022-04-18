@@ -8,7 +8,6 @@ import {
   DataLocation,
   getNodeType,
   UserDefinedType,
-  UsingForDirective,
   ImportDirective,
   MemberAccess,
   AddressType,
@@ -44,14 +43,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     ) {
       throw new NotSupportedYetError(
         `Memory structs not supported yet, found at ${printNode(node)}`,
-      );
-    }
-    this.commonVisit(node, ast);
-  }
-  visitUsingForDirective(node: UsingForDirective, ast: AST): void {
-    if (node.vLibraryName === undefined) {
-      throw new NotSupportedYetError(
-        `Non-library using fors not supported yet, found at ${printNode(node)}`,
       );
     }
     this.commonVisit(node, ast);
