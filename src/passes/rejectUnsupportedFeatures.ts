@@ -47,9 +47,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       );
     }
     if (getNodeType(node, ast.compilerVersion) instanceof FunctionType)
-      throw new NotSupportedYetError(
-        `Function objects not supported yet, found at ${printNode(node)}`,
-      );
+      throw new WillNotSupportError('Function objects are not supported');
     this.commonVisit(node, ast);
   }
   visitImportDirective(node: ImportDirective, _ast: AST): void {
