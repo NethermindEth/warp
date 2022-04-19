@@ -110,7 +110,7 @@ const expectedResults = new Map<string, ResultType>([
   // global_directive.sol imports user_defined.sol contract
   ['example_contracts/using_for/imports/global_directive', 'NotSupportedYet'],
   // Serialising FunctionType is not supported yet
-  ['example_contracts/using_for/function', 'NotSupportedYet'],
+  ['example_contracts/using_for/function', 'WillNotSupport'],
   ['example_contracts/using_for/private', 'Success'],
   ['example_contracts/using_for/library', 'Success'],
   ['example_contracts/using_for/simple', 'Success'],
