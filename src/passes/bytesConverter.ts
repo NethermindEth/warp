@@ -1,20 +1,18 @@
 import {
   ArrayType,
   ArrayTypeName,
-  Assignment,
-  BinaryOperation,
+  ContractDefinition,
   DataLocation,
   ElementaryTypeName,
+  Expression,
   FixedBytesType,
-  FunctionCall,
   FunctionDefinition,
   getNodeType,
   Identifier,
-  IndexAccess,
   IntType,
   Literal,
-  MemberAccess,
-  UnaryOperation,
+  PointerType,
+  SourceUnit,
   typeNameToTypeNode,
   VariableDeclaration,
 } from 'solc-typed-ast';
@@ -38,29 +36,34 @@ export class BytesConverter extends ASTMapper {
     return new IntType(typeNode.size * 8, false, undefined);
   }
 
-  visitAssignment(node: Assignment, ast: AST): void {
-    const typeNode = getNodeType(node, ast.compilerVersion);
-    if (typeNode instanceof FixedBytesType) {
-      const replacementTypeNode = this.replacementIntTypeNode(typeNode);
-      node.typeString = replacementTypeNode.pp();
-    }
+  visitSourceUnit(node: SourceUnit, ast: AST): void {
+    node.vVariables.forEach((n) => this.visitVariableDeclaration(n, ast));
+    node.vContracts.forEach((n) => this.visitContractDefinition(n, ast));
     this.commonVisit(node, ast);
   }
 
-  visitBinaryOperation(node: BinaryOperation, ast: AST): void {
-    const typeNode = getNodeType(node, ast.compilerVersion);
-    if (typeNode instanceof FixedBytesType) {
-      const replacementTypeNode = this.replacementIntTypeNode(typeNode);
-      node.typeString = replacementTypeNode.pp();
-    }
+  visitContractDefinition(node: ContractDefinition, ast: AST): void {
+    node.vStateVariables.forEach((n) => this.visitVariableDeclaration(n, ast));
+    node.vFunctions.forEach((n) => this.commonVisit(n, ast));
     this.commonVisit(node, ast);
   }
 
-  visitFunctionCall(node: FunctionCall, ast: AST): void {
+  visitExpression(node: Expression, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FixedBytesType) {
       const replacementTypeNode = this.replacementIntTypeNode(typeNode);
       node.typeString = replacementTypeNode.pp();
+    } else if (typeNode instanceof ArrayType && typeNode.elementT instanceof FixedBytesType) {
+      const replacementIntTypeNode = this.replacementIntTypeNode(typeNode.elementT);
+      node.typeString = `${replacementIntTypeNode.pp()}[${
+        typeNode.size !== undefined ? typeNode.size : ''
+      }]`;
+    } else if (
+      typeNode instanceof PointerType &&
+      typeNode.to instanceof ArrayType &&
+      typeNode.to.elementT instanceof FixedBytesType
+    ) {
+      node.typeString = `${typeNode.to.pp()} ${typeNode.location}`;
     }
     this.commonVisit(node, ast);
   }
@@ -77,53 +80,11 @@ export class BytesConverter extends ASTMapper {
           node.typeString = `${referencedTypeNode.pp()} storage ref`;
         else if (node.vReferencedDeclaration.storageLocation === DataLocation.Memory)
           node.typeString = `${referencedTypeNode.pp()} memory`;
+        else node.typeString = `${referencedTypeNode.pp()} storage pointer`;
       }
     } else if (node.vReferencedDeclaration instanceof FunctionDefinition) {
-      // Visit FunctionDefinition to ensure variable declarations for bytesN have
-      // been replaced with uintN.
-      this.commonVisit(node.vReferencedDeclaration, ast);
       node.typeString = getFunctionTypeString(node.vReferencedDeclaration, ast.compilerVersion);
     }
-  }
-
-  visitIndexAccess(node: IndexAccess, ast: AST): void {
-    const typeNode = getNodeType(node, ast.compilerVersion);
-    if (typeNode instanceof FixedBytesType) {
-      const replacementTypeNode = this.replacementIntTypeNode(typeNode);
-      node.typeString = replacementTypeNode.pp();
-    }
-    this.commonVisit(node, ast);
-  }
-
-  visitLiteral(node: Literal, _: AST): void {
-    if (node.typeString.startsWith('int_const ') && node.value.startsWith('0x')) {
-      node.value = this.replacementLiteralIntValue(node);
-    }
-  }
-
-  visitMemberAccess(node: MemberAccess, ast: AST): void {
-    const typeNode = getNodeType(node, ast.compilerVersion);
-    if (typeNode instanceof FixedBytesType) {
-      const replacementTypeNode = this.replacementIntTypeNode(typeNode);
-      node.typeString = replacementTypeNode.pp();
-    } else if (
-      node.vExpression instanceof Identifier &&
-      node.vExpression.vReferencedDeclaration instanceof VariableDeclaration &&
-      node.vExpression.vReferencedDeclaration.vType instanceof ArrayTypeName &&
-      node.memberName === 'push'
-    ) {
-      node.typeString = `function (${node.vExpression.vReferencedDeclaration.vType.vBaseType.typeString})`;
-    }
-    this.commonVisit(node, ast);
-  }
-
-  visitUnaryOperation(node: UnaryOperation, ast: AST): void {
-    const typeNode = getNodeType(node, ast.compilerVersion);
-    if (typeNode instanceof FixedBytesType) {
-      const replacementTypeNode = this.replacementIntTypeNode(typeNode);
-      node.typeString = replacementTypeNode.pp();
-    }
-    this.commonVisit(node, ast);
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
