@@ -1,10 +1,11 @@
 import {
+  DataLocation,
   ElementaryTypeName,
   Identifier,
   Literal,
   LiteralKind,
-  TupleExpression,
   ParameterList,
+  TupleExpression,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -36,8 +37,30 @@ export function createEmptyTuple(ast: AST): TupleExpression {
   return node;
 }
 
-export function createIdentifier(variable: VariableDeclaration, ast: AST): Identifier {
-  const node = new Identifier(ast.reserveId(), '', variable.typeString, variable.name, variable.id);
+export function createIdentifier(
+  variable: VariableDeclaration,
+  ast: AST,
+  dataLocation?: DataLocation,
+): Identifier {
+  const location = dataLocation ?? variable.storageLocation;
+  const typeString =
+    location !== undefined
+      ? `${variable.typeString} ${location === DataLocation.Default ? '' : location}`
+      : variable.typeString;
+  const node = new Identifier(ast.reserveId(), '', typeString, variable.name, variable.id);
+  ast.setContextRecursive(node);
+  return node;
+}
+
+export function createNumberLiteral(value: bigint, typeString: string, ast: AST): Literal {
+  const node = new Literal(
+    ast.reserveId(),
+    '',
+    typeString,
+    LiteralKind.Number,
+    toHexString(value.toString()),
+    value.toString(),
+  );
   ast.setContextRecursive(node);
   return node;
 }

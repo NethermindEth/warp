@@ -111,19 +111,22 @@ function genContractInterface(
     contract.usedErrors,
   );
 
-  contract.vFunctions.forEach((func) => {
-    // return if func is constructor
-    if (func.kind === FunctionKind.Constructor) return;
+  contract.vFunctions
+    .filter((func) => func.kind !== FunctionKind.Constructor)
+    .forEach((func) => {
+      const funcBody = func.vBody;
+      func.vBody = undefined;
+      const funcClone = cloneASTNode(func, ast);
 
-    const funcBody = func.vBody;
-    func.vBody = undefined;
-    const funcClone = cloneASTNode(func, ast);
-    funcClone.acceptChildren();
-
-    func.vBody = funcBody;
-    contractInterface.appendChild(funcClone);
-    ast.registerChild(funcClone, contractInterface);
-  });
+      // TODO check whether it's worth detaching all bodies in the contract's functions,
+      // cloning the entire contract, then reattaching (can anything in the function but
+      // not the body reference the containing contract other than .scope?)
+      funcClone.scope = contractId;
+      funcClone.implemented = false;
+      func.vBody = funcBody;
+      contractInterface.appendChild(funcClone);
+      ast.registerChild(funcClone, contractInterface);
+    });
   sourceUnit.appendChild(contractInterface);
   ast.registerChild(contractInterface, sourceUnit);
   return contractInterface;

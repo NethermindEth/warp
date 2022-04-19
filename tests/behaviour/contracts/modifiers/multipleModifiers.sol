@@ -11,9 +11,7 @@ contract WARP {
   }
 
   modifier isOpen() {
-    // TODO - Remove variable `temp` once reference/copy semantics is done
-    bool temp = open;
-    require(temp, 'The event must be open in order to receive donations');
+    require(open, 'The event must be open in order to receive donations');
     _;
   }
 

@@ -269,6 +269,20 @@ export const expectations = flatten(
             'C',
           ),
         ]),
+        new Dir('using_for', [
+          File.Simple('simple', [
+            Expect.Simple('callOnIdentifier', [], ['6', '0']),
+            Expect.Simple('callOnFunctionCall', [], ['60', '0']),
+          ]),
+          File.Simple('library', [
+            Expect.Simple('callOnIdentifierAdd', [], ['6', '0']),
+            Expect.Simple('callOnIdentifierMul', [], ['2', '0']),
+            Expect.Simple('callLibFunction', [], ['1', '0']),
+          ]),
+          File.Simple('private', [
+            Expect.Simple('callOnIdentifier', ['23', '0', '3', '0'], ['69', '0']),
+          ]),
+        ]),
         // covers nested mappings
         new Dir('Dai', [
           new File(
@@ -330,6 +344,7 @@ export const expectations = flatten(
               ['clearAt', ['2', '0'], [], '0'],
               ['get', ['2', '0'], ['0'], '0'],
               ['get', ['0', '0'], ['8'], '0'],
+              ['getLength', [], ['3', '0'], '0'],
               ['clear', [], [], '0'],
               ['getLength', [], ['0', '0'], '0'],
             ]),
@@ -516,6 +531,74 @@ export const expectations = flatten(
                 '340282366920938463463370103832140840960',
                 '0',
                 '170141183460469231731687303715884105728',
+              ],
+            ),
+          ]),
+        ]),
+        new Dir('external_function_inputs', [
+          File.Simple('struct_return_member', [
+            new Expect('testing that memory struct is written to memory and member is returned', [
+              ['testReturnMember', ['1', '2'], ['1'], '0'],
+            ]),
+            new Expect(
+              'testing that multiple memory structs are written to memory and members returned',
+              [['testMultipleStructsMembers', ['1', '2', '0', '8', '10'], ['11'], '0']],
+            ),
+            new Expect(
+              'testing that multiple memory structs are written to memory and members returned and passed correctly between external and internal functions',
+              [
+                [
+                  'testMultipleStructsPublicFunctionMember',
+                  ['1', '2', '0', '8', '10'],
+                  ['11'],
+                  '0',
+                ],
+              ],
+            ),
+          ]),
+          File.Simple('struct_return_struct', [
+            new Expect(
+              'testing that memory struct is written to memory and full struct is returned from external function',
+              [['testReturnStruct', ['1', '2'], ['1', '2'], '0']],
+            ),
+            new Expect(
+              'testing that memory struct is written to memory and full struct is returned from pubic function',
+              [['testReturnStructPublic', ['1', '2'], ['1', '2'], '0']],
+            ),
+          ]),
+          File.Simple('static_array_return_index', [
+            new Expect(
+              'testing a static array of ints can be passed into an external function and written to memory and index returned.',
+              [['testIntExternal', ['1', '2', '3'], ['3'], '0']],
+            ),
+            new Expect(
+              'testing a static array of ints can be passed into a public function and written to memory and index returned.',
+              [['testIntPublic', ['1', '2', '3'], ['3'], '0']],
+            ),
+            new Expect(
+              'testing a static array of structs can be passed into an external function and written to memory and index returned.',
+              [
+                [
+                  'testStructExternal',
+                  ['1', '2', '0 ', '3', '4', '0', '5', '6', '0'],
+                  ['5', '6', '0'],
+                  '0',
+                ],
+              ],
+            ),
+            new Expect(
+              'testing a static array of structs can be passed into a public function and written to memory and index returned.',
+              [['testStructPublic', ['1', '2', '0 ', '3', '4', '0', '5', '6', '0'], ['5'], '0']],
+            ),
+            new Expect(
+              'testing when multiple inputs all of them are written into memory and read correctly.',
+              [
+                [
+                  'testMultiplePublic',
+                  ['1', '2', '0 ', '3', '4', '0', '5', '6', '0', '111', '10', '11', '12'],
+                  ['13'],
+                  '0',
+                ],
               ],
             ),
           ]),
@@ -1112,6 +1195,44 @@ export const expectations = flatten(
             Expect.Simple('uint8write', ['5'], ['0', '5']),
             Expect.Simple('uint256new', [], ['0', '0', '0', '0']),
             Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
+          ]),
+          File.Simple('staticArrays', [
+            Expect.Simple('uint8default', [], ['0', '0']),
+            Expect.Simple('uint8write', ['5'], ['0', '5']),
+            Expect.Simple('uint256default', [], ['0', '0', '0', '0']),
+            Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
+          ]),
+          File.Simple('structs', [
+            Expect.Simple('createDefault', [], ['0', '0', '0']),
+            Expect.Simple('createManual', ['1', '2', '3'], ['1', '2', '3']),
+            Expect.Simple('writeMembers', ['1', '2', '3'], ['1', '2', '3']),
+            Expect.Simple('references', ['1', '2', '3'], ['1', '2', '3']),
+            Expect.Simple('input', ['3', '4', '5'], ['4', '5', '5']),
+            Expect.Simple('output', ['3', '4', '5'], ['3', '4', '5']),
+          ]),
+        ]),
+        new Dir('modifiers', [
+          File.Simple('modifier', [
+            Expect.Simple('f', ['90000', '0'], ['10000', '0']),
+            Expect.Simple('f', ['110000', '0'], ['0', '0']),
+          ]),
+          File.Simple('multipleModifiers', [
+            new Expect('modifier', [
+              ['openEvent', [], [], '0'],
+              ['donate', ['238', '0'], ['238', '0'], '0'],
+              ['donate', ['100', '0'], ['338', '0'], '0'],
+              ['donate', ['50', '0'], null, '0', 'Value for donation must be bigger than 100'],
+              ['balance', [], ['338', '0'], '0'],
+              ['closeEvent', [], [], '0'],
+              [
+                'donate',
+                ['500', '0'],
+                null,
+                '0',
+                'The event must be open in order to receive donations',
+              ],
+              ['balance', [], ['0', '0'], '0'],
+            ]),
           ]),
         ]),
         new Dir('modifiers', [

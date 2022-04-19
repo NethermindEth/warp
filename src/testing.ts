@@ -32,13 +32,16 @@ const ResultTypeOrder = [
 const expectedResults = new Map<string, ResultType>([
   ['example_contracts/ERC20', 'Success'],
   ['example_contracts/ERC20_storage', 'Success'],
+  // Uses conditionals
   ['example_contracts/c2c', 'NotSupportedYet'],
   ['example_contracts/contract_to_contract', 'Success'],
   ['example_contracts/calldatacopy', 'WillNotSupport'],
   ['example_contracts/calldataload', 'WillNotSupport'],
   ['example_contracts/calldatasize', 'WillNotSupport'],
   ['example_contracts/comments', 'Success'],
+  // Uses conditionals
   ['example_contracts/constructors_dyn', 'NotSupportedYet'],
+  // Uses conditionals
   ['example_contracts/constructors_nonDyn', 'NotSupportedYet'],
   ['example_contracts/dai', 'Success'],
   ['example_contracts/delete', 'SolCompileFailed'],
@@ -49,6 +52,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/errorHandling/revert', 'Success'],
   ['example_contracts/events', 'Success'],
   ['example_contracts/external_function', 'Success'],
+  // Typestring for the internal function call doesn't contain a location so a read isn't generated
   ['example_contracts/freeFunction', 'Success'],
   ['example_contracts/function-with-nested-return', 'Success'],
   ['example_contracts/functionArgumentConversions', 'Success'],
@@ -60,6 +64,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/inheritance/super/derived', 'Success'],
   ['example_contracts/inheritance/super/mid', 'Success'],
   ['example_contracts/inheritance/variables', 'Success'],
+  // Requires struct imports
   ['example_contracts/interfaces', 'NotSupportedYet'],
   ['example_contracts/invalidSolidity', 'SolCompileFailed'],
   ['example_contracts/lib', 'Success'],
@@ -76,6 +81,8 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/memberAccess/send', 'WillNotSupport'],
   ['example_contracts/memberAccess/staticcall', 'WillNotSupport'],
   ['example_contracts/memberAccess/transfer', 'WillNotSupport'],
+  // Deleting a storage dynamic array doesn't currently affect references to elements
+  ['example_contracts/mutableReferences/deepDelete', 'NotSupportedYet'],
   ['example_contracts/mutableReferences/memory', 'Success'],
   ['example_contracts/mutableReferences/mutableReferences', 'Success'],
   ['example_contracts/mutableReferences/scalarStorage', 'Success'],
@@ -83,6 +90,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
   ['example_contracts/namedArgs/function', 'Success'],
   ['example_contracts/payable-function', 'Success'],
+  // Struct outside of contract
   ['example_contracts/pure-function', 'NotSupportedYet'],
   ['example_contracts/return-var-capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],
@@ -91,9 +99,9 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/sstore-sload', 'WillNotSupport'],
   ['example_contracts/state_variables/scalars', 'Success'],
   ['example_contracts/state_variables/enums', 'Success'],
-  ['example_contracts/state_variables/arrays', 'NotSupportedYet'],
+  // Typestrings don't include data location leading to incorrect type analysis
+  ['example_contracts/state_variables/arrays', 'CairoCompileFailed'],
   ['example_contracts/state_variables/mappings', 'Success'],
-  // Requires memory structs and reference type returns from public functions
   ['example_contracts/state_variables/structs', 'CairoCompileFailed'],
   ['example_contracts/state_variables/misc', 'NotSupportedYet'],
   ['example_contracts/structs', 'Success'],
@@ -105,8 +113,17 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeConversion/shifts', 'Success'],
   ['example_contracts/typeMinMax', 'Success'],
   ['example_contracts/units', 'Success'],
+  // Uses WARP_STORAGE in a free function
+  ['example_contracts/using_for/imports/user_defined', 'CairoCompileFailed'],
+  // global_directive.sol cannot resolve struct when file imported as identifier
+  ['example_contracts/using_for/imports/global_directive', 'CairoCompileFailed'],
+  // Serialising FunctionType is not supported yet - will become WillNotSupport with PR#313
+  ['example_contracts/using_for/function', 'NotSupportedYet'],
+  ['example_contracts/using_for/private', 'Success'],
+  ['example_contracts/using_for/library', 'Success'],
+  ['example_contracts/using_for/simple', 'Success'],
   ['example_contracts/usingReturnValues', 'Success'],
-  ['example_contracts/variable-declarations', 'NotSupportedYet'],
+  ['example_contracts/variable-declarations', 'Success'],
   ['example_contracts/view-function', 'Success'],
 ]);
 
@@ -246,12 +263,16 @@ function printResults(results: Map<string, ResultType>, unexpectedResults: strin
       console.log(`Actual outcome:`);
       const Actual = new Map<string, ResultType>();
       results.forEach((value, key) => {
-        if (key.includes(o)) {
+        if (
+          key === o ||
+          key.startsWith(`${o}__WARP_CONTRACT__`) ||
+          key.startsWith(`${o}__WARP_FREE__`)
+        ) {
           Actual.set(key, value);
         }
       });
       Actual.forEach((value, key) => {
-        if (key.includes('WARP')) {
+        if (key.includes('__WARP_CONTRACT__') || key.includes('__WARP_FREE__')) {
           console.log(key + '.cairo' + ' : ' + value);
         } else {
           console.log(key + '.sol' + ' : ' + value);

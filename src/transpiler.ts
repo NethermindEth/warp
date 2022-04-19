@@ -1,12 +1,18 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
+import { TranspilationOptions } from '.';
+import { AST } from './ast/ast';
+import { ASTMapper } from './ast/mapper';
+import { CairoASTMapping } from './cairoWriter';
 import {
   AnnotateImplicits,
   BuiltinHandler,
   BytesConverter,
+  CairoUtilImporter,
   ConstantHandler,
   DeleteHandler,
   EnumConverter,
   ExpressionSplitter,
+  ExternalArgumentModifier,
   ExternalContractHandler,
   ExternalInputChecker,
   ExternImporter,
@@ -18,36 +24,29 @@ import {
   IntBoundCalculator,
   LiteralExpressionEvaluator,
   LoopFunctionaliser,
-  MemoryHandler,
   ModifierHandler,
   NamedArgsRemover,
   PublicFunctionSplitter,
   PublicStateVarsGetterGenerator,
   ReferencedLibraries,
+  References,
   RejectUnsupportedFeatures,
   ReturnInserter,
   ReturnVariableInitializer,
   SourceUnitSplitter,
   StorageAllocator,
-  Storage,
   TupleAssignmentSplitter,
-  Uint256Importer,
   UnloadingAssignment,
   UnreachableStatementPruner,
   UsingForResolver,
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
 } from './passes';
-import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
-import { printCompileErrors, runSanityCheck } from './utils/utils';
-
-import { AST } from './ast/ast';
-import { ASTMapper } from './ast/mapper';
-import { CairoASTMapping } from './cairoWriter';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
-import { TranspilationOptions } from '.';
 import { createPassMap, parsePassOrder } from './utils/cliOptionParsing';
+import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
+import { printCompileErrors, runSanityCheck } from './utils/utils';
 
 type CairoSource = [file: string, source: string];
 
@@ -89,6 +88,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['Mh', ModifierHandler],
     ['Sa', StorageAllocator],
     ['Pfs', PublicFunctionSplitter],
+    ['Eam', ExternalArgumentModifier],
     ['Ei', ExternImporter],
     ['Lf', LoopFunctionaliser],
     ['R', ReturnInserter],
@@ -98,8 +98,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
     ['Vs', VariableDeclarationExpressionSplitter],
-    ['Me', MemoryHandler],
-    ['S', Storage],
+    ['Rf', References],
     ['Bc', BytesConverter],
     ['Eic', ExternalInputChecker],
     ['Ec', EnumConverter],
@@ -109,7 +108,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['Us', UnreachableStatementPruner],
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
-    ['Ui', Uint256Importer],
+    ['Ci', CairoUtilImporter],
   ]);
 
   const passesInOrder: typeof ASTMapper[] = parsePassOrder(options.order, options.until, passes);

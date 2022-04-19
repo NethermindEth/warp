@@ -4,14 +4,10 @@ import {
   RevertStatement,
   ErrorDefinition,
   Conditional,
-  VariableDeclaration,
-  DataLocation,
-  getNodeType,
-  UserDefinedType,
-  UsingForDirective,
   ImportDirective,
   MemberAccess,
   AddressType,
+  getNodeType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -36,25 +32,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
   visitConditional(_node: Conditional, _ast: AST): void {
     throw new WillNotSupportError('Conditional expressions (ternary operator) are not supported');
-  }
-  visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
-    if (
-      node.storageLocation === DataLocation.Memory &&
-      getNodeType(node, ast.compilerVersion) instanceof UserDefinedType
-    ) {
-      throw new NotSupportedYetError(
-        `Memory structs not supported yet, found at ${printNode(node)}`,
-      );
-    }
-    this.commonVisit(node, ast);
-  }
-  visitUsingForDirective(node: UsingForDirective, ast: AST): void {
-    if (node.vLibraryName === undefined) {
-      throw new NotSupportedYetError(
-        `Non-library using fors not supported yet, found at ${printNode(node)}`,
-      );
-    }
-    this.commonVisit(node, ast);
   }
   visitImportDirective(node: ImportDirective, _ast: AST): void {
     if (node.children.length !== 0) {
