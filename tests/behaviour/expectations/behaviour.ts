@@ -841,6 +841,12 @@ export const expectations = flatten(
               ['500', '0'],
               [Expect.Simple('a', [], ['0', '0'])],
             ),
+            new File(
+              'abstractContract',
+              'C',
+              ['250', '0'],
+              [Expect.Simple('f', ['412', '0'], ['662', '0'])],
+            ),
           ]),
           new Dir('functions', [
             new File('base', 'Base', [], [Expect.Simple('g', ['3'], ['3'])]),
