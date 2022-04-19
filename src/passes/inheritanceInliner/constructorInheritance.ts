@@ -1,6 +1,5 @@
 import assert from 'assert';
 import {
-  Block,
   ContractDefinition,
   Expression,
   ExpressionStatement,
@@ -31,12 +30,12 @@ export function solveConstructorInheritance(node: ContractDefinition, ast: AST) 
     if (constructorFunc !== undefined) constructors.set(contract.id, constructorFunc);
   });
 
-  const selfConstructor = node.vConstructor ?? createDefaultConstructor(node, ast);
-
   // Collect arguments passed to constructors of linearized contracts
   const statements: Statement[] = [];
   const args: Map<number, Expression[]> = new Map();
   const mappedVars: Map<number, VariableDeclaration> = new Map();
+
+  const selfConstructor = generateFunctionForConstructor(node, mappedVars, ast);
   node.vLinearizedBaseContracts.forEach((contract) => {
     const constructorFunc = constructors.get(contract.id);
     collectArguments(
@@ -78,19 +77,14 @@ export function solveConstructorInheritance(node: ContractDefinition, ast: AST) 
       }
     });
 
+  // Change the constructor of this contract into a regular function to be called from `selfConstructor`
+  transformConstructor(node, selfConstructor, statements, ast);
+
   // Add generated function calls to the body of this contract's constructor
   if (statements.length > 0) {
-    if (selfConstructor.vBody === undefined) generateBody(statements, selfConstructor, ast);
-    else {
-      const body = selfConstructor.vBody;
-      statements
-        .slice()
-        .reverse()
-        .forEach((stmt) => {
-          body.insertAtBeginning(stmt);
-        });
-    }
+    generateBody(statements, selfConstructor, ast);
     ast.setContextRecursive(selfConstructor);
+    node.appendChild(selfConstructor);
   }
 }
 
@@ -154,6 +148,32 @@ function collectArguments(
   }
 }
 
+function getArguments(
+  args: Expression[],
+  parameters: VariableDeclaration[],
+  idRemapping: Map<number, VariableDeclaration>,
+  statements: Statement[],
+  scope: number,
+  ast: AST,
+): Expression[] {
+  const size = args.length;
+  const argList: Expression[] = [];
+  for (let i = 0; i < size; ++i) {
+    const newArg = cloneASTNode(args[i], ast);
+    updateReferencedDeclarations(newArg, idRemapping, ast);
+    const newVar = cloneASTNode(parameters[i], ast);
+    newVar.name = `__warp_constructor_parameter_${count++}`;
+    newVar.scope = scope;
+
+    idRemapping.set(parameters[i].id, newVar);
+    argList.push(createIdentifier(newVar, ast));
+    statements.push(
+      new VariableDeclarationStatement(ast.reserveId(), '', [newVar.id], [newVar], newArg),
+    );
+  }
+  return argList;
+}
+
 function createFunctionFromConstructor(
   constructorFunc: FunctionDefinition,
   node: ContractDefinition,
@@ -184,10 +204,7 @@ function createDefaultConstructor(node: ContractDefinition, ast: AST): FunctionD
     createParameterList([], ast),
     createParameterList([], ast),
     [],
-    undefined,
-    new Block(ast.reserveId(), '', []),
   );
-  node.appendChild(newFunc);
   return newFunc;
 }
 
@@ -197,28 +214,51 @@ function generateBody(statements: Statement[], constructorFunc: FunctionDefiniti
   ast.registerChild(newBody, constructorFunc);
 }
 
-function getArguments(
-  args: Expression[],
-  parameters: VariableDeclaration[],
+function generateFunctionForConstructor(
+  node: ContractDefinition,
   idRemapping: Map<number, VariableDeclaration>,
-  statements: Statement[],
-  scope: number,
   ast: AST,
-): Expression[] {
-  const size = args.length;
-  const argList: Expression[] = [];
-  for (let i = 0; i < size; ++i) {
-    const newArg = cloneASTNode(args[i], ast);
-    updateReferencedDeclarations(newArg, idRemapping, ast);
-    const newVar = cloneASTNode(parameters[i], ast);
-    newVar.name = `__warp_constructor_parameter_${count++}`;
-    newVar.scope = scope;
-
-    idRemapping.set(parameters[i].id, newVar);
-    argList.push(createIdentifier(newVar, ast));
-    statements.push(
-      new VariableDeclarationStatement(ast.reserveId(), '', [newVar.id], [newVar], newArg),
-    );
+): FunctionDefinition {
+  const newFunc = createDefaultConstructor(node, ast);
+  const currentConstructor = node.vConstructor;
+  if (currentConstructor !== undefined) {
+    const parameters = currentConstructor.vParameters.vParameters.map((v) => {
+      const newV = cloneASTNode(v, ast);
+      newV.scope = newFunc.id;
+      idRemapping.set(v.id, newV);
+      return newV;
+    });
+    const retParameters = currentConstructor.vReturnParameters.vParameters.map((v) => {
+      const newV = cloneASTNode(v, ast);
+      newV.scope = newFunc.id;
+      idRemapping.set(v.id, newV);
+      return newV;
+    });
+    newFunc.vParameters = createParameterList(parameters, ast);
+    newFunc.vReturnParameters = createParameterList(retParameters, ast);
+    newFunc.acceptChildren();
   }
-  return argList;
+  return newFunc;
+}
+
+function transformConstructor(
+  node: ContractDefinition,
+  newConstructor: FunctionDefinition,
+  statements: Statement[],
+  ast: AST,
+) {
+  const currentCons = node.vConstructor;
+  if (currentCons === undefined) return;
+
+  currentCons.kind = FunctionKind.Function;
+  currentCons.name = `__warp_constructor_${count++}`;
+  currentCons.visibility = FunctionVisibility.Private;
+  currentCons.isConstructor = false;
+
+  const argList = newConstructor.vParameters.vParameters.map((v) => {
+    return createIdentifier(v, ast);
+  });
+  statements.push(
+    new ExpressionStatement(ast.reserveId(), '', generateFunctionCall(currentCons, argList, ast)),
+  );
 }

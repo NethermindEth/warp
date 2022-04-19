@@ -136,9 +136,11 @@ function createDelegatingFunction(
     `Attempted to copy non public/external function ${funcToCopy.name}`,
   );
 
+  const oldBody = funcToCopy.vBody;
+  funcToCopy.vBody = undefined;
   const newFunc = cloneASTNode(funcToCopy, ast);
-  newFunc.scope = scope;
-  newFunc.vOverrideSpecifier = undefined;
+  funcToCopy.vBody = oldBody;
+
   const newBody = new Block(ast.reserveId(), '', [
     new Return(
       ast.reserveId(),
@@ -161,11 +163,11 @@ function createDelegatingFunction(
     ),
   ]);
 
-  if (newFunc.vBody === undefined) {
-    newFunc.vBody = newBody;
-    ast.registerChild(newBody, newFunc);
-  } else ast.replaceNode(newFunc.vBody, newBody);
-
+  newFunc.scope = scope;
+  newFunc.vOverrideSpecifier = undefined;
+  newFunc.vBody = newBody;
+  newFunc.acceptChildren();
   ast.setContextRecursive(newFunc);
+
   return newFunc;
 }

@@ -34,6 +34,8 @@ export class InheritanceInliner extends ASTMapper {
     updateReferencedDeclarations(node, functionRemapping, ast);
     updateReferencedDeclarations(node, variableRemapping, ast);
     updateReferencedDeclarations(node, modifierRemapping, ast);
+    ast.setContextRecursive(node);
+
     this.commonVisit(node, ast);
   }
 

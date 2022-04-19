@@ -823,11 +823,23 @@ export const expectations = flatten(
               'C',
               [],
               [
-                Expect.Simple('a', [], ['6', '0']),
-                Expect.Simple('b', [], ['11', '0']),
-                Expect.Simple('c', [], ['10', '0']),
+                Expect.Simple('a', [], ['9', '0']),
+                Expect.Simple('b', [], ['14', '0']),
+                Expect.Simple('c', [], ['13', '0']),
                 Expect.Simple('d', [], ['4', '0']),
               ],
+            ),
+            new File(
+              'modifiedConstructor',
+              'A',
+              ['500', '0'],
+              [Expect.Simple('a', [], ['500', '0'])],
+            ),
+            new File(
+              'modifiedConstructor',
+              'B',
+              ['500', '0'],
+              [Expect.Simple('a', [], ['0', '0'])],
             ),
           ]),
           new Dir('functions', [

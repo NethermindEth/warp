@@ -1,3 +1,4 @@
+import assert from 'assert';
 import { ContractDefinition, ModifierDefinition } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { cloneASTNode } from '../../utils/cloning';
@@ -8,10 +9,12 @@ export function addNonOverridenModifiers(
   idRemapping: Map<number, ModifierDefinition>,
   ast: AST,
 ) {
-  const modifierNames = new Set<string>();
+  const modifierNames: Set<string> = new Set();
+  const currentModifiers: Map<string, ModifierDefinition> = new Map();
 
   node.vModifiers.forEach((modifier) => {
     modifierNames.add(modifier.name);
+    currentModifiers.set(modifier.name, modifier);
   });
 
   getBaseContracts(node).forEach((contract) => {
@@ -20,9 +23,15 @@ export function addNonOverridenModifiers(
       modifierNames.add(modifier.name);
       if (modifierNames.size > sz) {
         const clonedModifier = cloneASTNode(modifier, ast);
-        idRemapping.set(modifier.id, clonedModifier);
+        currentModifiers.set(modifier.name, clonedModifier);
         node.appendChild(clonedModifier);
       }
+      const mod = currentModifiers.get(modifier.name);
+      assert(
+        mod instanceof ModifierDefinition,
+        'Modifier should have been already added to the map',
+      );
+      idRemapping.set(modifier.id, mod);
     });
   });
 }
