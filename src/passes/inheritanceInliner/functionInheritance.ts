@@ -71,7 +71,8 @@ function getVisibleFunctions(node: ContractDefinition): Set<string> {
     node.vFunctions
       .filter(
         (func) =>
-          (func.visibility === FunctionVisibility.Public || FunctionVisibility.External) &&
+          (func.visibility === FunctionVisibility.Public ||
+            func.visibility === FunctionVisibility.External) &&
           !func.isConstructor,
       )
       .map((func) => func.name),
