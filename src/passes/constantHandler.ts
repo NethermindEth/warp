@@ -36,7 +36,12 @@ export class ConstantHandler extends ASTMapper {
     const blockId = block.id;
 
     [...unboundConstantsToReplace.entries()].map(([decl, ids]) => {
-      if (decl.vValue === undefined || !(decl.vValue instanceof Literal)) return;
+      if (
+        decl.vType === undefined ||
+        decl.vValue === undefined ||
+        !(decl.vValue instanceof Literal)
+      )
+        return;
 
       const newDecl = new VariableDeclaration(
         ast.reserveId(),
@@ -54,8 +59,8 @@ export class ConstantHandler extends ASTMapper {
         new ElementaryTypeName(
           ast.reserveId(),
           node.src,
-          `${decl.vValue.typeString}`,
-          decl.vValue.typeString,
+          `${decl.vType.typeString}`,
+          decl.vType.typeString,
         ),
         undefined,
         undefined,
