@@ -320,6 +320,10 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
   return result;
 }
 
+export function getContractTypeString(node: ContractDefinition): string {
+  return `type(${node.kind} ${node.name})`;
+}
+
 export function getFunctionTypeString(node: FunctionDefinition, compilerVersion: string): string {
   const inputs = node.vParameters.vParameters
     .map((decl) => {
