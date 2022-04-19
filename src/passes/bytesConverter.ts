@@ -39,17 +39,21 @@ export class BytesConverter extends ASTMapper {
   visitSourceUnit(node: SourceUnit, ast: AST): void {
     node.vVariables.forEach((n) => this.visitVariableDeclaration(n, ast));
     node.vContracts.forEach((n) => this.visitContractDefinition(n, ast));
+    node.vStructs.forEach((n) => this.commonVisit(n, ast));
     this.commonVisit(node, ast);
   }
 
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     node.vStateVariables.forEach((n) => this.visitVariableDeclaration(n, ast));
     node.vFunctions.forEach((n) => this.commonVisit(n, ast));
+    node.vStructs.forEach((n) => this.commonVisit(n, ast));
     this.commonVisit(node, ast);
   }
 
   visitExpression(node: Expression, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
+    console.log('visitExpression - node: ' + node.constructor.name);
+    console.log('visitExpression - type node: ' + typeNode.constructor.name);
     if (typeNode instanceof FixedBytesType) {
       const replacementTypeNode = this.replacementIntTypeNode(typeNode);
       node.typeString = replacementTypeNode.pp();
@@ -63,7 +67,13 @@ export class BytesConverter extends ASTMapper {
       typeNode.to instanceof ArrayType &&
       typeNode.to.elementT instanceof FixedBytesType
     ) {
-      node.typeString = `${typeNode.to.pp()} ${typeNode.location}`;
+      const replacementIntTypeNode = this.replacementIntTypeNode(typeNode.to.elementT);
+      typeNode.to.elementT = replacementIntTypeNode;
+      if (typeNode.location === DataLocation.Default)
+        node.typeString = `${typeNode.to.pp()} storage ref`;
+      else if (typeNode.location === DataLocation.Memory)
+        node.typeString = `${typeNode.to.pp()} memory`;
+      else node.typeString = `${typeNode.to.pp()} storage pointer`;
     }
     this.commonVisit(node, ast);
   }
