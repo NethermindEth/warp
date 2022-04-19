@@ -1,5 +1,7 @@
 import { AST } from '../../ast/ast';
 import {
+  ContractDefinition,
+  ContractKind,
   FunctionDefinition,
   FunctionVisibility,
   Statement,
@@ -16,6 +18,13 @@ import assert from 'assert';
 import { createIdentifier } from '../../utils/nodeTemplates';
 
 export class IntBoundChecker extends ASTMapper {
+  visitContractDefinition(node: ContractDefinition, ast: AST): void {
+    if (node.kind === ContractKind.Interface) {
+      return;
+    }
+    this.commonVisit(node, ast);
+  }
+
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (
       (FunctionVisibility.External === node.visibility ||
