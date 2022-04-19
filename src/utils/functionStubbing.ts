@@ -22,17 +22,17 @@ import { getFunctionTypeString, getReturnTypeString } from './utils';
 
 export function createCairoFunctionStub(
   name: string,
-  inputs: [string, TypeName][],
-  returns: [string, TypeName][],
+  inputs: ([string, TypeName] | [string, TypeName, DataLocation])[],
+  returns: ([string, TypeName] | [string, TypeName, DataLocation])[],
   implicits: Implicits[],
   ast: AST,
   nodeInSourceUnit: ASTNode,
 ): CairoFunctionDefinition {
   const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
   const funcDefId = ast.reserveId();
-  const createParameters = (inputs: [string, TypeName][]) =>
+  const createParameters = (inputs: ([string, TypeName] | [string, TypeName, DataLocation])[]) =>
     inputs.map(
-      ([name, type]) =>
+      ([name, type, location]) =>
         new VariableDeclaration(
           ast.reserveId(),
           '',
@@ -41,7 +41,7 @@ export function createCairoFunctionStub(
           name,
           funcDefId,
           false,
-          DataLocation.Storage,
+          location ?? DataLocation.Default,
           StateVariableVisibility.Private,
           Mutability.Mutable,
           type.typeString,

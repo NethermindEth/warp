@@ -14,4 +14,8 @@ contract C {
         uint8[3] data;
     }
     B data = B({a:1, data :[1,2,3], b: A({c:1, a:45}), z:2});
+
+    function assign() external {
+        data = B({a:1, data :[1,2,3], b: A({c:1, a:45}), z:2});
+    }
 }

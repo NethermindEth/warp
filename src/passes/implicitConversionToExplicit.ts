@@ -8,24 +8,29 @@ import {
   Expression,
   FunctionCall,
   FunctionCallKind,
-  FunctionType,
   getNodeType,
   PointerType,
   Return,
-  StructDefinition,
   TupleType,
-  TypeNameType,
   TypeNode,
-  UserDefinedType,
   UserDefinedTypeName,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { printNode, printTypeNode } from '../utils/astPrinter';
+import { printNode } from '../utils/astPrinter';
 import { NotSupportedYetError } from '../utils/errors';
 import { error } from '../utils/formatting';
+import { getParameterTypes } from '../utils/nodeTypeProcessing';
 import { compareTypeSize, dereferenceType } from '../utils/utils';
+
+/*
+Detects implicit conversions by running solc-typed-ast's type analyser on
+nodes and on where they're used and comparing the results. This approach is
+relatively limited and does not handle tuples, which are instead processed by
+TupleAssignmentSplitter. It also does not handle datalocation differences, which
+are handled by the References pass
+*/
 
 // TODO conclusively handle all edge cases
 // TODO for example operations between literals and non-literals truncate the literal,
@@ -194,56 +199,17 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       return;
     }
 
-    if (node.kind === FunctionCallKind.StructConstructorCall) {
-      this.visitStructConstructorArguments(node, ast);
-    } else {
-      this.visitFunctionCallArguments(node, ast);
-    }
-  }
-
-  visitStructConstructorArguments(node: FunctionCall, ast: AST): void {
-    const structType = getNodeType(node.vExpression, ast.compilerVersion);
+    const paramTypes = getParameterTypes(node, ast);
     assert(
-      structType instanceof TypeNameType &&
-        structType.type instanceof PointerType &&
-        structType.type.to instanceof UserDefinedType,
+      paramTypes.length === node.vArguments.length,
       error(
-        `TypeNode for ${printNode(
-          node.vExpression,
-        )} was expected to be a TypeNameType(PointerType(UserDefinedType, storage)), got ${printTypeNode(
-          structType,
-          true,
-        )}`,
+        `${printNode(node)} has incorrect number of arguments. Expected ${paramTypes.length}, got ${
+          node.vArguments.length
+        }`,
       ),
     );
-    const structDef = structType.type.to.definition;
-    assert(structDef instanceof StructDefinition);
-    const parameters = structDef.vMembers;
-    node.vArguments.forEach((arg, idx) =>
-      this.processArgumentConversion(
-        node,
-        getNodeType(parameters[idx], ast.compilerVersion),
-        arg,
-        ast,
-      ),
-    );
-  }
-
-  visitFunctionCallArguments(node: FunctionCall, ast: AST): void {
-    const functionType = getNodeType(node.vExpression, ast.compilerVersion);
-    assert(
-      functionType instanceof FunctionType,
-      error(
-        `TypeNode for ${printNode(
-          node.vExpression,
-        )} was expected to be a FunctionType, got ${printTypeNode(functionType, true)}`,
-      ),
-    );
-
-    const parameters = functionType.parameters;
-
-    node.vArguments.forEach((arg, idx) =>
-      this.processArgumentConversion(node, parameters[idx], arg, ast),
+    paramTypes.forEach((paramType, index) =>
+      this.processArgumentConversion(node, paramType, node.vArguments[index], ast),
     );
   }
 

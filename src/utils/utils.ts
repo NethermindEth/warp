@@ -10,6 +10,7 @@ import {
   DataLocation,
   ElementaryTypeName,
   EtherUnit,
+  EnumDefinition,
   FunctionDefinition,
   FunctionVisibility,
   IdentifierPath,
@@ -31,6 +32,7 @@ import {
   getNodeType,
   StringLiteralType,
   StringType,
+  ContractDefinition,
 } from 'solc-typed-ast';
 import { NotSupportedYetError, TranspileFailedError, logError } from './errors';
 import { printNode, printTypeNode } from './astPrinter';
@@ -302,6 +304,8 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
       node.definition.id,
       new IdentifierPath(ast.reserveId(), '', node.definition.name, node.definition.id),
     );
+  } else if (node instanceof StringType) {
+    return new ElementaryTypeName(ast.reserveId(), '', 'string', 'string', 'nonpayable');
   }
 
   if (result === null) {
@@ -318,8 +322,18 @@ export function getFunctionTypeString(node: FunctionDefinition, compilerVersion:
       const baseType = getNodeType(decl, compilerVersion);
       if (baseType instanceof ArrayType || baseType instanceof UserDefinedType) {
         if (decl.storageLocation === DataLocation.Default) {
+          if (
+            decl.vType instanceof UserDefinedTypeName &&
+            (decl.vType.vReferencedDeclaration instanceof EnumDefinition ||
+              decl.vType.vReferencedDeclaration instanceof ContractDefinition)
+          ) {
+            return `${baseType.pp()}`;
+          }
           throw new NotSupportedYetError(
-            'Default location ref parameter to string not supported yet',
+            `Default location ref parameter to string not supported yet: ${printTypeNode(
+              baseType,
+              true,
+            )} in ${node.name}`,
           );
         }
         return `${baseType.pp()} ${decl.storageLocation}`;
@@ -341,8 +355,18 @@ export function getFunctionTypeString(node: FunctionDefinition, compilerVersion:
 export function getReturnTypeString(node: FunctionDefinition): string {
   const returns = node.vReturnParameters.vParameters;
   if (returns.length === 0) return 'tuple()';
-  if (returns.length === 1) return returns[0].typeString;
-  return `tuple(${returns.map((decl) => decl.typeString).join(',')})`;
+  if (returns.length === 1)
+    return `${returns[0].typeString}${
+      returns[0].storageLocation === DataLocation.Default ? '' : ` ${returns[0].storageLocation}`
+    }`;
+  return `tuple(${returns
+    .map(
+      (decl) =>
+        `${decl.typeString}${
+          decl.storageLocation === DataLocation.Default ? '' : ` ${decl.storageLocation}`
+        }`,
+    )
+    .join(',')})`;
 }
 
 export function generateLiteralTypeString(value: string): string {
@@ -400,6 +424,12 @@ export function bigintToTwosComplement(val: bigint, width: number): bigint {
   }
 }
 
+export function narrowBigInt(n: bigint): number | null {
+  const narrowed = parseInt(n.toString());
+  if (BigInt(narrowed) !== n) return null;
+  return narrowed;
+}
+
 export function isCairoConstant(node: VariableDeclaration): boolean {
   if (node.mutability === Mutability.Constant && node.vValue instanceof Literal) {
     if (node.vType instanceof ElementaryTypeName) {
@@ -407,4 +437,10 @@ export function isCairoConstant(node: VariableDeclaration): boolean {
     }
   }
   return false;
+}
+
+export function isExternallyVisible(node: FunctionDefinition): boolean {
+  return (
+    node.visibility === FunctionVisibility.External || node.visibility === FunctionVisibility.Public
+  );
 }

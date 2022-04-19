@@ -1,7 +1,6 @@
 import {
   AddressType,
   ArrayType,
-  ArrayTypeName,
   BoolType,
   ElementaryTypeName,
   ElementaryTypeNameExpression,
@@ -28,7 +27,7 @@ import {
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from './astPrinter';
 import { NotSupportedYetError } from './errors';
-import { toHexString } from './utils';
+import { toHexString, typeNameFromTypeNode } from './utils';
 
 export function getDefaultValue(
   nodeType: TypeNode,
@@ -122,14 +121,9 @@ function arrayDefault(
         ast.reserveId(),
         '',
         `function (uint256) pure returns (${tString}[] memory)`,
-        new ArrayTypeName(
-          ast.reserveId(),
-          '',
-          `${tString}[]`,
-          new ElementaryTypeName(ast.reserveId(), '', tString, tString),
-        ),
+        typeNameFromTypeNode(nodeType, ast),
       ),
-      [intDefault(nodeType, parentNode, ast)],
+      [intDefault(new IntType(256, false), parentNode, ast)],
       undefined,
       parentNode.raw,
     );

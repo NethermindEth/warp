@@ -4,14 +4,12 @@ import {
   RevertStatement,
   ErrorDefinition,
   Conditional,
-  VariableDeclaration,
-  DataLocation,
-  getNodeType,
-  UserDefinedType,
   ImportDirective,
   MemberAccess,
   AddressType,
   FunctionType,
+  getNodeType,
+  VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -38,14 +36,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     throw new WillNotSupportError('Conditional expressions (ternary operator) are not supported');
   }
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
-    if (
-      node.storageLocation === DataLocation.Memory &&
-      getNodeType(node, ast.compilerVersion) instanceof UserDefinedType
-    ) {
-      throw new NotSupportedYetError(
-        `Memory structs not supported yet, found at ${printNode(node)}`,
-      );
-    }
     if (getNodeType(node, ast.compilerVersion) instanceof FunctionType)
       throw new WillNotSupportError('Function objects are not supported');
     this.commonVisit(node, ast);
