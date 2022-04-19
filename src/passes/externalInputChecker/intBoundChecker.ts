@@ -1,7 +1,6 @@
 import { AST } from '../../ast/ast';
 import {
   FunctionDefinition,
-  FunctionVisibility,
   Statement,
   ExpressionStatement,
   IntType,
@@ -11,17 +10,13 @@ import {
 } from 'solc-typed-ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
-import { typeNameFromTypeNode } from '../../utils/utils';
+import { isExternallyVisible, typeNameFromTypeNode } from '../../utils/utils';
 import assert from 'assert';
 import { createIdentifier } from '../../utils/nodeTemplates';
 
 export class IntBoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    if (
-      (FunctionVisibility.External === node.visibility ||
-        FunctionVisibility.Public === node.visibility) &&
-      node.vBody !== undefined
-    ) {
+    if (isExternallyVisible(node) && node.vBody !== undefined) {
       node.vParameters.vParameters.forEach((parameter) => {
         const typeNode = getNodeType(parameter, ast.compilerVersion);
         if (typeNode instanceof IntType) {

@@ -2,7 +2,6 @@ import assert from 'assert';
 import { AST } from '../../ast/ast';
 import {
   FunctionDefinition,
-  FunctionVisibility,
   Statement,
   ExpressionStatement,
   VariableDeclaration,
@@ -10,14 +9,11 @@ import {
 } from 'solc-typed-ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createIdentifier } from '../../utils/nodeTemplates';
+import { isExternallyVisible } from '../../utils/utils';
 
 export class EnumBoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    if (
-      (FunctionVisibility.External === node.visibility ||
-        FunctionVisibility.Public === node.visibility) &&
-      node.vBody !== undefined
-    ) {
+    if (isExternallyVisible(node) && node.vBody !== undefined) {
       node.vParameters.vParameters.forEach((parameter) => {
         if (parameter.typeString.slice(0, 4) === 'enum' && parameter.name !== undefined) {
           const functionCall = this.generateFunctionCall(node, parameter, ast);

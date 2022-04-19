@@ -26,7 +26,7 @@ export const implicitTypes: { [key in Implicits]: string } = {
   pedersen_ptr: 'HashBuiltin*',
   range_check_ptr: 'felt',
   syscall_ptr: 'felt*',
-  warp_memory: 'MemCell*',
+  warp_memory: 'DictAccess*',
 };
 
 export function registerImportsForImplicit(ast: AST, node: ASTNode, implicit: Implicits) {
@@ -38,8 +38,7 @@ export function registerImportsForImplicit(ast: AST, node: ASTNode, implicit: Im
       ast.registerImport(node, 'starkware.cairo.common.cairo_builtins', 'HashBuiltin');
       break;
     case 'warp_memory':
-      ast.registerImport(node, 'warplib.memory', 'MemCell');
-      ast.registerImport(node, 'warplib.memory', 'warp_memory_init');
+      ast.registerImport(node, 'starkware.cairo.common.dict_access', 'DictAccess');
       break;
   }
 }
@@ -51,10 +50,3 @@ export const requiredBuiltin: { [key in Implicits]: CairoBuiltin | null } = {
   syscall_ptr: null,
   warp_memory: null,
 };
-
-export function writeImplicits(implicits: Set<Implicits>): string {
-  return [...implicits]
-    .sort(implicitOrdering)
-    .map((implicit) => `${implicit} : ${implicitTypes[implicit]}`)
-    .join(', ');
-}

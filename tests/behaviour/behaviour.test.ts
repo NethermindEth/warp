@@ -26,7 +26,7 @@ describe('Transpile solidity', function () {
   for (let i = 0; i < expectations.length; ++i) {
     it(expectations[i].name, async function () {
       const res = await transpileResults[i];
-      expect(res.result, 'warp-ts printed errors').to.include({ stderr: '' });
+      expect(res.result, `warp-ts printed errors: ${res.result}`).to.include({ stderr: '' });
       expect(
         fs.existsSync(expectations[i].cairo),
         'Transpilation failed, cannot find output file',
@@ -56,7 +56,9 @@ describe('Transpiled contracts are valid cairo', function () {
         this.skip();
       } else {
         const res = await unresolvedResult;
-        expect(res.result, 'starknet-compile printed errors').to.include({ stderr: '' });
+        expect(res.result, `starknet-compile printed errors: ${res.result}`).to.include({
+          stderr: '',
+        });
         expect(fs.existsSync(expectations[i].compiled), 'Compilation failed').to.be.true;
         expect(res.success, `${res.result}`);
       }
