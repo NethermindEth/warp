@@ -113,11 +113,11 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeConversion/shifts', 'Success'],
   ['example_contracts/typeMinMax', 'Success'],
   ['example_contracts/units', 'Success'],
-  // Memory structs are not supported yet
-  ['example_contracts/using_for/imports/user_defined', 'NotSupportedYet'],
-  // global_directive.sol imports user_defined.sol contract
-  ['example_contracts/using_for/imports/global_directive', 'NotSupportedYet'],
-  // Serialising FunctionType is not supported yet
+  // Uses WARP_STORAGE in a free function
+  ['example_contracts/using_for/imports/user_defined', 'CairoCompileFailed'],
+  // global_directive.sol cannot resolve struct when file imported as identifier
+  ['example_contracts/using_for/imports/global_directive', 'CairoCompileFailed'],
+  // Serialising FunctionType is not supported yet - will become WillNotSupport with PR#313
   ['example_contracts/using_for/function', 'NotSupportedYet'],
   ['example_contracts/using_for/private', 'Success'],
   ['example_contracts/using_for/library', 'Success'],
