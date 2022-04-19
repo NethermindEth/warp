@@ -17,6 +17,7 @@ import {
   enumToIntType,
   StructDefinition,
   getNodeType,
+  FixedBytesType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from './astPrinter';
@@ -68,6 +69,8 @@ export abstract class CairoType {
       throw new NotSupportedYetError('Serialising BuiltinStructType not supported yet');
     } else if (tp instanceof BytesType) {
       throw new NotSupportedYetError('Serialising BytesType not supported yet');
+    } else if (tp instanceof FixedBytesType) {
+      return tp.size === 32 ? CairoUint256 : new CairoFelt();
     } else if (tp instanceof FunctionType) {
       throw new NotSupportedYetError('Serialising FunctionType not supported yet');
     } else if (tp instanceof IntType) {

@@ -9,8 +9,8 @@ import {
   CompileFailedError,
   DataLocation,
   ElementaryTypeName,
-  EnumDefinition,
   EtherUnit,
+  FixedBytesType,
   FunctionDefinition,
   FunctionVisibility,
   IdentifierPath,
@@ -22,6 +22,7 @@ import {
   MappingType,
   Mutability,
   PointerType,
+  StructDefinition,
   TimeUnit,
   TypeName,
   TypeNode,
@@ -277,6 +278,8 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
     );
   } else if (node instanceof BoolType) {
     result = new ElementaryTypeName(ast.reserveId(), '', 'bool', 'bool');
+  } else if (node instanceof FixedBytesType) {
+    result = new ElementaryTypeName(ast.reserveId(), '', node.pp(), node.pp());
   } else if (node instanceof IntLiteralType) {
     console.log(`WARNING: assigning int248 type to int literal ${node.pp()}`);
     return new ElementaryTypeName(ast.reserveId(), '', 'int248', 'int248');
@@ -319,7 +322,7 @@ export function getFunctionTypeString(node: FunctionDefinition, compilerVersion:
       const baseType = getNodeType(decl, compilerVersion);
       if (
         baseType instanceof ArrayType ||
-        (baseType instanceof UserDefinedType && !(baseType.definition instanceof EnumDefinition))
+        (baseType instanceof UserDefinedType && baseType.definition instanceof StructDefinition)
       ) {
         if (decl.storageLocation === DataLocation.Default) {
           throw new NotSupportedYetError(
