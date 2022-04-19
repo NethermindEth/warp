@@ -14,6 +14,7 @@ import {
   PointerType,
   SourceUnit,
   typeNameToTypeNode,
+  TupleType,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -52,8 +53,6 @@ export class BytesConverter extends ASTMapper {
 
   visitExpression(node: Expression, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
-    console.log('visitExpression - node: ' + node.constructor.name);
-    console.log('visitExpression - type node: ' + typeNode.constructor.name);
     if (typeNode instanceof FixedBytesType) {
       const replacementTypeNode = this.replacementIntTypeNode(typeNode);
       node.typeString = replacementTypeNode.pp();
@@ -74,6 +73,15 @@ export class BytesConverter extends ASTMapper {
       else if (typeNode.location === DataLocation.Memory)
         node.typeString = `${typeNode.to.pp()} memory`;
       else node.typeString = `${typeNode.to.pp()} storage pointer`;
+    } else if (typeNode instanceof TupleType) {
+      const newElements = typeNode.elements.map((n) => {
+        if (n instanceof FixedBytesType) {
+          return this.replacementIntTypeNode(n);
+        }
+        return n;
+      });
+      const newTupleTypeNode = new TupleType(newElements, typeNode.src);
+      node.typeString = newTupleTypeNode.pp();
     }
     this.commonVisit(node, ast);
   }
