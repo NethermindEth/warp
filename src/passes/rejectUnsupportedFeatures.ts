@@ -11,6 +11,7 @@ import {
   ImportDirective,
   MemberAccess,
   AddressType,
+  FunctionType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -45,6 +46,10 @@ export class RejectUnsupportedFeatures extends ASTMapper {
         `Memory structs not supported yet, found at ${printNode(node)}`,
       );
     }
+    if (getNodeType(node, ast.compilerVersion) instanceof FunctionType)
+      throw new NotSupportedYetError(
+        `Function objects not supported yet, found at ${printNode(node)}`,
+      );
     this.commonVisit(node, ast);
   }
   visitImportDirective(node: ImportDirective, _ast: AST): void {
