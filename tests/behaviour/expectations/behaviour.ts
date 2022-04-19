@@ -20,6 +20,7 @@ export const expectations = flatten(
             Expect.Simple('getC', ['1'], ['9029']),
             Expect.Simple('getStorageBytesArray', [], ['13398']),
             Expect.Simple('getMemoryBytesArray', [], ['9029']),
+            Expect.Simple('getMemoryBytesArrayTwo', [], ['4660', '9029']),
             Expect.Simple('getStorageBytesDynArray', [], ['4660']),
           ]),
           File.Simple('byteStructs', [
