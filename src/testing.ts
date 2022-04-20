@@ -117,8 +117,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/using_for/imports/user_defined', 'CairoCompileFailed'],
   // global_directive.sol cannot resolve struct when file imported as identifier
   ['example_contracts/using_for/imports/global_directive', 'CairoCompileFailed'],
-  // Serialising FunctionType is not supported yet - will become WillNotSupport with PR#313
-  ['example_contracts/using_for/function', 'NotSupportedYet'],
+  ['example_contracts/using_for/function', 'WillNotSupport'],
   ['example_contracts/using_for/private', 'Success'],
   ['example_contracts/using_for/library', 'Success'],
   ['example_contracts/using_for/simple', 'Success'],

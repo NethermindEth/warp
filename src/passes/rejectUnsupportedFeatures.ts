@@ -7,7 +7,9 @@ import {
   ImportDirective,
   MemberAccess,
   AddressType,
+  FunctionType,
   getNodeType,
+  VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -32,6 +34,11 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
   visitConditional(_node: Conditional, _ast: AST): void {
     throw new WillNotSupportError('Conditional expressions (ternary operator) are not supported');
+  }
+  visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
+    if (getNodeType(node, ast.compilerVersion) instanceof FunctionType)
+      throw new WillNotSupportError('Function objects are not supported');
+    this.commonVisit(node, ast);
   }
   visitImportDirective(node: ImportDirective, _ast: AST): void {
     if (node.children.length !== 0) {
