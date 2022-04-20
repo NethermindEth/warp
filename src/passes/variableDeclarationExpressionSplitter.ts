@@ -13,20 +13,7 @@ import {
   VariableDeclaration,
   StateVariableVisibility,
   Mutability,
-  ElementaryTypeName,
   DataLocation,
-  ArrayType,
-  ArrayTypeName,
-  IdentifierPath,
-  Literal,
-  LiteralKind,
-  Mapping,
-  MappingType,
-  PointerType,
-  TypeNode,
-  TypeName,
-  UserDefinedType,
-  UserDefinedTypeName,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -34,7 +21,7 @@ import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { createIdentifier } from '../utils/nodeTemplates';
 import { notNull } from '../utils/typeConstructs';
-import { toHexString } from '../utils/utils';
+import { typeNameFromTypeNode } from '../utils/utils';
 
 // TODO check for case where a for loop contains a single tuple declaration as its body
 
@@ -42,89 +29,6 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
   lastUsedConstantId = 0;
   generateNewConstantName(): string {
     return `__warp_td_${this.lastUsedConstantId++}`;
-  }
-
-  // Helper function to generate the typeName for a given typeNode, to be used for
-  // the new VariableDeclarationStatement in this.splitDeclaration
-  generateTypeNameNode(
-    node: VariableDeclarationStatement,
-    currentTypeNode: TypeNode,
-    ast: AST,
-  ): TypeName {
-    if (currentTypeNode instanceof PointerType && currentTypeNode.to instanceof ArrayType) {
-      const newTypeNode = new ArrayTypeName(
-        ast.reserveId(),
-        node.src,
-        currentTypeNode.pp(),
-        new ElementaryTypeName(
-          ast.reserveId(),
-          node.src,
-          currentTypeNode.to.elementT.pp(),
-          currentTypeNode.to.elementT.pp(),
-        ),
-        currentTypeNode.to.size !== undefined
-          ? new Literal(
-              ast.reserveId(),
-              node.src,
-              `int_const ${currentTypeNode.to.size.toString()}`,
-              LiteralKind.Number,
-              toHexString(currentTypeNode.to.size.toString()),
-              currentTypeNode.to.size.toString(),
-              undefined,
-              node.raw,
-            )
-          : undefined,
-      );
-      return newTypeNode;
-    } else if (
-      currentTypeNode instanceof PointerType &&
-      currentTypeNode.to instanceof MappingType
-    ) {
-      const newTypeNode = new Mapping(
-        ast.reserveId(),
-        node.src,
-        currentTypeNode.pp(),
-        new ElementaryTypeName(
-          ast.reserveId(),
-          node.src,
-          currentTypeNode.to.keyType.pp(),
-          currentTypeNode.to.keyType.pp(),
-        ),
-        new ElementaryTypeName(
-          ast.reserveId(),
-          node.src,
-          currentTypeNode.to.valueType.pp(),
-          currentTypeNode.to.valueType.pp(),
-        ),
-      );
-      return newTypeNode;
-    } else if (
-      currentTypeNode instanceof PointerType &&
-      currentTypeNode.to instanceof UserDefinedType
-    ) {
-      const newTypeNode = new UserDefinedTypeName(
-        ast.reserveId(),
-        node.src,
-        currentTypeNode.to.pp(),
-        currentTypeNode.to.name,
-        currentTypeNode.to.definition.id,
-        new IdentifierPath(
-          ast.reserveId(),
-          node.src,
-          currentTypeNode.to.name,
-          currentTypeNode.to.definition.id,
-        ),
-      );
-      return newTypeNode;
-    } else {
-      const newTypeNode = new ElementaryTypeName(
-        ast.reserveId(),
-        node.src,
-        `${currentTypeNode.pp()}`,
-        currentTypeNode.pp(),
-      );
-      return newTypeNode;
-    }
   }
 
   visitBlock(node: Block, ast: AST): void {
@@ -195,7 +99,7 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
         } else {
           const currentTypeNode = initialValueType.elements[index];
 
-          const newTypeNode = this.generateTypeNameNode(node, currentTypeNode, ast);
+          const newTypeNode = typeNameFromTypeNode(currentTypeNode, ast);
           //TODO handle non-elementary types
           // This is the replacement variable in the tuple assignment
           const newDeclaration = new VariableDeclaration(
