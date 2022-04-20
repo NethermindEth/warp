@@ -57,22 +57,36 @@ export class BytesConverter extends ASTMapper {
       const replacementTypeNode = this.replacementIntTypeNode(typeNode);
       node.typeString = replacementTypeNode.pp();
     } else if (typeNode instanceof ArrayType && typeNode.elementT instanceof FixedBytesType) {
-      const replacementIntTypeNode = this.replacementIntTypeNode(typeNode.elementT);
-      node.typeString = `${replacementIntTypeNode.pp()}[${
-        typeNode.size !== undefined ? typeNode.size : ''
-      }]`;
+      const replacementTypeNode = new ArrayType(
+        this.replacementIntTypeNode(typeNode.elementT),
+        typeNode.size,
+        typeNode.src,
+      );
+      node.typeString = replacementTypeNode.pp();
+    } else if (typeNode instanceof PointerType && typeNode.to instanceof FixedBytesType) {
+      const replacementTypeNode = new PointerType(
+        this.replacementIntTypeNode(typeNode.to),
+        typeNode.location,
+        typeNode.kind,
+        typeNode.src,
+      );
+      node.typeString = replacementTypeNode.pp();
     } else if (
       typeNode instanceof PointerType &&
       typeNode.to instanceof ArrayType &&
       typeNode.to.elementT instanceof FixedBytesType
     ) {
-      const replacementIntTypeNode = this.replacementIntTypeNode(typeNode.to.elementT);
-      typeNode.to.elementT = replacementIntTypeNode;
-      if (typeNode.location === DataLocation.Default)
-        node.typeString = `${typeNode.to.pp()} storage ref`;
-      else if (typeNode.location === DataLocation.Memory)
-        node.typeString = `${typeNode.to.pp()} memory`;
-      else node.typeString = `${typeNode.to.pp()} storage pointer`;
+      const replacementTypeNode = new PointerType(
+        new ArrayType(
+          this.replacementIntTypeNode(typeNode.to.elementT),
+          typeNode.to.size,
+          typeNode.to.src,
+        ),
+        typeNode.location,
+        typeNode.kind,
+        typeNode.src,
+      );
+      node.typeString = replacementTypeNode.pp();
     } else if (typeNode instanceof TupleType) {
       const newElements = typeNode.elements.map((n) => {
         if (n instanceof FixedBytesType) {
