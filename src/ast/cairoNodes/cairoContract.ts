@@ -6,8 +6,12 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 
-// TODO merge initialisationBlock with the constructor if there is one, or add one if not
+/*
+ A version of ContractDefinition annotated with the information required
+ to allocate the required space for storage variables
+*/
 export class CairoContract extends ContractDefinition {
+  // Maps each state variable to its start point in WARP_STORAGE
   storageAllocations: Map<VariableDeclaration, number>;
   usedStorage: number;
 

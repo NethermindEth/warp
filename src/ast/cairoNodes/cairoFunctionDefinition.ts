@@ -11,6 +11,15 @@ import {
 } from 'solc-typed-ast';
 import { Implicits } from '../../utils/implicits';
 
+/*
+ An extension of FunctionDefinition to track which implicit arguments are used
+ Additionally we often use function stubs for instances where we want to be able
+ to insert function during transpilation where it wouldn't make sense to include
+ their body in the AST. For example, stubs are used for warplib functions, and
+ those generated to handle memory and storage processing. Marking a CairoFunctionDefintion
+ as a stub tells the CairoWriter not to print it
+*/
+
 export class CairoFunctionDefinition extends FunctionDefinition {
   implicits: Set<Implicits>;
   isStub: boolean;
