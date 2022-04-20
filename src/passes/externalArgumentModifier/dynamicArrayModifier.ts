@@ -3,7 +3,6 @@ import {
   ArrayTypeName,
   DataLocation,
   ElementaryTypeName,
-  ExpressionStatement,
   FunctionDefinition,
   // Identifier,
   Mutability,
@@ -20,9 +19,11 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
+import { createIdentifier } from '../../utils/nodeTemplates';
 // import { cloneASTNode } from '../../utils/cloning';
 // import { createIdentifier, createUint256Literal } from '../../utils/nodeTemplates';
-import { getFunctionTypeString, isExternallyVisible } from '../../utils/utils';
+import { isExternallyVisible } from '../../utils/utils';
+import { collectUnboundVariables } from '../loopFunctionaliser/utils';
 // import { collectUnboundVariables } from '../loopFunctionaliser/utils';
 
 export class DynamicArrayModifier extends ASTMapper {
@@ -36,73 +37,82 @@ export class DynamicArrayModifier extends ASTMapper {
     const nodesToBeReplaced = new Array<VariableDeclaration>();
     const nodesToBeAdded = new Array<Array<VariableDeclaration>>();
     if (isExternallyVisible(node) && body !== undefined) {
-      node.vParameters.vParameters.forEach((varDecl) => {
-        if (
-          varDecl.storageLocation === DataLocation.Memory &&
-          varDecl.vType instanceof ArrayTypeName &&
-          varDecl.vType.vLength === undefined
-        ) {
-          const replaceArgs = this.splitArguments(node, varDecl, ast);
+      [...collectUnboundVariables(body).entries()]
+        .filter(
+          ([decl]) =>
+            node.vParameters.vParameters.includes(decl) &&
+            decl.storageLocation === DataLocation.Memory &&
+            decl.vType instanceof ArrayTypeName &&
+            decl.vType.vLength === undefined,
+        )
+        .forEach(([varDecl, ids]) => {
+          const [arrayLen, arrayPointer] = this.splitArguments(node, varDecl, ast);
           nodesToBeReplaced.push(varDecl);
+          const replaceArgs = [arrayLen, arrayPointer];
           nodesToBeAdded.push(replaceArgs);
 
-          const functionCall = ast
-            .getUtilFuncGen(node)
-            .externalFunctions.inputs.dynArray.gen(node, replaceArgs[0], replaceArgs[1]);
+          const memoryArray = cloneASTNode(varDecl, ast);
+          memoryArray.name = memoryArray.name + '_mem';
 
-          const newVarDecl = cloneASTNode(varDecl, ast);
-          const varDeclStatement = new VariableDeclarationStatement(
-            ast.reserveId(),
-            '',
-            [newVarDecl.id],
-            [newVarDecl],
-            functionCall,
+          const varDeclStatement = this.createVariableDeclarationStatement(
+            node,
+            varDecl,
+            memoryArray,
+            arrayLen,
+            arrayPointer,
+            ast,
           );
-          // const expressionStatement = new ExpressionStatement(ast.reserveId(), '', functionCall);
+
           node.vBody?.insertAtBeginning(varDeclStatement);
-          // ast.setContextRecursive(newVarDecl);
-          // ast.setContextRecursive(varDeclStatement);
-          // ast.setContextRecursive(node);
-        }
-      });
+
+          ids.forEach((identifier) =>
+            ast.replaceNode(identifier, createIdentifier(memoryArray, ast, DataLocation.Memory)),
+          );
+        });
+      //============
+      // node.vParameters.vParameters.forEach((varDecl) => {
+      //   if (
+      //     varDecl.storageLocation === DataLocation.Memory &&
+      //     varDecl.vType instanceof ArrayTypeName &&
+      //     varDecl.vType.vLength === undefined
+      //   ) {
+      //     const [arrayLen, arrayPointer] = this.splitArguments(node, varDecl, ast);
+      //     nodesToBeReplaced.push(varDecl);
+      //     const replaceArgs = [arrayLen, arrayPointer];
+      //     nodesToBeAdded.push(replaceArgs);
+
+      //     const memoryArray = cloneASTNode(varDecl, ast);
+      //     memoryArray.name = memoryArray.name + '_mem';
+
+      //     const varDeclStatement = this.createVariableDeclarationStatement(
+      //       node,
+      //       varDecl,
+      //       memoryArray,
+      //       arrayLen,
+      //       arrayPointer,
+      //       ast,
+      //     );
+
+      //     node.vBody?.insertAtBeginning(varDeclStatement);
+      //   }
+      // });
+      //============================================
+      // This is under dev and can look better.
       if (nodesToBeReplaced.length > 0) {
         nodesToBeReplaced.map((varDecl, i) => {
           //Can just use insert before and after and then remove the node.
           ast.setContextRecursive(nodesToBeAdded[i][0]);
           ast.setContextRecursive(nodesToBeAdded[i][1]);
-          replaceNode(varDecl, nodesToBeAdded[i][1]);
-          node.vParameters.appendChild(nodesToBeAdded[i][0]);
+          //replaceNode(varDecl, nodesToBeAdded[i][0]);
+          node.vParameters.insertAfter(nodesToBeAdded[i][0], varDecl);
+          node.vParameters.insertAfter(nodesToBeAdded[i][1], nodesToBeAdded[i][0]);
+          node.vParameters.removeChild(varDecl);
+          //node.vParameters.appendChild(nodesToBeAdded[i][0]);
         });
         // ast.setContextRecursive(node.vParameters);
         ast.setContextRecursive(node);
       }
-      // [...collectUnboundVariables(body).entries()]
-      //   .filter(
-      //     ([decl]) =>
-      //       node.vParameters.vParameters.includes(decl) &&
-      //       decl.storageLocation === DataLocation.Memory &&
-      //       decl.vType instanceof ArrayTypeName &&
-      //       decl.vType.vLength === undefined
-      //   )
-      //     .forEach(([varDecl, ids]) => {
-      //       const memoryArray = cloneASTNode(varDecl, ast);
-      //       memoryArray.name = memoryArray.name + '_mem';
-      //       varDecl.storageLocation = DataLocation.CallData;
-      //       const varDeclStatement = this.createVariableDeclarationStatement(
-      //         varDecl,
-      //         memoryArray,
-      //         ast,
-      //       );
-      //       body.insertAtBeginning(varDeclStatement);
-      //       ids.forEach((identifier) =>
-      //         ast.replaceNode(
-      //           identifier,
-      //           createIdentifier(memoryArray, ast, memoryArray.storageLocation),
-      //         ),
-      //       );
-      //     });
-      //   ast.setContextRecursive(node);
-      // }
+
       this.commonVisit(node, ast);
     }
   }
@@ -146,6 +156,28 @@ export class DynamicArrayModifier extends ASTMapper {
       cloneASTNode(varDecl.vType, ast),
     );
     return [lenVarDecl, pointerVarDecl];
+  }
+
+  private createVariableDeclarationStatement(
+    node: FunctionDefinition,
+    originalVarDecl: VariableDeclaration,
+    memoryArray: VariableDeclaration,
+    arrayLen: VariableDeclaration,
+    arrayPointer: VariableDeclaration,
+    ast: AST,
+  ): VariableDeclarationStatement {
+    const functionCall = ast
+      .getUtilFuncGen(node)
+      .externalFunctions.inputs.dynArray.gen(node, originalVarDecl, arrayLen, arrayPointer);
+
+    const varDeclStatement = new VariableDeclarationStatement(
+      ast.reserveId(),
+      '',
+      [memoryArray.id],
+      [memoryArray],
+      functionCall,
+    );
+    return varDeclStatement;
   }
 }
 // private createVariableDeclarationStatement(
