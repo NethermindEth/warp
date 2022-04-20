@@ -103,7 +103,8 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/state_variables/arrays', 'CairoCompileFailed'],
   ['example_contracts/state_variables/mappings', 'Success'],
   ['example_contracts/state_variables/structs', 'CairoCompileFailed'],
-  ['example_contracts/state_variables/misc', 'TranspilationFailed'],
+  // Mappings of structs are not supported yet
+  ['example_contracts/state_variables/misc', 'NotSupportedYet'],
   ['example_contracts/structs', 'Success'],
   ['example_contracts/tupleAssignment7', 'Success'],
   ['example_contracts/tupleAssignment8', 'SolCompileFailed'],
