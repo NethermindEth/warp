@@ -1,7 +1,5 @@
 import assert from 'assert';
 import {
-  Block,
-  Expression,
   FunctionDefinition,
   FunctionKind,
   FunctionVisibility,
@@ -15,7 +13,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { createReturn, generateFunctionCall } from '../../utils/functionGeneration';
-import { createIdentifier, createParameterList } from '../../utils/nodeTemplates';
+import { createBlock, createIdentifier, createParameterList } from '../../utils/nodeTemplates';
 import { FunctionModifierInliner } from './functionModifierInliner';
 
 /*  This pass handles functions with modifiers.
@@ -36,22 +34,23 @@ export class FunctionModifierHandler extends ASTMapper {
     if (node.vModifiers.length === 0) return this.commonVisit(node, ast);
 
     let functionToCall = this.extractOriginalFunction(node, ast);
-    for (let i = node.vModifiers.length - 1; i >= 0; i--) {
-      const modifier = node.vModifiers[i].vModifier;
-      assert(
-        modifier instanceof ModifierDefinition,
-        `Unexpected call to contract ${modifier.id} constructor`,
-      );
-      functionToCall = this.getFunctionFromModifier(node, modifier, functionToCall, ast);
-    }
+    node.vModifiers
+      .slice()
+      .reverse()
+      .forEach((modInvocation) => {
+        const modifier = modInvocation.vModifier;
+        assert(
+          modifier instanceof ModifierDefinition,
+          `Unexpected call to contract ${modifier.id} constructor`,
+        );
+        functionToCall = this.getFunctionFromModifier(node, modifier, functionToCall, ast);
+      });
 
     const functionArgs = node.vParameters.vParameters.map((v) => createIdentifier(v, ast));
-    const modArgs: Expression[] = [];
-    for (const modifier of node.vModifiers) {
-      for (const arg of modifier.vArguments) {
-        modArgs.push(cloneASTNode(arg, ast));
-      }
-    }
+    const modArgs = node.vModifiers
+      .map((modInvocation) => modInvocation.vArguments)
+      .flat()
+      .map((arg) => cloneASTNode(arg, ast));
     const argsList = [...modArgs, ...functionArgs];
     const returnStatement = new Return(
       ast.reserveId(),
@@ -59,7 +58,7 @@ export class FunctionModifierHandler extends ASTMapper {
       node.vReturnParameters.id,
       generateFunctionCall(functionToCall, argsList, ast),
     );
-    const functionBody = new Block(ast.reserveId(), '', [returnStatement]);
+    const functionBody = createBlock([returnStatement], ast);
 
     node.vModifiers = [];
     node.vBody = functionBody;
@@ -90,13 +89,21 @@ export class FunctionModifierHandler extends ASTMapper {
   ): FunctionDefinition {
     const scope = node.vScope;
     const functionName = `__warp_${modifier.name}_${this.count++}`;
+    const funcId = ast.reserveId();
 
     const functionParams = functionToCall.vParameters.vParameters.map((v) =>
-      this.createParameter(v, ast),
+      this.createParameter(v, funcId, ast),
     );
-    const modParams = modifier.vParameters.vParameters.map((v) => cloneASTNode(v, ast));
+    const modParams = modifier.vParameters.vParameters.map((v) => {
+      const variable = cloneASTNode(v, ast);
+      variable.scope = funcId;
+      return variable;
+    });
     const params = [...modParams, ...functionParams];
-    const retParams = node.vReturnParameters.vParameters.map((v) => this.getNamedParam(v, ast));
+
+    const retParams = node.vReturnParameters.vParameters.map((v) =>
+      this.getNamedParam(v, funcId, ast),
+    );
     const retParamList = createParameterList(retParams, ast);
 
     let statements: Statement[] = [];
@@ -117,7 +124,7 @@ export class FunctionModifierHandler extends ASTMapper {
 
     // Create Function Definition Node
     const funcDef = new FunctionDefinition(
-      ast.reserveId(),
+      funcId,
       '',
       scope.id,
       scope instanceof SourceUnit ? FunctionKind.Free : FunctionKind.Function,
@@ -130,7 +137,7 @@ export class FunctionModifierHandler extends ASTMapper {
       retParamList,
       [],
       undefined,
-      new Block(ast.reserveId(), '', statements),
+      createBlock(statements, ast),
     );
 
     // Insert node into ast
@@ -139,15 +146,17 @@ export class FunctionModifierHandler extends ASTMapper {
     return funcDef;
   }
 
-  createParameter(v: VariableDeclaration, ast: AST): VariableDeclaration {
+  createParameter(v: VariableDeclaration, scope: number, ast: AST): VariableDeclaration {
     const variable = cloneASTNode(v, ast);
     variable.name = `__warp_parameter${this.count++}`;
+    variable.scope = scope;
     return variable;
   }
 
-  getNamedParam(v: VariableDeclaration, ast: AST): VariableDeclaration {
+  getNamedParam(v: VariableDeclaration, scope: number, ast: AST): VariableDeclaration {
     const param = cloneASTNode(v, ast);
     param.name = `__warp_ret_parameter${this.count++}`;
+    param.scope = scope;
     return param;
   }
 }

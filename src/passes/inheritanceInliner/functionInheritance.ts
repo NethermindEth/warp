@@ -1,21 +1,18 @@
 import assert from 'assert';
 import {
-  Block,
   ContractDefinition,
-  FunctionCall,
-  FunctionCallKind,
   FunctionDefinition,
   FunctionKind,
   FunctionVisibility,
-  Identifier,
   Return,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { TranspileFailedError } from '../../utils/errors';
-import { createIdentifier } from '../../utils/nodeTemplates';
-import { getFunctionTypeString, getReturnTypeString, isExternallyVisible } from '../../utils/utils';
+import { generateFunctionCall } from '../../utils/functionGeneration';
+import { createBlock, createIdentifier } from '../../utils/nodeTemplates';
+import { isExternallyVisible } from '../../utils/utils';
 import { getBaseContracts } from './utils';
 
 // Every function from every base contract gets included privately in the derived contract
@@ -136,27 +133,21 @@ function createDelegatingFunction(
   const newFunc = cloneASTNode(funcToCopy, ast);
   funcToCopy.vBody = oldBody;
 
-  const newBody = new Block(ast.reserveId(), '', [
-    new Return(
-      ast.reserveId(),
-      '',
-      newFunc.vReturnParameters.id,
-      new FunctionCall(
+  const newBody = createBlock(
+    [
+      new Return(
         ast.reserveId(),
         '',
-        getReturnTypeString(delegate),
-        FunctionCallKind.FunctionCall,
-        new Identifier(
-          ast.reserveId(),
-          '',
-          getFunctionTypeString(delegate, ast.compilerVersion),
-          delegate.name,
-          delegate.id,
+        newFunc.vReturnParameters.id,
+        generateFunctionCall(
+          delegate,
+          newFunc.vParameters.vParameters.map((v) => createIdentifier(v, ast)),
+          ast,
         ),
-        newFunc.vParameters.vParameters.map((v) => createIdentifier(v, ast)),
       ),
-    ),
-  ]);
+    ],
+    ast,
+  );
 
   newFunc.scope = scope;
   newFunc.vOverrideSpecifier = undefined;
