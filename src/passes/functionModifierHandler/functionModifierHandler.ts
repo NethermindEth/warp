@@ -70,7 +70,8 @@ export class FunctionModifierHandler extends ASTMapper {
     const scope = node.vScope;
 
     const funcDef = cloneASTNode(node, ast);
-    funcDef.name = `__warp_original_function_${node.name}`;
+    const name = node.isConstructor ? `constructor` : `function_${node.name}`;
+    funcDef.name = `__warp_original_${name}`;
     funcDef.visibility = FunctionVisibility.Internal;
     funcDef.isConstructor = false;
     funcDef.kind = FunctionKind.Function;
