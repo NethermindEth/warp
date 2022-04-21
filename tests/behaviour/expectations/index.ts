@@ -17,4 +17,4 @@ function filterTests(
   return tests.filter((test) => test.name.includes(filter));
 }
 
-export const expectations = filterTests(behaviour, semantic, 'dynamic_array_return_index');
+export const expectations = filterTests(behaviour, semantic);

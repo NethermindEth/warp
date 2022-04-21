@@ -6,7 +6,7 @@ import { StructModifier } from './structModifier';
 
 export class ExternalArgumentModifier extends ASTMapper {
   static map(ast: AST): AST {
-    //sast = StructModifier.map(ast);
+    ast = StructModifier.map(ast);
     ast = StaticArrayModifier.map(ast);
     ast = DynamicArrayModifier.map(ast);
     return ast;

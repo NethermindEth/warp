@@ -4,38 +4,33 @@ import {
   DataLocation,
   ElementaryTypeName,
   FunctionDefinition,
-  // Identifier,
   Mutability,
-  replaceNode,
   StateVariableVisibility,
   VariableDeclaration,
   VariableDeclarationStatement,
-  // IndexAccess,
-  // Literal,
-  // TupleExpression,
-  // VariableDeclaration,
-  // VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { createIdentifier } from '../../utils/nodeTemplates';
-// import { cloneASTNode } from '../../utils/cloning';
-// import { createIdentifier, createUint256Literal } from '../../utils/nodeTemplates';
 import { isExternallyVisible } from '../../utils/utils';
 import { collectUnboundVariables } from '../loopFunctionaliser/utils';
-// import { collectUnboundVariables } from '../loopFunctionaliser/utils';
 
 export class DynamicArrayModifier extends ASTMapper {
   /*
-  This pass will work by converting the dynamic arrays the function arguments into the name + suffix '_len' and then the pointer that has the name.
-  The challenge is to find out how cairoPointers can be created.
+  This pass will generate the functions that are needed to load dynamic memory arrays into our WARP memory system.
+
+  This pass splits the single dArray VariableDeclaration into two seperate VariableDeclarations the first being a
+  felt that holds the length of the dArray and the second being the pointer that points to the array containing the objects.
+
+  Once these VariableDeclarations are created a CairoUtilFuncGen function is called that generates a function that takes in
+  the 2 new VariableDeclarations and loop over the values loading them into our memory system. This function will return the
+  location of the the beginning of the array.
   */
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     const body = node.vBody;
-    const nodesToBeReplaced = new Array<VariableDeclaration>();
-    const nodesToBeAdded = new Array<Array<VariableDeclaration>>();
+    const nodeToReplacements = new Map<VariableDeclaration, VariableDeclaration[]>();
     if (isExternallyVisible(node) && body !== undefined) {
       [...collectUnboundVariables(body).entries()]
         .filter(
@@ -47,9 +42,8 @@ export class DynamicArrayModifier extends ASTMapper {
         )
         .forEach(([varDecl, ids]) => {
           const [arrayLen, arrayPointer] = this.splitArguments(node, varDecl, ast);
-          nodesToBeReplaced.push(varDecl);
           const replaceArgs = [arrayLen, arrayPointer];
-          nodesToBeAdded.push(replaceArgs);
+          nodeToReplacements.set(varDecl, replaceArgs);
 
           const memoryArray = cloneASTNode(varDecl, ast);
           memoryArray.name = memoryArray.name + '_mem';
@@ -69,49 +63,20 @@ export class DynamicArrayModifier extends ASTMapper {
             ast.replaceNode(identifier, createIdentifier(memoryArray, ast, DataLocation.Memory)),
           );
         });
-      //============
-      // node.vParameters.vParameters.forEach((varDecl) => {
-      //   if (
-      //     varDecl.storageLocation === DataLocation.Memory &&
-      //     varDecl.vType instanceof ArrayTypeName &&
-      //     varDecl.vType.vLength === undefined
-      //   ) {
-      //     const [arrayLen, arrayPointer] = this.splitArguments(node, varDecl, ast);
-      //     nodesToBeReplaced.push(varDecl);
-      //     const replaceArgs = [arrayLen, arrayPointer];
-      //     nodesToBeAdded.push(replaceArgs);
 
-      //     const memoryArray = cloneASTNode(varDecl, ast);
-      //     memoryArray.name = memoryArray.name + '_mem';
+      [...nodeToReplacements.keys()].forEach((varDecl) => {
+        const replacements = nodeToReplacements.get(varDecl);
+        assert(replacements !== undefined);
 
-      //     const varDeclStatement = this.createVariableDeclarationStatement(
-      //       node,
-      //       varDecl,
-      //       memoryArray,
-      //       arrayLen,
-      //       arrayPointer,
-      //       ast,
-      //     );
+        ast.setContextRecursive(replacements[0]);
+        ast.setContextRecursive(replacements[1]);
 
-      //     node.vBody?.insertAtBeginning(varDeclStatement);
-      //   }
-      // });
-      //============================================
-      // This is under dev and can look better.
-      if (nodesToBeReplaced.length > 0) {
-        nodesToBeReplaced.map((varDecl, i) => {
-          //Can just use insert before and after and then remove the node.
-          ast.setContextRecursive(nodesToBeAdded[i][0]);
-          ast.setContextRecursive(nodesToBeAdded[i][1]);
-          //replaceNode(varDecl, nodesToBeAdded[i][0]);
-          node.vParameters.insertAfter(nodesToBeAdded[i][0], varDecl);
-          node.vParameters.insertAfter(nodesToBeAdded[i][1], nodesToBeAdded[i][0]);
-          node.vParameters.removeChild(varDecl);
-          //node.vParameters.appendChild(nodesToBeAdded[i][0]);
-        });
-        // ast.setContextRecursive(node.vParameters);
-        ast.setContextRecursive(node);
-      }
+        node.vParameters.insertAfter(replacements[0], varDecl);
+        node.vParameters.insertAfter(replacements[1], replacements[0]);
+        node.vParameters.removeChild(varDecl);
+      });
+
+      ast.setContextRecursive(node);
 
       this.commonVisit(node, ast);
     }
@@ -120,7 +85,7 @@ export class DynamicArrayModifier extends ASTMapper {
     node: FunctionDefinition,
     varDecl: VariableDeclaration,
     ast: AST,
-  ): [VariableDeclaration, VariableDeclaration] {
+  ): [arrayLen: VariableDeclaration, arrayPointer: VariableDeclaration] {
     assert(varDecl.vType !== undefined);
     const typeStringArrayLen = varDecl.typeString.replace('[]', '');
     const lenVarDecl = new VariableDeclaration(
@@ -180,54 +145,3 @@ export class DynamicArrayModifier extends ASTMapper {
     return varDeclStatement;
   }
 }
-// private createVariableDeclarationStatement(
-//   calldataArray: VariableDeclaration,
-//   memoryArray: VariableDeclaration,
-//   ast: AST,
-// ): VariableDeclarationStatement {
-//   const structDeclarationStatement = new VariableDeclarationStatement(
-//     ast.reserveId(),
-//     '',
-//     [memoryArray.id],
-//     [memoryArray],
-//     this.createTupleExpression(calldataArray, memoryArray, ast),
-//   );
-//   return structDeclarationStatement;
-// }
-
-// private createTupleExpression(
-//   calldataArray: VariableDeclaration,
-//   memoryArray: VariableDeclaration,
-//   ast: AST,
-// ): TupleExpression {
-//   assert(calldataArray.vType instanceof ArrayTypeName);
-//   const indexAccessArray = this.createIndexAccessArray(calldataArray, calldataArray.vType, ast);
-//   const newTupleExpression = new TupleExpression(
-//     ast.reserveId(),
-//     '',
-//     memoryArray.typeString,
-//     true,
-//     indexAccessArray,
-//   );
-//   return newTupleExpression;
-// }
-
-// private createIndexAccessArray(
-//   calldataArray: VariableDeclaration,
-//   arrayDef: ArrayTypeName,
-//   ast: AST,
-// ): IndexAccess[] {
-//   assert(arrayDef.vLength instanceof Literal);
-//   // Make sure to check if there are more than 252
-//   return mapRange(
-//     Number(arrayDef.vLength.value),
-//     (i) =>
-//       new IndexAccess(
-//         ast.reserveId(),
-//         '',
-//         arrayDef.vBaseType.typeString,
-//         createIdentifier(calldataArray, ast, calldataArray.storageLocation),
-//         createUint256Literal(BigInt(i), ast),
-//       ),
-//   );
-// }

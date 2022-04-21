@@ -59,7 +59,7 @@ export class ExternalDynArrayAllocator extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.MemoryAllocation,
     );
-    const name = `dynarray_write_${varDecl.name}`;
+    const name = `wm_dynarry_write_${elementCairoType.toString()}`;
 
     this.generatedFunctions.set(name, {
       name: name,
