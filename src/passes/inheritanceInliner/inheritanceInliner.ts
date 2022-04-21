@@ -23,8 +23,6 @@ export class InheritanceInliner extends ASTMapper {
       return;
     }
 
-    this.counter = 0;
-
     const functionRemapping: Map<number, FunctionDefinition> = new Map();
     const variableRemapping: Map<number, VariableDeclaration> = new Map();
     const modifierRemapping: Map<number, ModifierDefinition> = new Map();

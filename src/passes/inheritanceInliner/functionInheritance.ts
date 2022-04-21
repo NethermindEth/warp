@@ -15,7 +15,7 @@ import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { TranspileFailedError } from '../../utils/errors';
 import { createIdentifier } from '../../utils/nodeTemplates';
-import { getFunctionTypeString, getReturnTypeString } from '../../utils/utils';
+import { getFunctionTypeString, getReturnTypeString, isExternallyVisible } from '../../utils/utils';
 import { getBaseContracts } from './utils';
 
 // Every function from every base contract gets included privately in the derived contract
@@ -69,12 +69,7 @@ export function addNonoverridenPublicFunctions(
 function getVisibleFunctions(node: ContractDefinition): Set<string> {
   const visibleFunctions = new Set(
     node.vFunctions
-      .filter(
-        (func) =>
-          (func.visibility === FunctionVisibility.Public ||
-            func.visibility === FunctionVisibility.External) &&
-          !func.isConstructor,
-      )
+      .filter((func) => isExternallyVisible(func) && !func.isConstructor)
       .map((func) => func.name),
   );
 
@@ -132,8 +127,7 @@ function createDelegatingFunction(
     `Attempted to copy non-member function ${funcToCopy.name}`,
   );
   assert(
-    funcToCopy.visibility === FunctionVisibility.Public ||
-      funcToCopy.visibility === FunctionVisibility.External,
+    isExternallyVisible(funcToCopy),
     `Attempted to copy non public/external function ${funcToCopy.name}`,
   );
 

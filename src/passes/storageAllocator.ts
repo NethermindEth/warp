@@ -12,7 +12,6 @@ import {
   FunctionVisibility,
   getNodeType,
   Identifier,
-  ParameterList,
   typeNameToSpecializedTypeNode,
   VariableDeclaration,
 } from 'solc-typed-ast';

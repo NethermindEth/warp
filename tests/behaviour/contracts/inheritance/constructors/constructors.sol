@@ -17,7 +17,7 @@ contract D {
   }
 }
 
-abstract contract B is A {
+contract B is A {
   uint256 public b;
 
   constructor(uint256 _b, uint256 d) A(d + 3) {
