@@ -19,37 +19,28 @@ export function updateReferencedDeclarations(
   idRemapping: Map<number, VariableDeclaration | FunctionDefinition | ModifierDefinition>,
   ast: AST,
 ) {
-  updateNodeReferencedDeclarations(node, idRemapping, ast);
-  node.walkChildren((node) => {
-    updateNodeReferencedDeclarations(node, idRemapping, ast);
+  node.walk((node) => {
+    if (node instanceof Identifier || node instanceof IdentifierPath) {
+      const remapping = idRemapping.get(node.referencedDeclaration);
+      if (remapping !== undefined) {
+        node.referencedDeclaration = remapping.id;
+        node.name = remapping.name;
+      }
+    } else if (node instanceof MemberAccess) {
+      const remapping = idRemapping.get(node.referencedDeclaration);
+      if (remapping !== undefined) {
+        ast.replaceNode(
+          node,
+          new Identifier(
+            ast.reserveId(),
+            node.src,
+            node.typeString,
+            remapping.name,
+            remapping.id,
+            node.raw,
+          ),
+        );
+      }
+    }
   });
-}
-
-function updateNodeReferencedDeclarations(
-  node: ASTNode,
-  idRemapping: Map<number, VariableDeclaration | FunctionDefinition | ModifierDefinition>,
-  ast: AST,
-) {
-  if (node instanceof Identifier || node instanceof IdentifierPath) {
-    const remapping = idRemapping.get(node.referencedDeclaration);
-    if (remapping !== undefined) {
-      node.referencedDeclaration = remapping.id;
-      node.name = remapping.name;
-    }
-  } else if (node instanceof MemberAccess) {
-    const remapping = idRemapping.get(node.referencedDeclaration);
-    if (remapping !== undefined) {
-      ast.replaceNode(
-        node,
-        new Identifier(
-          ast.reserveId(),
-          node.src,
-          node.typeString,
-          remapping.name,
-          remapping.id,
-          node.raw,
-        ),
-      );
-    }
-  }
 }
