@@ -17,9 +17,11 @@ import { generateFunctionCall } from '../../utils/functionGeneration';
 import { createBlock, createIdentifier, createParameterList } from '../../utils/nodeTemplates';
 import { updateReferencedDeclarations } from './utils';
 
-let count = 0;
-
-export function solveConstructorInheritance(node: ContractDefinition, ast: AST) {
+export function solveConstructorInheritance(
+  node: ContractDefinition,
+  ast: AST,
+  generator: () => number,
+) {
   // Contracts marked as abstract won't be deployed
   if (node.abstract) return;
 
@@ -47,6 +49,7 @@ export function solveConstructorInheritance(node: ContractDefinition, ast: AST) 
       statements,
       selfConstructor.id,
       ast,
+      generator,
     );
   });
 
@@ -59,7 +62,7 @@ export function solveConstructorInheritance(node: ContractDefinition, ast: AST) 
     .forEach((contractId) => {
       const constructorFunc = constructors.get(contractId);
       if (constructorFunc !== undefined) {
-        const newFunc = createFunctionFromConstructor(constructorFunc, node, ast);
+        const newFunc = createFunctionFromConstructor(constructorFunc, node, ast, generator);
         node.appendChild(newFunc);
 
         const argList = args.get(contractId) ?? [];
@@ -78,7 +81,7 @@ export function solveConstructorInheritance(node: ContractDefinition, ast: AST) 
     });
 
   // Change the constructor of this contract into a regular function to be called from `selfConstructor`
-  transformConstructor(node, selfConstructor, statements, ast);
+  transformConstructor(node, selfConstructor, statements, ast, generator);
 
   // Add generated function calls to the body of this contract's constructor
   if (statements.length > 0) {
@@ -100,6 +103,7 @@ function collectArguments(
   statements: Statement[],
   scope: number,
   ast: AST,
+  generator: () => number,
 ) {
   contract.vInheritanceSpecifiers.forEach((specifier) => {
     const contractId = specifier.vBaseType.referencedDeclaration;
@@ -117,6 +121,7 @@ function collectArguments(
         statements,
         scope,
         ast,
+        generator,
       );
       args.set(contractId, argList);
     }
@@ -140,6 +145,7 @@ function collectArguments(
             statements,
             scope,
             ast,
+            generator,
           );
           args.set(contractDef.id, argList);
         }
@@ -155,6 +161,7 @@ function getArguments(
   statements: Statement[],
   scope: number,
   ast: AST,
+  generator: () => number,
 ): Expression[] {
   const size = args.length;
   const argList: Expression[] = [];
@@ -162,7 +169,7 @@ function getArguments(
     const newArg = cloneASTNode(args[i], ast);
     updateReferencedDeclarations(newArg, idRemapping, ast);
     const newVar = cloneASTNode(parameters[i], ast);
-    newVar.name = `__warp_constructor_parameter_${count++}`;
+    newVar.name = `__warp_constructor_parameter_${generator()}`;
     newVar.scope = scope;
 
     idRemapping.set(parameters[i].id, newVar);
@@ -178,10 +185,11 @@ function createFunctionFromConstructor(
   constructorFunc: FunctionDefinition,
   node: ContractDefinition,
   ast: AST,
+  generator: () => number,
 ): FunctionDefinition {
   const newFunc = cloneASTNode(constructorFunc, ast);
   newFunc.kind = FunctionKind.Function;
-  newFunc.name = `__warp_constructor_${count++}`;
+  newFunc.name = `__warp_constructor_${generator()}`;
   newFunc.visibility = FunctionVisibility.Private;
   newFunc.isConstructor = false;
   newFunc.scope = node.id;
@@ -246,12 +254,13 @@ function transformConstructor(
   newConstructor: FunctionDefinition,
   statements: Statement[],
   ast: AST,
+  generator: () => number,
 ) {
   const currentCons = node.vConstructor;
   if (currentCons === undefined) return;
 
   currentCons.kind = FunctionKind.Function;
-  currentCons.name = `__warp_constructor_${count++}`;
+  currentCons.name = `__warp_constructor_${generator()}`;
   currentCons.visibility = FunctionVisibility.Private;
   currentCons.isConstructor = false;
 

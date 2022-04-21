@@ -14,6 +14,8 @@ import { addStorageVariables } from './storageVariablesInheritance';
 import { getBaseContracts, updateReferencedDeclarations } from './utils';
 
 export class InheritanceInliner extends ASTMapper {
+  counter = 0;
+
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     if (node.vLinearizedBaseContracts.length < 2) {
       // LinearizedBaseContracts includes self as the first element,
@@ -21,11 +23,13 @@ export class InheritanceInliner extends ASTMapper {
       return;
     }
 
+    this.counter = 0;
+
     const functionRemapping: Map<number, FunctionDefinition> = new Map();
     const variableRemapping: Map<number, VariableDeclaration> = new Map();
     const modifierRemapping: Map<number, ModifierDefinition> = new Map();
 
-    solveConstructorInheritance(node, ast);
+    solveConstructorInheritance(node, ast, this.generateIndex.bind(this));
     addPrivateSuperFunctions(node, functionRemapping, ast);
     addNonoverridenPublicFunctions(node, functionRemapping, ast);
     addStorageVariables(node, variableRemapping, ast);
@@ -58,5 +62,9 @@ export class InheritanceInliner extends ASTMapper {
       });
     }
     return ast;
+  }
+
+  generateIndex() {
+    return this.counter++;
   }
 }
