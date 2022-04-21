@@ -13,7 +13,6 @@ import {
   VariableDeclaration,
   StateVariableVisibility,
   Mutability,
-  ElementaryTypeName,
   DataLocation,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -22,6 +21,7 @@ import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { createIdentifier } from '../utils/nodeTemplates';
 import { notNull } from '../utils/typeConstructs';
+import { typeNameFromTypeNode } from '../utils/utils';
 
 // TODO check for case where a for loop contains a single tuple declaration as its body
 
@@ -30,6 +30,7 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
   generateNewConstantName(): string {
     return `__warp_td_${this.lastUsedConstantId++}`;
   }
+
   visitBlock(node: Block, ast: AST): void {
     // Recurse first to handle nested blocks
     // CommonVisiting a block will not split direct children of the block as that is done via visitStatementList
@@ -96,6 +97,9 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
           // If types are correct there's no need to create a new variable
           return id;
         } else {
+          const currentTypeNode = initialValueType.elements[index];
+
+          const newTypeNode = typeNameFromTypeNode(currentTypeNode, ast);
           //TODO handle non-elementary types
           // This is the replacement variable in the tuple assignment
           const newDeclaration = new VariableDeclaration(
@@ -111,12 +115,7 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
             Mutability.Constant,
             initialValueType.elements[index].pp(),
             undefined,
-            new ElementaryTypeName(
-              ast.reserveId(),
-              node.src,
-              `${initialValueType.elements[index].pp()}`,
-              initialValueType.elements[index].pp(),
-            ),
+            newTypeNode,
           );
           node.vDeclarations.push(newDeclaration);
           ast.registerChild(newDeclaration, node);

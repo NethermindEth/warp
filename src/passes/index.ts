@@ -1,5 +1,6 @@
 export * from './annotateImplicits';
 export * from './builtinHandler';
+export * from './bytesConverter';
 export * from './cairoUtilImporter';
 export * from './constantHandler';
 export * from './deleteHandler';
