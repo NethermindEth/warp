@@ -7,6 +7,7 @@ import {
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
+  ModifierDefinition,
   Statement,
   VariableDeclaration,
   VariableDeclarationStatement,
@@ -23,7 +24,10 @@ export function solveConstructorInheritance(
   generator: () => number,
 ) {
   // Contracts marked as abstract won't be deployed
-  if (node.abstract) return;
+  if (node.abstract) {
+    removeModifiersFromConstructor(node);
+    return;
+  }
 
   // Collect all constructors
   const constructors: Map<number, FunctionDefinition> = new Map();
@@ -63,6 +67,7 @@ export function solveConstructorInheritance(
       const constructorFunc = constructors.get(contractId);
       if (constructorFunc !== undefined) {
         const newFunc = createFunctionFromConstructor(constructorFunc, node, ast, generator);
+        removeNonModifierInvocations(newFunc);
         node.appendChild(newFunc);
 
         const argList = args.get(contractId) ?? [];
@@ -263,6 +268,7 @@ function transformConstructor(
   currentCons.name = `__warp_constructor_${generator()}`;
   currentCons.visibility = FunctionVisibility.Private;
   currentCons.isConstructor = false;
+  removeNonModifierInvocations(currentCons);
 
   const argList = newConstructor.vParameters.vParameters.map((v) => {
     return createIdentifier(v, ast);
@@ -270,4 +276,16 @@ function transformConstructor(
   statements.push(
     new ExpressionStatement(ast.reserveId(), '', generateFunctionCall(currentCons, argList, ast)),
   );
+}
+
+function removeNonModifierInvocations(node: FunctionDefinition) {
+  const modifiers = node.vModifiers.filter((modInvocation) => {
+    return modInvocation.vModifier instanceof ModifierDefinition;
+  });
+  node.vModifiers = modifiers;
+}
+
+function removeModifiersFromConstructor(node: ContractDefinition) {
+  const constructor = node.vConstructor;
+  if (constructor !== undefined) removeNonModifierInvocations(constructor);
 }
