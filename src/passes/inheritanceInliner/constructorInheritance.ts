@@ -18,6 +18,68 @@ import { generateFunctionCall } from '../../utils/functionGeneration';
 import { createBlock, createIdentifier, createParameterList } from '../../utils/nodeTemplates';
 import { updateReferencedDeclarations } from './utils';
 
+/*
+  The constructor is executed upon contract creation; all the constructors of the base 
+  contracts will be called following the linearization order given by the ast.
+  If the base constructors have arguments, derived contracts need to specify all of them,
+  which can be done in two ways:
+    - Directly in the inheritance specifiers
+    - Indirectly through a modifier invocation of the derived constructor
+
+  The main idea behind this solution is to create a new private function for each base 
+  contract, which will be added as a function of the current contract, and which will be 
+  a clone of the corresponding constructor. In particular, the constructor of the current 
+  contract doesn't need to be cloned, just transformed into a private function. 
+  
+  A new function will be created and added as a child of the current contract, and this
+  function will be the new constructor. It will handle:
+    - Collecting the arguments to call each base constructor. To do that, each time an 
+    argument is passed, a new variable declaration is created cloning the parameter that 
+    corresponds to this argument. The value of the declaration is the expression of the 
+    argument, and references to tha parameter will change to reference the new variable 
+    created.
+    - Calling the functions corresponding to each constructor in the correct order.
+
+  In the following example:
+  
+  ```
+  contract A {
+    uint x;
+    constructor(uint _x) { x = _x; }
+  }
+
+  contract B is A(7) {
+    uint b;
+    constructor(uint _b) { b = 2 * _b; }
+  }
+
+  contract C is B {
+      constructor(uint _y) B(_y * _y) {}
+  }
+  ```
+  contract C will result in:
+
+  ```
+  contract C{
+    uint x;
+    uint b;
+
+    constructor(uint _y) {
+      const __warp_constructor_parameter_0 = _y * _y;
+      const __warp_constructor_parameter_1 = 7;
+      
+      __warp_constructor_2(__warp_constructor_parameter_1);
+      __warp_constructor_3(__warp_constructor_parameter_0);
+      __warp_constructor_4(_y);
+    }
+
+    function __warp_constructor_2(uint _x) { x = _x; }
+    function __warp_constructor_3(uint _x) { b = 2 * _x; }
+    function __warp_constructor_4(uint _x) {  }
+  }
+  ``` 
+*/
+
 export function solveConstructorInheritance(
   node: ContractDefinition,
   ast: AST,
