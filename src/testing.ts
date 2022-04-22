@@ -59,6 +59,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/idManglingTest8', 'Success'],
   ['example_contracts/idManglingTest9', 'Success'],
   ['example_contracts/if-flattening', 'Success'],
+  ['example_contracts/imports/importfrom', 'Success'],
   ['example_contracts/imports/importto', 'NotSupportedYet'],
   ['example_contracts/inheritance/simple', 'Success'],
   ['example_contracts/inheritance/super/base', 'Success'],
