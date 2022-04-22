@@ -1285,7 +1285,7 @@ export const expectations = flatten(
             Expect.Simple('x', [], ['10', '0']),
             Expect.Simple('y', ['0', '0'], ['12', '0']),
             Expect.Simple('z', ['0', '0', '1', '0'], ['14', '0']),
-            Expect.Simple('w', ['0', '0', '0', '0', '0', '0'], ['14', '0']),
+            Expect.Simple('w', ['0', '0', '0', '0', '0', '0'], ['15', '0']),
           ]),
         ]),
         new Dir('returns', [
