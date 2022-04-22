@@ -11,6 +11,7 @@ import {
   FunctionVisibility,
   SourceUnit,
   ContractDefinition,
+  ImportDirective,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../ast/ast';
@@ -54,7 +55,8 @@ export class IdentifierMangler extends ASTMapper {
     if (
       node.vIdentifierType === ExternalReferenceType.UserDefined &&
       (node.vReferencedDeclaration instanceof VariableDeclaration ||
-        node.vReferencedDeclaration instanceof FunctionDefinition)
+        (node.vReferencedDeclaration instanceof FunctionDefinition &&
+          !(node.parent instanceof ImportDirective)))
     ) {
       node.name = node.vReferencedDeclaration.name;
     }

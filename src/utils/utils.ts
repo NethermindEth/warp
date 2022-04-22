@@ -35,6 +35,8 @@ import {
   StringLiteralType,
   StringType,
   ContractDefinition,
+  StructDefinition,
+  EnumDefinition,
 } from 'solc-typed-ast';
 import { NotSupportedYetError, TranspileFailedError, logError } from './errors';
 import { printNode, printTypeNode } from './astPrinter';
@@ -322,6 +324,14 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
 
 export function getContractTypeString(node: ContractDefinition): string {
   return `type(${node.kind} ${node.name})`;
+}
+
+export function getStructTypeString(node: StructDefinition): string {
+  return `struct ${node.name}`;
+}
+
+export function getEnumTypeString(node: EnumDefinition): string {
+  return `enum ${node.name}`;
 }
 
 export function getFunctionTypeString(node: FunctionDefinition, compilerVersion: string): string {
