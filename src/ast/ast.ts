@@ -23,7 +23,25 @@ import { Implicits } from '../utils/implicits';
 import { mergeImports } from '../utils/utils';
 import { CairoFunctionDefinition } from './cairoNodes';
 
-export type FunctionImplicits = Map<string, Set<Implicits>>;
+/*
+ A centralised store of information required for transpilation, a reference
+ to the AST is passed around during processing so that such information is 
+ always available.
+ Both contains members that exist in the original compilation data, such as
+ compilerVersion and context, that are generally inconvenient to access from
+ arbitrary points in the tree, as well as holding information we create during
+ the course of transpilation such as the import mappings.
+
+ When creating nodes, it is important to assign their context. There are 3 ways
+ to do this:
+ - setContextRecursive is the most basic and handles the given node and all children
+ - registerChild is for when you add a child node, it ensures both contexts and parent
+ links are set correctly
+ - replaceNode is for when you need to replace the current node that is being visited
+ with a new one. Should only be used where necessary as it can be used to get around
+ the type system. If the new node is of the same type as the current one, assigning to
+ members of the existing node is preferred
+*/
 
 export class AST {
   // SourceUnit id -> CairoUtilFuncGen
@@ -198,7 +216,6 @@ export class AST {
 
     const parent = existingStatement.parent;
     // Blocks are not instances of Statements, but they satisy typescript shaped typing rules to be classed as Statements
-    // TODO potentially handle src better
     const replacementBlock = new Block(this.reserveId(), existingStatement.src, [
       existingStatement,
       newStatement,
@@ -246,7 +263,6 @@ export class AST {
 
     const parent = existingStatement.parent;
     // Blocks are not instances of Statements, but they satisy typescript shaped typing rules to be classed as Statements
-    // TODO potentially handle src better
     const replacementBlock = new Block(this.reserveId(), existingStatement.src, [
       newStatement,
       existingStatement,
@@ -417,6 +433,8 @@ function replaceNode(oldNode: ASTNode, newNode: ASTNode, parent: ASTNode | undef
 
 // Different source units can share contexts
 // This means ASTs have to share a registry of reserved ids
+
+// TODO now that AST contains multiple roots, this may not be necessary
 
 const _safeIds: Map<ASTContext, number> = new Map();
 function reserveSafeId(context: ASTContext): number {

@@ -15,6 +15,77 @@ export const expectations = flatten(
             Expect.Simple('test256', ['3', '4'], ['3', '4']),
           ]),
         ]),
+        new Dir('bytes', [
+          File.Simple('byteArrays', [
+            Expect.Simple('getC', ['1'], ['9029']),
+            Expect.Simple('getStorageBytesArray', [], ['13398']),
+            Expect.Simple('getMemoryBytesArray', [], ['9029']),
+            Expect.Simple('getMemoryBytesArrayTwo', [], ['4660', '9029']),
+            Expect.Simple('getStorageBytesDynArray', [], ['4660']),
+          ]),
+          File.Simple('byteStructs', [
+            Expect.Simple('getB3A', [], ['4660']),
+            Expect.Simple('getBsC', [], ['18']),
+          ]),
+          new File(
+            'fixedSizeBytesArrays',
+            'WARP',
+            ['340282366920938463463374607431768211455'],
+            [
+              Expect.Simple('getA', [], ['4660']),
+              Expect.Simple('getB', [], ['0']),
+              Expect.Simple('getC', [], ['0']),
+              Expect.Simple('getD', [], ['340282366920938463463374607431768211455']),
+              Expect.Simple('shiftBytesBy', ['2'], ['18640']),
+              // 0x12345678
+              Expect.Simple('shiftBytesByConstant', ['305419896'], ['76354974']),
+              // 0x4321
+              Expect.Simple('bitwiseAnd', ['17185'], ['544']),
+              Expect.Simple('bitwiseOr', ['17185'], ['21301']),
+              Expect.Simple('bitwiseXor', ['17185'], ['20757']),
+              Expect.Simple('bitwiseNor', [], ['60875']),
+              // 0xffff, 0xabcd
+              Expect.Simple('nestedBitwiseOp', ['65535', '43981'], ['43465']),
+              new Expect('testing constructor arguments out of bounds', [
+                [
+                  'constructor',
+                  ['340282366920938463463374607431768211456'],
+                  null,
+                  '0',
+                  'Error message: Error: value out-of-bounds. Value must be less than 2**128.',
+                ],
+              ]),
+            ],
+          ),
+          new File(
+            'fixedSizeByte7',
+            'WARP',
+            ['47'], // 0x2f
+            [
+              Expect.Simple('getA', [], ['47']),
+              Expect.Simple('getB', [], ['170']),
+              Expect.Simple('shiftByteBy', ['2'], ['188']),
+              // 0x99
+              Expect.Simple('shiftByteByConstant', ['153'], ['38']),
+              // 0xbb
+              Expect.Simple('bitwiseAnd', ['187'], ['43']),
+              Expect.Simple('bitwiseOr', ['187'], ['191']),
+              Expect.Simple('bitwiseXor', ['187'], ['148']),
+              Expect.Simple('bitwiseNor', [], ['208']),
+              // 0x2f, 0xf2
+              Expect.Simple('nestedBitwiseAnd', ['47', '242'], ['34']),
+              new Expect('testing constructor arguments out of bounds', [
+                [
+                  'constructor',
+                  ['256'],
+                  null,
+                  '0',
+                  'Error message: Error: value out-of-bounds. Value must be less than 2**8.',
+                ],
+              ]),
+            ],
+          ),
+        ]),
         new Dir('constants', [
           File.Simple('simpleConstants', [
             Expect.Simple('getX', [], ['247']),
@@ -273,6 +344,7 @@ export const expectations = flatten(
               ['clearAt', ['2', '0'], [], '0'],
               ['get', ['2', '0'], ['0'], '0'],
               ['get', ['0', '0'], ['8'], '0'],
+              ['getLength', [], ['3', '0'], '0'],
               ['clear', [], [], '0'],
               ['getLength', [], ['0', '0'], '0'],
             ]),
@@ -459,6 +531,74 @@ export const expectations = flatten(
                 '340282366920938463463370103832140840960',
                 '0',
                 '170141183460469231731687303715884105728',
+              ],
+            ),
+          ]),
+        ]),
+        new Dir('external_function_inputs', [
+          File.Simple('struct_return_member', [
+            new Expect('testing that memory struct is written to memory and member is returned', [
+              ['testReturnMember', ['1', '2'], ['1'], '0'],
+            ]),
+            new Expect(
+              'testing that multiple memory structs are written to memory and members returned',
+              [['testMultipleStructsMembers', ['1', '2', '0', '8', '10'], ['11'], '0']],
+            ),
+            new Expect(
+              'testing that multiple memory structs are written to memory and members returned and passed correctly between external and internal functions',
+              [
+                [
+                  'testMultipleStructsPublicFunctionMember',
+                  ['1', '2', '0', '8', '10'],
+                  ['11'],
+                  '0',
+                ],
+              ],
+            ),
+          ]),
+          File.Simple('struct_return_struct', [
+            new Expect(
+              'testing that memory struct is written to memory and full struct is returned from external function',
+              [['testReturnStruct', ['1', '2'], ['1', '2'], '0']],
+            ),
+            new Expect(
+              'testing that memory struct is written to memory and full struct is returned from pubic function',
+              [['testReturnStructPublic', ['1', '2'], ['1', '2'], '0']],
+            ),
+          ]),
+          File.Simple('static_array_return_index', [
+            new Expect(
+              'testing a static array of ints can be passed into an external function and written to memory and index returned.',
+              [['testIntExternal', ['1', '2', '3'], ['3'], '0']],
+            ),
+            new Expect(
+              'testing a static array of ints can be passed into a public function and written to memory and index returned.',
+              [['testIntPublic', ['1', '2', '3'], ['3'], '0']],
+            ),
+            new Expect(
+              'testing a static array of structs can be passed into an external function and written to memory and index returned.',
+              [
+                [
+                  'testStructExternal',
+                  ['1', '2', '0 ', '3', '4', '0', '5', '6', '0'],
+                  ['5', '6', '0'],
+                  '0',
+                ],
+              ],
+            ),
+            new Expect(
+              'testing a static array of structs can be passed into a public function and written to memory and index returned.',
+              [['testStructPublic', ['1', '2', '0 ', '3', '4', '0', '5', '6', '0'], ['5'], '0']],
+            ),
+            new Expect(
+              'testing when multiple inputs all of them are written into memory and read correctly.',
+              [
+                [
+                  'testMultiplePublic',
+                  ['1', '2', '0 ', '3', '4', '0', '5', '6', '0', '111', '10', '11', '12'],
+                  ['13'],
+                  '0',
+                ],
               ],
             ),
           ]),
@@ -1055,6 +1195,44 @@ export const expectations = flatten(
             Expect.Simple('uint8write', ['5'], ['0', '5']),
             Expect.Simple('uint256new', [], ['0', '0', '0', '0']),
             Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
+          ]),
+          File.Simple('staticArrays', [
+            Expect.Simple('uint8default', [], ['0', '0']),
+            Expect.Simple('uint8write', ['5'], ['0', '5']),
+            Expect.Simple('uint256default', [], ['0', '0', '0', '0']),
+            Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
+          ]),
+          File.Simple('structs', [
+            Expect.Simple('createDefault', [], ['0', '0', '0']),
+            Expect.Simple('createManual', ['1', '2', '3'], ['1', '2', '3']),
+            Expect.Simple('writeMembers', ['1', '2', '3'], ['1', '2', '3']),
+            Expect.Simple('references', ['1', '2', '3'], ['1', '2', '3']),
+            Expect.Simple('input', ['3', '4', '5'], ['4', '5', '5']),
+            Expect.Simple('output', ['3', '4', '5'], ['3', '4', '5']),
+          ]),
+        ]),
+        new Dir('modifiers', [
+          File.Simple('modifier', [
+            Expect.Simple('f', ['90000', '0'], ['10000', '0']),
+            Expect.Simple('f', ['110000', '0'], ['0', '0']),
+          ]),
+          File.Simple('multipleModifiers', [
+            new Expect('modifier', [
+              ['openEvent', [], [], '0'],
+              ['donate', ['238', '0'], ['238', '0'], '0'],
+              ['donate', ['100', '0'], ['338', '0'], '0'],
+              ['donate', ['50', '0'], null, '0', 'Value for donation must be bigger than 100'],
+              ['balance', [], ['338', '0'], '0'],
+              ['closeEvent', [], [], '0'],
+              [
+                'donate',
+                ['500', '0'],
+                null,
+                '0',
+                'The event must be open in order to receive donations',
+              ],
+              ['balance', [], ['0', '0'], '0'],
+            ]),
           ]),
         ]),
         new Dir('modifiers', [

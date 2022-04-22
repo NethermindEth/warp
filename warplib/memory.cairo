@@ -1,127 +1,137 @@
-from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_eq, uint256_mul
-from warplib.maths.utils import felt_to_uint256
+from starkware.cairo.common.dict import dict_read, dict_write
+from starkware.cairo.common.dict_access import DictAccess
+from starkware.cairo.common.math import split_felt
+from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_le, uint256_lt, uint256_mul
+from warplib.maths.utils import felt_to_uint256, narrow_safe
 
-# ------------------------------------------------------------------------------
-# Warp memory schema
-# Memory is represented as a time-ordered list of writes
-# Reads work by starting at the latest and looking for writes to the cell to read
-# Each object written has a unique name, and is comprised of one or more felts
-# placed at incrementing offsets
-#
-# Special cells:
-# Name = 0, offset = 0 contains the most recently generated name
-# For arrays, the length is stored at offsets that are invalid uint256s
-# ------------------------------------------------------------------------------
+# =================================THE PLAN=================================
+# Memory needs to be able to handle the following types:
+# Scalars
+#     Ints, bools, addresses, etc
+# Arrays
+#     Static, and dynamic
+# Structs
 
-struct MemCell:
-    member name : felt
-    member offset : Uint256
-    member value : felt
+# Scalars are easy, they fit in one or two felts each, and read functions
+# can be prewritten here
+
+# Static arrays are just elements laid out consecutively in memory
+
+# Dynamic arrays are harder, they are stored as felts that 'point' to an
+# allocated data space that contains first the length and then the data
+# This means that they can have a known size when being packed into a
+# compound type but can still have a number of elements known only at runtime
+
+# ===========================================================================
+
+# -----------------Scalars-----------------
+
+func wm_read_felt{warp_memory : DictAccess*}(loc : felt) -> (val : felt):
+    let (res) = dict_read{dict_ptr=warp_memory}(loc)
+    return (res)
 end
 
-func warp_idx{range_check_ptr}(arrayIndex : Uint256, width : felt, offset : felt) -> (
-    feltIndex : Uint256
-):
-    let (width256) = felt_to_uint256(width)
-    let (offset256) = felt_to_uint256(offset)
-    let (start : Uint256, overflow : Uint256) = uint256_mul(arrayIndex, width256)
+func wm_read_256{warp_memory : DictAccess*}(loc : felt) -> (val : Uint256):
+    let (low) = dict_read{dict_ptr=warp_memory}(loc)
+    let (high) = dict_read{dict_ptr=warp_memory}(loc + 1)
+    return (Uint256(low, high))
+end
+
+func wm_write_felt{warp_memory : DictAccess*}(loc : felt, value : felt) -> (res : felt):
+    dict_write{dict_ptr=warp_memory}(loc, value)
+    return (value)
+end
+
+func wm_write_256{warp_memory : DictAccess*}(loc : felt, value : Uint256) -> (res : Uint256):
+    dict_write{dict_ptr=warp_memory}(loc, value.low)
+    dict_write{dict_ptr=warp_memory}(loc + 1, value.high)
+    return (value)
+end
+
+# -----------------Arrays-----------------
+
+func wm_index_static{range_check_ptr}(
+    arrayLoc : felt, index : Uint256, width : Uint256, length : Uint256
+) -> (loc : felt):
+    # Check that the array index is valid
+    let (inRange) = uint256_lt(index, length)
+    assert inRange = 1
+
+    # Multiply index by element width to calculate felt offset
+    let (offset : Uint256, overflow : Uint256) = uint256_mul(index, width)
     assert overflow.low = 0
     assert overflow.high = 0
-    let (result : Uint256, carry : felt) = uint256_add(start, offset256)
+
+    # Add felt offset to address of array to get address of element
+    let (arrayLoc256 : Uint256) = felt_to_uint256(arrayLoc)
+    let (res : Uint256, carry : felt) = uint256_add(arrayLoc256, offset)
     assert carry = 0
-    return (result)
+
+    # Safely narrow back to felt
+    let (loc : felt) = narrow_safe(res)
+    return (loc)
 end
 
-func warp_memory_init() -> (warp_memory : MemCell*):
-    let (warp_memory : MemCell*) = alloc()
-    assert warp_memory.name = 0
-    assert warp_memory.offset.low = 0
-    assert warp_memory.offset.high = 0
-    assert warp_memory.value = 0
-    return (warp_memory)
-end
-
-func warp_create_array{range_check_ptr, warp_memory : MemCell*}(len : Uint256) -> (name : felt):
+func wm_index_dyn{range_check_ptr, warp_memory : DictAccess*}(
+    arrayLoc : felt, index : Uint256, width : Uint256
+) -> (loc : felt):
     alloc_locals
-    # Create a unique identifier for the array
-    let (local name : felt) = _get_next_name()
-    # Store the length starting at offset 0
-    _set_array_length(name, len)
-    # Fill the rest of the elements with 0s
-    _init_arr(name, len, Uint256(0, 0))
-    return (name=name)
+    # Get the length of the array and check that the index is within bounds
+    let (length : Uint256) = wm_read_256(arrayLoc)
+    let (inRange) = uint256_lt(index, length)
+    assert inRange = 1
+
+    # Calculate the location of the element
+    let (offset : Uint256, overflow : Uint256) = uint256_mul(index, width)
+    assert overflow.low = 0
+    assert overflow.high = 0
+
+    let (elementZeroPtr) = felt_to_uint256(arrayLoc + 2)
+    let (res256 : Uint256, carry) = uint256_add(elementZeroPtr, offset)
+    assert carry = 0
+    let (res) = narrow_safe(res256)
+
+    return (res)
 end
 
-func warp_memory_read{range_check_ptr}(warp_memory : MemCell*, name : felt, offset : Uint256) -> (
-    res : felt
+func wm_new{range_check_ptr, warp_memory : DictAccess*}(len : Uint256, elemWidth : Uint256) -> (
+    loc : felt
 ):
-    let (is_correct_cell : felt) = _at_current_cell(warp_memory, name, offset)
-    if is_correct_cell == 1:
-        return (res=warp_memory.value)
-    else:
-        return warp_memory_read(warp_memory - MemCell.SIZE, name, offset)
-    end
-end
-
-func warp_memory_write{warp_memory : MemCell*}(name : felt, offset : Uint256, value : felt) -> ():
-    # First increment warp_memory, then set the properties of the new cell
-    # This means that warp_memory always points to a valid cell
-    let warp_memory = warp_memory + MemCell.SIZE
-    assert warp_memory.name = name
-    assert warp_memory.offset.low = offset.low
-    assert warp_memory.offset.high = offset.high
-    assert warp_memory.value = value
-    return ()
-end
-
-# this is a uint256 that should never be generated from arithmetic or felt conversion
-# this allows reads to use the full [0, 2^256) without clashing
-const _len_offset_low = 2 ** 128
-const _len_offset_high = 2 ** 128 + 1
-
-func warp_get_array_length{range_check_ptr, warp_memory : MemCell*}(name : felt) -> (len : Uint256):
     alloc_locals
-    let (local low : felt) = warp_memory_read(warp_memory, name, Uint256(_len_offset_low, 0))
-    let (high : felt) = warp_memory_read(warp_memory, name, Uint256(_len_offset_high, 0))
-    return (len=Uint256(low, high))
+    # Calculate space needed for array elements
+    let (feltLength : Uint256, overflow : Uint256) = uint256_mul(len, elemWidth)
+    assert overflow.low = 0
+    assert overflow.high = 0
+
+    # Add space required to include the length member
+    let (feltLength : Uint256, carry : felt) = uint256_add(feltLength, Uint256(2, 0))
+    assert carry = 0
+
+    let (loc) = wm_alloc(feltLength)
+    dict_write{dict_ptr=warp_memory}(loc, len.low)
+    dict_write{dict_ptr=warp_memory}(loc + 1, len.high)
+    return (loc)
 end
 
-# ------------------------------implementation----------------------------------
+# -----------------Structs-----------------
 
-func _set_array_length{warp_memory : MemCell*}(name : felt, len : Uint256) -> ():
-    warp_memory_write(name, Uint256(_len_offset_low, 0), len.low)
-    return warp_memory_write(name, Uint256(_len_offset_high, 0), len.high)
+func index_struct(loc : felt, index : felt) -> (indexLoc : felt):
+    # No need to range check here, that was already done when the struct was allocated
+    return (loc + index)
 end
 
-func _at_current_cell{range_check_ptr}(warp_memory : MemCell*, name : felt, offset : Uint256) -> (
-    res : felt
-):
-    if warp_memory.name != name:
-        return (0)
-    end
-    return uint256_eq(warp_memory.offset, offset)
-end
+# -----------------Helper functions-----------------
 
-func _get_next_name{range_check_ptr, warp_memory : MemCell*}() -> (name : felt):
-    let (oldName : felt) = warp_memory_read(warp_memory, 0, Uint256(0, 0))
-    let newName = oldName + 1
-    warp_memory_write(0, Uint256(0, 0), newName)
-    return (name=newName)
-end
+func wm_alloc{range_check_ptr, warp_memory : DictAccess*}(space : Uint256) -> (start : felt):
+    alloc_locals
+    # Get current end pointer
+    let (freeCell) = dict_read{dict_ptr=warp_memory}(0)
 
-# recurse along the array, setting the length to the length and the values to 0
-# start at curr = 0 and end once curr = len
-func _init_arr{range_check_ptr, warp_memory : MemCell*}(
-    name : felt, len : Uint256, curr : Uint256
-) -> ():
-    let (eq : felt) = uint256_eq(curr, len)
-    if eq == 0:
-        warp_memory_write(name, curr, 0)
-        let (next : Uint256, _) = uint256_add(curr, Uint256(1, 0))
-        return _init_arr(name, len, next)
-    else:
-        warp_memory_write(name, curr, 0)
-        return ()
-    end
+    # Widen to uint256 for safe calculation and because array lengths are uint256
+    let (freeCell256) = felt_to_uint256(freeCell)
+    let (newFreeCell256 : Uint256, carry) = uint256_add(freeCell256, space)
+    assert carry = 0
+    let (newFreeCell) = narrow_safe(newFreeCell256)
+    dict_write{dict_ptr=warp_memory}(0, newFreeCell)
+    return (newFreeCell)
 end

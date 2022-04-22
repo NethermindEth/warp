@@ -1,6 +1,8 @@
 import assert from 'assert';
 import { AST } from '../../ast/ast';
 import {
+  ContractDefinition,
+  ContractKind,
   FunctionDefinition,
   FunctionVisibility,
   Statement,
@@ -16,6 +18,13 @@ import { typeNameFromTypeNode } from '../../utils/utils';
 import { createIdentifier } from '../../utils/nodeTemplates';
 
 export class BooleanBoundChecker extends ASTMapper {
+  visitContractDefinition(node: ContractDefinition, ast: AST): void {
+    if (node.kind === ContractKind.Interface) {
+      return;
+    }
+    this.commonVisit(node, ast);
+  }
+
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (
       (FunctionVisibility.External === node.visibility ||

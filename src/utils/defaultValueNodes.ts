@@ -1,12 +1,12 @@
 import {
   AddressType,
   ArrayType,
-  ArrayTypeName,
   BoolType,
   ElementaryTypeName,
   ElementaryTypeNameExpression,
   EnumDefinition,
   Expression,
+  FixedBytesType,
   FunctionCall,
   FunctionCallKind,
   getNodeType,
@@ -28,7 +28,7 @@ import {
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from './astPrinter';
 import { NotSupportedYetError } from './errors';
-import { toHexString } from './utils';
+import { toHexString, typeNameFromTypeNode } from './utils';
 
 export function getDefaultValue(
   nodeType: TypeNode,
@@ -38,6 +38,7 @@ export function getDefaultValue(
   if (nodeType instanceof AddressType) return addressDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof ArrayType) return arrayDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof BoolType) return boolDefault(parentNode, ast);
+  else if (nodeType instanceof FixedBytesType) return fixedBytesDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof IntType) return intDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof MappingType) return intDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof PointerType) return pointerDefault(nodeType, parentNode, ast);
@@ -59,6 +60,23 @@ function intDefault(
     LiteralKind.Number,
     toHexString('0'),
     '0',
+    undefined,
+    parentNode.raw,
+  );
+}
+
+function fixedBytesDefault(
+  node: TypeNode,
+  parentNode: Expression | VariableDeclaration,
+  ast: AST,
+): Expression {
+  return new Literal(
+    ast.reserveId(),
+    parentNode.src,
+    node.pp(),
+    LiteralKind.Number,
+    toHexString('0'),
+    '0x0',
     undefined,
     parentNode.raw,
   );
@@ -122,14 +140,9 @@ function arrayDefault(
         ast.reserveId(),
         '',
         `function (uint256) pure returns (${tString}[] memory)`,
-        new ArrayTypeName(
-          ast.reserveId(),
-          '',
-          `${tString}[]`,
-          new ElementaryTypeName(ast.reserveId(), '', tString, tString),
-        ),
+        typeNameFromTypeNode(nodeType, ast),
       ),
-      [intDefault(nodeType, parentNode, ast)],
+      [intDefault(new IntType(256, false), parentNode, ast)],
       undefined,
       parentNode.raw,
     );

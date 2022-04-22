@@ -439,6 +439,8 @@ function sameType<T extends ASTNode>(newNode: ASTNode, ref: T): newNode is T {
   return newNode instanceof ref.constructor && ref instanceof newNode.constructor;
 }
 
+// When cloning large chunks of the AST, id based references in the resulting subtree
+// should refer to newly created nodes, as such we build up a map of id to original -> id of clone
 function replaceId(oldId: number, ast: AST, remappedIds: Map<number, number>): number {
   const id = ast.reserveId();
   if (remappedIds.has(oldId)) {
@@ -448,8 +450,8 @@ function replaceId(oldId: number, ast: AST, remappedIds: Map<number, number>): n
   return id;
 }
 
-// Defining a seperate function instead of inling the code is a workaround to make the typechecker
-// happy, since it can't distinguish between T & Break and T in cloneASTNode<T extends ASTNode>.
+// For some types the typechecker can't distinguish between T & U and T in cloneASTNode<T extends ASTNode>
+// In such cases separate functions need to be created and called from within cloneASTNodeImpl
 function cloneBreak(node: Break, ast: AST, remappedIds: Map<number, number>): Break {
   return new Break(
     replaceId(node.id, ast, remappedIds),
@@ -459,8 +461,6 @@ function cloneBreak(node: Break, ast: AST, remappedIds: Map<number, number>): Br
   );
 }
 
-// Defining a seperate function instead of inling the code is a workaround to make the typechecker
-// happy, since it can't distinguish  between T & Continue and T in cloneASTNode<T extends ASTNode>.
 function cloneContinue(node: Continue, ast: AST, remappedIds: Map<number, number>): Continue {
   return new Continue(
     replaceId(node.id, ast, remappedIds),
@@ -470,8 +470,6 @@ function cloneContinue(node: Continue, ast: AST, remappedIds: Map<number, number
   );
 }
 
-// Defining a seperate function instead of inling the code is a workaround to make the typechecker
-// happy, since it can't distinguish between T & PlaceholderStatement and T in cloneASTNode<T extends ASTNode>.
 function clonePlaceholder(
   node: PlaceholderStatement,
   ast: AST,

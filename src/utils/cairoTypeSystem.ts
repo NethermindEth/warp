@@ -17,14 +17,18 @@ import {
   enumToIntType,
   StructDefinition,
   getNodeType,
+  FixedBytesType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
+import { narrowBigInt } from './utils';
 
 export enum TypeConversionContext {
+  MemoryAllocation,
   Ref,
   StorageAllocation,
+  Declaration,
 }
 
 export abstract class CairoType {
@@ -37,7 +41,6 @@ export abstract class CairoType {
   abstract get width(): number;
   // An array of the member-accesses required to access all the underlying felts
   abstract serialiseMembers(name: string): string[];
-  // Sync this with the one in typewriter.ts
   static fromSol(
     tp: TypeNode,
     ast: AST,
@@ -51,9 +54,11 @@ export abstract class CairoType {
       } else if (context === TypeConversionContext.Ref) {
         return new CairoFelt();
       } else {
-        const elementType = CairoType.fromSol(tp.elementT, ast, context);
-        const narrowedLength = parseInt(tp.size.toString());
-        if (BigInt(narrowedLength) !== tp.size) {
+        const recursionContext =
+          context === TypeConversionContext.MemoryAllocation ? TypeConversionContext.Ref : context;
+        const elementType = CairoType.fromSol(tp.elementT, ast, recursionContext);
+        const narrowedLength = narrowBigInt(tp.size);
+        if (narrowedLength === null) {
           throw new NotSupportedYetError(
             `Arrays of very large size (${tp.size.toString()}) are not supported`,
           );
@@ -68,6 +73,8 @@ export abstract class CairoType {
       throw new NotSupportedYetError('Serialising BuiltinStructType not supported yet');
     } else if (tp instanceof BytesType) {
       throw new NotSupportedYetError('Serialising BytesType not supported yet');
+    } else if (tp instanceof FixedBytesType) {
+      return tp.size === 32 ? CairoUint256 : new CairoFelt();
     } else if (tp instanceof FunctionType) {
       throw new NotSupportedYetError('Serialising FunctionType not supported yet');
     } else if (tp instanceof IntType) {
@@ -75,7 +82,7 @@ export abstract class CairoType {
     } else if (tp instanceof MappingType) {
       return new WarpLocation();
     } else if (tp instanceof PointerType) {
-      if (context === TypeConversionContext.StorageAllocation) {
+      if (context !== TypeConversionContext.Ref) {
         return CairoType.fromSol(tp.to, ast, context);
       }
       return new CairoFelt();
@@ -87,6 +94,20 @@ export abstract class CairoType {
       } else if (tp.definition instanceof StructDefinition) {
         if (context === TypeConversionContext.Ref) {
           return new CairoFelt();
+        } else if (context === TypeConversionContext.MemoryAllocation) {
+          return new CairoStruct(
+            tp.definition.name,
+            new Map(
+              tp.definition.vMembers.map((decl) => [
+                decl.name,
+                CairoType.fromSol(
+                  getNodeType(decl, ast.compilerVersion),
+                  ast,
+                  TypeConversionContext.Ref,
+                ),
+              ]),
+            ),
+          );
         } else {
           return new CairoStruct(
             tp.definition.name,

@@ -1,5 +1,11 @@
 import { ASTNode, Expression } from 'solc-typed-ast';
 
+/*
+ Represents solidity asserts, requires, and reverts
+ Does nothing if its child expression is true, aborts execution if not
+ Transpiled as `assert vExpression = 1`
+*/
+
 export class CairoAssert extends Expression {
   assertMessage: string | null;
 
