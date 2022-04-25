@@ -6,7 +6,6 @@ import {
   FunctionKind,
   FunctionVisibility,
   IfStatement,
-  ParameterList,
   Return,
   Statement,
   UncheckedBlock,
@@ -17,7 +16,7 @@ import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
 import { error } from '../utils/formatting';
 import { createCallToFunction } from '../utils/functionStubbing';
-import { createIdentifier } from '../utils/nodeTemplates';
+import { createIdentifier, createParameterList } from '../utils/nodeTemplates';
 import { collectUnboundVariables } from './loopFunctionaliser/utils';
 
 export class IfFunctionaliser extends ASTMapper {
@@ -146,6 +145,8 @@ function createSplitFunction(
   counter: number,
   ast: AST,
 ): [FunctionDefinition, FunctionCall] {
+  const newFuncId = ast.reserveId();
+
   // Collect variables referenced in the split function that need to be passed in
   const unboundVariables = new Map(
     [...collectUnboundVariables(body).entries()].filter(([decl]) => !decl.stateVariable),
@@ -154,11 +155,15 @@ function createSplitFunction(
   const inputParams = [...unboundVariables.entries()].map(([decl, ids]) => {
     const newDecl = cloneASTNode(decl, ast);
     ids.forEach((id) => (id.referencedDeclaration = newDecl.id));
+    newDecl.scope = newFuncId;
     return newDecl;
   });
 
+  const retParams = cloneASTNode(existingFunction.vReturnParameters, ast);
+  retParams.vParameters.forEach((decl) => (decl.scope = newFuncId));
+
   const funcDef = new FunctionDefinition(
-    ast.reserveId(),
+    newFuncId,
     '',
     existingFunction.scope,
     existingFunction.kind === FunctionKind.Free ? FunctionKind.Free : FunctionKind.Function,
@@ -167,8 +172,8 @@ function createSplitFunction(
     FunctionVisibility.Private,
     existingFunction.stateMutability,
     false,
-    new ParameterList(ast.reserveId(), '', inputParams),
-    cloneASTNode(existingFunction.vReturnParameters, ast),
+    createParameterList(inputParams, ast),
+    retParams,
     [],
     undefined,
     body,
