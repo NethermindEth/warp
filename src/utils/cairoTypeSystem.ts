@@ -50,6 +50,9 @@ export abstract class CairoType {
       return new CairoFelt();
     } else if (tp instanceof ArrayType) {
       if (tp.size === undefined) {
+        if (context === TypeConversionContext.Declaration) {
+          return CairoType.fromSol(tp.elementT, ast, context);
+        }
         return new WarpLocation();
       } else if (context === TypeConversionContext.Ref) {
         return new CairoFelt();

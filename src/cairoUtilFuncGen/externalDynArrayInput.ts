@@ -39,11 +39,11 @@ export class ExternalDynArrayLoader extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: name,
       code: [
-        `func ${name}{warp_memory : DictAccess*}(dynarray_loc : felt, array_len : felt, pointer: felt*, width : felt):`,
+        `func ${name}{warp_memory : DictAccess*}(dynarray_loc : felt, array_len : felt, pointer: ${elementCairoType.toString()}*, width : felt):`,
         `${INDENT}if array_len == 0:`,
         `${INDENT.repeat(2)}return()`,
         `${INDENT}end`,
-        `${INDENT}wm_write_${key}(dynarray_loc, pointer[0])`,
+        `${INDENT}wm_write_${key === 'Uint256' ? '256' : key}(dynarray_loc, pointer[0])`,
         `${INDENT}return ${name}(dynarray_loc = dynarray_loc + width, array_len = array_len-1, pointer = &pointer[1], width = width)`,
         `${INDENT}`,
         `end`,
@@ -58,7 +58,7 @@ export class ExternalDynArrayLoader extends StringIndexedFuncGen {
     if (writeObject === 'felt') {
       this.requireImport('warplib.memory', 'wm_write_felt');
     } else {
-      this.requireImport('warplib_memory', 'wm_write_256');
+      this.requireImport('warplib.memory', 'wm_write_256');
     }
   }
 }
@@ -111,7 +111,7 @@ export class ExternalDynArrayAllocator extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: name,
       code: [
-        `func ${name}{syscall_ptr: felt*, range_check_ptr : felt, warp_memory : DictAccess*}(array_len : felt, array_pointer : felt*) -> (dynarry_loc : felt):`,
+        `func ${name}{syscall_ptr: felt*, range_check_ptr : felt, warp_memory : DictAccess*}(array_len : felt, array_pointer : ${elementCairoType.toString()}*) -> (dynarry_loc : felt):`,
         `${INDENT}alloc_locals`,
         `${INDENT}let (array_len_uint256) = warp_uint256(array_len)`,
         `${INDENT}let (dynarray_loc) = wm_new(array_len_uint256, ${uint256(

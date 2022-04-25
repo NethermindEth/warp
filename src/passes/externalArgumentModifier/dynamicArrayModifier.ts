@@ -99,12 +99,13 @@ export class DynamicArrayModifier extends ASTMapper {
       DataLocation.Default,
       StateVariableVisibility.Internal,
       Mutability.Immutable,
-      'int8',
+      'uint8',
       undefined,
-      new ElementaryTypeName(ast.reserveId(), '', typeStringArrayLen, typeStringArrayLen),
+      new ElementaryTypeName(ast.reserveId(), '', 'uint8', 'uint8'),
       undefined,
     );
-
+    const pointerTypeString = cloneASTNode(varDecl.vType, ast);
+    pointerTypeString.typeString = pointerTypeString.typeString + ' calldata';
     const pointerVarDecl = new VariableDeclaration(
       ast.reserveId(),
       '',
@@ -118,7 +119,7 @@ export class DynamicArrayModifier extends ASTMapper {
       Mutability.Immutable,
       varDecl.typeString + ' calldata',
       undefined,
-      cloneASTNode(varDecl.vType, ast),
+      pointerTypeString,
     );
     return [lenVarDecl, pointerVarDecl];
   }
