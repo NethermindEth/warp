@@ -99,7 +99,7 @@ export class DynamicArrayModifier extends ASTMapper {
       DataLocation.Default,
       StateVariableVisibility.Internal,
       Mutability.Immutable,
-      typeStringArrayLen,
+      'int8',
       undefined,
       new ElementaryTypeName(ast.reserveId(), '', typeStringArrayLen, typeStringArrayLen),
       undefined,
@@ -133,8 +133,13 @@ export class DynamicArrayModifier extends ASTMapper {
   ): VariableDeclarationStatement {
     const functionCall = ast
       .getUtilFuncGen(node)
-      .externalFunctions.inputs.dynArray.gen(node, originalVarDecl, arrayLen, arrayPointer);
-
+      .externalFunctions.inputs.dynArrayAllocator.gen(
+        node,
+        originalVarDecl,
+        arrayLen,
+        arrayPointer,
+      );
+    ast.getUtilFuncGen(node).externalFunctions.inputs.dynArrayLoader.gen(arrayPointer);
     const varDeclStatement = new VariableDeclarationStatement(
       ast.reserveId(),
       '',

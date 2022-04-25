@@ -14,7 +14,7 @@ import { DynArrayLengthGen } from './storage/dynArrayLength';
 import { DynArrayPopGen } from './storage/dynArrayPop';
 import { DynArrayPushWithArgGen } from './storage/dynArrayPushWithArg';
 import { DynArrayPushWithoutArgGen } from './storage/dynArrayPushWithoutArg';
-import { ExternalDynArrayAllocator } from './externalDynArrayInput';
+import { ExternalDynArrayAllocator, ExternalDynArrayLoader } from './externalDynArrayInput';
 import { MappingIndexAccessGen } from './storage/mappingIndexAccess';
 import { StorageStaticArrayIndexAccessGen } from './storage/staticArrayIndexAccess';
 import { StorageDeleteGen } from './storage/storageDelete';
@@ -50,7 +50,10 @@ export class CairoUtilFuncGen {
   };
   externalFunctions: {
     inputsChecks: { enum: EnumBoundCheckGen };
-    inputs: { dynArray: ExternalDynArrayAllocator };
+    inputs: {
+      dynArrayAllocator: ExternalDynArrayAllocator;
+      dynArrayLoader: ExternalDynArrayLoader;
+    };
   };
 
   private implementation: {
@@ -88,7 +91,10 @@ export class CairoUtilFuncGen {
     };
     this.externalFunctions = {
       inputsChecks: { enum: new EnumBoundCheckGen(ast) },
-      inputs: { dynArray: new ExternalDynArrayAllocator(ast) },
+      inputs: {
+        dynArrayAllocator: new ExternalDynArrayAllocator(ast),
+        dynArrayLoader: new ExternalDynArrayLoader(ast),
+      },
     };
   }
 
