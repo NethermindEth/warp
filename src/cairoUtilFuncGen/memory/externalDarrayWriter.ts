@@ -36,7 +36,7 @@ export class ExternalDarrayWriter extends StringIndexedFuncGen {
         `${INDENT}return ${name}(dynarray_loc=dynarray_loc + width,`,
         `${INDENT}array_len=array_len-1,`,
         `${INDENT}pointer=&pointer[1],`,
-        `${INDENT}width=width),`,
+        `${INDENT}width=width)`,
         `${INDENT}`,
         `end`,
       ].join('\n'),
