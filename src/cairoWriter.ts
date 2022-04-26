@@ -72,12 +72,7 @@ import {
   WhileStatement,
 } from 'solc-typed-ast';
 import { AST } from './ast/ast';
-import {
-  CairoAssert,
-  CairoContract,
-  CairoFunctionDefinition,
-  CairoReturnMemoryFinalizer,
-} from './ast/cairoNodes';
+import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
 import { printNode } from './utils/astPrinter';
 import { CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
@@ -509,25 +504,6 @@ class BlockWriter extends CairoASTNodeWriter {
   }
 }
 
-class CairoReturnMemoryFinalizerWriter extends CairoASTNodeWriter {
-  writeInner(node: CairoReturnMemoryFinalizer, writer: ASTWriter): SrcDesc {
-    const result: SrcDesc = [];
-    const returnStatement = new Return(
-      node.id,
-      node.src,
-      node.functionReturnParameters,
-      node.vExpression,
-      node.documentation,
-      node.raw,
-    );
-    const returnCairoRepr = writer.write(returnStatement);
-
-    result.push('default_dict_finalize(warp_memory_start, warp_memory, 0)\n');
-    result.push(returnCairoRepr);
-    return result;
-  }
-}
-
 class ReturnWriter extends CairoASTNodeWriter {
   writeInner(node: Return, writer: ASTWriter): SrcDesc {
     let returns = '()';
@@ -765,7 +741,6 @@ export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
     [CairoAssert, new CairoAssertWriter(ast, throwOnUnimplemented)],
     [CairoContract, new CairoContractWriter(ast, throwOnUnimplemented)],
     [CairoFunctionDefinition, new CairoFunctionDefinitionWriter(ast, throwOnUnimplemented)],
-    [CairoReturnMemoryFinalizer, new CairoReturnMemoryFinalizerWriter(ast, throwOnUnimplemented)],
     [Conditional, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [Continue, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [DoWhileStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],

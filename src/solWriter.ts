@@ -9,12 +9,7 @@ import {
   Return,
   SrcDesc,
 } from 'solc-typed-ast';
-import {
-  CairoAssert,
-  CairoContract,
-  CairoFunctionDefinition,
-  CairoReturnMemoryFinalizer,
-} from './ast/cairoNodes';
+import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
 
 class CairoContractSolWriter extends ASTNodeWriter {
   writeInner(node: CairoContract, writer: ASTWriter): SrcDesc {
@@ -94,30 +89,10 @@ class CairoAssertSolWriter extends ASTNodeWriter {
   }
 }
 
-class CairoReturnMemoryFinalizerSolWriter extends ASTNodeWriter {
-  writeInner(node: CairoReturnMemoryFinalizer, writer: ASTWriter): SrcDesc {
-    const result: SrcDesc = [];
-    result.push('<cairo memory finalize>');
-
-    const returnStatement = new Return(
-      node.id,
-      node.src,
-      node.functionReturnParameters,
-      node.vExpression,
-      node.documentation,
-      node.raw,
-    );
-
-    result.push(writer.write(returnStatement));
-    return result;
-  }
-}
-
 const CairoExtendedASTWriterMapping = new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([
   [CairoContract, new CairoContractSolWriter()],
   [CairoFunctionDefinition, new CairoFunctionDefinitionSolWriter()],
   [CairoAssert, new CairoAssertSolWriter()],
-  [CairoReturnMemoryFinalizer, new CairoReturnMemoryFinalizerSolWriter()],
 ]);
 
 export const CairoToSolASTWriterMapping = new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([

@@ -31,7 +31,6 @@ import {
   ReferencedLibraries,
   References,
   RejectUnsupportedFeatures,
-  ReturnMemoryFinalizer,
   ReturnInserter,
   ReturnVariableInitializer,
   SourceUnitSplitter,
@@ -110,7 +109,6 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
     ['Ci', CairoUtilImporter],
-    ['Rmf', ReturnMemoryFinalizer],
   ]);
 
   const passesInOrder: typeof ASTMapper[] = parsePassOrder(options.order, options.until, passes);
