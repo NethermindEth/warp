@@ -42,6 +42,7 @@ import {
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
 } from './passes';
+import { ReturnMemoryFinalizer } from './passes/warpMemoryFinalizer';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { createPassMap, parsePassOrder } from './utils/cliOptionParsing';
@@ -109,6 +110,7 @@ function applyPasses(ast: AST, options: TranspilationOptions): AST {
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
     ['Ci', CairoUtilImporter],
+    ['Rmf', ReturnMemoryFinalizer],
   ]);
 
   const passesInOrder: typeof ASTMapper[] = parsePassOrder(options.order, options.until, passes);
