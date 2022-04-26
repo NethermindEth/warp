@@ -16,8 +16,6 @@ import {
   CairoReturnMemoryFinalizer,
 } from './ast/cairoNodes';
 
-const INDENT = ' '.repeat(4);
-
 class CairoContractSolWriter extends ASTNodeWriter {
   writeInner(node: CairoContract, writer: ASTWriter): SrcDesc {
     const result: SrcDesc = [];

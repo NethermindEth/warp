@@ -1,4 +1,4 @@
-import { Block, ExpressionStatement, FunctionVisibility, Return } from 'solc-typed-ast';
+import { FunctionVisibility, Return } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition, CairoReturnMemoryFinalizer } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
