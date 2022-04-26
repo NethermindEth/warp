@@ -151,7 +151,6 @@ export const expectations = flatten(
             Expect.Simple('explicit', ['20'], ['20', '20', '0']),
             Expect.Simple('explicit', ['240'], ['240', '240', '0']),
           ]),
-        ]),
 
           File.Simple('widthsignWideningItoUchange', [
             Expect.Simple('widthsignWitou', ['60069'], ['4294961829']),
