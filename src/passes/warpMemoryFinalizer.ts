@@ -4,9 +4,13 @@ import { CairoFunctionDefinition, CairoReturnMemoryFinalizer } from '../ast/cair
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 
-// Change name to ReturnWarpmMemoryFinalizer
-//
 export class ReturnMemoryFinalizer extends ASTMapper {
+  /*
+  This class replace all return statements with a special return stape that sepcifies
+  that warp_memory should be finalize before returning when transpiling.
+  The return statements are only replaced when the Cairo Function has warp_memory as an
+  implicit parameter and it is an external function
+  */
   constructor() {
     super();
   }
@@ -23,17 +27,6 @@ export class ReturnMemoryFinalizer extends ASTMapper {
     ) {
       return;
     }
-
-    const temp = new CairoReturnMemoryFinalizer(
-      node.id,
-      node.src,
-      node.functionReturnParameters,
-      node.vExpression,
-      node.documentation,
-      node.raw,
-    );
-    console.log(`replacing return in ${printNode(funcParent)}`);
-    console.log(funcParent.print());
 
     ast.replaceNode(
       node,
