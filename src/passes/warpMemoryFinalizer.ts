@@ -2,7 +2,6 @@ import { Block, ExpressionStatement, FunctionVisibility, Return } from 'solc-typ
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition, CairoReturnMemoryFinalizer } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
-import { printNode } from '../utils/astPrinter';
 
 export class ReturnMemoryFinalizer extends ASTMapper {
   /*

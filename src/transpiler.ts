@@ -31,6 +31,7 @@ import {
   ReferencedLibraries,
   References,
   RejectUnsupportedFeatures,
+  ReturnMemoryFinalizer,
   ReturnInserter,
   ReturnVariableInitializer,
   SourceUnitSplitter,
@@ -42,7 +43,6 @@ import {
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
 } from './passes';
-import { ReturnMemoryFinalizer } from './passes/warpMemoryFinalizer';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { createPassMap, parsePassOrder } from './utils/cliOptionParsing';
