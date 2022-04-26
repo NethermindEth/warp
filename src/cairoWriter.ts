@@ -299,6 +299,10 @@ class CairoContractWriter extends CairoASTNodeWriter {
     if (node.kind == ContractKind.Interface) {
       return writeContractInterface(node, writer);
     }
+    if (node.abstract)
+      return [
+        `# This contract may be abstract, it may not implement an abstract parent's methods\n# completely or it may not invoke an inherited contract's constructor correctly.\n`,
+      ];
 
     const variables = [...node.storageAllocations.entries()].map(
       ([decl, loc]) => `const ${decl.name} = ${loc}`,

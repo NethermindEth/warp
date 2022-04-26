@@ -7,6 +7,8 @@ import {
   ParameterList,
   TupleExpression,
   VariableDeclaration,
+  Statement,
+  Block,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { toHexString } from './utils';
@@ -91,4 +93,10 @@ export function createParameterList(
   const paramList = new ParameterList(ast.reserveId(), '', params);
   ast.setContextRecursive(paramList);
   return paramList;
+}
+
+export function createBlock(statements: Statement[], ast: AST): Block {
+  const block = new Block(ast.reserveId(), '', statements);
+  ast.setContextRecursive(block);
+  return block;
 }
