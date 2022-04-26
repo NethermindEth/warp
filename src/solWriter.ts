@@ -6,7 +6,6 @@ import {
   ContractDefinition,
   DefaultASTWriterMapping,
   FunctionDefinition,
-  Return,
   SrcDesc,
 } from 'solc-typed-ast';
 import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
