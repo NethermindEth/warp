@@ -38,15 +38,15 @@ export class ExternalFunctionCreator extends ASTMapper {
       return;
     }
 
-    if (
-      FunctionVisibility.Public === node.visibility &&
-      node.kind !== FunctionKind.Constructor &&
-      this.internalFunctionCallSet.has(node)
-    ) {
-      const newExternalFunction = this.createExternalFunctionDefintion(node, ast);
-      this.insertReturnStatement(node, newExternalFunction, ast);
-      this.modifyPublicFunction(node);
-      this.InternalToExternalFunctionMap.set(node, newExternalFunction);
+    if (FunctionVisibility.Public === node.visibility && node.kind !== FunctionKind.Constructor) {
+      if (this.internalFunctionCallSet.has(node)) {
+        const newExternalFunction = this.createExternalFunctionDefintion(node, ast);
+        this.insertReturnStatement(node, newExternalFunction, ast);
+        this.modifyPublicFunction(node);
+        this.InternalToExternalFunctionMap.set(node, newExternalFunction);
+      } else {
+        node.visibility = FunctionVisibility.External;
+      }
     }
     this.commonVisit(node, ast);
   }
