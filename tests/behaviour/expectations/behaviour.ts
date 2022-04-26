@@ -15,6 +15,77 @@ export const expectations = flatten(
             Expect.Simple('test256', ['3', '4'], ['3', '4']),
           ]),
         ]),
+        new Dir('bytes', [
+          File.Simple('byteArrays', [
+            Expect.Simple('getC', ['1'], ['9029']),
+            Expect.Simple('getStorageBytesArray', [], ['13398']),
+            Expect.Simple('getMemoryBytesArray', [], ['9029']),
+            Expect.Simple('getMemoryBytesArrayTwo', [], ['4660', '9029']),
+            Expect.Simple('getStorageBytesDynArray', [], ['4660']),
+          ]),
+          File.Simple('byteStructs', [
+            Expect.Simple('getB3A', [], ['4660']),
+            Expect.Simple('getBsC', [], ['18']),
+          ]),
+          new File(
+            'fixedSizeBytesArrays',
+            'WARP',
+            ['340282366920938463463374607431768211455'],
+            [
+              Expect.Simple('getA', [], ['4660']),
+              Expect.Simple('getB', [], ['0']),
+              Expect.Simple('getC', [], ['0']),
+              Expect.Simple('getD', [], ['340282366920938463463374607431768211455']),
+              Expect.Simple('shiftBytesBy', ['2'], ['18640']),
+              // 0x12345678
+              Expect.Simple('shiftBytesByConstant', ['305419896'], ['76354974']),
+              // 0x4321
+              Expect.Simple('bitwiseAnd', ['17185'], ['544']),
+              Expect.Simple('bitwiseOr', ['17185'], ['21301']),
+              Expect.Simple('bitwiseXor', ['17185'], ['20757']),
+              Expect.Simple('bitwiseNor', [], ['60875']),
+              // 0xffff, 0xabcd
+              Expect.Simple('nestedBitwiseOp', ['65535', '43981'], ['43465']),
+              new Expect('testing constructor arguments out of bounds', [
+                [
+                  'constructor',
+                  ['340282366920938463463374607431768211456'],
+                  null,
+                  '0',
+                  'Error message: Error: value out-of-bounds. Value must be less than 2**128.',
+                ],
+              ]),
+            ],
+          ),
+          new File(
+            'fixedSizeByte7',
+            'WARP',
+            ['47'], // 0x2f
+            [
+              Expect.Simple('getA', [], ['47']),
+              Expect.Simple('getB', [], ['170']),
+              Expect.Simple('shiftByteBy', ['2'], ['188']),
+              // 0x99
+              Expect.Simple('shiftByteByConstant', ['153'], ['38']),
+              // 0xbb
+              Expect.Simple('bitwiseAnd', ['187'], ['43']),
+              Expect.Simple('bitwiseOr', ['187'], ['191']),
+              Expect.Simple('bitwiseXor', ['187'], ['148']),
+              Expect.Simple('bitwiseNor', [], ['208']),
+              // 0x2f, 0xf2
+              Expect.Simple('nestedBitwiseAnd', ['47', '242'], ['34']),
+              new Expect('testing constructor arguments out of bounds', [
+                [
+                  'constructor',
+                  ['256'],
+                  null,
+                  '0',
+                  'Error message: Error: value out-of-bounds. Value must be less than 2**8.',
+                ],
+              ]),
+            ],
+          ),
+        ]),
         new Dir('constants', [
           File.Simple('simpleConstants', [
             Expect.Simple('getX', [], ['247']),
@@ -700,6 +771,37 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('inheritance', [
+          new Dir('constructors', [
+            new File(
+              'constructors',
+              'C',
+              [],
+              [
+                Expect.Simple('a', [], ['9', '0']),
+                Expect.Simple('b', [], ['14', '0']),
+                Expect.Simple('c', [], ['13', '0']),
+                Expect.Simple('d', [], ['4', '0']),
+              ],
+            ),
+            new File(
+              'modifiedConstructor',
+              'A',
+              ['500', '0'],
+              [Expect.Simple('a', [], ['500', '0'])],
+            ),
+            new File(
+              'modifiedConstructor',
+              'B',
+              ['500', '0'],
+              [Expect.Simple('a', [], ['0', '0'])],
+            ),
+            new File(
+              'abstractContract',
+              'C',
+              ['250', '0'],
+              [Expect.Simple('f', ['412', '0'], ['662', '0'])],
+            ),
+          ]),
           new Dir('functions', [
             new File('base', 'Base', [], [Expect.Simple('g', ['3'], ['3'])]),
             new File('mid', 'Mid', [], [Expect.Simple('g', ['10'], ['20'])]),

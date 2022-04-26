@@ -10,6 +10,7 @@ import {
   DataLocation,
   ElementaryTypeName,
   EtherUnit,
+  FixedBytesType,
   EnumDefinition,
   FunctionDefinition,
   FunctionVisibility,
@@ -22,6 +23,7 @@ import {
   MappingType,
   Mutability,
   PointerType,
+  StructDefinition,
   TimeUnit,
   TypeName,
   TypeNode,
@@ -278,6 +280,8 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
     );
   } else if (node instanceof BoolType) {
     result = new ElementaryTypeName(ast.reserveId(), '', 'bool', 'bool');
+  } else if (node instanceof FixedBytesType) {
+    result = new ElementaryTypeName(ast.reserveId(), '', node.pp(), node.pp());
   } else if (node instanceof IntLiteralType) {
     console.log(`WARNING: assigning int248 type to int literal ${node.pp()}`);
     return new ElementaryTypeName(ast.reserveId(), '', 'int248', 'int248');
@@ -320,7 +324,10 @@ export function getFunctionTypeString(node: FunctionDefinition, compilerVersion:
   const inputs = node.vParameters.vParameters
     .map((decl) => {
       const baseType = getNodeType(decl, compilerVersion);
-      if (baseType instanceof ArrayType || baseType instanceof UserDefinedType) {
+      if (
+        baseType instanceof ArrayType ||
+        (baseType instanceof UserDefinedType && baseType.definition instanceof StructDefinition)
+      ) {
         if (decl.storageLocation === DataLocation.Default) {
           if (
             decl.vType instanceof UserDefinedTypeName &&

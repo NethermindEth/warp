@@ -5,10 +5,13 @@ import {
   ErrorDefinition,
   Conditional,
   ImportDirective,
+  MappingType,
   MemberAccess,
+  PointerType,
   AddressType,
   FunctionType,
   getNodeType,
+  UserDefinedType,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -36,8 +39,15 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     throw new WillNotSupportError('Conditional expressions (ternary operator) are not supported');
   }
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
-    if (getNodeType(node, ast.compilerVersion) instanceof FunctionType)
+    const typeNode = getNodeType(node, ast.compilerVersion);
+    if (typeNode instanceof FunctionType)
       throw new WillNotSupportError('Function objects are not supported');
+    if (
+      typeNode instanceof PointerType &&
+      typeNode.to instanceof MappingType &&
+      typeNode.to.valueType instanceof UserDefinedType
+    )
+      throw new NotSupportedYetError('Mappings with structs are not supported yet');
     this.commonVisit(node, ast);
   }
   visitImportDirective(node: ImportDirective, _ast: AST): void {

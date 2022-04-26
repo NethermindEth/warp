@@ -1,6 +1,8 @@
 import assert from 'assert';
 import { AST } from '../../ast/ast';
 import {
+  ContractDefinition,
+  ContractKind,
   FunctionDefinition,
   Statement,
   ExpressionStatement,
@@ -12,6 +14,13 @@ import { createIdentifier } from '../../utils/nodeTemplates';
 import { isExternallyVisible } from '../../utils/utils';
 
 export class EnumBoundChecker extends ASTMapper {
+  visitContractDefinition(node: ContractDefinition, ast: AST): void {
+    if (node.kind === ContractKind.Interface) {
+      return;
+    }
+    this.commonVisit(node, ast);
+  }
+
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (isExternallyVisible(node) && node.vBody !== undefined) {
       node.vParameters.vParameters.forEach((parameter) => {
