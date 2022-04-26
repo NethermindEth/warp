@@ -537,39 +537,72 @@ export const expectations = flatten(
         ]),
         new Dir('external_function_inputs', [
           File.Simple('dynamic_array_return_index', [
+            // new Expect(
+            //   'testing that dynamic memory array is written to memory and index is returned in external function',
+            //   [
+            //     [
+            //       'dArrayExternal',
+            //       ['8', '10', '11', '12', '13', '14', '15', '16', '17'],
+            //       ['10'],
+            //       '0',
+            //     ],
+            //   ],
+            // ),
+            // new Expect(
+            //   'testing that dynamic memory array is written to memory and index is returned in public function.',
+            //   [['dArrayPublic', ['4', '1', '2', '3', '4'], ['1'], '0']],
+            // ),
+            // new Expect(
+            //   'testing that multiple inputs containing dynamic arrays that are handeled correctly to external functions',
+            //   [
+            //     [
+            //       'dArrayMultipleInputsExternal',
+            //       ['2', '10', '11', '12', '2', '20', '21'],
+            //       ['31'],
+            //       '0',
+            //     ],
+            //   ],
+            // ),
+            // new Expect(
+            //   'testing that multipe inputs containing dynamic arrays that are handeled correctly when passed to public functions',
+            //   [
+            //     [
+            //       'dArrayMultipleInputsPublic',
+            //       ['2', '10', '11', '12', '2', '20', '21'],
+            //       ['31'],
+            //       '0',
+            //     ],
+            //   ],
+            // ),
+            // new Expect('testing uint256 inputs are loaded into and read from memory correctly.', [
+            //   ['dArray256External', ['3', '0', '1', '1', '2', '2', '3'], ['1', '2'], '0'],
+            // ]),
             new Expect(
-              'testing that dynamic memory array is written to memory and index is returned in external function',
+              'testing uint256 inputs are loaded into and read from memory correctly, when there are multiple inputs.',
               [
                 [
-                  'dArrayExternal',
-                  ['8', '10', '11', '12', '13', '14', '15', '16', '17'],
-                  ['10'],
-                  '0',
-                ],
-              ],
-            ),
-            new Expect(
-              'testing that dynamic memory array is written to memory and index is returned in public function.',
-              [['dArrayPublic', ['4', '1', '2', '3', '4'], ['1'], '0']],
-            ),
-            new Expect(
-              'testing that multiple inputs containing dynamic arrays that are handeled correctly to external functions',
-              [
-                [
-                  'dArrayMultipleInputsExternal',
-                  ['2', '10', '11', '12', '2', '20', '21'],
-                  ['31'],
-                  '0',
-                ],
-              ],
-            ),
-            new Expect(
-              'testing that multipe inputs containing dynamic arrays that are handeled correctly when passed to public functions',
-              [
-                [
-                  'dArrayMultipleInputsPublic',
-                  ['2', '10', '11', '12', '2', '20', '21'],
-                  ['31'],
+                  'dArray256MultipleInputs',
+                  [
+                    '3',
+                    '0',
+                    '0',
+                    '1',
+                    '1',
+                    '2',
+                    '2',
+                    '3',
+                    '3',
+                    '4',
+                    '5',
+                    '3',
+                    '6',
+                    '6',
+                    '7',
+                    '7',
+                    '8',
+                    '8',
+                  ],
+                  ['10', '10'],
                   '0',
                 ],
               ],
