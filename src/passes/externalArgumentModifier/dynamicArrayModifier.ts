@@ -68,9 +68,6 @@ export class DynamicArrayModifier extends ASTMapper {
         const replacements = nodeToReplacements.get(varDecl);
         assert(replacements !== undefined);
 
-        ast.setContextRecursive(replacements[0]);
-        ast.setContextRecursive(replacements[1]);
-
         node.vParameters.insertAfter(replacements[0], varDecl);
         node.vParameters.insertAfter(replacements[1], replacements[0]);
         node.vParameters.removeChild(varDecl);
@@ -81,13 +78,13 @@ export class DynamicArrayModifier extends ASTMapper {
       this.commonVisit(node, ast);
     }
   }
+
   private splitArguments(
     node: FunctionDefinition,
     varDecl: VariableDeclaration,
     ast: AST,
   ): [arrayLen: VariableDeclaration, arrayPointer: VariableDeclaration] {
     assert(varDecl.vType !== undefined);
-    const typeStringArrayLen = varDecl.typeString.replace('[]', '');
     const lenVarDecl = new VariableDeclaration(
       ast.reserveId(),
       '',
@@ -99,11 +96,12 @@ export class DynamicArrayModifier extends ASTMapper {
       DataLocation.Default,
       StateVariableVisibility.Internal,
       Mutability.Immutable,
-      'uint8',
+      'uint248',
       undefined,
-      new ElementaryTypeName(ast.reserveId(), '', 'uint8', 'uint8'),
+      new ElementaryTypeName(ast.reserveId(), '', 'uint248', 'uint248'),
       undefined,
     );
+
     const pointerTypeString = cloneASTNode(varDecl.vType, ast);
     pointerTypeString.typeString = pointerTypeString.typeString + ' calldata';
     const pointerVarDecl = new VariableDeclaration(
@@ -134,13 +132,8 @@ export class DynamicArrayModifier extends ASTMapper {
   ): VariableDeclarationStatement {
     const functionCall = ast
       .getUtilFuncGen(node)
-      .externalFunctions.inputs.dynArrayAllocator.gen(
-        node,
-        originalVarDecl,
-        arrayLen,
-        arrayPointer,
-      );
-    ast.getUtilFuncGen(node).externalFunctions.inputs.dynArrayLoader.gen(arrayPointer);
+      .externalFunctions.inputs.darrayAllocator.gen(node, originalVarDecl, arrayLen, arrayPointer);
+    ast.getUtilFuncGen(node).externalFunctions.inputs.darrayWriter.gen(arrayPointer);
     const varDeclStatement = new VariableDeclarationStatement(
       ast.reserveId(),
       '',
