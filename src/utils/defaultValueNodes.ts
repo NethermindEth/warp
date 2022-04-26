@@ -6,6 +6,7 @@ import {
   ElementaryTypeNameExpression,
   EnumDefinition,
   Expression,
+  FixedBytesType,
   FunctionCall,
   FunctionCallKind,
   getNodeType,
@@ -37,6 +38,7 @@ export function getDefaultValue(
   if (nodeType instanceof AddressType) return addressDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof ArrayType) return arrayDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof BoolType) return boolDefault(parentNode, ast);
+  else if (nodeType instanceof FixedBytesType) return fixedBytesDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof IntType) return intDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof MappingType) return intDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof PointerType) return pointerDefault(nodeType, parentNode, ast);
@@ -58,6 +60,23 @@ function intDefault(
     LiteralKind.Number,
     toHexString('0'),
     '0',
+    undefined,
+    parentNode.raw,
+  );
+}
+
+function fixedBytesDefault(
+  node: TypeNode,
+  parentNode: Expression | VariableDeclaration,
+  ast: AST,
+): Expression {
+  return new Literal(
+    ast.reserveId(),
+    parentNode.src,
+    node.pp(),
+    LiteralKind.Number,
+    toHexString('0'),
+    '0x0',
     undefined,
     parentNode.raw,
   );

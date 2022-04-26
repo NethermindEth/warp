@@ -24,7 +24,7 @@ jobs:
         run: |
           yarn
           pipx install black[colors]
-          pipx install cairo-lang
+          pipx install cairo-lang==0.8.1
 
       - name: Build warplib
         run: yarn warplib

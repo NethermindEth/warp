@@ -1,5 +1,6 @@
 export * from './annotateImplicits';
 export * from './builtinHandler';
+export * from './bytesConverter';
 export * from './cairoUtilImporter';
 export * from './constantHandler';
 export * from './deleteHandler';
@@ -15,7 +16,7 @@ export * from './generateGetters';
 export * from './identifierMangler';
 export * from './ifFunctionaliser';
 export * from './implicitConversionToExplicit';
-export * from './inheritanceInliner';
+export * from './inheritanceInliner/inheritanceInliner';
 export * from './intBoundCalculator';
 export * from './literalExpressionEvaluator/literalExpressionEvaluator';
 export * from './loopFunctionaliser';
