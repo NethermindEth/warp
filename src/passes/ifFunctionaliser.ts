@@ -6,7 +6,6 @@ import {
   FunctionKind,
   FunctionVisibility,
   IfStatement,
-  Return,
   Statement,
   UncheckedBlock,
 } from 'solc-typed-ast';
@@ -15,8 +14,13 @@ import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
 import { error } from '../utils/formatting';
-import { createCallToFunction } from '../utils/functionStubbing';
-import { createIdentifier, createParameterList } from '../utils/nodeTemplates';
+import { createCallToFunction } from '../utils/functionGeneration';
+import {
+  createBlock,
+  createIdentifier,
+  createParameterList,
+  createReturn,
+} from '../utils/nodeTemplates';
 import { collectUnboundVariables } from './loopFunctionaliser/utils';
 
 export class IfFunctionaliser extends ASTMapper {
@@ -103,7 +107,7 @@ function splitBlockImpl(block: Block, split: Statement, ast: AST): Block | null 
   const newBlock =
     block instanceof UncheckedBlock
       ? new UncheckedBlock(ast.reserveId(), '', [])
-      : new Block(ast.reserveId(), '', []);
+      : createBlock([], ast);
   assert(
     newBlock instanceof block.constructor && block instanceof newBlock.constructor,
     `Encountered unexpected block subclass ${block.constructor.name} when splitting`,
@@ -201,12 +205,7 @@ function addCallsToSplitFunction(
   call: FunctionCall,
   ast: AST,
 ) {
-  const returnStatement = new Return(
-    ast.reserveId(),
-    '',
-    originalFunction.vReturnParameters.id,
-    call,
-  );
+  const returnStatement = createReturn(call, originalFunction.vReturnParameters.id, ast);
   ast.insertStatementAfter(node.vTrueBody, returnStatement);
 
   if (node.vFalseBody) {
@@ -219,7 +218,7 @@ function addCallsToSplitFunction(
 
 function ensureBothBranchesAreBlocks(node: IfStatement, ast: AST): void {
   if (!(node.vTrueBody instanceof Block) && !(node.vTrueBody instanceof UncheckedBlock)) {
-    node.vTrueBody = new Block(ast.reserveId(), '', [node.vTrueBody]);
+    node.vTrueBody = createBlock([node.vTrueBody], ast);
     ast.registerChild(node.vTrueBody, node);
   }
 
@@ -228,7 +227,7 @@ function ensureBothBranchesAreBlocks(node: IfStatement, ast: AST): void {
     !(node.vFalseBody instanceof Block) &&
     !(node.vFalseBody instanceof UncheckedBlock)
   ) {
-    node.vFalseBody = new Block(ast.reserveId(), '', [node.vFalseBody]);
+    node.vFalseBody = createBlock([node.vFalseBody], ast);
     ast.registerChild(node.vFalseBody, node);
   }
 }

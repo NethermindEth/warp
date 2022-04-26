@@ -13,7 +13,7 @@ import {
   TypeConversionContext,
 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { add, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
 

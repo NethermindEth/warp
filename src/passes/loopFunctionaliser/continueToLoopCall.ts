@@ -1,8 +1,9 @@
 import assert from 'assert';
-import { Continue, FunctionDefinition, Return } from 'solc-typed-ast';
+import { Continue, FunctionDefinition } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
+import { createReturn } from '../../utils/nodeTemplates';
 import { createLoopCall } from './utils';
 
 export class ContinueToLoopCall extends ASTMapper {
@@ -25,11 +26,10 @@ export class ContinueToLoopCall extends ASTMapper {
 
     ast.replaceNode(
       node,
-      new Return(
-        ast.reserveId(),
-        node.src,
-        continueFunction.vReturnParameters.id,
+      createReturn(
         createLoopCall(continueFunction, continueFunction.vParameters.vParameters, ast),
+        continueFunction.vReturnParameters.id,
+        ast,
       ),
     );
   }

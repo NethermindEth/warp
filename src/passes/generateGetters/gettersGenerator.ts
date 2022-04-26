@@ -2,7 +2,6 @@ import { ASTMapper } from '../../ast/mapper';
 
 import {
   ArrayTypeName,
-  Block,
   ContractDefinition,
   DataLocation,
   ElementaryTypeName,
@@ -16,7 +15,6 @@ import {
   MemberAccess,
   Mutability,
   ParameterList,
-  Return,
   StateVariableVisibility,
   StructDefinition,
   TupleExpression,
@@ -28,8 +26,13 @@ import {
 import { AST } from '../../ast/ast';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { cloneASTNode } from '../../utils/cloning';
-import { createIdentifier, createParameterList } from '../../utils/nodeTemplates';
-import { toSingleExpression } from '../../utils/functionGeneration';
+import {
+  createBlock,
+  createIdentifier,
+  createParameterList,
+  createReturn,
+} from '../../utils/nodeTemplates';
+import { toSingleExpression } from '../../utils/utils';
 
 export class GettersGenerator extends ASTMapper {
   constructor(private getterFunctions: Map<VariableDeclaration, FunctionDefinition>) {
@@ -65,9 +68,10 @@ export class GettersGenerator extends ASTMapper {
 
         const returnExpression: Expression = genReturnExpression(0, fnParams, v, stateVarType, ast);
 
-        const getterBlock = new Block(ast.reserveId(), '', [
-          new Return(ast.reserveId(), '', returnParameterList.id, returnExpression),
-        ]);
+        const getterBlock = createBlock(
+          [createReturn(returnExpression, returnParameterList.id, ast)],
+          ast,
+        );
 
         const getter = new FunctionDefinition(
           funcDefID,

@@ -35,6 +35,8 @@ import {
   StringLiteralType,
   StringType,
   ContractDefinition,
+  Expression,
+  TupleExpression,
 } from 'solc-typed-ast';
 import { NotSupportedYetError, TranspileFailedError, logError } from './errors';
 import { printNode, printTypeNode } from './astPrinter';
@@ -449,5 +451,17 @@ export function isCairoConstant(node: VariableDeclaration): boolean {
 export function isExternallyVisible(node: FunctionDefinition): boolean {
   return (
     node.visibility === FunctionVisibility.External || node.visibility === FunctionVisibility.Public
+  );
+}
+
+export function toSingleExpression(expressions: Expression[], ast: AST): Expression {
+  if (expressions.length === 1) return expressions[0];
+
+  return new TupleExpression(
+    ast.reserveId(),
+    '',
+    `tuple(${expressions.map((e) => e.typeString).join(',')})`,
+    false,
+    expressions,
   );
 }

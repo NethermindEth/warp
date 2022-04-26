@@ -13,7 +13,7 @@ import {
   getNodeType,
 } from 'solc-typed-ast';
 import { ASTMapper } from '../../ast/mapper';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { createIdentifier } from '../../utils/nodeTemplates';
 

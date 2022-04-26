@@ -2,7 +2,6 @@ import assert from 'assert';
 import {
   Assignment,
   ASTNode,
-  Block,
   ContractDefinition,
   DoWhileStatement,
   Expression,
@@ -14,7 +13,6 @@ import {
   FunctionVisibility,
   Identifier,
   IfStatement,
-  Return,
   SourceUnit,
   Statement,
   VariableDeclaration,
@@ -23,12 +21,14 @@ import {
 import { AST } from '../../ast/ast';
 import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
+import { createCallToFunction } from '../../utils/functionGeneration';
 import {
+  createBlock,
+  createIdentifier,
+  createParameterList,
   createReturn,
-  generateFunctionCall,
-  toSingleExpression,
-} from '../../utils/functionGeneration';
-import { createIdentifier, createParameterList } from '../../utils/nodeTemplates';
+} from '../../utils/nodeTemplates';
+import { toSingleExpression } from '../../utils/utils';
 
 export function collectUnboundVariables(node: ASTNode): Map<VariableDeclaration, Identifier[]> {
   const internalDeclarations = node
@@ -83,9 +83,10 @@ export function extractWhileToFunction(
   const defId = ast.reserveId();
   const defName = `${prefix}${loopFnCounter++}`;
 
-  const funcBody = new Block(ast.reserveId(), '', [
-    createStartingIf(node.vCondition, node.vBody, variables, retParams.id, ast),
-  ]);
+  const funcBody = createBlock(
+    [createStartingIf(node.vCondition, node.vBody, variables, retParams.id, ast)],
+    ast,
+  );
 
   const funcDef = new FunctionDefinition(
     defId,
@@ -116,12 +117,7 @@ export function extractWhileToFunction(
 
   ast.insertStatementAfter(
     node.vBody,
-    new Return(
-      ast.reserveId(),
-      '',
-      funcDef.vReturnParameters.id,
-      createLoopCall(funcDef, variables, ast),
-    ),
+    createReturn(createLoopCall(funcDef, variables, ast), funcDef.vReturnParameters.id, ast),
   );
 
   return funcDef;
@@ -154,15 +150,13 @@ export function extractDoWhileToFunction(
   );
   const doBlockFuncId = ast.reserveId();
 
-  const doBlockBody = new Block(ast.reserveId(), '', [
-    cloneASTNode(node.vBody, ast),
-    new Return(
-      ast.reserveId(),
-      '',
-      doBlockRetParams.id,
-      createLoopCall(doWhileFuncDef, variables, ast),
-    ),
-  ]);
+  const doBlockBody = createBlock(
+    [
+      cloneASTNode(node.vBody, ast),
+      createReturn(createLoopCall(doWhileFuncDef, variables, ast), doBlockRetParams.id, ast),
+    ],
+    ast,
+  );
 
   const doBlockFuncDef = new FunctionDefinition(
     doBlockFuncId,
@@ -214,7 +208,7 @@ export function createLoopCall(
   variables: VariableDeclaration[],
   ast: AST,
 ): FunctionCall {
-  return generateFunctionCall(
+  return createCallToFunction(
     loopFunction,
     variables.map((v) => createIdentifier(v, ast)),
     ast,

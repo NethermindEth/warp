@@ -1,18 +1,16 @@
 import {
-  Block,
   ContractDefinition,
   FunctionDefinition,
   FunctionVisibility,
   Expression,
-  Return,
   FunctionKind,
   ContractKind,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCallToFunction } from '../../utils/functionStubbing';
-import { createIdentifier } from '../../utils/nodeTemplates';
+import { createCallToFunction } from '../../utils/functionGeneration';
+import { createBlock, createIdentifier, createReturn } from '../../utils/nodeTemplates';
 export class ExternalFunctionCreator extends ASTMapper {
   suffix = '_internal';
 
@@ -50,7 +48,7 @@ export class ExternalFunctionCreator extends ASTMapper {
   }
 
   private createExternalFunctionDefintion(node: FunctionDefinition, ast: AST): FunctionDefinition {
-    const newBlock = new Block(ast.reserveId(), '', []);
+    const newBlock = createBlock([], ast);
     const internalFunctionBody = node.vBody;
     node.vBody = undefined;
     const externalFunction = cloneASTNode(node, ast);
@@ -74,11 +72,10 @@ export class ExternalFunctionCreator extends ASTMapper {
       });
     const internalFunctionCall = createCallToFunction(node, internalFunctionCallArguments, ast);
 
-    const newReturnFunctionCall = new Return(
-      ast.reserveId(),
-      '',
-      externalFunction.vReturnParameters.id,
+    const newReturnFunctionCall = createReturn(
       internalFunctionCall,
+      externalFunction.vReturnParameters.id,
+      ast,
     );
 
     externalFunction.vBody?.appendChild(newReturnFunctionCall);

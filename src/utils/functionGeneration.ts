@@ -1,18 +1,26 @@
-import { AST } from '../ast/ast';
 import {
-  Identifier,
-  FunctionCallKind,
-  FunctionCall,
-  FunctionDefinition,
+  ASTNode,
+  DataLocation,
   Expression,
+  FunctionCall,
+  FunctionCallKind,
+  FunctionDefinition,
+  FunctionKind,
+  FunctionStateMutability,
+  FunctionVisibility,
+  Identifier,
+  Mutability,
+  ParameterList,
+  StateVariableVisibility,
+  TypeName,
   VariableDeclaration,
-  Return,
-  TupleExpression,
 } from 'solc-typed-ast';
+import { AST } from '../ast/ast';
+import { CairoFunctionDefinition } from '../ast/cairoNodes';
+import { Implicits } from './implicits';
 import { getFunctionTypeString, getReturnTypeString } from './utils';
-import { createIdentifier } from './nodeTemplates';
 
-export function generateFunctionCall(
+export function createCallToFunction(
   functionDef: FunctionDefinition,
   argList: Expression[],
   ast: AST,
@@ -33,24 +41,55 @@ export function generateFunctionCall(
   );
 }
 
-export function createReturn(
-  declarations: VariableDeclaration[],
-  retParamListId: number,
+export function createCairoFunctionStub(
+  name: string,
+  inputs: ([string, TypeName] | [string, TypeName, DataLocation])[],
+  returns: ([string, TypeName] | [string, TypeName, DataLocation])[],
+  implicits: Implicits[],
   ast: AST,
-): Return {
-  const returnIdentifiers = declarations.map((d) => createIdentifier(d, ast));
-  const retValue = toSingleExpression(returnIdentifiers, ast);
-  return new Return(ast.reserveId(), '', retParamListId, retValue);
-}
+  nodeInSourceUnit: ASTNode,
+): CairoFunctionDefinition {
+  const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
+  const funcDefId = ast.reserveId();
+  const createParameters = (inputs: ([string, TypeName] | [string, TypeName, DataLocation])[]) =>
+    inputs.map(
+      ([name, type, location]) =>
+        new VariableDeclaration(
+          ast.reserveId(),
+          '',
+          false,
+          false,
+          name,
+          funcDefId,
+          false,
+          location ?? DataLocation.Default,
+          StateVariableVisibility.Private,
+          Mutability.Mutable,
+          type.typeString,
+          undefined,
+          type,
+        ),
+    );
 
-export function toSingleExpression(expressions: Expression[], ast: AST): Expression {
-  if (expressions.length === 1) return expressions[0];
-
-  return new TupleExpression(
-    ast.reserveId(),
+  const funcDef = new CairoFunctionDefinition(
+    funcDefId,
     '',
-    `tuple(${expressions.map((e) => e.typeString).join(',')})`,
+    sourceUnit.id,
+    FunctionKind.Function,
+    name,
     false,
-    expressions,
+    FunctionVisibility.Private,
+    FunctionStateMutability.NonPayable,
+    false,
+    new ParameterList(ast.reserveId(), '', createParameters(inputs)),
+    new ParameterList(ast.reserveId(), '', createParameters(returns)),
+    [],
+    new Set(implicits),
+    true,
   );
+
+  ast.setContextRecursive(funcDef);
+  sourceUnit.insertAtBeginning(funcDef);
+
+  return funcDef;
 }

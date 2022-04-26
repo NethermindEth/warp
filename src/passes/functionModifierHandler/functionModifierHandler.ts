@@ -12,8 +12,13 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
-import { createReturn, generateFunctionCall } from '../../utils/functionGeneration';
-import { createBlock, createIdentifier, createParameterList } from '../../utils/nodeTemplates';
+import { createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createBlock,
+  createIdentifier,
+  createParameterList,
+  createReturn,
+} from '../../utils/nodeTemplates';
 import { FunctionModifierInliner } from './functionModifierInliner';
 
 /*  This pass handles functions with modifiers.
@@ -52,11 +57,10 @@ export class FunctionModifierHandler extends ASTMapper {
       .flat()
       .map((arg) => cloneASTNode(arg, ast));
     const argsList = [...modArgs, ...functionArgs];
-    const returnStatement = new Return(
-      ast.reserveId(),
-      '',
+    const returnStatement = createReturn(
+      createCallToFunction(functionToCall, argsList, ast),
       node.vReturnParameters.id,
-      generateFunctionCall(functionToCall, argsList, ast),
+      ast,
     );
     const functionBody = createBlock([returnStatement], ast);
 

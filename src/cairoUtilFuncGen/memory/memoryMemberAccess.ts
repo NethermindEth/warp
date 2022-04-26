@@ -11,7 +11,7 @@ import {
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext, CairoStruct } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { typeNameFromTypeNode, countNestedMapItems } from '../../utils/utils';
 import { CairoUtilFuncGenBase, CairoFunction, add } from '../base';
 
