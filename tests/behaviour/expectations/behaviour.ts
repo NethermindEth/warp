@@ -236,7 +236,66 @@ export const expectations = flatten(
             Expect.Simple('widthsignNutoi', ['32768'], ['32768']),
           ]),
         ]),
-
+        new Dir('cross_contract_calls', [
+          File.Simple('simple', [Expect.Simple('f', [], ['69', '0'])], 'A'),
+          File.Simple(
+            'simple',
+            [
+              Expect.Simple(
+                'f',
+                ['address@tests/behaviour/contracts/cross_contract_calls/simple.A'],
+                ['69', '0'],
+              ),
+            ],
+            'WARP',
+          ),
+          File.Simple('public_vars', [Expect.Simple('f', [], ['696', '0'])], 'A'),
+          File.Simple(
+            'public_vars',
+            [
+              Expect.Simple(
+                'setA',
+                ['address@tests/behaviour/contracts/cross_contract_calls/public_vars.A'],
+                [],
+              ),
+            ],
+            'B',
+          ),
+          File.Simple(
+            'public_vars',
+            [
+              Expect.Simple(
+                'setB',
+                [
+                  'address@tests/behaviour/contracts/cross_contract_calls/public_vars.A',
+                  'address@tests/behaviour/contracts/cross_contract_calls/public_vars.B',
+                ],
+                [],
+              ),
+              Expect.Simple('foo', [], ['696', '0']),
+              Expect.Simple(
+                'f',
+                ['address@tests/behaviour/contracts/cross_contract_calls/simple.A'],
+                ['69', '0'],
+              ),
+            ],
+            'C',
+          ),
+        ]),
+        new Dir('using_for', [
+          File.Simple('simple', [
+            Expect.Simple('callOnIdentifier', [], ['6', '0']),
+            Expect.Simple('callOnFunctionCall', [], ['60', '0']),
+          ]),
+          File.Simple('library', [
+            Expect.Simple('callOnIdentifierAdd', [], ['6', '0']),
+            Expect.Simple('callOnIdentifierMul', [], ['2', '0']),
+            Expect.Simple('callLibFunction', [], ['1', '0']),
+          ]),
+          File.Simple('private', [
+            Expect.Simple('callOnIdentifier', ['23', '0', '3', '0'], ['69', '0']),
+          ]),
+        ]),
         // covers nested mappings
         new Dir('Dai', [
           new File(
