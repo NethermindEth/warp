@@ -16,7 +16,7 @@ import {
   getEnumTypeString,
   getFunctionTypeString,
   getStructTypeString,
-} from '../utils/utils';
+} from '../utils/getTypeString';
 
 // The pass handles specific imports for library, contract, interface,
 // free functions, structs and enum.

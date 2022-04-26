@@ -18,13 +18,10 @@ function multiply(uint8 x, uint8 y) pure returns (uint8) {
   return x*y;
 }
 
- struct Account {
-   uint balance;
-   uint dailylimit;
- }
+struct Account {
+  uint balance;
+  uint dailylimit;
+}
 
- enum selectEnum{ SMALL, MEDIUM, LARGE }
-   selectEnum constant defaultChoice = selectEnum.MEDIUM;
-
-
-
+enum selectEnum{ SMALL, MEDIUM, LARGE }
+selectEnum constant defaultChoice = selectEnum.MEDIUM;

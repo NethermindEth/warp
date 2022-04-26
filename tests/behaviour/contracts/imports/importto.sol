@@ -3,7 +3,7 @@ pragma solidity ^0.8.6;
 // SPDX-License-Identifier: MIT
 
 //Specific Imports for libraries and free functions
- import {lib, multiply } from './importfrom.sol';
+ import {lib, multiply, selectEnum } from './importfrom.sol';
 
 contract WARP{
     using lib for uint8;

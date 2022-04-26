@@ -59,9 +59,11 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/idManglingTest8', 'Success'],
   ['example_contracts/idManglingTest9', 'Success'],
   ['example_contracts/if-flattening', 'Success'],
+  // EnumDefinition is currently not written in cairo, this causes cairo compile failure while importing free enums from different solidity file
   ['example_contracts/imports/importEnum', 'CairoCompileFailed'],
   ['example_contracts/imports/importfrom', 'Success'],
   ['example_contracts/imports/importLibrary', 'Success'],
+  // Transpilation failure since importing StructDefinition is not implemented yet
   ['example_contracts/imports/importStruct', 'NotSupportedYet'],
   ['example_contracts/inheritance/simple', 'Success'],
   ['example_contracts/inheritance/super/base', 'Success'],

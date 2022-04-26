@@ -18,7 +18,7 @@ import {
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { Implicits } from './implicits';
-import { getFunctionTypeString, getReturnTypeString } from './utils';
+import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
 
 export function createCairoFunctionStub(
   name: string,

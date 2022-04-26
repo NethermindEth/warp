@@ -11,3 +11,6 @@ library lib {
 function multiply(uint8 x, uint8 y) pure returns (uint8) {
     return x*y;
 }
+
+ enum selectEnum{ SMALL, MEDIUM, LARGE }
+   selectEnum constant defaultChoice = selectEnum.MEDIUM;
