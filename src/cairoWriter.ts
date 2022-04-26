@@ -72,7 +72,12 @@ import {
   WhileStatement,
 } from 'solc-typed-ast';
 import { AST } from './ast/ast';
-import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
+import {
+  CairoAssert,
+  CairoContract,
+  CairoFunctionDefinition,
+  CairoReturnMemoryFinalizer,
+} from './ast/cairoNodes';
 import { printNode } from './utils/astPrinter';
 import { CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
@@ -431,12 +436,6 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     }
 
     assert(node.vBody.children.length > 0, error(`${printNode(node)} has an empty body`));
-    const returnStatement = node.vBody.children[node.vBody.children.length - 1];
-    assert(
-      returnStatement instanceof Return,
-      error(`${printNode(node)} does not end with a return`),
-    );
-    node.vBody.removeChild(returnStatement);
 
     return [
       'alloc_locals',
@@ -446,9 +445,8 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
       'with warp_memory:',
       writer.write(node.vBody),
       'end',
-      'default_dict_finalize(warp_memory_start, warp_memory, 0)',
-      writer.write(returnStatement),
     ]
+      .flat()
       .filter(notNull)
       .join('\n');
   }
@@ -504,6 +502,25 @@ class BlockWriter extends CairoASTNodeWriter {
         )
         .join('\n'),
     ];
+  }
+}
+
+class CairoReturnMemoryFinalizerWriter extends CairoASTNodeWriter {
+  writeInner(node: CairoReturnMemoryFinalizer, writer: ASTWriter): SrcDesc {
+    const result: SrcDesc = [];
+    const returnStatement = new Return(
+      node.id,
+      node.src,
+      node.functionReturnParameters,
+      node.vExpression,
+      node.documentation,
+      node.raw,
+    );
+    const returnCairoRepr = writer.write(returnStatement);
+
+    result.push('default_dict_finalize(warp_memory_start, warp_memory, 0)\n');
+    result.push(returnCairoRepr);
+    return result;
   }
 }
 
@@ -728,6 +745,7 @@ export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
     [CairoAssert, new CairoAssertWriter(ast, throwOnUnimplemented)],
     [CairoContract, new CairoContractWriter(ast, throwOnUnimplemented)],
     [CairoFunctionDefinition, new CairoFunctionDefinitionWriter(ast, throwOnUnimplemented)],
+    [CairoReturnMemoryFinalizer, new CairoReturnMemoryFinalizerWriter(ast, throwOnUnimplemented)],
     [Conditional, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [Continue, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [DoWhileStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],
