@@ -122,6 +122,8 @@ end
 
 # -----------------Helper functions-----------------
 
+# Moves the free-memory pointer to allocate the given number of cells, and returns the index
+# of the start of the allocated space
 func wm_alloc{range_check_ptr, warp_memory : DictAccess*}(space : Uint256) -> (start : felt):
     alloc_locals
     # Get current end pointer
@@ -133,5 +135,5 @@ func wm_alloc{range_check_ptr, warp_memory : DictAccess*}(space : Uint256) -> (s
     assert carry = 0
     let (newFreeCell) = narrow_safe(newFreeCell256)
     dict_write{dict_ptr=warp_memory}(0, newFreeCell)
-    return (newFreeCell)
+    return (freeCell)
 end
