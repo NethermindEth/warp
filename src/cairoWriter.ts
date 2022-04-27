@@ -513,7 +513,7 @@ class ReturnWriter extends CairoASTNodeWriter {
       returns =
         node.vExpression instanceof TupleExpression ||
         (node.vExpression instanceof FunctionCall &&
-          node.vExpression.kind === FunctionCallKind.StructConstructorCall)
+          node.vExpression.kind !== FunctionCallKind.StructConstructorCall)
           ? expWriten
           : `(${expWriten})`;
     }
