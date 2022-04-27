@@ -435,12 +435,6 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     }
 
     assert(node.vBody.children.length > 0, error(`${printNode(node)} has an empty body`));
-    const returnStatement = node.vBody.children[node.vBody.children.length - 1];
-    assert(
-      returnStatement instanceof Return,
-      error(`${printNode(node)} does not end with a return`),
-    );
-    node.vBody.removeChild(returnStatement);
 
     return [
       'alloc_locals',
@@ -450,9 +444,8 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
       'with warp_memory:',
       writer.write(node.vBody),
       'end',
-      'default_dict_finalize(warp_memory_start, warp_memory, 0)',
-      writer.write(returnStatement),
     ]
+      .flat()
       .filter(notNull)
       .join('\n');
   }
@@ -518,11 +511,27 @@ class ReturnWriter extends CairoASTNodeWriter {
     if (node.vExpression) {
       const expWriten = writer.write(node.vExpression);
       returns =
-        node.vExpression instanceof TupleExpression || node.vExpression instanceof FunctionCall
+        node.vExpression instanceof TupleExpression ||
+        (node.vExpression instanceof FunctionCall &&
+          node.vExpression.kind !== FunctionCallKind.StructConstructorCall)
           ? expWriten
           : `(${expWriten})`;
     }
-    return [documentation, `return ${returns}`];
+
+    const finalizeWarpMemory = this.usesWarpMemory(node)
+      ? 'default_dict_finalize(warp_memory_start, warp_memory, 0)\n'
+      : '';
+
+    return [documentation, finalizeWarpMemory, `return ${returns}`];
+  }
+
+  private usesWarpMemory(node: Return): boolean {
+    const parentFunc = node.getClosestParentByType(CairoFunctionDefinition);
+    return (
+      parentFunc instanceof CairoFunctionDefinition &&
+      parentFunc.implicits.has('warp_memory') &&
+      isExternallyVisible(parentFunc)
+    );
   }
 }
 

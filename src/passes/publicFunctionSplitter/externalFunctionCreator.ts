@@ -14,7 +14,10 @@ import { createBlock, createIdentifier, createReturn } from '../../utils/nodeTem
 export class ExternalFunctionCreator extends ASTMapper {
   suffix = '_internal';
 
-  constructor(public InternalToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>) {
+  constructor(
+    public InternalToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>,
+    public internalFunctionCallSet: Set<FunctionDefinition>,
+  ) {
     super();
   }
   /*
@@ -34,10 +37,14 @@ export class ExternalFunctionCreator extends ASTMapper {
     }
 
     if (FunctionVisibility.Public === node.visibility && node.kind !== FunctionKind.Constructor) {
-      const newExternalFunction = this.createExternalFunctionDefintion(node, ast);
-      this.insertReturnStatement(node, newExternalFunction, ast);
-      this.modifyPublicFunction(node);
-      this.InternalToExternalFunctionMap.set(node, newExternalFunction);
+      if (this.internalFunctionCallSet.has(node)) {
+        const newExternalFunction = this.createExternalFunctionDefintion(node, ast);
+        this.insertReturnStatement(node, newExternalFunction, ast);
+        this.modifyPublicFunction(node);
+        this.InternalToExternalFunctionMap.set(node, newExternalFunction);
+      } else {
+        node.visibility = FunctionVisibility.External;
+      }
     }
     this.commonVisit(node, ast);
   }
