@@ -2,6 +2,7 @@ import assert from 'assert';
 import {
   ArrayType,
   ContractDefinition,
+  ContractKind,
   DataLocation,
   EnumDefinition,
   FunctionDefinition,
@@ -35,6 +36,9 @@ export function getDeclaredTypeString(declaration: VariableDeclarationStatement)
 }
 
 export function getContractTypeString(node: ContractDefinition): string {
+  if (node.kind === ContractKind.Interface) {
+    return `type(contract ${node.name})`;
+  }
   return `type(${node.kind} ${node.name})`;
 }
 
