@@ -26,7 +26,7 @@ import { AST } from '../../ast/ast';
 import { dereferenceType, isCairoConstant, typeNameFromTypeNode } from '../../utils/utils';
 import { error } from '../../utils/formatting';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { createUint256Literal, createUint256TypeName } from '../../utils/nodeTemplates';
+import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { cloneASTNode } from '../../utils/cloning';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { ReferenceSubPass } from './referenceSubPass';
@@ -286,7 +286,7 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
     [
       indexAccess.vBaseExpression,
       indexAccess.vIndexExpression,
-      createUint256Literal(BigInt(elementCairTypeWidth), ast),
+      createNumberLiteral(elementCairTypeWidth, ast, 'uint256'),
     ],
     ast,
   );

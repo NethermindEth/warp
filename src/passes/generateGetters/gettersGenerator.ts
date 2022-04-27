@@ -33,6 +33,7 @@ import {
   createIdentifier,
   createParameterList,
   createReturn,
+  createUint256TypeName,
 } from '../../utils/nodeTemplates';
 import { toSingleExpression } from '../../utils/utils';
 
@@ -209,7 +210,7 @@ function genFunctionParams(
         Mutability.Mutable,
         'uint256',
         undefined,
-        new ElementaryTypeName(ast.reserveId(), '', 'uint256', 'uint256'),
+        createUint256TypeName(ast),
       ),
       ...genFunctionParams(varCount + 1, vType.vBaseType, funcDefID, ast),
     ];

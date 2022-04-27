@@ -6,7 +6,6 @@ import {
   ElementaryTypeName,
   Expression,
   ExpressionStatement,
-  Identifier,
   Mutability,
   Return,
   StateVariableVisibility,
@@ -18,7 +17,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
-import { createBlock } from '../utils/nodeTemplates';
+import { createBlock, createIdentifier } from '../utils/nodeTemplates';
 import { notNull } from '../utils/typeConstructs';
 
 // Converts a non-declaration tuple assignment into a declaration of temporary variables,
@@ -69,7 +68,7 @@ export class TupleAssignmentSplitter extends ASTMapper {
         '',
         returnExpression.typeString,
         false,
-        vars.map((v) => new Identifier(ast.reserveId(), '', v.typeString, v.name, v.id)),
+        vars.map((v) => createIdentifier(v, ast)),
       );
       ast.registerChild(node.vExpression, node);
     }
@@ -133,7 +132,7 @@ export class TupleAssignmentSplitter extends ASTMapper {
             target.typeString,
             '=',
             target,
-            new Identifier(ast.reserveId(), node.src, tempVar.typeString, tempVar.name, tempVar.id),
+            createIdentifier(tempVar, ast),
           ),
         ),
     );

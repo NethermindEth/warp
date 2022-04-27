@@ -1,15 +1,7 @@
-import {
-  FunctionCall,
-  getNodeType,
-  IntType,
-  Literal,
-  LiteralKind,
-  MemberAccess,
-} from 'solc-typed-ast';
+import { FunctionCall, getNodeType, IntType, MemberAccess } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { generateLiteralTypeString } from '../utils/getTypeString';
-import { toHexString } from '../utils/utils';
+import { createNumberLiteral } from '../utils/nodeTemplates';
 
 function calculateMin(type: IntType): string {
   if (type.signed) {
@@ -42,18 +34,6 @@ export class IntBoundCalculator extends ASTMapper {
 
     const valueString = node.memberName === 'min' ? calculateMin(nodeType) : calculateMax(nodeType);
 
-    ast.replaceNode(
-      node,
-      new Literal(
-        ast.reserveId(),
-        node.src,
-        generateLiteralTypeString(valueString),
-        LiteralKind.Number,
-        toHexString(valueString),
-        valueString,
-        undefined,
-        node.raw,
-      ),
-    );
+    ast.replaceNode(node, createNumberLiteral(valueString, ast));
   }
 }

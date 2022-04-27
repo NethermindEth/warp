@@ -4,8 +4,6 @@ import {
   Expression,
   getNodeType,
   Identifier,
-  Literal,
-  LiteralKind,
   MemberAccess,
   UserDefinedType,
   UserDefinedTypeName,
@@ -14,7 +12,8 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { TranspileFailedError } from '../utils/errors';
-import { toHexString, typeNameFromTypeNode } from '../utils/utils';
+import { createNumberLiteral } from '../utils/nodeTemplates';
+import { typeNameFromTypeNode } from '../utils/utils';
 
 export class EnumConverter extends ASTMapper {
   getEnumValue(node: EnumDefinition, memberName: string): number {
@@ -61,20 +60,7 @@ export class EnumConverter extends ASTMapper {
       if (enumDef instanceof EnumDefinition) {
         // replace member access node with literal
         const intLiteral = this.getEnumValue(enumDef, node.memberName);
-        const intLiteralString = intLiteral.toString();
-        ast.replaceNode(
-          node,
-          new Literal(
-            ast.reserveId(),
-            node.src,
-            `int_const ${intLiteral}`,
-            LiteralKind.Number,
-            toHexString(intLiteralString),
-            intLiteralString,
-            undefined,
-            node.raw,
-          ),
-        );
+        ast.replaceNode(node, createNumberLiteral(intLiteral, ast));
       }
     }
   }

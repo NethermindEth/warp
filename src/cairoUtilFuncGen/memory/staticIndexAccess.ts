@@ -3,7 +3,7 @@ import { ArrayType, ASTNode, DataLocation, FunctionCall, IndexAccess } from 'sol
 import { printNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { createUint256Literal, createUint256TypeName } from '../../utils/nodeTemplates';
+import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { CairoUtilFuncGenBase } from '../base';
 
@@ -55,8 +55,8 @@ export class MemoryStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
       [
         indexAccess.vBaseExpression,
         indexAccess.vIndexExpression,
-        createUint256Literal(BigInt(width), this.ast),
-        createUint256Literal(arrayType.size, this.ast),
+        createNumberLiteral(width, this.ast, 'uint256'),
+        createNumberLiteral(arrayType.size, this.ast, 'uint256'),
       ],
       this.ast,
     );

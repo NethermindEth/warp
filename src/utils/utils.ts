@@ -16,7 +16,6 @@ import {
   IntLiteralType,
   IntType,
   Literal,
-  LiteralKind,
   Mapping,
   MappingType,
   Mutability,
@@ -36,6 +35,7 @@ import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
 import { printTypeNode } from './astPrinter';
 import { logError, NotSupportedYetError, TranspileFailedError } from './errors';
+import { createBoolTypeName, createNumberLiteral } from './nodeTemplates';
 import { Class } from './typeConstructs';
 
 export function divmod(x: bigint, y: bigint): [BigInt, BigInt] {
@@ -244,19 +244,10 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
       '',
       node.pp(),
       typeNameFromTypeNode(node.elementT, ast),
-      node.size === undefined
-        ? undefined
-        : new Literal(
-            ast.reserveId(),
-            '',
-            `int_const ${node.size.toString()}`,
-            LiteralKind.Number,
-            toHexString(node.size.toString()),
-            node.size.toString(),
-          ),
+      node.size === undefined ? undefined : createNumberLiteral(node.size, ast),
     );
   } else if (node instanceof BoolType) {
-    result = new ElementaryTypeName(ast.reserveId(), '', 'bool', 'bool');
+    result = createBoolTypeName(ast);
   } else if (node instanceof FixedBytesType) {
     result = new ElementaryTypeName(ast.reserveId(), '', node.pp(), node.pp());
   } else if (node instanceof IntLiteralType) {
