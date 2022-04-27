@@ -2,7 +2,7 @@ pragma solidity ^0.8.6;
 
 // SPDX-License-Identifier: MIT
 
-//Specific Imports for enum
+//Specific Imports for Struct
 import { Account } from './importfrom.sol';
 
 contract WARP{

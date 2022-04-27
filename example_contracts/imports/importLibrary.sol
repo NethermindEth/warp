@@ -2,8 +2,8 @@ pragma solidity ^0.8.6;
 
 // SPDX-License-Identifier: MIT
 
-//Specific Imports for libraries, free functions and enums
-import {libA, libB } from './importfrom.sol';
+//Specific Imports for libraries
+import { libA, libB } from './importfrom.sol';
 
 contract WARP{
   using libA for uint8;

@@ -27,12 +27,6 @@ import {
   VariableDeclaration,
   StringLiteralType,
   StringType,
-<<<<<<< HEAD
-  ContractDefinition,
-  StructDefinition,
-  EnumDefinition,
-=======
->>>>>>> added utils/getTypeString
 } from 'solc-typed-ast';
 import { NotSupportedYetError, TranspileFailedError, logError } from './errors';
 import { printTypeNode } from './astPrinter';

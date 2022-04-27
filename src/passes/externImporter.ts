@@ -1,6 +1,5 @@
 import assert from 'assert';
 import {
-  EnumDefinition,
   ErrorDefinition,
   FunctionDefinition,
   Identifier,
@@ -28,7 +27,7 @@ export class ExternImporter extends ASTMapper {
     assert(sourceUnit !== undefined, 'Trying to import a definition into an unknown source unit');
     if (declarationSourceUnit === undefined || sourceUnit === declarationSourceUnit) return;
 
-    if (declaration instanceof FunctionDefinition || declaration instanceof EnumDefinition) {
+    if (declaration instanceof FunctionDefinition) {
       ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
     }
 
