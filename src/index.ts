@@ -22,6 +22,7 @@ export type TranspilationOptions = {
   order?: string;
   printTrees?: boolean;
   strict?: boolean;
+  stubs?: boolean;
   until?: string;
 };
 
@@ -46,6 +47,7 @@ program
   .option('-o, --output-dir <path>', undefined, 'warp_output')
   .option('--print-trees')
   .option('--no-result')
+  .option('--no-stubs')
   .option('--strict')
   // Stops transpilation after the specified pass
   .option('--until <pass>')
@@ -70,6 +72,7 @@ program
   .option('-o, --output-dir <path>')
   .option('--print-trees')
   .option('--no-result')
+  .option('--no-stubs')
   .option('--strict')
   .option('--until <pass>')
   .option('--no-warnings')
@@ -101,12 +104,12 @@ program
 
 export type AnalyseOptions = {
   highlight?: string[];
+  stubs?: boolean;
 };
 
 program
   .command('analyse <file>')
   .option('--highlight <ids...>')
-  .option('--typeNodes')
   .action((file: string, options: AnalyseOptions) => analyseSol(file, options));
 
 export interface IOptionalNetwork {

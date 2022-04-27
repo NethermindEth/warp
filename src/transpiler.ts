@@ -47,6 +47,7 @@ import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { createPassMap, parsePassOrder } from './utils/cliOptionParsing';
 import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
+import { removeExcessNewlines } from './utils/formatting';
 import { printCompileErrors, runSanityCheck } from './utils/utils';
 
 type CairoSource = [file: string, source: string];
@@ -64,11 +65,14 @@ export function transpile(ast: AST, options: TranspilationOptions): CairoSource[
 export function transform(ast: AST, options: TranspilationOptions): CairoSource[] {
   const cairoAST = applyPasses(ast, options);
   const writer = new ASTWriter(
-    CairoToSolASTWriterMapping,
+    CairoToSolASTWriterMapping(!!options.stubs),
     new PrettyFormatter(4, 0),
     ast.compilerVersion,
   );
-  return cairoAST.roots.map((sourceUnit) => [sourceUnit.absolutePath, writer.write(sourceUnit)]);
+  return cairoAST.roots.map((sourceUnit) => [
+    sourceUnit.absolutePath,
+    removeExcessNewlines(writer.write(sourceUnit), 2),
+  ]);
 }
 
 function applyPasses(ast: AST, options: TranspilationOptions): AST {
