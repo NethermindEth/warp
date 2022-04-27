@@ -14,7 +14,8 @@ import {
   StructuredDocumentation,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { generateLiteralTypeString, toHexString, toSingleExpression } from './utils';
+import { generateLiteralTypeString } from './getTypeString';
+import { toHexString, toSingleExpression } from './utils';
 
 export function createAddressNonPayableTypeName(ast: AST): ElementaryTypeName {
   const node = new ElementaryTypeName(ast.reserveId(), '', 'address', 'address', 'nonpayable');
