@@ -10,7 +10,6 @@ import {
   FunctionVisibility,
   Identifier,
   Mutability,
-  ParameterList,
   StateVariableVisibility,
   TypeName,
   VariableDeclaration,
@@ -18,6 +17,7 @@ import {
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { Implicits } from './implicits';
+import { createParameterList } from './nodeTemplates';
 import { getFunctionTypeString, getReturnTypeString } from './utils';
 
 export function createCallToFunction(
@@ -81,8 +81,8 @@ export function createCairoFunctionStub(
     FunctionVisibility.Private,
     FunctionStateMutability.NonPayable,
     false,
-    new ParameterList(ast.reserveId(), '', createParameters(inputs)),
-    new ParameterList(ast.reserveId(), '', createParameters(returns)),
+    createParameterList(createParameters(inputs), ast),
+    createParameterList(createParameters(returns), ast),
     [],
     new Set(implicits),
     true,
