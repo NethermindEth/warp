@@ -9,7 +9,8 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { TranspileFailedError } from '../../utils/errors';
-import { generateLiteralTypeString, toHexString, unitValue } from '../../utils/utils';
+import { generateLiteralTypeString } from '../../utils/getTypeString';
+import { toHexString, unitValue } from '../../utils/utils';
 import { RationalLiteral, stringToLiteralValue } from './rationalLiteral';
 
 /*

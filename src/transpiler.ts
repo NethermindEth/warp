@@ -20,6 +20,7 @@ import {
   IdentifierMangler,
   IfFunctionaliser,
   ImplicitConversionToExplicit,
+  ImportDirectiveIdentifier,
   InheritanceInliner,
   IntBoundCalculator,
   LiteralExpressionEvaluator,
@@ -73,6 +74,7 @@ export function transform(ast: AST, options: TranspilationOptions): CairoSource[
 function applyPasses(ast: AST, options: TranspilationOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Ss', SourceUnitSplitter],
+    ['Idi', ImportDirectiveIdentifier],
     ['Ru', RejectUnsupportedFeatures],
     ['L', LiteralExpressionEvaluator],
     ['Ufr', UsingForResolver],

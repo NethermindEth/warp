@@ -19,7 +19,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { getFunctionTypeString } from '../utils/utils';
+import { getFunctionTypeString } from '../utils/getTypeString';
 
 /* Convert fixed-size byte arrays (e.g. bytes2, bytes8) to their equivalent unsigned integer.
 		This pass currently does not handle dynamically-sized bytes arrays (i.e. bytes).

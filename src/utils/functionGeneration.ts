@@ -9,7 +9,7 @@ import {
   Return,
   TupleExpression,
 } from 'solc-typed-ast';
-import { getFunctionTypeString, getReturnTypeString } from './utils';
+import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
 import { createIdentifier } from './nodeTemplates';
 
 export function generateFunctionCall(
