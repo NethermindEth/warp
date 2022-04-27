@@ -19,12 +19,12 @@ import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { createParameterList } from '../utils/nodeTemplates';
+import { createBlock, createParameterList } from '../utils/nodeTemplates';
 import { isCairoConstant } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
-    const initialisationBlock = new Block(ast.reserveId(), '', []);
+    const initialisationBlock = createBlock([], ast);
 
     let usedStorage = 0;
     const allocations: Map<VariableDeclaration, number> = new Map();

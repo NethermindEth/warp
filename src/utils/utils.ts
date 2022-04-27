@@ -1,4 +1,3 @@
-import { AST } from '../ast/ast';
 import {
   AddressType,
   ArrayType,
@@ -7,6 +6,7 @@ import {
   CompileFailedError,
   ElementaryTypeName,
   EtherUnit,
+  Expression,
   FixedBytesType,
   FunctionDefinition,
   FunctionVisibility,
@@ -19,20 +19,21 @@ import {
   MappingType,
   Mutability,
   PointerType,
+  StringLiteralType,
+  StringType,
   TimeUnit,
+  TupleExpression,
   TypeName,
   TypeNode,
   UserDefinedType,
   UserDefinedTypeName,
   VariableDeclaration,
-  StringLiteralType,
-  StringType,
 } from 'solc-typed-ast';
-import { NotSupportedYetError, TranspileFailedError, logError } from './errors';
-import { printTypeNode } from './astPrinter';
-
-import { Class } from './typeConstructs';
+import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
+import { printTypeNode } from './astPrinter';
+import { logError, NotSupportedYetError, TranspileFailedError } from './errors';
+import { Class } from './typeConstructs';
 
 export function divmod(x: bigint, y: bigint): [BigInt, BigInt] {
   const div: BigInt = BigInt(x / y);
@@ -359,5 +360,17 @@ export function isCairoConstant(node: VariableDeclaration): boolean {
 export function isExternallyVisible(node: FunctionDefinition): boolean {
   return (
     node.visibility === FunctionVisibility.External || node.visibility === FunctionVisibility.Public
+  );
+}
+
+export function toSingleExpression(expressions: Expression[], ast: AST): Expression {
+  if (expressions.length === 1) return expressions[0];
+
+  return new TupleExpression(
+    ast.reserveId(),
+    '',
+    `tuple(${expressions.map((e) => e.typeString).join(',')})`,
+    false,
+    expressions,
   );
 }

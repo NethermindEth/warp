@@ -11,7 +11,7 @@ import {
   getNodeType,
 } from 'solc-typed-ast';
 import { ASTMapper } from '../../ast/mapper';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { isExternallyVisible, typeNameFromTypeNode } from '../../utils/utils';
 import assert from 'assert';
 import { createIdentifier } from '../../utils/nodeTemplates';

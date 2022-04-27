@@ -59,8 +59,10 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/idManglingTest8', 'Success'],
   ['example_contracts/idManglingTest9', 'Success'],
   ['example_contracts/if-flattening', 'Success'],
+  ['example_contracts/imports/importContract', 'Success'],
   ['example_contracts/imports/importEnum', 'Success'],
   ['example_contracts/imports/importfrom', 'Success'],
+  ['example_contracts/imports/importInterface', 'Success'],
   ['example_contracts/imports/importLibrary', 'Success'],
   // Transpilation failure since importing StructDefinition is not implemented yet
   ['example_contracts/imports/importStruct', 'NotSupportedYet'],

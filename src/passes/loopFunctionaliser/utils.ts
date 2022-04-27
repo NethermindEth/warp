@@ -2,7 +2,6 @@ import assert from 'assert';
 import {
   Assignment,
   ASTNode,
-  Block,
   ContractDefinition,
   DoWhileStatement,
   Expression,
@@ -14,21 +13,22 @@ import {
   FunctionVisibility,
   Identifier,
   IfStatement,
-  ParameterList,
-  Return,
   SourceUnit,
   Statement,
   VariableDeclaration,
   WhileStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
+import { createCallToFunction } from '../../utils/functionGeneration';
 import {
+  createBlock,
+  createIdentifier,
+  createParameterList,
   createReturn,
-  generateFunctionCall,
-  toSingleExpression,
-} from '../../utils/functionGeneration';
-import { createIdentifier } from '../../utils/nodeTemplates';
+} from '../../utils/nodeTemplates';
+import { toSingleExpression } from '../../utils/utils';
 
 export function collectUnboundVariables(node: ASTNode): Map<VariableDeclaration, Identifier[]> {
   const internalDeclarations = node
@@ -60,6 +60,8 @@ export function collectUnboundVariables(node: ASTNode): Map<VariableDeclaration,
   return retMap;
 }
 
+// It's okay to use a global counter here as it only affects private functions
+// and never anything that can be referenced from another file
 let loopFnCounter = 0;
 
 export function extractWhileToFunction(
@@ -67,19 +69,24 @@ export function extractWhileToFunction(
   variables: VariableDeclaration[],
   loopToContinueFunction: Map<number, FunctionDefinition>,
   ast: AST,
+  prefix = '__warp_while',
 ): FunctionDefinition {
   const scope =
     node.getClosestParentByType<ContractDefinition>(ContractDefinition) ??
     node.getClosestParentByType(SourceUnit);
-  assert(scope !== undefined, "Couldn't find WhileStatement's function target root");
+  assert(scope !== undefined, `Couldn't find ${printNode(node)}'s function target root`);
 
-  const retParamsId = ast.reserveId();
+  const retParams = createParameterList(
+    variables.map((v) => cloneASTNode(v, ast)),
+    ast,
+  );
   const defId = ast.reserveId();
-  const defName = `__warp_while${loopFnCounter++}`;
+  const defName = `${prefix}${loopFnCounter++}`;
 
-  const funcBody = new Block(ast.reserveId(), '', [
-    createStartingIf(node.vCondition, node.vBody, variables, retParamsId, ast),
-  ]);
+  const funcBody = createBlock(
+    [createStartingIf(node.vCondition, node.vBody, variables, retParams.id, ast)],
+    ast,
+  );
 
   const funcDef = new FunctionDefinition(
     defId,
@@ -91,20 +98,17 @@ export function extractWhileToFunction(
     FunctionVisibility.Private,
     FunctionStateMutability.NonPayable,
     false,
-    new ParameterList(
-      ast.reserveId(),
-      '',
+    createParameterList(
       variables.map((v) => cloneASTNode(v, ast)),
+      ast,
     ),
-    new ParameterList(
-      retParamsId,
-      '',
-      variables.map((v) => cloneASTNode(v, ast)),
-    ),
+    retParams,
     [],
     undefined,
     funcBody,
   );
+
+  fixParameterScopes(funcDef);
 
   loopToContinueFunction.set(defId, funcDef);
 
@@ -113,15 +117,16 @@ export function extractWhileToFunction(
 
   ast.insertStatementAfter(
     node.vBody,
-    new Return(
-      ast.reserveId(),
-      '',
-      funcDef.vReturnParameters.id,
-      createLoopCall(funcDef, variables, ast),
-    ),
+    createReturn(createLoopCall(funcDef, variables, ast), funcDef.vReturnParameters.id, ast),
   );
 
   return funcDef;
+}
+
+function fixParameterScopes(node: FunctionDefinition): void {
+  [...node.vParameters.vParameters, ...node.vReturnParameters.vParameters].forEach(
+    (decl) => (decl.scope = node.id),
+  );
 }
 
 export function extractDoWhileToFunction(
@@ -130,98 +135,53 @@ export function extractDoWhileToFunction(
   loopToContinueFunction: Map<number, FunctionDefinition>,
   ast: AST,
 ): FunctionDefinition {
-  const scope =
-    node.getClosestParentByType<ContractDefinition>(ContractDefinition) ??
-    node.getClosestParentByType(SourceUnit);
-  assert(scope !== undefined, "Couldn't find DoWhileStatement's function target root");
-
-  const doWhileDefName = `__warp_do_while_${loopFnCounter++}`;
-  const doWhileRetId = ast.reserveId();
-  const doWhileFuncId = ast.reserveId();
-  const doWhileBody = new Block(ast.reserveId(), '', [
-    createStartingIf(node.vCondition, node.vBody, variables, doWhileRetId, ast),
-  ]);
-
-  const doWhileFuncDef = new FunctionDefinition(
-    doWhileFuncId,
-    node.src,
-    scope.id,
-    scope instanceof SourceUnit ? FunctionKind.Free : FunctionKind.Function,
-    doWhileDefName,
-    false,
-    FunctionVisibility.Private,
-    FunctionStateMutability.NonPayable,
-    false,
-    new ParameterList(
-      ast.reserveId(),
-      '',
-      variables.map((v) => cloneASTNode(v, ast)),
-    ),
-    new ParameterList(
-      doWhileRetId,
-      '',
-      variables.map((v) => cloneASTNode(v, ast)),
-    ),
-    [],
-    undefined,
-    doWhileBody,
-  );
-
-  scope.insertAtBeginning(doWhileFuncDef);
-  ast.registerChild(doWhileFuncDef, scope);
-  loopToContinueFunction.set(doWhileFuncId, doWhileFuncDef);
-
-  ast.insertStatementAfter(
-    node.vBody,
-    new Return(
-      ast.reserveId(),
-      '',
-      doWhileFuncDef.vReturnParameters.id,
-      createLoopCall(doWhileFuncDef, variables, ast),
-    ),
+  const doWhileFuncDef = extractWhileToFunction(
+    node,
+    variables,
+    loopToContinueFunction,
+    ast,
+    '__warp_do_while_',
   );
 
   const doBlockDefName = `__warp_do_${loopFnCounter++}`;
-  const doBlockReturnId = ast.reserveId();
+  const doBlockRetParams = createParameterList(
+    variables.map((v) => cloneASTNode(v, ast)),
+    ast,
+  );
   const doBlockFuncId = ast.reserveId();
 
-  const doBlockBody = new Block(ast.reserveId(), '', [
-    cloneASTNode(node.vBody, ast),
-    new Return(
-      ast.reserveId(),
-      '',
-      doBlockReturnId,
-      createLoopCall(doWhileFuncDef, variables, ast),
-    ),
-  ]);
+  const doBlockBody = createBlock(
+    [
+      cloneASTNode(node.vBody, ast),
+      createReturn(createLoopCall(doWhileFuncDef, variables, ast), doBlockRetParams.id, ast),
+    ],
+    ast,
+  );
 
   const doBlockFuncDef = new FunctionDefinition(
     doBlockFuncId,
     node.src,
-    scope.id,
-    scope instanceof SourceUnit ? FunctionKind.Free : FunctionKind.Function,
+    doWhileFuncDef.scope,
+    doWhileFuncDef.kind,
     doBlockDefName,
     false,
     FunctionVisibility.Private,
     FunctionStateMutability.NonPayable,
     false,
-    new ParameterList(
-      ast.reserveId(),
-      '',
+    createParameterList(
       variables.map((v) => cloneASTNode(v, ast)),
+      ast,
     ),
-    new ParameterList(
-      doBlockReturnId,
-      '',
-      variables.map((v) => cloneASTNode(v, ast)),
-    ),
+    doBlockRetParams,
     [],
     undefined,
     doBlockBody,
   );
 
-  scope.insertAtBeginning(doBlockFuncDef);
-  ast.registerChild(doBlockFuncDef, scope);
+  fixParameterScopes(doBlockFuncDef);
+
+  doWhileFuncDef.vScope.insertAtBeginning(doBlockFuncDef);
+  ast.registerChild(doBlockFuncDef, doWhileFuncDef.vScope);
   loopToContinueFunction.set(doBlockFuncId, doWhileFuncDef);
 
   return doBlockFuncDef;
@@ -248,7 +208,7 @@ export function createLoopCall(
   variables: VariableDeclaration[],
   ast: AST,
 ): FunctionCall {
-  return generateFunctionCall(
+  return createCallToFunction(
     loopFunction,
     variables.map((v) => createIdentifier(v, ast)),
     ast,

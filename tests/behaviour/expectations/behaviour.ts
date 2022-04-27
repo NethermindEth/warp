@@ -222,6 +222,19 @@ export const expectations = flatten(
             Expect.Simple('explicit', ['20'], ['20', '20', '0']),
             Expect.Simple('explicit', ['240'], ['240', '240', '0']),
           ]),
+
+          File.Simple('widthsignWideningItoUchange', [
+            Expect.Simple('widthsignWitou', ['60069'], ['4294961829']),
+          ]),
+          File.Simple('widthsignnarrowingItoUchange', [
+            Expect.Simple('widthsignNitou', ['4294912623'], ['10863']),
+          ]),
+          File.Simple('widthsignwideningUtoIchange', [
+            Expect.Simple('widthsignWutoi', ['32767'], ['32767']),
+          ]),
+          File.Simple('widthsignnarrowingUtoIchange', [
+            Expect.Simple('widthsignNutoi', ['32768'], ['32768']),
+          ]),
         ]),
         new Dir('cross_contract_calls', [
           File.Simple('simple', [Expect.Simple('f', [], ['69', '0'])], 'A'),

@@ -7,7 +7,7 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { typeNameFromTypeNode, mapRange } from '../../utils/utils';
 import { add, StringIndexedFuncGen } from '../base';
 

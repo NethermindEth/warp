@@ -9,14 +9,27 @@ import {
   VariableDeclaration,
   Statement,
   Block,
+  Return,
+  Expression,
+  StructuredDocumentation,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { toHexString } from './utils';
+import { toHexString, toSingleExpression } from './utils';
 
 export function createAddressNonPayableTypeName(ast: AST): ElementaryTypeName {
   const node = new ElementaryTypeName(ast.reserveId(), '', 'address', 'address', 'nonpayable');
   ast.setContextRecursive(node);
   return node;
+}
+
+export function createBlock(
+  statements: Statement[],
+  ast: AST,
+  documentation?: StructuredDocumentation | string,
+): Block {
+  const block = new Block(ast.reserveId(), '', statements, documentation);
+  ast.setContextRecursive(block);
+  return block;
 }
 
 export function createBoolLiteral(value: boolean, ast: AST): Literal {
@@ -67,6 +80,32 @@ export function createNumberLiteral(value: bigint, typeString: string, ast: AST)
   return node;
 }
 
+export function createParameterList(
+  params: Iterable<VariableDeclaration>,
+  ast: AST,
+): ParameterList {
+  const paramList = new ParameterList(ast.reserveId(), '', params);
+  ast.setContextRecursive(paramList);
+  return paramList;
+}
+
+export function createReturn(
+  toReturn: Expression | VariableDeclaration[] | undefined,
+  retParamListId: number,
+  ast: AST,
+): Return {
+  const retValue =
+    toReturn === undefined || toReturn instanceof Expression
+      ? toReturn
+      : toSingleExpression(
+          toReturn.map((decl) => createIdentifier(decl, ast)),
+          ast,
+        );
+  const node = new Return(ast.reserveId(), '', retParamListId, retValue);
+  ast.setContextRecursive(node);
+  return node;
+}
+
 export function createUint256Literal(value: bigint, ast: AST): Literal {
   const node = new Literal(
     ast.reserveId(),
@@ -84,19 +123,4 @@ export function createUint256TypeName(ast: AST): ElementaryTypeName {
   const typeName = new ElementaryTypeName(ast.reserveId(), '', 'uint256', 'uint256');
   ast.setContextRecursive(typeName);
   return typeName;
-}
-
-export function createParameterList(
-  params: Iterable<VariableDeclaration>,
-  ast: AST,
-): ParameterList {
-  const paramList = new ParameterList(ast.reserveId(), '', params);
-  ast.setContextRecursive(paramList);
-  return paramList;
-}
-
-export function createBlock(statements: Statement[], ast: AST): Block {
-  const block = new Block(ast.reserveId(), '', statements);
-  ast.setContextRecursive(block);
-  return block;
 }

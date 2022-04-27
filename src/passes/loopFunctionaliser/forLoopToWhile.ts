@@ -1,5 +1,4 @@
 import {
-  Block,
   Continue,
   ForStatement,
   Literal,
@@ -10,6 +9,7 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
+import { createBlock } from '../../utils/nodeTemplates';
 import { toHexString } from '../../utils/utils';
 
 export class ForLoopToWhile extends ASTMapper {
@@ -39,12 +39,12 @@ export class ForLoopToWhile extends ASTMapper {
       ast.reserveId(),
       node.src,
       loopCondition,
-      new Block(ast.reserveId(), node.src, innerLoopStatements),
+      createBlock(innerLoopStatements, ast),
     );
 
     const replacementId = ast.replaceNode(
       node,
-      new Block(ast.reserveId(), node.src, [replacementWhile], node.documentation, node.raw),
+      createBlock([replacementWhile], ast, node.documentation),
     );
 
     if (node.vInitializationExpression !== undefined) {

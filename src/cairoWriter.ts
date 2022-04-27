@@ -441,6 +441,7 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
       this.getConstructorStorageAllocation(node),
       'let (local warp_memory : DictAccess*) = default_dict_new(0)',
       'local warp_memory_start: DictAccess* = warp_memory',
+      'dict_write{dict_ptr=warp_memory}(0,1)',
       'with warp_memory:',
       writer.write(node.vBody),
       'end',
