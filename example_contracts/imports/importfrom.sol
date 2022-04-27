@@ -25,3 +25,17 @@ struct Account {
 
 enum selectEnum{ SMALL, MEDIUM, LARGE }
 selectEnum constant defaultChoice = selectEnum.MEDIUM;
+
+interface Calculator {
+   function getResult() external view returns(uint);
+}
+
+contract parent{ 
+  uint internal sum; 
+ 
+  function setValue() external { 
+    uint a = 10;
+    uint b = 20;
+    sum = a + b;
+  } 
+} 
