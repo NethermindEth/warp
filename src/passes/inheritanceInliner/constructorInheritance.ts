@@ -14,7 +14,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { cloneASTNode } from '../../utils/cloning';
-import { generateFunctionCall } from '../../utils/functionGeneration';
+import { createCallToFunction } from '../../utils/functionGeneration';
 import { createBlock, createIdentifier, createParameterList } from '../../utils/nodeTemplates';
 import { updateReferencedDeclarations } from './utils';
 
@@ -141,7 +141,7 @@ export function solveConstructorInheritance(
         const stmt = new ExpressionStatement(
           ast.reserveId(),
           '',
-          generateFunctionCall(newFunc, argList, ast),
+          createCallToFunction(newFunc, argList, ast),
         );
         statements.push(stmt);
       }
@@ -336,7 +336,7 @@ function transformConstructor(
     return createIdentifier(v, ast);
   });
   statements.push(
-    new ExpressionStatement(ast.reserveId(), '', generateFunctionCall(currentCons, argList, ast)),
+    new ExpressionStatement(ast.reserveId(), '', createCallToFunction(currentCons, argList, ast)),
   );
 }
 
