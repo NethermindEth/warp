@@ -11,7 +11,8 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { NotSupportedYetError } from '../../utils/errors';
-import { generateLiteralTypeString, toHexString } from '../../utils/utils';
+import { generateLiteralTypeString } from '../../utils/getTypeString';
+import { toHexString } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
 
 /*

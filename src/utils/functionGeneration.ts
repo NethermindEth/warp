@@ -16,9 +16,9 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
+import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
 import { Implicits } from './implicits';
 import { createParameterList } from './nodeTemplates';
-import { getFunctionTypeString, getReturnTypeString } from './utils';
 
 export function createCallToFunction(
   functionDef: FunctionDefinition,

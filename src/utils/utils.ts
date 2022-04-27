@@ -1,17 +1,13 @@
-import assert from 'assert';
-
-import { AST } from '../ast/ast';
 import {
   AddressType,
   ArrayType,
   ArrayTypeName,
   BoolType,
   CompileFailedError,
-  DataLocation,
   ElementaryTypeName,
   EtherUnit,
+  Expression,
   FixedBytesType,
-  EnumDefinition,
   FunctionDefinition,
   FunctionVisibility,
   IdentifierPath,
@@ -23,26 +19,21 @@ import {
   MappingType,
   Mutability,
   PointerType,
-  StructDefinition,
+  StringLiteralType,
+  StringType,
   TimeUnit,
+  TupleExpression,
   TypeName,
   TypeNode,
   UserDefinedType,
   UserDefinedTypeName,
   VariableDeclaration,
-  VariableDeclarationStatement,
-  getNodeType,
-  StringLiteralType,
-  StringType,
-  ContractDefinition,
-  Expression,
-  TupleExpression,
 } from 'solc-typed-ast';
-import { NotSupportedYetError, TranspileFailedError, logError } from './errors';
-import { printNode, printTypeNode } from './astPrinter';
-
-import { Class } from './typeConstructs';
+import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
+import { printTypeNode } from './astPrinter';
+import { logError, NotSupportedYetError, TranspileFailedError } from './errors';
+import { Class } from './typeConstructs';
 
 export function divmod(x: bigint, y: bigint): [BigInt, BigInt] {
   const div: BigInt = BigInt(x / y);
@@ -218,25 +209,6 @@ function extractDeepProperty(propName: string, obj: object, currentDepth: number
   return entry[1];
 }
 
-export function getDeclaredTypeString(declaration: VariableDeclarationStatement): string {
-  if (declaration.assignments.length === 1) {
-    return declaration.vDeclarations[0].typeString;
-  }
-
-  const assignmentTypes = declaration.assignments.map((id) => {
-    if (id === null) return '';
-
-    const variable = declaration.vDeclarations.find((n) => n.id === id);
-    assert(
-      variable !== undefined,
-      `${printNode(declaration)} attempts to assign to id ${id}, which is not in its declarations`,
-    );
-    return variable.typeString;
-  });
-
-  return `tuple(${assignmentTypes.join(',')})`;
-}
-
 export function printCompileErrors(e: CompileFailedError): void {
   logError('---Compile Failed---');
   e.failures.forEach((failure) => {
@@ -320,69 +292,6 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
 
   ast.setContextRecursive(result);
   return result;
-}
-
-export function getFunctionTypeString(node: FunctionDefinition, compilerVersion: string): string {
-  const inputs = node.vParameters.vParameters
-    .map((decl) => {
-      const baseType = getNodeType(decl, compilerVersion);
-      if (
-        baseType instanceof ArrayType ||
-        (baseType instanceof UserDefinedType && baseType.definition instanceof StructDefinition)
-      ) {
-        if (decl.storageLocation === DataLocation.Default) {
-          if (
-            decl.vType instanceof UserDefinedTypeName &&
-            (decl.vType.vReferencedDeclaration instanceof EnumDefinition ||
-              decl.vType.vReferencedDeclaration instanceof ContractDefinition)
-          ) {
-            return `${baseType.pp()}`;
-          }
-          throw new NotSupportedYetError(
-            `Default location ref parameter to string not supported yet: ${printTypeNode(
-              baseType,
-              true,
-            )} in ${node.name}`,
-          );
-        }
-        return `${baseType.pp()} ${decl.storageLocation}`;
-      }
-      return baseType.pp();
-    })
-    .join(', ');
-  const visibility =
-    node.visibility === FunctionVisibility.Private || FunctionVisibility.Default
-      ? ''
-      : ` ${node.visibility}`;
-  const outputs =
-    node.vReturnParameters.vParameters.length === 0
-      ? ''
-      : `returns (${node.vReturnParameters.vParameters.map((decl) => decl.typeString).join(', ')})`;
-  return `function (${inputs})${visibility} ${node.stateMutability} ${outputs}`;
-}
-
-export function getReturnTypeString(node: FunctionDefinition): string {
-  const returns = node.vReturnParameters.vParameters;
-  if (returns.length === 0) return 'tuple()';
-  if (returns.length === 1)
-    return `${returns[0].typeString}${
-      returns[0].storageLocation === DataLocation.Default ? '' : ` ${returns[0].storageLocation}`
-    }`;
-  return `tuple(${returns
-    .map(
-      (decl) =>
-        `${decl.typeString}${
-          decl.storageLocation === DataLocation.Default ? '' : ` ${decl.storageLocation}`
-        }`,
-    )
-    .join(',')})`;
-}
-
-export function generateLiteralTypeString(value: string): string {
-  if (value.length > 32) {
-    value = `${value.slice(4)}...(${value.length - 8} digits omitted)...${value.slice(-4)}`;
-  }
-  return `int_const ${value}`;
 }
 
 export function dereferenceType(typeNode: TypeNode): TypeNode {
