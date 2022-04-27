@@ -102,7 +102,8 @@ const expectedResults = new Map<string, ResultType>([
   // Typestrings don't include data location leading to incorrect type analysis
   ['example_contracts/state_variables/arrays', 'CairoCompileFailed'],
   ['example_contracts/state_variables/mappings', 'Success'],
-  ['example_contracts/state_variables/structs', 'CairoCompileFailed'],
+  // It produces incorrect code but it still compiles
+  ['example_contracts/state_variables/structs', 'Success'],
   // Mappings of structs are not supported yet
   ['example_contracts/state_variables/misc', 'NotSupportedYet'],
   ['example_contracts/structs', 'Success'],
