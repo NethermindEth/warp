@@ -20,6 +20,7 @@ import { CairoUtilFuncGen } from '../cairoUtilFuncGen';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { Implicits } from '../utils/implicits';
+import { createBlock } from '../utils/nodeTemplates';
 import { mergeImports } from '../utils/utils';
 import { CairoFunctionDefinition } from './cairoNodes';
 
@@ -216,10 +217,7 @@ export class AST {
 
     const parent = existingStatement.parent;
     // Blocks are not instances of Statements, but they satisy typescript shaped typing rules to be classed as Statements
-    const replacementBlock = new Block(this.reserveId(), existingStatement.src, [
-      existingStatement,
-      newStatement,
-    ]);
+    const replacementBlock = createBlock([existingStatement, newStatement], this);
     this.replaceNode(existingStatement, replacementBlock, parent);
   }
 
@@ -263,10 +261,7 @@ export class AST {
 
     const parent = existingStatement.parent;
     // Blocks are not instances of Statements, but they satisy typescript shaped typing rules to be classed as Statements
-    const replacementBlock = new Block(this.reserveId(), existingStatement.src, [
-      newStatement,
-      existingStatement,
-    ]);
+    const replacementBlock = createBlock([newStatement, existingStatement], this);
     this.replaceNode(existingStatement, replacementBlock, parent);
   }
 
@@ -294,10 +289,7 @@ export class AST {
     if (parent instanceof StatementWithChildren) {
       parent.removeChild(statement);
     } else {
-      this.replaceNode(
-        statement,
-        new Block(this.reserveId(), statement.src, [], statement.documentation, statement.raw),
-      );
+      this.replaceNode(statement, createBlock([], this, statement.documentation));
     }
   }
 

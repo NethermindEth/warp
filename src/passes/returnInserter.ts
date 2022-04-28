@@ -2,8 +2,8 @@ import { FunctionDefinition, Return } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { analyseControlFlow } from '../utils/controlFlowAnalyser';
-import { toSingleExpression } from '../utils/functionGeneration';
-import { createIdentifier } from '../utils/nodeTemplates';
+import { createIdentifier, createReturn } from '../utils/nodeTemplates';
+import { toSingleExpression } from '../utils/utils';
 
 export class ReturnInserter extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
@@ -20,12 +20,7 @@ export class ReturnInserter extends ASTMapper {
           ast,
         );
       }
-      const newReturn = new Return(
-        ast.reserveId(),
-        node.src,
-        node.vReturnParameters.id,
-        expression,
-      );
+      const newReturn = createReturn(expression, node.vReturnParameters.id, ast);
       node.vBody.appendChild(newReturn);
       ast.registerChild(newReturn, node.vBody);
     }

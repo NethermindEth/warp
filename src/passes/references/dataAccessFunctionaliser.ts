@@ -25,7 +25,7 @@ import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { AST } from '../../ast/ast';
 import { dereferenceType, isCairoConstant, typeNameFromTypeNode } from '../../utils/utils';
 import { error } from '../../utils/formatting';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createUint256Literal, createUint256TypeName } from '../../utils/nodeTemplates';
 import { cloneASTNode } from '../../utils/cloning';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';

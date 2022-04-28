@@ -13,7 +13,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from '../utils/astPrinter';
-import { createCairoFunctionStub } from '../utils/functionStubbing';
+import { createCairoFunctionStub } from '../utils/functionGeneration';
 import { Implicits } from '../utils/implicits';
 import { mapRange, typeNameFromTypeNode } from '../utils/utils';
 

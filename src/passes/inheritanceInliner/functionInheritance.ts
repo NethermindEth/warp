@@ -4,14 +4,13 @@ import {
   FunctionDefinition,
   FunctionKind,
   FunctionVisibility,
-  Return,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { TranspileFailedError } from '../../utils/errors';
-import { generateFunctionCall } from '../../utils/functionGeneration';
-import { createBlock, createIdentifier } from '../../utils/nodeTemplates';
+import { createCallToFunction } from '../../utils/functionGeneration';
+import { createBlock, createIdentifier, createReturn } from '../../utils/nodeTemplates';
 import { isExternallyVisible } from '../../utils/utils';
 import { getBaseContracts } from './utils';
 
@@ -135,15 +134,14 @@ function createDelegatingFunction(
 
   const newBody = createBlock(
     [
-      new Return(
-        ast.reserveId(),
-        '',
-        newFunc.vReturnParameters.id,
-        generateFunctionCall(
+      createReturn(
+        createCallToFunction(
           delegate,
           newFunc.vParameters.vParameters.map((v) => createIdentifier(v, ast)),
           ast,
         ),
+        newFunc.vReturnParameters.id,
+        ast,
       ),
     ],
     ast,

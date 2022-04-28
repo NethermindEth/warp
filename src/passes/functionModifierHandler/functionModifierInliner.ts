@@ -9,12 +9,9 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import {
-  createReturn,
-  generateFunctionCall,
-  toSingleExpression,
-} from '../../utils/functionGeneration';
-import { createIdentifier } from '../../utils/nodeTemplates';
+import { createCallToFunction } from '../../utils/functionGeneration';
+import { createIdentifier, createReturn } from '../../utils/nodeTemplates';
+import { toSingleExpression } from '../../utils/utils';
 
 /*  ModifierInliner starts to walk the ast through a Modifier node as a root.
     Whenever it reaches a placeholder, it replaces it with a call to `currentFunction`.
@@ -51,14 +48,14 @@ export class FunctionModifierInliner extends ASTMapper {
         ast.reserveId(),
         node.src,
         this.retVariables.length === 0
-          ? generateFunctionCall(this.currentFunction, args, ast)
+          ? createCallToFunction(this.currentFunction, args, ast)
           : new Assignment(
               ast.reserveId(),
               '',
               assignmentValue.typeString,
               '=',
               assignmentValue,
-              generateFunctionCall(this.currentFunction, args, ast),
+              createCallToFunction(this.currentFunction, args, ast),
             ),
         node.documentation,
         node.raw,

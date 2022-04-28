@@ -18,6 +18,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
+import { createBlock } from '../utils/nodeTemplates';
 import { notNull } from '../utils/typeConstructs';
 
 // Converts a non-declaration tuple assignment into a declaration of temporary variables,
@@ -81,8 +82,7 @@ export class TupleAssignmentSplitter extends ASTMapper {
       `Split tuple assignment was called on non-tuple assignment ${node.type} # ${node.id}`,
     );
 
-    const block = new Block(ast.reserveId(), node.src, []);
-    const blockId = ast.setContextRecursive(block);
+    const block = createBlock([], ast);
 
     const tempVars = new Map<Expression, VariableDeclaration>(
       lhs.vOriginalComponents.filter(notNull).map((child) => {
@@ -100,7 +100,7 @@ export class TupleAssignmentSplitter extends ASTMapper {
           true,
           false,
           this.newTempVarName(),
-          blockId,
+          block.id,
           false,
           DataLocation.Default,
           StateVariableVisibility.Default,

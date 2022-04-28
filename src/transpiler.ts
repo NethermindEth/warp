@@ -47,6 +47,7 @@ import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { createPassMap, parsePassOrder } from './utils/cliOptionParsing';
 import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
+import { error } from './utils/formatting';
 import { printCompileErrors, runSanityCheck } from './utils/utils';
 
 type CairoSource = [file: string, source: string];
@@ -160,11 +161,20 @@ function printAST(ast: AST, options: TranspilationOptions) {
 
 function checkAST(ast: AST, options: TranspilationOptions, mostRecentPassName: string) {
   if (options.checkTrees || options.strict) {
-    const success = runSanityCheck(ast, options.checkTrees ?? false);
-    if (!success && options.strict) {
-      throw new TranspileFailedError(
-        `AST failed internal consistency check. Most recently run pass: ${mostRecentPassName}`,
+    try {
+      const success = runSanityCheck(ast, options.checkTrees ?? false);
+      if (!success && options.strict) {
+        throw new TranspileFailedError(
+          `AST failed internal consistency check. Most recently run pass: ${mostRecentPassName}`,
+        );
+      }
+    } catch (e) {
+      console.error(
+        error(
+          `AST failed internal consistency check. Most recently run pass: ${mostRecentPassName}`,
+        ),
       );
+      throw e;
     }
   }
 }

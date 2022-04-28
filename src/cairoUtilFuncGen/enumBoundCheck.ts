@@ -6,9 +6,9 @@ import {
   FunctionCall,
 } from 'solc-typed-ast';
 import assert from 'assert';
-import { createCairoFunctionStub, createCallToFunction } from '../utils/functionStubbing';
 import { cloneASTNode } from '../utils/cloning';
 import { StringIndexedFuncGen } from './base';
+import { createCairoFunctionStub, createCallToFunction } from '../utils/functionGeneration';
 
 const INDENT = ' '.repeat(4);
 
