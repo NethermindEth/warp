@@ -1,11 +1,11 @@
-import assert = require('assert');
+// import assert = require('assert');
 import {
   ArrayTypeName,
   DataLocation,
-  ElementaryTypeName,
+  // ElementaryTypeName,
   FunctionDefinition,
-  Mutability,
-  StateVariableVisibility,
+  // Mutability,
+  // StateVariableVisibility,
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
@@ -30,7 +30,7 @@ export class DynamicArrayModifier extends ASTMapper {
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     const body = node.vBody;
-    const nodeToReplacements = new Map<VariableDeclaration, VariableDeclaration[]>();
+    //const nodeToReplacements = new Map<VariableDeclaration, VariableDeclaration[]>();
     if (isExternallyVisible(node) && body !== undefined) {
       [...collectUnboundVariables(body).entries()]
         .filter(
@@ -41,9 +41,9 @@ export class DynamicArrayModifier extends ASTMapper {
             decl.vType.vLength === undefined,
         )
         .forEach(([varDecl, ids]) => {
-          const [arrayLen, arrayPointer] = this.splitArguments(node, varDecl, ast);
-          const replaceArgs = [arrayLen, arrayPointer];
-          nodeToReplacements.set(varDecl, replaceArgs);
+          //const [arrayLen, arrayPointer] = this.splitArguments(node, varDecl, ast);
+          //const replaceArgs = [arrayLen, arrayPointer];
+          //nodeToReplacements.set(varDecl, replaceArgs);
 
           const memoryArray = cloneASTNode(varDecl, ast);
           memoryArray.name = memoryArray.name + '_mem';
@@ -52,8 +52,8 @@ export class DynamicArrayModifier extends ASTMapper {
             node,
             varDecl,
             memoryArray,
-            arrayLen,
-            arrayPointer,
+            // arrayLen,
+            // arrayPointer,
             ast,
           );
 
@@ -64,14 +64,14 @@ export class DynamicArrayModifier extends ASTMapper {
           );
         });
 
-      [...nodeToReplacements.keys()].forEach((varDecl) => {
-        const replacements = nodeToReplacements.get(varDecl);
-        assert(replacements !== undefined);
+      //   [...nodeToReplacements.keys()].forEach((varDecl) => {
+      //    const replacements = nodeToReplacements.get(varDecl);
+      //    assert(replacements !== undefined);
 
-        node.vParameters.insertAfter(replacements[0], varDecl);
-        node.vParameters.insertAfter(replacements[1], replacements[0]);
-        node.vParameters.removeChild(varDecl);
-      });
+      //   // node.vParameters.insertAfter(replacements[0], varDecl);
+      //   // node.vParameters.insertAfter(replacements[1], replacements[0]);
+      //   // node.vParameters.removeChild(varDecl);
+      // });
 
       ast.setContextRecursive(node);
 
@@ -79,61 +79,18 @@ export class DynamicArrayModifier extends ASTMapper {
     }
   }
 
-  private splitArguments(
-    node: FunctionDefinition,
-    varDecl: VariableDeclaration,
-    ast: AST,
-  ): [arrayLen: VariableDeclaration, arrayPointer: VariableDeclaration] {
-    assert(varDecl.vType !== undefined);
-    const lenVarDecl = new VariableDeclaration(
-      ast.reserveId(),
-      '',
-      true,
-      false,
-      varDecl.name + '_len',
-      node.id,
-      false,
-      DataLocation.Default,
-      StateVariableVisibility.Internal,
-      Mutability.Immutable,
-      'uint248',
-      undefined,
-      new ElementaryTypeName(ast.reserveId(), '', 'uint248', 'uint248'),
-      undefined,
-    );
-
-    const pointerTypeString = cloneASTNode(varDecl.vType, ast);
-    pointerTypeString.typeString = pointerTypeString.typeString + ' calldata';
-    const pointerVarDecl = new VariableDeclaration(
-      ast.reserveId(),
-      '',
-      true,
-      false,
-      varDecl.name,
-      node.id,
-      false,
-      DataLocation.CallData,
-      StateVariableVisibility.Internal,
-      Mutability.Immutable,
-      varDecl.typeString + ' calldata',
-      undefined,
-      pointerTypeString,
-    );
-    return [lenVarDecl, pointerVarDecl];
-  }
-
   private createVariableDeclarationStatement(
     node: FunctionDefinition,
     originalVarDecl: VariableDeclaration,
     memoryArray: VariableDeclaration,
-    arrayLen: VariableDeclaration,
-    arrayPointer: VariableDeclaration,
+    //arrayLen: VariableDeclaration,
+    //arrayPointer: VariableDeclaration,
     ast: AST,
   ): VariableDeclarationStatement {
     const functionCall = ast
       .getUtilFuncGen(node)
-      .externalFunctions.inputs.darrayAllocator.gen(node, originalVarDecl, arrayLen, arrayPointer);
-    ast.getUtilFuncGen(node).externalFunctions.inputs.darrayWriter.gen(arrayPointer);
+      .externalFunctions.inputs.darrayAllocator.gen(node, originalVarDecl); // arrayLen, arrayPointer);
+    ast.getUtilFuncGen(node).externalFunctions.inputs.darrayWriter.gen(originalVarDecl);
     const varDeclStatement = new VariableDeclarationStatement(
       ast.reserveId(),
       '',

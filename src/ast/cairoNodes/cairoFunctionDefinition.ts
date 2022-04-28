@@ -23,7 +23,7 @@ import { Implicits } from '../../utils/implicits';
 export class CairoFunctionDefinition extends FunctionDefinition {
   implicits: Set<Implicits>;
   isStub: boolean;
-
+  splitDarray: boolean;
   constructor(
     id: number,
     src: string,
@@ -44,6 +44,7 @@ export class CairoFunctionDefinition extends FunctionDefinition {
     documentation?: string | StructuredDocumentation,
     nameLocation?: string,
     raw?: unknown,
+    splitDarray = false,
   ) {
     super(
       id,
@@ -66,5 +67,6 @@ export class CairoFunctionDefinition extends FunctionDefinition {
     );
     this.implicits = implicits;
     this.isStub = isStub;
+    this.splitDarray = splitDarray;
   }
 }

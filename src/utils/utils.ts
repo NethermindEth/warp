@@ -1,9 +1,11 @@
+import assert = require('assert');
 import {
   AddressType,
   ArrayType,
   ArrayTypeName,
   BoolType,
   CompileFailedError,
+  DataLocation,
   ElementaryTypeName,
   EtherUnit,
   Expression,
@@ -19,6 +21,7 @@ import {
   MappingType,
   Mutability,
   PointerType,
+  StateVariableVisibility,
   StringLiteralType,
   StringType,
   TimeUnit,
@@ -30,8 +33,10 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
+import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { isSane } from './astChecking';
 import { printTypeNode } from './astPrinter';
+import { cloneASTNode } from './cloning';
 import { logError, NotSupportedYetError, TranspileFailedError } from './errors';
 import { Class } from './typeConstructs';
 
@@ -358,6 +363,13 @@ export function isCairoConstant(node: VariableDeclaration): boolean {
 }
 
 export function isExternallyVisible(node: FunctionDefinition): boolean {
+  if (node instanceof CairoFunctionDefinition) {
+    return (
+      node.visibility === FunctionVisibility.External ||
+      node.visibility === FunctionVisibility.Public ||
+      node.splitDarray //Should find better name for this.
+    );
+  }
   return (
     node.visibility === FunctionVisibility.External || node.visibility === FunctionVisibility.Public
   );
@@ -373,4 +385,47 @@ export function toSingleExpression(expressions: Expression[], ast: AST): Express
     false,
     expressions,
   );
+}
+
+export function splitDarray(
+  node: FunctionDefinition,
+  dArrayVarDecl: VariableDeclaration,
+  ast: AST,
+): [arrayLen: VariableDeclaration, arrayPointer: VariableDeclaration] {
+  assert(dArrayVarDecl.vType !== undefined);
+  const arrayLen = new VariableDeclaration(
+    ast.reserveId(),
+    '',
+    true,
+    false,
+    dArrayVarDecl.name + '_len',
+    node.id,
+    false,
+    DataLocation.Default,
+    StateVariableVisibility.Internal,
+    Mutability.Immutable,
+    'uint248',
+    undefined,
+    new ElementaryTypeName(ast.reserveId(), '', 'uint248', 'uint248'),
+    undefined,
+  );
+
+  const pointerTypeString = cloneASTNode(dArrayVarDecl.vType, ast);
+  pointerTypeString.typeString = pointerTypeString.typeString + ' calldata';
+  const arrayPointer = new VariableDeclaration(
+    ast.reserveId(),
+    '',
+    true,
+    false,
+    dArrayVarDecl.name,
+    node.id,
+    false,
+    DataLocation.CallData,
+    StateVariableVisibility.Internal,
+    Mutability.Immutable,
+    dArrayVarDecl.typeString + ' calldata',
+    undefined,
+    pointerTypeString,
+  );
+  return [arrayLen, arrayPointer];
 }

@@ -22,27 +22,28 @@ export class ExternalDarrayAllocator extends StringIndexedFuncGen {
   gen(
     node: FunctionDefinition,
     originalVarDecl: VariableDeclaration,
-    arrayLen: VariableDeclaration,
-    arrayPointer: VariableDeclaration,
+    //arrayLen: VariableDeclaration,
+    //arrayPointer: VariableDeclaration,
   ): FunctionCall {
-    assert(arrayLen.vType !== undefined && arrayPointer.vType !== undefined);
+    //assert(arrayLen.vType !== undefined && arrayPointer.vType !== undefined);
     assert(originalVarDecl.vType !== undefined);
     const functionInputs: Identifier[] = [
-      createIdentifier(arrayLen, this.ast),
-      createIdentifier(arrayPointer, this.ast, DataLocation.CallData),
+      createIdentifier(originalVarDecl, this.ast),
+      //createIdentifier(arrayPointer, this.ast, DataLocation.CallData),
     ];
-    const name = this.getOrCreate(arrayPointer);
+    const name = this.getOrCreate(originalVarDecl);
 
     const functionStub = createCairoFunctionStub(
       name,
       [
-        ['array_len', cloneASTNode(arrayLen.vType, this.ast)],
-        ['array_pointer', cloneASTNode(arrayPointer.vType, this.ast), DataLocation.CallData],
+        ['darray', cloneASTNode(originalVarDecl.vType, this.ast), DataLocation.Memory],
+        //['array_pointer', cloneASTNode(arrayPointer.vType, this.ast), DataLocation.CallData],
       ],
       [['dynarray_loc', cloneASTNode(originalVarDecl.vType, this.ast), DataLocation.Memory]],
       ['syscall_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
       node,
+      true,
     );
     return createCallToFunction(functionStub, [...functionInputs], this.ast);
   }

@@ -86,6 +86,7 @@ import {
   isCairoConstant,
   isExternallyVisible,
   primitiveTypeToCairo,
+  splitDarray,
 } from './utils/utils';
 
 const INDENT = ' '.repeat(4);
@@ -380,7 +381,20 @@ class ParameterListWriter extends CairoASTNodeWriter {
           : TypeConversionContext.Ref
         : TypeConversionContext.Declaration;
 
-    const params = node.vParameters.map((value, i) => {
+    const proccessed_params = node.vParameters.flatMap((decl) => {
+      if (
+        decl.vType instanceof ArrayTypeName &&
+        decl.vType.vLength === undefined &&
+        typeConversionContext == TypeConversionContext.Declaration &&
+        node.parent instanceof FunctionDefinition &&
+        isExternallyVisible(node.parent)
+      ) {
+        return splitDarray(node.parent, decl, this.ast);
+      }
+      return decl;
+    });
+
+    const params = proccessed_params.map((value, i) => {
       const tp = CairoType.fromSol(
         getNodeType(value, writer.targetCompilerVersion),
         this.ast,
@@ -597,6 +611,16 @@ class IndexAccessWriter extends CairoASTNodeWriter {
 }
 class IdentifierWriter extends CairoASTNodeWriter {
   writeInner(node: Identifier, _: ASTWriter): SrcDesc {
+    if (
+      node.parent instanceof FunctionCall &&
+      node.parent.vReferencedDeclaration instanceof CairoFunctionDefinition &&
+      node.parent.vReferencedDeclaration.splitDarray &&
+      node.vReferencedDeclaration instanceof VariableDeclaration &&
+      node.vReferencedDeclaration.vType instanceof ArrayTypeName &&
+      node.vReferencedDeclaration.vType.vLength === undefined
+    ) {
+      return [`${node.name}_len, ${node.name}`];
+    }
     return [`${node.name}`];
   }
 }
