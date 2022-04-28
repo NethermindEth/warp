@@ -39,10 +39,8 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/calldataload', 'WillNotSupport'],
   ['example_contracts/calldatasize', 'WillNotSupport'],
   ['example_contracts/comments', 'Success'],
-  // Uses conditionals
-  ['example_contracts/constructors_dyn', 'NotSupportedYet'],
-  // Uses conditionals
-  ['example_contracts/constructors_nonDyn', 'NotSupportedYet'],
+  ['example_contracts/constructors_dyn', 'Success'],
+  ['example_contracts/constructors_nonDyn', 'Success'],
   ['example_contracts/dai', 'Success'],
   ['example_contracts/delete', 'SolCompileFailed'],
   ['example_contracts/enums', 'Success'],
