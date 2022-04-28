@@ -382,11 +382,14 @@ class ParameterListWriter extends CairoASTNodeWriter {
         : TypeConversionContext.Declaration;
 
     const proccessed_params = node.vParameters.flatMap((decl) => {
+      // This conditional is placed here to split DynamicArrays into their corresponding length and pointer when they
+      // are an argument for an external function.
       if (
         decl.vType instanceof ArrayTypeName &&
         decl.vType.vLength === undefined &&
         typeConversionContext == TypeConversionContext.Declaration &&
         node.parent instanceof FunctionDefinition &&
+        decl.name !== undefined &&
         isExternallyVisible(node.parent)
       ) {
         return splitDarray(node.parent, decl, this.ast);
@@ -611,6 +614,8 @@ class IndexAccessWriter extends CairoASTNodeWriter {
 }
 class IdentifierWriter extends CairoASTNodeWriter {
   writeInner(node: Identifier, _: ASTWriter): SrcDesc {
+    // This conditional is placed here to split the Dynamic Array into its corresponding length and pointer.
+    // This is needed for CairoUtilGen functions that load the dArray into the warp memory system.
     if (
       node.parent instanceof FunctionCall &&
       node.parent.vReferencedDeclaration instanceof CairoFunctionDefinition &&

@@ -18,19 +18,36 @@ import { collectUnboundVariables } from '../loopFunctionaliser/utils';
 
 export class DynamicArrayModifier extends ASTMapper {
   /*
-  This pass will generate the functions that are needed to load dynamic memory arrays into our WARP memory system.
+  This pass will generate the functions that are needed to load externally passed dynamic memory arrays into our WARP memory system.
 
-  This pass splits the single dArray VariableDeclaration into two seperate VariableDeclarations the first being a
-  felt that holds the length of the dArray and the second being the pointer that points to the array containing the objects.
+  To get the dArray into the memory system a VariableDeclarationStatement is placed at the beginning of the function block.
+  In the VariableDeclarationStatment there is a new Variable declared that has the same name of the original dArray with the suffix _mem 
+  and on the right of the assignment is a CarioUtil functionCall.
+  
+  After this VariableDeclarationStatement is inserted all the Identifiers that reference the old dArray are replaced with those that 
+  reference the new dArray with _mem suffix.
 
-  Once these VariableDeclarations are created a CairoUtilFuncGen function is called that generates a function that takes in
-  the 2 new VariableDeclarations and loop over the values loading them into our memory system. This function will return the
-  location of the the beginning of the array.
+  The old dArray is not split into the two seperate VariableDeclarations that Cairo expects, instead it is kept as a single node and
+  then when the CairoWriter is writing out the Identifier it will be split in two.
+
+  before pass:
+  function test(uint[] memory x, uint8[] memory y, uint[] memory z) pure external returns (uint) {
+    return x[0] + y[0] + z[0];
+  }
+
+  after pass:
+
+  function test(uint[] memory x, uint8[] memory y, uint[] memory z) pure external returns (uint) {
+    uint[] memory z_mem = wm_dynarray_alloc_Uint256(z)
+    uint8[] memory y_mem = wm_dynarray_alloc_felt(y) 
+    uint[] memory x_mem = wm_dynarray_alloc_Uint256(x)
+    return x[0] + y[0] + z[0];
+  }
+  
   */
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     const body = node.vBody;
-    //const nodeToReplacements = new Map<VariableDeclaration, VariableDeclaration[]>();
     if (isExternallyVisible(node) && body !== undefined) {
       [...collectUnboundVariables(body).entries()]
         .filter(
@@ -41,10 +58,6 @@ export class DynamicArrayModifier extends ASTMapper {
             decl.vType.vLength === undefined,
         )
         .forEach(([varDecl, ids]) => {
-          //const [arrayLen, arrayPointer] = this.splitArguments(node, varDecl, ast);
-          //const replaceArgs = [arrayLen, arrayPointer];
-          //nodeToReplacements.set(varDecl, replaceArgs);
-
           const memoryArray = cloneASTNode(varDecl, ast);
           memoryArray.name = memoryArray.name + '_mem';
 
@@ -52,8 +65,6 @@ export class DynamicArrayModifier extends ASTMapper {
             node,
             varDecl,
             memoryArray,
-            // arrayLen,
-            // arrayPointer,
             ast,
           );
 
@@ -63,15 +74,6 @@ export class DynamicArrayModifier extends ASTMapper {
             ast.replaceNode(identifier, createIdentifier(memoryArray, ast, DataLocation.Memory)),
           );
         });
-
-      //   [...nodeToReplacements.keys()].forEach((varDecl) => {
-      //    const replacements = nodeToReplacements.get(varDecl);
-      //    assert(replacements !== undefined);
-
-      //   // node.vParameters.insertAfter(replacements[0], varDecl);
-      //   // node.vParameters.insertAfter(replacements[1], replacements[0]);
-      //   // node.vParameters.removeChild(varDecl);
-      // });
 
       ast.setContextRecursive(node);
 
@@ -83,13 +85,11 @@ export class DynamicArrayModifier extends ASTMapper {
     node: FunctionDefinition,
     originalVarDecl: VariableDeclaration,
     memoryArray: VariableDeclaration,
-    //arrayLen: VariableDeclaration,
-    //arrayPointer: VariableDeclaration,
     ast: AST,
   ): VariableDeclarationStatement {
     const functionCall = ast
       .getUtilFuncGen(node)
-      .externalFunctions.inputs.darrayAllocator.gen(node, originalVarDecl); // arrayLen, arrayPointer);
+      .externalFunctions.inputs.darrayAllocator.gen(node, originalVarDecl);
     ast.getUtilFuncGen(node).externalFunctions.inputs.darrayWriter.gen(originalVarDecl);
     const varDeclStatement = new VariableDeclarationStatement(
       ast.reserveId(),

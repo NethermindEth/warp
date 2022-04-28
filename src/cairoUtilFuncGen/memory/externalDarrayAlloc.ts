@@ -19,27 +19,15 @@ import { cloneASTNode } from '../../utils/cloning';
 const INDENT = ' '.repeat(4);
 
 export class ExternalDarrayAllocator extends StringIndexedFuncGen {
-  gen(
-    node: FunctionDefinition,
-    originalVarDecl: VariableDeclaration,
-    //arrayLen: VariableDeclaration,
-    //arrayPointer: VariableDeclaration,
-  ): FunctionCall {
-    //assert(arrayLen.vType !== undefined && arrayPointer.vType !== undefined);
-    assert(originalVarDecl.vType !== undefined);
-    const functionInputs: Identifier[] = [
-      createIdentifier(originalVarDecl, this.ast),
-      //createIdentifier(arrayPointer, this.ast, DataLocation.CallData),
-    ];
-    const name = this.getOrCreate(originalVarDecl);
+  gen(node: FunctionDefinition, dArrayVarDecl: VariableDeclaration): FunctionCall {
+    assert(dArrayVarDecl.vType !== undefined);
+    const functionInputs: Identifier[] = [createIdentifier(dArrayVarDecl, this.ast)];
+    const name = this.getOrCreate(dArrayVarDecl);
 
     const functionStub = createCairoFunctionStub(
       name,
-      [
-        ['darray', cloneASTNode(originalVarDecl.vType, this.ast), DataLocation.Memory],
-        //['array_pointer', cloneASTNode(arrayPointer.vType, this.ast), DataLocation.CallData],
-      ],
-      [['dynarray_loc', cloneASTNode(originalVarDecl.vType, this.ast), DataLocation.Memory]],
+      [['darray', cloneASTNode(dArrayVarDecl.vType, this.ast), DataLocation.Memory]],
+      [['dynarray_loc', cloneASTNode(dArrayVarDecl.vType, this.ast), DataLocation.Memory]],
       ['syscall_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
       node,
