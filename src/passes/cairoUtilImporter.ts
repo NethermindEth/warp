@@ -25,6 +25,7 @@ export class CairoUtilImporter extends ASTMapper {
     ) {
       ast.registerImport(node, 'starkware.cairo.common.default_dict', 'default_dict_new');
       ast.registerImport(node, 'starkware.cairo.common.default_dict', 'default_dict_finalize');
+      ast.registerImport(node, 'starkware.cairo.common.dict', 'dict_write');
     }
 
     this.commonVisit(node, ast);

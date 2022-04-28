@@ -20,9 +20,9 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
-import { createBoolLiteral, createIdentifier } from '../../utils/nodeTemplates';
+import { createBoolLiteral, createIdentifier, createReturn } from '../../utils/nodeTemplates';
 import { cloneASTNode } from '../../utils/cloning';
-import { toSingleExpression } from '../../utils/functionGeneration';
+import { toSingleExpression } from '../../utils/utils';
 
 export class ReturnToBreak extends ASTMapper {
   returnFlags: Map<WhileStatement | DoWhileStatement, VariableDeclaration> = new Map();
@@ -176,7 +176,7 @@ function insertOuterLoopRetFlagCheck(
   retFlag: VariableDeclaration,
   retVars: VariableDeclaration[],
   ast: AST,
-) {
+): void {
   const containingFunction = node.getClosestParentByType(FunctionDefinition);
   assert(
     containingFunction !== undefined,
@@ -188,15 +188,7 @@ function insertOuterLoopRetFlagCheck(
       ast.reserveId(),
       '',
       createIdentifier(retFlag, ast),
-      new Return(
-        ast.reserveId(),
-        '',
-        containingFunction.vReturnParameters.id,
-        toSingleExpression(
-          retVars.map((r) => createIdentifier(r, ast)),
-          ast,
-        ),
-      ),
+      createReturn(retVars, containingFunction.vReturnParameters.id, ast),
     ),
   );
 }
@@ -205,7 +197,7 @@ function insertInnerLoopRetFlagCheck(
   node: WhileStatement | DoWhileStatement,
   retFlag: VariableDeclaration,
   ast: AST,
-) {
+): void {
   ast.insertStatementAfter(
     node,
     new IfStatement(
@@ -217,7 +209,7 @@ function insertInnerLoopRetFlagCheck(
   );
 }
 
-function replaceWithBreak(node: Return, retFlag: VariableDeclaration, ast: AST) {
+function replaceWithBreak(node: Return, retFlag: VariableDeclaration, ast: AST): void {
   ast.insertStatementBefore(
     node,
     new ExpressionStatement(
@@ -236,7 +228,7 @@ function replaceWithBreak(node: Return, retFlag: VariableDeclaration, ast: AST) 
   ast.replaceNode(node, new Break(ast.reserveId(), node.src, node.documentation, node.raw));
 }
 
-function storeRetValues(node: Return, retVars: VariableDeclaration[], ast: AST) {
+function storeRetValues(node: Return, retVars: VariableDeclaration[], ast: AST): void {
   if (!node.vExpression) return;
 
   const lhs = toSingleExpression(

@@ -8,7 +8,8 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { generateLiteralTypeString, toHexString } from '../utils/utils';
+import { generateLiteralTypeString } from '../utils/getTypeString';
+import { toHexString } from '../utils/utils';
 
 function calculateMin(type: IntType): string {
   if (type.signed) {

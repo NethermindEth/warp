@@ -294,6 +294,10 @@ class CairoContractWriter extends CairoASTNodeWriter {
     if (node.kind == ContractKind.Interface) {
       return writeContractInterface(node, writer);
     }
+    if (node.abstract)
+      return [
+        `# This contract may be abstract, it may not implement an abstract parent's methods\n# completely or it may not invoke an inherited contract's constructor correctly.\n`,
+      ];
 
     const variables = [...node.storageAllocations.entries()].map(
       ([decl, loc]) => `const ${decl.name} = ${loc}`,
@@ -431,24 +435,18 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     }
 
     assert(node.vBody.children.length > 0, error(`${printNode(node)} has an empty body`));
-    const returnStatement = node.vBody.children[node.vBody.children.length - 1];
-    assert(
-      returnStatement instanceof Return,
-      error(`${printNode(node)} does not end with a return`),
-    );
-    node.vBody.removeChild(returnStatement);
 
     return [
       'alloc_locals',
       this.getConstructorStorageAllocation(node),
       'let (local warp_memory : DictAccess*) = default_dict_new(0)',
       'local warp_memory_start: DictAccess* = warp_memory',
+      'dict_write{dict_ptr=warp_memory}(0,1)',
       'with warp_memory:',
       writer.write(node.vBody),
       'end',
-      'default_dict_finalize(warp_memory_start, warp_memory, 0)',
-      writer.write(returnStatement),
     ]
+      .flat()
       .filter(notNull)
       .join('\n');
   }
@@ -514,11 +512,27 @@ class ReturnWriter extends CairoASTNodeWriter {
     if (node.vExpression) {
       const expWriten = writer.write(node.vExpression);
       returns =
-        node.vExpression instanceof TupleExpression || node.vExpression instanceof FunctionCall
+        node.vExpression instanceof TupleExpression ||
+        (node.vExpression instanceof FunctionCall &&
+          node.vExpression.kind !== FunctionCallKind.StructConstructorCall)
           ? expWriten
           : `(${expWriten})`;
     }
-    return [documentation, `return ${returns}`];
+
+    const finalizeWarpMemory = this.usesWarpMemory(node)
+      ? 'default_dict_finalize(warp_memory_start, warp_memory, 0)\n'
+      : '';
+
+    return [documentation, finalizeWarpMemory, `return ${returns}`];
+  }
+
+  private usesWarpMemory(node: Return): boolean {
+    const parentFunc = node.getClosestParentByType(CairoFunctionDefinition);
+    return (
+      parentFunc instanceof CairoFunctionDefinition &&
+      parentFunc.implicits.has('warp_memory') &&
+      isExternallyVisible(parentFunc)
+    );
   }
 }
 

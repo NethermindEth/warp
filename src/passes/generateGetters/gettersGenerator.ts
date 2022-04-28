@@ -2,7 +2,6 @@ import { ASTMapper } from '../../ast/mapper';
 
 import {
   ArrayTypeName,
-  Block,
   ContractDefinition,
   DataLocation,
   ElementaryTypeName,
@@ -12,11 +11,11 @@ import {
   FunctionStateMutability,
   FunctionVisibility,
   IndexAccess,
+  Identifier,
   Mapping,
   MemberAccess,
   Mutability,
   ParameterList,
-  Return,
   StateVariableVisibility,
   StructDefinition,
   TupleExpression,
@@ -28,8 +27,13 @@ import {
 import { AST } from '../../ast/ast';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { cloneASTNode } from '../../utils/cloning';
-import { createIdentifier, createParameterList } from '../../utils/nodeTemplates';
-import { toSingleExpression } from '../../utils/functionGeneration';
+import {
+  createBlock,
+  createIdentifier,
+  createParameterList,
+  createReturn,
+} from '../../utils/nodeTemplates';
+import { toSingleExpression } from '../../utils/utils';
 
 export class GettersGenerator extends ASTMapper {
   constructor(private getterFunctions: Map<VariableDeclaration, FunctionDefinition>) {
@@ -65,9 +69,10 @@ export class GettersGenerator extends ASTMapper {
 
         const returnExpression: Expression = genReturnExpression(0, fnParams, v, stateVarType, ast);
 
-        const getterBlock = new Block(ast.reserveId(), '', [
-          new Return(ast.reserveId(), '', returnParameterList.id, returnExpression),
-        ]);
+        const getterBlock = createBlock(
+          [createReturn(returnExpression, returnParameterList.id, ast)],
+          ast,
+        );
 
         const getter = new FunctionDefinition(
           funcDefID,
@@ -90,6 +95,11 @@ export class GettersGenerator extends ASTMapper {
         ast.registerChild(getter, node);
       }
     });
+    // node.vFunctions.forEach((v) => {
+    //   v.vBody?.vStatements.forEach((s) => {
+    //     if(s instanceof Return )console.log(s.vExpression);
+    //   });
+    // });
   }
 }
 
@@ -250,26 +260,39 @@ function genReturnExpression(
     the previous call of genReturnExpression
     e.g `c[i0][i1][i2]` in `c[i0][i1][i2].a`
   */
+  const createIdentifierBase = (type: TypeName): Identifier => {
+    const node = new Identifier(
+      ast.reserveId(),
+      '',
+      type.typeString.replaceAll(']', '] storage ref '),
+      v.name,
+      v.id,
+    );
+    ast.setContextRecursive(node);
+    return node;
+  };
   if (!vType) {
     throw new TranspileFailedError(`Type of ${v.name} must be defined`);
   }
   if (vType instanceof ElementaryTypeName) {
     return baseExpression ?? createIdentifier(v, ast);
   } else if (vType instanceof ArrayTypeName) {
+    // console.log("came here @Array !", vType.vBaseType.typeString);
     const baseExp: IndexAccess = new IndexAccess(
       ast.reserveId(),
       '',
-      vType.vBaseType.typeString,
-      baseExpression ?? createIdentifier(v, ast),
+      vType.vBaseType.typeString.replaceAll(']', '] storage ref '),
+      baseExpression ?? createIdentifierBase(vType),
       createIdentifier(fnParams.vParameters[idx], ast),
     );
     return genReturnExpression(idx + 1, fnParams, v, vType.vBaseType, ast, baseExp);
   } else if (vType instanceof Mapping) {
+    // console.log("came here @Mapping !");
     const baseExp: IndexAccess = new IndexAccess(
       ast.reserveId(),
       '',
-      vType.vValueType.typeString,
-      baseExpression ?? createIdentifier(v, ast),
+      vType.vValueType.typeString.replaceAll(']', '] storage ref '),
+      baseExpression ?? createIdentifierBase(vType),
       createIdentifier(fnParams.vParameters[idx], ast),
     );
     return genReturnExpression(idx + 1, fnParams, v, vType.vValueType, ast, baseExp);
@@ -291,8 +314,8 @@ function genReturnExpression(
         const memberAccessExp: MemberAccess = new MemberAccess(
           ast.reserveId(),
           '',
-          m.vType.typeString,
-          baseExpression ?? createIdentifier(v, ast),
+          m.vType.typeString.replaceAll(']', '] storage ref '),
+          baseExpression ?? createIdentifierBase(vType),
           m.name,
           vType.vReferencedDeclaration.id,
         );
@@ -312,7 +335,7 @@ function genReturnExpression(
       });
       if (!canStructBeReturned) return toSingleExpression(returnExpressions, ast);
     }
-    return baseExpression ?? createIdentifier(v, ast);
+    return baseExpression ?? createIdentifierBase(vType);
   } else {
     throw new NotSupportedYetError(
       `Getter fn generation for ${vType?.type} typenames not implemented yet`,

@@ -1,22 +1,23 @@
 import {
-  Block,
   ContractDefinition,
   FunctionDefinition,
   FunctionVisibility,
   Expression,
-  Return,
   FunctionKind,
   ContractKind,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCallToFunction } from '../../utils/functionStubbing';
-import { createIdentifier } from '../../utils/nodeTemplates';
+import { createCallToFunction } from '../../utils/functionGeneration';
+import { createBlock, createIdentifier, createReturn } from '../../utils/nodeTemplates';
 export class ExternalFunctionCreator extends ASTMapper {
   suffix = '_internal';
 
-  constructor(public InternalToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>) {
+  constructor(
+    public InternalToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>,
+    public internalFunctionCallSet: Set<FunctionDefinition>,
+  ) {
     super();
   }
   /*
@@ -36,10 +37,14 @@ export class ExternalFunctionCreator extends ASTMapper {
     }
 
     if (FunctionVisibility.Public === node.visibility && node.kind !== FunctionKind.Constructor) {
-      const newExternalFunction = this.createExternalFunctionDefintion(node, ast);
-      this.insertReturnStatement(node, newExternalFunction, ast);
-      this.modifyPublicFunction(node);
-      this.InternalToExternalFunctionMap.set(node, newExternalFunction);
+      if (this.internalFunctionCallSet.has(node)) {
+        const newExternalFunction = this.createExternalFunctionDefintion(node, ast);
+        this.insertReturnStatement(node, newExternalFunction, ast);
+        this.modifyPublicFunction(node);
+        this.InternalToExternalFunctionMap.set(node, newExternalFunction);
+      } else {
+        node.visibility = FunctionVisibility.External;
+      }
     }
     this.commonVisit(node, ast);
   }
@@ -50,7 +55,7 @@ export class ExternalFunctionCreator extends ASTMapper {
   }
 
   private createExternalFunctionDefintion(node: FunctionDefinition, ast: AST): FunctionDefinition {
-    const newBlock = new Block(ast.reserveId(), '', []);
+    const newBlock = createBlock([], ast);
     const internalFunctionBody = node.vBody;
     node.vBody = undefined;
     const externalFunction = cloneASTNode(node, ast);
@@ -74,11 +79,10 @@ export class ExternalFunctionCreator extends ASTMapper {
       });
     const internalFunctionCall = createCallToFunction(node, internalFunctionCallArguments, ast);
 
-    const newReturnFunctionCall = new Return(
-      ast.reserveId(),
-      '',
-      externalFunction.vReturnParameters.id,
+    const newReturnFunctionCall = createReturn(
       internalFunctionCall,
+      externalFunction.vReturnParameters.id,
+      ast,
     );
 
     externalFunction.vBody?.appendChild(newReturnFunctionCall);

@@ -222,6 +222,19 @@ export const expectations = flatten(
             Expect.Simple('explicit', ['20'], ['20', '20', '0']),
             Expect.Simple('explicit', ['240'], ['240', '240', '0']),
           ]),
+
+          File.Simple('widthsignWideningItoUchange', [
+            Expect.Simple('widthsignWitou', ['60069'], ['4294961829']),
+          ]),
+          File.Simple('widthsignnarrowingItoUchange', [
+            Expect.Simple('widthsignNitou', ['4294912623'], ['10863']),
+          ]),
+          File.Simple('widthsignwideningUtoIchange', [
+            Expect.Simple('widthsignWutoi', ['32767'], ['32767']),
+          ]),
+          File.Simple('widthsignnarrowingUtoIchange', [
+            Expect.Simple('widthsignNutoi', ['32768'], ['32768']),
+          ]),
         ]),
         new Dir('cross_contract_calls', [
           File.Simple('simple', [Expect.Simple('f', [], ['69', '0'])], 'A'),
@@ -888,7 +901,41 @@ export const expectations = flatten(
             Expect.Simple('loops', ['0'], ['0'], 'false branch'),
           ]),
         ]),
+        new Dir('imports', [
+          File.Simple('importto', [Expect.Simple('checkImports', ['3', '2'], ['1'])]),
+        ]),
         new Dir('inheritance', [
+          new Dir('constructors', [
+            new File(
+              'constructors',
+              'C',
+              [],
+              [
+                Expect.Simple('a', [], ['9', '0']),
+                Expect.Simple('b', [], ['14', '0']),
+                Expect.Simple('c', [], ['13', '0']),
+                Expect.Simple('d', [], ['4', '0']),
+              ],
+            ),
+            new File(
+              'modifiedConstructor',
+              'A',
+              ['500', '0'],
+              [Expect.Simple('a', [], ['500', '0'])],
+            ),
+            new File(
+              'modifiedConstructor',
+              'B',
+              ['500', '0'],
+              [Expect.Simple('a', [], ['0', '0'])],
+            ),
+            new File(
+              'abstractContract',
+              'C',
+              ['250', '0'],
+              [Expect.Simple('f', ['412', '0'], ['662', '0'])],
+            ),
+          ]),
           new Dir('functions', [
             new File('base', 'Base', [], [Expect.Simple('g', ['3'], ['3'])]),
             new File('mid', 'Mid', [], [Expect.Simple('g', ['10'], ['20'])]),
@@ -1352,7 +1399,14 @@ export const expectations = flatten(
             Expect.Simple('valuePassingMemberAccess', ['1'], ['15'], '0'),
           ]),
         ]),
-        new Dir('public_state', [File.Simple('state_vars', [Expect.Simple('x', [], ['10', '0'])])]),
+        new Dir('public_state', [
+          File.Simple('state_vars', [
+            Expect.Simple('x', [], ['10', '0']),
+            Expect.Simple('y', ['0', '0'], ['12', '0']),
+            Expect.Simple('z', ['0', '0', '1', '0'], ['14', '0']),
+            Expect.Simple('w', ['0', '0', '0', '0', '0', '0'], ['15', '0']),
+          ]),
+        ]),
         new Dir('returns', [
           File.Simple('returnInserter', [
             Expect.Simple('default_returnInsert', ['6'], ['0']),

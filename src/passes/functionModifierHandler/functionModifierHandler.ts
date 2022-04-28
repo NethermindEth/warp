@@ -1,7 +1,5 @@
+import assert from 'assert';
 import {
-  Block,
-  ContractDefinition,
-  Expression,
   FunctionDefinition,
   FunctionKind,
   FunctionVisibility,
@@ -14,9 +12,13 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
-import { NotSupportedYetError } from '../../utils/errors';
-import { createReturn, generateFunctionCall } from '../../utils/functionGeneration';
-import { createIdentifier, createParameterList } from '../../utils/nodeTemplates';
+import { createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createBlock,
+  createIdentifier,
+  createParameterList,
+  createReturn,
+} from '../../utils/nodeTemplates';
 import { FunctionModifierInliner } from './functionModifierInliner';
 
 /*  This pass handles functions with modifiers.
@@ -37,26 +39,30 @@ export class FunctionModifierHandler extends ASTMapper {
     if (node.vModifiers.length === 0) return this.commonVisit(node, ast);
 
     let functionToCall = this.extractOriginalFunction(node, ast);
-    for (let i = node.vModifiers.length - 1; i >= 0; i--) {
-      const modifier = this.getModifier(node.vModifiers[i].vModifier);
-      functionToCall = this.getFunctionFromModifier(node, modifier, functionToCall, ast);
-    }
+    node.vModifiers
+      .slice()
+      .reverse()
+      .forEach((modInvocation) => {
+        const modifier = modInvocation.vModifier;
+        assert(
+          modifier instanceof ModifierDefinition,
+          `Unexpected call to contract ${modifier.id} constructor`,
+        );
+        functionToCall = this.getFunctionFromModifier(node, modifier, functionToCall, ast);
+      });
 
     const functionArgs = node.vParameters.vParameters.map((v) => createIdentifier(v, ast));
-    const modArgs: Expression[] = [];
-    for (const modifier of node.vModifiers) {
-      for (const arg of modifier.vArguments) {
-        modArgs.push(cloneASTNode(arg, ast));
-      }
-    }
+    const modArgs = node.vModifiers
+      .map((modInvocation) => modInvocation.vArguments)
+      .flat()
+      .map((arg) => cloneASTNode(arg, ast));
     const argsList = [...modArgs, ...functionArgs];
-    const returnStatement = new Return(
-      ast.reserveId(),
-      '',
+    const returnStatement = createReturn(
+      createCallToFunction(functionToCall, argsList, ast),
       node.vReturnParameters.id,
-      generateFunctionCall(functionToCall, argsList, ast),
+      ast,
     );
-    const functionBody = new Block(ast.reserveId(), '', [returnStatement]);
+    const functionBody = createBlock([returnStatement], ast);
 
     node.vModifiers = [];
     node.vBody = functionBody;
@@ -67,8 +73,11 @@ export class FunctionModifierHandler extends ASTMapper {
     const scope = node.vScope;
 
     const funcDef = cloneASTNode(node, ast);
-    funcDef.name = `__warp_original_function_${node.name}`;
+    const name = node.isConstructor ? `constructor` : `function_${node.name}`;
+    funcDef.name = `__warp_original_${name}`;
     funcDef.visibility = FunctionVisibility.Internal;
+    funcDef.isConstructor = false;
+    funcDef.kind = FunctionKind.Function;
     funcDef.vModifiers = [];
 
     scope.insertAtBeginning(funcDef);
@@ -84,13 +93,21 @@ export class FunctionModifierHandler extends ASTMapper {
   ): FunctionDefinition {
     const scope = node.vScope;
     const functionName = `__warp_${modifier.name}_${this.count++}`;
+    const funcId = ast.reserveId();
 
     const functionParams = functionToCall.vParameters.vParameters.map((v) =>
-      this.createParameter(v, ast),
+      this.createParameter(v, funcId, ast),
     );
-    const modParams = modifier.vParameters.vParameters.map((v) => cloneASTNode(v, ast));
+    const modParams = modifier.vParameters.vParameters.map((v) => {
+      const variable = cloneASTNode(v, ast);
+      variable.scope = funcId;
+      return variable;
+    });
     const params = [...modParams, ...functionParams];
-    const retParams = node.vReturnParameters.vParameters.map((v) => this.getNamedParam(v, ast));
+
+    const retParams = node.vReturnParameters.vParameters.map((v) =>
+      this.getNamedParam(v, funcId, ast),
+    );
     const retParamList = createParameterList(retParams, ast);
 
     let statements: Statement[] = [];
@@ -111,7 +128,7 @@ export class FunctionModifierHandler extends ASTMapper {
 
     // Create Function Definition Node
     const funcDef = new FunctionDefinition(
-      ast.reserveId(),
+      funcId,
       '',
       scope.id,
       scope instanceof SourceUnit ? FunctionKind.Free : FunctionKind.Function,
@@ -124,7 +141,7 @@ export class FunctionModifierHandler extends ASTMapper {
       retParamList,
       [],
       undefined,
-      new Block(ast.reserveId(), '', statements),
+      createBlock(statements, ast),
     );
 
     // Insert node into ast
@@ -133,25 +150,17 @@ export class FunctionModifierHandler extends ASTMapper {
     return funcDef;
   }
 
-  createParameter(v: VariableDeclaration, ast: AST): VariableDeclaration {
+  createParameter(v: VariableDeclaration, scope: number, ast: AST): VariableDeclaration {
     const variable = cloneASTNode(v, ast);
     variable.name = `__warp_parameter${this.count++}`;
+    variable.scope = scope;
     return variable;
   }
 
-  getNamedParam(v: VariableDeclaration, ast: AST): VariableDeclaration {
+  getNamedParam(v: VariableDeclaration, scope: number, ast: AST): VariableDeclaration {
     const param = cloneASTNode(v, ast);
     param.name = `__warp_ret_parameter${this.count++}`;
+    param.scope = scope;
     return param;
-  }
-
-  // TODO - Get modifier code when `vModifier` is a Contract Definition
-  //        (it should be solved when dealing with inheritance)
-  // Note: There is a possibility that constructor of the current contract
-  //       invokes a constructor of the super contract.
-  //       The `ContractDefinition` of a super contract is the value in such case.
-  getModifier(vModifier: ModifierDefinition | ContractDefinition): ModifierDefinition {
-    if (vModifier instanceof ModifierDefinition) return vModifier;
-    throw new NotSupportedYetError('Modifiers Inheritance is not supported yet');
   }
 }

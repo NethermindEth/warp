@@ -12,7 +12,6 @@ import {
   FunctionVisibility,
   getNodeType,
   Identifier,
-  ParameterList,
   typeNameToSpecializedTypeNode,
   VariableDeclaration,
 } from 'solc-typed-ast';
@@ -20,11 +19,12 @@ import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
+import { createBlock, createParameterList } from '../utils/nodeTemplates';
 import { isCairoConstant } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
-    const initialisationBlock = new Block(ast.reserveId(), '', []);
+    const initialisationBlock = createBlock([], ast);
 
     let usedStorage = 0;
     const allocations: Map<VariableDeclaration, number> = new Map();
@@ -79,8 +79,8 @@ function insertIntoConstructor(initialisationBlock: Block, contract: ContractDef
       FunctionVisibility.Public,
       FunctionStateMutability.NonPayable,
       true,
-      new ParameterList(ast.reserveId(), '', []),
-      new ParameterList(ast.reserveId(), '', []),
+      createParameterList([], ast),
+      createParameterList([], ast),
       [],
       undefined,
       initialisationBlock,

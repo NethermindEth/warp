@@ -59,6 +59,13 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/idManglingTest8', 'Success'],
   ['example_contracts/idManglingTest9', 'Success'],
   ['example_contracts/if-flattening', 'Success'],
+  ['example_contracts/imports/importContract', 'Success'],
+  ['example_contracts/imports/importEnum', 'Success'],
+  ['example_contracts/imports/importfrom', 'Success'],
+  ['example_contracts/imports/importInterface', 'Success'],
+  ['example_contracts/imports/importLibrary', 'Success'],
+  // Transpilation failure since importing StructDefinition is not implemented yet
+  ['example_contracts/imports/importStruct', 'NotSupportedYet'],
   ['example_contracts/inheritance/simple', 'Success'],
   ['example_contracts/inheritance/super/base', 'Success'],
   ['example_contracts/inheritance/super/derived', 'Success'],
@@ -102,7 +109,8 @@ const expectedResults = new Map<string, ResultType>([
   // Typestrings don't include data location leading to incorrect type analysis
   ['example_contracts/state_variables/arrays', 'CairoCompileFailed'],
   ['example_contracts/state_variables/mappings', 'Success'],
-  ['example_contracts/state_variables/structs', 'CairoCompileFailed'],
+  // It produces incorrect code but it still compiles
+  ['example_contracts/state_variables/structs', 'Success'],
   // Mappings of structs are not supported yet
   ['example_contracts/state_variables/misc', 'NotSupportedYet'],
   ['example_contracts/structs', 'Success'],

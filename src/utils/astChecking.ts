@@ -66,6 +66,7 @@ import { pp } from 'solc-typed-ast/dist/misc/index';
 import { AST } from '../ast/ast';
 import { CairoAssert } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
+import { printNode } from './astPrinter';
 
 // This is the solc-typed-ast AST checking code, with additions for CairoAssert and CairoContract
 
@@ -689,6 +690,7 @@ function checkIdNonNegative(node: ASTNode) {
  */
 export function isSane(ast: AST): boolean {
   NodeTypeResolutionChecker.map(ast);
+  ParameterScopeChecker.map(ast);
 
   return ast.roots.every((root) => {
     try {
@@ -717,6 +719,19 @@ class NodeTypeResolutionChecker extends ASTMapper {
         (child): child is Expression | VariableDeclaration =>
           child instanceof Expression || child instanceof VariableDeclaration,
       )
+      .filter((child) => child.parent !== undefined && !(child.parent instanceof ImportDirective))
       .forEach((child) => getNodeType(child, ast.compilerVersion));
+  }
+}
+
+class ParameterScopeChecker extends ASTMapper {
+  visitFunctionDefinition(node: FunctionDefinition, _ast: AST): void {
+    [...node.vParameters.vParameters, ...node.vReturnParameters.vParameters].forEach((decl) => {
+      if (decl.scope !== node.id) {
+        throw new InsaneASTError(
+          `${printNode(decl)} in ${printNode(node)} has scope ${decl.scope}, expected ${node.id}`,
+        );
+      }
+    });
   }
 }
