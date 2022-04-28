@@ -8,7 +8,7 @@ import {
   Identifier,
 } from 'solc-typed-ast';
 import assert from 'assert';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionStubbing';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { StringIndexedFuncGen } from '../base';
