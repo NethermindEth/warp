@@ -10,6 +10,7 @@ import { ASTMapper } from '../../ast/mapper';
 import { NotSupportedYetError } from '../../utils/errors';
 import { toHexString } from '../../utils/utils';
 import { functionaliseAdd } from '../../warplib/implementations/maths/add';
+import { functionaliseAnd } from '../../warplib/implementations/maths/and';
 import { functionaliseBitwiseAnd } from '../../warplib/implementations/maths/bitwise_and';
 import { functionaliseBitwiseNot } from '../../warplib/implementations/maths/bitwise_not';
 import { functionaliseBitwiseOr } from '../../warplib/implementations/maths/bitwise_or';
@@ -23,6 +24,7 @@ import { functionaliseLt } from '../../warplib/implementations/maths/lt';
 import { functionaliseMul } from '../../warplib/implementations/maths/mul';
 import { functionaliseNegate } from '../../warplib/implementations/maths/negate';
 import { functionaliseNeq } from '../../warplib/implementations/maths/neq';
+import { functionaliseOr } from '../../warplib/implementations/maths/or';
 import { functionaliseShl } from '../../warplib/implementations/maths/shl';
 import { functionaliseShr } from '../../warplib/implementations/maths/shr';
 import { functionaliseSub } from '../../warplib/implementations/maths/sub';
@@ -56,6 +58,8 @@ export class MathsOperationToFunction extends ASTMapper {
       ['^', () => functionaliseXor(node, ast)],
       ['<<', () => functionaliseShl(node, ast)],
       ['>>', () => functionaliseShr(node, ast)],
+      ['&&', () => functionaliseAnd(node, ast)],
+      ['||', () => functionaliseOr(node, ast)],
     ]);
 
     const thunk = operatorMap.get(node.operator);
