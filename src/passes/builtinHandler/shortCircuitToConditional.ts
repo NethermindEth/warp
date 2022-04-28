@@ -45,7 +45,7 @@ export class ShortCircuitToConditional extends ASTMapper {
   private expressionHasSideEffects(node: Expression): boolean {
     // No need to check if FunctionCall is a Struct constructor since it must evaluate to bool
     return (
-      (node instanceof FunctionCall && !this.functionAffectsState(node)) ||
+      (node instanceof FunctionCall && this.functionAffectsState(node)) ||
       node instanceof Assignment
     );
   }
