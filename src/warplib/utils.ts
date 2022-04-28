@@ -65,7 +65,10 @@ export function IntxIntFunction(
   ast: AST,
 ) {
   const lhsType = typeNameFromTypeNode(getNodeType(node.vLeftExpression, ast.compilerVersion), ast);
-  const rhsType = typeNameFromTypeNode(getNodeType(node.vLeftExpression, ast.compilerVersion), ast);
+  const rhsType = typeNameFromTypeNode(
+    getNodeType(node.vRightExpression, ast.compilerVersion),
+    ast,
+  );
   const retType = getNodeType(node, ast.compilerVersion);
   assert(
     retType instanceof IntType,
