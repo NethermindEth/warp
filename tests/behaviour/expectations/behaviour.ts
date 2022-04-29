@@ -15,6 +15,20 @@ export const expectations = flatten(
             Expect.Simple('test256', ['3', '4'], ['3', '4']),
           ]),
         ]),
+        new Dir('bool_operators', [
+          File.Simple('and', [
+            Expect.Simple('test', ['1', '1'], ['1']),
+            Expect.Simple('test', ['1', '0'], ['0']),
+            Expect.Simple('test', ['0', '1'], ['0']),
+            Expect.Simple('test', ['0', '0'], ['0']),
+          ]),
+          File.Simple('or', [
+            Expect.Simple('test', ['1', '1'], ['1']),
+            Expect.Simple('test', ['1', '0'], ['1']),
+            Expect.Simple('test', ['0', '1'], ['1']),
+            Expect.Simple('test', ['0', '0'], ['0']),
+          ]),
+        ]),
         new Dir('bytes', [
           File.Simple('byteArrays', [
             Expect.Simple('getC', ['1'], ['9029']),
