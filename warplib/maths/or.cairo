@@ -1,9 +1,7 @@
 func warp_or(lhs : felt, rhs : felt) -> (res : felt):
-    if lhs == 1:
-        return (1)
+    let val = lhs + rhs
+    if val == 0:
+        return (0)
     end
-    if rhs == 1:
-        return (1)
-    end
-    return (0)
+    return (1)
 end
