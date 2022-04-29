@@ -12,4 +12,14 @@ contract WARP {
     A public a;
     A private b;
     A public c;
+
+    constructor() public {
+        a.a = 1;
+        a.b = 2;
+        b.a = 3;
+        b.b = 4;
+        c.a = 5;
+        c.b = 6;
+    }
+
 }

@@ -18,7 +18,6 @@ import {
   ParameterList,
   StateVariableVisibility,
   StructDefinition,
-  TupleExpression,
   TypeName,
   UserDefinedTypeName,
   VariableDeclaration,
@@ -35,6 +34,25 @@ import {
 } from '../../utils/nodeTemplates';
 import { toSingleExpression } from '../../utils/utils';
 
+/**
+* This is a pass to attach the getter function for a public state variable
+* to the contract definition. for eg,
+
+  contract A{
+    uint public a;
+  }
+
+* The getter function for a public state variable will be attached to the contract
+* definition as
+
+  function a() public view returns (uint) {
+    return a;
+  }
+* This is a getter function for a public state variable
+
+* `for more information: https://docs.soliditylang.org/en/v0.8.13/contracts.html?highlight=getter#getter-functions
+*/
+
 export class GettersGenerator extends ASTMapper {
   constructor(private getterFunctions: Map<VariableDeclaration, FunctionDefinition>) {
     super();
@@ -42,11 +60,7 @@ export class GettersGenerator extends ASTMapper {
 
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     node.vStateVariables.forEach((v) => {
-      /*
-        Visit every public state variable and Add 
-        FunctionDefinition(getter func) as a child of the current 
-        ContractDefinition node.
-      */
+      // for every public state variable, create a getter function
       const stateVarType = v.vType;
 
       if (!stateVarType) {
@@ -58,7 +72,7 @@ export class GettersGenerator extends ASTMapper {
         const funcDefID = ast.reserveId();
 
         const returnParameterList: ParameterList = createParameterList(
-          genReturnVariables(stateVarType, funcDefID, ast),
+          genReturnParameters(stateVarType, funcDefID, ast),
           ast,
         );
 
@@ -95,29 +109,21 @@ export class GettersGenerator extends ASTMapper {
         ast.registerChild(getter, node);
       }
     });
-    // node.vFunctions.forEach((v) => {
-    //   v.vBody?.vStatements.forEach((s) => {
-    //     if(s instanceof Return )console.log(s.vExpression);
-    //   });
-    // });
   }
 }
 
-function genReturnVariables(
+function genReturnParameters(
   vType: TypeName | undefined,
   funcDefID: number,
   ast: AST,
 ): VariableDeclaration[] {
-  /*
-    This function will return the list of return variables
-    for a getter function of a public state var
-    For e.g 
-      struct A{ uint a; address b; mapping(int => int) c; }
-      A public aa;
-      The return list would be (uint , address)
-  */
+  // It is an utility function to generate the return parameters
+  // for a getter function corresponding to a public state variable
   if (!vType) return [];
-  const newVarDecl = (dataLocation = DataLocation.Default) => {
+  const newVarDecl = (type: TypeName | undefined, dataLocation = DataLocation.Default) => {
+    if (!type) {
+      throw new TranspileFailedError(`Type not defined for variable`);
+    }
     return new VariableDeclaration(
       ast.reserveId(),
       '',
@@ -129,47 +135,37 @@ function genReturnVariables(
       dataLocation,
       StateVariableVisibility.Internal,
       Mutability.Mutable,
-      vType.typeString,
+      type.typeString,
       undefined,
-      cloneASTNode(vType, ast),
+      cloneASTNode(type, ast),
     );
   };
   if (vType instanceof ElementaryTypeName) {
-    return [newVarDecl()];
+    return [newVarDecl(vType)];
   } else if (vType instanceof ArrayTypeName) {
-    return genReturnVariables(vType.vBaseType, funcDefID, ast);
+    return genReturnParameters(vType.vBaseType, funcDefID, ast);
   } else if (vType instanceof Mapping) {
-    return genReturnVariables(vType.vValueType, funcDefID, ast);
+    return genReturnParameters(vType.vValueType, funcDefID, ast);
   } else if (vType instanceof UserDefinedTypeName) {
     if (vType.vReferencedDeclaration instanceof StructDefinition) {
-      /*
-        It will also covers the nested structs variables
-        eg. struct A {
-              uint a;
-              struct B {
-                uint b;
-              }
-            }
-          It'll return (uint , B memory) for (a, b) respectively
-      */
+      // if the type is a struct, return the list for member declarations
       const returnVariables: VariableDeclaration[] = [];
-      let canStructBeReturned = true;
+      // Mappings and arrays are omitted
       vType.vReferencedDeclaration.vMembers.forEach((v) => {
-        if (v.vType instanceof Mapping || v.vType instanceof ArrayTypeName) {
-          /*
-            Solidity doesn't allow recursive types for public state variables
-            So, Any nested struct definition can not have member of type
-            other than ElementaryTypeName
-          */
-          canStructBeReturned = false;
-          return;
-        }
-        returnVariables.push(...genReturnVariables(v.vType, funcDefID, ast));
+        if (v.vType instanceof Mapping || v.vType instanceof ArrayTypeName) return;
+        returnVariables.push(
+          newVarDecl(
+            v.vType,
+            v.vType instanceof UserDefinedTypeName &&
+              v.vType.vReferencedDeclaration instanceof StructDefinition
+              ? DataLocation.Memory
+              : DataLocation.Default,
+          ),
+        );
       });
-      if (!canStructBeReturned) return returnVariables;
-      return [newVarDecl(DataLocation.Memory)];
+      return returnVariables;
     } else {
-      return [newVarDecl()];
+      return [newVarDecl(vType)];
     }
   } else {
     throw new NotSupportedYetError(
@@ -189,7 +185,7 @@ function genFunctionParams(
     for a getter function of a public state var
     For e.g 
       mapping(uint => mapping(address => uint256))  
-    The return list would be (uint i0, address i1)
+    The return list would be (uint _i0, address _i1)
   */
   if (!vType || vType instanceof ElementaryTypeName) {
     return [];
@@ -260,14 +256,8 @@ function genReturnExpression(
     the previous call of genReturnExpression
     e.g `c[i0][i1][i2]` in `c[i0][i1][i2].a`
   */
-  const createIdentifierBase = (type: TypeName): Identifier => {
-    const node = new Identifier(
-      ast.reserveId(),
-      '',
-      type.typeString.replaceAll(']', '] storage ref '),
-      v.name,
-      v.id,
-    );
+  const createIdentifierBase = (): Identifier => {
+    const node = new Identifier(ast.reserveId(), '', getTypeString(v.vType), v.name, v.id);
     ast.setContextRecursive(node);
     return node;
   };
@@ -277,68 +267,80 @@ function genReturnExpression(
   if (vType instanceof ElementaryTypeName) {
     return baseExpression ?? createIdentifier(v, ast);
   } else if (vType instanceof ArrayTypeName) {
-    // console.log("came here @Array !", vType.vBaseType.typeString);
     const baseExp: IndexAccess = new IndexAccess(
       ast.reserveId(),
       '',
-      vType.vBaseType.typeString.replaceAll(']', '] storage ref '),
-      baseExpression ?? createIdentifierBase(vType),
+      getTypeString(vType.vBaseType),
+      baseExpression ?? createIdentifierBase(),
       createIdentifier(fnParams.vParameters[idx], ast),
     );
     return genReturnExpression(idx + 1, fnParams, v, vType.vBaseType, ast, baseExp);
   } else if (vType instanceof Mapping) {
-    // console.log("came here @Mapping !");
     const baseExp: IndexAccess = new IndexAccess(
       ast.reserveId(),
       '',
-      vType.vValueType.typeString.replaceAll(']', '] storage ref '),
-      baseExpression ?? createIdentifierBase(vType),
+      getTypeString(vType.vValueType),
+      baseExpression ?? createIdentifierBase(),
       createIdentifier(fnParams.vParameters[idx], ast),
     );
     return genReturnExpression(idx + 1, fnParams, v, vType.vValueType, ast, baseExp);
   } else if (vType instanceof UserDefinedTypeName) {
     if (vType.vReferencedDeclaration instanceof StructDefinition) {
-      let canStructBeReturned = true;
+      // list of return expressions for a struct output
       const returnExpressions: Expression[] = [];
       vType.vReferencedDeclaration.vMembers.forEach((m) => {
         if (!m.vType) return;
+        // Solidity doesn't allow recursive types for public state variables
+        // So, Any nested struct definition can not have member of type
+        // other than ElementaryTypeName
         if (m.vType instanceof Mapping || m.vType instanceof ArrayTypeName) {
-          /*
-            Solidity doesn't allow recursive types for public state variables
-            So, Any nested struct definition can not have member of type
-            other than ElementaryTypeName
-          */
-          canStructBeReturned = false;
           return;
         }
         const memberAccessExp: MemberAccess = new MemberAccess(
           ast.reserveId(),
           '',
-          m.vType.typeString.replaceAll(']', '] storage ref '),
-          baseExpression ?? createIdentifierBase(vType),
+          getTypeString(m.vType),
+          baseExpression ?? createIdentifierBase(),
           m.name,
-          vType.vReferencedDeclaration.id,
+          m.id,
         );
-        const mExpression: Expression = genReturnExpression(
-          idx,
-          fnParams,
-          v,
-          m.vType,
-          ast,
-          memberAccessExp,
-        );
-        if (mExpression instanceof TupleExpression) {
-          returnExpressions.push(...mExpression.vComponents);
-        } else {
-          returnExpressions.push(mExpression);
-        }
+        returnExpressions.push(memberAccessExp);
       });
-      if (!canStructBeReturned) return toSingleExpression(returnExpressions, ast);
+      return toSingleExpression(returnExpressions, ast);
     }
-    return baseExpression ?? createIdentifierBase(vType);
+    return baseExpression ?? createIdentifierBase();
   } else {
     throw new NotSupportedYetError(
       `Getter fn generation for ${vType?.type} typenames not implemented yet`,
     );
   }
+}
+
+function getTypeString(type: TypeName | undefined): string {
+  if (!type) return '';
+  if (type instanceof ElementaryTypeName) {
+    return type.typeString;
+  }
+  if (type instanceof ArrayTypeName) {
+    const baseTypeString = getTypeString(type.vBaseType);
+    // extract the string after last '[' and before last ']'
+    const lengthString = type.typeString.substring(
+      type.typeString.lastIndexOf('[') + 1,
+      type.typeString.lastIndexOf(']'),
+    );
+    return `${baseTypeString}[${lengthString}] storage ref`;
+  }
+
+  if (type instanceof Mapping) {
+    const keyTypeString = getTypeString(type.vKeyType);
+    const valueTypeString = getTypeString(type.vValueType);
+    return `mapping(${keyTypeString} => ${valueTypeString})`;
+  }
+
+  if (type instanceof UserDefinedTypeName) {
+    if (type.vReferencedDeclaration instanceof StructDefinition) {
+      return `${type.typeString} storage ref`;
+    }
+  }
+  return type.typeString;
 }

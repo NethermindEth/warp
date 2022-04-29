@@ -1327,12 +1327,45 @@ export const expectations = flatten(
             Expect.Simple('valuePassingMemberAccess', ['1'], ['15'], '0'),
           ]),
         ]),
-        new Dir('public_state', [
-          File.Simple('state_vars', [
-            Expect.Simple('x', [], ['10', '0']),
+        new Dir('public_state_vars', [
+          File.Simple('elementary', [
+            Expect.Simple('a', [], ['234', '0']),
+            Expect.Simple('b', [], ['23']),
+            Expect.Simple('c', [], ['103929005307130220006098923584552504982110632080']),
+            Expect.Simple(
+              'd',
+              [],
+              [
+                '340282366920938463463374607431768211455',
+                '340282366920938463463374607431768211455',
+              ],
+            ),
+            Expect.Simple('e', [], ['12', '0']),
+            Expect.Simple('f', [], ['1']),
+          ]),
+          File.Simple('arrays', [
+            Expect.Simple('a', ['2', '0'], ['3', '0']),
+            Expect.Simple('d', ['0', '0'], ['103929005307130220006098923584552504982110632080']),
+            Expect.Simple('e', ['1', '0'], ['0']),
             Expect.Simple('y', ['0', '0'], ['12', '0']),
-            Expect.Simple('z', ['0', '0', '1', '0'], ['14', '0']),
             Expect.Simple('w', ['0', '0', '0', '0', '0', '0'], ['15', '0']),
+          ]),
+          File.Simple('enums', [
+            Expect.Simple('a', [], ['0']),
+            Expect.Simple('b', [], ['1']),
+            Expect.Simple('c', [], ['0']),
+            Expect.Simple('d', [], ['1']),
+            Expect.Simple('f', [], ['2']),
+          ]),
+          File.Simple('mappings', [
+            Expect.Simple('a', ['1', '0'], ['1', '0']),
+            Expect.Simple('b', ['2', '0'], ['1']),
+            Expect.Simple('d', ['1'], ['1', '0']),
+            Expect.Simple('e', ['1', '1', '0'], ['1']),
+          ]),
+          File.Simple('structs', [
+            Expect.Simple('a', [], ['1', '0', '2', '0']),
+            Expect.Simple('c', [], ['5', '0', '6', '0']),
           ]),
         ]),
         new Dir('returns', [

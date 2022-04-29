@@ -107,7 +107,8 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/state_variables/scalars', 'Success'],
   ['example_contracts/state_variables/enums', 'Success'],
   // Typestrings don't include data location leading to incorrect type analysis
-  ['example_contracts/state_variables/arrays', 'CairoCompileFailed'],
+  ['example_contracts/state_variables/arrays', 'Success'],
+  ['example_contracts/state_variables/arrays_init', 'NotSupportedYet'],
   ['example_contracts/state_variables/mappings', 'Success'],
   // It produces incorrect code but it still compiles
   ['example_contracts/state_variables/structs', 'Success'],
@@ -125,7 +126,7 @@ const expectedResults = new Map<string, ResultType>([
   // Uses WARP_STORAGE in a free function
   ['example_contracts/using_for/imports/user_defined', 'CairoCompileFailed'],
   // global_directive.sol cannot resolve struct when file imported as identifier
-  ['example_contracts/using_for/imports/global_directive', 'CairoCompileFailed'],
+  ['example_contracts/using_for/imports/global_directive', 'TranspilationFailed'],
   ['example_contracts/using_for/function', 'WillNotSupport'],
   ['example_contracts/using_for/private', 'Success'],
   ['example_contracts/using_for/library', 'Success'],
