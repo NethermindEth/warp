@@ -275,7 +275,7 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
 
   assert(indexAccess.vIndexExpression);
   assert(arrayType instanceof ArrayType);
-  const elementCairTypeWidth = CairoType.fromSol(
+  const elementCairoTypeWidth = CairoType.fromSol(
     arrayType.elementT,
     ast,
     TypeConversionContext.MemoryAllocation,
@@ -286,7 +286,7 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
     [
       indexAccess.vBaseExpression,
       indexAccess.vIndexExpression,
-      createNumberLiteral(elementCairTypeWidth, ast, 'uint256'),
+      createNumberLiteral(elementCairoTypeWidth, ast, 'uint256'),
     ],
     ast,
   );

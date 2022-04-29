@@ -11,7 +11,6 @@ import {
   FunctionStateMutability,
   FunctionVisibility,
   getNodeType,
-  typeNameToSpecializedTypeNode,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -19,6 +18,7 @@ import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
 import { createBlock, createIdentifier, createParameterList } from '../utils/nodeTemplates';
+import { typeNameToSpecializedTypeNode } from '../utils/nodeTypeProcessing';
 import { isCairoConstant } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {

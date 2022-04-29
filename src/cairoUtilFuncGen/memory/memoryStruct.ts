@@ -6,12 +6,12 @@ import {
   IdentifierPath,
   PointerType,
   StructDefinition,
-  typeNameToSpecializedTypeNode,
   UserDefinedTypeName,
 } from 'solc-typed-ast';
 import { CairoStruct, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { typeNameToSpecializedTypeNode } from '../../utils/nodeTypeProcessing';
 import { uint256 } from '../../warplib/utils';
 import { add, StringIndexedFuncGen } from '../base';
 

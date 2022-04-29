@@ -12,9 +12,11 @@ import {
   Return,
   Expression,
   StructuredDocumentation,
+  getNodeType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { generateLiteralTypeString } from './getTypeString';
+import { specializeType } from './nodeTypeProcessing';
 import { toHexString, toSingleExpression } from './utils';
 
 export function createAddressNonPayableTypeName(ast: AST): ElementaryTypeName {
@@ -64,12 +66,11 @@ export function createIdentifier(
   ast: AST,
   dataLocation?: DataLocation,
 ): Identifier {
-  const location = dataLocation ?? variable.storageLocation;
-  const typeString =
-    location !== undefined
-      ? `${variable.typeString} ${location === DataLocation.Default ? '' : location}`
-      : variable.typeString;
-  const node = new Identifier(ast.reserveId(), '', typeString, variable.name, variable.id);
+  const type = specializeType(
+    getNodeType(variable, ast.compilerVersion),
+    dataLocation ?? (variable.stateVariable ? DataLocation.Storage : variable.storageLocation),
+  );
+  const node = new Identifier(ast.reserveId(), '', type.pp(), variable.name, variable.id);
   ast.setContextRecursive(node);
   return node;
 }
@@ -87,7 +88,7 @@ export function createNumberLiteral(
     typeString,
     LiteralKind.Number,
     toHexString(stringValue),
-    stringValue.toString(),
+    stringValue,
   );
   ast.setContextRecursive(node);
   return node;

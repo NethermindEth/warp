@@ -1,11 +1,20 @@
 import assert from 'assert';
 import {
+  ArrayType,
+  BytesType,
+  DataLocation,
   FunctionCall,
   FunctionCallKind,
   FunctionType,
   getNodeType,
+  MappingType,
+  PackedArrayType,
   PointerType,
+  StringType,
   StructDefinition,
+  TupleType,
+  TypeName,
+  typeNameToTypeNode,
   TypeNameType,
   TypeNode,
   UserDefinedType,
@@ -59,4 +68,64 @@ export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNod
         )}`,
       );
   }
+}
+
+export function typeNameToSpecializedTypeNode(typeName: TypeName, loc: DataLocation): TypeNode {
+  return specializeType(typeNameToTypeNode(typeName), loc);
+}
+
+export function specializeType(typeNode: TypeNode, loc: DataLocation): TypeNode {
+  assert(
+    !(typeNode instanceof PointerType),
+    `Unexpected pointer type ${printTypeNode(typeNode)} in concretization.`,
+  );
+  assert(
+    !(typeNode instanceof TupleType),
+    'Unexpected tuple type ${printTypeNode(typeNode)} in concretization.',
+  );
+
+  if (
+    typeNode instanceof PackedArrayType ||
+    typeNode instanceof BytesType ||
+    typeNode instanceof StringType
+  ) {
+    return new PointerType(typeNode, loc);
+  }
+
+  if (typeNode instanceof ArrayType) {
+    const concreteElT = specializeType(typeNode.elementT, loc);
+
+    return new PointerType(new ArrayType(concreteElT, typeNode.size), loc);
+  }
+
+  if (typeNode instanceof UserDefinedType) {
+    const def = typeNode.definition;
+
+    assert(
+      def !== undefined,
+      `Can't concretize user defined type ${printTypeNode(
+        typeNode,
+      )} with no corresponding definition.`,
+    );
+
+    if (def instanceof StructDefinition) {
+      return new PointerType(typeNode, loc);
+    }
+
+    // Enums and contracts are value types
+    return typeNode;
+  }
+
+  if (typeNode instanceof MappingType) {
+    // Always treat map keys as in-memory copies
+    const concreteKeyT = specializeType(typeNode.keyType, DataLocation.Memory);
+    // The result of map indexing is always a pointer to a value that lives in storage
+    const concreteValueT = specializeType(typeNode.valueType, DataLocation.Storage);
+    // Maps always live in storage
+    return new PointerType(new MappingType(concreteKeyT, concreteValueT), DataLocation.Storage);
+  }
+
+  // TODO: What to do about string literals?
+  // All other types are "value" types.
+  return typeNode;
 }
