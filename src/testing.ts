@@ -32,12 +32,13 @@ const ResultTypeOrder = [
 const expectedResults = new Map<string, ResultType>([
   ['example_contracts/ERC20', 'Success'],
   ['example_contracts/ERC20_storage', 'Success'],
-  ['example_contracts/boolOp_noSideEffects.sol', 'Success'],
-  // Uses conditionals
-  ['example_contracts/boolOp_sideEffects.sol', 'NotSupportedYet'],
+  ['example_contracts/boolOp_noSideEffects', 'Success'],
+  // Uses conditionals implicitly
+  ['example_contracts/boolOp_sideEffects', 'NotSupportedYet'],
   // Uses conditionals
   ['example_contracts/c2c', 'NotSupportedYet'],
-  ['example_contracts/conditional.sol', 'NotSupportedYet'],
+  // Uses conditionals explicitly
+  ['example_contracts/conditional', 'WillNotSupport'],
   ['example_contracts/contract_to_contract', 'Success'],
   ['example_contracts/calldatacopy', 'WillNotSupport'],
   ['example_contracts/calldataload', 'WillNotSupport'],
