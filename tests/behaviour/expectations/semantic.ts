@@ -35,6 +35,8 @@ import { compileSolFile } from '../../../src/solCompile';
 import { printTypeNode } from '../../../src/utils/astPrinter';
 import { bigintToTwosComplement, divmod } from '../../../src/utils/utils';
 import { AsyncTest, Expect } from './types';
+import { error } from '../../../src/utils/formatting';
+import { notNull } from '../../../src/utils/typeConstructs';
 
 // this format will cause problems with overloading
 export interface Parameter {
@@ -128,7 +130,16 @@ async function transcodeTests(
 
   const compilerVersion = ast.compilerVersion;
   // Transcode each test
-  return expectations.map((test) => transcodeTest(abi, contractDef, test, compilerVersion));
+  return expectations
+    .map((test) => {
+      try {
+        return transcodeTest(abi, contractDef, test, compilerVersion);
+      } catch (e) {
+        console.log(error(`Failed to transcode ${test.signature}: ${e}`));
+        return null;
+      }
+    })
+    .filter(notNull);
 }
 
 function transcodeTest(
