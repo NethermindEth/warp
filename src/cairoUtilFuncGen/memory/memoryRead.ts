@@ -5,6 +5,7 @@ import {
   FunctionCall,
   getNodeType,
   DataLocation,
+  FunctionStateMutability,
 } from 'solc-typed-ast';
 import {
   CairoFelt,
@@ -39,6 +40,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
       ['range_check_ptr', 'warp_memory'],
       this.ast,
       nodeInSourceUnit ?? memoryRef,
+      FunctionStateMutability.View,
     );
     return createCallToFunction(functionStub, [memoryRef], this.ast);
   }

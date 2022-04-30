@@ -48,6 +48,7 @@ export function createCairoFunctionStub(
   implicits: Implicits[],
   ast: AST,
   nodeInSourceUnit: ASTNode,
+  mutability: FunctionStateMutability = FunctionStateMutability.NonPayable,
 ): CairoFunctionDefinition {
   const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
   const funcDefId = ast.reserveId();
@@ -79,7 +80,7 @@ export function createCairoFunctionStub(
     name,
     false,
     FunctionVisibility.Private,
-    FunctionStateMutability.NonPayable,
+    mutability,
     false,
     createParameterList(createParameters(inputs), ast),
     createParameterList(createParameters(returns), ast),

@@ -3,6 +3,7 @@ import { execSync } from 'child_process';
 import * as fs from 'fs';
 import {
   BinaryOperation,
+  BoolType,
   Expression,
   FunctionCall,
   FunctionCallKind,
@@ -64,7 +65,10 @@ export function IntxIntFunction(
   ast: AST,
 ) {
   const lhsType = typeNameFromTypeNode(getNodeType(node.vLeftExpression, ast.compilerVersion), ast);
-  const rhsType = typeNameFromTypeNode(getNodeType(node.vLeftExpression, ast.compilerVersion), ast);
+  const rhsType = typeNameFromTypeNode(
+    getNodeType(node.vRightExpression, ast.compilerVersion),
+    ast,
+  );
   const retType = getNodeType(node, ast.compilerVersion);
   assert(
     retType instanceof IntType,
@@ -212,4 +216,54 @@ export function IntFunction(
 
   ast.replaceNode(node, call);
   ast.registerImport(call, `warplib.maths.${fileName}`, fullName);
+}
+
+export function BoolxBoolFunction(node: BinaryOperation, name: string, ast: AST): void {
+  const lhsType = getNodeType(node.vLeftExpression, ast.compilerVersion);
+  const rhsType = getNodeType(node.vRightExpression, ast.compilerVersion);
+  const retType = getNodeType(node, ast.compilerVersion);
+
+  assert(
+    lhsType instanceof BoolType,
+    `Expected BoolType for ${name} left argument, got ${printTypeNode(lhsType)}`,
+  );
+  assert(
+    rhsType instanceof BoolType,
+    `Expected BoolType for ${name} right argument, got ${printTypeNode(rhsType)}`,
+  );
+  assert(
+    retType instanceof BoolType,
+    `Expected BoolType for ${name} return type, got ${printTypeNode(retType)}`,
+  );
+
+  const fullName = `warp_${name}`;
+  const stub = createCairoFunctionStub(
+    fullName,
+    [
+      ['lhs', typeNameFromTypeNode(lhsType, ast)],
+      ['rhs', typeNameFromTypeNode(rhsType, ast)],
+    ],
+    [['res', typeNameFromTypeNode(retType, ast)]],
+    [],
+    ast,
+    node,
+  );
+
+  const call = new FunctionCall(
+    ast.reserveId(),
+    node.src,
+    node.typeString,
+    FunctionCallKind.FunctionCall,
+    new Identifier(
+      ast.reserveId(),
+      '',
+      `function (${node.vLeftExpression.typeString}, ${node.vRightExpression.typeString}) returns (${node.typeString})`,
+      fullName,
+      stub.id,
+    ),
+    [node.vLeftExpression, node.vRightExpression],
+  );
+
+  ast.replaceNode(node, call);
+  ast.registerImport(call, `warplib.maths.${name}`, fullName);
 }
