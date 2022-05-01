@@ -23,7 +23,3 @@ contract WARP {
         l.push([[1, 2, 3]]);
     }
 }
-
-
-
-

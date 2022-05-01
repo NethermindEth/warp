@@ -24,5 +24,4 @@ contract WARP {
     d = -1;
     f = true;
   }
-
 }

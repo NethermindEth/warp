@@ -106,12 +106,12 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/sstore-sload', 'WillNotSupport'],
   ['example_contracts/state_variables/scalars', 'Success'],
   ['example_contracts/state_variables/enums', 'Success'],
-  // Typestrings don't include data location leading to incorrect type analysis
   ['example_contracts/state_variables/arrays', 'Success'],
+  // Initializing arrays with default values are yet to be supported
   ['example_contracts/state_variables/arrays_init', 'NotSupportedYet'],
   ['example_contracts/state_variables/mappings', 'Success'],
-  // It produces incorrect code but it still compiles
   ['example_contracts/state_variables/structs', 'Success'],
+  ['example_contracts/state_variables/structs_nested', 'Success'],
   // Mappings of structs are not supported yet
   ['example_contracts/state_variables/misc', 'NotSupportedYet'],
   ['example_contracts/structs', 'Success'],

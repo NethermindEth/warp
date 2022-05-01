@@ -145,10 +145,10 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    const expectedLoc = this.getLocations(node)[1];
+    // const expectedLoc = this.getLocations(node)[1];
     if (node.kind === FunctionCallKind.StructConstructorCall) {
       // Memory struct constructor calls should have been replaced by memoryAllocations
-      assert(expectedLoc === DataLocation.Default);
+      // assert(expectedLoc === DataLocation.Default);
       return this.commonVisit(node, ast);
     } else {
       return this.visitExpression(node, ast);

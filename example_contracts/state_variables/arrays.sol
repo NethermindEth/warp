@@ -18,11 +18,10 @@ contract WARP {
     bool[][] public f;
 
     uint112[][][] public g;
-    /*
+    
     struct A{
         uint256 a;
         uint256 b;
     }
-    A[] public h; This case will lead to an error 
-    */
+    A[] public h;    
 }

@@ -2,6 +2,7 @@ import { ASTMapper } from '../../ast/mapper';
 
 import {
   ArrayTypeName,
+  Block,
   ContractDefinition,
   DataLocation,
   ElementaryTypeName,
@@ -21,6 +22,7 @@ import {
   TypeName,
   UserDefinedTypeName,
   VariableDeclaration,
+  VariableDeclarationStatement,
 } from 'solc-typed-ast';
 
 import { AST } from '../../ast/ast';
@@ -81,10 +83,13 @@ export class GettersGenerator extends ASTMapper {
           ast,
         );
 
-        const returnExpression: Expression = genReturnExpression(0, fnParams, v, stateVarType, ast);
-
-        const getterBlock = createBlock(
-          [createReturn(returnExpression, returnParameterList.id, ast)],
+        const getterBlock: Block = genReturnBlock(
+          0,
+          returnParameterList.id,
+          funcDefID,
+          fnParams,
+          v,
+          stateVarType,
           ast,
         );
 
@@ -236,28 +241,45 @@ function genFunctionParams(
   }
 }
 
-function genReturnExpression(
+function genReturnBlock(
   idx: number,
+  returnParamListId: number,
+  funcDefID: number,
   fnParams: ParameterList,
   v: VariableDeclaration,
   vType: TypeName | undefined,
   ast: AST,
   baseExpression?: Expression,
-): Expression {
+): Block {
   /*
     This is an recursive function to generate the return 
-    Expression for a getter function of a public state 
-    variable.
+    Block for a getter function of a public state variable.
+
     For e.g 
-      struct A{ uint a; address b; mapping(int => int) c; }
-      mapping(uint => mapping(address => A[])) c;
+
+    ```
+      struct A{ 
+        uint a;
+        address b;
+        mapping(int => int) c;
+      }
+      mapping(uint => mapping(address => A[])) public c;
+    ```
+
     The return expression would be a tuple (c[i0][i1][i2].a , c[i0][i1][i2].b)
-    baseExpression: is the expression that has been generated in 
-    the previous call of genReturnExpression
-    e.g `c[i0][i1][i2]` in `c[i0][i1][i2].a`
+
+    `baseExpression`: is the expression that has been generated in 
+    the previous call of genReturnBlock
+      for e.g `c[i0][i1][i2]` in `c[i0][i1][i2].a`
   */
-  const createIdentifierBase = (): Identifier => {
-    const node = new Identifier(ast.reserveId(), '', getTypeString(v.vType), v.name, v.id);
+  const createIdentifierWithTypeString = (variable: VariableDeclaration): Identifier => {
+    const node = new Identifier(
+      ast.reserveId(),
+      '',
+      getTypeStringTypeName(variable.vType),
+      variable.name,
+      variable.id,
+    );
     ast.setContextRecursive(node);
     return node;
   };
@@ -265,50 +287,140 @@ function genReturnExpression(
     throw new TranspileFailedError(`Type of ${v.name} must be defined`);
   }
   if (vType instanceof ElementaryTypeName) {
-    return baseExpression ?? createIdentifier(v, ast);
+    // return baseExpression ?? createIdentifier(v, ast);
+    return createBlock(
+      [createReturn(baseExpression ?? createIdentifier(v, ast), returnParamListId, ast)],
+      ast,
+    );
   } else if (vType instanceof ArrayTypeName) {
     const baseExp: IndexAccess = new IndexAccess(
       ast.reserveId(),
       '',
-      getTypeString(vType.vBaseType),
-      baseExpression ?? createIdentifierBase(),
+      getTypeStringTypeName(vType.vBaseType),
+      baseExpression ? cloneASTNode(baseExpression, ast) : createIdentifierWithTypeString(v),
       createIdentifier(fnParams.vParameters[idx], ast),
     );
-    return genReturnExpression(idx + 1, fnParams, v, vType.vBaseType, ast, baseExp);
+    return genReturnBlock(
+      idx + 1,
+      returnParamListId,
+      funcDefID,
+      fnParams,
+      v,
+      vType.vBaseType,
+      ast,
+      baseExp,
+    );
   } else if (vType instanceof Mapping) {
     const baseExp: IndexAccess = new IndexAccess(
       ast.reserveId(),
       '',
-      getTypeString(vType.vValueType),
-      baseExpression ?? createIdentifierBase(),
+      getTypeStringTypeName(vType.vValueType),
+      baseExpression ? cloneASTNode(baseExpression, ast) : createIdentifierWithTypeString(v),
       createIdentifier(fnParams.vParameters[idx], ast),
     );
-    return genReturnExpression(idx + 1, fnParams, v, vType.vValueType, ast, baseExp);
+    return genReturnBlock(
+      idx + 1,
+      returnParamListId,
+      funcDefID,
+      fnParams,
+      v,
+      vType.vValueType,
+      ast,
+      baseExp,
+    );
   } else if (vType instanceof UserDefinedTypeName) {
     if (vType.vReferencedDeclaration instanceof StructDefinition) {
       // list of return expressions for a struct output
       const returnExpressions: Expression[] = [];
+
+      // In case of sruct, an extra struct variable declaration is used
+
+      /*
+        struct A{uint a;uint b};
+        A [] public a;
+      `getter fn`:
+        function a(uint _i0) ... return(...){
+          A _temp = a[_i0];
+          return (_temp.a, _temp.b)
+        }
+      */
+
+      const structDeclStmts: VariableDeclarationStatement[] = [];
+      let tempCount = 0;
+
+      const tempStructVarDeclaration = (type: TypeName, initialValue: Expression) => {
+        const structVarDecl = new VariableDeclaration(
+          ast.reserveId(),
+          '',
+          false,
+          false,
+          `_temp${tempCount++}`,
+          funcDefID,
+          false,
+          DataLocation.Storage,
+          StateVariableVisibility.Internal,
+          Mutability.Mutable,
+          type.typeString,
+          undefined,
+          cloneASTNode(type, ast),
+        );
+
+        ast.setContextRecursive(structVarDecl);
+
+        const structDeclStmt = new VariableDeclarationStatement(
+          ast.reserveId(),
+          '',
+          [structVarDecl.id],
+          [structVarDecl],
+          initialValue,
+        );
+
+        structDeclStmts.push(structDeclStmt);
+        return structVarDecl;
+      };
+      const tempStructVarDecl = tempStructVarDeclaration(
+        vType,
+        baseExpression ? cloneASTNode(baseExpression, ast) : createIdentifierWithTypeString(v),
+      );
       vType.vReferencedDeclaration.vMembers.forEach((m) => {
         if (!m.vType) return;
-        // Solidity doesn't allow recursive types for public state variables
-        // So, Any nested struct definition can not have member of type
-        // other than ElementaryTypeName
+
+        // struct public state variable getters don't return Mappings and Arrays
         if (m.vType instanceof Mapping || m.vType instanceof ArrayTypeName) {
           return;
         }
+
         const memberAccessExp: MemberAccess = new MemberAccess(
           ast.reserveId(),
           '',
-          getTypeString(m.vType),
-          baseExpression ?? createIdentifierBase(),
+          getTypeStringTypeName(m.vType),
+          createIdentifierWithTypeString(tempStructVarDecl),
           m.name,
           m.id,
         );
-        returnExpressions.push(memberAccessExp);
+
+        if (
+          m.vType instanceof UserDefinedTypeName &&
+          m.vType.vReferencedDeclaration instanceof StructDefinition
+        ) {
+          const memberStructVarDeclaration = tempStructVarDeclaration(m.vType, memberAccessExp);
+          returnExpressions.push(createIdentifierWithTypeString(memberStructVarDeclaration));
+        } else {
+          returnExpressions.push(memberAccessExp);
+        }
       });
-      return toSingleExpression(returnExpressions, ast);
+      return createBlock(
+        [
+          ...structDeclStmts,
+          createReturn(toSingleExpression(returnExpressions, ast), returnParamListId, ast),
+        ],
+        ast,
+      );
     }
-    return baseExpression ?? createIdentifierBase();
+    return createBlock(
+      [createReturn(baseExpression ?? createIdentifierWithTypeString(v), returnParamListId, ast)],
+      ast,
+    );
   } else {
     throw new NotSupportedYetError(
       `Getter fn generation for ${vType?.type} typenames not implemented yet`,
@@ -316,13 +428,13 @@ function genReturnExpression(
   }
 }
 
-function getTypeString(type: TypeName | undefined): string {
+function getTypeStringTypeName(type: TypeName | undefined): string {
   if (!type) return '';
   if (type instanceof ElementaryTypeName) {
     return type.typeString;
   }
   if (type instanceof ArrayTypeName) {
-    const baseTypeString = getTypeString(type.vBaseType);
+    const baseTypeString = getTypeStringTypeName(type.vBaseType);
     // extract the string after last '[' and before last ']'
     const lengthString = type.typeString.substring(
       type.typeString.lastIndexOf('[') + 1,
@@ -332,8 +444,8 @@ function getTypeString(type: TypeName | undefined): string {
   }
 
   if (type instanceof Mapping) {
-    const keyTypeString = getTypeString(type.vKeyType);
-    const valueTypeString = getTypeString(type.vValueType);
+    const keyTypeString = getTypeStringTypeName(type.vKeyType);
+    const valueTypeString = getTypeStringTypeName(type.vValueType);
     return `mapping(${keyTypeString} => ${valueTypeString})`;
   }
 

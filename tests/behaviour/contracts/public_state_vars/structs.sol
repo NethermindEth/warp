@@ -9,9 +9,18 @@ contract WARP {
         uint256 b;
     }
 
+    struct B{
+        uint256 a;
+        address b;
+        int120 c;
+        A d;
+    }
+
     A public a;
     A private b;
     A public c;
+
+    B public d;
 
     constructor() public {
         a.a = 1;
@@ -20,6 +29,11 @@ contract WARP {
         b.b = 4;
         c.a = 5;
         c.b = 6;
-    }
 
+        d.a = 7;
+        d.b = 0x1234567890123456789012345678901234567890;
+        d.c = 9;
+        d.d.a = 10;
+        d.d.b = 11;
+    }
 }
