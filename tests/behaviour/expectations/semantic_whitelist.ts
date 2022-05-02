@@ -8,7 +8,7 @@
 
 // TODO abi encoder versions?
 
-export default [
+const tests: string[] = [
   //---------AbiEncodeDecode tests - WillNotSupport (0 passing, 54 pending, 18 failing)
   // TODO: ensure these all throw a WillNotSupport
   ...[
@@ -1623,3 +1623,5 @@ export default [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/dirty_calldata_bytes.sol', // WILL NOT SUPPORT yul
   ],
 ];
+
+export default tests;
