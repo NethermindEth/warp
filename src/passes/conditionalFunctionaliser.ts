@@ -5,19 +5,22 @@ import {
   Conditional,
   FunctionDefinition,
   FunctionVisibility,
-  getNodeType,
   Identifier,
   IfStatement,
   ParameterList,
   Return,
-  TupleType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
-import { createCallToFunction } from '../utils/functionStubbing';
-import { createIdentifier, createParameterList } from '../utils/nodeTemplates';
+import { createCallToFunction } from '../utils/functionGeneration';
+import {
+  createBlock,
+  createIdentifier,
+  createParameterList,
+  createReturn,
+} from '../utils/nodeTemplates';
 import { collectUnboundVariables } from './loopFunctionaliser/utils';
 
 export class ConditionalFunctionaliser extends ASTMapper {
@@ -35,7 +38,6 @@ export class ConditionalFunctionaliser extends ASTMapper {
     const func = new FunctionDefinition(
       newFuncId,
       '',
-      'FunctionDefinition',
       containingFunction.scope,
       containingFunction.kind,
       `_conditional${this.funcNameCounter++}`,
@@ -57,18 +59,6 @@ export class ConditionalFunctionaliser extends ASTMapper {
   // The returns should be both the values returned by the conditional itself,
   // as well as the variables that got captured, as they could have been modified
   getReturns(node: Conditional, funcId: number, ast: AST): ParameterList {
-    // const nodeType = getNodeType(node, ast.compilerVersion);
-    // const subTypes = nodeType instanceof TupleType ? nodeType.elements : [nodeType];
-    // const retVars = subTypes.map((typeNode) => new VariableDeclaration(
-    //   ast.reserveId(),
-    //   '',
-    //   'VariableDeclaration',
-    //   false,
-    //   false,
-    //   `_tr${this.varNameCounter++}`,
-    //   funcId,
-    //   false,
-    // ));
     const capturedVars = [...collectUnboundVariables(node)]
       .filter(([decl]) => !decl.stateVariable)
       .map(([decl]) => cloneASTNode(decl, ast));
@@ -111,18 +101,16 @@ function getParams(node: Conditional, ast: AST): ParameterList {
 }
 
 function createFunctionBody(node: Conditional, returns: ParameterList, ast: AST): Block {
-  return new Block(ast.reserveId(), '', 'Block', [
-    new IfStatement(
-      ast.reserveId(),
-      '',
-      'IfStatement',
-      node.vCondition,
-      new Return(ast.reserveId(), '', 'Return', returns.id, node.vTrueExpression),
-      new Return(ast.reserveId(), '', 'Return', returns.id, node.vFalseExpression),
-    ),
-  ]);
+  return createBlock(
+    [
+      new IfStatement(
+        ast.reserveId(),
+        '',
+        node.vCondition,
+        createReturn(node.vTrueExpression, returns.id, ast),
+        createReturn(node.vFalseExpression, returns.id, ast),
+      ),
+    ],
+    ast,
+  );
 }
-
-// function getStorageLocation(typeNode: TypeNode): DataLocation {
-//   if (typeNode instanceof AddressType || typeNode instanceof BoolType || typeNode instanceof)
-// }
