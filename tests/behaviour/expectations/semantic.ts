@@ -37,6 +37,7 @@ import { bigintToTwosComplement, divmod } from '../../../src/utils/utils';
 import { AsyncTest, Expect } from './types';
 import { error } from '../../../src/utils/formatting';
 import { notNull } from '../../../src/utils/typeConstructs';
+import assert from 'assert';
 
 // this format will cause problems with overloading
 export interface Parameter {
@@ -275,11 +276,50 @@ export function encodeValue(tp: TypeNode, value: SolValue): string[] {
     }
     return [value ? '1' : '0'];
   } else if (tp instanceof BytesType) {
-    throw new NotSupportedYetError('Serialising BytesType not supported yet');
+    // console.log(`Handling BytesType. \nValue has type: ${typeof value}.\n Value is: ${value}`);
+    if (typeof value !== 'string') {
+      throw new Error(`Can't encode ${value} as bytesType`);
+    }
+    // removing 0x
+    value = value.substring(2);
+    const length = value.length / 2;
+    assert(length === Math.floor(length), 'bytes must be even');
+
+    const cairoBytes: string[] = [];
+    for (let index = 0; index < value.length; index += 2) {
+      const byte = value.substring(index, index + 2);
+      cairoBytes.push(BigInt('0x' + byte).toString());
+    }
+    // console.log('Encoded as: ', [length.toString(), cairoBytes].flat());
+    return [length.toString(), cairoBytes].flat();
   } else if (tp instanceof FixedBytesType) {
-    throw new NotSupportedYetError('Serialising FixedBytesType not supported yet');
+    // console.log(`Handling FixedBytesType.`, `\nValue is: ${value}`, `\nSize: ${tp.size}`);
+    let val: bigint;
+    try {
+      val = bigintToTwosComplement(BigInt(value.toString()), tp.size * 8);
+    } catch {
+      throw new Error(`Can't encode ${value} as fixedBytesType`);
+    }
+    if (tp.size > 31) {
+      const [high, low] = divmod(val, uint128);
+      // console.log('Encode as ', [low.toString(), high.toString()]);
+      return [low.toString(), high.toString()];
+    } else {
+      // console.log('Encode as ', [val.toString()]);
+      return [val.toString()];
+    }
   } else if (tp instanceof StringType) {
-    throw new NotSupportedYetError('Serialising StringType not supported yet');
+    throw new Error(`Serialising string types not yet supported`);
+    if (typeof value !== 'string') {
+      throw new Error(`Can't encode ${value} as stringType`);
+    }
+    console.log(`Handling StringType. \nValue has type: ${typeof value}.\n Value is: ${value}`);
+    const byteString: string[] = [];
+    // for (let index = 0; index < value.length; index++) {
+    // const charCode = value.charCodeAt(index);
+    // byteString.push(charCode.toString());
+    // }
+    return [value.length.toString(), byteString].flat();
   } else if (tp instanceof AddressType) {
     if (!(value instanceof String || typeof value === 'string')) {
       throw new Error(`Can't encode ${value} as addressType`);
