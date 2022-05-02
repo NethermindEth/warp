@@ -311,11 +311,11 @@ export function encodeValue(tp: TypeNode, value: SolValue): string[] {
     if (typeof value !== 'string') {
       throw new Error(`Can't encode ${value} as stringType`);
     }
+    const valueEncoded: number[] = Buffer.from(value).toJSON().data;
+
     const byteString: string[] = [];
-    for (let index = 0; index < value.length; index++) {
-      const charCode = splitInBytes(BigInt(value.charCodeAt(index)), uint8);
-      charCode.forEach((byte) => byteString.push(byte.toString()));
-    }
+    valueEncoded.forEach((val) => byteString.push(val.toString()));
+
     return [byteString.length.toString()].concat(byteString);
   } else if (tp instanceof AddressType) {
     if (!(value instanceof String || typeof value === 'string')) {
@@ -354,12 +354,4 @@ function formatSigType(type: Parameter): string {
   return type.components === undefined
     ? type.type
     : type.type.replace('tuple', '(' + type.components.map(formatSigType).join(',') + ')');
-}
-
-function splitInBytes(num: bigint, split: bigint): BigInt[] {
-  if (num < split) {
-    return [num];
-  }
-  const [div, mod] = divmod(num, uint8);
-  return splitInBytes(div as bigint, split).concat(mod);
 }
