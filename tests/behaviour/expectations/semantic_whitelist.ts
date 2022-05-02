@@ -1,3 +1,11 @@
+// These tests are commented out because of the extreme volume of them,
+// however they are grouped by what they test so relevant ones can be easily uncommented for testing
+
+// Current test suite deficiencies:
+//  FixedBytesType, BytesType, UserDefinedType, and StringType as arguments
+//  tests that explicitly test the constructor
+//  multisource tests
+
 // TODO abi encoder versions?
 
 export default [
@@ -1073,25 +1081,25 @@ export default [
   ],
   //---------RevertStrings: 38 passing, 27 pending, 11 failing, 18 transcode error
   ...[
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_tail_short.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_array_invalid_length.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/array_slices.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_array_dynamic_static_short_decode.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/function_entry_checks_v2.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/empty_v1.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_arrays_too_large.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/ether_non_payable_function.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/empty_v2.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/enum_v2.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/unknown_sig_no_fallback.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/bubble.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_array_dynamic_static_short_reencode.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/function_entry_checks_v1.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_array_dynamic_invalid.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/enum_v1.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/short_input_bytes.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/short_input_array.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/called_contract_has_code.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_tail_short.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_array_invalid_length.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/array_slices.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_array_dynamic_static_short_decode.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/function_entry_checks_v2.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/empty_v1.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_arrays_too_large.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/ether_non_payable_function.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/empty_v2.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/enum_v2.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/unknown_sig_no_fallback.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/bubble.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_array_dynamic_static_short_reencode.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/function_entry_checks_v1.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_array_dynamic_invalid.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/enum_v1.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/short_input_bytes.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/short_input_array.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/called_contract_has_code.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/invalid_abi_decoding_calldata_v1.sol', // WILL NOT SUPPORT abi.decode
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_too_short_v1.sol', // WILL NOT SUPPORT abi.decode
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/transfer.sol', // WILL NOT SUPPORT transfer
