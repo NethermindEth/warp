@@ -87,7 +87,10 @@ const validTests = Object.entries(tests).reduce(
 // solc-typed-ast downloads compilers on demand, running a single compilation fully
 // before the others ensures that the compiler is set up properly before being used
 // asynchronously
-const initialRun: Promise<CompileResult> = compileSol(validTests[0][0], 'auto', []);
+const initialRun: Promise<CompileResult> =
+  validTests.length > 0
+    ? compileSol(validTests[0][0], 'auto', [])
+    : Promise.resolve({ data: null, files: new Map(), inferredRemappings: new Map() });
 
 export const expectations: AsyncTest[] = validTests.map(([file, tests]): AsyncTest => {
   // The solidity test dsl assumes the last contract defined in the file is
