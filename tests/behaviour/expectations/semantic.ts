@@ -65,6 +65,7 @@ type SolValue = string | SolValue[] | { [key: string]: SolValue };
 //@ts-ignore: web3-eth-abi has their exports wrong
 const abiCoder: AbiCoder = new AbiCoder.constructor();
 const uint128 = BigInt('0x100000000000000000000000000000000');
+const uint8 = BigInt('0x100');
 
 // ----------------------- Gather all the tests ------------------------------
 // This could benefit from some parallelism
@@ -279,7 +280,6 @@ export function encodeValue(tp: TypeNode, value: SolValue): string[] {
     }
     return [value ? '1' : '0'];
   } else if (tp instanceof BytesType) {
-    // console.log(`Handling BytesType. \nValue has type: ${typeof value}.\n Value is: ${value}`);
     if (typeof value !== 'string') {
       throw new Error(`Can't encode ${value} as bytesType`);
     }
@@ -293,10 +293,8 @@ export function encodeValue(tp: TypeNode, value: SolValue): string[] {
       const byte = value.substring(index, index + 2);
       cairoBytes.push(BigInt('0x' + byte).toString());
     }
-    // console.log('Encoded as: ', [length.toString(), cairoBytes].flat());
     return [length.toString(), cairoBytes].flat();
   } else if (tp instanceof FixedBytesType) {
-    // console.log(`Handling FixedBytesType.`, `\nValue is: ${value}`, `\nSize: ${tp.size}`);
     let val: bigint;
     try {
       val = bigintToTwosComplement(BigInt(value.toString()), tp.size * 8);
@@ -305,24 +303,20 @@ export function encodeValue(tp: TypeNode, value: SolValue): string[] {
     }
     if (tp.size > 31) {
       const [high, low] = divmod(val, uint128);
-      // console.log('Encode as ', [low.toString(), high.toString()]);
       return [low.toString(), high.toString()];
     } else {
-      // console.log('Encode as ', [val.toString()]);
       return [val.toString()];
     }
   } else if (tp instanceof StringType) {
-    throw new Error(`Serialising string types not yet supported`);
     if (typeof value !== 'string') {
       throw new Error(`Can't encode ${value} as stringType`);
     }
-    console.log(`Handling StringType. \nValue has type: ${typeof value}.\n Value is: ${value}`);
     const byteString: string[] = [];
-    // for (let index = 0; index < value.length; index++) {
-    // const charCode = value.charCodeAt(index);
-    // byteString.push(charCode.toString());
-    // }
-    return [value.length.toString(), byteString].flat();
+    for (let index = 0; index < value.length; index++) {
+      const charCode = splitInBytes(BigInt(value.charCodeAt(index)), uint8);
+      charCode.forEach((byte) => byteString.push(byte.toString()));
+    }
+    return [byteString.length.toString()].concat(byteString);
   } else if (tp instanceof AddressType) {
     if (!(value instanceof String || typeof value === 'string')) {
       throw new Error(`Can't encode ${value} as addressType`);
@@ -360,4 +354,12 @@ function formatSigType(type: Parameter): string {
   return type.components === undefined
     ? type.type
     : type.type.replace('tuple', '(' + type.components.map(formatSigType).join(',') + ')');
+}
+
+function splitInBytes(num: bigint, split: bigint): BigInt[] {
+  if (num < split) {
+    return [num];
+  }
+  const [div, mod] = divmod(num, uint8);
+  return splitInBytes(div as bigint, split).concat(mod);
 }
