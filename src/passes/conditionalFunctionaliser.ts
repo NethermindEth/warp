@@ -1,20 +1,26 @@
 import assert = require('assert');
 import {
+  Assignment,
   ASTNode,
   Block,
   Conditional,
+  DataLocation,
+  Expression,
+  ExpressionStatement,
   FunctionDefinition,
   FunctionVisibility,
   Identifier,
   IfStatement,
+  Mutability,
   ParameterList,
-  Return,
+  StateVariableVisibility,
+  VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
-import { createCallToFunction } from '../utils/functionGeneration';
+import { createCallToFunction, fixParameterScopes } from '../utils/functionGeneration';
 import {
   createBlock,
   createIdentifier,
@@ -31,10 +37,11 @@ export class ConditionalFunctionaliser extends ASTMapper {
     this.visitExpression(node, ast);
 
     const containingFunction = getContainingFunction(node);
-    const inputs = getInputs(node, ast);
-    const params = getParams(node, ast);
+    const variables = getNodeVariables(node);
+    const inputs = getInputs(variables, ast);
+    const params = getParams(variables, ast);
     const newFuncId = ast.reserveId();
-    const returns = this.getReturns(node, newFuncId, ast);
+    const returns = this.getReturns(node, variables, newFuncId, ast);
     const func = new FunctionDefinition(
       newFuncId,
       '',
@@ -51,21 +58,52 @@ export class ConditionalFunctionaliser extends ASTMapper {
       undefined,
       createFunctionBody(node, returns, ast),
     );
+    fixParameterScopes(func);
     containingFunction.vScope.insertBefore(func, containingFunction);
     ast.registerChild(func, containingFunction.vScope);
+
+    // TODO - The node can't be replaced with the function call, instead
+    // a variable needs to be declared that will hold the resulting value of the conditional.
+    // So first a statement will be added to assign all the return values of the function,
+    // where the first variable will be the one that holds the result of the conditional.
+    // The node will be replaced with an identifier referencing that variable
     ast.replaceNode(node, createCallToFunction(func, inputs, ast));
   }
 
   // The returns should be both the values returned by the conditional itself,
   // as well as the variables that got captured, as they could have been modified
-  getReturns(node: Conditional, funcId: number, ast: AST): ParameterList {
-    const capturedVars = [...collectUnboundVariables(node)]
-      .filter(([decl]) => !decl.stateVariable)
-      .map(([decl]) => cloneASTNode(decl, ast));
-    // TODO add retVars into this
-    // Difficulty: Type to use for literals
-    return createParameterList([...capturedVars], ast);
+  getReturns(
+    node: Conditional,
+    variables: Map<VariableDeclaration, Identifier[]>,
+    funcId: number,
+    ast: AST,
+  ): ParameterList {
+    const capturedVars = [...variables].map(([decl]) => cloneASTNode(decl, ast));
+    const retVariable = getConditionalReturnVariable(node, funcId, this.varNameCounter++, ast);
+
+    return createParameterList([retVariable, ...capturedVars], ast);
   }
+}
+
+function getConditionalReturnVariable(
+  node: Conditional,
+  funcId: number,
+  id: number,
+  ast: AST,
+): VariableDeclaration {
+  return new VariableDeclaration(
+    ast.reserveId(),
+    '',
+    false,
+    false,
+    `ret_conditional${id}`,
+    funcId,
+    false,
+    DataLocation.Default,
+    StateVariableVisibility.Private,
+    Mutability.Mutable,
+    node.typeString,
+  );
 }
 
 function getContainingFunction(node: ASTNode): FunctionDefinition {
@@ -77,25 +115,21 @@ function getContainingFunction(node: ASTNode): FunctionDefinition {
 // The inputs to the function should be only the free variables
 // The branches get inlined into the function so that only the taken
 // branch gets executed
-function getInputs(node: Conditional, ast: AST): Identifier[] {
-  return [...collectUnboundVariables(node)]
-    .filter(([decl]) => !decl.stateVariable)
-    .map(([decl]) => createIdentifier(decl, ast));
+function getInputs(variables: Map<VariableDeclaration, Identifier[]>, ast: AST): Identifier[] {
+  return [...variables].map(([decl]) => createIdentifier(decl, ast));
 }
 
 // The parameters should be the same as the inputs
 // However this must also create new variable declarations for
 // use in the new function, and rebind internal identifiers
 // to these new variables
-function getParams(node: Conditional, ast: AST): ParameterList {
+function getParams(variables: Map<VariableDeclaration, Identifier[]>, ast: AST): ParameterList {
   return createParameterList(
-    [...collectUnboundVariables(node)]
-      .filter(([decl]) => !decl.stateVariable)
-      .map(([decl, ids]) => {
-        const newVar = cloneASTNode(decl, ast);
-        ids.forEach((id) => (id.referencedDeclaration = newVar.id));
-        return newVar;
-      }),
+    [...variables].map(([decl, ids]) => {
+      const newVar = cloneASTNode(decl, ast);
+      ids.forEach((id) => (id.referencedDeclaration = newVar.id));
+      return newVar;
+    }),
     ast,
   );
 }
@@ -107,10 +141,36 @@ function createFunctionBody(node: Conditional, returns: ParameterList, ast: AST)
         ast.reserveId(),
         '',
         node.vCondition,
-        createReturn(node.vTrueExpression, returns.id, ast),
-        createReturn(node.vFalseExpression, returns.id, ast),
+        createReturnBody(returns, node.vTrueExpression, ast),
+        createReturnBody(returns, node.vFalseExpression, ast),
       ),
     ],
     ast,
   );
+}
+
+function createReturnBody(returns: ParameterList, value: Expression, ast: AST): Block {
+  const firstVar = returns.vParameters[0];
+  return createBlock(
+    [
+      new ExpressionStatement(
+        ast.reserveId(),
+        '',
+        new Assignment(
+          ast.reserveId(),
+          '',
+          firstVar.typeString,
+          '=',
+          createIdentifier(firstVar, ast),
+          value,
+        ),
+      ),
+      createReturn(returns.vParameters, returns.id, ast),
+    ],
+    ast,
+  );
+}
+
+function getNodeVariables(node: Conditional) {
+  return new Map([...collectUnboundVariables(node)].filter(([decl]) => !decl.stateVariable));
 }

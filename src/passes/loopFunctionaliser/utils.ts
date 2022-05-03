@@ -21,7 +21,7 @@ import {
 import { AST } from '../../ast/ast';
 import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCallToFunction } from '../../utils/functionGeneration';
+import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
 import {
   createBlock,
   createIdentifier,
@@ -121,12 +121,6 @@ export function extractWhileToFunction(
   );
 
   return funcDef;
-}
-
-function fixParameterScopes(node: FunctionDefinition): void {
-  [...node.vParameters.vParameters, ...node.vReturnParameters.vParameters].forEach(
-    (decl) => (decl.scope = node.id),
-  );
 }
 
 export function extractDoWhileToFunction(

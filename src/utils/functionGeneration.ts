@@ -95,3 +95,9 @@ export function createCairoFunctionStub(
 
   return funcDef;
 }
+
+export function fixParameterScopes(node: FunctionDefinition): void {
+  [...node.vParameters.vParameters, ...node.vReturnParameters.vParameters].forEach(
+    (decl) => (decl.scope = node.id),
+  );
+}
