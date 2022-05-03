@@ -22,6 +22,10 @@ import {
   resolveAny,
   getNodeType,
   CompileResult,
+  UserDefinedValueTypeDefinition,
+  LatestCompilerVersion,
+  StructDefinition,
+  EnumDefinition,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import * as path from 'path';
@@ -335,7 +339,70 @@ export function encodeValue(tp: TypeNode, value: SolValue): string[] {
   } else if (tp instanceof MappingType) {
     throw new Error('Mappings cannot be serialised as external function paramenters');
   } else if (tp instanceof UserDefinedType) {
-    throw new NotSupportedYetError('Serialising UserDefinedType not supported yet');
+    const dummyCompilerVersion = LatestCompilerVersion;
+    console.log(
+      '-------------------------',
+      'Encoding UserDefinedType:',
+      `\n Name: ${tp.name}`,
+      `\n Definition: ${tp.definition.name} : ${tp.definition.type} `,
+      `\n PP: ${tp.pp()}`,
+      `\n Value(${typeof value}): ${value}`,
+    );
+    if (tp.definition instanceof UserDefinedValueTypeDefinition) {
+      console.log('Underlying type', tp.definition.underlyingType.typeString);
+      console.log('Type node is', getNodeType(tp.definition.underlyingType, dummyCompilerVersion));
+      return encodeValue(getNodeType(tp.definition.underlyingType, dummyCompilerVersion), value);
+    } else if (tp.definition instanceof StructDefinition) {
+      if (!(value instanceof Array)) {
+        console.log(typeof value);
+        throw new Error(`Can't encode ${value} as structType`);
+      }
+      console.log(
+        `Canonical Name: ${tp.definition.canonicalName}`,
+        `\n members: ${tp.definition.vMembers}`,
+        `\n value[0]: ${value instanceof Array ? value[0] : value}`,
+      );
+      const membersEncoding: string[][] = [];
+      for (let index = 0; index < value.length; index++) {
+        const memberTypeNode = getNodeType(tp.definition.vMembers[index], dummyCompilerVersion);
+        const memberValue = value[index];
+        const encodedMember = encodeValue(memberTypeNode, memberValue);
+        console.log(
+          `memberType: ${memberTypeNode.pp()}`,
+          ` memberValue: ${memberValue}`,
+          ` encodedMember:  ${encodedMember}`,
+        );
+        membersEncoding.push(encodedMember);
+      }
+      console.log('Struct Encoded as ', membersEncoding.flat());
+      return membersEncoding.flat();
+    } else if (tp.definition instanceof EnumDefinition) {
+      if (typeof value !== 'string') {
+        throw new Error(`Can't encode ${value} as enumType`);
+      }
+      let val: bigint;
+      try {
+        val = bigintToTwosComplement(BigInt(value.toString()), 8);
+      } catch {
+        throw new Error(`Can't encode ${value} as intType`);
+      }
+      console.log(`Enum encoded as ${val.toString()}`);
+    } else if (tp.definition instanceof ContractDefinition) {
+      if (!(value instanceof String || typeof value === 'string')) {
+        throw new Error(`Can't encode ${value} as addressType`);
+      }
+      let val: bigint;
+      try {
+        val = BigInt(value.toString());
+      } catch {
+        throw new Error(`Can't encode ${value} as intType`);
+      }
+      console.log('Handling Contract Definition, would be encoded as', val.toString());
+      console.log('Unique buajajaja');
+      throw new NotSupportedYetError("Can't encode ContractDefinition as UserDefinedType");
+    } else {
+      throw new NotSupportedYetError('Serialising UserDefinedType not supported yet');
+    }
   } else if (tp instanceof FunctionType) {
     throw new NotSupportedYetError('Serialising FunctionType not supported yet');
   } else if (tp instanceof PointerType) {
