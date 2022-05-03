@@ -83,9 +83,13 @@ export function createNumberLiteral(value: bigint, typeString: string, ast: AST)
 export function createParameterList(
   params: Iterable<VariableDeclaration>,
   ast: AST,
+  scope?: number,
 ): ParameterList {
   const paramList = new ParameterList(ast.reserveId(), '', params);
   ast.setContextRecursive(paramList);
+  if (scope !== undefined) {
+    [...params].forEach((decl) => (decl.scope = scope));
+  }
   return paramList;
 }
 
