@@ -258,21 +258,7 @@ function encode(abi: Parameter[], typeNodes: TypeNode[], encodedData: string): s
 
 export function encodeValue(tp: TypeNode, value: SolValue): string[] {
   if (tp instanceof IntType) {
-    if (!(value instanceof String || typeof value === 'string')) {
-      throw new Error(`Can't encode ${value} as inttype`);
-    }
-    let val: bigint;
-    try {
-      val = bigintToTwosComplement(BigInt(value.toString()), tp.nBits);
-    } catch {
-      throw new Error(`Can't encode ${value} as intType`);
-    }
-    if (tp.nBits > 251) {
-      const [high, low] = divmod(val, uint128);
-      return [low.toString(), high.toString()];
-    } else {
-      return [val.toString()];
-    }
+    return encodeAsUintOrFelt(tp, value, tp.nBits);
   } else if (tp instanceof ArrayType) {
     if (!(value instanceof Array)) {
       throw new Error(`Can't encode ${value} as arrayType`);
@@ -299,18 +285,7 @@ export function encodeValue(tp: TypeNode, value: SolValue): string[] {
     }
     return [length.toString(), cairoBytes].flat();
   } else if (tp instanceof FixedBytesType) {
-    let val: bigint;
-    try {
-      val = bigintToTwosComplement(BigInt(value.toString()), tp.size * 8);
-    } catch {
-      throw new Error(`Can't encode ${value} as fixedBytesType`);
-    }
-    if (tp.size > 31) {
-      const [high, low] = divmod(val, uint128);
-      return [low.toString(), high.toString()];
-    } else {
-      return [val.toString()];
-    }
+    return encodeAsUintOrFelt(tp, value, tp.size * 8);
   } else if (tp instanceof StringType) {
     if (typeof value !== 'string') {
       throw new Error(`Can't encode ${value} as stringType`);
@@ -319,19 +294,9 @@ export function encodeValue(tp: TypeNode, value: SolValue): string[] {
 
     const byteString: string[] = [];
     valueEncoded.forEach((val) => byteString.push(val.toString()));
-
     return [byteString.length.toString()].concat(byteString);
   } else if (tp instanceof AddressType) {
-    if (!(value instanceof String || typeof value === 'string')) {
-      throw new Error(`Can't encode ${value} as addressType`);
-    }
-    let val: bigint;
-    try {
-      val = BigInt(value.toString());
-    } catch {
-      throw new Error(`Can't encode ${value} as intType`);
-    }
-    return [val.toString()];
+    return encodeAsUintOrFelt(tp, value, 160);
   } else if (tp instanceof BuiltinType) {
     throw new NotSupportedYetError('Serialising BuiltinType not supported yet');
   } else if (tp instanceof BuiltinStructType) {
@@ -340,68 +305,25 @@ export function encodeValue(tp: TypeNode, value: SolValue): string[] {
     throw new Error('Mappings cannot be serialised as external function paramenters');
   } else if (tp instanceof UserDefinedType) {
     const dummyCompilerVersion = LatestCompilerVersion;
-    console.log(
-      '-------------------------',
-      'Encoding UserDefinedType:',
-      `\n Name: ${tp.name}`,
-      `\n Definition: ${tp.definition.name} : ${tp.definition.type} `,
-      `\n PP: ${tp.pp()}`,
-      `\n Value(${typeof value}): ${value}`,
-    );
-    if (tp.definition instanceof UserDefinedValueTypeDefinition) {
-      console.log('Underlying type', tp.definition.underlyingType.typeString);
-      console.log('Type node is', getNodeType(tp.definition.underlyingType, dummyCompilerVersion));
-      return encodeValue(getNodeType(tp.definition.underlyingType, dummyCompilerVersion), value);
-    } else if (tp.definition instanceof StructDefinition) {
+    const definition = tp.definition;
+    if (definition instanceof UserDefinedValueTypeDefinition) {
+      return encodeValue(getNodeType(definition.underlyingType, dummyCompilerVersion), value);
+    } else if (definition instanceof StructDefinition) {
       if (!(value instanceof Array)) {
         console.log(typeof value);
         throw new Error(`Can't encode ${value} as structType`);
       }
-      console.log(
-        `Canonical Name: ${tp.definition.canonicalName}`,
-        `\n members: ${tp.definition.vMembers}`,
-        `\n value[0]: ${value instanceof Array ? value[0] : value}`,
-      );
       const membersEncoding: string[][] = [];
       for (let index = 0; index < value.length; index++) {
-        const memberTypeNode = getNodeType(tp.definition.vMembers[index], dummyCompilerVersion);
+        const memberTypeNode = getNodeType(definition.vMembers[index], dummyCompilerVersion);
         const memberValue = value[index];
-        const encodedMember = encodeValue(memberTypeNode, memberValue);
-        console.log(
-          `memberType: ${memberTypeNode.pp()}`,
-          ` memberValue: ${memberValue}`,
-          ` encodedMember:  ${encodedMember}`,
-        );
-        membersEncoding.push(encodedMember);
+        membersEncoding.push(encodeValue(memberTypeNode, memberValue));
       }
-      console.log('Struct Encoded as ', membersEncoding.flat());
       return membersEncoding.flat();
-    } else if (tp.definition instanceof EnumDefinition) {
-      if (typeof value !== 'string') {
-        throw new Error(`Can't encode ${value} as enumType`);
-      }
-      let val: bigint;
-      try {
-        val = bigintToTwosComplement(BigInt(value.toString()), 8);
-      } catch {
-        throw new Error(`Can't encode ${value} as intType`);
-      }
-      console.log(`Enum encoded as ${val.toString()}`);
-    } else if (tp.definition instanceof ContractDefinition) {
-      if (!(value instanceof String || typeof value === 'string')) {
-        throw new Error(`Can't encode ${value} as addressType`);
-      }
-      let val: bigint;
-      try {
-        val = BigInt(value.toString());
-      } catch {
-        throw new Error(`Can't encode ${value} as intType`);
-      }
-      console.log('Handling Contract Definition, would be encoded as', val.toString());
-      console.log('Unique buajajaja');
-      throw new NotSupportedYetError("Can't encode ContractDefinition as UserDefinedType");
-    } else {
-      throw new NotSupportedYetError('Serialising UserDefinedType not supported yet');
+    } else if (definition instanceof EnumDefinition) {
+      return encodeAsUintOrFelt(tp, value, 8);
+    } else if (definition instanceof ContractDefinition) {
+      return encodeAsUintOrFelt(tp, value, 160);
     }
   } else if (tp instanceof FunctionType) {
     throw new NotSupportedYetError('Serialising FunctionType not supported yet');
@@ -421,4 +343,23 @@ function formatSigType(type: Parameter): string {
   return type.components === undefined
     ? type.type
     : type.type.replace('tuple', '(' + type.components.map(formatSigType).join(',') + ')');
+}
+
+function encodeAsUintOrFelt(tp: TypeNode, value: SolValue, nBits: number): string[] {
+  console.log(tp.constructor.name);
+  if (typeof value !== 'string') {
+    throw new Error(`Can't encode ${value} as ${tp.constructor.name}`);
+  }
+  let val: bigint;
+  try {
+    val = bigintToTwosComplement(BigInt(value.toString()), nBits);
+  } catch {
+    throw new Error(`Can't encode ${value} as ${tp.constructor.name}`);
+  }
+  if (nBits > 251) {
+    const [high, low] = divmod(val, uint128);
+    return [low.toString(), high.toString()];
+  } else {
+    return [val.toString()];
+  }
 }
