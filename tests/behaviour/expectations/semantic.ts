@@ -22,6 +22,9 @@ import {
   resolveAny,
   getNodeType,
   CompileResult,
+  UserDefinedValueTypeDefinition,
+  StructDefinition,
+  EnumDefinition,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import * as path from 'path';
@@ -37,6 +40,7 @@ import { bigintToTwosComplement, divmod } from '../../../src/utils/utils';
 import { AsyncTest, Expect } from './types';
 import { error } from '../../../src/utils/formatting';
 import { notNull } from '../../../src/utils/typeConstructs';
+import assert from 'assert';
 
 // this format will cause problems with overloading
 export interface Parameter {
@@ -64,6 +68,7 @@ type SolValue = string | SolValue[] | { [key: string]: SolValue };
 //@ts-ignore: web3-eth-abi has their exports wrong
 const abiCoder: AbiCoder = new AbiCoder.constructor();
 const uint128 = BigInt('0x100000000000000000000000000000000');
+const uint8 = BigInt('0x100');
 
 // ----------------------- Gather all the tests ------------------------------
 // This could benefit from some parallelism
@@ -223,8 +228,15 @@ function transcodeTest(
       ? funcDef.vReturnParameters.vParameters.map((cd) => getNodeType(cd, compilerVersion))
       : funcDef.getterFunType().returns;
 
-  const input = encode(funcAbi.inputs, inputTypeNodes, '0x' + callData.substr(10));
-  const output = failure ? null : encode(funcAbi.outputs, outputTypeNodes, expectations);
+  const input = encode(
+    funcAbi.inputs,
+    inputTypeNodes,
+    '0x' + callData.substring(10),
+    compilerVersion,
+  );
+  const output = failure
+    ? null
+    : encode(funcAbi.outputs, outputTypeNodes, expectations, compilerVersion);
 
   const functionHash =
     funcDef instanceof FunctionDefinition
@@ -234,7 +246,12 @@ function transcodeTest(
   return Expect.Simple(`${functionName}_${functionHash}`, input, output);
 }
 
-function encode(abi: Parameter[], typeNodes: TypeNode[], encodedData: string): string[] {
+function encode(
+  abi: Parameter[],
+  typeNodes: TypeNode[],
+  encodedData: string,
+  compilerVersion: string,
+): string[] {
   const inputs_ = abiCoder.decodeParameters(abi, encodedData);
   return (
     Object.entries(inputs_)
@@ -244,56 +261,56 @@ function encode(abi: Parameter[], typeNodes: TypeNode[], encodedData: string): s
       .filter(([key, _]) => !isNaN(parseInt(key)))
       // borked types from import, see above
       .map(([_, val]) => val as SolValue)
-      .flatMap((v: SolValue, i) => encodeValue(typeNodes[i], v))
+      .flatMap((v: SolValue, i) => encodeValue(typeNodes[i], v, compilerVersion))
   );
 }
 
 // ------------------- Encode solidity values as cairo values ----------------
 
-export function encodeValue(tp: TypeNode, value: SolValue): string[] {
+export function encodeValue(tp: TypeNode, value: SolValue, compilerVersion: string): string[] {
   if (tp instanceof IntType) {
-    if (!(value instanceof String || typeof value === 'string')) {
-      throw new Error(`Can't encode ${value} as inttype`);
-    }
-    let val: bigint;
-    try {
-      val = bigintToTwosComplement(BigInt(value.toString()), tp.nBits);
-    } catch {
-      throw new Error(`Can't encode ${value} as intType`);
-    }
-    if (tp.nBits > 251) {
-      const [high, low] = divmod(val, uint128);
-      return [low.toString(), high.toString()];
-    } else {
-      return [val.toString()];
-    }
+    return encodeAsUintOrFelt(tp, value, tp.nBits);
   } else if (tp instanceof ArrayType) {
     if (!(value instanceof Array)) {
       throw new Error(`Can't encode ${value} as arrayType`);
     }
-    return [value.length.toString(), ...value.flatMap((v) => encodeValue(tp.elementT, v))];
+    return [
+      value.length.toString(),
+      ...value.flatMap((v) => encodeValue(tp.elementT, v, compilerVersion)),
+    ];
   } else if (tp instanceof BoolType) {
     if (typeof value !== 'boolean') {
       throw new Error(`Can't encode ${value} as boolType`);
     }
     return [value ? '1' : '0'];
   } else if (tp instanceof BytesType) {
-    throw new NotSupportedYetError('Serialising BytesType not supported yet');
+    if (typeof value !== 'string') {
+      throw new Error(`Can't encode ${value} as bytesType`);
+    }
+    // removing 0x
+    value = value.substring(2);
+    const length = value.length / 2;
+    assert(length === Math.floor(length), 'bytes must be even');
+
+    const cairoBytes: string[] = [];
+    for (let index = 0; index < value.length; index += 2) {
+      const byte = value.substring(index, index + 2);
+      cairoBytes.push(BigInt('0x' + byte).toString());
+    }
+    return [length.toString(), cairoBytes].flat();
   } else if (tp instanceof FixedBytesType) {
-    throw new NotSupportedYetError('Serialising FixedBytesType not supported yet');
+    return encodeAsUintOrFelt(tp, value, tp.size * 8);
   } else if (tp instanceof StringType) {
-    throw new NotSupportedYetError('Serialising StringType not supported yet');
+    if (typeof value !== 'string') {
+      throw new Error(`Can't encode ${value} as stringType`);
+    }
+    const valueEncoded: number[] = Buffer.from(value).toJSON().data;
+
+    const byteString: string[] = [];
+    valueEncoded.forEach((val) => byteString.push(val.toString()));
+    return [byteString.length.toString()].concat(byteString);
   } else if (tp instanceof AddressType) {
-    if (!(value instanceof String || typeof value === 'string')) {
-      throw new Error(`Can't encode ${value} as addressType`);
-    }
-    let val: bigint;
-    try {
-      val = BigInt(value.toString());
-    } catch {
-      throw new Error(`Can't encode ${value} as intType`);
-    }
-    return [val.toString()];
+    return encodeAsUintOrFelt(tp, value, 160);
   } else if (tp instanceof BuiltinType) {
     throw new NotSupportedYetError('Serialising BuiltinType not supported yet');
   } else if (tp instanceof BuiltinStructType) {
@@ -301,11 +318,34 @@ export function encodeValue(tp: TypeNode, value: SolValue): string[] {
   } else if (tp instanceof MappingType) {
     throw new Error('Mappings cannot be serialised as external function paramenters');
   } else if (tp instanceof UserDefinedType) {
-    throw new NotSupportedYetError('Serialising UserDefinedType not supported yet');
+    const definition = tp.definition;
+    if (definition instanceof UserDefinedValueTypeDefinition) {
+      return encodeValue(
+        getNodeType(definition.underlyingType, compilerVersion),
+        value,
+        compilerVersion,
+      );
+    } else if (definition instanceof StructDefinition) {
+      if (!(value instanceof Array)) {
+        console.log(typeof value);
+        throw new Error(`Can't encode ${value} as structType`);
+      }
+      const membersEncoding: string[][] = [];
+      for (let index = 0; index < value.length; index++) {
+        const memberTypeNode = getNodeType(definition.vMembers[index], compilerVersion);
+        const memberValue = value[index];
+        membersEncoding.push(encodeValue(memberTypeNode, memberValue, compilerVersion));
+      }
+      return membersEncoding.flat();
+    } else if (definition instanceof EnumDefinition) {
+      return encodeAsUintOrFelt(tp, value, 8);
+    } else if (definition instanceof ContractDefinition) {
+      return encodeAsUintOrFelt(tp, value, 160);
+    }
   } else if (tp instanceof FunctionType) {
     throw new NotSupportedYetError('Serialising FunctionType not supported yet');
   } else if (tp instanceof PointerType) {
-    throw new Error('PointerTypes cannot be serialised as external function paramenters');
+    return encodeValue(tp.to, value, compilerVersion);
   }
   throw new Error(`Don't know how to convert type ${printTypeNode(tp)}`);
 }
@@ -320,4 +360,22 @@ function formatSigType(type: Parameter): string {
   return type.components === undefined
     ? type.type
     : type.type.replace('tuple', '(' + type.components.map(formatSigType).join(',') + ')');
+}
+
+function encodeAsUintOrFelt(tp: TypeNode, value: SolValue, nBits: number): string[] {
+  if (typeof value !== 'string') {
+    throw new Error(`Can't encode ${value} as ${printTypeNode(tp)}`);
+  }
+  let val: bigint;
+  try {
+    val = bigintToTwosComplement(BigInt(value.toString()), nBits);
+  } catch {
+    throw new Error(`Can't encode ${value} as ${printTypeNode(tp)}`);
+  }
+  if (nBits > 251) {
+    const [high, low] = divmod(val, uint128);
+    return [low.toString(), high.toString()];
+  } else {
+    return [val.toString()];
+  }
 }
