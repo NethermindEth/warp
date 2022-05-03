@@ -229,8 +229,10 @@ function transcodeTest(
       ? funcDef.vReturnParameters.vParameters.map((cd) => getNodeType(cd, compilerVersion))
       : funcDef.getterFunType().returns;
 
-  const input = encode(funcAbi.inputs, inputTypeNodes, '0x' + callData.substr(10));
-  const output = failure ? null : encode(funcAbi.outputs, outputTypeNodes, expectations);
+  const input = encode(funcAbi.inputs, inputTypeNodes, '0x' + callData.substr(10), compilerVersion);
+  const output = failure
+    ? null
+    : encode(funcAbi.outputs, outputTypeNodes, expectations, compilerVersion);
 
   const functionHash =
     funcDef instanceof FunctionDefinition
@@ -240,7 +242,12 @@ function transcodeTest(
   return Expect.Simple(`${functionName}_${functionHash}`, input, output);
 }
 
-function encode(abi: Parameter[], typeNodes: TypeNode[], encodedData: string): string[] {
+function encode(
+  abi: Parameter[],
+  typeNodes: TypeNode[],
+  encodedData: string,
+  compilerVersion: string,
+): string[] {
   const inputs_ = abiCoder.decodeParameters(abi, encodedData);
   return (
     Object.entries(inputs_)
@@ -250,20 +257,23 @@ function encode(abi: Parameter[], typeNodes: TypeNode[], encodedData: string): s
       .filter(([key, _]) => !isNaN(parseInt(key)))
       // borked types from import, see above
       .map(([_, val]) => val as SolValue)
-      .flatMap((v: SolValue, i) => encodeValue(typeNodes[i], v))
+      .flatMap((v: SolValue, i) => encodeValue(typeNodes[i], v, compilerVersion))
   );
 }
 
 // ------------------- Encode solidity values as cairo values ----------------
 
-export function encodeValue(tp: TypeNode, value: SolValue): string[] {
+export function encodeValue(tp: TypeNode, value: SolValue, compilerVersion: string): string[] {
   if (tp instanceof IntType) {
     return encodeAsUintOrFelt(tp, value, tp.nBits);
   } else if (tp instanceof ArrayType) {
     if (!(value instanceof Array)) {
       throw new Error(`Can't encode ${value} as arrayType`);
     }
-    return [value.length.toString(), ...value.flatMap((v) => encodeValue(tp.elementT, v))];
+    return [
+      value.length.toString(),
+      ...value.flatMap((v) => encodeValue(tp.elementT, v, compilerVersion)),
+    ];
   } else if (tp instanceof BoolType) {
     if (typeof value !== 'boolean') {
       throw new Error(`Can't encode ${value} as boolType`);
@@ -304,10 +314,13 @@ export function encodeValue(tp: TypeNode, value: SolValue): string[] {
   } else if (tp instanceof MappingType) {
     throw new Error('Mappings cannot be serialised as external function paramenters');
   } else if (tp instanceof UserDefinedType) {
-    const dummyCompilerVersion = LatestCompilerVersion;
     const definition = tp.definition;
     if (definition instanceof UserDefinedValueTypeDefinition) {
-      return encodeValue(getNodeType(definition.underlyingType, dummyCompilerVersion), value);
+      return encodeValue(
+        getNodeType(definition.underlyingType, compilerVersion),
+        value,
+        compilerVersion,
+      );
     } else if (definition instanceof StructDefinition) {
       if (!(value instanceof Array)) {
         console.log(typeof value);
@@ -315,9 +328,9 @@ export function encodeValue(tp: TypeNode, value: SolValue): string[] {
       }
       const membersEncoding: string[][] = [];
       for (let index = 0; index < value.length; index++) {
-        const memberTypeNode = getNodeType(definition.vMembers[index], dummyCompilerVersion);
+        const memberTypeNode = getNodeType(definition.vMembers[index], compilerVersion);
         const memberValue = value[index];
-        membersEncoding.push(encodeValue(memberTypeNode, memberValue));
+        membersEncoding.push(encodeValue(memberTypeNode, memberValue, compilerVersion));
       }
       return membersEncoding.flat();
     } else if (definition instanceof EnumDefinition) {
@@ -328,7 +341,7 @@ export function encodeValue(tp: TypeNode, value: SolValue): string[] {
   } else if (tp instanceof FunctionType) {
     throw new NotSupportedYetError('Serialising FunctionType not supported yet');
   } else if (tp instanceof PointerType) {
-    return encodeValue(tp.to, value);
+    return encodeValue(tp.to, value, compilerVersion);
   }
   throw new Error(`Don't know how to convert type ${printTypeNode(tp)}`);
 }
