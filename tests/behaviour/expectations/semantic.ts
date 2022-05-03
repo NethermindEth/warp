@@ -229,7 +229,12 @@ function transcodeTest(
       ? funcDef.vReturnParameters.vParameters.map((cd) => getNodeType(cd, compilerVersion))
       : funcDef.getterFunType().returns;
 
-  const input = encode(funcAbi.inputs, inputTypeNodes, '0x' + callData.substr(10), compilerVersion);
+  const input = encode(
+    funcAbi.inputs,
+    inputTypeNodes,
+    '0x' + callData.substring(10),
+    compilerVersion,
+  );
   const output = failure
     ? null
     : encode(funcAbi.outputs, outputTypeNodes, expectations, compilerVersion);
@@ -361,13 +366,13 @@ function formatSigType(type: Parameter): string {
 function encodeAsUintOrFelt(tp: TypeNode, value: SolValue, nBits: number): string[] {
   console.log(tp.constructor.name);
   if (typeof value !== 'string') {
-    throw new Error(`Can't encode ${value} as ${tp.constructor.name}`);
+    throw new Error(`Can't encode ${value} as ${printTypeNode(tp)}`);
   }
   let val: bigint;
   try {
     val = bigintToTwosComplement(BigInt(value.toString()), nBits);
   } catch {
-    throw new Error(`Can't encode ${value} as ${tp.constructor.name}`);
+    throw new Error(`Can't encode ${value} as ${printTypeNode(tp)}`);
   }
   if (nBits > 251) {
     const [high, low] = divmod(val, uint128);
