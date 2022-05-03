@@ -406,7 +406,7 @@ export function encodeValue(tp: TypeNode, value: SolValue): string[] {
   } else if (tp instanceof FunctionType) {
     throw new NotSupportedYetError('Serialising FunctionType not supported yet');
   } else if (tp instanceof PointerType) {
-    throw new Error('PointerTypes cannot be serialised as external function paramenters');
+    return encodeValue(tp.to, value);
   }
   throw new Error(`Don't know how to convert type ${printTypeNode(tp)}`);
 }
