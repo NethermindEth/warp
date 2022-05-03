@@ -23,7 +23,6 @@ import {
   getNodeType,
   CompileResult,
   UserDefinedValueTypeDefinition,
-  LatestCompilerVersion,
   StructDefinition,
   EnumDefinition,
 } from 'solc-typed-ast';
@@ -364,7 +363,6 @@ function formatSigType(type: Parameter): string {
 }
 
 function encodeAsUintOrFelt(tp: TypeNode, value: SolValue, nBits: number): string[] {
-  console.log(tp.constructor.name);
   if (typeof value !== 'string') {
     throw new Error(`Can't encode ${value} as ${printTypeNode(tp)}`);
   }
