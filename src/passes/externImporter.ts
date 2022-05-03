@@ -27,12 +27,11 @@ export class ExternImporter extends ASTMapper {
     assert(sourceUnit !== undefined, 'Trying to import a definition into an unknown source unit');
     if (declarationSourceUnit === undefined || sourceUnit === declarationSourceUnit) return;
 
-    if (declaration instanceof FunctionDefinition) {
+    if (declaration instanceof FunctionDefinition || declaration instanceof StructDefinition) {
       ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
     }
 
     if (
-      declaration instanceof StructDefinition ||
       declaration instanceof ErrorDefinition ||
       declaration instanceof UserDefinedValueTypeDefinition ||
       declaration instanceof VariableDeclaration ||
