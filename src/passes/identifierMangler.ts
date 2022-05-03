@@ -51,12 +51,15 @@ export class IdentifierMangler extends ASTMapper {
     this.commonVisit(node, ast);
   }
 
+  visitImportDirective(node: ImportDirective, ast: AST): void {
+    return;
+  }
+
   visitIdentifier(node: Identifier, _ast: AST): void {
     if (
       node.vIdentifierType === ExternalReferenceType.UserDefined &&
       (node.vReferencedDeclaration instanceof VariableDeclaration ||
-        (node.vReferencedDeclaration instanceof FunctionDefinition &&
-          !(node.parent instanceof ImportDirective)))
+        node.vReferencedDeclaration instanceof FunctionDefinition)
     ) {
       node.name = node.vReferencedDeclaration.name;
     }
