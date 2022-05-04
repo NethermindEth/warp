@@ -692,7 +692,7 @@ function checkIdNonNegative(node: ASTNode) {
 export function isSane(ast: AST): boolean {
   NodeTypeResolutionChecker.map(ast);
   ParameterScopeChecker.map(ast);
-  IdChekcer.map(ast);
+  IdChecker.map(ast);
 
   return ast.roots.every((root) => {
     try {
@@ -738,91 +738,88 @@ class ParameterScopeChecker extends ASTMapper {
   }
 }
 
-class IdChekcer extends ASTMapper {
+class IdChecker extends ASTMapper {
+  static Ids = new Set();
+
+  visitContractDefinition(node: ContractDefinition, ast: AST): void {
+    assert(IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope));
+  }
+
+  visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
+    assert(IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope));
+  }
+
+  visitImportDirective(node: ImportDirective, ast: AST): void {
+    assert(IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope));
+  }
+
+  visitStructDefinition(node: StructDefinition, ast: AST): void {
+    assert(IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope));
+  }
+
+  visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
+    assert(IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope));
+  }
+
+  visitIdentifier(node: Identifier, ast: AST): void {
+    assert(
+      IdChecker.Ids.has(node.referencedDeclaration) ||
+        !ast.context.map.has(node.referencedDeclaration),
+    );
+  }
+
+  visitIdentifierPath(node: IdentifierPath, ast: AST): void {
+    assert(
+      IdChecker.Ids.has(node.referencedDeclaration) ||
+        !ast.context.map.has(node.referencedDeclaration),
+    );
+  }
+
+  visitMemberAccess(node: MemberAccess, ast: AST): void {
+    assert(
+      IdChecker.Ids.has(node.referencedDeclaration) ||
+        !ast.context.map.has(node.referencedDeclaration),
+    );
+  }
+
+  visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {
+    assert(
+      IdChecker.Ids.has(node.referencedDeclaration) ||
+        !ast.context.map.has(node.referencedDeclaration),
+    );
+  }
+
   static map(ast: AST): AST {
-    const Ids = new Set();
     ast.roots.forEach((root) => {
       root.getChildren(true).forEach((node) => {
-        Ids.add(node.id);
+        this.Ids.add(node.id);
       });
     });
 
     ast.roots.forEach((root) => {
-      root.walkChildren((node) => {
-        if (
-          (node instanceof ContractDefinition ||
-            node instanceof FunctionDefinition ||
-            node instanceof ImportDirective ||
-            node instanceof StructDefinition ||
-            node instanceof VariableDeclaration) &&
-          node.scope >= 0
-        ) {
-          console.log(printNode(node));
-          assert(Ids.has(node.scope));
-        } else if (
-          (node instanceof Identifier ||
-            node instanceof IdentifierPath ||
-            //node instanceof MemberAccess ||
-            node instanceof UserDefinedTypeName) &&
-          node.referencedDeclaration >= 0
-        ) {
-          console.log(printNode(node));
-          assert(Ids.has(node.referencedDeclaration));
-        } else if (
-          // node instanceof  ||
-          node instanceof ArrayTypeName ||
-          node instanceof Assignment ||
-          node instanceof BinaryOperation ||
-          node instanceof Block ||
-          node instanceof Break ||
-          node instanceof Continue ||
-          node instanceof DoWhileStatement ||
-          node instanceof ElementaryTypeName ||
-          node instanceof EmitStatement ||
-          node instanceof EnumDefinition ||
-          node instanceof EnumValue ||
-          node instanceof EventDefinition ||
-          node instanceof Expression ||
-          node instanceof ExpressionStatement ||
-          node instanceof ForStatement ||
-          node instanceof IfStatement ||
-          node instanceof InheritanceSpecifier ||
-          node instanceof InlineAssembly ||
-          node instanceof Literal ||
-          node instanceof Mapping ||
-          node instanceof ModifierDefinition ||
-          node instanceof ModifierInvocation ||
-          node instanceof OverrideSpecifier ||
-          node instanceof ParameterList ||
-          node instanceof PlaceholderStatement ||
-          node instanceof PragmaDirective ||
-          node instanceof Return ||
-          node instanceof RevertStatement ||
-          node instanceof StructuredDocumentation ||
-          node instanceof Throw ||
-          node instanceof TupleExpression ||
-          node instanceof UncheckedBlock ||
-          node instanceof UsingForDirective ||
-          node instanceof VariableDeclarationStatement ||
-          node instanceof WhileStatement
-        ) {
-          /**
-           * These nodes do not ID references or scope.
-           * There is nothing to check, so just skip them.
-           */
-        } else {
-          throw new Error(
-            `Id properties for node ${pp(node)} is not reachable through the current AST`,
-          );
+      root.getChildren(true).forEach((node) => {
+        const pass = new this();
+        if (node instanceof ContractDefinition) {
+          pass.visitContractDefinition(node, ast);
+        } else if (node instanceof FunctionDefinition) {
+          pass.visitFunctionDefinition(node, ast);
+        } else if (node instanceof ImportDirective) {
+          pass.visitImportDirective(node, ast);
+        } else if (node instanceof StructDefinition) {
+          pass.visitStructDefinition(node, ast);
+        } else if (node instanceof VariableDeclaration) {
+          pass.visitVariableDeclaration(node, ast);
+        } else if (node instanceof Identifier) {
+          pass.visitIdentifier(node, ast);
+        } else if (node instanceof IdentifierPath) {
+          pass.visitIdentifierPath(node, ast);
+        } else if (node instanceof MemberAccess) {
+          pass.visitMemberAccess(node, ast);
+        } else if (node instanceof UserDefinedTypeName) {
+          pass.visitUserDefinedTypeName(node, ast);
         }
       });
     });
-    // root.getChildren(true).forEach((node) =>{
-    //   if (node instanceof (Identifier || MemberAccess)){
-    //     //console.log(node.referencedDeclaration)
-    //     assert(Ids.has(node.referencedDeclaration))
-    //   }
-    // })
     return ast;
   }
 }

@@ -51,7 +51,7 @@ export class IdentifierMangler extends ASTMapper {
     this.commonVisit(node, ast);
   }
 
-  visitImportDirective(node: ImportDirective, ast: AST): void {
+  visitImportDirective(_node: ImportDirective, _ast: AST): void {
     return;
   }
 
