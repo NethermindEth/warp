@@ -738,6 +738,10 @@ class ParameterScopeChecker extends ASTMapper {
   }
 }
 
+/* The pass asserts that all id based references refer 
+   to nodes that are children of the roots of the AST.
+*/
+
 class IdChecker extends ASTMapper {
   static Ids = new Set();
 
