@@ -757,7 +757,7 @@ class IdChekcer extends ASTMapper {
             node instanceof VariableDeclaration) &&
           node.scope >= 0
         ) {
-          console.log(node.type, node.id);
+          console.log(printNode(node));
           assert(Ids.has(node.scope));
         } else if (
           (node instanceof Identifier ||
@@ -766,7 +766,7 @@ class IdChekcer extends ASTMapper {
             node instanceof UserDefinedTypeName) &&
           node.referencedDeclaration >= 0
         ) {
-          console.log(node.type, node.id);
+          console.log(printNode(node));
           assert(Ids.has(node.referencedDeclaration));
         } else if (
           // node instanceof  ||
