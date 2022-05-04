@@ -9649,7 +9649,7 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
           '0x00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000',
         expectations: '0x',
         failure: false,
-        signature: 'constructor(uint256, uint256)',
+        signature: 'constructor(uint256,uint256)',
       },
       {
         callData: '0xe5aa3d58',
