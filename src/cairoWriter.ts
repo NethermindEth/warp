@@ -647,8 +647,7 @@ class IdentifierWriter extends CairoASTNodeWriter {
           : [`${node.name}.len, ${node.name}.ptr`];
       } else if (
         node.parent instanceof IndexAccess &&
-        (node.vReferencedDeclaration.storageLocation === DataLocation.CallData ||
-          node.vReferencedDeclaration.storageLocation === DataLocation.Default)
+        node.vReferencedDeclaration.storageLocation === DataLocation.Default
       ) {
         return [`${node.name}.ptr`];
       }

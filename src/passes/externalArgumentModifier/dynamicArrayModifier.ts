@@ -6,6 +6,8 @@ import {
   // Block,
   // ContractDefinition,
   DataLocation,
+  Expression,
+  FunctionCall,
   // ElementaryTypeName,
   // FunctionCall,
   // FunctionCallKind,
@@ -76,40 +78,43 @@ export class DynArrayModifier extends ASTMapper {
             decl.vType.vLength === undefined,
         )
         .forEach(([varDecl, ids]) => {
-          const wasMemory = varDecl.storageLocation === DataLocation.Memory;
-          varDecl.storageLocation = DataLocation.CallData;
-          const newStructDecl = cloneASTNode(varDecl, ast);
-          newStructDecl.name = newStructDecl.name + '_dstruct';
-          newStructDecl.storageLocation = DataLocation.Default;
-          const structVarDeclStatemet = this.createStructVarDeclStatement(
-            varDecl,
-            newStructDecl,
-            node,
+          // const wasMemory = varDecl.storageLocation === DataLocation.Memory;
+          // Irrespective of the whether the storage location is Memory or Calldata a struct is created to store the len & ptr
+          const dArrayStruct = cloneASTNode(varDecl, ast);
+          dArrayStruct.name = dArrayStruct.name + '_dstruct';
+          dArrayStruct.storageLocation = DataLocation.Default;
+          const structConstructorCall = this.genStructConstructor(varDecl, node, ast);
+          const structArrayStatement = this.createVariableDeclarationStatemet(
+            dArrayStruct,
+            structConstructorCall,
             ast,
           );
-          if (wasMemory) {
+
+          if (varDecl.storageLocation === DataLocation.Memory) {
+            const allocatorFuctionCall = this.genDarrayAllocatorWriter(node, dArrayStruct, ast);
             const memoryArray = cloneASTNode(varDecl, ast);
             memoryArray.name = memoryArray.name + '_mem';
-            memoryArray.storageLocation = DataLocation.Memory;
-            const varDeclStatement = this.createDarrayAllocatorStatement(
-              node,
-              newStructDecl,
+            const memArrayStatement = this.createVariableDeclarationStatemet(
               memoryArray,
+              allocatorFuctionCall,
               ast,
             );
             ids.forEach((identifier) =>
               ast.replaceNode(identifier, createIdentifier(memoryArray, ast, DataLocation.Memory)),
             );
-            node.vBody?.insertAtBeginning(varDeclStatement);
+            node.vBody?.insertAtBeginning(memArrayStatement);
           } else {
             ids.forEach((identifier) =>
               ast.replaceNode(
                 identifier,
-                createIdentifier(newStructDecl, ast, DataLocation.CallData),
+                createIdentifier(dArrayStruct, ast, DataLocation.CallData),
               ),
             );
           }
-          node.vBody?.insertAtBeginning(structVarDeclStatemet);
+          node.vBody?.insertAtBeginning(structArrayStatement);
+          // The orignal VariableDeclaration needs to changed to having it's DataLocation in CallData
+          // otherwise a memory read is inserted in the function body.
+          varDecl.storageLocation = DataLocation.CallData;
         });
 
       ast.setContextRecursive(node);
@@ -118,42 +123,41 @@ export class DynArrayModifier extends ASTMapper {
     }
   }
 
-  private createStructVarDeclStatement(
-    dArrayVarDecl: VariableDeclaration,
-    newStructDecl: VariableDeclaration,
-    node: FunctionDefinition,
+  private createVariableDeclarationStatemet(
+    varDecl: VariableDeclaration,
+    intitalValue: Expression,
     ast: AST,
   ): VariableDeclarationStatement {
+    return new VariableDeclarationStatement(
+      ast.reserveId(),
+      '',
+      [varDecl.id],
+      [varDecl],
+      intitalValue,
+    );
+  }
+
+  private genStructConstructor(
+    dArrayVarDecl: VariableDeclaration,
+    node: FunctionDefinition,
+    ast: AST,
+  ): FunctionCall {
     const structConstructor = ast
       .getUtilFuncGen(node)
       .externalFunctions.inputs.darrayStructBuilder.gen(dArrayVarDecl, node);
-    const varDeclStatement = new VariableDeclarationStatement(
-      ast.reserveId(),
-      '',
-      [newStructDecl.id],
-      [newStructDecl],
-      structConstructor,
-    );
-    return varDeclStatement;
+    return structConstructor;
   }
 
-  private createDarrayAllocatorStatement(
+  private genDarrayAllocatorWriter(
     node: FunctionDefinition,
     darrayStruct: VariableDeclaration,
-    memoryArray: VariableDeclaration,
     ast: AST,
-  ): VariableDeclarationStatement {
-    const functionCall = ast
+  ): FunctionCall {
+    const alloctorFunctionCall = ast
       .getUtilFuncGen(node)
       .externalFunctions.inputs.darrayAllocator.gen(node, darrayStruct);
     ast.getUtilFuncGen(node).externalFunctions.inputs.darrayWriter.gen(darrayStruct);
-    const varDeclStatement = new VariableDeclarationStatement(
-      ast.reserveId(),
-      '',
-      [memoryArray.id],
-      [memoryArray],
-      functionCall,
-    );
-    return varDeclStatement;
+
+    return alloctorFunctionCall;
   }
 }
