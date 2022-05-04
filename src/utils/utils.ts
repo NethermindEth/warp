@@ -366,8 +366,7 @@ export function isExternallyVisible(node: FunctionDefinition): boolean {
   if (node instanceof CairoFunctionDefinition) {
     return (
       node.visibility === FunctionVisibility.External ||
-      node.visibility === FunctionVisibility.Public ||
-      node.splitDarray //Should find better name for this.
+      node.visibility === FunctionVisibility.Public
     );
   }
   return (
@@ -388,7 +387,7 @@ export function toSingleExpression(expressions: Expression[], ast: AST): Express
 }
 
 export function splitDarray(
-  node: FunctionDefinition,
+  scope: number,
   dArrayVarDecl: VariableDeclaration,
   ast: AST,
 ): [arrayLen: VariableDeclaration, arrayPointer: VariableDeclaration] {
@@ -399,7 +398,7 @@ export function splitDarray(
     true,
     false,
     dArrayVarDecl.name + '_len',
-    node.id,
+    scope,
     false,
     DataLocation.Default,
     StateVariableVisibility.Internal,
@@ -418,7 +417,7 @@ export function splitDarray(
     true,
     false,
     dArrayVarDecl.name,
-    node.id,
+    scope,
     false,
     DataLocation.CallData,
     StateVariableVisibility.Internal,
@@ -429,3 +428,11 @@ export function splitDarray(
   );
   return [arrayLen, arrayPointer];
 }
+
+// export function isDynArray(node: Identifier): boolean {
+//   return (
+//     node.vReferencedDeclaration instanceof VariableDeclaration &&
+//     node.vReferencedDeclaration.vType instanceof ArrayTypeName &&
+//     node.vReferencedDeclaration.vType.vLength === undefined
+//   );
+// }

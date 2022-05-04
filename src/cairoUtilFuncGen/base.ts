@@ -15,6 +15,11 @@ export type CairoFunction = {
   code: string;
 };
 
+export type CairoStructConstructor = {
+  name: string;
+  code: string;
+};
+
 /*
   Base class for all specific cairo function generators
   These exist for cases where a transform we need is too specific to cairo to
@@ -54,6 +59,15 @@ export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
 
   getGeneratedCode(): string {
     return [...this.generatedFunctions.values()].map((func) => func.code).join('\n\n');
+  }
+}
+
+export class StringIndexedStructGen extends CairoUtilFuncGenBase {
+  protected generatedStructDefs: Map<string, CairoStructConstructor> = new Map();
+  protected generatedStructDefNodes: Map<string, StructDefinition> = new Map();
+
+  getGeneratedCode(): string {
+    return [...this.generatedStructDefs.values()].map((func) => func.code).join('\n\n');
   }
 }
 

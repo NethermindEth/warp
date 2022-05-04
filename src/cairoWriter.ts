@@ -13,6 +13,7 @@ import {
   Continue,
   ContractDefinition,
   ContractKind,
+  DataLocation,
   DoWhileStatement,
   ElementaryTypeName,
   ElementaryTypeNameExpression,
@@ -72,7 +73,12 @@ import {
   WhileStatement,
 } from 'solc-typed-ast';
 import { AST } from './ast/ast';
-import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
+import {
+  CairoAssert,
+  CairoContract,
+  CairoFunctionDefinition,
+  CairoStructDefinitionStub,
+} from './ast/cairoNodes';
 import { printNode } from './utils/astPrinter';
 import { CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
@@ -195,10 +201,14 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
 
     const documentation = getDocumentation(node.documentation, writer);
     const declarations = node.vDeclarations.map((value) => writer.write(value));
-    if (node.vDeclarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
+    if (
+      node.vInitialValue instanceof FunctionCall &&
+      node.vInitialValue.kind === FunctionCallKind.StructConstructorCall
+    ) {
+      return [`tempvar ${declarations.join(', ')} = ${writer.write(node.vInitialValue)}`];
+    } else if (node.vDeclarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
       return [`let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)}`];
     }
-
     return [documentation, `let ${declarations[0]} = ${writer.write(node.vInitialValue)}`];
   }
 }
@@ -392,7 +402,7 @@ class ParameterListWriter extends CairoASTNodeWriter {
         decl.name !== undefined &&
         isExternallyVisible(node.parent)
       ) {
-        return splitDarray(node.parent, decl, this.ast);
+        return splitDarray(node.id, decl, this.ast);
       }
       return decl;
     });
@@ -501,6 +511,12 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
       }
     }
     return null;
+  }
+}
+
+class CairoStructDefinitionStubWriter extends CairoASTNodeWriter {
+  writeInner(_: ASTNode, __: ASTWriter): SrcDesc {
+    return [''];
   }
 }
 
@@ -617,14 +633,25 @@ class IdentifierWriter extends CairoASTNodeWriter {
     // This conditional is placed here to split the Dynamic Array into its corresponding length and pointer.
     // This is needed for CairoUtilGen functions that load the dArray into the warp memory system.
     if (
-      node.parent instanceof FunctionCall &&
-      node.parent.vReferencedDeclaration instanceof CairoFunctionDefinition &&
-      node.parent.vReferencedDeclaration.splitDarray &&
       node.vReferencedDeclaration instanceof VariableDeclaration &&
       node.vReferencedDeclaration.vType instanceof ArrayTypeName &&
       node.vReferencedDeclaration.vType.vLength === undefined
     ) {
-      return [`${node.name}_len, ${node.name}`];
+      if (
+        node.parent instanceof FunctionCall &&
+        (node.vReferencedDeclaration.storageLocation === DataLocation.CallData ||
+          node.vReferencedDeclaration.storageLocation === DataLocation.Default)
+      ) {
+        return node.parent.kind == FunctionCallKind.StructConstructorCall
+          ? [`${node.name}_len, ${node.name}`]
+          : [`${node.name}.len, ${node.name}.ptr`];
+      } else if (
+        node.parent instanceof IndexAccess &&
+        (node.vReferencedDeclaration.storageLocation === DataLocation.CallData ||
+          node.vReferencedDeclaration.storageLocation === DataLocation.Default)
+      ) {
+        return [`${node.name}.ptr`];
+      }
     }
     return [`${node.name}`];
   }
@@ -771,6 +798,7 @@ export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
     [CairoAssert, new CairoAssertWriter(ast, throwOnUnimplemented)],
     [CairoContract, new CairoContractWriter(ast, throwOnUnimplemented)],
     [CairoFunctionDefinition, new CairoFunctionDefinitionWriter(ast, throwOnUnimplemented)],
+    [CairoStructDefinitionStub, new CairoStructDefinitionStubWriter(ast, throwOnUnimplemented)],
     [Conditional, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [Continue, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [DoWhileStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],

@@ -8,30 +8,28 @@ import {
   Identifier,
 } from 'solc-typed-ast';
 import assert from 'assert';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
 
-import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { StringIndexedFuncGen } from '../base';
-import { uint256 } from '../../warplib/utils';
-import { createIdentifier } from '../../utils/nodeTemplates';
-import { cloneASTNode } from '../../utils/cloning';
+import { CairoType, TypeConversionContext } from '../../../utils/cairoTypeSystem';
+import { StringIndexedFuncGen } from '../../base';
+import { uint256 } from '../../../warplib/utils';
+import { createIdentifier } from '../../../utils/nodeTemplates';
+import { cloneASTNode } from '../../../utils/cloning';
 
 const INDENT = ' '.repeat(4);
 
-export class ExternalDarrayAllocator extends StringIndexedFuncGen {
+export class ExternalDynArrayAllocator extends StringIndexedFuncGen {
   gen(node: FunctionDefinition, dArrayVarDecl: VariableDeclaration): FunctionCall {
     assert(dArrayVarDecl.vType !== undefined);
     const functionInputs: Identifier[] = [createIdentifier(dArrayVarDecl, this.ast)];
     const name = this.getOrCreate(dArrayVarDecl);
-
     const functionStub = createCairoFunctionStub(
       name,
-      [['darray', cloneASTNode(dArrayVarDecl.vType, this.ast), DataLocation.Memory]],
+      [['dynarray', cloneASTNode(dArrayVarDecl.vType, this.ast), DataLocation.Memory]],
       [['dynarray_loc', cloneASTNode(dArrayVarDecl.vType, this.ast), DataLocation.Memory]],
       ['syscall_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
       node,
-      true,
     );
     return createCallToFunction(functionStub, [...functionInputs], this.ast);
   }
@@ -62,7 +60,7 @@ export class ExternalDarrayAllocator extends StringIndexedFuncGen {
         `${INDENT}let (dynarray_loc) = wm_new(array_len_uint256, ${uint256(
           BigInt(elementCairoType.width),
         )})`,
-        `${INDENT}wm_darray_write_${key}(dynarray_loc+2, array_len, array_pointer, ${elementCairoType.width})`,
+        `${INDENT}wm_dynarray_write_${key}(dynarray_loc+2, array_len, array_pointer, ${elementCairoType.width})`,
         `${INDENT}return (dynarray_loc)`,
         `end`,
       ].join('\n'),

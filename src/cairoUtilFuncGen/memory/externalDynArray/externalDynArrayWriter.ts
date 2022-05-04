@@ -1,12 +1,12 @@
 import { VariableDeclaration, ArrayTypeName, typeNameToTypeNode } from 'solc-typed-ast';
 import assert from 'assert';
 
-import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { StringIndexedFuncGen } from '../base';
+import { CairoType, TypeConversionContext } from '../../../utils/cairoTypeSystem';
+import { StringIndexedFuncGen } from '../../base';
 
 const INDENT = ' '.repeat(4);
 
-export class ExternalDarrayWriter extends StringIndexedFuncGen {
+export class ExternalDynArrayWriter extends StringIndexedFuncGen {
   gen(arrayPointer: VariableDeclaration): void {
     this.getOrCreate(arrayPointer);
   }
@@ -23,7 +23,7 @@ export class ExternalDarrayWriter extends StringIndexedFuncGen {
     if (existing != undefined) {
       return;
     }
-    const name = `wm_darray_write_${key}`;
+    const name = `wm_dynarray_write_${key}`;
     this.generatedFunctions.set(key, {
       name: name,
       code: [
