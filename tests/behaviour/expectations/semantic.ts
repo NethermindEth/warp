@@ -83,7 +83,9 @@ function isValidTestName(testFileName: string) {
 // This needs to be a reduce instead of filter because of the type system
 const validTests = Object.entries(tests).reduce(
   (tests: [string, ITestCalldata[]][], [f, v]) =>
-    v !== null && isValidTestName(f) ? tests.concat([[f, v]]) : tests,
+    v !== null /* && f === dummyName */ && v.some((val) => val.signature.startsWith('constructor')) // && isValidTestName(f)
+      ? tests.concat([[f, v]])
+      : tests,
   [],
 );
 
@@ -159,23 +161,29 @@ function transcodeTest(
   if (signature === '' || signature === '()') {
     throw new InvalidTestError('Fallback functions are not supported');
   }
-  if (signature === 'constructor()') {
-    throw new NotYetSuportedTestCaseError('Constructors not supported in tests yet');
-  }
 
   const [functionName] = signature.split('(');
 
   // Find the function definition in the ast
-  const defs = Array.from(resolveAny(functionName, contractDef, compilerVersion, true)).filter(
-    (def) => {
-      if (def instanceof FunctionDefinition) {
-        return def.canonicalSignature(ABIEncoderVersion.V2) === signature;
-      } else if (def instanceof VariableDeclaration) {
-        return def.getterCanonicalSignature(ABIEncoderVersion.V2) === signature;
-      }
-      return false;
-    },
-  ) as (FunctionDefinition | VariableDeclaration)[];
+  let defs: (FunctionDefinition | VariableDeclaration)[];
+  if (functionName !== 'constructor') {
+    defs = Array.from(resolveAny(functionName, contractDef, compilerVersion, true)).filter(
+      (def) => {
+        if (def instanceof FunctionDefinition) {
+          return def.canonicalSignature(ABIEncoderVersion.V2) === signature;
+        } else if (def instanceof VariableDeclaration) {
+          return def.getterCanonicalSignature(ABIEncoderVersion.V2) === signature;
+        }
+        return false;
+      },
+    ) as (FunctionDefinition | VariableDeclaration)[];
+  } else {
+    if (contractDef.vConstructor === undefined) {
+      throw new NotSupportedYetError('Undefined constructor not supported yet');
+    }
+    defs = [contractDef.vConstructor];
+  }
+
   if (defs.length === 0) {
     throw new InvalidTestError(
       `No function definition found for test case ${signature} in the ast.\n` +
@@ -228,12 +236,19 @@ function transcodeTest(
       ? funcDef.vReturnParameters.vParameters.map((cd) => getNodeType(cd, compilerVersion))
       : funcDef.getterFunType().returns;
 
+  let removePrefix = 10;
+  if (functionName === 'constructor') {
+    removePrefix = 2;
+    funcAbi.outputs = [];
+  }
+
   const input = encode(
     funcAbi.inputs,
     inputTypeNodes,
-    '0x' + callData.substring(10),
+    '0x' + callData.substring(removePrefix),
     compilerVersion,
   );
+
   const output = failure
     ? null
     : encode(funcAbi.outputs, outputTypeNodes, expectations, compilerVersion);
@@ -327,7 +342,6 @@ export function encodeValue(tp: TypeNode, value: SolValue, compilerVersion: stri
       );
     } else if (definition instanceof StructDefinition) {
       if (!(value instanceof Array)) {
-        console.log(typeof value);
         throw new Error(`Can't encode ${value} as structType`);
       }
       const membersEncoding: string[][] = [];
