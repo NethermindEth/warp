@@ -1,5 +1,5 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
-import { TranspilationOptions } from '.';
+import { PrintOptions, TranspilationOptions } from '.';
 import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
@@ -52,7 +52,7 @@ import { printCompileErrors, runSanityCheck } from './utils/utils';
 
 type CairoSource = [file: string, source: string];
 
-export function transpile(ast: AST, options: TranspilationOptions): CairoSource[] {
+export function transpile(ast: AST, options: TranspilationOptions & PrintOptions): CairoSource[] {
   const cairoAST = applyPasses(ast, options);
   const writer = new ASTWriter(
     CairoASTMapping(cairoAST, options.strict ?? false),
@@ -62,7 +62,7 @@ export function transpile(ast: AST, options: TranspilationOptions): CairoSource[
   return cairoAST.roots.map((sourceUnit) => [sourceUnit.absolutePath, writer.write(sourceUnit)]);
 }
 
-export function transform(ast: AST, options: TranspilationOptions): CairoSource[] {
+export function transform(ast: AST, options: TranspilationOptions & PrintOptions): CairoSource[] {
   const cairoAST = applyPasses(ast, options);
   const writer = new ASTWriter(
     CairoToSolASTWriterMapping(!!options.stubs),
@@ -75,7 +75,7 @@ export function transform(ast: AST, options: TranspilationOptions): CairoSource[
   ]);
 }
 
-function applyPasses(ast: AST, options: TranspilationOptions): AST {
+function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Ss', SourceUnitSplitter],
     ['Idi', ImportDirectiveIdentifier],

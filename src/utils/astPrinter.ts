@@ -7,7 +7,7 @@ import {
   TypeNameType,
   TypeNode,
 } from 'solc-typed-ast';
-import { AnalyseOptions } from '..';
+import { PrintOptions } from '..';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { cyan, underline } from './formatting';
 import { extractProperty } from './utils';
@@ -29,7 +29,7 @@ export class ASTPrinter {
   idsToHighlight: number[] = [];
   printStubs = true;
 
-  applyOptions(options: AnalyseOptions) {
+  applyOptions(options: PrintOptions) {
     options.highlight?.forEach((id) => this.highlightId(parseInt(id)));
     this.printStubs = !!options.stubs;
   }
