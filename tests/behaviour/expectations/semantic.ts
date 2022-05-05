@@ -25,6 +25,10 @@ import {
   UserDefinedValueTypeDefinition,
   StructDefinition,
   EnumDefinition,
+  FunctionKind,
+  FunctionVisibility,
+  FunctionStateMutability,
+  ParameterList,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import * as path from 'path';
@@ -41,6 +45,7 @@ import { AsyncTest, Expect } from './types';
 import { error } from '../../../src/utils/formatting';
 import { notNull } from '../../../src/utils/typeConstructs';
 import assert from 'assert';
+import { AST } from '../../../src/ast/ast';
 
 // this format will cause problems with overloading
 export interface Parameter {
@@ -68,7 +73,6 @@ type SolValue = string | SolValue[] | { [key: string]: SolValue };
 //@ts-ignore: web3-eth-abi has their exports wrong
 const abiCoder: AbiCoder = new AbiCoder.constructor();
 const uint128 = BigInt('0x100000000000000000000000000000000');
-const uint8 = BigInt('0x100');
 
 // ----------------------- Gather all the tests ------------------------------
 // This could benefit from some parallelism
@@ -143,7 +147,7 @@ async function transcodeTests(
   return expectations
     .map((test) => {
       try {
-        return transcodeTest(abi, contractDef, test, compilerVersion);
+        return transcodeTest(abi, contractDef, test, compilerVersion, ast);
       } catch (e) {
         console.log(error(`Failed to transcode ${test.signature}: ${e}`));
         return null;
@@ -157,6 +161,7 @@ function transcodeTest(
   contractDef: ContractDefinition,
   { signature, callData, expectations, failure }: ITestCalldata,
   compilerVersion: string,
+  ast: AST,
 ): Expect {
   if (signature === '' || signature === '()') {
     throw new InvalidTestError('Fallback functions are not supported');
@@ -179,9 +184,27 @@ function transcodeTest(
     ) as (FunctionDefinition | VariableDeclaration)[];
   } else {
     if (contractDef.vConstructor === undefined) {
-      throw new NotSupportedYetError('Undefined constructor not supported yet');
+      // Need to create a default constructor and its abi
+      abi.push({ name: '', inputs: [], outputs: [] });
+      defs = [
+        new FunctionDefinition(
+          ast.reserveId(),
+          '',
+          contractDef.scope,
+          FunctionKind.Constructor,
+          '',
+          false,
+          FunctionVisibility.Public,
+          FunctionStateMutability.NonPayable,
+          true,
+          new ParameterList(ast.reserveId(), '', []),
+          new ParameterList(ast.reserveId(), '', []),
+          [],
+        ),
+      ];
+    } else {
+      defs = [contractDef.vConstructor];
     }
-    defs = [contractDef.vConstructor];
   }
 
   if (defs.length === 0) {
