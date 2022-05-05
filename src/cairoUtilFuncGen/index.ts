@@ -15,7 +15,7 @@ import { DynArrayPopGen } from './storage/dynArrayPop';
 import { DynArrayPushWithArgGen } from './storage/dynArrayPushWithArg';
 import { DynArrayPushWithoutArgGen } from './storage/dynArrayPushWithoutArg';
 import { ExternalDynArrayAllocator } from './memory/externalDynArray/externalDynArrayAlloc';
-import { ExternalDynArrayStructBuilder } from './memory/externalDynArray/externalDynArrayStructBuilder';
+import { ExternalDynArrayStructConstructor } from './memory/externalDynArray/externalDynArrayStructConstructor';
 import { ExternalDynArrayWriter } from './memory/externalDynArray/externalDynArrayWriter';
 import { MappingIndexAccessGen } from './storage/mappingIndexAccess';
 import { StorageStaticArrayIndexAccessGen } from './storage/staticArrayIndexAccess';
@@ -53,7 +53,7 @@ export class CairoUtilFuncGen {
   externalFunctions: {
     inputsChecks: { enum: EnumBoundCheckGen };
     inputs: {
-      darrayStructBuilder: ExternalDynArrayStructBuilder;
+      darrayStructConstructor: ExternalDynArrayStructConstructor;
       darrayAllocator: ExternalDynArrayAllocator;
       darrayWriter: ExternalDynArrayWriter;
     };
@@ -95,7 +95,7 @@ export class CairoUtilFuncGen {
     this.externalFunctions = {
       inputsChecks: { enum: new EnumBoundCheckGen(ast) },
       inputs: {
-        darrayStructBuilder: new ExternalDynArrayStructBuilder(ast),
+        darrayStructConstructor: new ExternalDynArrayStructConstructor(ast),
         darrayAllocator: new ExternalDynArrayAllocator(ast),
         darrayWriter: new ExternalDynArrayWriter(ast),
       },

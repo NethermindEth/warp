@@ -15,7 +15,7 @@ export type CairoFunction = {
   code: string;
 };
 
-export type CairoStructConstructor = {
+export type CairoStructDef = {
   name: string;
   code: string;
 };
@@ -63,7 +63,7 @@ export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
 }
 
 export class StringIndexedStructGen extends CairoUtilFuncGenBase {
-  protected generatedStructDefs: Map<string, CairoStructConstructor> = new Map();
+  protected generatedStructDefs: Map<string, CairoStructDef> = new Map();
   protected generatedStructDefNodes: Map<string, StructDefinition> = new Map();
 
   getGeneratedCode(): string {

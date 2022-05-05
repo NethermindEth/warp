@@ -639,20 +639,6 @@ class IndexAccessWriter extends CairoASTNodeWriter {
 }
 class IdentifierWriter extends CairoASTNodeWriter {
   writeInner(node: Identifier, _: ASTWriter): SrcDesc {
-    // This conditional is placed here to split the Dynamic Array into its corresponding length and pointer.
-    // This is needed for CairoUtilGen functions that load the dArray into the warp memory system.
-    // if (
-    //   node.vReferencedDeclaration instanceof VariableDeclaration &&
-    //   node.vReferencedDeclaration.vType instanceof ArrayTypeName &&
-    //   node.vReferencedDeclaration.vType.vLength === undefined
-    // ) {else if (
-    //     // The only thing that remain an index access are things that are indexed accessed from calldata, the rest will be transformed into functioncall
-    //     node.parent instanceof IndexAccess &&
-    //     node.vReferencedDeclaration.storageLocation === DataLocation.Default
-    //   ) {
-    //     return [`${node.name}.ptr`];
-    //   }
-    // }
     return [`${node.name}`];
   }
 }

@@ -551,6 +551,17 @@ export const expectations = flatten(
         new Dir('external_function_inputs', [
           File.Simple('dynamic_array_return_index', [
             new Expect(
+              'testing that dynamic memory array as calldata are tranformed and returned correctly',
+              [
+                [
+                  'dArrayExternal',
+                  ['3', '1', '11', '111', '3', '3', '30', '33', '330', '333', '3330'],
+                  ['333', '3440'],
+                  '0',
+                ],
+              ],
+            ),
+            new Expect(
               'testing that dynamic memory array is written to memory and index is returned in external function',
               [
                 [

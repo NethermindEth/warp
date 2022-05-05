@@ -17,7 +17,7 @@ import { StringIndexedStructGen } from '../../base';
 
 const INDENT = ' '.repeat(4);
 
-export class ExternalDynArrayStructBuilder extends StringIndexedStructGen {
+export class ExternalDynArrayStructConstructor extends StringIndexedStructGen {
   gen(dArrayVarDecl: VariableDeclaration, node: FunctionDefinition): FunctionCall {
     assert(dArrayVarDecl.vType !== undefined);
 

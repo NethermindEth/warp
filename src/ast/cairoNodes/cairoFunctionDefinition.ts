@@ -23,6 +23,7 @@ import { Implicits } from '../../utils/implicits';
 export class CairoFunctionDefinition extends FunctionDefinition {
   implicits: Set<Implicits>;
   isStub: boolean;
+
   constructor(
     id: number,
     src: string,

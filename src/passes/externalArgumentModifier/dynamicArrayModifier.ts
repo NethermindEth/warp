@@ -19,24 +19,18 @@ import { collectUnboundVariables } from '../loopFunctionaliser/utils';
 
 export class DynArrayModifier extends ASTMapper {
   /*
-  This pass will generate the functions that are needed to load externally passed dynamic memory arrays into our WARP memory system.
+  This pass will generate the functions that are needed to load externally dynamic memory arrays into our WARP memory system.
 
-  To get the dArray into the memory system a VariableDeclarationStatement is placed at the beginning of the function block.
-  In the VariableDeclarationStatment there is a new Variable declared that has the same name of the original dArray with the suffix _mem 
-  and on the right of the assignment is a CarioUtil functionCall.
-  
-  After this VariableDeclarationStatement is inserted all the Identifiers that reference the old dArray are replaced with those that 
-  reference the new dArray with _mem suffix.
+  Irrespective of whether a dynArray is declared to be in Memory or CallData the first step is the same. The dynArray is passed to a StructConstructor
+  that will have 1 member. This structConstructor references a stub which will not be written.
+  This is to pass the sanity check, but when it is written in the CairoWriter it will be a struct with 2 members,
+  the len and pointer (the same way that cairo handles external DynArrays). When the dynarray identifier is written in the CarioWriter it
+  will also be split into its length and pointer members.
 
-  The old dArray is not split into the two seperate VariableDeclarations that Cairo expects, instead it is kept as a single node and
-  then when the CairoWriter is writing out the Identifier it will be split in two.
+  If the dynArray is in memory the struct will then be passed into the wm_dynarray_alloc which will write the dynarray to memory using the
+  struct members.
 
-  before pass:
-  function test(uint[] memory x, uint8[] calldata y, uint[] memory z) pure external returns (uint) {
-    return x[0] + y[0] + z[0];
-  }
-
-  after pass:
+  If the dynArray is CallData used further in the function then the ptr member of the struct will be used as the BaseExpression in any IndexAccess.
   */
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
@@ -125,7 +119,7 @@ export class DynArrayModifier extends ASTMapper {
   ): FunctionCall {
     const structConstructor = ast
       .getUtilFuncGen(node)
-      .externalFunctions.inputs.darrayStructBuilder.gen(dArrayVarDecl, node);
+      .externalFunctions.inputs.darrayStructConstructor.gen(dArrayVarDecl, node);
     return structConstructor;
   }
 

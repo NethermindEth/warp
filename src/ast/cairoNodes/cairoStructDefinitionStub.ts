@@ -1,11 +1,14 @@
 import { StructDefinition, VariableDeclaration } from 'solc-typed-ast';
 
 /*
- An extension of StructDefinition. When handeling dArrays in external functions they are
- represented as 2 seperate variables where in solidity they are represented as 1. This
- struct definition will have two fields, but only 1 node when reperesented in the AST.
- Therefor we need this struct defintion to be a stub since we want it to be in the AST,
- but when written we want it to accept two seperate variables.
+ An extension of StructDefinition. This is used for handelling dynArrays in external functions. 
+ The length and pointer are stored in this sub-class. Only dynArrays repersented as structs should 
+ use this definition, since there are coniditionals in the CairoWriter that make sure that a single 
+ dynArray Identifier is written as 2 seperate Identifiers  when passed to StructConstructor that
+ references this subclass of StructDefintion. This class has to be used instead of a CairoFunctionDefintion 
+ since the value returned from a FunctionCall.kind === FunctionCall will have the value unpacked 
+ with brackets, but unpacking a struct returned from a StructConstructor is not a valid Cairo Statement 
+ and the program will not compile.
 */
 
 export class CairoStructDefinitionStub extends StructDefinition {
@@ -19,7 +22,7 @@ export class CairoStructDefinitionStub extends StructDefinition {
     members: Iterable<VariableDeclaration>,
     isStub: boolean,
     namelocation?: string,
-    raw?: any,
+    raw?: unknown,
   ) {
     super(id, src, name, scope, visibility, members, namelocation, raw);
     this.isStub = isStub;
