@@ -2,6 +2,7 @@ import {
   ArrayTypeName,
   ElementaryTypeName,
   FunctionCall,
+  FunctionType,
   getNodeType,
   Identifier,
   Mapping,
@@ -16,6 +17,7 @@ import assert from 'assert';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { TranspileFailedError } from '../utils/errors';
+import { generateExpressionTypeString } from '../utils/getTypeString';
 
 class UserDefinedValueTypeDefinitionEliminator extends ASTMapper {
   visitUserDefinedValueTypeDefinition(node: UserDefinedValueTypeDefinition, _ast: AST): void {
@@ -45,20 +47,11 @@ export class UserDefinedTypesConverter extends ASTMapper {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (typeNode instanceof UserDefinedType) {
       if (!(typeNode.definition instanceof UserDefinedValueTypeDefinition)) return;
-
-      ast.replaceNode(
-        node,
-        new Identifier(
-          node.id,
-          node.src,
-          typeNode.definition.underlyingType.typeString,
-          node.name,
-          node.referencedDeclaration,
-          node.raw,
-        ),
-      );
+      node.typeString = typeNode.definition.underlyingType.typeString;
+    } else if (typeNode instanceof FunctionType) {
+      const newTypeString: string = generateExpressionTypeString(typeNode);
+      node.typeString = newTypeString;
     }
-    // else if (typeNode instanceof FunctionType) {} TODO
   }
 
   visitMapping(node: Mapping, ast: AST): void {
