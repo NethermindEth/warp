@@ -7,7 +7,8 @@ import {
   TypeNameType,
   TypeNode,
 } from 'solc-typed-ast';
-import { AnalyseOptions } from '..';
+import { PrintOptions } from '..';
+import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { cyan, underline } from './formatting';
 import { extractProperty } from './utils';
 
@@ -26,9 +27,11 @@ type PropSearch = {
 export class ASTPrinter {
   propPrinters: PropPrinter[] = [];
   idsToHighlight: number[] = [];
+  printStubs = true;
 
-  applyOptions(options: AnalyseOptions) {
+  applyOptions(options: PrintOptions) {
     options.highlight?.forEach((id) => this.highlightId(parseInt(id)));
+    this.printStubs = !!options.stubs;
   }
 
   lookFor(propSearch: string | PropSearch): ASTPrinter {
@@ -69,16 +72,20 @@ export class ASTPrinter {
       })
       .join('');
 
-    const subtrees = root.children.map((child, index, children) =>
-      this.print(child)
-        .split('\n')
-        .map((line, lineIndex) => {
-          if (lineIndex === 0) return `\n+-${line}`;
-          else if (index === children.length - 1) return `\n  ${line}`;
-          else return `\n| ${line}`;
-        })
-        .join(''),
-    );
+    const subtrees = root.children
+      .filter(
+        (child) => this.printStubs || !(child instanceof CairoFunctionDefinition && child.isStub),
+      )
+      .map((child, index, children) =>
+        this.print(child)
+          .split('\n')
+          .map((line, lineIndex) => {
+            if (lineIndex === 0) return `\n+-${line}`;
+            else if (index === children.length - 1) return `\n  ${line}`;
+            else return `\n| ${line}`;
+          })
+          .join(''),
+      );
 
     const printedRoot = this.idsToHighlight.includes(root.id)
       ? cyan(underline(printNode(root)))

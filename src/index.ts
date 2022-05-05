@@ -18,11 +18,15 @@ export type CompilationOptions = {
 
 export type TranspilationOptions = {
   checkTrees?: boolean;
-  highlight?: string[];
   order?: string;
   printTrees?: boolean;
   strict?: boolean;
   until?: string;
+};
+
+export type PrintOptions = {
+  highlight?: string[];
+  stubs?: boolean;
 };
 
 export type OutputOptions = {
@@ -32,7 +36,7 @@ export type OutputOptions = {
   result: boolean;
 };
 
-type CliOptions = CompilationOptions & TranspilationOptions & OutputOptions;
+type CliOptions = CompilationOptions & TranspilationOptions & PrintOptions & OutputOptions;
 
 const program = new Command();
 
@@ -46,6 +50,7 @@ program
   .option('-o, --output-dir <path>', undefined, 'warp_output')
   .option('--print-trees')
   .option('--no-result')
+  .option('--no-stubs')
   .option('--strict')
   // Stops transpilation after the specified pass
   .option('--until <pass>')
@@ -70,6 +75,7 @@ program
   .option('-o, --output-dir <path>')
   .option('--print-trees')
   .option('--no-result')
+  .option('--no-stubs')
   .option('--strict')
   .option('--until <pass>')
   .option('--no-warnings')
@@ -99,15 +105,10 @@ program
     ),
   );
 
-export type AnalyseOptions = {
-  highlight?: string[];
-};
-
 program
   .command('analyse <file>')
   .option('--highlight <ids...>')
-  .option('--typeNodes')
-  .action((file: string, options: AnalyseOptions) => analyseSol(file, options));
+  .action((file: string, options: PrintOptions) => analyseSol(file, options));
 
 export interface IOptionalNetwork {
   network?: string;
