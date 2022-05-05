@@ -98,6 +98,8 @@ export class IdentifierMangler extends ASTMapper {
     node.vMembers.forEach((m) => this.mangleVariableDeclaration(m));
   }
   mangleFunctionDefinition(node: FunctionDefinition): void {
+    if (node.isConstructor) return;
+
     // TODO switch based on type
     switch (node.visibility) {
       case FunctionVisibility.External:

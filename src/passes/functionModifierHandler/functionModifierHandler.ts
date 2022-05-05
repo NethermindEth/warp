@@ -35,18 +35,14 @@ export class FunctionModifierHandler extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (node.vModifiers.length === 0) return this.commonVisit(node, ast);
 
-    let functionToCall = this.extractOriginalFunction(node, ast);
-    node.vModifiers
-      .slice()
-      .reverse()
-      .forEach((modInvocation) => {
-        const modifier = modInvocation.vModifier;
-        assert(
-          modifier instanceof ModifierDefinition,
-          `Unexpected call to contract ${modifier.id} constructor`,
-        );
-        functionToCall = this.getFunctionFromModifier(node, modifier, functionToCall, ast);
-      });
+    const functionToCall = node.vModifiers.reduceRight((acc, modInvocation) => {
+      const modifier = modInvocation.vModifier;
+      assert(
+        modifier instanceof ModifierDefinition,
+        `Unexpected call to contract ${modifier.id} constructor`,
+      );
+      return this.getFunctionFromModifier(node, modifier, acc, ast);
+    }, this.extractOriginalFunction(node, ast));
 
     const functionArgs = node.vParameters.vParameters.map((v) => createIdentifier(v, ast));
     const modArgs = node.vModifiers
@@ -111,7 +107,7 @@ export class FunctionModifierHandler extends ASTMapper {
       node.virtual,
       FunctionVisibility.Internal,
       node.stateMutability,
-      node.isConstructor,
+      false,
       createParameterList(
         [...modifierClone.vParameters.vParameters, ...functionParams],
         ast,

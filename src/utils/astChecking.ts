@@ -678,6 +678,17 @@ function checkIdNonNegative(node: ASTNode) {
   node.children.forEach((child) => checkIdNonNegative(child));
 }
 
+function checkOnlyConstructorsMarkedAsConstructors(nodes: FunctionDefinition[]) {
+  nodes.forEach((func) => {
+    if ((func.name === '') != func.isConstructor)
+      throw new InsaneASTError(
+        `${printNode(func)} ${func.name} is incorrectly marked as ${
+          func.isConstructor ? '' : 'not '
+        } a constructor`,
+      );
+  });
+}
+
 /**
  * Check that a single SourceUnit has a sane structure. This checks that:
  *  - All reachable nodes belong to the same context, have their parent/sibling set correctly.
@@ -699,6 +710,7 @@ export function isSane(ast: AST): boolean {
       checkSane(root, ast.context);
       checkContextsDefined(root);
       checkIdNonNegative(root);
+      checkOnlyConstructorsMarkedAsConstructors(root.getChildrenByType(FunctionDefinition));
     } catch (e) {
       if (e instanceof InsaneASTError) {
         console.error(e);
