@@ -33,7 +33,7 @@ import {
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import * as path from 'path';
 import tests from '../test_calldata';
-import { InvalidTestError, NotYetSuportedTestCaseError } from '../errors';
+import { InvalidTestError } from '../errors';
 
 import whiteList from './semantic_whitelist';
 
@@ -87,9 +87,7 @@ function isValidTestName(testFileName: string) {
 // This needs to be a reduce instead of filter because of the type system
 const validTests = Object.entries(tests).reduce(
   (tests: [string, ITestCalldata[]][], [f, v]) =>
-    v !== null /* && f === dummyName */ && v.some((val) => val.signature.startsWith('constructor')) // && isValidTestName(f)
-      ? tests.concat([[f, v]])
-      : tests,
+    v !== null && isValidTestName(f) ? tests.concat([[f, v]]) : tests,
   [],
 );
 
