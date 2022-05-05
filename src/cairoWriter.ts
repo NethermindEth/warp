@@ -625,6 +625,15 @@ class IndexAccessWriter extends CairoASTNodeWriter {
     assert(node.vIndexExpression !== undefined);
     const baseWritten = writer.write(node.vBaseExpression);
     const indexWritten = writer.write(node.vIndexExpression);
+    if (
+      node.vBaseExpression instanceof Identifier &&
+      node.vBaseExpression.vReferencedDeclaration instanceof VariableDeclaration &&
+      node.vBaseExpression.vReferencedDeclaration.storageLocation === DataLocation.Default &&
+      node.vBaseExpression.vReferencedDeclaration.vType instanceof ArrayTypeName &&
+      node.vBaseExpression.vReferencedDeclaration.vType.vLength === undefined
+    ) {
+      return [`${baseWritten}.ptr[${indexWritten}]`];
+    }
     return [`${baseWritten}[${indexWritten}]`];
   }
 }
@@ -632,26 +641,18 @@ class IdentifierWriter extends CairoASTNodeWriter {
   writeInner(node: Identifier, _: ASTWriter): SrcDesc {
     // This conditional is placed here to split the Dynamic Array into its corresponding length and pointer.
     // This is needed for CairoUtilGen functions that load the dArray into the warp memory system.
-    if (
-      node.vReferencedDeclaration instanceof VariableDeclaration &&
-      node.vReferencedDeclaration.vType instanceof ArrayTypeName &&
-      node.vReferencedDeclaration.vType.vLength === undefined
-    ) {
-      if (
-        node.parent instanceof FunctionCall &&
-        (node.vReferencedDeclaration.storageLocation === DataLocation.CallData ||
-          node.vReferencedDeclaration.storageLocation === DataLocation.Default)
-      ) {
-        return node.parent.kind == FunctionCallKind.StructConstructorCall
-          ? [`${node.name}_len, ${node.name}`]
-          : [`${node.name}.len, ${node.name}.ptr`];
-      } else if (
-        node.parent instanceof IndexAccess &&
-        node.vReferencedDeclaration.storageLocation === DataLocation.Default
-      ) {
-        return [`${node.name}.ptr`];
-      }
-    }
+    // if (
+    //   node.vReferencedDeclaration instanceof VariableDeclaration &&
+    //   node.vReferencedDeclaration.vType instanceof ArrayTypeName &&
+    //   node.vReferencedDeclaration.vType.vLength === undefined
+    // ) {else if (
+    //     // The only thing that remain an index access are things that are indexed accessed from calldata, the rest will be transformed into functioncall
+    //     node.parent instanceof IndexAccess &&
+    //     node.vReferencedDeclaration.storageLocation === DataLocation.Default
+    //   ) {
+    //     return [`${node.name}.ptr`];
+    //   }
+    // }
     return [`${node.name}`];
   }
 }
@@ -677,9 +678,10 @@ class FunctionCallWriter extends CairoASTNodeWriter {
         }
         return [`${func}(${args})`];
       }
-
       case FunctionCallKind.StructConstructorCall:
-        return [`${func}(${args})`];
+        return node.vReferencedDeclaration instanceof CairoStructDefinitionStub
+          ? [`${func}(${args}_len, ${args})`]
+          : [`${func}(${args})`];
 
       case FunctionCallKind.TypeConversion: {
         const arg = node.vArguments[0];

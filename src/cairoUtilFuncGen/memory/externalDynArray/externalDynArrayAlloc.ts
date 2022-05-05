@@ -6,6 +6,7 @@ import {
   typeNameToTypeNode,
   DataLocation,
   Identifier,
+  StructDefinition,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
@@ -15,14 +16,19 @@ import { StringIndexedFuncGen } from '../../base';
 import { uint256 } from '../../../warplib/utils';
 import { createIdentifier } from '../../../utils/nodeTemplates';
 import { cloneASTNode } from '../../../utils/cloning';
+import { CairoStructDefinitionStub } from '../../../ast/cairoNodes';
 
 const INDENT = ' '.repeat(4);
 
 export class ExternalDynArrayAllocator extends StringIndexedFuncGen {
-  gen(node: FunctionDefinition, dArrayVarDecl: VariableDeclaration): FunctionCall {
+  gen(
+    node: FunctionDefinition,
+    dArrayVarDecl: VariableDeclaration,
+    structDef: CairoStructDefinitionStub,
+  ): FunctionCall {
     assert(dArrayVarDecl.vType !== undefined);
     const functionInputs: Identifier[] = [createIdentifier(dArrayVarDecl, this.ast)];
-    const name = this.getOrCreate(dArrayVarDecl);
+    const name = this.getOrCreate(dArrayVarDecl, structDef);
     const functionStub = createCairoFunctionStub(
       name,
       [['dynarray', cloneASTNode(dArrayVarDecl.vType, this.ast), DataLocation.Memory]],
@@ -34,7 +40,7 @@ export class ExternalDynArrayAllocator extends StringIndexedFuncGen {
     return createCallToFunction(functionStub, [...functionInputs], this.ast);
   }
 
-  private getOrCreate(varDecl: VariableDeclaration): string {
+  private getOrCreate(varDecl: VariableDeclaration, structDef: StructDefinition): string {
     assert(varDecl.vType instanceof ArrayTypeName);
     const elementCairoType = CairoType.fromSol(
       typeNameToTypeNode(varDecl.vType.vBaseType),
@@ -54,13 +60,13 @@ export class ExternalDynArrayAllocator extends StringIndexedFuncGen {
       code: [
         `func ${name}{`,
         `${INDENT}syscall_ptr: felt*, range_check_ptr : felt, warp_memory : DictAccess*}(`,
-        `${INDENT}array_len : felt, array_pointer : ${elementCairoType.toString()}*) -> (dynarry_loc : felt):`,
+        `${INDENT}dyn_array_struct : ${structDef.name}) -> (dynarry_loc : felt):`,
         `${INDENT}alloc_locals`,
-        `${INDENT}let (array_len_uint256) = warp_uint256(array_len)`,
+        `${INDENT}let (array_len_uint256) = warp_uint256(dyn_array_struct.len)`,
         `${INDENT}let (dynarray_loc) = wm_new(array_len_uint256, ${uint256(
           BigInt(elementCairoType.width),
         )})`,
-        `${INDENT}wm_dynarray_write_${key}(dynarray_loc+2, array_len, array_pointer, ${elementCairoType.width})`,
+        `${INDENT}wm_dynarray_write_${key}(dynarray_loc+2, dyn_array_struct.len, dyn_array_struct.ptr, ${elementCairoType.width})`,
         `${INDENT}return (dynarray_loc)`,
         `end`,
       ].join('\n'),

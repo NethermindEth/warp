@@ -1,35 +1,21 @@
-// import assert = require('assert');
+import assert = require('assert');
 
-//import { splitDarray } from '../../utils/utils';
 import {
   ArrayTypeName,
-  // Block,
-  // ContractDefinition,
   DataLocation,
   Expression,
   FunctionCall,
-  // ElementaryTypeName,
-  // FunctionCall,
-  // FunctionCallKind,
   FunctionDefinition,
-  // Identifier,
-  // Mutability,
-  // StateVariableVisibility,
-  // StructDefinition,
-  // typeNameToTypeNode,
-  // UserDefinedTypeName,
-  // Mutability,
-  // StateVariableVisibility,
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoStructDefinitionStub } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { createIdentifier } from '../../utils/nodeTemplates';
 import { isExternallyVisible } from '../../utils/utils';
 import { collectUnboundVariables } from '../loopFunctionaliser/utils';
-//import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 
 export class DynArrayModifier extends ASTMapper {
   /*
@@ -51,18 +37,6 @@ export class DynArrayModifier extends ASTMapper {
   }
 
   after pass:
-
-  struct wm_dynarray_Uint256 {
-  }
-
-  function test(uint[] memory x, uint8[] memory y, uint[] memory z) pure external returns (uint) {
-    uint[] memory z_mem = wm_dynarray_alloc_Uint256(z)
-    uint8[] memory y_mem = wm_dynarray_alloc_felt(y) 
-    uint[] memory x_mem = wm_dynarray_alloc_Uint256(x)
-    return x_mem[0] + y_mem[0] + z_mem[0];
-    
-  }
-  
   */
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
@@ -89,9 +63,16 @@ export class DynArrayModifier extends ASTMapper {
             structConstructorCall,
             ast,
           );
-
+          node.vBody?.insertAtBeginning(structArrayStatement);
+          ast.setContextRecursive(structArrayStatement);
+          assert(structConstructorCall.vReferencedDeclaration instanceof CairoStructDefinitionStub);
           if (varDecl.storageLocation === DataLocation.Memory) {
-            const allocatorFuctionCall = this.genDarrayAllocatorWriter(node, dArrayStruct, ast);
+            const allocatorFuctionCall = this.genDarrayAllocatorWriter(
+              node,
+              dArrayStruct,
+              structConstructorCall.vReferencedDeclaration,
+              ast,
+            );
             const memoryArray = cloneASTNode(varDecl, ast);
             memoryArray.name = memoryArray.name + '_mem';
             const memArrayStatement = this.createVariableDeclarationStatemet(
@@ -102,7 +83,7 @@ export class DynArrayModifier extends ASTMapper {
             ids.forEach((identifier) =>
               ast.replaceNode(identifier, createIdentifier(memoryArray, ast, DataLocation.Memory)),
             );
-            node.vBody?.insertAtBeginning(memArrayStatement);
+            node.vBody?.insertAfter(memArrayStatement, structArrayStatement);
           } else {
             ids.forEach((identifier) =>
               ast.replaceNode(
@@ -111,9 +92,9 @@ export class DynArrayModifier extends ASTMapper {
               ),
             );
           }
-          node.vBody?.insertAtBeginning(structArrayStatement);
           // The orignal VariableDeclaration needs to changed to having it's DataLocation in CallData
           // otherwise a memory read is inserted in the function body.
+          ast.setContextRecursive(node);
           varDecl.storageLocation = DataLocation.CallData;
         });
 
@@ -151,11 +132,12 @@ export class DynArrayModifier extends ASTMapper {
   private genDarrayAllocatorWriter(
     node: FunctionDefinition,
     darrayStruct: VariableDeclaration,
+    structDef: CairoStructDefinitionStub,
     ast: AST,
   ): FunctionCall {
     const alloctorFunctionCall = ast
       .getUtilFuncGen(node)
-      .externalFunctions.inputs.darrayAllocator.gen(node, darrayStruct);
+      .externalFunctions.inputs.darrayAllocator.gen(node, darrayStruct, structDef);
     ast.getUtilFuncGen(node).externalFunctions.inputs.darrayWriter.gen(darrayStruct);
 
     return alloctorFunctionCall;
