@@ -1,20 +1,40 @@
 import assert from 'assert';
 import {
+  AddressType,
   ArrayType,
+  BoolType,
+  BuiltinStructType,
+  BuiltinType,
+  BytesType,
   ContractDefinition,
   ContractKind,
   DataLocation,
   EnumDefinition,
+  FixedBytesType,
   FunctionDefinition,
+  FunctionType,
   FunctionVisibility,
   getNodeType,
+  ImportRefType,
+  IntLiteralType,
+  IntType,
+  MappingType,
+  ModuleType,
+  PointerType,
+  StringLiteralType,
+  StringType,
   StructDefinition,
+  TupleType,
+  TypeNameType,
+  TypeNode,
   UserDefinedType,
   UserDefinedTypeName,
+  UserDefinedValueTypeDefinition,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
+import { RationalLiteral } from '../passes/literalExpressionEvaluator/rationalLiteral';
 import { printNode, printTypeNode } from './astPrinter';
-import { NotSupportedYetError } from './errors';
+import { NotSupportedYetError, TranspileFailedError } from './errors';
 
 export function getDeclaredTypeString(declaration: VariableDeclarationStatement): string {
   if (declaration.assignments.length === 1) {
@@ -111,4 +131,67 @@ export function generateLiteralTypeString(value: string): string {
     value = `${value.slice(4)}...(${value.length - 8} digits omitted)...${value.slice(-4)}`;
   }
   return `int_const ${value}`;
+}
+
+function instanceOfNonRecursivePP(type: TypeNode): boolean {
+  if (
+    type instanceof AddressType ||
+    type instanceof BoolType ||
+    type instanceof BuiltinStructType ||
+    type instanceof BuiltinType ||
+    type instanceof BytesType ||
+    type instanceof FixedBytesType ||
+    type instanceof ImportRefType ||
+    type instanceof IntLiteralType ||
+    type instanceof IntType ||
+    type instanceof ModuleType ||
+    type instanceof RationalLiteral ||
+    type instanceof StringLiteralType ||
+    type instanceof StringType
+  )
+    return true;
+  return false;
+}
+
+export function generateExpressionTypeString(type: TypeNode): string {
+  if (type instanceof PointerType) {
+    if (type.to instanceof MappingType) return generateExpressionTypeString(type.to);
+    else
+      return `${generateExpressionTypeString(type.to)} ${type.location}${
+        type.kind !== undefined ? ' ' + type.kind : ''
+      }`;
+  } else if (type instanceof FunctionType) {
+    const mapper = (node: TypeNode) => generateExpressionTypeString(node);
+
+    const argStr = type.parameters.map(mapper).join(',');
+
+    let retStr = type.returns.map(mapper).join(',');
+
+    retStr = retStr !== '' ? ` returns (${retStr})` : retStr;
+
+    const visStr = type.visibility !== FunctionVisibility.Internal ? ` ` + type.visibility : '';
+    const mutStr = type.mutability !== 'nonpayable' ? ' ' + type.mutability : '';
+
+    return `function ${
+      type.name !== undefined ? type.name : ''
+    }(${argStr})${mutStr}${visStr}${retStr}`;
+  } else if (type instanceof UserDefinedType) {
+    if (!(type.definition instanceof UserDefinedValueTypeDefinition)) return type.pp();
+    return type.definition.underlyingType.typeString;
+  } else if (type instanceof ArrayType) {
+    return `${generateExpressionTypeString(type.elementT)}[${
+      type.size !== undefined ? type.size : ''
+    }]`;
+  } else if (type instanceof MappingType) {
+    return `mapping(${generateExpressionTypeString(type.keyType)} => ${generateExpressionTypeString(
+      type.valueType,
+    )})`;
+  } else if (type instanceof TupleType) {
+    return `tuple(${type.elements
+      .map((element) => generateExpressionTypeString(element))
+      .join(',')})`;
+  } else if (type instanceof TypeNameType) {
+    return `type(${generateExpressionTypeString(type.type)})`;
+  } else if (instanceOfNonRecursivePP(type)) return type.pp();
+  else throw new TranspileFailedError('Unable to determine typestring');
 }
