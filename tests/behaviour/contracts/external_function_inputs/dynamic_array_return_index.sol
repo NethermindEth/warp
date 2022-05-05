@@ -3,7 +3,11 @@ pragma solidity ^0.8.6;
 //SPDX-License-Identifier: MIT
 
 contract WARP {
-   
+
+    function dArrayCallDataExternal(uint8[] calldata x, uint[] calldata y) pure external returns (uint) {
+        return (x[2] + y[2]);
+    }
+
     function dArrayExternal(uint8[] memory x, uint8[] calldata y) pure external returns (uint8) {
          return (x[3] + y[1]);
     }
