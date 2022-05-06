@@ -84,7 +84,7 @@ describe('Compiled contracts are deployable', function () {
     // );
     for (const fileTest of expectations) {
       if (fs.existsSync(fileTest.compiled) && fs.readFileSync(fileTest.compiled).length > 0) {
-        deployResults.push(await deploy(fileTest.compiled, fileTest.constructorArgs));
+        deployResults.push(await deploy(fileTest.compiled, await fileTest.constructorArgs));
       } else {
         deployResults.push(null);
       }

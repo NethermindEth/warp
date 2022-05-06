@@ -6,7 +6,7 @@ export class AsyncTest {
   constructor(
     public name: string,
     public contract: string,
-    public constructorArgs: string[],
+    public constructorArgs: Promise<string[]> | string[],
     public expectations: Promise<Expect[]> | Expect[],
   ) {}
 

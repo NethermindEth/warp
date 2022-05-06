@@ -25,11 +25,15 @@ import {
   UserDefinedValueTypeDefinition,
   StructDefinition,
   EnumDefinition,
+  FunctionKind,
+  FunctionVisibility,
+  FunctionStateMutability,
+  ParameterList,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import * as path from 'path';
 import tests from '../test_calldata';
-import { InvalidTestError, NotYetSuportedTestCaseError } from '../errors';
+import { InvalidTestError } from '../errors';
 
 import whiteList from './semantic_whitelist';
 
@@ -41,6 +45,8 @@ import { AsyncTest, Expect } from './types';
 import { error } from '../../../src/utils/formatting';
 import { notNull } from '../../../src/utils/typeConstructs';
 import assert from 'assert';
+import { AST } from '../../../src/ast/ast';
+import { createDefaultConstructor } from '../../../src/utils/nodeTemplates';
 
 // this format will cause problems with overloading
 export interface Parameter {
@@ -68,7 +74,6 @@ type SolValue = string | SolValue[] | { [key: string]: SolValue };
 //@ts-ignore: web3-eth-abi has their exports wrong
 const abiCoder: AbiCoder = new AbiCoder.constructor();
 const uint128 = BigInt('0x100000000000000000000000000000000');
-const uint8 = BigInt('0x100');
 
 // ----------------------- Gather all the tests ------------------------------
 // This could benefit from some parallelism
@@ -106,42 +111,36 @@ export const expectations: AsyncTest[] = validTests.map(([file, tests]): AsyncTe
   );
   const lastContract = contractNames[contractNames.length - 1];
   const truncatedFileName = file.substring(0, file.length - '.sol'.length);
+
+  const contractAbiDefAst = getContractAbiAndDefinition(file, lastContract);
+
+  // Encode constructor arguments
+  const constructorArgs: Promise<string[]> = encodeConstructors(tests[0], contractAbiDefAst);
+
   return new AsyncTest(
     truncatedFileName,
     lastContract,
-    [],
-    transcodeTests(file, tests, lastContract, initialRun),
+    constructorArgs,
+    transcodeTests(tests, contractAbiDefAst),
   );
 });
 
 // ------------------------ Transcode the tests ------------------------------
 
 async function transcodeTests(
-  file: string,
   expectations: ITestCalldata[],
-  lastContract: string,
-  initialRun: Promise<CompileResult>,
+  contractAbiDefAst: Promise<[FunABI[], ContractDefinition, AST]>,
 ): Promise<Expect[]> {
   await initialRun;
-  // Get the abi of the contract for web3
-  const source = await compileSol(file, 'auto', []);
-  const contracts: { [key: string]: { abi: FunABI[] } } = source.data.contracts[file];
-  const abi = contracts[lastContract].abi;
 
-  // Get the ast itself so we can resolve the types for our type conversion
-  // later
-  const ast = compileSolFile(file, false);
-  const astRoot = ast.roots[ast.roots.length - 1];
-  const [contractDef] = astRoot
-    .getChildrenByType(ContractDefinition, true)
-    .filter((contract) => contract.name === lastContract);
+  const [abi, contractDef, ast] = await contractAbiDefAst;
 
   const compilerVersion = ast.compilerVersion;
   // Transcode each test
   return expectations
     .map((test) => {
       try {
-        return transcodeTest(abi, contractDef, test, compilerVersion);
+        return transcodeTest(abi, contractDef, test, compilerVersion, ast);
       } catch (e) {
         console.log(error(`Failed to transcode ${test.signature}: ${e}`));
         return null;
@@ -155,69 +154,26 @@ function transcodeTest(
   contractDef: ContractDefinition,
   { signature, callData, expectations, failure }: ITestCalldata,
   compilerVersion: string,
+  ast: AST,
 ): Expect {
   if (signature === '' || signature === '()') {
     throw new InvalidTestError('Fallback functions are not supported');
   }
-  if (signature === 'constructor()') {
-    throw new NotYetSuportedTestCaseError('Constructors not supported in tests yet');
+  if (signature.startsWith('constructor(') && !failure) {
+    throw new InvalidTestError('Succesful constructor tests are not supported');
   }
 
   const [functionName] = signature.split('(');
 
   // Find the function definition in the ast
-  const defs = Array.from(resolveAny(functionName, contractDef, compilerVersion, true)).filter(
-    (def) => {
-      if (def instanceof FunctionDefinition) {
-        return def.canonicalSignature(ABIEncoderVersion.V2) === signature;
-      } else if (def instanceof VariableDeclaration) {
-        return def.getterCanonicalSignature(ABIEncoderVersion.V2) === signature;
-      }
-      return false;
-    },
-  ) as (FunctionDefinition | VariableDeclaration)[];
-  if (defs.length === 0) {
-    throw new InvalidTestError(
-      `No function definition found for test case ${signature} in the ast.\n` +
-        `Defined functions:\n` +
-        `\t${defs.map((d) => {
-          if (d instanceof FunctionDefinition) {
-            return d.canonicalSignature(ABIEncoderVersion.V2);
-          }
-          if (d instanceof VariableDeclaration) {
-            return d.getterCanonicalSignature(ABIEncoderVersion.V2);
-          }
-          return `Unknown def ${d}`;
-        })}`,
-    );
-  }
-  if (defs.length > 1) {
-    throw new InvalidTestError(
-      `Multiple function definitions found for test case ${signature} in the ast.` +
-        `Defined functions:\n` +
-        `\t${defs}`,
-    );
-  }
-
-  // Find the function definition in the abi
-  const funcAbis = abi.filter((funAbi) => getSignature(funAbi) === signature);
-  if (funcAbis.length === 0) {
-    throw new InvalidTestError(
-      `No function definition found for test case ${signature} in web3 abi\n` +
-        `Defined functions:\n` +
-        `\t${abi.map((v) => getSignature(v))}`,
-    );
-  }
-  if (funcAbis.length > 1) {
-    throw new InvalidTestError(
-      `Multiple function definitions found for test case ${signature}\n` +
-        `Defined functions:\n` +
-        `\t${abi.map((v) => getSignature(v))}`,
-    );
-  }
-
-  const [funcDef] = defs;
-  const [funcAbi] = funcAbis;
+  const [funcAbi, funcDef] = getFunctionAbiAndDefinition(
+    functionName,
+    abi,
+    contractDef,
+    ast,
+    signature,
+    compilerVersion,
+  );
 
   const inputTypeNodes =
     funcDef instanceof FunctionDefinition
@@ -228,12 +184,19 @@ function transcodeTest(
       ? funcDef.vReturnParameters.vParameters.map((cd) => getNodeType(cd, compilerVersion))
       : funcDef.getterFunType().returns;
 
+  let removePrefix = 10;
+  if (signature.startsWith('constructor(')) {
+    removePrefix = 2;
+    funcAbi.outputs = [];
+  }
+
   const input = encode(
     funcAbi.inputs,
     inputTypeNodes,
-    '0x' + callData.substring(10),
+    '0x' + callData.substring(removePrefix),
     compilerVersion,
   );
+
   const output = failure
     ? null
     : encode(funcAbi.outputs, outputTypeNodes, expectations, compilerVersion);
@@ -327,7 +290,6 @@ export function encodeValue(tp: TypeNode, value: SolValue, compilerVersion: stri
       );
     } else if (definition instanceof StructDefinition) {
       if (!(value instanceof Array)) {
-        console.log(typeof value);
         throw new Error(`Can't encode ${value} as structType`);
       }
       const membersEncoding: string[][] = [];
@@ -378,4 +340,129 @@ function encodeAsUintOrFelt(tp: TypeNode, value: SolValue, nBits: number): strin
   } else {
     return [val.toString()];
   }
+}
+
+async function encodeConstructors(
+  firstTest: ITestCalldata,
+  contractAbiDefAST: Promise<[FunABI[], ContractDefinition, AST]>,
+) {
+  const [contractAbi, contractDef, ast] = await contractAbiDefAST;
+
+  let constructorArgs: string[] = [];
+  if (firstTest.signature.startsWith('constructor(')) {
+    const [constrAbi, constrDef] = getFunctionAbiAndDefinition(
+      'constructor',
+      contractAbi,
+      contractDef,
+      ast,
+      firstTest.signature,
+      ast.compilerVersion,
+    );
+    assert(
+      constrDef instanceof FunctionDefinition,
+      'Constructor must be of type functionDefinition',
+    );
+    const typeNodes = constrDef.vParameters.vParameters.map((cd) =>
+      getNodeType(cd, ast.compilerVersion),
+    );
+    constructorArgs = encode(constrAbi.inputs, typeNodes, firstTest.callData, ast.compilerVersion);
+  }
+
+  return constructorArgs;
+}
+
+async function getContractAbiAndDefinition(
+  file: string,
+  lastContract: string,
+): Promise<[FunABI[], ContractDefinition, AST]> {
+  // Get the abi of the contract for web3
+  const source = await compileSol(file, 'auto', []);
+  const contracts: { [key: string]: { abi: FunABI[] } } = source.data.contracts[file];
+  const contractAbi = contracts[lastContract].abi;
+
+  // Get the ast itself so we can resolve the types for our type conversion
+  // later
+  const ast = compileSolFile(file, false);
+  const astRoot = ast.roots[ast.roots.length - 1];
+  const [contractDef] = astRoot
+    .getChildrenByType(ContractDefinition, true)
+    .filter((contract) => contract.name === lastContract);
+
+  return [contractAbi, contractDef, ast];
+}
+
+function getFunctionAbiAndDefinition(
+  functionName: string,
+  abi: FunABI[],
+  contractDef: ContractDefinition,
+  ast: AST,
+  signature: string,
+  compilerVersion: string,
+): [FunABI, FunctionDefinition | VariableDeclaration] {
+  let defs: (FunctionDefinition | VariableDeclaration)[];
+  if (functionName !== 'constructor') {
+    defs = Array.from(resolveAny(functionName, contractDef, compilerVersion, true)).filter(
+      (def) => {
+        if (def instanceof FunctionDefinition) {
+          return def.canonicalSignature(ABIEncoderVersion.V2) === signature;
+        } else if (def instanceof VariableDeclaration) {
+          return def.getterCanonicalSignature(ABIEncoderVersion.V2) === signature;
+        }
+        return false;
+      },
+    ) as (FunctionDefinition | VariableDeclaration)[];
+  } else {
+    if (contractDef.vConstructor === undefined) {
+      // Need to create a default constructor and its abi
+      abi = [{ name: '', inputs: [], outputs: [] }];
+      defs = [createDefaultConstructor(contractDef, ast)];
+    } else {
+      defs = [contractDef.vConstructor];
+    }
+  }
+
+  if (defs.length === 0) {
+    throw new InvalidTestError(
+      `No function definition found for test case ${signature} in the ast.\n` +
+        `Defined functions:\n` +
+        `\t${defs.map((d) => {
+          if (d instanceof FunctionDefinition) {
+            return d.canonicalSignature(ABIEncoderVersion.V2);
+          }
+          if (d instanceof VariableDeclaration) {
+            return d.getterCanonicalSignature(ABIEncoderVersion.V2);
+          }
+          return `Unknown def ${d}`;
+        })}`,
+    );
+  }
+  if (defs.length > 1) {
+    throw new InvalidTestError(
+      `Multiple function definitions found for test case ${signature} in the ast.` +
+        `Defined functions:\n` +
+        `\t${defs}`,
+    );
+  }
+
+  // Find the function definition in the abi
+  const funcAbis = abi.filter((funAbi) => getSignature(funAbi) === signature);
+  if (funcAbis.length === 0) {
+    throw new InvalidTestError(
+      `No function definition found for test case ${signature} in web3 abi\n` +
+        `Defined functions:\n` +
+        `\t${abi.map((v) => getSignature(v))}`,
+    );
+  }
+  if (funcAbis.length > 1) {
+    throw new InvalidTestError(
+      `Multiple function definitions found for test case ${signature}\n` +
+        `Defined functions:\n` +
+        `\t${abi.map((v) => getSignature(v))}`,
+    );
+  }
+
+  const [funcDef] = defs;
+  const [funcAbi] = funcAbis;
+
+  return [funcAbi, funcDef];
 }

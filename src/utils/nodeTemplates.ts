@@ -12,6 +12,11 @@ import {
   Return,
   Expression,
   StructuredDocumentation,
+  ContractDefinition,
+  FunctionDefinition,
+  FunctionKind,
+  FunctionVisibility,
+  FunctionStateMutability,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { toHexString, toSingleExpression } from './utils';
@@ -123,4 +128,22 @@ export function createUint256TypeName(ast: AST): ElementaryTypeName {
   const typeName = new ElementaryTypeName(ast.reserveId(), '', 'uint256', 'uint256');
   ast.setContextRecursive(typeName);
   return typeName;
+}
+
+export function createDefaultConstructor(node: ContractDefinition, ast: AST): FunctionDefinition {
+  const newFunc = new FunctionDefinition(
+    ast.reserveId(),
+    '',
+    node.id,
+    FunctionKind.Constructor,
+    '',
+    false,
+    FunctionVisibility.Public,
+    FunctionStateMutability.NonPayable,
+    true,
+    createParameterList([], ast),
+    createParameterList([], ast),
+    [],
+  );
+  return newFunc;
 }
