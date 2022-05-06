@@ -414,7 +414,7 @@ function getFunctionAbiAndDefinition(
   } else {
     if (contractDef.vConstructor === undefined) {
       // Need to create a default constructor and its abi
-      abi.push({ name: '', inputs: [], outputs: [] });
+      abi = [{ name: '', inputs: [], outputs: [] }];
       defs = [createDefaultConstructor(contractDef, ast)];
     } else {
       defs = [contractDef.vConstructor];
