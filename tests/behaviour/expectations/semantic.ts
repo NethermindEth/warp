@@ -25,10 +25,6 @@ import {
   UserDefinedValueTypeDefinition,
   StructDefinition,
   EnumDefinition,
-  FunctionKind,
-  FunctionVisibility,
-  FunctionStateMutability,
-  ParameterList,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import * as path from 'path';
@@ -155,12 +151,13 @@ function transcodeTest(
   { signature, callData, expectations, failure }: ITestCalldata,
   compilerVersion: string,
   ast: AST,
-): Expect {
+): Expect | null {
   if (signature === '' || signature === '()') {
     throw new InvalidTestError('Fallback functions are not supported');
   }
   if (signature.startsWith('constructor(') && !failure) {
-    throw new InvalidTestError('Succesful constructor tests are not supported');
+    // Valid constructor tests will already have been transcoded by encodeConstructors
+    return null;
   }
 
   const [functionName] = signature.split('(');
@@ -345,7 +342,7 @@ function encodeAsUintOrFelt(tp: TypeNode, value: SolValue, nBits: number): strin
 async function encodeConstructors(
   firstTest: ITestCalldata,
   contractAbiDefAST: Promise<[FunABI[], ContractDefinition, AST]>,
-) {
+): Promise<string[]> {
   const [contractAbi, contractDef, ast] = await contractAbiDefAST;
 
   let constructorArgs: string[] = [];
