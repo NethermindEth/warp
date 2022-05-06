@@ -428,11 +428,3 @@ export function splitDarray(
   );
   return [arrayLen, arrayPointer];
 }
-
-// export function isDynArray(node: Identifier): boolean {
-//   return (
-//     node.vReferencedDeclaration instanceof VariableDeclaration &&
-//     node.vReferencedDeclaration.vType instanceof ArrayTypeName &&
-//     node.vReferencedDeclaration.vType.vLength === undefined
-//   );
-// }

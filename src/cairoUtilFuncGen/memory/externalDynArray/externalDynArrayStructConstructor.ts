@@ -6,6 +6,7 @@ import {
   typeNameToTypeNode,
   DataLocation,
   Identifier,
+  FunctionStateMutability,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
@@ -14,6 +15,7 @@ import { CairoType, TypeConversionContext } from '../../../utils/cairoTypeSystem
 import { StringIndexedFuncGen } from '../../base';
 import { cloneASTNode } from '../../../utils/cloning';
 import { createIdentifier } from '../../../utils/nodeTemplates';
+import { FunctionStubKind } from '../../../ast/cairoNodes';
 
 const INDENT = ' '.repeat(4);
 
@@ -26,11 +28,12 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     const structDefStub = createCairoFunctionStub(
       name,
       [['darray', cloneASTNode(dArrayVarDecl.vType, this.ast), DataLocation.CallData]],
-      [['darray_struct', cloneASTNode(dArrayVarDecl, this.ast), DataLocation.Default]],
+      [['darray_struct', cloneASTNode(dArrayVarDecl, this.ast), DataLocation.CallData]],
       [],
       this.ast,
       node,
-      true,
+      FunctionStateMutability.View,
+      FunctionStubKind.StructDefStub,
     );
 
     const functionInputs: Identifier[] = [

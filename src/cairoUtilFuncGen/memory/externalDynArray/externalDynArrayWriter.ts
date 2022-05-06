@@ -41,8 +41,6 @@ export class ExternalDynArrayWriter extends StringIndexedFuncGen {
         `end`,
       ].join('\n'),
     });
-    this.requireImport('warplib.memory', 'wm_new');
-    this.requireImport('warplib.maths.int_conversions', 'warp_uint256');
     this.createWriterFunctions(key);
   }
 

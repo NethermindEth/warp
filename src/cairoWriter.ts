@@ -77,7 +77,7 @@ import {
   CairoAssert,
   CairoContract,
   CairoFunctionDefinition,
-  CairoStructDefinitionStub,
+  FunctionStubKind,
 } from './ast/cairoNodes';
 import { printNode } from './utils/astPrinter';
 import { CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
@@ -204,7 +204,7 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     if (
       node.vInitialValue instanceof FunctionCall &&
       node.vInitialValue.vReferencedDeclaration instanceof CairoFunctionDefinition &&
-      node.vInitialValue.vReferencedDeclaration.isStructDefStub
+      node.vInitialValue.vReferencedDeclaration.functionStubKind === FunctionStubKind.StructDefStub
     ) {
       return [
         `local ${declarations.join(', ')} : ${
@@ -426,7 +426,7 @@ class ParameterListWriter extends CairoASTNodeWriter {
 
 class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: CairoFunctionDefinition, writer: ASTWriter): SrcDesc {
-    if (node.isFunctionDefStub) return [''];
+    if (node.functionStubKind !== FunctionStubKind.None) return [''];
 
     const documentation = getDocumentation(node.documentation, writer);
     const name = this.getName(node);
@@ -516,12 +516,6 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
       }
     }
     return null;
-  }
-}
-
-class CairoStructDefinitionStubWriter extends CairoASTNodeWriter {
-  writeInner(_: ASTNode, __: ASTWriter): SrcDesc {
-    return [''];
   }
 }
 
@@ -669,7 +663,7 @@ class FunctionCallWriter extends CairoASTNodeWriter {
           }
         } else if (
           node.vReferencedDeclaration instanceof CairoFunctionDefinition &&
-          node.vReferencedDeclaration.isStructDefStub
+          node.vReferencedDeclaration.functionStubKind === FunctionStubKind.StructDefStub
         ) {
           return [`${func}(${args}_len, ${args})`];
         }
@@ -794,7 +788,6 @@ export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
     [CairoAssert, new CairoAssertWriter(ast, throwOnUnimplemented)],
     [CairoContract, new CairoContractWriter(ast, throwOnUnimplemented)],
     [CairoFunctionDefinition, new CairoFunctionDefinitionWriter(ast, throwOnUnimplemented)],
-    [CairoStructDefinitionStub, new CairoStructDefinitionStubWriter(ast, throwOnUnimplemented)],
     [Conditional, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [Continue, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [DoWhileStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],

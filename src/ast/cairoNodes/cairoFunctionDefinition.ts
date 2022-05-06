@@ -20,10 +20,15 @@ import { Implicits } from '../../utils/implicits';
  as a stub tells the CairoWriter not to print it
 */
 
+export enum FunctionStubKind {
+  None = 'none',
+  FunctionDefStub = 'functionDefStub',
+  StructDefStub = 'structDefStub',
+}
+
 export class CairoFunctionDefinition extends FunctionDefinition {
   implicits: Set<Implicits>;
-  isFunctionDefStub: boolean;
-  isStructDefStub: boolean;
+  functionStubKind: FunctionStubKind;
   constructor(
     id: number,
     src: string,
@@ -38,8 +43,7 @@ export class CairoFunctionDefinition extends FunctionDefinition {
     returnParameters: ParameterList,
     modifiers: ModifierInvocation[],
     implicits: Set<Implicits>,
-    isFunctionDefStub: boolean,
-    isStructDefStub: boolean,
+    functionStubKind: FunctionStubKind = FunctionStubKind.None,
     overrideSpecifier?: OverrideSpecifier,
     body?: Block,
     documentation?: string | StructuredDocumentation,
@@ -66,7 +70,6 @@ export class CairoFunctionDefinition extends FunctionDefinition {
       raw,
     );
     this.implicits = implicits;
-    this.isFunctionDefStub = isFunctionDefStub;
-    this.isStructDefStub = isStructDefStub;
+    this.functionStubKind = functionStubKind;
   }
 }
