@@ -46,6 +46,7 @@ import { error } from '../../../src/utils/formatting';
 import { notNull } from '../../../src/utils/typeConstructs';
 import assert from 'assert';
 import { AST } from '../../../src/ast/ast';
+import { createDefaultConstructor } from '../../../src/utils/nodeTemplates';
 
 // this format will cause problems with overloading
 export interface Parameter {
@@ -414,23 +415,7 @@ function getFunctionAbiAndDefinition(
     if (contractDef.vConstructor === undefined) {
       // Need to create a default constructor and its abi
       abi.push({ name: '', inputs: [], outputs: [] });
-      // TODO: Use createDefaultConstructor()
-      defs = [
-        new FunctionDefinition(
-          ast.reserveId(),
-          '',
-          contractDef.scope,
-          FunctionKind.Constructor,
-          '',
-          false,
-          FunctionVisibility.Public,
-          FunctionStateMutability.NonPayable,
-          true,
-          new ParameterList(ast.reserveId(), '', []),
-          new ParameterList(ast.reserveId(), '', []),
-          [],
-        ),
-      ];
+      defs = [createDefaultConstructor(contractDef, ast)];
     } else {
       defs = [contractDef.vConstructor];
     }
