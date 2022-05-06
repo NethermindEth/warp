@@ -5,6 +5,7 @@ import {
   FunctionCall,
   getNodeType,
   DataLocation,
+  FunctionStateMutability,
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
@@ -34,6 +35,7 @@ export class StorageReadGen extends StringIndexedFuncGen {
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       nodeInSourceUnit ?? storageLocation,
+      FunctionStateMutability.View,
     );
     return createCallToFunction(functionStub, [storageLocation], this.ast);
   }

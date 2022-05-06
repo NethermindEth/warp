@@ -11,6 +11,7 @@ import {
   FunctionType,
   getNodeType,
   UserDefinedType,
+  UserDefinedValueTypeDefinition,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -70,5 +71,8 @@ export class RejectUnsupportedFeatures extends ASTMapper {
         `Members of addresses are not supported. Found at ${printNode(node)}`,
       );
     this.visitExpression(node, ast);
+  }
+  visitUserDefinedValueTypeDefinition(_node: UserDefinedValueTypeDefinition, _ast: AST): void {
+    throw new NotSupportedYetError('User defined types are not supported yet');
   }
 }

@@ -32,17 +32,20 @@ const ResultTypeOrder = [
 const expectedResults = new Map<string, ResultType>([
   ['example_contracts/ERC20', 'Success'],
   ['example_contracts/ERC20_storage', 'Success'],
+  ['example_contracts/boolOp_noSideEffects', 'Success'],
+  // Uses conditionals implicitly
+  ['example_contracts/boolOp_sideEffects', 'NotSupportedYet'],
   // Uses conditionals
   ['example_contracts/c2c', 'NotSupportedYet'],
+  // Uses conditionals explicitly
+  ['example_contracts/conditional', 'WillNotSupport'],
   ['example_contracts/contract_to_contract', 'Success'],
   ['example_contracts/calldatacopy', 'WillNotSupport'],
   ['example_contracts/calldataload', 'WillNotSupport'],
   ['example_contracts/calldatasize', 'WillNotSupport'],
   ['example_contracts/comments', 'Success'],
-  // Uses conditionals
-  ['example_contracts/constructors_dyn', 'NotSupportedYet'],
-  // Uses conditionals
-  ['example_contracts/constructors_nonDyn', 'NotSupportedYet'],
+  ['example_contracts/constructors_dyn', 'Success'],
+  ['example_contracts/constructors_nonDyn', 'Success'],
   ['example_contracts/dai', 'Success'],
   ['example_contracts/delete', 'SolCompileFailed'],
   ['example_contracts/enums', 'Success'],
@@ -106,11 +109,12 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/sstore-sload', 'WillNotSupport'],
   ['example_contracts/state_variables/scalars', 'Success'],
   ['example_contracts/state_variables/enums', 'Success'],
-  // Typestrings don't include data location leading to incorrect type analysis
-  ['example_contracts/state_variables/arrays', 'CairoCompileFailed'],
+  ['example_contracts/state_variables/arrays', 'Success'],
+  // Initializing arrays with default values are yet to be supported
+  ['example_contracts/state_variables/arrays_init', 'NotSupportedYet'],
   ['example_contracts/state_variables/mappings', 'Success'],
-  // It produces incorrect code but it still compiles
   ['example_contracts/state_variables/structs', 'Success'],
+  ['example_contracts/state_variables/structs_nested', 'Success'],
   // Mappings of structs are not supported yet
   ['example_contracts/state_variables/misc', 'NotSupportedYet'],
   ['example_contracts/structs', 'Success'],
@@ -125,12 +129,14 @@ const expectedResults = new Map<string, ResultType>([
   // Uses WARP_STORAGE in a free function
   ['example_contracts/using_for/imports/user_defined', 'CairoCompileFailed'],
   // global_directive.sol cannot resolve struct when file imported as identifier
-  ['example_contracts/using_for/imports/global_directive', 'CairoCompileFailed'],
+  ['example_contracts/using_for/imports/global_directive', 'TranspilationFailed'],
   ['example_contracts/using_for/function', 'WillNotSupport'],
   ['example_contracts/using_for/private', 'Success'],
   ['example_contracts/using_for/library', 'Success'],
   ['example_contracts/using_for/simple', 'Success'],
   ['example_contracts/usingReturnValues', 'Success'],
+  ['example_contracts/userdefinedtypes', 'NotSupportedYet'],
+  ['example_contracts/userdefinedidentifier', 'NotSupportedYet'],
   ['example_contracts/variable-declarations', 'Success'],
   ['example_contracts/view-function', 'Success'],
 ]);

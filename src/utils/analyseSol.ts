@@ -1,9 +1,9 @@
-import { AnalyseOptions } from '..';
+import { PrintOptions } from '..';
 import { isValidSolFile } from '../io';
 import { compileSolFile } from '../solCompile';
 import { DefaultASTPrinter } from './astPrinter';
 
-export function analyseSol(file: string, options: AnalyseOptions) {
+export function analyseSol(file: string, options: PrintOptions) {
   if (!isValidSolFile(file)) {
     console.log(`${file} is not a valid solidity file`);
   }

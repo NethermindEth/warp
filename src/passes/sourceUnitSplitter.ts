@@ -44,7 +44,7 @@ function splitSourceUnit(sourceUnit: SourceUnit, ast: AST): SourceUnit[] {
     '',
     0,
     mangleFreeFilePath(filePathRoot) + '.sol',
-    new Map(),
+    sourceUnit.exportedSymbols,
     freeSourceChildren,
   );
 
@@ -56,7 +56,7 @@ function splitSourceUnit(sourceUnit: SourceUnit, ast: AST): SourceUnit[] {
       '',
       0,
       mangleContractFilePath(filePathRoot, contract.name) + '.sol',
-      new Map(),
+      sourceUnit.exportedSymbols,
       [
         ...sourceUnit.vImportDirectives.map((iD) => cloneASTNode(iD, ast)),
         ...updateScope([contract], contractSourceUnitId),
@@ -87,6 +87,10 @@ function splitSourceUnit(sourceUnit: SourceUnit, ast: AST): SourceUnit[] {
         );
         su.insertAtBeginning(iDir);
         ast.registerChild(iDir, su);
+        //ImportDirective scope should point to current SourceUnit
+        importSu.getChildrenByType(ImportDirective).forEach((IDNode) => {
+          IDNode.scope = importSu.id;
+        });
       }),
   );
 
