@@ -4,8 +4,8 @@ pragma solidity ^0.8.6;
 
 contract WARP {
 
-    function dArrayCallDataExternal(uint8[] calldata x, uint[] calldata y) pure external returns (uint) {
-        return (x[2] + y[2]);
+    function dArrayCallDataExternal(uint8[] calldata x, uint16[] memory z, uint[] calldata y) pure external returns (uint) {
+        return (x[2] + z[2] + y[2]);
     }
 
     function dArrayExternal(uint8[] memory x, uint8[] calldata y) pure external returns (uint8) {

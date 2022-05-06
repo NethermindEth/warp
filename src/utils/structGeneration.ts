@@ -2,6 +2,7 @@ import assert = require('assert');
 import {
   ArrayTypeName,
   ContractDefinition,
+  DataLocation,
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
@@ -35,7 +36,8 @@ export function createCallToStructConstuctor(
   return new FunctionCall(
     ast.reserveId(),
     '',
-    `struct ${contract?.name}.dynarray_struct_${key} memory`,
+    // This struct is then written into calldata (This is technically not correct)
+    `struct ${contract?.name}.dynarray_struct_${key} calldata`,
     FunctionCallKind.StructConstructorCall,
     new Identifier(
       ast.reserveId(),
@@ -44,7 +46,9 @@ export function createCallToStructConstuctor(
       structDef.name,
       structDef.id,
     ),
-    [createIdentifier(varDecl, ast)],
+    // This is Calldata since that the end of the pass that calls this function all dynamic arrays.
+    // should be in calldata.
+    [createIdentifier(varDecl, ast, DataLocation.CallData)],
   );
 }
 
@@ -62,14 +66,16 @@ export function createCairoStructConstructorStub(
     TypeConversionContext.MemoryAllocation,
   );
   const key = elementCairoType.toString();
-
+  // Even though this is impossible it should still work.
+  const member = cloneASTNode(dArrayVarDecl, ast);
+  member.storageLocation = DataLocation.CallData;
   const structDef = new CairoStructDefinitionStub(
     structDefId,
     '',
     `dynarray_struct_${key}`,
     sourceUnit.id,
     FunctionVisibility.Internal,
-    [cloneASTNode(dArrayVarDecl, ast)],
+    [member],
     false,
   );
 
