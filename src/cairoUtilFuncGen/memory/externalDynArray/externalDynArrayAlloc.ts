@@ -22,16 +22,16 @@ const INDENT = ' '.repeat(4);
 export class ExternalDynArrayAllocator extends StringIndexedFuncGen {
   gen(
     node: FunctionDefinition,
-    dArrayVarDecl: VariableDeclaration,
+    dArrayStruct: VariableDeclaration,
     structDef: CairoFunctionDefinition,
   ): FunctionCall {
-    assert(dArrayVarDecl.vType !== undefined);
-    const functionInputs: Identifier[] = [createIdentifier(dArrayVarDecl, this.ast)];
-    const name = this.getOrCreate(dArrayVarDecl, structDef);
+    assert(dArrayStruct.vType !== undefined);
+    const functionInputs: Identifier[] = [createIdentifier(dArrayStruct, this.ast)];
+    const name = this.getOrCreate(dArrayStruct, structDef);
     const functionStub = createCairoFunctionStub(
       name,
-      [['dynarray', cloneASTNode(dArrayVarDecl.vType, this.ast), DataLocation.Memory]],
-      [['dynarray_loc', cloneASTNode(dArrayVarDecl.vType, this.ast), DataLocation.Memory]],
+      [['dynarray', cloneASTNode(dArrayStruct.vType, this.ast), DataLocation.CallData]],
+      [['dynarray_loc', cloneASTNode(dArrayStruct.vType, this.ast), DataLocation.Memory]],
       ['syscall_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
       node,

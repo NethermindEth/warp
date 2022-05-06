@@ -50,7 +50,7 @@ export class DynArrayModifier extends ASTMapper {
           // Irrespective of the whether the storage location is Memory or Calldata a struct is created to store the len & ptr
           const dArrayStruct = cloneASTNode(varDecl, ast);
           dArrayStruct.name = dArrayStruct.name + '_dstruct';
-          dArrayStruct.storageLocation = DataLocation.Default;
+          dArrayStruct.storageLocation = DataLocation.CallData;
           const structConstructorCall = this.genStructConstructor(varDecl, node, ast);
           const structArrayStatement = this.createVariableDeclarationStatemet(
             dArrayStruct,

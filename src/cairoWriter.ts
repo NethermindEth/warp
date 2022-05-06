@@ -628,7 +628,7 @@ class IndexAccessWriter extends CairoASTNodeWriter {
     if (
       node.vBaseExpression instanceof Identifier &&
       node.vBaseExpression.vReferencedDeclaration instanceof VariableDeclaration &&
-      node.vBaseExpression.vReferencedDeclaration.storageLocation === DataLocation.Default &&
+      node.vBaseExpression.vReferencedDeclaration.storageLocation === DataLocation.CallData &&
       node.vBaseExpression.vReferencedDeclaration.vType instanceof ArrayTypeName &&
       node.vBaseExpression.vReferencedDeclaration.vType.vLength === undefined
     ) {
