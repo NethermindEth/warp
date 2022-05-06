@@ -1,6 +1,4 @@
-import assert = require('assert');
 import {
-  ArrayTypeName,
   ContractDefinition,
   DataLocation,
   FunctionCall,
@@ -9,40 +7,31 @@ import {
   FunctionVisibility,
   Identifier,
   StructDefinition,
-  typeNameToTypeNode,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoStructDefinitionStub } from '../ast/cairoNodes';
-import { CairoType, TypeConversionContext } from './cairoTypeSystem';
 import { cloneASTNode } from './cloning';
 import { createIdentifier } from './nodeTemplates';
 
 export function createCallToStructConstuctor(
+  name: string,
   structDef: StructDefinition,
   varDecl: VariableDeclaration,
   ast: AST,
   node: FunctionDefinition,
 ): FunctionCall {
-  assert(varDecl.vType instanceof ArrayTypeName);
-
-  const elementCairoType = CairoType.fromSol(
-    typeNameToTypeNode(varDecl.vType.vBaseType),
-    ast,
-    TypeConversionContext.MemoryAllocation,
-  );
-  const key = elementCairoType.toString();
   const contract = node.getClosestParentByType(ContractDefinition);
   return new FunctionCall(
     ast.reserveId(),
     '',
     // This struct is then written into calldata (This is technically not correct)
-    `struct ${contract?.name}.dynarray_struct_${key} calldata`,
+    `struct ${contract?.name}.${name} calldata`,
     FunctionCallKind.StructConstructorCall,
     new Identifier(
       ast.reserveId(),
       '',
-      `type(struct ${contract?.name}.dynarray_struct_${key} storage pointer)`,
+      `type(struct ${contract?.name}.${name} storage pointer)`,
       structDef.name,
       structDef.id,
     ),
@@ -53,30 +42,23 @@ export function createCallToStructConstuctor(
 }
 
 export function createCairoStructConstructorStub(
+  name: string,
   dArrayVarDecl: VariableDeclaration,
   ast: AST,
 ): CairoStructDefinitionStub {
   const sourceUnit = ast.getContainingRoot(dArrayVarDecl);
-  const structDefId = ast.reserveId();
-  assert(dArrayVarDecl.vType instanceof ArrayTypeName);
 
-  const elementCairoType = CairoType.fromSol(
-    typeNameToTypeNode(dArrayVarDecl.vType.vBaseType),
-    ast,
-    TypeConversionContext.MemoryAllocation,
-  );
-  const key = elementCairoType.toString();
   // Even though this is impossible it should still work.
   const member = cloneASTNode(dArrayVarDecl, ast);
   member.storageLocation = DataLocation.CallData;
   const structDef = new CairoStructDefinitionStub(
-    structDefId,
+    ast.reserveId(),
     '',
-    `dynarray_struct_${key}`,
+    name,
     sourceUnit.id,
     FunctionVisibility.Internal,
     [member],
-    false,
+    true,
   );
 
   ast.setContextRecursive(structDef);

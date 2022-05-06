@@ -4,7 +4,6 @@ import {
   FunctionDefinition,
   ArrayTypeName,
   typeNameToTypeNode,
-  StructDefinition,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import {
@@ -21,12 +20,13 @@ export class ExternalDynArrayStructConstructor extends StringIndexedStructGen {
   gen(dArrayVarDecl: VariableDeclaration, node: FunctionDefinition): FunctionCall {
     assert(dArrayVarDecl.vType !== undefined);
 
-    const structDefNode = this.getOrCreate(dArrayVarDecl);
+    const name = this.getOrCreate(dArrayVarDecl);
 
-    return createCallToStructConstuctor(structDefNode, dArrayVarDecl, this.ast, node);
+    const structDefStub = createCairoStructConstructorStub(name, dArrayVarDecl, this.ast);
+    return createCallToStructConstuctor(name, structDefStub, dArrayVarDecl, this.ast, node);
   }
 
-  private getOrCreate(dArrayVarDecl: VariableDeclaration): StructDefinition {
+  private getOrCreate(dArrayVarDecl: VariableDeclaration): string {
     assert(dArrayVarDecl.vType instanceof ArrayTypeName);
     const elementCairoType = CairoType.fromSol(
       typeNameToTypeNode(dArrayVarDecl.vType.vBaseType),
@@ -35,11 +35,10 @@ export class ExternalDynArrayStructConstructor extends StringIndexedStructGen {
     );
     const key = elementCairoType.toString();
 
-    const existingNode = this.generatedStructDefNodes.get(key);
-    if (existingNode !== undefined) {
-      return existingNode;
+    const existing = this.generatedStructDefs.get(key);
+    if (existing !== undefined) {
+      return existing.name;
     }
-    const structConstructorStub = createCairoStructConstructorStub(dArrayVarDecl, this.ast);
 
     const name = `dynarray_struct_${key}`;
 
@@ -52,7 +51,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedStructGen {
         `end`,
       ].join('\n'),
     });
-    this.generatedStructDefNodes.set(key, structConstructorStub);
-    return structConstructorStub;
+
+    return name;
   }
 }

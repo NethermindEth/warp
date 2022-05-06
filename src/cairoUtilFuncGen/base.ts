@@ -64,7 +64,6 @@ export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
 
 export class StringIndexedStructGen extends CairoUtilFuncGenBase {
   protected generatedStructDefs: Map<string, CairoStructDef> = new Map();
-  protected generatedStructDefNodes: Map<string, StructDefinition> = new Map();
 
   getGeneratedCode(): string {
     return [...this.generatedStructDefs.values()].map((func) => func.code).join('\n\n');
