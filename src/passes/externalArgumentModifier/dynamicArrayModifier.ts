@@ -57,7 +57,7 @@ export class DynArrayModifier extends ASTMapper {
             structConstructorCall,
             ast,
           );
-          node.vBody?.insertAtBeginning(structArrayStatement);
+          body.insertAtBeginning(structArrayStatement);
           ast.setContextRecursive(structArrayStatement);
           assert(structConstructorCall.vReferencedDeclaration instanceof CairoFunctionDefinition);
           if (varDecl.storageLocation === DataLocation.Memory) {
@@ -77,7 +77,7 @@ export class DynArrayModifier extends ASTMapper {
             ids.forEach((identifier) =>
               ast.replaceNode(identifier, createIdentifier(memoryArray, ast, DataLocation.Memory)),
             );
-            node.vBody?.insertAfter(memArrayStatement, structArrayStatement);
+            body.insertAfter(memArrayStatement, structArrayStatement);
           } else {
             ids.forEach((identifier) =>
               ast.replaceNode(
@@ -87,7 +87,7 @@ export class DynArrayModifier extends ASTMapper {
             );
           }
           // The orignal VariableDeclaration needs to changed to having it's DataLocation in CallData
-          // otherwise a memory read is inserted in the function body.
+          // Both the dArray and the struct representing it are not in CallData.
           ast.setContextRecursive(node);
           varDecl.storageLocation = DataLocation.CallData;
         });

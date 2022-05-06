@@ -33,7 +33,6 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { isSane } from './astChecking';
 import { printTypeNode } from './astPrinter';
 import { cloneASTNode } from './cloning';
@@ -363,12 +362,6 @@ export function isCairoConstant(node: VariableDeclaration): boolean {
 }
 
 export function isExternallyVisible(node: FunctionDefinition): boolean {
-  if (node instanceof CairoFunctionDefinition) {
-    return (
-      node.visibility === FunctionVisibility.External ||
-      node.visibility === FunctionVisibility.Public
-    );
-  }
   return (
     node.visibility === FunctionVisibility.External || node.visibility === FunctionVisibility.Public
   );

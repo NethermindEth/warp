@@ -28,7 +28,7 @@ export enum TypeConversionContext {
   MemoryAllocation,
   Ref,
   StorageAllocation,
-  Declaration, //Change this to externalFuncDefinition
+  Declaration,
 }
 
 export abstract class CairoType {
