@@ -6,7 +6,7 @@ import { toHexString } from '../utils/utils';
 
 export class UnloadingAssignment extends ASTMapper {
   visitAssignment(node: Assignment, ast: AST): void {
-    if (node.operator === '=') return;
+    if (node.operator === '=') return this.visitExpression(node, ast);
     const lhsValue = cloneASTNode(node.vLeftHandSide, ast);
 
     // Extract e.g. "+" from "+="
@@ -24,6 +24,8 @@ export class UnloadingAssignment extends ASTMapper {
       ),
       node,
     );
+
+    this.visitExpression(node, ast);
   }
 
   visitUnaryOperation(node: UnaryOperation, ast: AST): void {
