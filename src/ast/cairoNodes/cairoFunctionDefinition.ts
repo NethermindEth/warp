@@ -22,8 +22,8 @@ import { Implicits } from '../../utils/implicits';
 
 export class CairoFunctionDefinition extends FunctionDefinition {
   implicits: Set<Implicits>;
-  isStub: boolean;
-
+  isFunctionDefStub: boolean;
+  isStructDefStub: boolean;
   constructor(
     id: number,
     src: string,
@@ -38,7 +38,8 @@ export class CairoFunctionDefinition extends FunctionDefinition {
     returnParameters: ParameterList,
     modifiers: ModifierInvocation[],
     implicits: Set<Implicits>,
-    isStub: boolean,
+    isFunctionDefStub: boolean,
+    isStructDefStub: boolean,
     overrideSpecifier?: OverrideSpecifier,
     body?: Block,
     documentation?: string | StructuredDocumentation,
@@ -65,6 +66,7 @@ export class CairoFunctionDefinition extends FunctionDefinition {
       raw,
     );
     this.implicits = implicits;
-    this.isStub = isStub;
+    this.isFunctionDefStub = isFunctionDefStub;
+    this.isStructDefStub = isStructDefStub;
   }
 }

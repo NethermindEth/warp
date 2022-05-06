@@ -10,7 +10,7 @@ import {
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { CairoStructDefinitionStub } from '../../ast/cairoNodes';
+import { CairoFunctionDefinition } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { createIdentifier } from '../../utils/nodeTemplates';
@@ -59,7 +59,7 @@ export class DynArrayModifier extends ASTMapper {
           );
           node.vBody?.insertAtBeginning(structArrayStatement);
           ast.setContextRecursive(structArrayStatement);
-          assert(structConstructorCall.vReferencedDeclaration instanceof CairoStructDefinitionStub);
+          assert(structConstructorCall.vReferencedDeclaration instanceof CairoFunctionDefinition);
           if (varDecl.storageLocation === DataLocation.Memory) {
             const allocatorFuctionCall = this.genDarrayAllocatorWriter(
               node,
@@ -126,7 +126,7 @@ export class DynArrayModifier extends ASTMapper {
   private genDarrayAllocatorWriter(
     node: FunctionDefinition,
     darrayStruct: VariableDeclaration,
-    structDef: CairoStructDefinitionStub,
+    structDef: CairoFunctionDefinition,
     ast: AST,
   ): FunctionCall {
     const alloctorFunctionCall = ast

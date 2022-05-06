@@ -48,6 +48,7 @@ export function createCairoFunctionStub(
   implicits: Implicits[],
   ast: AST,
   nodeInSourceUnit: ASTNode,
+  isStructDefStub = false,
 ): CairoFunctionDefinition {
   const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
   const funcDefId = ast.reserveId();
@@ -86,6 +87,7 @@ export function createCairoFunctionStub(
     [],
     new Set(implicits),
     true,
+    isStructDefStub,
   );
 
   ast.setContextRecursive(funcDef);

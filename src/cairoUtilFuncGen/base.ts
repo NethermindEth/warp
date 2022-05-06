@@ -62,13 +62,13 @@ export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
   }
 }
 
-export class StringIndexedStructGen extends CairoUtilFuncGenBase {
-  protected generatedStructDefs: Map<string, CairoStructDef> = new Map();
+// export class StringIndexedStructGen extends CairoUtilFuncGenBase {
+//   protected generatedStructDefs: Map<string, CairoStructDef> = new Map();
 
-  getGeneratedCode(): string {
-    return [...this.generatedStructDefs.values()].map((func) => func.code).join('\n\n');
-  }
-}
+//   getGeneratedCode(): string {
+//     return [...this.generatedStructDefs.values()].map((func) => func.code).join('\n\n');
+//   }
+// }
 
 // Quick shortcut for writing `${base} + ${offset}` that also shortens it in the case of +0
 export function add(base: string, offset: number): string {

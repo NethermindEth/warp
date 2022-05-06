@@ -203,9 +203,14 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     const declarations = node.vDeclarations.map((value) => writer.write(value));
     if (
       node.vInitialValue instanceof FunctionCall &&
-      node.vInitialValue.kind === FunctionCallKind.StructConstructorCall
+      node.vInitialValue.vReferencedDeclaration instanceof CairoFunctionDefinition &&
+      node.vInitialValue.vReferencedDeclaration.isStructDefStub
     ) {
-      return [`tempvar ${declarations.join(', ')} = ${writer.write(node.vInitialValue)}`];
+      return [
+        `local ${declarations.join(', ')} : ${
+          node.vInitialValue.vReferencedDeclaration.name
+        } = ${writer.write(node.vInitialValue)}`,
+      ];
     } else if (node.vDeclarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
       return [`let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)}`];
     }
@@ -421,7 +426,7 @@ class ParameterListWriter extends CairoASTNodeWriter {
 
 class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: CairoFunctionDefinition, writer: ASTWriter): SrcDesc {
-    if (node.isStub) return [''];
+    if (node.isFunctionDefStub) return [''];
 
     const documentation = getDocumentation(node.documentation, writer);
     const name = this.getName(node);
@@ -661,13 +666,16 @@ class FunctionCallWriter extends CairoASTNodeWriter {
             const contract = writer.write(node.vExpression.vExpression);
             return [`${contractType}.${memberName}(${contract}${args ? ', ' : ''}${args})`];
           }
+        } else if (
+          node.vReferencedDeclaration instanceof CairoFunctionDefinition &&
+          node.vReferencedDeclaration.isStructDefStub
+        ) {
+          return [`${func}(${args}_len, ${args})`];
         }
         return [`${func}(${args})`];
       }
       case FunctionCallKind.StructConstructorCall:
-        return node.vReferencedDeclaration instanceof CairoStructDefinitionStub
-          ? [`${func}(${args}_len, ${args})`]
-          : [`${func}(${args})`];
+        return [`${func}(${args})`];
 
       case FunctionCallKind.TypeConversion: {
         const arg = node.vArguments[0];

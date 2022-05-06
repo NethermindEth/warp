@@ -6,7 +6,6 @@ import {
   typeNameToTypeNode,
   DataLocation,
   Identifier,
-  StructDefinition,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
@@ -16,7 +15,7 @@ import { StringIndexedFuncGen } from '../../base';
 import { uint256 } from '../../../warplib/utils';
 import { createIdentifier } from '../../../utils/nodeTemplates';
 import { cloneASTNode } from '../../../utils/cloning';
-import { CairoStructDefinitionStub } from '../../../ast/cairoNodes';
+import { CairoFunctionDefinition } from '../../../ast/cairoNodes';
 
 const INDENT = ' '.repeat(4);
 
@@ -24,7 +23,7 @@ export class ExternalDynArrayAllocator extends StringIndexedFuncGen {
   gen(
     node: FunctionDefinition,
     dArrayVarDecl: VariableDeclaration,
-    structDef: CairoStructDefinitionStub,
+    structDef: CairoFunctionDefinition,
   ): FunctionCall {
     assert(dArrayVarDecl.vType !== undefined);
     const functionInputs: Identifier[] = [createIdentifier(dArrayVarDecl, this.ast)];
@@ -40,7 +39,7 @@ export class ExternalDynArrayAllocator extends StringIndexedFuncGen {
     return createCallToFunction(functionStub, [...functionInputs], this.ast);
   }
 
-  private getOrCreate(varDecl: VariableDeclaration, structDef: StructDefinition): string {
+  private getOrCreate(varDecl: VariableDeclaration, structDef: CairoFunctionDefinition): string {
     assert(varDecl.vType instanceof ArrayTypeName);
     const elementCairoType = CairoType.fromSol(
       typeNameToTypeNode(varDecl.vType.vBaseType),

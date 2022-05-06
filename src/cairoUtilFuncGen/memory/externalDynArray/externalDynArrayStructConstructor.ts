@@ -4,26 +4,39 @@ import {
   FunctionDefinition,
   ArrayTypeName,
   typeNameToTypeNode,
+  DataLocation,
+  Identifier,
 } from 'solc-typed-ast';
 import assert from 'assert';
-import {
-  createCairoStructConstructorStub,
-  createCallToStructConstuctor,
-} from '../../../utils/structGeneration';
+import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
 
 import { CairoType, TypeConversionContext } from '../../../utils/cairoTypeSystem';
-import { StringIndexedStructGen } from '../../base';
+import { StringIndexedFuncGen } from '../../base';
+import { cloneASTNode } from '../../../utils/cloning';
+import { createIdentifier } from '../../../utils/nodeTemplates';
 
 const INDENT = ' '.repeat(4);
 
-export class ExternalDynArrayStructConstructor extends StringIndexedStructGen {
+export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
   gen(dArrayVarDecl: VariableDeclaration, node: FunctionDefinition): FunctionCall {
     assert(dArrayVarDecl.vType !== undefined);
 
     const name = this.getOrCreate(dArrayVarDecl);
 
-    const structDefStub = createCairoStructConstructorStub(name, dArrayVarDecl, this.ast);
-    return createCallToStructConstuctor(name, structDefStub, dArrayVarDecl, this.ast, node);
+    const structDefStub = createCairoFunctionStub(
+      name,
+      [['darray', cloneASTNode(dArrayVarDecl.vType, this.ast), DataLocation.CallData]],
+      [['darray_struct', cloneASTNode(dArrayVarDecl, this.ast), DataLocation.Default]],
+      [],
+      this.ast,
+      node,
+      true,
+    );
+
+    const functionInputs: Identifier[] = [
+      createIdentifier(dArrayVarDecl, this.ast, DataLocation.CallData),
+    ];
+    return createCallToFunction(structDefStub, [...functionInputs], this.ast);
   }
 
   private getOrCreate(dArrayVarDecl: VariableDeclaration): string {
@@ -34,15 +47,14 @@ export class ExternalDynArrayStructConstructor extends StringIndexedStructGen {
       TypeConversionContext.MemoryAllocation,
     );
     const key = elementCairoType.toString();
+    const name = `dynarray_struct_${key}`;
 
-    const existing = this.generatedStructDefs.get(key);
+    const existing = this.generatedFunctions.get(name);
     if (existing !== undefined) {
       return existing.name;
     }
 
-    const name = `dynarray_struct_${key}`;
-
-    this.generatedStructDefs.set(key, {
+    this.generatedFunctions.set(key, {
       name: name,
       code: [
         `struct ${name}:`,
