@@ -87,9 +87,7 @@ function isValidTestName(testFileName: string) {
 // This needs to be a reduce instead of filter because of the type system
 const validTests = Object.entries(tests).reduce(
   (tests: [string, ITestCalldata[]][], [f, v]) =>
-    v !== null && v[0].signature.startsWith('constructor(') /*isValidTestName(f)*/
-      ? tests.concat([[f, v]])
-      : tests,
+    v !== null && isValidTestName(f) ? tests.concat([[f, v]]) : tests,
   [],
 );
 
@@ -113,46 +111,28 @@ export const expectations: AsyncTest[] = validTests.map(([file, tests]): AsyncTe
   const lastContract = contractNames[contractNames.length - 1];
   const truncatedFileName = file.substring(0, file.length - '.sol'.length);
 
-  // Get the abi of the contract for web3
-  // Get the ast itself so we can resolve the types for our type conversion
-  // later
-  const ast = compileSolFile(file, false);
-  const astRoot = ast.roots[ast.roots.length - 1];
-  const [contractDef] = astRoot
-    .getChildrenByType(ContractDefinition, true)
-    .filter((contract) => contract.name === lastContract);
+  const contractAbiDefAst = getContractAbiAndDefinition(file, lastContract);
 
   // Encode constructor arguments
-  const constructorArgs: Promise<string[]> = encodeConstructors(
-    file,
-    lastContract,
-    tests[0],
-    contractDef,
-    ast,
-  );
+  const constructorArgs: Promise<string[]> = encodeConstructors(tests[0], contractAbiDefAst);
 
   return new AsyncTest(
     truncatedFileName,
     lastContract,
     constructorArgs,
-    transcodeTests(file, lastContract, tests, ast, contractDef),
+    transcodeTests(tests, contractAbiDefAst),
   );
 });
 
 // ------------------------ Transcode the tests ------------------------------
 
 async function transcodeTests(
-  file: string,
-  lastContract: string,
   expectations: ITestCalldata[],
-  ast: AST,
-  contractDef: ContractDefinition,
+  contractAbiDefAst: Promise<[FunABI[], ContractDefinition, AST]>,
 ): Promise<Expect[]> {
   await initialRun;
 
-  const source = await compileSol(file, 'auto', []);
-  const contracts: { [key: string]: { abi: FunABI[] } } = source.data.contracts[file];
-  const abi = contracts[lastContract].abi;
+  const [abi, contractDef, ast] = await contractAbiDefAst;
 
   const compilerVersion = ast.compilerVersion;
   // Transcode each test
@@ -185,7 +165,7 @@ function transcodeTest(
   const [functionName] = signature.split('(');
 
   // Find the function definition in the ast
-  const [funcDef, funcAbi] = getAbiAndDefinition(
+  const [funcAbi, funcDef] = getFunctionAbiAndDefinition(
     functionName,
     abi,
     contractDef,
@@ -362,53 +342,62 @@ function encodeAsUintOrFelt(tp: TypeNode, value: SolValue, nBits: number): strin
 }
 
 async function encodeConstructors(
-  file: string,
-  lastContract: string,
   firstTest: ITestCalldata,
-  contractDef: ContractDefinition,
-  ast: AST,
+  contractAbiDefAST: Promise<[FunABI[], ContractDefinition, AST]>,
 ) {
-  // Get the abi of the contract for web3
-  const source = await compileSol(file, 'auto', []);
-  const contracts: { [key: string]: { abi: FunABI[] } } = source.data.contracts[file];
-  const abi = contracts[lastContract].abi;
+  const [contractAbi, contractDef, ast] = await contractAbiDefAST;
 
   let constructorArgs: string[] = [];
   if (firstTest.signature.startsWith('constructor(')) {
-    const [constructorDef, constructorAbi] = getAbiAndDefinition(
+    const [constrAbi, constrDef] = getFunctionAbiAndDefinition(
       'constructor',
-      abi,
+      contractAbi,
       contractDef,
       ast,
       firstTest.signature,
       ast.compilerVersion,
     );
     assert(
-      constructorDef instanceof FunctionDefinition,
+      constrDef instanceof FunctionDefinition,
       'Constructor must be of type functionDefinition',
     );
-    const typeNodes = constructorDef.vParameters.vParameters.map((cd) =>
+    const typeNodes = constrDef.vParameters.vParameters.map((cd) =>
       getNodeType(cd, ast.compilerVersion),
     );
-    constructorArgs = encode(
-      constructorAbi.inputs,
-      typeNodes,
-      firstTest.callData,
-      ast.compilerVersion,
-    );
+    constructorArgs = encode(constrAbi.inputs, typeNodes, firstTest.callData, ast.compilerVersion);
   }
 
   return constructorArgs;
 }
 
-function getAbiAndDefinition(
+async function getContractAbiAndDefinition(
+  file: string,
+  lastContract: string,
+): Promise<[FunABI[], ContractDefinition, AST]> {
+  // Get the abi of the contract for web3
+  const source = await compileSol(file, 'auto', []);
+  const contracts: { [key: string]: { abi: FunABI[] } } = source.data.contracts[file];
+  const contractAbi = contracts[lastContract].abi;
+
+  // Get the ast itself so we can resolve the types for our type conversion
+  // later
+  const ast = compileSolFile(file, false);
+  const astRoot = ast.roots[ast.roots.length - 1];
+  const [contractDef] = astRoot
+    .getChildrenByType(ContractDefinition, true)
+    .filter((contract) => contract.name === lastContract);
+
+  return [contractAbi, contractDef, ast];
+}
+
+function getFunctionAbiAndDefinition(
   functionName: string,
   abi: FunABI[],
   contractDef: ContractDefinition,
   ast: AST,
   signature: string,
   compilerVersion: string,
-): [FunctionDefinition | VariableDeclaration, FunABI] {
+): [FunABI, FunctionDefinition | VariableDeclaration] {
   let defs: (FunctionDefinition | VariableDeclaration)[];
   if (functionName !== 'constructor') {
     defs = Array.from(resolveAny(functionName, contractDef, compilerVersion, true)).filter(
@@ -490,5 +479,5 @@ function getAbiAndDefinition(
   const [funcDef] = defs;
   const [funcAbi] = funcAbis;
 
-  return [funcDef, funcAbi];
+  return [funcAbi, funcDef];
 }
