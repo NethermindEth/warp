@@ -399,29 +399,43 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     const documentation = getDocumentation(node.documentation, writer);
     const name = this.getName(node);
     const decorator = this.getDecorator(node);
-    const args = writer.write(node.vParameters);
+    const args =
+      node.kind !== FunctionKind.Fallback
+        ? writer.write(node.vParameters)
+        : 'selector : felt, calldata_size : felt, calldata : felt*';
     const body = this.getBody(node, writer);
     const returns = this.getReturns(node, writer);
     const implicits = this.getImplicits(node);
 
     return [
-      [documentation, decorator, `func ${name}${implicits}(${args})${returns}:`, body, `end`]
+      [documentation, ...decorator, `func ${name}${implicits}(${args})${returns}:`, body, `end`]
         .filter(notNull)
         .join('\n'),
     ];
   }
 
-  private getDecorator(node: CairoFunctionDefinition): string | null {
-    if (node.kind === FunctionKind.Constructor) return '@constructor';
-    return node.visibility === FunctionVisibility.External
-      ? [FunctionStateMutability.Pure, FunctionStateMutability.View].includes(node.stateMutability)
-        ? '@view'
-        : '@external'
-      : null;
+  private getDecorator(node: CairoFunctionDefinition): string[] {
+    if (node.kind === FunctionKind.Constructor) return ['@constructor'];
+    const decorators: string[] = [];
+    if (node.kind === FunctionKind.Fallback) {
+      decorators.push('@raw_input');
+      if (node.vParameters.vParameters.length > 0) decorators.push('@raw_output');
+    }
+
+    if (node.visibility === FunctionVisibility.External) {
+      if (
+        [FunctionStateMutability.Pure, FunctionStateMutability.View].includes(node.stateMutability)
+      )
+        decorators.push('@view');
+      else decorators.push('@external');
+    }
+
+    return decorators;
   }
 
   private getName(node: CairoFunctionDefinition): string {
     if (node.kind === FunctionKind.Constructor) return 'constructor';
+    if (node.kind === FunctionKind.Fallback) return '__default__';
     return node.name;
   }
 
