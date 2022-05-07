@@ -19,18 +19,23 @@ import { collectUnboundVariables } from '../loopFunctionaliser/utils';
 
 export class DynArrayModifier extends ASTMapper {
   /*
-  This pass will generate the functions that are needed to load externally dynamic memory arrays into our WARP memory system.
+  This pass will generate the functions that are needed to load externally passed dynamic memory arrays into our WARP memory system.
 
-  Irrespective of whether a dynArray is declared to be in Memory or CallData the first step is the same. The dynArray is passed to a StructConstructor
-  that will have 1 member. This structConstructor references a stub which will not be written.
-  This is to pass the sanity check, but when it is written in the CairoWriter it will be a struct with 2 members,
-  the len and pointer (the same way that cairo handles external DynArrays). When the dynarray identifier is written in the CarioWriter it
-  will also be split into its length and pointer members.
+  Externally passed dynArrays in Cairo are 2 arguments while in Solidity they are 1. This means a work around is needed for handelling them.
+  The dynArray is converted into a struct that holds its two members (len and ptr). The Identifiers that reference the original dynArray are
+  now replaced with ones that reference the struct. ie dArray[1] -> dArray_struct.ptr[1]. This struct has storageLocation CallData.
 
-  If the dynArray is in memory the struct will then be passed into the wm_dynarray_alloc which will write the dynarray to memory using the
-  struct members.
-
-  If the dynArray is CallData used further in the function then the ptr member of the struct will be used as the BaseExpression in any IndexAccess.
+  The above happens irrespective of whether the a dynArray is declared to be in Memory or CallData. If the original dynArray is in Memory the 
+  struct created above will be passed into the wm_dynarray_alloc function which use the structs members to write the array to memory. Once 
+  again all the Identifiers that refer to the orignal dynArray are replaced with the identifiers that reference the Variable created
+  by the wm_dyarray_alloc function.
+  
+  Notes on the CallData Struct Constuction:
+  The dynArray is passed to a StructConstructor FunctionCall that has 1 argument. The FunctionDefinition it references is
+  as Stub that takes 1 argument and is never written. What is written is a StructDefintition with two members. 
+  
+  Only once the cairoWriter is reached is the single argument in the ParameterListWriter and FunctionCallWriter split into two. 
+  All of this is to pass the sanity check that is run post transforming the AST.
   */
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
@@ -46,8 +51,8 @@ export class DynArrayModifier extends ASTMapper {
             decl.vType.vLength === undefined,
         )
         .forEach(([varDecl, ids]) => {
-          // const wasMemory = varDecl.storageLocation === DataLocation.Memory;
           // Irrespective of the whether the storage location is Memory or Calldata a struct is created to store the len & ptr
+          // Note the location of this struct is in CallData.
           const dArrayStruct = cloneASTNode(varDecl, ast);
           dArrayStruct.name = dArrayStruct.name + '_dstruct';
           dArrayStruct.storageLocation = DataLocation.CallData;
@@ -86,8 +91,8 @@ export class DynArrayModifier extends ASTMapper {
               ),
             );
           }
-          // The orignal VariableDeclaration needs to changed to having it's DataLocation in CallData
-          // Both the dArray and the struct representing it are not in CallData.
+          // The orignal dynArray argument is changed to having it's DataLocation in CallData.
+          // Now both the dynArray and the struct representing it are in CallData.
           ast.setContextRecursive(node);
           varDecl.storageLocation = DataLocation.CallData;
         });
