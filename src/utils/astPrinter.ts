@@ -8,7 +8,7 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { PrintOptions } from '..';
-import { CairoFunctionDefinition } from '../ast/cairoNodes';
+import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { cyan, underline } from './formatting';
 import { extractProperty } from './utils';
 
@@ -74,7 +74,12 @@ export class ASTPrinter {
 
     const subtrees = root.children
       .filter(
-        (child) => this.printStubs || !(child instanceof CairoFunctionDefinition && child.isStub),
+        (child) =>
+          this.printStubs ||
+          !(
+            child instanceof CairoFunctionDefinition &&
+            child.functionStubKind !== FunctionStubKind.None
+          ),
       )
       .map((child, index, children) =>
         this.print(child)

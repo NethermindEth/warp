@@ -563,6 +563,106 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('external_function_inputs', [
+          File.Simple('dynamic_array_return_index', [
+            new Expect(
+              'testing that dynamic memory array as calldata are tranformed and returned correctly',
+              [
+                [
+                  'dArrayCallDataExternal',
+                  [
+                    '3',
+                    '1',
+                    '11',
+                    '111',
+                    '4',
+                    '2',
+                    '20',
+                    '200',
+                    '2000',
+                    '3',
+                    '3',
+                    '30',
+                    '33',
+                    '330',
+                    '333',
+                    '3330',
+                  ],
+                  ['644', '3330'],
+                  '0',
+                ],
+              ],
+            ),
+            new Expect(
+              'testing that dynamic memory array is written to memory and index is returned in external function',
+              [
+                [
+                  'dArrayExternal',
+                  ['8', '10', '11', '12', '13', '14', '15', '16', '17', '2', '5', '7'],
+                  ['20'],
+                  '0',
+                ],
+              ],
+            ),
+            new Expect(
+              'testing that dynamic memory array is written to memory and index is returned in public function.',
+              [['dArrayPublic', ['4', '1', '2', '3', '4'], ['1'], '0']],
+            ),
+            new Expect(
+              'testing that multiple inputs containing dynamic arrays that are handeled correctly to external functions',
+              [
+                [
+                  'dArrayMultipleInputsExternal',
+                  ['2', '10', '11', '12', '2', '20', '21'],
+                  ['31'],
+                  '0',
+                ],
+              ],
+            ),
+            new Expect(
+              'testing that multipe inputs containing dynamic arrays that are handeled correctly when passed to public functions',
+              [
+                [
+                  'dArrayMultipleInputsPublic',
+                  ['2', '10', '11', '12', '2', '20', '21'],
+                  ['31'],
+                  '0',
+                ],
+              ],
+            ),
+            new Expect('testing uint256 inputs are loaded into and read from memory correctly.', [
+              ['dArray256External', ['3', '0', '1', '1', '2', '2', '3'], ['1', '2'], '0'],
+            ]),
+            new Expect(
+              'testing uint256 inputs are loaded into and read from memory correctly, when there are multiple inputs.',
+              [
+                [
+                  'dArray256MultipleInputs',
+                  [
+                    '3',
+                    '10',
+                    '11',
+                    '100',
+                    '111',
+                    '1000',
+                    '1111',
+                    '3',
+                    '2',
+                    '20',
+                    '200',
+                    '3',
+                    '30',
+                    '33',
+                    '300',
+                    '333',
+                    '3000',
+                    '3333',
+                  ],
+                  ['4020', '4444'],
+                  '0',
+                ],
+              ],
+            ),
+          ]),
           File.Simple('struct_return_member', [
             new Expect('testing that memory struct is written to memory and member is returned', [
               ['testReturnMember', ['1', '2'], ['1'], '0'],
