@@ -28,7 +28,7 @@ export enum TypeConversionContext {
   MemoryAllocation,
   Ref,
   StorageAllocation,
-  Declaration,
+  CallDataRef,
 }
 
 export abstract class CairoType {
@@ -50,8 +50,8 @@ export abstract class CairoType {
       return new CairoFelt();
     } else if (tp instanceof ArrayType) {
       if (tp.size === undefined) {
-        if (context === TypeConversionContext.Declaration) {
-          return CairoType.fromSol(tp.elementT, ast, context);
+        if (context === TypeConversionContext.CallDataRef) {
+          return new CairoPointer(CairoType.fromSol(tp.elementT, ast, context));
         }
         return new WarpLocation();
       } else if (context === TypeConversionContext.Ref) {
@@ -85,9 +85,6 @@ export abstract class CairoType {
     } else if (tp instanceof MappingType) {
       return new WarpLocation();
     } else if (tp instanceof PointerType) {
-      if (context === TypeConversionContext.Declaration) {
-        return new CairoPointer(CairoType.fromSol(tp.to, ast, context));
-      }
       if (context !== TypeConversionContext.Ref) {
         return CairoType.fromSol(tp.to, ast, context);
       }

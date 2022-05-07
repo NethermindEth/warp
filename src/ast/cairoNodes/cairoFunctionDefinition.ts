@@ -21,9 +21,9 @@ import { Implicits } from '../../utils/implicits';
 */
 
 export enum FunctionStubKind {
-  None = 'none',
-  FunctionDefStub = 'functionDefStub',
-  StructDefStub = 'structDefStub',
+  None,
+  FunctionDefStub,
+  StructDefStub,
 }
 
 export class CairoFunctionDefinition extends FunctionDefinition {

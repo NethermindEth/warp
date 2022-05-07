@@ -394,9 +394,9 @@ class ParameterListWriter extends CairoASTNodeWriter {
     const typeConversionContext =
       node.parent instanceof FunctionDefinition
         ? isExternallyVisible(node.parent)
-          ? TypeConversionContext.Declaration
+          ? TypeConversionContext.CallDataRef
           : TypeConversionContext.Ref
-        : TypeConversionContext.Declaration;
+        : TypeConversionContext.CallDataRef;
 
     const proccessed_params = node.vParameters.flatMap((decl) => {
       // This conditional is placed here to split DynamicArrays into their corresponding length and pointer when they
@@ -404,7 +404,7 @@ class ParameterListWriter extends CairoASTNodeWriter {
       if (
         decl.vType instanceof ArrayTypeName &&
         decl.vType.vLength === undefined &&
-        typeConversionContext == TypeConversionContext.Declaration &&
+        typeConversionContext == TypeConversionContext.CallDataRef &&
         node.parent instanceof FunctionDefinition &&
         decl.name !== undefined &&
         isExternallyVisible(node.parent)

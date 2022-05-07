@@ -35,7 +35,6 @@ import {
 import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
 import { printTypeNode } from './astPrinter';
-import { cloneASTNode } from './cloning';
 import { logError, NotSupportedYetError, TranspileFailedError } from './errors';
 import { Class } from './typeConstructs';
 
@@ -383,7 +382,7 @@ export function splitDarray(
   scope: number,
   dArrayVarDecl: VariableDeclaration,
   ast: AST,
-): [arrayLen: VariableDeclaration, arrayPointer: VariableDeclaration] {
+): [arrayLen: VariableDeclaration, dArrayVarDecl: VariableDeclaration] {
   assert(dArrayVarDecl.vType !== undefined);
   const arrayLen = new VariableDeclaration(
     ast.reserveId(),
@@ -393,7 +392,7 @@ export function splitDarray(
     dArrayVarDecl.name + '_len',
     scope,
     false,
-    DataLocation.Default,
+    DataLocation.CallData,
     StateVariableVisibility.Internal,
     Mutability.Immutable,
     'uint248',
@@ -402,22 +401,5 @@ export function splitDarray(
     undefined,
   );
 
-  const pointerTypeString = cloneASTNode(dArrayVarDecl.vType, ast);
-  pointerTypeString.typeString = pointerTypeString.typeString + ' calldata';
-  const arrayPointer = new VariableDeclaration(
-    ast.reserveId(),
-    '',
-    true,
-    false,
-    dArrayVarDecl.name,
-    scope,
-    false,
-    DataLocation.CallData,
-    StateVariableVisibility.Internal,
-    Mutability.Immutable,
-    dArrayVarDecl.typeString + ' calldata',
-    undefined,
-    pointerTypeString,
-  );
-  return [arrayLen, arrayPointer];
+  return [arrayLen, dArrayVarDecl];
 }
