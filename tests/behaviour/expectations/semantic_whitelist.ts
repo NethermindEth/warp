@@ -539,7 +539,7 @@ const tests: string[] = [
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/bytes_comparison.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/unary_too_long_literal.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/inc_dec_operators.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/inc_dec_operators.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/exp_operator_const.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/exp_zero_literal.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/exp_operator_const_signed.sol',
