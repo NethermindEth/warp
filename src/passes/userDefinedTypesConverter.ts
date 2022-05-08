@@ -84,18 +84,7 @@ export class UserDefinedTypesConverter extends ASTMapper {
     if (!(typeNode.type instanceof UserDefinedType)) return;
     if (!(typeNode.type.definition instanceof UserDefinedValueTypeDefinition)) return;
 
-    if (node.vExpression.memberName === 'wrap') ast.replaceNode(node, node.vArguments[0]);
-    else {
-      const argument = node.vArguments[0];
-      const typeNode = getNodeType(argument, ast.compilerVersion);
-      assert(typeNode instanceof UserDefinedType, 'Expected UserDefinedType');
-      assert(
-        typeNode.definition instanceof UserDefinedValueTypeDefinition,
-        'Expected UserDefinedValueTypeDefinition',
-      );
-      argument.typeString = typeNode.definition.underlyingType.typeString;
-      ast.replaceNode(node, argument);
-    }
+    ast.replaceNode(node, node.vArguments[0]);
   }
 
   static map(ast: AST): AST {
