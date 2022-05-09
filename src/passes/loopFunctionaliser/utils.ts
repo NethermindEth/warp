@@ -208,30 +208,3 @@ export function createLoopCall(
     ast,
   );
 }
-
-export function createOuterCall(
-  node: WhileStatement,
-  unboundVariables: Map<VariableDeclaration, Identifier[]>,
-  functionDef: FunctionDefinition,
-  ast: AST,
-): ExpressionStatement {
-  const resultIdentifiers = [...unboundVariables.keys()].map((k) => createIdentifier(k, ast));
-  const assignmentValue = toSingleExpression(resultIdentifiers, ast);
-
-  return new ExpressionStatement(
-    ast.reserveId(),
-    node.src,
-    resultIdentifiers.length === 0
-      ? createLoopCall(functionDef, [...unboundVariables.keys()], ast)
-      : new Assignment(
-          ast.reserveId(),
-          '',
-          assignmentValue.typeString,
-          '=',
-          assignmentValue,
-          createLoopCall(functionDef, [...unboundVariables.keys()], ast),
-        ),
-    node.documentation,
-    node.raw,
-  );
-}

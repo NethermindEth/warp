@@ -1,7 +1,9 @@
 import {
+  Assignment,
   ASTNode,
   DataLocation,
   Expression,
+  ExpressionStatement,
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
@@ -18,7 +20,8 @@ import { AST } from '../ast/ast';
 import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
 import { Implicits } from './implicits';
-import { createParameterList } from './nodeTemplates';
+import { createIdentifier, createParameterList } from './nodeTemplates';
+import { toSingleExpression } from './utils';
 
 export function createCallToFunction(
   functionDef: FunctionDefinition,
@@ -99,5 +102,32 @@ export function createCairoFunctionStub(
 export function fixParameterScopes(node: FunctionDefinition): void {
   [...node.vParameters.vParameters, ...node.vReturnParameters.vParameters].forEach(
     (decl) => (decl.scope = node.id),
+  );
+}
+
+export function createOuterCall(
+  node: ASTNode,
+  variables: VariableDeclaration[],
+  functionToCall: FunctionCall,
+  ast: AST,
+): ExpressionStatement {
+  const resultIdentifiers = variables.map((k) => createIdentifier(k, ast));
+  const assignmentValue = toSingleExpression(resultIdentifiers, ast);
+
+  return new ExpressionStatement(
+    ast.reserveId(),
+    node.src,
+    resultIdentifiers.length === 0
+      ? functionToCall
+      : new Assignment(
+          ast.reserveId(),
+          '',
+          assignmentValue.typeString,
+          '=',
+          assignmentValue,
+          functionToCall,
+        ),
+    undefined,
+    node.raw,
   );
 }
