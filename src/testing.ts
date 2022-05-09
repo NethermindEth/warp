@@ -68,14 +68,14 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/imports/importInterface', 'Success'],
   ['example_contracts/imports/importLibrary', 'Success'],
   // Transpilation failure since importing StructDefinition is not implemented yet
-  ['example_contracts/imports/importStruct', 'NotSupportedYet'],
+  ['example_contracts/imports/importStruct', 'Success'],
   ['example_contracts/inheritance/simple', 'Success'],
   ['example_contracts/inheritance/super/base', 'Success'],
   ['example_contracts/inheritance/super/derived', 'Success'],
   ['example_contracts/inheritance/super/mid', 'Success'],
   ['example_contracts/inheritance/variables', 'Success'],
   // Requires struct imports
-  ['example_contracts/interfaces', 'NotSupportedYet'],
+  ['example_contracts/interfaces', 'CairoCompileFailed'],
   ['example_contracts/invalidSolidity', 'SolCompileFailed'],
   ['example_contracts/lib', 'Success'],
   ['example_contracts/libraries/using_for_star', 'NotSupportedYet'],
@@ -101,7 +101,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/namedArgs/function', 'Success'],
   ['example_contracts/payable-function', 'Success'],
   // Struct outside of contract
-  ['example_contracts/pure-function', 'NotSupportedYet'],
+  ['example_contracts/pure-function', 'CairoCompileFailed'],
   ['example_contracts/return-var-capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],
   ['example_contracts/returnInserter', 'Success'],

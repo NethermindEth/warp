@@ -14,6 +14,7 @@ export * from './FreeLibraryCallInliner';
 export * from './functionModifierHandler';
 export * from './generateGetters';
 export * from './identifierMangler';
+export * from './identifierManglerSubPass';
 export * from './ifFunctionaliser';
 export * from './implicitConversionToExplicit';
 export * from './importDirectiveIdentifier';
