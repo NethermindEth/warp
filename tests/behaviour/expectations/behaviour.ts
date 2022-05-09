@@ -1,3 +1,4 @@
+import { exec } from 'child_process';
 import { Dir, Expect, File } from './types';
 import { flatten } from './utils';
 
@@ -102,8 +103,13 @@ export const expectations = flatten(
         ]),
         new Dir('conditionals', [
           File.Simple('conditionals', [
-            Expect.Simple('simpleScalar', ['1', '2', '3'], ['3'], 'false branch'),
+            Expect.Simple('simpleScalar', ['0', '2', '3'], ['3'], 'false branch'),
             Expect.Simple('simpleScalar', ['1', '2', '3'], ['2'], 'true branch'),
+          ]),
+          File.Simple('and', [
+            Expect.Simple('f', ['50', '0', '0'], ['0', '0']),
+            Expect.Simple('f', ['10', '0', '1'], ['1', '0']),
+            Expect.Simple('f', ['4', '0', '1'], ['5', '0']),
           ]),
         ]),
         new Dir('constants', [
