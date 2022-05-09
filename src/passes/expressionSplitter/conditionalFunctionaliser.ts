@@ -19,23 +19,23 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
-import { AST } from '../ast/ast';
-import { ASTMapper } from '../ast/mapper';
-import { printNode } from '../utils/astPrinter';
-import { cloneASTNode } from '../utils/cloning';
-import { getDefaultValue } from '../utils/defaultValueNodes';
+import { AST } from '../../ast/ast';
+import { ASTMapper } from '../../ast/mapper';
+import { printNode } from '../../utils/astPrinter';
+import { cloneASTNode } from '../../utils/cloning';
+import { getDefaultValue } from '../../utils/defaultValueNodes';
 import {
+  collectUnboundVariables,
   createCallToFunction,
   createOuterCall,
   fixParameterScopes,
-} from '../utils/functionGeneration';
+} from '../../utils/functionGeneration';
 import {
   createBlock,
   createIdentifier,
   createParameterList,
   createReturn,
-} from '../utils/nodeTemplates';
-import { collectUnboundVariables } from './loopFunctionaliser/utils';
+} from '../../utils/nodeTemplates';
 
 export class ConditionalFunctionaliser extends ASTMapper {
   funcNameCounter = 0;

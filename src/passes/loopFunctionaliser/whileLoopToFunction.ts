@@ -1,13 +1,8 @@
 import { DoWhileStatement, FunctionDefinition, WhileStatement } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { createOuterCall } from '../../utils/functionGeneration';
-import {
-  collectUnboundVariables,
-  createLoopCall,
-  extractDoWhileToFunction,
-  extractWhileToFunction,
-} from './utils';
+import { collectUnboundVariables, createOuterCall } from '../../utils/functionGeneration';
+import { createLoopCall, extractDoWhileToFunction, extractWhileToFunction } from './utils';
 
 export class WhileLoopToFunction extends ASTMapper {
   constructor(private loopToContinueFunction: Map<number, FunctionDefinition>) {

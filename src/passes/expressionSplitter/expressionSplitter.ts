@@ -14,13 +14,13 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
-import { AST } from '../ast/ast';
-import { ASTMapper } from '../ast/mapper';
-import { printNode } from '../utils/astPrinter';
-import { cloneASTNode } from '../utils/cloning';
-import { TranspileFailedError } from '../utils/errors';
-import { createEmptyTuple, createIdentifier } from '../utils/nodeTemplates';
-import { counterGenerator } from '../utils/utils';
+import { AST } from '../../ast/ast';
+import { ASTMapper } from '../../ast/mapper';
+import { printNode } from '../../utils/astPrinter';
+import { cloneASTNode } from '../../utils/cloning';
+import { TranspileFailedError } from '../../utils/errors';
+import { createEmptyTuple, createIdentifier } from '../../utils/nodeTemplates';
+import { counterGenerator } from '../../utils/utils';
 
 function* expressionGenerator(prefix: string): Generator<string, string, unknown> {
   const count = counterGenerator();

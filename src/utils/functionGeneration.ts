@@ -131,3 +131,33 @@ export function createOuterCall(
     node.raw,
   );
 }
+
+export function collectUnboundVariables(node: ASTNode): Map<VariableDeclaration, Identifier[]> {
+  const internalDeclarations = node
+    .getChildren(true)
+    .filter((n) => n instanceof VariableDeclaration);
+
+  const unboundVariables = node
+    .getChildren(true)
+    .filter((n): n is Identifier => n instanceof Identifier)
+    .map((id): [Identifier, ASTNode | undefined] => [id, id.vReferencedDeclaration])
+    .filter(
+      (pair: [Identifier, ASTNode | undefined]): pair is [Identifier, VariableDeclaration] =>
+        pair[1] !== undefined &&
+        pair[1] instanceof VariableDeclaration &&
+        !internalDeclarations.includes(pair[1]),
+    );
+
+  const retMap: Map<VariableDeclaration, Identifier[]> = new Map();
+
+  unboundVariables.forEach(([id, decl]) => {
+    const existingEntry = retMap.get(decl);
+    if (existingEntry === undefined) {
+      retMap.set(decl, [id]);
+    } else {
+      retMap.set(decl, [id, ...existingEntry]);
+    }
+  });
+
+  return retMap;
+}

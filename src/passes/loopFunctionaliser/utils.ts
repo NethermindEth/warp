@@ -1,6 +1,5 @@
 import assert from 'assert';
 import {
-  ASTNode,
   ContractDefinition,
   DoWhileStatement,
   Expression,
@@ -9,7 +8,6 @@ import {
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
-  Identifier,
   IfStatement,
   SourceUnit,
   Statement,
@@ -26,36 +24,6 @@ import {
   createParameterList,
   createReturn,
 } from '../../utils/nodeTemplates';
-
-export function collectUnboundVariables(node: ASTNode): Map<VariableDeclaration, Identifier[]> {
-  const internalDeclarations = node
-    .getChildren(true)
-    .filter((n) => n instanceof VariableDeclaration);
-
-  const unboundVariables = node
-    .getChildren(true)
-    .filter((n): n is Identifier => n instanceof Identifier)
-    .map((id): [Identifier, ASTNode | undefined] => [id, id.vReferencedDeclaration])
-    .filter(
-      (pair: [Identifier, ASTNode | undefined]): pair is [Identifier, VariableDeclaration] =>
-        pair[1] !== undefined &&
-        pair[1] instanceof VariableDeclaration &&
-        !internalDeclarations.includes(pair[1]),
-    );
-
-  const retMap: Map<VariableDeclaration, Identifier[]> = new Map();
-
-  unboundVariables.forEach(([id, decl]) => {
-    const existingEntry = retMap.get(decl);
-    if (existingEntry === undefined) {
-      retMap.set(decl, [id]);
-    } else {
-      retMap.set(decl, [id, ...existingEntry]);
-    }
-  });
-
-  return retMap;
-}
 
 // It's okay to use a global counter here as it only affects private functions
 // and never anything that can be referenced from another file
