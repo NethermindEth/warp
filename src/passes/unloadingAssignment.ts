@@ -60,7 +60,7 @@ export class UnloadingAssignment extends ASTMapper {
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
-    if (node.operator === '=' && !(node.getParents()[0] instanceof ExpressionStatement)) {
+    if (node.operator === '=') {
       const inmediateParent = node.getParents()[0];
       // Create temp vars only when handling local vars which are not directly
       // encapsulated on an ExpressionStatement
