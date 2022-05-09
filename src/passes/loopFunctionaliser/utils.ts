@@ -1,11 +1,9 @@
 import assert from 'assert';
 import {
-  Assignment,
   ASTNode,
   ContractDefinition,
   DoWhileStatement,
   Expression,
-  ExpressionStatement,
   FunctionCall,
   FunctionDefinition,
   FunctionKind,
@@ -28,7 +26,6 @@ import {
   createParameterList,
   createReturn,
 } from '../../utils/nodeTemplates';
-import { toSingleExpression } from '../../utils/utils';
 
 export function collectUnboundVariables(node: ASTNode): Map<VariableDeclaration, Identifier[]> {
   const internalDeclarations = node

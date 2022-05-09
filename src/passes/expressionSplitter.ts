@@ -101,7 +101,7 @@ export class ExpressionSplitter extends ASTMapper {
     }
   }
 
-  visitConditional(node: Conditional, ast: AST) {
+  visitConditional(_node: Conditional, _ast: AST) {
     return;
   }
 }

@@ -107,9 +107,9 @@ export function createReturn(
     toReturn === undefined || toReturn instanceof Expression
       ? toReturn
       : toSingleExpression(
-        toReturn.map((decl) => createIdentifier(decl, ast)),
-        ast,
-      );
+          toReturn.map((decl) => createIdentifier(decl, ast)),
+          ast,
+        );
   const node = new Return(ast.reserveId(), '', retParamListId, retValue);
   ast.setContextRecursive(node);
   return node;

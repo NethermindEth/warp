@@ -3,7 +3,6 @@ import {
   InlineAssembly,
   RevertStatement,
   ErrorDefinition,
-  Conditional,
   MappingType,
   MemberAccess,
   PointerType,
