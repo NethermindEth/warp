@@ -8,7 +8,12 @@ import {
   FunctionDefinition,
   SrcDesc,
 } from 'solc-typed-ast';
-import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
+import {
+  CairoAssert,
+  CairoContract,
+  CairoFunctionDefinition,
+  FunctionStubKind,
+} from './ast/cairoNodes';
 
 class CairoContractSolWriter extends ASTNodeWriter {
   writeInner(node: CairoContract, writer: ASTWriter): SrcDesc {
@@ -48,7 +53,7 @@ class CairoFunctionDefinitionSolWriter extends ASTNodeWriter {
   }
 
   writeInner(node: CairoFunctionDefinition, writer: ASTWriter): SrcDesc {
-    if (node.isStub && !this.printStubs) return [];
+    if (node.functionStubKind !== FunctionStubKind.None && !this.printStubs) return [];
 
     const result: SrcDesc = [];
 

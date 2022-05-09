@@ -41,7 +41,7 @@ export class EnumBoundChecker extends ASTMapper {
     const enumStubArgument = createIdentifier(parameter, ast);
     const functionCall = ast
       .getUtilFuncGen(node)
-      .externalInputChecks.enum.gen(parameter, enumStubArgument);
+      .externalFunctions.inputsChecks.enum.gen(parameter, enumStubArgument);
 
     return functionCall;
   }
