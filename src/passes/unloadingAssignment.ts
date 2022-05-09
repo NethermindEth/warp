@@ -7,7 +7,6 @@ import {
   Expression,
   ExpressionStatement,
   FunctionDefinition,
-  getNodeType,
   Identifier,
   Literal,
   LiteralKind,
