@@ -55,6 +55,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/errorHandling/revert', 'Success'],
   ['example_contracts/events', 'Success'],
   ['example_contracts/external_function', 'Success'],
+  ['example_contracts/fallbackWithoutArgs', 'Success'],
   // Typestring for the internal function call doesn't contain a location so a read isn't generated
   ['example_contracts/freeFunction', 'Success'],
   ['example_contracts/function-with-nested-return', 'Success'],
@@ -109,11 +110,12 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/sstore-sload', 'WillNotSupport'],
   ['example_contracts/state_variables/scalars', 'Success'],
   ['example_contracts/state_variables/enums', 'Success'],
-  // Typestrings don't include data location leading to incorrect type analysis
-  ['example_contracts/state_variables/arrays', 'CairoCompileFailed'],
+  ['example_contracts/state_variables/arrays', 'Success'],
+  // Initializing arrays with default values are yet to be supported
+  ['example_contracts/state_variables/arrays_init', 'NotSupportedYet'],
   ['example_contracts/state_variables/mappings', 'Success'],
-  // It produces incorrect code but it still compiles
   ['example_contracts/state_variables/structs', 'Success'],
+  ['example_contracts/state_variables/structs_nested', 'Success'],
   // Mappings of structs are not supported yet
   ['example_contracts/state_variables/misc', 'NotSupportedYet'],
   ['example_contracts/structs', 'Success'],
@@ -128,12 +130,14 @@ const expectedResults = new Map<string, ResultType>([
   // Uses WARP_STORAGE in a free function
   ['example_contracts/using_for/imports/user_defined', 'CairoCompileFailed'],
   // global_directive.sol cannot resolve struct when file imported as identifier
-  ['example_contracts/using_for/imports/global_directive', 'CairoCompileFailed'],
+  ['example_contracts/using_for/imports/global_directive', 'TranspilationFailed'],
   ['example_contracts/using_for/function', 'WillNotSupport'],
   ['example_contracts/using_for/private', 'Success'],
   ['example_contracts/using_for/library', 'Success'],
   ['example_contracts/using_for/simple', 'Success'],
   ['example_contracts/usingReturnValues', 'Success'],
+  ['example_contracts/userdefinedtypes', 'NotSupportedYet'],
+  ['example_contracts/userdefinedidentifier', 'NotSupportedYet'],
   ['example_contracts/variable-declarations', 'Success'],
   ['example_contracts/view-function', 'Success'],
 ]);

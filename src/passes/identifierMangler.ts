@@ -16,6 +16,7 @@ import {
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { isNameless } from '../utils/utils';
 
 export class IdentifierMangler extends ASTMapper {
   lastUsedVariableId = 0;
@@ -24,7 +25,9 @@ export class IdentifierMangler extends ASTMapper {
 
   // This strategy should allow checked demangling post transpilation for a more readable result
   createNewExternalFunctionName(fd: FunctionDefinition): string {
-    return `${fd.name}_${fd.canonicalSignatureHash(ABIEncoderVersion.V2)}`;
+    return !isNameless(fd)
+      ? `${fd.name}_${fd.canonicalSignatureHash(ABIEncoderVersion.V2)}`
+      : fd.name;
   }
 
   // This strategy should allow checked demangling post transpilation for a more readable result
@@ -60,6 +63,8 @@ export class IdentifierMangler extends ASTMapper {
     //node.name = this.createNewVariableName(node.name);
   }
   mangleFunctionDefinition(node: FunctionDefinition): void {
+    if (node.isConstructor) return;
+
     // TODO switch based on type
     switch (node.visibility) {
       case FunctionVisibility.External:

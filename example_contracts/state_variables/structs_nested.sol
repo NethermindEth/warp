@@ -9,7 +9,12 @@ contract WARP {
         uint256 b;
     }
 
-    A public a;
-    A private b;
-    A public c;
+    struct B{
+        uint256 a;
+        address b;
+        int120 c;
+        A d;
+    }
+
+    B public d;
 }

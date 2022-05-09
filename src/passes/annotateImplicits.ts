@@ -7,7 +7,7 @@ import {
   SourceUnit,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { CairoFunctionDefinition } from '../ast/cairoNodes';
+import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { ASTVisitor } from '../ast/visitor';
 import { printNode } from '../utils/astPrinter';
@@ -35,7 +35,7 @@ export class AnnotateImplicits extends ASTMapper {
       node.vReturnParameters,
       node.vModifiers,
       implicits,
-      false,
+      FunctionStubKind.None,
       node.vOverrideSpecifier,
       node.vBody,
       node.documentation,
