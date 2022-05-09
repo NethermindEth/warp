@@ -4,6 +4,7 @@ import {
   ContractDefinition,
   DataLocation,
   Expression,
+  Conditional,
   ExpressionStatement,
   FunctionCall,
   FunctionDefinition,
@@ -98,6 +99,10 @@ export class ExpressionSplitter extends ASTMapper {
         )} ${node.vFunctionName} has ${returnTypes.length}`,
       );
     }
+  }
+
+  visitConditional(node: Conditional, ast: AST) {
+    return;
   }
 }
 

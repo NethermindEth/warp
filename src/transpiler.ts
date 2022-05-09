@@ -103,7 +103,6 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['R', ReturnInserter],
     ['Rv', ReturnVariableInitializer],
     ['If', IfFunctionaliser],
-    ['C', ConditionalFunctionaliser],
     ['T', TupleAssignmentSplitter],
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
@@ -117,6 +116,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['B', BuiltinHandler],
     ['Us', UnreachableStatementPruner],
     ['E', ExpressionSplitter],
+    ['C', ConditionalFunctionaliser],
     ['An', AnnotateImplicits],
     ['Ci', CairoUtilImporter],
   ]);

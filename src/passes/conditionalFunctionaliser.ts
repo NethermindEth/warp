@@ -7,20 +7,28 @@ import {
   DataLocation,
   Expression,
   ExpressionStatement,
+  FunctionCall,
   FunctionDefinition,
   FunctionVisibility,
+  getNodeType,
   Identifier,
   IfStatement,
   Mutability,
   ParameterList,
   StateVariableVisibility,
   VariableDeclaration,
+  VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
-import { createCallToFunction, fixParameterScopes } from '../utils/functionGeneration';
+import { getDefaultValue } from '../utils/defaultValueNodes';
+import {
+  createCallToFunction,
+  createOuterCall,
+  fixParameterScopes,
+} from '../utils/functionGeneration';
 import {
   createBlock,
   createIdentifier,
@@ -62,12 +70,20 @@ export class ConditionalFunctionaliser extends ASTMapper {
     containingFunction.vScope.insertBefore(func, containingFunction);
     ast.registerChild(func, containingFunction.vScope);
 
-    // TODO - The node can't be replaced with the function call, instead
-    // a variable needs to be declared that will hold the resulting value of the conditional.
-    // So first a statement will be added to assign all the return values of the function,
-    // where the first variable will be the one that holds the result of the conditional.
-    // The node will be replaced with an identifier referencing that variable
-    ast.replaceNode(node, createCallToFunction(func, inputs, ast));
+    const conditionalResult = getConditionalReturnVariable(
+      node,
+      containingFunction.id,
+      this.varNameCounter++,
+      ast,
+    );
+    addStatementsToCallFunction(
+      node,
+      conditionalResult,
+      [...variables.keys()],
+      createCallToFunction(func, inputs, ast),
+      ast,
+    );
+    ast.replaceNode(node, createIdentifier(conditionalResult, ast));
   }
 
   // The returns should be both the values returned by the conditional itself,
@@ -151,8 +167,11 @@ function createFunctionBody(node: Conditional, returns: ParameterList, ast: AST)
 
 function createReturnBody(returns: ParameterList, value: Expression, ast: AST): Block {
   const firstVar = returns.vParameters[0];
+  const variable = cloneASTNode(firstVar, ast);
+  variable.name = '__warp_aux_var';
   return createBlock(
     [
+      new VariableDeclarationStatement(ast.reserveId(), '', [variable.id], [variable], value),
       new ExpressionStatement(
         ast.reserveId(),
         '',
@@ -162,13 +181,33 @@ function createReturnBody(returns: ParameterList, value: Expression, ast: AST): 
           firstVar.typeString,
           '=',
           createIdentifier(firstVar, ast),
-          value,
+          createIdentifier(variable, ast),
         ),
       ),
       createReturn(returns.vParameters, returns.id, ast),
     ],
     ast,
   );
+}
+
+function addStatementsToCallFunction(
+  node: Conditional,
+  conditionalResult: VariableDeclaration,
+  variables: VariableDeclaration[],
+  funcToCall: FunctionCall,
+  ast: AST,
+) {
+  const statements = [
+    new VariableDeclarationStatement(
+      ast.reserveId(),
+      '',
+      [conditionalResult.id],
+      [conditionalResult],
+      getDefaultValue(getNodeType(conditionalResult, ast.compilerVersion), conditionalResult, ast),
+    ),
+    createOuterCall(node, [conditionalResult, ...variables], funcToCall, ast),
+  ];
+  statements.forEach((stmt) => ast.insertStatementBefore(node, stmt));
 }
 
 function getNodeVariables(node: Conditional) {
