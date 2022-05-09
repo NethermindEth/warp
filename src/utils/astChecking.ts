@@ -681,7 +681,7 @@ function checkIdNonNegative(node: ASTNode) {
 
 function checkOnlyConstructorsMarkedAsConstructors(nodes: FunctionDefinition[]) {
   nodes.forEach((func) => {
-    if (func.kind === FunctionKind.Constructor && !func.isConstructor)
+    if (func.name === '' && func.kind === FunctionKind.Constructor && !func.isConstructor)
       throw new InsaneASTError(
         `${printNode(func)} ${func.name} is incorrectly marked as ${
           func.isConstructor ? '' : 'not '
