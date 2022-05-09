@@ -47,7 +47,6 @@ export function updateReferencedDeclarations(
 }
 
 export function removeBaseContractDependence(node: ContractDefinition): void {
-  node.linearizedBaseContracts = [];
   const toRemove = node.children.filter(
     (child): child is InheritanceSpecifier => child instanceof InheritanceSpecifier,
   );
