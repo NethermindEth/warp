@@ -917,6 +917,17 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('fallback', [
+          File.Simple('simple', [
+            Expect.Simple('x', [], ['0', '0']),
+            Expect.Simple('unexistent', [], []),
+            Expect.Simple('x', [], ['1', '0']),
+            Expect.Simple('unexistent', ['3', '4', '5'], []),
+            Expect.Simple('x', [], ['2', '0']),
+            Expect.Simple('unexistent', ['10', '4', '5', '20'], []),
+            Expect.Simple('x', [], ['3', '0']),
+          ]),
+        ]),
         new Dir('if', [
           File.Simple('localVariables', [
             Expect.Simple('ifNoElse', ['1'], ['1'], 'true branch'),

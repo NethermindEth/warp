@@ -11,6 +11,7 @@ import {
   Expression,
   FixedBytesType,
   FunctionDefinition,
+  FunctionKind,
   FunctionVisibility,
   IdentifierPath,
   IntLiteralType,
@@ -375,6 +376,12 @@ export function toSingleExpression(expressions: Expression[], ast: AST): Express
     `tuple(${expressions.map((e) => e.typeString).join(',')})`,
     false,
     expressions,
+  );
+}
+
+export function isNameless(node: FunctionDefinition) {
+  return [FunctionKind.Constructor, FunctionKind.Fallback, FunctionKind.Receive].includes(
+    node.kind,
   );
 }
 
