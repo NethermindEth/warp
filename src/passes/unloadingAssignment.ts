@@ -31,8 +31,6 @@ export class UnloadingAssignment extends ASTMapper {
   // stored in a temporal var which will hold the value of the assignment
   // as an expression
   private handleAssignmentAsExpressionOnly(node: Assignment, ast: AST) {
-    // create a variable declaration equal to the node right hand side
-    // Need to give a unique name
     assert(
       node.vLeftHandSide instanceof Identifier,
       `Assignment left hand side must be an Identifier, intead ${printNode(node)} was found`,
@@ -65,7 +63,13 @@ export class UnloadingAssignment extends ASTMapper {
   visitAssignment(node: Assignment, ast: AST): void {
     if (node.operator === '=' && !(node.getParents()[0] instanceof ExpressionStatement)) {
       const inmediateParent = node.getParents()[0];
-      if (!(inmediateParent instanceof ExpressionStatement)) {
+      // Create temp vars only when handling local vars which are not directly
+      // encapsulated on an ExpressionStatement
+      if (
+        !(inmediateParent instanceof ExpressionStatement) &&
+        node.vLeftHandSide instanceof Identifier &&
+        !identifierReferenceStateVar(node.vLeftHandSide)
+      ) {
         return this.handleAssignmentAsExpressionOnly(node, ast);
       }
 
@@ -164,5 +168,13 @@ function createAssignmentStatement(operator: string, lhs: Expression, rhs: Expre
     ast.reserveId(),
     '',
     new Assignment(ast.reserveId(), '', lhs.typeString, operator, lhs, rhs),
+  );
+}
+
+function identifierReferenceStateVar(id: Identifier) {
+  const refDecl = id.vReferencedDeclaration;
+  return (
+    refDecl instanceof VariableDeclaration &&
+    refDecl.getClosestParentByType(ContractDefinition)?.id === refDecl.scope
   );
 }
