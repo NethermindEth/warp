@@ -232,7 +232,7 @@ function findMethod(functionName: string, fileName: string): string | null {
 
   if (mangledMatches.length === 1) {
     return mangledMatches[0].name;
-  } else if (mangledMatches.length === 0) {
+  } else if (mangledMatches.length === 0 && functions.some((func) => func.name === '__default__')) {
     // If no function is found try default entry point (fallback) function
     return functionName;
   } else {
