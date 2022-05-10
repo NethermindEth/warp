@@ -18,7 +18,7 @@ export * from './ifFunctionaliser';
 export * from './implicitConversionToExplicit';
 export * from './importDirectiveIdentifier';
 export * from './inheritanceInliner/inheritanceInliner';
-export * from './intBoundCalculator';
+export * from './typeInformationCalculator';
 export * from './literalExpressionEvaluator/literalExpressionEvaluator';
 export * from './loopFunctionaliser';
 export * from './namedArgsRemover';
