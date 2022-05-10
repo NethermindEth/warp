@@ -8,6 +8,7 @@ import {
   ExpressionStatement,
   FunctionCall,
   FunctionDefinition,
+  FunctionVisibility,
   Identifier,
   Mutability,
   StateVariableVisibility,
@@ -19,8 +20,19 @@ import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { TranspileFailedError } from '../../utils/errors';
+import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
 import { createEmptyTuple, createIdentifier } from '../../utils/nodeTemplates';
 import { counterGenerator } from '../../utils/utils';
+import {
+  addStatementsToCallFunction,
+  createFunctionBody,
+  getConditionalReturnVariable,
+  getContainingFunction,
+  getInputs,
+  getNodeVariables,
+  getParams,
+  getReturns,
+} from './conditionalFunctionaliser';
 
 function* expressionGenerator(prefix: string): Generator<string, string, unknown> {
   const count = counterGenerator();
@@ -31,6 +43,8 @@ function* expressionGenerator(prefix: string): Generator<string, string, unknown
 
 export class ExpressionSplitter extends ASTMapper {
   eGen = expressionGenerator('__warp_se');
+  funcNameCounter = 0;
+  varNameCounter = 0;
 
   visitAssignment(node: Assignment, ast: AST): void {
     this.commonVisit(node, ast);
@@ -101,8 +115,49 @@ export class ExpressionSplitter extends ASTMapper {
     }
   }
 
-  visitConditional(_node: Conditional, _ast: AST) {
-    return;
+  visitConditional(node: Conditional, ast: AST) {
+    const containingFunction = getContainingFunction(node);
+    const variables = getNodeVariables(node);
+    const inputs = getInputs(variables, ast);
+    const params = getParams(variables, ast);
+    const newFuncId = ast.reserveId();
+    const returns = getReturns(node, variables, newFuncId, this.varNameCounter++, ast);
+
+    const func = new FunctionDefinition(
+      newFuncId,
+      '',
+      containingFunction.scope,
+      containingFunction.kind,
+      `_conditional${this.funcNameCounter++}`,
+      false,
+      FunctionVisibility.Internal,
+      containingFunction.stateMutability,
+      false,
+      params,
+      returns,
+      [],
+      undefined,
+      createFunctionBody(node, returns, ast),
+    );
+    fixParameterScopes(func);
+    containingFunction.vScope.insertBefore(func, containingFunction);
+    ast.registerChild(func, containingFunction.vScope);
+    this.dispatchVisit(func, ast);
+
+    const conditionalResult = getConditionalReturnVariable(
+      node,
+      containingFunction.id,
+      this.varNameCounter++,
+      ast,
+    );
+    addStatementsToCallFunction(
+      node,
+      conditionalResult,
+      [...variables.keys()],
+      createCallToFunction(func, inputs, ast),
+      ast,
+    );
+    ast.replaceNode(node, createIdentifier(conditionalResult, ast));
   }
 }
 

@@ -8,7 +8,6 @@ import {
   BuiltinHandler,
   BytesConverter,
   CairoUtilImporter,
-  ConditionalFunctionaliser,
   ConstantHandler,
   DeleteHandler,
   EnumConverter,
@@ -116,7 +115,6 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['B', BuiltinHandler],
     ['Us', UnreachableStatementPruner],
     ['E', ExpressionSplitter],
-    ['C', ConditionalFunctionaliser],
     ['An', AnnotateImplicits],
     ['Ci', CairoUtilImporter],
   ]);
