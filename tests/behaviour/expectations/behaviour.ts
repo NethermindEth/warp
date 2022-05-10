@@ -102,15 +102,27 @@ export const expectations = flatten(
           ),
         ]),
         new Dir('conditionals', [
-          File.Simple('conditionals', [
-            Expect.Simple('simpleScalar', ['0', '2', '3'], ['3'], 'false branch'),
-            Expect.Simple('simpleScalar', ['1', '2', '3'], ['2'], 'true branch'),
-          ]),
           File.Simple('and', [
             Expect.Simple('f', ['50', '0', '0'], ['0', '0']),
             Expect.Simple('f', ['10', '0', '1'], ['1', '0']),
             Expect.Simple('f', ['4', '0', '1'], ['5', '0']),
           ]),
+          File.Simple('conditionals', [
+            Expect.Simple('simpleScalar', ['0', '2', '3'], ['3'], 'false branch'),
+            Expect.Simple('simpleScalar', ['1', '2', '3'], ['2'], 'true branch'),
+          ]),
+          new File(
+            'nested_and_or',
+            'WARP',
+            ['740', '0'],
+            [
+              Expect.Simple('move_valid', ['0', '0', '500', '0'], ['0']),
+              Expect.Simple('move_valid', ['700', '0', '500', '0'], ['0']),
+              Expect.Simple('move_valid', ['800', '0', '500', '0'], ['1']),
+              Expect.Simple('move_valid', ['2000', '0', '500', '0'], ['0']),
+              Expect.Simple('move_valid', ['1200', '0', '500', '0'], ['1']),
+            ],
+          ),
         ]),
         new Dir('constants', [
           File.Simple('simpleConstants', [
