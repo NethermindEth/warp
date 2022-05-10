@@ -1,9 +1,16 @@
 import assert from 'assert';
 import {
   Assignment,
+  ContractDefinition,
+  DataLocation,
+  Expression,
   ExpressionStatement,
   FunctionCall,
   FunctionDefinition,
+  Identifier,
+  Mutability,
+  StateVariableVisibility,
+  VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -11,8 +18,8 @@ import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
 import { TranspileFailedError } from '../utils/errors';
-import { createEmptyTuple } from '../utils/nodeTemplates';
-import { counterGenerator } from '../utils/utils';
+import { createEmptyTuple, createIdentifier } from '../utils/nodeTemplates';
+import { counterGenerator, typeNameFromTypeNode } from '../utils/utils';
 
 function* expressionGenerator(prefix: string): Generator<string, string, unknown> {
   const count = counterGenerator();
@@ -27,9 +34,35 @@ export class ExpressionSplitter extends ASTMapper {
   visitAssignment(node: Assignment, ast: AST): void {
     this.commonVisit(node, ast);
     if (!(node.parent instanceof ExpressionStatement)) {
-      const replacement = cloneASTNode(node.vLeftHandSide, ast);
-      ast.replaceNode(node, replacement);
-      ast.insertStatementBefore(replacement, new ExpressionStatement(ast.reserveId(), '', node));
+      // No need to create temp vars for state vars
+      if (
+        node.vLeftHandSide instanceof Identifier &&
+        identifierReferenceStateVar(node.vLeftHandSide)
+      ) {
+        return;
+      }
+
+      const leftHandSide = cloneASTNode(node.vLeftHandSide, ast);
+      const rightHandSide = cloneASTNode(node.vRightHandSide, ast);
+
+      const tempVarStatement = createVariableDeclaration(
+        this.eGen.next().value,
+        rightHandSide,
+        ast.getContainingScope(node),
+        ast,
+      );
+      const tempVar = tempVarStatement.vDeclarations[0];
+
+      const updateVal = createAssignmentStatement(
+        '=',
+        leftHandSide,
+        createIdentifier(tempVar, ast),
+        ast,
+      );
+
+      ast.insertStatementBefore(node, tempVarStatement);
+      ast.insertStatementBefore(node, updateVal);
+      ast.replaceNode(node, createIdentifier(tempVar, ast));
     }
   }
 
@@ -66,4 +99,46 @@ export class ExpressionSplitter extends ASTMapper {
       );
     }
   }
+}
+
+function identifierReferenceStateVar(id: Identifier) {
+  const refDecl = id.vReferencedDeclaration;
+  return (
+    refDecl instanceof VariableDeclaration &&
+    refDecl.getClosestParentByType(ContractDefinition)?.id === refDecl.scope
+  );
+}
+
+function createVariableDeclaration(name: string, initalValue: Expression, scope: number, ast: AST) {
+  const varDecl = new VariableDeclaration(
+    ast.reserveId(),
+    '',
+    false,
+    false,
+    name,
+    scope,
+    false,
+    DataLocation.Memory,
+    StateVariableVisibility.Internal,
+    Mutability.Constant,
+    initalValue.typeString,
+  );
+  ast.setContextRecursive(varDecl);
+
+  const varDeclStatement = new VariableDeclarationStatement(
+    ast.reserveId(),
+    '',
+    [varDecl.id],
+    [varDecl],
+    initalValue,
+  );
+  return varDeclStatement;
+}
+
+function createAssignmentStatement(operator: string, lhs: Expression, rhs: Expression, ast: AST) {
+  return new ExpressionStatement(
+    ast.reserveId(),
+    '',
+    new Assignment(ast.reserveId(), '', lhs.typeString, operator, lhs, rhs),
+  );
 }
