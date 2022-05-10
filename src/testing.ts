@@ -30,6 +30,7 @@ const ResultTypeOrder = [
 ];
 
 const expectedResults = new Map<string, ResultType>([
+  ['example_contracts/array_length', 'Success'],
   ['example_contracts/ERC20', 'Success'],
   ['example_contracts/ERC20_storage', 'Success'],
   ['example_contracts/boolOp_noSideEffects', 'Success'],
