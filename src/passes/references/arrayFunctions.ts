@@ -1,6 +1,7 @@
 import {
   ArrayType,
   DataLocation,
+  Expression,
   ExternalReferenceType,
   FunctionCall,
   getNodeType,
@@ -14,6 +15,7 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { generateLiteralTypeString } from '../../utils/getTypeString';
 import { toHexString } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
+import { printNode } from '../../utils/astPrinter';
 
 /*
   Replaces array members (push, pop, length) with standalone functions that implement
@@ -84,10 +86,11 @@ export class ArrayFunctions extends ReferenceSubPass {
           ast,
         );
       } else {
+        printLocations(this.actualDataLocations, this.expectedDataLocations);
         const replacement =
           baseType.location === DataLocation.Storage
             ? ast.getUtilFuncGen(node).storage.dynArrayLength.gen(node, baseType.to)
-            : ast.getUtilFuncGen(node).memory.memoryDynArrayLength.gen(node, baseType.to);
+            : ast.getUtilFuncGen(node).memory.memoryDynArrayLength.gen(node, ast);
         console.log(replacement);
         // The length function returns the actual length rather than a storage pointer to it,
         // so the new actual location is Default
@@ -95,7 +98,19 @@ export class ArrayFunctions extends ReferenceSubPass {
         // This may have to be replaced with an actual read generation once dynamic array copy semantics
         // are in place
         this.expectedDataLocations.set(replacement.vArguments[0], DataLocation.Default);
+        printLocations(this.actualDataLocations, this.expectedDataLocations);
       }
     }
   }
+}
+
+function printLocations(
+  actualDataLocations: Map<Expression, DataLocation>,
+  expectedDataLocations: Map<Expression, DataLocation>,
+): void {
+  [...actualDataLocations.entries()].forEach(([expr, loc]) => {
+    console.log(
+      `${printNode(expr)}: actual - ${loc}, expected - ${expectedDataLocations.get(expr)}`,
+    );
+  });
 }
