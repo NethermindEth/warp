@@ -111,15 +111,20 @@ export function generateLiteralTypeString(
   value: string,
   kind: LiteralKind = LiteralKind.Number,
 ): string {
-  if (kind === LiteralKind.Bool) return 'bool';
-  if (kind === LiteralKind.String) return `literal_string "${value}"`;
-
-  if (kind === LiteralKind.Number) {
-    if (value.length > 32) {
-      value = `${value.slice(4)}...(${value.length - 8} digits omitted)...${value.slice(-4)}`;
+  switch (kind) {
+    case LiteralKind.Bool:
+      return 'bool';
+    case LiteralKind.String:
+      return `literal_string "${value}"`;
+    case LiteralKind.HexString:
+      return `literal_string hex"${value}"`;
+    case LiteralKind.UnicodeString:
+      return `literal_string hex"${value}"`; // TODO: Encode value as bytes
+    case LiteralKind.Number: {
+      if (value.length > 32) {
+        value = `${value.slice(4)}...(${value.length - 8} digits omitted)...${value.slice(-4)}`;
+      }
+      return `int_const ${value}`;
     }
-    return `int_const ${value}`;
   }
-
-  throw new NotSupportedYetError(`Literal kind ${kind} is not supported yet`);
 }
