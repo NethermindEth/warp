@@ -29,7 +29,6 @@ export class ExternImporter extends ASTMapper {
     const sourceUnit = node.getClosestParentByType(SourceUnit);
 
     assert(sourceUnit !== undefined, 'Trying to import a definition into an unknown source unit');
-    //if (declarationSourceUnit === undefined || sourceUnit === declarationSourceUnit) return;
 
     if (
       declarationSourceUnit !== undefined &&

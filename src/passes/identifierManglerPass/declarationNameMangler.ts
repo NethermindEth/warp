@@ -1,24 +1,17 @@
 import {
-  // UserDefinedTypeName,
-  // Identifier,
-  // MemberAccess,
   VariableDeclaration,
   FunctionDefinition,
   StructDefinition,
-  // EnumValue,
-  // UserDefinedValueTypeDefinition,
-  // ExternalReferenceType,
   FunctionVisibility,
   SourceUnit,
   ContractDefinition,
-  // ImportDirective,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
-import { AST } from '../ast/ast';
-import { ASTMapper } from '../ast/mapper';
-import { isNameless } from '../utils/utils';
+import { AST } from '../../ast/ast';
+import { ASTMapper } from '../../ast/mapper';
+import { isNameless } from '../../utils/utils';
 
-export class IdentifierMangler extends ASTMapper {
+export class DeclarationNameMangler extends ASTMapper {
   lastUsedVariableId = 0;
   lastUsedFunctionId = 0;
   lastUsedTypeId = 0;

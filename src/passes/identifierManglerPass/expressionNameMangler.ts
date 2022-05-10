@@ -8,17 +8,13 @@ import {
   EnumValue,
   UserDefinedValueTypeDefinition,
   ExternalReferenceType,
-  FunctionVisibility,
-  SourceUnit,
-  ContractDefinition,
   ImportDirective,
 } from 'solc-typed-ast';
 
-import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
-import { AST } from '../ast/ast';
-import { ASTMapper } from '../ast/mapper';
+import { AST } from '../../ast/ast';
+import { ASTMapper } from '../../ast/mapper';
 
-export class IdentifierManglerSubPass extends ASTMapper {
+export class ExpressionNameMangler extends ASTMapper {
   visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {
     if (
       node.vReferencedDeclaration instanceof UserDefinedValueTypeDefinition ||
