@@ -8,6 +8,7 @@ import {
   FunctionDefinition,
   FunctionVisibility,
   getNodeType,
+  LiteralKind,
   StructDefinition,
   UserDefinedType,
   UserDefinedTypeName,
@@ -106,9 +107,19 @@ export function getReturnTypeString(node: FunctionDefinition): string {
     .join(',')})`;
 }
 
-export function generateLiteralTypeString(value: string): string {
-  if (value.length > 32) {
-    value = `${value.slice(4)}...(${value.length - 8} digits omitted)...${value.slice(-4)}`;
+export function generateLiteralTypeString(
+  value: string,
+  kind: LiteralKind = LiteralKind.Number,
+): string {
+  if (kind === LiteralKind.Bool) return 'bool';
+  if (kind === LiteralKind.String) return `literal_string "${value}"`;
+
+  if (kind === LiteralKind.Number) {
+    if (value.length > 32) {
+      value = `${value.slice(4)}...(${value.length - 8} digits omitted)...${value.slice(-4)}`;
+    }
+    return `int_const ${value}`;
   }
-  return `int_const ${value}`;
+
+  throw new NotSupportedYetError(`Literal kind ${kind} is not supported yet`);
 }
