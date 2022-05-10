@@ -35,11 +35,9 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/boolOp_noSideEffects', 'Success'],
   // Uses conditionals implicitly
   ['example_contracts/boolOp_sideEffects', 'Success'],
-  // Uses conditionals
   ['example_contracts/c2c', 'Success'],
   // Uses conditionals explicitly
-  ['example_contracts/conditional', 'Success'],
-  ['example_contracts/conditionals', 'Success'],
+  ['example_contracts/conditional', 'WillNotSupport'],
   ['example_contracts/contract_to_contract', 'Success'],
   ['example_contracts/calldatacopy', 'WillNotSupport'],
   ['example_contracts/calldataload', 'WillNotSupport'],
