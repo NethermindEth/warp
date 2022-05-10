@@ -6,7 +6,8 @@ contract WARP {
 
     uint[] public a;
 
-    function dynStorageArrayLen() public view returns (uint256){
+    function dynStorageArrayLen() public  returns (uint256){
+        a.push(1);
         return a.length;
     }
 }

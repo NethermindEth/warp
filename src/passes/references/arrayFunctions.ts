@@ -85,7 +85,7 @@ export class ArrayFunctions extends ReferenceSubPass {
         );
       } else {
         const replacement =
-          baseType.location !== DataLocation.Storage
+          baseType.location === DataLocation.Storage
             ? ast.getUtilFuncGen(node).storage.dynArrayLength.gen(node, baseType.to)
             : ast.getUtilFuncGen(node).memory.memoryDynArrayLength.gen(node, baseType.to);
         console.log(replacement);
