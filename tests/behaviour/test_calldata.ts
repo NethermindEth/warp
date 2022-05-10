@@ -5165,7 +5165,7 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
           '0x000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000003',
         expectations: '0x',
         failure: false,
-        signature: 'constructor()',
+        signature: 'constructor(uint256[3])',
       },
       {
         callData: '0xf0fdf8340000000000000000000000000000000000000000000000000000000000000000',
@@ -6625,7 +6625,7 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
           '0x0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000004',
         expectations: '0x',
         failure: false,
-        signature: 'constructor()',
+        signature: 'constructor(address[3],uint256)',
       },
       {
         callData: '0x6c8ae38c',
@@ -9282,7 +9282,7 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
           '0x00000000000000000000000000000000000000000000000000000000000000070000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000004e6162636465666768696a6b6c6d6e6f707172737475767778797a6162636465666768696a6b6c6d6e6f707172737475767778797a6162636465666768696a6b6c6d6e6f707172737475767778797a000000000000000000000000000000000000',
         expectations: '0x',
         failure: false,
-        signature: 'constructor()',
+        signature: 'constructor(uint256,bytes)',
       },
       {
         callData: '0x5d6d4751',
@@ -9355,7 +9355,7 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
           '0x61626300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001',
         expectations: '0x',
         failure: false,
-        signature: 'constructor()',
+        signature: 'constructor(bytes3,bool)',
       },
       {
         callData: '0xf9633930',
@@ -9391,7 +9391,7 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
         callData: '0x0fdd67305928fcac8d213d1e47bfa6165cd0b87b946644cd0000000000000000',
         expectations: '0x',
         failure: false,
-        signature: 'constructor()',
+        signature: 'constructor(function)',
       },
     ],
   'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_function_complex.sol':
@@ -9410,7 +9410,7 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
           '0x0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000004',
         expectations: '0x',
         failure: false,
-        signature: 'constructor()',
+        signature: 'constructor(uint256,uint256[3])',
       },
       {
         callData: '0x0dbe671f',
@@ -9627,7 +9627,7 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
         '0x00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000',
       expectations: '0x',
       failure: false,
-      signature: 'constructor()',
+      signature: 'constructor(uint256,uint256)',
     },
     {
       callData: '0xe5aa3d58',
@@ -9649,7 +9649,7 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
           '0x00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000',
         expectations: '0x',
         failure: false,
-        signature: 'constructor()',
+        signature: 'constructor(uint256,uint256)',
       },
       {
         callData: '0xe5aa3d58',
@@ -9677,7 +9677,7 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
           '0x00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000',
         expectations: '0x',
         failure: false,
-        signature: 'constructor()',
+        signature: 'constructor(uint256,uint256)',
       },
       {
         callData: '0xe5aa3d58',
@@ -12246,7 +12246,7 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
         callData: '0x0000000000000000000000000000000000000000000000000000000000000002',
         expectations: '0x',
         failure: false,
-        signature: 'constructor()',
+        signature: 'constructor(uint256)',
       },
       {
         callData: '0x26121ff0',
@@ -12261,7 +12261,7 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
         callData: '0x0000000000000000000000000000000000000000000000000000000000000002',
         expectations: '0x',
         failure: false,
-        signature: 'constructor()',
+        signature: 'constructor(uint256)',
       },
       {
         callData: '0x26121ff0',
@@ -14105,7 +14105,7 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       callData: '0x0000000000000000000000000000000000000000000000000000000000000003',
       expectations: '0x',
       failure: false,
-      signature: 'constructor()',
+      signature: 'constructor(uint256)',
     },
     {
       callData: '0x26121ff0',
@@ -20469,7 +20469,7 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       callData: '0x0000000000000000000000000000000000000000000000000000000000000003',
       expectations: '0x',
       failure: false,
-      signature: 'constructor()',
+      signature: 'constructor(uint256)',
     },
     {
       callData: '0xc19d93fb',

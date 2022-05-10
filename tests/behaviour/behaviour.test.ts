@@ -9,6 +9,8 @@ import { expectations } from './expectations';
 import { AsyncTest, Expect } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
 
+const PRINT_STEPS = false;
+
 describe('Transpile solidity', function () {
   this.timeout(1800000);
 
@@ -82,7 +84,7 @@ describe('Compiled contracts are deployable', function () {
     // );
     for (const fileTest of expectations) {
       if (fs.existsSync(fileTest.compiled) && fs.readFileSync(fileTest.compiled).length > 0) {
-        deployResults.push(await deploy(fileTest.compiled, fileTest.constructorArgs));
+        deployResults.push(await deploy(fileTest.compiled, await fileTest.constructorArgs));
       } else {
         deployResults.push(null);
       }
@@ -177,7 +179,9 @@ async function behaviourTest(
       expect(mangledFuncName, `${name} - Unable to find function ${funcName}`).to.not.be.null;
     } else {
       const response = await invoke(address, mangledFuncName, replaced_inputs, caller_address);
-      console.log(`${fileTest.name} - ${mangledFuncName}: ${response.steps} steps`);
+      if (PRINT_STEPS) {
+        console.log(`${fileTest.name} - ${mangledFuncName}: ${response.steps} steps`);
+      }
 
       expect(response.status, `${name} - Unhandled starknet-testnet error`).to.equal(200);
 

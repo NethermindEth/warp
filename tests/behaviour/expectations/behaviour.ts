@@ -520,6 +520,10 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('expressions', [
+          File.Simple('assignments_as_rvalues', [
+            Expect.Simple('addingLocalAssignments', ['5', '11'], ['16']),
+            Expect.Simple('addingStorageAssignments', ['5', '11'], ['16', '0']),
+          ]),
           File.Simple('ineffectual', [Expect.Simple('test', ['1'], ['1'])]),
           File.Simple('literals', [
             Expect.Simple('unsignedNarrow', [], ['255', '251', '0', '0']),
