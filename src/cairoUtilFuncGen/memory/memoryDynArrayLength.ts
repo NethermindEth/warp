@@ -1,5 +1,4 @@
-import { MemberAccess, ArrayType, FunctionCall, ASTNode, DataLocation } from 'solc-typed-ast';
-import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { MemberAccess, ArrayType, FunctionCall, DataLocation } from 'solc-typed-ast';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createUint256TypeName } from '../../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../../utils/utils';

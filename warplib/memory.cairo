@@ -114,8 +114,8 @@ func wm_new{range_check_ptr, warp_memory : DictAccess*}(len : Uint256, elemWidth
 end
 
 func wm_dyn_array_length{warp_memory : DictAccess*}(arrayLoc : felt) -> (len: Uint256):
-    let (low) = dict_read{dict_ptr=warp_memory}(loc)
-    let (high) = dict_read{dict_ptr=warp_memory}(loc + 1)
+    let (low) = dict_read{dict_ptr=warp_memory}(arrayLoc)
+    let (high) = dict_read{dict_ptr=warp_memory}(arrayLoc + 1)
     return (Uint256(low, high))
 end
 
