@@ -60,7 +60,7 @@ export class ArrayFunctions extends ReferenceSubPass {
 
     const baseType = getNodeType(node.vExpression, ast.compilerVersion);
     if (baseType instanceof PointerType && baseType.to instanceof ArrayType) {
-      if (baseType.location !== DataLocation.Storage) {
+      if (baseType.location !== DataLocation.Storage && baseType.location !== DataLocation.Memory) {
         throw new NotSupportedYetError(
           `Accessing ${baseType.location} array length not implemented yet`,
         );
@@ -84,7 +84,11 @@ export class ArrayFunctions extends ReferenceSubPass {
           ast,
         );
       } else {
-        const replacement = ast.getUtilFuncGen(node).storage.dynArrayLength.gen(node, baseType.to);
+        const replacement =
+          baseType.location !== DataLocation.Storage
+            ? ast.getUtilFuncGen(node).storage.dynArrayLength.gen(node, baseType.to)
+            : ast.getUtilFuncGen(node).memory.memoryDynArrayLength.gen(node, baseType.to);
+        console.log(replacement);
         // The length function returns the actual length rather than a storage pointer to it,
         // so the new actual location is Default
         this.replace(node, replacement, undefined, DataLocation.Default, expectedLoc, ast);
