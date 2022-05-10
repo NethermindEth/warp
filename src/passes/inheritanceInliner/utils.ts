@@ -4,6 +4,7 @@ import {
   FunctionDefinition,
   Identifier,
   IdentifierPath,
+  InheritanceSpecifier,
   MemberAccess,
   ModifierDefinition,
   VariableDeclaration,
@@ -43,4 +44,11 @@ export function updateReferencedDeclarations(
       }
     }
   });
+}
+
+export function removeBaseContractDependence(node: ContractDefinition): void {
+  const toRemove = node.children.filter(
+    (child): child is InheritanceSpecifier => child instanceof InheritanceSpecifier,
+  );
+  toRemove.forEach((inheritanceSpecifier) => node.removeChild(inheritanceSpecifier));
 }
