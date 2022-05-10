@@ -45,7 +45,7 @@ export class ExpressionSplitter extends ASTMapper {
       const leftHandSide = cloneASTNode(node.vLeftHandSide, ast);
       const rightHandSide = cloneASTNode(node.vRightHandSide, ast);
 
-      const tempVarStatement = createVariableDeclaration(
+      const tempVarStatement = createVariableDeclarationStatement(
         this.eGen.next().value,
         rightHandSide,
         ast.getContainingScope(node),
@@ -109,7 +109,12 @@ function identifierReferenceStateVar(id: Identifier) {
   );
 }
 
-function createVariableDeclaration(name: string, initalValue: Expression, scope: number, ast: AST) {
+function createVariableDeclarationStatement(
+  name: string,
+  initalValue: Expression,
+  scope: number,
+  ast: AST,
+): VariableDeclarationStatement {
   const varDecl = new VariableDeclaration(
     ast.reserveId(),
     '',
