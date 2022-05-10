@@ -14,7 +14,6 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { generateLiteralTypeString } from '../../utils/getTypeString';
 import { toHexString } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
-import { printNode } from '../../utils/astPrinter';
 
 /*
   Replaces array members (push, pop, length) with standalone functions that implement
