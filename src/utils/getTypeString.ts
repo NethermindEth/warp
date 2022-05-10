@@ -118,8 +118,11 @@ export function generateLiteralTypeString(
       return `literal_string "${value}"`;
     case LiteralKind.HexString:
       return `literal_string hex"${value}"`;
-    case LiteralKind.UnicodeString:
-      return `literal_string hex"${value}"`; // TODO: Encode value as bytes
+    case LiteralKind.UnicodeString: {
+      const encodedData = Buffer.from(value).toJSON().data;
+      const hex_string = encodedData.reduce((acc, val) => acc + val.toString(), '');
+      return `literal_string hex"${hex_string}"`;
+    }
     case LiteralKind.Number: {
       if (value.length > 32) {
         value = `${value.slice(4)}...(${value.length - 8} digits omitted)...${value.slice(-4)}`;
