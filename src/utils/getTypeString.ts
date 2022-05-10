@@ -120,7 +120,10 @@ export function generateLiteralTypeString(
       return `literal_string hex"${value}"`;
     case LiteralKind.UnicodeString: {
       const encodedData = Buffer.from(value).toJSON().data;
-      const hex_string = encodedData.reduce((acc, val) => acc + val.toString(), '');
+      const hex_string = encodedData.reduce(
+        (acc, val) => acc + (val < 16 ? '0' : '') + val.toString(16),
+        '',
+      );
       return `literal_string hex"${hex_string}"`;
     }
     case LiteralKind.Number: {
