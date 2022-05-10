@@ -313,7 +313,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
       cloneASTNodeImpl(node.vReturnParameters, ast, remappedIds),
       node.vModifiers.map((m) => cloneASTNodeImpl(m, ast, remappedIds)),
       new Set([...node.implicits]),
-      node.isStub,
+      node.functionStubKind,
       node.vOverrideSpecifier && cloneASTNodeImpl(node.vOverrideSpecifier, ast, remappedIds),
       node.vBody && cloneASTNodeImpl(node.vBody, ast, remappedIds),
       cloneDocumentation(node.documentation, ast, remappedIds),

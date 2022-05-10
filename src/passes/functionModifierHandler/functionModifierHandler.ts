@@ -4,9 +4,6 @@ import {
   FunctionKind,
   FunctionVisibility,
   ModifierDefinition,
-  Return,
-  SourceUnit,
-  Statement,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -38,18 +35,14 @@ export class FunctionModifierHandler extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (node.vModifiers.length === 0) return this.commonVisit(node, ast);
 
-    let functionToCall = this.extractOriginalFunction(node, ast);
-    node.vModifiers
-      .slice()
-      .reverse()
-      .forEach((modInvocation) => {
-        const modifier = modInvocation.vModifier;
-        assert(
-          modifier instanceof ModifierDefinition,
-          `Unexpected call to contract ${modifier.id} constructor`,
-        );
-        functionToCall = this.getFunctionFromModifier(node, modifier, functionToCall, ast);
-      });
+    const functionToCall = node.vModifiers.reduceRight((acc, modInvocation) => {
+      const modifier = modInvocation.vModifier;
+      assert(
+        modifier instanceof ModifierDefinition,
+        `Unexpected call to contract ${modifier.id} constructor`,
+      );
+      return this.getFunctionFromModifier(node, modifier, acc, ast);
+    }, this.extractOriginalFunction(node, ast));
 
     const functionArgs = node.vParameters.vParameters.map((v) => createIdentifier(v, ast));
     const modArgs = node.vModifiers
@@ -91,76 +84,62 @@ export class FunctionModifierHandler extends ASTMapper {
     functionToCall: FunctionDefinition,
     ast: AST,
   ): FunctionDefinition {
-    const scope = node.vScope;
-    const functionName = `__warp_${modifier.name}_${this.count++}`;
-    const funcId = ast.reserveId();
+    // First clone the modifier as a whole so all referencedDeclarations are rebound
+    const modifierClone = cloneASTNode(modifier, ast);
 
     const functionParams = functionToCall.vParameters.vParameters.map((v) =>
-      this.createParameter(v, funcId, ast),
+      this.createInputParameter(v, ast),
     );
-    const modParams = modifier.vParameters.vParameters.map((v) => {
-      const variable = cloneASTNode(v, ast);
-      variable.scope = funcId;
-      return variable;
-    });
-    const params = [...modParams, ...functionParams];
 
     const retParams = node.vReturnParameters.vParameters.map((v) =>
-      this.getNamedParam(v, funcId, ast),
+      this.createReturnParameter(v, ast),
     );
-    const retParamList = createParameterList(retParams, ast);
+    const retParamList = createParameterList(retParams, ast, modifierClone.id);
 
-    let statements: Statement[] = [];
+    ast.context.unregister(modifierClone);
 
-    // Add body of modifier
-    if (modifier.vBody !== undefined) {
-      const modBody = cloneASTNode(modifier.vBody, ast);
-      new FunctionModifierInliner(functionToCall, functionParams, retParamList).dispatchVisit(
-        modBody,
-        ast,
-      );
-      statements = statements.concat(modBody.vStatements);
-    }
-
-    // Add return statement
-    if (retParams.length > 0 && !(statements[statements.length - 1] instanceof Return))
-      statements.push(createReturn(retParams, retParamList.id, ast));
-
-    // Create Function Definition Node
-    const funcDef = new FunctionDefinition(
-      funcId,
-      '',
-      scope.id,
-      scope instanceof SourceUnit ? FunctionKind.Free : FunctionKind.Function,
-      functionName,
+    const modifierAsFunction = new FunctionDefinition(
+      modifierClone.id,
+      modifierClone.src,
+      node.scope,
+      FunctionKind.Function,
+      `__warp_${modifier.name}_${this.count++}`,
       node.virtual,
       FunctionVisibility.Internal,
       node.stateMutability,
       false,
-      createParameterList(params, ast),
+      createParameterList(
+        [...modifierClone.vParameters.vParameters, ...functionParams],
+        ast,
+        modifierClone.id,
+      ),
       retParamList,
       [],
       undefined,
-      createBlock(statements, ast),
+      modifierClone.vBody,
     );
 
-    // Insert node into ast
-    scope.insertAtBeginning(funcDef);
-    ast.registerChild(funcDef, scope);
-    return funcDef;
+    if (modifierAsFunction.vBody) {
+      new FunctionModifierInliner(functionToCall, functionParams, retParamList).dispatchVisit(
+        modifierAsFunction.vBody,
+        ast,
+      );
+    }
+
+    node.vScope.insertAtBeginning(modifierAsFunction);
+    ast.registerChild(modifierAsFunction, node.vScope);
+    return modifierAsFunction;
   }
 
-  createParameter(v: VariableDeclaration, scope: number, ast: AST): VariableDeclaration {
+  createInputParameter(v: VariableDeclaration, ast: AST): VariableDeclaration {
     const variable = cloneASTNode(v, ast);
     variable.name = `__warp_parameter${this.count++}`;
-    variable.scope = scope;
     return variable;
   }
 
-  getNamedParam(v: VariableDeclaration, scope: number, ast: AST): VariableDeclaration {
+  createReturnParameter(v: VariableDeclaration, ast: AST): VariableDeclaration {
     const param = cloneASTNode(v, ast);
     param.name = `__warp_ret_parameter${this.count++}`;
-    param.scope = scope;
     return param;
   }
 }

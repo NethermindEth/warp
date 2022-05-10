@@ -1,3 +1,4 @@
+import assert from 'assert';
 import {
   ArrayTypeName,
   Assignment,
@@ -23,6 +24,7 @@ import {
   FunctionCall,
   FunctionCallOptions,
   FunctionDefinition,
+  FunctionKind,
   FunctionTypeName,
   getNodeType,
   Identifier,
@@ -67,6 +69,7 @@ import { AST } from '../ast/ast';
 import { CairoAssert } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from './astPrinter';
+import { isNameless } from './utils';
 
 // This is the solc-typed-ast AST checking code, with additions for CairoAssert and CairoContract
 
@@ -677,6 +680,35 @@ function checkIdNonNegative(node: ASTNode) {
   node.children.forEach((child) => checkIdNonNegative(child));
 }
 
+function checkOnlyConstructorsMarkedAsConstructors(nodes: FunctionDefinition[]) {
+  nodes.forEach((func) => {
+    if ((func.kind === FunctionKind.Constructor) !== func.isConstructor)
+      throw new InsaneASTError(
+        `${printNode(func)} ${func.name} is incorrectly marked as ${
+          func.isConstructor ? '' : 'not '
+        } a constructor`,
+      );
+  });
+}
+
+// Check that functions of kind: constructor, receive and fallback are nameless
+function checkEmptyNamesForNamelessFunctions(nodes: FunctionDefinition[]) {
+  nodes.forEach((func) => {
+    if (func.name === '' && !isNameless(func)) {
+      throw new InsaneASTError(
+        `${printNode(func)} has an empty name but it's kind: ${
+          func.kind
+        } is different than constructor, fallback or receive`,
+      );
+    }
+    if (func.name !== '' && isNameless(func)) {
+      throw new InsaneASTError(
+        `${printNode(func)} of kind ${func.kind} has a non-empty name: ${func.name}`,
+      );
+    }
+  });
+}
+
 /**
  * Check that a single SourceUnit has a sane structure. This checks that:
  *  - All reachable nodes belong to the same context, have their parent/sibling set correctly.
@@ -691,12 +723,16 @@ function checkIdNonNegative(node: ASTNode) {
 export function isSane(ast: AST): boolean {
   NodeTypeResolutionChecker.map(ast);
   ParameterScopeChecker.map(ast);
+  IdChecker.map(ast);
 
   return ast.roots.every((root) => {
     try {
       checkSane(root, ast.context);
       checkContextsDefined(root);
       checkIdNonNegative(root);
+      const functionDefinitions = root.getChildrenByType(FunctionDefinition);
+      checkOnlyConstructorsMarkedAsConstructors(functionDefinitions);
+      checkEmptyNamesForNamelessFunctions(functionDefinitions);
     } catch (e) {
       if (e instanceof InsaneASTError) {
         console.error(e);
@@ -733,5 +769,95 @@ class ParameterScopeChecker extends ASTMapper {
         );
       }
     });
+  }
+}
+
+/* The pass asserts that all id based references refer 
+   to nodes that are children of the roots of the AST.
+*/
+
+class IdChecker extends ASTMapper {
+  static Ids = new Set();
+
+  visitContractDefinition(node: ContractDefinition, ast: AST): void {
+    assert(IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope));
+  }
+
+  visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
+    assert(IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope));
+  }
+
+  visitImportDirective(node: ImportDirective, ast: AST): void {
+    assert(IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope));
+  }
+
+  visitStructDefinition(node: StructDefinition, ast: AST): void {
+    assert(IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope));
+  }
+
+  visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
+    assert(IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope));
+  }
+
+  visitIdentifier(node: Identifier, ast: AST): void {
+    assert(
+      IdChecker.Ids.has(node.referencedDeclaration) ||
+        !ast.context.map.has(node.referencedDeclaration),
+    );
+  }
+
+  visitIdentifierPath(node: IdentifierPath, ast: AST): void {
+    assert(
+      IdChecker.Ids.has(node.referencedDeclaration) ||
+        !ast.context.map.has(node.referencedDeclaration),
+    );
+  }
+
+  visitMemberAccess(node: MemberAccess, ast: AST): void {
+    assert(
+      IdChecker.Ids.has(node.referencedDeclaration) ||
+        !ast.context.map.has(node.referencedDeclaration),
+    );
+  }
+
+  visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {
+    assert(
+      IdChecker.Ids.has(node.referencedDeclaration) ||
+        !ast.context.map.has(node.referencedDeclaration),
+    );
+  }
+
+  static map(ast: AST): AST {
+    ast.roots.forEach((root) => {
+      root.getChildren(true).forEach((node) => {
+        this.Ids.add(node.id);
+      });
+    });
+
+    ast.roots.forEach((root) => {
+      root.getChildren(true).forEach((node) => {
+        const pass = new this();
+        if (node instanceof ContractDefinition) {
+          pass.visitContractDefinition(node, ast);
+        } else if (node instanceof FunctionDefinition) {
+          pass.visitFunctionDefinition(node, ast);
+        } else if (node instanceof ImportDirective) {
+          pass.visitImportDirective(node, ast);
+        } else if (node instanceof StructDefinition) {
+          pass.visitStructDefinition(node, ast);
+        } else if (node instanceof VariableDeclaration) {
+          pass.visitVariableDeclaration(node, ast);
+        } else if (node instanceof Identifier) {
+          pass.visitIdentifier(node, ast);
+        } else if (node instanceof IdentifierPath) {
+          pass.visitIdentifierPath(node, ast);
+        } else if (node instanceof MemberAccess) {
+          pass.visitMemberAccess(node, ast);
+        } else if (node instanceof UserDefinedTypeName) {
+          pass.visitUserDefinedTypeName(node, ast);
+        }
+      });
+    });
+    return ast;
   }
 }

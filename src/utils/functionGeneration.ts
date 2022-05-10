@@ -15,7 +15,7 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { CairoFunctionDefinition } from '../ast/cairoNodes';
+import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
 import { Implicits } from './implicits';
 import { createParameterList } from './nodeTemplates';
@@ -49,6 +49,7 @@ export function createCairoFunctionStub(
   ast: AST,
   nodeInSourceUnit: ASTNode,
   mutability: FunctionStateMutability = FunctionStateMutability.NonPayable,
+  functionStubKind: FunctionStubKind = FunctionStubKind.FunctionDefStub,
 ): CairoFunctionDefinition {
   const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
   const funcDefId = ast.reserveId();
@@ -86,7 +87,7 @@ export function createCairoFunctionStub(
     createParameterList(createParameters(returns), ast),
     [],
     new Set(implicits),
-    true,
+    functionStubKind,
   );
 
   ast.setContextRecursive(funcDef);

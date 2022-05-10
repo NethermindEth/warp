@@ -15,6 +15,11 @@ export type CairoFunction = {
   code: string;
 };
 
+export type CairoStructDef = {
+  name: string;
+  code: string;
+};
+
 /*
   Base class for all specific cairo function generators
   These exist for cases where a transform we need is too specific to cairo to

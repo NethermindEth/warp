@@ -8,7 +8,12 @@ import {
   FunctionDefinition,
   SrcDesc,
 } from 'solc-typed-ast';
-import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
+import {
+  CairoAssert,
+  CairoContract,
+  CairoFunctionDefinition,
+  FunctionStubKind,
+} from './ast/cairoNodes';
 
 class CairoContractSolWriter extends ASTNodeWriter {
   writeInner(node: CairoContract, writer: ASTWriter): SrcDesc {
@@ -43,7 +48,13 @@ class CairoContractSolWriter extends ASTNodeWriter {
 }
 
 class CairoFunctionDefinitionSolWriter extends ASTNodeWriter {
+  constructor(private printStubs: boolean) {
+    super();
+  }
+
   writeInner(node: CairoFunctionDefinition, writer: ASTWriter): SrcDesc {
+    if (node.functionStubKind !== FunctionStubKind.None && !this.printStubs) return [];
+
     const result: SrcDesc = [];
 
     if (node.implicits.size > 0) {
@@ -88,13 +99,15 @@ class CairoAssertSolWriter extends ASTNodeWriter {
   }
 }
 
-const CairoExtendedASTWriterMapping = new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([
-  [CairoContract, new CairoContractSolWriter()],
-  [CairoFunctionDefinition, new CairoFunctionDefinitionSolWriter()],
-  [CairoAssert, new CairoAssertSolWriter()],
-]);
+const CairoExtendedASTWriterMapping = (printStubs: boolean) =>
+  new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([
+    [CairoContract, new CairoContractSolWriter()],
+    [CairoFunctionDefinition, new CairoFunctionDefinitionSolWriter(printStubs)],
+    [CairoAssert, new CairoAssertSolWriter()],
+  ]);
 
-export const CairoToSolASTWriterMapping = new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([
-  ...DefaultASTWriterMapping,
-  ...CairoExtendedASTWriterMapping,
-]);
+export const CairoToSolASTWriterMapping = (printStubs: boolean) =>
+  new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([
+    ...DefaultASTWriterMapping,
+    ...CairoExtendedASTWriterMapping(printStubs),
+  ]);

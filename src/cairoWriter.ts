@@ -13,6 +13,7 @@ import {
   Continue,
   ContractDefinition,
   ContractKind,
+  DataLocation,
   DoWhileStatement,
   ElementaryTypeName,
   ElementaryTypeNameExpression,
@@ -72,7 +73,12 @@ import {
   WhileStatement,
 } from 'solc-typed-ast';
 import { AST } from './ast/ast';
-import { CairoAssert, CairoContract, CairoFunctionDefinition } from './ast/cairoNodes';
+import {
+  CairoAssert,
+  CairoContract,
+  CairoFunctionDefinition,
+  FunctionStubKind,
+} from './ast/cairoNodes';
 import { printNode } from './utils/astPrinter';
 import { CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
@@ -86,6 +92,7 @@ import {
   isCairoConstant,
   isExternallyVisible,
   primitiveTypeToCairo,
+  splitDarray,
 } from './utils/utils';
 
 const INDENT = ' '.repeat(4);
@@ -194,10 +201,21 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
 
     const documentation = getDocumentation(node.documentation, writer);
     const declarations = node.vDeclarations.map((value) => writer.write(value));
-    if (node.vDeclarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
+    if (
+      node.vInitialValue instanceof FunctionCall &&
+      node.vInitialValue.vReferencedDeclaration instanceof CairoFunctionDefinition &&
+      node.vInitialValue.vReferencedDeclaration.functionStubKind === FunctionStubKind.StructDefStub
+    ) {
+      // This local statement is needed since Cairo is not supporting member access of structs with let.
+      // The type hint also needs to be placed there since Cairo's default type hint is a felt.
+      return [
+        `local ${declarations.join(', ')} : ${
+          node.vInitialValue.vReferencedDeclaration.name
+        } = ${writer.write(node.vInitialValue)}`,
+      ];
+    } else if (node.vDeclarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
       return [`let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)}`];
     }
-
     return [documentation, `let ${declarations[0]} = ${writer.write(node.vInitialValue)}`];
   }
 }
@@ -376,11 +394,27 @@ class ParameterListWriter extends CairoASTNodeWriter {
     const typeConversionContext =
       node.parent instanceof FunctionDefinition
         ? isExternallyVisible(node.parent)
-          ? TypeConversionContext.Declaration
+          ? TypeConversionContext.CallDataRef
           : TypeConversionContext.Ref
-        : TypeConversionContext.Declaration;
+        : TypeConversionContext.CallDataRef;
 
-    const params = node.vParameters.map((value, i) => {
+    const proccessed_params = node.vParameters.flatMap((decl) => {
+      // This conditional is placed here to split DynamicArrays into their corresponding length and pointer when they
+      // are an argument for an external function.
+      if (
+        decl.vType instanceof ArrayTypeName &&
+        decl.vType.vLength === undefined &&
+        typeConversionContext == TypeConversionContext.CallDataRef &&
+        node.parent instanceof FunctionDefinition &&
+        decl.name !== undefined &&
+        isExternallyVisible(node.parent)
+      ) {
+        return splitDarray(node.id, decl, this.ast);
+      }
+      return decl;
+    });
+
+    const params = proccessed_params.map((value, i) => {
       const tp = CairoType.fromSol(
         getNodeType(value, writer.targetCompilerVersion),
         this.ast,
@@ -394,34 +428,48 @@ class ParameterListWriter extends CairoASTNodeWriter {
 
 class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: CairoFunctionDefinition, writer: ASTWriter): SrcDesc {
-    if (node.isStub) return [''];
+    if (node.functionStubKind !== FunctionStubKind.None) return [''];
 
     const documentation = getDocumentation(node.documentation, writer);
     const name = this.getName(node);
     const decorator = this.getDecorator(node);
-    const args = writer.write(node.vParameters);
+    const args =
+      node.kind !== FunctionKind.Fallback
+        ? writer.write(node.vParameters)
+        : 'selector : felt, calldata_size : felt, calldata : felt*';
     const body = this.getBody(node, writer);
     const returns = this.getReturns(node, writer);
     const implicits = this.getImplicits(node);
 
     return [
-      [documentation, decorator, `func ${name}${implicits}(${args})${returns}:`, body, `end`]
+      [documentation, ...decorator, `func ${name}${implicits}(${args})${returns}:`, body, `end`]
         .filter(notNull)
         .join('\n'),
     ];
   }
 
-  private getDecorator(node: CairoFunctionDefinition): string | null {
-    if (node.kind === FunctionKind.Constructor) return '@constructor';
-    return node.visibility === FunctionVisibility.External
-      ? [FunctionStateMutability.Pure, FunctionStateMutability.View].includes(node.stateMutability)
-        ? '@view'
-        : '@external'
-      : null;
+  private getDecorator(node: CairoFunctionDefinition): string[] {
+    if (node.kind === FunctionKind.Constructor) return ['@constructor'];
+    const decorators: string[] = [];
+    if (node.kind === FunctionKind.Fallback) {
+      decorators.push('@raw_input');
+      if (node.vParameters.vParameters.length > 0) decorators.push('@raw_output');
+    }
+
+    if (node.visibility === FunctionVisibility.External) {
+      if (
+        [FunctionStateMutability.Pure, FunctionStateMutability.View].includes(node.stateMutability)
+      )
+        decorators.push('@view');
+      else decorators.push('@external');
+    }
+
+    return decorators;
   }
 
   private getName(node: CairoFunctionDefinition): string {
     if (node.kind === FunctionKind.Constructor) return 'constructor';
+    if (node.kind === FunctionKind.Fallback) return '__default__';
     return node.name;
   }
 
@@ -541,7 +589,8 @@ class ExpressionStatementWriter extends CairoASTNodeWriter {
   writeInner(node: ExpressionStatement, writer: ASTWriter): SrcDesc {
     const documentation = getDocumentation(node.documentation, writer);
     if (
-      node.vExpression instanceof FunctionCall ||
+      (node.vExpression instanceof FunctionCall &&
+        node.vExpression.kind !== FunctionCallKind.StructConstructorCall) ||
       node.vExpression instanceof Assignment ||
       node.vExpression instanceof CairoAssert
     ) {
@@ -592,6 +641,15 @@ class IndexAccessWriter extends CairoASTNodeWriter {
     assert(node.vIndexExpression !== undefined);
     const baseWritten = writer.write(node.vBaseExpression);
     const indexWritten = writer.write(node.vIndexExpression);
+    if (
+      node.vBaseExpression instanceof Identifier &&
+      node.vBaseExpression.vReferencedDeclaration instanceof VariableDeclaration &&
+      node.vBaseExpression.vReferencedDeclaration.storageLocation === DataLocation.CallData &&
+      node.vBaseExpression.vReferencedDeclaration.vType instanceof ArrayTypeName &&
+      node.vBaseExpression.vReferencedDeclaration.vType.vLength === undefined
+    ) {
+      return [`${baseWritten}.ptr[${indexWritten}]`];
+    }
     return [`${baseWritten}[${indexWritten}]`];
   }
 }
@@ -619,10 +677,14 @@ class FunctionCallWriter extends CairoASTNodeWriter {
             const contract = writer.write(node.vExpression.vExpression);
             return [`${contractType}.${memberName}(${contract}${args ? ', ' : ''}${args})`];
           }
+        } else if (
+          node.vReferencedDeclaration instanceof CairoFunctionDefinition &&
+          node.vReferencedDeclaration.functionStubKind === FunctionStubKind.StructDefStub
+        ) {
+          return [`${func}(${args}_len, ${args})`];
         }
         return [`${func}(${args})`];
       }
-
       case FunctionCallKind.StructConstructorCall:
         return [`${func}(${args})`];
 

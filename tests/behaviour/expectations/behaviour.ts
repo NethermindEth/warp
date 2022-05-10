@@ -567,6 +567,106 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('external_function_inputs', [
+          File.Simple('dynamic_array_return_index', [
+            new Expect(
+              'testing that dynamic memory array as calldata are tranformed and returned correctly',
+              [
+                [
+                  'dArrayCallDataExternal',
+                  [
+                    '3',
+                    '1',
+                    '11',
+                    '111',
+                    '4',
+                    '2',
+                    '20',
+                    '200',
+                    '2000',
+                    '3',
+                    '3',
+                    '30',
+                    '33',
+                    '330',
+                    '333',
+                    '3330',
+                  ],
+                  ['644', '3330'],
+                  '0',
+                ],
+              ],
+            ),
+            new Expect(
+              'testing that dynamic memory array is written to memory and index is returned in external function',
+              [
+                [
+                  'dArrayExternal',
+                  ['8', '10', '11', '12', '13', '14', '15', '16', '17', '2', '5', '7'],
+                  ['20'],
+                  '0',
+                ],
+              ],
+            ),
+            new Expect(
+              'testing that dynamic memory array is written to memory and index is returned in public function.',
+              [['dArrayPublic', ['4', '1', '2', '3', '4'], ['1'], '0']],
+            ),
+            new Expect(
+              'testing that multiple inputs containing dynamic arrays that are handeled correctly to external functions',
+              [
+                [
+                  'dArrayMultipleInputsExternal',
+                  ['2', '10', '11', '12', '2', '20', '21'],
+                  ['31'],
+                  '0',
+                ],
+              ],
+            ),
+            new Expect(
+              'testing that multipe inputs containing dynamic arrays that are handeled correctly when passed to public functions',
+              [
+                [
+                  'dArrayMultipleInputsPublic',
+                  ['2', '10', '11', '12', '2', '20', '21'],
+                  ['31'],
+                  '0',
+                ],
+              ],
+            ),
+            new Expect('testing uint256 inputs are loaded into and read from memory correctly.', [
+              ['dArray256External', ['3', '0', '1', '1', '2', '2', '3'], ['1', '2'], '0'],
+            ]),
+            new Expect(
+              'testing uint256 inputs are loaded into and read from memory correctly, when there are multiple inputs.',
+              [
+                [
+                  'dArray256MultipleInputs',
+                  [
+                    '3',
+                    '10',
+                    '11',
+                    '100',
+                    '111',
+                    '1000',
+                    '1111',
+                    '3',
+                    '2',
+                    '20',
+                    '200',
+                    '3',
+                    '30',
+                    '33',
+                    '300',
+                    '333',
+                    '3000',
+                    '3333',
+                  ],
+                  ['4020', '4444'],
+                  '0',
+                ],
+              ],
+            ),
+          ]),
           File.Simple('struct_return_member', [
             new Expect('testing that memory struct is written to memory and member is returned', [
               ['testReturnMember', ['1', '2'], ['1'], '0'],
@@ -819,6 +919,17 @@ export const expectations = flatten(
                 'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
               ],
             ]),
+          ]),
+        ]),
+        new Dir('fallback', [
+          File.Simple('simple', [
+            Expect.Simple('x', [], ['0', '0']),
+            Expect.Simple('unexistent', [], []),
+            Expect.Simple('x', [], ['1', '0']),
+            Expect.Simple('unexistent', ['3', '4', '5'], []),
+            Expect.Simple('x', [], ['2', '0']),
+            Expect.Simple('unexistent', ['10', '4', '5', '20'], []),
+            Expect.Simple('x', [], ['3', '0']),
           ]),
         ]),
         new Dir('if', [
@@ -1345,12 +1456,76 @@ export const expectations = flatten(
             Expect.Simple('valuePassingMemberAccess', ['1'], ['15'], '0'),
           ]),
         ]),
-        new Dir('public_state', [
-          File.Simple('state_vars', [
-            Expect.Simple('x', [], ['10', '0']),
+        new Dir('public_state_vars', [
+          File.Simple('elementary', [
+            Expect.Simple('a', [], ['234', '0']),
+            Expect.Simple('b', [], ['23']),
+            Expect.Simple('c', [], ['103929005307130220006098923584552504982110632080']),
+            Expect.Simple(
+              'd',
+              [],
+              [
+                '340282366920938463463374607431768211455',
+                '340282366920938463463374607431768211455',
+              ],
+            ),
+            Expect.Simple('e', [], ['12', '0']),
+            Expect.Simple('f', [], ['1']),
+          ]),
+          File.Simple('arrays', [
+            Expect.Simple('a', ['2', '0'], ['3', '0']),
+            Expect.Simple('d', ['0', '0'], ['103929005307130220006098923584552504982110632080']),
+            Expect.Simple('e', ['1', '0'], ['0']),
             Expect.Simple('y', ['0', '0'], ['12', '0']),
-            Expect.Simple('z', ['0', '0', '1', '0'], ['14', '0']),
             Expect.Simple('w', ['0', '0', '0', '0', '0', '0'], ['15', '0']),
+          ]),
+          File.Simple('enums', [
+            Expect.Simple('a', [], ['0']),
+            Expect.Simple('b', [], ['1']),
+            Expect.Simple('c', [], ['0']),
+            Expect.Simple('d', [], ['1']),
+            Expect.Simple('f', [], ['2']),
+          ]),
+          File.Simple('mappings', [
+            Expect.Simple('a', ['1', '0'], ['1', '0']),
+            Expect.Simple('b', ['2', '0'], ['1']),
+            Expect.Simple('d', ['1'], ['1', '0']),
+            Expect.Simple('e', ['1', '1', '0'], ['1']),
+          ]),
+          File.Simple('structs', [
+            Expect.Simple('a', [], ['1', '0', '2', '0']),
+            Expect.Simple('c', [], ['5', '0', '6', '0']),
+            Expect.Simple(
+              'd',
+              [],
+              [
+                '7',
+                '0',
+                '103929005307130220006098923584552504982110632080',
+                '9',
+                '10',
+                '0',
+                '11',
+                '0',
+              ],
+            ),
+          ]),
+          File.Simple('misc', [
+            Expect.Simple('a', ['0', '0'], ['1', '0', '2', '0']),
+            Expect.Simple(
+              'd',
+              ['0', '0'],
+              [
+                '7',
+                '0',
+                '103929005307130220006098923584552504982110632080',
+                '9',
+                '11',
+                '0',
+                '10',
+                '0',
+              ],
+            ),
           ]),
         ]),
         new Dir('returns', [
