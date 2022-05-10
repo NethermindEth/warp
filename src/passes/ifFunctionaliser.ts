@@ -14,14 +14,13 @@ import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
 import { error } from '../utils/formatting';
-import { createCallToFunction } from '../utils/functionGeneration';
+import { collectUnboundVariables, createCallToFunction } from '../utils/functionGeneration';
 import {
   createBlock,
   createIdentifier,
   createParameterList,
   createReturn,
 } from '../utils/nodeTemplates';
-import { collectUnboundVariables } from './loopFunctionaliser/utils';
 
 export class IfFunctionaliser extends ASTMapper {
   generatedFunctionCount: Map<FunctionDefinition, number> = new Map();

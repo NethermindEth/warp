@@ -5,7 +5,7 @@ export * from './cairoUtilImporter';
 export * from './constantHandler';
 export * from './deleteHandler';
 export * from './enumConverter';
-export * from './expressionSplitter';
+export * from './expressionSplitter/expressionSplitter';
 export * from './externalArgumentModifier';
 export * from './externalContractHandler';
 export * from './externalInputChecker';

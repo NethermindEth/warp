@@ -3,7 +3,6 @@ import {
   InlineAssembly,
   RevertStatement,
   ErrorDefinition,
-  Conditional,
   MappingType,
   MemberAccess,
   PointerType,
@@ -13,6 +12,7 @@ import {
   UserDefinedType,
   UserDefinedValueTypeDefinition,
   VariableDeclaration,
+  Conditional,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
