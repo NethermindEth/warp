@@ -52,7 +52,7 @@ function createLiteral(
     src,
     generateLiteralTypeString(valueString, valueKind),
     valueKind,
-    toHexString(valueString),
+    valueKind !== LiteralKind.HexString ? toHexString(valueString) : valueString,
     valueString,
     undefined,
     raw,
@@ -65,14 +65,6 @@ function createEnumMemberAccess(
   member: EnumValue,
   ast: AST,
 ) {
-  console.log(
-    `Attempting to create member access with type: ${node.typeString}`,
-    `\n with name: ${member.name}`,
-    `\n referensing id: ${member.id}`,
-    `\n expression typeString: ${node.typeString}`,
-    `\n expression reference to: ${enumDef.name}`,
-    `\n expresion referencing id: ${enumDef.id}`,
-  );
   return new MemberAccess(
     ast.reserveId(),
     '',
@@ -85,10 +77,6 @@ function createEnumMemberAccess(
 
 export class TypeInformationCalculator extends ASTMapper {
   visitMemberAccess(node: MemberAccess, ast: AST): void {
-    console.log('---- First member access ----');
-    console.log(node.vExpression.typeString);
-    console.log(node.typeString);
-    console.log(node.vExpression instanceof FunctionCall);
     if (
       !node.vExpression.typeString.startsWith('type(') ||
       !(node.vExpression instanceof FunctionCall)
@@ -97,20 +85,10 @@ export class TypeInformationCalculator extends ASTMapper {
     }
 
     const argNode = node.vExpression.vArguments[0];
-    console.log(
-      `Arguments: ${node.vExpression.vArguments.reduce((acc, val) => {
-        acc.push(val.typeString);
-        return acc;
-      }, [] as string[])}`,
-    );
-    // console.log(argNode);
-
-    console.log('Pass filter 1');
 
     const replaceNode: ASTNode | null = this.getReplacement(argNode, node.memberName, ast);
 
     if (replaceNode !== null) {
-      console.log('Replacing with:', replaceNode);
       ast.replaceNode(node, replaceNode);
     }
   }
@@ -118,8 +96,6 @@ export class TypeInformationCalculator extends ASTMapper {
   private getReplacement(node: Expression, memberName: string, ast: AST): ASTNode | null {
     let nodeType = getNodeType(node, ast.compilerVersion);
     nodeType = nodeType instanceof TypeNameType ? nodeType.type : nodeType;
-
-    console.log('nodetype:', nodeType);
 
     if (nodeType instanceof IntType && (memberName === 'min' || memberName === 'max'))
       return createLiteral(
@@ -130,11 +106,7 @@ export class TypeInformationCalculator extends ASTMapper {
         node.raw,
       );
 
-    console.log('filter 2', nodeType instanceof UserDefinedType);
-
     if (nodeType instanceof UserDefinedType) {
-      console.log('User defined type');
-      console.log(nodeType.pp());
       const userDef = nodeType.definition;
       if (userDef instanceof EnumDefinition && (memberName === 'min' || memberName === 'max'))
         return memberName === 'min'
@@ -147,7 +119,6 @@ export class TypeInformationCalculator extends ASTMapper {
             );
 
       if (userDef instanceof ContractDefinition) {
-        console.log('accessing ', memberName);
         if (memberName === 'name')
           return createLiteral(userDef.name, LiteralKind.String, ast, node.src, node.raw);
         if (memberName === 'runtimeCode')
@@ -161,7 +132,13 @@ export class TypeInformationCalculator extends ASTMapper {
             interfaceId !== undefined,
             'Contracts of kind interface must have a defined interfaceId',
           );
-          return createLiteral(interfaceId, LiteralKind.HexString, ast, node.src, node.raw);
+          return createLiteral(
+            BigInt('0x' + interfaceId).toString(),
+            LiteralKind.Number,
+            ast,
+            node.src,
+            node.raw,
+          );
         }
       }
     }
