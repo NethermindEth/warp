@@ -3,7 +3,7 @@ import { mergeImports } from '../utils/utils';
 import { CairoUtilFuncGenBase } from './base';
 import { EnumBoundCheckGen } from './enumBoundCheck';
 import { MemoryArrayLiteralGen } from './memory/arrayLiteral';
-import { MemoryDynArrayLengthGen } from './memory/MemoryDynArrayLength';
+import { MemoryDynArrayLengthGen } from './memory/memoryDynArrayLength';
 import { MemoryMemberAccessGen } from './memory/memoryMemberAccess';
 import { MemoryReadGen } from './memory/memoryRead';
 import { MemoryStructGen } from './memory/memoryStruct';
