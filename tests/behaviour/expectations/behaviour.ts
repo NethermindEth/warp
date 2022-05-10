@@ -1624,6 +1624,16 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('type_information', [
+          File.Simple('informationEnum', [
+            Expect.Simple('dMin', [], ['0']),
+            Expect.Simple('dMax', [], ['3']),
+          ]),
+          File.Simple('informationContract', [
+            Expect.Simple('getName', [], ['1463898704']), // 'WARP' -> 0x57415250
+            Expect.Simple('getId', [], ['3619205059']),
+          ]),
+        ]),
         File.Simple('example', [
           Expect.Simple('test', [], []),
           Expect.Simple('returnTest', [], ['12', '0']),
