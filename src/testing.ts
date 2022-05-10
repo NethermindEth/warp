@@ -34,11 +34,12 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/ERC20_storage', 'Success'],
   ['example_contracts/boolOp_noSideEffects', 'Success'],
   // Uses conditionals implicitly
-  ['example_contracts/boolOp_sideEffects', 'NotSupportedYet'],
+  ['example_contracts/boolOp_sideEffects', 'Success'],
   // Uses conditionals
-  ['example_contracts/c2c', 'NotSupportedYet'],
+  ['example_contracts/c2c', 'Success'],
   // Uses conditionals explicitly
-  ['example_contracts/conditional', 'WillNotSupport'],
+  ['example_contracts/conditional', 'Success'],
+  ['example_contracts/conditionals', 'Success'],
   ['example_contracts/contract_to_contract', 'Success'],
   ['example_contracts/calldatacopy', 'WillNotSupport'],
   ['example_contracts/calldataload', 'WillNotSupport'],
@@ -79,7 +80,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/interfaces', 'NotSupportedYet'],
   ['example_contracts/invalidSolidity', 'SolCompileFailed'],
   ['example_contracts/lib', 'Success'],
-  ['example_contracts/libraries/using_for_star', 'NotSupportedYet'],
+  ['example_contracts/libraries/using_for_star', 'Success'],
   ['example_contracts/literalOperations', 'Success'],
   ['example_contracts/loops/for-loop-with-break', 'Success'],
   ['example_contracts/loops/for-loop-with-continue', 'Success'],
