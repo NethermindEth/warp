@@ -6,7 +6,7 @@ export const expectations = flatten(
     new Dir('behaviour', [
       new Dir('contracts', [
         new Dir('array_len', [
-          File.Simple('memoryArray', [Expect.Simple('dynMemArrayLen', [], ['0', '0'])]),
+          File.Simple('memoryArray', [Expect.Simple('dynMemArrayLen', [], ['45', '0'])]),
           File.Simple('storageArray', [Expect.Simple('dynStorageArrayLen', [], ['1', '0'])]),
         ]),
         new Dir('assignments', [
