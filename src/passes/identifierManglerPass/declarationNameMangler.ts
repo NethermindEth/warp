@@ -5,7 +5,6 @@ import {
   FunctionVisibility,
   SourceUnit,
   ContractDefinition,
-  ImportDirective,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../../ast/ast';
