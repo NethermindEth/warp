@@ -18,6 +18,7 @@ import {
   ImportRefType,
   IntLiteralType,
   IntType,
+  LiteralKind,
   MappingType,
   ModuleType,
   PointerType,
@@ -126,11 +127,32 @@ export function getReturnTypeString(node: FunctionDefinition): string {
     .join(',')})`;
 }
 
-export function generateLiteralTypeString(value: string): string {
-  if (value.length > 32) {
-    value = `${value.slice(4)}...(${value.length - 8} digits omitted)...${value.slice(-4)}`;
+export function generateLiteralTypeString(
+  value: string,
+  kind: LiteralKind = LiteralKind.Number,
+): string {
+  switch (kind) {
+    case LiteralKind.Bool:
+      return 'bool';
+    case LiteralKind.String:
+      return `literal_string "${value}"`;
+    case LiteralKind.HexString:
+      return `literal_string hex"${value}"`;
+    case LiteralKind.UnicodeString: {
+      const encodedData = Buffer.from(value).toJSON().data;
+      const hex_string = encodedData.reduce(
+        (acc, val) => acc + (val < 16 ? '0' : '') + val.toString(16),
+        '',
+      );
+      return `literal_string hex"${hex_string}"`;
+    }
+    case LiteralKind.Number: {
+      if (value.length > 32) {
+        value = `${value.slice(4)}...(${value.length - 8} digits omitted)...${value.slice(-4)}`;
+      }
+      return `int_const ${value}`;
+    }
   }
-  return `int_const ${value}`;
 }
 
 function instanceOfNonRecursivePP(type: TypeNode): boolean {

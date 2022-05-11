@@ -2,10 +2,11 @@ pragma solidity ^0.8.11;
 
 //SPDX-License-Identifier: MIT
 
-contract WARP {
   struct S {
     uint a;
   }
+contract WARP {
+
 
   S s;
   uint b;

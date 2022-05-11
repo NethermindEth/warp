@@ -5,6 +5,10 @@ export const expectations = flatten(
   new Dir('tests', [
     new Dir('behaviour', [
       new Dir('contracts', [
+        new Dir('array_len', [
+          File.Simple('memoryArray', [Expect.Simple('dynMemArrayLen', [], ['45', '0'])]),
+          File.Simple('storageArray', [Expect.Simple('dynStorageArrayLen', [], ['1', '0'])]),
+        ]),
         new Dir('assignments', [
           File.Simple('functionSingle', [
             Expect.Simple('test', ['3'], ['3']),
@@ -1641,6 +1645,16 @@ export const expectations = flatten(
               ['assign', ['10', '11'], [], '0'],
               ['getMember', [], ['10', '11'], '0'],
             ]),
+          ]),
+        ]),
+        new Dir('type_information', [
+          File.Simple('informationEnum', [
+            Expect.Simple('dMin', [], ['0']),
+            Expect.Simple('dMax', [], ['3']),
+          ]),
+          File.Simple('informationContract', [
+            Expect.Simple('getName', [], ['1463898704']), // 'WARP' -> 0x57415250
+            Expect.Simple('getId', [], ['3619205059']),
           ]),
         ]),
         File.Simple('example', [

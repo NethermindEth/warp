@@ -8,6 +8,7 @@ import {
   StructDefinition,
   UserDefinedValueTypeDefinition,
   VariableDeclaration,
+  UserDefinedTypeName,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -16,6 +17,35 @@ import { NotSupportedYetError } from '../utils/errors';
 import * as pathLib from 'path';
 
 export class ExternImporter extends ASTMapper {
+  visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
+    const declaration = node.vType;
+    let declarationSourceUnit;
+    if (declaration instanceof UserDefinedTypeName) {
+      declarationSourceUnit = declaration.vReferencedDeclaration.getClosestParentByType(SourceUnit);
+    } else {
+      this.commonVisit(node, ast);
+      return;
+    }
+    const sourceUnit = node.getClosestParentByType(SourceUnit);
+
+    assert(sourceUnit !== undefined, 'Trying to import a definition into an unknown source unit');
+
+    if (
+      declarationSourceUnit !== undefined &&
+      sourceUnit !== declarationSourceUnit &&
+      declaration instanceof UserDefinedTypeName &&
+      declaration.vReferencedDeclaration instanceof StructDefinition
+    ) {
+      ast.registerImport(
+        node,
+        formatPath(declarationSourceUnit.absolutePath),
+        declaration.vReferencedDeclaration.name,
+      );
+    }
+
+    this.commonVisit(node, ast);
+  }
+
   visitIdentifier(node: Identifier, ast: AST): void {
     const declaration = node.vReferencedDeclaration;
 
@@ -27,12 +57,11 @@ export class ExternImporter extends ASTMapper {
     assert(sourceUnit !== undefined, 'Trying to import a definition into an unknown source unit');
     if (declarationSourceUnit === undefined || sourceUnit === declarationSourceUnit) return;
 
-    if (declaration instanceof FunctionDefinition) {
+    if (declaration instanceof FunctionDefinition || declaration instanceof StructDefinition) {
       ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
     }
 
     if (
-      declaration instanceof StructDefinition ||
       declaration instanceof ErrorDefinition ||
       declaration instanceof UserDefinedValueTypeDefinition ||
       declaration instanceof VariableDeclaration ||
