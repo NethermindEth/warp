@@ -3,6 +3,7 @@ import { mergeImports } from '../utils/utils';
 import { CairoUtilFuncGenBase } from './base';
 import { EnumBoundCheckGen } from './enumBoundCheck';
 import { MemoryArrayLiteralGen } from './memory/arrayLiteral';
+import { MemoryDynArrayLengthGen } from './memory/memoryDynArrayLength';
 import { MemoryMemberAccessGen } from './memory/memoryMemberAccess';
 import { MemoryReadGen } from './memory/memoryRead';
 import { MemoryStructGen } from './memory/memoryStruct';
@@ -28,6 +29,7 @@ import { StorageWriteGen } from './storage/storageWrite';
 export class CairoUtilFuncGen {
   memory: {
     arrayLiteral: MemoryArrayLiteralGen;
+    memoryDynArrayLength: MemoryDynArrayLengthGen;
     memberAccess: MemoryMemberAccessGen;
     read: MemoryReadGen;
     staticArrayIndexAccess: MemoryStaticArrayIndexAccessGen;
@@ -69,6 +71,7 @@ export class CairoUtilFuncGen {
     };
     this.memory = {
       arrayLiteral: new MemoryArrayLiteralGen(ast),
+      memoryDynArrayLength: new MemoryDynArrayLengthGen(ast),
       memberAccess: new MemoryMemberAccessGen(ast),
       read: new MemoryReadGen(ast),
       staticArrayIndexAccess: new MemoryStaticArrayIndexAccessGen(ast),

@@ -11,7 +11,11 @@ import { solveConstructorInheritance } from './constructorInheritance';
 import { addNonoverridenPublicFunctions, addPrivateSuperFunctions } from './functionInheritance';
 import { addNonOverridenModifiers } from './modifiersInheritance';
 import { addStorageVariables } from './storageVariablesInheritance';
-import { getBaseContracts, updateReferencedDeclarations } from './utils';
+import {
+  getBaseContracts,
+  removeBaseContractDependence,
+  updateReferencedDeclarations,
+} from './utils';
 
 export class InheritanceInliner extends ASTMapper {
   counter = 0;
@@ -36,29 +40,37 @@ export class InheritanceInliner extends ASTMapper {
     updateReferencedDeclarations(node, functionRemapping, ast);
     updateReferencedDeclarations(node, variableRemapping, ast);
     updateReferencedDeclarations(node, modifierRemapping, ast);
+
+    removeBaseContractDependence(node);
+
     ast.setContextRecursive(node);
 
     this.commonVisit(node, ast);
   }
 
   static map(ast: AST): AST {
-    let contracts = ast.roots.flatMap((root) => root.vContracts);
-    while (contracts.length > 0) {
-      const mostDerivedContracts = contracts.filter(
+    // The inheritance inliner needs to process subclasses before their parents
+    // If a base contract is processed before a derived one then the methods added
+    // to the base will get copied into the derived leading to unnecessary duplication
+    let contractsToProcess = ast.roots.flatMap((root) => root.vContracts);
+    while (contractsToProcess.length > 0) {
+      // Find contracts that no other contract inherits from
+      const mostDerivedContracts = contractsToProcess.filter(
         (derivedContract) =>
-          !contracts.some((otherContract) =>
+          !contractsToProcess.some((otherContract) =>
             getBaseContracts(otherContract).includes(derivedContract),
           ),
       );
-      if (mostDerivedContracts.length === 0 && contracts.length > 0) {
+      if (mostDerivedContracts.length === 0 && contractsToProcess.length > 0) {
         throw new TranspileFailedError('Unable to serialise contracts');
       }
-      contracts = contracts.filter((c) => !mostDerivedContracts.includes(c));
+      contractsToProcess = contractsToProcess.filter((c) => !mostDerivedContracts.includes(c));
       mostDerivedContracts.forEach((contract) => {
         const pass = new this();
-        pass.visitContractDefinition(contract, ast);
+        pass.dispatchVisit(contract, ast);
       });
     }
+
     return ast;
   }
 
