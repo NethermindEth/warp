@@ -29,7 +29,6 @@ export class ExternImporter extends ASTMapper {
     );
 
     if (sourceUnit !== declarationSourceUnit && declaration instanceof StructDefinition) {
-      console.log(`Registering import ${declaration.name}`);
       ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
     }
 
