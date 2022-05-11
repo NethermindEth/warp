@@ -51,11 +51,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(type: TypeNode, size: number): string {
-    const elementCairoType = CairoType.fromSol(
-      type,
-      this.ast,
-      TypeConversionContext.MemoryAllocation,
-    );
+    const elementCairoType = CairoType.fromSol(type, this.ast);
     const key = `${size}${elementCairoType.fullStringRepresentation}`;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
