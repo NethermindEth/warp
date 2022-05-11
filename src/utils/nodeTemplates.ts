@@ -85,6 +85,19 @@ export function createNumberLiteral(value: bigint, typeString: string, ast: AST)
   return node;
 }
 
+export function createStringLiteral(value: string, ast: AST): Literal {
+  const node = new Literal(
+    ast.reserveId(),
+    '',
+    `literal_string "${value}"`,
+    LiteralKind.String,
+    toHexString(value),
+    value,
+  );
+  ast.setContextRecursive(node);
+  return node;
+}
+
 export function createParameterList(
   params: Iterable<VariableDeclaration>,
   ast: AST,
