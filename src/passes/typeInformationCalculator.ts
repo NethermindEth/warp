@@ -18,7 +18,7 @@ import {
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { printNode, printTypeNode } from '../utils/astPrinter';
+import { printTypeNode } from '../utils/astPrinter';
 import { WillNotSupportError } from '../utils/errors';
 import { generateLiteralTypeString } from '../utils/getTypeString';
 import { createNumberLiteral, createStringLiteral } from '../utils/nodeTemplates';
