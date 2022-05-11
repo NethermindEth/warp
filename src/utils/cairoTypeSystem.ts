@@ -51,7 +51,14 @@ export abstract class CairoType {
     } else if (tp instanceof ArrayType) {
       if (tp.size === undefined) {
         if (context === TypeConversionContext.CallDataRef) {
-          return new CairoPointer(CairoType.fromSol(tp.elementT, ast, context));
+          return new CairoStruct(
+            `wm_dynarry_${tp.elementT.toString()}`,
+            new Map([
+              ['len', new CairoFelt()],
+              ['ptr', new CairoPointer(CairoType.fromSol(tp.elementT, ast, context))],
+            ]),
+          );
+          // new CairoPointer(CairoType.fromSol(tp.elementT, ast, context));
         }
         return new WarpLocation();
       } else if (context === TypeConversionContext.Ref) {
@@ -179,6 +186,18 @@ export class CairoStruct extends CairoType {
     }
     throw new TranspileFailedError(
       `Attempted to find offset of non-existant member ${memberName} in ${this.name}`,
+    );
+  }
+}
+
+export class CairoDynArray extends CairoStruct {
+  constructor(public name: string, public ptr_member: CairoType) {
+    super(
+      name,
+      new Map([
+        ['len', new CairoFelt()],
+        ['ptr', new CairoPointer(ptr_member)],
+      ]),
     );
   }
 }

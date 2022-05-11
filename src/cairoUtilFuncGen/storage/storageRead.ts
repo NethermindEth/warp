@@ -49,7 +49,13 @@ export class StorageReadGen extends StringIndexedFuncGen {
 
     const funcName = `WS${this.generatedFunctions.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
-    const [reads, pack] = serialiseReads(typeToRead, readFelt, readId);
+    const [reads, pack] = serialiseReads(
+      typeToRead,
+      readFelt,
+      readId,
+      createDynLenStatement,
+      createDynPtrStatement,
+    );
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
@@ -70,4 +76,14 @@ function readFelt(offset: number): string {
 
 function readId(offset: number): string {
   return `let (read${offset}) = readId(${add('loc', offset)})`;
+}
+function createDynLenStatement(offset: number): string {
+  return `let (len${offset - 1}) = narrow_safe(read${offset - 2}, read${offset - 1})`;
+}
+
+function createDynPtrStatement(offset: number): string {
+  return [
+    `let (ptr${offset - 1}) = alloc()`,
+    `let (ptr${offset - 1}) = wm_reader_felt(len${offset - 1}, ptr${offset - 1}, loc})`,
+  ].join('\n');
 }
