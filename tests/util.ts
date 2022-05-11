@@ -14,7 +14,7 @@ export async function sh(cmd: string): Promise<{ stdout: string; stderr: string 
   });
 }
 
-export function transpile(contractPath: string) {
+export function transpile(contractPath: string): Promise<{ stdout: string; stderr: string }> {
   return sh(`bin/warp transpile ${contractPath} --strict`);
 }
 

@@ -92,6 +92,6 @@ jobs:
           source_file: 'benchmark'
           destination_repo: 'NethermindEth/warp-ts-benchmark'
           commit_message: ${{ env.source_hash }}
-          destination_branch: master
+          destination_branch: main
           user_email: 41898282+github-actions[bot]@users.noreply.github.com
           user_name: 'Github Actions'

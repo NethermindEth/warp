@@ -1,18 +1,23 @@
 import {
+  Block,
+  ContractDefinition,
   DataLocation,
   ElementaryTypeName,
+  Expression,
+  FunctionDefinition,
+  FunctionKind,
+  FunctionStateMutability,
+  FunctionVisibility,
+  getNodeType,
   Identifier,
   Literal,
   LiteralKind,
   ParameterList,
+  Return,
+  Statement,
+  StructuredDocumentation,
   TupleExpression,
   VariableDeclaration,
-  Statement,
-  Block,
-  Return,
-  Expression,
-  StructuredDocumentation,
-  getNodeType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { generateLiteralTypeString } from './getTypeString';
@@ -128,4 +133,22 @@ export function createUint256TypeName(ast: AST): ElementaryTypeName {
   const typeName = new ElementaryTypeName(ast.reserveId(), '', 'uint256', 'uint256');
   ast.setContextRecursive(typeName);
   return typeName;
+}
+
+export function createDefaultConstructor(node: ContractDefinition, ast: AST): FunctionDefinition {
+  const newFunc = new FunctionDefinition(
+    ast.reserveId(),
+    '',
+    node.id,
+    FunctionKind.Constructor,
+    '',
+    false,
+    FunctionVisibility.Public,
+    FunctionStateMutability.NonPayable,
+    true,
+    createParameterList([], ast),
+    createParameterList([], ast),
+    [],
+  );
+  return newFunc;
 }

@@ -3,7 +3,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
 import { getDefaultValue } from '../utils/defaultValueNodes';
-import { collectUnboundVariables } from './loopFunctionaliser/utils';
+import { collectUnboundVariables } from '../utils/functionGeneration';
 
 export class ReturnVariableInitializer extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {

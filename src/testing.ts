@@ -34,9 +34,8 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/ERC20_storage', 'Success'],
   ['example_contracts/boolOp_noSideEffects', 'Success'],
   // Uses conditionals implicitly
-  ['example_contracts/boolOp_sideEffects', 'NotSupportedYet'],
-  // Uses conditionals
-  ['example_contracts/c2c', 'NotSupportedYet'],
+  ['example_contracts/boolOp_sideEffects', 'Success'],
+  ['example_contracts/c2c', 'Success'],
   // Uses conditionals explicitly
   ['example_contracts/conditional', 'WillNotSupport'],
   ['example_contracts/contract_to_contract', 'Success'],
@@ -55,6 +54,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/errorHandling/revert', 'Success'],
   ['example_contracts/events', 'Success'],
   ['example_contracts/external_function', 'Success'],
+  ['example_contracts/fallbackWithoutArgs', 'Success'],
   // Typestring for the internal function call doesn't contain a location so a read isn't generated
   ['example_contracts/freeFunction', 'Success'],
   ['example_contracts/function-with-nested-return', 'Success'],
@@ -78,7 +78,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/interfaces', 'NotSupportedYet'],
   ['example_contracts/invalidSolidity', 'SolCompileFailed'],
   ['example_contracts/lib', 'Success'],
-  ['example_contracts/libraries/using_for_star', 'NotSupportedYet'],
+  ['example_contracts/libraries/using_for_star', 'Success'],
   ['example_contracts/literalOperations', 'Success'],
   ['example_contracts/loops/for-loop-with-break', 'Success'],
   ['example_contracts/loops/for-loop-with-continue', 'Success'],

@@ -100,6 +100,25 @@ export const expectations = flatten(
             ],
           ),
         ]),
+        new Dir('conditionals', [
+          File.Simple('and', [
+            Expect.Simple('f', ['50', '0', '0'], ['0', '0']),
+            Expect.Simple('f', ['10', '0', '1'], ['1', '0']),
+            Expect.Simple('f', ['4', '0', '1'], ['5', '0']),
+          ]),
+          new File(
+            'nested_and_or',
+            'WARP',
+            ['740', '0'],
+            [
+              Expect.Simple('move_valid', ['0', '0', '500', '0'], ['0']),
+              Expect.Simple('move_valid', ['700', '0', '500', '0'], ['0']),
+              Expect.Simple('move_valid', ['800', '0', '500', '0'], ['1']),
+              Expect.Simple('move_valid', ['2000', '0', '500', '0'], ['0']),
+              Expect.Simple('move_valid', ['1200', '0', '500', '0'], ['1']),
+            ],
+          ),
+        ]),
         new Dir('constants', [
           File.Simple('simpleConstants', [
             Expect.Simple('getX', [], ['247']),
@@ -520,6 +539,10 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('expressions', [
+          File.Simple('assignments_as_rvalues', [
+            Expect.Simple('addingLocalAssignments', ['5', '11'], ['16']),
+            Expect.Simple('addingStorageAssignments', ['5', '11'], ['16', '0']),
+          ]),
           File.Simple('ineffectual', [Expect.Simple('test', ['1'], ['1'])]),
           File.Simple('literals', [
             Expect.Simple('unsignedNarrow', [], ['255', '251', '0', '0']),
@@ -915,6 +938,17 @@ export const expectations = flatten(
                 'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
               ],
             ]),
+          ]),
+        ]),
+        new Dir('fallback', [
+          File.Simple('simple', [
+            Expect.Simple('x', [], ['0', '0']),
+            Expect.Simple('unexistent', [], []),
+            Expect.Simple('x', [], ['1', '0']),
+            Expect.Simple('unexistent', ['3', '4', '5'], []),
+            Expect.Simple('x', [], ['2', '0']),
+            Expect.Simple('unexistent', ['10', '4', '5', '20'], []),
+            Expect.Simple('x', [], ['3', '0']),
           ]),
         ]),
         new Dir('if', [

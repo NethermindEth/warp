@@ -6,9 +6,11 @@ import { createNumberLiteral } from '../utils/nodeTemplates';
 
 export class UnloadingAssignment extends ASTMapper {
   visitAssignment(node: Assignment, ast: AST): void {
-    if (node.operator === '=') return;
-    const lhsValue = cloneASTNode(node.vLeftHandSide, ast);
+    if (node.operator === '=') {
+      return this.visitExpression(node, ast);
+    }
 
+    const lhsValue = cloneASTNode(node.vLeftHandSide, ast);
     // Extract e.g. "+" from "+="
     const operator = node.operator.slice(0, node.operator.length - 1);
     node.operator = '=';
@@ -24,6 +26,8 @@ export class UnloadingAssignment extends ASTMapper {
       ),
       node,
     );
+
+    this.visitExpression(node, ast);
   }
 
   visitUnaryOperation(node: UnaryOperation, ast: AST): void {

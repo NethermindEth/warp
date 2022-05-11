@@ -24,6 +24,7 @@ import {
   FunctionCall,
   FunctionCallOptions,
   FunctionDefinition,
+  FunctionKind,
   FunctionTypeName,
   getNodeType,
   Identifier,
@@ -68,6 +69,7 @@ import { AST } from '../ast/ast';
 import { CairoAssert } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from './astPrinter';
+import { isNameless } from './utils';
 
 // This is the solc-typed-ast AST checking code, with additions for CairoAssert and CairoContract
 
@@ -680,12 +682,30 @@ function checkIdNonNegative(node: ASTNode) {
 
 function checkOnlyConstructorsMarkedAsConstructors(nodes: FunctionDefinition[]) {
   nodes.forEach((func) => {
-    if ((func.name === '') != func.isConstructor)
+    if ((func.kind === FunctionKind.Constructor) !== func.isConstructor)
       throw new InsaneASTError(
         `${printNode(func)} ${func.name} is incorrectly marked as ${
           func.isConstructor ? '' : 'not '
         } a constructor`,
       );
+  });
+}
+
+// Check that functions of kind: constructor, receive and fallback are nameless
+function checkEmptyNamesForNamelessFunctions(nodes: FunctionDefinition[]) {
+  nodes.forEach((func) => {
+    if (func.name === '' && !isNameless(func)) {
+      throw new InsaneASTError(
+        `${printNode(func)} has an empty name but it's kind: ${
+          func.kind
+        } is different than constructor, fallback or receive`,
+      );
+    }
+    if (func.name !== '' && isNameless(func)) {
+      throw new InsaneASTError(
+        `${printNode(func)} of kind ${func.kind} has a non-empty name: ${func.name}`,
+      );
+    }
   });
 }
 
@@ -710,7 +730,9 @@ export function isSane(ast: AST): boolean {
       checkSane(root, ast.context);
       checkContextsDefined(root);
       checkIdNonNegative(root);
-      checkOnlyConstructorsMarkedAsConstructors(root.getChildrenByType(FunctionDefinition));
+      const functionDefinitions = root.getChildrenByType(FunctionDefinition);
+      checkOnlyConstructorsMarkedAsConstructors(functionDefinitions);
+      checkEmptyNamesForNamelessFunctions(functionDefinitions);
     } catch (e) {
       if (e instanceof InsaneASTError) {
         console.error(e);
