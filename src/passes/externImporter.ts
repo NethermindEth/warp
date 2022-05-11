@@ -17,30 +17,20 @@ import { NotSupportedYetError } from '../utils/errors';
 import * as pathLib from 'path';
 
 export class ExternImporter extends ASTMapper {
-  visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
-    const declaration = node.vType;
-    let declarationSourceUnit;
-    if (declaration instanceof UserDefinedTypeName) {
-      declarationSourceUnit = declaration.vReferencedDeclaration.getClosestParentByType(SourceUnit);
-    } else {
-      this.commonVisit(node, ast);
-      return;
-    }
+  visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {
+    const declaration = node.vReferencedDeclaration;
+    const declarationSourceUnit = declaration.getClosestParentByType(SourceUnit);
     const sourceUnit = node.getClosestParentByType(SourceUnit);
 
     assert(sourceUnit !== undefined, 'Trying to import a definition into an unknown source unit');
+    assert(
+      declarationSourceUnit !== undefined,
+      'Trying to import a definition from an unknown source unit',
+    );
 
-    if (
-      declarationSourceUnit !== undefined &&
-      sourceUnit !== declarationSourceUnit &&
-      declaration instanceof UserDefinedTypeName &&
-      declaration.vReferencedDeclaration instanceof StructDefinition
-    ) {
-      ast.registerImport(
-        node,
-        formatPath(declarationSourceUnit.absolutePath),
-        declaration.vReferencedDeclaration.name,
-      );
+    if (sourceUnit !== declarationSourceUnit && declaration instanceof StructDefinition) {
+      console.log(`Registering import ${declaration.name}`);
+      ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
     }
 
     this.commonVisit(node, ast);
