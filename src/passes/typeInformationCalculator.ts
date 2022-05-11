@@ -20,43 +20,24 @@ import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printTypeNode } from '../utils/astPrinter';
-import { NotSupportedYetError } from '../utils/errors';
+import { WillNotSupportError } from '../utils/errors';
 import { generateLiteralTypeString } from '../utils/getTypeString';
-import { toHexString } from '../utils/utils';
+import { createNumberLiteral, createStringLiteral } from '../utils/nodeTemplates';
 
-function calculateIntMin(type: IntType): string {
+function calculateIntMin(type: IntType): bigint {
   if (type.signed) {
-    return (-(2n ** BigInt(type.nBits - 1))).toString();
+    return -(2n ** BigInt(type.nBits - 1));
   } else {
-    return '0';
+    return 0n;
   }
 }
 
-function calculateIntMax(type: IntType): string {
+function calculateIntMax(type: IntType): bigint {
   if (type.signed) {
-    return (2n ** BigInt(type.nBits - 1) - 1n).toString();
+    return 2n ** BigInt(type.nBits - 1) - 1n;
   } else {
-    return (2n ** BigInt(type.nBits) - 1n).toString();
+    return 2n ** BigInt(type.nBits) - 1n;
   }
-}
-
-function createLiteral(
-  valueString: string,
-  valueKind: LiteralKind,
-  ast: AST,
-  src: string,
-  raw: string | undefined,
-) {
-  return new Literal(
-    ast.reserveId(),
-    src,
-    generateLiteralTypeString(valueString, valueKind),
-    valueKind,
-    valueKind !== LiteralKind.HexString ? toHexString(valueString) : valueString,
-    valueString,
-    undefined,
-    raw,
-  );
 }
 
 function createEnumMemberAccess(
@@ -81,7 +62,7 @@ export class TypeInformationCalculator extends ASTMapper {
       !node.vExpression.typeString.startsWith('type(') ||
       !(node.vExpression instanceof FunctionCall)
     ) {
-      return;
+      return; // this.visitExpression(node.vExpression, ast);
     }
 
     const argNode = node.vExpression.vArguments[0];
@@ -101,14 +82,14 @@ export class TypeInformationCalculator extends ASTMapper {
     );
     nodeType = nodeType.type;
 
-    if (nodeType instanceof IntType && (memberName === 'min' || memberName === 'max'))
-      return createLiteral(
-        memberName === 'min' ? calculateIntMin(nodeType) : calculateIntMax(nodeType),
-        LiteralKind.Number,
+    if (nodeType instanceof IntType && (memberName === 'min' || memberName === 'max')) {
+      const value = memberName === 'min' ? calculateIntMin(nodeType) : calculateIntMax(nodeType);
+      return createNumberLiteral(
+        value,
+        generateLiteralTypeString(value.toString(), LiteralKind.Number),
         ast,
-        node.src,
-        node.raw,
       );
+    }
 
     if (nodeType instanceof UserDefinedType) {
       const userDef = nodeType.definition;
@@ -123,12 +104,11 @@ export class TypeInformationCalculator extends ASTMapper {
             );
 
       if (userDef instanceof ContractDefinition) {
-        if (memberName === 'name')
-          return createLiteral(userDef.name, LiteralKind.String, ast, node.src, node.raw);
+        if (memberName === 'name') return createStringLiteral(userDef.name, ast);
         if (memberName === 'runtimeCode')
-          throw new NotSupportedYetError('`runtimeCode` member access not supported yet');
+          throw new WillNotSupportError('`runtimeCode` member access are not supported');
         if (memberName === 'executionCode')
-          throw new NotSupportedYetError('`executionCode` member access not supported yet');
+          throw new WillNotSupportError('`executionCode` member access are not supported');
 
         if (userDef.kind === ContractKind.Interface && memberName === 'interfaceId') {
           const interfaceId = userDef.interfaceId(ABIEncoderVersion.V2);
@@ -136,13 +116,8 @@ export class TypeInformationCalculator extends ASTMapper {
             interfaceId !== undefined,
             'Contracts of kind interface must have a defined interfaceId',
           );
-          return createLiteral(
-            BigInt('0x' + interfaceId).toString(),
-            LiteralKind.Number,
-            ast,
-            node.src,
-            node.raw,
-          );
+          const value = BigInt('0x' + interfaceId);
+          return createNumberLiteral(value, generateLiteralTypeString(value.toString()), ast);
         }
       }
     }
