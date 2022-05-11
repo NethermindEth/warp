@@ -5,6 +5,7 @@ import {
   FunctionVisibility,
   SourceUnit,
   ContractDefinition,
+  ImportDirective,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../../ast/ast';
@@ -48,12 +49,12 @@ export class DeclarationNameMangler extends ASTMapper {
 
     this.commonVisit(node, ast);
   }
+
   mangleVariableDeclaration(node: VariableDeclaration): void {
     node.name = this.createNewVariableName(node.name);
   }
   mangleStructDefinition(node: StructDefinition): void {
     node.vMembers.forEach((m) => this.mangleVariableDeclaration(m));
-    //node.name = this.createNewVariableName(node.name);
   }
   mangleFunctionDefinition(node: FunctionDefinition): void {
     if (node.isConstructor) return;

@@ -68,7 +68,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/imports/importfrom', 'Success'],
   ['example_contracts/imports/importInterface', 'Success'],
   ['example_contracts/imports/importLibrary', 'Success'],
-  // Transpilation Success since importing StructDefinition is now implemented
+
   ['example_contracts/imports/importStruct', 'Success'],
   ['example_contracts/inheritance/simple', 'Success'],
   ['example_contracts/inheritance/super/base', 'Success'],
