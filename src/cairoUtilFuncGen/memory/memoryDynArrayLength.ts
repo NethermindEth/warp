@@ -21,7 +21,6 @@ export class MemoryDynArrayLengthGen extends CairoUtilFuncGenBase {
       this.ast,
       node,
     );
-    console.log(arrayType);
     const call = createCallToFunction(functionStub, [node.vExpression], this.ast);
     this.ast.registerImport(call, 'warplib.memory', 'wm_dyn_array_length');
     return call;
