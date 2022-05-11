@@ -10,7 +10,6 @@ import {
   getNodeType,
   Identifier,
   IntType,
-  LiteralKind,
   MemberAccess,
   TypeNameType,
   UserDefinedType,
@@ -20,7 +19,6 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printTypeNode } from '../utils/astPrinter';
 import { WillNotSupportError } from '../utils/errors';
-import { generateLiteralTypeString } from '../utils/getTypeString';
 import { createNumberLiteral, createStringLiteral } from '../utils/nodeTemplates';
 
 function calculateIntMin(type: IntType): bigint {
@@ -83,11 +81,7 @@ export class TypeInformationCalculator extends ASTMapper {
 
     if (nodeType instanceof IntType && (memberName === 'min' || memberName === 'max')) {
       const value = memberName === 'min' ? calculateIntMin(nodeType) : calculateIntMax(nodeType);
-      return createNumberLiteral(
-        value,
-        generateLiteralTypeString(value.toString(), LiteralKind.Number),
-        ast,
-      );
+      return createNumberLiteral(value, ast);
     }
 
     if (nodeType instanceof UserDefinedType) {
@@ -116,7 +110,7 @@ export class TypeInformationCalculator extends ASTMapper {
             'Contracts of kind interface must have a defined interfaceId',
           );
           const value = BigInt('0x' + interfaceId);
-          return createNumberLiteral(value, generateLiteralTypeString(value.toString()), ast);
+          return createNumberLiteral(value, ast);
         }
       }
     }
