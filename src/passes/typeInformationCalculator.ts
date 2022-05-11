@@ -10,7 +10,6 @@ import {
   getNodeType,
   Identifier,
   IntType,
-  Literal,
   LiteralKind,
   MemberAccess,
   TypeNameType,
@@ -19,7 +18,7 @@ import {
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { printTypeNode } from '../utils/astPrinter';
+import { printNode, printTypeNode } from '../utils/astPrinter';
 import { WillNotSupportError } from '../utils/errors';
 import { generateLiteralTypeString } from '../utils/getTypeString';
 import { createNumberLiteral, createStringLiteral } from '../utils/nodeTemplates';
@@ -62,7 +61,7 @@ export class TypeInformationCalculator extends ASTMapper {
       !node.vExpression.typeString.startsWith('type(') ||
       !(node.vExpression instanceof FunctionCall)
     ) {
-      return; // this.visitExpression(node.vExpression, ast);
+      return this.visitExpression(node.vExpression, ast);
     }
 
     const argNode = node.vExpression.vArguments[0];
