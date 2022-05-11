@@ -19,6 +19,7 @@ import {
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { printTypeNode } from '../utils/astPrinter';
 import { NotSupportedYetError } from '../utils/errors';
 import { generateLiteralTypeString } from '../utils/getTypeString';
 import { toHexString } from '../utils/utils';
@@ -94,7 +95,11 @@ export class TypeInformationCalculator extends ASTMapper {
 
   private getReplacement(node: Expression, memberName: string, ast: AST): ASTNode | null {
     let nodeType = getNodeType(node, ast.compilerVersion);
-    nodeType = nodeType instanceof TypeNameType ? nodeType.type : nodeType;
+    assert(
+      nodeType instanceof TypeNameType,
+      `Expected TypeNameType, found ${printTypeNode(nodeType)}`,
+    );
+    nodeType = nodeType.type;
 
     if (nodeType instanceof IntType && (memberName === 'min' || memberName === 'max'))
       return createLiteral(
