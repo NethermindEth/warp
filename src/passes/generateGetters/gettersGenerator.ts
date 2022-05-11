@@ -12,7 +12,6 @@ import {
   FunctionStateMutability,
   FunctionVisibility,
   IndexAccess,
-  Identifier,
   Mapping,
   MemberAccess,
   Mutability,
@@ -273,11 +272,6 @@ function genReturnBlock(
     the previous call of genReturnBlock
       for e.g `c[i0][i1][i2]` in `c[i0][i1][i2].a`
   */
-  const createIdentifierWithTypeString = (variable: VariableDeclaration): Identifier => {
-    const node = createIdentifier(variable, ast);
-    ast.setContextRecursive(node);
-    return node;
-  };
   if (!vType) {
     throw new TranspileFailedError(`Type of ${v.name} must be defined`);
   }
@@ -292,7 +286,7 @@ function genReturnBlock(
       ast.reserveId(),
       '',
       getTypeStringTypeName(vType.vBaseType),
-      baseExpression ? cloneASTNode(baseExpression, ast) : createIdentifierWithTypeString(v),
+      baseExpression ? cloneASTNode(baseExpression, ast) : createIdentifier(v, ast),
       createIdentifier(fnParams.vParameters[idx], ast),
     );
     return genReturnBlock(
@@ -310,7 +304,7 @@ function genReturnBlock(
       ast.reserveId(),
       '',
       getTypeStringTypeName(vType.vValueType),
-      baseExpression ? cloneASTNode(baseExpression, ast) : createIdentifierWithTypeString(v),
+      baseExpression ? cloneASTNode(baseExpression, ast) : createIdentifier(v, ast),
       createIdentifier(fnParams.vParameters[idx], ast),
     );
     return genReturnBlock(
@@ -375,7 +369,7 @@ function genReturnBlock(
       };
       const tempStructVarDecl = tempStructVarDeclaration(
         vType,
-        baseExpression ? cloneASTNode(baseExpression, ast) : createIdentifierWithTypeString(v),
+        baseExpression ? cloneASTNode(baseExpression, ast) : createIdentifier(v, ast),
       );
       vType.vReferencedDeclaration.vMembers.forEach((m) => {
         if (!m.vType) return;
@@ -389,7 +383,7 @@ function genReturnBlock(
           ast.reserveId(),
           '',
           getTypeStringTypeName(m.vType),
-          createIdentifierWithTypeString(tempStructVarDecl),
+          createIdentifier(tempStructVarDecl, ast),
           m.name,
           m.id,
         );
@@ -399,7 +393,7 @@ function genReturnBlock(
           m.vType.vReferencedDeclaration instanceof StructDefinition
         ) {
           const memberStructVarDeclaration = tempStructVarDeclaration(m.vType, memberAccessExp);
-          returnExpressions.push(createIdentifierWithTypeString(memberStructVarDeclaration));
+          returnExpressions.push(createIdentifier(memberStructVarDeclaration, ast));
         } else {
           returnExpressions.push(memberAccessExp);
         }
@@ -413,7 +407,7 @@ function genReturnBlock(
       );
     }
     return createBlock(
-      [createReturn(baseExpression ?? createIdentifierWithTypeString(v), returnParamListId, ast)],
+      [createReturn(baseExpression ?? createIdentifier(v, ast), returnParamListId, ast)],
       ast,
     );
   } else {

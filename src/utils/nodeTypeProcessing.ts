@@ -75,10 +75,13 @@ export function typeNameToSpecializedTypeNode(typeName: TypeName, loc: DataLocat
 }
 
 export function specializeType(typeNode: TypeNode, loc: DataLocation): TypeNode {
-  assert(
-    !(typeNode instanceof PointerType),
-    `Unexpected pointer type ${printTypeNode(typeNode)} in concretization.`,
-  );
+  if (typeNode instanceof PointerType) {
+    assert(
+      typeNode.location === loc,
+      `Attempting to specialize ${typeNode.location} pointer type to ${loc}`,
+    );
+    return typeNode;
+  }
   assert(
     !(typeNode instanceof TupleType),
     'Unexpected tuple type ${printTypeNode(typeNode)} in concretization.',

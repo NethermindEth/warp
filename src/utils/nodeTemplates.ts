@@ -20,7 +20,7 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { generateLiteralTypeString } from './getTypeString';
+import { generateExpressionTypeString, generateLiteralTypeString } from './getTypeString';
 import { specializeType } from './nodeTypeProcessing';
 import { toHexString, toSingleExpression } from './utils';
 
@@ -81,7 +81,13 @@ export function createIdentifier(
     getNodeType(variable, ast.compilerVersion),
     dataLocation ?? (variable.stateVariable ? DataLocation.Storage : variable.storageLocation),
   );
-  const node = new Identifier(ast.reserveId(), '', type.pp(), variable.name, variable.id);
+  const node = new Identifier(
+    ast.reserveId(),
+    '',
+    generateExpressionTypeString(type),
+    variable.name,
+    variable.id,
+  );
   ast.setContextRecursive(node);
   return node;
 }
