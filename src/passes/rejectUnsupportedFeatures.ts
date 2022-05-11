@@ -3,6 +3,7 @@ import {
   InlineAssembly,
   RevertStatement,
   ErrorDefinition,
+  Conditional,
   MappingType,
   MemberAccess,
   PointerType,
@@ -12,7 +13,8 @@ import {
   UserDefinedType,
   UserDefinedValueTypeDefinition,
   VariableDeclaration,
-  Conditional,
+  FunctionCall,
+  FunctionCallKind,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -74,5 +76,28 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
   visitUserDefinedValueTypeDefinition(_node: UserDefinedValueTypeDefinition, _ast: AST): void {
     throw new NotSupportedYetError('User defined types are not supported yet');
+  }
+
+  visitFunctionCall(node: FunctionCall, ast: AST): void {
+    const unsupportedMath = ['keccak256', 'sha256', 'ripemd160', 'ecrecover', 'addmod', 'mulmod'];
+    const unsupportedAbi = [
+      'decode',
+      'encode',
+      'encodePacked',
+      'encodeWithSelector',
+      'encodeWithSignature',
+      'encodeCall',
+    ];
+    const funcName = node.vFunctionName;
+    if (
+      node.kind === FunctionCallKind.FunctionCall &&
+      node.vReferencedDeclaration === undefined &&
+      [...unsupportedMath, ...unsupportedAbi].includes(funcName)
+    ) {
+      const prefix = unsupportedMath.includes(funcName) ? `Math function` : `Abi function`;
+      throw new WillNotSupportError(`${prefix} ${funcName} is not supported`);
+    }
+
+    this.visitExpression(node, ast);
   }
 }

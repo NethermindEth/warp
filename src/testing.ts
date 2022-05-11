@@ -127,6 +127,17 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeConversion/shifts', 'Success'],
   ['example_contracts/typeMinMax', 'Success'],
   ['example_contracts/units', 'Success'],
+  ['example_contracts/unsupportedFunctions/abi', `WillNotSupport`],
+  ['example_contracts/unsupportedFunctions/keccak256', `WillNotSupport`],
+  ['example_contracts/unsupportedFunctions/ecrecover', `WillNotSupport`],
+  ['example_contracts/unsupportedFunctions/addmod', `WillNotSupport`],
+  // Uses bytes memory
+  ['example_contracts/unsupportedFunctions/shadowAbi', `NotSupportedYet`],
+  // Uses bytes memory
+  ['example_contracts/unsupportedFunctions/shadowKeccak256', `NotSupportedYet`],
+  ['example_contracts/unsupportedFunctions/shadowEcrecover', `Success`],
+  // uses modulo (%)
+  ['example_contracts/unsupportedFunctions/shadowAddmod', `NotSupportedYet`],
   // Uses WARP_STORAGE in a free function
   ['example_contracts/using_for/imports/user_defined', 'CairoCompileFailed'],
   // global_directive.sol cannot resolve struct when file imported as identifier
