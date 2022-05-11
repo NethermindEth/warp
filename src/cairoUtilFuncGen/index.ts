@@ -89,7 +89,7 @@ export class CairoUtilFuncGen {
       memberAccess: new StorageMemberAccessGen(ast),
       read: storageReadGen,
       staticArrayIndexAccess: new StorageStaticArrayIndexAccessGen(ast),
-      toMemory: new StorageToMemoryGen(storageReadGen, ast),
+      toMemory: new StorageToMemoryGen(this.implementation.dynArray, ast),
       write: new StorageWriteGen(ast),
     };
     this.externalFunctions = {

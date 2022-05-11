@@ -126,11 +126,11 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeConversion/shifts', 'Success'],
   ['example_contracts/typeMinMax', 'Success'],
   // Serialising BytesType not supported yet
-  ['example_contracts/typestrings/basicArrays.sol', 'NotSupportedYet'],
+  ['example_contracts/typestrings/basicArrays', 'NotSupportedYet'],
   //  Not supported operation delete on CairoContract
-  ['example_contracts/typestrings/scalars.sol', 'NotSupportedYet'],
-  ['example_contracts/typestrings/structArrays.sol', 'Success'],
-  ['example_contracts/typestrings/structs.sol', 'Success'],
+  ['example_contracts/typestrings/scalars', 'NotSupportedYet'],
+  ['example_contracts/typestrings/structArrays', 'Success'],
+  ['example_contracts/typestrings/structs', 'Success'],
   ['example_contracts/units', 'Success'],
   // Uses WARP_STORAGE in a free function
   ['example_contracts/using_for/imports/user_defined', 'CairoCompileFailed'],

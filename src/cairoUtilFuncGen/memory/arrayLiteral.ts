@@ -71,7 +71,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       code: [
         `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (loc: felt):`,
         `    alloc_locals`,
-        `    let (start) = wm_alloc(${uint256(BigInt(size * elementCairoType.width))})`,
+        `    let (start) = wm_alloc(${uint256(size * elementCairoType.width)})`,
         mapRange(size, (n) => elementCairoType.serialiseMembers(`e${n}`))
           .flat()
           .map((name, index) => `dict_write{dict_ptr=warp_memory}(${add('start', index)}, ${name})`)
