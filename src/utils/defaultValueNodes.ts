@@ -2,7 +2,6 @@ import {
   AddressType,
   ArrayType,
   BoolType,
-  ElementaryTypeName,
   ElementaryTypeNameExpression,
   EnumDefinition,
   Expression,
@@ -12,8 +11,6 @@ import {
   getNodeType,
   Identifier,
   IntType,
-  Literal,
-  LiteralKind,
   MappingType,
   MemberAccess,
   NewExpression,
@@ -28,7 +25,12 @@ import {
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from './astPrinter';
 import { NotSupportedYetError } from './errors';
-import { createBoolLiteral, createNumberLiteral } from './nodeTemplates';
+import {
+  createAddressTypeName,
+  createBoolLiteral,
+  createNumberLiteral,
+  createStringLiteral,
+} from './nodeTemplates';
 import { typeNameFromTypeNode } from './utils';
 
 export function getDefaultValue(
@@ -83,13 +85,7 @@ function addressDefault(
       ast.reserveId(),
       '',
       `type(${nodeType.pp()})`,
-      new ElementaryTypeName(
-        ast.reserveId(),
-        '',
-        'address',
-        'address',
-        nodeType.payable ? 'payable' : 'nonpayable',
-      ),
+      createAddressTypeName(nodeType.payable, ast),
     ),
     [intDefault(nodeType, node, ast)],
     undefined,
@@ -138,16 +134,7 @@ function arrayDefault(
 }
 
 function stringDefault(node: Expression | VariableDeclaration, ast: AST): Expression {
-  return new Literal(
-    ast.reserveId(),
-    node.src,
-    'literal_string ""',
-    LiteralKind.String,
-    '',
-    '',
-    undefined,
-    node.raw,
-  );
+  return createStringLiteral('', ast);
 }
 
 function userDefDefault(

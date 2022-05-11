@@ -36,7 +36,7 @@ import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
 import { printTypeNode } from './astPrinter';
 import { logError, NotSupportedYetError, TranspileFailedError } from './errors';
-import { createBoolTypeName, createNumberLiteral } from './nodeTemplates';
+import { createAddressTypeName, createBoolTypeName, createNumberLiteral } from './nodeTemplates';
 import { Class } from './typeConstructs';
 
 export function divmod(x: bigint, y: bigint): [BigInt, BigInt] {
@@ -232,13 +232,7 @@ export function mapRange<T>(n: number, func: (n: number) => T): T[] {
 export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
   let result: TypeName | null = null;
   if (node instanceof AddressType) {
-    result = new ElementaryTypeName(
-      ast.reserveId(),
-      '',
-      node.pp(),
-      node.pp(),
-      node.payable ? 'payable' : 'nonpayable',
-    );
+    result = createAddressTypeName(node.payable, ast);
   } else if (node instanceof ArrayType) {
     result = new ArrayTypeName(
       ast.reserveId(),

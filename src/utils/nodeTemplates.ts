@@ -24,8 +24,14 @@ import { generateLiteralTypeString } from './getTypeString';
 import { specializeType } from './nodeTypeProcessing';
 import { toHexString, toSingleExpression } from './utils';
 
-export function createAddressNonPayableTypeName(ast: AST): ElementaryTypeName {
-  const node = new ElementaryTypeName(ast.reserveId(), '', 'address', 'address', 'nonpayable');
+export function createAddressTypeName(payable: boolean, ast: AST): ElementaryTypeName {
+  const node = new ElementaryTypeName(
+    ast.reserveId(),
+    '',
+    payable ? 'address payable' : 'address',
+    'address',
+    payable ? 'payable' : 'nonpayable',
+  );
   ast.setContextRecursive(node);
   return node;
 }

@@ -274,13 +274,7 @@ function genReturnBlock(
       for e.g `c[i0][i1][i2]` in `c[i0][i1][i2].a`
   */
   const createIdentifierWithTypeString = (variable: VariableDeclaration): Identifier => {
-    const node = new Identifier(
-      ast.reserveId(),
-      '',
-      getTypeStringTypeName(variable.vType),
-      variable.name,
-      variable.id,
-    );
+    const node = createIdentifier(variable, ast);
     ast.setContextRecursive(node);
     return node;
   };
