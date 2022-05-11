@@ -130,18 +130,11 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
 
     if (actualLoc === DataLocation.Storage) {
       if (!isCairoConstant(decl)) {
-        const parent = node.parent;
-        const replacementFunc = ast.getUtilFuncGen(node).storage.read.gen(node, decl.vType);
-        this.replace(node, replacementFunc, parent, actualLoc, expectedLoc, ast);
+        this.visitExpression(node, ast);
       }
     } else if (actualLoc === DataLocation.Memory) {
-      const parent = node.parent;
-      const replacementFunc = ast.getUtilFuncGen(node).memory.read.gen(node, decl.vType);
-      this.replace(node, replacementFunc, parent, actualLoc, expectedLoc, ast);
+      this.visitExpression(node, ast);
     }
-    // Do not recurse
-    // The only argument to replacementFunc is node,
-    // recursing would cause an infinite loop
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
