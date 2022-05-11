@@ -98,6 +98,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       throw new WillNotSupportError(`${prefix} ${funcName} is not supported`);
     }
 
-    return this.visitExpression(node, ast);
+    this.visitExpression(node, ast);
   }
 }
