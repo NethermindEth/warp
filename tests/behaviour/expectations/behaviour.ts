@@ -1072,6 +1072,13 @@ export const expectations = flatten(
               ],
             ),
           ]),
+          new Dir('structs', [
+            File.Simple('derived', [
+              Expect.Simple('identity', ['1', '5'], ['1', '5']),
+              Expect.Simple('swap', ['1', '5'], ['5', '1']),
+              Expect.Simple('set', ['1', '5'], ['1']),
+            ]),
+          ]),
         ]),
         new Dir('libraries', [
           File.Simple('using_for', [
