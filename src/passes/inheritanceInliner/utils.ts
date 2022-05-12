@@ -2,6 +2,8 @@ import assert from 'assert';
 import {
   ASTNode,
   ContractDefinition,
+  EmitStatement,
+  EventDefinition,
   FunctionDefinition,
   FunctionKind,
   Identifier,
@@ -14,7 +16,11 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { createCallToFunction, createStructConstructorCall } from '../../utils/functionGeneration';
+import {
+  createCallToEvent,
+  createCallToFunction,
+  createStructConstructorCall,
+} from '../../utils/functionGeneration';
 import { getStructTypeString } from '../../utils/getTypeString';
 
 export function getBaseContracts(node: ContractDefinition): ContractDefinition[] {
@@ -23,10 +29,7 @@ export function getBaseContracts(node: ContractDefinition): ContractDefinition[]
 
 export function updateReferencedDeclarations(
   node: ASTNode,
-  idRemapping: Map<
-    number,
-    VariableDeclaration | FunctionDefinition | ModifierDefinition | StructDefinition
-  >,
+  idRemapping: Map<number, VariableDeclaration | FunctionDefinition | ModifierDefinition>,
   ast: AST,
 ) {
   node.walk((node) => {
@@ -77,6 +80,34 @@ export function updateReferencedDeclarations(
         );
       }
     }*/
+  });
+}
+
+export function updateReferenceEmitStatemets(
+  node: ASTNode,
+  idRemapping: Map<number, EventDefinition>,
+  ast: AST,
+) {
+  node.walk((node) => {
+    if (node instanceof EmitStatement) {
+      const oldEventDef = node.vEventCall.vReferencedDeclaration;
+      assert(oldEventDef instanceof EventDefinition);
+      const newEventDef = idRemapping.get(oldEventDef.id);
+      if (newEventDef !== undefined) {
+        const replaceNode = new EmitStatement(
+          ast.reserveId(),
+          '',
+          createCallToEvent(
+            newEventDef,
+            node.vEventCall.typeString,
+            node.vEventCall.vExpression.typeString,
+            node.vEventCall.vArguments,
+            ast,
+          ),
+        );
+        ast.replaceNode(node, replaceNode);
+      }
+    }
   });
 }
 

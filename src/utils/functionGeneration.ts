@@ -2,6 +2,7 @@ import {
   Assignment,
   ASTNode,
   DataLocation,
+  EventDefinition,
   Expression,
   ExpressionStatement,
   FunctionCall,
@@ -63,6 +64,23 @@ export function createStructConstructorCall(
       structDef.name,
       structDef.id,
     ),
+    argList,
+  );
+}
+
+export function createCallToEvent(
+  eventDef: EventDefinition,
+  funcCallTypeString: string,
+  identifierTypeString: string,
+  argList: Expression[],
+  ast: AST,
+) {
+  return new FunctionCall(
+    ast.reserveId(),
+    '',
+    funcCallTypeString,
+    FunctionCallKind.FunctionCall,
+    new Identifier(ast.reserveId(), '', identifierTypeString, eventDef.name, eventDef.id),
     argList,
   );
 }

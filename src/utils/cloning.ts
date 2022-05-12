@@ -35,11 +35,13 @@ import {
   WhileStatement,
   StructuredDocumentation,
   StructDefinition,
+  EventDefinition,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { printNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
+import { createParameterList } from './nodeTemplates';
 import { notNull } from './typeConstructs';
 
 // TODO update referenced declarations
@@ -393,7 +395,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.raw,
     );
   } else if (node instanceof StructDefinition) {
-    console.log(node);
     newNode = new StructDefinition(
       replaceId(node.id, ast, remappedIds),
       node.src,
@@ -402,7 +403,18 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.visibility,
       node.vMembers.map((o) => cloneASTNodeImpl(o, ast, remappedIds)),
     );
-    console.log('---------------------------------\n', newNode);
+  } else if (node instanceof EventDefinition) {
+    newNode = new EventDefinition(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.anonymous,
+      node.name,
+      createParameterList(
+        node.vParameters.vParameters.map((o) => cloneASTNodeImpl(o, ast, remappedIds)),
+        ast,
+      ),
+      node.documentation,
+    );
     //ASTNodeWithChildren------------------------------------------------------
   } else if (node instanceof ParameterList) {
     newNode = new ParameterList(

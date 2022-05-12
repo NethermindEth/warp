@@ -1,5 +1,6 @@
 import {
   ContractDefinition,
+  EventDefinition,
   FunctionDefinition,
   ModifierDefinition,
   StructDefinition,
@@ -9,6 +10,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { TranspileFailedError } from '../../utils/errors';
 import { solveConstructorInheritance } from './constructorInheritance';
+import { addEventDefintion } from './eventInheritance';
 import { addNonoverridenPublicFunctions, addPrivateSuperFunctions } from './functionInheritance';
 import { addNonOverridenModifiers } from './modifiersInheritance';
 import { addStorageVariables } from './storageVariablesInheritance';
@@ -17,6 +19,7 @@ import {
   getBaseContracts,
   removeBaseContractDependence,
   updateReferencedDeclarations,
+  updateReferenceEmitStatemets,
 } from './utils';
 
 export class InheritanceInliner extends ASTMapper {
@@ -33,17 +36,20 @@ export class InheritanceInliner extends ASTMapper {
     const variableRemapping: Map<number, VariableDeclaration> = new Map();
     const modifierRemapping: Map<number, ModifierDefinition> = new Map();
     // const structRemapping: Map<number, StructDefinition> = new Map();
+    const eventRemapping: Map<number, EventDefinition> = new Map();
 
     solveConstructorInheritance(node, ast, this.generateIndex.bind(this));
     addPrivateSuperFunctions(node, functionRemapping, ast);
     addNonoverridenPublicFunctions(node, functionRemapping, ast);
     addStorageVariables(node, variableRemapping, ast);
     addNonOverridenModifiers(node, modifierRemapping, ast);
+    addEventDefintion(node, eventRemapping, ast);
     // addStructDefinition(node, structRemapping, ast);
 
     updateReferencedDeclarations(node, functionRemapping, ast);
     updateReferencedDeclarations(node, variableRemapping, ast);
     updateReferencedDeclarations(node, modifierRemapping, ast);
+    updateReferenceEmitStatemets(node, eventRemapping, ast);
     // updateReferencedDeclarations(node, structRemapping, ast);
 
     removeBaseContractDependence(node);
