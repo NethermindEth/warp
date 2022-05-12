@@ -10,6 +10,7 @@ import {
   ContractKind,
   DataLocation,
   EnumDefinition,
+  enumToIntType,
   FixedBytesType,
   FunctionDefinition,
   FunctionType,
@@ -26,6 +27,8 @@ import {
   StringType,
   StructDefinition,
   TupleType,
+  TypeName,
+  typeNameToTypeNode,
   TypeNameType,
   TypeNode,
   UserDefinedType,
@@ -198,8 +201,10 @@ export function generateExpressionTypeString(type: TypeNode): string {
       type.name !== undefined ? type.name : ''
     }(${argStr})${mutStr}${visStr}${retStr}`;
   } else if (type instanceof UserDefinedType) {
-    if (!(type.definition instanceof UserDefinedValueTypeDefinition)) return type.pp();
-    return type.definition.underlyingType.typeString;
+    if (type.definition instanceof UserDefinedValueTypeDefinition)
+      return type.definition.underlyingType.typeString;
+    if (type.definition instanceof EnumDefinition) return enumToIntType(type.definition).pp();
+    return type.pp();
   } else if (type instanceof ArrayType) {
     return `${generateExpressionTypeString(type.elementT)}[${
       type.size !== undefined ? type.size : ''
@@ -216,4 +221,9 @@ export function generateExpressionTypeString(type: TypeNode): string {
     return `type(${generateExpressionTypeString(type.type)})`;
   } else if (instanceOfNonRecursivePP(type)) return type.pp();
   else throw new TranspileFailedError('Unable to determine typestring');
+}
+
+export function generateVariableDeclarationTypeString(tName: TypeName): string {
+  const tNode = typeNameToTypeNode(tName);
+  return tNode.pp();
 }
