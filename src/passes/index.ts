@@ -31,6 +31,7 @@ export * from './sourceUnitSplitter';
 export * from './storageAllocator';
 export * from './references';
 export * from './tupleAssignmentSplitter';
+export * from './typestringRegenerator';
 export * from './unloadingAssignment';
 export * from './unreachableStatementPruner';
 export * from './userDefinedTypesConverter';
