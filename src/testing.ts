@@ -58,6 +58,8 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/fallbackWithoutArgs', 'Success'],
   // Typestring for the internal function call doesn't contain a location so a read isn't generated
   ['example_contracts/freeFunction', 'Success'],
+  // Struct outside contract declaration not supported
+  ['example_contracts/freeStruct', 'NotSupportedYet'],
   ['example_contracts/function-with-nested-return', 'Success'],
   ['example_contracts/functionArgumentConversions', 'Success'],
   ['example_contracts/idManglingTest8', 'Success'],

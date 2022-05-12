@@ -32,7 +32,7 @@ export class ExternImporter extends ASTMapper {
       ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
     } else if (
       (declaration instanceof StructDefinition &&
-        declaration.getClosestParentByType(ContractDefinition) !== undefined) ||
+        declaration.getClosestParentByType(ContractDefinition) === undefined) ||
       declaration instanceof ErrorDefinition ||
       declaration instanceof UserDefinedValueTypeDefinition ||
       declaration instanceof VariableDeclaration ||
