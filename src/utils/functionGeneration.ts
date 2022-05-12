@@ -10,15 +10,17 @@ import {
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
+  getNodeType,
   Identifier,
   Mutability,
   StateVariableVisibility,
+  StructDefinition,
   TypeName,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
-import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
+import { getFunctionTypeString, getReturnTypeString, getStructTypeString } from './getTypeString';
 import { Implicits } from './implicits';
 import { createIdentifier, createParameterList } from './nodeTemplates';
 import { toSingleExpression } from './utils';
@@ -39,6 +41,27 @@ export function createCallToFunction(
       getFunctionTypeString(functionDef, ast.compilerVersion),
       functionDef.name,
       functionDef.id,
+    ),
+    argList,
+  );
+}
+
+export function createStructConstructorCall(
+  structDef: StructDefinition,
+  argList: Expression[],
+  ast: AST,
+) {
+  return new FunctionCall(
+    ast.reserveId(),
+    '',
+    getStructTypeString(structDef),
+    FunctionCallKind.StructConstructorCall,
+    new Identifier(
+      ast.reserveId(),
+      '',
+      getStructTypeString(structDef),
+      structDef.name,
+      structDef.id,
     ),
     argList,
   );

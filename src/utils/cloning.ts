@@ -34,6 +34,7 @@ import {
   VariableDeclarationStatement,
   WhileStatement,
   StructuredDocumentation,
+  StructDefinition,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
@@ -391,6 +392,17 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.sourceUnit,
       node.raw,
     );
+  } else if (node instanceof StructDefinition) {
+    console.log(node);
+    newNode = new StructDefinition(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.name,
+      node.scope,
+      node.visibility,
+      node.vMembers.map((o) => cloneASTNodeImpl(o, ast, remappedIds)),
+    );
+    console.log('---------------------------------\n', newNode);
     //ASTNodeWithChildren------------------------------------------------------
   } else if (node instanceof ParameterList) {
     newNode = new ParameterList(

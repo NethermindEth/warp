@@ -2,6 +2,7 @@ import {
   ContractDefinition,
   FunctionDefinition,
   ModifierDefinition,
+  StructDefinition,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -11,6 +12,7 @@ import { solveConstructorInheritance } from './constructorInheritance';
 import { addNonoverridenPublicFunctions, addPrivateSuperFunctions } from './functionInheritance';
 import { addNonOverridenModifiers } from './modifiersInheritance';
 import { addStorageVariables } from './storageVariablesInheritance';
+import { addStructDefinition } from './structInliner';
 import {
   getBaseContracts,
   removeBaseContractDependence,
@@ -30,16 +32,19 @@ export class InheritanceInliner extends ASTMapper {
     const functionRemapping: Map<number, FunctionDefinition> = new Map();
     const variableRemapping: Map<number, VariableDeclaration> = new Map();
     const modifierRemapping: Map<number, ModifierDefinition> = new Map();
+    // const structRemapping: Map<number, StructDefinition> = new Map();
 
     solveConstructorInheritance(node, ast, this.generateIndex.bind(this));
     addPrivateSuperFunctions(node, functionRemapping, ast);
     addNonoverridenPublicFunctions(node, functionRemapping, ast);
     addStorageVariables(node, variableRemapping, ast);
     addNonOverridenModifiers(node, modifierRemapping, ast);
+    // addStructDefinition(node, structRemapping, ast);
 
     updateReferencedDeclarations(node, functionRemapping, ast);
     updateReferencedDeclarations(node, variableRemapping, ast);
     updateReferencedDeclarations(node, modifierRemapping, ast);
+    // updateReferencedDeclarations(node, structRemapping, ast);
 
     removeBaseContractDependence(node);
 
