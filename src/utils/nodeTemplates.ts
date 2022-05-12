@@ -1,4 +1,5 @@
 import {
+  ASTNode,
   Block,
   ContractDefinition,
   DataLocation,
@@ -9,6 +10,7 @@ import {
   FunctionStateMutability,
   FunctionVisibility,
   getNodeType,
+  getNodeTypeInCtx,
   Identifier,
   Literal,
   LiteralKind,
@@ -76,9 +78,10 @@ export function createIdentifier(
   variable: VariableDeclaration,
   ast: AST,
   dataLocation?: DataLocation,
+  lookupNode?: ASTNode,
 ): Identifier {
   const type = specializeType(
-    getNodeType(variable, ast.compilerVersion),
+    getNodeTypeInCtx(variable, ast.compilerVersion, lookupNode ?? variable),
     dataLocation ?? (variable.stateVariable ? DataLocation.Storage : variable.storageLocation),
   );
   const node = new Identifier(

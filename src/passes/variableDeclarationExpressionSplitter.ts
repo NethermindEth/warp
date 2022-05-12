@@ -110,7 +110,7 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
             this.generateNewConstantName(),
             oldDeclaration.scope,
             false,
-            DataLocation.Default,
+            oldDeclaration.storageLocation,
             StateVariableVisibility.Default,
             Mutability.Constant,
             initialValueType.elements[index].pp(),
@@ -119,6 +119,12 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
           );
           node.vDeclarations.push(newDeclaration);
           ast.registerChild(newDeclaration, node);
+
+          console.log(
+            `Creating identifier for ${printNode(newDeclaration)}, new decl for ${
+              oldDeclaration.name
+            }`,
+          );
 
           // We now declare the variable that used to be inside the tuple
           const newDeclarationStatement = new VariableDeclarationStatement(
