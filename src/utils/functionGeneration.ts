@@ -45,10 +45,8 @@ export function createCallToFunction(
   );
 }
 
-// TODO: check if type strings are always the same
 export function createCallToEvent(
   eventDef: EventDefinition,
-  funcCallTypeString: string,
   identifierTypeString: string,
   argList: Expression[],
   ast: AST,
@@ -56,7 +54,7 @@ export function createCallToEvent(
   return new FunctionCall(
     ast.reserveId(),
     '',
-    funcCallTypeString,
+    'tuple()',
     FunctionCallKind.FunctionCall,
     new Identifier(ast.reserveId(), '', identifierTypeString, eventDef.name, eventDef.id),
     argList,

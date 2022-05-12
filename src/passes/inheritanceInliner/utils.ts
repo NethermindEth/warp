@@ -66,7 +66,6 @@ export function updateReferenceEmitStatemets(
           '',
           createCallToEvent(
             newEventDef,
-            node.vEventCall.typeString,
             node.vEventCall.vExpression.typeString,
             node.vEventCall.vArguments,
             ast,
