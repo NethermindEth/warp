@@ -8,13 +8,11 @@ export function addEventDefintion(
   idRemapping: Map<number, EventDefinition>,
   ast: AST,
 ): void {
-  const inheritedEvents: EventDefinition[] = [];
   getBaseContracts(node).forEach((base) =>
-    base.vEvents.forEach((event) => inheritedEvents.push(event)),
+    base.vEvents.forEach((event) => {
+      const newEvent = cloneASTNode(event, ast);
+      node.insertAtBeginning(newEvent);
+      idRemapping.set(event.id, newEvent);
+    }),
   );
-  inheritedEvents.forEach((event) => {
-    const newEvent = cloneASTNode(event, ast);
-    node.insertAtBeginning(newEvent);
-    idRemapping.set(event.id, newEvent);
-  });
 }
