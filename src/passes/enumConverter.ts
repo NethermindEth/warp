@@ -1,17 +1,15 @@
 import {
   EnumDefinition,
   enumToIntType,
-  Expression,
-  getNodeType,
   Identifier,
   MemberAccess,
-  UserDefinedType,
   UserDefinedTypeName,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { TranspileFailedError } from '../utils/errors';
+import { generateVariableDeclarationTypeString } from '../utils/getTypeString';
 import { createNumberLiteral } from '../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../utils/utils';
 
@@ -24,10 +22,6 @@ export class EnumConverter extends ASTMapper {
     return val;
   }
 
-  replacementTypeString(enumDef: EnumDefinition): string {
-    return enumToIntType(enumDef).pp();
-  }
-
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     if (node.vType instanceof UserDefinedTypeName) {
       const enumDef = node.vType.vReferencedDeclaration;
@@ -35,20 +29,7 @@ export class EnumConverter extends ASTMapper {
         const replacementIntType = enumToIntType(enumDef);
         const replacementIntTypeName = typeNameFromTypeNode(replacementIntType, ast);
         ast.replaceNode(node.vType, replacementIntTypeName);
-
-        const replacementTypeString = replacementIntType.pp();
-        node.typeString = replacementTypeString;
-      }
-    }
-  }
-
-  visitExpression(node: Expression, ast: AST): void {
-    this.commonVisit(node, ast);
-    const nType = getNodeType(node, ast.compilerVersion);
-    if (nType instanceof UserDefinedType) {
-      const enumDef = nType.definition;
-      if (enumDef instanceof EnumDefinition) {
-        node.typeString = this.replacementTypeString(enumDef);
+        node.typeString = generateVariableDeclarationTypeString(replacementIntTypeName);
       }
     }
   }
