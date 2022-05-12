@@ -11,11 +11,9 @@ import {
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
-  getNodeType,
   Identifier,
   Mutability,
   StateVariableVisibility,
-  StructDefinition,
   TypeName,
   VariableDeclaration,
 } from 'solc-typed-ast';
@@ -47,27 +45,7 @@ export function createCallToFunction(
   );
 }
 
-export function createStructConstructorCall(
-  structDef: StructDefinition,
-  argList: Expression[],
-  ast: AST,
-) {
-  return new FunctionCall(
-    ast.reserveId(),
-    '',
-    getStructTypeString(structDef),
-    FunctionCallKind.StructConstructorCall,
-    new Identifier(
-      ast.reserveId(),
-      '',
-      getStructTypeString(structDef),
-      structDef.name,
-      structDef.id,
-    ),
-    argList,
-  );
-}
-
+// TODO: check if type strings are always the same
 export function createCallToEvent(
   eventDef: EventDefinition,
   funcCallTypeString: string,

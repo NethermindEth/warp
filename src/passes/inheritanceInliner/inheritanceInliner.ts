@@ -35,7 +35,6 @@ export class InheritanceInliner extends ASTMapper {
     const functionRemapping: Map<number, FunctionDefinition> = new Map();
     const variableRemapping: Map<number, VariableDeclaration> = new Map();
     const modifierRemapping: Map<number, ModifierDefinition> = new Map();
-    // const structRemapping: Map<number, StructDefinition> = new Map();
     const eventRemapping: Map<number, EventDefinition> = new Map();
 
     solveConstructorInheritance(node, ast, this.generateIndex.bind(this));
@@ -44,13 +43,12 @@ export class InheritanceInliner extends ASTMapper {
     addStorageVariables(node, variableRemapping, ast);
     addNonOverridenModifiers(node, modifierRemapping, ast);
     addEventDefintion(node, eventRemapping, ast);
-    // addStructDefinition(node, structRemapping, ast);
+    addStructDefinition(node, ast);
 
     updateReferencedDeclarations(node, functionRemapping, ast);
     updateReferencedDeclarations(node, variableRemapping, ast);
     updateReferencedDeclarations(node, modifierRemapping, ast);
     updateReferenceEmitStatemets(node, eventRemapping, ast);
-    // updateReferencedDeclarations(node, structRemapping, ast);
 
     removeBaseContractDependence(node);
 

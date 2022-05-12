@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  ContractDefinition,
   ErrorDefinition,
   FunctionDefinition,
   Identifier,
@@ -29,10 +30,9 @@ export class ExternImporter extends ASTMapper {
 
     if (declaration instanceof FunctionDefinition) {
       ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
-    }
-
-    if (
-      declaration instanceof StructDefinition ||
+    } else if (
+      (declaration instanceof StructDefinition &&
+        declaration.getClosestParentByType(ContractDefinition) !== undefined) ||
       declaration instanceof ErrorDefinition ||
       declaration instanceof UserDefinedValueTypeDefinition ||
       declaration instanceof VariableDeclaration ||

@@ -5,23 +5,15 @@ import {
   EmitStatement,
   EventDefinition,
   FunctionDefinition,
-  FunctionKind,
   Identifier,
   IdentifierPath,
   InheritanceSpecifier,
   MemberAccess,
   ModifierDefinition,
-  StructDefinition,
-  UserDefinedTypeName,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import {
-  createCallToEvent,
-  createCallToFunction,
-  createStructConstructorCall,
-} from '../../utils/functionGeneration';
-import { getStructTypeString } from '../../utils/getTypeString';
+import { createCallToEvent } from '../../utils/functionGeneration';
 
 export function getBaseContracts(node: ContractDefinition): ContractDefinition[] {
   return node.vLinearizedBaseContracts.slice(1);
@@ -55,31 +47,6 @@ export function updateReferencedDeclarations(
         );
       }
     }
-    /* else if (
-      node instanceof FunctionCall &&
-      node.kind === FunctionCallKind.StructConstructorCall &&
-      node.vReferencedDeclaration !== undefined
-    ) {
-      const remapping = idRemapping.get(node.vReferencedDeclaration.id);
-      if (remapping instanceof StructDefinition) {
-        ast.replaceNode(node, createStructConstructorCall(remapping, node.vArguments, ast));
-      }
-    } else if (node instanceof UserDefinedTypeName) {
-      const remapping = idRemapping.get(node.referencedDeclaration);
-      if (remapping instanceof StructDefinition) {
-        ast.replaceNode(
-          node,
-          new UserDefinedTypeName(
-            ast.reserveId(),
-            '',
-            node.typeString, //`type(struct ${}.${remapping.name} storage poinetr)`,
-            remapping.name,
-            remapping.id,
-            node.path,
-          ),
-        );
-      }
-    }*/
   });
 }
 
