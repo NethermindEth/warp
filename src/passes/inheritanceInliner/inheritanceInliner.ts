@@ -14,7 +14,7 @@ import { addEventDefintion } from './eventInheritance';
 import { addNonoverridenPublicFunctions, addPrivateSuperFunctions } from './functionInheritance';
 import { addNonOverridenModifiers } from './modifiersInheritance';
 import { addStorageVariables } from './storageVariablesInheritance';
-import { addStructDefinition } from './structInliner';
+import { addStructDefinition } from './structInheritance';
 import {
   getBaseContracts,
   removeBaseContractDependence,
@@ -43,6 +43,8 @@ export class InheritanceInliner extends ASTMapper {
     addStorageVariables(node, variableRemapping, ast);
     addNonOverridenModifiers(node, modifierRemapping, ast);
     addEventDefintion(node, eventRemapping, ast);
+    // structs from parent classes are added but references
+    // inside the contract definition are not updated
     addStructDefinition(node, ast);
 
     updateReferencedDeclarations(node, functionRemapping, ast);
