@@ -9,7 +9,6 @@ import {
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
-  getNodeType,
   getNodeTypeInCtx,
   Identifier,
   Literal,
