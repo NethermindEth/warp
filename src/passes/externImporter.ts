@@ -35,6 +35,7 @@ export class ExternImporter extends ASTMapper {
     if (
       declarationSourceUnit !== undefined &&
       sourceUnit !== declarationSourceUnit &&
+      isFree(declaration) &&
       declaration instanceof UserDefinedTypeName &&
       declaration.vReferencedDeclaration instanceof StructDefinition
     ) {
@@ -73,8 +74,8 @@ export class ExternImporter extends ASTMapper {
   }
 }
 
-function isFree(declaration: ASTNode): boolean {
-  return declaration.getClosestParentByType(ContractDefinition) === undefined;
+function isFree(node: ASTNode): boolean {
+  return node.getClosestParentByType(ContractDefinition) === undefined;
 }
 
 function formatPath(path: string): string {
