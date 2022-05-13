@@ -1020,11 +1020,26 @@ export const expectations = flatten(
             new File('base', 'Base', [], [Expect.Simple('g', ['3'], ['3'])]),
             new File('mid', 'Mid', [], [Expect.Simple('g', ['10'], ['20'])]),
             new File('derived', 'Derived', [], [Expect.Simple('f', ['5'], ['15'])]),
-          ]),
-          new Dir('variables', [
-            new File('derived', 'Derived', [], [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
+            new File(
+              'functionOverriding',
+              'C',
+              [],
+              [Expect.Simple('f', [], ['30', '0']), Expect.Simple('g', [], ['30', '0'])],
+            ),
           ]),
           new Dir('modifiers', [
+            new File(
+              'callBaseModifier',
+              'B',
+              [],
+              [
+                Expect.Simple('f', ['5', '0'], ['2', '0'], 'call base modifier and success'),
+                new Expect('failedModifier', [
+                  ['f', ['15', '0'], null, '0', 'Failed call to base modifier'],
+                ]),
+                Expect.Simple('g', ['20', '0'], ['2', '0'], 'call modifier overrider'),
+              ],
+            ),
             new File(
               'modifierInheritance',
               'D',
@@ -1078,6 +1093,9 @@ export const expectations = flatten(
               Expect.Simple('swap', ['1', '5'], ['5', '1']),
               Expect.Simple('set', ['1', '5'], ['1']),
             ]),
+          ]),
+          new Dir('variables', [
+            new File('derived', 'Derived', [], [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
           ]),
         ]),
         new Dir('libraries', [
