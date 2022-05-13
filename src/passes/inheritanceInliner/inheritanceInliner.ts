@@ -3,7 +3,6 @@ import {
   EventDefinition,
   FunctionDefinition,
   ModifierDefinition,
-  StructDefinition,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
