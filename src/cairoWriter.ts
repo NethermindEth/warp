@@ -72,6 +72,7 @@ import {
   VariableDeclarationStatement,
   WhileStatement,
 } from 'solc-typed-ast';
+import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from './ast/ast';
 import {
   CairoAssert,
@@ -759,15 +760,28 @@ class EventDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: EventDefinition, writer: ASTWriter): SrcDesc {
     const documentation = getDocumentation(node.documentation, writer);
     const args: string = writer.write(node.vParameters);
-    return [documentation, `@event\nfunc ${node.name}(${args}):\nend`];
+    return [
+      documentation,
+      `@event\nfunc ${node.name}_${node.canonicalSignatureHash(
+        ABIEncoderVersion.V2,
+      )}(${args}):\nend`,
+    ];
   }
 }
 
 class EmitStatementWriter extends CairoASTNodeWriter {
   writeInner(node: EmitStatement, writer: ASTWriter): SrcDesc {
+    const eventDef = node.vEventCall.vReferencedDeclaration;
+    assert(eventDef instanceof EventDefinition, `Expected EventDefintion as referenced type`);
+
     const documentation = getDocumentation(node.documentation, writer);
     const args: string = node.vEventCall.vArguments.map((v) => writer.write(v)).join(', ');
-    return [documentation, `${node.vEventCall.vFunctionName}.emit(${args})`];
+    return [
+      documentation,
+      `${node.vEventCall.vFunctionName}_${eventDef.canonicalSignatureHash(
+        ABIEncoderVersion.V2,
+      )}.emit(${args})`,
+    ];
   }
 }
 

@@ -2,6 +2,7 @@ import {
   Assignment,
   ASTNode,
   DataLocation,
+  EventDefinition,
   Expression,
   ExpressionStatement,
   FunctionCall,
@@ -40,6 +41,22 @@ export function createCallToFunction(
       functionDef.name,
       functionDef.id,
     ),
+    argList,
+  );
+}
+
+export function createCallToEvent(
+  eventDef: EventDefinition,
+  identifierTypeString: string,
+  argList: Expression[],
+  ast: AST,
+) {
+  return new FunctionCall(
+    ast.reserveId(),
+    '',
+    'tuple()',
+    FunctionCallKind.FunctionCall,
+    new Identifier(ast.reserveId(), '', identifierTypeString, eventDef.name, eventDef.id),
     argList,
   );
 }

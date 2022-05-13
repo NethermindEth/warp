@@ -1,6 +1,9 @@
+import assert from 'assert';
 import {
   ASTNode,
   ContractDefinition,
+  EmitStatement,
+  EventDefinition,
   FunctionDefinition,
   Identifier,
   IdentifierPath,
@@ -10,6 +13,7 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { createCallToEvent } from '../../utils/functionGeneration';
 
 export function getBaseContracts(node: ContractDefinition): ContractDefinition[] {
   return node.vLinearizedBaseContracts.slice(1);
@@ -41,6 +45,33 @@ export function updateReferencedDeclarations(
             node.raw,
           ),
         );
+      }
+    }
+  });
+}
+
+export function updateReferenceEmitStatemets(
+  node: ASTNode,
+  idRemapping: Map<number, EventDefinition>,
+  ast: AST,
+) {
+  node.walk((node) => {
+    if (node instanceof EmitStatement) {
+      const oldEventDef = node.vEventCall.vReferencedDeclaration;
+      assert(oldEventDef instanceof EventDefinition);
+      const newEventDef = idRemapping.get(oldEventDef.id);
+      if (newEventDef !== undefined) {
+        const replaceNode = new EmitStatement(
+          ast.reserveId(),
+          '',
+          createCallToEvent(
+            newEventDef,
+            node.vEventCall.vExpression.typeString,
+            node.vEventCall.vArguments,
+            ast,
+          ),
+        );
+        ast.replaceNode(node, replaceNode);
       }
     }
   });

@@ -1,5 +1,6 @@
 import {
   ContractDefinition,
+  EventDefinition,
   FunctionDefinition,
   ModifierDefinition,
   VariableDeclaration,
@@ -8,13 +9,16 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { TranspileFailedError } from '../../utils/errors';
 import { solveConstructorInheritance } from './constructorInheritance';
+import { addEventDefintion } from './eventInheritance';
 import { addNonoverridenPublicFunctions, addPrivateSuperFunctions } from './functionInheritance';
 import { addNonOverridenModifiers } from './modifiersInheritance';
 import { addStorageVariables } from './storageVariablesInheritance';
+import { addStructDefinition } from './structInheritance';
 import {
   getBaseContracts,
   removeBaseContractDependence,
   updateReferencedDeclarations,
+  updateReferenceEmitStatemets,
 } from './utils';
 
 export class InheritanceInliner extends ASTMapper {
@@ -30,16 +34,28 @@ export class InheritanceInliner extends ASTMapper {
     const functionRemapping: Map<number, FunctionDefinition> = new Map();
     const variableRemapping: Map<number, VariableDeclaration> = new Map();
     const modifierRemapping: Map<number, ModifierDefinition> = new Map();
+    const eventRemapping: Map<number, EventDefinition> = new Map();
 
     solveConstructorInheritance(node, ast, this.generateIndex.bind(this));
     addPrivateSuperFunctions(node, functionRemapping, ast);
     addNonoverridenPublicFunctions(node, functionRemapping, ast);
     addStorageVariables(node, variableRemapping, ast);
     addNonOverridenModifiers(node, modifierRemapping, ast);
+    addEventDefintion(node, eventRemapping, ast);
+    // Structs from parent classes are added but references inside the contract definition
+    // are not updated since this is not enough.
+    // The typeStrings of everything that reference an inherited struct must be updated as
+    // well because two equally defined structs in different contracts are considered different
+    // types. Also the typeString of anything that references something which reference an
+    // inherited struct must be updated. (e.g. An Identifier which references a VariableDeclaration
+    // which references an inherited struct)
+    // By just adding the structs this issues are avoided and valid cairo code is produced.
+    addStructDefinition(node, ast);
 
     updateReferencedDeclarations(node, functionRemapping, ast);
     updateReferencedDeclarations(node, variableRemapping, ast);
     updateReferencedDeclarations(node, modifierRemapping, ast);
+    updateReferenceEmitStatemets(node, eventRemapping, ast);
 
     removeBaseContractDependence(node);
 
