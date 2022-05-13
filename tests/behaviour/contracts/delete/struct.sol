@@ -1,7 +1,6 @@
 pragma solidity ^0.8.0;
 //SPDX-License-Identifier: MIT
 
-contract WARP {
     struct Point {
         uint x;
         uint y;
@@ -11,6 +10,8 @@ contract WARP {
         Point center;
         uint r;
     }
+    
+contract WARP {
 
     Circle fig = Circle(Point(1, 0), 5);
 

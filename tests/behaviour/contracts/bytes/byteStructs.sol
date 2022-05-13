@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.7.0;
 
-contract WARP {
-  struct bytes33 {
+ struct bytes33 {
     bytes2 a;
     bytes16 b;
     byte c;
   }
+contract WARP {
 
   struct byteStruct {
     bytes2 a;

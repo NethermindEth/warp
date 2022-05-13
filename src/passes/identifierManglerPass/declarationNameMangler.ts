@@ -1,24 +1,17 @@
 import {
-  UserDefinedTypeName,
-  Identifier,
-  MemberAccess,
   VariableDeclaration,
   FunctionDefinition,
   StructDefinition,
-  EnumValue,
-  UserDefinedValueTypeDefinition,
-  ExternalReferenceType,
   FunctionVisibility,
   SourceUnit,
   ContractDefinition,
-  ImportDirective,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
-import { AST } from '../ast/ast';
-import { ASTMapper } from '../ast/mapper';
-import { isNameless } from '../utils/utils';
+import { AST } from '../../ast/ast';
+import { ASTMapper } from '../../ast/mapper';
+import { isNameless } from '../../utils/utils';
 
-export class IdentifierMangler extends ASTMapper {
+export class DeclarationNameMangler extends ASTMapper {
   lastUsedVariableId = 0;
   lastUsedFunctionId = 0;
   lastUsedTypeId = 0;
@@ -43,46 +36,6 @@ export class IdentifierMangler extends ASTMapper {
     return `__warp_usrid${this.lastUsedVariableId++}_${existingName}`;
   }
 
-  visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {
-    if (
-      node.vReferencedDeclaration instanceof UserDefinedValueTypeDefinition ||
-      node.vReferencedDeclaration instanceof StructDefinition
-    ) {
-      node.name = node.vReferencedDeclaration.name;
-    }
-
-    this.commonVisit(node, ast);
-  }
-
-  visitImportDirective(_node: ImportDirective, _ast: AST): void {
-    return;
-  }
-
-  visitIdentifier(node: Identifier, _ast: AST): void {
-    if (
-      node.vIdentifierType === ExternalReferenceType.UserDefined &&
-      (node.vReferencedDeclaration instanceof VariableDeclaration ||
-        node.vReferencedDeclaration instanceof FunctionDefinition)
-    ) {
-      node.name = node.vReferencedDeclaration.name;
-    }
-  }
-
-  visitMemberAccess(node: MemberAccess, ast: AST): void {
-    this.commonVisit(node, ast);
-    const declaration = node.vReferencedDeclaration;
-
-    if (declaration === undefined) {
-      // No declaration means this is a solidity internal identifier
-      return;
-    } else if (
-      declaration instanceof FunctionDefinition ||
-      declaration instanceof VariableDeclaration ||
-      declaration instanceof EnumValue
-    ) {
-      node.memberName = declaration.name;
-    }
-  }
   visitStructDefinition(_node: StructDefinition, _ast: AST): void {
     // struct definitions should already have been mangled at this point
     // by visitContractDefinition and visitSourceUnit
@@ -92,8 +45,10 @@ export class IdentifierMangler extends ASTMapper {
     if (!node.stateVariable) {
       this.mangleVariableDeclaration(node);
     }
+
     this.commonVisit(node, ast);
   }
+
   mangleVariableDeclaration(node: VariableDeclaration): void {
     node.name = this.createNewVariableName(node.name);
   }
