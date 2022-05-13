@@ -10,6 +10,7 @@ import {
   UserDefinedValueTypeDefinition,
   VariableDeclaration,
   UserDefinedTypeName,
+  ASTNode,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -50,7 +51,7 @@ export class ExternImporter extends ASTMapper {
   visitIdentifier(node: Identifier, ast: AST): void {
     const declaration = node.vReferencedDeclaration;
 
-    if (declaration === undefined) return;
+    if (declaration === undefined || !isFree(declaration)) return;
 
     const declarationSourceUnit = declaration.getClosestParentByType(SourceUnit);
     const sourceUnit = node.getClosestParentByType(SourceUnit);
@@ -62,8 +63,6 @@ export class ExternImporter extends ASTMapper {
       ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
     }
     if (
-      (declaration instanceof StructDefinition &&
-        declaration.getClosestParentByType(ContractDefinition) === undefined) ||
       declaration instanceof ErrorDefinition ||
       declaration instanceof UserDefinedValueTypeDefinition ||
       declaration instanceof VariableDeclaration ||
@@ -72,6 +71,10 @@ export class ExternImporter extends ASTMapper {
       throw new NotSupportedYetError(`Importing ${printNode(declaration)} not implemented yet`);
     }
   }
+}
+
+function isFree(declaration: ASTNode): boolean {
+  return declaration.getClosestParentByType(ContractDefinition) === undefined;
 }
 
 function formatPath(path: string): string {
