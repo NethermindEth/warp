@@ -1,14 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-// import "./base.sol";
+import "./base.sol";
 
-contract  Base {
-   struct S {
-        uint8 id1;
-        uint8 id2;
-    }
-}
 
 contract  WARP is Base {
     S  s;
