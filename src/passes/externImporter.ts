@@ -35,9 +35,9 @@ export class ExternImporter extends ASTMapper {
     if (
       declarationSourceUnit !== undefined &&
       sourceUnit !== declarationSourceUnit &&
-      isFree(declaration) &&
       declaration instanceof UserDefinedTypeName &&
-      declaration.vReferencedDeclaration instanceof StructDefinition
+      declaration.vReferencedDeclaration instanceof StructDefinition &&
+      isFree(declaration.vReferencedDeclaration)
     ) {
       ast.registerImport(
         node,
