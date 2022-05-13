@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  ContractDefinition,
   ErrorDefinition,
   FunctionDefinition,
   Identifier,
@@ -9,6 +10,7 @@ import {
   UserDefinedValueTypeDefinition,
   VariableDeclaration,
   UserDefinedTypeName,
+  ASTNode,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -28,7 +30,11 @@ export class ExternImporter extends ASTMapper {
       'Trying to import a definition from an unknown source unit',
     );
 
-    if (sourceUnit !== declarationSourceUnit && declaration instanceof StructDefinition) {
+    if (
+      sourceUnit !== declarationSourceUnit &&
+      declaration instanceof StructDefinition &&
+      isFree(declaration)
+    ) {
       ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
     }
 
@@ -38,7 +44,7 @@ export class ExternImporter extends ASTMapper {
   visitIdentifier(node: Identifier, ast: AST): void {
     const declaration = node.vReferencedDeclaration;
 
-    if (declaration === undefined) return;
+    if (declaration === undefined || !isFree(declaration)) return;
 
     const declarationSourceUnit = declaration.getClosestParentByType(SourceUnit);
     const sourceUnit = node.getClosestParentByType(SourceUnit);
@@ -46,10 +52,12 @@ export class ExternImporter extends ASTMapper {
     assert(sourceUnit !== undefined, 'Trying to import a definition into an unknown source unit');
     if (declarationSourceUnit === undefined || sourceUnit === declarationSourceUnit) return;
 
-    if (declaration instanceof FunctionDefinition || declaration instanceof StructDefinition) {
+    if (
+      declaration instanceof FunctionDefinition ||
+      (declaration instanceof StructDefinition && isFree(declaration))
+    ) {
       ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
     }
-
     if (
       declaration instanceof ErrorDefinition ||
       declaration instanceof UserDefinedValueTypeDefinition ||
@@ -59,6 +67,10 @@ export class ExternImporter extends ASTMapper {
       throw new NotSupportedYetError(`Importing ${printNode(declaration)} not implemented yet`);
     }
   }
+}
+
+function isFree(node: ASTNode): boolean {
+  return node.getClosestParentByType(ContractDefinition) === undefined;
 }
 
 function formatPath(path: string): string {

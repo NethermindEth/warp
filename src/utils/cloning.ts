@@ -34,11 +34,14 @@ import {
   VariableDeclarationStatement,
   WhileStatement,
   StructuredDocumentation,
+  StructDefinition,
+  EventDefinition,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { printNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
+import { createParameterList } from './nodeTemplates';
 import { notNull } from './typeConstructs';
 
 // TODO update referenced declarations
@@ -320,6 +323,18 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.nameLocation,
       node.raw,
     );
+  } else if (node instanceof EventDefinition) {
+    newNode = new EventDefinition(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.anonymous,
+      node.name,
+      createParameterList(
+        node.vParameters.vParameters.map((o) => cloneASTNodeImpl(o, ast, remappedIds)),
+        ast,
+      ),
+      node.documentation,
+    );
   } else if (node instanceof FunctionDefinition) {
     newNode = new FunctionDefinition(
       replaceId(node.id, ast, remappedIds),
@@ -340,6 +355,24 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.nameLocation,
       node.raw,
     );
+  } else if (node instanceof ImportDirective) {
+    newNode = new ImportDirective(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.file,
+      node.absolutePath,
+      node.unitAlias,
+      node.symbolAliases.map((alias) => ({
+        foreign:
+          typeof alias.foreign === 'number'
+            ? alias.foreign
+            : cloneASTNodeImpl(alias.foreign, ast, remappedIds),
+        local: alias.local,
+      })),
+      node.scope,
+      node.sourceUnit,
+      node.raw,
+    );
   } else if (node instanceof ModifierDefinition) {
     newNode = new ModifierDefinition(
       replaceId(node.id, ast, remappedIds),
@@ -353,6 +386,15 @@ function cloneASTNodeImpl<T extends ASTNode>(
       cloneDocumentation(node.documentation, ast, remappedIds),
       node.nameLocation,
       node.raw,
+    );
+  } else if (node instanceof StructDefinition) {
+    newNode = new StructDefinition(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.name,
+      node.scope,
+      node.visibility,
+      node.vMembers.map((o) => cloneASTNodeImpl(o, ast, remappedIds)),
     );
   } else if (node instanceof VariableDeclaration) {
     newNode = new VariableDeclaration(
@@ -372,24 +414,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.vOverrideSpecifier && cloneASTNodeImpl(node.vOverrideSpecifier, ast, remappedIds),
       node.vValue && cloneASTNodeImpl(node.vValue, ast, remappedIds),
       node.nameLocation,
-    );
-  } else if (node instanceof ImportDirective) {
-    newNode = new ImportDirective(
-      replaceId(node.id, ast, remappedIds),
-      node.src,
-      node.file,
-      node.absolutePath,
-      node.unitAlias,
-      node.symbolAliases.map((alias) => ({
-        foreign:
-          typeof alias.foreign === 'number'
-            ? alias.foreign
-            : cloneASTNodeImpl(alias.foreign, ast, remappedIds),
-        local: alias.local,
-      })),
-      node.scope,
-      node.sourceUnit,
-      node.raw,
     );
     //ASTNodeWithChildren------------------------------------------------------
   } else if (node instanceof ParameterList) {
