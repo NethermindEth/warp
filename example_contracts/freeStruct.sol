@@ -7,7 +7,7 @@ struct S {
 }
 
 contract A {
-    function x() public pure {
-        S memory a = S(0,0);
+    function x(S memory _input) public pure {
+        S memory a = S(_input.id1, _input.id2);
     }
 }
