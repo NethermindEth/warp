@@ -19,7 +19,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
-import { getFunctionTypeString, getReturnTypeString, getStructTypeString } from './getTypeString';
+import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
 import { Implicits } from './implicits';
 import { createIdentifier, createParameterList } from './nodeTemplates';
 import { toSingleExpression } from './utils';
