@@ -238,7 +238,7 @@ function getArguments(
   const argList: Expression[] = [];
   for (let i = 0; i < size; ++i) {
     const newArg = cloneASTNode(args[i], ast);
-    updateReferencedDeclarations(newArg, idRemapping, ast);
+    updateReferencedDeclarations(newArg, idRemapping, idRemapping, ast);
     const newVar = cloneASTNode(parameters[i], ast);
     newVar.name = `__warp_constructor_parameter_${generator()}`;
     newVar.scope = scope;

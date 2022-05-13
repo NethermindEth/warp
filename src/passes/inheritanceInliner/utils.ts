@@ -22,11 +22,20 @@ export function getBaseContracts(node: ContractDefinition): ContractDefinition[]
 export function updateReferencedDeclarations(
   node: ASTNode,
   idRemapping: Map<number, VariableDeclaration | FunctionDefinition | ModifierDefinition>,
+  idRemappingOverriders: Map<number, VariableDeclaration | FunctionDefinition | ModifierDefinition>,
   ast: AST,
 ) {
   node.walk((node) => {
-    if (node instanceof Identifier || node instanceof IdentifierPath) {
-      const remapping = idRemapping.get(node.referencedDeclaration);
+    if (node instanceof Identifier) {
+      const remapping = idRemappingOverriders.get(node.referencedDeclaration);
+      if (remapping !== undefined) {
+        node.referencedDeclaration = remapping.id;
+        node.name = remapping.name;
+      }
+    } else if (node instanceof IdentifierPath) {
+      const remapping = isSpecificAccess(node)
+        ? idRemapping.get(node.referencedDeclaration)
+        : idRemappingOverriders.get(node.referencedDeclaration);
       if (remapping !== undefined) {
         node.referencedDeclaration = remapping.id;
         node.name = remapping.name;
@@ -82,4 +91,9 @@ export function removeBaseContractDependence(node: ContractDefinition): void {
     (child): child is InheritanceSpecifier => child instanceof InheritanceSpecifier,
   );
   toRemove.forEach((inheritanceSpecifier) => node.removeChild(inheritanceSpecifier));
+}
+
+function isSpecificAccess(node: IdentifierPath): boolean {
+  const name = node.name.split('.');
+  return name.length > 1;
 }
