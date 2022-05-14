@@ -273,6 +273,20 @@ export const expectations = flatten(
             Expect.Simple('widthsignNutoi', ['32768'], ['32768']),
           ]),
         ]),
+        new Dir('copy_storage_to_memory', [
+          File.Simple('static_arrays', [
+            Expect.Simple('getX', [], ['1', '2', '3', '4', '5']),
+            Expect.Simple(
+              'getY',
+              [],
+              ['5', '0', '0', '0', '0', '10', '0', '0', '0', '0', '15', '0', '0', '0', '17'],
+            ),
+          ]),
+          File.Simple('structs', [
+            Expect.Simple('setS', ['2', '3', '5', '7'], []),
+            Expect.Simple('getS', [], ['2', '3', '5', '7']),
+          ]),
+        ]),
         new Dir('cross_contract_calls', [
           File.Simple('simple', [Expect.Simple('f', [], ['69', '0'])], 'A'),
           File.Simple(
