@@ -102,7 +102,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
   ['example_contracts/namedArgs/function', 'Success'],
   // Cannot get the size of the static array
-  ['example_contracts/nested_static_array_struct', 'TranspilationFailed'],
+  ['example_contracts/nested_static_array_struct', 'NotSupportedYet'],
   ['example_contracts/payable-function', 'Success'],
   // Struct outside of contract
   ['example_contracts/pure-function', 'CairoCompileFailed'],
