@@ -18,8 +18,10 @@ import { AST } from '../../ast/ast';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { ASTMapper } from '../../ast/mapper';
 import { NotSupportedYetError } from '../../utils/errors';
+import { createAddressNonPayableTypeName, createUint256TypeName } from '../../utils/nodeTemplates';
 import { bigintToTwosComplement, toHexString } from '../../utils/utils';
 import { functionaliseIntConversion } from '../../warplib/implementations/conversions/int';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 
 export class ExplicitConversionToFunc extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -69,7 +71,25 @@ export class ExplicitConversionToFunc extends ASTMapper {
     }
 
     if (typeTo instanceof AddressType) {
-      ast.replaceNode(node, node.vArguments[0]);
+      if (argType instanceof IntType && argType.nBits == 256) {
+        const replacementCall = createCallToFunction(
+          createCairoFunctionStub(
+            'uint256_to_address_felt',
+            [['uint_arg', createUint256TypeName(ast)]],
+            [['address_ret', createAddressNonPayableTypeName(ast)]],
+            [],
+            ast,
+            node,
+          ),
+          [node.vArguments[0]],
+          ast,
+        );
+
+        ast.replaceNode(node, replacementCall);
+        ast.registerImport(replacementCall, 'warplib.maths.utils', 'uint256_to_address_felt');
+      } else {
+        ast.replaceNode(node, node.vArguments[0]);
+      }
       return;
     }
 
