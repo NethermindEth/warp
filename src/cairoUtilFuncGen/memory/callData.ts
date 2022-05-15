@@ -24,6 +24,7 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { dereferenceType, typeNameFromTypeNode } from '../../utils/utils';
 import { add, StringIndexedFuncGen } from '../base';
 import { counterGenerator } from '../../utils/utils';
+import { read } from 'fs-extra';
 // import { serialiseReads } from '../serialisation';
 
 // I know this feels wrong, but just go with it.
@@ -68,9 +69,9 @@ export class MemoryToCallData extends StringIndexedFuncGen {
   // `end`,
   private createDynamicArrayReadFunction(key: string, type: ArrayType): string {
     const memoryElementType = CairoType.fromSol(type.elementT, this.ast);
-    const funcName = `wm_to_calldata_${memoryElementType}`; //wm_to_calldata_felt
-    const dereferenceMemeberType = dereferenceType(type.elementT);
-    const dynArrayReader = this.generateDynamicReaderType(dereferenceMemeberType, memoryElementType);
+    const funcName = `wm_to_calldata_dyn_${memoryElementType}`; //wm_to_calldata_felt
+    //const dereferenceMemeberType = dereferenceType(type.elementT);
+    const dynArrayReader = this.generateDynamicReaderType(type.elementT, memoryElementType);
 
     this.generatedFunctions.set(key, {
       name: funcName,
@@ -96,16 +97,36 @@ export class MemoryToCallData extends StringIndexedFuncGen {
     return funcName;
   }
 
+  private generateDynMemberLoader(cairoType: CairoType): string | undefined {
+    if (cairoType instanceof CairoFelt) {
+      return 'wm_read_felt';
+    } else if (cairoType.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
+      return 'wm_read_256';
+    } else if (
+      cairoType instanceof UserDefinedType &&
+      cairoType.definition instanceof StructDefinition
+    ) {
+      return `wm_read_struct_${cairoType.toString()}`;
+    }
+  }
+
   private generateDynamicReaderType(typeNode: TypeNode, memoryReadType: CairoType): string {
     const funcName = `wm_dynarry_reader_${memoryReadType.toString()}`;
-    const readCounter = counterGenerator();
-    const locCounter = counterGenerator(-1);
-    const pointerRead = undefined;
-    if (typeNode instanceof PointerType) {
-      const [varDecl, read, funcCall] = this.generateMemoryReadFunctionCall(typeNode, readCounter, locCounter);
-      const pointerRead = read;
-    }
-    const [l, a, funcCall] = this.generateMemoryReadFunctionCall(typeNode, readCounter, locCounter);
+    const readTracker = new ReadTracker();
+    //const funcCall = this.generateDynMemberLoader(memoryReadType);
+    const reads: string[] = [];
+    const varDecls: string[] = [];
+    // const readCounter = counterGenerator();
+    // const locCounter = counterGenerator(-1);
+    //let readCounter = 0;
+    //let locCounter = 0;
+    const [varDecls_, reads_, readTracker_] = this.generateMemoryReadFunctionCall(
+      typeNode,
+      varDecls,
+      reads,
+      readTracker,
+    );
+
     this.generatedFunctions.set(memoryReadType.toString(), {
       name: funcName,
       code: [
@@ -114,9 +135,9 @@ export class MemoryToCallData extends StringIndexedFuncGen {
         `    if len == 0:`,
         `       return (ptr)`,
         `    end`,
-        // If the type is a Pointer then add a read
-        pointerRead !== undefined ? pointerRead : '',
-        `    assert ptr[0] =  ${funcCall}(${add('loc', locCounter.next().value)}`,
+        // you would want the dereference in here since the function above provides this with a pointer to pointer;
+        ...reads,
+        `    assert ptr[0] = read${readTracker.readOffset - 1}`,
         // This memoryType.width is more for the memory system than actual cairo itself so we might need to check that it is constant with NestedStructs.
         // There could also be a ternary condition that just checks if it is a felt or struct and we can the stick a .SIZE in there.
         `    ${funcName}(len=len-1, ptr=ptr + ${memoryReadType.width}, loc=loc + ${memoryReadType.width})`,
@@ -126,43 +147,78 @@ export class MemoryToCallData extends StringIndexedFuncGen {
     });
     return funcName;
   }
-
+  // split the returned function call out into another function. We don't need it here.
+  // Then change the reads to be reads[]. Then at the beginning of each loop
+  // add a read[] then push to it. Also add a Vardecl [] and push to that each loop aswell.
+  // if there is pointer type then do a recursive loop and push the read and vardecl, but not if it is a pointer. Increase the
+  // read counter but dont increase the loc counter. Then after this is finished perform a flat map
+  // on the reads[] and insert them into the function and then do the join of the vardecls in the struct constructor.
+  // Return the reach
   generateMemoryReadFunctionCall(
     typeNode: TypeNode,
-    readCounter: Generator,
-    locCounter: Generator,
-  ): [varDecl: string, read: string, functionCall: string] {
+    varDecls: string[],
+    reads: string[],
+    readTracker: ReadTracker,
+  ): [varDecl: string[], read: string[], readTracker: ReadTracker] {
     const typeToRead = CairoType.fromSol(
       typeNode,
       this.ast,
       TypeConversionContext.MemoryAllocation,
     );
-    const readOffset = readCounter.next().value;
-    const locOffset = locCounter.next().value;
+    // const readOffset = readCounter.next().value;
+    // const locOffset = locCounter.next().value;
     //  Add a generator there that adds an int to the name. There should be a new one for each ne function.
-    if (typeToRead instanceof CairoFelt) {
+    if (typeNode instanceof PointerType) {
+      //varDecls.push(`read${readCounter}`);
+
+      reads.push(
+        `    let (read${readTracker.readOffset}) = wm_read_felt(${add(
+          'loc',
+          readTracker.locOffset,
+        )})`,
+      );
+      readTracker.incrementReadOffset();
+      readTracker.increamentLocOffset();
+      this.generateMemoryReadFunctionCall(dereferenceType(typeNode), varDecls, reads, readTracker);
+      return [varDecls, reads, readTracker];
+    } else if (typeToRead instanceof CairoFelt) {
+      //const locOffset = locCounter.next().value;
+      //const readOffset = readCounter.next().value;
       this.requireImport('warplib.memory', 'wm_read_felt');
-      return [
-        `read${readOffset}`,
-        `let (read${readOffset}) = wm_read_felt(${add('loc', locOffset)})`,
-        'wm_read_felt',
-      ];
+      varDecls.push(`read${readTracker.readOffset}`);
+      reads.push(
+        `    let (read${readTracker.readOffset}) = wm_read_felt(${add(
+          'loc',
+          readTracker.locOffset,
+        )})`,
+      );
+      readTracker.incrementReadOffset();
+      readTracker.increamentLocOffset();
+      return [varDecls, reads, readTracker];
     } else if (typeToRead.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
       this.requireImport('warplib.memory', 'wm_read_256');
-      const varDecl = `read${readOffset}`;
-      const read = `let (read${readOffset}) = wm_read_256(${add('loc', locOffset)})`;
-      locCounter.next();
-      return [varDecl, read, 'wm_read_256'];
+      varDecls.push(`read${readTracker.readOffset}`);
+      reads.push(
+        `    let (read${readTracker.readOffset}) = wm_read_256(${add(
+          'loc',
+          readTracker.locOffset,
+        )})`,
+      );
+      readTracker.incrementReadOffset();
+      readTracker.increamentLocOffset();
+      readTracker.increamentLocOffset();
+      return [varDecls, reads, readTracker];
     } else if (
       typeNode instanceof UserDefinedType &&
       typeNode.definition instanceof StructDefinition
     ) {
       const structName = this.getOrCreateStructRead(typeNode);
-      return [
-        `read${readOffset}`,
-        `let(read${readOffset}) = ${structName}(read${readOffset})`,
-        structName,
-      ];
+      varDecls.push(`read${readTracker.readOffset}`);
+      reads.push(
+        `    let(read${readTracker.readOffset}) = ${structName}(read${readTracker.readOffset - 1})`,
+      );
+      readTracker.incrementReadOffset();
+      return [varDecls, reads, readTracker];
     } else {
       throw new NotSupportedYetError(
         `Copying ${printTypeNode(typeNode)} from memory to calldata not implemented yet`,
@@ -182,20 +238,16 @@ export class MemoryToCallData extends StringIndexedFuncGen {
     const structMembers = typeNode.definition.vMembers.map((member) =>
       getNodeType(member, this.ast.compilerVersion),
     );
-    const readGenerator = counterGenerator();
-    const locGenerator = counterGenerator();
-    const GeneratedReads = structMembers.map((typeNodeMember) =>
-      this.generateMemoryReadFunctionCall(typeNodeMember, readGenerator, locGenerator),
-    );
+    const readTracker = new ReadTracker();
+    // const readCounter = 0;
+    // const locCounter = 0;
     const reads: string[] = [];
     const varDecls: string[] = [];
-    const funcNames: string[] = [];
-
-    GeneratedReads.forEach((x) => {
-      varDecls.push(x[0]);
-      reads.push(x[1]);
-      funcNames.push(x[2]);
-    });
+    //const readGenerator = counterGenerator();
+    //const locGenerator = counterGenerator();
+    structMembers.forEach((typeNodeMember) =>
+      this.generateMemoryReadFunctionCall(typeNodeMember, varDecls, reads, readTracker),
+    );
 
     this.generatedFunctions.set(funcName, {
       name: funcName,
@@ -207,6 +259,45 @@ export class MemoryToCallData extends StringIndexedFuncGen {
       ].join('\n'),
     });
     return funcName;
+  }
+}
+
+class ReadTracker {
+  private _readOffset: number;
+  private _locOffset: number;
+
+  private readCounter: Generator;
+  private locCounter: Generator;
+
+  constructor() {
+    this._readOffset = 0;
+    this._locOffset = 0;
+    this.readCounter = this._counterGenerator(1);
+    this.locCounter = this._counterGenerator(1);
+  }
+
+  private *_counterGenerator(start = 0): Generator<number, number, unknown> {
+    let count = start;
+    while (true) {
+      yield count;
+      count++;
+    }
+  }
+
+  public get readOffset() {
+    return this._readOffset;
+  }
+
+  public get locOffset() {
+    return this._locOffset;
+  }
+
+  incrementReadOffset() {
+    this._readOffset = this.readCounter.next().value;
+  }
+
+  increamentLocOffset() {
+    this._locOffset = this.locCounter.next().value;
   }
 }
 
