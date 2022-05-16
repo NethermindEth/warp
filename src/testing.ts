@@ -34,7 +34,6 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/ERC20', 'Success'],
   ['example_contracts/ERC20_storage', 'Success'],
   ['example_contracts/boolOp_noSideEffects', 'Success'],
-  // Uses conditionals implicitly
   ['example_contracts/boolOp_sideEffects', 'Success'],
   ['example_contracts/c2c', 'Success'],
   // Uses conditionals explicitly
@@ -69,7 +68,6 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/imports/importfrom', 'Success'],
   ['example_contracts/imports/importInterface', 'Success'],
   ['example_contracts/imports/importLibrary', 'Success'],
-
   ['example_contracts/imports/importStruct', 'Success'],
   ['example_contracts/inheritance/simple', 'Success'],
   ['example_contracts/inheritance/super/base', 'Success'],
@@ -101,11 +99,11 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/namedArgs/constructor', 'Success'],
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
   ['example_contracts/namedArgs/function', 'Success'],
-  // Cannot get the size of the static array
+  // Returning memory array of struct from external function does not read array
   ['example_contracts/nested_static_array_struct', 'NotSupportedYet'],
   ['example_contracts/nested_struct_static_array', 'CairoCompileFailed'],
   ['example_contracts/payable-function', 'Success'],
-  // Struct outside of contract
+  // Cannot import with a - in the filename
   ['example_contracts/pure-function', 'CairoCompileFailed'],
   // Returns the dynamic array memory pointer instead of it's values
   ['example_contracts/return_dyn_array', 'CairoCompileFailed'],
@@ -132,11 +130,11 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeConversion/implicit_type_conv', 'Success'],
   ['example_contracts/typeConversion/shifts', 'Success'],
   ['example_contracts/typeMinMax', 'Success'],
-  // Don't automatically cast uin256 elements when creating static array
+  // Don't automatically cast uint256 elements when creating static array
   ['example_contracts/uint256_static_array_casting', 'CairoCompileFailed'],
   // Serialising BytesType not supported yet
   ['example_contracts/typestrings/basicArrays', 'NotSupportedYet'],
-  //  Not supported operation delete on CairoContract
+  // Not supported operation delete on CairoContract
   ['example_contracts/typestrings/scalars', 'NotSupportedYet'],
   ['example_contracts/typestrings/structArrays', 'Success'],
   ['example_contracts/typestrings/structs', 'Success'],
