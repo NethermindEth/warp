@@ -156,7 +156,7 @@ export function generateLiteralTypeString(
 }
 
 function instanceOfNonRecursivePP(type: TypeNode): boolean {
-  if (
+  return (
     type instanceof AddressType ||
     type instanceof BoolType ||
     type instanceof BuiltinStructType ||
@@ -170,9 +170,7 @@ function instanceOfNonRecursivePP(type: TypeNode): boolean {
     type instanceof RationalLiteral ||
     type instanceof StringLiteralType ||
     type instanceof StringType
-  )
-    return true;
-  return false;
+  );
 }
 
 export function generateExpressionTypeString(type: TypeNode): string {

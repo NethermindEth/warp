@@ -101,9 +101,14 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/namedArgs/constructor', 'Success'],
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
   ['example_contracts/namedArgs/function', 'Success'],
+  // Cannot get the size of the static array
+  ['example_contracts/nested_static_array_struct', 'NotSupportedYet'],
+  ['example_contracts/nested_struct_static_array', 'CairoCompileFailed'],
   ['example_contracts/payable-function', 'Success'],
   // Struct outside of contract
   ['example_contracts/pure-function', 'CairoCompileFailed'],
+  // Returns the dynamic array memory pointer instead of it's values
+  ['example_contracts/return_dyn_array', 'CairoCompileFailed'],
   ['example_contracts/return-var-capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],
   ['example_contracts/returnInserter', 'Success'],
@@ -127,6 +132,8 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeConversion/implicit_type_conv', 'Success'],
   ['example_contracts/typeConversion/shifts', 'Success'],
   ['example_contracts/typeMinMax', 'Success'],
+  // Don't automatically cast uin256 elements when creating static array
+  ['example_contracts/uint256_static_array_casting', 'CairoCompileFailed'],
   // Serialising BytesType not supported yet
   ['example_contracts/typestrings/basicArrays', 'NotSupportedYet'],
   //  Not supported operation delete on CairoContract

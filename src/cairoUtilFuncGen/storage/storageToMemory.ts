@@ -1,3 +1,4 @@
+import assert from 'assert';
 import {
   ArrayType,
   ASTNode,
@@ -37,7 +38,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const functionStub = createCairoFunctionStub(
       name,
       [['loc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage]],
-      [['memLoc', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
+      [['mem_loc', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
       nodeInSourceUnit ?? node,
@@ -70,33 +71,35 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
 
   private createStructCopyFunction(key: string, type: UserDefinedType): string {
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
+    const funcBody = [
+      `    alloc_locals`,
+      `    let (mem_start) = wm_alloc(${uint256(memoryType.width)})`,
+      ...generateCopyInstructions(type, this.ast).flatMap(({ storageOffset, copyType }, index) => {
+        if (copyType === undefined) {
+          return [
+            `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)})`,
+            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
+          ];
+        } else {
+          const funcName = this.getOrCreate(copyType);
+          return [
+            `let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`,
+            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
+          ];
+        }
+      }),
+      `    return (mem_start)`,
+      `end`,
+    ].join('\n');
+
     const funcName = `ws_to_memory${this.generatedFunctions.size}`;
+    const implicits =
+      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+    const funcHeader = `func ${funcName}${implicits}(loc : felt) -> (mem_loc: felt):`;
 
     this.generatedFunctions.set(key, {
       name: funcName,
-      code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}(loc : felt) -> (memLoc : felt):`,
-        `    alloc_locals`,
-        `    let (memStart) = wm_alloc(${uint256(memoryType.width)})`,
-        ...generateCopyInstructions(type, this.ast).flatMap(
-          ({ storageOffset, copyType }, index) => {
-            if (copyType === undefined) {
-              return [
-                `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)})`,
-                `dict_write{dict_ptr=warp_memory}(${add('memStart', index)}, copy${index})`,
-              ];
-            } else {
-              const funcName = this.getOrCreate(copyType);
-              return [
-                `let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`,
-                `dict_write{dict_ptr=warp_memory}(${add('memStart', index)}, copy${index})`,
-              ];
-            }
-          },
-        ),
-        `    return (memStart)`,
-        `end`,
-      ].join('\n'),
+      code: [funcHeader, funcBody].join('\n'),
     });
 
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
@@ -106,39 +109,104 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
   }
 
   private createStaticArrayCopyFunction(key: string, type: ArrayType): string {
-    // TEMP
+    assert(type.size !== undefined, 'Expected static array with known size');
+    return type.size <= 5
+      ? this.createSmallStaticArrayCopyFunction(key, type)
+      : this.createLargeStaticArrayCopyFunction(key, type);
+  }
+
+  private createSmallStaticArrayCopyFunction(key: string, type: ArrayType) {
+    const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
+    const funcBody = [
+      `    alloc_locals`,
+      `    let length = ${uint256(memoryType.width)}`,
+      `    let (mem_start) = wm_alloc(length)`,
+      ...generateCopyInstructions(type, this.ast).flatMap(({ storageOffset, copyType }, index) => {
+        if (copyType === undefined) {
+          return [
+            `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)})`,
+            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
+          ];
+        } else {
+          const funcName = this.getOrCreate(copyType);
+          return [
+            `let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`,
+            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
+          ];
+        }
+      }),
+      `    return (mem_start)`,
+      `end`,
+    ].join('\n');
+
+    const funcName = `ws_to_memory${this.generatedFunctions.size}`;
+    const implicits =
+      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+    const funcHeader = `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt):`;
+
+    this.generatedFunctions.set(key, {
+      name: funcName,
+      code: [funcHeader, funcBody].join('\n'),
+    });
+
+    this.requireImport('starkware.cairo.common.dict', 'dict_write');
+    this.requireImport('warplib.memory', 'wm_alloc');
+
+    return funcName;
+  }
+
+  private createLargeStaticArrayCopyFunction(key: string, type: ArrayType) {
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
     const funcName = `ws_to_memory${this.generatedFunctions.size}`;
+
+    const implicits =
+      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+
+    const elemW = CairoType.fromSol(type.elementT, this.ast).width;
+    let copyCode: string;
+    if (isStaticArrayOrStruct(type.elementT)) {
+      copyCode = [
+        `   let (copy) = ${this.getOrCreate(type.elementT)}('loc')`,
+        `   dict_write{dict_ptr=warp_memory}(mem_start)`,
+      ].join('\n');
+    } else {
+      copyCode = mapRange(elemW, (n) =>
+        [
+          `   let (copy) = WARP_STORAGE.read(${add('loc', n)})`,
+          `   dict_write{dict_ptr=warp_memory}(${add('mem_start', n)}, copy)`,
+        ].join('\n'),
+      ).join('\n');
+    }
 
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}(loc : felt) -> (memLoc : felt):`,
+        `func ${funcName}_elem${implicits}(mem_start: felt, loc : felt, length: Uint256) -> ():`,
+        `   alloc_locals`,
+        `   if length.low == 0:`,
+        `       if length.high == 0:`,
+        `           return ()`,
+        `       end`,
+        `   end`,
+        `   let (index) = uint256_sub(length, Uint256(1, 0))`,
+        copyCode,
+        `   return ${funcName}_elem(${add('mem_start', elemW)}, ${add('loc', elemW)}, index)`,
+        `end`,
+
+        `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt):`,
         `    alloc_locals`,
-        `    let (memStart) = wm_alloc(${uint256(memoryType.width)})`,
-        ...generateCopyInstructions(type, this.ast).flatMap(
-          ({ storageOffset, copyType }, index) => {
-            if (copyType === undefined) {
-              return [
-                `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)})`,
-                `dict_write{dict_ptr=warp_memory}(${add('memStart', index)}, copy${index})`,
-              ];
-            } else {
-              const funcName = this.getOrCreate(copyType);
-              return [
-                `let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`,
-                `dict_write{dict_ptr=warp_memory}(${add('memStart', index)}, copy${index})`,
-              ];
-            }
-          },
-        ),
-        `    return (memStart)`,
+        `    let length = ${uint256(memoryType.width)}`,
+        `    let (mem_start) = wm_alloc(length)`,
+        `    ${funcName}_elem(mem_start, loc, length)`,
+        `    return (mem_start)`,
         `end`,
       ].join('\n'),
     });
 
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
     this.requireImport('warplib.memory', 'wm_alloc');
+    this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
 
     return funcName;
   }
@@ -166,8 +234,8 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     } else {
       copyCode = mapRange(CairoType.fromSol(type.elementT, this.ast).width, (n) =>
         [
-          `    let (copy) = WARP_STORAGE.read(${add('elementStorageLoc', n)})`,
-          `    dict_write{dict_ptr=warp_memory}(${add('memLoc', n)}, copy)`,
+          `    let (copy) = WARP_STORAGE.read(${add('element_storage_loc', n)})`,
+          `    dict_write{dict_ptr=warp_memory}(${add('mem_loc', n)}, copy)`,
         ].join('\n'),
       ).join('\n');
     }
@@ -176,7 +244,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(storageName: felt, memStart: felt, length: Uint256) -> ():`,
+        `func ${funcName}_elem${implicits}(storage_name: felt, mem_start: felt, length: Uint256) -> ():`,
         `    alloc_locals`,
         `    if length.low == 0:`,
         `        if length.high == 0:`,
@@ -184,18 +252,18 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `        end`,
         `    end`,
         `    let (index) = uint256_sub(length, Uint256(1,0))`,
-        `    let (memLoc) = wm_index_dyn(memStart, index, ${uint256(memoryElementType.width)})`,
-        `    let (elementStorageLoc) = ${elemMapping}.read(storageName, index)`,
+        `    let (mem_loc) = wm_index_dyn(mem_start, index, ${uint256(memoryElementType.width)})`,
+        `    let (element_storage_loc) = ${elemMapping}.read(storage_name, index)`,
         copyCode,
-        `    return ${funcName}_elem(storageName, memStart, index)`,
+        `    return ${funcName}_elem(storage_name, mem_start, index)`,
         `end`,
 
-        `func ${funcName}${implicits}(name : felt) -> (memLoc : felt):`,
+        `func ${funcName}${implicits}(name : felt) -> (mem_loc : felt):`,
         `    alloc_locals`,
         `    let (length: Uint256) = ${lengthMapping}.read(name)`,
-        `    let (memStart) = wm_new(length, ${uint256(memoryElementType.width)})`,
-        `    ${funcName}_elem(name, memStart, length)`,
-        `    return (memStart)`,
+        `    let (mem_start) = wm_new(length, ${uint256(memoryElementType.width)})`,
+        `    ${funcName}_elem(name, mem_start, length)`,
+        `    return (mem_start)`,
         `end`,
       ].join('\n'),
     });
@@ -242,10 +310,7 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
       );
     }
 
-    if (
-      (memberType instanceof ArrayType && memberType.size !== undefined) ||
-      (memberType instanceof UserDefinedType && memberType.definition instanceof StructDefinition)
-    ) {
+    if (isStaticArrayOrStruct(memberType)) {
       const offset = storageOffset;
       storageOffset += CairoType.fromSol(
         memberType,
@@ -262,4 +327,11 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
       return mapRange(width, () => ({ storageOffset: storageOffset++ }));
     }
   });
+}
+
+function isStaticArrayOrStruct(type: TypeNode) {
+  return (
+    (type instanceof ArrayType && type.size !== undefined) ||
+    (type instanceof UserDefinedType && type.definition instanceof StructDefinition)
+  );
 }
