@@ -44,7 +44,7 @@ export class ExternImporter extends ASTMapper {
   visitIdentifier(node: Identifier, ast: AST): void {
     const declaration = node.vReferencedDeclaration;
 
-    if (declaration === undefined || !isFree(declaration)) return;
+    if (declaration === undefined) return;
 
     const declarationSourceUnit = declaration.getClosestParentByType(SourceUnit);
     const sourceUnit = node.getClosestParentByType(SourceUnit);

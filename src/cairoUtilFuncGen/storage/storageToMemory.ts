@@ -20,12 +20,10 @@ import { add, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
 /*
-  UNFINISHED
   Generates functions to copy data from WARP_STORAGE to warp_memory
-  For simple cases, reads can be used and are handled by their own FuncGen,
-  this exists to handle complex cases such as structs and dynamic arrays
-
-  Progress - Currently handles only addresses, bools, ints, and enums
+  Specifically this has to deal with structs, static arrays, and dynamic arrays
+  These require extra care because the representations are different in storage and memory
+  In storage nested structures are stored in place, whereas in memory 'pointers' are used
 */
 
 export class StorageToMemoryGen extends StringIndexedFuncGen {
