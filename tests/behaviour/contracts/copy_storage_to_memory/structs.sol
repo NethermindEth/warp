@@ -15,6 +15,7 @@ contract WARP {
   }
 
   function getS() public view returns (S memory) {
-    return s;
+    S memory ss  = s;
+    return ss;
   }
 }

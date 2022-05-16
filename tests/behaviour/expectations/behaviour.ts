@@ -281,6 +281,8 @@ export const expectations = flatten(
               [],
               ['5', '0', '0', '0', '0', '10', '0', '0', '0', '0', '15', '0', '0', '0', '17'],
             ),
+            Expect.Simple('getW', [], ['1', '0', '2', '0', '3', '0']),
+            Expect.Simple('getZ', [], ['1', '0', '2', '0', '3', '0', '4', '0', '5', '0', '6', '0']),
           ]),
           File.Simple('structs', [
             Expect.Simple('setS', ['2', '3', '5', '7'], []),
