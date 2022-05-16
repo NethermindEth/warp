@@ -8,6 +8,7 @@ import { MemoryReadGen } from './memory/memoryRead';
 import { MemoryStructGen } from './memory/memoryStruct';
 import { MemoryWriteGen } from './memory/memoryWrite';
 import { MemoryStaticArrayIndexAccessGen } from './memory/staticIndexAccess';
+import { MemoryToCallData } from './memory/callData';
 import { DynArrayGen } from './storage/dynArray';
 import { DynArrayIndexAccessGen } from './storage/dynArrayIndexAccess';
 import { DynArrayLengthGen } from './storage/dynArrayLength';
@@ -33,6 +34,7 @@ export class CairoUtilFuncGen {
     staticArrayIndexAccess: MemoryStaticArrayIndexAccessGen;
     struct: MemoryStructGen;
     write: MemoryWriteGen;
+    callDataRead: MemoryToCallData;
   };
   storage: {
     delete: StorageDeleteGen;
@@ -74,6 +76,7 @@ export class CairoUtilFuncGen {
       staticArrayIndexAccess: new MemoryStaticArrayIndexAccessGen(ast),
       struct: new MemoryStructGen(ast),
       write: new MemoryWriteGen(ast),
+      callDataRead: new MemoryToCallData(ast),
     };
     const storageReadGen = new StorageReadGen(ast);
     this.storage = {
@@ -108,6 +111,17 @@ export class CairoUtilFuncGen {
   getGeneratedCode(): string {
     return this.getAllChildren()
       .map((c) => c.getGeneratedCode())
+      .sort((a, b) => {
+        // This sort is needed to make sure the struct in CairoUtilGen are before the functions that
+        // reference them. This sort is also order preserving in that it will only make sure the structs come before
+        // any functions and not sort the struct/functions within their respective groups.
+        if (a.slice(0, 1) < b.slice(0, 1)) {
+          return 1;
+        } else if (a.slice(0, 1) > b.slice(0, 1)) {
+          return -1;
+        }
+        return 0;
+      })
       .join('\n\n');
   }
 

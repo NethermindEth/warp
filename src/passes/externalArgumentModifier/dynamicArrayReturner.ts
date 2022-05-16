@@ -29,13 +29,13 @@ export class DynArrayReturner extends ASTMapper {
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     const body = node.vBody;
-    const val = node.vReturnParameters.vParameters.some(
+    const dynArrayPresent = node.vReturnParameters.vParameters.some(
       (varDecl) =>
         varDecl.storageLocation === DataLocation.Memory &&
         varDecl.vType instanceof ArrayTypeName &&
         varDecl.vType.vLength === undefined,
     );
-    if (isExternallyVisible(node) && body !== undefined && val) {
+    if (isExternallyVisible(node) && body !== undefined && dynArrayPresent) {
       // If there is a dynarray in the return parameter list. We go straight to the return expression.
       // We loop through and see which ones are dyn arrays and then perform the opperations on them.
       const returnStatement = body.lastChild;
@@ -49,7 +49,7 @@ export class DynArrayReturner extends ASTMapper {
       const dArrayStruct = cloneASTNode(retIdentifier.vReferencedDeclaration, ast);
       dArrayStruct.name = dArrayStruct.name + '_ret_struct';
       dArrayStruct.storageLocation = DataLocation.CallData;
-      //////
+      ////// This inserts the StructDeff. The FunctionCall it returns just floats.
       this.genStructConstructor(dArrayStruct, node, ast);
       //////
       const intialValue = cloneASTNode(retIdentifier, ast);
@@ -63,7 +63,15 @@ export class DynArrayReturner extends ASTMapper {
       ast.replaceNode(retIdentifier, replaceIdentifier);
       ast.setContextRecursive(node);
     }
-
+    node.vReturnParameters.vParameters.forEach((varDecl) => {
+      if (
+        varDecl.storageLocation === DataLocation.Memory &&
+        varDecl.vType instanceof ArrayTypeName &&
+        varDecl.vType.vLength === undefined
+      ) {
+        varDecl.storageLocation = DataLocation.CallData;
+      }
+    });
     ast.setContextRecursive(node);
 
     this.commonVisit(node, ast);

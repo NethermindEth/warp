@@ -5,9 +5,8 @@ import {
   DataLocation,
   Expression,
   FunctionStateMutability,
-  // FunctionTypeName,
   getNodeType,
-  // PointerType,
+  PointerType,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -24,7 +23,9 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { dereferenceType, typeNameFromTypeNode } from '../../utils/utils';
 import { add, StringIndexedFuncGen } from '../base';
 
-// I know this feels wrong, but just go with it.
+/*
+There are always 2 functions that are generated and an optional 3rd.
+*/
 export class MemoryToCallData extends StringIndexedFuncGen {
   gen(node: Expression, _: ASTNode): Expression {
     const type = dereferenceType(getNodeType(node, this.ast.compilerVersion));
@@ -49,22 +50,14 @@ export class MemoryToCallData extends StringIndexedFuncGen {
       return existing.name;
     }
     assert(type instanceof ArrayType);
-    return this.createDynamicArrayReadFunction(key, type);
+    return this.genDynArrayReadFunctions(key, type);
   }
 
-  //private createDynamicArrayReadersFunction
-
-  // `func wm_reader_felt{range_check_ptr, warp_memory : DictAccess*}(len: felt, ptr: felt*, loc:felt) -> (res0 : felt*):`,
-  // `    alloc_locals`,
-  // `    if len == 0:`,
-  // `       return (ptr)`,
-  // `    end`,
-  // `    let(val) = dict_read{dict_ptr=warp_memory}(loc)`,
-  // `    assert ptr[0] = val`,
-  // `    wm_reader_felt(len=len-1, ptr=ptr + 1, loc=loc + 1)`,
-  // `    return (ptr)`,
-  // `end`,
-  private createDynamicArrayReadFunction(key: string, type: ArrayType): string {
+  /* 
+  Creates the ptr that the members of the wm dynArray are written to.
+  The ptr and the len will then be returned in the form of a struct.
+  */
+  private genDynArrayReadFunctions(key: string, type: ArrayType): string {
     const elemType = dereferenceType(type.elementT);
     const cairoElemType = CairoType.fromSol(
       elemType,
@@ -72,8 +65,14 @@ export class MemoryToCallData extends StringIndexedFuncGen {
       TypeConversionContext.MemoryAllocation,
     );
     const cairoElemName = cairoElemType.toString();
-    const funcName = `wm_to_cd_dyn_${cairoElemType.toString()}`; //wm_to_cd_StructDef
-    const dynArrayReaderCall = this.generateDynamicReaderType(type.elementT, cairoElemType);
+    const funcName = `wm_to_cd_dyn_${cairoElemType.toString()}`;
+    // This is creating the function that will be looped over that will populate the ptr that this function creates.
+    const dynArrayReaderCall = this.genDynArrayLoader(type.elementT, cairoElemType);
+
+    const existing = this.generatedFunctions.get(key);
+    if (existing !== undefined) {
+      return existing.name;
+    }
 
     this.generatedFunctions.set(key, {
       name: funcName,
@@ -96,30 +95,21 @@ export class MemoryToCallData extends StringIndexedFuncGen {
     this.requireImport('warplib.memory', 'wm_index_dyn');
     this.requireImport('warplib.maths.utils', 'narrow_safe');
     this.requireImport('starkware.cairo.common.alloc', 'alloc');
-
     return funcName;
   }
 
-  // private generateDynMemberLoader(cairoType: CairoType): string | undefined {
-  //   if (cairoType instanceof CairoFelt) {
-  //     return 'wm_read_felt';
-  //   } else if (cairoType.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
-  //     return 'wm_read_256';
-  //   } else if (
-  //     cairoType instanceof UserDefinedType &&
-  //     cairoType.definition instanceof StructDefinition
-  //   ) {
-  //     return `wm_read_struct_${cairoType.toString()}`;
-  //   }
-  // }
-
-  private generateDynamicReaderType(typeNode: TypeNode, memoryReadType: CairoType): string {
+  private genDynArrayLoader(typeNode: TypeNode, memoryReadType: CairoType): string {
     const funcName = `wm_dynarry_reader_${memoryReadType.toString()}`;
     // ReadTracker to see how many reads and locations have occured.
+    const key = typeNode.pp();
+    const existing = this.generatedFunctions.get(key);
+    if (existing !== undefined) {
+      return existing.name;
+    }
     const readTracker = new ReadTracker();
     const reads: string[] = [];
     const varDecls: string[] = [];
-    this.generateMemoryReadFunctionCall(typeNode, varDecls, reads, readTracker);
+    this.genReadStatements(typeNode, varDecls, reads, readTracker);
 
     this.generatedFunctions.set(memoryReadType.toString(), {
       name: funcName,
@@ -134,21 +124,29 @@ export class MemoryToCallData extends StringIndexedFuncGen {
         `    assert ptr[0] = read${readTracker.readOffset - 1}`,
         // This memoryType.width is more for the memory system than actual cairo itself so we might need to check that it is constant with NestedStructs.
         // There could also be a ternary condition that just checks if it is a felt or struct and we can the stick a .SIZE in there.
-        `    ${funcName}(len=len-1, ptr=ptr + ${memoryReadType.width}, loc=loc + ${memoryReadType.width})`,
+        `    ${funcName}(len=len-1, ptr=ptr + ${
+          memoryReadType instanceof CairoFelt ? 1 : memoryReadType.toString() + '.SIZE'
+        }, loc=loc + ${this.isReferenceType(typeNode) ? 1 : memoryReadType.width})`,
         `    return (ptr)`,
         `end`,
       ].join('\n'),
     });
     return funcName;
   }
-  // split the returned function call out into another function. We don't need it here.
-  // Then change the reads to be reads[]. Then at the beginning of each loop
-  // add a read[] then push to it. Also add a Vardecl [] and push to that each loop aswell.
-  // if there is pointer type then do a recursive loop and push the read and vardecl, but not if it is a pointer. Increase the
-  // read counter but dont increase the loc counter. Then after this is finished perform a flat map
-  // on the reads[] and insert them into the function and then do the join of the vardecls in the struct constructor.
-  // Return the reach
-  generateMemoryReadFunctionCall(
+
+  isReferenceType(typeNode: TypeNode): boolean {
+    if (
+      typeNode instanceof ArrayType ||
+      (typeNode instanceof UserDefinedType && typeNode.definition instanceof StructDefinition) ||
+      typeNode instanceof PointerType
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  // This inspects the members of the elements and generates the read statements.
+  genReadStatements(
     typeNode: TypeNode,
     varDecls: string[],
     reads: string[],
@@ -160,28 +158,8 @@ export class MemoryToCallData extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.MemoryAllocation,
     );
-    // const readOffset = readCounter.next().value;
-    // const locOffset = locCounter.next().value;
-    //  Add a generator there that adds an int to the name. There should be a new one for each ne function.
-    // This used to dereference the pointer until we realised the the members in of a struct do not contain pointers if they contain a reference type
-    // if (typeNode instanceof PointerType) {
-    //   //varDecls.push(`read${readCounter}`);
-
-    //   reads.push(
-    //     `    let (read${readTracker.readOffset}) = wm_read_felt(${add(
-    //       'loc',
-    //       readTracker.locOffset,
-    //     )})`,
-    //   );
-    //   readTracker.incrementReadOffset();
-    //   readTracker.increamentLocOffset();
-    //   this.generateMemoryReadFunctionCall(dereferenceType(typeNode), varDecls, reads, readTracker);
-    //   return [varDecls, reads, readTracker];
-    // } else
 
     if (typeToRead instanceof CairoFelt) {
-      //const locOffset = locCounter.next().value;
-      //const readOffset = readCounter.next().value;
       this.requireImport('warplib.memory', 'wm_read_felt');
       varDecls.push(`read${readTracker.readOffset}`);
       reads.push(
@@ -243,20 +221,15 @@ export class MemoryToCallData extends StringIndexedFuncGen {
     if (existing !== undefined) {
       return funcName;
     }
-    //dereferenceType(getNodeType(node, this.ast.compilerVersion))
     assert(typeNode.definition instanceof StructDefinition);
     const structMembers = typeNode.definition.vMembers.map((member) =>
       getNodeType(member, this.ast.compilerVersion),
     );
     const readTracker = new ReadTracker();
-    // const readCounter = 0;
-    // const locCounter = 0;
     const reads: string[] = [];
     const varDecls: string[] = [];
-    //const readGenerator = counterGenerator();
-    //const locGenerator = counterGenerator();
     structMembers.forEach((typeNodeMember) =>
-      this.generateMemoryReadFunctionCall(typeNodeMember, varDecls, reads, readTracker),
+      this.genReadStatements(typeNodeMember, varDecls, reads, readTracker),
     );
 
     this.generatedFunctions.set(funcName, {

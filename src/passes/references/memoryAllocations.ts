@@ -1,12 +1,17 @@
 import assert from 'assert';
 import {
+  ArrayType,
   ArrayTypeName,
   DataLocation,
   FunctionCall,
   FunctionCallKind,
   NewExpression,
+  PointerType,
+  StructDefinition,
   TupleExpression,
   typeNameToTypeNode,
+  TypeNode,
+  UserDefinedType,
 } from 'solc-typed-ast';
 import { ReferenceSubPass } from './referenceSubPass';
 import { AST } from '../../ast/ast';
@@ -82,11 +87,13 @@ export class MemoryAllocations extends ReferenceSubPass {
     );
 
     assert(node.vExpression.vTypeName instanceof ArrayTypeName);
-
+    const typeNode = typeNameToTypeNode(node.vExpression.vTypeName.vBaseType);
     const elementCairoType = CairoType.fromSol(
-      typeNameToTypeNode(node.vExpression.vTypeName.vBaseType),
+      typeNode,
       ast,
-      TypeConversionContext.MemoryAllocation,
+      this.isReferenceType(typeNode)
+        ? TypeConversionContext.Ref
+        : TypeConversionContext.MemoryAllocation,
     );
 
     const call = createCallToFunction(
@@ -98,5 +105,16 @@ export class MemoryAllocations extends ReferenceSubPass {
     const [actualLoc, expectedLoc] = this.getLocations(node);
     this.replace(node, call, undefined, actualLoc, expectedLoc, ast);
     ast.registerImport(call, 'warplib.memory', 'wm_new');
+  }
+
+  isReferenceType(typeNode: TypeNode): boolean {
+    if (
+      typeNode instanceof ArrayType ||
+      (typeNode instanceof UserDefinedType && typeNode.definition instanceof StructDefinition) ||
+      typeNode instanceof PointerType
+    ) {
+      return true;
+    }
+    return false;
   }
 }

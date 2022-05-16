@@ -18,6 +18,8 @@ import {
   TupleExpression,
   UserDefinedType,
   ContractDefinition,
+  TypeNode,
+  StructDefinition,
 } from 'solc-typed-ast';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
@@ -134,6 +136,15 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
         const replacementFunc = ast.getUtilFuncGen(node).storage.read.gen(node, decl.vType);
         this.replace(node, replacementFunc, parent, actualLoc, expectedLoc, ast);
       }
+    } else if (expectedLoc === DataLocation.CallData) {
+      const parent = node.parent;
+      const replacement = ast
+        .getUtilFuncGen(node)
+        .memory.callDataRead.gen(
+          node,
+          typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast),
+        );
+      this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
     } else if (actualLoc === DataLocation.Memory) {
       const parent = node.parent;
       const replacementFunc = ast.getUtilFuncGen(node).memory.read.gen(node, decl.vType);
@@ -275,10 +286,13 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
 
   assert(indexAccess.vIndexExpression);
   assert(arrayType instanceof ArrayType);
+
   const elementCairTypeWidth = CairoType.fromSol(
     arrayType.elementT,
     ast,
-    TypeConversionContext.MemoryAllocation,
+    isReferenceType(arrayType.elementT)
+      ? TypeConversionContext.Ref
+      : TypeConversionContext.MemoryAllocation,
   ).width;
 
   const call = createCallToFunction(
@@ -304,4 +318,15 @@ function shouldLeaveAsCairoAssignment(lhs: Expression): boolean {
       lhs.vReferencedDeclaration.stateVariable
     )
   );
+}
+
+function isReferenceType(typeNode: TypeNode): boolean {
+  if (
+    typeNode instanceof ArrayType ||
+    (typeNode instanceof UserDefinedType && typeNode.definition instanceof StructDefinition) ||
+    typeNode instanceof PointerType
+  ) {
+    return true;
+  }
+  return false;
 }

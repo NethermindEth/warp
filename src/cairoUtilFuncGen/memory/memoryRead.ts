@@ -9,7 +9,6 @@ import {
 } from 'solc-typed-ast';
 import {
   CairoFelt,
-  // CairoPointer,
   CairoType,
   CairoUint256,
   TypeConversionContext,
@@ -63,20 +62,10 @@ export class MemoryReadGen extends StringIndexedFuncGen {
 
     const funcName = `WM${this.generatedFunctions.size}_READ_${typeToRead.typeName}`;
     const resultCairoType = typeToRead.toString();
-    const [reads, pack, containsDynArray] = serialiseReads(
-      typeToRead,
-      readFelt,
-      readFelt,
-      createDynLenStatement,
-      createDynPtrStatement,
-    );
-    // We can have another util function gen that generates the dynamic array reading.
-    const dynArrayReader = containsDynArray ? readOutDynArray() : '';
-
+    const [reads, pack] = serialiseReads(typeToRead, readFelt, readFelt);
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        dynArrayReader,
         `func ${funcName}{range_check_ptr, warp_memory : DictAccess*}(loc: felt) ->(val: ${resultCairoType}):`,
         `    alloc_locals`,
         ...reads.map((s) => `    ${s}`),
@@ -92,59 +81,3 @@ export class MemoryReadGen extends StringIndexedFuncGen {
 function readFelt(offset: number): string {
   return `let (read${offset}) = dict_read{dict_ptr=warp_memory}(${add('loc', offset)})`;
 }
-
-function createDynLenStatement(offset: number): string {
-  return `let (len${offset - 1}) = narrow_safe(read${offset - 2}, read${offset - 1})`;
-}
-function createDynPtrStatement(offset: number): string {
-  return [
-    `let (ptr${offset - 1}) = alloc()`,
-    `let (ptr${offset - 1}) = wm_reader_felt(len${offset - 1}, ptr${offset - 1}, loc})`,
-  ].join('\n');
-}
-
-function readOutDynArray(): string[] {
-  /*
-  This is is needed since we do not know what the DynArray points to
-  */
-  return [
-    `func wm_reader_felt{range_check_ptr, warp_memory : DictAccess*}(len, ptr, loc)`,
-    `alloc_locals`,
-    `if len == 0:`,
-    `return ()`,
-    `let(val) = dict_read{warp_memory}(loc)`,
-    `assert ptr[0] = val`,
-    `wm_reader_felt(len=len-1, ptr = ptr + 1, loc + 1)`,
-    `return (ptr)`,
-  ];
-}
-
-// Address this after we have felts working.
-// function readOutDynArray(dynArray: CairoType): string[] {
-//   /*
-//   This is is needed since we do not know what the DynArray points to
-//   */
-//   return [
-//     `func wm_reader{implicits}(len, ptr, loc)`,
-//     `alloc_locals`,
-//     `if len == 0:`,
-//     `return ()`,
-//     // These reads get generated and that works.
-//     `let(a) = dict_read{warp_memory}(loc)`,
-//     `let(b) = dict_read{warp_memory}(loc + offset)`,
-//     // Because we can jump to what the pointer is pointing to and then pass that into the
-//     // Serialize read. //And these functions can be generated dynamically
-//     `assert ptr[0] = MyStruct(a=1, b=2)` // This is going to come from serialize reads
-//     `wm_reader(len=len-1, ptr = ptr + ${ptr.name}.SIZE, loc)`,
-//     `return (ptr)`,
-//
-
-// function AllocDynArray(offset: number, ptr: CairoPointer): string {
-//   `func wm_allocator{implicits}(dyn_loc:felt, width: len):`,
-//   `alloc_locals`,
-//   `let ptr: ${ptr.to.string}= alloc()`,
-//   ``,
-//   ``,
-//   `let (read${offset}) = dict_read{dict_ptr=warp_memory}(${add('loc')})`
-//   return `let (read${offset}) = dict_read{dict_ptr=warp_memory}(${add('loc')})`
-// }

@@ -80,7 +80,7 @@ import {
   FunctionStubKind,
 } from './ast/cairoNodes';
 import { printNode } from './utils/astPrinter';
-import { CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
+import { CairoDynArray, CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
 import { implicitOrdering, implicitTypes } from './utils/implicits';
@@ -92,7 +92,6 @@ import {
   isCairoConstant,
   isExternallyVisible,
   primitiveTypeToCairo,
-  splitDarray,
 } from './utils/utils';
 
 const INDENT = ' '.repeat(4);
@@ -398,28 +397,17 @@ class ParameterListWriter extends CairoASTNodeWriter {
           : TypeConversionContext.Ref
         : TypeConversionContext.CallDataRef;
 
-    const proccessed_params = node.vParameters.flatMap((decl) => {
-      // This conditional is placed here to split DynamicArrays into their corresponding length and pointer when they
-      // are an argument for an external function.
-      if (
-        decl.vType instanceof ArrayTypeName &&
-        decl.vType.vLength === undefined &&
-        typeConversionContext == TypeConversionContext.CallDataRef &&
-        node.parent instanceof FunctionDefinition &&
-        decl.name !== undefined &&
-        isExternallyVisible(node.parent)
-      ) {
-        return splitDarray(node.id, decl, this.ast);
-      }
-      return decl;
-    });
-
-    const params = proccessed_params.map((value, i) => {
+    const params = node.vParameters.map((value, i) => {
       const tp = CairoType.fromSol(
         getNodeType(value, writer.targetCompilerVersion),
         this.ast,
         typeConversionContext,
       );
+      if (tp instanceof CairoDynArray) {
+        return value.name
+          ? `${value.name}_len : ${tp.vLen.toString()}, ${value.name} : ${tp.vPtr.toString()}`
+          : `ret${i}_len : ${tp.vLen.toString()}, ret${i} : ${tp.vPtr.toString()}`;
+      }
       return value.name ? `${value.name} : ${tp}` : `ret${i} : ${tp}`;
     });
     return [params.join(', ')];
@@ -641,6 +629,15 @@ class IndexAccessWriter extends CairoASTNodeWriter {
 }
 class IdentifierWriter extends CairoASTNodeWriter {
   writeInner(node: Identifier, _: ASTWriter): SrcDesc {
+    if (
+      node.vReferencedDeclaration instanceof VariableDeclaration &&
+      node.vReferencedDeclaration.storageLocation === DataLocation.CallData &&
+      node.vReferencedDeclaration.vType instanceof ArrayTypeName &&
+      node.vReferencedDeclaration.vType.vLength === undefined &&
+      node.parent instanceof Return
+    ) {
+      return [`${node.name}.len, ${node.name}.ptr`];
+    }
     return [`${node.name}`];
   }
 }

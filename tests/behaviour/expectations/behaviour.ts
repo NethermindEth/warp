@@ -563,6 +563,48 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('external_function_inputs', [
+          File.Simple('return_dynamic_array', [
+            new Expect('returning a dynarray of felts', [
+              ['returnFelt', [], ['3', '1', '2', '3'], '0'],
+            ]),
+            new Expect('returning a dynarray of Uint256', [
+              ['returnUint256', [], ['3', '10', '0', '100', '0', '1000', '0'], '0'],
+            ]),
+            new Expect('returning a dynarray of structs', [
+              ['returnStruct', [], ['3', '1', '0', '10', '2', '0', '20', '3', '0', '30'], '0'],
+            ]),
+            new Expect('test1', [
+              [
+                'returnNestedStruct',
+                [],
+                [
+                  '3',
+                  '1',
+                  '0',
+                  '10',
+                  '0',
+                  '100',
+                  '1000',
+                  '0',
+                  '2',
+                  '0',
+                  '20',
+                  '0',
+                  '200',
+                  '2000',
+                  '0',
+                  '3',
+                  '0',
+                  '30',
+                  '0',
+                  '300',
+                  '3000',
+                  '0',
+                ],
+                '0',
+              ],
+            ]),
+          ]),
           File.Simple('dynamic_array_return_index', [
             new Expect(
               'testing that dynamic memory array as calldata are tranformed and returned correctly',

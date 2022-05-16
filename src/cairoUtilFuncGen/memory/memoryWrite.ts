@@ -55,7 +55,9 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
     const cairoTypeToWrite = CairoType.fromSol(
       typeToWrite,
       this.ast,
-      TypeConversionContext.MemoryAllocation,
+      typeToWrite instanceof PointerType
+        ? TypeConversionContext.Ref
+        : TypeConversionContext.MemoryAllocation,
     );
 
     if (cairoTypeToWrite instanceof CairoFelt) {

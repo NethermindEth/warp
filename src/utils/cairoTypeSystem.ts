@@ -1,3 +1,4 @@
+import assert from 'assert';
 import {
   TypeNode,
   IntType,
@@ -51,16 +52,15 @@ export abstract class CairoType {
     } else if (tp instanceof ArrayType) {
       if (tp.size === undefined) {
         if (context === TypeConversionContext.CallDataRef) {
-          return new CairoStruct(
+          return new CairoDynArray(
             `wm_dynarry_${tp.elementT.toString()}`,
-            new Map([
-              ['len', new CairoFelt()],
-              ['ptr', new CairoPointer(CairoType.fromSol(tp.elementT, ast, context))],
-            ]),
+            CairoType.fromSol(tp.elementT, ast, context),
           );
           // new CairoPointer(CairoType.fromSol(tp.elementT, ast, context));
         }
-        return new WarpLocation();
+        // Suggest that we put another type here that is WarpLocationRef that inherits from
+        // the WarpLocation and it can point to the dArray.
+        return new WarpLocation('dynArray');
       } else if (context === TypeConversionContext.Ref) {
         return new CairoFelt();
       } else {
@@ -90,7 +90,7 @@ export abstract class CairoType {
     } else if (tp instanceof IntType) {
       return tp.nBits > 251 ? CairoUint256 : new CairoFelt();
     } else if (tp instanceof MappingType) {
-      return new WarpLocation();
+      return new WarpLocation('mapping');
     } else if (tp instanceof PointerType) {
       if (context !== TypeConversionContext.Ref) {
         return CairoType.fromSol(tp.to, ast, context);
@@ -200,6 +200,18 @@ export class CairoDynArray extends CairoStruct {
       ]),
     );
   }
+
+  get vPtr(): CairoPointer {
+    const ptr_member = this.members.get('ptr');
+    assert(ptr_member instanceof CairoPointer);
+    return ptr_member;
+  }
+
+  get vLen(): CairoFelt {
+    const len_member = this.members.get('len');
+    assert(len_member instanceof CairoFelt);
+    return len_member;
+  }
 }
 
 export class CairoTuple extends CairoType {
@@ -244,6 +256,16 @@ export class CairoPointer extends CairoType {
 }
 
 export class WarpLocation extends CairoFelt {
+  to: string;
+  constructor(public to_: string) {
+    super();
+    this.to = to_;
+  }
+
+  get pointsTo(): string {
+    return this.to;
+  }
+
   get typeName(): string {
     // TODO make sure that struct names get mangled
     return 'warp_id';
