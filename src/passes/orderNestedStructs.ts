@@ -91,18 +91,13 @@ function visitTree(
   visited: Set<StructDefinition>,
   orderedStructs: StructDefinition[],
 ) {
-  if (visited.has(root)) return;
-  visited.add(root);
-
-  if (!tree.has(root)) {
-    orderedStructs.push(root);
+  if (visited.has(root)) {
     return;
   }
 
-  const nestedStructs = tree.get(root);
-  assert(nestedStructs !== undefined);
+  visited.add(root);
 
-  nestedStructs.forEach((nested) => visitTree(nested, tree, visited, orderedStructs));
+  tree.get(root)?.forEach((nested) => visitTree(nested, tree, visited, orderedStructs));
 
   orderedStructs.push(root);
 }
