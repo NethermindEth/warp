@@ -1,4 +1,3 @@
-import assert from 'assert';
 import {
   ArrayType,
   ContractDefinition,
@@ -20,7 +19,7 @@ export class OrderNestedStructs extends ASTMapper {
   //    }
   //    struct Nested { ... }
   // }
-  // When transpiled to Cairo struct definitions must be reordered so that
+  // When transpiled to Cairo, struct definitions must be reordered so that
   // nested structs are defined first:
   //   struct Nested { ... }
   //   struct Top {
