@@ -7,7 +7,7 @@ import {
   FunctionStateMutability,
   // FunctionTypeName,
   getNodeType,
-  PointerType,
+  // PointerType,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -23,9 +23,6 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { dereferenceType, typeNameFromTypeNode } from '../../utils/utils';
 import { add, StringIndexedFuncGen } from '../base';
-import { counterGenerator } from '../../utils/utils';
-import { read } from 'fs-extra';
-// import { serialiseReads } from '../serialisation';
 
 // I know this feels wrong, but just go with it.
 export class MemoryToCallData extends StringIndexedFuncGen {
@@ -68,21 +65,26 @@ export class MemoryToCallData extends StringIndexedFuncGen {
   // `    return (ptr)`,
   // `end`,
   private createDynamicArrayReadFunction(key: string, type: ArrayType): string {
-    const memoryElementType = CairoType.fromSol(type.elementT, this.ast);
-    const funcName = `wm_to_calldata_dyn_${memoryElementType}`; //wm_to_calldata_felt
-    //const dereferenceMemeberType = dereferenceType(type.elementT);
-    const dynArrayReader = this.generateDynamicReaderType(type.elementT, memoryElementType);
+    const elemType = dereferenceType(type.elementT);
+    const cairoElemType = CairoType.fromSol(
+      elemType,
+      this.ast,
+      TypeConversionContext.MemoryAllocation,
+    );
+    const cairoElemName = cairoElemType.toString();
+    const funcName = `wm_to_cd_dyn_${cairoElemType.toString()}`; //wm_to_cd_StructDef
+    const dynArrayReaderCall = this.generateDynamicReaderType(type.elementT, cairoElemType);
 
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{range_check_ptr, warp_memory : DictAccess*}(loc : felt) -> (val : dynarray_struct_${memoryElementType.toString()}):`,
+        `func ${funcName}{range_check_ptr, warp_memory : DictAccess*}(loc : felt) -> (val : dynarray_struct_${cairoElemName}):`,
         `    alloc_locals`,
         `    let (len_256) = wm_read_256(loc)`,
         `    let (len_felt) = narrow_safe(len_256)`,
-        `    let (ptr : ${memoryElementType.toString()}*) = alloc()`,
-        `    let (ptr) = ${dynArrayReader}(len_felt, ptr, loc + 2)`,
-        `    return (dynarray_struct_${memoryElementType.toString()}(len=len_felt, ptr=ptr))`,
+        `    let (ptr : ${cairoElemName}*) = alloc()`,
+        `    let (ptr) = ${dynArrayReaderCall}(len_felt, ptr, loc + 2)`,
+        `    return (dynarray_struct_${cairoElemName}(len=len_felt, ptr=ptr))`,
         `end`,
       ].join('\n'),
     });
@@ -90,6 +92,7 @@ export class MemoryToCallData extends StringIndexedFuncGen {
     this.requireImport('starkware.cairo.common.dict', 'dict_read');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
     this.requireImport('warplib.memory', 'wm_read_256');
+    this.requireImport('warplib.memory', 'wm_read_felt');
     this.requireImport('warplib.memory', 'wm_index_dyn');
     this.requireImport('warplib.maths.utils', 'narrow_safe');
     this.requireImport('starkware.cairo.common.alloc', 'alloc');
@@ -97,35 +100,26 @@ export class MemoryToCallData extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private generateDynMemberLoader(cairoType: CairoType): string | undefined {
-    if (cairoType instanceof CairoFelt) {
-      return 'wm_read_felt';
-    } else if (cairoType.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
-      return 'wm_read_256';
-    } else if (
-      cairoType instanceof UserDefinedType &&
-      cairoType.definition instanceof StructDefinition
-    ) {
-      return `wm_read_struct_${cairoType.toString()}`;
-    }
-  }
+  // private generateDynMemberLoader(cairoType: CairoType): string | undefined {
+  //   if (cairoType instanceof CairoFelt) {
+  //     return 'wm_read_felt';
+  //   } else if (cairoType.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
+  //     return 'wm_read_256';
+  //   } else if (
+  //     cairoType instanceof UserDefinedType &&
+  //     cairoType.definition instanceof StructDefinition
+  //   ) {
+  //     return `wm_read_struct_${cairoType.toString()}`;
+  //   }
+  // }
 
   private generateDynamicReaderType(typeNode: TypeNode, memoryReadType: CairoType): string {
     const funcName = `wm_dynarry_reader_${memoryReadType.toString()}`;
+    // ReadTracker to see how many reads and locations have occured.
     const readTracker = new ReadTracker();
-    //const funcCall = this.generateDynMemberLoader(memoryReadType);
     const reads: string[] = [];
     const varDecls: string[] = [];
-    // const readCounter = counterGenerator();
-    // const locCounter = counterGenerator(-1);
-    //let readCounter = 0;
-    //let locCounter = 0;
-    const [varDecls_, reads_, readTracker_] = this.generateMemoryReadFunctionCall(
-      typeNode,
-      varDecls,
-      reads,
-      readTracker,
-    );
+    this.generateMemoryReadFunctionCall(typeNode, varDecls, reads, readTracker);
 
     this.generatedFunctions.set(memoryReadType.toString(), {
       name: funcName,
@@ -160,28 +154,32 @@ export class MemoryToCallData extends StringIndexedFuncGen {
     reads: string[],
     readTracker: ReadTracker,
   ): [varDecl: string[], read: string[], readTracker: ReadTracker] {
+    const derefTypeNode = dereferenceType(typeNode);
     const typeToRead = CairoType.fromSol(
-      typeNode,
+      derefTypeNode,
       this.ast,
       TypeConversionContext.MemoryAllocation,
     );
     // const readOffset = readCounter.next().value;
     // const locOffset = locCounter.next().value;
     //  Add a generator there that adds an int to the name. There should be a new one for each ne function.
-    if (typeNode instanceof PointerType) {
-      //varDecls.push(`read${readCounter}`);
+    // This used to dereference the pointer until we realised the the members in of a struct do not contain pointers if they contain a reference type
+    // if (typeNode instanceof PointerType) {
+    //   //varDecls.push(`read${readCounter}`);
 
-      reads.push(
-        `    let (read${readTracker.readOffset}) = wm_read_felt(${add(
-          'loc',
-          readTracker.locOffset,
-        )})`,
-      );
-      readTracker.incrementReadOffset();
-      readTracker.increamentLocOffset();
-      this.generateMemoryReadFunctionCall(dereferenceType(typeNode), varDecls, reads, readTracker);
-      return [varDecls, reads, readTracker];
-    } else if (typeToRead instanceof CairoFelt) {
+    //   reads.push(
+    //     `    let (read${readTracker.readOffset}) = wm_read_felt(${add(
+    //       'loc',
+    //       readTracker.locOffset,
+    //     )})`,
+    //   );
+    //   readTracker.incrementReadOffset();
+    //   readTracker.increamentLocOffset();
+    //   this.generateMemoryReadFunctionCall(dereferenceType(typeNode), varDecls, reads, readTracker);
+    //   return [varDecls, reads, readTracker];
+    // } else
+
+    if (typeToRead instanceof CairoFelt) {
       //const locOffset = locCounter.next().value;
       //const readOffset = readCounter.next().value;
       this.requireImport('warplib.memory', 'wm_read_felt');
@@ -209,10 +207,21 @@ export class MemoryToCallData extends StringIndexedFuncGen {
       readTracker.increamentLocOffset();
       return [varDecls, reads, readTracker];
     } else if (
-      typeNode instanceof UserDefinedType &&
-      typeNode.definition instanceof StructDefinition
+      derefTypeNode instanceof UserDefinedType &&
+      derefTypeNode.definition instanceof StructDefinition
     ) {
-      const structName = this.getOrCreateStructRead(typeNode);
+      // This is dereferencing the pointer. This is needed since every reference type in the dynArray will
+      // need to be dereferenced
+      reads.push(
+        `    let (read${readTracker.readOffset}) = wm_read_felt(${add(
+          'loc',
+          readTracker.locOffset,
+        )})`,
+      );
+      readTracker.incrementReadOffset();
+      readTracker.increamentLocOffset();
+
+      const structName = this.getOrCreateStructRead(derefTypeNode);
       varDecls.push(`read${readTracker.readOffset}`);
       reads.push(
         `    let(read${readTracker.readOffset}) = ${structName}(read${readTracker.readOffset - 1})`,
@@ -220,6 +229,7 @@ export class MemoryToCallData extends StringIndexedFuncGen {
       readTracker.incrementReadOffset();
       return [varDecls, reads, readTracker];
     } else {
+      // This is needed to make sure that if there another type in a struct that we are not going to reutrn it.
       throw new NotSupportedYetError(
         `Copying ${printTypeNode(typeNode)} from memory to calldata not implemented yet`,
       );
@@ -252,9 +262,9 @@ export class MemoryToCallData extends StringIndexedFuncGen {
     this.generatedFunctions.set(funcName, {
       name: funcName,
       code: [
-        `func ${funcName}{implicits}(loc:felt) -> (res: ${cairoType})`,
+        `func ${funcName}{range_check_ptr, warp_memory : DictAccess*}(loc:felt) -> (res: ${cairoType}):`,
         reads.join('\n'),
-        `return ${cairoType}(${varDecls.join(',')})`,
+        `return (${cairoType}(${varDecls.join(',')}))`,
         `end`,
       ].join('\n'),
     });
@@ -300,133 +310,3 @@ class ReadTracker {
     this._locOffset = this.locCounter.next().value;
   }
 }
-
-//   private createStructCopyFunction(key: string, type: UserDefinedType): string {
-//     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
-//     const funcName = `ws_to_memory${this.generatedFunctions.size}`;
-
-//     this.generatedFunctions.set(key, {
-//       name: funcName,
-//       code: [
-//         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}(loc : felt) -> (memLoc : felt):`,
-//         `    alloc_locals`,
-//         `    let (memStart) = wm_alloc(${uint256(memoryType.width)})`,
-//         ...generateCopyInstructions(type, this.ast).flatMap(
-//           ({ storageOffset, copyType }, index) => {
-//             if (copyType === undefined) {
-//               return [
-//                 `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)})`,
-//                 `dict_write{dict_ptr=warp_memory}(${add('memStart', index)}, copy${index})`,
-//               ];
-//             } else {
-//               const funcName = this.getOrCreate(copyType);
-//               return [
-//                 `let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`,
-//                 `dict_write{dict_ptr=warp_memory}(${add('memStart', index)}, copy${index})`,
-//               ];
-//             }
-//           },
-//         ),
-//         `    return (memStart)`,
-//         `end`,
-//       ].join('\n'),
-//     });
-
-//     this.requireImport('starkware.cairo.common.dict', 'dict_write');
-//     this.requireImport('warplib.memory', 'wm_alloc');
-
-//     return funcName;
-//   }
-
-//   private createStaticArrayCopyFunction(key: string, type: ArrayType): string {
-//     // TEMP
-//     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
-//     const funcName = `ws_to_memory${this.generatedFunctions.size}`;
-
-//     this.generatedFunctions.set(key, {
-//       name: funcName,
-//       code: [
-//         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}(loc : felt) -> (memLoc : felt):`,
-//         `    alloc_locals`,
-//         `    let (memStart) = wm_alloc(${uint256(memoryType.width)})`,
-//         ...generateCopyInstructions(type, this.ast).flatMap(
-//           ({ storageOffset, copyType }, index) => {
-//             if (copyType === undefined) {
-//               return [
-//                 `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)})`,
-//                 `dict_write{dict_ptr=warp_memory}(${add('memStart', index)}, copy${index})`,
-//               ];
-//             } else {
-//               const funcName = this.getOrCreate(copyType);
-//               return [
-//                 `let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`,
-//                 `dict_write{dict_ptr=warp_memory}(${add('memStart', index)}, copy${index})`,
-//               ];
-//             }
-//           },
-//         ),
-//         `    return (memStart)`,
-//         `end`,
-//       ].join('\n'),
-//     });
-
-//     this.requireImport('starkware.cairo.common.dict', 'dict_write');
-//     this.requireImport('warplib.memory', 'wm_alloc');
-
-//     return funcName;
-//   }
-
-// type CopyInstruction = {
-//   // The offset into the storage object to copy
-//   storageOffset: number;
-//   // If the copy requires a recursive call, this is the type to copy
-//   copyType?: TypeNode;
-// };
-
-// function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
-//   let members: TypeNode[];
-
-//   if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-//     members = type.definition.vMembers.map((decl) => getNodeType(decl, ast.compilerVersion));
-//   } else if (type instanceof ArrayType && type.size !== undefined) {
-//     // TODO separate array copy function that recurses, potentially only if the array is large
-//     const narrowedWidth = narrowBigInt(type.size);
-//     if (narrowedWidth === null) {
-//       throw new WillNotSupportError(`Array size ${type.size} not supported`);
-//     }
-//     members = mapRange(narrowedWidth, () => type.elementT);
-//   } else {
-//     throw new NotSupportedYetError(
-//       `Copying ${printTypeNode(type)} from storage to memory not implemented yet`,
-//     );
-//   }
-
-//   let storageOffset = 0;
-//   return members.flatMap((memberType) => {
-//     if (memberType instanceof ArrayType && memberType.size === undefined) {
-//       throw new NotSupportedYetError(
-//         `Copying ${printTypeNode(memberType)} from storage to memory not implemented yet`,
-//       );
-//     }
-
-//     if (
-//       (memberType instanceof ArrayType && memberType.size !== undefined) ||
-//       (memberType instanceof UserDefinedType && memberType.definition instanceof StructDefinition)
-//     ) {
-//       const offset = storageOffset;
-//       storageOffset += CairoType.fromSol(
-//         memberType,
-//         ast,
-//         TypeConversionContext.StorageAllocation,
-//       ).width;
-//       return [{ storageOffset: offset, copyType: memberType }];
-//     } else {
-//       const width = CairoType.fromSol(
-//         memberType,
-//         ast,
-//         TypeConversionContext.StorageAllocation,
-//       ).width;
-//       return mapRange(width, () => ({ storageOffset: storageOffset++ }));
-//     }
-//   });
-//
