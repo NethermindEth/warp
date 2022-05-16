@@ -22,7 +22,7 @@ import { ASTMapper } from '../ast/mapper';
 import { getFunctionTypeString } from '../utils/getTypeString';
 
 /* Convert fixed-size byte arrays (e.g. bytes2, bytes8) to their equivalent unsigned integer.
-		This pass currently does not handle dynamically-sized bytes arrays (i.e. bytes).
+    This pass currently does not handle dynamically-sized bytes arrays (i.e. bytes).
 */
 
 export class BytesConverter extends ASTMapper {
