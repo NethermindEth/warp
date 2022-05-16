@@ -13,9 +13,14 @@ import {
 import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { NotSupportedYetError, WillNotSupportError } from '../../utils/errors';
+import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { dereferenceType, mapRange, narrowBigInt, typeNameFromTypeNode } from '../../utils/utils';
+import {
+  dereferenceType,
+  mapRange,
+  narrowBigIntSafe,
+  typeNameFromTypeNode,
+} from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
@@ -290,11 +295,7 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
   if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
     members = type.definition.vMembers.map((decl) => getNodeType(decl, ast.compilerVersion));
   } else if (type instanceof ArrayType && type.size !== undefined) {
-    // TODO separate array copy function that recurses, potentially only if the array is large
-    const narrowedWidth = narrowBigInt(type.size);
-    if (narrowedWidth === null) {
-      throw new WillNotSupportError(`Array size ${type.size} not supported`);
-    }
+    const narrowedWidth = narrowBigIntSafe(type.size, `Array size ${type.size} not supported`);
     members = mapRange(narrowedWidth, () => type.elementT);
   } else {
     throw new NotSupportedYetError(

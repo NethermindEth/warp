@@ -11,7 +11,12 @@ import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { notNull } from '../../utils/typeConstructs';
-import { dereferenceType, mapRange, narrowBigInt, typeNameFromTypeNode } from '../../utils/utils';
+import {
+  dereferenceType,
+  mapRange,
+  narrowBigIntSafe,
+  typeNameFromTypeNode,
+} from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
 
@@ -29,8 +34,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     assert(type instanceof ArrayType);
 
     assert(type.size !== undefined, `${printNode(node)} has undefined size`);
-    const size = narrowBigInt(type.size);
-    assert(size !== null, `${printNode(node)} too long to process`);
+    const size = narrowBigIntSafe(type.size, `${printNode(node)} too long to process`);
 
     const name = this.getOrCreate(type.elementT, size);
 

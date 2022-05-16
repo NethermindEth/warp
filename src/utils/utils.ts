@@ -35,7 +35,12 @@ import {
 import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
 import { printTypeNode } from './astPrinter';
-import { logError, NotSupportedYetError, TranspileFailedError } from './errors';
+import {
+  logError,
+  NotSupportedYetError,
+  TranspileFailedError,
+  WillNotSupportError,
+} from './errors';
 import { createAddressTypeName, createBoolTypeName, createNumberLiteral } from './nodeTemplates';
 import { Class } from './typeConstructs';
 
@@ -334,6 +339,14 @@ export function bigintToTwosComplement(val: bigint, width: number): bigint {
 export function narrowBigInt(n: bigint): number | null {
   const narrowed = parseInt(n.toString());
   if (BigInt(narrowed) !== n) return null;
+  return narrowed;
+}
+
+export function narrowBigIntSafe(n: bigint, errorMessage?: string): number {
+  const narrowed = narrowBigInt(n);
+  if (narrowed === null) {
+    throw new WillNotSupportError(errorMessage ?? `Unable to accurately parse ${n.toString()}`);
+  }
   return narrowed;
 }
 
