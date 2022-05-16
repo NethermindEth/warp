@@ -100,7 +100,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
   ['example_contracts/namedArgs/function', 'Success'],
   // Returning memory array of struct from external function does not read array
-  ['example_contracts/nested_static_array_struct', 'NotSupportedYet'],
+  ['example_contracts/nested_static_array_struct', 'CairoCompileFailed'],
   ['example_contracts/nested_struct_static_array', 'CairoCompileFailed'],
   ['example_contracts/payable-function', 'Success'],
   // Cannot import with a - in the filename
