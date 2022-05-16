@@ -131,6 +131,8 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeConversion/implicit_type_conv', 'Success'],
   ['example_contracts/typeConversion/shifts', 'Success'],
   ['example_contracts/typeMinMax', 'Success'],
+  // Don't automatically cast uin256 elements when creating static array
+  ['example_contracts/uint256_static_array_casting', 'CairoCompileFailed'],
   // Serialising BytesType not supported yet
   ['example_contracts/typestrings/basicArrays', 'NotSupportedYet'],
   //  Not supported operation delete on CairoContract
