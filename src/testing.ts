@@ -101,6 +101,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/namedArgs/constructor', 'Success'],
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
   ['example_contracts/namedArgs/function', 'Success'],
+  ['example_contracts/nested_structs', 'Success'],
   ['example_contracts/payable-function', 'Success'],
   // Struct outside of contract
   ['example_contracts/pure-function', 'CairoCompileFailed'],
