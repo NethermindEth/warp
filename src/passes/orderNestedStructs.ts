@@ -3,6 +3,7 @@ import {
   ContractDefinition,
   getNodeType,
   MappingType,
+  SourceUnit,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -25,7 +26,17 @@ export class OrderNestedStructs extends ASTMapper {
   //   struct Top {
   //     member n : Nested;
   //   }
+
+  visitSourceUnit(node: SourceUnit, ast: AST): void {
+    this.reorderNestedStructs(node, ast);
+    this.commonVisit(node, ast);
+  }
+
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
+    this.reorderNestedStructs(node, ast);
+  }
+
+  private reorderNestedStructs(node: SourceUnit | ContractDefinition, ast: AST) {
     const structs = node.vStructs;
     const [roots, tree] = this.makeStructTree(structs, ast);
 

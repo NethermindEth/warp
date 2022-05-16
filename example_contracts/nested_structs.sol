@@ -1,6 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
+struct SourceParent {
+    uint a;
+    SourceLeaf b;
+}
+
+struct SourceLeaf {
+    uint c;
+}
+
 contract WARP {
     struct Parent {
         Mid1 mid1;
