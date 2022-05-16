@@ -8,6 +8,7 @@ import {
   Expression,
   FunctionCall,
   FunctionCallKind,
+  generalizeType,
   getNodeType,
   PointerType,
   Return,
@@ -35,6 +36,7 @@ are handled by the References pass
 // TODO conclusively handle all edge cases
 // TODO for example operations between literals and non-literals truncate the literal,
 // they do not upcast the non-literal
+// TODO array conversions
 
 export class ImplicitConversionToExplicit extends ASTMapper {
   generateExplicitConversion(typeTo: string, expression: Expression, ast: AST): FunctionCall {
@@ -56,39 +58,27 @@ export class ImplicitConversionToExplicit extends ASTMapper {
   visitReturn(node: Return, ast: AST): void {
     this.commonVisit(node, ast);
 
-    const funcDef = node.vFunctionReturnParameters.vParameters;
-
     if (node.vExpression == undefined) return;
 
-    // Return type should be a single value
-    if (funcDef.length > 1) return;
+    const returnDeclarations = node.vFunctionReturnParameters.vParameters;
+    // Tuple returns handled by TupleExpressionSplitter
+    if (returnDeclarations.length !== 1) return;
 
-    // TODO test tuple of structs
-    if (node.vExpression.typeString.startsWith('tuple(')) return;
+    const returnValueType = generalizeType(getNodeType(node.vExpression, ast.compilerVersion))[0];
 
-    // Skip enums - implicit conversion is not allowed
-    if (funcDef[0].typeString.startsWith('enum ')) return;
+    const expectedRetType = getNodeType(returnDeclarations[0], ast.compilerVersion);
 
-    // TODO handle or rule out implicit conversions of structs
-    if (funcDef[0].vType instanceof UserDefinedTypeName) return;
-    else {
-      const retParamType = dereferenceType(
-        getNodeType(node.vFunctionReturnParameters.vParameters[0], ast.compilerVersion),
+    const res = compareTypeSize(expectedRetType, returnValueType);
+
+    if (res == 1) {
+      const castedReturnExp = this.generateExplicitConversion(
+        expectedRetType.pp(),
+        node.vExpression,
+        ast,
       );
-      const retValueType = dereferenceType(getNodeType(node.vExpression, ast.compilerVersion));
-      const res = compareTypeSize(retParamType, retValueType);
-
-      if (res == 1) {
-        const castedReturnExp = this.generateExplicitConversion(
-          funcDef[0].typeString,
-          node.vExpression,
-          ast,
-        );
-        node.vExpression = castedReturnExp;
-        ast.registerChild(castedReturnExp, node);
-      }
+      node.vExpression = castedReturnExp;
+      ast.registerChild(castedReturnExp, node);
     }
-    return;
   }
 
   visitBinaryOperation(node: BinaryOperation, ast: AST): void {
