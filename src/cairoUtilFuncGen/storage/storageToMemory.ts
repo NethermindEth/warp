@@ -109,7 +109,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
   }
 
   private createStaticArrayCopyFunction(key: string, type: ArrayType): string {
-    assert(type.size !== undefined, 'something');
+    assert(type.size !== undefined, 'Expected static array with known size');
     return type.size <= 5
       ? this.createSmallStaticArrayCopyFunction(key, type)
       : this.createLargeStaticArrayCopyFunction(key, type);
@@ -163,15 +163,15 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
+    const elemW = CairoType.fromSol(type.elementT, this.ast).width;
     let copyCode: string;
-    if (
-      type.elementT instanceof ArrayType ||
-      (type.elementT instanceof UserDefinedType &&
-        type.elementT.definition instanceof StructDefinition)
-    ) {
-      copyCode = `    let (copy) = ${this.getOrCreate(type.elementT)}`;
+    if (isStaticArrayOrStruct(type.elementT)) {
+      copyCode = [
+        `   let (copy) = ${this.getOrCreate(type.elementT)}('loc')`,
+        `   dict_write{dict_ptr=warp_memory}(mem_start)`,
+      ].join('\n');
     } else {
-      copyCode = mapRange(CairoType.fromSol(type.elementT, this.ast).width, (n) =>
+      copyCode = mapRange(elemW, (n) =>
         [
           `   let (copy) = WARP_STORAGE.read(${add('loc', n)})`,
           `   dict_write{dict_ptr=warp_memory}(${add('mem_start', n)}, copy)`,
@@ -191,7 +191,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `   end`,
         `   let (index) = uint256_sub(length, Uint256(1, 0))`,
         copyCode,
-        `   return ${funcName}_elem(mem_start, loc, index)`,
+        `   return ${funcName}_elem(${add('mem_start', elemW)}, ${add('loc', elemW)}, index)`,
         `end`,
 
         `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt):`,
@@ -311,10 +311,7 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
       );
     }
 
-    if (
-      (memberType instanceof ArrayType && memberType.size !== undefined) ||
-      (memberType instanceof UserDefinedType && memberType.definition instanceof StructDefinition)
-    ) {
+    if (isStaticArrayOrStruct(memberType)) {
       const offset = storageOffset;
       storageOffset += CairoType.fromSol(
         memberType,
@@ -331,4 +328,11 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
       return mapRange(width, () => ({ storageOffset: storageOffset++ }));
     }
   });
+}
+
+function isStaticArrayOrStruct(type: TypeNode) {
+  return (
+    (type instanceof ArrayType && type.size !== undefined) ||
+    (type instanceof UserDefinedType && type.definition instanceof StructDefinition)
+  );
 }
