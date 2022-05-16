@@ -94,7 +94,6 @@ function visitTree(
   if (visited.has(root)) {
     return;
   }
-
   visited.add(root);
 
   tree.get(root)?.forEach((nested) => visitTree(nested, tree, visited, orderedStructs));
