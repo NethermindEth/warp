@@ -44,6 +44,7 @@ import {
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
 } from './passes';
+import { OrderNestedStructs } from './passes/orderNestedStructs';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { createPassMap, parsePassOrder } from './utils/cliOptionParsing';
@@ -92,6 +93,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Fi', FreeLibraryCallInliner],
     ['Rl', ReferencedLibraries],
     ['Ii', InheritanceInliner],
+    ['Ons', OrderNestedStructs],
     ['Ech', ExternalContractHandler],
     ['Mh', ModifierHandler],
     ['Sa', StorageAllocator],
