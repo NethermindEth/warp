@@ -1,8 +1,9 @@
+import assert from 'assert';
 import {
   ArrayType,
+  ASTNode,
   ContractDefinition,
   getNodeType,
-  MappingType,
   SourceUnit,
   StructDefinition,
   TypeNode,
@@ -66,7 +67,7 @@ export class OrderNestedStructs extends ASTMapper {
     structs.forEach((struct) => {
       struct.vMembers.forEach((varDecl) => {
         const nestedStruct = findStruct(getNodeType(varDecl, ast.compilerVersion));
-        if (nestedStruct !== null) {
+        if (nestedStruct !== null && sameSource(struct, nestedStruct)) {
           roots.delete(nestedStruct);
           tree.has(struct)
             ? tree.get(struct)?.push(nestedStruct)
@@ -115,9 +116,16 @@ function findStruct(varType: TypeNode): StructDefinition | null {
   if (varType instanceof UserDefinedType && varType.definition instanceof StructDefinition)
     return varType.definition;
 
-  if (varType instanceof ArrayType) return findStruct(varType.elementT);
-
-  if (varType instanceof MappingType) return findStruct(varType.valueType);
+  if (varType instanceof ArrayType && varType.size !== undefined)
+    return findStruct(varType.elementT);
 
   return null;
+}
+
+function sameSource(node1: ASTNode, node2: ASTNode) {
+  const source1 = node1.getClosestParentByType(SourceUnit);
+  const source2 = node2.getClosestParentByType(SourceUnit);
+  assert(source1 !== undefined && source2 !== undefined);
+
+  return source1.id === source2.id;
 }
