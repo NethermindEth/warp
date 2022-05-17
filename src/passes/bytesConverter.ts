@@ -48,7 +48,7 @@ export class BytesConverter extends ASTMapper {
   }
 
   visitTypeName(node: TypeName, ast: AST): void {
-    const typeNode = typeNameToTypeNode(node);
+    const typeNode = getNodeType(node, ast.compilerVersion);
     const replacementTypeNode = replaceFixedBytesType(typeNode);
     if (typeNode.pp() !== replacementTypeNode.pp()) {
       const typeString = replacementTypeNode.pp();
