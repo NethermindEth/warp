@@ -151,20 +151,21 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         insertConversionIfNecessary(node.vArguments[0], paramType, ast);
         return;
       }
-      // Pop needs special consideration as it can take no arguments, but the typestring still has one
-      if (['pop', 'push'].includes(node.vFunctionName)) {
-        const paramTypes = getParameterTypes(node, ast).slice(1);
+      if (['push', 'pop'].includes(node.vFunctionName)) {
+        const paramTypes = getParameterTypes(node, ast);
+        // Solc 0.7.0 types push and pop as you would expect, 0.8.0 adds an extra initial argument
         assert(
-          paramTypes.length === node.vArguments.length,
+          paramTypes.length >= node.vArguments.length,
           error(
             `${printNode(node)} has incorrect number of arguments. Expected ${
               paramTypes.length
             }, got ${node.vArguments.length}`,
           ),
         );
-        paramTypes.forEach((paramType, index) =>
-          insertConversionIfNecessary(node.vArguments[index], paramType, ast),
-        );
+        node.vArguments.forEach((arg, index) => {
+          const paramIndex = index + paramTypes.length - node.vArguments.length;
+          insertConversionIfNecessary(arg, paramTypes[paramIndex], ast);
+        });
         return;
       }
     }
@@ -178,8 +179,8 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         }`,
       ),
     );
-    paramTypes.forEach((paramType, index) =>
-      insertConversionIfNecessary(node.vArguments[index], paramType, ast),
+    node.vArguments.forEach((arg, index) =>
+      insertConversionIfNecessary(arg, paramTypes[index], ast),
     );
   }
 
