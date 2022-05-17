@@ -119,7 +119,9 @@ describe('Deployed contracts have correct behaviour', function () {
         const address = deployedAddresses.get(`${fileTest.name}.${fileTest.contract}`);
         if (address === undefined) this.skip();
         const expects = await fileTest.expectations;
-        await Promise.all(expects.map((expect) => behaviourTest(expect, fileTest, address)));
+        for (let i = 0; i < expects.length; ++i) {
+          await behaviourTest(expects[i], fileTest, address);
+        }
       });
     } else {
       const expects = fileTest.expectations;

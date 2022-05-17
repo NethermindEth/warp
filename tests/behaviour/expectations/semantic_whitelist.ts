@@ -762,9 +762,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_function_calldata_memory_interface.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/super_in_constructor.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_function_from_a_library.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/member_notation_ctor.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_function_calldata_calldata_interface.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/value_for_constructor.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/overloaded_function_call_resolve_to_second.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/overloaded_function_call_with_if_else.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_function.sol',
@@ -774,10 +772,12 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/pass_dynamic_arguments_to_the_base_base_with_gap.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_constant_state_var.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/super_overload.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/super_in_constructor_assignment.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_function_calldata_memory.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/derived_overload_base_function_indirect.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/member_notation_ctor.sol', // multiple source in one file not supported by test suite
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/address_overload_resolution.sol', // REQUIRES CAIRO 0.9 uses new
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/super_in_constructor_assignment.sol', // WILL NOT SUPPORT function objects
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/value_for_constructor.sol', // WILL NOT SUPPORT function call options value
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_function_through_dispatch.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/base_access_to_function_type_variables.sol', // WILL NOT SUPPORT function objects
   ],
