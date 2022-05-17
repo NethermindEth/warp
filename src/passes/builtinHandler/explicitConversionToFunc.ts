@@ -24,7 +24,6 @@ import { functionaliseIntConversion } from '../../warplib/implementations/conver
 export class ExplicitConversionToFunc extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     this.commonVisit(node, ast);
-    console.log(`Visiting ${printNode(node)} ${node.vFunctionName}`);
     if (node.kind !== FunctionCallKind.TypeConversion) return;
 
     const typeNameType = getNodeType(node.vExpression, ast.compilerVersion);

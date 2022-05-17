@@ -274,6 +274,10 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('copy_storage_to_memory', [
+          File.Simple('dynamic_arrays', [
+            Expect.Simple('copySimpleArrayLength', [], ['3', '0']),
+            Expect.Simple('copySimpleArrayValues', [], ['5', '0', '4']),
+          ]),
           File.Simple('static_arrays', [
             Expect.Simple('getX', [], ['1', '2', '3', '4', '5']),
             Expect.Simple(
@@ -529,10 +533,6 @@ export const expectations = flatten(
             ]),
             new Expect('revertBothBranches', [
               ['definitelyFailsWithMsg', [], null, '0', 'I am failing'],
-            ]),
-            new Expect('revertBothBranches fails with no message', [
-              // fails without a message
-              ['definitelyFailsNoMsg', [], null, '0'],
             ]),
           ]),
           File.Simple('assert', [
@@ -1662,10 +1662,12 @@ export const expectations = flatten(
             Expect.Simple('dMin', [], ['0']),
             Expect.Simple('dMax', [], ['3']),
           ]),
-          File.Simple('informationContract', [
-            Expect.Simple('getName', [], ['1463898704']), // 'WARP' -> 0x57415250
-            Expect.Simple('getId', [], ['3619205059']),
-          ]),
+
+          // Requires handling strings
+          // File.Simple('informationContract', [
+          //   Expect.Simple('getName', [], ['1463898704']), // 'WARP' -> 0x57415250
+          //   Expect.Simple('getId', [], ['3619205059']),
+          // ]),
         ]),
         new Dir('using_for', [
           File.Simple('simple', [
