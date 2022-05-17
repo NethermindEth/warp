@@ -12,6 +12,7 @@ import {
   // getNodeType,
   Identifier,
   Return,
+  TupleExpression,
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
@@ -114,7 +115,13 @@ export function collectDynArrayVariables(
 
   const returnIdentifiers = returnStatement
     .getChildren(true)
-    .filter((n): n is Identifier => n instanceof Identifier)
+    .filter(
+      (n): n is Identifier =>
+        n instanceof Identifier &&
+        ((n.parent instanceof TupleExpression &&
+          n.getClosestParentByType(FunctionCall) === undefined) ||
+          n.parent instanceof Return),
+    )
     .map((id): [Identifier, ASTNode | undefined] => [id, id.vReferencedDeclaration])
     .filter(
       (pair: [Identifier, ASTNode | undefined]): pair is [Identifier, VariableDeclaration] =>
