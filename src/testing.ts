@@ -30,13 +30,13 @@ const ResultTypeOrder = [
 ];
 
 const expectedResults = new Map<string, ResultType>([
+  ['example_contracts/array_length', 'Success'],
   ['example_contracts/ERC20', 'Success'],
   ['example_contracts/ERC20_storage', 'Success'],
   ['example_contracts/boolOp_noSideEffects', 'Success'],
   // Uses conditionals implicitly
-  ['example_contracts/boolOp_sideEffects', 'NotSupportedYet'],
-  // Uses conditionals
-  ['example_contracts/c2c', 'NotSupportedYet'],
+  ['example_contracts/boolOp_sideEffects', 'Success'],
+  ['example_contracts/c2c', 'Success'],
   // Uses conditionals explicitly
   ['example_contracts/conditional', 'WillNotSupport'],
   ['example_contracts/contract_to_contract', 'Success'],
@@ -58,7 +58,6 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/fallbackWithoutArgs', 'Success'],
   // Typestring for the internal function call doesn't contain a location so a read isn't generated
   ['example_contracts/freeFunction', 'Success'],
-  ['example_contracts/function_with_nested_return', 'Success'],
   ['example_contracts/functionArgumentConversions', 'Success'],
   ['example_contracts/idManglingTest8', 'Success'],
   ['example_contracts/idManglingTest9', 'Success'],
@@ -79,7 +78,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/interfaces', 'CairoCompileFailed'],
   ['example_contracts/invalidSolidity', 'SolCompileFailed'],
   ['example_contracts/lib', 'Success'],
-  ['example_contracts/libraries/using_for_star', 'NotSupportedYet'],
+  ['example_contracts/libraries/using_for_star', 'Success'],
   ['example_contracts/literalOperations', 'Success'],
   ['example_contracts/loops/for_loop_with_break', 'Success'],
   ['example_contracts/loops/for_loop_with_continue', 'Success'],
@@ -100,10 +99,6 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/namedArgs/constructor', 'Success'],
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
   ['example_contracts/namedArgs/function', 'Success'],
-  ['example_contracts/payable_function', 'Success'],
-  // Struct outside of contract
-  ['example_contracts/pure_function', 'Success'],
-  ['example_contracts/return_var_capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],
   ['example_contracts/returnInserter', 'Success'],
   ['example_contracts/simple_storage_var', 'Success'],
@@ -127,6 +122,17 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeConversion/shifts', 'Success'],
   ['example_contracts/typeMinMax', 'Success'],
   ['example_contracts/units', 'Success'],
+  ['example_contracts/unsupportedFunctions/abi', `WillNotSupport`],
+  ['example_contracts/unsupportedFunctions/keccak256', `WillNotSupport`],
+  ['example_contracts/unsupportedFunctions/ecrecover', `WillNotSupport`],
+  ['example_contracts/unsupportedFunctions/addmod', `WillNotSupport`],
+  // Uses bytes memory
+  ['example_contracts/unsupportedFunctions/shadowAbi', `NotSupportedYet`],
+  // Uses bytes memory
+  ['example_contracts/unsupportedFunctions/shadowKeccak256', `NotSupportedYet`],
+  ['example_contracts/unsupportedFunctions/shadowEcrecover', `Success`],
+  // uses modulo (%)
+  ['example_contracts/unsupportedFunctions/shadowAddmod', `NotSupportedYet`],
   // Uses WARP_STORAGE in a free function
   ['example_contracts/using_for/imports/user_defined', 'CairoCompileFailed'],
   // global_directive.sol cannot resolve struct when file imported as identifier

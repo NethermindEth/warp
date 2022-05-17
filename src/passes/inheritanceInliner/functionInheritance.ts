@@ -19,20 +19,30 @@ import { getBaseContracts } from './utils';
 export function addPrivateSuperFunctions(
   node: ContractDefinition,
   idRemapping: Map<number, FunctionDefinition>,
+  idRemappingOverriders: Map<number, FunctionDefinition>,
   ast: AST,
 ): void {
+  const currentFunctions: Map<string, FunctionDefinition> = new Map();
+  // collect functions in the current contract
+  node.vFunctions.forEach((f) => currentFunctions.set(f.name, f));
   getBaseContracts(node).forEach((base, depth) => {
     base.vFunctions
       .filter((func) => !func.isConstructor)
-      .map((func) => {
+      .forEach((func) => {
+        const existingEntry = currentFunctions.get(func.name);
         const clonedFunction = cloneASTNode(func, ast);
         idRemapping.set(func.id, clonedFunction);
         clonedFunction.name = `${clonedFunction.name}_s${depth + 1}`;
         clonedFunction.visibility = FunctionVisibility.Private;
         clonedFunction.scope = node.id;
-        return clonedFunction;
-      })
-      .forEach((func) => node.appendChild(func));
+        node.appendChild(clonedFunction);
+        if (existingEntry !== undefined) {
+          idRemappingOverriders.set(func.id, existingEntry);
+        } else {
+          currentFunctions.set(func.name, clonedFunction);
+          idRemappingOverriders.set(func.id, clonedFunction);
+        }
+      });
   });
 }
 

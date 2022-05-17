@@ -5,6 +5,10 @@ export const expectations = flatten(
   new Dir('tests', [
     new Dir('behaviour', [
       new Dir('contracts', [
+        new Dir('array_len', [
+          File.Simple('memoryArray', [Expect.Simple('dynMemArrayLen', [], ['45', '0'])]),
+          File.Simple('storageArray', [Expect.Simple('dynStorageArrayLen', [], ['1', '0'])]),
+        ]),
         new Dir('assignments', [
           File.Simple('functionSingle', [
             Expect.Simple('test', ['3'], ['3']),
@@ -97,6 +101,25 @@ export const expectations = flatten(
                   'Error message: Error: value out-of-bounds. Value must be less than 2**8.',
                 ],
               ]),
+            ],
+          ),
+        ]),
+        new Dir('conditionals', [
+          File.Simple('and', [
+            Expect.Simple('f', ['50', '0', '0'], ['0', '0']),
+            Expect.Simple('f', ['10', '0', '1'], ['1', '0']),
+            Expect.Simple('f', ['4', '0', '1'], ['5', '0']),
+          ]),
+          new File(
+            'nested_and_or',
+            'WARP',
+            ['740', '0'],
+            [
+              Expect.Simple('move_valid', ['0', '0', '500', '0'], ['0']),
+              Expect.Simple('move_valid', ['700', '0', '500', '0'], ['0']),
+              Expect.Simple('move_valid', ['800', '0', '500', '0'], ['1']),
+              Expect.Simple('move_valid', ['2000', '0', '500', '0'], ['0']),
+              Expect.Simple('move_valid', ['1200', '0', '500', '0'], ['1']),
             ],
           ),
         ]),
@@ -520,6 +543,10 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('expressions', [
+          File.Simple('assignments_as_rvalues', [
+            Expect.Simple('addingLocalAssignments', ['5', '11'], ['16']),
+            Expect.Simple('addingStorageAssignments', ['5', '11'], ['16', '0']),
+          ]),
           File.Simple('ineffectual', [Expect.Simple('test', ['1'], ['1'])]),
           File.Simple('literals', [
             Expect.Simple('unsignedNarrow', [], ['255', '251', '0', '0']),
@@ -993,11 +1020,26 @@ export const expectations = flatten(
             new File('base', 'Base', [], [Expect.Simple('g', ['3'], ['3'])]),
             new File('mid', 'Mid', [], [Expect.Simple('g', ['10'], ['20'])]),
             new File('derived', 'Derived', [], [Expect.Simple('f', ['5'], ['15'])]),
-          ]),
-          new Dir('variables', [
-            new File('derived', 'Derived', [], [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
+            new File(
+              'functionOverriding',
+              'C',
+              [],
+              [Expect.Simple('f', [], ['30', '0']), Expect.Simple('g', [], ['30', '0'])],
+            ),
           ]),
           new Dir('modifiers', [
+            new File(
+              'callBaseModifier',
+              'B',
+              [],
+              [
+                Expect.Simple('f', ['5', '0'], ['2', '0'], 'call base modifier and success'),
+                new Expect('failedModifier', [
+                  ['f', ['15', '0'], null, '0', 'Failed call to base modifier'],
+                ]),
+                Expect.Simple('g', ['20', '0'], ['2', '0'], 'call modifier overrider'),
+              ],
+            ),
             new File(
               'modifierInheritance',
               'D',
@@ -1044,6 +1086,16 @@ export const expectations = flatten(
                 ]),
               ],
             ),
+          ]),
+          new Dir('structs', [
+            File.Simple('derived', [
+              Expect.Simple('identity', ['1', '5'], ['1', '5']),
+              Expect.Simple('swap', ['1', '5'], ['5', '1']),
+              Expect.Simple('set', ['1', '5'], ['1']),
+            ]),
+          ]),
+          new Dir('variables', [
+            new File('derived', 'Derived', [], [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
           ]),
         ]),
         new Dir('libraries', [
@@ -1618,6 +1670,16 @@ export const expectations = flatten(
               ['assign', ['10', '11'], [], '0'],
               ['getMember', [], ['10', '11'], '0'],
             ]),
+          ]),
+        ]),
+        new Dir('type_information', [
+          File.Simple('informationEnum', [
+            Expect.Simple('dMin', [], ['0']),
+            Expect.Simple('dMax', [], ['3']),
+          ]),
+          File.Simple('informationContract', [
+            Expect.Simple('getName', [], ['1463898704']), // 'WARP' -> 0x57415250
+            Expect.Simple('getId', [], ['3619205059']),
           ]),
         ]),
         File.Simple('example', [

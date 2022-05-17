@@ -41,26 +41,33 @@ export class StorageAllocator extends ASTMapper {
       }
     });
     insertIntoConstructor(initialisationBlock, node, ast);
-    ast.replaceNode(
-      node,
-      new CairoContract(
-        node.id,
-        node.src,
-        node.name,
-        node.scope,
-        node.kind,
-        node.abstract,
-        node.fullyImplemented,
-        node.linearizedBaseContracts,
-        node.usedErrors,
-        allocations,
-        usedStorage,
-        node.documentation,
-        node.children,
-        node.nameLocation,
-        node.raw,
-      ),
+
+    const cairoNode = new CairoContract(
+      node.id,
+      node.src,
+      node.name,
+      node.scope,
+      node.kind,
+      node.abstract,
+      node.fullyImplemented,
+      node.linearizedBaseContracts,
+      node.usedErrors,
+      allocations,
+      usedStorage,
+      node.documentation,
+      node.children,
+      node.nameLocation,
+      node.raw,
     );
+    ast.replaceNode(node, cairoNode);
+
+    // This next code line is a hotfix when there is struct inheritance and the base contract's definiton
+    // gets replaced by its cairo counter part. From now on using `getNodeType` on an expression with a
+    // an inherited struct type will crash unexpectedly.
+    // The issue is caused because the property `vLinearizedBaseContracts` that is accessed through `getNodeType`
+    // still points to the old contract's non-cairo definition which has it's context set as undefined due to
+    // the replacement
+    node.context = cairoNode.context;
   }
 }
 
