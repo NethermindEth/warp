@@ -92,11 +92,9 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/memberAccess/staticcall', 'WillNotSupport'],
   ['example_contracts/memberAccess/transfer', 'WillNotSupport'],
   // Deleting a storage dynamic array doesn't currently affect references to elements
-  ['example_contracts/mutableReferences/deepDelete', 'Success'],
+  ['example_contracts/mutableReferences/deepDelete', 'NotSupportedYet'],
   ['example_contracts/mutableReferences/memory', 'Success'],
-  // DO NOT MERGE UNTIL FIXED
-  // BytesConverter is converting a calldata array to storage
-  ['example_contracts/mutableReferences/mutableReferences', 'TranspilationFailed'],
+  ['example_contracts/mutableReferences/mutableReferences', 'Success'],
   ['example_contracts/mutableReferences/scalarStorage', 'Success'],
   ['example_contracts/namedArgs/constructor', 'Success'],
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
