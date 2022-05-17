@@ -1,16 +1,15 @@
 import assert from 'assert';
 import {
   ArrayType,
-  BytesType,
   DataLocation,
   FunctionCall,
   FunctionCallKind,
   FunctionType,
   getNodeType,
+  IntType,
   MappingType,
   PackedArrayType,
   PointerType,
-  StringType,
   StructDefinition,
   TupleType,
   TypeName,
@@ -87,11 +86,7 @@ export function specializeType(typeNode: TypeNode, loc: DataLocation): TypeNode 
     'Unexpected tuple type ${printTypeNode(typeNode)} in concretization.',
   );
 
-  if (
-    typeNode instanceof PackedArrayType ||
-    typeNode instanceof BytesType ||
-    typeNode instanceof StringType
-  ) {
+  if (typeNode instanceof PackedArrayType) {
     return new PointerType(typeNode, loc);
   }
 
@@ -131,4 +126,23 @@ export function specializeType(typeNode: TypeNode, loc: DataLocation): TypeNode 
   // TODO: What to do about string literals?
   // All other types are "value" types.
   return typeNode;
+}
+
+export function intTypeForLiteral(typestring: string): IntType {
+  assert(
+    typestring.startsWith('int_const '),
+    `Expected int literal typestring to start with "int_const ". Got ${typestring}`,
+  );
+
+  const value = BigInt(typestring.slice('int_const '.length));
+  if (value >= 0) {
+    const binaryLength = value.toString(2).length;
+    const width = 8 * Math.ceil(binaryLength / 8);
+    return new IntType(width, false);
+  } else {
+    // This is not the exact binary length in all cases, but it puts the values into the correct 8bit range
+    const binaryLength = (-value - 1n).toString(2).length;
+    const width = 8 * Math.ceil(binaryLength / 8);
+    return new IntType(width, true);
+  }
 }

@@ -70,11 +70,13 @@ export class AST {
   }
 
   copyRegisteredImports(oldNode: ASTNode, newNode: ASTNode): void {
-    const oldNodeImports = this.imports.get(oldNode) ?? new Map<string, Set<string>>();
-    const newNodeImports = new Map(
-      [...oldNodeImports.entries()].map(([file, symbols]) => [file, new Set([...symbols.keys()])]),
+    this.imports.set(
+      newNode,
+      mergeImports(
+        this.imports.get(oldNode) ?? new Map<string, Set<string>>(),
+        this.imports.get(newNode) ?? new Map<string, Set<string>>(),
+      ),
     );
-    this.imports.set(newNode, newNodeImports);
   }
 
   extractToConstant(node: Expression, vType: TypeName, newName: string): Identifier {
@@ -307,7 +309,7 @@ export class AST {
     parent?: ASTNode,
     copyImports?: boolean,
   ): number;
-  replaceNode(oldNode: ASTNode, newNode: ASTNode, parent?: ASTNode, copyImports = false): number {
+  replaceNode(oldNode: ASTNode, newNode: ASTNode, parent?: ASTNode, copyImports = true): number {
     if (oldNode === newNode) {
       console.log(`WARNING: Attempted to replace node ${printNode(oldNode)} with itself`);
       return oldNode.id;
