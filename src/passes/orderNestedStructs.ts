@@ -39,7 +39,7 @@ export class OrderNestedStructs extends ASTMapper {
 
   private reorderNestedStructs(node: SourceUnit | ContractDefinition, ast: AST) {
     const structs = node.vStructs;
-    const [roots, tree] = this.makeStructTree(structs, ast);
+    const [roots, tree] = this.makeStructTree(new Set(structs), ast);
 
     // there are no nested structs
     if (roots.size === structs.length) return;
@@ -58,16 +58,17 @@ export class OrderNestedStructs extends ASTMapper {
   }
 
   private makeStructTree(
-    structs: readonly StructDefinition[],
+    structs: Set<StructDefinition>,
     ast: AST,
-  ): [Set<StructDefinition>, Map<StructDefinition, [StructDefinition]>] {
+  ): [Set<StructDefinition>, Map<StructDefinition, StructDefinition[]>] {
     const roots = new Set<StructDefinition>(structs);
-    const tree = new Map<StructDefinition, [StructDefinition]>();
+    const tree = new Map<StructDefinition, StructDefinition[]>();
 
     structs.forEach((struct) => {
       struct.vMembers.forEach((varDecl) => {
         const nestedStruct = findStruct(getNodeType(varDecl, ast.compilerVersion));
-        if (nestedStruct !== null && sameSource(struct, nestedStruct)) {
+        // second check to avoid adding imported structs to contract defintion
+        if (nestedStruct !== null && structs.has(nestedStruct)) {
           roots.delete(nestedStruct);
           tree.has(struct)
             ? tree.get(struct)?.push(nestedStruct)
@@ -83,7 +84,7 @@ export class OrderNestedStructs extends ASTMapper {
 
   private reorderStructs(
     roots: Set<StructDefinition>,
-    tree: Map<StructDefinition, [StructDefinition]>,
+    tree: Map<StructDefinition, StructDefinition[]>,
   ) {
     const newOrder: StructDefinition[] = [];
     const visited = new Set<StructDefinition>();
@@ -98,7 +99,7 @@ export class OrderNestedStructs extends ASTMapper {
 // root is alawys added to orderedStructs after all it's children
 function visitTree(
   root: StructDefinition,
-  tree: Map<StructDefinition, [StructDefinition]>,
+  tree: Map<StructDefinition, StructDefinition[]>,
   visited: Set<StructDefinition>,
   orderedStructs: StructDefinition[],
 ) {
@@ -120,12 +121,4 @@ function findStruct(varType: TypeNode): StructDefinition | null {
     return findStruct(varType.elementT);
 
   return null;
-}
-
-function sameSource(node1: ASTNode, node2: ASTNode) {
-  const source1 = node1.getClosestParentByType(SourceUnit);
-  const source2 = node2.getClosestParentByType(SourceUnit);
-  assert(source1 !== undefined && source2 !== undefined);
-
-  return source1.id === source2.id;
 }
