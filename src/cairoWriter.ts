@@ -634,7 +634,7 @@ class IdentifierWriter extends CairoASTNodeWriter {
       node.vReferencedDeclaration.storageLocation === DataLocation.CallData &&
       node.vReferencedDeclaration.vType instanceof ArrayTypeName &&
       node.vReferencedDeclaration.vType.vLength === undefined &&
-      node.parent instanceof Return
+      (node.parent instanceof Return || node.getClosestParentByType(Return) !== undefined)
     ) {
       return [`${node.name}.len, ${node.name}.ptr`];
     }

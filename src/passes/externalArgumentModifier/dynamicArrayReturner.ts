@@ -1,17 +1,24 @@
 import assert = require('assert');
 
 import {
+  // ArrayType,
   ArrayTypeName,
+  ASTNode,
+  // Block,
   DataLocation,
   Expression,
   FunctionCall,
   FunctionDefinition,
+  // getNodeType,
   Identifier,
   Return,
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
+// import { fileURLToPath } from 'url';
+// import { isDataView } from 'util/types';
 import { AST } from '../../ast/ast';
+// import { CairoFunctionDefinition } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { createIdentifier } from '../../utils/nodeTemplates';
@@ -29,51 +36,41 @@ export class DynArrayReturner extends ASTMapper {
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     const body = node.vBody;
-    const dynArrayPresent = node.vReturnParameters.vParameters.some(
-      (varDecl) =>
-        varDecl.storageLocation === DataLocation.Memory &&
-        varDecl.vType instanceof ArrayTypeName &&
-        varDecl.vType.vLength === undefined,
-    );
-    if (isExternallyVisible(node) && body !== undefined && dynArrayPresent) {
-      // If there is a dynarray in the return parameter list. We go straight to the return expression.
-      // We loop through and see which ones are dyn arrays and then perform the opperations on them.
+    if (isExternallyVisible(node) && body !== undefined && body.lastChild instanceof Return) {
       const returnStatement = body.lastChild;
-      // This needs to be changed Identifier
-      assert(returnStatement instanceof Return);
-      // Note this is not the case if there is a tuple expression or some other expression.
-      // e.g FunctionCall or Tuple Expression.
-      const retIdentifier = returnStatement.vExpression;
-      assert(retIdentifier instanceof Identifier);
-      assert(retIdentifier.vReferencedDeclaration instanceof VariableDeclaration);
-      const dArrayStruct = cloneASTNode(retIdentifier.vReferencedDeclaration, ast);
-      dArrayStruct.name = dArrayStruct.name + '_ret_struct';
-      dArrayStruct.storageLocation = DataLocation.CallData;
-      ////// This inserts the StructDeff. The FunctionCall it returns just floats.
-      this.genStructConstructor(dArrayStruct, node, ast);
-      //////
-      const intialValue = cloneASTNode(retIdentifier, ast);
-      const structArrayStatement = this.createVariableDeclarationStatemet(
-        dArrayStruct,
-        intialValue,
-        ast,
-      );
-      const replaceIdentifier = createIdentifier(dArrayStruct, ast);
-      body.insertBefore(structArrayStatement, returnStatement);
-      ast.replaceNode(retIdentifier, replaceIdentifier);
+      [...collectDynArrayVariables(node).entries()]
+        .filter(([decl]) => decl.storageLocation === DataLocation.Memory)
+        .forEach(([varDecl, ids]) => {
+          const dArrayStruct = cloneASTNode(varDecl, ast);
+          dArrayStruct.name = dArrayStruct.name + '_ret_struct';
+          dArrayStruct.storageLocation = DataLocation.CallData;
+
+          this.genStructConstructor(dArrayStruct, node, ast);
+
+          ids.forEach((id) => {
+            const intialValue = cloneASTNode(id, ast);
+            const structArrayStatement = this.createVariableDeclarationStatemet(
+              dArrayStruct,
+              intialValue,
+              ast,
+            );
+            const replaceIdentifier = createIdentifier(dArrayStruct, ast);
+            body.insertBefore(structArrayStatement, returnStatement);
+            ast.replaceNode(id, replaceIdentifier);
+          });
+        });
+
+      node.vReturnParameters.vParameters.forEach((varDecl) => {
+        if (
+          varDecl.storageLocation === DataLocation.Memory &&
+          varDecl.vType instanceof ArrayTypeName &&
+          varDecl.vType.vLength === undefined
+        ) {
+          varDecl.storageLocation = DataLocation.CallData;
+        }
+      });
       ast.setContextRecursive(node);
     }
-    node.vReturnParameters.vParameters.forEach((varDecl) => {
-      if (
-        varDecl.storageLocation === DataLocation.Memory &&
-        varDecl.vType instanceof ArrayTypeName &&
-        varDecl.vType.vLength === undefined
-      ) {
-        varDecl.storageLocation = DataLocation.CallData;
-      }
-    });
-    ast.setContextRecursive(node);
-
     this.commonVisit(node, ast);
   }
 
@@ -101,4 +98,43 @@ export class DynArrayReturner extends ASTMapper {
       .externalFunctions.inputs.darrayStructConstructor.gen(dArrayVarDecl, node);
     return structConstructor;
   }
+}
+
+export function collectDynArrayVariables(
+  node: FunctionDefinition,
+): Map<VariableDeclaration, Identifier[]> {
+  const variableDeclarations = node
+    .getChildren(true)
+    .filter((n) => n instanceof VariableDeclaration);
+
+  const body = node.vBody;
+  assert(body !== undefined);
+  const returnStatement = body.lastChild;
+  assert(returnStatement !== undefined);
+
+  const returnIdentifiers = returnStatement
+    .getChildren(true)
+    .filter((n): n is Identifier => n instanceof Identifier)
+    .map((id): [Identifier, ASTNode | undefined] => [id, id.vReferencedDeclaration])
+    .filter(
+      (pair: [Identifier, ASTNode | undefined]): pair is [Identifier, VariableDeclaration] =>
+        pair[1] !== undefined &&
+        pair[1] instanceof VariableDeclaration &&
+        variableDeclarations.includes(pair[1]) &&
+        pair[1].vType instanceof ArrayTypeName &&
+        pair[1].vType.vLength === undefined,
+    );
+
+  const retMap: Map<VariableDeclaration, Identifier[]> = new Map();
+
+  returnIdentifiers.forEach(([id, decl]) => {
+    const existingEntry = retMap.get(decl);
+    if (existingEntry === undefined) {
+      retMap.set(decl, [id]);
+    } else {
+      retMap.set(decl, [id, ...existingEntry]);
+    }
+  });
+
+  return retMap;
 }

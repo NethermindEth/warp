@@ -28,13 +28,13 @@ There are always 2 functions that are generated and an optional 3rd.
 */
 export class MemoryToCallData extends StringIndexedFuncGen {
   gen(node: Expression, _: ASTNode): Expression {
-    const type = dereferenceType(getNodeType(node, this.ast.compilerVersion));
-
-    const name = this.getOrCreateDyn(type);
+    const typeNode = dereferenceType(getNodeType(node, this.ast.compilerVersion));
+    assert(typeNode instanceof ArrayType);
+    const name = this.genDynArrayReadFunctions(typeNode);
     const functionStub = createCairoFunctionStub(
       name,
-      [['loc', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
-      [['val', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
+      [['loc', typeNameFromTypeNode(typeNode, this.ast), DataLocation.Memory]],
+      [['val', typeNameFromTypeNode(typeNode, this.ast), DataLocation.CallData]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
       node,
@@ -43,21 +43,12 @@ export class MemoryToCallData extends StringIndexedFuncGen {
     return createCallToFunction(functionStub, [node], this.ast);
   }
 
-  private getOrCreateDyn(type: TypeNode): string {
-    const key = type.pp();
-    const existing = this.generatedFunctions.get(key);
-    if (existing !== undefined) {
-      return existing.name;
-    }
-    assert(type instanceof ArrayType);
-    return this.genDynArrayReadFunctions(key, type);
-  }
-
   /* 
   Creates the ptr that the members of the wm dynArray are written to.
   The ptr and the len will then be returned in the form of a struct.
   */
-  private genDynArrayReadFunctions(key: string, type: ArrayType): string {
+  private genDynArrayReadFunctions(type: ArrayType): string {
+    const key = type.pp();
     const elemType = dereferenceType(type.elementT);
     const cairoElemType = CairoType.fromSol(
       elemType,
@@ -100,12 +91,12 @@ export class MemoryToCallData extends StringIndexedFuncGen {
 
   private genDynArrayLoader(typeNode: TypeNode, memoryReadType: CairoType): string {
     const funcName = `wm_dynarry_reader_${memoryReadType.toString()}`;
-    // ReadTracker to see how many reads and locations have occured.
     const key = typeNode.pp();
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
     }
+    // ReadTracker to see how many reads and locations have occured.
     const readTracker = new ReadTracker();
     const reads: string[] = [];
     const varDecls: string[] = [];
@@ -119,11 +110,8 @@ export class MemoryToCallData extends StringIndexedFuncGen {
         `    if len == 0:`,
         `       return (ptr)`,
         `    end`,
-        // you would want the dereference in here since the function above provides this with a pointer to pointer;
         ...reads,
         `    assert ptr[0] = read${readTracker.readOffset - 1}`,
-        // This memoryType.width is more for the memory system than actual cairo itself so we might need to check that it is constant with NestedStructs.
-        // There could also be a ternary condition that just checks if it is a felt or struct and we can the stick a .SIZE in there.
         `    ${funcName}(len=len-1, ptr=ptr + ${
           memoryReadType instanceof CairoFelt ? 1 : memoryReadType.toString() + '.SIZE'
         }, loc=loc + ${this.isReferenceType(typeNode) ? 1 : memoryReadType.width})`,

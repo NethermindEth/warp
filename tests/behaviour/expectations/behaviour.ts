@@ -573,7 +573,7 @@ export const expectations = flatten(
             new Expect('returning a dynarray of structs', [
               ['returnStruct', [], ['3', '1', '0', '10', '2', '0', '20', '3', '0', '30'], '0'],
             ]),
-            new Expect('test1', [
+            new Expect('return a dynarray of nested structs', [
               [
                 'returnNestedStruct',
                 [],
@@ -601,6 +601,14 @@ export const expectations = flatten(
                   '3000',
                   '0',
                 ],
+                '0',
+              ],
+            ]),
+            new Expect('returning a dynarray of felts', [
+              [
+                'returnMultipleFeltDynArray',
+                [],
+                ['3', '1', '2', '3', '4', '5', '6', '7', '8'],
                 '0',
               ],
             ]),

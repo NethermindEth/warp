@@ -22,6 +22,7 @@ contract WARP {
          y[2] = 3;
          return y;
     }
+
     function returnUint256() pure external returns (uint256[] memory) {
         uint256[] memory y = new uint256[](3);
         y[0] = 10;
@@ -46,5 +47,20 @@ contract WARP {
         y[2] = structDef1(3,structDef2(30, 300), 3000);
         
         return y;
+    }
+
+    function returnMultipleFeltDynArray() pure external returns (uint8[] memory, uint8[] memory) {
+         uint8[] memory x = new uint8[](4);
+         x[0] = 5;
+         x[1] = 6;
+         x[2] = 7;
+         x[3] = 8;
+
+         uint8[] memory y = new uint8[](3);
+         y[0] = 1;
+         y[1] = 2;
+         y[2] = 3;
+         
+         return (y, x);
     }
 }
