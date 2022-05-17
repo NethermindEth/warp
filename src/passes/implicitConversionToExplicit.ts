@@ -188,10 +188,14 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 
     if (node.vIndexExpression === undefined) return;
 
-    const baseType = generalizeType(getNodeType(node.vBaseExpression, ast.compilerVersion))[0];
+    const [baseType, location] = generalizeType(
+      getNodeType(node.vBaseExpression, ast.compilerVersion),
+    );
 
     if (baseType instanceof MappingType) {
       insertConversionIfNecessary(node.vIndexExpression, baseType.keyType, ast);
+    } else if (location === DataLocation.CallData) {
+      insertConversionIfNecessary(node.vIndexExpression, new IntType(248, false), ast);
     } else {
       insertConversionIfNecessary(node.vIndexExpression, new IntType(256, false), ast);
     }

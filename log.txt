@@ -1,0 +1,2868 @@
+---Solc warnings:
+Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+--> ex.sol
+
+
+---
+---Input---
+SourceUnit #8
+|   absolutePath: ex.sol
+|   context: 1
++-PragmaDirective #1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 8
+  +-VariableDeclaration #6
+    |   name: a
+    |   scope: 7
+    |   storageLocation: default
+    |   typeString: uint256
+    |   visibility: public
+    +-ElementaryTypeName #2
+    |     name: uint256
+    |     stateMutability: nonpayable
+    |     typeString: uint256
+    +-BinaryOperation #5
+      |   operator: <<
+      |   typeString: int_const 16896
+      +-Literal #3
+      |     typeString: int_const 66
+      |     value: 0x42
+      +-Literal #4
+            typeString: int_const 8
+            value: 8
+
+---SourceUnitSplitter---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+    |   name: a
+    |   scope: 7
+    |   storageLocation: default
+    |   typeString: uint256
+    |   visibility: public
+    +-ElementaryTypeName #2
+    |     name: uint256
+    |     stateMutability: nonpayable
+    |     typeString: uint256
+    +-BinaryOperation #5
+      |   operator: <<
+      |   typeString: int_const 16896
+      +-Literal #3
+      |     typeString: int_const 66
+      |     value: 0x42
+      +-Literal #4
+            typeString: int_const 8
+            value: 8
+
+---ImportDirectiveIdentifier---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+    |   name: a
+    |   scope: 7
+    |   storageLocation: default
+    |   typeString: uint256
+    |   visibility: public
+    +-ElementaryTypeName #2
+    |     name: uint256
+    |     stateMutability: nonpayable
+    |     typeString: uint256
+    +-BinaryOperation #5
+      |   operator: <<
+      |   typeString: int_const 16896
+      +-Literal #3
+      |     typeString: int_const 66
+      |     value: 0x42
+      +-Literal #4
+            typeString: int_const 8
+            value: 8
+
+---RejectUnsupportedFeatures---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+    |   name: a
+    |   scope: 7
+    |   storageLocation: default
+    |   typeString: uint256
+    |   visibility: public
+    +-ElementaryTypeName #2
+    |     name: uint256
+    |     stateMutability: nonpayable
+    |     typeString: uint256
+    +-BinaryOperation #5
+      |   operator: <<
+      |   typeString: int_const 16896
+      +-Literal #3
+      |     typeString: int_const 66
+      |     value: 0x42
+      +-Literal #4
+            typeString: int_const 8
+            value: 8
+
+---LiteralExpressionEvaluator---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+    |   name: a
+    |   scope: 7
+    |   storageLocation: default
+    |   typeString: uint256
+    |   visibility: public
+    +-ElementaryTypeName #2
+    |     name: uint256
+    |     stateMutability: nonpayable
+    |     typeString: uint256
+    +-Literal #11
+          typeString: int_const 16896
+          value: 16896
+
+---UsingForResolver---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+    |   name: a
+    |   scope: 7
+    |   storageLocation: default
+    |   typeString: uint256
+    |   visibility: public
+    +-ElementaryTypeName #2
+    |     name: uint256
+    |     stateMutability: nonpayable
+    |     typeString: uint256
+    +-Literal #11
+          typeString: int_const 16896
+          value: 16896
+
+---NamedArgsRemover---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+    |   name: a
+    |   scope: 7
+    |   storageLocation: default
+    |   typeString: uint256
+    |   visibility: public
+    +-ElementaryTypeName #2
+    |     name: uint256
+    |     stateMutability: nonpayable
+    |     typeString: uint256
+    +-Literal #11
+          typeString: int_const 16896
+          value: 16896
+
+---UserDefinedTypesConverter---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+    |   name: a
+    |   scope: 7
+    |   storageLocation: default
+    |   typeString: uint256
+    |   visibility: public
+    +-ElementaryTypeName #2
+    |     name: uint256
+    |     stateMutability: nonpayable
+    |     typeString: uint256
+    +-Literal #11
+          typeString: int_const 16896
+          value: 16896
+
+---PublicStateVarsGetterGenerator---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+  | |   name: a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  | |     name: uint256
+  | |     stateMutability: nonpayable
+  | |     typeString: uint256
+  | +-Literal #11
+  |       typeString: int_const 16896
+  |       value: 16896
+  +-FunctionDefinition #12
+    |   name: a
+    |   scope: 7
+    |   stateMutability: view
+    |   visibility: public
+    +-ParameterList #16
+    +-ParameterList #15
+    | +-VariableDeclaration #13
+    |   |   name: 
+    |   |   scope: 12
+    |   |   storageLocation: default
+    |   |   typeString: uint256
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #14
+    |         name: uint256
+    |         stateMutability: nonpayable
+    |         typeString: uint256
+    +-Block #17
+      +-Return #19
+        +-Identifier #18
+              name: a
+              referencedDeclaration: 6
+              typeString: uint256
+
+---TypeInformationCalculator---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+  | |   name: a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  | |     name: uint256
+  | |     stateMutability: nonpayable
+  | |     typeString: uint256
+  | +-Literal #11
+  |       typeString: int_const 16896
+  |       value: 16896
+  +-FunctionDefinition #12
+    |   name: a
+    |   scope: 7
+    |   stateMutability: view
+    |   visibility: public
+    +-ParameterList #16
+    +-ParameterList #15
+    | +-VariableDeclaration #13
+    |   |   name: 
+    |   |   scope: 12
+    |   |   storageLocation: default
+    |   |   typeString: uint256
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #14
+    |         name: uint256
+    |         stateMutability: nonpayable
+    |         typeString: uint256
+    +-Block #17
+      +-Return #19
+        +-Identifier #18
+              name: a
+              referencedDeclaration: 6
+              typeString: uint256
+
+---ConstantHandler---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+  | |   name: a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  | |     name: uint256
+  | |     stateMutability: nonpayable
+  | |     typeString: uint256
+  | +-Literal #11
+  |       typeString: int_const 16896
+  |       value: 16896
+  +-FunctionDefinition #12
+    |   name: a
+    |   scope: 7
+    |   stateMutability: view
+    |   visibility: public
+    +-ParameterList #16
+    +-ParameterList #15
+    | +-VariableDeclaration #13
+    |   |   name: 
+    |   |   scope: 12
+    |   |   storageLocation: default
+    |   |   typeString: uint256
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #14
+    |         name: uint256
+    |         stateMutability: nonpayable
+    |         typeString: uint256
+    +-Block #17
+      +-Return #19
+        +-Identifier #18
+              name: a
+              referencedDeclaration: 6
+              typeString: uint256
+
+---IdentifierMangler---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  | |     name: uint256
+  | |     stateMutability: nonpayable
+  | |     typeString: uint256
+  | +-Literal #11
+  |       typeString: int_const 16896
+  |       value: 16896
+  +-FunctionDefinition #12
+    |   name: a_0dbe671f
+    |   scope: 7
+    |   stateMutability: view
+    |   visibility: public
+    +-ParameterList #16
+    +-ParameterList #15
+    | +-VariableDeclaration #13
+    |   |   name: __warp_usrid1_
+    |   |   scope: 12
+    |   |   storageLocation: default
+    |   |   typeString: uint256
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #14
+    |         name: uint256
+    |         stateMutability: nonpayable
+    |         typeString: uint256
+    +-Block #17
+      +-Return #19
+        +-Identifier #18
+              name: __warp_usrid0_a
+              referencedDeclaration: 6
+              typeString: uint256
+
+---FreeLibraryCallInliner---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  | |     name: uint256
+  | |     stateMutability: nonpayable
+  | |     typeString: uint256
+  | +-Literal #11
+  |       typeString: int_const 16896
+  |       value: 16896
+  +-FunctionDefinition #12
+    |   name: a_0dbe671f
+    |   scope: 7
+    |   stateMutability: view
+    |   visibility: public
+    +-ParameterList #16
+    +-ParameterList #15
+    | +-VariableDeclaration #13
+    |   |   name: __warp_usrid1_
+    |   |   scope: 12
+    |   |   storageLocation: default
+    |   |   typeString: uint256
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #14
+    |         name: uint256
+    |         stateMutability: nonpayable
+    |         typeString: uint256
+    +-Block #17
+      +-Return #19
+        +-Identifier #18
+              name: __warp_usrid0_a
+              referencedDeclaration: 6
+              typeString: uint256
+
+---ReferencedLibraries---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  | |     name: uint256
+  | |     stateMutability: nonpayable
+  | |     typeString: uint256
+  | +-Literal #11
+  |       typeString: int_const 16896
+  |       value: 16896
+  +-FunctionDefinition #12
+    |   name: a_0dbe671f
+    |   scope: 7
+    |   stateMutability: view
+    |   visibility: public
+    +-ParameterList #16
+    +-ParameterList #15
+    | +-VariableDeclaration #13
+    |   |   name: __warp_usrid1_
+    |   |   scope: 12
+    |   |   storageLocation: default
+    |   |   typeString: uint256
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #14
+    |         name: uint256
+    |         stateMutability: nonpayable
+    |         typeString: uint256
+    +-Block #17
+      +-Return #19
+        +-Identifier #18
+              name: __warp_usrid0_a
+              referencedDeclaration: 6
+              typeString: uint256
+
+---OrderNestedStructs---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  | |     name: uint256
+  | |     stateMutability: nonpayable
+  | |     typeString: uint256
+  | +-Literal #11
+  |       typeString: int_const 16896
+  |       value: 16896
+  +-FunctionDefinition #12
+    |   name: a_0dbe671f
+    |   scope: 7
+    |   stateMutability: view
+    |   visibility: public
+    +-ParameterList #16
+    +-ParameterList #15
+    | +-VariableDeclaration #13
+    |   |   name: __warp_usrid1_
+    |   |   scope: 12
+    |   |   storageLocation: default
+    |   |   typeString: uint256
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #14
+    |         name: uint256
+    |         stateMutability: nonpayable
+    |         typeString: uint256
+    +-Block #17
+      +-Return #19
+        +-Identifier #18
+              name: __warp_usrid0_a
+              referencedDeclaration: 6
+              typeString: uint256
+
+---InheritanceInliner---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  | |     name: uint256
+  | |     stateMutability: nonpayable
+  | |     typeString: uint256
+  | +-Literal #11
+  |       typeString: int_const 16896
+  |       value: 16896
+  +-FunctionDefinition #12
+    |   name: a_0dbe671f
+    |   scope: 7
+    |   stateMutability: view
+    |   visibility: public
+    +-ParameterList #16
+    +-ParameterList #15
+    | +-VariableDeclaration #13
+    |   |   name: __warp_usrid1_
+    |   |   scope: 12
+    |   |   storageLocation: default
+    |   |   typeString: uint256
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #14
+    |         name: uint256
+    |         stateMutability: nonpayable
+    |         typeString: uint256
+    +-Block #17
+      +-Return #19
+        +-Identifier #18
+              name: __warp_usrid0_a
+              referencedDeclaration: 6
+              typeString: uint256
+
+---ExternalContractHandler---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  | |     name: uint256
+  | |     stateMutability: nonpayable
+  | |     typeString: uint256
+  | +-Literal #11
+  |       typeString: int_const 16896
+  |       value: 16896
+  +-FunctionDefinition #12
+    |   name: a_0dbe671f
+    |   scope: 7
+    |   stateMutability: view
+    |   visibility: public
+    +-ParameterList #16
+    +-ParameterList #15
+    | +-VariableDeclaration #13
+    |   |   name: __warp_usrid1_
+    |   |   scope: 12
+    |   |   storageLocation: default
+    |   |   typeString: uint256
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #14
+    |         name: uint256
+    |         stateMutability: nonpayable
+    |         typeString: uint256
+    +-Block #17
+      +-Return #19
+        +-Identifier #18
+              name: __warp_usrid0_a
+              referencedDeclaration: 6
+              typeString: uint256
+
+---ModifierHandler---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  | |     name: uint256
+  | |     stateMutability: nonpayable
+  | |     typeString: uint256
+  | +-Literal #11
+  |       typeString: int_const 16896
+  |       value: 16896
+  +-FunctionDefinition #12
+    |   name: a_0dbe671f
+    |   scope: 7
+    |   stateMutability: view
+    |   visibility: public
+    +-ParameterList #16
+    +-ParameterList #15
+    | +-VariableDeclaration #13
+    |   |   name: __warp_usrid1_
+    |   |   scope: 12
+    |   |   storageLocation: default
+    |   |   typeString: uint256
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #14
+    |         name: uint256
+    |         stateMutability: nonpayable
+    |         typeString: uint256
+    +-Block #17
+      +-Return #19
+        +-Identifier #18
+              name: __warp_usrid0_a
+              referencedDeclaration: 6
+              typeString: uint256
+
+---StorageAllocator---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: public
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-Identifier #18
+  |           name: __warp_usrid0_a
+  |           referencedDeclaration: 6
+  |           typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+        +-Assignment #22
+          |   operator: =
+          |   typeString: uint256
+          +-Identifier #23
+          |     name: __warp_usrid0_a
+          |     referencedDeclaration: 6
+          |     typeString: uint256
+          +-Literal #11
+                typeString: int_const 16896
+                value: 16896
+
+---PublicFunctionSplitter---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-Identifier #18
+  |           name: __warp_usrid0_a
+  |           referencedDeclaration: 6
+  |           typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+        +-Assignment #22
+          |   operator: =
+          |   typeString: uint256
+          +-Identifier #23
+          |     name: __warp_usrid0_a
+          |     referencedDeclaration: 6
+          |     typeString: uint256
+          +-Literal #11
+                typeString: int_const 16896
+                value: 16896
+
+---ExternalArgumentModifier---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-Identifier #18
+  |           name: __warp_usrid0_a
+  |           referencedDeclaration: 6
+  |           typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+        +-Assignment #22
+          |   operator: =
+          |   typeString: uint256
+          +-Identifier #23
+          |     name: __warp_usrid0_a
+          |     referencedDeclaration: 6
+          |     typeString: uint256
+          +-Literal #11
+                typeString: int_const 16896
+                value: 16896
+
+---ExternImporter---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-Identifier #18
+  |           name: __warp_usrid0_a
+  |           referencedDeclaration: 6
+  |           typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+        +-Assignment #22
+          |   operator: =
+          |   typeString: uint256
+          +-Identifier #23
+          |     name: __warp_usrid0_a
+          |     referencedDeclaration: 6
+          |     typeString: uint256
+          +-Literal #11
+                typeString: int_const 16896
+                value: 16896
+
+---LoopFunctionaliser---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-Identifier #18
+  |           name: __warp_usrid0_a
+  |           referencedDeclaration: 6
+  |           typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+        +-Assignment #22
+          |   operator: =
+          |   typeString: uint256
+          +-Identifier #23
+          |     name: __warp_usrid0_a
+          |     referencedDeclaration: 6
+          |     typeString: uint256
+          +-Literal #11
+                typeString: int_const 16896
+                value: 16896
+
+---ReturnInserter---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-Identifier #18
+  |           name: __warp_usrid0_a
+  |           referencedDeclaration: 6
+  |           typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-Assignment #22
+      |   |   operator: =
+      |   |   typeString: uint256
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-Literal #11
+      |         typeString: int_const 16896
+      |         value: 16896
+      +-Return #27
+
+---ReturnVariableInitializer---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-Identifier #18
+  |           name: __warp_usrid0_a
+  |           referencedDeclaration: 6
+  |           typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-Assignment #22
+      |   |   operator: =
+      |   |   typeString: uint256
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-Literal #11
+      |         typeString: int_const 16896
+      |         value: 16896
+      +-Return #27
+
+---IfFunctionaliser---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-Identifier #18
+  |           name: __warp_usrid0_a
+  |           referencedDeclaration: 6
+  |           typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-Assignment #22
+      |   |   operator: =
+      |   |   typeString: uint256
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-Literal #11
+      |         typeString: int_const 16896
+      |         value: 16896
+      +-Return #27
+
+---TupleAssignmentSplitter---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-Identifier #18
+  |           name: __warp_usrid0_a
+  |           referencedDeclaration: 6
+  |           typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-Assignment #22
+      |   |   operator: =
+      |   |   typeString: uint256
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-Literal #11
+      |         typeString: int_const 16896
+      |         value: 16896
+      +-Return #27
+
+---UnloadingAssignment---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-Identifier #18
+  |           name: __warp_usrid0_a
+  |           referencedDeclaration: 6
+  |           typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-Assignment #22
+      |   |   operator: =
+      |   |   typeString: uint256
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-Literal #11
+      |         typeString: int_const 16896
+      |         value: 16896
+      +-Return #27
+
+---VariableDeclarationInitialiser---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-Identifier #18
+  |           name: __warp_usrid0_a
+  |           referencedDeclaration: 6
+  |           typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-Assignment #22
+      |   |   operator: =
+      |   |   typeString: uint256
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-Literal #11
+      |         typeString: int_const 16896
+      |         value: 16896
+      +-Return #27
+
+---VariableDeclarationExpressionSplitter---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-Identifier #18
+  |           name: __warp_usrid0_a
+  |           referencedDeclaration: 6
+  |           typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-Assignment #22
+      |   |   operator: =
+      |   |   typeString: uint256
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-Literal #11
+      |         typeString: int_const 16896
+      |         value: 16896
+      +-Return #27
+
+---BytesConverter---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-Identifier #18
+  |           name: __warp_usrid0_a
+  |           referencedDeclaration: 6
+  |           typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-Assignment #22
+      |   |   operator: =
+      |   |   typeString: uint256
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-Literal #11
+      |         typeString: int_const 16896
+      |         value: 16896
+      +-Return #27
+
+---ImplicitConversionToExplicit---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-Identifier #18
+  |           name: __warp_usrid0_a
+  |           referencedDeclaration: 6
+  |           typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-Assignment #22
+      |   |   operator: =
+      |   |   typeString: uint256
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-FunctionCall #29
+      |     |   typeString: uint256
+      |     +-ElementaryTypeNameExpression #30
+      |     | |   typeString: type(uint256)
+      |     | +-ElementaryTypeName #28
+      |     |       name: uint256
+      |     |       stateMutability: nonpayable
+      |     |       typeString: uint256
+      |     +-Literal #11
+      |           typeString: int_const 16896
+      |           value: 16896
+      +-Return #27
+
+---References---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #44
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 10
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #47
+| | +-VariableDeclaration #45
+| | | |   name: loc
+| | | |   scope: 44
+| | | |   storageLocation: storage
+| | | |   typeString: uint256
+| | | |   visibility: private
+| | | +-ElementaryTypeName #41
+| | |       name: uint256
+| | |       stateMutability: nonpayable
+| | |       typeString: uint256
+| | +-VariableDeclaration #46
+| |   |   name: value
+| |   |   scope: 44
+| |   |   storageLocation: default
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #42
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #49
+|   +-VariableDeclaration #48
+|     |   name: res
+|     |   scope: 44
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #43
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoFunctionDefinition #34
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS0_READ_Uint256
+| |   scope: 10
+| |   stateMutability: view
+| |   visibility: private
+| +-ParameterList #36
+| | +-VariableDeclaration #35
+| |   |   name: loc
+| |   |   scope: 34
+| |   |   storageLocation: storage
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #32
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #38
+|   +-VariableDeclaration #37
+|     |   name: val
+|     |   scope: 34
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #33
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-FunctionCall #39
+  |       |   typeString: uint256
+  |       +-Identifier #40
+  |       |     name: WS0_READ_Uint256
+  |       |     referencedDeclaration: 34
+  |       |     typeString: function (uint256) view returns (uint256)
+  |       +-Identifier #18
+  |             name: __warp_usrid0_a
+  |             referencedDeclaration: 6
+  |             typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-FunctionCall #50
+      |   |   typeString: uint256
+      |   +-Identifier #51
+      |   |     name: WS_WRITE0
+      |   |     referencedDeclaration: 44
+      |   |     typeString: function (uint256, uint256) nonpayable returns (uint256)
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-FunctionCall #29
+      |     |   typeString: uint256
+      |     +-ElementaryTypeNameExpression #30
+      |     | |   typeString: type(uint256)
+      |     | +-ElementaryTypeName #28
+      |     |       name: uint256
+      |     |       stateMutability: nonpayable
+      |     |       typeString: uint256
+      |     +-Literal #11
+      |           typeString: int_const 16896
+      |           value: 16896
+      +-Return #27
+
+---ExternalInputChecker---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #44
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 10
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #47
+| | +-VariableDeclaration #45
+| | | |   name: loc
+| | | |   scope: 44
+| | | |   storageLocation: storage
+| | | |   typeString: uint256
+| | | |   visibility: private
+| | | +-ElementaryTypeName #41
+| | |       name: uint256
+| | |       stateMutability: nonpayable
+| | |       typeString: uint256
+| | +-VariableDeclaration #46
+| |   |   name: value
+| |   |   scope: 44
+| |   |   storageLocation: default
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #42
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #49
+|   +-VariableDeclaration #48
+|     |   name: res
+|     |   scope: 44
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #43
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoFunctionDefinition #34
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS0_READ_Uint256
+| |   scope: 10
+| |   stateMutability: view
+| |   visibility: private
+| +-ParameterList #36
+| | +-VariableDeclaration #35
+| |   |   name: loc
+| |   |   scope: 34
+| |   |   storageLocation: storage
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #32
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #38
+|   +-VariableDeclaration #37
+|     |   name: val
+|     |   scope: 34
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #33
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-FunctionCall #39
+  |       |   typeString: uint256
+  |       +-Identifier #40
+  |       |     name: WS0_READ_Uint256
+  |       |     referencedDeclaration: 34
+  |       |     typeString: function (uint256) view returns (uint256)
+  |       +-Identifier #18
+  |             name: __warp_usrid0_a
+  |             referencedDeclaration: 6
+  |             typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-FunctionCall #50
+      |   |   typeString: uint256
+      |   +-Identifier #51
+      |   |     name: WS_WRITE0
+      |   |     referencedDeclaration: 44
+      |   |     typeString: function (uint256, uint256) nonpayable returns (uint256)
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-FunctionCall #29
+      |     |   typeString: uint256
+      |     +-ElementaryTypeNameExpression #30
+      |     | |   typeString: type(uint256)
+      |     | +-ElementaryTypeName #28
+      |     |       name: uint256
+      |     |       stateMutability: nonpayable
+      |     |       typeString: uint256
+      |     +-Literal #11
+      |           typeString: int_const 16896
+      |           value: 16896
+      +-Return #27
+
+---EnumConverter---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #44
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 10
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #47
+| | +-VariableDeclaration #45
+| | | |   name: loc
+| | | |   scope: 44
+| | | |   storageLocation: storage
+| | | |   typeString: uint256
+| | | |   visibility: private
+| | | +-ElementaryTypeName #41
+| | |       name: uint256
+| | |       stateMutability: nonpayable
+| | |       typeString: uint256
+| | +-VariableDeclaration #46
+| |   |   name: value
+| |   |   scope: 44
+| |   |   storageLocation: default
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #42
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #49
+|   +-VariableDeclaration #48
+|     |   name: res
+|     |   scope: 44
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #43
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoFunctionDefinition #34
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS0_READ_Uint256
+| |   scope: 10
+| |   stateMutability: view
+| |   visibility: private
+| +-ParameterList #36
+| | +-VariableDeclaration #35
+| |   |   name: loc
+| |   |   scope: 34
+| |   |   storageLocation: storage
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #32
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #38
+|   +-VariableDeclaration #37
+|     |   name: val
+|     |   scope: 34
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #33
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-FunctionCall #39
+  |       |   typeString: uint256
+  |       +-Identifier #40
+  |       |     name: WS0_READ_Uint256
+  |       |     referencedDeclaration: 34
+  |       |     typeString: function (uint256) view returns (uint256)
+  |       +-Identifier #18
+  |             name: __warp_usrid0_a
+  |             referencedDeclaration: 6
+  |             typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-FunctionCall #50
+      |   |   typeString: uint256
+      |   +-Identifier #51
+      |   |     name: WS_WRITE0
+      |   |     referencedDeclaration: 44
+      |   |     typeString: function (uint256, uint256) nonpayable returns (uint256)
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-FunctionCall #29
+      |     |   typeString: uint256
+      |     +-ElementaryTypeNameExpression #30
+      |     | |   typeString: type(uint256)
+      |     | +-ElementaryTypeName #28
+      |     |       name: uint256
+      |     |       stateMutability: nonpayable
+      |     |       typeString: uint256
+      |     +-Literal #11
+      |           typeString: int_const 16896
+      |           value: 16896
+      +-Return #27
+
+---DeleteHandler---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #44
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 10
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #47
+| | +-VariableDeclaration #45
+| | | |   name: loc
+| | | |   scope: 44
+| | | |   storageLocation: storage
+| | | |   typeString: uint256
+| | | |   visibility: private
+| | | +-ElementaryTypeName #41
+| | |       name: uint256
+| | |       stateMutability: nonpayable
+| | |       typeString: uint256
+| | +-VariableDeclaration #46
+| |   |   name: value
+| |   |   scope: 44
+| |   |   storageLocation: default
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #42
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #49
+|   +-VariableDeclaration #48
+|     |   name: res
+|     |   scope: 44
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #43
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoFunctionDefinition #34
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS0_READ_Uint256
+| |   scope: 10
+| |   stateMutability: view
+| |   visibility: private
+| +-ParameterList #36
+| | +-VariableDeclaration #35
+| |   |   name: loc
+| |   |   scope: 34
+| |   |   storageLocation: storage
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #32
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #38
+|   +-VariableDeclaration #37
+|     |   name: val
+|     |   scope: 34
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #33
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-FunctionCall #39
+  |       |   typeString: uint256
+  |       +-Identifier #40
+  |       |     name: WS0_READ_Uint256
+  |       |     referencedDeclaration: 34
+  |       |     typeString: function (uint256) view returns (uint256)
+  |       +-Identifier #18
+  |             name: __warp_usrid0_a
+  |             referencedDeclaration: 6
+  |             typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-FunctionCall #50
+      |   |   typeString: uint256
+      |   +-Identifier #51
+      |   |     name: WS_WRITE0
+      |   |     referencedDeclaration: 44
+      |   |     typeString: function (uint256, uint256) nonpayable returns (uint256)
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-FunctionCall #29
+      |     |   typeString: uint256
+      |     +-ElementaryTypeNameExpression #30
+      |     | |   typeString: type(uint256)
+      |     | +-ElementaryTypeName #28
+      |     |       name: uint256
+      |     |       stateMutability: nonpayable
+      |     |       typeString: uint256
+      |     +-Literal #11
+      |           typeString: int_const 16896
+      |           value: 16896
+      +-Return #27
+
+---BuiltinHandler---
+Visiting FunctionCall #39 WS0_READ_Uint256
+Visiting FunctionCall #29 uint256
+Visiting FunctionCall #50 WS_WRITE0
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #44
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 10
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #47
+| | +-VariableDeclaration #45
+| | | |   name: loc
+| | | |   scope: 44
+| | | |   storageLocation: storage
+| | | |   typeString: uint256
+| | | |   visibility: private
+| | | +-ElementaryTypeName #41
+| | |       name: uint256
+| | |       stateMutability: nonpayable
+| | |       typeString: uint256
+| | +-VariableDeclaration #46
+| |   |   name: value
+| |   |   scope: 44
+| |   |   storageLocation: default
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #42
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #49
+|   +-VariableDeclaration #48
+|     |   name: res
+|     |   scope: 44
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #43
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoFunctionDefinition #34
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS0_READ_Uint256
+| |   scope: 10
+| |   stateMutability: view
+| |   visibility: private
+| +-ParameterList #36
+| | +-VariableDeclaration #35
+| |   |   name: loc
+| |   |   scope: 34
+| |   |   storageLocation: storage
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #32
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #38
+|   +-VariableDeclaration #37
+|     |   name: val
+|     |   scope: 34
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #33
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-FunctionCall #39
+  |       |   typeString: uint256
+  |       +-Identifier #40
+  |       |     name: WS0_READ_Uint256
+  |       |     referencedDeclaration: 34
+  |       |     typeString: function (uint256) view returns (uint256)
+  |       +-Identifier #18
+  |             name: __warp_usrid0_a
+  |             referencedDeclaration: 6
+  |             typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-FunctionCall #50
+      |   |   typeString: uint256
+      |   +-Identifier #51
+      |   |     name: WS_WRITE0
+      |   |     referencedDeclaration: 44
+      |   |     typeString: function (uint256, uint256) nonpayable returns (uint256)
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-Literal #11
+      |         typeString: uint256
+      |         value: 16896
+      +-Return #27
+
+---UnreachableStatementPruner---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #44
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 10
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #47
+| | +-VariableDeclaration #45
+| | | |   name: loc
+| | | |   scope: 44
+| | | |   storageLocation: storage
+| | | |   typeString: uint256
+| | | |   visibility: private
+| | | +-ElementaryTypeName #41
+| | |       name: uint256
+| | |       stateMutability: nonpayable
+| | |       typeString: uint256
+| | +-VariableDeclaration #46
+| |   |   name: value
+| |   |   scope: 44
+| |   |   storageLocation: default
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #42
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #49
+|   +-VariableDeclaration #48
+|     |   name: res
+|     |   scope: 44
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #43
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoFunctionDefinition #34
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS0_READ_Uint256
+| |   scope: 10
+| |   stateMutability: view
+| |   visibility: private
+| +-ParameterList #36
+| | +-VariableDeclaration #35
+| |   |   name: loc
+| |   |   scope: 34
+| |   |   storageLocation: storage
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #32
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #38
+|   +-VariableDeclaration #37
+|     |   name: val
+|     |   scope: 34
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #33
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-Return #19
+  |     +-FunctionCall #39
+  |       |   typeString: uint256
+  |       +-Identifier #40
+  |       |     name: WS0_READ_Uint256
+  |       |     referencedDeclaration: 34
+  |       |     typeString: function (uint256) view returns (uint256)
+  |       +-Identifier #18
+  |             name: __warp_usrid0_a
+  |             referencedDeclaration: 6
+  |             typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-FunctionCall #50
+      |   |   typeString: uint256
+      |   +-Identifier #51
+      |   |     name: WS_WRITE0
+      |   |     referencedDeclaration: 44
+      |   |     typeString: function (uint256, uint256) nonpayable returns (uint256)
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-Literal #11
+      |         typeString: uint256
+      |         value: 16896
+      +-Return #27
+
+---ExpressionSplitter---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #44
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 10
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #47
+| | +-VariableDeclaration #45
+| | | |   name: loc
+| | | |   scope: 44
+| | | |   storageLocation: storage
+| | | |   typeString: uint256
+| | | |   visibility: private
+| | | +-ElementaryTypeName #41
+| | |       name: uint256
+| | |       stateMutability: nonpayable
+| | |       typeString: uint256
+| | +-VariableDeclaration #46
+| |   |   name: value
+| |   |   scope: 44
+| |   |   storageLocation: default
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #42
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #49
+|   +-VariableDeclaration #48
+|     |   name: res
+|     |   scope: 44
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #43
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoFunctionDefinition #34
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS0_READ_Uint256
+| |   scope: 10
+| |   stateMutability: view
+| |   visibility: private
+| +-ParameterList #36
+| | +-VariableDeclaration #35
+| |   |   name: loc
+| |   |   scope: 34
+| |   |   storageLocation: storage
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #32
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #38
+|   +-VariableDeclaration #37
+|     |   name: val
+|     |   scope: 34
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #33
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-FunctionDefinition #12
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-VariableDeclarationStatement #54
+  |   | +-VariableDeclaration #53
+  |   | | |   name: __warp_se_0
+  |   | | |   scope: 17
+  |   | | |   storageLocation: default
+  |   | | |   typeString: uint256
+  |   | | |   visibility: private
+  |   | | +-ElementaryTypeName #52
+  |   | |       name: uint256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: uint256
+  |   | +-FunctionCall #39
+  |   |   |   typeString: uint256
+  |   |   +-Identifier #40
+  |   |   |     name: WS0_READ_Uint256
+  |   |   |     referencedDeclaration: 34
+  |   |   |     typeString: function (uint256) view returns (uint256)
+  |   |   +-Identifier #18
+  |   |         name: __warp_usrid0_a
+  |   |         referencedDeclaration: 6
+  |   |         typeString: uint256
+  |   +-Return #19
+  |     +-Identifier #55
+  |           name: __warp_se_0
+  |           referencedDeclaration: 53
+  |           typeString: uint256
+  +-FunctionDefinition #24
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-FunctionCall #50
+      |   |   typeString: uint256
+      |   +-Identifier #51
+      |   |     name: WS_WRITE0
+      |   |     referencedDeclaration: 44
+      |   |     typeString: function (uint256, uint256) nonpayable returns (uint256)
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-Literal #11
+      |         typeString: uint256
+      |         value: 16896
+      +-Return #27
+
+---AnnotateImplicits---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #44
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 10
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #47
+| | +-VariableDeclaration #45
+| | | |   name: loc
+| | | |   scope: 44
+| | | |   storageLocation: storage
+| | | |   typeString: uint256
+| | | |   visibility: private
+| | | +-ElementaryTypeName #41
+| | |       name: uint256
+| | |       stateMutability: nonpayable
+| | |       typeString: uint256
+| | +-VariableDeclaration #46
+| |   |   name: value
+| |   |   scope: 44
+| |   |   storageLocation: default
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #42
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #49
+|   +-VariableDeclaration #48
+|     |   name: res
+|     |   scope: 44
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #43
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoFunctionDefinition #34
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS0_READ_Uint256
+| |   scope: 10
+| |   stateMutability: view
+| |   visibility: private
+| +-ParameterList #36
+| | +-VariableDeclaration #35
+| |   |   name: loc
+| |   |   scope: 34
+| |   |   storageLocation: storage
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #32
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #38
+|   +-VariableDeclaration #37
+|     |   name: val
+|     |   scope: 34
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #33
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-CairoFunctionDefinition #12
+  | |   implicits: range_check_ptr,syscall_ptr,pedersen_ptr
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-VariableDeclarationStatement #54
+  |   | +-VariableDeclaration #53
+  |   | | |   name: __warp_se_0
+  |   | | |   scope: 17
+  |   | | |   storageLocation: default
+  |   | | |   typeString: uint256
+  |   | | |   visibility: private
+  |   | | +-ElementaryTypeName #52
+  |   | |       name: uint256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: uint256
+  |   | +-FunctionCall #39
+  |   |   |   typeString: uint256
+  |   |   +-Identifier #40
+  |   |   |     name: WS0_READ_Uint256
+  |   |   |     referencedDeclaration: 34
+  |   |   |     typeString: function (uint256) view returns (uint256)
+  |   |   +-Identifier #18
+  |   |         name: __warp_usrid0_a
+  |   |         referencedDeclaration: 6
+  |   |         typeString: uint256
+  |   +-Return #19
+  |     +-Identifier #55
+  |           name: __warp_se_0
+  |           referencedDeclaration: 53
+  |           typeString: uint256
+  +-CairoFunctionDefinition #24
+    |   implicits: range_check_ptr,syscall_ptr,pedersen_ptr
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-FunctionCall #50
+      |   |   typeString: uint256
+      |   +-Identifier #51
+      |   |     name: WS_WRITE0
+      |   |     referencedDeclaration: 44
+      |   |     typeString: function (uint256, uint256) nonpayable returns (uint256)
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-Literal #11
+      |         typeString: uint256
+      |         value: 16896
+      +-Return #27
+
+---CairoUtilImporter---
+SourceUnit #10
+|   absolutePath: ex__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #44
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 10
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #47
+| | +-VariableDeclaration #45
+| | | |   name: loc
+| | | |   scope: 44
+| | | |   storageLocation: storage
+| | | |   typeString: uint256
+| | | |   visibility: private
+| | | +-ElementaryTypeName #41
+| | |       name: uint256
+| | |       stateMutability: nonpayable
+| | |       typeString: uint256
+| | +-VariableDeclaration #46
+| |   |   name: value
+| |   |   scope: 44
+| |   |   storageLocation: default
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #42
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #49
+|   +-VariableDeclaration #48
+|     |   name: res
+|     |   scope: 44
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #43
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoFunctionDefinition #34
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS0_READ_Uint256
+| |   scope: 10
+| |   stateMutability: view
+| |   visibility: private
+| +-ParameterList #36
+| | +-VariableDeclaration #35
+| |   |   name: loc
+| |   |   scope: 34
+| |   |   storageLocation: storage
+| |   |   typeString: uint256
+| |   |   visibility: private
+| |   +-ElementaryTypeName #32
+| |         name: uint256
+| |         stateMutability: nonpayable
+| |         typeString: uint256
+| +-ParameterList #38
+|   +-VariableDeclaration #37
+|     |   name: val
+|     |   scope: 34
+|     |   storageLocation: default
+|     |   typeString: uint256
+|     |   visibility: private
+|     +-ElementaryTypeName #33
+|           name: uint256
+|           stateMutability: nonpayable
+|           typeString: uint256
++-CairoContract #7
+  |   linearizedBaseContracts: 7
+  |   name: WARP
+  |   scope: 10
+  |   storageAllocations: #6->0
+  +-VariableDeclaration #6
+  | |   name: __warp_usrid0_a
+  | |   scope: 7
+  | |   storageLocation: default
+  | |   typeString: uint256
+  | |   visibility: public
+  | +-ElementaryTypeName #2
+  |       name: uint256
+  |       stateMutability: nonpayable
+  |       typeString: uint256
+  +-CairoFunctionDefinition #12
+  | |   implicits: range_check_ptr,syscall_ptr,pedersen_ptr
+  | |   name: a_0dbe671f
+  | |   scope: 7
+  | |   stateMutability: view
+  | |   visibility: external
+  | +-ParameterList #16
+  | +-ParameterList #15
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid1_
+  | |   |   scope: 12
+  | |   |   storageLocation: default
+  | |   |   typeString: uint256
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #14
+  | |         name: uint256
+  | |         stateMutability: nonpayable
+  | |         typeString: uint256
+  | +-Block #17
+  |   +-VariableDeclarationStatement #54
+  |   | +-VariableDeclaration #53
+  |   | | |   name: __warp_se_0
+  |   | | |   scope: 17
+  |   | | |   storageLocation: default
+  |   | | |   typeString: uint256
+  |   | | |   visibility: private
+  |   | | +-ElementaryTypeName #52
+  |   | |       name: uint256
+  |   | |       stateMutability: nonpayable
+  |   | |       typeString: uint256
+  |   | +-FunctionCall #39
+  |   |   |   typeString: uint256
+  |   |   +-Identifier #40
+  |   |   |     name: WS0_READ_Uint256
+  |   |   |     referencedDeclaration: 34
+  |   |   |     typeString: function (uint256) view returns (uint256)
+  |   |   +-Identifier #18
+  |   |         name: __warp_usrid0_a
+  |   |         referencedDeclaration: 6
+  |   |         typeString: uint256
+  |   +-Return #19
+  |     +-Identifier #55
+  |           name: __warp_se_0
+  |           referencedDeclaration: 53
+  |           typeString: uint256
+  +-CairoFunctionDefinition #24
+    |   implicits: range_check_ptr,syscall_ptr,pedersen_ptr
+    |   name: 
+    |   scope: 7
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #25
+    +-ParameterList #26
+    +-Block #20
+      +-ExpressionStatement #21
+      | +-FunctionCall #50
+      |   |   typeString: uint256
+      |   +-Identifier #51
+      |   |     name: WS_WRITE0
+      |   |     referencedDeclaration: 44
+      |   |     typeString: function (uint256, uint256) nonpayable returns (uint256)
+      |   +-Identifier #23
+      |   |     name: __warp_usrid0_a
+      |   |     referencedDeclaration: 6
+      |   |     typeString: uint256
+      |   +-Literal #11
+      |         typeString: uint256
+      |         value: 16896
+      +-Return #27
+

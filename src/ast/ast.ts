@@ -5,6 +5,8 @@ import {
   Block,
   DataLocation,
   Expression,
+  generalizeType,
+  getNodeType,
   Identifier,
   Mutability,
   SourceUnit,
@@ -81,6 +83,7 @@ export class AST {
 
   extractToConstant(node: Expression, vType: TypeName, newName: string): Identifier {
     const scope = this.getContainingScope(node);
+    const location = generalizeType(getNodeType(node, this.compilerVersion))[1];
     const replacementVariable = new VariableDeclaration(
       this.tempId,
       node.src,
@@ -89,7 +92,7 @@ export class AST {
       newName,
       scope,
       false,
-      DataLocation.Memory,
+      location ?? DataLocation.Default,
       StateVariableVisibility.Private,
       Mutability.Constant,
       node.typeString,

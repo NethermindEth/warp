@@ -67,7 +67,7 @@ export class ArrayFunctions extends ReferenceSubPass {
         const size = baseType.to.size.toString();
         this.replace(
           node,
-          createNumberLiteral(size, ast),
+          createNumberLiteral(size, ast, 'uint256'),
           undefined,
           DataLocation.Default,
           DataLocation.Default,
