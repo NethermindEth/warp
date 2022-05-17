@@ -10,11 +10,17 @@ struct SourceLeaf {
     uint c;
 }
 
-contract WARP {
+contract Base {
+    struct Intruder {
+        uint256 l;
+    }
+}
+
+contract WARP is Base {
     struct Parent {
         Mid1 mid1;
-        // mapping (address => Mid2) mid2;
         Mid3[] mid3;
+        Intruder[3] i;
     }
 
     struct Mid1 {
@@ -39,6 +45,7 @@ contract WARP {
     struct Leaf2 {
         uint256 m1;
         uint256 m2;
+        Mid3 mid3;
     }
 
     struct Another {
