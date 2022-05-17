@@ -1,7 +1,5 @@
-import assert from 'assert';
 import {
   ArrayType,
-  ASTNode,
   ContractDefinition,
   getNodeType,
   SourceUnit,
