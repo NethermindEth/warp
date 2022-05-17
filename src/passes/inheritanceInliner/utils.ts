@@ -19,6 +19,10 @@ export function getBaseContracts(node: ContractDefinition): ContractDefinition[]
   return node.vLinearizedBaseContracts.slice(1);
 }
 
+// Usually overriders remapping should be used to update references, but when the
+// contract is specified (through MemberAccess or IdentifierPath), the cloned member
+// of that contract is the one that should be used, so the simple remapping is used
+// instead.
 export function updateReferencedDeclarations(
   node: ASTNode,
   idRemapping: Map<number, VariableDeclaration | FunctionDefinition | ModifierDefinition>,
@@ -93,6 +97,9 @@ export function removeBaseContractDependence(node: ContractDefinition): void {
   toRemove.forEach((inheritanceSpecifier) => node.removeChild(inheritanceSpecifier));
 }
 
+// IdentifierPath doesn't make distinctions between calling function f() or A.f()
+// The only difference is the string of the name ('f' or 'A.f' respectively), so
+// the string is parsed in order to obtain whether the contract is being specified.
 function isSpecificAccess(node: IdentifierPath): boolean {
   const name = node.name.split('.');
   return name.length > 1;
