@@ -80,7 +80,7 @@ export class CairoUtilFuncGen {
     };
     const storageReadGen = new StorageReadGen(ast);
     this.storage = {
-      delete: new StorageDeleteGen(ast),
+      delete: new StorageDeleteGen(this.implementation.dynArray, ast),
       dynArrayIndexAccess: new DynArrayIndexAccessGen(this.implementation.dynArray, ast),
       dynArrayLength: new DynArrayLengthGen(this.implementation.dynArray, ast),
       dynArrayPop: new DynArrayPopGen(this.implementation.dynArray, ast),
