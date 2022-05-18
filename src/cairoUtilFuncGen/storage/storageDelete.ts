@@ -80,9 +80,9 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
     );
 
-    const funcName = `WS${this.generatedFunctions.size}_DELETE`;
-
     const deleteCode = `${this.getOrCreate(elementT)}(elem_loc)`;
+
+    const funcName = `WS${this.generatedFunctions.size}_DELETE`;
     const deleteFunc = [
       `func ${funcName}_elem${implicits}(loc : felt, index : Uint256) -> ():`,
       `     alloc_locals`,
