@@ -14,7 +14,7 @@ import { printNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { createUint256Literal, createUint256TypeName } from '../../utils/nodeTemplates';
+import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 
 /*
   Handles expressions that directly insert data into memory: struct constructors, news, and inline arrays
@@ -91,7 +91,7 @@ export class MemoryAllocations extends ReferenceSubPass {
 
     const call = createCallToFunction(
       stub,
-      [node.vArguments[0], createUint256Literal(BigInt(elementCairoType.width), ast)],
+      [node.vArguments[0], createNumberLiteral(elementCairoType.width, ast, 'uint256')],
       ast,
     );
 

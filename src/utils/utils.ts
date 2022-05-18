@@ -17,13 +17,11 @@ import {
   IntLiteralType,
   IntType,
   Literal,
-  LiteralKind,
   Mapping,
   MappingType,
   Mutability,
   PointerType,
   StateVariableVisibility,
-  StringLiteralType,
   StringType,
   TimeUnit,
   TupleExpression,
@@ -36,7 +34,13 @@ import {
 import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
 import { printTypeNode } from './astPrinter';
-import { logError, NotSupportedYetError, TranspileFailedError } from './errors';
+import {
+  logError,
+  NotSupportedYetError,
+  TranspileFailedError,
+  WillNotSupportError,
+} from './errors';
+import { createAddressTypeName, createBoolTypeName, createNumberLiteral } from './nodeTemplates';
 import { Class } from './typeConstructs';
 
 export function divmod(x: bigint, y: bigint): [BigInt, BigInt] {
@@ -66,57 +70,6 @@ export function union<T>(setA: Set<T>, setB: Set<T>) {
     _union.add(elem);
   }
   return _union;
-}
-
-export function sizeOfType(type: TypeNode): number {
-  if (type instanceof IntType) return type.nBits;
-  // We do not respect size of address type
-  else if (type instanceof AddressType) return 251;
-  else if (type instanceof BoolType) return 8;
-  // We only support short-strings for now.
-  // That is why all strings are just felts.
-  else if (type instanceof StringLiteralType) return 251;
-  else if (type instanceof StringType) return 251;
-
-  throw new NotSupportedYetError(`Don't know the size of ${printTypeNode(type)}`);
-}
-
-export function compareTypeSize(typeA: TypeNode, typeB: TypeNode): number {
-  if (typeA.pp() === typeB.pp()) return 0;
-
-  // TODO handle or rule out implicit conversions involving pointers
-  if (typeA instanceof PointerType && typeB instanceof PointerType) {
-    if (
-      typeA.location === typeB.location &&
-      compareTypeSize(typeA.to, typeB.to) === 0 &&
-      typeA.kind === typeB.kind
-    ) {
-      return 0;
-    }
-    console.log(
-      `WARNING: Assuming ${typeA.pp()} and ${typeB.pp()} do not have an implicit conversion`,
-    );
-    return 0;
-  }
-
-  // Literals always need to be cast to match the other type
-  if (typeA instanceof IntLiteralType) {
-    if (typeB instanceof IntLiteralType) {
-      return 0;
-    } else {
-      return -1;
-    }
-  } else if (typeB instanceof IntLiteralType) {
-    return 1;
-  }
-
-  if (typeA instanceof UserDefinedType && typeB instanceof UserDefinedType) {
-    console.log('WARNING: comparing sizes of user defined types');
-    return 0;
-  }
-  const sizeOfTypeA = sizeOfType(typeA);
-  const sizeOfTypeB = sizeOfType(typeB);
-  return Math.sign(sizeOfTypeA - sizeOfTypeB);
 }
 
 export function* counterGenerator(start = 0): Generator<number, number, unknown> {
@@ -232,37 +185,21 @@ export function mapRange<T>(n: number, func: (n: number) => T): T[] {
 export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
   let result: TypeName | null = null;
   if (node instanceof AddressType) {
-    result = new ElementaryTypeName(
-      ast.reserveId(),
-      '',
-      node.pp(),
-      node.pp(),
-      node.payable ? 'payable' : 'nonpayable',
-    );
+    result = createAddressTypeName(node.payable, ast);
   } else if (node instanceof ArrayType) {
     result = new ArrayTypeName(
       ast.reserveId(),
       '',
       node.pp(),
       typeNameFromTypeNode(node.elementT, ast),
-      node.size === undefined
-        ? undefined
-        : new Literal(
-            ast.reserveId(),
-            '',
-            `int_const ${node.size.toString()}`,
-            LiteralKind.Number,
-            toHexString(node.size.toString()),
-            node.size.toString(),
-          ),
+      node.size === undefined ? undefined : createNumberLiteral(node.size, ast),
     );
   } else if (node instanceof BoolType) {
-    result = new ElementaryTypeName(ast.reserveId(), '', 'bool', 'bool');
+    result = createBoolTypeName(ast);
   } else if (node instanceof FixedBytesType) {
     result = new ElementaryTypeName(ast.reserveId(), '', node.pp(), node.pp());
   } else if (node instanceof IntLiteralType) {
-    console.log(`WARNING: assigning int248 type to int literal ${node.pp()}`);
-    return new ElementaryTypeName(ast.reserveId(), '', 'int248', 'int248');
+    throw new TranspileFailedError(`Attempted to create typename for int literal`);
   } else if (node instanceof IntType) {
     result = new ElementaryTypeName(ast.reserveId(), '', node.pp(), node.pp());
   } else if (node instanceof PointerType) {
@@ -349,6 +286,14 @@ export function bigintToTwosComplement(val: bigint, width: number): bigint {
 export function narrowBigInt(n: bigint): number | null {
   const narrowed = parseInt(n.toString());
   if (BigInt(narrowed) !== n) return null;
+  return narrowed;
+}
+
+export function narrowBigIntSafe(n: bigint, errorMessage?: string): number {
+  const narrowed = narrowBigInt(n);
+  if (narrowed === null) {
+    throw new WillNotSupportError(errorMessage ?? `Unable to accurately parse ${n.toString()}`);
+  }
   return narrowed;
 }
 

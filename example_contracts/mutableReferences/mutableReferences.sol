@@ -15,6 +15,7 @@ contract C {
         y.pop(); // fine, modifies x through y
         //delete x; // fine, clears the array, also modifies y
         x.push(3);
+        x.push();
         // The following does not work; it would need to create a new temporary /
         // unnamed array in storage, but storage is "statically" allocated:
         // y = memoryArray;

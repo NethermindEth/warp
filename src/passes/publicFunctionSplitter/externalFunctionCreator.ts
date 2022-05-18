@@ -75,7 +75,7 @@ export class ExternalFunctionCreator extends ASTMapper {
   ): void {
     const internalFunctionCallArguments: Expression[] =
       externalFunction.vParameters.vParameters.map((parameter) => {
-        return createIdentifier(parameter, ast);
+        return createIdentifier(parameter, ast, undefined, node);
       });
     const internalFunctionCall = createCallToFunction(node, internalFunctionCallArguments, ast);
 

@@ -2,6 +2,7 @@ import {
   ArrayTypeName,
   ElementaryTypeName,
   FunctionCall,
+  FunctionType,
   getNodeType,
   Identifier,
   Mapping,
@@ -16,6 +17,7 @@ import assert from 'assert';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { TranspileFailedError } from '../utils/errors';
+import { generateExpressionTypeString } from '../utils/getTypeString';
 
 class UserDefinedValueTypeDefinitionEliminator extends ASTMapper {
   visitUserDefinedValueTypeDefinition(node: UserDefinedValueTypeDefinition, _ast: AST): void {
@@ -45,20 +47,11 @@ export class UserDefinedTypesConverter extends ASTMapper {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (typeNode instanceof UserDefinedType) {
       if (!(typeNode.definition instanceof UserDefinedValueTypeDefinition)) return;
-
-      ast.replaceNode(
-        node,
-        new Identifier(
-          node.id,
-          node.src,
-          typeNode.definition.underlyingType.typeString,
-          node.name,
-          node.referencedDeclaration,
-          node.raw,
-        ),
-      );
+      node.typeString = typeNode.definition.underlyingType.typeString;
+    } else if (typeNode instanceof FunctionType) {
+      const newTypeString: string = generateExpressionTypeString(typeNode);
+      node.typeString = newTypeString;
     }
-    // else if (typeNode instanceof FunctionType) {} TODO
   }
 
   visitMapping(node: Mapping, ast: AST): void {
@@ -91,18 +84,7 @@ export class UserDefinedTypesConverter extends ASTMapper {
     if (!(typeNode.type instanceof UserDefinedType)) return;
     if (!(typeNode.type.definition instanceof UserDefinedValueTypeDefinition)) return;
 
-    if (node.vExpression.memberName === 'wrap') ast.replaceNode(node, node.vArguments[0]);
-    else {
-      const argument = node.vArguments[0];
-      const typeNode = getNodeType(argument, ast.compilerVersion);
-      assert(typeNode instanceof UserDefinedType, 'Expected UserDefinedType');
-      assert(
-        typeNode.definition instanceof UserDefinedValueTypeDefinition,
-        'Expected UserDefinedValueTypeDefinition',
-      );
-      argument.typeString = typeNode.definition.underlyingType.typeString;
-      ast.replaceNode(node, argument);
-    }
+    ast.replaceNode(node, node.vArguments[0]);
   }
 
   static map(ast: AST): AST {
