@@ -63,6 +63,12 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
 
     const [arrayName, lengthName] = this.dynArrayGen.gen(elementType);
     const funcName = `${arrayName}_PUSHV`;
+
+    const pushCode = (loc: string) =>
+      elementType
+        .serialiseMembers('value')
+        .map((name, index) => `    ${write(add(loc, index), name)}`);
+
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
@@ -72,12 +78,15 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
         `    let (newLen, carry) = uint256_add(len, Uint256(1,0))`,
         `    assert carry = 0`,
         `    ${lengthName}.write(loc, newLen)`,
-        `    let (used) = WARP_USED_STORAGE.read()`,
-        `    WARP_USED_STORAGE.write(used + ${elementType.width})`,
-        `    ${arrayName}.write(loc, len, used)`,
-        ...elementType
-          .serialiseMembers('value')
-          .map((name, index) => `    ${write(add('used', index), name)}`),
+        `    let (existing) = ${arrayName}.read(loc, len)`,
+        `    if (existing) == 0:`,
+        `        let (used) = WARP_USED_STORAGE.read()`,
+        `        WARP_USED_STORAGE.write(used + ${elementType.width})`,
+        `        ${arrayName}.write(loc, len, used)`,
+        ...pushCode('used'),
+        `    else:`,
+        ...pushCode('existing'),
+        `    end`,
         `    return ()`,
         `end`,
       ].join('\n'),
