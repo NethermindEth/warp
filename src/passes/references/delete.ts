@@ -18,7 +18,7 @@ export class StorageDelete extends ReferenceSubPass {
 
     if (node.operator !== 'delete') return;
 
-    const [actualLoc, _] = this.getLocations(node.vSubExpression);
+    const [actualLoc] = this.getLocations(node.vSubExpression);
     if (actualLoc !== DataLocation.Storage) return;
 
     const [deleteActualLoc, deleteExpectedLoc] = this.getLocations(node);
