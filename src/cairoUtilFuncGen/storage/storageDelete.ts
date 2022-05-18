@@ -41,9 +41,9 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   private getOrCreate(type: TypeNode): string {
     let prefix;
     if (type instanceof ArrayType && type.size === undefined) {
-      prefix = `DELETE_DARRAY_${getNestedCount(type)}`;
+      prefix = `DELETE_DARRAY_${getNestedSuffix(type)}`;
     } else if (type instanceof MappingType) {
-      prefix = `DELETE_MAPPING_${getNestedCount(type)}`;
+      prefix = `DELETE_MAPPING_${getNestedSuffix(type)}`;
     } else {
       prefix = '';
     }
@@ -135,13 +135,13 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 }
 
-function getNestedCount(type: ArrayType | MappingType): string {
+function getNestedSuffix(type: ArrayType | MappingType): string {
   const valueType = dereferenceType(type instanceof ArrayType ? type.elementT : type.valueType);
 
   return valueType instanceof ArrayType
-    ? 'A' + getNestedCount(valueType)
+    ? 'A' + getNestedSuffix(valueType)
     : valueType instanceof MappingType
-    ? 'M' + getNestedCount(valueType)
+    ? 'M' + getNestedSuffix(valueType)
     : '';
 }
 
