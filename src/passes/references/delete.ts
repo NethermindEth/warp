@@ -1,18 +1,6 @@
-import {
-  ArrayType,
-  ASTNode,
-  DataLocation,
-  getNodeType,
-  PointerType,
-  StructDefinition,
-  TypeNode,
-  UnaryOperation,
-  UserDefinedType,
-} from 'solc-typed-ast';
+import { DataLocation, UnaryOperation } from 'solc-typed-ast';
 import { ReferenceSubPass } from './referenceSubPass';
 import { AST } from '../../ast/ast';
-import { NotSupportedYetError } from '../../utils/errors';
-import { printNode } from '../../utils/astPrinter';
 
 /*
   Delete is the one operator that treats storage references as references
@@ -40,8 +28,8 @@ export class StorageDelete extends ReferenceSubPass {
   }
 }
 
-// Currently storage deletes do not function correctly for dynamic arrays where local
 // storage references can be made to their elements
+/*
 function rejectIfUnsupported(node: ASTNode, type: TypeNode, ast: AST): void {
   if (type instanceof PointerType) {
     rejectIfUnsupported(node, type.to, ast);
@@ -60,3 +48,4 @@ function rejectIfUnsupported(node: ASTNode, type: TypeNode, ast: AST): void {
     );
   }
 }
+*/

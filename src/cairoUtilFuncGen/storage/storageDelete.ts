@@ -9,10 +9,9 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { typeNameFromTypeNode, mapRange, isReferenceType } from '../../utils/utils';
+import { typeNameFromTypeNode, mapRange } from '../../utils/utils';
 import { add, CairoFunction, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
