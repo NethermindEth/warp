@@ -81,9 +81,17 @@ export class ExpectedLocationAnalyser extends ASTMapper {
   }
 
   visitUnaryOperation(node: UnaryOperation, ast: AST): void {
+    const subExprType = getNodeType(node.vSubExpression, ast.compilerVersion);
     if (node.operator === 'delete') {
       const subExpressionLocation = this.actualLocations.get(node.vSubExpression);
-      if (subExpressionLocation !== undefined) {
+      if (
+        subExprType instanceof PointerType &&
+        subExprType.location === DataLocation.Storage &&
+        subExprType.to instanceof ArrayType &&
+        subExprType.to.size === undefined
+      ) {
+        this.expectedLocations.set(node.vSubExpression, DataLocation.Default);
+      } else if (subExpressionLocation !== undefined) {
         this.expectedLocations.set(node.vSubExpression, subExpressionLocation);
       }
     } else {
