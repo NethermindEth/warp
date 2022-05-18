@@ -87,4 +87,15 @@ contract WARP {
 
         return y[0]; 
     }
+
+    function returnDynArrayFromDynArray() pure external returns (uint[] memory){
+        uint256[][] memory y;
+        y = new uint256[][](3);
+        y[0] = new uint256[](3);
+        y[0][0] = 10;
+        y[0][1] = 100;
+        y[0][2] = 1000;
+
+        return y[0]; 
+    }
 }

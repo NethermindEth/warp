@@ -76,6 +76,15 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
             `Invalid storage -> calldata conversion ${printNode(node)}`,
           );
       }
+    } else if (actualLoc === DataLocation.Memory && expectedLoc === DataLocation.CallData) {
+      const parent = node.parent;
+      const replacement = ast
+        .getUtilFuncGen(node)
+        .memory.callDataRead.gen(
+          node,
+          typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast),
+        );
+      this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
     } else if (actualLoc === DataLocation.Memory && expectedLoc !== DataLocation.Memory) {
       const parent = node.parent;
       const replacement = ast
@@ -136,7 +145,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
         const replacementFunc = ast.getUtilFuncGen(node).storage.read.gen(node, decl.vType);
         this.replace(node, replacementFunc, parent, actualLoc, expectedLoc, ast);
       }
-    } else if (expectedLoc === DataLocation.CallData) {
+    } else if (actualLoc === DataLocation.Memory && expectedLoc === DataLocation.CallData) {
       const parent = node.parent;
       const replacement = ast
         .getUtilFuncGen(node)

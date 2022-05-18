@@ -127,21 +127,25 @@ export function collectDynArrayExpressions(
   assert(body !== undefined);
   const returnStatement = body.lastChild;
   assert(returnStatement instanceof Return);
-
+  // Going to filter the return statement for all expressions that will return
+  // TypeNode DynamicArray
   returnStatement
     .getChildren(true)
     .filter((n) => n instanceof Expression)
     .filter((n): n is Expression => {
       assert(n instanceof Expression);
+      // Put not supported error here if n is variableDeclaration
       const typeNode = getNodeType(n, ast.compilerVersion);
-      const df = dereferenceType(typeNode);
+      const derefTypeNode = dereferenceType(typeNode);
       return (
         n instanceof Expression &&
+        // We want a PointerType because it is pointing to the DynamicArray in memory.
         typeNode instanceof PointerType &&
         typeNode.location === DataLocation.Memory &&
-        df instanceof ArrayType &&
-        df.size === undefined &&
-        !(dereferenceType(df.elementT) instanceof ArrayType)
+        derefTypeNode instanceof ArrayType &&
+        derefTypeNode.size === undefined &&
+        // Add error here that we dont support DynamicArrays of DynamicArrays/Arrays
+        !(dereferenceType(derefTypeNode.elementT) instanceof ArrayType)
       );
     })
     .forEach((n) => {
