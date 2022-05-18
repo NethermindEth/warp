@@ -25,7 +25,7 @@ library Nums {
   }
 }
 
-using Nums for uint256 global;
+using Nums for uint256;
 
 struct BB {
     uint256 b;
