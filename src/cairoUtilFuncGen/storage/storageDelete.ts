@@ -9,6 +9,7 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { typeNameFromTypeNode, mapRange, isReferenceType } from '../../utils/utils';
@@ -21,7 +22,9 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const nodeType = getNodeType(node, this.ast.compilerVersion);
+    let nodeType = getNodeType(node, this.ast.compilerVersion);
+    nodeType = nodeType instanceof PointerType ? nodeType.to : nodeType;
+
     const functionName = this.getOrCreate(nodeType);
 
     const functionStub = createCairoFunctionStub(
@@ -41,22 +44,22 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const key = cairoType.fullStringRepresentation;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
+      console.log('delete already exists for key:', key, ' name:', existing.name);
       return existing.name;
     }
 
     let cairoFunc;
-    if (type instanceof PointerType && type.to instanceof ArrayType) {
-      cairoFunc = this.deleteArray(type.to, cairoType);
+    if (type instanceof ArrayType && type.size === undefined) {
+      cairoFunc = this.deleteArray(type);
     } else {
-      cairoFunc = this.deleteGeneric(type, cairoType);
+      cairoFunc = this.deleteGeneric(cairoType);
     }
 
     this.generatedFunctions.set(key, cairoFunc);
-
     return cairoFunc.name;
   }
 
-  private deleteGeneric(type: TypeNode, cairoType: CairoType): CairoFunction {
+  private deleteGeneric(cairoType: CairoType): CairoFunction {
     const funcName = `WS${this.generatedFunctions.size}_DELETE`;
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     return {
@@ -70,46 +73,41 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     };
   }
 
-  private deleteArray(type: ArrayType, cairoType: CairoType): CairoFunction {
+  private deleteArray(type: ArrayType): CairoFunction {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
-    const [arrayName, lengthName] = this.dynArrayGen.gen(cairoType);
-
-    const elementT = type.elementT;
-    if (isReferenceType(elementT)) this.getOrCreate(elementT);
+    const elementT = type.elementT instanceof PointerType ? type.elementT.to : type.elementT;
+    const [arrayName, lengthName] = this.dynArrayGen.gen(
+      CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
+    );
 
     const funcName = `WS${this.generatedFunctions.size}_DELETE`;
-    let deleteFunc = [
-      `func ${funcName}${implicits}(loc : felt):`,
-      `   let (lenght) = ${lengthName}.read(loc)`,
-      `   ${lengthName}.write(loc, Uint256(0, 0))`,
-    ];
 
-    if (isReferenceType(elementT)) {
-      const cairoElementT = CairoType.fromSol(
-        elementT,
-        this.ast,
-        TypeConversionContext.StorageAllocation,
-      );
-      deleteFunc = [
-        `func ${funcName}_elem${implicits}(loc : felt, index : Uint256) -> ():`,
-        `     alloc_locals`,
-        `     let (elem_loc)= ${arrayName}.read(loc, index)`,
-        `     ${this.getOrCreate(elementT)}(elem_loc)`,
-        `     let (stop) = uint256_eq(index, Uint256(0, 0))`,
-        `     if stop == 0:`,
-        `         let (next_index) = uint256_sub(index, Uint256(1, 0))`,
-        `         return ${funcName}_elem(${add('loc', cairoElementT.width)}, next_index)`,
-        `     end`,
-        `     return ()`,
-        `end`,
-        ...deleteFunc,
-        `     ${funcName}_elem(loc, lenght)`,
-      ];
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_eq');
-      this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
-    }
-    const code = [...deleteFunc, 'return ()', 'end'].join('\n');
-    return { name: funcName, code: code };
+    const deleteCode = `${this.getOrCreate(elementT)}(elem_loc)`;
+    const deleteFunc = [
+      `func ${funcName}_elem${implicits}(loc : felt, index : Uint256) -> ():`,
+      `     alloc_locals`,
+      `     let (stop) = uint256_eq(index, Uint256(0, 0))`,
+      `     if stop == 1:`,
+      `        return ()`,
+      `     end`,
+      `     let (next_index) = uint256_sub(index, Uint256(1, 0))`,
+      `     let (elem_loc) = ${arrayName}.read(loc, next_index)`,
+      deleteCode,
+      `     return ${funcName}_elem(loc, next_index)`,
+      `end`,
+      `func ${funcName}${implicits}(loc : felt):`,
+      `   alloc_locals`,
+      `   let (length) = ${lengthName}.read(loc)`,
+      `   ${lengthName}.write(loc, Uint256(0, 0))`,
+      `   return ${funcName}_elem(loc, length)`,
+      `end`,
+    ].join('\n');
+
+    this.requireImport('starkware.cairo.common.uint256', 'uint256_eq');
+    this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+
+    return { name: funcName, code: deleteFunc };
   }
 }
