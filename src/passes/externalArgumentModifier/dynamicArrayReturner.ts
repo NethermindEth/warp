@@ -1,30 +1,29 @@
 import assert = require('assert');
 
 import {
-  // ArrayType,
+  ArrayType,
   ArrayTypeName,
-  ASTNode,
-  // Block,
   DataLocation,
   Expression,
   FunctionCall,
   FunctionDefinition,
-  // getNodeType,
-  Identifier,
+  generalizeType,
+  getNodeType,
+  Mutability,
+  PointerType,
   Return,
-  TupleExpression,
+  StateVariableVisibility,
+  TypeNode,
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
-// import { fileURLToPath } from 'url';
-// import { isDataView } from 'util/types';
+
 import { AST } from '../../ast/ast';
-// import { CairoFunctionDefinition } from '../../ast/cairoNodes';
+
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { createIdentifier } from '../../utils/nodeTemplates';
-import { isExternallyVisible } from '../../utils/utils';
-
+import { dereferenceType, isExternallyVisible, typeNameFromTypeNode } from '../../utils/utils';
 export class DynArrayReturner extends ASTMapper {
   /*
   This pass looks for dynamic arrays and returns them. There are two steps that need to be done. The first is we need to create a variable 
@@ -37,29 +36,47 @@ export class DynArrayReturner extends ASTMapper {
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     const body = node.vBody;
+    let varCounter = 0;
     if (isExternallyVisible(node) && body !== undefined && body.lastChild instanceof Return) {
       const returnStatement = body.lastChild;
-      [...collectDynArrayVariables(node).entries()]
-        .filter(([decl]) => decl.storageLocation === DataLocation.Memory)
-        .forEach(([varDecl, ids]) => {
-          const dArrayStruct = cloneASTNode(varDecl, ast);
-          dArrayStruct.name = dArrayStruct.name + '_ret_struct';
-          dArrayStruct.storageLocation = DataLocation.CallData;
+      const expressionMap = collectDynArrayExpressions(node, ast);
+      [...expressionMap.keys()].forEach((expre) => {
+        const typeNode = expressionMap.get(expre);
+        assert(typeNode !== undefined && typeNode instanceof ArrayType);
+        const genTypeNode = generalizeType(typeNode);
+        const varDecl = new VariableDeclaration(
+          ast.reserveId(),
+          '',
+          false,
+          false,
+          `dynStruct${varCounter}`,
+          node.id,
+          false,
+          DataLocation.CallData,
+          StateVariableVisibility.Private,
+          Mutability.Immutable,
+          //typeNode.pp(),
+          genTypeNode[0].pp(),
+          undefined,
+          typeNameFromTypeNode(typeNode, ast),
+        );
+        varCounter++;
+        const dArrayStruct = cloneASTNode(varDecl, ast);
+        dArrayStruct.name = dArrayStruct.name + '_ret_struct';
+        dArrayStruct.storageLocation = DataLocation.CallData;
 
-          this.genStructConstructor(dArrayStruct, node, ast);
+        this.genStructConstructor(dArrayStruct, node, ast);
 
-          ids.forEach((id) => {
-            const intialValue = cloneASTNode(id, ast);
-            const structArrayStatement = this.createVariableDeclarationStatemet(
-              dArrayStruct,
-              intialValue,
-              ast,
-            );
-            const replaceIdentifier = createIdentifier(dArrayStruct, ast);
-            body.insertBefore(structArrayStatement, returnStatement);
-            ast.replaceNode(id, replaceIdentifier);
-          });
-        });
+        const intialValue = cloneASTNode(expre, ast);
+        const structArrayStatement = this.createVariableDeclarationStatemet(
+          dArrayStruct,
+          intialValue,
+          ast,
+        );
+        const replaceIdentifier = createIdentifier(dArrayStruct, ast);
+        body.insertBefore(structArrayStatement, returnStatement);
+        ast.replaceNode(expre, replaceIdentifier);
+      });
 
       node.vReturnParameters.vParameters.forEach((varDecl) => {
         if (
@@ -101,47 +118,35 @@ export class DynArrayReturner extends ASTMapper {
   }
 }
 
-export function collectDynArrayVariables(
+export function collectDynArrayExpressions(
   node: FunctionDefinition,
-): Map<VariableDeclaration, Identifier[]> {
-  const variableDeclarations = node
-    .getChildren(true)
-    .filter((n) => n instanceof VariableDeclaration);
-
+  ast: AST,
+): Map<Expression, TypeNode> {
+  const retMap = new Map<Expression, TypeNode>();
   const body = node.vBody;
   assert(body !== undefined);
   const returnStatement = body.lastChild;
-  assert(returnStatement !== undefined);
+  assert(returnStatement instanceof Return);
 
-  const returnIdentifiers = returnStatement
+  returnStatement
     .getChildren(true)
-    .filter(
-      (n): n is Identifier =>
-        n instanceof Identifier &&
-        ((n.parent instanceof TupleExpression &&
-          n.getClosestParentByType(FunctionCall) === undefined) ||
-          n.parent instanceof Return),
-    )
-    .map((id): [Identifier, ASTNode | undefined] => [id, id.vReferencedDeclaration])
-    .filter(
-      (pair: [Identifier, ASTNode | undefined]): pair is [Identifier, VariableDeclaration] =>
-        pair[1] !== undefined &&
-        pair[1] instanceof VariableDeclaration &&
-        variableDeclarations.includes(pair[1]) &&
-        pair[1].vType instanceof ArrayTypeName &&
-        pair[1].vType.vLength === undefined,
-    );
-
-  const retMap: Map<VariableDeclaration, Identifier[]> = new Map();
-
-  returnIdentifiers.forEach(([id, decl]) => {
-    const existingEntry = retMap.get(decl);
-    if (existingEntry === undefined) {
-      retMap.set(decl, [id]);
-    } else {
-      retMap.set(decl, [id, ...existingEntry]);
-    }
-  });
+    .filter((n) => n instanceof Expression)
+    .filter((n): n is Expression => {
+      assert(n instanceof Expression);
+      const typeNode = getNodeType(n, ast.compilerVersion);
+      const df = dereferenceType(typeNode);
+      return (
+        n instanceof Expression &&
+        typeNode instanceof PointerType &&
+        typeNode.location === DataLocation.Memory &&
+        df instanceof ArrayType &&
+        df.size === undefined &&
+        !(dereferenceType(df.elementT) instanceof ArrayType)
+      );
+    })
+    .forEach((n) => {
+      retMap.set(n, dereferenceType(getNodeType(n, ast.compilerVersion)));
+    });
 
   return retMap;
 }

@@ -15,6 +15,10 @@ contract WARP {
         uint member3;
     }
 
+    struct structDef3 {
+        uint[] member1;
+    }
+
     function returnFelt() pure external returns (uint8[] memory) {
          uint8[] memory y = new uint8[](3);
          y[0] = 1;
@@ -62,5 +66,25 @@ contract WARP {
          y[2] = 3;
          
          return (y, x);
+    }
+
+    function returnDynArrayAsMember() pure external returns (uint[] memory){
+        uint256[] memory y = new uint256[](3);
+        y[0] = 10;
+        y[1] = 100;
+        y[2] = 1000;
+        
+        structDef3 memory z = structDef3(y);
+        return z.member1;
+    }
+
+    function returnDynArrayAsIndexAccess() pure external returns (uint[] memory){
+        uint256[][3] memory y;
+        y[0] = new uint256[](3);
+        y[0][0] = 10;
+        y[0][1] = 100;
+        y[0][2] = 1000;
+
+        return y[0]; 
     }
 }
