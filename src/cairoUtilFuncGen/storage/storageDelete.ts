@@ -5,13 +5,14 @@ import {
   Expression,
   FunctionCall,
   getNodeType,
+  MappingType,
   PointerType,
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { typeNameFromTypeNode, mapRange } from '../../utils/utils';
+import { typeNameFromTypeNode, mapRange, dereferenceType } from '../../utils/utils';
 import { add, CairoFunction, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
@@ -21,8 +22,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
-    let nodeType = getNodeType(node, this.ast.compilerVersion);
-    nodeType = nodeType instanceof PointerType ? nodeType.to : nodeType;
+    const nodeType = dereferenceType(getNodeType(node, this.ast.compilerVersion));
 
     const functionName = this.getOrCreate(nodeType);
 
@@ -39,10 +39,15 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(type: TypeNode): string {
-    const [prefix, fromType] =
-      type instanceof ArrayType && type.size === undefined
-        ? ['DELETE_ARRAY ', type.elementT]
-        : ['', type];
+    let prefix;
+    if (type instanceof ArrayType && type.size === undefined) {
+      prefix = `DELETE_DARRAY_${getNestedCount(type)}`;
+    } else if (type instanceof MappingType) {
+      prefix = `DELETE_MAPPING_${getNestedCount(type)}`;
+    } else {
+      prefix = '';
+    }
+    const fromType = getBaseType(type);
 
     const cairoType = CairoType.fromSol(
       fromType,
@@ -58,11 +63,14 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     let cairoFunc;
     if (type instanceof ArrayType && type.size === undefined) {
       cairoFunc = this.deleteArray(type);
+    } else if (type instanceof MappingType) {
+      cairoFunc = this.deleteNothing();
     } else {
       cairoFunc = this.deleteGeneric(cairoType);
     }
 
     this.generatedFunctions.set(key, cairoFunc);
+
     return cairoFunc.name;
   }
 
@@ -117,4 +125,33 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
     return { name: funcName, code: deleteFunc };
   }
+  private deleteNothing(): CairoFunction {
+    const funcName = `WS${this.generatedFunctions.size}_DELETE`;
+    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
+    return {
+      name: funcName,
+      code: [`func ${funcName}${implicits}(loc: felt) -> ():`, `    return ()`, `end`].join('\n'),
+    };
+  }
+}
+
+function getNestedCount(type: ArrayType | MappingType): string {
+  const valueType = dereferenceType(type instanceof ArrayType ? type.elementT : type.valueType);
+
+  return valueType instanceof ArrayType
+    ? 'A' + getNestedCount(valueType)
+    : valueType instanceof MappingType
+    ? 'M' + getNestedCount(valueType)
+    : '';
+}
+
+function getBaseType(type: TypeNode): TypeNode {
+  if (type instanceof ArrayType && type.size === undefined) {
+    return getBaseType(dereferenceType(type.elementT));
+  }
+  if (type instanceof MappingType) {
+    return getBaseType(dereferenceType(type.valueType));
+  }
+
+  return type;
 }
