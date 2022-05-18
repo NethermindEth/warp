@@ -6,7 +6,6 @@ import {
   Break,
   DataLocation,
   DoWhileStatement,
-  ElementaryTypeName,
   ExpressionStatement,
   FunctionDefinition,
   IfStatement,
@@ -20,7 +19,12 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
-import { createBoolLiteral, createIdentifier, createReturn } from '../../utils/nodeTemplates';
+import {
+  createBoolLiteral,
+  createBoolTypeName,
+  createIdentifier,
+  createReturn,
+} from '../../utils/nodeTemplates';
 import { cloneASTNode } from '../../utils/cloning';
 import { toSingleExpression } from '../../utils/utils';
 
@@ -107,7 +111,7 @@ export class ReturnToBreak extends ASTMapper {
       Mutability.Mutable,
       'bool',
       undefined,
-      new ElementaryTypeName(ast.reserveId(), '', 'bool', 'bool'),
+      createBoolTypeName(ast),
     );
     const declStatement = new VariableDeclarationStatement(
       ast.reserveId(),

@@ -1,8 +1,8 @@
-import { Assignment, BinaryOperation, Literal, LiteralKind, UnaryOperation } from 'solc-typed-ast';
+import { Assignment, BinaryOperation, UnaryOperation } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
-import { toHexString } from '../utils/utils';
+import { createNumberLiteral } from '../utils/nodeTemplates';
 
 export class UnloadingAssignment extends ASTMapper {
   visitAssignment(node: Assignment, ast: AST): void {
@@ -35,14 +35,7 @@ export class UnloadingAssignment extends ASTMapper {
       return this.commonVisit(node, ast);
     }
 
-    const literalOne = new Literal(
-      ast.reserveId(),
-      node.src,
-      'int_const 1',
-      LiteralKind.Number,
-      toHexString('1'),
-      '1',
-    );
+    const literalOne = createNumberLiteral(1, ast);
 
     const compoundAssignment = new Assignment(
       node.id,

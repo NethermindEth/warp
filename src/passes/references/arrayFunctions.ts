@@ -4,15 +4,12 @@ import {
   ExternalReferenceType,
   FunctionCall,
   getNodeType,
-  Literal,
-  LiteralKind,
   MemberAccess,
   PointerType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { NotSupportedYetError } from '../../utils/errors';
-import { generateLiteralTypeString } from '../../utils/getTypeString';
-import { toHexString } from '../../utils/utils';
+import { createNumberLiteral } from '../../utils/nodeTemplates';
 import { ReferenceSubPass } from './referenceSubPass';
 
 /*
@@ -70,14 +67,7 @@ export class ArrayFunctions extends ReferenceSubPass {
         const size = baseType.to.size.toString();
         this.replace(
           node,
-          new Literal(
-            ast.reserveId(),
-            node.src,
-            generateLiteralTypeString(size),
-            LiteralKind.Number,
-            toHexString(size),
-            size,
-          ),
+          createNumberLiteral(size, ast, 'uint256'),
           undefined,
           DataLocation.Default,
           DataLocation.Default,

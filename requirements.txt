@@ -3,4 +3,4 @@ Flask >= 2.0.2
 flask-cors >= 3.0.10
 flask[async]
 marshmallow-dataclass == 8.5.3
-cairo-lang == 0.8.1
+cairo-lang == 0.8.2
