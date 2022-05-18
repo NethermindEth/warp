@@ -1579,6 +1579,13 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('storage', [
+          new Dir('delete', [
+            File.Simple('value_dyn_array', [
+              Expect.Simple('tryDeleteX', [], ['28']),
+              Expect.Simple('tryDeleteY', [], ['71', '0']),
+            ]),
+            File.Simple('ref_dyn_array', [Expect.Simple('tryDeleteZ', [], ['0', '0', '0'])]),
+          ]),
           File.Simple('dynamic_arrays', [
             Expect.Simple('get', ['0', '0'], null, 'out of range get should fail'),
             Expect.Simple('set', ['0', '0', '0'], null, 'out of range set should fail'),
