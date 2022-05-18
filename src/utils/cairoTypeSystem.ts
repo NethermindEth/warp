@@ -53,8 +53,7 @@ export abstract class CairoType {
         if (context === TypeConversionContext.CallDataRef) {
           return new CairoPointer(CairoType.fromSol(tp.elementT, ast, context));
         }
-        const cairoValueType = CairoType.fromSol(tp.elementT, ast, context);
-        return new WarpLocation(cairoValueType);
+        return new WarpLocation();
       } else if (context === TypeConversionContext.Ref) {
         return new CairoFelt();
       } else {
@@ -82,8 +81,7 @@ export abstract class CairoType {
     } else if (tp instanceof IntType) {
       return tp.nBits > 251 ? CairoUint256 : new CairoFelt();
     } else if (tp instanceof MappingType) {
-      const cairoValueType = CairoType.fromSol(tp.valueType, ast, context);
-      return new WarpLocation(cairoValueType);
+      return new WarpLocation();
     } else if (tp instanceof PointerType) {
       if (context !== TypeConversionContext.Ref) {
         return CairoType.fromSol(tp.to, ast, context);
@@ -226,15 +224,12 @@ export class CairoPointer extends CairoType {
 
 // There shoudl be a way of differentiating Maps from arrays
 export class WarpLocation extends CairoFelt {
-  constructor(public valueType: CairoType) {
-    super();
-  }
   get typeName(): string {
     // TODO make sure that struct names get mangled
     return 'warp_id';
   }
   get fullStringRepresentation(): string {
-    return `[Id](${this.valueType.fullStringRepresentation})`;
+    return `[Id]`;
   }
 }
 

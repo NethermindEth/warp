@@ -39,11 +39,19 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(type: TypeNode): string {
-    const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation);
-    const key = cairoType.fullStringRepresentation;
+    const [prefix, fromType] =
+      type instanceof ArrayType && type.size === undefined
+        ? ['DELETE_ARRAY ', type.elementT]
+        : ['', type];
+
+    const cairoType = CairoType.fromSol(
+      fromType,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    );
+    const key = `${prefix}${cairoType.fullStringRepresentation}`;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
-      console.log('delete already exists for key:', key, ' name:', existing.name);
       return existing.name;
     }
 
