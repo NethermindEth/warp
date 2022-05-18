@@ -122,6 +122,11 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
 
   private createSmallStaticArrayCopyFunction(key: string, type: ArrayType) {
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
+
+    const funcName = `ws_to_memory${this.generatedFunctions.size}`;
+    const implicits =
+      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+    const funcHeader = `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt):`;
     const funcBody = [
       `    alloc_locals`,
       `    let length = ${uint256(memoryType.width)}`,
@@ -143,11 +148,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       `    return (mem_start)`,
       `end`,
     ].join('\n');
-
-    const funcName = `ws_to_memory${this.generatedFunctions.size}`;
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
-    const funcHeader = `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt):`;
 
     this.generatedFunctions.set(key, {
       name: funcName,
