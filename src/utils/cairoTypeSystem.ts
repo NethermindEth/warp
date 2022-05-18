@@ -222,7 +222,6 @@ export class CairoPointer extends CairoType {
   }
 }
 
-// There shoudl be a way of differentiating Maps from arrays
 export class WarpLocation extends CairoFelt {
   get typeName(): string {
     // TODO make sure that struct names get mangled

@@ -27,25 +27,3 @@ export class StorageDelete extends ReferenceSubPass {
     this.replace(node, replacement, undefined, deleteActualLoc, deleteExpectedLoc, ast);
   }
 }
-
-// storage references can be made to their elements
-/*
-function rejectIfUnsupported(node: ASTNode, type: TypeNode, ast: AST): void {
-  if (type instanceof PointerType) {
-    rejectIfUnsupported(node, type.to, ast);
-  } else if (type instanceof ArrayType) {
-    if (type.elementT instanceof PointerType && type.size === undefined) {
-      throw new NotSupportedYetError(
-        `Storage deletes of dynamic arrays of complex types not supported yet. Found at ${printNode(
-          node,
-        )}`,
-      );
-    }
-    rejectIfUnsupported(node, type.elementT, ast);
-  } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-    type.definition.vMembers.forEach((decl) =>
-      rejectIfUnsupported(node, getNodeType(decl, ast.compilerVersion), ast),
-    );
-  }
-}
-*/
