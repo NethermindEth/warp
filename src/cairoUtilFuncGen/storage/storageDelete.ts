@@ -41,9 +41,9 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   private getOrCreate(type: TypeNode): string {
     let prefix;
     if (type instanceof ArrayType && type.size === undefined) {
-      prefix = `DELETE_DARRAY_${getNestedSuffix(type)}`;
+      prefix = `DELETE_DARRAY_${getNestedNumber(type).toString()}`;
     } else if (type instanceof MappingType) {
-      prefix = `DELETE_MAPPING_${getNestedSuffix(type)}`;
+      prefix = `DELETE_MAPPING`;
     } else {
       prefix = '';
     }
@@ -80,7 +80,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(loc: felt) -> ():`,
+        `func ${funcName}${implicits}(loc: felt):`,
         ...mapRange(cairoType.width, (n) => `    WARP_STORAGE.write(${add('loc', n)}, 0)`),
         `    return ()`,
         `end`,
@@ -100,7 +100,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
     const funcName = `WS${this.generatedFunctions.size}_DELETE`;
     const deleteFunc = [
-      `func ${funcName}_elem${implicits}(loc : felt, index : Uint256) -> ():`,
+      `func ${funcName}_elem${implicits}(loc : felt, index : Uint256):`,
       `     alloc_locals`,
       `     let (stop) = uint256_eq(index, Uint256(0, 0))`,
       `     if stop == 1:`,
@@ -126,32 +126,23 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     return { name: funcName, code: deleteFunc };
   }
   private deleteNothing(): CairoFunction {
-    const funcName = `WS${this.generatedFunctions.size}_DELETE`;
+    const funcName = `WSMAP_DELETE`;
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     return {
       name: funcName,
-      code: [`func ${funcName}${implicits}(loc: felt) -> ():`, `    return ()`, `end`].join('\n'),
+      code: [`func ${funcName}${implicits}(loc: felt):`, `    return ()`, `end`].join('\n'),
     };
   }
 }
 
-function getNestedSuffix(type: ArrayType | MappingType): string {
+function getNestedNumber(type: ArrayType | MappingType): number {
   const valueType = dereferenceType(type instanceof ArrayType ? type.elementT : type.valueType);
 
-  return valueType instanceof ArrayType
-    ? 'A' + getNestedSuffix(valueType)
-    : valueType instanceof MappingType
-    ? 'M' + getNestedSuffix(valueType)
-    : '';
+  return 1 + (valueType instanceof ArrayType ? getNestedNumber(valueType) : 0);
 }
 
 function getBaseType(type: TypeNode): TypeNode {
-  if (type instanceof ArrayType && type.size === undefined) {
-    return getBaseType(dereferenceType(type.elementT));
-  }
-  if (type instanceof MappingType) {
-    return getBaseType(dereferenceType(type.valueType));
-  }
-
-  return type;
+  return type instanceof ArrayType && type.size === undefined
+    ? getBaseType(dereferenceType(type.elementT))
+    : type;
 }
