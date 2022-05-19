@@ -10,6 +10,7 @@ import {
   UserDefinedValueTypeDefinition,
   VariableDeclaration,
   UserDefinedTypeName,
+  ASTNode,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -18,29 +19,23 @@ import { NotSupportedYetError } from '../utils/errors';
 import * as pathLib from 'path';
 
 export class ExternImporter extends ASTMapper {
-  visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
-    const declaration = node.vType;
-    let declarationSourceUnit;
-    if (declaration instanceof UserDefinedTypeName) {
-      declarationSourceUnit = declaration.vReferencedDeclaration.getClosestParentByType(SourceUnit);
-    } else {
-      this.commonVisit(node, ast);
-      return;
-    }
+  visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {
+    const declaration = node.vReferencedDeclaration;
+    const declarationSourceUnit = declaration.getClosestParentByType(SourceUnit);
     const sourceUnit = node.getClosestParentByType(SourceUnit);
 
     assert(sourceUnit !== undefined, 'Trying to import a definition into an unknown source unit');
+    assert(
+      declarationSourceUnit !== undefined,
+      'Trying to import a definition from an unknown source unit',
+    );
 
     if (
-      declarationSourceUnit !== undefined &&
       sourceUnit !== declarationSourceUnit &&
-      declaration instanceof UserDefinedTypeName &&
+      declaration instanceof StructDefinition &&
+      isFree(declaration)
     ) {
-      ast.registerImport(
-        node,
-        formatPath(declarationSourceUnit.absolutePath),
-        declaration.vReferencedDeclaration.name,
-      );
+      ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
     }
 
     this.commonVisit(node, ast);
@@ -49,7 +44,7 @@ export class ExternImporter extends ASTMapper {
   visitIdentifier(node: Identifier, ast: AST): void {
     const declaration = node.vReferencedDeclaration;
 
-    if (declaration === undefined || !isFree(declaration)) return;
+    if (declaration === undefined) return;
 
     const declarationSourceUnit = declaration.getClosestParentByType(SourceUnit);
     const sourceUnit = node.getClosestParentByType(SourceUnit);
@@ -57,7 +52,10 @@ export class ExternImporter extends ASTMapper {
     assert(sourceUnit !== undefined, 'Trying to import a definition into an unknown source unit');
     if (declarationSourceUnit === undefined || sourceUnit === declarationSourceUnit) return;
 
-    if (declaration instanceof FunctionDefinition || declaration instanceof StructDefinition) {
+    if (
+      declaration instanceof FunctionDefinition ||
+      (declaration instanceof StructDefinition && isFree(declaration))
+    ) {
       ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
     }
     if (

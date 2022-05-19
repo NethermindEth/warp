@@ -13,12 +13,14 @@ import {
   UserDefinedType,
   UserDefinedValueTypeDefinition,
   VariableDeclaration,
+  FunctionCall,
+  FunctionCallKind,
+  SourceUnit,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
-import { SourceUnitSplitter } from './sourceUnitSplitter';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   visitIndexAccess(node: IndexAccess, ast: AST): void {
