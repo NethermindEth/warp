@@ -1,0 +1,246 @@
+{
+type Input = string | number | Input[];
+type Output = BigInt[];
+type parseF = (i: Input) => Output;
+}
+
+Signature
+  = name:FuncName "()" {
+    const loc = location()
+    return (input: Input) => {
+      if (!(input instanceof Array)) {
+        error(`Expected input to be array: ${input}`, loc);
+        throw "error already raised";
+      }
+      if (input.length > 0) {
+        error(`${name} expects no arguments`);
+        throw "error already raised";
+      }
+      return [];
+    }
+  }
+  / FuncName "(" args:Arguments ")" {
+      const loc = location();
+      return (input: Input) => {
+        if (!(input instanceof Array)) {
+          error(`Expected input to be array: ${input}`, loc);
+          throw "error already raised";
+        }
+        return args(input);
+      }
+    }
+
+Arguments
+  = head:Type tail:(_ "," _ Type)* {
+    const loc = location();
+    return (input : Input) => {
+      if (!(input instanceof Array)) {
+        error(`b Expected input to be array: ${input}`, loc);
+        throw "error already raised, appeasing the typesystem";
+      }
+      if (input.length !== tail.length + 1) error(`Expected ${tail.length + 1} arguments not ${input.length}`);
+      return [...head(input[0]), ...tail.flatMap(([_, __, ___, pf]: [any, any, any, parseF], i: number) => pf(input[i + 1]))];
+    }
+  }
+
+Type
+  = "(" args:Arguments ")" { return args }
+  / t:StaticType array:ArraySuffix+ {
+    return (input: Input) => array.reduce((result: parseF, af: (f: parseF) => parseF) => af(result), t)(input);
+  }
+  / t:StaticType { return t }
+
+ArraySuffix
+  = "[]" {
+      const loc = location()
+      return (f : parseF)  => (input: Input) => {
+        if (!(input instanceof Array)) {
+          error(`c Expected input to be array: ${input}`, loc);
+          throw "error already raised, appeasing the typesystem";
+        }
+        return [BigInt(input.length), ...input.flatMap(f)];
+      };
+  }
+  / "[" i:Integer "]" {
+    const loc = location()
+    return (f: parseF) => (input : Input) => {
+      if (!(input instanceof Array)) {
+        error(`d Expected input to be array: ${input}`, loc);
+        throw "error already raised, appeasing the typesystem";
+      }
+      if (input.length !== i) error(`Expected input to have ${i} elements`);
+      return input.flatMap(f);
+    }
+  }
+
+StaticType
+  = "uint" width:BigInteger { return (input: Input) => {
+      if (input instanceof Array) {
+        error(`Expected input to be number: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      let i: bigint;
+      try {
+        i = BigInt(input);
+      } catch {
+        error(`Expected input to be number: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      if (i >= 2n ** BigInt(width)) error(`Uint${width} exceeds bound: ${input}`);
+      if (i < 0n) error(`Uint${width} is less than zero: ${input}`);
+      return toUintOrFelt(i, 256);
+    }
+  }
+  / "int" width:BigInteger { return (input: Input) => {
+      if (input instanceof Array) {
+        error(`Expected input to be number: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      let i: bigint;
+      try {
+        i = BigInt(input);
+      } catch {
+        error(`Expected input to be number: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      if (i >= 2n ** BigInt(width - 1n)) error(`Int${width} exceeds bound: ${input}`);
+      if (i < -(2n ** BigInt(width - 1n))) error(`Int${width} exceeds bound: ${input}`);
+      return toUintOrFelt(i, 256);
+    }
+  }
+  / "uint" { return (input: Input) => {
+      if (input instanceof Array) {
+        error(`Expected input to be number: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      let i: bigint;
+      try {
+        i = BigInt(input);
+      } catch {
+        error(`Expected input to be number: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      if (i >= 2n ** BigInt(256n)) error(`Uint256 exceeds bound: ${input}`);
+      if (i < 0n) error(`Uint256 is less than zero: ${input}`);
+      return toUintOrFelt(i, 256);
+    }
+  }
+  / "int" { return (input: Input) => {
+      if (input instanceof Array) {
+        error(`Expected input to be number: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      let i: bigint;
+      try {
+        i = BigInt(input);
+      } catch {
+        error(`Expected input to be number: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      if (i >= 2n ** BigInt(255n)) error(`Int256 exceeds bound: ${input}`);
+      if (i < -(2n ** BigInt(255n))) error(`Int256 exceeds bound: ${input}`);
+      return toUintOrFelt(i, 256);
+    }
+  }
+  / "address" { return (input: Input) => {
+      if (input instanceof Array) {
+        error(`Expected input to be number: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      let i: bigint;
+      try {
+        i = BigInt(input);
+      } catch {
+        error(`Expected input to be number: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      if (i >= 2n ** BigInt(160)) error(`Address exceeds bound: ${input}`);
+      if (i < 0n) error(`Address is less than zero: ${input}`);
+      return toUintOrFelt(i, 160);
+    }
+  }
+  / "bool" { return (input: Input) => {
+      if (input instanceof Array) {
+        error(`Expected bool to be number, true or false: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      if (input === "true") return [1n];
+      if (input === "false") return [0n];
+      let b: bigint;
+      try {
+        b = BigInt(input)
+      } catch {
+        error(`Expected input to be a boolean: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      if (b === 1n) return [1n];
+      if (b === 0n) return [0n];
+      error(`${input} can't be parsed as a boolean`);
+    }
+  }
+  / "bytes" len:Integer { return (input: Input) => {
+      if (input instanceof Array) {
+        error(`Expected input to be number: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      let i: bigint;
+      try {
+        i = BigInt(input);
+      } catch {
+        error(`Expected input to be number: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      if (i >= 2n ** BigInt(len * 8)) error(`Bytes${len} exceeds bound: ${input}`);
+      if (i < 0n) error(`Byte${len} is less than zero: ${input}`);
+      return toUintOrFelt(i, len*8);
+    };
+  }
+  / "bytes" { return (input: Input) => {
+      if (!(input instanceof Array)) {
+        error(`d Expected input to be array: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      return [BigInt(input.length), ...input.flatMap((val) => {
+        if (val instanceof Array) {
+          error(`Expected input to be number: ${input}`);
+          throw "error already raised, appeasing the typesystem";
+        }
+        let i: bigint;
+        try {
+          i = BigInt(val);
+        } catch {
+          error(`Expected input to be number: ${input}`);
+          throw "error already raised, appeasing the typesystem";
+        }
+        if (i >= 2n ** 8n) error(`Byte exceeded bound: ${input}`);
+        if (i < 0n) error(`Byte is less than zero: ${input}`);
+        return toUintOrFelt(i, 8);
+      })];
+    };
+  }
+  / "string" { return (input: Input) => {
+      if (!(typeof input === "string")) {
+        error(`Expected input to be string: ${input}`);
+        throw "error already raised, appeasing the typesystem";
+      }
+      const utf8string = unescape(encodeURIComponent(input));
+      const res = [BigInt(utf8string.length)];
+      for (var i = 0; i < utf8string.length; i ++) {
+        res.push(BigInt(utf8string.charCodeAt(i)));
+      }
+      return res;
+    }
+  }
+
+BigInteger "biginteger"
+  = ([0-9]+ / "0x"[0-9a-fA-F]+) { return BigInt(text()) }
+
+
+Integer "integer"
+  = ([0-9]+ / "0x"[0-9a-fA-F]+) { return parseInt(text(), 10) }
+
+FuncName
+  = [a-zA-Z_0-9]*
+
+_ "whitespace"
+  = [ \t\n\r]*

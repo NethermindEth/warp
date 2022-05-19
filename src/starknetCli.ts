@@ -1,7 +1,8 @@
 import assert from 'assert';
 import { execSync } from 'child_process';
 import { IDeployProps, ICallOrInvokeProps, IOptionalNetwork, IDeployAccountProps } from './index';
-import { logError } from './utils/errors';
+import { encodeInputs } from './passes';
+import { CLIError, logError } from './utils/errors';
 
 export function compileCairo(
   filePath: string,
@@ -108,11 +109,12 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
   }
 }
 
-export function runStarknetCallOrInvoke(
+export async function runStarknetCallOrInvoke(
   filePath: string,
   isCall: boolean,
   options: ICallOrInvokeProps,
 ) {
+  console.log(options.inputs);
   const callOrInvoke = isCall ? 'call' : 'invoke';
 
   if (options.network == undefined) {
@@ -130,11 +132,21 @@ export function runStarknetCallOrInvoke(
     return;
   }
 
-  const inputs = options.inputs ? `--inputs ${options.inputs.join(' ')}` : '';
+  let funcName, inputs: string;
+
+  try {
+    [funcName, inputs] = await encodeInputs(filePath, options);
+  } catch (e) {
+    if (e instanceof CLIError) {
+      logError(e.message);
+      return;
+    }
+    throw e;
+  }
 
   try {
     execSync(
-      `starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${options.function} --network ${options.network} ${wallet} ${inputs}`,
+      `starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${inputs}`,
       { stdio: 'inherit' },
     );
   } catch {

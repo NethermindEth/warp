@@ -58,8 +58,8 @@ program
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
     try {
-      transpile(compileSolFile(file, options.warnings), options).map(([name, cairo]) => {
-        outputResult(name, cairo, options, '.cairo');
+      transpile(compileSolFile(file, options.warnings), options).map(([name, cairo, abi]) => {
+        outputResult(name, cairo, options, '.cairo', abi);
       });
     } catch (e) {
       handleTranspilationError(e);
@@ -82,7 +82,7 @@ program
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
     try {
-      transform(compileSolFile(file, options.warnings), options).map(([name, solidity]) => {
+      transform(compileSolFile(file, options.warnings), options).map(([name, solidity, _]) => {
         outputResult(name, solidity, options, '_warp.sol');
       });
     } catch (e) {
@@ -167,7 +167,8 @@ program
 interface ICallOrInvokeProps_ {
   address: string;
   function: string;
-  inputs?: string[];
+  inputs?: string;
+  useCairoABI: boolean;
 }
 export type ICallOrInvokeProps = ICallOrInvokeProps_ & IOptionalNetwork & IOptionalWallet;
 
@@ -175,14 +176,19 @@ program
   .command('invoke <file>')
   .requiredOption('--address <address>', 'Address of contract to invoke.')
   .requiredOption('--function <function>', 'Function to invoke.')
-  .option('--inputs <inputs...>', 'Input to function.', undefined)
+  .option(
+    '--inputs <inputs>',
+    'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
+    undefined,
+  )
+  .option('--useCairoABI', 'Use the cairo abi instead of solidity for the inputs.', false)
   .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
     'The name of the wallet, including the python module and wallet class.',
     process.env.STARKNET_WALLET,
   )
-  .action((file: string, options: ICallOrInvokeProps) => {
+  .action(async (file: string, options: ICallOrInvokeProps) => {
     runStarknetCallOrInvoke(file, false, options);
   });
 
@@ -190,14 +196,19 @@ program
   .command('call <file>')
   .requiredOption('--address <address>', 'Address of contract to call.')
   .requiredOption('--function <function>', 'Function to call.')
-  .option('--inputs <inputs...>', 'Input to function.', undefined)
+  .option(
+    '--inputs <inputs>',
+    'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
+    undefined,
+  )
+  .option('--useCairoABI', 'Use the cairo abi instead of solidity for the inputs.', false)
   .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
     'The name of the wallet, including the python module and wallet class.',
     process.env.STARKNET_WALLET,
   )
-  .action((file: string, options: ICallOrInvokeProps) => {
+  .action(async (file: string, options: ICallOrInvokeProps) => {
     runStarknetCallOrInvoke(file, true, options);
   });
 

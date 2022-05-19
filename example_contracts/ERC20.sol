@@ -19,8 +19,7 @@ contract WARP {
     return _balances[account];
   }
 
-  function mint(address to, uint256 amount) external returns (bool) {
-    _balances[to] += amount;
+  function mint(address[4] memory to, uint256 amount) external returns (bool) {
     return true;
   }
 

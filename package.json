@@ -18,6 +18,7 @@
   "scripts": {
     "build": "rm -rf ./build; yarn tsc",
     "dev": "yarn tsc -w",
+    "genparser": "yarn tspegjs -o src/utils/functionSignatureParser.ts_temp src/utils/functionSignatureParser.peg && echo \"import { toUintOrFelt } from '../utils/utils';\\n\" > src/utils/functionSignatureParser.ts && cat src/utils/functionSignatureParser.ts_temp >> src/utils/functionSignatureParser.ts",
     "prepare": "husky install",
     "lint": "eslint ./src/** --ignore-path .gitignore",
     "lint:tests": "eslint ./tests/** --ignore-path .gitignore --fix",
@@ -57,9 +58,14 @@
     "typescript": "^4.6.3"
   },
   "dependencies": {
+    "@types/prompts": "^2.0.14",
     "chalk": "^4.1.2",
     "commander": "^9.1.0",
     "fs-extra": "^10.0.1",
-    "solc-typed-ast": "^9.1.2"
+    "peggy": "^1.2.0",
+    "prompts": "^2.4.2",
+    "solc-typed-ast": "^9.1.2",
+    "ts-pegjs": "^1.2.2",
+    "web3": "^1.7.3"
   }
 }

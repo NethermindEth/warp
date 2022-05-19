@@ -44,6 +44,8 @@ import {
   UsingForResolver,
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
+  ABIExtractor,
+  dumpABI,
 } from './passes';
 import { OrderNestedStructs } from './passes/orderNestedStructs';
 import { CairoToSolASTWriterMapping } from './solWriter';
@@ -53,7 +55,7 @@ import { TranspilationAbandonedError, TranspileFailedError } from './utils/error
 import { error, removeExcessNewlines } from './utils/formatting';
 import { printCompileErrors, runSanityCheck } from './utils/utils';
 
-type CairoSource = [file: string, source: string];
+type CairoSource = [file: string, source: string, solABI: string];
 
 export function transpile(ast: AST, options: TranspilationOptions & PrintOptions): CairoSource[] {
   const cairoAST = applyPasses(ast, options);
@@ -62,7 +64,11 @@ export function transpile(ast: AST, options: TranspilationOptions & PrintOptions
     new PrettyFormatter(4, 0),
     ast.compilerVersion,
   );
-  return cairoAST.roots.map((sourceUnit) => [sourceUnit.absolutePath, writer.write(sourceUnit)]);
+  return cairoAST.roots.map((sourceUnit) => [
+    sourceUnit.absolutePath,
+    writer.write(sourceUnit),
+    dumpABI(sourceUnit, cairoAST),
+  ]);
 }
 
 export function transform(ast: AST, options: TranspilationOptions & PrintOptions): CairoSource[] {
@@ -75,6 +81,7 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
   return cairoAST.roots.map((sourceUnit) => [
     sourceUnit.absolutePath,
     removeExcessNewlines(writer.write(sourceUnit), 2),
+    dumpABI(sourceUnit, cairoAST),
   ]);
 }
 
@@ -82,6 +89,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
+    ['Ae', ABIExtractor],
     ['Idi', ImportDirectiveIdentifier],
     ['Ru', RejectUnsupportedFeatures],
     ['L', LiteralExpressionEvaluator],

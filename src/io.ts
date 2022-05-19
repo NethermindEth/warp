@@ -4,6 +4,8 @@ import { OutputOptions } from '.';
 import { compileCairo } from './starknetCli';
 import { TranspileFailedError, logError } from './utils/errors';
 
+export const solABIPrefix = '# SolABI:';
+
 export function isValidSolFile(path: string, printError = true): boolean {
   if (!fs.existsSync(path)) {
     if (printError) logError(`${path} doesn't exist`);
@@ -58,11 +60,13 @@ export function outputResult(
   code: string,
   options: OutputOptions,
   suffix: string,
+  abi?: string,
 ): void {
   const inputFileNameRoot = solidityPath.endsWith('.sol')
     ? solidityPath.slice(0, -'.sol'.length)
     : solidityPath;
   const codeOutput = `${inputFileNameRoot}${suffix}`;
+  const codeWithABI = abi ? `${code}\n\n${solABIPrefix} ${abi}` : code;
 
   if (options.outputDir === undefined) {
     if (options.result) {
@@ -78,7 +82,7 @@ export function outputResult(
       }
     }
     const fullCodeOutPath = `${options.outputDir}/${codeOutput}`;
-    fs.outputFileSync(fullCodeOutPath, code);
+    fs.outputFileSync(fullCodeOutPath, codeWithABI);
     formatOutput(fullCodeOutPath);
 
     if (options.compileCairo) {
