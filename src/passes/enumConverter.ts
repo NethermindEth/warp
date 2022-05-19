@@ -70,7 +70,7 @@ export class EnumConverter extends ASTMapper {
       if (enumDef instanceof EnumDefinition) {
         // replace member access node with literal
         const intLiteral = this.getEnumValue(enumDef, node.memberName);
-        ast.replaceNode(node, createNumberLiteral(intLiteral, ast));
+        ast.replaceNode(node, createNumberLiteral(intLiteral, ast, enumToIntType(enumDef).pp()));
       }
     }
   }
