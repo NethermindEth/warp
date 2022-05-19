@@ -34,7 +34,6 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/ERC20', 'Success'],
   ['example_contracts/ERC20_storage', 'Success'],
   ['example_contracts/boolOp_noSideEffects', 'Success'],
-  // Uses conditionals implicitly
   ['example_contracts/boolOp_sideEffects', 'Success'],
   ['example_contracts/c2c', 'Success'],
   // Uses conditionals explicitly
@@ -58,6 +57,8 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/fallbackWithoutArgs', 'Success'],
   // Typestring for the internal function call doesn't contain a location so a read isn't generated
   ['example_contracts/freeFunction', 'Success'],
+  ['example_contracts/freeStruct', 'Success'],
+  ['example_contracts/function_with_nested_return', 'Success'],
   ['example_contracts/functionArgumentConversions', 'Success'],
   ['example_contracts/idManglingTest8', 'Success'],
   ['example_contracts/idManglingTest9', 'Success'],
@@ -67,7 +68,6 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/imports/importfrom', 'Success'],
   ['example_contracts/imports/importInterface', 'Success'],
   ['example_contracts/imports/importLibrary', 'Success'],
-
   ['example_contracts/imports/importStruct', 'Success'],
   ['example_contracts/inheritance/simple', 'Success'],
   ['example_contracts/inheritance/super/base', 'Success'],
@@ -99,6 +99,16 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/namedArgs/constructor', 'Success'],
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
   ['example_contracts/namedArgs/function', 'Success'],
+  // Returning memory array of struct from external function does not read array
+  ['example_contracts/nested_static_array_struct', 'CairoCompileFailed'],
+  ['example_contracts/nested_struct_static_array', 'CairoCompileFailed'],
+  ['example_contracts/nested_structs', 'Success'],
+  ['example_contracts/payable_function', 'Success'],
+  // Cannot import with a - in the filename
+  ['example_contracts/pure_function', 'Success'],
+  // Returns the dynamic array memory pointer instead of it's values
+  ['example_contracts/return_dyn_array', 'CairoCompileFailed'],
+  ['example_contracts/return_var_capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],
   ['example_contracts/returnInserter', 'Success'],
   ['example_contracts/simple_storage_var', 'Success'],
@@ -121,6 +131,14 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeConversion/implicit_type_conv', 'Success'],
   ['example_contracts/typeConversion/shifts', 'Success'],
   ['example_contracts/typeMinMax', 'Success'],
+  // Don't automatically cast uint256 elements when creating static array
+  ['example_contracts/uint256_static_array_casting', 'Success'],
+  // Serialising BytesType not supported yet
+  ['example_contracts/typestrings/basicArrays', 'NotSupportedYet'],
+  // Not supported operation delete on CairoContract
+  ['example_contracts/typestrings/scalars', 'NotSupportedYet'],
+  ['example_contracts/typestrings/structArrays', 'Success'],
+  ['example_contracts/typestrings/structs', 'Success'],
   ['example_contracts/units', 'Success'],
   ['example_contracts/unsupportedFunctions/abi', `WillNotSupport`],
   ['example_contracts/unsupportedFunctions/keccak256', `WillNotSupport`],
@@ -142,11 +160,11 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/using_for/library', 'Success'],
   ['example_contracts/using_for/simple', 'Success'],
   ['example_contracts/usingReturnValues', 'Success'],
-  ['example_contracts/userdefinedtypes', 'NotSupportedYet'],
-  ['example_contracts/userdefinedidentifier', 'NotSupportedYet'],
+  ['example_contracts/userdefinedtypes', 'Success'],
+  ['example_contracts/userdefinedidentifier', 'Success'],
   ['example_contracts/variable_declarations', 'Success'],
   ['example_contracts/view_function', 'Success'],
-  // File with minus sign included in the name
+  // Cannot import with a - in the filename
   ['example_contracts/file-with-minus-sign-included', 'WillNotSupport'],
 ]);
 
