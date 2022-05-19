@@ -8,10 +8,15 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { printNode } from '../../utils/astPrinter';
-import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { CairoType } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { notNull } from '../../utils/typeConstructs';
-import { dereferenceType, mapRange, narrowBigInt, typeNameFromTypeNode } from '../../utils/utils';
+import {
+  dereferenceType,
+  mapRange,
+  narrowBigIntSafe,
+  typeNameFromTypeNode,
+} from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
 
@@ -29,8 +34,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     assert(type instanceof ArrayType);
 
     assert(type.size !== undefined, `${printNode(node)} has undefined size`);
-    const size = narrowBigInt(type.size);
-    assert(size !== null, `${printNode(node)} too long to process`);
+    const size = narrowBigIntSafe(type.size, `${printNode(node)} too long to process`);
 
     const name = this.getOrCreate(type.elementT, size);
 
@@ -51,11 +55,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(type: TypeNode, size: number): string {
-    const elementCairoType = CairoType.fromSol(
-      type,
-      this.ast,
-      TypeConversionContext.MemoryAllocation,
-    );
+    const elementCairoType = CairoType.fromSol(type, this.ast);
     const key = `${size}${elementCairoType.fullStringRepresentation}`;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
@@ -71,7 +71,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
       code: [
         `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (loc: felt):`,
         `    alloc_locals`,
-        `    let (start) = wm_alloc(${uint256(BigInt(size * elementCairoType.width))})`,
+        `    let (start) = wm_alloc(${uint256(size * elementCairoType.width)})`,
         mapRange(size, (n) => elementCairoType.serialiseMembers(`e${n}`))
           .flat()
           .map((name, index) => `dict_write{dict_ptr=warp_memory}(${add('start', index)}, ${name})`)

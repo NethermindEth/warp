@@ -1,14 +1,8 @@
-import {
-  BinaryOperation,
-  Literal,
-  LiteralKind,
-  UnaryOperation,
-  UncheckedBlock,
-} from 'solc-typed-ast';
+import { BinaryOperation, UnaryOperation, UncheckedBlock } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { NotSupportedYetError } from '../../utils/errors';
-import { toHexString } from '../../utils/utils';
+import { createNumberLiteral } from '../../utils/nodeTemplates';
 import { functionaliseAdd } from '../../warplib/implementations/maths/add';
 import { functionaliseAnd } from '../../warplib/implementations/maths/and';
 import { functionaliseBitwiseAnd } from '../../warplib/implementations/maths/bitwise_and';
@@ -101,7 +95,7 @@ function replaceNot(node: UnaryOperation, ast: AST): void {
       node.src,
       node.typeString,
       '-',
-      new Literal(ast.reserveId(), '', node.typeString, LiteralKind.Number, toHexString('1'), '1'),
+      createNumberLiteral(1, ast, node.typeString),
       node.vSubExpression,
       node.raw,
     ),

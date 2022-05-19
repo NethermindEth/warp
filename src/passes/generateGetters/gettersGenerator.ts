@@ -12,7 +12,6 @@ import {
   FunctionStateMutability,
   FunctionVisibility,
   IndexAccess,
-  Identifier,
   Mapping,
   MemberAccess,
   Mutability,
@@ -33,6 +32,7 @@ import {
   createIdentifier,
   createParameterList,
   createReturn,
+  createUint256TypeName,
 } from '../../utils/nodeTemplates';
 import { toSingleExpression } from '../../utils/utils';
 
@@ -83,15 +83,7 @@ export class GettersGenerator extends ASTMapper {
           ast,
         );
 
-        const getterBlock: Block = genReturnBlock(
-          0,
-          returnParameterList.id,
-          funcDefID,
-          fnParams,
-          v,
-          stateVarType,
-          ast,
-        );
+        const getterBody = createBlock([], ast);
 
         const getter = new FunctionDefinition(
           funcDefID,
@@ -107,11 +99,15 @@ export class GettersGenerator extends ASTMapper {
           returnParameterList,
           [],
           undefined,
-          getterBlock,
+          getterBody,
         );
-        this.getterFunctions.set(v, getter);
+
         node.appendChild(getter);
-        ast.registerChild(getter, node);
+
+        genReturnBlock(0, getter, getterBody, v, stateVarType, ast);
+        ast.setContextRecursive(getter);
+
+        this.getterFunctions.set(v, getter);
       }
     });
   }
@@ -209,7 +205,7 @@ function genFunctionParams(
         Mutability.Mutable,
         'uint256',
         undefined,
-        new ElementaryTypeName(ast.reserveId(), '', 'uint256', 'uint256'),
+        createUint256TypeName(ast),
       ),
       ...genFunctionParams(varCount + 1, vType.vBaseType, funcDefID, ast),
     ];
@@ -243,14 +239,13 @@ function genFunctionParams(
 
 function genReturnBlock(
   idx: number,
-  returnParamListId: number,
-  funcDefID: number,
-  fnParams: ParameterList,
+  getter: FunctionDefinition,
+  getterBody: Block,
   v: VariableDeclaration,
   vType: TypeName | undefined,
   ast: AST,
   baseExpression?: Expression,
-): Block {
+): void {
   /*
     This is an recursive function to generate the return 
     Block for a getter function of a public state variable.
@@ -272,68 +267,37 @@ function genReturnBlock(
     the previous call of genReturnBlock
       for e.g `c[i0][i1][i2]` in `c[i0][i1][i2].a`
   */
-  const createIdentifierWithTypeString = (variable: VariableDeclaration): Identifier => {
-    const node = new Identifier(
-      ast.reserveId(),
-      '',
-      getTypeStringTypeName(variable.vType),
-      variable.name,
-      variable.id,
-    );
-    ast.setContextRecursive(node);
-    return node;
-  };
   if (!vType) {
     throw new TranspileFailedError(`Type of ${v.name} must be defined`);
   }
   if (vType instanceof ElementaryTypeName) {
-    // return baseExpression ?? createIdentifier(v, ast);
-    return createBlock(
-      [createReturn(baseExpression ?? createIdentifier(v, ast), returnParamListId, ast)],
-      ast,
+    getterBody.appendChild(
+      createReturn(baseExpression ?? createIdentifier(v, ast), getter.vReturnParameters.id, ast),
     );
   } else if (vType instanceof ArrayTypeName) {
     const baseExp: IndexAccess = new IndexAccess(
       ast.reserveId(),
       '',
       getTypeStringTypeName(vType.vBaseType),
-      baseExpression ? cloneASTNode(baseExpression, ast) : createIdentifierWithTypeString(v),
-      createIdentifier(fnParams.vParameters[idx], ast),
+      baseExpression ? cloneASTNode(baseExpression, ast) : createIdentifier(v, ast),
+      createIdentifier(getter.vParameters.vParameters[idx], ast),
     );
-    return genReturnBlock(
-      idx + 1,
-      returnParamListId,
-      funcDefID,
-      fnParams,
-      v,
-      vType.vBaseType,
-      ast,
-      baseExp,
-    );
+    return genReturnBlock(idx + 1, getter, getterBody, v, vType.vBaseType, ast, baseExp);
   } else if (vType instanceof Mapping) {
     const baseExp: IndexAccess = new IndexAccess(
       ast.reserveId(),
       '',
       getTypeStringTypeName(vType.vValueType),
-      baseExpression ? cloneASTNode(baseExpression, ast) : createIdentifierWithTypeString(v),
-      createIdentifier(fnParams.vParameters[idx], ast),
+      baseExpression ? cloneASTNode(baseExpression, ast) : createIdentifier(v, ast),
+      createIdentifier(getter.vParameters.vParameters[idx], ast),
     );
-    return genReturnBlock(
-      idx + 1,
-      returnParamListId,
-      funcDefID,
-      fnParams,
-      v,
-      vType.vValueType,
-      ast,
-      baseExp,
-    );
+    return genReturnBlock(idx + 1, getter, getterBody, v, vType.vValueType, ast, baseExp);
   } else if (vType instanceof UserDefinedTypeName) {
     if (vType.vReferencedDeclaration instanceof StructDefinition) {
       // list of return expressions for a struct output
       const returnExpressions: Expression[] = [];
 
-      // In case of sruct, an extra struct variable declaration is used
+      // In case of struct, an extra struct variable declaration is used
 
       /*
         struct A{uint a;uint b};
@@ -345,7 +309,6 @@ function genReturnBlock(
         }
       */
 
-      const structDeclStmts: VariableDeclarationStatement[] = [];
       let tempCount = 0;
 
       const tempStructVarDeclaration = (type: TypeName, initialValue: Expression) => {
@@ -355,7 +318,7 @@ function genReturnBlock(
           false,
           false,
           `_temp${tempCount++}`,
-          funcDefID,
+          getter.id,
           false,
           DataLocation.Storage,
           StateVariableVisibility.Internal,
@@ -375,12 +338,12 @@ function genReturnBlock(
           initialValue,
         );
 
-        structDeclStmts.push(structDeclStmt);
+        getterBody.appendChild(structDeclStmt);
         return structVarDecl;
       };
       const tempStructVarDecl = tempStructVarDeclaration(
         vType,
-        baseExpression ? cloneASTNode(baseExpression, ast) : createIdentifierWithTypeString(v),
+        baseExpression ? cloneASTNode(baseExpression, ast) : createIdentifier(v, ast),
       );
       vType.vReferencedDeclaration.vMembers.forEach((m) => {
         if (!m.vType) return;
@@ -394,7 +357,7 @@ function genReturnBlock(
           ast.reserveId(),
           '',
           getTypeStringTypeName(m.vType),
-          createIdentifierWithTypeString(tempStructVarDecl),
+          createIdentifier(tempStructVarDecl, ast),
           m.name,
           m.id,
         );
@@ -404,23 +367,19 @@ function genReturnBlock(
           m.vType.vReferencedDeclaration instanceof StructDefinition
         ) {
           const memberStructVarDeclaration = tempStructVarDeclaration(m.vType, memberAccessExp);
-          returnExpressions.push(createIdentifierWithTypeString(memberStructVarDeclaration));
+          returnExpressions.push(createIdentifier(memberStructVarDeclaration, ast));
         } else {
           returnExpressions.push(memberAccessExp);
         }
       });
-      return createBlock(
-        [
-          ...structDeclStmts,
-          createReturn(toSingleExpression(returnExpressions, ast), returnParamListId, ast),
-        ],
-        ast,
+      getterBody.appendChild(
+        createReturn(toSingleExpression(returnExpressions, ast), getter.vReturnParameters.id, ast),
+      );
+    } else {
+      getterBody.appendChild(
+        createReturn(baseExpression ?? createIdentifier(v, ast), getter.vReturnParameters.id, ast),
       );
     }
-    return createBlock(
-      [createReturn(baseExpression ?? createIdentifierWithTypeString(v), returnParamListId, ast)],
-      ast,
-    );
   } else {
     throw new NotSupportedYetError(
       `Getter fn generation for ${vType?.type} typenames not implemented yet`,

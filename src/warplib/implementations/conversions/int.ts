@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { FunctionCall, getNodeType, IntType } from 'solc-typed-ast';
+import { FunctionCall, generalizeType, getNodeType, IntType } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
 import { Implicits } from '../../../utils/implicits';
@@ -87,10 +87,9 @@ function sign_extend_value(from: number, to: number): bigint {
   return 2n ** BigInt(to) - 2n ** BigInt(from);
 }
 
-// TODO this will need updating once solc0.7.0 is supported again
 export function functionaliseIntConversion(conversion: FunctionCall, ast: AST): void {
   const arg = conversion.vArguments[0];
-  const fromType = getNodeType(arg, ast.compilerVersion);
+  const fromType = generalizeType(getNodeType(arg, ast.compilerVersion))[0];
   assert(
     fromType instanceof IntType,
     `Argument of int conversion expected to be int type. Got ${printTypeNode(

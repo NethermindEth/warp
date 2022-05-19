@@ -34,7 +34,6 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/ERC20', 'Success'],
   ['example_contracts/ERC20_storage', 'Success'],
   ['example_contracts/boolOp_noSideEffects', 'Success'],
-  // Uses conditionals implicitly
   ['example_contracts/boolOp_sideEffects', 'Success'],
   ['example_contracts/c2c', 'Success'],
   // Uses conditionals explicitly
@@ -67,7 +66,6 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/imports/importfrom', 'Success'],
   ['example_contracts/imports/importInterface', 'Success'],
   ['example_contracts/imports/importLibrary', 'Success'],
-
   ['example_contracts/imports/importStruct', 'Success'],
   ['example_contracts/inheritance/simple', 'Success'],
   ['example_contracts/inheritance/super/base', 'Success'],
@@ -121,6 +119,14 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeConversion/implicit_type_conv', 'Success'],
   ['example_contracts/typeConversion/shifts', 'Success'],
   ['example_contracts/typeMinMax', 'Success'],
+  // Don't automatically cast uint256 elements when creating static array
+  ['example_contracts/uint256_static_array_casting', 'Success'],
+  // Serialising BytesType not supported yet
+  ['example_contracts/typestrings/basicArrays', 'NotSupportedYet'],
+  // Not supported operation delete on CairoContract
+  ['example_contracts/typestrings/scalars', 'NotSupportedYet'],
+  ['example_contracts/typestrings/structArrays', 'Success'],
+  ['example_contracts/typestrings/structs', 'Success'],
   ['example_contracts/units', 'Success'],
   ['example_contracts/unsupportedFunctions/abi', `WillNotSupport`],
   ['example_contracts/unsupportedFunctions/keccak256', `WillNotSupport`],
@@ -142,12 +148,6 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/using_for/library', 'Success'],
   ['example_contracts/using_for/simple', 'Success'],
   ['example_contracts/usingReturnValues', 'Success'],
-  ['example_contracts/userdefinedtypes', 'NotSupportedYet'],
-  ['example_contracts/userdefinedidentifier', 'NotSupportedYet'],
-  ['example_contracts/variable_declarations', 'Success'],
-  ['example_contracts/view_function', 'Success'],
-  // File with minus sign included in the name
-  ['example_contracts/file-with-minus-sign-included', 'WillNotSupport'],
 ]);
 
 export function runTests(force: boolean, onlyResults: boolean, unsafe = false, exact = false) {

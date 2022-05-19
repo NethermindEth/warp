@@ -11,15 +11,14 @@ import {
   FunctionStateMutability,
   FunctionVisibility,
   getNodeType,
-  Identifier,
-  typeNameToSpecializedTypeNode,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { createBlock, createParameterList } from '../utils/nodeTemplates';
+import { createBlock, createIdentifier, createParameterList } from '../utils/nodeTemplates';
+import { typeNameToSpecializedTypeNode } from '../utils/nodeTypeProcessing';
 import { isCairoConstant } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {
@@ -121,7 +120,7 @@ function extractInitialisation(node: VariableDeclaration, initialisationBlock: B
         node.src,
         type.pp(),
         '=',
-        new Identifier(ast.reserveId(), node.src, type.pp(), node.name, node.id),
+        createIdentifier(node, ast),
         node.vValue,
       ),
     ),

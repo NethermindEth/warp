@@ -98,7 +98,7 @@ export class StaticArrayModifier extends ASTMapper {
           '',
           arrayDef.vBaseType.typeString,
           createIdentifier(calldataArray, ast),
-          createNumberLiteral(BigInt(i), 'uint248', ast),
+          createNumberLiteral(BigInt(i), ast, 'uint248'),
         ),
     );
   }

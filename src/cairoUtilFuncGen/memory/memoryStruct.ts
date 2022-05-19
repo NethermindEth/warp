@@ -6,12 +6,12 @@ import {
   IdentifierPath,
   PointerType,
   StructDefinition,
-  typeNameToSpecializedTypeNode,
   UserDefinedTypeName,
 } from 'solc-typed-ast';
 import { CairoStruct, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { typeNameToSpecializedTypeNode } from '../../utils/nodeTypeProcessing';
 import { uint256 } from '../../warplib/utils';
 import { add, StringIndexedFuncGen } from '../base';
 
@@ -87,7 +87,7 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       code: [
         `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (res):`,
         `    alloc_locals`,
-        `    let (start) = wm_alloc(${uint256(BigInt(structType.width))})`,
+        `    let (start) = wm_alloc(${uint256(structType.width)})`,
         [...structType.members.entries()]
           .flatMap(([name, type]) => type.serialiseMembers(name))
           .map(write)

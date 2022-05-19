@@ -9,8 +9,8 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { TranspileFailedError } from '../../utils/errors';
-import { generateLiteralTypeString } from '../../utils/getTypeString';
-import { toHexString, unitValue } from '../../utils/utils';
+import { createBoolLiteral, createNumberLiteral } from '../../utils/nodeTemplates';
+import { unitValue } from '../../utils/utils';
 import { RationalLiteral, stringToLiteralValue } from './rationalLiteral';
 
 /*
@@ -39,41 +39,14 @@ export class LiteralExpressionEvaluator extends ASTMapper {
     if (result === null) {
       this.commonVisit(node, ast);
     } else if (typeof result === 'boolean') {
-      const valueString = result ? 'true' : 'false';
-      ast.replaceNode(
-        node,
-        new Literal(
-          node.id,
-          node.src,
-          node.typeString,
-          LiteralKind.Bool,
-          toHexString(valueString),
-          valueString,
-          undefined,
-          node.raw,
-        ),
-      );
+      ast.replaceNode(node, createBoolLiteral(result, ast));
     } else {
       const intValue = result.toInteger();
       if (intValue === null) {
         throw new TranspileFailedError('Attempted to make node for non-integral literal');
       }
 
-      const valueString = intValue.toString(10);
-
-      ast.replaceNode(
-        node,
-        new Literal(
-          node.id,
-          node.src,
-          generateLiteralTypeString(valueString),
-          LiteralKind.Number,
-          toHexString(valueString),
-          valueString,
-          undefined,
-          node.raw,
-        ),
-      );
+      ast.replaceNode(node, createNumberLiteral(intValue, ast));
     }
   }
 
