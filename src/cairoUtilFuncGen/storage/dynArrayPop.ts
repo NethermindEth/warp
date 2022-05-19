@@ -13,7 +13,7 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { typeNameFromTypeNode } from '../../utils/utils';
+import { dereferenceType, typeNameFromTypeNode } from '../../utils/utils';
 import { StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 import { StorageDeleteGen } from './storageDelete';
@@ -28,7 +28,7 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
     const arrayType = getNodeType(pop.vExpression.vExpression, this.ast.compilerVersion);
     assert(arrayType instanceof PointerType && arrayType.to instanceof ArrayType);
 
-    const name = this.getOrCreate(arrayType.to.elementT, pop.vExpression.vExpression);
+    const name = this.getOrCreate(arrayType.to.elementT);
 
     const functionStub = createCairoFunctionStub(
       name,
@@ -42,7 +42,7 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
     return createCallToFunction(functionStub, [pop.vExpression.vExpression], this.ast);
   }
 
-  private getOrCreate(elementType: TypeNode, expression: Expression): string {
+  private getOrCreate(elementType: TypeNode): string {
     const cairoElementType = CairoType.fromSol(
       elementType,
       this.ast,
@@ -56,7 +56,7 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
     }
 
     const [arrayName, lengthName] = this.dynArrayGen.gen(cairoElementType);
-    const deleteFunc = this.storageDelete.gen(expression);
+    const deleteFuncName = this.storageDelete.genFuncName(dereferenceType(elementType));
 
     const funcName = `${arrayName}_POP`;
     this.generatedFunctions.set(key, {
@@ -70,7 +70,7 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
         `    let (newLen) = uint256_sub(len, Uint256(1,0))`,
         `    ${lengthName}.write(loc, newLen)`,
         `    let (elem_loc) = ${arrayName}.read(loc, len)`,
-        `    ${deleteFunc.vFunctionName}(elem_loc)`,
+        `    ${deleteFuncName}(elem_loc)`,
         `    return ()`,
         `end`,
       ].join('\n'),

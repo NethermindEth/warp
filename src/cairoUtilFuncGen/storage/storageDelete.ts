@@ -1,3 +1,4 @@
+import assert from 'assert';
 import {
   ArrayType,
   ASTNode,
@@ -34,8 +35,11 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       this.ast,
       nodeInSourceUnit ?? node,
     );
-
     return createCallToFunction(functionStub, [node], this.ast);
+  }
+
+  genFuncName(node: TypeNode): string {
+    return this.getOrCreate(node);
   }
 
   private getOrCreate(type: TypeNode): string {
@@ -125,6 +129,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
     return { name: funcName, code: deleteFunc };
   }
+
   private deleteNothing(): CairoFunction {
     const funcName = `WSMAP_DELETE`;
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
