@@ -77,6 +77,32 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           );
       }
     } else if (actualLoc === DataLocation.Memory && expectedLoc === DataLocation.CallData) {
+      //const type = getNodeType(node, ast.compilerVersion);
+      //assert(type instanceof ArrayType && type.size !== undefined);
+
+      // if (node instanceof IndexAccess) {
+      //   if (isReferenceType(getNodeType(node.vBaseExpression, ast.compilerVersion))) {
+      //     const parent = node.vBaseExpression.parent;
+      //     const replacement = ast
+      //       .getUtilFuncGen(node)
+      //       .memory.read.gen(
+      //         node.vBaseExpression,
+      //         typeNameFromTypeNode(getNodeType(node.vBaseExpression, ast.compilerVersion), ast),
+      //       );
+      //     this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
+      //   }
+      // } else if (node instanceof MemberAccess) {
+      //   if (isReferenceType(getNodeType(node.vExpression, ast.compilerVersion))) {
+      //     const parent = node.parent;
+      //     const replacement = ast
+      //       .getUtilFuncGen(node.vExpression)
+      //       .memory.read.gen(
+      //         node,
+      //         typeNameFromTypeNode(getNodeType(node.vExpression, ast.compilerVersion), ast),
+      //       );
+      //     this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
+      //   }
+      // }
       const parent = node.parent;
       const replacement = ast
         .getUtilFuncGen(node)
@@ -206,9 +232,24 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     }
 
     this.replace(node, replacementAccessFunc, undefined, actualLoc, expectedLoc, ast);
-    this.dispatchVisit(replacementAccessFunc, ast);
+    // This can be replaced with a check that it is a dynamic array
+    // instead of a check that the actual and expected
+    if (actualLoc === DataLocation.Memory && expectedLoc === DataLocation.CallData) {
+      const parent = replacementAccessFunc.parent;
+      const refMemRead = utilFuncGen.memory.read.gen(
+        replacementAccessFunc,
+        typeNameFromTypeNode(getNodeType(replacementAccessFunc, ast.compilerVersion), ast),
+        replacementAccessFunc,
+      );
+      this.replace(replacementAccessFunc, refMemRead, parent, actualLoc, expectedLoc, ast);
+      this.expectedDataLocations.set(replacementAccessFunc, actualLoc);
+      this.expectedDataLocations.set(refMemRead, expectedLoc);
+      this.actualDataLocations.set(refMemRead, actualLoc);
+      this.dispatchVisit(refMemRead, ast);
+    } else {
+      this.dispatchVisit(replacementAccessFunc, ast);
+    }
   }
-
   visitIndexAccess(node: IndexAccess, ast: AST): void {
     assert(node.vIndexExpression !== undefined);
 
@@ -249,10 +290,38 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     } else {
       console.log(`Non-pointer index access ${printNode(node)}`);
     }
-
+    // if (actualLoc === DataLocation.Memory && expectedLoc === DataLocation.CallData) {
+    //   const parent = replacementAccessFunc.parent;
+    //   const refMemRead = utilFuncGen.memory.read.gen(
+    //     replacementAccessFunc,
+    //     typeNameFromTypeNode(getNodeType(replacementAccessFunc, ast.compilerVersion), ast),
+    //     replacementAccessFunc,
+    //   );
+    //   this.replace(replacementAccessFunc, refMemRead, parent, actualLoc, expectedLoc, ast);
+    //   this.expectedDataLocations.set(replacementAccessFunc, actualLoc);
+    //   this.expectedDataLocations.set(refMemRead, expectedLoc);
+    //   this.actualDataLocations.set(refMemRead, actualLoc);
+    //   this.dispatchVisit(refMemRead, ast);
+    // } else {
     if (replacement !== null) {
       this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
-      this.dispatchVisit(replacement, ast);
+      if (actualLoc === DataLocation.Memory && expectedLoc === DataLocation.CallData) {
+        const parent = replacement.parent;
+        const refMemRead = ast
+          .getUtilFuncGen(replacement)
+          .memory.read.gen(
+            replacement,
+            typeNameFromTypeNode(getNodeType(replacement, ast.compilerVersion), ast),
+            replacement,
+          );
+        this.replace(replacement, refMemRead, parent, actualLoc, expectedLoc, ast);
+        this.expectedDataLocations.set(replacement, actualLoc);
+        this.expectedDataLocations.set(refMemRead, expectedLoc);
+        this.actualDataLocations.set(refMemRead, actualLoc);
+        this.dispatchVisit(refMemRead, ast);
+      } else {
+        this.dispatchVisit(replacement, ast);
+      }
     } else {
       this.visitExpression(node, ast);
     }

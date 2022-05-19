@@ -3,6 +3,7 @@ import assert = require('assert');
 import {
   ArrayType,
   ArrayTypeName,
+  ASTNode,
   DataLocation,
   Expression,
   FunctionCall,
@@ -13,6 +14,7 @@ import {
   PointerType,
   Return,
   StateVariableVisibility,
+  TupleExpression,
   TypeNode,
   VariableDeclaration,
   VariableDeclarationStatement,
@@ -36,10 +38,15 @@ export class DynArrayReturner extends ASTMapper {
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     const body = node.vBody;
+    const expressionMap = new Map<Expression, TypeNode>();
     let varCounter = 0;
     if (isExternallyVisible(node) && body !== undefined && body.lastChild instanceof Return) {
       const returnStatement = body.lastChild;
-      const expressionMap = collectDynArrayExpressions(node, ast);
+      //
+      const retExpression = returnStatement.children[0];
+      collectDynArrayExpressions(retExpression, expressionMap, ast);
+      //
+      //const expressionMap = collectDynArrayExpressions(node, dynArrayMap, ast);
       [...expressionMap.keys()].forEach((expre) => {
         const typeNode = expressionMap.get(expre);
         assert(typeNode !== undefined && typeNode instanceof ArrayType);
@@ -87,8 +94,8 @@ export class DynArrayReturner extends ASTMapper {
           varDecl.storageLocation = DataLocation.CallData;
         }
       });
-      ast.setContextRecursive(node);
     }
+    ast.setContextRecursive(node);
     this.commonVisit(node, ast);
   }
 
@@ -119,38 +126,52 @@ export class DynArrayReturner extends ASTMapper {
 }
 
 export function collectDynArrayExpressions(
-  node: FunctionDefinition,
+  node: ASTNode | Expression,
+  retMap: Map<Expression, TypeNode>,
   ast: AST,
 ): Map<Expression, TypeNode> {
-  const retMap = new Map<Expression, TypeNode>();
-  const body = node.vBody;
-  assert(body !== undefined);
-  const returnStatement = body.lastChild;
-  assert(returnStatement instanceof Return);
+  assert(node instanceof Expression);
   // Going to filter the return statement for all expressions that will return
   // TypeNode DynamicArray
-  returnStatement
-    .getChildren(true)
-    .filter((n) => n instanceof Expression)
-    .filter((n): n is Expression => {
-      assert(n instanceof Expression);
-      // Put not supported error here if n is variableDeclaration
-      const typeNode = getNodeType(n, ast.compilerVersion);
-      const derefTypeNode = dereferenceType(typeNode);
-      return (
-        n instanceof Expression &&
-        // We want a PointerType because it is pointing to the DynamicArray in memory.
-        typeNode instanceof PointerType &&
-        typeNode.location === DataLocation.Memory &&
-        derefTypeNode instanceof ArrayType &&
-        derefTypeNode.size === undefined &&
-        // Add error here that we dont support DynamicArrays of DynamicArrays/Arrays
-        !(dereferenceType(derefTypeNode.elementT) instanceof ArrayType)
-      );
-    })
-    .forEach((n) => {
-      retMap.set(n, dereferenceType(getNodeType(n, ast.compilerVersion)));
+  const type = getNodeType(node, ast.compilerVersion);
+  const memoryType = dereferenceType(type);
+
+  if (node instanceof TupleExpression) {
+    node.vOriginalComponents.forEach((exp) => {
+      if (exp !== null) {
+        collectDynArrayExpressions(exp, retMap, ast);
+      }
     });
+  } else if (
+    type instanceof PointerType &&
+    memoryType instanceof ArrayType &&
+    memoryType.size === undefined &&
+    !(dereferenceType(memoryType.elementT) instanceof ArrayType)
+  ) {
+    retMap.set(node, memoryType);
+  }
+  // returnStatement
+  //   .getChildren(true)
+  //   .filter((n) => n instanceof Expression)
+  //   .filter((n): n is Expression => {
+  //     assert(n instanceof Expression);
+  //     // Put not supported error here if n is variableDeclaration
+  //     const typeNode = getNodeType(n, ast.compilerVersion);
+  //     const derefTypeNode = dereferenceType(typeNode);
+  //     return (
+  //       n instanceof Expression &&
+  //       // We want a PointerType because it is pointing to the DynamicArray in memory.
+  //       typeNode instanceof PointerType &&
+  //       typeNode.location === DataLocation.Memory &&
+  //       derefTypeNode instanceof ArrayType &&
+  //       derefTypeNode.size === undefined &&
+  //       // Add error here that we dont support DynamicArrays of DynamicArrays/Arrays
+  //       !(dereferenceType(derefTypeNode.elementT) instanceof ArrayType)
+  //     );
+  //   })
+  //   .forEach((n) => {
+  //     retMap.set(n, dereferenceType(getNodeType(n, ast.compilerVersion)));
+  //   });
 
   return retMap;
 }
