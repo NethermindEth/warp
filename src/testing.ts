@@ -104,7 +104,6 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/nested_struct_static_array', 'CairoCompileFailed'],
   ['example_contracts/nested_structs', 'Success'],
   ['example_contracts/payable_function', 'Success'],
-  // Cannot import with a - in the filename
   ['example_contracts/pure_function', 'Success'],
   // Returns the dynamic array memory pointer instead of it's values
   ['example_contracts/return_dyn_array', 'CairoCompileFailed'],
@@ -160,6 +159,12 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/using_for/library', 'Success'],
   ['example_contracts/using_for/simple', 'Success'],
   ['example_contracts/usingReturnValues', 'Success'],
+  ['example_contracts/userdefinedtypes', 'Success'],
+  ['example_contracts/userdefinedidentifier', 'Success'],
+  ['example_contracts/variable_declarations', 'Success'],
+  ['example_contracts/view_function', 'Success'],
+  // Cannot import with a - in the filename
+  ['example_contracts/file-with-minus-sign-included', 'WillNotSupport'],
 ]);
 
 export function runTests(force: boolean, onlyResults: boolean, unsafe = false, exact = false) {
