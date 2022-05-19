@@ -28,7 +28,7 @@ export function compileSolFile(file: string, printWarnings: boolean): AST {
   return new AST(sourceUnits, requiredSolcVersion);
 }
 
-const supportedVersions = ['0.8.13', '0.7.6'];
+const supportedVersions = ['0.8.14', '0.7.6'];
 
 function getSolFileVersion(file: string): string {
   const content = fs.readFileSync(file, { encoding: 'utf-8' });

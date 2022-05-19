@@ -18,7 +18,7 @@ import { AST } from '../../ast/ast';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { ASTMapper } from '../../ast/mapper';
 import { NotSupportedYetError } from '../../utils/errors';
-import { createAddressNonPayableTypeName, createUint256TypeName } from '../../utils/nodeTemplates';
+import { createAddressTypeName, createUint256TypeName } from '../../utils/nodeTemplates';
 import { bigintToTwosComplement, toHexString } from '../../utils/utils';
 import { functionaliseIntConversion } from '../../warplib/implementations/conversions/int';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
@@ -76,7 +76,7 @@ export class ExplicitConversionToFunc extends ASTMapper {
           createCairoFunctionStub(
             'uint256_to_address_felt',
             [['uint_arg', createUint256TypeName(ast)]],
-            [['address_ret', createAddressNonPayableTypeName(ast)]],
+            [['address_ret', createAddressTypeName(false, ast)]],
             [],
             ast,
             node,

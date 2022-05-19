@@ -29,6 +29,6 @@ export function fullVersionFromMajor(majorVersion: SupportedSolcVersions): strin
     case '7':
       return '0.7.6';
     case '8':
-      return '0.8.13';
+      return '0.8.14';
   }
 }
