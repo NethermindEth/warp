@@ -74,12 +74,30 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
             `Invalid storage -> calldata conversion ${printNode(node)}`,
           );
       }
-    } else if (actualLoc === DataLocation.Memory && expectedLoc !== DataLocation.Memory) {
-      const parent = node.parent;
-      const replacement = ast
-        .getUtilFuncGen(node)
-        .memory.read.gen(node, typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast));
-      this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
+    } else if (actualLoc === DataLocation.Memory) {
+      switch (expectedLoc) {
+        case DataLocation.Default: {
+          const parent = node.parent;
+          const replacement = ast
+            .getUtilFuncGen(node)
+            .memory.read.gen(
+              node,
+              typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast),
+            );
+          this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
+          break;
+        }
+        case DataLocation.Storage: {
+          // Such conversions should be handled in specific visit functions, as the storage location must be known
+          throw new TranspileFailedError(
+            `Unhandled storage -> memory conversion ${printNode(node)}`,
+          );
+        }
+        case DataLocation.CallData:
+          throw new TranspileFailedError(
+            `Invalid memory -> calldata conversion ${printNode(node)}`,
+          );
+      }
     }
     this.commonVisit(node, ast);
   }
@@ -87,19 +105,37 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
   visitAssignment(node: Assignment, ast: AST): void {
     if (!shouldLeaveAsCairoAssignment(node.vLeftHandSide)) {
       const [actualLoc, expectedLoc] = this.getLocations(node);
-      const writeLoc = this.getLocations(node.vLeftHandSide)[0];
-      if (writeLoc === DataLocation.Memory) {
+      const fromLoc = this.getLocations(node.vRightHandSide)[0];
+      const toLoc = this.getLocations(node.vLeftHandSide)[0];
+      if (toLoc === DataLocation.Memory) {
         const replacementFunc = ast
           .getUtilFuncGen(node)
           .memory.write.gen(node.vLeftHandSide, node.vRightHandSide);
         this.replace(node, replacementFunc, undefined, actualLoc, expectedLoc, ast);
         this.dispatchVisit(replacementFunc, ast);
-      } else if (writeLoc === DataLocation.Storage) {
-        const writeFunc = ast
-          .getUtilFuncGen(node)
-          .storage.write.gen(node.vLeftHandSide, node.vRightHandSide);
-        this.replace(node, writeFunc, undefined, actualLoc, expectedLoc, ast);
-        this.dispatchVisit(writeFunc, ast);
+      } else if (toLoc === DataLocation.Storage) {
+        if (fromLoc === DataLocation.Storage) {
+          // TODO verify
+          const writeFunc = ast
+            .getUtilFuncGen(node)
+            .storage.write.gen(node.vLeftHandSide, node.vRightHandSide);
+          this.replace(node, writeFunc, undefined, actualLoc, expectedLoc, ast);
+          this.dispatchVisit(writeFunc, ast);
+        } else if (fromLoc === DataLocation.Memory) {
+          const copyFunc = ast
+            .getUtilFuncGen(node)
+            .memory.toStorage.gen(node.vLeftHandSide, node.vRightHandSide);
+          this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
+          this.dispatchVisit(copyFunc, ast);
+        } else if (fromLoc === DataLocation.CallData) {
+          throw new NotSupportedYetError(`CallData to storage assignment not implemented yet`);
+        } else {
+          const writeFunc = ast
+            .getUtilFuncGen(node)
+            .storage.write.gen(node.vLeftHandSide, node.vRightHandSide);
+          this.replace(node, writeFunc, undefined, actualLoc, expectedLoc, ast);
+          this.dispatchVisit(writeFunc, ast);
+        }
       } else {
         this.visitExpression(node, ast);
       }

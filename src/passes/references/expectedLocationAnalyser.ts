@@ -8,6 +8,7 @@ import {
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
+  generalizeType,
   getNodeType,
   IndexAccess,
   MemberAccess,
@@ -50,7 +51,10 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     const lhsLocation = this.actualLocations.get(node.vLeftHandSide);
     if (lhsLocation === DataLocation.Storage) {
       this.expectedLocations.set(node.vLeftHandSide, lhsLocation);
-      this.expectedLocations.set(node.vRightHandSide, DataLocation.Default);
+      const rhsLocation =
+        generalizeType(getNodeType(node.vRightHandSide, ast.compilerVersion))[1] ??
+        DataLocation.Default;
+      this.expectedLocations.set(node.vRightHandSide, rhsLocation);
     } else if (lhsLocation === DataLocation.Memory) {
       this.expectedLocations.set(node.vLeftHandSide, lhsLocation);
       const rhsLocation = this.actualLocations.get(node.vRightHandSide);

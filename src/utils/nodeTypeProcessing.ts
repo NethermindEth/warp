@@ -77,7 +77,10 @@ export function specializeType(typeNode: TypeNode, loc: DataLocation): TypeNode 
   if (typeNode instanceof PointerType) {
     assert(
       typeNode.location === loc,
-      `Attempting to specialize ${typeNode.location} pointer type to ${loc}`,
+      `Attempting to specialize ${typeNode.location} pointer type to ${loc}\nType:${printTypeNode(
+        typeNode,
+        true,
+      )}`,
     );
     return typeNode;
   }

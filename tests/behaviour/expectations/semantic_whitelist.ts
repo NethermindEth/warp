@@ -226,8 +226,8 @@ const tests: string[] = [
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/delete/bytes_delete_element.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/delete/delete_on_array_of_structs.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/delete/delete_removes_bytes_data.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/delete/memory_arrays_delete.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/delete/delete_removes_bytes_data.sol', // WILL NOT SUPPORT msg.data
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/delete/delete_memory_array.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/delete/delete_storage_array_packed.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/delete/delete_storage_array.sol', // WILL NOT SUPPORT yul
