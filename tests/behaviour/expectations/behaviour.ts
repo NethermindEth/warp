@@ -1423,6 +1423,7 @@ export const expectations = flatten(
             Expect.Simple('uint256new', [], ['0', '0', '0', '0']),
             Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
           ]),
+          File.Simple('nested', [Expect.Simple('setAndGet', ['100'], ['100'])]),
           File.Simple('staticArrays', [
             Expect.Simple('uint8default', [], ['0', '0']),
             Expect.Simple('uint8write', ['5'], ['0', '5']),

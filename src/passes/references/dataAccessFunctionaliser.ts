@@ -173,11 +173,6 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
         ? utilFuncGen.storage.memberAccess.gen(node)
         : utilFuncGen.memory.memberAccess.gen(node);
 
-    this.actualDataLocations.set(replacementAccessFunc, actualLoc);
-    if (expectedLoc !== undefined) {
-      this.expectedDataLocations.set(replacementAccessFunc, expectedLoc);
-    }
-
     this.replace(node, replacementAccessFunc, undefined, actualLoc, expectedLoc, ast);
     this.dispatchVisit(replacementAccessFunc, ast);
   }
