@@ -12,7 +12,7 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { printTypeNode } from '../../utils/astPrinter';
+import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
@@ -36,6 +36,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     memoryLocation: Expression,
     nodeInSourceUnit?: ASTNode,
   ): Expression {
+    console.log(`Generating m->s for ${printNode(storageLocation)} = ${printNode(memoryLocation)}`);
     const type = generalizeType(getNodeType(storageLocation, this.ast.compilerVersion))[0];
 
     const name = this.getOrCreate(type);
