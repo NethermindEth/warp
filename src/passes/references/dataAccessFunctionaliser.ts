@@ -70,16 +70,36 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           break;
         }
         case DataLocation.CallData:
-          throw new TranspileFailedError(
-            `Invalid storage -> calldata conversion ${printNode(node)}`,
+          throw new NotSupportedYetError(
+            `Storage -> calldata not implemented yet for ${printNode(node)}`,
           );
       }
     } else if (actualLoc === DataLocation.Memory && expectedLoc !== DataLocation.Memory) {
-      const parent = node.parent;
-      const replacement = ast
-        .getUtilFuncGen(node)
-        .memory.read.gen(node, typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast));
-      this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
+      switch (expectedLoc) {
+        case DataLocation.Default: {
+          const parent = node.parent;
+          const replacement = ast
+            .getUtilFuncGen(node)
+            .memory.read.gen(
+              node,
+              typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast),
+            );
+          this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
+          break;
+        }
+        case DataLocation.Storage: {
+          // Such conversions should be handled in specific visit functions, as the storage location must be known
+          throw new TranspileFailedError(
+            `Unhandled storage -> memory conversion ${printNode(node)}`,
+          );
+        }
+        case DataLocation.CallData: {
+          const parent = node.parent;
+          const replacement = ast.getUtilFuncGen(node).memory.toCallData.gen(node);
+          this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
+          break;
+        }
+      }
     }
     this.commonVisit(node, ast);
   }

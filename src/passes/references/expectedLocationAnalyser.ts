@@ -23,6 +23,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
+import { locationIfComplexType } from '../../cairoUtilFuncGen/base';
 import { printNode } from '../../utils/astPrinter';
 import { TranspileFailedError } from '../../utils/errors';
 import { error } from '../../utils/formatting';
@@ -170,7 +171,21 @@ export class ExpectedLocationAnalyser extends ASTMapper {
       if (node.vExpression) {
         // External functions need to read out their returns
         // TODO might need to expand this to be clear that it's a deep read
-        this.expectedLocations.set(node.vExpression, DataLocation.Default);
+        const retExpressions =
+          node.vExpression instanceof TupleExpression
+            ? node.vExpression.vOriginalComponents.map((element) => {
+                assert(element !== null, `Cannot return tuple with empty slots`);
+                return element;
+              })
+            : [node.vExpression];
+
+        retExpressions.forEach((retExpression) => {
+          const retType = getNodeType(retExpression, ast.compilerVersion);
+          this.expectedLocations.set(
+            retExpression,
+            locationIfComplexType(retType, DataLocation.CallData),
+          );
+        });
       }
       return this.visitStatement(node, ast);
     }

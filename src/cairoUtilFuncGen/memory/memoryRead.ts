@@ -6,6 +6,7 @@ import {
   getNodeType,
   DataLocation,
   FunctionStateMutability,
+  generalizeType,
 } from 'solc-typed-ast';
 import { CairoFelt, CairoType, CairoUint256 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
@@ -21,7 +22,7 @@ import { serialiseReads } from '../serialisation';
 
 export class MemoryReadGen extends StringIndexedFuncGen {
   gen(memoryRef: Expression, type: TypeName, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const valueType = getNodeType(memoryRef, this.ast.compilerVersion);
+    const valueType = generalizeType(getNodeType(memoryRef, this.ast.compilerVersion))[0];
     const resultCairoType = CairoType.fromSol(valueType, this.ast);
     const name = this.getOrCreate(resultCairoType);
     const functionStub = createCairoFunctionStub(

@@ -100,14 +100,13 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
   ['example_contracts/namedArgs/function', 'Success'],
   // Returning memory array of struct from external function does not read array
-  ['example_contracts/nested_static_array_struct', 'CairoCompileFailed'],
-  ['example_contracts/nested_struct_static_array', 'CairoCompileFailed'],
+  ['example_contracts/nested_static_array_struct', 'NotSupportedYet'],
+  ['example_contracts/nested_struct_static_array', 'NotSupportedYet'],
   ['example_contracts/nested_structs', 'Success'],
   ['example_contracts/payable-function', 'Success'],
   // Cannot import with a - in the filename
   ['example_contracts/pure-function', 'CairoCompileFailed'],
-  // Returns the dynamic array memory pointer instead of it's values
-  ['example_contracts/return_dyn_array', 'CairoCompileFailed'],
+  ['example_contracts/return_dyn_array', 'NotSupportedYet'],
   ['example_contracts/return-var-capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],
   ['example_contracts/returnInserter', 'Success'],

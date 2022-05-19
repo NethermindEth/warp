@@ -25,6 +25,7 @@ import { StorageMemberAccessGen } from './storage/storageMemberAccess';
 import { StorageReadGen } from './storage/storageRead';
 import { StorageToMemoryGen } from './storage/storageToMemory';
 import { StorageWriteGen } from './storage/storageWrite';
+import { MemoryToCallDataGen } from './memory/memoryToCalldata';
 
 export class CairoUtilFuncGen {
   memory: {
@@ -34,6 +35,7 @@ export class CairoUtilFuncGen {
     read: MemoryReadGen;
     staticArrayIndexAccess: MemoryStaticArrayIndexAccessGen;
     struct: MemoryStructGen;
+    toCallData: MemoryToCallDataGen;
     write: MemoryWriteGen;
   };
   storage: {
@@ -76,6 +78,7 @@ export class CairoUtilFuncGen {
       read: new MemoryReadGen(ast),
       staticArrayIndexAccess: new MemoryStaticArrayIndexAccessGen(ast),
       struct: new MemoryStructGen(ast),
+      toCallData: new MemoryToCallDataGen(ast),
       write: new MemoryWriteGen(ast),
     };
     const storageReadGen = new StorageReadGen(ast);
