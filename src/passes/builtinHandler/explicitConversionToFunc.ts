@@ -62,6 +62,22 @@ export class ExplicitConversionToFunc extends ASTMapper {
         ast.replaceNode(node, literalToTypedInt(node.vArguments[0], typeTo));
       } else if (argType instanceof IntType) {
         functionaliseIntConversion(node, ast);
+      } else if (argType instanceof AddressType) {
+        const replacementCall = createCallToFunction(
+          createCairoFunctionStub(
+            'felt_to_uint256',
+            [['address_arg', createAddressTypeName(false, ast)]],
+            [['uint_ret', createUint256TypeName(ast)]],
+            [],
+            ast,
+            node,
+          ),
+          [node.vArguments[0]],
+          ast,
+        );
+
+        ast.replaceNode(node, replacementCall);
+        ast.registerImport(replacementCall, 'warplib.maths.utils', 'felt_to_uint256');
       } else {
         throw new NotSupportedYetError(
           `Unexpected type ${printTypeNode(argType)} in uint256 conversion`,
