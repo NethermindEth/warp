@@ -59,7 +59,7 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
   }
 }
 
-export function runStarknetDeploy(filePath: string, options: IDeployProps) {
+export async function runStarknetDeploy(filePath: string, options: IDeployProps) {
   if (options.network == undefined) {
     logError(
       `Error: Exception: feeder_gateway_url must be specified with the "deploy" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
@@ -72,7 +72,16 @@ export function runStarknetDeploy(filePath: string, options: IDeployProps) {
     return;
   }
 
-  const inputs = options.inputs ? `--inputs ${options.inputs.join(' ')}` : '';
+  let inputs: string;
+  try {
+    inputs = (await encodeInputs(filePath, 'constructor', options.useCairoABI, options.inputs))[1];
+  } catch (e) {
+    if (e instanceof CLIError) {
+      logError(e.message);
+      return;
+    }
+    throw e;
+  }
 
   try {
     execSync(`starknet deploy --contract ${resultPath} --network ${options.network} ${inputs}`, {
@@ -133,9 +142,13 @@ export async function runStarknetCallOrInvoke(
   }
 
   let funcName, inputs: string;
-
   try {
-    [funcName, inputs] = await encodeInputs(filePath, options);
+    [funcName, inputs] = await encodeInputs(
+      filePath,
+      options.function,
+      options.useCairoABI,
+      options.inputs,
+    );
   } catch (e) {
     if (e instanceof CLIError) {
       logError(e.message);

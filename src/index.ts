@@ -122,17 +122,19 @@ program
   });
 
 interface IDeployProps_ {
-  inputs?: string[];
+  inputs?: string;
+  useCairoABI: boolean;
 }
 export type IDeployProps = IDeployProps_ & IOptionalNetwork;
 
 program
   .command('deploy <file>')
   .option(
-    '--inputs <inputs...>',
-    'Arguments to be passed to constructor of the program.',
+    '--inputs <inputs>',
+    'Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists.',
     undefined,
   )
+  .option('--useCairoABI', 'Use the cairo abi instead of solidity for the inputs.', false)
   .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
   .action((file: string, options: IDeployProps) => {
     runStarknetDeploy(file, options);

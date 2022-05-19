@@ -1,10 +1,11 @@
 import { readFileSync } from 'fs';
 import prompts from 'prompts';
-import { SourceUnit } from 'solc-typed-ast';
+import { FunctionVisibility, SourceUnit } from 'solc-typed-ast';
 import Web3 from 'web3';
 import { ICallOrInvokeProps } from '..';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { cloneASTNode } from '../utils/cloning';
 import { CLIError } from '../utils/errors';
 import { parse } from '../utils/functionSignatureParser';
 
@@ -16,12 +17,24 @@ export class ABIExtractor extends ASTMapper {
       // @ts-ignore
       addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2')),
     );
-    node.vContracts.forEach((cd) =>
-      cd.vFunctions.forEach((fd) =>
+    node.vContracts.forEach((cd) => {
+      if (cd.vConstructor !== undefined) {
+        // We do this to trick the canonicalSignature method into giving us a result
+        const fakeConstructor = cloneASTNode(cd.vConstructor, ast);
+        fakeConstructor.isConstructor = false;
+        fakeConstructor.name = 'constructor';
         // @ts-ignore
-        addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2')),
-      ),
-    );
+        addSignature(node, ast, fakeConstructor.canonicalSignature('ABIEncoderV2'));
+      }
+      cd.vFunctions.forEach((fd) => {
+        if (
+          fd.visibility === FunctionVisibility.External ||
+          fd.visibility === FunctionVisibility.Public
+        )
+          // @ts-ignore
+          addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2'));
+      });
+    });
   }
 }
 
@@ -44,25 +57,26 @@ export function transcodeCalldata(funcSignature: string, inputs: Input): bigint[
 
 export async function encodeInputs(
   filePath: string,
-  options: ICallOrInvokeProps,
+  func: string,
+  useCairoABI: boolean,
+  rawInputs?: string,
 ): Promise<[string, string]> {
-  if (options.useCairoABI) {
-    const inputs = options.inputs ? `--inputs ${options.inputs.split(',').join(' ')}` : '';
-    return [options.function, inputs];
+  if (useCairoABI) {
+    const inputs = rawInputs ? `--inputs ${rawInputs.split(',').join(' ')}` : '';
+    return [func, inputs];
   }
 
   const solABI = parseSolAbi(filePath);
-  const funcSignature = await selectSignature(solABI, options.function);
+  const funcSignature = await selectSignature(solABI, func);
   const selector = new Web3().utils.keccak256(funcSignature).substring(2, 10);
 
-  const funcName = `${options.function}_${selector}`;
-  const inputs = options.inputs
-    ? `--inputs ${transcodeCalldata(funcSignature, parseInputs(options.inputs))
+  const funcName = `${func}_${selector}`;
+  const inputs = rawInputs
+    ? `--inputs ${transcodeCalldata(funcSignature, parseInputs(rawInputs))
         .map((i) => i.toString())
         .join(' ')}`
     : '';
 
-  console.log(options.inputs);
   return [funcName, inputs];
 }
 
