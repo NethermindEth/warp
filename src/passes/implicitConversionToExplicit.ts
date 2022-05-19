@@ -1,28 +1,49 @@
 import assert from 'assert';
 import {
+  AddressType,
   ArrayType,
   Assignment,
   BinaryOperation,
+  BoolType,
+  BuiltinType,
+  BytesType,
+  DataLocation,
   ElementaryTypeName,
-  ElementaryTypeNameExpression,
   Expression,
+  ExternalReferenceType,
+  FixedBytesType,
   FunctionCall,
   FunctionCallKind,
+  FunctionType,
+  generalizeType,
   getNodeType,
+  ImportRefType,
+  IndexAccess,
+  IntLiteralType,
+  IntType,
+  MappingType,
+  ModuleType,
   PointerType,
+  RationalLiteralType,
   Return,
+  StringLiteralType,
+  StringType,
+  TupleExpression,
   TupleType,
+  TypeNameType,
   TypeNode,
-  UserDefinedTypeName,
+  UserDefinedType,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { printNode } from '../utils/astPrinter';
-import { NotSupportedYetError } from '../utils/errors';
+import { printNode, printTypeNode } from '../utils/astPrinter';
+import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { error } from '../utils/formatting';
-import { getParameterTypes } from '../utils/nodeTypeProcessing';
-import { compareTypeSize, dereferenceType } from '../utils/utils';
+import { createElementaryConversionCall } from '../utils/functionGeneration';
+import { generateExpressionTypeString } from '../utils/getTypeString';
+import { getParameterTypes, intTypeForLiteral, specializeType } from '../utils/nodeTypeProcessing';
+import { typeNameFromTypeNode } from '../utils/utils';
 
 /*
 Detects implicit conversions by running solc-typed-ast's type analyser on
@@ -30,93 +51,51 @@ nodes and on where they're used and comparing the results. This approach is
 relatively limited and does not handle tuples, which are instead processed by
 TupleAssignmentSplitter. It also does not handle datalocation differences, which
 are handled by the References pass
+
+Prerequisites:
+  TupleAssignmentSplitter
 */
 
-// TODO conclusively handle all edge cases
-// TODO for example operations between literals and non-literals truncate the literal,
-// they do not upcast the non-literal
-
 export class ImplicitConversionToExplicit extends ASTMapper {
-  generateExplicitConversion(typeTo: string, expression: Expression, ast: AST): FunctionCall {
-    return new FunctionCall(
-      ast.reserveId(),
-      expression.src,
-      typeTo,
-      FunctionCallKind.TypeConversion,
-      new ElementaryTypeNameExpression(
-        ast.reserveId(),
-        expression.src,
-        `type(${typeTo})`,
-        new ElementaryTypeName(ast.reserveId(), expression.src, typeTo, typeTo),
-      ),
-      [expression],
-    );
-  }
-
   visitReturn(node: Return, ast: AST): void {
     this.commonVisit(node, ast);
 
-    const funcDef = node.vFunctionReturnParameters.vParameters;
-
     if (node.vExpression == undefined) return;
 
-    // Return type should be a single value
-    if (funcDef.length > 1) return;
+    const returnDeclarations = node.vFunctionReturnParameters.vParameters;
+    // Tuple returns handled by TupleAssignmentSplitter
+    if (returnDeclarations.length !== 1) return;
 
-    // TODO test tuple of structs
-    if (node.vExpression.typeString.startsWith('tuple(')) return;
-
-    // Skip enums - implicit conversion is not allowed
-    if (funcDef[0].typeString.startsWith('enum ')) return;
-
-    // TODO handle or rule out implicit conversions of structs
-    if (funcDef[0].vType instanceof UserDefinedTypeName) return;
-    else {
-      const retParamType = dereferenceType(
-        getNodeType(node.vFunctionReturnParameters.vParameters[0], ast.compilerVersion),
-      );
-      const retValueType = dereferenceType(getNodeType(node.vExpression, ast.compilerVersion));
-      const res = compareTypeSize(retParamType, retValueType);
-
-      if (res == 1) {
-        const castedReturnExp = this.generateExplicitConversion(
-          funcDef[0].typeString,
-          node.vExpression,
-          ast,
-        );
-        node.vExpression = castedReturnExp;
-        ast.registerChild(castedReturnExp, node);
-      }
-    }
-    return;
+    const expectedRetType = getNodeType(returnDeclarations[0], ast.compilerVersion);
+    insertConversionIfNecessary(node.vExpression, expectedRetType, ast);
   }
 
   visitBinaryOperation(node: BinaryOperation, ast: AST): void {
     this.commonVisit(node, ast);
 
-    if (node.operator === '<<' || node.operator === '>>') return;
+    const resultType = getNodeType(node, ast.compilerVersion);
 
-    const argTypes = [node.vLeftExpression, node.vRightExpression].map((v) =>
-      getNodeType(v, ast.compilerVersion),
-    );
-    const res = compareTypeSize(argTypes[0], argTypes[1]);
-
-    if (res === -1) {
-      // argTypes[1] > argTypes[0]
-      node.vLeftExpression = this.generateExplicitConversion(
-        argTypes[1].pp(),
-        node.vLeftExpression,
-        ast,
+    if (node.operator === '<<' || node.operator === '>>') {
+      insertConversionIfNecessary(node.vLeftExpression, resultType, ast);
+      const rhsType = getNodeType(node.vRightExpression, ast.compilerVersion);
+      if (rhsType instanceof IntLiteralType) {
+        insertConversionIfNecessary(
+          node.vRightExpression,
+          intTypeForLiteral(node.vRightExpression.typeString),
+          ast,
+        );
+      }
+      return;
+    } else if (['**', '*', '/', '%', '+', '-', '&', '^', '|', '&&', '||'].includes(node.operator)) {
+      insertConversionIfNecessary(node.vLeftExpression, resultType, ast);
+      insertConversionIfNecessary(node.vRightExpression, resultType, ast);
+    } else if (['<', '>', '<=', '>=', '==', '!='].includes(node.operator)) {
+      const targetType = pickLargerType(
+        getNodeType(node.vLeftExpression, ast.compilerVersion),
+        getNodeType(node.vLeftExpression, ast.compilerVersion),
       );
-      ast.registerChild(node.vLeftExpression, node);
-    } else if (res === 1) {
-      // argTypes[0] > argTypes[1]
-      node.vRightExpression = this.generateExplicitConversion(
-        argTypes[0].pp(),
-        node.vRightExpression,
-        ast,
-      );
-      ast.registerChild(node.vRightExpression, node);
+      insertConversionIfNecessary(node.vLeftExpression, targetType, ast);
+      insertConversionIfNecessary(node.vRightExpression, targetType, ast);
     }
   }
 
@@ -127,20 +106,11 @@ export class ImplicitConversionToExplicit extends ASTMapper {
   visitAssignment(node: Assignment, ast: AST): void {
     this.commonVisit(node, ast);
 
-    const childrenTypes = [node.vLeftHandSide, node.vRightHandSide].map((v) =>
-      getNodeType(v, ast.compilerVersion),
+    insertConversionIfNecessary(
+      node.vRightHandSide,
+      getNodeType(node.vLeftHandSide, ast.compilerVersion),
+      ast,
     );
-    const res = compareTypeSize(childrenTypes[0], childrenTypes[1]);
-    if (res === 1) {
-      // sizeof(lhs) > sizeof(rhs)
-      node.vRightHandSide = this.generateExplicitConversion(
-        childrenTypes[0].pp(),
-        node.vRightHandSide,
-        ast,
-      );
-      ast.registerChild(node.vRightHandSide, node);
-    }
-    return;
   }
 
   visitVariableDeclarationStatement(node: VariableDeclarationStatement, ast: AST): void {
@@ -148,55 +118,56 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 
     assert(
       node.vInitialValue !== undefined,
-      'Implicit conversion to explicit expects variables to be initialised (did you run variable declaration initialiser?)',
+      `Implicit conversion to explicit expects variables to be initialised (did you run variable declaration initialiser?). Found at ${printNode(
+        node,
+      )}`,
     );
     // Assuming all variable declarations are split and have an initial value
 
     // VariableDeclarationExpressionSplitter must be run before this pass
-    const initialValType = getNodeType(node.vInitialValue, ast.compilerVersion);
-    if (initialValType instanceof TupleType || initialValType instanceof PointerType) {
-      return;
-    }
+    if (node.vDeclarations.length !== 1) return;
 
-    const declaration = node.vDeclarations[0];
-
-    // Skip enums - implicit conversion is not allowed
-    if (declaration.typeString.startsWith('enum ')) {
-      return;
-    }
-
-    // TODO handle or rule out implicit conversions of structs
-    if (declaration.vType instanceof UserDefinedTypeName) {
-      return;
-    }
-
-    const declarationType = getNodeType(declaration, ast.compilerVersion);
-
-    const res = compareTypeSize(declarationType, initialValType);
-
-    if (res === 1) {
-      node.vInitialValue = this.generateExplicitConversion(
-        declarationType.pp(),
-        node.vInitialValue,
-        ast,
-      );
-      ast.registerChild(node.vInitialValue, node);
-    }
-
-    return;
+    insertConversionIfNecessary(
+      node.vInitialValue,
+      getNodeType(node.vDeclarations[0], ast.compilerVersion),
+      ast,
+    );
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    if (node.fieldNames !== undefined) {
-      throw new NotSupportedYetError(`Functions with named arguments are not supported yet`);
-    }
     this.commonVisit(node, ast);
 
-    if (
-      node.kind === FunctionCallKind.TypeConversion ||
-      node.vReferencedDeclaration === undefined
-    ) {
+    if (node.kind === FunctionCallKind.TypeConversion) {
       return;
+    }
+
+    if (node.vFunctionCallType === ExternalReferenceType.Builtin) {
+      // Skip the error message associated with asserts, requires, and reverts
+      if (node.vFunctionName === 'revert') {
+        return;
+      }
+      if (['assert', 'require'].includes(node.vFunctionName) && node.vArguments.length > 1) {
+        const paramType = getParameterTypes(node, ast)[0];
+        insertConversionIfNecessary(node.vArguments[0], paramType, ast);
+        return;
+      }
+      if (['push', 'pop'].includes(node.vFunctionName)) {
+        const paramTypes = getParameterTypes(node, ast);
+        // Solc 0.7.0 types push and pop as you would expect, 0.8.0 adds an extra initial argument
+        assert(
+          paramTypes.length >= node.vArguments.length,
+          error(
+            `${printNode(node)} has incorrect number of arguments. Expected ${
+              paramTypes.length
+            }, got ${node.vArguments.length}`,
+          ),
+        );
+        node.vArguments.forEach((arg, index) => {
+          const paramIndex = index + paramTypes.length - node.vArguments.length;
+          insertConversionIfNecessary(arg, paramTypes[paramIndex], ast);
+        });
+        return;
+      }
     }
 
     const paramTypes = getParameterTypes(node, ast);
@@ -208,33 +179,167 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         }`,
       ),
     );
-    paramTypes.forEach((paramType, index) =>
-      this.processArgumentConversion(node, paramType, node.vArguments[index], ast),
+    node.vArguments.forEach((arg, index) =>
+      insertConversionIfNecessary(arg, paramTypes[index], ast),
     );
   }
 
-  processArgumentConversion(
-    func: FunctionCall,
-    paramType: TypeNode,
-    arg: Expression,
-    ast: AST,
-  ): void {
-    const rawArgType = getNodeType(arg, ast.compilerVersion);
-    if (rawArgType instanceof PointerType || rawArgType instanceof ArrayType) {
-      // TODO do this properly when implementing storage <-> memory
-      return;
-    }
-    const argumentType = dereferenceType(rawArgType);
-    const nonPtrParamType = dereferenceType(paramType);
+  visitIndexAccess(node: IndexAccess, ast: AST): void {
+    this.commonVisit(node, ast);
 
-    // Skip enums - implicit conversion is not allowed
-    if (nonPtrParamType.pp().startsWith('enum ')) {
-      return;
-    }
+    if (node.vIndexExpression === undefined) return;
 
-    const res = compareTypeSize(argumentType, nonPtrParamType);
-    if (res !== 0) {
-      ast.replaceNode(arg, this.generateExplicitConversion(paramType.pp(), arg, ast), func);
+    const [baseType, location] = generalizeType(
+      getNodeType(node.vBaseExpression, ast.compilerVersion),
+    );
+
+    if (baseType instanceof MappingType) {
+      insertConversionIfNecessary(node.vIndexExpression, baseType.keyType, ast);
+    } else if (location === DataLocation.CallData) {
+      insertConversionIfNecessary(node.vIndexExpression, new IntType(248, false), ast);
+    } else {
+      insertConversionIfNecessary(node.vIndexExpression, new IntType(256, false), ast);
     }
   }
+}
+
+function insertConversionIfNecessary(expression: Expression, targetType: TypeNode, ast: AST): void {
+  const currentType = generalizeType(getNodeType(expression, ast.compilerVersion))[0];
+  targetType = generalizeType(targetType)[0];
+
+  if (currentType instanceof AddressType) {
+    if (!(targetType instanceof AddressType)) {
+      insertConversion(expression, targetType, ast);
+    }
+  } else if (currentType instanceof ArrayType) {
+    assert(
+      targetType instanceof ArrayType,
+      `Unable to convert array ${printNode(expression)} to non-array type ${printTypeNode(
+        targetType,
+      )}`,
+    );
+    const elementT = targetType.elementT;
+    if (currentType.pp() !== targetType.pp()) {
+      assert(
+        expression instanceof TupleExpression && expression.isInlineArray,
+        `Unable to perform array conversion on ${printNode(expression)}, expected an inline array`,
+      );
+      expression.vOriginalComponents.forEach((element) => {
+        assert(element !== null, `Unexpected empty slot in inline array ${printNode(expression)}`);
+        insertConversionIfNecessary(element, elementT, ast);
+      });
+      expression.typeString = generateExpressionTypeString(
+        specializeType(currentType, DataLocation.Memory),
+      );
+    }
+  } else if (currentType instanceof BoolType) {
+    assert(
+      targetType instanceof BoolType,
+      `Unable to convert bool to ${printTypeNode(targetType)}`,
+    );
+    return;
+  } else if (currentType instanceof BuiltinType) {
+    return;
+  } else if (currentType instanceof BytesType) {
+    throw new NotSupportedYetError(`BytesType not supported yet`);
+    return;
+  } else if (currentType instanceof FixedBytesType) {
+    throw new TranspileFailedError(
+      `Expected FixedBytesType to have been substituted. Found at ${printNode(expression)}`,
+    );
+  } else if (currentType instanceof FunctionType) {
+    return;
+  } else if (currentType instanceof ImportRefType) {
+    return;
+  } else if (currentType instanceof IntLiteralType) {
+    insertConversion(expression, targetType, ast);
+  } else if (currentType instanceof IntType) {
+    if (targetType instanceof IntType && targetType.pp() === currentType.pp()) {
+      return;
+    } else {
+      insertConversion(expression, targetType, ast);
+    }
+  } else if (currentType instanceof MappingType) {
+    return;
+  } else if (currentType instanceof ModuleType) {
+    return;
+  } else if (currentType instanceof StringType) {
+    // TODO bytes conversion
+    return;
+  } else if (currentType instanceof PointerType) {
+    throw new TranspileFailedError(
+      `Type conversion analysis error. Unexpected ${printTypeNode(
+        currentType,
+      )}, found at ${printNode(expression)}`,
+    );
+  } else if (currentType instanceof RationalLiteralType) {
+    throw new TranspileFailedError(
+      `Unexpected unresolved rational literal ${printNode(expression)}`,
+    );
+  } else if (currentType instanceof StringLiteralType) {
+    insertConversion(expression, targetType, ast);
+  } else if (currentType instanceof TupleType) {
+    throw new TranspileFailedError(
+      `Attempted to convert tuple ${printNode(expression)} as single value`,
+    );
+  } else if (currentType instanceof TypeNameType) {
+    return;
+  } else if (currentType instanceof UserDefinedType) {
+    return;
+  } else {
+    throw new NotSupportedYetError(
+      `Encountered unexpected type ${printTypeNode(
+        currentType,
+      )} during type conversion analysis at ${printNode(expression)}`,
+    );
+  }
+}
+
+function insertConversion(expression: Expression, targetType: TypeNode, ast: AST): void {
+  const typeName = typeNameFromTypeNode(targetType, ast);
+  assert(
+    typeName instanceof ElementaryTypeName,
+    `Attempted elementary conversion to non-elementary type ${printTypeNode(targetType)}`,
+  );
+  const parent = expression.parent;
+  const call = createElementaryConversionCall(typeName, expression, ast);
+  ast.replaceNode(expression, call, parent);
+}
+
+function pickLargerType(typeA: TypeNode, typeB: TypeNode): TypeNode {
+  // Generalise the types to remove any location differences
+  typeA = generalizeType(typeA)[0];
+  typeB = generalizeType(typeB)[0];
+  if (typeA.pp() === typeB.pp()) return typeA;
+
+  // Literals always need to be cast to match the other type
+  if (typeA instanceof IntLiteralType) {
+    if (typeB instanceof IntLiteralType) {
+      assert(typeA.literal, `Unexpected unencoded literal value`);
+      assert(typeB.literal, `Unexpected unencoded literal value`);
+      return pickLargerType(
+        intTypeForLiteral(`int_const ${typeA.literal.toString()}`),
+        intTypeForLiteral(`int_const ${typeB.literal.toString()}`),
+      );
+    } else {
+      return typeB;
+    }
+  } else if (typeB instanceof IntLiteralType) {
+    return typeA;
+  }
+
+  if (typeA instanceof ArrayType && typeB instanceof ArrayType) {
+    assert(
+      typeA.size === typeB.size,
+      `Unable to find a common type for arrays of mismatching lengths: ${printTypeNode(
+        typeA,
+      )} vs ${printTypeNode(typeB)}`,
+    );
+
+    return new ArrayType(pickLargerType(typeA.elementT, typeB.elementT), typeA.size);
+  }
+
+  throw new NotSupportedYetError(
+    `Unhandled type conversion case: ${printTypeNode(typeA)} vs ${printTypeNode(typeB)}`,
+  );
 }

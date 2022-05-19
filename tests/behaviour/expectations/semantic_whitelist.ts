@@ -150,19 +150,16 @@ const tests: string[] = [
     ],
     //---------Array copying tests 49 passing, 169 pending, 66 failing - Copy semantics not finished
     ...[
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_function_external_storage_to_storage_dynamic.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/memory_to_storage_different_base.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/calldata_array_static_to_memory.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_storage_storage_static_static.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/bytes_storage_to_storage.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_storage_storage_different_base.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/calldata_2d_bytes_to_memory.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_cleanup_uint128.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_structs_containing_arrays_calldata_to_memory.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_nested_calldata_to_memory.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_including_array.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_storage_storage_struct.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/dirty_memory_bytes_to_storage_copy_ir.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/empty_bytes_copy.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_storage_to_memory_nested.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/copying_bytes_multiassign.sol',
@@ -185,7 +182,6 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/calldata_bytes_array_to_memory.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/calldata_array_of_struct_to_memory.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/copy_removes_bytes_data.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/dirty_memory_bytes_to_storage_copy.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/storage_memory_nested_bytes.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_storage_storage_static_simple.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_different_packing.sol',
@@ -200,7 +196,6 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_nested_calldata_to_storage.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_struct_calldata_to_storage.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/calldata_array_dynamic_to_storage.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_function_external_storage_to_storage_dynamic_different_mutability.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/calldata_nested_array_copy_to_memory.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_storage_to_memory.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/arrays_from_and_to_storage.sol',
@@ -212,15 +207,20 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_calldata_storage.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_struct_memory_to_storage.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_target_simple.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/copy_byte_array_to_storage.sol', // WILL NOT SUPPORT yul
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_cleanup_uint40.sol', // WILL NOT SUPPORT yul
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_clear_storage_packed.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_storage_storage_dyn_dyn.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_clear_storage.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_target_leftover.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/copy_internal_function_array_to_storage.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_target_leftover2.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/storage_memory_nested_struct.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_function_external_storage_to_storage_dynamic_different_mutability.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_function_external_storage_to_storage_dynamic.sol', // WILL NOT SUPPORT function objects
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_cleanup_uint128.sol', // WILL NOT SUPPORT yul
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/dirty_memory_bytes_to_storage_copy_ir.sol', // WILL NOT SUPPORT yul
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/dirty_memory_bytes_to_storage_copy.sol', // WILL NOT SUPPORT yul
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/copy_byte_array_to_storage.sol', // WILL NOT SUPPORT yul
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_clear_storage_packed.sol', // WILL NOT SUPPORT yul
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_cleanup_uint40.sol', // WILL NOT SUPPORT yul
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_clear_storage.sol', // WILL NOT SUPPORT yul
     ],
     //---------Array delete tests: 0 passing, 12 pending, 4 failing
     ...[

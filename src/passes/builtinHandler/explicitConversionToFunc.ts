@@ -6,6 +6,7 @@ import {
   Expression,
   FunctionCall,
   FunctionCallKind,
+  generalizeType,
   getNodeType,
   IntLiteralType,
   IntType,
@@ -52,13 +53,17 @@ export class ExplicitConversionToFunc extends ASTMapper {
       `Unexpected node type ${node.vExpression.type}`,
     );
     const typeTo = typeNameType.type;
-    const argType = getNodeType(node.vArguments[0], ast.compilerVersion);
+    const argType = generalizeType(getNodeType(node.vArguments[0], ast.compilerVersion))[0];
 
     if (typeTo instanceof IntType) {
       if (argType instanceof IntLiteralType) {
         ast.replaceNode(node, literalToTypedInt(node.vArguments[0], typeTo));
       } else if (argType instanceof IntType) {
         functionaliseIntConversion(node, ast);
+      } else {
+        throw new NotSupportedYetError(
+          `Unexpected type ${printTypeNode(argType)} in uint256 conversion`,
+        );
       }
       return;
     }

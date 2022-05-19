@@ -10,7 +10,7 @@ import {
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { createUint256TypeName, createUint256Literal } from '../../utils/nodeTemplates';
+import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { CairoUtilFuncGenBase } from '../base';
 
@@ -54,13 +54,12 @@ export class StorageStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
       [
         node.vBaseExpression,
         node.vIndexExpression,
-        createUint256Literal(
-          BigInt(
-            CairoType.fromSol(valueType, this.ast, TypeConversionContext.StorageAllocation).width,
-          ),
+        createNumberLiteral(
+          CairoType.fromSol(valueType, this.ast, TypeConversionContext.StorageAllocation).width,
           this.ast,
+          'uint256',
         ),
-        createUint256Literal(arrayType.to.size, this.ast),
+        createNumberLiteral(arrayType.to.size, this.ast, 'uint256'),
       ],
       this.ast,
     );

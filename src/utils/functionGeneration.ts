@@ -2,6 +2,8 @@ import {
   Assignment,
   ASTNode,
   DataLocation,
+  ElementaryTypeName,
+  ElementaryTypeNameExpression,
   EventDefinition,
   Expression,
   ExpressionStatement,
@@ -114,6 +116,23 @@ export function createCairoFunctionStub(
   sourceUnit.insertAtBeginning(funcDef);
 
   return funcDef;
+}
+
+export function createElementaryConversionCall(
+  typeTo: ElementaryTypeName,
+  expression: Expression,
+  ast: AST,
+): FunctionCall {
+  const node = new FunctionCall(
+    ast.reserveId(),
+    '',
+    typeTo.typeString,
+    FunctionCallKind.TypeConversion,
+    new ElementaryTypeNameExpression(ast.reserveId(), '', `type(${typeTo.typeString})`, typeTo),
+    [expression],
+  );
+  ast.setContextRecursive(node);
+  return node;
 }
 
 export function fixParameterScopes(node: FunctionDefinition): void {

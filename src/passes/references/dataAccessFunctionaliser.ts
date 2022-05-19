@@ -26,7 +26,7 @@ import { AST } from '../../ast/ast';
 import { dereferenceType, isCairoConstant, typeNameFromTypeNode } from '../../utils/utils';
 import { error } from '../../utils/formatting';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { createUint256Literal, createUint256TypeName } from '../../utils/nodeTemplates';
+import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { cloneASTNode } from '../../utils/cloning';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { ReferenceSubPass } from './referenceSubPass';
@@ -130,18 +130,11 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
 
     if (actualLoc === DataLocation.Storage) {
       if (!isCairoConstant(decl)) {
-        const parent = node.parent;
-        const replacementFunc = ast.getUtilFuncGen(node).storage.read.gen(node, decl.vType);
-        this.replace(node, replacementFunc, parent, actualLoc, expectedLoc, ast);
+        this.visitExpression(node, ast);
       }
     } else if (actualLoc === DataLocation.Memory) {
-      const parent = node.parent;
-      const replacementFunc = ast.getUtilFuncGen(node).memory.read.gen(node, decl.vType);
-      this.replace(node, replacementFunc, parent, actualLoc, expectedLoc, ast);
+      this.visitExpression(node, ast);
     }
-    // Do not recurse
-    // The only argument to replacementFunc is node,
-    // recursing would cause an infinite loop
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -275,7 +268,7 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
 
   assert(indexAccess.vIndexExpression);
   assert(arrayType instanceof ArrayType);
-  const elementCairTypeWidth = CairoType.fromSol(
+  const elementCairoTypeWidth = CairoType.fromSol(
     arrayType.elementT,
     ast,
     TypeConversionContext.MemoryAllocation,
@@ -286,7 +279,7 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
     [
       indexAccess.vBaseExpression,
       indexAccess.vIndexExpression,
-      createUint256Literal(BigInt(elementCairTypeWidth), ast),
+      createNumberLiteral(elementCairoTypeWidth, ast, 'uint256'),
     ],
     ast,
   );

@@ -2,7 +2,6 @@ import {
   AddressType,
   ArrayType,
   BoolType,
-  ElementaryTypeName,
   ElementaryTypeNameExpression,
   EnumDefinition,
   Expression,
@@ -12,8 +11,6 @@ import {
   getNodeType,
   Identifier,
   IntType,
-  Literal,
-  LiteralKind,
   MappingType,
   MemberAccess,
   NewExpression,
@@ -28,7 +25,13 @@ import {
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from './astPrinter';
 import { NotSupportedYetError } from './errors';
-import { toHexString, typeNameFromTypeNode } from './utils';
+import {
+  createAddressTypeName,
+  createBoolLiteral,
+  createNumberLiteral,
+  createStringLiteral,
+} from './nodeTemplates';
+import { typeNameFromTypeNode } from './utils';
 
 export function getDefaultValue(
   nodeType: TypeNode,
@@ -53,16 +56,7 @@ function intDefault(
   parentNode: Expression | VariableDeclaration,
   ast: AST,
 ): Expression {
-  return new Literal(
-    ast.reserveId(),
-    parentNode.src,
-    node.pp(),
-    LiteralKind.Number,
-    toHexString('0'),
-    '0',
-    undefined,
-    parentNode.raw,
-  );
+  return createNumberLiteral(0, ast, node.pp());
 }
 
 function fixedBytesDefault(
@@ -70,29 +64,11 @@ function fixedBytesDefault(
   parentNode: Expression | VariableDeclaration,
   ast: AST,
 ): Expression {
-  return new Literal(
-    ast.reserveId(),
-    parentNode.src,
-    node.pp(),
-    LiteralKind.Number,
-    toHexString('0'),
-    '0x0',
-    undefined,
-    parentNode.raw,
-  );
+  return createNumberLiteral('0x0', ast, node.pp());
 }
 
 function boolDefault(node: Expression | VariableDeclaration, ast: AST): Expression {
-  return new Literal(
-    ast.reserveId(),
-    node.src,
-    'bool',
-    LiteralKind.Bool,
-    toHexString('0'),
-    'false',
-    undefined,
-    node.raw,
-  );
+  return createBoolLiteral(false, ast);
 }
 
 function addressDefault(
@@ -109,13 +85,7 @@ function addressDefault(
       ast.reserveId(),
       '',
       `type(${nodeType.pp()})`,
-      new ElementaryTypeName(
-        ast.reserveId(),
-        '',
-        'address',
-        'address',
-        nodeType.payable ? 'payable' : 'nonpayable',
-      ),
+      createAddressTypeName(nodeType.payable, ast),
     ),
     [intDefault(nodeType, node, ast)],
     undefined,
@@ -164,16 +134,7 @@ function arrayDefault(
 }
 
 function stringDefault(node: Expression | VariableDeclaration, ast: AST): Expression {
-  return new Literal(
-    ast.reserveId(),
-    node.src,
-    'literal_string ""',
-    LiteralKind.String,
-    toHexString('0'),
-    '',
-    undefined,
-    node.raw,
-  );
+  return createStringLiteral('', ast);
 }
 
 function userDefDefault(
