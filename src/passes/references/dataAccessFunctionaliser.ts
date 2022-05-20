@@ -15,7 +15,6 @@ import {
   Expression,
   ArrayTypeName,
   FunctionCallKind,
-  TupleExpression,
   UserDefinedType,
   ContractDefinition,
 } from 'solc-typed-ast';
@@ -74,7 +73,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
             `Storage -> calldata not implemented yet for ${printNode(node)}`,
           );
       }
-    } else if (actualLoc === DataLocation.Memory && expectedLoc !== DataLocation.Memory) {
+    } else if (actualLoc === DataLocation.Memory) {
       switch (expectedLoc) {
         case DataLocation.Default: {
           const parent = node.parent;
@@ -90,7 +89,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
         case DataLocation.Storage: {
           // Such conversions should be handled in specific visit functions, as the storage location must be known
           throw new TranspileFailedError(
-            `Unhandled storage -> memory conversion ${printNode(node)}`,
+            `Unhandled memory -> storage conversion ${printNode(node)}`,
           );
         }
         case DataLocation.CallData: {
@@ -105,23 +104,41 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
-    if (!shouldLeaveAsCairoAssignment(node.vLeftHandSide)) {
-      const [actualLoc, expectedLoc] = this.getLocations(node);
-      const writeLoc = this.getLocations(node.vLeftHandSide)[0];
-      if (writeLoc === DataLocation.Memory) {
-        const replacementFunc = ast
-          .getUtilFuncGen(node)
-          .memory.write.gen(node.vLeftHandSide, node.vRightHandSide);
-        this.replace(node, replacementFunc, undefined, actualLoc, expectedLoc, ast);
-        this.dispatchVisit(replacementFunc, ast);
-      } else if (writeLoc === DataLocation.Storage) {
+    if (shouldLeaveAsCairoAssignment(node.vLeftHandSide)) {
+      return this.visitExpression(node, ast);
+    }
+
+    const [actualLoc, expectedLoc] = this.getLocations(node);
+    const fromLoc = this.getLocations(node.vRightHandSide)[1];
+    const toLoc = this.getLocations(node.vLeftHandSide)[1];
+    if (toLoc === DataLocation.Memory) {
+      const replacementFunc = ast
+        .getUtilFuncGen(node)
+        .memory.write.gen(node.vLeftHandSide, node.vRightHandSide);
+      this.replace(node, replacementFunc, undefined, actualLoc, expectedLoc, ast);
+      this.dispatchVisit(replacementFunc, ast);
+    } else if (toLoc === DataLocation.Storage) {
+      if (fromLoc === DataLocation.Storage) {
+        // TODO verify
         const writeFunc = ast
           .getUtilFuncGen(node)
           .storage.write.gen(node.vLeftHandSide, node.vRightHandSide);
         this.replace(node, writeFunc, undefined, actualLoc, expectedLoc, ast);
         this.dispatchVisit(writeFunc, ast);
+      } else if (fromLoc === DataLocation.Memory) {
+        const copyFunc = ast
+          .getUtilFuncGen(node)
+          .memory.toStorage.gen(node.vLeftHandSide, node.vRightHandSide);
+        this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
+        this.dispatchVisit(copyFunc, ast);
+      } else if (fromLoc === DataLocation.CallData) {
+        throw new NotSupportedYetError(`CallData to storage assignment not implemented yet`);
       } else {
-        this.visitExpression(node, ast);
+        const writeFunc = ast
+          .getUtilFuncGen(node)
+          .storage.write.gen(node.vLeftHandSide, node.vRightHandSide);
+        this.replace(node, writeFunc, undefined, actualLoc, expectedLoc, ast);
+        this.dispatchVisit(writeFunc, ast);
       }
     } else {
       this.visitExpression(node, ast);
@@ -244,19 +261,6 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     } else {
       this.visitExpression(node, ast);
     }
-  }
-
-  visitTupleExpression(node: TupleExpression, ast: AST): void {
-    if (!node.isInlineArray) return this.visitExpression(node, ast);
-
-    const expectedLoc = this.getLocations(node)[1];
-    assert(
-      expectedLoc === DataLocation.Default || expectedLoc === undefined,
-      `Tuples should have Default or undefined expected location. ${printNode(
-        node,
-      )} has ${expectedLoc}`,
-    );
-    this.commonVisit(node, ast);
   }
 }
 

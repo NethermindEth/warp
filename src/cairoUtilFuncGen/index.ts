@@ -26,16 +26,18 @@ import { StorageReadGen } from './storage/storageRead';
 import { StorageToMemoryGen } from './storage/storageToMemory';
 import { StorageWriteGen } from './storage/storageWrite';
 import { MemoryToCallDataGen } from './memory/memoryToCalldata';
+import { MemoryToStorageGen } from './memory/memoryToStorage';
 
 export class CairoUtilFuncGen {
   memory: {
     arrayLiteral: MemoryArrayLiteralGen;
-    memoryDynArrayLength: MemoryDynArrayLengthGen;
+    dynArrayLength: MemoryDynArrayLengthGen;
     memberAccess: MemoryMemberAccessGen;
     read: MemoryReadGen;
     staticArrayIndexAccess: MemoryStaticArrayIndexAccessGen;
     struct: MemoryStructGen;
     toCallData: MemoryToCallDataGen;
+    toStorage: MemoryToStorageGen;
     write: MemoryWriteGen;
   };
   storage: {
@@ -73,12 +75,13 @@ export class CairoUtilFuncGen {
     };
     this.memory = {
       arrayLiteral: new MemoryArrayLiteralGen(ast),
-      memoryDynArrayLength: new MemoryDynArrayLengthGen(ast),
+      dynArrayLength: new MemoryDynArrayLengthGen(ast),
       memberAccess: new MemoryMemberAccessGen(ast),
       read: new MemoryReadGen(ast),
       staticArrayIndexAccess: new MemoryStaticArrayIndexAccessGen(ast),
       struct: new MemoryStructGen(ast),
       toCallData: new MemoryToCallDataGen(ast),
+      toStorage: new MemoryToStorageGen(this.implementation.dynArray, ast),
       write: new MemoryWriteGen(ast),
     };
     const storageReadGen = new StorageReadGen(ast);

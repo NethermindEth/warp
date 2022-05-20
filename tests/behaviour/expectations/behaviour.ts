@@ -273,6 +273,54 @@ export const expectations = flatten(
             Expect.Simple('widthsignNutoi', ['32768'], ['32768']),
           ]),
         ]),
+        new Dir('copy_memory_to_storage', [
+          File.Simple('dynamic_arrays', [
+            new Expect('arrays are initialised correctly', [
+              ['getLengths', [], ['5', '0', '10', '0'], '0'],
+              ['arr8', ['4', '0'], ['0'], '0'],
+              ['arr8', ['5', '0'], null, '0'],
+              ['arr256', ['9', '0'], ['0', '0'], '0'],
+              ['arr256', ['10', '0'], null, '0'],
+            ]),
+            new Expect('arrays are assigned values correctly', [
+              ['fillWithValues', [], [], '0'],
+              ['arr8', ['0', '0'], ['1'], '0'],
+              ['arr8', ['4', '0'], ['5'], '0'],
+              ['arr256', ['0', '0'], ['1', '2'], '0'],
+              ['arr256', ['9', '0'], ['10', '11'], '0'],
+            ]),
+            new Expect('uint8 array overwritten correctly', [
+              ['assign8', ['3', '0'], [], '0'],
+              ['getLengths', [], ['3', '0', '10', '0'], '0'],
+              ['arr8', ['0', '0'], ['0'], '0'],
+              ['arr8', ['1', '0'], ['0'], '0'],
+              ['arr8', ['2', '0'], ['0'], '0'],
+              ['arr8', ['3', '0'], null, '0'],
+              ['arr256', ['9', '0'], ['10', '11'], '0'],
+              ['arr256', ['10', '0'], null, '0'],
+            ]),
+            new Expect('uint256 array overwritten correctly', [
+              ['assign256', ['12', '0'], [], '0'],
+              ['getLengths', [], ['3', '0', '12', '0'], '0'],
+              ['arr8', ['2', '0'], ['0'], '0'],
+              ['arr8', ['3', '0'], null, '0'],
+              ['arr256', ['9', '0'], ['0', '0'], '0'],
+              ['arr256', ['11', '0'], ['0', '0'], '0'],
+              ['arr256', ['12', '0'], null, '0'],
+            ]),
+          ]),
+          File.Simple('struct', [
+            new Expect('memory to storage for structs', [
+              ['getStructs', [], ['0', '0', '0', '0', '0', '0'], '0'],
+              ['copySimpleStruct', ['1', '2'], [], '0'],
+              ['getStructs', [], ['0', '0', '0', '0', '1', '2'], '0'],
+              ['copyNestedStruct', ['3', '4', '5', '6'], [], '0'],
+              ['getStructs', [], ['3', '4', '5', '6', '1', '2'], '0'],
+              ['copyInnerStruct', ['7', '8'], [], '0'],
+              ['getStructs', [], ['3', '4', '7', '8', '1', '2'], '0'],
+            ]),
+          ]),
+        ]),
         new Dir('copy_storage_to_memory', [
           File.Simple('dynamic_arrays', [
             Expect.Simple('copySimpleArrayLength', [], ['3', '0']),
