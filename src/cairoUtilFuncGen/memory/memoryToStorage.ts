@@ -7,6 +7,7 @@ import {
   FunctionStateMutability,
   generalizeType,
   getNodeType,
+  IntType,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -69,11 +70,35 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       } else {
         return this.createStaticArrayCopyFunction(key, type);
       }
+    } else if (type instanceof IntType) {
+      return this.createIntCopyFunction(key, type);
     } else {
       throw new NotSupportedYetError(
         `Copying ${printTypeNode(type)} from memory to storage not implemented yet`,
       );
     }
+  }
+
+  private createIntCopyFunction(key: string, type: IntType): string {
+    const implicits =
+      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+
+    const paramType = type.nBits === 256 ? 'Uint256' : 'felt';
+
+    const funcName = `wm_${paramType}_storage${this.generatedFunctions.size}`;
+    this.generatedFunctions.set(key, {
+      name: funcName,
+      code: [
+        `func ${funcName}${implicits}(loc : felt, elem : ${paramType}) -> (loc : felt):`,
+        ...(type.nBits === 256
+          ? ['WARP_STORAGE.write(loc, elem.low)', 'WARP_STORAGE.write(loc + 1, elem.high)']
+          : ['WARP_STORAGE.write(loc, elem)']),
+        `   return (loc)`,
+        `end`,
+      ].join('\n'),
+    });
+
+    return funcName;
   }
 
   // This can also be used for arrays, in which case they are treated like structs with <length> members
