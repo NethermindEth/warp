@@ -160,6 +160,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/using_for/library', 'Success'],
   ['example_contracts/using_for/simple', 'Success'],
   ['example_contracts/usingReturnValues', 'Success'],
+  ['example_contracts/userDefinedFunctionCalls', 'Success'],
   ['example_contracts/userdefinedtypes', 'Success'],
   ['example_contracts/userdefinedidentifier', 'Success'],
   ['example_contracts/variable-declarations', 'Success'],
