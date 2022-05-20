@@ -30,7 +30,6 @@ import {
   TypeNode,
   UserDefinedType,
   UserDefinedTypeName,
-  UserDefinedValueTypeDefinition,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { RationalLiteral } from '../passes/literalExpressionEvaluator/rationalLiteral';
@@ -169,7 +168,8 @@ function instanceOfNonRecursivePP(type: TypeNode): boolean {
     type instanceof ModuleType ||
     type instanceof RationalLiteral ||
     type instanceof StringLiteralType ||
-    type instanceof StringType
+    type instanceof StringType ||
+    type instanceof UserDefinedType
   );
 }
 
@@ -195,9 +195,6 @@ export function generateExpressionTypeString(type: TypeNode): string {
     return `function ${
       type.name !== undefined ? type.name : ''
     }(${argStr})${mutStr}${visStr}${retStr}`;
-  } else if (type instanceof UserDefinedType) {
-    if (!(type.definition instanceof UserDefinedValueTypeDefinition)) return type.pp();
-    return type.definition.underlyingType.typeString;
   } else if (type instanceof ArrayType) {
     return `${generateExpressionTypeString(type.elementT)}[${
       type.size !== undefined ? type.size : ''

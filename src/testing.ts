@@ -55,6 +55,8 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/events', 'Success'],
   ['example_contracts/external_function', 'Success'],
   ['example_contracts/fallbackWithoutArgs', 'Success'],
+  // Cannot import with a - in the filename
+  ['example_contracts/file-with-minus-sign-included', 'WillNotSupport'],
   // Typestring for the internal function call doesn't contain a location so a read isn't generated
   ['example_contracts/freeFunction', 'Success'],
   ['example_contracts/freeStruct', 'Success'],
@@ -159,12 +161,12 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/using_for/library', 'Success'],
   ['example_contracts/using_for/simple', 'Success'],
   ['example_contracts/usingReturnValues', 'Success'],
+  ['example_contracts/userDefinedFunctionCalls', 'Success'],
   ['example_contracts/userdefinedtypes', 'Success'],
   ['example_contracts/userdefinedidentifier', 'Success'],
   ['example_contracts/variable_declarations', 'Success'],
   ['example_contracts/view_function', 'Success'],
-  // Cannot import with a - in the filename
-  ['example_contracts/file-with-minus-sign-included', 'WillNotSupport'],
+  ['example_contracts/typestrings/enumArrays', 'Success'],
 ]);
 
 export function runTests(force: boolean, onlyResults: boolean, unsafe = false, exact = false) {
