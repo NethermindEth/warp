@@ -43,7 +43,6 @@ export class References extends ASTMapper {
       new MemoryAllocations(actualDataLocations, expectedDataLocations).dispatchVisit(root, ast);
       new ArrayFunctions(actualDataLocations, expectedDataLocations).dispatchVisit(root, ast);
       new StorageDelete(actualDataLocations, expectedDataLocations).dispatchVisit(root, ast);
-      console.log(DefaultASTPrinter.print(root));
       new DataAccessFunctionaliser(actualDataLocations, expectedDataLocations).dispatchVisit(
         root,
         ast,
