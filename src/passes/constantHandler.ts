@@ -10,7 +10,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { collectUnboundVariables } from './loopFunctionaliser/utils';
+import { collectUnboundVariables } from '../utils/functionGeneration';
 import { primitiveTypeToCairo } from '../utils/utils';
 
 export class ConstantHandler extends ASTMapper {

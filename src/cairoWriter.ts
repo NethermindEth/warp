@@ -72,6 +72,7 @@ import {
   VariableDeclarationStatement,
   WhileStatement,
 } from 'solc-typed-ast';
+import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from './ast/ast';
 import {
   CairoAssert,
@@ -199,7 +200,15 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     );
 
     const documentation = getDocumentation(node.documentation, writer);
-    const declarations = node.vDeclarations.map((value) => writer.write(value));
+    const declarations = node.assignments.map((id) => {
+      if (id === null)
+        throw new NotSupportedYetError(
+          `VariableDeclarationStatements with gaps not implemented yet`,
+        );
+      const declaration = node.vDeclarations.find((decl) => decl.id === id);
+      assert(declaration !== undefined, `Unable to find variable declaration for assignment ${id}`);
+      return writer.write(declaration);
+    });
     if (
       node.vInitialValue instanceof FunctionCall &&
       node.vInitialValue.vReferencedDeclaration instanceof CairoFunctionDefinition &&
@@ -208,12 +217,16 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
       // This local statement is needed since Cairo is not supporting member access of structs with let.
       // The type hint also needs to be placed there since Cairo's default type hint is a felt.
       return [
+        documentation,
         `local ${declarations.join(', ')} : ${
           node.vInitialValue.vReferencedDeclaration.name
         } = ${writer.write(node.vInitialValue)}`,
       ];
     } else if (node.vDeclarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
-      return [`let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)}`];
+      return [
+        documentation,
+        `let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)}`,
+      ];
     }
     return [documentation, `let ${declarations[0]} = ${writer.write(node.vInitialValue)}`];
   }
@@ -421,29 +434,43 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     const documentation = getDocumentation(node.documentation, writer);
     const name = this.getName(node);
     const decorator = this.getDecorator(node);
-    const args = writer.write(node.vParameters);
+    const args =
+      node.kind !== FunctionKind.Fallback
+        ? writer.write(node.vParameters)
+        : 'selector : felt, calldata_size : felt, calldata : felt*';
     const body = this.getBody(node, writer);
     const returns = this.getReturns(node, writer);
     const implicits = this.getImplicits(node);
 
     return [
-      [documentation, decorator, `func ${name}${implicits}(${args})${returns}:`, body, `end`]
+      [documentation, ...decorator, `func ${name}${implicits}(${args})${returns}:`, body, `end`]
         .filter(notNull)
         .join('\n'),
     ];
   }
 
-  private getDecorator(node: CairoFunctionDefinition): string | null {
-    if (node.kind === FunctionKind.Constructor) return '@constructor';
-    return node.visibility === FunctionVisibility.External
-      ? [FunctionStateMutability.Pure, FunctionStateMutability.View].includes(node.stateMutability)
-        ? '@view'
-        : '@external'
-      : null;
+  private getDecorator(node: CairoFunctionDefinition): string[] {
+    if (node.kind === FunctionKind.Constructor) return ['@constructor'];
+    const decorators: string[] = [];
+    if (node.kind === FunctionKind.Fallback) {
+      decorators.push('@raw_input');
+      if (node.vParameters.vParameters.length > 0) decorators.push('@raw_output');
+    }
+
+    if (node.visibility === FunctionVisibility.External) {
+      if (
+        [FunctionStateMutability.Pure, FunctionStateMutability.View].includes(node.stateMutability)
+      )
+        decorators.push('@view');
+      else decorators.push('@external');
+    }
+
+    return decorators;
   }
 
   private getName(node: CairoFunctionDefinition): string {
     if (node.kind === FunctionKind.Constructor) return 'constructor';
+    if (node.kind === FunctionKind.Fallback) return '__default__';
     return node.name;
   }
 
@@ -742,15 +769,28 @@ class EventDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: EventDefinition, writer: ASTWriter): SrcDesc {
     const documentation = getDocumentation(node.documentation, writer);
     const args: string = writer.write(node.vParameters);
-    return [documentation, `@event\nfunc ${node.name}(${args}):\nend`];
+    return [
+      documentation,
+      `@event\nfunc ${node.name}_${node.canonicalSignatureHash(
+        ABIEncoderVersion.V2,
+      )}(${args}):\nend`,
+    ];
   }
 }
 
 class EmitStatementWriter extends CairoASTNodeWriter {
   writeInner(node: EmitStatement, writer: ASTWriter): SrcDesc {
+    const eventDef = node.vEventCall.vReferencedDeclaration;
+    assert(eventDef instanceof EventDefinition, `Expected EventDefintion as referenced type`);
+
     const documentation = getDocumentation(node.documentation, writer);
     const args: string = node.vEventCall.vArguments.map((v) => writer.write(v)).join(', ');
-    return [documentation, `${node.vEventCall.vFunctionName}.emit(${args})`];
+    return [
+      documentation,
+      `${node.vEventCall.vFunctionName}_${eventDef.canonicalSignatureHash(
+        ABIEncoderVersion.V2,
+      )}.emit(${args})`,
+    ];
   }
 }
 
@@ -772,7 +812,10 @@ class CairoAssertWriter extends CairoASTNodeWriter {
 
 class ElementaryTypeNameExpressionWriter extends CairoASTNodeWriter {
   writeInner(node: ElementaryTypeNameExpression, _writer: ASTWriter): SrcDesc {
-    assert(node.typeString === 'type(address)');
+    assert(
+      node.typeString === 'type(address)',
+      `Unexpected elementaryTypeNameExpression ${node.typeString}`,
+    );
     return [``];
   }
 }

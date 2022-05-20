@@ -25,7 +25,10 @@ export function pow2(n: number): bigint {
   return 2n ** BigInt(n);
 }
 
-export function uint256(n: bigint): string {
+export function uint256(n: bigint | number): string {
+  if (typeof n === 'number') {
+    n = BigInt(n);
+  }
   const low = n % 2n ** 128n;
   const high = (n - low) / 2n ** 128n;
   return `Uint256(0x${low.toString(16)}, 0x${high.toString(16)})`;

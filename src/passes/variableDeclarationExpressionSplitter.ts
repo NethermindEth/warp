@@ -13,7 +13,6 @@ import {
   VariableDeclaration,
   StateVariableVisibility,
   Mutability,
-  DataLocation,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -110,7 +109,7 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
             this.generateNewConstantName(),
             oldDeclaration.scope,
             false,
-            DataLocation.Default,
+            oldDeclaration.storageLocation,
             StateVariableVisibility.Default,
             Mutability.Constant,
             initialValueType.elements[index].pp(),

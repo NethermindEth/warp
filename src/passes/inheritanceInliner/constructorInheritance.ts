@@ -5,7 +5,6 @@ import {
   ExpressionStatement,
   FunctionDefinition,
   FunctionKind,
-  FunctionStateMutability,
   FunctionVisibility,
   ModifierDefinition,
   Statement,
@@ -15,7 +14,12 @@ import {
 import { AST } from '../../ast/ast';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction } from '../../utils/functionGeneration';
-import { createBlock, createIdentifier, createParameterList } from '../../utils/nodeTemplates';
+import {
+  createBlock,
+  createDefaultConstructor,
+  createIdentifier,
+  createParameterList,
+} from '../../utils/nodeTemplates';
 import { updateReferencedDeclarations } from './utils';
 
 /*
@@ -234,7 +238,7 @@ function getArguments(
   const argList: Expression[] = [];
   for (let i = 0; i < size; ++i) {
     const newArg = cloneASTNode(args[i], ast);
-    updateReferencedDeclarations(newArg, idRemapping, ast);
+    updateReferencedDeclarations(newArg, idRemapping, idRemapping, ast);
     const newVar = cloneASTNode(parameters[i], ast);
     newVar.name = `__warp_constructor_parameter_${generator()}`;
     newVar.scope = scope;
@@ -262,24 +266,6 @@ function createFunctionFromConstructor(
   newFunc.scope = node.id;
   ast.setContextRecursive(newFunc);
 
-  return newFunc;
-}
-
-function createDefaultConstructor(node: ContractDefinition, ast: AST): FunctionDefinition {
-  const newFunc = new FunctionDefinition(
-    ast.reserveId(),
-    '',
-    node.id,
-    FunctionKind.Constructor,
-    '',
-    false,
-    FunctionVisibility.Public,
-    FunctionStateMutability.NonPayable,
-    true,
-    createParameterList([], ast),
-    createParameterList([], ast),
-    [],
-  );
   return newFunc;
 }
 

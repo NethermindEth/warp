@@ -1,17 +1,13 @@
 import assert from 'assert';
 import {
-  Assignment,
-  ASTNode,
   ContractDefinition,
   DoWhileStatement,
   Expression,
-  ExpressionStatement,
   FunctionCall,
   FunctionDefinition,
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
-  Identifier,
   IfStatement,
   SourceUnit,
   Statement,
@@ -21,44 +17,13 @@ import {
 import { AST } from '../../ast/ast';
 import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCallToFunction } from '../../utils/functionGeneration';
+import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
 import {
   createBlock,
   createIdentifier,
   createParameterList,
   createReturn,
 } from '../../utils/nodeTemplates';
-import { toSingleExpression } from '../../utils/utils';
-
-export function collectUnboundVariables(node: ASTNode): Map<VariableDeclaration, Identifier[]> {
-  const internalDeclarations = node
-    .getChildren(true)
-    .filter((n) => n instanceof VariableDeclaration);
-
-  const unboundVariables = node
-    .getChildren(true)
-    .filter((n): n is Identifier => n instanceof Identifier)
-    .map((id): [Identifier, ASTNode | undefined] => [id, id.vReferencedDeclaration])
-    .filter(
-      (pair: [Identifier, ASTNode | undefined]): pair is [Identifier, VariableDeclaration] =>
-        pair[1] !== undefined &&
-        pair[1] instanceof VariableDeclaration &&
-        !internalDeclarations.includes(pair[1]),
-    );
-
-  const retMap: Map<VariableDeclaration, Identifier[]> = new Map();
-
-  unboundVariables.forEach(([id, decl]) => {
-    const existingEntry = retMap.get(decl);
-    if (existingEntry === undefined) {
-      retMap.set(decl, [id]);
-    } else {
-      retMap.set(decl, [id, ...existingEntry]);
-    }
-  });
-
-  return retMap;
-}
 
 // It's okay to use a global counter here as it only affects private functions
 // and never anything that can be referenced from another file
@@ -121,12 +86,6 @@ export function extractWhileToFunction(
   );
 
   return funcDef;
-}
-
-function fixParameterScopes(node: FunctionDefinition): void {
-  [...node.vParameters.vParameters, ...node.vReturnParameters.vParameters].forEach(
-    (decl) => (decl.scope = node.id),
-  );
 }
 
 export function extractDoWhileToFunction(
@@ -212,32 +171,5 @@ export function createLoopCall(
     loopFunction,
     variables.map((v) => createIdentifier(v, ast)),
     ast,
-  );
-}
-
-export function createOuterCall(
-  node: WhileStatement,
-  unboundVariables: Map<VariableDeclaration, Identifier[]>,
-  functionDef: FunctionDefinition,
-  ast: AST,
-): ExpressionStatement {
-  const resultIdentifiers = [...unboundVariables.keys()].map((k) => createIdentifier(k, ast));
-  const assignmentValue = toSingleExpression(resultIdentifiers, ast);
-
-  return new ExpressionStatement(
-    ast.reserveId(),
-    node.src,
-    resultIdentifiers.length === 0
-      ? createLoopCall(functionDef, [...unboundVariables.keys()], ast)
-      : new Assignment(
-          ast.reserveId(),
-          '',
-          assignmentValue.typeString,
-          '=',
-          assignmentValue,
-          createLoopCall(functionDef, [...unboundVariables.keys()], ast),
-        ),
-    node.documentation,
-    node.raw,
   );
 }

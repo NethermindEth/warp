@@ -30,13 +30,12 @@ const ResultTypeOrder = [
 ];
 
 const expectedResults = new Map<string, ResultType>([
+  ['example_contracts/array_length', 'Success'],
   ['example_contracts/ERC20', 'Success'],
   ['example_contracts/ERC20_storage', 'Success'],
   ['example_contracts/boolOp_noSideEffects', 'Success'],
-  // Uses conditionals implicitly
-  ['example_contracts/boolOp_sideEffects', 'NotSupportedYet'],
-  // Uses conditionals
-  ['example_contracts/c2c', 'NotSupportedYet'],
+  ['example_contracts/boolOp_sideEffects', 'Success'],
+  ['example_contracts/c2c', 'Success'],
   // Uses conditionals explicitly
   ['example_contracts/conditional', 'WillNotSupport'],
   ['example_contracts/contract_to_contract', 'Success'],
@@ -55,8 +54,10 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/errorHandling/revert', 'Success'],
   ['example_contracts/events', 'Success'],
   ['example_contracts/external_function', 'Success'],
+  ['example_contracts/fallbackWithoutArgs', 'Success'],
   // Typestring for the internal function call doesn't contain a location so a read isn't generated
   ['example_contracts/freeFunction', 'Success'],
+  ['example_contracts/freeStruct', 'Success'],
   ['example_contracts/function-with-nested-return', 'Success'],
   ['example_contracts/functionArgumentConversions', 'Success'],
   ['example_contracts/idManglingTest8', 'Success'],
@@ -67,18 +68,17 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/imports/importfrom', 'Success'],
   ['example_contracts/imports/importInterface', 'Success'],
   ['example_contracts/imports/importLibrary', 'Success'],
-  // Transpilation failure since importing StructDefinition is not implemented yet
-  ['example_contracts/imports/importStruct', 'NotSupportedYet'],
+  ['example_contracts/imports/importStruct', 'Success'],
   ['example_contracts/inheritance/simple', 'Success'],
   ['example_contracts/inheritance/super/base', 'Success'],
   ['example_contracts/inheritance/super/derived', 'Success'],
   ['example_contracts/inheritance/super/mid', 'Success'],
   ['example_contracts/inheritance/variables', 'Success'],
   // Requires struct imports
-  ['example_contracts/interfaces', 'NotSupportedYet'],
+  ['example_contracts/interfaces', 'CairoCompileFailed'],
   ['example_contracts/invalidSolidity', 'SolCompileFailed'],
   ['example_contracts/lib', 'Success'],
-  ['example_contracts/libraries/using_for_star', 'NotSupportedYet'],
+  ['example_contracts/libraries/using_for_star', 'Success'],
   ['example_contracts/literalOperations', 'Success'],
   ['example_contracts/loops/for-loop-with-break', 'Success'],
   ['example_contracts/loops/for-loop-with-continue', 'Success'],
@@ -99,9 +99,13 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/namedArgs/constructor', 'Success'],
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
   ['example_contracts/namedArgs/function', 'Success'],
+  ['example_contracts/nested_static_array_struct', 'Success'],
+  ['example_contracts/nested_struct_static_array', 'Success'],
+  ['example_contracts/nested_structs', 'Success'],
   ['example_contracts/payable-function', 'Success'],
-  // Struct outside of contract
-  ['example_contracts/pure-function', 'NotSupportedYet'],
+  // Cannot import with a - in the filename
+  ['example_contracts/pure-function', 'CairoCompileFailed'],
+  ['example_contracts/return_dyn_array', 'NotSupportedYet'],
   ['example_contracts/return-var-capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],
   ['example_contracts/returnInserter', 'Success'],
@@ -125,18 +129,37 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeConversion/implicit_type_conv', 'Success'],
   ['example_contracts/typeConversion/shifts', 'Success'],
   ['example_contracts/typeMinMax', 'Success'],
+  // Don't automatically cast uint256 elements when creating static array
+  ['example_contracts/uint256_static_array_casting', 'Success'],
+  // Serialising BytesType not supported yet
+  ['example_contracts/typestrings/basicArrays', 'NotSupportedYet'],
+  // Not supported operation delete on CairoContract
+  ['example_contracts/typestrings/scalars', 'NotSupportedYet'],
+  ['example_contracts/typestrings/structArrays', 'Success'],
+  ['example_contracts/typestrings/structs', 'Success'],
   ['example_contracts/units', 'Success'],
+  ['example_contracts/unsupportedFunctions/abi', `WillNotSupport`],
+  ['example_contracts/unsupportedFunctions/keccak256', `WillNotSupport`],
+  ['example_contracts/unsupportedFunctions/ecrecover', `WillNotSupport`],
+  ['example_contracts/unsupportedFunctions/addmod', `WillNotSupport`],
+  // Uses bytes memory
+  ['example_contracts/unsupportedFunctions/shadowAbi', `NotSupportedYet`],
+  // Uses bytes memory
+  ['example_contracts/unsupportedFunctions/shadowKeccak256', `NotSupportedYet`],
+  ['example_contracts/unsupportedFunctions/shadowEcrecover', `Success`],
+  // uses modulo (%)
+  ['example_contracts/unsupportedFunctions/shadowAddmod', `NotSupportedYet`],
   // Uses WARP_STORAGE in a free function
   ['example_contracts/using_for/imports/user_defined', 'CairoCompileFailed'],
   // global_directive.sol cannot resolve struct when file imported as identifier
-  ['example_contracts/using_for/imports/global_directive', 'TranspilationFailed'],
+  ['example_contracts/using_for/imports/global_directive', 'CairoCompileFailed'],
   ['example_contracts/using_for/function', 'WillNotSupport'],
   ['example_contracts/using_for/private', 'Success'],
   ['example_contracts/using_for/library', 'Success'],
   ['example_contracts/using_for/simple', 'Success'],
   ['example_contracts/usingReturnValues', 'Success'],
-  ['example_contracts/userdefinedtypes', 'NotSupportedYet'],
-  ['example_contracts/userdefinedidentifier', 'NotSupportedYet'],
+  ['example_contracts/userdefinedtypes', 'Success'],
+  ['example_contracts/userdefinedidentifier', 'Success'],
   ['example_contracts/variable-declarations', 'Success'],
   ['example_contracts/view-function', 'Success'],
 ]);

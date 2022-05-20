@@ -11,15 +11,14 @@ import {
   FunctionStateMutability,
   FunctionVisibility,
   getNodeType,
-  Identifier,
-  typeNameToSpecializedTypeNode,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { createBlock, createParameterList } from '../utils/nodeTemplates';
+import { createBlock, createIdentifier, createParameterList } from '../utils/nodeTemplates';
+import { typeNameToSpecializedTypeNode } from '../utils/nodeTypeProcessing';
 import { isCairoConstant } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {
@@ -41,26 +40,33 @@ export class StorageAllocator extends ASTMapper {
       }
     });
     insertIntoConstructor(initialisationBlock, node, ast);
-    ast.replaceNode(
-      node,
-      new CairoContract(
-        node.id,
-        node.src,
-        node.name,
-        node.scope,
-        node.kind,
-        node.abstract,
-        node.fullyImplemented,
-        node.linearizedBaseContracts,
-        node.usedErrors,
-        allocations,
-        usedStorage,
-        node.documentation,
-        node.children,
-        node.nameLocation,
-        node.raw,
-      ),
+
+    const cairoNode = new CairoContract(
+      node.id,
+      node.src,
+      node.name,
+      node.scope,
+      node.kind,
+      node.abstract,
+      node.fullyImplemented,
+      node.linearizedBaseContracts,
+      node.usedErrors,
+      allocations,
+      usedStorage,
+      node.documentation,
+      node.children,
+      node.nameLocation,
+      node.raw,
     );
+    ast.replaceNode(node, cairoNode);
+
+    // This next code line is a hotfix when there is struct inheritance and the base contract's definiton
+    // gets replaced by its cairo counter part. From now on using `getNodeType` on an expression with a
+    // an inherited struct type will crash unexpectedly.
+    // The issue is caused because the property `vLinearizedBaseContracts` that is accessed through `getNodeType`
+    // still points to the old contract's non-cairo definition which has it's context set as undefined due to
+    // the replacement
+    node.context = cairoNode.context;
   }
 }
 
@@ -114,7 +120,7 @@ function extractInitialisation(node: VariableDeclaration, initialisationBlock: B
         node.src,
         type.pp(),
         '=',
-        new Identifier(ast.reserveId(), node.src, type.pp(), node.name, node.id),
+        createIdentifier(node, ast),
         node.vValue,
       ),
     ),

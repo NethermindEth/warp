@@ -8,17 +8,23 @@ import {
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
+  generalizeType,
   getNodeType,
+  Identifier,
   IndexAccess,
   MemberAccess,
   PointerType,
   Return,
+  StructDefinition,
   TupleExpression,
+  TypeNode,
   UnaryOperation,
+  UserDefinedType,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
+import { locationIfComplexType } from '../../cairoUtilFuncGen/base';
 import { printNode } from '../../utils/astPrinter';
 import { TranspileFailedError } from '../../utils/errors';
 import { error } from '../../utils/formatting';
@@ -50,7 +56,10 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     const lhsLocation = this.actualLocations.get(node.vLeftHandSide);
     if (lhsLocation === DataLocation.Storage) {
       this.expectedLocations.set(node.vLeftHandSide, lhsLocation);
-      this.expectedLocations.set(node.vRightHandSide, DataLocation.Default);
+      const rhsLocation =
+        generalizeType(getNodeType(node.vRightHandSide, ast.compilerVersion))[1] ??
+        DataLocation.Default;
+      this.expectedLocations.set(node.vRightHandSide, rhsLocation);
     } else if (lhsLocation === DataLocation.Memory) {
       this.expectedLocations.set(node.vLeftHandSide, lhsLocation);
       const rhsLocation = this.actualLocations.get(node.vRightHandSide);
@@ -94,6 +103,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     if (node.kind === FunctionCallKind.TypeConversion) {
+      node.vArguments.forEach((arg) => this.expectedLocations.set(arg, DataLocation.Default));
       return this.visitExpression(node, ast);
     }
 
@@ -130,12 +140,10 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     assert(node.vIndexExpression !== undefined);
     const baseLoc = this.actualLocations.get(node.vBaseExpression);
     assert(baseLoc !== undefined);
-    const type = getNodeType(node.vBaseExpression, ast.compilerVersion);
+    const baseType = getNodeType(node.vBaseExpression, ast.compilerVersion);
     if (
-      type instanceof PointerType &&
-      type.location === DataLocation.Storage &&
-      type.to instanceof ArrayType &&
-      type.to.size === undefined
+      isDynamicStorageArray(baseType) ||
+      (isComplexMemoryType(baseType) && !(node.vBaseExpression instanceof Identifier))
     ) {
       this.expectedLocations.set(node.vBaseExpression, DataLocation.Default);
     } else {
@@ -148,7 +156,15 @@ export class ExpectedLocationAnalyser extends ASTMapper {
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     const baseLoc = this.actualLocations.get(node.vExpression);
     assert(baseLoc !== undefined);
-    this.expectedLocations.set(node.vExpression, baseLoc);
+    const baseType = getNodeType(node.vExpression, ast.compilerVersion);
+    if (
+      isDynamicStorageArray(baseType) ||
+      (isComplexMemoryType(baseType) && !(node.vExpression instanceof Identifier))
+    ) {
+      this.expectedLocations.set(node.vExpression, DataLocation.Default);
+    } else {
+      this.expectedLocations.set(node.vExpression, baseLoc);
+    }
     this.visitExpression(node, ast);
   }
 
@@ -159,7 +175,21 @@ export class ExpectedLocationAnalyser extends ASTMapper {
       if (node.vExpression) {
         // External functions need to read out their returns
         // TODO might need to expand this to be clear that it's a deep read
-        this.expectedLocations.set(node.vExpression, DataLocation.Default);
+        const retExpressions =
+          node.vExpression instanceof TupleExpression
+            ? node.vExpression.vOriginalComponents.map((element) => {
+                assert(element !== null, `Cannot return tuple with empty slots`);
+                return element;
+              })
+            : [node.vExpression];
+
+        retExpressions.forEach((retExpression) => {
+          const retType = getNodeType(retExpression, ast.compilerVersion);
+          this.expectedLocations.set(
+            retExpression,
+            locationIfComplexType(retType, DataLocation.CallData),
+          );
+        });
       }
       return this.visitStatement(node, ast);
     }
@@ -243,4 +273,22 @@ export class ExpectedLocationAnalyser extends ASTMapper {
 
     this.visitStatement(node, ast);
   }
+}
+
+function isDynamicStorageArray(type: TypeNode): boolean {
+  return (
+    type instanceof PointerType &&
+    type.location === DataLocation.Storage &&
+    type.to instanceof ArrayType &&
+    type.to.size === undefined
+  );
+}
+
+function isComplexMemoryType(type: TypeNode): boolean {
+  return (
+    type instanceof PointerType &&
+    type.location === DataLocation.Memory &&
+    (type.to instanceof ArrayType ||
+      (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
+  );
 }

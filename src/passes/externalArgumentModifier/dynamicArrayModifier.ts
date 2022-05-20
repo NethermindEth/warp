@@ -13,9 +13,9 @@ import { AST } from '../../ast/ast';
 import { CairoFunctionDefinition } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
+import { collectUnboundVariables } from '../../utils/functionGeneration';
 import { createIdentifier } from '../../utils/nodeTemplates';
 import { isExternallyVisible } from '../../utils/utils';
-import { collectUnboundVariables } from '../loopFunctionaliser/utils';
 
 export class DynArrayModifier extends ASTMapper {
   /*

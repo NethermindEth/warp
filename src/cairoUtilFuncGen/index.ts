@@ -3,6 +3,7 @@ import { mergeImports } from '../utils/utils';
 import { CairoUtilFuncGenBase } from './base';
 import { EnumBoundCheckGen } from './enumBoundCheck';
 import { MemoryArrayLiteralGen } from './memory/arrayLiteral';
+import { MemoryDynArrayLengthGen } from './memory/memoryDynArrayLength';
 import { MemoryMemberAccessGen } from './memory/memoryMemberAccess';
 import { MemoryReadGen } from './memory/memoryRead';
 import { MemoryStructGen } from './memory/memoryStruct';
@@ -25,14 +26,19 @@ import { StorageMemberAccessGen } from './storage/storageMemberAccess';
 import { StorageReadGen } from './storage/storageRead';
 import { StorageToMemoryGen } from './storage/storageToMemory';
 import { StorageWriteGen } from './storage/storageWrite';
+import { MemoryToCallDataGen } from './memory/memoryToCalldata';
+import { MemoryToStorageGen } from './memory/memoryToStorage';
 
 export class CairoUtilFuncGen {
   memory: {
     arrayLiteral: MemoryArrayLiteralGen;
+    dynArrayLength: MemoryDynArrayLengthGen;
     memberAccess: MemoryMemberAccessGen;
     read: MemoryReadGen;
     staticArrayIndexAccess: MemoryStaticArrayIndexAccessGen;
     struct: MemoryStructGen;
+    toCallData: MemoryToCallDataGen;
+    toStorage: MemoryToStorageGen;
     write: MemoryWriteGen;
     callDataRead: MemoryToCallData;
   };
@@ -71,10 +77,13 @@ export class CairoUtilFuncGen {
     };
     this.memory = {
       arrayLiteral: new MemoryArrayLiteralGen(ast),
+      dynArrayLength: new MemoryDynArrayLengthGen(ast),
       memberAccess: new MemoryMemberAccessGen(ast),
       read: new MemoryReadGen(ast),
       staticArrayIndexAccess: new MemoryStaticArrayIndexAccessGen(ast),
       struct: new MemoryStructGen(ast),
+      toCallData: new MemoryToCallDataGen(ast),
+      toStorage: new MemoryToStorageGen(this.implementation.dynArray, ast),
       write: new MemoryWriteGen(ast),
       callDataRead: new MemoryToCallData(ast),
     };
@@ -92,7 +101,7 @@ export class CairoUtilFuncGen {
       memberAccess: new StorageMemberAccessGen(ast),
       read: storageReadGen,
       staticArrayIndexAccess: new StorageStaticArrayIndexAccessGen(ast),
-      toMemory: new StorageToMemoryGen(storageReadGen, ast),
+      toMemory: new StorageToMemoryGen(this.implementation.dynArray, ast),
       write: new StorageWriteGen(ast),
     };
     this.externalFunctions = {

@@ -1,23 +1,38 @@
 import {
+  ASTNode,
+  Block,
+  ContractDefinition,
   DataLocation,
   ElementaryTypeName,
+  Expression,
+  FunctionDefinition,
+  FunctionKind,
+  FunctionStateMutability,
+  FunctionVisibility,
+  getNodeTypeInCtx,
   Identifier,
   Literal,
   LiteralKind,
   ParameterList,
+  Return,
+  Statement,
+  StructuredDocumentation,
   TupleExpression,
   VariableDeclaration,
-  Statement,
-  Block,
-  Return,
-  Expression,
-  StructuredDocumentation,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
+import { generateExpressionTypeString, generateLiteralTypeString } from './getTypeString';
+import { specializeType } from './nodeTypeProcessing';
 import { toHexString, toSingleExpression } from './utils';
 
-export function createAddressNonPayableTypeName(ast: AST): ElementaryTypeName {
-  const node = new ElementaryTypeName(ast.reserveId(), '', 'address', 'address', 'nonpayable');
+export function createAddressTypeName(payable: boolean, ast: AST): ElementaryTypeName {
+  const node = new ElementaryTypeName(
+    ast.reserveId(),
+    '',
+    payable ? 'address payable' : 'address',
+    'address',
+    payable ? 'payable' : 'nonpayable',
+  );
   ast.setContextRecursive(node);
   return node;
 }
@@ -46,6 +61,12 @@ export function createBoolLiteral(value: boolean, ast: AST): Literal {
   return node;
 }
 
+export function createBoolTypeName(ast: AST): ElementaryTypeName {
+  const node = new ElementaryTypeName(ast.reserveId(), '', 'bool', 'bool');
+  ast.setContextRecursive(node);
+  return node;
+}
+
 export function createEmptyTuple(ast: AST): TupleExpression {
   const node = new TupleExpression(ast.reserveId(), '', 'tuple()', false, []);
   ast.setContextRecursive(node);
@@ -56,25 +77,50 @@ export function createIdentifier(
   variable: VariableDeclaration,
   ast: AST,
   dataLocation?: DataLocation,
+  lookupNode?: ASTNode,
 ): Identifier {
-  const location = dataLocation ?? variable.storageLocation;
-  const typeString =
-    location !== undefined
-      ? `${variable.typeString} ${location === DataLocation.Default ? '' : location}`
-      : variable.typeString;
-  const node = new Identifier(ast.reserveId(), '', typeString, variable.name, variable.id);
+  const type = specializeType(
+    getNodeTypeInCtx(variable, ast.compilerVersion, lookupNode ?? variable),
+    dataLocation ?? (variable.stateVariable ? DataLocation.Storage : variable.storageLocation),
+  );
+  const node = new Identifier(
+    ast.reserveId(),
+    '',
+    generateExpressionTypeString(type),
+    variable.name,
+    variable.id,
+  );
   ast.setContextRecursive(node);
   return node;
 }
 
-export function createNumberLiteral(value: bigint, typeString: string, ast: AST): Literal {
+export function createNumberLiteral(
+  value: number | bigint | string,
+  ast: AST,
+  typeString?: string,
+): Literal {
+  const stringValue = typeof value === 'string' ? value : BigInt(value).toString();
+  typeString = typeString ?? generateLiteralTypeString(stringValue);
   const node = new Literal(
     ast.reserveId(),
     '',
     typeString,
     LiteralKind.Number,
-    toHexString(value.toString()),
-    value.toString(),
+    toHexString(stringValue),
+    stringValue,
+  );
+  ast.setContextRecursive(node);
+  return node;
+}
+
+export function createStringLiteral(value: string, ast: AST): Literal {
+  const node = new Literal(
+    ast.reserveId(),
+    '',
+    `literal_string "${value}"`,
+    LiteralKind.String,
+    toHexString(value),
+    value,
   );
   ast.setContextRecursive(node);
   return node;
@@ -90,6 +136,14 @@ export function createParameterList(
   if (scope !== undefined) {
     [...params].forEach((decl) => (decl.scope = scope));
   }
+
+  [...params].forEach((decl) => {
+    if (decl.stateVariable) {
+      decl.stateVariable = false;
+      decl.storageLocation = DataLocation.Storage;
+    }
+  });
+
   return paramList;
 }
 
@@ -110,21 +164,26 @@ export function createReturn(
   return node;
 }
 
-export function createUint256Literal(value: bigint, ast: AST): Literal {
-  const node = new Literal(
-    ast.reserveId(),
-    '',
-    'uint256',
-    LiteralKind.Number,
-    toHexString(value.toString()),
-    value.toString(),
-  );
-  ast.setContextRecursive(node);
-  return node;
-}
-
 export function createUint256TypeName(ast: AST): ElementaryTypeName {
   const typeName = new ElementaryTypeName(ast.reserveId(), '', 'uint256', 'uint256');
   ast.setContextRecursive(typeName);
   return typeName;
+}
+
+export function createDefaultConstructor(node: ContractDefinition, ast: AST): FunctionDefinition {
+  const newFunc = new FunctionDefinition(
+    ast.reserveId(),
+    '',
+    node.id,
+    FunctionKind.Constructor,
+    '',
+    false,
+    FunctionVisibility.Public,
+    FunctionStateMutability.NonPayable,
+    true,
+    createParameterList([], ast),
+    createParameterList([], ast),
+    [],
+  );
+  return newFunc;
 }

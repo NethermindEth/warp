@@ -12,9 +12,9 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
+import { collectUnboundVariables } from '../../utils/functionGeneration';
 import { createIdentifier, createNumberLiteral } from '../../utils/nodeTemplates';
 import { isExternallyVisible, mapRange } from '../../utils/utils';
-import { collectUnboundVariables } from '../loopFunctionaliser/utils';
 
 export class StaticArrayModifier extends ASTMapper {
   /*
@@ -98,7 +98,7 @@ export class StaticArrayModifier extends ASTMapper {
           '',
           arrayDef.vBaseType.typeString,
           createIdentifier(calldataArray, ast),
-          createNumberLiteral(BigInt(i), 'uint248', ast),
+          createNumberLiteral(BigInt(i), ast, 'uint248'),
         ),
     );
   }

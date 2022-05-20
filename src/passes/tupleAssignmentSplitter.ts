@@ -3,10 +3,10 @@ import {
   Assignment,
   Block,
   DataLocation,
-  ElementaryTypeName,
   Expression,
   ExpressionStatement,
-  Identifier,
+  generalizeType,
+  getNodeType,
   Mutability,
   Return,
   StateVariableVisibility,
@@ -18,11 +18,16 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
-import { createBlock } from '../utils/nodeTemplates';
+import { createBlock, createIdentifier } from '../utils/nodeTemplates';
 import { notNull } from '../utils/typeConstructs';
+import { typeNameFromTypeNode } from '../utils/utils';
 
 // Converts a non-declaration tuple assignment into a declaration of temporary variables,
 // and piecewise assignments (x,y) = (y,x) -> (int a, int b) = (y,x); x = a; y = b;
+
+// Also converts tuple returns into a tuple declaration and elementwise return
+// This allows type conversions in cases where the individual elements would otherwise not be
+// accessible, such as when returning a function call
 
 // TODO fix or rule out edge cases where assignment is not direct child of expressionstatement
 export class TupleAssignmentSplitter extends ASTMapper {
@@ -69,7 +74,7 @@ export class TupleAssignmentSplitter extends ASTMapper {
         '',
         returnExpression.typeString,
         false,
-        vars.map((v) => new Identifier(ast.reserveId(), '', v.typeString, v.name, v.id)),
+        vars.map((v) => createIdentifier(v, ast)),
       );
       ast.registerChild(node.vExpression, node);
     }
@@ -87,13 +92,8 @@ export class TupleAssignmentSplitter extends ASTMapper {
     const tempVars = new Map<Expression, VariableDeclaration>(
       lhs.vOriginalComponents.filter(notNull).map((child) => {
         // TODO cover all edge cases surrounding which type of typename can go here
-        const typeName = new ElementaryTypeName(
-          ast.reserveId(),
-          node.src,
-          `${child.typeString}`,
-          child.typeString,
-        );
-        ast.setContextRecursive(typeName);
+        const [typeNode, location] = generalizeType(getNodeType(child, ast.compilerVersion));
+        const typeName = typeNameFromTypeNode(typeNode, ast);
         const decl = new VariableDeclaration(
           ast.reserveId(),
           node.src,
@@ -102,10 +102,10 @@ export class TupleAssignmentSplitter extends ASTMapper {
           this.newTempVarName(),
           block.id,
           false,
-          DataLocation.Default,
+          location ?? DataLocation.Default,
           StateVariableVisibility.Default,
           Mutability.Constant,
-          child.typeString,
+          typeNode.pp(),
           undefined,
           typeName,
         );
@@ -133,7 +133,7 @@ export class TupleAssignmentSplitter extends ASTMapper {
             target.typeString,
             '=',
             target,
-            new Identifier(ast.reserveId(), node.src, tempVar.typeString, tempVar.name, tempVar.id),
+            createIdentifier(tempVar, ast),
           ),
         ),
     );

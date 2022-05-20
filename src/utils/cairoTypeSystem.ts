@@ -23,7 +23,7 @@ import {
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
-import { narrowBigInt } from './utils';
+import { narrowBigIntSafe } from './utils';
 
 export enum TypeConversionContext {
   MemoryAllocation,
@@ -67,12 +67,10 @@ export abstract class CairoType {
         const recursionContext =
           context === TypeConversionContext.MemoryAllocation ? TypeConversionContext.Ref : context;
         const elementType = CairoType.fromSol(tp.elementT, ast, recursionContext);
-        const narrowedLength = narrowBigInt(tp.size);
-        if (narrowedLength === null) {
-          throw new NotSupportedYetError(
-            `Arrays of very large size (${tp.size.toString()}) are not supported`,
-          );
-        }
+        const narrowedLength = narrowBigIntSafe(
+          tp.size,
+          `Arrays of very large size (${tp.size.toString()}) are not supported`,
+        );
         return new CairoTuple(Array(narrowedLength).fill(elementType));
       }
     } else if (tp instanceof BoolType) {

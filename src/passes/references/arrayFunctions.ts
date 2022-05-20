@@ -4,15 +4,12 @@ import {
   ExternalReferenceType,
   FunctionCall,
   getNodeType,
-  Literal,
-  LiteralKind,
   MemberAccess,
   PointerType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { NotSupportedYetError } from '../../utils/errors';
-import { generateLiteralTypeString } from '../../utils/getTypeString';
-import { toHexString } from '../../utils/utils';
+import { createNumberLiteral } from '../../utils/nodeTemplates';
 import { ReferenceSubPass } from './referenceSubPass';
 
 /*
@@ -60,7 +57,7 @@ export class ArrayFunctions extends ReferenceSubPass {
 
     const baseType = getNodeType(node.vExpression, ast.compilerVersion);
     if (baseType instanceof PointerType && baseType.to instanceof ArrayType) {
-      if (baseType.location !== DataLocation.Storage) {
+      if (baseType.location !== DataLocation.Storage && baseType.location !== DataLocation.Memory) {
         throw new NotSupportedYetError(
           `Accessing ${baseType.location} array length not implemented yet`,
         );
@@ -70,27 +67,24 @@ export class ArrayFunctions extends ReferenceSubPass {
         const size = baseType.to.size.toString();
         this.replace(
           node,
-          new Literal(
-            ast.reserveId(),
-            node.src,
-            generateLiteralTypeString(size),
-            LiteralKind.Number,
-            toHexString(size),
-            size,
-          ),
+          createNumberLiteral(size, ast, 'uint256'),
           undefined,
           DataLocation.Default,
           DataLocation.Default,
           ast,
         );
       } else {
-        const replacement = ast.getUtilFuncGen(node).storage.dynArrayLength.gen(node, baseType.to);
+        const replacement =
+          baseType.location === DataLocation.Storage
+            ? ast.getUtilFuncGen(node).storage.dynArrayLength.gen(node, baseType.to)
+            : ast.getUtilFuncGen(node).memory.dynArrayLength.gen(node, ast);
         // The length function returns the actual length rather than a storage pointer to it,
         // so the new actual location is Default
         this.replace(node, replacement, undefined, DataLocation.Default, expectedLoc, ast);
         // This may have to be replaced with an actual read generation once dynamic array copy semantics
         // are in place
-        this.expectedDataLocations.set(replacement.vArguments[0], DataLocation.Default);
+        if (baseType.location === DataLocation.Storage)
+          this.expectedDataLocations.set(replacement.vArguments[0], DataLocation.Default);
       }
     }
   }

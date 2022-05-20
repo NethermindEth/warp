@@ -22,7 +22,7 @@ import {
   ImplicitConversionToExplicit,
   ImportDirectiveIdentifier,
   InheritanceInliner,
-  IntBoundCalculator,
+  TypeInformationCalculator,
   LiteralExpressionEvaluator,
   LoopFunctionaliser,
   ModifierHandler,
@@ -37,6 +37,7 @@ import {
   SourceUnitSplitter,
   StorageAllocator,
   TupleAssignmentSplitter,
+  TypeStringsChecker,
   UnloadingAssignment,
   UnreachableStatementPruner,
   UserDefinedTypesConverter,
@@ -44,6 +45,7 @@ import {
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
 } from './passes';
+import { OrderNestedStructs } from './passes/orderNestedStructs';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { createPassMap, parsePassOrder } from './utils/cliOptionParsing';
@@ -79,6 +81,7 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
 function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Ss', SourceUnitSplitter],
+    ['Ct', TypeStringsChecker],
     ['Idi', ImportDirectiveIdentifier],
     ['Ru', RejectUnsupportedFeatures],
     ['L', LiteralExpressionEvaluator],
@@ -86,11 +89,12 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Na', NamedArgsRemover],
     ['Udt', UserDefinedTypesConverter],
     ['Gp', PublicStateVarsGetterGenerator],
-    ['Ib', IntBoundCalculator],
+    ['Tic', TypeInformationCalculator],
     ['Ch', ConstantHandler],
     ['M', IdentifierMangler],
     ['Fi', FreeLibraryCallInliner],
     ['Rl', ReferencedLibraries],
+    ['Ons', OrderNestedStructs],
     ['Ii', InheritanceInliner],
     ['Ech', ExternalContractHandler],
     ['Mh', ModifierHandler],
@@ -106,12 +110,12 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
     ['Vs', VariableDeclarationExpressionSplitter],
-    ['Rf', References],
     ['Bc', BytesConverter],
+    ['I', ImplicitConversionToExplicit],
+    ['Rf', References],
     ['Eic', ExternalInputChecker],
     ['Ec', EnumConverter],
     ['Dh', DeleteHandler],
-    ['I', ImplicitConversionToExplicit],
     ['B', BuiltinHandler],
     ['Us', UnreachableStatementPruner],
     ['E', ExpressionSplitter],
