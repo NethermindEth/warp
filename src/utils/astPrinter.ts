@@ -2,6 +2,7 @@ import {
   ArrayType,
   ASTContext,
   ASTNode,
+  FunctionCall,
   MappingType,
   PointerType,
   TypeNameType,
@@ -140,6 +141,9 @@ export const DefaultASTPrinter = new ASTPrinter()
   .lookFor('visibility');
 
 export function printNode(node: ASTNode): string {
+  if (node instanceof FunctionCall) {
+    return `${node.type} #${node.id} ${node.vFunctionName}`;
+  }
   return `${node.type} #${node.id}`;
 }
 
