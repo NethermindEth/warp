@@ -17,5 +17,5 @@ contract WARP {
 
   bool public f;
 
-  address public g = address(b + uint160(0x1234));
+  address public g = address(b + uint256(0x1234));
 }

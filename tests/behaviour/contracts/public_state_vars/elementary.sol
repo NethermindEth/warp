@@ -17,7 +17,7 @@ contract WARP {
 
   bool public f;
 
-  address public g = address(b + uint160(0x1234));
+  address public g = address(b + uint256(0x1234));
   constructor() public {
     a = 234;
     c = address(0x1234567890123456789012345678901234567890);
