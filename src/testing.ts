@@ -164,6 +164,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/userdefinedidentifier', 'Success'],
   ['example_contracts/variable-declarations', 'Success'],
   ['example_contracts/view-function', 'Success'],
+  ['example_contracts/typestrings/enumArrays', 'Success'],
 ]);
 
 export function runTests(force: boolean, onlyResults: boolean, unsafe = false, exact = false) {
