@@ -17,12 +17,13 @@ import {
   FunctionCallKind,
   UserDefinedType,
   ContractDefinition,
+  generalizeType,
 } from 'solc-typed-ast';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
 
 import { AST } from '../../ast/ast';
-import { dereferenceType, isCairoConstant, typeNameFromTypeNode } from '../../utils/utils';
+import { isCairoConstant, typeNameFromTypeNode } from '../../utils/utils';
 import { error } from '../../utils/formatting';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
@@ -265,7 +266,9 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
 }
 
 function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): FunctionCall {
-  const arrayType = dereferenceType(getNodeType(indexAccess.vBaseExpression, ast.compilerVersion));
+  const arrayType = generalizeType(
+    getNodeType(indexAccess.vBaseExpression, ast.compilerVersion),
+  )[0];
   const arrayTypeName = typeNameFromTypeNode(arrayType, ast);
   assert(
     arrayTypeName instanceof ArrayTypeName,
