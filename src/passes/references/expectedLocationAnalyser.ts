@@ -20,7 +20,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { printNode } from '../../utils/astPrinter';
+import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { TranspileFailedError } from '../../utils/errors';
 import { error } from '../../utils/formatting';
 import { getParameterTypes } from '../../utils/nodeTypeProcessing';
@@ -103,8 +103,18 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     }
 
     const parameterTypes = getParameterTypes(node, ast);
+    // console.log(
+    // 'funcall',
+    // node.vFunctionName,
+    // node.vArguments.map((val) => printNode(val)),
+    // );
+
+    // When calling push, the function recieves two argument nonetheless the argument is just one
+    // This does not explode because javascript does not gives an index out of range exception
+    // It should be handled
     parameterTypes.forEach((t, index) => {
       if (t instanceof PointerType) {
+        console.log(printTypeNode(t), '-LOCATION-', t.location, '-TO-', printTypeNode(t.to));
         if (node.kind === FunctionCallKind.StructConstructorCall) {
           // The components of a struct being assigned to a location are also being assigned to that location
           const expectedLocation = this.expectedLocations.get(node);
@@ -122,12 +132,19 @@ export class ExpectedLocationAnalyser extends ASTMapper {
             //Finally, default to the type in the pointer itself if we can't infer anything else
             this.expectedLocations.set(node.vArguments[index], t.location);
           }
+          // Add this case for when you call darray.push([1,2,3]) the tuple gets memory location
+          // I think all tuple expression which are inlinea arrays should be memory
+          // Should add a check for inline array
+        } else if (node.vArguments[index] instanceof TupleExpression) {
+          this.expectedLocations.set(node.vArguments[index], DataLocation.Memory);
+        } else {
+          this.expectedLocations.set(node.vArguments[index], t.location);
         }
-        this.expectedLocations.set(node.vArguments[index], t.location);
       } else {
         this.expectedLocations.set(node.vArguments[index], DataLocation.Default);
       }
     });
+    console.log('finsih');
     this.visitExpression(node, ast);
   }
 
