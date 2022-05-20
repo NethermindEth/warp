@@ -90,7 +90,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
     const [arrayName, lengthName] = this.dynArrayGen.gen(elementCairoType);
-    const funcName = `${arrayName}_PUSHV`;
+    const funcName = `${arrayName}_PUSHV${this.generatedFunctions.size}`;
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
