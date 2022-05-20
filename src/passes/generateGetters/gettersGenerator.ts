@@ -11,6 +11,7 @@ import {
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
+  getNodeType,
   IndexAccess,
   Mapping,
   MemberAccess,
@@ -34,7 +35,7 @@ import {
   createReturn,
   createUint256TypeName,
 } from '../../utils/nodeTemplates';
-import { toSingleExpression } from '../../utils/utils';
+import { toSingleExpression, typeNameFromTypeNode } from '../../utils/utils';
 
 /**
 * This is a pass to attach the getter function for a public state variable
@@ -63,7 +64,7 @@ export class GettersGenerator extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     node.vStateVariables.forEach((v) => {
       // for every public state variable, create a getter function
-      const stateVarType = v.vType;
+      const stateVarType = typeNameFromTypeNode(getNodeType(v, ast.compilerVersion), ast);
 
       if (!stateVarType) {
         // skip getter function generation for state variable

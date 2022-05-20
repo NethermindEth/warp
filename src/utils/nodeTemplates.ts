@@ -67,6 +67,12 @@ export function createBoolTypeName(ast: AST): ElementaryTypeName {
   return node;
 }
 
+export function createBytesTypeName(ast: AST): ElementaryTypeName {
+  const node = new ElementaryTypeName(ast.reserveId(), '', 'bytes', 'bytes');
+  ast.setContextRecursive(node);
+  return node;
+}
+
 export function createEmptyTuple(ast: AST): TupleExpression {
   const node = new TupleExpression(ast.reserveId(), '', 'tuple()', false, []);
   ast.setContextRecursive(node);
