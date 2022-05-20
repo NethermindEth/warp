@@ -1,7 +1,6 @@
 import { DataLocation, Expression } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { DefaultASTPrinter } from '../../utils/astPrinter';
 import { ActualLocationAnalyser } from './actualLocationAnalyser';
 import { ArrayFunctions } from './arrayFunctions';
 import { DataAccessFunctionaliser } from './dataAccessFunctionaliser';
