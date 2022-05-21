@@ -20,7 +20,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
-import { printNode, printTypeNode } from '../../utils/astPrinter';
+import { printNode } from '../../utils/astPrinter';
 import { TranspileFailedError } from '../../utils/errors';
 import { error } from '../../utils/formatting';
 import { getParameterTypes } from '../../utils/nodeTypeProcessing';
