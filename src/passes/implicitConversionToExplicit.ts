@@ -229,14 +229,6 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
         insertConversionIfNecessary(element, elementT, ast);
       });
       currentType.elementT = targetType.elementT;
-      // console.log(
-      // `for node:`,
-      // printNode(expression),
-      // '\ncurrent type string:',
-      // generateExpressionTypeString(specializeType(currentType, DataLocation.Memory)),
-      // '\ntarget type string:',
-      // generateExpressionTypeString(specializeType(targetType, DataLocation.Memory)),
-      // );
       expression.typeString = generateExpressionTypeString(
         specializeType(currentType, DataLocation.Memory),
       );

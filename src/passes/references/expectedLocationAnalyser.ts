@@ -103,23 +103,17 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     }
 
     const parameterTypes = getParameterTypes(node, ast);
-    // console.log(
-    // 'funcall',
-    // node.vFunctionName,
-    // node.vArguments.map((val) => printNode(val)),
-    // );
-
-    // When calling push, the function recieves two argument nonetheless the argument is just one
+    // When calling `push`, the function recieves two argument nonetheless the argument is just one
     // This does not explode because javascript does not gives an index out of range exception
-    // It should be handled
+    // It should be handled but not sure it is here
     parameterTypes.forEach((t, index) => {
+      const argI = node.vArguments[index];
       if (t instanceof PointerType) {
-        console.log(printTypeNode(t), '-LOCATION-', t.location, '-TO-', printTypeNode(t.to));
         if (node.kind === FunctionCallKind.StructConstructorCall) {
           // The components of a struct being assigned to a location are also being assigned to that location
           const expectedLocation = this.expectedLocations.get(node);
           if (expectedLocation !== undefined && expectedLocation !== DataLocation.Default) {
-            this.expectedLocations.set(node.vArguments[index], expectedLocation);
+            this.expectedLocations.set(argI, expectedLocation);
             return;
           }
 
@@ -127,24 +121,21 @@ export class ExpectedLocationAnalyser extends ASTMapper {
           const structType = getNodeType(node, ast.compilerVersion);
           assert(structType instanceof PointerType);
           if (structType.location !== DataLocation.Default) {
-            this.expectedLocations.set(node.vArguments[index], structType.location);
+            this.expectedLocations.set(argI, structType.location);
           } else {
             //Finally, default to the type in the pointer itself if we can't infer anything else
-            this.expectedLocations.set(node.vArguments[index], t.location);
+            this.expectedLocations.set(argI, t.location);
           }
-          // Add this case for when you call darray.push([1,2,3]) the tuple gets memory location
-          // I think all tuple expression which are inlinea arrays should be memory
-          // Should add a check for inline array
-        } else if (node.vArguments[index] instanceof TupleExpression) {
-          this.expectedLocations.set(node.vArguments[index], DataLocation.Memory);
+          // Need this case for when you call darray.push([1,2,3]) the tuple gets memory location
+        } else if (argI instanceof TupleExpression && argI.isInlineArray) {
+          this.expectedLocations.set(argI, DataLocation.Memory);
         } else {
-          this.expectedLocations.set(node.vArguments[index], t.location);
+          this.expectedLocations.set(argI, t.location);
         }
       } else {
-        this.expectedLocations.set(node.vArguments[index], DataLocation.Default);
+        this.expectedLocations.set(argI, DataLocation.Default);
       }
     });
-    console.log('finsih');
     this.visitExpression(node, ast);
   }
 
