@@ -228,8 +228,17 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
         assert(element !== null, `Unexpected empty slot in inline array ${printNode(expression)}`);
         insertConversionIfNecessary(element, elementT, ast);
       });
+      currentType.elementT = targetType.elementT;
+      // console.log(
+      // `for node:`,
+      // printNode(expression),
+      // '\ncurrent type string:',
+      // generateExpressionTypeString(specializeType(currentType, DataLocation.Memory)),
+      // '\ntarget type string:',
+      // generateExpressionTypeString(specializeType(targetType, DataLocation.Memory)),
+      // );
       expression.typeString = generateExpressionTypeString(
-        specializeType(targetType, DataLocation.Memory),
+        specializeType(currentType, DataLocation.Memory),
       );
     }
   } else if (currentType instanceof BoolType) {
