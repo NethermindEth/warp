@@ -171,12 +171,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       type.size,
       `Failed to narrow size of ${printTypeNode(type)} in memory->storage copy generation`,
     );
-
-    this.generatedFunctions.set(key, {
-      name: funcName,
-      code: '',
-    });
-
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
