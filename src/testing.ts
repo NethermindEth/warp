@@ -116,8 +116,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/state_variables/scalars', 'Success'],
   ['example_contracts/state_variables/enums', 'Success'],
   ['example_contracts/state_variables/arrays', 'Success'],
-  // Initializing arrays with default values are yet to be supported
-  ['example_contracts/state_variables/arrays_init', 'NotSupportedYet'],
+  ['example_contracts/state_variables/arrays_init', 'Success'],
   ['example_contracts/state_variables/mappings', 'Success'],
   ['example_contracts/state_variables/structs', 'Success'],
   ['example_contracts/state_variables/structs_nested', 'Success'],
