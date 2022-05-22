@@ -55,7 +55,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     return createCallToFunction(functionStub, [storageLocation, memoryLocation], this.ast);
   }
 
-  private getOrCreate(type: TypeNode): string {
+  getOrCreate(type: TypeNode): string {
     const key = type.pp();
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {

@@ -3,20 +3,17 @@ import {
   ArrayType,
   DataLocation,
   FunctionCall,
+  generalizeType,
   getNodeType,
   TupleExpression,
   TypeNode,
 } from 'solc-typed-ast';
 import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
+import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { notNull } from '../../utils/typeConstructs';
-import {
-  dereferenceType,
-  mapRange,
-  narrowBigIntSafe,
-  typeNameFromTypeNode,
-} from '../../utils/utils';
+import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
 
@@ -30,10 +27,14 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     const elements = node.vOriginalComponents.filter(notNull);
     assert(elements.length === node.vOriginalComponents.length);
 
-    const type = dereferenceType(getNodeType(node, this.ast.compilerVersion));
+    const type = generalizeType(getNodeType(node, this.ast.compilerVersion))[0];
     assert(type instanceof ArrayType);
 
-    assert(type.size !== undefined, `${printNode(node)} has undefined size`);
+    if (type.size === undefined) {
+      throw new NotSupportedYetError(
+        `Allocating memory dynArray from tuple not implemented yet. ${printNode(node)}`,
+      );
+    }
     const size = narrowBigIntSafe(type.size, `${printNode(node)} too long to process`);
 
     const name = this.getOrCreate(type.elementT, size);

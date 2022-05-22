@@ -6,16 +6,12 @@ import {
   getNodeType,
   DataLocation,
   FunctionStateMutability,
+  generalizeType,
 } from 'solc-typed-ast';
-import {
-  CairoFelt,
-  CairoType,
-  CairoUint256,
-  TypeConversionContext,
-} from '../../utils/cairoTypeSystem';
+import { CairoFelt, CairoType, CairoUint256 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { add, StringIndexedFuncGen } from '../base';
+import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
 
 /*
@@ -26,17 +22,19 @@ import { serialiseReads } from '../serialisation';
 
 export class MemoryReadGen extends StringIndexedFuncGen {
   gen(memoryRef: Expression, type: TypeName, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const valueType = getNodeType(memoryRef, this.ast.compilerVersion);
-    const resultCairoType = CairoType.fromSol(
-      valueType,
-      this.ast,
-      TypeConversionContext.MemoryAllocation,
-    );
+    const valueType = generalizeType(getNodeType(memoryRef, this.ast.compilerVersion))[0];
+    const resultCairoType = CairoType.fromSol(valueType, this.ast);
     const name = this.getOrCreate(resultCairoType);
     const functionStub = createCairoFunctionStub(
       name,
       [['loc', cloneASTNode(type, this.ast), DataLocation.Memory]],
-      [['val', cloneASTNode(type, this.ast), DataLocation.Default]],
+      [
+        [
+          'val',
+          cloneASTNode(type, this.ast),
+          locationIfComplexType(valueType, DataLocation.Memory),
+        ],
+      ],
       ['range_check_ptr', 'warp_memory'],
       this.ast,
       nodeInSourceUnit ?? memoryRef,

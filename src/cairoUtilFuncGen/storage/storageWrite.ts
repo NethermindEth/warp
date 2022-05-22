@@ -46,7 +46,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
     return createCallToFunction(functionStub, [storageLocation, writeValue], this.ast);
   }
 
-  private getOrCreate(typeToWrite: TypeNode): string {
+  getOrCreate(typeToWrite: TypeNode): string {
     const cairoTypeToWrite = CairoType.fromSol(
       typeToWrite,
       this.ast,
