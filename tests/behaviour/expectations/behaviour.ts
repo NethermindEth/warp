@@ -1469,6 +1469,7 @@ export const expectations = flatten(
             Expect.Simple('deleteFelt', [], ['0']),
             Expect.Simple('deleteUint', [], ['0', '0']),
             Expect.Simple('deleteS', [], ['0', '0'], 'Delete simple struct'),
+            /* Uncomment this once calldata -> memory is implemented
             Expect.Simple('deleteDArray', ['3', '5', '3', '2'], ['0', '0'], 'Delete dynamic array'),
             Expect.Simple(
               'copyDeleteDArray',
@@ -1476,6 +1477,7 @@ export const expectations = flatten(
               ['8', '0'],
               'Delete dynamic array but keep a reference copy',
             ),
+            */
             /* Uncomment once dynamic arrays inside structs are aloud
             Expect.Simple('deleteC', [], ['0'], 'Delete struct with a dyanmic array as a member'),
             Expect.Simple(

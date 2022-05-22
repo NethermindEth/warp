@@ -27,7 +27,7 @@ contract WARP {
         delete a;
         return a;
     }
-
+/* Uncomment this once storage -> calldata copy is implemented
     function deleteC(uint8[] memory val) public pure returns (C memory){
         C memory c = C(val);
 
@@ -57,7 +57,7 @@ contract WARP {
         delete a;
         return b.length + b[0];
     }
-
+ */
     // Uncomment this once they are supported
     // function deleteSArray() public pure returns (S memory) {
         // S[] memory a = new S[](2);
