@@ -44,8 +44,8 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     const functionStub = createCairoFunctionStub(
       name,
       [
-        ['from', typeNameFromTypeNode(type, this.ast), DataLocation.Storage],
-        ['to', typeNameFromTypeNode(type, this.ast), DataLocation.Storage],
+        ['fromLoc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage],
+        ['toLoc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage],
       ],
       [['retLoc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
@@ -94,12 +94,12 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(from: felt, to: felt) -> (retLoc: felt):`,
+        `func ${funcName}${implicits}(fromLoc: felt, toLoc: felt) -> (retLoc: felt):`,
         `    alloc_locals`,
         ...members.map((memberType) => {
           if (memberType instanceof ArrayType) {
             const memberCopyFunc = this.getOrCreate(memberType);
-            const code = `${memberCopyFunc}(${add('from', offset)}, ${add('to', offset)})`;
+            const code = `${memberCopyFunc}(${add('fromLoc', offset)}, ${add('toLoc', offset)})`;
             ++offset;
             return code;
           } else {
@@ -113,36 +113,36 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
             return code;
           }
         }),
-        `    return (to)`,
+        `    return (toLoc)`,
         `end`,
       ].join('\n'),
     };
   }
 
   private createStaticArrayCopyFunction(funcName: string, type: ArrayType): CairoFunction {
-    assert(type.size === undefined, 'Attempted to copy storage dynamic array as static array');
+    assert(type.size !== undefined, 'Attempted to copy storage dynamic array as static array');
 
     const elementCopyFunc = this.getOrCreate(type.elementT);
 
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(from: felt, to: felt, index: felt) -> (retLoc: felt):`,
+        `func ${funcName}_elem${implicits}(fromLoc: felt, toLoc: felt, index: felt) -> (retLoc: felt):`,
         `    if index == ${type.size}:`,
-        `        return (to)`,
+        `        return (toLoc)`,
         `    end`,
-        `    ${elementCopyFunc}(from + index, to + index)`,
-        `    return ${funcName}_elem(from, to, index + 1)`,
+        `    ${elementCopyFunc}(fromLoc + index, toLoc + index)`,
+        `    return ${funcName}_elem(fromLoc, toLoc, index + 1)`,
         `end`,
-        `func ${funcName}${implicits}(from: felt, to: felt) -> (retLoc: felt)`,
-        `    return ${funcName}_elem(from, to, 0)`,
+        `func ${funcName}${implicits}(fromLoc: felt, toLoc: felt) -> (retLoc: felt):`,
+        `    return ${funcName}_elem(fromLoc, toLoc, 0)`,
         `end`,
       ].join('\n'),
     };
   }
 
   private createDynamicArrayCopyFunction(funcName: string, type: ArrayType): CairoFunction {
-    assert(type.size !== undefined, 'Attempted to copy storage static array as dynamic array');
+    assert(type.size === undefined, 'Attempted to copy storage static array as dynamic array');
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
@@ -158,7 +158,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(from: felt, to: felt, length: Uint256) -> ():`,
+        `func ${funcName}_elem${implicits}(fromLoc: felt, toLoc: felt, length: Uint256) -> ():`,
         `    alloc_locals`,
         `    if length.low == 0:`,
         `        if length.high == 0:`,
@@ -166,27 +166,27 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `        end`,
         `    end`,
         `    let (index) = uint256_sub(length, Uint256(1,0))`,
-        `    let (fromElem) = ${elementMapping}.read(from, index)`,
-        `    let (toElem) = ${elementMapping}.read(to, index)`,
+        `    let (fromElem) = ${elementMapping}.read(fromLoc, index)`,
+        `    let (toElem) = ${elementMapping}.read(toLoc, index)`,
         `    if toElem == 0:`,
         `        let (used) = WARP_USED_STORAGE.read()`,
         `        WARP_USED_STORAGE.write(used + ${elementCairoType.width})`,
-        `        ${elementMapping}.write(to, index, used)`,
+        `        ${elementMapping}.write(toLoc, index, used)`,
         `        ${elementCopyFunc}(fromElem, used)`,
-        `        return ${funcName}_elem(from, to, index)`,
+        `        return ${funcName}_elem(fromLoc, toLoc, index)`,
         `    else:`,
         `        ${elementCopyFunc}(fromElem, toElem)`,
-        `        return ${funcName}_elem(from, to, index)`,
+        `        return ${funcName}_elem(fromLoc, toLoc, index)`,
         `    end`,
         `end`,
-        `func ${funcName}${implicits}(from: felt, to: felt) -> (retLoc: felt)`,
+        `func ${funcName}${implicits}(fromLoc: felt, toLoc: felt) -> (retLoc: felt):`,
         `    alloc_locals`,
-        `    let (fromName) = readId(from)`,
+        `    let (fromName) = readId(fromLoc)`,
         `    let (fromLength) = ${lengthMapping}.read(fromName)`,
-        `    let (toName) = readId(to)`,
+        `    let (toName) = readId(toLoc)`,
         `    ${lengthMapping}.write(toName, fromLength)`,
         `    ${funcName}_elem(fromName, toName, fromLength)`,
-        `    return (to)`,
+        `    return (toLoc)`,
         `end`,
       ].join('\n'),
     };
@@ -198,10 +198,10 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(from : felt, to : felt) -> (retLoc : felt):`,
+        `func ${funcName}${implicits}(fromLoc : felt, toLoc : felt) -> (retLoc : felt):`,
         `    alloc_locals`,
         ...mapRange(width, copyAtOffset),
-        `    return (to)`,
+        `    return (toLoc)`,
         `end`,
       ].join('\n'),
     };
@@ -222,7 +222,7 @@ function generateKey(type: CairoType): string {
 
 function copyAtOffset(n: number): string {
   return [
-    `let (copy) = WARP_STORAGE.read(${add('from', n)})`,
-    `WARP_STORAGE.write(${add('to', n)}, copy)`,
+    `let (copy) = WARP_STORAGE.read(${add('fromLoc', n)})`,
+    `WARP_STORAGE.write(${add('toLoc', n)}, copy)`,
   ].join('\n');
 }
