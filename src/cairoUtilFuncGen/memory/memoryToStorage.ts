@@ -7,7 +7,6 @@ import {
   FunctionStateMutability,
   generalizeType,
   getNodeType,
-  IntType,
   StructDefinition,
   TypeNode,
   UserDefinedType,
