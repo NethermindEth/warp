@@ -14,6 +14,7 @@ import {
   VariableDeclaration,
   FunctionCall,
   FunctionCallKind,
+  SourceUnit,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -51,6 +52,16 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       throw new NotSupportedYetError('Mappings with structs are not supported yet');
     this.commonVisit(node, ast);
   }
+
+  visitSourceUnit(sourceUnit: SourceUnit, ast: AST): void {
+    if (sourceUnit.absolutePath.includes('-')) {
+      throw new WillNotSupportError(
+        `Cairo filenames should not include "-", as this prevents importing, please rename. Found in ${sourceUnit.absolutePath}`,
+      );
+    }
+    this.commonVisit(sourceUnit, ast);
+  }
+
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     if (!(getNodeType(node.vExpression, ast.compilerVersion) instanceof AddressType)) {
       this.visitExpression(node, ast);
@@ -73,6 +84,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       );
     this.visitExpression(node, ast);
   }
+
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     const unsupportedMath = ['keccak256', 'sha256', 'ripemd160', 'ecrecover', 'addmod', 'mulmod'];
     const unsupportedAbi = [
