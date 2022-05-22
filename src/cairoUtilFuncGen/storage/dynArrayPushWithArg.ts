@@ -105,10 +105,11 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
         `        let (used) = WARP_USED_STORAGE.read()`,
         `        WARP_USED_STORAGE.write(used + ${elementCairoType.width})`,
         `        ${arrayName}.write(loc, len, used)`,
-        `        return ${elementWriteFunc}(used, value)`,
+        `        ${elementWriteFunc}(used, value)`,
         `    else:`,
-        `        return ${elementWriteFunc}(existing, value)`,
+        `        ${elementWriteFunc}(existing, value)`,
         `    end`,
+        `    return ()`,
         `end`,
       ].join('\n'),
     });
