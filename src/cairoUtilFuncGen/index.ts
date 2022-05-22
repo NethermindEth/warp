@@ -25,15 +25,19 @@ import { StorageMemberAccessGen } from './storage/storageMemberAccess';
 import { StorageReadGen } from './storage/storageRead';
 import { StorageToMemoryGen } from './storage/storageToMemory';
 import { StorageWriteGen } from './storage/storageWrite';
+import { MemoryToCallDataGen } from './memory/memoryToCalldata';
+import { MemoryToStorageGen } from './memory/memoryToStorage';
 
 export class CairoUtilFuncGen {
   memory: {
     arrayLiteral: MemoryArrayLiteralGen;
-    memoryDynArrayLength: MemoryDynArrayLengthGen;
+    dynArrayLength: MemoryDynArrayLengthGen;
     memberAccess: MemoryMemberAccessGen;
     read: MemoryReadGen;
     staticArrayIndexAccess: MemoryStaticArrayIndexAccessGen;
     struct: MemoryStructGen;
+    toCallData: MemoryToCallDataGen;
+    toStorage: MemoryToStorageGen;
     write: MemoryWriteGen;
   };
   storage: {
@@ -69,13 +73,19 @@ export class CairoUtilFuncGen {
     this.implementation = {
       dynArray: new DynArrayGen(ast),
     };
+
+    const memoryToStorage = new MemoryToStorageGen(this.implementation.dynArray, ast);
+    const storageWrite = new StorageWriteGen(ast);
+
     this.memory = {
       arrayLiteral: new MemoryArrayLiteralGen(ast),
-      memoryDynArrayLength: new MemoryDynArrayLengthGen(ast),
+      dynArrayLength: new MemoryDynArrayLengthGen(ast),
       memberAccess: new MemoryMemberAccessGen(ast),
       read: new MemoryReadGen(ast),
       staticArrayIndexAccess: new MemoryStaticArrayIndexAccessGen(ast),
       struct: new MemoryStructGen(ast),
+      toCallData: new MemoryToCallDataGen(ast),
+      toStorage: memoryToStorage,
       write: new MemoryWriteGen(ast),
     };
     const storageReadGen = new StorageReadGen(ast);
@@ -86,7 +96,12 @@ export class CairoUtilFuncGen {
       dynArrayLength: new DynArrayLengthGen(this.implementation.dynArray, ast),
       dynArrayPop: new DynArrayPopGen(this.implementation.dynArray, storageDelete, ast),
       dynArrayPush: {
-        withArg: new DynArrayPushWithArgGen(this.implementation.dynArray, ast),
+        withArg: new DynArrayPushWithArgGen(
+          this.implementation.dynArray,
+          storageWrite,
+          memoryToStorage,
+          ast,
+        ),
         withoutArg: new DynArrayPushWithoutArgGen(this.implementation.dynArray, ast),
       },
       mappingIndexAccess: new MappingIndexAccessGen(ast),
@@ -94,7 +109,7 @@ export class CairoUtilFuncGen {
       read: storageReadGen,
       staticArrayIndexAccess: new StorageStaticArrayIndexAccessGen(ast),
       toMemory: new StorageToMemoryGen(this.implementation.dynArray, ast),
-      write: new StorageWriteGen(ast),
+      write: storageWrite,
     };
     this.externalFunctions = {
       inputsChecks: { enum: new EnumBoundCheckGen(ast) },

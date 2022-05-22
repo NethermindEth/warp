@@ -34,7 +34,6 @@ export class ActualLocationAnalyser extends ASTMapper {
   }
 
   visitIdentifier(node: Identifier, ast: AST): void {
-    this.visitExpression(node, ast);
     // Storage var identifiers can be of scalar types, so would not be picked up
     // by the PointerType check
     if (
@@ -42,6 +41,9 @@ export class ActualLocationAnalyser extends ASTMapper {
       node.vReferencedDeclaration.stateVariable
     ) {
       this.actualLocations.set(node, DataLocation.Storage);
+      this.commonVisit(node, ast);
+    } else {
+      this.visitExpression(node, ast);
     }
   }
 

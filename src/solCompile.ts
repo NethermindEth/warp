@@ -1,6 +1,7 @@
 import assert from 'assert';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
+import * as path from 'path';
 import {
   ASTReader,
   CompileFailedError,
@@ -8,21 +9,26 @@ import {
   getCompilerVersionsBySpecifiers,
 } from 'solc-typed-ast';
 import { AST } from './ast/ast';
+import { SupportedSolcVersions, nethersolcPath, fullVersionFromMajor } from './nethersolc';
 import { TranspileFailedError } from './utils/errors';
 import { error } from './utils/formatting';
 
 export function compileSolFile(file: string, printWarnings: boolean): AST {
   const requiredSolcVersion = getSolFileVersion(file);
-  const result = cliCompile(formatInput(file), requiredSolcVersion);
-  printErrors(result, printWarnings);
+  const [, majorVersion] = matchCompilerVersion(requiredSolcVersion);
+  if (majorVersion != '7' && majorVersion != '8') {
+    throw new TranspileFailedError(`Unsupported version of solidity source ${requiredSolcVersion}`);
+  }
+
+  const { result, compilerVersion } = cliCompile(formatInput(file), requiredSolcVersion);
+  printErrors(result, printWarnings, compilerVersion);
   const reader = new ASTReader();
   const sourceUnits = reader.read(result);
-  const compilerVersion = getCompilerVersion();
-  assert(compilerVersion !== undefined, 'compileSol should return a defined compiler version');
-  return new AST(sourceUnits, compilerVersion);
+
+  return new AST(sourceUnits, requiredSolcVersion);
 }
 
-const supportedVersions = ['0.8.12', '0.7.6'];
+const supportedVersions = ['0.8.14', '0.7.6'];
 
 function getSolFileVersion(file: string): string {
   const content = fs.readFileSync(file, { encoding: 'utf-8' });
@@ -70,41 +76,50 @@ function formatInput(fileName: string): SolcInput {
   };
 }
 
-function cliCompile(input: SolcInput, solcVersion: string): unknown {
+function cliCompile(
+  input: SolcInput,
+  solcVersion: string,
+): { result: unknown; compilerVersion: string } {
   // Determine compiler version to use
-  const solcCommand = solcVersion.startsWith('0.7.') ? `./solc-v0.7.6` : `solc`;
+  const nethersolcVersion: SupportedSolcVersions = solcVersion.startsWith('0.7.') ? `7` : `8`;
+  const solcCommand = nethersolcPath(nethersolcVersion);
 
   // Check if compiler version used is v0.7.6
   // For solc v0.8.7 and before, we need to set the allow path.
   // Since we are using latest version of v0.8.x, we do not need to set allow path
   // for v0.8.x contracts.
-  if (solcVersion.startsWith('0.7.')) {
+  if (nethersolcVersion == '7') {
     const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
     const filePath = Object.keys(input.sources)[0];
-    const allowPath = `${currentDirectory}/${filePath}`;
-    return JSON.parse(
-      execSync(`${solcCommand} --standard-json --allow-paths ${allowPath}`, {
-        input: JSON.stringify(input),
-      }).toString(),
-    );
+    const allowPath = path.resolve(currentDirectory, filePath);
+    return {
+      result: JSON.parse(
+        execSync(`${solcCommand} --standard-json --allow-paths ${allowPath}`, {
+          input: JSON.stringify(input),
+        }).toString(),
+      ),
+      compilerVersion: fullVersionFromMajor(nethersolcVersion),
+    };
   }
-  return JSON.parse(
-    execSync(`${solcCommand} --standard-json`, { input: JSON.stringify(input) }).toString(),
-  );
+  return {
+    result: JSON.parse(
+      execSync(`${solcCommand} --standard-json`, { input: JSON.stringify(input) }).toString(),
+    ),
+    compilerVersion: fullVersionFromMajor(nethersolcVersion),
+  };
 }
 
-function getCompilerVersion(): string {
-  const fullVersion = execSync('solc --version').toString();
-  const pattern = /[0-9]+\.[0-9]+\.[0-9]+/;
-  const match = pattern.exec(fullVersion);
+function matchCompilerVersion(version: string): [string, string, string] {
+  const pattern = /([0-9]+)\.([0-9]+)\.([0-9]+)/;
+  const match = pattern.exec(version);
   if (match === null) {
-    throw new TranspileFailedError(`Unable to extract version number from "${fullVersion}"`);
+    throw new TranspileFailedError(`Unable to extract version number from "${version}"`);
   }
 
-  return match.toString();
+  return [match[1], match[2], match[3]];
 }
 
-function printErrors(cliOutput: unknown, printWarnings: boolean): void {
+function printErrors(cliOutput: unknown, printWarnings: boolean, compilerVersion: string): void {
   assert(
     typeof cliOutput === 'object' && cliOutput !== null,
     error(`Obtained unexpected output from solc: ${cliOutput}`),
@@ -142,7 +157,7 @@ function printErrors(cliOutput: unknown, printWarnings: boolean): void {
         errors: errors.map(
           (error) => error.formattedMessage ?? error(`${error.type}: ${error.message}`),
         ),
-        compilerVersion: getCompilerVersion(),
+        compilerVersion,
       },
     ]);
   }

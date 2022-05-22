@@ -229,7 +229,7 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
         insertConversionIfNecessary(element, elementT, ast);
       });
       expression.typeString = generateExpressionTypeString(
-        specializeType(currentType, DataLocation.Memory),
+        specializeType(targetType, DataLocation.Memory),
       );
     }
   } else if (currentType instanceof BoolType) {

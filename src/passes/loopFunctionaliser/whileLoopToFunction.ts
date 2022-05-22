@@ -15,7 +15,9 @@ export class WhileLoopToFunction extends ASTMapper {
     const loopExtractionFn =
       node instanceof DoWhileStatement ? extractDoWhileToFunction : extractWhileToFunction;
 
-    const unboundVariables = collectUnboundVariables(node);
+    const unboundVariables = new Map(
+      [...collectUnboundVariables(node).entries()].filter(([decl]) => !decl.stateVariable),
+    );
 
     const functionDef = loopExtractionFn(
       node,
