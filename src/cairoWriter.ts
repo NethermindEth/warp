@@ -201,7 +201,15 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     );
 
     const documentation = getDocumentation(node.documentation, writer);
-    const declarations = node.vDeclarations.map((value) => writer.write(value));
+    const declarations = node.assignments.map((id) => {
+      if (id === null)
+        throw new NotSupportedYetError(
+          `VariableDeclarationStatements with gaps not implemented yet`,
+        );
+      const declaration = node.vDeclarations.find((decl) => decl.id === id);
+      assert(declaration !== undefined, `Unable to find variable declaration for assignment ${id}`);
+      return writer.write(declaration);
+    });
     if (
       node.vInitialValue instanceof FunctionCall &&
       node.vInitialValue.vReferencedDeclaration instanceof CairoFunctionDefinition &&
@@ -210,12 +218,16 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
       // This local statement is needed since Cairo is not supporting member access of structs with let.
       // The type hint also needs to be placed there since Cairo's default type hint is a felt.
       return [
+        documentation,
         `local ${declarations.join(', ')} : ${
           node.vInitialValue.vReferencedDeclaration.name
         } = ${writer.write(node.vInitialValue)}`,
       ];
     } else if (node.vDeclarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
-      return [`let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)}`];
+      return [
+        documentation,
+        `let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)}`,
+      ];
     }
     return [documentation, `let ${declarations[0]} = ${writer.write(node.vInitialValue)}`];
   }

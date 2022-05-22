@@ -1,6 +1,7 @@
 import {
   ArrayType,
   DataLocation,
+  generalizeType,
   MappingType,
   PointerType,
   StructDefinition,
@@ -8,7 +9,6 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { dereferenceType } from '../utils/utils';
 
 export type CairoFunction = {
   name: string;
@@ -75,7 +75,7 @@ export function locationIfPointer(type: TypeNode, location: DataLocation): DataL
 // pointed to is a basic type, whereas read and write functions need to only return pointers if the
 // data they're reading or writing is a complex type
 export function locationIfComplexType(type: TypeNode, location: DataLocation): DataLocation {
-  const base = dereferenceType(type);
+  const base = generalizeType(type)[0];
   if (
     base instanceof ArrayType ||
     base instanceof MappingType ||

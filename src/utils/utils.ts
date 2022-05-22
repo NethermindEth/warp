@@ -235,13 +235,6 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
   return result;
 }
 
-export function dereferenceType(typeNode: TypeNode): TypeNode {
-  while (typeNode instanceof PointerType) {
-    typeNode = typeNode.to;
-  }
-  return typeNode;
-}
-
 export function mergeImports(...maps: Map<string, Set<string>>[]): Map<string, Set<string>> {
   return maps.reduce((acc, curr) => {
     curr.forEach((importedSymbols, location) => {
