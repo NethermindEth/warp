@@ -3,7 +3,6 @@ import {
   ArrayType,
   ASTNode,
   DataLocation,
-  Expression,
   FunctionCall,
   getNodeType,
   MemberAccess,

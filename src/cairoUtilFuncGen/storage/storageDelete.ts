@@ -1,4 +1,3 @@
-import assert from 'assert';
 import {
   ArrayType,
   ASTNode,
@@ -13,7 +12,6 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import {
@@ -174,8 +172,8 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
   private generateStructDeletionCode(
     varDeclarations: VariableDeclaration[],
-    index: number = 0,
-    offset: number = 0,
+    index = 0,
+    offset = 0,
   ): string[] {
     if (index >= varDeclarations.length) return [];
 
