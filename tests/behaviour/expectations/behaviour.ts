@@ -1606,6 +1606,37 @@ export const expectations = flatten(
               Expect.Simple('tryDeleteY', [], ['71', '0']),
             ]),
             File.Simple('ref_dyn_array', [Expect.Simple('tryDeleteZ', [], ['0', '0', '0'])]),
+            File.Simple('struct', [
+              Expect.Simple(
+                'deleteValueStruct',
+                [],
+                ['0', '0', '0', '0', '0', '0', '0'],
+                'delete struct with value members',
+              ),
+              new Expect('delete struct with dynamic array', [
+                ['setDynArrayStructVal', ['3'], [], '0'],
+                ['setDynArrayStructVal', ['5'], [], '0'],
+                ['setDynArrayStructVal', ['7'], [], '0'],
+                ['deleteDynArrayStruct', [], [], '0'],
+                ['getDynArrayStruct', ['0', '0'], null, '0'],
+                ['setDynArrayStructVal', ['15'], [], '0'],
+                ['getDynArrayStruct', ['0', '0'], ['15', '15'], '0'],
+              ]),
+              new Expect('delete struct with mapping', [
+                ['setMapStructVal', ['5', '10'], [], '0'],
+                ['deleteMapStruct', [], [], '0'],
+                ['getMapStruct', ['5'], ['10'], '0'],
+              ]),
+            ]),
+            File.Simple('map_2d_dyn_array', [
+              new Expect('delete 2d dynamic arrays with mappings', [
+                ['n1', ['3', '0', '5', '0'], [], '0'],
+                ['map', ['3', '0'], ['5', '0'], '0'],
+                ['d', [], ['0', '0'], '0'],
+                ['n2', [], [], '0'],
+                ['map', ['3', '0'], ['5', '0'], '0'],
+              ]),
+            ]),
           ]),
           File.Simple('dynamic_arrays', [
             Expect.Simple('get', ['0', '0'], null, 'out of range get should fail'),

@@ -7,18 +7,27 @@ import {
   FunctionCall,
   getNodeType,
   MappingType,
-  PointerType,
+  StructDefinition,
   TypeNode,
+  UserDefinedType,
+  VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { typeNameFromTypeNode, mapRange, dereferenceType } from '../../utils/utils';
+import {
+  typeNameFromTypeNode,
+  mapRange,
+  dereferenceType,
+  isReferenceType,
+} from '../../utils/utils';
 import { add, CairoFunction, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
+import { StorageReadGen } from './storageRead';
 
 export class StorageDeleteGen extends StringIndexedFuncGen {
-  constructor(private dynArrayGen: DynArrayGen, ast: AST) {
+  constructor(private dynArrayGen: DynArrayGen, private storageReadGen: StorageReadGen, ast: AST) {
     super(ast);
   }
 
@@ -69,6 +78,8 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       cairoFunc = this.deleteArray(type);
     } else if (type instanceof MappingType) {
       cairoFunc = this.deleteNothing();
+    } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+      cairoFunc = this.deleteStruct(type.definition);
     } else {
       cairoFunc = this.deleteGeneric(cairoType);
     }
@@ -95,14 +106,20 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   private deleteArray(type: ArrayType): CairoFunction {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
-    const elementT = type.elementT instanceof PointerType ? type.elementT.to : type.elementT;
+    const elementT = dereferenceType(type.elementT); //type.elementT instanceof PointerType ? type.elementT.to : type.elementT;
     const [arrayName, lengthName] = this.dynArrayGen.gen(
       CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
     );
 
-    const deleteCode = `${this.getOrCreate(elementT)}(elem_loc)`;
+    const deleteCode =
+      isReferenceType(elementT) && !(elementT instanceof UserDefinedType)
+        ? [
+            `   let (elem_id) = ${this.storageReadGen.genFuncName(elementT)}(elem_loc)`,
+            `   ${this.getOrCreate(elementT)}(elem_id)`,
+          ]
+        : [`    ${this.getOrCreate(elementT)}(elem_loc)`];
 
-    const funcName = `WS${this.generatedFunctions.size}_DELETE`;
+    const funcName = `WS${this.generatedFunctions.size}_DARRAY_DELETE`;
     const deleteFunc = [
       `func ${funcName}_elem${implicits}(loc : felt, index : Uint256):`,
       `     alloc_locals`,
@@ -112,7 +129,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       `     end`,
       `     let (next_index) = uint256_sub(index, Uint256(1, 0))`,
       `     let (elem_loc) = ${arrayName}.read(loc, next_index)`,
-      deleteCode,
+      ...deleteCode,
       `     return ${funcName}_elem(loc, next_index)`,
       `end`,
       `func ${funcName}${implicits}(loc : felt):`,
@@ -130,6 +147,22 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     return { name: funcName, code: deleteFunc };
   }
 
+  private deleteStruct(structDef: StructDefinition): CairoFunction {
+    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
+
+    // struct names are unique
+    const funcName = `WS_STRUCT_${structDef.name}_DELETE`;
+    const deleteFunc = [
+      `func ${funcName}${implicits}(loc : felt):`,
+      `   alloc_locals`,
+      ...this.generateStructDeletionCode(structDef.vMembers),
+      `   return ()`,
+      `end`,
+    ].join('\n');
+
+    return { name: funcName, code: deleteFunc };
+  }
+
   private deleteNothing(): CairoFunction {
     const funcName = `WSMAP_DELETE`;
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
@@ -137,6 +170,36 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       name: funcName,
       code: [`func ${funcName}${implicits}(loc: felt):`, `    return ()`, `end`].join('\n'),
     };
+  }
+
+  private generateStructDeletionCode(
+    varDeclarations: VariableDeclaration[],
+    index: number = 0,
+    offset: number = 0,
+  ): string[] {
+    if (index >= varDeclarations.length) return [];
+
+    const varDecl = varDeclarations[index];
+    const varType = dereferenceType(getNodeType(varDecl, this.ast.compilerVersion));
+    const varWidth = CairoType.fromSol(
+      varType,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    ).width;
+
+    const deleteLoc = add('loc', offset);
+    const deleteCode =
+      isReferenceType(varType) && !(varType instanceof UserDefinedType)
+        ? [
+            `   let (elem_id) = ${this.storageReadGen.genFuncName(varType)}(${deleteLoc})`,
+            `   ${this.getOrCreate(varType)}(elem_id)`,
+          ]
+        : [`    ${this.getOrCreate(varType)}(${deleteLoc})`];
+
+    return [
+      ...deleteCode, //`${varDeleteFuncName}(${add('loc', offset)})`,
+      ...this.generateStructDeletionCode(varDeclarations, index + 1, offset + varWidth),
+    ];
   }
 }
 
