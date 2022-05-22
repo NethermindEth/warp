@@ -4,6 +4,7 @@ import {
   ASTNode,
   DataLocation,
   FunctionCall,
+  generalizeType,
   getNodeType,
   MemberAccess,
   PointerType,
@@ -12,7 +13,7 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { dereferenceType, typeNameFromTypeNode } from '../../utils/utils';
+import { typeNameFromTypeNode } from '../../utils/utils';
 import { StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 import { StorageDeleteGen } from './storageDelete';
@@ -55,7 +56,7 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
     }
 
     const [arrayName, lengthName] = this.dynArrayGen.gen(cairoElementType);
-    const deleteFuncName = this.storageDelete.genFuncName(dereferenceType(elementType));
+    const deleteFuncName = this.storageDelete.genFuncName(generalizeType(elementType)[0]);
 
     const funcName = `${arrayName}_POP`;
     this.generatedFunctions.set(key, {

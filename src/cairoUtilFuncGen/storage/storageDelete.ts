@@ -4,6 +4,7 @@ import {
   DataLocation,
   Expression,
   FunctionCall,
+  generalizeType,
   getNodeType,
   MappingType,
   StructDefinition,
@@ -14,12 +15,7 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import {
-  typeNameFromTypeNode,
-  mapRange,
-  dereferenceType,
-  isReferenceType,
-} from '../../utils/utils';
+import { typeNameFromTypeNode, mapRange, isReferenceType } from '../../utils/utils';
 import { add, CairoFunction, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
@@ -211,4 +207,8 @@ function getBaseType(type: TypeNode): TypeNode {
   return type instanceof ArrayType && type.size === undefined
     ? getBaseType(dereferenceType(type.elementT))
     : type;
+}
+
+function dereferenceType(type: TypeNode): TypeNode {
+  return generalizeType(type)[0];
 }
