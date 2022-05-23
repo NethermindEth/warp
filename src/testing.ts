@@ -33,6 +33,18 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/array_length', 'Success'],
   ['example_contracts/ERC20', 'Success'],
   ['example_contracts/ERC20_storage', 'Success'],
+  ['example_contracts/address/8/160_not_allowed', 'SolCompileFailed'],
+  ['example_contracts/address/8/256_address', 'Success'],
+  ['example_contracts/address/8/max_prime', 'SolCompileFailed'],
+  ['example_contracts/address/8/max_prime_explicit', 'Success'],
+  ['example_contracts/address/8/padding', 'Success'],
+  ['example_contracts/address/8/prime_field', 'Success'],
+  ['example_contracts/address/7/160_not_allowed', 'SolCompileFailed'],
+  ['example_contracts/address/7/256_address', 'Success'],
+  ['example_contracts/address/7/max_prime', 'SolCompileFailed'],
+  ['example_contracts/address/7/max_prime_explicit', 'Success'],
+  ['example_contracts/address/7/padding', 'Success'],
+  ['example_contracts/address/7/prime_field', 'Success'],
   ['example_contracts/boolOp_noSideEffects', 'Success'],
   ['example_contracts/boolOp_sideEffects', 'Success'],
   ['example_contracts/c2c', 'Success'],
@@ -55,6 +67,8 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/events', 'Success'],
   ['example_contracts/external_function', 'Success'],
   ['example_contracts/fallbackWithoutArgs', 'Success'],
+  // Cannot import with a - in the filename
+  ['example_contracts/file-with-minus-sign-included', 'WillNotSupport'],
   // Typestring for the internal function call doesn't contain a location so a read isn't generated
   ['example_contracts/freeFunction', 'Success'],
   ['example_contracts/freeStruct', 'Success'],
@@ -99,14 +113,14 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/namedArgs/constructor', 'Success'],
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
   ['example_contracts/namedArgs/function', 'Success'],
-  // Returning memory array of struct from external function does not read array
-  ['example_contracts/nested_static_array_struct', 'CairoCompileFailed'],
-  ['example_contracts/nested_struct_static_array', 'CairoCompileFailed'],
+  ['example_contracts/nested_static_array_struct', 'Success'],
+  ['example_contracts/nested_struct_static_array', 'Success'],
   ['example_contracts/nested_structs', 'Success'],
   ['example_contracts/payable_function', 'Success'],
   ['example_contracts/pure_function', 'Success'],
   // Returns the dynamic array memory pointer instead of it's values
   ['example_contracts/return_dyn_array', 'CairoCompileFailed'],
+  ['example_contracts/return_dyn_array', 'NotSupportedYet'],
   ['example_contracts/return_var_capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],
   ['example_contracts/returnInserter', 'Success'],
@@ -115,7 +129,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/state_variables/scalars', 'Success'],
   ['example_contracts/state_variables/enums', 'Success'],
   ['example_contracts/state_variables/arrays', 'Success'],
-  // Initializing arrays with default values are yet to be supported
+  // Tuple initialization not supported yet
   ['example_contracts/state_variables/arrays_init', 'NotSupportedYet'],
   ['example_contracts/state_variables/mappings', 'Success'],
   ['example_contracts/state_variables/structs', 'Success'],
@@ -159,12 +173,14 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/using_for/library', 'Success'],
   ['example_contracts/using_for/simple', 'Success'],
   ['example_contracts/usingReturnValues', 'Success'],
+  ['example_contracts/userDefinedFunctionCalls', 'Success'],
   ['example_contracts/userdefinedtypes', 'Success'],
   ['example_contracts/userdefinedidentifier', 'Success'],
   ['example_contracts/variable_declarations', 'Success'],
   ['example_contracts/view_function', 'Success'],
   // Cannot import with a - in the filename
   ['example_contracts/file-with-minus-sign-included', 'WillNotSupport'],
+  ['example_contracts/typestrings/enumArrays', 'Success'],
 ]);
 
 export function runTests(force: boolean, onlyResults: boolean, unsafe = false, exact = false) {

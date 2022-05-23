@@ -1,13 +1,18 @@
 import {
-  ArrayTypeName,
+  ArrayType,
   ElementaryTypeName,
+  Expression,
   FunctionCall,
   FunctionType,
   getNodeType,
-  Identifier,
-  Mapping,
+  MappingType,
   MemberAccess,
+  PointerType,
+  TupleType,
+  TypeName,
+  typeNameToTypeNode,
   TypeNameType,
+  TypeNode,
   UserDefinedType,
   UserDefinedTypeName,
   UserDefinedValueTypeDefinition,
@@ -16,7 +21,6 @@ import {
 import assert from 'assert';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { TranspileFailedError } from '../utils/errors';
 import { generateExpressionTypeString } from '../utils/getTypeString';
 
 class UserDefinedValueTypeDefinitionEliminator extends ASTMapper {
@@ -28,35 +32,23 @@ class UserDefinedValueTypeDefinitionEliminator extends ASTMapper {
 export class UserDefinedTypesConverter extends ASTMapper {
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     this.commonVisit(node, ast);
-    if (node.vType === undefined)
-      throw new TranspileFailedError(`Variable declaration type undefined for ${node.name}`);
-    if (node.typeString !== node.vType.typeString) node.typeString = node.vType.typeString;
+    const replacementNode = replaceUserDefinedType(getNodeType(node, ast.compilerVersion));
+    node.typeString = generateExpressionTypeString(replacementNode);
   }
 
-  visitArrayTypeName(node: ArrayTypeName, ast: AST): void {
+  visitTypeName(node: TypeName, ast: AST): void {
     this.commonVisit(node, ast);
-    if (node.vBaseType === undefined)
-      throw new TranspileFailedError(`Variable declaration type undefined for node id ${node.id}`);
-    if (node.typeString.slice(0, node.typeString.lastIndexOf('[')) !== node.vBaseType.typeString)
-      node.typeString =
-        node.vBaseType.typeString + node.typeString.substring(node.typeString.lastIndexOf('['));
-  }
-
-  visitIdentifier(node: Identifier, ast: AST): void {
-    this.commonVisit(node, ast);
-    const typeNode = getNodeType(node, ast.compilerVersion);
-    if (typeNode instanceof UserDefinedType) {
-      if (!(typeNode.definition instanceof UserDefinedValueTypeDefinition)) return;
-      node.typeString = typeNode.definition.underlyingType.typeString;
-    } else if (typeNode instanceof FunctionType) {
-      const newTypeString: string = generateExpressionTypeString(typeNode);
-      node.typeString = newTypeString;
+    const tNode = getNodeType(node, ast.compilerVersion);
+    const replacementNode = replaceUserDefinedType(tNode);
+    if (tNode.pp() !== replacementNode.pp()) {
+      node.typeString = generateExpressionTypeString(replacementNode);
     }
   }
 
-  visitMapping(node: Mapping, ast: AST): void {
+  visitExpression(node: Expression, ast: AST): void {
     this.commonVisit(node, ast);
-    node.typeString = `mapping(${node.vKeyType.typeString} => ${node.vValueType.typeString})`;
+    const replacementNode = replaceUserDefinedType(getNodeType(node, ast.compilerVersion));
+    node.typeString = generateExpressionTypeString(replacementNode);
   }
 
   visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {
@@ -76,15 +68,17 @@ export class UserDefinedTypesConverter extends ASTMapper {
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    this.commonVisit(node, ast);
-    if (!(node.vExpression instanceof MemberAccess)) return;
-    if (!['unwrap', 'wrap'].includes(node.vExpression.memberName)) return;
-    const typeNode = getNodeType(node.vExpression.vExpression, ast.compilerVersion);
-    if (!(typeNode instanceof TypeNameType)) return;
-    if (!(typeNode.type instanceof UserDefinedType)) return;
-    if (!(typeNode.type.definition instanceof UserDefinedValueTypeDefinition)) return;
+    if (node.vExpression instanceof MemberAccess) {
+      if (['unwrap', 'wrap'].includes(node.vExpression.memberName)) {
+        const typeNode = getNodeType(node.vExpression.vExpression, ast.compilerVersion);
+        this.commonVisit(node, ast);
+        if (!(typeNode instanceof TypeNameType)) return;
+        if (!(typeNode.type instanceof UserDefinedType)) return;
+        if (!(typeNode.type.definition instanceof UserDefinedValueTypeDefinition)) return;
 
-    ast.replaceNode(node, node.vArguments[0]);
+        ast.replaceNode(node, node.vArguments[0]);
+      } else this.visitExpression(node, ast);
+    } else this.visitExpression(node, ast);
   }
 
   static map(ast: AST): AST {
@@ -98,5 +92,38 @@ export class UserDefinedTypesConverter extends ASTMapper {
       mapper.dispatchVisit(root, ast);
     });
     return ast;
+  }
+}
+
+function replaceUserDefinedType(type: TypeNode): TypeNode {
+  if (type instanceof ArrayType) {
+    return new ArrayType(replaceUserDefinedType(type.elementT), type.size, type.src);
+  } else if (type instanceof FunctionType) {
+    return new FunctionType(
+      type.name,
+      type.parameters.map(replaceUserDefinedType),
+      type.returns.map(replaceUserDefinedType),
+      type.visibility,
+      type.mutability,
+      type.src,
+    );
+  } else if (type instanceof MappingType) {
+    return new MappingType(
+      replaceUserDefinedType(type.keyType),
+      replaceUserDefinedType(type.valueType),
+      type.src,
+    );
+  } else if (type instanceof PointerType) {
+    return new PointerType(replaceUserDefinedType(type.to), type.location, type.kind, type.src);
+  } else if (type instanceof TupleType) {
+    return new TupleType(type.elements.map(replaceUserDefinedType), type.src);
+  } else if (type instanceof TypeNameType) {
+    return new TypeNameType(replaceUserDefinedType(type.type), type.src);
+  } else if (type instanceof UserDefinedType) {
+    if (type.definition instanceof UserDefinedValueTypeDefinition) {
+      return typeNameToTypeNode(type.definition.underlyingType);
+    } else return type;
+  } else {
+    return type;
   }
 }

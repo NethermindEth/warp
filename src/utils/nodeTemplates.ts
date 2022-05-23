@@ -136,6 +136,14 @@ export function createParameterList(
   if (scope !== undefined) {
     [...params].forEach((decl) => (decl.scope = scope));
   }
+
+  [...params].forEach((decl) => {
+    if (decl.stateVariable) {
+      decl.stateVariable = false;
+      decl.storageLocation = DataLocation.Storage;
+    }
+  });
+
   return paramList;
 }
 

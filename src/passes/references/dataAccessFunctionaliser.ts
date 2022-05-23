@@ -15,15 +15,15 @@ import {
   Expression,
   ArrayTypeName,
   FunctionCallKind,
-  TupleExpression,
   UserDefinedType,
   ContractDefinition,
+  generalizeType,
 } from 'solc-typed-ast';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
 
 import { AST } from '../../ast/ast';
-import { dereferenceType, isCairoConstant, typeNameFromTypeNode } from '../../utils/utils';
+import { isCairoConstant, typeNameFromTypeNode } from '../../utils/utils';
 import { error } from '../../utils/formatting';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
@@ -70,38 +70,76 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           break;
         }
         case DataLocation.CallData:
-          throw new TranspileFailedError(
-            `Invalid storage -> calldata conversion ${printNode(node)}`,
+          throw new NotSupportedYetError(
+            `Storage -> calldata not implemented yet for ${printNode(node)}`,
           );
       }
-    } else if (actualLoc === DataLocation.Memory && expectedLoc !== DataLocation.Memory) {
-      const parent = node.parent;
-      const replacement = ast
-        .getUtilFuncGen(node)
-        .memory.read.gen(node, typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast));
-      this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
+    } else if (actualLoc === DataLocation.Memory) {
+      switch (expectedLoc) {
+        case DataLocation.Default: {
+          const parent = node.parent;
+          const replacement = ast
+            .getUtilFuncGen(node)
+            .memory.read.gen(
+              node,
+              typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast),
+            );
+          this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
+          break;
+        }
+        case DataLocation.Storage: {
+          // Such conversions should be handled in specific visit functions, as the storage location must be known
+          throw new TranspileFailedError(
+            `Unhandled memory -> storage conversion ${printNode(node)}`,
+          );
+        }
+        case DataLocation.CallData: {
+          const parent = node.parent;
+          const replacement = ast.getUtilFuncGen(node).memory.toCallData.gen(node);
+          this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
+          break;
+        }
+      }
     }
     this.commonVisit(node, ast);
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
-    if (!shouldLeaveAsCairoAssignment(node.vLeftHandSide)) {
-      const [actualLoc, expectedLoc] = this.getLocations(node);
-      const writeLoc = this.getLocations(node.vLeftHandSide)[0];
-      if (writeLoc === DataLocation.Memory) {
-        const replacementFunc = ast
-          .getUtilFuncGen(node)
-          .memory.write.gen(node.vLeftHandSide, node.vRightHandSide);
-        this.replace(node, replacementFunc, undefined, actualLoc, expectedLoc, ast);
-        this.dispatchVisit(replacementFunc, ast);
-      } else if (writeLoc === DataLocation.Storage) {
+    if (shouldLeaveAsCairoAssignment(node.vLeftHandSide)) {
+      return this.visitExpression(node, ast);
+    }
+
+    const [actualLoc, expectedLoc] = this.getLocations(node);
+    const fromLoc = this.getLocations(node.vRightHandSide)[1];
+    const toLoc = this.getLocations(node.vLeftHandSide)[1];
+    if (toLoc === DataLocation.Memory) {
+      const replacementFunc = ast
+        .getUtilFuncGen(node)
+        .memory.write.gen(node.vLeftHandSide, node.vRightHandSide);
+      this.replace(node, replacementFunc, undefined, actualLoc, expectedLoc, ast);
+      this.dispatchVisit(replacementFunc, ast);
+    } else if (toLoc === DataLocation.Storage) {
+      if (fromLoc === DataLocation.Storage) {
+        // TODO verify
         const writeFunc = ast
           .getUtilFuncGen(node)
           .storage.write.gen(node.vLeftHandSide, node.vRightHandSide);
         this.replace(node, writeFunc, undefined, actualLoc, expectedLoc, ast);
         this.dispatchVisit(writeFunc, ast);
+      } else if (fromLoc === DataLocation.Memory) {
+        const copyFunc = ast
+          .getUtilFuncGen(node)
+          .memory.toStorage.gen(node.vLeftHandSide, node.vRightHandSide);
+        this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
+        this.dispatchVisit(copyFunc, ast);
+      } else if (fromLoc === DataLocation.CallData) {
+        throw new NotSupportedYetError(`CallData to storage assignment not implemented yet`);
       } else {
-        this.visitExpression(node, ast);
+        const writeFunc = ast
+          .getUtilFuncGen(node)
+          .storage.write.gen(node.vLeftHandSide, node.vRightHandSide);
+        this.replace(node, writeFunc, undefined, actualLoc, expectedLoc, ast);
+        this.dispatchVisit(writeFunc, ast);
       }
     } else {
       this.visitExpression(node, ast);
@@ -173,11 +211,6 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
         ? utilFuncGen.storage.memberAccess.gen(node)
         : utilFuncGen.memory.memberAccess.gen(node);
 
-    this.actualDataLocations.set(replacementAccessFunc, actualLoc);
-    if (expectedLoc !== undefined) {
-      this.expectedDataLocations.set(replacementAccessFunc, expectedLoc);
-    }
-
     this.replace(node, replacementAccessFunc, undefined, actualLoc, expectedLoc, ast);
     this.dispatchVisit(replacementAccessFunc, ast);
   }
@@ -230,23 +263,12 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       this.visitExpression(node, ast);
     }
   }
-
-  visitTupleExpression(node: TupleExpression, ast: AST): void {
-    if (!node.isInlineArray) return this.visitExpression(node, ast);
-
-    const expectedLoc = this.getLocations(node)[1];
-    assert(
-      expectedLoc === DataLocation.Default || expectedLoc === undefined,
-      `Tuples should have Default or undefined expected location. ${printNode(
-        node,
-      )} has ${expectedLoc}`,
-    );
-    this.commonVisit(node, ast);
-  }
 }
 
 function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): FunctionCall {
-  const arrayType = dereferenceType(getNodeType(indexAccess.vBaseExpression, ast.compilerVersion));
+  const arrayType = generalizeType(
+    getNodeType(indexAccess.vBaseExpression, ast.compilerVersion),
+  )[0];
   const arrayTypeName = typeNameFromTypeNode(arrayType, ast);
   assert(
     arrayTypeName instanceof ArrayTypeName,

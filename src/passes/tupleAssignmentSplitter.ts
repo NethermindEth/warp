@@ -3,9 +3,10 @@ import {
   Assignment,
   Block,
   DataLocation,
-  ElementaryTypeName,
   Expression,
   ExpressionStatement,
+  generalizeType,
+  getNodeType,
   Mutability,
   Return,
   StateVariableVisibility,
@@ -19,6 +20,7 @@ import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
 import { createBlock, createIdentifier } from '../utils/nodeTemplates';
 import { notNull } from '../utils/typeConstructs';
+import { typeNameFromTypeNode } from '../utils/utils';
 
 // Converts a non-declaration tuple assignment into a declaration of temporary variables,
 // and piecewise assignments (x,y) = (y,x) -> (int a, int b) = (y,x); x = a; y = b;
@@ -90,13 +92,8 @@ export class TupleAssignmentSplitter extends ASTMapper {
     const tempVars = new Map<Expression, VariableDeclaration>(
       lhs.vOriginalComponents.filter(notNull).map((child) => {
         // TODO cover all edge cases surrounding which type of typename can go here
-        const typeName = new ElementaryTypeName(
-          ast.reserveId(),
-          node.src,
-          `${child.typeString}`,
-          child.typeString,
-        );
-        ast.setContextRecursive(typeName);
+        const [typeNode, location] = generalizeType(getNodeType(child, ast.compilerVersion));
+        const typeName = typeNameFromTypeNode(typeNode, ast);
         const decl = new VariableDeclaration(
           ast.reserveId(),
           node.src,
@@ -105,10 +102,10 @@ export class TupleAssignmentSplitter extends ASTMapper {
           this.newTempVarName(),
           block.id,
           false,
-          DataLocation.Default,
+          location ?? DataLocation.Default,
           StateVariableVisibility.Default,
           Mutability.Constant,
-          child.typeString,
+          typeNode.pp(),
           undefined,
           typeName,
         );

@@ -77,7 +77,7 @@ export class ArrayFunctions extends ReferenceSubPass {
         const replacement =
           baseType.location === DataLocation.Storage
             ? ast.getUtilFuncGen(node).storage.dynArrayLength.gen(node, baseType.to)
-            : ast.getUtilFuncGen(node).memory.memoryDynArrayLength.gen(node, ast);
+            : ast.getUtilFuncGen(node).memory.dynArrayLength.gen(node, ast);
         // The length function returns the actual length rather than a storage pointer to it,
         // so the new actual location is Default
         this.replace(node, replacement, undefined, DataLocation.Default, expectedLoc, ast);
