@@ -49,24 +49,23 @@ import { ReferenceSubPass } from './referenceSubPass';
 export class DataAccessFunctionaliser extends ReferenceSubPass {
   visitExpression(node: Expression, ast: AST): void {
     const [actualLoc, expectedLoc] = this.getLocations(node);
-    if (expectedLoc === undefined) {
+    const parent = node.parent;
+    let replacement: Expression | null = null;
+    if (expectedLoc === undefined || expectedLoc === actualLoc) {
       return this.commonVisit(node, ast);
     } else if (actualLoc === DataLocation.Storage) {
-      const parent = node.parent;
       switch (expectedLoc) {
         case DataLocation.Default: {
-          const replacement = ast
+          replacement = ast
             .getUtilFuncGen(node)
             .storage.read.gen(
               node,
               typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast),
             );
-          this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
           break;
         }
         case DataLocation.Memory: {
-          const replacement = ast.getUtilFuncGen(node).storage.toMemory.gen(node);
-          this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
+          replacement = ast.getUtilFuncGen(node).storage.toMemory.gen(node);
           break;
         }
         case DataLocation.CallData:
@@ -77,14 +76,12 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     } else if (actualLoc === DataLocation.Memory) {
       switch (expectedLoc) {
         case DataLocation.Default: {
-          const parent = node.parent;
-          const replacement = ast
+          replacement = ast
             .getUtilFuncGen(node)
             .memory.read.gen(
               node,
               typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast),
             );
-          this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
           break;
         }
         case DataLocation.Storage: {
@@ -94,14 +91,27 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           );
         }
         case DataLocation.CallData: {
-          const parent = node.parent;
-          const replacement = ast.getUtilFuncGen(node).memory.toCallData.gen(node);
-          this.replace(node, replacement, parent, actualLoc, expectedLoc, ast);
+          replacement = ast.getUtilFuncGen(node).memory.toCallData.gen(node);
           break;
         }
       }
     }
-    this.commonVisit(node, ast);
+
+    if (replacement) {
+      this.replace(node, replacement, parent, expectedLoc, expectedLoc, ast);
+      this.dispatchVisit(replacement, ast);
+    } else {
+      this.commonVisit(node, ast);
+    }
+
+    // Update the expected location of the node to be equal to its
+    // actual location, now that any discrepency has been handled
+
+    if (actualLoc === undefined) {
+      this.expectedDataLocations.delete(node);
+    } else {
+      this.expectedDataLocations.set(node, actualLoc);
+    }
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
