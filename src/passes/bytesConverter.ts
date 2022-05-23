@@ -52,7 +52,7 @@ export class BytesConverter extends ASTMapper {
     );
 
     const functionStub = createCairoFunctionStub(
-      'byte_at_index',
+      indexTypeName.typeString !== 'uint256' ? 'byte_at_index' : 'byte_at_index_uint256',
       [
         ['base', baseTypeName],
         ['index', indexTypeName],
@@ -68,7 +68,11 @@ export class BytesConverter extends ASTMapper {
       ast,
     );
 
-    ast.registerImport(call, 'warplib.maths.bytes_access', 'byte_at_index');
+    ast.registerImport(
+      call,
+      'warplib.maths.bytes_access',
+      indexTypeName.typeString !== 'uint256' ? 'byte_at_index' : 'byte_at_index_uint256',
+    );
     ast.replaceNode(node, call, node.parent);
   }
 
@@ -88,28 +92,6 @@ export class BytesConverter extends ASTMapper {
     }
     this.commonVisit(node, ast);
   }
-
-  // visitIndexAccess(node: IndexAccess, ast: AST): void {
-  //   this.commonVisit(node, ast);
-
-  //   if(!node.vIndexExpression)return;
-
-  //   const baseTypeName = typeNameFromTypeNode(getNodeType(node.vBaseExpression, ast.compilerVersion), ast);
-  //   const indexTypeName = typeNameFromTypeNode(getNodeType(node.vIndexExpression, ast.compilerVersion), ast);
-
-  //   const functionStub = createCairoFunctionStub(
-  //     'byte_at_index',
-  //     [['base', baseTypeName], ['index', indexTypeName]],
-  //     [['res', createUint8TypeName(ast)]],
-  //     ['bitwise_ptr', 'range_check_ptr'],
-  //     ast,
-  //     node
-  //   )
-  //   const call = createCallToFunction(functionStub, [node.vBaseExpression, node.vIndexExpression], ast);
-
-  //   ast.registerImport(call, 'warplib.maths.bytes_access', 'byte_at_index');
-  //   ast.replaceNode(node, call, node.parent);
-  // }
 
   visitTypeName(node: TypeName, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
