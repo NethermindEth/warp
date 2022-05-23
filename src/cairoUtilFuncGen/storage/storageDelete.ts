@@ -177,7 +177,11 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const elementT = dereferenceType(type.elementT);
-    const elementTWidht = CairoType.fromSol(elementT, this.ast).width;
+    const elementTWidht = CairoType.fromSol(
+      elementT,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    ).width;
 
     const deleteCode =
       (elementT instanceof ArrayType && elementT.size === undefined) ||
