@@ -62,8 +62,6 @@ export class CairoUtilFuncGen {
     inputsChecks: { enum: EnumBoundCheckGen };
     inputs: {
       darrayStructConstructor: ExternalDynArrayStructConstructor;
-      // darrayAllocator: ExternalDynArrayAllocator;
-      // darrayWriter: ExternalDynArrayWriter;
     };
   };
 

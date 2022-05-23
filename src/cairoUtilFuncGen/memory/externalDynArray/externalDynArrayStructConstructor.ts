@@ -2,11 +2,11 @@ import {
   VariableDeclaration,
   FunctionCall,
   FunctionDefinition,
-  ArrayTypeName,
-  typeNameToTypeNode,
   DataLocation,
   Identifier,
   FunctionStateMutability,
+  getNodeType,
+  ArrayType,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
@@ -43,14 +43,16 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
   }
 
   private getOrCreate(dArrayVarDecl: VariableDeclaration): string {
-    assert(dArrayVarDecl.vType instanceof ArrayTypeName);
+    const type = getNodeType(dArrayVarDecl, this.ast.compilerVersion);
+    assert(type instanceof ArrayType);
+    const elemType = type.elementT;
     const elementCairoType = CairoType.fromSol(
-      typeNameToTypeNode(dArrayVarDecl.vType.vBaseType),
+      elemType,
       this.ast,
       TypeConversionContext.MemoryAllocation,
     );
     const key = elementCairoType.toString();
-    const name = `dynarray_struct_${key}`;
+    const name = `cd_dynarray_${key}`;
 
     const existing = this.generatedFunctions.get(name);
     if (existing !== undefined) {

@@ -53,7 +53,7 @@ export abstract class CairoType {
       if (tp.size === undefined) {
         if (context === TypeConversionContext.CallDataRef) {
           return new CairoDynArray(
-            `cd_dynarry_${tp.elementT.toString()}`,
+            `cd_dynarray_${CairoType.fromSol(tp.elementT, ast, context)}`,
             CairoType.fromSol(tp.elementT, ast, context),
           );
         }
