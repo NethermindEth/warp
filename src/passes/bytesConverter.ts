@@ -3,6 +3,7 @@ import {
   ElementaryTypeName,
   Expression,
   FixedBytesType,
+  generalizeType,
   getNodeType,
   IntType,
   PointerType,
@@ -31,15 +32,37 @@ import { createUint8TypeName, createUint256TypeName } from '../utils/nodeTemplat
 export class BytesConverter extends ASTMapper {
   visitExpression(node: Expression, ast: AST): void {
     const typeNode = replaceFixedBytesType(getNodeType(node, ast.compilerVersion));
-    const oldTypeString = getNodeType(node, ast.compilerVersion).pp();
     node.typeString = generateExpressionTypeString(typeNode);
     this.commonVisit(node, ast);
+  }
 
-    // Handle only BytesX type indexAccess
-    // If oldTypeString doesn't starts with "bytes" then return
+  visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
+    const typeNode = replaceFixedBytesType(getNodeType(node, ast.compilerVersion));
+    node.typeString = generateExpressionTypeString(typeNode);
+    this.commonVisit(node, ast);
+  }
+
+  visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
+    const typeNode = typeNameToTypeNode(node);
+    const replacementTypeNode = replaceFixedBytesType(typeNode);
+    if (typeNode.pp() !== replacementTypeNode.pp()) {
+      const typeString = replacementTypeNode.pp();
+      node.typeString = typeString;
+      node.name = typeString;
+    }
+    this.commonVisit(node, ast);
+  }
+
+  visitIndexAccess(node: IndexAccess, ast: AST): void {
+    this.commonVisit(node, ast);
+
+    if (!node.vIndexExpression) return;
+    if (!(getNodeType(node, ast.compilerVersion) instanceof FixedBytesType)) return;
 
     if (
-      !(oldTypeString.startsWith('bytes') && node instanceof IndexAccess && node.vIndexExpression)
+      !(
+        generalizeType(getNodeType(node.vBaseExpression, ast.compilerVersion))[0] instanceof IntType
+      )
     )
       return;
 
@@ -47,8 +70,6 @@ export class BytesConverter extends ASTMapper {
       getNodeType(node.vBaseExpression, ast.compilerVersion),
       ast,
     );
-
-    if (!(baseTypeName instanceof ElementaryTypeName)) return;
 
     const indexTypeName =
       node.vIndexExpression instanceof Literal
@@ -78,23 +99,6 @@ export class BytesConverter extends ASTMapper {
       indexTypeName.typeString !== 'uint256' ? 'byte_at_index' : 'byte_at_index_uint256',
     );
     ast.replaceNode(node, call, node.parent);
-  }
-
-  visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
-    const typeNode = replaceFixedBytesType(getNodeType(node, ast.compilerVersion));
-    node.typeString = generateExpressionTypeString(typeNode);
-    this.commonVisit(node, ast);
-  }
-
-  visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
-    const typeNode = typeNameToTypeNode(node);
-    const replacementTypeNode = replaceFixedBytesType(typeNode);
-    if (typeNode.pp() !== replacementTypeNode.pp()) {
-      const typeString = replacementTypeNode.pp();
-      node.typeString = typeString;
-      node.name = typeString;
-    }
-    this.commonVisit(node, ast);
   }
 
   visitTypeName(node: TypeName, ast: AST): void {
