@@ -228,7 +228,6 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
         assert(element !== null, `Unexpected empty slot in inline array ${printNode(expression)}`);
         insertConversionIfNecessary(element, elementT, ast);
       });
-      currentType.elementT = targetType.elementT;
       expression.typeString = generateExpressionTypeString(
         specializeType(targetType, DataLocation.Memory),
       );

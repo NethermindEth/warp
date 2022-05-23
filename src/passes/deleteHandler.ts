@@ -12,7 +12,6 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { printNode } from '../utils/astPrinter';
 import { getDefaultValue } from '../utils/defaultValueNodes';
 
 export class DeleteHandler extends ASTMapper {
@@ -52,7 +51,6 @@ export class DeleteHandler extends ASTMapper {
     if (node.vExpression) {
       const nodeType = getNodeType(node.vExpression, ast.compilerVersion);
       if (nodeType instanceof TupleType && nodeType.getChildren().length === 0) {
-        console.log(printNode(node));
         const statement = new ExpressionStatement(
           ast.reserveId(),
           node.src,

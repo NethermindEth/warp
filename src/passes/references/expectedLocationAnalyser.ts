@@ -108,9 +108,8 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     }
 
     const parameterTypes = getParameterTypes(node, ast);
-    // When calling `push`, the function recieves two argument nonetheless the argument is just one
+    // When calling `push`, the function recieves two paramaters nonetheless the argument is just one
     // This does not explode because javascript does not gives an index out of range exception
-    // It should be handled but not sure it is here
     parameterTypes.forEach((t, index) => {
       const argI = node.vArguments[index];
       if (t instanceof PointerType) {
@@ -131,9 +130,6 @@ export class ExpectedLocationAnalyser extends ASTMapper {
             //Finally, default to the type in the pointer itself if we can't infer anything else
             this.expectedLocations.set(argI, t.location);
           }
-          // Need this case for when you call darray.push([1,2,3]) the tuple gets memory location
-        } else if (argI instanceof TupleExpression && argI.isInlineArray) {
-          this.expectedLocations.set(argI, DataLocation.Memory);
         } else {
           this.expectedLocations.set(argI, t.location);
         }
