@@ -108,13 +108,16 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     }
 
     const parameterTypes = getParameterTypes(node, ast);
+    // When calling `push`, the function recieves two paramaters nonetheless the argument is just one
+    // This does not explode because javascript does not gives an index out of range exception
     parameterTypes.forEach((t, index) => {
+      const argI = node.vArguments[index];
       if (t instanceof PointerType) {
         if (node.kind === FunctionCallKind.StructConstructorCall) {
           // The components of a struct being assigned to a location are also being assigned to that location
           const expectedLocation = this.expectedLocations.get(node);
           if (expectedLocation !== undefined && expectedLocation !== DataLocation.Default) {
-            this.expectedLocations.set(node.vArguments[index], expectedLocation);
+            this.expectedLocations.set(argI, expectedLocation);
             return;
           }
 
@@ -122,15 +125,16 @@ export class ExpectedLocationAnalyser extends ASTMapper {
           const structType = getNodeType(node, ast.compilerVersion);
           assert(structType instanceof PointerType);
           if (structType.location !== DataLocation.Default) {
-            this.expectedLocations.set(node.vArguments[index], structType.location);
+            this.expectedLocations.set(argI, structType.location);
           } else {
             //Finally, default to the type in the pointer itself if we can't infer anything else
-            this.expectedLocations.set(node.vArguments[index], t.location);
+            this.expectedLocations.set(argI, t.location);
           }
+        } else {
+          this.expectedLocations.set(argI, t.location);
         }
-        this.expectedLocations.set(node.vArguments[index], t.location);
       } else {
-        this.expectedLocations.set(node.vArguments[index], DataLocation.Default);
+        this.expectedLocations.set(argI, DataLocation.Default);
       }
     });
     this.visitExpression(node, ast);
