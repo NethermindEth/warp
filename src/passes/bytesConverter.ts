@@ -14,10 +14,14 @@ import {
   TypeNameType,
   TypeNode,
   TypeName,
+  IndexAccess,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { createCairoFunctionStub, createCallToFunction } from '../utils/functionGeneration';
 import { generateExpressionTypeString } from '../utils/getTypeString';
+import { typeNameFromTypeNode } from '../utils/utils';
+import { createUint8TypeName } from '../utils/nodeTemplates';
 
 /* Convert fixed-size byte arrays (e.g. bytes2, bytes8) to their equivalent unsigned integer.
     This pass currently does not handle dynamically-sized bytes arrays (i.e. bytes).
@@ -26,8 +30,46 @@ import { generateExpressionTypeString } from '../utils/getTypeString';
 export class BytesConverter extends ASTMapper {
   visitExpression(node: Expression, ast: AST): void {
     const typeNode = replaceFixedBytesType(getNodeType(node, ast.compilerVersion));
+    const oldTypeString = getNodeType(node, ast.compilerVersion).pp();
     node.typeString = generateExpressionTypeString(typeNode);
     this.commonVisit(node, ast);
+
+    // Handle only BytesX type indexAccess
+    // If oldTypeString doesn't starts with "bytes" then return
+
+    if (
+      !(oldTypeString.startsWith('bytes') && node instanceof IndexAccess && node.vIndexExpression)
+    )
+      return;
+
+    const baseTypeName = typeNameFromTypeNode(
+      getNodeType(node.vBaseExpression, ast.compilerVersion),
+      ast,
+    );
+    const indexTypeName = typeNameFromTypeNode(
+      getNodeType(node.vIndexExpression, ast.compilerVersion),
+      ast,
+    );
+
+    const functionStub = createCairoFunctionStub(
+      'byte_at_index',
+      [
+        ['base', baseTypeName],
+        ['index', indexTypeName],
+      ],
+      [['res', createUint8TypeName(ast)]],
+      ['bitwise_ptr', 'range_check_ptr'],
+      ast,
+      node,
+    );
+    const call = createCallToFunction(
+      functionStub,
+      [node.vBaseExpression, node.vIndexExpression],
+      ast,
+    );
+
+    ast.registerImport(call, 'warplib.maths.bytes_access', 'byte_at_index');
+    ast.replaceNode(node, call, node.parent);
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
@@ -46,6 +88,28 @@ export class BytesConverter extends ASTMapper {
     }
     this.commonVisit(node, ast);
   }
+
+  // visitIndexAccess(node: IndexAccess, ast: AST): void {
+  //   this.commonVisit(node, ast);
+
+  //   if(!node.vIndexExpression)return;
+
+  //   const baseTypeName = typeNameFromTypeNode(getNodeType(node.vBaseExpression, ast.compilerVersion), ast);
+  //   const indexTypeName = typeNameFromTypeNode(getNodeType(node.vIndexExpression, ast.compilerVersion), ast);
+
+  //   const functionStub = createCairoFunctionStub(
+  //     'byte_at_index',
+  //     [['base', baseTypeName], ['index', indexTypeName]],
+  //     [['res', createUint8TypeName(ast)]],
+  //     ['bitwise_ptr', 'range_check_ptr'],
+  //     ast,
+  //     node
+  //   )
+  //   const call = createCallToFunction(functionStub, [node.vBaseExpression, node.vIndexExpression], ast);
+
+  //   ast.registerImport(call, 'warplib.maths.bytes_access', 'byte_at_index');
+  //   ast.replaceNode(node, call, node.parent);
+  // }
 
   visitTypeName(node: TypeName, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);

@@ -162,6 +162,12 @@ export function createUint256TypeName(ast: AST): ElementaryTypeName {
   return typeName;
 }
 
+export function createUint8TypeName(ast: AST): ElementaryTypeName {
+  const typeName = new ElementaryTypeName(ast.reserveId(), '', 'uint8', 'uint8');
+  ast.setContextRecursive(typeName);
+  return typeName;
+}
+
 export function createDefaultConstructor(node: ContractDefinition, ast: AST): FunctionDefinition {
   const newFunc = new FunctionDefinition(
     ast.reserveId(),
