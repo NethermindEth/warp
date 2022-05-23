@@ -654,7 +654,7 @@ class IdentifierWriter extends CairoASTNodeWriter {
       isDynamicCallDataArray(getNodeType(node, this.ast.compilerVersion)) &&
       node.getClosestParentByType(Return) !== undefined
     ) {
-      return [`${node.name}_len, ${node.name}`];
+      return [`${node.name}.len, ${node.name}.ptr`];
     }
     return [`${node.name}`];
   }
