@@ -97,13 +97,6 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       }
     }
 
-    if (replacement) {
-      this.replace(node, replacement, parent, expectedLoc, expectedLoc, ast);
-      this.dispatchVisit(replacement, ast);
-    } else {
-      this.commonVisit(node, ast);
-    }
-
     // Update the expected location of the node to be equal to its
     // actual location, now that any discrepency has been handled
 
@@ -111,6 +104,13 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       this.expectedDataLocations.delete(node);
     } else {
       this.expectedDataLocations.set(node, actualLoc);
+    }
+
+    if (replacement) {
+      this.replace(node, replacement, parent, expectedLoc, expectedLoc, ast);
+      this.dispatchVisit(replacement, ast);
+    } else {
+      this.commonVisit(node, ast);
     }
   }
 
