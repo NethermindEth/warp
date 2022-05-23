@@ -802,7 +802,7 @@ class CairoAssertWriter extends CairoASTNodeWriter {
 }
 
 class ElementaryTypeNameExpressionWriter extends CairoASTNodeWriter {
-  writeInner(node: ElementaryTypeNameExpression, _writer: ASTWriter): SrcDesc {
+  writeInner(_node: ElementaryTypeNameExpression, _writer: ASTWriter): SrcDesc {
     return ['0'];
   }
 }
