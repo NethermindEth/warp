@@ -60,6 +60,10 @@ export abstract class CairoType {
         return new WarpLocation();
       } else if (context === TypeConversionContext.Ref) {
         return new CairoFelt();
+      } else if (context === TypeConversionContext.CallDataRef) {
+        return new CairoPointer(
+          CairoType.fromSol(tp.elementT, ast, TypeConversionContext.CallDataRef),
+        );
       } else {
         const recursionContext =
           context === TypeConversionContext.MemoryAllocation ? TypeConversionContext.Ref : context;
