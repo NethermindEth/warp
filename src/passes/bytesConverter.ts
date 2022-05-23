@@ -15,13 +15,14 @@ import {
   TypeNode,
   TypeName,
   IndexAccess,
+  Literal,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { createCairoFunctionStub, createCallToFunction } from '../utils/functionGeneration';
 import { generateExpressionTypeString } from '../utils/getTypeString';
 import { typeNameFromTypeNode } from '../utils/utils';
-import { createUint8TypeName } from '../utils/nodeTemplates';
+import { createUint8TypeName, createUint256TypeName } from '../utils/nodeTemplates';
 
 /* Convert fixed-size byte arrays (e.g. bytes2, bytes8) to their equivalent unsigned integer.
     This pass currently does not handle dynamically-sized bytes arrays (i.e. bytes).
@@ -46,10 +47,13 @@ export class BytesConverter extends ASTMapper {
       getNodeType(node.vBaseExpression, ast.compilerVersion),
       ast,
     );
-    const indexTypeName = typeNameFromTypeNode(
-      getNodeType(node.vIndexExpression, ast.compilerVersion),
-      ast,
-    );
+
+    if (!(baseTypeName instanceof ElementaryTypeName)) return;
+
+    const indexTypeName =
+      node.vIndexExpression instanceof Literal
+        ? createUint256TypeName(ast)
+        : typeNameFromTypeNode(getNodeType(node.vIndexExpression, ast.compilerVersion), ast);
 
     const functionStub = createCairoFunctionStub(
       indexTypeName.typeString !== 'uint256' ? 'byte_at_index' : 'byte_at_index_uint256',
