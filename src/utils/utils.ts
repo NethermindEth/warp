@@ -352,7 +352,7 @@ export function splitDarray(
 
 export function isReferenceType(type: TypeNode): boolean {
   return (
-    (type instanceof ArrayType && type.size === undefined) ||
+    type instanceof ArrayType ||
     type instanceof MappingType ||
     (type instanceof UserDefinedType && type.definition instanceof StructDefinition) ||
     (type instanceof PointerType && isReferenceType(type.to))
