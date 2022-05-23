@@ -1,3 +1,4 @@
+import assert from 'assert';
 import {
   TypeNode,
   IntType,
@@ -51,7 +52,10 @@ export abstract class CairoType {
     } else if (tp instanceof ArrayType) {
       if (tp.size === undefined) {
         if (context === TypeConversionContext.CallDataRef) {
-          return new CairoPointer(CairoType.fromSol(tp.elementT, ast, context));
+          return new CairoDynArray(
+            `cd_dynarry_${tp.elementT.toString()}`,
+            CairoType.fromSol(tp.elementT, ast, context),
+          );
         }
         return new WarpLocation();
       } else if (context === TypeConversionContext.Ref) {
@@ -178,6 +182,30 @@ export class CairoStruct extends CairoType {
     throw new TranspileFailedError(
       `Attempted to find offset of non-existant member ${memberName} in ${this.name}`,
     );
+  }
+}
+
+export class CairoDynArray extends CairoStruct {
+  constructor(public name: string, public ptr_member: CairoType) {
+    super(
+      name,
+      new Map([
+        ['len', new CairoFelt()],
+        ['ptr', new CairoPointer(ptr_member)],
+      ]),
+    );
+  }
+
+  get vPtr(): CairoPointer {
+    const ptr_member = this.members.get('ptr');
+    assert(ptr_member instanceof CairoPointer);
+    return ptr_member;
+  }
+
+  get vLen(): CairoFelt {
+    const len_member = this.members.get('len');
+    assert(len_member instanceof CairoFelt);
+    return len_member;
   }
 }
 

@@ -149,3 +149,12 @@ export function intTypeForLiteral(typestring: string): IntType {
     return new IntType(width, true);
   }
 }
+
+export function isDynamicCallDataArray(type: TypeNode): boolean {
+  return (
+    type instanceof PointerType &&
+    type.location === DataLocation.CallData &&
+    type.to instanceof ArrayType &&
+    type.to.size === undefined
+  );
+}

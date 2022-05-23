@@ -1,11 +1,9 @@
-import assert = require('assert');
 import {
   AddressType,
   ArrayType,
   ArrayTypeName,
   BoolType,
   CompileFailedError,
-  DataLocation,
   ElementaryTypeName,
   EtherUnit,
   Expression,
@@ -21,7 +19,6 @@ import {
   MappingType,
   Mutability,
   PointerType,
-  StateVariableVisibility,
   StringType,
   TimeUnit,
   TupleExpression,
@@ -321,30 +318,4 @@ export function isNameless(node: FunctionDefinition) {
   return [FunctionKind.Constructor, FunctionKind.Fallback, FunctionKind.Receive].includes(
     node.kind,
   );
-}
-
-export function splitDarray(
-  scope: number,
-  dArrayVarDecl: VariableDeclaration,
-  ast: AST,
-): [arrayLen: VariableDeclaration, dArrayVarDecl: VariableDeclaration] {
-  assert(dArrayVarDecl.vType !== undefined);
-  const arrayLen = new VariableDeclaration(
-    ast.reserveId(),
-    '',
-    true,
-    false,
-    dArrayVarDecl.name + '_len',
-    scope,
-    false,
-    DataLocation.CallData,
-    StateVariableVisibility.Internal,
-    Mutability.Immutable,
-    'uint248',
-    undefined,
-    new ElementaryTypeName(ast.reserveId(), '', 'uint248', 'uint248'),
-    undefined,
-  );
-
-  return [arrayLen, dArrayVarDecl];
 }
