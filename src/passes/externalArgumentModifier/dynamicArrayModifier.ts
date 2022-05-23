@@ -136,8 +136,7 @@ export class DynArrayModifier extends ASTMapper {
   ): FunctionCall {
     const alloctorFunctionCall = ast
       .getUtilFuncGen(node)
-      .externalFunctions.inputs.darrayAllocator.gen(node, darrayStruct, structDef);
-    ast.getUtilFuncGen(node).externalFunctions.inputs.darrayWriter.gen(darrayStruct);
+      .calldata.toMemory.gen(node, darrayStruct, structDef);
 
     return alloctorFunctionCall;
   }
