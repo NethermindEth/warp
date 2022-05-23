@@ -457,6 +457,9 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('ElementaryTypeNames', [
+          File.Simple('example', [Expect.Simple('ArrayFunc', [], ['69', '0'])]),
+        ]),
         new Dir('enums', [
           File.Simple('singleEnum', [
             Expect.Simple('get', [], ['0']),
