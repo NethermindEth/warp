@@ -8,17 +8,23 @@ import {
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
+  generalizeType,
   getNodeType,
+  Identifier,
   IndexAccess,
   MemberAccess,
   PointerType,
   Return,
+  StructDefinition,
   TupleExpression,
+  TypeNode,
   UnaryOperation,
+  UserDefinedType,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
+import { locationIfComplexType } from '../../cairoUtilFuncGen/base';
 import { printNode } from '../../utils/astPrinter';
 import { TranspileFailedError } from '../../utils/errors';
 import { error } from '../../utils/formatting';
@@ -50,7 +56,10 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     const lhsLocation = this.actualLocations.get(node.vLeftHandSide);
     if (lhsLocation === DataLocation.Storage) {
       this.expectedLocations.set(node.vLeftHandSide, lhsLocation);
-      this.expectedLocations.set(node.vRightHandSide, DataLocation.Default);
+      const rhsLocation =
+        generalizeType(getNodeType(node.vRightHandSide, ast.compilerVersion))[1] ??
+        DataLocation.Default;
+      this.expectedLocations.set(node.vRightHandSide, rhsLocation);
     } else if (lhsLocation === DataLocation.Memory) {
       this.expectedLocations.set(node.vLeftHandSide, lhsLocation);
       const rhsLocation = this.actualLocations.get(node.vRightHandSide);
@@ -99,13 +108,16 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     }
 
     const parameterTypes = getParameterTypes(node, ast);
+    // When calling `push`, the function recieves two paramaters nonetheless the argument is just one
+    // This does not explode because javascript does not gives an index out of range exception
     parameterTypes.forEach((t, index) => {
+      const argI = node.vArguments[index];
       if (t instanceof PointerType) {
         if (node.kind === FunctionCallKind.StructConstructorCall) {
           // The components of a struct being assigned to a location are also being assigned to that location
           const expectedLocation = this.expectedLocations.get(node);
           if (expectedLocation !== undefined && expectedLocation !== DataLocation.Default) {
-            this.expectedLocations.set(node.vArguments[index], expectedLocation);
+            this.expectedLocations.set(argI, expectedLocation);
             return;
           }
 
@@ -113,15 +125,16 @@ export class ExpectedLocationAnalyser extends ASTMapper {
           const structType = getNodeType(node, ast.compilerVersion);
           assert(structType instanceof PointerType);
           if (structType.location !== DataLocation.Default) {
-            this.expectedLocations.set(node.vArguments[index], structType.location);
+            this.expectedLocations.set(argI, structType.location);
           } else {
             //Finally, default to the type in the pointer itself if we can't infer anything else
-            this.expectedLocations.set(node.vArguments[index], t.location);
+            this.expectedLocations.set(argI, t.location);
           }
+        } else {
+          this.expectedLocations.set(argI, t.location);
         }
-        this.expectedLocations.set(node.vArguments[index], t.location);
       } else {
-        this.expectedLocations.set(node.vArguments[index], DataLocation.Default);
+        this.expectedLocations.set(argI, DataLocation.Default);
       }
     });
     this.visitExpression(node, ast);
@@ -131,12 +144,10 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     assert(node.vIndexExpression !== undefined);
     const baseLoc = this.actualLocations.get(node.vBaseExpression);
     assert(baseLoc !== undefined);
-    const type = getNodeType(node.vBaseExpression, ast.compilerVersion);
+    const baseType = getNodeType(node.vBaseExpression, ast.compilerVersion);
     if (
-      type instanceof PointerType &&
-      type.location === DataLocation.Storage &&
-      type.to instanceof ArrayType &&
-      type.to.size === undefined
+      isDynamicStorageArray(baseType) ||
+      (isComplexMemoryType(baseType) && !(node.vBaseExpression instanceof Identifier))
     ) {
       this.expectedLocations.set(node.vBaseExpression, DataLocation.Default);
     } else {
@@ -149,7 +160,15 @@ export class ExpectedLocationAnalyser extends ASTMapper {
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     const baseLoc = this.actualLocations.get(node.vExpression);
     assert(baseLoc !== undefined);
-    this.expectedLocations.set(node.vExpression, baseLoc);
+    const baseType = getNodeType(node.vExpression, ast.compilerVersion);
+    if (
+      isDynamicStorageArray(baseType) ||
+      (isComplexMemoryType(baseType) && !(node.vExpression instanceof Identifier))
+    ) {
+      this.expectedLocations.set(node.vExpression, DataLocation.Default);
+    } else {
+      this.expectedLocations.set(node.vExpression, baseLoc);
+    }
     this.visitExpression(node, ast);
   }
 
@@ -160,7 +179,21 @@ export class ExpectedLocationAnalyser extends ASTMapper {
       if (node.vExpression) {
         // External functions need to read out their returns
         // TODO might need to expand this to be clear that it's a deep read
-        this.expectedLocations.set(node.vExpression, DataLocation.Default);
+        const retExpressions =
+          node.vExpression instanceof TupleExpression
+            ? node.vExpression.vOriginalComponents.map((element) => {
+                assert(element !== null, `Cannot return tuple with empty slots`);
+                return element;
+              })
+            : [node.vExpression];
+
+        retExpressions.forEach((retExpression) => {
+          const retType = getNodeType(retExpression, ast.compilerVersion);
+          this.expectedLocations.set(
+            retExpression,
+            locationIfComplexType(retType, DataLocation.CallData),
+          );
+        });
       }
       return this.visitStatement(node, ast);
     }
@@ -244,4 +277,22 @@ export class ExpectedLocationAnalyser extends ASTMapper {
 
     this.visitStatement(node, ast);
   }
+}
+
+function isDynamicStorageArray(type: TypeNode): boolean {
+  return (
+    type instanceof PointerType &&
+    type.location === DataLocation.Storage &&
+    type.to instanceof ArrayType &&
+    type.to.size === undefined
+  );
+}
+
+function isComplexMemoryType(type: TypeNode): boolean {
+  return (
+    type instanceof PointerType &&
+    type.location === DataLocation.Memory &&
+    (type.to instanceof ArrayType ||
+      (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
+  );
 }

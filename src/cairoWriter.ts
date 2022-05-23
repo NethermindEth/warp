@@ -13,7 +13,6 @@ import {
   Continue,
   ContractDefinition,
   ContractKind,
-  DataLocation,
   DoWhileStatement,
   ElementaryTypeName,
   ElementaryTypeNameExpression,
@@ -81,11 +80,12 @@ import {
   FunctionStubKind,
 } from './ast/cairoNodes';
 import { printNode } from './utils/astPrinter';
-import { CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
+import { CairoDynArray, CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
 import { implicitOrdering, implicitTypes } from './utils/implicits';
 import { getMappingTypes } from './utils/mappings';
+import { isDynamicCallDataArray } from './utils/nodeTypeProcessing';
 import { notNull, notUndefined } from './utils/typeConstructs';
 import {
   canonicalMangler,
@@ -93,7 +93,6 @@ import {
   isCairoConstant,
   isExternallyVisible,
   primitiveTypeToCairo,
-  splitDarray,
 } from './utils/utils';
 
 const INDENT = ' '.repeat(4);
@@ -201,7 +200,15 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     );
 
     const documentation = getDocumentation(node.documentation, writer);
-    const declarations = node.vDeclarations.map((value) => writer.write(value));
+    const declarations = node.assignments.map((id) => {
+      if (id === null)
+        throw new NotSupportedYetError(
+          `VariableDeclarationStatements with gaps not implemented yet`,
+        );
+      const declaration = node.vDeclarations.find((decl) => decl.id === id);
+      assert(declaration !== undefined, `Unable to find variable declaration for assignment ${id}`);
+      return writer.write(declaration);
+    });
     if (
       node.vInitialValue instanceof FunctionCall &&
       node.vInitialValue.vReferencedDeclaration instanceof CairoFunctionDefinition &&
@@ -210,12 +217,16 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
       // This local statement is needed since Cairo is not supporting member access of structs with let.
       // The type hint also needs to be placed there since Cairo's default type hint is a felt.
       return [
+        documentation,
         `local ${declarations.join(', ')} : ${
           node.vInitialValue.vReferencedDeclaration.name
         } = ${writer.write(node.vInitialValue)}`,
       ];
     } else if (node.vDeclarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
-      return [`let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)}`];
+      return [
+        documentation,
+        `let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)}`,
+      ];
     }
     return [documentation, `let ${declarations[0]} = ${writer.write(node.vInitialValue)}`];
   }
@@ -399,28 +410,17 @@ class ParameterListWriter extends CairoASTNodeWriter {
           : TypeConversionContext.Ref
         : TypeConversionContext.CallDataRef;
 
-    const proccessed_params = node.vParameters.flatMap((decl) => {
-      // This conditional is placed here to split DynamicArrays into their corresponding length and pointer when they
-      // are an argument for an external function.
-      if (
-        decl.vType instanceof ArrayTypeName &&
-        decl.vType.vLength === undefined &&
-        typeConversionContext == TypeConversionContext.CallDataRef &&
-        node.parent instanceof FunctionDefinition &&
-        decl.name !== undefined &&
-        isExternallyVisible(node.parent)
-      ) {
-        return splitDarray(node.id, decl, this.ast);
-      }
-      return decl;
-    });
-
-    const params = proccessed_params.map((value, i) => {
+    const params = node.vParameters.map((value, i) => {
       const tp = CairoType.fromSol(
         getNodeType(value, writer.targetCompilerVersion),
         this.ast,
         typeConversionContext,
       );
+      if (tp instanceof CairoDynArray) {
+        return value.name
+          ? `${value.name}_len : ${tp.vLen.toString()}, ${value.name} : ${tp.vPtr.toString()}`
+          : `ret${i}_len : ${tp.vLen.toString()}, ret${i} : ${tp.vPtr.toString()}`;
+      }
       return value.name ? `${value.name} : ${tp}` : `ret${i} : ${tp}`;
     });
     return [params.join(', ')];
@@ -642,13 +642,7 @@ class IndexAccessWriter extends CairoASTNodeWriter {
     assert(node.vIndexExpression !== undefined);
     const baseWritten = writer.write(node.vBaseExpression);
     const indexWritten = writer.write(node.vIndexExpression);
-    if (
-      node.vBaseExpression instanceof Identifier &&
-      node.vBaseExpression.vReferencedDeclaration instanceof VariableDeclaration &&
-      node.vBaseExpression.vReferencedDeclaration.storageLocation === DataLocation.CallData &&
-      node.vBaseExpression.vReferencedDeclaration.vType instanceof ArrayTypeName &&
-      node.vBaseExpression.vReferencedDeclaration.vType.vLength === undefined
-    ) {
+    if (isDynamicCallDataArray(getNodeType(node.vBaseExpression, this.ast.compilerVersion))) {
       return [`${baseWritten}.ptr[${indexWritten}]`];
     }
     return [`${baseWritten}[${indexWritten}]`];
@@ -656,6 +650,12 @@ class IndexAccessWriter extends CairoASTNodeWriter {
 }
 class IdentifierWriter extends CairoASTNodeWriter {
   writeInner(node: Identifier, _: ASTWriter): SrcDesc {
+    if (
+      isDynamicCallDataArray(getNodeType(node, this.ast.compilerVersion)) &&
+      node.getClosestParentByType(Return) !== undefined
+    ) {
+      return [`${node.name}.len, ${node.name}.ptr`];
+    }
     return [`${node.name}`];
   }
 }

@@ -77,7 +77,10 @@ export function specializeType(typeNode: TypeNode, loc: DataLocation): TypeNode 
   if (typeNode instanceof PointerType) {
     assert(
       typeNode.location === loc,
-      `Attempting to specialize ${typeNode.location} pointer type to ${loc}`,
+      `Attempting to specialize ${typeNode.location} pointer type to ${loc}\nType:${printTypeNode(
+        typeNode,
+        true,
+      )}`,
     );
     return typeNode;
   }
@@ -145,4 +148,13 @@ export function intTypeForLiteral(typestring: string): IntType {
     const width = 8 * Math.ceil(binaryLength / 8);
     return new IntType(width, true);
   }
+}
+
+export function isDynamicCallDataArray(type: TypeNode): boolean {
+  return (
+    type instanceof PointerType &&
+    type.location === DataLocation.CallData &&
+    type.to instanceof ArrayType &&
+    type.to.size === undefined
+  );
 }

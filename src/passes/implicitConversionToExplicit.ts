@@ -229,7 +229,7 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
         insertConversionIfNecessary(element, elementT, ast);
       });
       expression.typeString = generateExpressionTypeString(
-        specializeType(currentType, DataLocation.Memory),
+        specializeType(targetType, DataLocation.Memory),
       );
     }
   } else if (currentType instanceof BoolType) {
@@ -242,7 +242,6 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
     return;
   } else if (currentType instanceof BytesType) {
     throw new NotSupportedYetError(`BytesType not supported yet`);
-    return;
   } else if (currentType instanceof FixedBytesType) {
     throw new TranspileFailedError(
       `Expected FixedBytesType to have been substituted. Found at ${printNode(expression)}`,
