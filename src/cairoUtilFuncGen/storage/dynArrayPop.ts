@@ -64,7 +64,6 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
       code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> ():`,
         `    alloc_locals`,
-        `    assert loc = 1`,
         `    let (len) = ${lengthName}.read(loc)`,
         `    let (isEmpty) = uint256_eq(len, Uint256(0,0))`,
         `    assert isEmpty = 0`,
