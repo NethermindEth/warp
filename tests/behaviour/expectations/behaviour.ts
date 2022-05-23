@@ -369,6 +369,28 @@ export const expectations = flatten(
               ['getArr2', [], ['5', '7', '6', ' 8'], '0'],
             ]),
           ]),
+          File.Simple('structs', [
+            new Expect('copy full struct', [
+              ['getStruct1', [], ['0', '0', '0', '0', '0'], '0'],
+              ['getStruct2', [], ['0', '0', '0', '0', '0'], '0'],
+              ['setStruct1', ['1', '3', '1', '4', '2'], [], '0'],
+              ['getStruct1', [], ['1', '3', '1', '4', '2'], '0'],
+              ['getStruct2', [], ['0', '0', '0', '0', '0'], '0'],
+              ['copyFull', [], [], '0'],
+              ['getStruct1', [], ['1', '3', '1', '4', '2'], '0'],
+              ['getStruct2', [], ['1', '3', '1', '4', '2'], '0'],
+            ]),
+            new Expect('copy inner struct', [
+              ['getStruct1', [], ['1', '3', '1', '4', '2'], '0'],
+              ['getStruct2', [], ['1', '3', '1', '4', '2'], '0'],
+              ['setStruct1', ['0', '8', '7', '6', '5'], [], '0'],
+              ['getStruct1', [], ['0', '8', '7', '6', '5'], '0'],
+              ['getStruct2', [], ['1', '3', '1', '4', '2'], '0'],
+              ['copyInner', [], [], '0'],
+              ['getStruct1', [], ['0', '8', '7', '6', '5'], '0'],
+              ['getStruct2', [], ['1', '8', '7', '4', '2'], '0'],
+            ]),
+          ]),
         ]),
         new Dir('cross_contract_calls', [
           File.Simple('simple', [Expect.Simple('f', [], ['69', '0'])], 'A'),

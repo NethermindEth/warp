@@ -96,22 +96,25 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       code: [
         `func ${funcName}${implicits}(fromLoc: felt, toLoc: felt) -> (retLoc: felt):`,
         `    alloc_locals`,
-        ...members.map((memberType) => {
-          if (memberType instanceof ArrayType) {
+        ...members.map((memberType): string => {
+          const width = CairoType.fromSol(
+            memberType,
+            this.ast,
+            TypeConversionContext.StorageAllocation,
+          ).width;
+          let code: string;
+          if (
+            memberType instanceof ArrayType ||
+            (memberType instanceof UserDefinedType &&
+              memberType.definition instanceof StructDefinition)
+          ) {
             const memberCopyFunc = this.getOrCreate(memberType);
-            const code = `${memberCopyFunc}(${add('fromLoc', offset)}, ${add('toLoc', offset)})`;
-            ++offset;
-            return code;
+            code = `${memberCopyFunc}(${add('fromLoc', offset)}, ${add('toLoc', offset)})`;
           } else {
-            const width = CairoType.fromSol(
-              memberType,
-              this.ast,
-              TypeConversionContext.StorageAllocation,
-            ).width;
-            const code = mapRange(width, copyAtOffset);
-            offset += width;
-            return code;
+            code = mapRange(width, (index) => copyAtOffset(index + offset)).join('\n');
           }
+          offset += width;
+          return code;
         }),
         `    return (toLoc)`,
         `end`,
