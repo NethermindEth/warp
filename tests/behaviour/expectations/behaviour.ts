@@ -1465,6 +1465,33 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('memory', [
+          File.Simple('delete', [
+            Expect.Simple('deleteFelt', [], ['0']),
+            Expect.Simple('deleteUint', [], ['0', '0']),
+            Expect.Simple('deleteS', [], ['0', '0'], 'Delete simple struct'),
+            /* Uncomment this once calldata -> memory is implemented
+            Expect.Simple('deleteDArray', ['3', '5', '3', '2'], ['0', '0'], 'Delete dynamic array'),
+            Expect.Simple(
+              'copyDeleteDArray',
+              ['3', '5', '3', '2'],
+              ['8', '0'],
+              'Delete dynamic array but keep a reference copy',
+            ),
+            */
+            /* Uncomment once dynamic arrays inside structs are aloud
+            Expect.Simple('deleteC', [], ['0'], 'Delete struct with a dyanmic array as a member'),
+            Expect.Simple(
+              'deleteCnotArray',
+              ['3', '5', '1', '2'],
+              ['3'],
+              'Delete struct but keep member array ',
+            ),
+            */
+            // Uncomment when assignation of structs to memory dynamic array is working
+            // Expect.Simple('deleteSArray', [], ['3', '4'], 'Delete dynamic array of structs'),
+            // Uncomment once two dimensional memory arrays can be transpiled
+            // Expect.Simple('delete2dArray', [], ['15', '0'], 'Delete dynamic array of structs'),
+          ]),
           File.Simple('dynamicArrays', [
             Expect.Simple('uint8new', [], ['0', '0']),
             Expect.Simple('uint8write', ['5'], ['0', '5']),

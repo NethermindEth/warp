@@ -242,7 +242,6 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
     return;
   } else if (currentType instanceof BytesType) {
     throw new NotSupportedYetError(`BytesType not supported yet`);
-    return;
   } else if (currentType instanceof FixedBytesType) {
     throw new TranspileFailedError(
       `Expected FixedBytesType to have been substituted. Found at ${printNode(expression)}`,
