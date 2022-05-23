@@ -25,7 +25,12 @@ export class DynArrayReturner extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     const body = node.vBody;
 
-    if (isExternallyVisible(node) && body !== undefined && body.lastChild instanceof Return) {
+    if (
+      isExternallyVisible(node) &&
+      body !== undefined &&
+      body.lastChild instanceof Return &&
+      body.lastChild.children[0] !== undefined
+    ) {
       const returnStatement = body.lastChild;
       //
       const retExpression = returnStatement.children[0];
