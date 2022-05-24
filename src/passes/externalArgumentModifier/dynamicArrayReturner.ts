@@ -25,20 +25,17 @@ export class DynArrayReturner extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     const body = node.vBody;
 
-    if (
-      isExternallyVisible(node) &&
-      body !== undefined &&
-      body.lastChild instanceof Return &&
-      body.lastChild.children[0] !== undefined
-    ) {
-      const returnStatement = body.lastChild;
-      //
-      const retExpression = returnStatement.children[0];
-      assert(retExpression instanceof Expression);
-      this.createDynArrayStructDefs(retExpression, ast);
+    if (isExternallyVisible(node) && body !== undefined) {
+      const returnStatements = node
+        .getChildren(true)
+        .filter((n) => n instanceof Return && n.firstChild !== undefined);
+
+      returnStatements.forEach((statement) => {
+        const retExpression = statement.firstChild;
+        assert(retExpression instanceof Expression);
+        this.createDynArrayStructDefs(retExpression, ast);
+      });
     }
-    ast.setContextRecursive(node);
-    this.commonVisit(node, ast);
   }
 
   createDynArrayStructDefs(node: Expression, ast: AST): void {
