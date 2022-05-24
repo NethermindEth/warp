@@ -34,29 +34,20 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     const storageType = generalizeType(getNodeType(storageLocation, this.ast.compilerVersion))[0];
     const calldataType = generalizeType(getNodeType(calldataLocation, this.ast.compilerVersion))[0];
 
-    if (
-      (calldataType instanceof ArrayType && calldataType.size === undefined) ||
-      (calldataType instanceof UserDefinedType &&
-        calldataType.definition instanceof StructDefinition)
-    ) {
-      const name = this.getOrCreate(calldataType);
-      const functionStub = createCairoFunctionStub(
-        name,
-        [
-          ['loc', typeNameFromTypeNode(storageType, this.ast), DataLocation.Storage],
-          ['dynarray', typeNameFromTypeNode(calldataType, this.ast), DataLocation.CallData],
-        ],
-        [['loc', typeNameFromTypeNode(storageType, this.ast), DataLocation.Storage]],
-        ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
-        this.ast,
-        nodeInSourceUnit ?? storageLocation,
-      );
-      return createCallToFunction(functionStub, [storageLocation, calldataLocation], this.ast);
-    }
-
-    throw new NotSupportedYetError(
-      `Copying ${printTypeNode(calldataType)} from calldata to storage is not supported yet`,
+    const name = this.getOrCreate(calldataType);
+    const functionStub = createCairoFunctionStub(
+      name,
+      [
+        ['loc', typeNameFromTypeNode(storageType, this.ast), DataLocation.Storage],
+        ['dynarray', typeNameFromTypeNode(calldataType, this.ast), DataLocation.CallData],
+      ],
+      [['loc', typeNameFromTypeNode(storageType, this.ast), DataLocation.Storage]],
+      ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
+      this.ast,
+      nodeInSourceUnit ?? storageLocation,
     );
+
+    return createCallToFunction(functionStub, [storageLocation, calldataLocation], this.ast);
   }
 
   private getOrCreate(type: TypeNode) {
