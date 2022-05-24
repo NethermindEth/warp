@@ -4,8 +4,8 @@ import {
   ASTNode,
   DataLocation,
   Expression,
-  generalizeType,
   getNodeType,
+  PointerType,
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -28,11 +28,15 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
   }
 
   gen(storageLocation: Expression, calldataLocation: Expression, nodeInSourceUnit?: ASTNode) {
-    const storageType = generalizeType(getNodeType(storageLocation, this.ast.compilerVersion))[0];
-    const calldataType = generalizeType(getNodeType(calldataLocation, this.ast.compilerVersion))[0];
+    const storageType = getNodeType(storageLocation, this.ast.compilerVersion);
+    const calldataType = getNodeType(calldataLocation, this.ast.compilerVersion);
 
-    if (calldataType instanceof ArrayType && calldataType.size === undefined) {
-      const name = this.getOrCreate(calldataType);
+    if (
+      calldataType instanceof PointerType &&
+      calldataType.to instanceof ArrayType &&
+      calldataType.to.size === undefined
+    ) {
+      const name = this.getOrCreate(calldataType.to);
       const functionStub = createCairoFunctionStub(
         name,
         [
