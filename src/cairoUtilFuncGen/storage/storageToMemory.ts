@@ -287,10 +287,9 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
 
         `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt):`,
         `    alloc_locals`,
-        `    let (name) = readId(loc)`,
-        `    let (length: Uint256) = ${lengthMapping}.read(name)`,
+        `    let (length: Uint256) = ${lengthMapping}.read(loc)`,
         `    let (mem_start) = wm_new(length, ${uint256(memoryElementType.width)})`,
-        `    ${funcName}_elem(name, mem_start, length)`,
+        `    ${funcName}_elem(loc, mem_start, length)`,
         `    return (mem_start)`,
         `end`,
       ].join('\n'),

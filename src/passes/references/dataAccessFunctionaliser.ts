@@ -18,8 +18,6 @@ import {
   UserDefinedType,
   ContractDefinition,
   generalizeType,
-  StructDefinition,
-  TypeNode,
 } from 'solc-typed-ast';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
@@ -59,31 +57,8 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     }
 
     const nodeType = getNodeType(node, ast.compilerVersion);
-    console.log(`    ${printTypeNode(nodeType)}`);
-    console.log(`    Stored Pointer: ${isStoredPointer(node, ast)}`);
-    console.log(`    LValue: ${isLValue(node)}`);
-    const requiresExtraRead = isStoredPointer(node, ast) && !isLValue(node);
     const utilFuncGen = ast.getUtilFuncGen(node);
     const parent = node.parent;
-
-    // Next, if the node is a type that requires an extra read, insert this first
-    if (requiresExtraRead) {
-      let readFunc: FunctionCall;
-      if (actualLoc === DataLocation.Storage) {
-        readFunc = utilFuncGen.storage.read.gen(node, typeNameFromTypeNode(nodeType, ast), parent);
-      } else if (actualLoc === DataLocation.Memory) {
-        readFunc = utilFuncGen.memory.read.gen(node, typeNameFromTypeNode(nodeType, ast), parent);
-      } else {
-        assert(false);
-      }
-      this.replace(node, readFunc, parent, actualLoc, actualLoc, ast);
-      if (actualLoc === undefined) {
-        this.expectedDataLocations.delete(node);
-      } else {
-        this.expectedDataLocations.set(node, actualLoc);
-      }
-      node = readFunc;
-    }
 
     // Finally if a copy from actual to expected location is required, insert this last
     let copyFunc: Expression | null = null;
@@ -141,10 +116,8 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
-    const leaveAsCairoAssignment = shouldLeaveAsCairoAssignment(node.vLeftHandSide);
-    this.visitExpression(node, ast);
-    if (leaveAsCairoAssignment) {
-      return;
+    if (shouldLeaveAsCairoAssignment(node.vLeftHandSide)) {
+      return this.visitExpression(node, ast);
     }
 
     const [actualLoc, expectedLoc] = this.getLocations(node);
@@ -155,18 +128,20 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
         .getUtilFuncGen(node)
         .memory.write.gen(node.vLeftHandSide, node.vRightHandSide);
       this.replace(node, replacementFunc, undefined, actualLoc, expectedLoc, ast);
-      this.dispatchVisit(replacementFunc, ast);
+      return this.dispatchVisit(replacementFunc, ast);
     } else if (toLoc === DataLocation.Storage) {
       if (fromLoc === DataLocation.Storage) {
         const copyFunc = ast
           .getUtilFuncGen(node)
           .storage.toStorage.gen(node.vRightHandSide, node.vLeftHandSide);
         this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
+        return this.dispatchVisit(copyFunc, ast);
       } else if (fromLoc === DataLocation.Memory) {
         const copyFunc = ast
           .getUtilFuncGen(node)
           .memory.toStorage.gen(node.vLeftHandSide, node.vRightHandSide);
         this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
+        return this.dispatchVisit(copyFunc, ast);
       } else if (fromLoc === DataLocation.CallData) {
         throw new NotSupportedYetError(`CallData to storage assignment not implemented yet`);
       } else {
@@ -174,8 +149,11 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           .getUtilFuncGen(node)
           .storage.write.gen(node.vLeftHandSide, node.vRightHandSide);
         this.replace(node, writeFunc, undefined, actualLoc, expectedLoc, ast);
+        return this.dispatchVisit(writeFunc, ast);
       }
     }
+
+    this.visitExpression(node, ast);
   }
 
   visitIdentifier(node: Identifier, ast: AST): void {
@@ -350,43 +328,5 @@ function shouldLeaveAsCairoAssignment(lhs: Expression): boolean {
       lhs.vReferencedDeclaration instanceof VariableDeclaration &&
       lhs.vReferencedDeclaration.stateVariable
     )
-  );
-}
-
-function isStoredPointer(node: Expression, ast: AST): boolean {
-  const type = getNodeType(node, ast.compilerVersion);
-  return (
-    (isDynamicStorageArray(type) || isComplexMemoryType(type)) &&
-    (node instanceof IndexAccess ||
-      node instanceof MemberAccess ||
-      (node instanceof Identifier &&
-        node.vReferencedDeclaration instanceof VariableDeclaration &&
-        node.vReferencedDeclaration.stateVariable))
-  );
-}
-
-function isLValue(node: Expression): boolean {
-  return (
-    node.parent instanceof Assignment &&
-    node.parent.vLeftHandSide === node &&
-    shouldLeaveAsCairoAssignment(node)
-  );
-}
-
-function isDynamicStorageArray(type: TypeNode): boolean {
-  return (
-    type instanceof PointerType &&
-    type.location === DataLocation.Storage &&
-    type.to instanceof ArrayType &&
-    type.to.size === undefined
-  );
-}
-
-function isComplexMemoryType(type: TypeNode): boolean {
-  return (
-    type instanceof PointerType &&
-    type.location === DataLocation.Memory &&
-    (type.to instanceof ArrayType ||
-      (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
   );
 }
