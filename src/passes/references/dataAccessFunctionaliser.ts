@@ -69,9 +69,8 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           break;
         }
         case DataLocation.CallData:
-          throw new NotSupportedYetError(
-            `Storage -> calldata not implemented yet for ${printNode(node)}`,
-          );
+          replacement = ast.getUtilFuncGen(node).storage.toCallData.gen(node);
+          break;
       }
     } else if (actualLoc === DataLocation.Memory) {
       switch (expectedLoc) {

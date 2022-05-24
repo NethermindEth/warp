@@ -28,6 +28,7 @@ import { MemoryToCallDataGen } from './memory/memoryToCalldata';
 import { MemoryToStorageGen } from './memory/memoryToStorage';
 import { CalldataToStorageGen } from './calldata/calldataToStorage';
 import { StorageToStorageGen } from './storage/copyToStorage';
+import { StorageToCalldataGen } from './storage/storageToCalldata';
 
 export class CairoUtilFuncGen {
   calldata: {
@@ -58,6 +59,7 @@ export class CairoUtilFuncGen {
     memberAccess: StorageMemberAccessGen;
     read: StorageReadGen;
     staticArrayIndexAccess: StorageStaticArrayIndexAccessGen;
+    toCallData: StorageToCalldataGen;
     toMemory: StorageToMemoryGen;
     toStorage: StorageToStorageGen;
     write: StorageWriteGen;
@@ -112,6 +114,7 @@ export class CairoUtilFuncGen {
       memberAccess: new StorageMemberAccessGen(ast),
       read: storageReadGen,
       staticArrayIndexAccess: new StorageStaticArrayIndexAccessGen(ast),
+      toCallData: new StorageToCalldataGen(this.implementation.dynArray, storageReadGen, ast),
       toMemory: new StorageToMemoryGen(this.implementation.dynArray, ast),
       toStorage: new StorageToStorageGen(this.implementation.dynArray, ast),
       write: storageWrite,
