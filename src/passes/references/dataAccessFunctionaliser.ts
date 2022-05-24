@@ -51,7 +51,6 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     // First, collect data before any processing
     const originalNode = node;
     const [actualLoc, expectedLoc] = this.getLocations(node);
-    console.log(`Visiting ${printNode(node)} ${actualLoc}->${expectedLoc} as Expression`);
     if (expectedLoc === undefined) {
       return this.commonVisit(node, ast);
     }
