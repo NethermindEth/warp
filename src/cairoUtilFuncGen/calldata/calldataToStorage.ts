@@ -4,9 +4,12 @@ import {
   ASTNode,
   DataLocation,
   Expression,
+  generalizeType,
   getNodeType,
   PointerType,
+  StructDefinition,
   TypeNode,
+  UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
@@ -14,7 +17,7 @@ import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cai
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { StringIndexedFuncGen } from '../base';
+import { add, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from '../storage/dynArray';
 import { StorageWriteGen } from '../storage/storageWrite';
 
@@ -28,15 +31,15 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
   }
 
   gen(storageLocation: Expression, calldataLocation: Expression, nodeInSourceUnit?: ASTNode) {
-    const storageType = getNodeType(storageLocation, this.ast.compilerVersion);
-    const calldataType = getNodeType(calldataLocation, this.ast.compilerVersion);
+    const storageType = generalizeType(getNodeType(storageLocation, this.ast.compilerVersion))[0];
+    const calldataType = generalizeType(getNodeType(calldataLocation, this.ast.compilerVersion))[0];
 
     if (
-      calldataType instanceof PointerType &&
-      calldataType.to instanceof ArrayType &&
-      calldataType.to.size === undefined
+      (calldataType instanceof ArrayType && calldataType.size === undefined) ||
+      (calldataType instanceof UserDefinedType &&
+        calldataType.definition instanceof StructDefinition)
     ) {
-      const name = this.getOrCreate(calldataType.to);
+      const name = this.getOrCreate(calldataType);
       const functionStub = createCairoFunctionStub(
         name,
         [
@@ -62,9 +65,57 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
       return this.createDynamicArray(key, type);
     }
 
+    if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+      return this.createStruct(key, type);
+    }
+
     throw new NotSupportedYetError(
       `Copying ${printTypeNode(type)} from calldata to storage is not supported yet`,
     );
+  }
+
+  private createStruct(key: string, structType: UserDefinedType) {
+    assert(structType.definition instanceof StructDefinition);
+
+    const cairoStruct = CairoType.fromSol(
+      structType,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    );
+    const structDef = structType.definition;
+
+    const structName = `struct_${structDef.name}`;
+
+    let offset = 0;
+    const copyInstructions = structDef.vMembers.map((varDecl) => {
+      const varType = getNodeType(varDecl, this.ast.compilerVersion);
+      const varCairoTypeWidth = CairoType.fromSol(
+        varType,
+        this.ast,
+        TypeConversionContext.CallDataRef,
+      ).width;
+
+      const funcName = this.storageWriteGen.getOrCreate(varType);
+      const location = add('loc', offset);
+      const member = `${structName}.${varDecl.name}`;
+
+      offset += varCairoTypeWidth;
+
+      return `    ${funcName}(${location}, ${member})`;
+    });
+
+    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
+    const funcName = `cd_struct_${structDef.name}_to_storage`;
+    const code = [
+      `func ${funcName}${implicits}(loc : felt, ${structName} : ${cairoStruct.toString()}) -> (loc : felt):`,
+      `   alloc_locals`,
+      ...copyInstructions,
+      `   return (loc)`,
+      `end`,
+    ].join('\n');
+
+    this.generatedFunctions.set(key, { name: funcName, code: code });
+    return funcName;
   }
 
   private createDynamicArray(key: string, arrayType: ArrayType): string {
@@ -85,7 +136,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const pointerType = `${cairoElementType.toString()}*`;
 
-    const funcName = `cd_to_storage${this.generatedFunctions.size}`;
+    const funcName = `cd_dynamic_array_to_storage${this.generatedFunctions.size}`;
     const code = [
       `func ${funcName}_write${implicits}(loc : felt, len : felt, elem: ${pointerType}):`,
       `   alloc_locals`,
