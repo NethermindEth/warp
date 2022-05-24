@@ -1727,6 +1727,69 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('storage', [
+          new Dir('delete', [
+            File.Simple('value_dyn_array', [
+              Expect.Simple('tryDeleteX', [], ['28']),
+              Expect.Simple('tryDeleteY', [], ['71', '0']),
+            ]),
+            // Uncomment once Storage -> Calldata copy is implemented
+            // File.Simple('ref_dyn_array', [Expect.Simple('tryDeleteZ', [], ['0', '0', '0'])]),
+            /* Uncomment once Storage -> Calldata copy is implemented
+            File.Simple('struct', [
+              Expect.Simple(
+                'deleteValueStruct',
+                [],
+                ['0', '0', '0', '0', '0', '0', '0'],
+                'delete struct with value members',
+              ),
+              new Expect('delete struct with dynamic array', [
+                ['setDynArrayStructVal', ['3'], [], '0'],
+                ['setDynArrayStructVal', ['5'], [], '0'],
+                ['setDynArrayStructVal', ['7'], [], '0'],
+                ['deleteDynArrayStruct', [], [], '0'],
+                ['getDynArrayStruct', ['0', '0'], null, '0'],
+                ['setDynArrayStructVal', ['15'], [], '0'],
+                ['getDynArrayStruct', ['0', '0'], ['15', '15'], '0'],
+              ]),
+              new Expect('delete struct with mapping', [
+                ['setMapStructVal', ['5', '10'], [], '0'],
+                ['deleteMapStruct', [], [], '0'],
+                ['getMapStruct', ['5'], ['10'], '0'],
+              ]),
+            ]),
+            */
+            File.Simple('map_2d_dyn_array', [
+              new Expect('delete 2d dynamic arrays with mappings', [
+                ['n1', ['3', '0', '5', '0'], [], '0'],
+                ['map', ['3', '0'], ['5', '0'], '0'],
+                ['d', [], ['0', '0'], '0'],
+                ['n2', [], [], '0'],
+                ['map', ['3', '0'], ['5', '0'], '0'],
+              ]),
+            ]),
+            File.Simple('static_array', [
+              new Expect('delete small static array', [
+                ['setSmall', ['0', '1'], [], '0'],
+                ['setSmall', ['0', '2'], [], '0'],
+                ['setSmall', ['2', '3'], [], '0'],
+                ['getSmall', ['0', '1'], ['2'], '0'],
+                ['deleteSmall', [], [], '0'],
+                ['getSmall', ['0', '1'], null, '0'],
+                ['setSmall', ['2', '15'], [], '0'],
+                ['getSmall', ['2', '0'], ['15'], '0'],
+              ]),
+              new Expect('delete big static array', [
+                ['setBig', ['0', '1'], [], '0'],
+                ['setBig', ['0', '2'], [], '0'],
+                ['setBig', ['2', '3'], [], '0'],
+                ['getBig', ['0', '1'], ['2'], '0'],
+                ['deleteBig', [], [], '0'],
+                ['getBig', ['0', '1'], null, '0'],
+                ['setBig', ['2', '15'], [], '0'],
+                ['getBig', ['2', '0'], ['15'], '0'],
+              ]),
+            ]),
+          ]),
           File.Simple('dynamic_arrays', [
             Expect.Simple('get', ['0', '0'], null, 'out of range get should fail'),
             Expect.Simple('set', ['0', '0', '0'], null, 'out of range set should fail'),
