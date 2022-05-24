@@ -36,6 +36,7 @@ import {
   StructuredDocumentation,
   StructDefinition,
   EventDefinition,
+  EmitStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
@@ -237,6 +238,14 @@ function cloneASTNodeImpl<T extends ASTNode>(
       replaceId(node.id, ast, remappedIds),
       node.src,
       cloneASTNodeImpl(node.vExpression, ast, remappedIds),
+      cloneDocumentation(node.documentation, ast, remappedIds),
+      node.raw,
+    );
+  } else if (node instanceof EmitStatement) {
+    newNode = new EmitStatement(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      cloneASTNodeImpl(node.vEventCall, ast, remappedIds),
       cloneDocumentation(node.documentation, ast, remappedIds),
       node.raw,
     );
