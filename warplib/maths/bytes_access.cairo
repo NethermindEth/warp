@@ -26,9 +26,9 @@ func byte_at_index{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(base : felt, 
     return (res)
 end
 
-func byte256_at_index{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(base : Uint256, index : felt) -> (
-    res : felt
-):
+func byte256_at_index{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
+    base : Uint256, index : felt
+) -> (res : felt):
     let index_felt8 = index * 8
     let (base_felt) = narrow_safe(base)
     let (offset) = pow2(index_felt8)
@@ -37,9 +37,9 @@ func byte256_at_index{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(base : Uin
     return (res)
 end
 
-func byte256_at_index_uint256{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(base : Uint256, index : Uint256) -> (
-    res : felt
-):
+func byte256_at_index_uint256{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
+    base : Uint256, index : Uint256
+) -> (res : felt):
     alloc_locals
     let (index_felt) = narrow_safe(index)
     let index_felt8 = index_felt * 8
