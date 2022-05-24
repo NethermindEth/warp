@@ -275,13 +275,19 @@ export const expectations = flatten(
         ]),
         new Dir('copy_calldata_to_storage', [
           File.Simple('dynamic_arrays', [
-            new Expect('felt dynamic arrays are correctly copied', [
+            new Expect('felt dynamic arrays is copied from calldata to storage', [
               ['setX', ['3', '2', '3', '5'], [], '0'],
               ['getX', [], ['8'], '0'],
             ]),
-            new Expect('uint256 dynamic array are correctly copied', [
+            new Expect('uint256 dynamic array is copied form calldata to storage', [
               ['setY', ['3', '2', '0', '3', '0', '5', '0'], [], '0'],
               ['getY', [], ['8', '0'], '0'],
+            ]),
+          ]),
+          File.Simple('structs', [
+            new Expect('struct is copied from calldata to storage', [
+              ['setS', ['3', '5', '0'], [], '0'],
+              ['getS', [], ['8', '0'], '0'],
             ]),
           ]),
         ]),
