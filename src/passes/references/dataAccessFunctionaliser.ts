@@ -20,7 +20,6 @@ import {
   generalizeType,
   StructDefinition,
   TypeNode,
-  VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
@@ -54,11 +53,15 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     // First, collect data before any processing
     const originalNode = node;
     const [actualLoc, expectedLoc] = this.getLocations(node);
+    console.log(`Visiting ${printNode(node)} ${actualLoc}->${expectedLoc} as Expression`);
     if (expectedLoc === undefined) {
       return this.commonVisit(node, ast);
     }
 
     const nodeType = getNodeType(node, ast.compilerVersion);
+    console.log(`    ${printTypeNode(nodeType)}`);
+    console.log(`    Stored Pointer: ${isStoredPointer(node, ast)}`);
+    console.log(`    LValue: ${isLValue(node)}`);
     const requiresExtraRead = isStoredPointer(node, ast) && !isLValue(node);
     const utilFuncGen = ast.getUtilFuncGen(node);
     const parent = node.parent;
@@ -138,8 +141,9 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
+    const leaveAsCairoAssignment = shouldLeaveAsCairoAssignment(node.vLeftHandSide);
     this.visitExpression(node, ast);
-    if (shouldLeaveAsCairoAssignment(node.vLeftHandSide)) {
+    if (leaveAsCairoAssignment) {
       return;
     }
 
@@ -352,16 +356,20 @@ function shouldLeaveAsCairoAssignment(lhs: Expression): boolean {
 function isStoredPointer(node: Expression, ast: AST): boolean {
   const type = getNodeType(node, ast.compilerVersion);
   return (
-    isDynamicStorageArray(type) ||
-    (isComplexMemoryType(type) && (node instanceof IndexAccess || node instanceof MemberAccess))
+    (isDynamicStorageArray(type) || isComplexMemoryType(type)) &&
+    (node instanceof IndexAccess ||
+      node instanceof MemberAccess ||
+      (node instanceof Identifier &&
+        node.vReferencedDeclaration instanceof VariableDeclaration &&
+        node.vReferencedDeclaration.stateVariable))
   );
 }
 
 function isLValue(node: Expression): boolean {
   return (
-    (node.parent instanceof Assignment &&
-      (node.parent.vLeftHandSide === node || shouldLeaveAsCairoAssignment(node.parent))) ||
-    node.parent instanceof VariableDeclarationStatement
+    node.parent instanceof Assignment &&
+    node.parent.vLeftHandSide === node &&
+    shouldLeaveAsCairoAssignment(node)
   );
 }
 
