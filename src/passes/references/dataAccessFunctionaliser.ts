@@ -20,6 +20,7 @@ import {
   generalizeType,
   StructDefinition,
   TypeNode,
+  VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
@@ -355,12 +356,17 @@ function shouldLeaveAsCairoAssignment(lhs: Expression): boolean {
 function isStoredPointer(node: Expression, ast: AST): boolean {
   const type = getNodeType(node, ast.compilerVersion);
   return (
-    isDynamicStorageArray(type) || (isComplexMemoryType(type) && !(node instanceof Identifier))
+    isDynamicStorageArray(type) ||
+    (isComplexMemoryType(type) && (node instanceof IndexAccess || node instanceof MemberAccess))
   );
 }
 
 function isLValue(node: Expression): boolean {
-  return node.parent instanceof Assignment && node.parent.vLeftHandSide === node;
+  return (
+    (node.parent instanceof Assignment &&
+      (node.parent.vLeftHandSide === node || shouldLeaveAsCairoAssignment(node.parent))) ||
+    node.parent instanceof VariableDeclarationStatement
+  );
 }
 
 function isDynamicStorageArray(type: TypeNode): boolean {
