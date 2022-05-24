@@ -28,10 +28,11 @@ export class DynArrayReturner extends ASTMapper {
     if (isExternallyVisible(node) && body !== undefined) {
       const returnStatements = node
         .getChildren(true)
-        .filter((n) => n instanceof Return && n.firstChild !== undefined);
+        .filter((n) => n instanceof Return && n.vExpression !== undefined);
 
-      returnStatements.forEach((statement) => {
-        const retExpression = statement.firstChild;
+      returnStatements.forEach((retStatement) => {
+        assert(retStatement instanceof Return);
+        const retExpression = retStatement.vExpression;
         assert(retExpression instanceof Expression);
         this.createDynArrayStructDefs(retExpression, ast);
       });
