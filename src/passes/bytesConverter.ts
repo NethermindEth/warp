@@ -54,17 +54,19 @@ export class BytesConverter extends ASTMapper {
   }
 
   visitIndexAccess(node: IndexAccess, ast: AST): void {
-    this.commonVisit(node, ast);
-
-    if (!node.vIndexExpression) return;
-    if (!(getNodeType(node, ast.compilerVersion) instanceof FixedBytesType)) return;
-
     if (
       !(
-        generalizeType(getNodeType(node.vBaseExpression, ast.compilerVersion))[0] instanceof IntType
+        node.vIndexExpression &&
+        generalizeType(getNodeType(node.vBaseExpression, ast.compilerVersion))[0] instanceof
+          FixedBytesType &&
+        getNodeType(node, ast.compilerVersion) instanceof FixedBytesType
       )
-    )
+    ) {
+      const typeNode = replaceFixedBytesType(getNodeType(node, ast.compilerVersion));
+      node.typeString = generateExpressionTypeString(typeNode);
+      this.commonVisit(node, ast);
       return;
+    }
 
     const baseTypeName = typeNameFromTypeNode(
       getNodeType(node.vBaseExpression, ast.compilerVersion),
@@ -76,8 +78,10 @@ export class BytesConverter extends ASTMapper {
         ? createUint256TypeName(ast)
         : typeNameFromTypeNode(getNodeType(node.vIndexExpression, ast.compilerVersion), ast);
 
+    // console.log(baseTypeName.typeString, indexTypeName.typeString);
+
     const functionStub = createCairoFunctionStub(
-      indexTypeName.typeString !== 'uint256' ? 'byte_at_index' : 'byte_at_index_uint256',
+      selectWarplibFunction(baseTypeName, indexTypeName),
       [
         ['base', baseTypeName],
         ['index', indexTypeName],
@@ -96,9 +100,12 @@ export class BytesConverter extends ASTMapper {
     ast.registerImport(
       call,
       'warplib.maths.bytes_access',
-      indexTypeName.typeString !== 'uint256' ? 'byte_at_index' : 'byte_at_index_uint256',
+      selectWarplibFunction(baseTypeName, indexTypeName),
     );
     ast.replaceNode(node, call, node.parent);
+    const typeNode = replaceFixedBytesType(getNodeType(call, ast.compilerVersion));
+    call.typeString = generateExpressionTypeString(typeNode);
+    this.commonVisit(call, ast);
   }
 
   visitTypeName(node: TypeName, ast: AST): void {
@@ -141,4 +148,17 @@ function replaceFixedBytesType(type: TypeNode): TypeNode {
   } else {
     return type;
   }
+}
+
+function selectWarplibFunction(baseTypeName: TypeName, indexTypeName: TypeName): string {
+  if (indexTypeName.typeString === 'uint256' && baseTypeName.typeString === 'bytes32') {
+    return 'byte256_at_index_uint256';
+  }
+  if (indexTypeName.typeString === 'uint256') {
+    return 'byte_at_index_uint256';
+  }
+  if (baseTypeName.typeString === 'bytes32') {
+    return 'byte256_at_index';
+  }
+  return 'byte_at_index';
 }
