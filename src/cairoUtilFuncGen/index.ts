@@ -26,10 +26,12 @@ import { StorageToMemoryGen } from './storage/storageToMemory';
 import { StorageWriteGen } from './storage/storageWrite';
 import { MemoryToCallDataGen } from './memory/memoryToCalldata';
 import { MemoryToStorageGen } from './memory/memoryToStorage';
+import { CalldataToStorageGen } from './calldata/calldataToStorage';
 
 export class CairoUtilFuncGen {
   calldata: {
     toMemory: DynArrayLoader;
+    toStorage: CalldataToStorageGen;
   };
   memory: {
     arrayLiteral: MemoryArrayLiteralGen;
@@ -118,6 +120,7 @@ export class CairoUtilFuncGen {
     };
     this.calldata = {
       toMemory: new DynArrayLoader(ast),
+      toStorage: new CalldataToStorageGen(this.implementation.dynArray, storageWrite, ast),
     };
   }
 
