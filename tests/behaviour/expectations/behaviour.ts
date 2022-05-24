@@ -410,6 +410,34 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('copy_storage_to_calldata', [
+          File.Simple('dynamic_arrays', [
+            new Expect('felt dynamic array from storage to calldata', [
+              ['pushToX', ['1'], [], '0'],
+              ['pushToX', ['2'], [], '0'],
+              ['pushToX', ['3'], [], '0'],
+              ['getX', [], ['1', '2', '3'], '0'],
+            ]),
+            new Expect('uint256 dynamic array from storage to calldata', [
+              ['pushToY', ['1', '0'], [], '0'],
+              ['pushToY', ['2', '0'], [], '0'],
+              ['pushToY', ['3', '0'], [], '0'],
+              ['getY', [], ['1', '0', '2', '0', '3', '0'], '0'],
+            ]),
+          ]),
+          File.Simple('static_arrays', [
+            new Expect('static array copy from storage to calldata', [
+              ['setX', ['1', '0', '2', '0', '3', '0'], [], '0'],
+              ['getX', [], ['1', '0', '2', '0', '3', '0'], '0'],
+            ]),
+          ]),
+          File.Simple('structs', [
+            new Expect('structs copy from storage to calldata', [
+              ['setS', ['5', '7', '0'], [], '0'],
+              ['getS', [], ['5', '7', '0'], '0'],
+            ]),
+          ]),
+        ]),
         new Dir('copy_storage_to_memory', [
           File.Simple('dynamic_arrays', [
             Expect.Simple('copySimpleArrayLength', [], ['3', '0']),
