@@ -341,6 +341,57 @@ export const expectations = flatten(
             Expect.Simple('getS', [], ['2', '3', '5', '7']),
           ]),
         ]),
+        new Dir('copy_storage_to_storage', [
+          File.Simple('dynamic_arrays', [
+            new Expect('copy values', [
+              ['setArr1', ['5', '7', '6', ' 8', '3', '2', '1', ' 9'], [], '0'],
+              ['copy', [], [], '0'],
+              ['getArr1', [], ['5', '7', '6', ' 8', '3', '2', '1', ' 9'], '0'],
+              ['getArr2', [], ['5', '7', '6', ' 8', '3', '2', '1', ' 9'], '0'],
+            ]),
+          ]),
+          File.Simple('scalars', [
+            new Expect('copy values', [
+              ['getValues', [], ['0', '0', '0'], '0'],
+              ['set8', ['5'], [], '0'],
+              ['copy8To256', [], [], '0'],
+              ['getValues', [], ['5', '5', '0'], '0'],
+              ['set256', ['4', '3'], [], '0'],
+              ['copy256To8', [], [], '0'],
+              ['getValues', [], ['4', '4', '3'], '0'],
+            ]),
+          ]),
+          File.Simple('static_arrays', [
+            new Expect('copy values', [
+              ['setArr1', ['5', '7', '6', ' 8'], [], '0'],
+              ['copy', [], [], '0'],
+              ['getArr1', [], ['5', '7', '6', ' 8'], '0'],
+              ['getArr2', [], ['5', '7', '6', ' 8'], '0'],
+            ]),
+          ]),
+          File.Simple('structs', [
+            new Expect('copy full struct', [
+              ['getStruct1', [], ['0', '0', '0', '0', '0'], '0'],
+              ['getStruct2', [], ['0', '0', '0', '0', '0'], '0'],
+              ['setStruct1', ['1', '3', '1', '4', '2'], [], '0'],
+              ['getStruct1', [], ['1', '3', '1', '4', '2'], '0'],
+              ['getStruct2', [], ['0', '0', '0', '0', '0'], '0'],
+              ['copyFull', [], [], '0'],
+              ['getStruct1', [], ['1', '3', '1', '4', '2'], '0'],
+              ['getStruct2', [], ['1', '3', '1', '4', '2'], '0'],
+            ]),
+            new Expect('copy inner struct', [
+              ['getStruct1', [], ['1', '3', '1', '4', '2'], '0'],
+              ['getStruct2', [], ['1', '3', '1', '4', '2'], '0'],
+              ['setStruct1', ['0', '8', '7', '6', '5'], [], '0'],
+              ['getStruct1', [], ['0', '8', '7', '6', '5'], '0'],
+              ['getStruct2', [], ['1', '3', '1', '4', '2'], '0'],
+              ['copyInner', [], [], '0'],
+              ['getStruct1', [], ['0', '8', '7', '6', '5'], '0'],
+              ['getStruct2', [], ['1', '8', '7', '4', '2'], '0'],
+            ]),
+          ]),
+        ]),
         new Dir('cross_contract_calls', [
           File.Simple('simple', [Expect.Simple('f', [], ['69', '0'])], 'A'),
           File.Simple(
