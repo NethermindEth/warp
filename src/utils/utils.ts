@@ -47,8 +47,8 @@ import { Class } from './typeConstructs';
 const uint128 = BigInt('0x100000000000000000000000000000000');
 
 export function divmod(x: bigint, y: bigint): [bigint, bigint] {
-  const div: bigint = BigInt(x / y);
-  const rem: bigint = BigInt(x % y);
+  const div = BigInt(x / y);
+  const rem = BigInt(x % y);
   return [div, rem];
 }
 
@@ -354,8 +354,7 @@ export function splitDarray(
 }
 
 export function toUintOrFelt(value: bigint, nBits: number): bigint[] {
-  let val: bigint;
-  val = bigintToTwosComplement(BigInt(value.toString()), nBits);
+  const val = bigintToTwosComplement(BigInt(value.toString()), nBits);
   if (nBits > 251) {
     const [high, low] = divmod(val, uint128);
     return [low, high];

@@ -2,7 +2,6 @@ import { readFileSync } from 'fs';
 import prompts from 'prompts';
 import { FunctionVisibility, SourceUnit } from 'solc-typed-ast';
 import Web3 from 'web3';
-import { ICallOrInvokeProps } from '..';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
@@ -14,7 +13,7 @@ type Input = (string | number | Input)[];
 export class ABIExtractor extends ASTMapper {
   visitSourceUnit(node: SourceUnit, ast: AST): void {
     node.vFunctions.forEach((fd) =>
-      // @ts-ignore
+      // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
       addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2')),
     );
     node.vContracts.forEach((cd) => {
@@ -23,7 +22,7 @@ export class ABIExtractor extends ASTMapper {
         const fakeConstructor = cloneASTNode(cd.vConstructor, ast);
         fakeConstructor.isConstructor = false;
         fakeConstructor.name = 'constructor';
-        // @ts-ignore
+        // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
         addSignature(node, ast, fakeConstructor.canonicalSignature('ABIEncoderV2'));
       }
       cd.vFunctions.forEach((fd) => {
@@ -31,7 +30,7 @@ export class ABIExtractor extends ASTMapper {
           fd.visibility === FunctionVisibility.External ||
           fd.visibility === FunctionVisibility.Public
         )
-          // @ts-ignore
+          // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
           addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2'));
       });
     });
@@ -103,7 +102,7 @@ function validateInput(input: any) {
 }
 
 function parseSolAbi(filePath: string): string[] {
-  const re = /# SolABI: (?<abi>[\w\(\)\]\[, "]*)/;
+  const re = /# SolABI: (?<abi>[\w()\][, "]*)/;
   const abiString = readFileSync(filePath, 'utf-8');
   const matches = abiString.match(re);
   if (matches === null || matches.groups === undefined) {
