@@ -113,6 +113,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/namedArgs/constructor', 'Success'],
   ['example_contracts/namedArgs/events_and_errors', 'Success'],
   ['example_contracts/namedArgs/function', 'Success'],
+  ['example_contracts/nested_memory_darray', 'Success'],
   ['example_contracts/nested_static_array_struct', 'Success'],
   ['example_contracts/nested_struct_static_array', 'Success'],
   ['example_contracts/nested_structs', 'Success'],
