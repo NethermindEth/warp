@@ -404,7 +404,7 @@ class NotImplementedWriter extends CairoASTNodeWriter {
 
 class ParameterListWriter extends CairoASTNodeWriter {
   writeInner(node: ParameterList, writer: ASTWriter): SrcDesc {
-    const functionDef = node.parent;
+    const functionDef = node.getClosestParentByType(FunctionDefinition);
     assert(functionDef instanceof FunctionDefinition);
     const topLevelTypeConversionContext =
       node.parent instanceof FunctionDefinition
