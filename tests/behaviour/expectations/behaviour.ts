@@ -273,6 +273,18 @@ export const expectations = flatten(
             Expect.Simple('widthsignNutoi', ['32768'], ['32768']),
           ]),
         ]),
+        new Dir('copy_calldata_to_storage', [
+          File.Simple('dynamic_arrays', [
+            new Expect('felt dynamic arrays are correctly copied', [
+              ['setX', ['3', '2', '3', '5'], [], '0'],
+              ['getX', [], ['8'], '0'],
+            ]),
+            new Expect('uint256 dynamic array are correctly copied', [
+              ['setY', ['3', '2', '0', '3', '0', '5', '0'], [], '0'],
+              ['getY', [], ['8', '0'], '0'],
+            ]),
+          ]),
+        ]),
         new Dir('copy_memory_to_storage', [
           File.Simple('dynamic_arrays', [
             new Expect('arrays are initialised correctly', [
