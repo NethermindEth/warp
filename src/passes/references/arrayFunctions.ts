@@ -34,7 +34,6 @@ export class ArrayFunctions extends ReferenceSubPass {
     if (node.vFunctionName === 'pop') {
       const replacement = ast.getUtilFuncGen(node).storage.dynArrayPop.gen(node);
       this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
-      this.expectedDataLocations.set(replacement.vArguments[0], DataLocation.Default);
     } else if (node.vFunctionName === 'push') {
       let replacement: FunctionCall;
       if (node.vArguments.length > 0) {
@@ -44,7 +43,6 @@ export class ArrayFunctions extends ReferenceSubPass {
         replacement = ast.getUtilFuncGen(node).storage.dynArrayPush.withoutArg.gen(node);
         this.replace(node, replacement, undefined, DataLocation.Storage, expectedLoc, ast);
       }
-      this.expectedDataLocations.set(replacement.vArguments[0], DataLocation.Default);
     }
   }
 
@@ -81,10 +79,6 @@ export class ArrayFunctions extends ReferenceSubPass {
         // The length function returns the actual length rather than a storage pointer to it,
         // so the new actual location is Default
         this.replace(node, replacement, undefined, DataLocation.Default, expectedLoc, ast);
-        // This may have to be replaced with an actual read generation once dynamic array copy semantics
-        // are in place
-        if (baseType.location === DataLocation.Storage)
-          this.expectedDataLocations.set(replacement.vArguments[0], DataLocation.Default);
       }
     }
   }
