@@ -316,7 +316,10 @@ function insertConversion(expression: Expression, targetType: TypeNode, ast: AST
   const typeName = typeNameFromTypeNode(targetType, ast);
   assert(
     typeName instanceof ElementaryTypeName,
-    `Attempted elementary conversion to non-elementary type ${printTypeNode(targetType)}`,
+    `Attempted elementary conversion to non-elementary type: ${getNodeType(
+      expression,
+      ast.compilerVersion,
+    ).pp()} -> ${printTypeNode(targetType)}`,
   );
   const parent = expression.parent;
   const call = createElementaryConversionCall(typeName, expression, ast);

@@ -71,6 +71,11 @@ export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNod
 }
 
 export function typeNameToSpecializedTypeNode(typeName: TypeName, loc: DataLocation): TypeNode {
+  try {
+    typeNameToTypeNode(typeName);
+  } catch {
+    console.log(typeName);
+  }
   return specializeType(typeNameToTypeNode(typeName), loc);
 }
 

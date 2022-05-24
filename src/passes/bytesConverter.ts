@@ -18,6 +18,7 @@ import {
   IndexAccess,
   Literal,
   BytesType,
+  StringType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -150,6 +151,8 @@ function replaceBytesType(type: TypeNode): TypeNode {
   } else if (type instanceof TypeNameType) {
     return new TypeNameType(replaceBytesType(type.type), type.src);
   } else if (type instanceof BytesType) {
+    return new ArrayType(new IntType(8, false, type.src), undefined, type.src);
+  } else if (type instanceof StringType) {
     return new ArrayType(new IntType(8, false, type.src), undefined, type.src);
   } else {
     return type;
