@@ -138,8 +138,9 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
+    this.visitExpression(node, ast);
     if (shouldLeaveAsCairoAssignment(node.vLeftHandSide)) {
-      return this.visitExpression(node, ast);
+      return;
     }
 
     const [actualLoc, expectedLoc] = this.getLocations(node);
@@ -157,13 +158,11 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           .getUtilFuncGen(node)
           .storage.toStorage.gen(node.vRightHandSide, node.vLeftHandSide);
         this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
-        this.dispatchVisit(copyFunc, ast);
       } else if (fromLoc === DataLocation.Memory) {
         const copyFunc = ast
           .getUtilFuncGen(node)
           .memory.toStorage.gen(node.vLeftHandSide, node.vRightHandSide);
         this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
-        this.dispatchVisit(copyFunc, ast);
       } else if (fromLoc === DataLocation.CallData) {
         throw new NotSupportedYetError(`CallData to storage assignment not implemented yet`);
       } else {
@@ -171,10 +170,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           .getUtilFuncGen(node)
           .storage.write.gen(node.vLeftHandSide, node.vRightHandSide);
         this.replace(node, writeFunc, undefined, actualLoc, expectedLoc, ast);
-        this.dispatchVisit(writeFunc, ast);
       }
-    } else {
-      this.visitExpression(node, ast);
     }
   }
 
