@@ -803,6 +803,7 @@ class CairoAssertWriter extends CairoASTNodeWriter {
 
 class ElementaryTypeNameExpressionWriter extends CairoASTNodeWriter {
   writeInner(_node: ElementaryTypeNameExpression, _writer: ASTWriter): SrcDesc {
+    //ElementaryTypeNameExpressions left in the tree by this point being unreferenced expressions, and that this needs to work with out ineffectual statement handling
     return ['0'];
   }
 }

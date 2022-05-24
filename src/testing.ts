@@ -119,7 +119,6 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/payable_function', 'Success'],
   ['example_contracts/pure_function', 'Success'],
   // Returns the dynamic array memory pointer instead of it's values
-  ['example_contracts/return_dyn_array', 'CairoCompileFailed'],
   ['example_contracts/return_dyn_array', 'NotSupportedYet'],
   ['example_contracts/return_var_capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],
@@ -178,8 +177,6 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/userdefinedidentifier', 'Success'],
   ['example_contracts/variable_declarations', 'Success'],
   ['example_contracts/view_function', 'Success'],
-  // Cannot import with a - in the filename
-  ['example_contracts/file-with-minus-sign-included', 'WillNotSupport'],
   ['example_contracts/typestrings/enumArrays', 'Success'],
 ]);
 
