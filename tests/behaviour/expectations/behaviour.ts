@@ -284,6 +284,12 @@ export const expectations = flatten(
               ['getY', [], ['8', '0'], '0'],
             ]),
           ]),
+          File.Simple('static_arrays', [
+            new Expect('static array is copied from calldata to storage', [
+              ['setX', ['3', '0', '5', '0', '1', '0'], [], '0'],
+              ['getX', [], ['9', '0'], '0'],
+            ]),
+          ]),
           File.Simple('structs', [
             new Expect('struct is copied from calldata to storage', [
               ['setS', ['3', '5', '0'], [], '0'],
