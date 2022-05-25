@@ -117,6 +117,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/nested_structs', 'Success'],
   ['example_contracts/payable_function', 'Success'],
   ['example_contracts/pure_function', 'Success'],
+  // Returns the dynamic array memory pointer instead of it's values
   ['example_contracts/return_dyn_array', 'NotSupportedYet'],
   ['example_contracts/return_var_capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],

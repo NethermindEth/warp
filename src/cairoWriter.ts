@@ -802,12 +802,9 @@ class CairoAssertWriter extends CairoASTNodeWriter {
 }
 
 class ElementaryTypeNameExpressionWriter extends CairoASTNodeWriter {
-  writeInner(node: ElementaryTypeNameExpression, _writer: ASTWriter): SrcDesc {
-    assert(
-      node.typeString === 'type(address)',
-      `Unexpected elementaryTypeNameExpression ${node.typeString}`,
-    );
-    return [``];
+  writeInner(_node: ElementaryTypeNameExpression, _writer: ASTWriter): SrcDesc {
+    //ElementaryTypeNameExpressions left in the tree by this point being unreferenced expressions, and that this needs to work with out ineffectual statement handling
+    return ['0'];
   }
 }
 
