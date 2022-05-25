@@ -404,9 +404,7 @@ class NotImplementedWriter extends CairoASTNodeWriter {
 
 class ParameterListWriter extends CairoASTNodeWriter {
   writeInner(node: ParameterList, writer: ASTWriter): SrcDesc {
-    const functionDef = node.getClosestParentByType(FunctionDefinition);
-    assert(functionDef instanceof FunctionDefinition);
-    const topLevelTypeConversionContext =
+    const nodeParentContext =
       node.parent instanceof FunctionDefinition
         ? isExternallyVisible(node.parent)
           ? TypeConversionContext.CallDataRef
@@ -418,20 +416,25 @@ class ParameterListWriter extends CairoASTNodeWriter {
       const typeConversionContext =
         value.storageLocation === DataLocation.CallData
           ? TypeConversionContext.CallDataRef
-          : topLevelTypeConversionContext;
+          : nodeParentContext;
 
       const tp = CairoType.fromSol(
         getNodeType(value, writer.targetCompilerVersion),
         this.ast,
         typeConversionContext,
       );
-      if (tp instanceof CairoDynArray && isExternallyVisible(functionDef)) {
+      if (
+        tp instanceof CairoDynArray &&
+        node.parent instanceof FunctionDefinition &&
+        isExternallyVisible(node.parent)
+      ) {
         return value.name
           ? `${value.name}_len : ${tp.vLen.toString()}, ${value.name} : ${tp.vPtr.toString()}`
           : `ret${i}_len : ${tp.vLen.toString()}, ret${i} : ${tp.vPtr.toString()}`;
       } else if (
         tp instanceof CairoDynArray &&
-        functionDef.visibility === FunctionVisibility.Internal
+        node.parent instanceof FunctionDefinition &&
+        node.parent.visibility === FunctionVisibility.Internal
       ) {
         return value.name ? `${value.name} : ${tp.toString()}` : `ret${i} : ${tp.toString()}`;
       }
