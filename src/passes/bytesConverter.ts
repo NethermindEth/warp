@@ -78,8 +78,6 @@ export class BytesConverter extends ASTMapper {
         ? createUint256TypeName(ast)
         : typeNameFromTypeNode(getNodeType(node.vIndexExpression, ast.compilerVersion), ast);
 
-    // console.log(baseTypeName.typeString, indexTypeName.typeString);
-
     const functionStub = createCairoFunctionStub(
       selectWarplibFunction(baseTypeName, indexTypeName),
       [
