@@ -1,6 +1,5 @@
 import assert from 'assert';
 import {
-  ArrayType,
   Assignment,
   DataLocation,
   Expression,
@@ -10,12 +9,10 @@ import {
   IndexAccess,
   MappingType,
   MemberAccess,
-  PointerType,
-  StructDefinition,
   TypeNode,
-  UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { isComplexMemoryType, isDynamicStorageArray } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
 
@@ -72,24 +69,6 @@ export class StoredPointerDereference extends ReferenceSubPass {
       this.visitExpression(node, ast);
     }
   }
-}
-
-function isDynamicStorageArray(type: TypeNode): boolean {
-  return (
-    type instanceof PointerType &&
-    type.location === DataLocation.Storage &&
-    type.to instanceof ArrayType &&
-    type.to.size === undefined
-  );
-}
-
-function isComplexMemoryType(type: TypeNode): boolean {
-  return (
-    type instanceof PointerType &&
-    type.location === DataLocation.Memory &&
-    (type.to instanceof ArrayType ||
-      (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
-  );
 }
 
 function isMapping(type: TypeNode): boolean {

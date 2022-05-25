@@ -161,6 +161,7 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
       const constantValue = writer.write(node.vValue);
       return [[documentation, `const ${node.name} = ${constantValue}`].join('\n')];
     }
+    // TODO check that this can be removed
     if (node.stateVariable) {
       let vals = [];
       assert(
@@ -359,7 +360,7 @@ class CairoContractWriter extends CairoASTNodeWriter {
       .join('\n');
 
     const storageCode =
-      node.usedStorage > 0
+      node.usedStorage > 0 || node.usedIds > 0
         ? [
             '@storage_var',
             'func WARP_STORAGE(index: felt) -> (val: felt):',
@@ -533,9 +534,13 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     if (node.kind === FunctionKind.Constructor) {
       const contract = node.vScope;
       assert(contract instanceof CairoContract);
-      if (contract.usedStorage !== 0) {
-        return `WARP_USED_STORAGE.write(${contract.usedStorage})`;
+      if (contract.usedStorage === 0 && contract.usedIds === 0) {
+        return null;
       }
+      return [
+        contract.usedStorage === 0 ? '' : `WARP_USED_STORAGE.write(${contract.usedStorage})`,
+        contract.usedIds === 0 ? '' : `WARP_NAMEGEN.write(${contract.usedStorage})`,
+      ].join(`\n`);
     }
     return null;
   }

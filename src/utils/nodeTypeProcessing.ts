@@ -158,3 +158,21 @@ export function isDynamicCallDataArray(type: TypeNode): boolean {
     type.to.size === undefined
   );
 }
+
+export function isDynamicStorageArray(type: TypeNode): boolean {
+  return (
+    type instanceof PointerType &&
+    type.location === DataLocation.Storage &&
+    type.to instanceof ArrayType &&
+    type.to.size === undefined
+  );
+}
+
+export function isComplexMemoryType(type: TypeNode): boolean {
+  return (
+    type instanceof PointerType &&
+    type.location === DataLocation.Memory &&
+    (type.to instanceof ArrayType ||
+      (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
+  );
+}
