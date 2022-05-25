@@ -23,7 +23,11 @@ import { ASTMapper } from '../ast/mapper';
 import { createCairoFunctionStub, createCallToFunction } from '../utils/functionGeneration';
 import { generateExpressionTypeString } from '../utils/getTypeString';
 import { typeNameFromTypeNode } from '../utils/utils';
-import { createUint8TypeName, createUint256TypeName } from '../utils/nodeTemplates';
+import {
+  createNumberLiteral,
+  createUint8TypeName,
+  createUint256TypeName,
+} from '../utils/nodeTemplates';
 
 /* Convert fixed-size byte arrays (e.g. bytes2, bytes8) to their equivalent unsigned integer.
     This pass currently does not handle dynamically-sized bytes arrays (i.e. bytes).
@@ -62,9 +66,7 @@ export class BytesConverter extends ASTMapper {
         getNodeType(node, ast.compilerVersion) instanceof FixedBytesType
       )
     ) {
-      const typeNode = replaceFixedBytesType(getNodeType(node, ast.compilerVersion));
-      node.typeString = generateExpressionTypeString(typeNode);
-      this.commonVisit(node, ast);
+      this.visitExpression(node, ast);
       return;
     }
 
@@ -72,6 +74,8 @@ export class BytesConverter extends ASTMapper {
       getNodeType(node.vBaseExpression, ast.compilerVersion),
       ast,
     );
+
+    const width: string = baseTypeName.typeString.slice(5);
 
     const indexTypeName =
       node.vIndexExpression instanceof Literal
@@ -83,6 +87,7 @@ export class BytesConverter extends ASTMapper {
       [
         ['base', baseTypeName],
         ['index', indexTypeName],
+        ['width', createUint8TypeName(ast)],
       ],
       [['res', createUint8TypeName(ast)]],
       ['bitwise_ptr', 'range_check_ptr'],
@@ -91,7 +96,7 @@ export class BytesConverter extends ASTMapper {
     );
     const call = createCallToFunction(
       functionStub,
-      [node.vBaseExpression, node.vIndexExpression],
+      [node.vBaseExpression, node.vIndexExpression, createNumberLiteral(width, ast, 'uint8')],
       ast,
     );
 
