@@ -28,7 +28,7 @@ import { error } from '../../utils/formatting';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { cloneASTNode } from '../../utils/cloning';
-import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { CairoType } from '../../utils/cairoTypeSystem';
 import { ReferenceSubPass } from './referenceSubPass';
 
 /*
@@ -48,50 +48,51 @@ import { ReferenceSubPass } from './referenceSubPass';
 */
 export class DataAccessFunctionaliser extends ReferenceSubPass {
   visitExpression(node: Expression, ast: AST): void {
+    // First, collect data before any processing
+    const originalNode = node;
     const [actualLoc, expectedLoc] = this.getLocations(node);
-    const parent = node.parent;
-    let replacement: Expression | null = null;
-    if (expectedLoc === undefined || expectedLoc === actualLoc) {
+    if (expectedLoc === undefined) {
       return this.commonVisit(node, ast);
-    } else if (actualLoc === DataLocation.Storage) {
-      switch (expectedLoc) {
-        case DataLocation.Default: {
-          replacement = ast
-            .getUtilFuncGen(node)
-            .storage.read.gen(
-              node,
-              typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast),
+    }
+
+    const nodeType = getNodeType(node, ast.compilerVersion);
+    const utilFuncGen = ast.getUtilFuncGen(node);
+    const parent = node.parent;
+
+    // Finally if a copy from actual to expected location is required, insert this last
+    let copyFunc: Expression | null = null;
+    if (actualLoc !== expectedLoc) {
+      if (actualLoc === DataLocation.Storage) {
+        switch (expectedLoc) {
+          case DataLocation.Default: {
+            copyFunc = utilFuncGen.storage.read.gen(node, typeNameFromTypeNode(nodeType, ast));
+            break;
+          }
+          case DataLocation.Memory: {
+            copyFunc = utilFuncGen.storage.toMemory.gen(node);
+            break;
+          }
+          case DataLocation.CallData: {
+            copyFunc = ast.getUtilFuncGen(node).storage.toCallData.gen(node);
+            break;
+          }
+        }
+      } else if (actualLoc === DataLocation.Memory) {
+        switch (expectedLoc) {
+          case DataLocation.Default: {
+            copyFunc = utilFuncGen.memory.read.gen(node, typeNameFromTypeNode(nodeType, ast));
+            break;
+          }
+          case DataLocation.Storage: {
+            // Such conversions should be handled in specific visit functions, as the storage location must be known
+            throw new TranspileFailedError(
+              `Unhandled memory -> storage conversion ${printNode(node)}`,
             );
-          break;
-        }
-        case DataLocation.Memory: {
-          replacement = ast.getUtilFuncGen(node).storage.toMemory.gen(node);
-          break;
-        }
-        case DataLocation.CallData:
-          replacement = ast.getUtilFuncGen(node).storage.toCallData.gen(node);
-          break;
-      }
-    } else if (actualLoc === DataLocation.Memory) {
-      switch (expectedLoc) {
-        case DataLocation.Default: {
-          replacement = ast
-            .getUtilFuncGen(node)
-            .memory.read.gen(
-              node,
-              typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast),
-            );
-          break;
-        }
-        case DataLocation.Storage: {
-          // Such conversions should be handled in specific visit functions, as the storage location must be known
-          throw new TranspileFailedError(
-            `Unhandled memory -> storage conversion ${printNode(node)}`,
-          );
-        }
-        case DataLocation.CallData: {
-          replacement = ast.getUtilFuncGen(node).memory.toCallData.gen(node);
-          break;
+          }
+          case DataLocation.CallData: {
+            copyFunc = utilFuncGen.memory.toCallData.gen(node);
+            break;
+          }
         }
       }
     }
@@ -99,18 +100,18 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     // Update the expected location of the node to be equal to its
     // actual location, now that any discrepency has been handled
 
+    if (copyFunc) {
+      this.replace(node, copyFunc, parent, expectedLoc, expectedLoc, ast);
+    }
+
     if (actualLoc === undefined) {
       this.expectedDataLocations.delete(node);
     } else {
       this.expectedDataLocations.set(node, actualLoc);
     }
 
-    if (replacement) {
-      this.replace(node, replacement, parent, expectedLoc, expectedLoc, ast);
-      this.dispatchVisit(replacement, ast);
-    } else {
-      this.commonVisit(node, ast);
-    }
+    // Now that node has been inserted into the appropriate functions, read its children
+    this.commonVisit(originalNode, ast);
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
@@ -126,20 +127,20 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
         .getUtilFuncGen(node)
         .memory.write.gen(node.vLeftHandSide, node.vRightHandSide);
       this.replace(node, replacementFunc, undefined, actualLoc, expectedLoc, ast);
-      this.dispatchVisit(replacementFunc, ast);
+      return this.dispatchVisit(replacementFunc, ast);
     } else if (toLoc === DataLocation.Storage) {
       if (fromLoc === DataLocation.Storage) {
         const copyFunc = ast
           .getUtilFuncGen(node)
           .storage.toStorage.gen(node.vRightHandSide, node.vLeftHandSide);
         this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
-        this.dispatchVisit(copyFunc, ast);
+        return this.dispatchVisit(copyFunc, ast);
       } else if (fromLoc === DataLocation.Memory) {
         const copyFunc = ast
           .getUtilFuncGen(node)
           .memory.toStorage.gen(node.vLeftHandSide, node.vRightHandSide);
         this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
-        this.dispatchVisit(copyFunc, ast);
+        return this.dispatchVisit(copyFunc, ast);
       } else if (fromLoc === DataLocation.CallData) {
         const copyFunc = ast
           .getUtilFuncGen(node)
@@ -151,11 +152,11 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           .getUtilFuncGen(node)
           .storage.write.gen(node.vLeftHandSide, node.vRightHandSide);
         this.replace(node, writeFunc, undefined, actualLoc, expectedLoc, ast);
-        this.dispatchVisit(writeFunc, ast);
+        return this.dispatchVisit(writeFunc, ast);
       }
-    } else {
-      this.visitExpression(node, ast);
     }
+
+    this.visitExpression(node, ast);
   }
 
   visitIdentifier(node: Identifier, ast: AST): void {
@@ -302,11 +303,7 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
 
   assert(indexAccess.vIndexExpression);
   assert(arrayType instanceof ArrayType);
-  const elementCairoTypeWidth = CairoType.fromSol(
-    arrayType.elementT,
-    ast,
-    TypeConversionContext.MemoryAllocation,
-  ).width;
+  const elementCairoTypeWidth = CairoType.fromSol(arrayType.elementT, ast).width;
 
   const call = createCallToFunction(
     stub,

@@ -34,7 +34,7 @@ export function createCallToFunction(
   return new FunctionCall(
     ast.reserveId(),
     '',
-    getReturnTypeString(functionDef),
+    getReturnTypeString(functionDef, ast),
     FunctionCallKind.FunctionCall,
     new Identifier(
       ast.reserveId(),
