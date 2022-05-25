@@ -23,13 +23,18 @@ contract WARP {
         return a[index];
     }
 
+    function bytes31access(uint256 index) pure public returns (bytes1) {
+        bytes31 a = 0xfe45edeacbfe456ff3eadbbccde3535d89011123dc4c4cd5faec11224433ff;
+        return a[index];
+    }
+
     function bytes32access(uint112 index) pure public returns (bytes1) {
-        bytes32 a = 0x0211111111111111111111111111111111111111111111111111111111111111;
+        bytes32 a = 0x3333333333333333333333333333333344444444444444444444444444444444;
         return a[index];
     }
 
     function bytes32access256(uint256 index) pure public returns (bytes1) {
-        bytes32 a = 0x0711111111111111111111111111111111111111111111111111111111111111;
+        bytes32 a = 0xff11111111111111111111111111111111111111111111111111111111111111;
         return a[index];
     }
 }

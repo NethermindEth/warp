@@ -1,20 +1,15 @@
 from warplib.maths.pow2 import pow2
 from starkware.cairo.common.bitwise import bitwise_and
-from warplib.maths.utils import narrow_safe
 
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.math import assert_le_felt
-from starkware.cairo.common.math_cmp import is_le_felt
+from starkware.cairo.common.math import assert_le_felt, assert_nn_le
+from starkware.cairo.common.math_cmp import is_le_felt, is_nn_le
 
 from starkware.cairo.common.serialize import serialize_word
 
 func byte_accessor{range_check_ptr}(index : felt) -> (offset : felt):
-    assert_le_felt(index, 31)
     let (pow2index) = pow2(index * 8)
-    if index == 31:
-        return (7 * pow2index)
-    end
     return (255 * pow2index)
 end
 
@@ -26,7 +21,10 @@ func byte_at_index_uint256{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
     let (max_range_plus1) = pow2(width * 8)
     assert_le_felt(base, max_range_plus1 - 1)
 
-    let (index_felt) = narrow_safe(index)
+    assert index.high = 0
+    assert_nn_le(index.low, width - 1)
+
+    let index_felt = index.low
     let (byte_accesor_felt) = byte_accessor(index_felt)
     let (slicer) = pow2(index_felt * 8)
     let (res_and) = bitwise_and(base, byte_accesor_felt)
@@ -42,6 +40,8 @@ func byte_at_index{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
     let (max_range_plus1) = pow2(width * 8)
     assert_le_felt(base, max_range_plus1 - 1)
 
+    assert_nn_le(index, width - 1)
+
     let (byte_accesor_felt) = byte_accessor(index)
     let (slicer) = pow2(index * 8)
     let (res_and) = bitwise_and(base, byte_accesor_felt)
@@ -53,17 +53,23 @@ func byte256_at_index{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
     base : Uint256, index : felt, width : felt
 ) -> (res : felt):
     alloc_locals
+    assert_nn_le(index, 31)
 
-    let (inRangeHigh : felt) = is_le_felt(base.high, 0xffffffffffffffffffffffffffffffff)
-    let (inRangeLow : felt) = is_le_felt(base.low, 0xffffffffffffffffffffffffffffffff)
-    assert inRangeHigh * inRangeLow = 1
-
-    let (base_felt) = narrow_safe(base)
-    let (byte_accesor_felt) = byte_accessor(index)
-    let (slicer) = pow2(index * 8)
-    let (res_and) = bitwise_and(base_felt, byte_accesor_felt)
-    let res = res_and / slicer
-    return (res)
+    let (less_than_15) = is_le_felt(index, 15)
+    if less_than_15 == 1:
+        let (byte_accesor_felt) = byte_accessor(index)
+        let (slicer) = pow2(index * 8)
+        let (res_and) = bitwise_and(base.low, byte_accesor_felt)
+        let res = res_and / slicer
+        return (res)
+    else:
+        let index_adjusted = index - 16
+        let (byte_accesor_felt) = byte_accessor(index_adjusted)
+        let (slicer) = pow2(index_adjusted * 8)
+        let (res_and) = bitwise_and(base.high, byte_accesor_felt)
+        let res = res_and / slicer
+        return (res)
+    end
 end
 
 func byte256_at_index_uint256{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
@@ -71,15 +77,22 @@ func byte256_at_index_uint256{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
 ) -> (res : felt):
     alloc_locals
 
-    let (inRangeHigh : felt) = is_le_felt(base.high, 0xffffffffffffffffffffffffffffffff)
-    let (inRangeLow : felt) = is_le_felt(base.low, 0xffffffffffffffffffffffffffffffff)
-    assert inRangeHigh * inRangeLow = 1
+    assert index.high = 0
+    assert_nn_le(index.low, 31)
 
-    let (index_felt) = narrow_safe(index)
-    let (base_felt) = narrow_safe(base)
-    let (byte_accesor_felt) = byte_accessor(index_felt)
-    let (slicer) = pow2(index_felt * 8)
-    let (res_and) = bitwise_and(base_felt, byte_accesor_felt)
-    let res = res_and / slicer
-    return (res)
+    let (less_than_15) = is_le_felt(index.low, 15)
+    if less_than_15 == 1:
+        let (byte_accesor_felt) = byte_accessor(index.low)
+        let (slicer) = pow2(index.low * 8)
+        let (res_and) = bitwise_and(base.low, byte_accesor_felt)
+        let res = res_and / slicer
+        return (res)
+    else:
+        let index_adjusted = index.low - 16
+        let (byte_accesor_felt) = byte_accessor(index_adjusted)
+        let (slicer) = pow2(index_adjusted * 8)
+        let (res_and) = bitwise_and(base.high, byte_accesor_felt)
+        let res = res_and / slicer
+        return (res)
+    end
 end
