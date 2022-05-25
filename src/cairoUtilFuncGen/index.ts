@@ -26,11 +26,14 @@ import { StorageToMemoryGen } from './storage/storageToMemory';
 import { StorageWriteGen } from './storage/storageWrite';
 import { MemoryToCallDataGen } from './memory/memoryToCalldata';
 import { MemoryToStorageGen } from './memory/memoryToStorage';
+import { CalldataToStorageGen } from './calldata/calldataToStorage';
 import { StorageToStorageGen } from './storage/copyToStorage';
+import { StorageToCalldataGen } from './storage/storageToCalldata';
 
 export class CairoUtilFuncGen {
   calldata: {
     toMemory: DynArrayLoader;
+    toStorage: CalldataToStorageGen;
   };
   memory: {
     arrayLiteral: MemoryArrayLiteralGen;
@@ -56,6 +59,7 @@ export class CairoUtilFuncGen {
     memberAccess: StorageMemberAccessGen;
     read: StorageReadGen;
     staticArrayIndexAccess: StorageStaticArrayIndexAccessGen;
+    toCallData: StorageToCalldataGen;
     toMemory: StorageToMemoryGen;
     toStorage: StorageToStorageGen;
     write: StorageWriteGen;
@@ -78,6 +82,7 @@ export class CairoUtilFuncGen {
 
     const memoryToStorage = new MemoryToStorageGen(this.implementation.dynArray, ast);
     const storageWrite = new StorageWriteGen(ast);
+    const externalDynArrayStructConstructor = new ExternalDynArrayStructConstructor(ast);
 
     this.memory = {
       arrayLiteral: new MemoryArrayLiteralGen(ast),
@@ -110,6 +115,12 @@ export class CairoUtilFuncGen {
       memberAccess: new StorageMemberAccessGen(ast),
       read: storageReadGen,
       staticArrayIndexAccess: new StorageStaticArrayIndexAccessGen(ast),
+      toCallData: new StorageToCalldataGen(
+        this.implementation.dynArray,
+        storageReadGen,
+        externalDynArrayStructConstructor,
+        ast,
+      ),
       toMemory: new StorageToMemoryGen(this.implementation.dynArray, ast),
       toStorage: new StorageToStorageGen(this.implementation.dynArray, ast),
       write: storageWrite,
@@ -117,11 +128,12 @@ export class CairoUtilFuncGen {
     this.externalFunctions = {
       inputsChecks: { enum: new EnumBoundCheckGen(ast) },
       inputs: {
-        darrayStructConstructor: new ExternalDynArrayStructConstructor(ast),
+        darrayStructConstructor: externalDynArrayStructConstructor,
       },
     };
     this.calldata = {
       toMemory: new DynArrayLoader(ast),
+      toStorage: new CalldataToStorageGen(this.implementation.dynArray, storageWrite, ast),
     };
   }
 

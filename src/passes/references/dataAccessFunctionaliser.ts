@@ -72,10 +72,10 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
             copyFunc = utilFuncGen.storage.toMemory.gen(node);
             break;
           }
-          case DataLocation.CallData:
-            throw new NotSupportedYetError(
-              `Storage -> calldata not implemented yet for ${printNode(node)}`,
-            );
+          case DataLocation.CallData: {
+            copyFunc = ast.getUtilFuncGen(node).storage.toCallData.gen(node);
+            break;
+          }
         }
       } else if (actualLoc === DataLocation.Memory) {
         switch (expectedLoc) {
@@ -142,7 +142,11 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
         this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
         return this.dispatchVisit(copyFunc, ast);
       } else if (fromLoc === DataLocation.CallData) {
-        throw new NotSupportedYetError(`CallData to storage assignment not implemented yet`);
+        const copyFunc = ast
+          .getUtilFuncGen(node)
+          .calldata.toStorage.gen(node.vLeftHandSide, node.vRightHandSide);
+        this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
+        this.dispatchVisit(copyFunc, ast);
       } else {
         const writeFunc = ast
           .getUtilFuncGen(node)
