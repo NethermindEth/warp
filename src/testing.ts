@@ -117,9 +117,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/nested_structs', 'Success'],
   ['example_contracts/payable_function', 'Success'],
   ['example_contracts/pure_function', 'Success'],
-  // Fails because the struct which represents the array is not defined
-  // Shoudl be set to success before the pr is merged
-  ['example_contracts/return_dyn_array', 'CairoCompileFailed'],
+  ['example_contracts/return_dyn_array', 'Success'],
   ['example_contracts/return_var_capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],
   ['example_contracts/returnInserter', 'Success'],

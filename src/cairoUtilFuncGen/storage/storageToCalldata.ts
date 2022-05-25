@@ -16,11 +16,17 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { add, StringIndexedFuncGen } from '../base';
+import { ExternalDynArrayStructConstructor } from '../memory/externalDynArray/externalDynArrayStructConstructor';
 import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
 
 export class StorageToCalldataGen extends StringIndexedFuncGen {
-  constructor(private dynArrayGen: DynArrayGen, private storageReadGen: StorageReadGen, ast: AST) {
+  constructor(
+    private dynArrayGen: DynArrayGen,
+    private storageReadGen: StorageReadGen,
+    private externalDynArrayStructConstructor: ExternalDynArrayStructConstructor,
+    ast: AST,
+  ) {
     super(ast);
   }
 
@@ -124,6 +130,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     const structDef = CairoType.fromSol(arrayType, this.ast, TypeConversionContext.CallDataRef);
     assert(structDef instanceof CairoDynArray);
 
+    this.externalDynArrayStructConstructor.getOrCreate(arrayType);
     const [arrayName, arrayLen] = this.dynArrayGen.gen(
       CairoType.fromSol(arrayType.elementT, this.ast, TypeConversionContext.StorageAllocation),
     );

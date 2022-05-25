@@ -82,6 +82,7 @@ export class CairoUtilFuncGen {
 
     const memoryToStorage = new MemoryToStorageGen(this.implementation.dynArray, ast);
     const storageWrite = new StorageWriteGen(ast);
+    const externalDynArrayStructConstructor = new ExternalDynArrayStructConstructor(ast);
 
     this.memory = {
       arrayLiteral: new MemoryArrayLiteralGen(ast),
@@ -114,7 +115,12 @@ export class CairoUtilFuncGen {
       memberAccess: new StorageMemberAccessGen(ast),
       read: storageReadGen,
       staticArrayIndexAccess: new StorageStaticArrayIndexAccessGen(ast),
-      toCallData: new StorageToCalldataGen(this.implementation.dynArray, storageReadGen, ast),
+      toCallData: new StorageToCalldataGen(
+        this.implementation.dynArray,
+        storageReadGen,
+        externalDynArrayStructConstructor,
+        ast,
+      ),
       toMemory: new StorageToMemoryGen(this.implementation.dynArray, ast),
       toStorage: new StorageToStorageGen(this.implementation.dynArray, ast),
       write: storageWrite,
@@ -122,7 +128,7 @@ export class CairoUtilFuncGen {
     this.externalFunctions = {
       inputsChecks: { enum: new EnumBoundCheckGen(ast) },
       inputs: {
-        darrayStructConstructor: new ExternalDynArrayStructConstructor(ast),
+        darrayStructConstructor: externalDynArrayStructConstructor,
       },
     };
     this.calldata = {
