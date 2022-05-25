@@ -55,8 +55,8 @@ func byte256_at_index{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
     alloc_locals
     assert_nn_le(index, 31)
 
-    let (less_than_15) = is_le_felt(index, 15)
-    if less_than_15 == 1:
+    let (less_than_eq_15) = is_le_felt(index, 15)
+    if less_than_eq_15 == 1:
         let (byte_accesor_felt) = byte_accessor(index)
         let (slicer) = pow2(index * 8)
         let (res_and) = bitwise_and(base.low, byte_accesor_felt)
@@ -80,8 +80,8 @@ func byte256_at_index_uint256{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
     assert index.high = 0
     assert_nn_le(index.low, 31)
 
-    let (less_than_15) = is_le_felt(index.low, 15)
-    if less_than_15 == 1:
+    let (less_than_eq_15) = is_le_felt(index.low, 15)
+    if less_than_eq_15 == 1:
         let (byte_accesor_felt) = byte_accessor(index.low)
         let (slicer) = pow2(index.low * 8)
         let (res_and) = bitwise_and(base.low, byte_accesor_felt)
