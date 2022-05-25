@@ -1,6 +1,5 @@
 import assert from 'assert';
 import {
-  ArrayType,
   Assignment,
   BinaryOperation,
   DataLocation,
@@ -10,16 +9,12 @@ import {
   FunctionDefinition,
   generalizeType,
   getNodeType,
-  Identifier,
   IndexAccess,
   MemberAccess,
   PointerType,
   Return,
-  StructDefinition,
   TupleExpression,
-  TypeNode,
   UnaryOperation,
-  UserDefinedType,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -90,17 +85,9 @@ export class ExpectedLocationAnalyser extends ASTMapper {
   }
 
   visitUnaryOperation(node: UnaryOperation, ast: AST): void {
-    const subExprType = getNodeType(node.vSubExpression, ast.compilerVersion);
     if (node.operator === 'delete') {
       const subExpressionLocation = this.actualLocations.get(node.vSubExpression);
-      if (
-        subExprType instanceof PointerType &&
-        subExprType.location === DataLocation.Storage &&
-        subExprType.to instanceof ArrayType &&
-        subExprType.to.size === undefined
-      ) {
-        this.expectedLocations.set(node.vSubExpression, DataLocation.Default);
-      } else if (subExpressionLocation !== undefined) {
+      if (subExpressionLocation !== undefined) {
         this.expectedLocations.set(node.vSubExpression, subExpressionLocation);
       }
     } else {
@@ -152,15 +139,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     assert(node.vIndexExpression !== undefined);
     const baseLoc = this.actualLocations.get(node.vBaseExpression);
     assert(baseLoc !== undefined);
-    const baseType = getNodeType(node.vBaseExpression, ast.compilerVersion);
-    if (
-      isDynamicStorageArray(baseType) ||
-      (isComplexMemoryType(baseType) && !(node.vBaseExpression instanceof Identifier))
-    ) {
-      this.expectedLocations.set(node.vBaseExpression, DataLocation.Default);
-    } else {
-      this.expectedLocations.set(node.vBaseExpression, baseLoc);
-    }
+    this.expectedLocations.set(node.vBaseExpression, baseLoc);
     this.expectedLocations.set(node.vIndexExpression, DataLocation.Default);
     this.visitExpression(node, ast);
   }
@@ -168,15 +147,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     const baseLoc = this.actualLocations.get(node.vExpression);
     assert(baseLoc !== undefined);
-    const baseType = getNodeType(node.vExpression, ast.compilerVersion);
-    if (
-      isDynamicStorageArray(baseType) ||
-      (isComplexMemoryType(baseType) && !(node.vExpression instanceof Identifier))
-    ) {
-      this.expectedLocations.set(node.vExpression, DataLocation.Default);
-    } else {
-      this.expectedLocations.set(node.vExpression, baseLoc);
-    }
+    this.expectedLocations.set(node.vExpression, baseLoc);
     this.visitExpression(node, ast);
   }
 
@@ -285,22 +256,4 @@ export class ExpectedLocationAnalyser extends ASTMapper {
 
     this.visitStatement(node, ast);
   }
-}
-
-function isDynamicStorageArray(type: TypeNode): boolean {
-  return (
-    type instanceof PointerType &&
-    type.location === DataLocation.Storage &&
-    type.to instanceof ArrayType &&
-    type.to.size === undefined
-  );
-}
-
-function isComplexMemoryType(type: TypeNode): boolean {
-  return (
-    type instanceof PointerType &&
-    type.location === DataLocation.Memory &&
-    (type.to instanceof ArrayType ||
-      (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
-  );
 }

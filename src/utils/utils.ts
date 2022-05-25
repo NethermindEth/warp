@@ -13,6 +13,7 @@ import {
   FunctionDefinition,
   FunctionKind,
   FunctionVisibility,
+  generalizeType,
   IdentifierPath,
   IntLiteralType,
   IntType,
@@ -184,6 +185,7 @@ export function mapRange<T>(n: number, func: (n: number) => T): T[] {
 }
 
 export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
+  node = generalizeType(node)[0];
   let result: TypeName | null = null;
   if (node instanceof AddressType) {
     result = createAddressTypeName(node.payable, ast);

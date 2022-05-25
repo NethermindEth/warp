@@ -1,7 +1,7 @@
 import assert = require('assert');
 import { ArrayType, ASTNode, DataLocation, FunctionCall, IndexAccess } from 'solc-typed-ast';
 import { printNode } from '../../utils/astPrinter';
-import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { CairoType } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../../utils/utils';
@@ -40,11 +40,7 @@ export class MemoryStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
 
     this.ast.registerImport(stub, 'warplib.memory', 'wm_index_static');
 
-    const width = CairoType.fromSol(
-      arrayType.elementT,
-      this.ast,
-      TypeConversionContext.MemoryAllocation,
-    ).width;
+    const width = CairoType.fromSol(arrayType.elementT, this.ast).width;
 
     assert(
       indexAccess.vIndexExpression,
