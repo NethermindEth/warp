@@ -404,41 +404,28 @@ class NotImplementedWriter extends CairoASTNodeWriter {
 
 class ParameterListWriter extends CairoASTNodeWriter {
   writeInner(node: ParameterList, writer: ASTWriter): SrcDesc {
-    const nodeParentContext =
-      node.parent instanceof FunctionDefinition
-        ? isExternallyVisible(node.parent)
-          ? TypeConversionContext.CallDataRef
-          : TypeConversionContext.Ref
-        : TypeConversionContext.CallDataRef;
+    const defContext =
+      node.parent instanceof FunctionDefinition && isExternallyVisible(node.parent)
+        ? TypeConversionContext.CallDataRef
+        : TypeConversionContext.Ref;
 
-    const params = node.vParameters.map((value, i) => {
-      //assert(value instanceof VariableDeclaration);
-      const typeConversionContext =
+    const params = node.vParameters.map((value) => {
+      const varTypeConversionContext =
         value.storageLocation === DataLocation.CallData
           ? TypeConversionContext.CallDataRef
-          : nodeParentContext;
+          : defContext;
 
       const tp = CairoType.fromSol(
         getNodeType(value, writer.targetCompilerVersion),
         this.ast,
-        typeConversionContext,
+        varTypeConversionContext,
       );
-      if (
-        tp instanceof CairoDynArray &&
-        node.parent instanceof FunctionDefinition &&
-        isExternallyVisible(node.parent)
-      ) {
-        return value.name
+      if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
+        return isExternallyVisible(node.parent)
           ? `${value.name}_len : ${tp.vLen.toString()}, ${value.name} : ${tp.vPtr.toString()}`
-          : `ret${i}_len : ${tp.vLen.toString()}, ret${i} : ${tp.vPtr.toString()}`;
-      } else if (
-        tp instanceof CairoDynArray &&
-        node.parent instanceof FunctionDefinition &&
-        node.parent.visibility === FunctionVisibility.Internal
-      ) {
-        return value.name ? `${value.name} : ${tp.toString()}` : `ret${i} : ${tp.toString()}`;
+          : `${value.name} : ${tp.toString()}`;
       }
-      return value.name ? `${value.name} : ${tp}` : `ret${i} : ${tp}`;
+      return `${value.name} : ${tp}`;
     });
     return [params.join(', ')];
   }

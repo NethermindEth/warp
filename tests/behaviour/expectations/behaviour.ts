@@ -104,6 +104,14 @@ export const expectations = flatten(
             ],
           ),
         ]),
+        new Dir('calldata', [
+          File.Simple('passingDynArrayInternally', [
+            new Expect(
+              'testing that calldata dynamic arrays can be passed to internal functions with the correct cairo type.',
+              [['externFunc', ['4', '10', '20', '30', '40'], ['10', '20', '30'], '0']],
+            ),
+          ]),
+        ]),
         new Dir('conditionals', [
           File.Simple('and', [
             Expect.Simple('f', ['50', '0', '0'], ['0', '0']),
