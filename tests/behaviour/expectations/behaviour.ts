@@ -297,6 +297,30 @@ export const expectations = flatten(
               ['setS', ['3', '5', '0'], [], '0'],
               ['getS', [], ['8', '0'], '0'],
             ]),
+            new Expect('struct dynamic array is copied from calldata to storage', [
+              ['setF', [], [], '0'],
+              ['getF', [], ['3', ...['1', '2', '0'], ...['2', '3', '0'], ...['3', '4', '0']], '0'],
+            ]),
+            Expect.Simple(
+              'getD',
+              [],
+              ['1', '0', '1', '0', '2', '1', '2', '0'],
+              'struct of structs is copyed form calldata to storage',
+            ),
+            new Expect('dynamic array of structs of structs is copied from calldata to storage', [
+              ['setE', [], [], '0'],
+              [
+                'getE',
+                [],
+                [
+                  '3',
+                  ...['1', '0', '1', '0', '2', '1', '2', '0'],
+                  ...['3', '0', '3', '0', '2', '3', '2', '0'],
+                  ...['5', '0', '5', '0', '7', '5', '7', '0'],
+                ],
+                '0',
+              ],
+            ]),
           ]),
         ]),
         new Dir('copy_memory_to_calldata', [
