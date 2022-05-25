@@ -143,30 +143,31 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
 
-    const copyCode = `${this.storageWriteGen.getOrCreate(arrayType.elementT)}(elem_loc, [elem])`;
+    const copyCode = `${this.storageWriteGen.getOrCreate(
+      arrayType.elementT,
+    )}(elem_loc, elem[index])`;
 
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const pointerType = `${cairoElementType.toString()}*`;
 
     const funcName = `cd_dynamic_array_to_storage${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}_write${implicits}(loc : felt, len : felt, elem: ${pointerType}):`,
+      `func ${funcName}_write${implicits}(loc : felt, index : felt, len : felt, elem: ${pointerType}):`,
       `   alloc_locals`,
-      `   if len == 0:`,
+      `   if index == len:`,
       `       return ()`,
       `   end`,
-      `   let index = len - 1`,
       `   let (index_uint256) = warp_uint256(index)`,
       `   let (elem_loc) = ${arrayName}.read(loc, index_uint256)`,
       `   if elem_loc == 0:`,
       `       let (elem_loc) = WARP_USED_STORAGE.read() `,
-      `       WARP_USED_STORAGE.write(loc + ${cairoElementType.width})`,
+      `       WARP_USED_STORAGE.write(elem_loc + ${cairoElementType.width})`,
       `       ${arrayName}.write(loc, index_uint256, elem_loc)`,
       `       ${copyCode}`,
-      `       return ${funcName}_write(loc, index, elem + ${cairoElementType.width})`,
+      `       return ${funcName}_write(loc, index + 1, len, elem)`,
       `   else:`,
       `       ${copyCode}`,
-      `       return ${funcName}_write(loc, index, elem + ${cairoElementType.width})`,
+      `       return ${funcName}_write(loc, index + 1, len, elem)`,
       `   end`,
       `end`,
 
@@ -174,7 +175,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
       `   alloc_locals`,
       `   let (len_uint256) = warp_uint256(dyn_array_struct.len)`,
       `   ${arrayLen}.write(loc, len_uint256)`,
-      `   ${funcName}_write(loc, dyn_array_struct.len, dyn_array_struct.ptr)`,
+      `   ${funcName}_write(loc, 0, dyn_array_struct.len, dyn_array_struct.ptr)`,
       `   return (loc)`,
       `end`,
     ].join('\n');

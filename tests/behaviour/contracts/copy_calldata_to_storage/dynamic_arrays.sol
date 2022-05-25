@@ -13,6 +13,14 @@ contract WARP {
         y = a;
     }
 
+    function getXFull() public view returns (uint8[] memory) {
+        return x;
+    }
+
+    function getYFull() public view returns (uint[] memory) {
+        return y;
+    }
+
     function getX() public view returns (uint8) {
         return x[0] + x[1] + x[2];
     }
