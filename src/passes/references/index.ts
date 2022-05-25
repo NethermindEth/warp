@@ -7,7 +7,7 @@ import { DataAccessFunctionaliser } from './dataAccessFunctionaliser';
 import { StorageDelete } from './delete';
 import { ExpectedLocationAnalyser } from './expectedLocationAnalyser';
 import { MemoryAllocations } from './memoryAllocations';
-import { StoredPointerDerference } from './storedPointerDereference';
+import { StoredPointerDereference } from './storedPointerDereference';
 
 /*
   Solidity allows mutable references pointing to mutable data, and while cairo allows reference
@@ -43,7 +43,7 @@ export class References extends ASTMapper {
       new MemoryAllocations(actualDataLocations, expectedDataLocations).dispatchVisit(root, ast);
       new ArrayFunctions(actualDataLocations, expectedDataLocations).dispatchVisit(root, ast);
       new StorageDelete(actualDataLocations, expectedDataLocations).dispatchVisit(root, ast);
-      new StoredPointerDerference(actualDataLocations, expectedDataLocations).dispatchVisit(
+      new StoredPointerDereference(actualDataLocations, expectedDataLocations).dispatchVisit(
         root,
         ast,
       );

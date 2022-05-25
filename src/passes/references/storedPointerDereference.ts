@@ -1,12 +1,12 @@
 import assert from 'assert';
 import {
   ArrayType,
+  Assignment,
   DataLocation,
   Expression,
   FunctionCall,
   generalizeType,
   getNodeType,
-  Identifier,
   IndexAccess,
   MappingType,
   MemberAccess,
@@ -14,13 +14,12 @@ import {
   StructDefinition,
   TypeNode,
   UserDefinedType,
-  VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
 
-export class StoredPointerDerference extends ReferenceSubPass {
+export class StoredPointerDereference extends ReferenceSubPass {
   visitPotentialStoredPointer(node: Expression, ast: AST): void {
     // First, collect data before any processing
     const originalNode = node;
@@ -55,28 +54,23 @@ export class StoredPointerDerference extends ReferenceSubPass {
     this.visitExpression(originalNode, ast);
   }
 
-  visitIdentifier(node: Identifier, ast: AST): void {
-    const type = getNodeType(node, ast.compilerVersion);
-    // We're only trying to modify stored pointers, so skip if this isn't one
-    if (!isDynamicStorageArray(type) && !isComplexMemoryType(type) && !isMapping(type)) {
-      return this.commonVisit(node, ast);
-    }
-
-    //Non-state variable identifiers contain dynamic array pointers directly
-    if (!referencesStateVariable(node)) {
-      return this.commonVisit(node, ast);
-    }
-
-    // TODO insert optimisation here
-    return this.visitPotentialStoredPointer(node, ast);
-  }
-
   visitIndexAccess(node: IndexAccess, ast: AST): void {
     this.visitPotentialStoredPointer(node, ast);
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     this.visitPotentialStoredPointer(node, ast);
+  }
+
+  visitAssignment(node: Assignment, ast: AST): void {
+    const lhsType = getNodeType(node.vLeftHandSide, ast.compilerVersion);
+
+    if (isComplexMemoryType(lhsType)) {
+      this.visitExpression(node.vLeftHandSide, ast);
+      this.dispatchVisit(node.vRightHandSide, ast);
+    } else {
+      this.visitExpression(node, ast);
+    }
   }
 }
 
@@ -101,11 +95,4 @@ function isComplexMemoryType(type: TypeNode): boolean {
 function isMapping(type: TypeNode): boolean {
   const [base] = generalizeType(type);
   return base instanceof MappingType;
-}
-
-function referencesStateVariable(node: Identifier): boolean {
-  return (
-    node.vReferencedDeclaration instanceof VariableDeclaration &&
-    node.vReferencedDeclaration.stateVariable
-  );
 }
