@@ -14,6 +14,7 @@ import {
   FunctionDefinition,
   FunctionType,
   FunctionVisibility,
+  generalizeType,
   getNodeType,
   ImportRefType,
   IntLiteralType,
@@ -116,7 +117,10 @@ export function getReturnTypeString(node: FunctionDefinition, ast: AST): string 
   const parametersTypeString = retParams
     .map((decl) => {
       const type = getNodeType(decl, ast.compilerVersion);
-      return type instanceof PointerType ? type : specializeType(type, decl.storageLocation);
+      console.log(`${decl.typeString} => ${printTypeNode(type, true)}`);
+      return type instanceof PointerType
+        ? type
+        : specializeType(generalizeType(type)[0], decl.storageLocation);
     })
     .map(generateExpressionTypeString)
     .join(', ');
