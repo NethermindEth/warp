@@ -114,7 +114,10 @@ export function getFunctionTypeString(node: FunctionDefinition, compilerVersion:
 export function getReturnTypeString(node: FunctionDefinition, ast: AST): string {
   const retParams = node.vReturnParameters.vParameters;
   const parametersTypeString = retParams
-    .map((decl) => specializeType(getNodeType(decl, ast.compilerVersion), decl.storageLocation))
+    .map((decl) => {
+      const type = getNodeType(decl, ast.compilerVersion);
+      return type instanceof PointerType ? type : specializeType(type, decl.storageLocation);
+    })
     .map(generateExpressionTypeString)
     .join(', ');
 
