@@ -15,7 +15,7 @@ import { DynArrayLengthGen } from './storage/dynArrayLength';
 import { DynArrayPopGen } from './storage/dynArrayPop';
 import { DynArrayPushWithArgGen } from './storage/dynArrayPushWithArg';
 import { DynArrayPushWithoutArgGen } from './storage/dynArrayPushWithoutArg';
-import { DynArrayLoader } from './calldata/calldataToMemory';
+import { CallDataToMemoryGen, DynArrayLoader } from './calldata/calldataToMemory';
 import { ExternalDynArrayStructConstructor } from './memory/externalDynArray/externalDynArrayStructConstructor';
 import { MappingIndexAccessGen } from './storage/mappingIndexAccess';
 import { StorageStaticArrayIndexAccessGen } from './storage/staticArrayIndexAccess';
@@ -30,7 +30,8 @@ import { StorageToStorageGen } from './storage/copyToStorage';
 
 export class CairoUtilFuncGen {
   calldata: {
-    toMemory: DynArrayLoader;
+    dynArrayLoader: DynArrayLoader; // DEPRECATED
+    toMemory: CallDataToMemoryGen;
   };
   memory: {
     arrayLiteral: MemoryArrayLiteralGen;
@@ -121,7 +122,8 @@ export class CairoUtilFuncGen {
       },
     };
     this.calldata = {
-      toMemory: new DynArrayLoader(ast),
+      dynArrayLoader: new DynArrayLoader(ast),
+      toMemory: new CallDataToMemoryGen(ast),
     };
   }
 
