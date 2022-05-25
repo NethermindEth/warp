@@ -1,9 +1,11 @@
+import assert from 'assert';
 import {
   AddressType,
   ArrayType,
   ArrayTypeName,
   BoolType,
   CompileFailedError,
+  DataLocation,
   ElementaryTypeName,
   EtherUnit,
   Expression,
@@ -11,6 +13,7 @@ import {
   FunctionDefinition,
   FunctionKind,
   FunctionVisibility,
+  generalizeType,
   IdentifierPath,
   IntLiteralType,
   IntType,
@@ -19,7 +22,9 @@ import {
   MappingType,
   Mutability,
   PointerType,
+  StateVariableVisibility,
   StringType,
+  StructDefinition,
   TimeUnit,
   TupleExpression,
   TypeName,
@@ -180,6 +185,7 @@ export function mapRange<T>(n: number, func: (n: number) => T): T[] {
 }
 
 export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
+  node = generalizeType(node)[0];
   let result: TypeName | null = null;
   if (node instanceof AddressType) {
     result = createAddressTypeName(node.payable, ast);
@@ -318,4 +324,43 @@ export function isNameless(node: FunctionDefinition) {
   return [FunctionKind.Constructor, FunctionKind.Fallback, FunctionKind.Receive].includes(
     node.kind,
   );
+}
+
+export function splitDarray(
+  scope: number,
+  dArrayVarDecl: VariableDeclaration,
+  ast: AST,
+): [arrayLen: VariableDeclaration, dArrayVarDecl: VariableDeclaration] {
+  assert(dArrayVarDecl.vType !== undefined);
+  const arrayLen = new VariableDeclaration(
+    ast.reserveId(),
+    '',
+    true,
+    false,
+    dArrayVarDecl.name + '_len',
+    scope,
+    false,
+    DataLocation.CallData,
+    StateVariableVisibility.Internal,
+    Mutability.Immutable,
+    'uint248',
+    undefined,
+    new ElementaryTypeName(ast.reserveId(), '', 'uint248', 'uint248'),
+    undefined,
+  );
+
+  return [arrayLen, dArrayVarDecl];
+}
+
+export function isReferenceType(type: TypeNode): boolean {
+  return (
+    type instanceof ArrayType ||
+    type instanceof MappingType ||
+    (type instanceof UserDefinedType && type.definition instanceof StructDefinition) ||
+    (type instanceof PointerType && isReferenceType(type.to))
+  );
+}
+
+export function isValueType(type: TypeNode): boolean {
+  return !isReferenceType(type);
 }

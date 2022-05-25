@@ -26,6 +26,7 @@ import { StorageToMemoryGen } from './storage/storageToMemory';
 import { StorageWriteGen } from './storage/storageWrite';
 import { MemoryToCallDataGen } from './memory/memoryToCalldata';
 import { MemoryToStorageGen } from './memory/memoryToStorage';
+import { StorageToStorageGen } from './storage/copyToStorage';
 
 export class CairoUtilFuncGen {
   calldata: {
@@ -56,6 +57,7 @@ export class CairoUtilFuncGen {
     read: StorageReadGen;
     staticArrayIndexAccess: StorageStaticArrayIndexAccessGen;
     toMemory: StorageToMemoryGen;
+    toStorage: StorageToStorageGen;
     write: StorageWriteGen;
   };
   externalFunctions: {
@@ -89,11 +91,12 @@ export class CairoUtilFuncGen {
       write: new MemoryWriteGen(ast),
     };
     const storageReadGen = new StorageReadGen(ast);
+    const storageDelete = new StorageDeleteGen(this.implementation.dynArray, storageReadGen, ast);
     this.storage = {
-      delete: new StorageDeleteGen(ast),
+      delete: storageDelete,
       dynArrayIndexAccess: new DynArrayIndexAccessGen(this.implementation.dynArray, ast),
       dynArrayLength: new DynArrayLengthGen(this.implementation.dynArray, ast),
-      dynArrayPop: new DynArrayPopGen(this.implementation.dynArray, ast),
+      dynArrayPop: new DynArrayPopGen(this.implementation.dynArray, storageDelete, ast),
       dynArrayPush: {
         withArg: new DynArrayPushWithArgGen(
           this.implementation.dynArray,
@@ -108,6 +111,7 @@ export class CairoUtilFuncGen {
       read: storageReadGen,
       staticArrayIndexAccess: new StorageStaticArrayIndexAccessGen(ast),
       toMemory: new StorageToMemoryGen(this.implementation.dynArray, ast),
+      toStorage: new StorageToStorageGen(this.implementation.dynArray, ast),
       write: storageWrite,
     };
     this.externalFunctions = {
@@ -127,6 +131,17 @@ export class CairoUtilFuncGen {
   getGeneratedCode(): string {
     return this.getAllChildren()
       .map((c) => c.getGeneratedCode())
+      .sort((a, b) => {
+        // This sort is needed to make sure the structs generated from CairoUtilGen are before the generated functions that
+        // reference them. This sort is also order preserving in that it will only make sure the structs come before
+        // any functions and not sort the struct/functions within their respective groups.
+        if (a.slice(0, 1) < b.slice(0, 1)) {
+          return 1;
+        } else if (a.slice(0, 1) > b.slice(0, 1)) {
+          return -1;
+        }
+        return 0;
+      })
       .join('\n\n');
   }
 
