@@ -108,7 +108,18 @@ export const expectations = flatten(
           File.Simple('passingDynArrayInternally', [
             new Expect(
               'testing that calldata dynamic arrays can be passed to internal functions with the correct cairo type.',
-              [['externFunc', ['4', '10', '20', '30', '40'], ['10', '20', '30'], '0']],
+              [['externReturnIndexAccess', ['4', '10', '20', '30', '40'], ['10', '20', '30'], '0']],
+            ),
+            new Expect(
+              'testing that calldata dynamic arrays can be passed to internal functions with the correct cairo type, with whole dynarray returned',
+              [
+                [
+                  'externReturnDarray',
+                  ['4', '10', '20', '30', '40'],
+                  ['4', '10', '20', '30', '40'],
+                  '0',
+                ],
+              ],
             ),
           ]),
         ]),

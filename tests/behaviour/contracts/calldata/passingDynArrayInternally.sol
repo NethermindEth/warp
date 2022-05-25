@@ -3,21 +3,21 @@ pragma solidity >=0.4.0 <0.9.0;
 
 contract WARP {
 
-    // function externFunc(uint8[] calldata x) pure external returns (uint8, uint8, uint8) {
-    //     (uint8 a, uint8 b, uint8 c) = internFunc(x);
-    //     return (a, b, c);
-    // }
+    function externReturnIndexAccess(uint8[] calldata x) pure external returns (uint8, uint8, uint8) {
+        (uint8 a, uint8 b, uint8 c) = returnIndexAccess(x);(x);
+        return (a, b, c);
+    }
 
-    // function internFunc(uint8[] calldata x) pure internal returns (uint8, uint8, uint8){
-    //     return (x[0], x[1], x[3]);
-    // }
+    function returnIndexAccess(uint8[] calldata x) pure internal returns (uint8, uint8, uint8){
+        return (x[0], x[1], x[2]);
+    }
 
-        function externFunc2(uint8[] calldata x) pure external returns (uint8[] memory) {
-        uint8[] memory y = internFunc2(x);
+    function externReturnDarray(uint8[] calldata x) pure external returns (uint8[] memory) {
+        uint8[] calldata y = returnDArray(x);
         return (y);
     }
 
-    function internFunc2(uint8[] calldata x) pure internal returns (uint8[] calldata){
+    function returnDArray(uint8[] calldata x) pure internal returns (uint8[] calldata){
         return (x);
     }
 
