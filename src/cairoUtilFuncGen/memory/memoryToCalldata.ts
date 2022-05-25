@@ -90,7 +90,10 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
             memberType instanceof ArrayType
           ) {
             const memberGetter = this.getOrCreate(memberType);
-            return `let (member${index}) = ${memberGetter}(${add('mem_loc', offset++)})`;
+            return [
+              `let (memRead${index}) = wm_read_felt(${add('mem_loc', offset++)})`,
+              `let (member${index}) = ${memberGetter}(memRead${index})`,
+            ].join('\n');
           } else {
             const memberCairoType = CairoType.fromSol(memberType, this.ast);
             if (memberCairoType.width === 1) {
@@ -205,7 +208,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `    let (len_256) = wm_read_256(mem_loc)`,
         `    let (ptr : ${outputType.vPtr.toString()}) = alloc()`,
         `    let (len_felt) = narrow_safe(len_256)`,
-        `    let (ptr) = ${this.createDynArrayReader(elementT)}(len_felt, ptr, mem_loc + 2)`,
+        `    ${this.createDynArrayReader(elementT)}(len_felt, ptr, mem_loc + 2)`,
         `    return (cd_dynarray_${cairoElementType.toString()}(len=len_felt, ptr=ptr))`,
         `end`,
       ].join('\n'),
@@ -249,16 +252,16 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(funcName, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> (ptr: ${ptrString}*):`,
+        `func ${funcName}${implicits}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> ():`,
         `    alloc_locals`,
         `    if len == 0:`,
-        `         return (ptr)`,
+        `         return ()`,
         `    end`,
         ...code,
         `    ${funcName}(len=len - 1, ptr=ptr + ${
           cairoType instanceof CairoFelt ? 1 : cairoType.toString() + '.SIZE'
         }, mem_loc=mem_loc + ${cairoTypeWidth})`,
-        `    return (ptr)`,
+        `    return ()`,
         `end`,
       ].join('\n'),
     });

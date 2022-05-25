@@ -281,58 +281,57 @@ export const expectations = flatten(
             new Expect('returning a dynarray of Uint256', [
               ['returnUint256', [], ['3', '10', '0', '100', '0', '1000', '0'], '0'],
             ]),
-            // These test will come online when the known nested Reference Types writing bug is sorted.
-            // new Expect('returning a dynarray of structs', [
-            //   ['returnStruct', [], ['3', '1', '0', '10', '2', '0', '20', '3', '0', '30'], '0'],
-            // ]),
-            //     new Expect('return a dynarray of nested structs', [
-            //       [
-            //         'returnNestedStruct',
-            //         [],
-            //         [
-            //           '3',
-            //           '1',
-            //           '0',
-            //           '10',
-            //           '0',
-            //           '100',
-            //           '1000',
-            //           '0',
-            //           '2',
-            //           '0',
-            //           '20',
-            //           '0',
-            //           '200',
-            //           '2000',
-            //           '0',
-            //           '3',
-            //           '0',
-            //           '30',
-            //           '0',
-            //           '300',
-            //           '3000',
-            //           '0',
-            //         ],
-            //         '0',
-            //       ],
-            //     ]),
-            //     new Expect('returning a 2 dynarrays of felts', [
-            //       [
-            //         'returnMultipleFeltDynArray',
-            //         [],
-            //         ['3', '1', '2', '3', '4', '5', '6', '7', '8'],
-            //         '0',
-            //       ],
-            //     ]),
-            //     new Expect('returning a dynarray as a member access.', [
-            //       ['returnDynArrayAsMemberAccess', [], ['2', '10', '0', '100', '0'], '0'],
-            //     ]),
-            //     new Expect('returning a dynarray as a index access.', [
-            //       ['returnDynArrayAsIndexAccess', [], ['3', '10', '0', '100', '0', '1000', '0'], '0'],
-            //     ]),
-            //     new Expect('returning a dynarray from a dynarray access.', [
-            //       ['returnDynArrayFromDynArray', [], ['3', '10', '0', '100', '0', '1000', '0'], '0'],
-            //     ]),
+            new Expect('returning a dynarray of structs', [
+              ['returnStruct', [], ['3', '1', '0', '10', '2', '0', '20', '3', '0', '30'], '0'],
+            ]),
+            new Expect('return a dynarray of nested structs', [
+              [
+                'returnNestedStruct',
+                [],
+                [
+                  '3',
+                  '1',
+                  '0',
+                  '10',
+                  '0',
+                  '100',
+                  '1000',
+                  '0',
+                  '2',
+                  '0',
+                  '20',
+                  '0',
+                  '200',
+                  '2000',
+                  '0',
+                  '3',
+                  '0',
+                  '30',
+                  '0',
+                  '300',
+                  '3000',
+                  '0',
+                ],
+                '0',
+              ],
+            ]),
+            new Expect('returning a 2 dynarrays of felts', [
+              [
+                'returnMultipleFeltDynArray',
+                [],
+                ['3', '1', '2', '3', '4', '5', '6', '7', '8'],
+                '0',
+              ],
+            ]),
+            new Expect('returning a dynarray as a member access.', [
+              ['returnDynArrayAsMemberAccess', [], ['2', '10', '0', '100', '0'], '0'],
+            ]),
+            new Expect('returning a dynarray as a index access.', [
+              ['returnDynArrayAsIndexAccess', [], ['2', '10', '0', '100', '0'], '0'],
+            ]),
+            new Expect('returning a dynarray from a dynarray access.', [
+              ['returnDynArrayFromDynArray', [], ['3', '10', '0', '100', '0', '1000', '0'], '0'],
+            ]),
             new Expect('returning a dynarray function call in return statement.', [
               ['returnDynArrayFromFunctionCall', [], ['3', '100', '200', '252'], '0'],
             ]),
@@ -895,33 +894,32 @@ export const expectations = flatten(
               'testing a static array of ints can be passed into a public function and written to memory and index returned.',
               [['testIntPublic', ['1', '2', '3'], ['3'], '0']],
             ),
-            // TODO fix passing nested complex types and uncomment
-            // new Expect(
-            //   'testing a static array of structs can be passed into an external function and written to memory and index returned.',
-            //   [
-            //     [
-            //       'testStructExternal',
-            //       ['1', '2', '0 ', '3', '4', '0', '5', '6', '0'],
-            //       ['5', '6', '0'],
-            //       '0',
-            //     ],
-            //   ],
-            // ),
-            // new Expect(
-            //   'testing a static array of structs can be passed into a public function and written to memory and index returned.',
-            //   [['testStructPublic', ['1', '2', '0 ', '3', '4', '0', '5', '6', '0'], ['5'], '0']],
-            // ),
-            // new Expect(
-            //   'testing when multiple inputs all of them are written into memory and read correctly.',
-            //   [
-            //     [
-            //       'testMultiplePublic',
-            //       ['1', '2', '0 ', '3', '4', '0', '5', '6', '0', '111', '10', '11', '12'],
-            //       ['13'],
-            //       '0',
-            //     ],
-            //   ],
-            // ),
+            new Expect(
+              'testing a static array of structs can be passed into an external function and written to memory and index returned.',
+              [
+                [
+                  'testStructExternal',
+                  ['1', '2', '0 ', '3', '4', '0', '5', '6', '0'],
+                  ['5', '6', '0'],
+                  '0',
+                ],
+              ],
+            ),
+            new Expect(
+              'testing a static array of structs can be passed into a public function and written to memory and index returned.',
+              [['testStructPublic', ['1', '2', '0 ', '3', '4', '0', '5', '6', '0'], ['5'], '0']],
+            ),
+            new Expect(
+              'testing when multiple inputs all of them are written into memory and read correctly.',
+              [
+                [
+                  'testMultiplePublic',
+                  ['1', '2', '0 ', '3', '4', '0', '5', '6', '0', '111', '10', '11', '12'],
+                  ['13'],
+                  '0',
+                ],
+              ],
+            ),
           ]),
         ]),
         new Dir('external_input_checks', [

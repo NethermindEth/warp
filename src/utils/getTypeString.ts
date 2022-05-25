@@ -117,7 +117,6 @@ export function getReturnTypeString(node: FunctionDefinition, ast: AST): string 
   const parametersTypeString = retParams
     .map((decl) => {
       const type = getNodeType(decl, ast.compilerVersion);
-      console.log(`${decl.typeString} => ${printTypeNode(type, true)}`);
       return type instanceof PointerType
         ? type
         : specializeType(generalizeType(type)[0], decl.storageLocation);

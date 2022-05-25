@@ -28,7 +28,7 @@ import { error } from '../../utils/formatting';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { cloneASTNode } from '../../utils/cloning';
-import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { CairoType } from '../../utils/cairoTypeSystem';
 import { ReferenceSubPass } from './referenceSubPass';
 
 /*
@@ -299,11 +299,7 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
 
   assert(indexAccess.vIndexExpression);
   assert(arrayType instanceof ArrayType);
-  const elementCairoTypeWidth = CairoType.fromSol(
-    arrayType.elementT,
-    ast,
-    TypeConversionContext.MemoryAllocation,
-  ).width;
+  const elementCairoTypeWidth = CairoType.fromSol(arrayType.elementT, ast).width;
 
   const call = createCallToFunction(
     stub,
