@@ -13,6 +13,7 @@ import {
   Continue,
   ContractDefinition,
   ContractKind,
+  DataLocation,
   DoWhileStatement,
   ElementaryTypeName,
   ElementaryTypeNameExpression,
@@ -408,25 +409,28 @@ class NotImplementedWriter extends CairoASTNodeWriter {
 
 class ParameterListWriter extends CairoASTNodeWriter {
   writeInner(node: ParameterList, writer: ASTWriter): SrcDesc {
-    const typeConversionContext =
-      node.parent instanceof FunctionDefinition
-        ? isExternallyVisible(node.parent)
-          ? TypeConversionContext.CallDataRef
-          : TypeConversionContext.Ref
-        : TypeConversionContext.CallDataRef;
+    const defContext =
+      node.parent instanceof FunctionDefinition && isExternallyVisible(node.parent)
+        ? TypeConversionContext.CallDataRef
+        : TypeConversionContext.Ref;
 
-    const params = node.vParameters.map((value, i) => {
+    const params = node.vParameters.map((value) => {
+      const varTypeConversionContext =
+        value.storageLocation === DataLocation.CallData
+          ? TypeConversionContext.CallDataRef
+          : defContext;
+
       const tp = CairoType.fromSol(
         getNodeType(value, writer.targetCompilerVersion),
         this.ast,
-        typeConversionContext,
+        varTypeConversionContext,
       );
-      if (tp instanceof CairoDynArray) {
-        return value.name
+      if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
+        return isExternallyVisible(node.parent)
           ? `${value.name}_len : ${tp.vLen.toString()}, ${value.name} : ${tp.vPtr.toString()}`
-          : `ret${i}_len : ${tp.vLen.toString()}, ret${i} : ${tp.vPtr.toString()}`;
+          : `${value.name} : ${tp.toString()}`;
       }
-      return value.name ? `${value.name} : ${tp}` : `ret${i} : ${tp}`;
+      return `${value.name} : ${tp}`;
     });
     return [params.join(', ')];
   }
@@ -661,7 +665,8 @@ class IdentifierWriter extends CairoASTNodeWriter {
   writeInner(node: Identifier, _: ASTWriter): SrcDesc {
     if (
       isDynamicCallDataArray(getNodeType(node, this.ast.compilerVersion)) &&
-      node.getClosestParentByType(Return) !== undefined
+      node.getClosestParentByType(Return) !== undefined &&
+      node.getClosestParentByType(FunctionDefinition)?.visibility === FunctionVisibility.External
     ) {
       return [`${node.name}.len, ${node.name}.ptr`];
     }
