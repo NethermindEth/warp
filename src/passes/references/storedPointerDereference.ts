@@ -4,9 +4,11 @@ import {
   DataLocation,
   Expression,
   FunctionCall,
+  generalizeType,
   getNodeType,
   Identifier,
   IndexAccess,
+  MappingType,
   MemberAccess,
   PointerType,
   StructDefinition,
@@ -32,7 +34,7 @@ export class StoredPointerDerference extends ReferenceSubPass {
     const nodeType = getNodeType(node, ast.compilerVersion);
 
     // Next, if the node is a type that requires an extra read, insert this first
-    if (isDynamicStorageArray(nodeType) || isComplexMemoryType(nodeType)) {
+    if (isDynamicStorageArray(nodeType) || isComplexMemoryType(nodeType) || isMapping(nodeType)) {
       let readFunc: FunctionCall;
       if (actualLoc === DataLocation.Storage) {
         readFunc = utilFuncGen.storage.read.gen(node, typeNameFromTypeNode(nodeType, ast), parent);
@@ -56,7 +58,7 @@ export class StoredPointerDerference extends ReferenceSubPass {
   visitIdentifier(node: Identifier, ast: AST): void {
     const type = getNodeType(node, ast.compilerVersion);
     // We're only trying to modify stored pointers, so skip if this isn't one
-    if (!isDynamicStorageArray(type) && !isComplexMemoryType(type)) {
+    if (!isDynamicStorageArray(type) && !isComplexMemoryType(type) && !isMapping(type)) {
       return this.commonVisit(node, ast);
     }
 
@@ -94,6 +96,11 @@ function isComplexMemoryType(type: TypeNode): boolean {
     (type.to instanceof ArrayType ||
       (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
   );
+}
+
+function isMapping(type: TypeNode): boolean {
+  const [base] = generalizeType(type);
+  return base instanceof MappingType;
 }
 
 function referencesStateVariable(node: Identifier): boolean {

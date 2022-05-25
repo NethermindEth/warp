@@ -32,6 +32,7 @@ import {
   UserDefinedTypeName,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
+import { AST } from '../ast/ast';
 import { RationalLiteral } from '../passes/literalExpressionEvaluator/rationalLiteral';
 import { printNode, printTypeNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
@@ -109,21 +110,18 @@ export function getFunctionTypeString(node: FunctionDefinition, compilerVersion:
   return `function (${inputs})${visibility} ${node.stateMutability} ${outputs}`;
 }
 
-export function getReturnTypeString(node: FunctionDefinition): string {
-  const returns = node.vReturnParameters.vParameters;
-  if (returns.length === 0) return 'tuple()';
-  if (returns.length === 1)
-    return `${returns[0].typeString}${
-      returns[0].storageLocation === DataLocation.Default ? '' : ` ${returns[0].storageLocation}`
-    }`;
-  return `tuple(${returns
-    .map(
-      (decl) =>
-        `${decl.typeString}${
-          decl.storageLocation === DataLocation.Default ? '' : ` ${decl.storageLocation}`
-        }`,
-    )
-    .join(',')})`;
+export function getReturnTypeString(node: FunctionDefinition, ast: AST): string {
+  const retParams = node.vReturnParameters.vParameters;
+  const parametersTypeString = retParams
+    .map((decl) => getNodeType(decl, ast.compilerVersion))
+    .map(generateExpressionTypeString)
+    .join(', ');
+
+  if (retParams.length === 1) {
+    return parametersTypeString;
+  } else {
+    return `tuple(${parametersTypeString})`;
+  }
 }
 
 export function generateLiteralTypeString(
