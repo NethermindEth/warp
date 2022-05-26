@@ -151,7 +151,7 @@ export function shr_signed(): void {
           `                let (shift) = pow2(256-rhs)`,
           `                return (Uint256(logical_shift.low+ones*shift, ${mask(128)}))`,
           `            else:`,
-          `                let (bound) = pow2(rhs-128)`,
+          `                let (bound) = pow2(rhs)`,
           `                let ones = bound - 1`,
           `                let (shift) = pow2(128-rhs)`,
           `                return (Uint256(logical_shift.low, logical_shift.high+ones*shift))`,
@@ -217,9 +217,11 @@ export function functionaliseShr(node: BinaryOperation, ast: AST): void {
     `rhs of >> ${printNode(node)} non-int type ${printTypeNode(rhsType)}`,
   );
 
-  const fullName = `warp_shr${lhsType.nBits}${rhsType.nBits === 256 ? '_256' : ''}`;
+  const fullName = `warp_shr${lhsType.signed ? '_signed' : ''}${lhsType.nBits}${
+    rhsType.nBits === 256 ? '_256' : ''
+  }`;
 
-  const importName = 'warplib.maths.shr';
+  const importName = `warplib.maths.shr${lhsType.signed ? '_signed' : ''}`;
 
   const stub = createCairoFunctionStub(
     fullName,
