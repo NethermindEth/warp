@@ -28,6 +28,7 @@ export * from './rejectUnsupportedFeatures';
 export * from './returnInserter';
 export * from './ReturnVariableInitializer';
 export * from './sourceUnitSplitter';
+export * from './staticArrayIndexer';
 export * from './storageAllocator';
 export * from './references';
 export * from './tupleAssignmentSplitter';
