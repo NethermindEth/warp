@@ -291,7 +291,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
             const recursiveFunc = this.getOrCreate(memberType);
             const code = [
               `let (m${memOffset}) = ${recursiveFunc}(calldata.${decl.name})`,
-              `dict_write{dict_ptr=warp_memory}(${add('mem_start', memOffset)}m${memOffset})`,
+              `dict_write{dict_ptr=warp_memory}(${add('mem_start', memOffset)}, m${memOffset})`,
             ].join('\n');
             memOffset++;
             return code;
