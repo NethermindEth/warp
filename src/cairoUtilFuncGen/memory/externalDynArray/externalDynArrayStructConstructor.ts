@@ -56,7 +56,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     }
   }
 
-  private getOrCreate(type: ArrayType): string {
+  getOrCreate(type: ArrayType): string {
     const elemType = type.elementT;
     const elementCairoType = CairoType.fromSol(
       elemType,

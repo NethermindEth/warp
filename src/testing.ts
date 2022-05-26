@@ -47,6 +47,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/address/7/prime_field', 'Success'],
   ['example_contracts/boolOp_noSideEffects', 'Success'],
   ['example_contracts/boolOp_sideEffects', 'Success'],
+  ['example_contracts/bytesXAccess', 'Success'],
   ['example_contracts/c2c', 'Success'],
   // Uses conditionals explicitly
   ['example_contracts/conditional', 'WillNotSupport'],
@@ -117,8 +118,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/nested_structs', 'Success'],
   ['example_contracts/payable_function', 'Success'],
   ['example_contracts/pure_function', 'Success'],
-  // Returns the dynamic array memory pointer instead of it's values
-  ['example_contracts/return_dyn_array', 'NotSupportedYet'],
+  ['example_contracts/return_dyn_array', 'Success'],
   ['example_contracts/return_var_capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],
   ['example_contracts/returnInserter', 'Success'],

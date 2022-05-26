@@ -45,6 +45,16 @@ export const expectations = flatten(
             Expect.Simple('getB3A', [], ['4660']),
             Expect.Simple('getBsC', [], ['18']),
           ]),
+          File.Simple('bytesX', [
+            Expect.Simple('bytes2access', ['0', '0'], ['34']),
+            Expect.Simple('bytes12access', ['3', '0'], ['17']),
+            Expect.Simple('bytes17access', ['14', '0'], ['86']),
+            Expect.Simple('bytes24access', ['19', '0'], ['34']),
+            Expect.Simple('bytes32access', ['15'], ['68']),
+            Expect.Simple('bytes31access', ['30', '0'], ['254']),
+            Expect.Simple('bytes32access', ['30'], ['51']),
+            Expect.Simple('bytes32access256', ['31', '0'], ['255']),
+          ]),
           new File(
             'fixedSizeBytesArrays',
             'WARP',
@@ -292,6 +302,56 @@ export const expectations = flatten(
             Expect.Simple('widthsignNutoi', ['32768'], ['32768']),
           ]),
         ]),
+        new Dir('copy_calldata_to_storage', [
+          File.Simple('dynamic_arrays', [
+            new Expect('felt dynamic arrays is copied from calldata to storage', [
+              ['setX', ['4', '2', '3', '5', '7'], [], '0'],
+              ['getXFull', [], ['4', '2', '3', '5', '7'], '0'],
+              ['getX', [], ['10'], '0'],
+            ]),
+            new Expect('uint256 dynamic array is copied form calldata to storage', [
+              ['setY', ['4', '2', '0', '3', '0', '5', '0', '7', '0'], [], '0'],
+              ['getYFull', [], ['4', '2', '0', '3', '0', '5', '0', '7', '0'], '0'],
+              ['getY', [], ['10', '0'], '0'],
+            ]),
+          ]),
+          File.Simple('static_arrays', [
+            new Expect('static array is copied from calldata to storage', [
+              ['setX', ['3', '0', '5', '0', '1', '0'], [], '0'],
+              ['getX', [], ['9', '0'], '0'],
+            ]),
+          ]),
+          File.Simple('structs', [
+            new Expect('struct is copied from calldata to storage', [
+              ['setS', ['3', '5', '0'], [], '0'],
+              ['getS', [], ['8', '0'], '0'],
+            ]),
+            new Expect('struct dynamic array is copied from calldata to storage', [
+              ['setF', [], [], '0'],
+              ['getF', [], ['3', ...['1', '2', '0'], ...['2', '3', '0'], ...['3', '4', '0']], '0'],
+            ]),
+            Expect.Simple(
+              'getD',
+              [],
+              ['1', '0', '1', '0', '2', '1', '2', '0'],
+              'struct of structs is copyed form calldata to storage',
+            ),
+            new Expect('dynamic array of structs of structs is copied from calldata to storage', [
+              ['setE', [], [], '0'],
+              [
+                'getE',
+                [],
+                [
+                  '3',
+                  ...['1', '0', '1', '0', '2', '1', '2', '0'],
+                  ...['3', '0', '3', '0', '2', '3', '2', '0'],
+                  ...['5', '0', '5', '0', '7', '5', '7', '0'],
+                ],
+                '0',
+              ],
+            ]),
+          ]),
+        ]),
         new Dir('copy_memory_to_calldata', [
           File.Simple('dynArray', [
             new Expect('returning a dynarray of felts', [
@@ -401,6 +461,34 @@ export const expectations = flatten(
               ['getStructs', [], ['3', '4', '5', '6', '1', '2'], '0'],
               ['copyInnerStruct', ['7', '8'], [], '0'],
               ['getStructs', [], ['3', '4', '7', '8', '1', '2'], '0'],
+            ]),
+          ]),
+        ]),
+        new Dir('copy_storage_to_calldata', [
+          File.Simple('dynamic_arrays', [
+            new Expect('felt dynamic array from storage to calldata', [
+              ['pushToX', ['1'], [], '0'],
+              ['pushToX', ['2'], [], '0'],
+              ['pushToX', ['3'], [], '0'],
+              ['getX', [], ['3', '1', '2', '3'], '0'],
+            ]),
+            new Expect('uint256 dynamic array from storage to calldata', [
+              ['pushToY', ['1', '0'], [], '0'],
+              ['pushToY', ['2', '0'], [], '0'],
+              ['pushToY', ['3', '0'], [], '0'],
+              ['getY', [], ['3', '1', '0', '2', '0', '3', '0'], '0'],
+            ]),
+          ]),
+          File.Simple('static_arrays', [
+            new Expect('static array copy from storage to calldata', [
+              ['setX', ['1', '0', '2', '0', '3', '0'], [], '0'],
+              ['getX', [], ['1', '0', '2', '0', '3', '0'], '0'],
+            ]),
+          ]),
+          File.Simple('structs', [
+            new Expect('structs copy from storage to calldata', [
+              ['setS', ['5', '7', '0'], [], '0'],
+              ['getS', [], ['5', '7', '0'], '0'],
             ]),
           ]),
         ]),

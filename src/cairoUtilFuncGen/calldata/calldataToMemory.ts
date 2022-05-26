@@ -107,9 +107,10 @@ export class DynArrayLoader extends StringIndexedFuncGen {
         `end`,
       ].join('\n'),
     });
+    this.requireImport('warplib.maths.int_conversions', 'warp_uint256');
     this.requireImport('warplib.memory', 'wm_new');
     this.requireImport('warplib.memory', cairoElm === 'felt' ? 'wm_write_felt' : 'wm_write_256');
-    this.requireImport('warplib.maths.int_conversions', 'warp_uint256');
+    // TODO import uint256 struct when needed
 
     return allocFuncName;
   }
