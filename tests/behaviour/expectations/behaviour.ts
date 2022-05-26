@@ -1932,6 +1932,22 @@ export const expectations = flatten(
             Expect.Simple('insertReturn', ['7'], ['9', '7']),
           ]),
         ]),
+        new Dir('static_array_index_access', [
+          File.Simple('static_array_index_access', [
+            Expect.Simple('t0', ['3', '2', '1', '0', '0'], ['3']),
+            Expect.Simple(
+              't1',
+              [...['2', '0', '2'], ...['3', '0', '3'], '1', '0'],
+              ['3', '0', '3'],
+            ),
+            Expect.Simple(
+              't2',
+              [...['2', '0', '2', '0', '2'], ...['3', '0', '3', '0', '3'], '0', '0'],
+              ['2', '0', '2', '0', '2'],
+            ),
+            Expect.Simple('t3', ['2', '3', '5', '7', '11', '0', '0', '2', '0', '4', '0'], ['18']),
+          ]),
+        ]),
         new Dir('storage', [
           new Dir('delete', [
             File.Simple('value_dyn_array', [
