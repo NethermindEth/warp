@@ -234,23 +234,24 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
 
     let copyCode: (index: number) => string;
 
+    const loc = (index: number) =>
+      index === 0 ? `mem_start` : `mem_start  + ${index}${memoryOffsetMultiplier}`;
     if (isElementComplex) {
       const recursiveFunc = this.getOrCreate(type.elementT);
       copyCode = (index) =>
         [
           `let cdElem = calldata[${index}]`,
           `let (mElem) = ${recursiveFunc}(cdElem)`,
-          `dict_write{dict_ptr=warp_memory}(${index}${memoryOffsetMultiplier}, mElem)`,
+          `dict_write{dict_ptr=warp_memory}(${loc(index)}, mElem)`,
         ].join('\n');
     } else if (memoryElementWidth === 2) {
       copyCode = (index) =>
         [
-          `dict_write{dict_ptr=warp_memory}(${index}${memoryOffsetMultiplier}, calldata[${index}].low)`,
-          `dict_write{dict_ptr=warp_memory}(${index}${memoryOffsetMultiplier}+1, calldata[${index}].high)`,
+          `dict_write{dict_ptr=warp_memory}(${loc(index)}, calldata[${index}].low)`,
+          `dict_write{dict_ptr=warp_memory}(${loc(index)} + 1, calldata[${index}].high)`,
         ].join('\n');
     } else {
-      copyCode = (index) =>
-        `dict_write{dict_ptr=warp_memory}(${index}${memoryOffsetMultiplier}, calldata[${index}])`;
+      copyCode = (index) => `dict_write{dict_ptr=warp_memory}(${loc(index)}, calldata[${index}])`;
     }
 
     return {
