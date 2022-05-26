@@ -82,4 +82,12 @@ contract WARP {
       return lhs >> rhs;
     }
   }
+
+  function shr_positive_literal() pure public returns (bool) {
+    return (4066 >> 1) == 2033;
+  }
+
+  function shr_negative_literal() pure public returns (bool) {
+    return (-4066 >> 2) == -1017;
+  }
 }

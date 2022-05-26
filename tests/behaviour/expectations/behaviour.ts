@@ -1604,6 +1604,8 @@ export const expectations = flatten(
             Expect.Simple('shl256_256unsafe', ['3', '5', '4', '0'], ['48', '80']),
             Expect.Simple('shl256_256signedsafe', ['3', '5', '4', '0'], ['48', '80']),
             Expect.Simple('shl256_256signedunsafe', ['3', '5', '4', '0'], ['48', '80']),
+            Expect.Simple('shl_positive_literal', [], ['1']),
+            Expect.Simple('shl_negative_literal', [], ['1']),
           ]),
           File.Simple('shr', [
             Expect.Simple('shr8safe', ['100', '2'], ['25']),
@@ -1622,6 +1624,8 @@ export const expectations = flatten(
             Expect.Simple('shr256_256unsafe', ['100', '20', '2', '0'], ['25', '5']),
             Expect.Simple('shr256_256signedsafe', ['100', '20', '2', '0'], ['25', '5']),
             Expect.Simple('shr256_256signedunsafe', ['100', '20', '2', '0'], ['25', '5']),
+            Expect.Simple('shr_positive_literal', [], ['1']),
+            Expect.Simple('shr_negative_literal', [], ['1']),
           ]),
           File.Simple('subtraction', [
             Expect.Simple('subtraction8safe', ['31', '2'], ['29']),
