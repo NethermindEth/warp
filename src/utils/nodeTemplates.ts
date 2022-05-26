@@ -1,3 +1,4 @@
+import { assert } from 'console';
 import {
   ASTNode,
   Block,
@@ -19,10 +20,12 @@ import {
   StructuredDocumentation,
   TupleExpression,
   VariableDeclaration,
+  VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { generateExpressionTypeString, generateLiteralTypeString } from './getTypeString';
 import { specializeType } from './nodeTypeProcessing';
+import { notNull } from './typeConstructs';
 import { toHexString, toSingleExpression } from './utils';
 
 export function createAddressTypeName(payable: boolean, ast: AST): ElementaryTypeName {
@@ -192,4 +195,24 @@ export function createDefaultConstructor(node: ContractDefinition, ast: AST): Fu
     [],
   );
   return newFunc;
+}
+
+export function createVariableDeclarationStatement(
+  varDecls: (VariableDeclaration | null)[],
+  intitalValue: Expression,
+  ast: AST,
+): VariableDeclarationStatement {
+  assert(
+    varDecls.some(notNull),
+    `Attempted to create variable declaration statement with no variables`,
+  );
+  const node = new VariableDeclarationStatement(
+    ast.reserveId(),
+    '',
+    varDecls.map((v) => (v === null ? null : v.id)),
+    varDecls.filter(notNull),
+    intitalValue,
+  );
+  ast.setContextRecursive(node);
+  return node;
 }
