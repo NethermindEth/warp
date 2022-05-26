@@ -23,7 +23,7 @@ import { cloneASTNode } from '../../utils/cloning';
 import { CairoFunctionDefinition } from '../../ast/cairoNodes';
 import { NotSupportedYetError } from '../../utils/errors';
 import { printTypeNode } from '../../utils/astPrinter';
-import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
+import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 
 const INDENT = ' '.repeat(4);
 
@@ -232,41 +232,34 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     const memoryElementWidth = CairoType.fromSol(type.elementT, this.ast).width;
     const memoryOffsetMultiplier = memoryElementWidth === 1 ? '' : `* ${memoryElementWidth}`;
 
-    let copyCode: string;
+    let copyCode: (index: number) => string;
 
     if (isElementComplex) {
       const recursiveFunc = this.getOrCreate(type.elementT);
-      copyCode = [
-        `let cdElem = calldata[index]`,
-        `let (mElem) = ${recursiveFunc}(cdElem)`,
-        `dict_write{dict_ptr=warp_memory}(mem_loc, mElem)`,
-      ].join('\n');
+      copyCode = (index) =>
+        [
+          `let cdElem = calldata[${index}]`,
+          `let (mElem) = ${recursiveFunc}(cdElem)`,
+          `dict_write{dict_ptr=warp_memory}(${index}${memoryOffsetMultiplier}, mElem)`,
+        ].join('\n');
     } else if (memoryElementWidth === 2) {
-      copyCode = [
-        `dict_write{dict_ptr=warp_memory}(mem_loc, calldata[index].low)`,
-        `dict_write{dict_ptr=warp_memory}(mem_loc+1, calldata[index].high)`,
-      ].join('\n');
+      copyCode = (index) =>
+        [
+          `dict_write{dict_ptr=warp_memory}(${index}${memoryOffsetMultiplier}, calldata[${index}].low)`,
+          `dict_write{dict_ptr=warp_memory}(${index}${memoryOffsetMultiplier}+1, calldata[${index}].high)`,
+        ].join('\n');
     } else {
-      copyCode = `dict_write{dict_ptr=warp_memory}(mem_loc, calldata[index])`;
+      copyCode = (index) =>
+        `dict_write{dict_ptr=warp_memory}(${index}${memoryOffsetMultiplier}, calldata[${index}])`;
     }
 
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(calldata: ${callDataType}, mem_start: felt, length: felt):`,
-        `    alloc_locals`,
-        `    if length == 0:`,
-        `        return ()`,
-        `    end`,
-        `    let index = length - 1`,
-        `    let mem_loc = mem_start + index${memoryOffsetMultiplier}`,
-        copyCode,
-        `    return ${funcName}_elem(calldata, index)`,
-        `end`,
         `func ${funcName}${implicits}(calldata : ${callDataType}) -> (mem_loc: felt):`,
         `    alloc_locals`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)})`,
-        `    ${funcName}_elem(calldata, mem_start, ${narrowBigIntSafe(type.size)})`,
+        ...mapRange(narrowBigIntSafe(type.size), (n) => copyCode(n)),
         `    return (mem_start)`,
         `end`,
       ].join('\n'),
