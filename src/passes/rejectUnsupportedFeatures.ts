@@ -44,12 +44,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FunctionType)
       throw new WillNotSupportError('Function objects are not supported');
-    if (
-      typeNode instanceof PointerType &&
-      typeNode.to instanceof MappingType &&
-      typeNode.to.valueType instanceof UserDefinedType
-    )
-      throw new NotSupportedYetError('Mappings with structs are not supported yet');
     this.commonVisit(node, ast);
   }
 

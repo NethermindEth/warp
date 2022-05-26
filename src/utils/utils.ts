@@ -364,3 +364,35 @@ export function isReferenceType(type: TypeNode): boolean {
 export function isValueType(type: TypeNode): boolean {
   return !isReferenceType(type);
 }
+
+export function isDynamicStorageArray(type: TypeNode): boolean {
+  return (
+    type instanceof PointerType &&
+    type.location === DataLocation.Storage &&
+    type.to instanceof ArrayType &&
+    type.to.size === undefined
+  );
+}
+
+export function isComplexStorageType(type: TypeNode): boolean {
+  return (
+    type instanceof PointerType &&
+    type.location === DataLocation.Storage &&
+    (type.to instanceof ArrayType ||
+      (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
+  );
+}
+
+export function isComplexMemoryType(type: TypeNode): boolean {
+  return (
+    type instanceof PointerType &&
+    type.location === DataLocation.Memory &&
+    (type.to instanceof ArrayType ||
+      (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
+  );
+}
+
+export function isMapping(type: TypeNode): boolean {
+  const [base] = generalizeType(type);
+  return base instanceof MappingType;
+}
