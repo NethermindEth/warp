@@ -4,13 +4,10 @@ import {
   RevertStatement,
   ErrorDefinition,
   Conditional,
-  MappingType,
   MemberAccess,
-  PointerType,
   AddressType,
   FunctionType,
   getNodeType,
-  UserDefinedType,
   VariableDeclaration,
   FunctionCall,
   FunctionCallKind,
@@ -19,7 +16,7 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
+import { WillNotSupportError } from '../utils/errors';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   visitIndexAccess(node: IndexAccess, ast: AST): void {
