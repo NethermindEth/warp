@@ -2,6 +2,7 @@ import { int_conversions } from './implementations/conversions/int';
 import { add, add_unsafe, add_signed, add_signed_unsafe } from './implementations/maths/add';
 import { bitwise_not } from './implementations/maths/bitwise_not';
 import { div_signed } from './implementations/maths/div';
+import { mod_signed } from './implementations/maths/mod';
 import { exp, exp_signed, exp_signed_unsafe, exp_unsafe } from './implementations/maths/exp';
 import { ge_signed } from './implementations/maths/ge';
 import { gt_signed } from './implementations/maths/gt';
@@ -31,6 +32,9 @@ mul_signed_unsafe();
 
 //div - handwritten
 div_signed();
+
+// mod - handwritten
+mod_signed();
 
 exp();
 exp_signed();

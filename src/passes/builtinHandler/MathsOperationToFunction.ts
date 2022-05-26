@@ -15,6 +15,7 @@ import { functionaliseGe } from '../../warplib/implementations/maths/ge';
 import { functionaliseGt } from '../../warplib/implementations/maths/gt';
 import { functionaliseLe } from '../../warplib/implementations/maths/le';
 import { functionaliseLt } from '../../warplib/implementations/maths/lt';
+import { functionaliseMod } from '../../warplib/implementations/maths/mod';
 import { functionaliseMul } from '../../warplib/implementations/maths/mul';
 import { functionaliseNegate } from '../../warplib/implementations/maths/negate';
 import { functionaliseNeq } from '../../warplib/implementations/maths/neq';
@@ -40,6 +41,7 @@ export class MathsOperationToFunction extends ASTMapper {
       ['-', () => functionaliseSub(node, this.inUncheckedBlock, ast)],
       ['*', () => functionaliseMul(node, this.inUncheckedBlock, ast)],
       ['/', () => functionaliseDiv(node, ast)],
+      ['%', () => functionaliseMod(node, this.inUncheckedBlock, ast)],
       ['**', () => functionaliseExp(node, this.inUncheckedBlock, ast)],
       ['==', () => functionaliseEq(node, ast)],
       ['!=', () => functionaliseNeq(node, ast)],
