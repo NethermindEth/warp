@@ -218,7 +218,7 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
         node.vInitialValue.vReferencedDeclaration.visibility === FunctionVisibility.External
       ) {
         assert(
-          declaration.storageLocation !== DataLocation.CallData,
+          declaration.storageLocation === DataLocation.CallData,
           `WARNING: declaration receiving calldata dynarray has location ${declaration.storageLocation}`,
         );
         const writtenVar = writer.write(declaration);

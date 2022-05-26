@@ -520,6 +520,26 @@ export const expectations = flatten(
             ],
             'C',
           ),
+          File.Simple('dynArrays', [], 'ArrayProvider'),
+          File.Simple('dynArrays', [
+            Expect.Simple(
+              'receiveArr',
+              ['address@tests/behaviour/contracts/cross_contract_calls/dynArrays.ArrayProvider'],
+              ['3', '0'],
+            ),
+            Expect.Simple(
+              'receiveMultiple',
+              [
+                '2',
+                '7',
+                '8',
+                '9',
+                '3',
+                'address@tests/behaviour/contracts/cross_contract_calls/dynArrays.ArrayProvider',
+              ],
+              ['2', '0', '5', '0', '4', '0', '2', '0', '5', '0', '4', '0'],
+            ),
+          ]),
         ]),
         // covers nested mappings
         new Dir('Dai', [
