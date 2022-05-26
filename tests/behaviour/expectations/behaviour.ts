@@ -2006,6 +2006,16 @@ export const expectations = flatten(
             Expect.Simple('nonFeltKey', ['3', '4', '5'], ['5']),
             Expect.Simple('nonFeltKey', ['4', '5', '6'], ['6'], 'stepCheck'),
             Expect.Simple('structValue', ['10', '100', '1000'], ['10', '100', '1000']),
+            Expect.Simple(
+              'staticArrayValue',
+              ['10', '11', '100', '101', '1000', '1001'],
+              ['10', '11', '100', '101', '1000', '1001'],
+            ),
+            Expect.Simple(
+              'dynamicArrayValue',
+              ['10', '11', '100', '101', '1000', '1001'],
+              ['10', '11', '100', '101', '1000', '1001'],
+            ),
           ]),
           File.Simple('nesting', [Expect.Simple('nesting', [], ['5'])]),
           File.Simple('passingArguments', [
