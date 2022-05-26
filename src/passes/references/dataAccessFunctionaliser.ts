@@ -94,20 +94,19 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
             break;
           }
         }
-      }
-    } else if (actualLoc === DataLocation.CallData) {
-      switch (expectedLoc) {
-        case DataLocation.Default:
-          throw new TranspileFailedError(
-            `Unexpected CallData->Default encountered at ${printNode(node)}`,
-          );
-        case DataLocation.Memory:
-          copyFunc = ast.getUtilFuncGen(node).calldata.toMemory.gen(node);
-          break;
-        case DataLocation.Storage:
-          throw new NotSupportedYetError(
-            `CallData->Storage not implemented yet. Found at ${printNode(node)}`,
-          );
+      } else if (actualLoc === DataLocation.CallData) {
+        switch (expectedLoc) {
+          case DataLocation.Default:
+            // Nothing to do here
+            break;
+          case DataLocation.Memory:
+            copyFunc = ast.getUtilFuncGen(node).calldata.toMemory.gen(node);
+            break;
+          case DataLocation.Storage:
+            throw new NotSupportedYetError(
+              `CallData->Storage not implemented yet. Found at ${printNode(node)}`,
+            );
+        }
       }
     }
 

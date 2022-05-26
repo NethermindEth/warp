@@ -98,8 +98,7 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
         } else {
           const currentTypeNode = initialValueType.elements[index];
 
-          const newTypeNode = typeNameFromTypeNode(currentTypeNode, ast);
-          //TODO handle non-elementary types
+          const newTypeName = typeNameFromTypeNode(currentTypeNode, ast);
           // This is the replacement variable in the tuple assignment
           const newDeclaration = new VariableDeclaration(
             ast.reserveId(),
@@ -112,9 +111,9 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
             oldDeclaration.storageLocation,
             StateVariableVisibility.Default,
             Mutability.Constant,
-            initialValueType.elements[index].pp(),
+            newTypeName.typeString,
             undefined,
-            newTypeNode,
+            newTypeName,
           );
           node.vDeclarations.push(newDeclaration);
           ast.registerChild(newDeclaration, node);
