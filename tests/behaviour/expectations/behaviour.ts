@@ -45,6 +45,16 @@ export const expectations = flatten(
             Expect.Simple('getB3A', [], ['4660']),
             Expect.Simple('getBsC', [], ['18']),
           ]),
+          File.Simple('bytesX', [
+            Expect.Simple('bytes2access', ['0', '0'], ['34']),
+            Expect.Simple('bytes12access', ['3', '0'], ['17']),
+            Expect.Simple('bytes17access', ['14', '0'], ['86']),
+            Expect.Simple('bytes24access', ['19', '0'], ['34']),
+            Expect.Simple('bytes32access', ['15'], ['68']),
+            Expect.Simple('bytes31access', ['30', '0'], ['254']),
+            Expect.Simple('bytes32access', ['30'], ['51']),
+            Expect.Simple('bytes32access256', ['31', '0'], ['255']),
+          ]),
           new File(
             'fixedSizeBytesArrays',
             'WARP',
