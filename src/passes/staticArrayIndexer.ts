@@ -38,21 +38,31 @@ export class StaticArrayIndexer extends ASTMapper {
       uint8[3] memory mem_b  = b
       uint8[x] = mem_b[i]
   */
+
+  // Tracks calldata arrays which already have a memory counterpart
   private staticArrayAccesed = new Map<number, VariableDeclaration>();
+  // Tracks nested index access which need to be turned into memory
   private nestedDependence = new Set<number>();
 
   visitIndexAccess(node: IndexAccess, ast: AST): void {
+    // All calldata static array must have an identifer as a base expression
+    const idIdentifier = getReferenceDeclaration(node.vBaseExpression);
+    if (idIdentifier === null) return this.visitExpression(node, ast);
+
+    const [refId, identifier] = idIdentifier;
+    // Do not transform this array if it is not part of nested static arrays
+    if (!this.nestedDependence.has(refId) && !isMemoryNested(node))
+      return this.visitExpression(node, ast);
+    // Add reference so all child calldata index access be transformed to
+    // memory regardles of indexer
+    this.nestedDependence.add(refId);
+
+    // Visit parent expression and solve
     this.visitExpression(node, ast);
+
     const expressionType = getNodeType(node, ast.compilerVersion);
     const baseType = getNodeType(node.vBaseExpression, ast.compilerVersion);
-
-    const [refId, identifier] = getReferenceDeclaration(node.vBaseExpression);
-
-    if (
-      this.nestedDependence.has(refId) ||
-      (isCalldataStaticArray(baseType) && this.isMemoryNested)
-    ) {
-      this.nestedDependence.add(refId);
+    if (isCalldataStaticArray(baseType)) {
       assert(identifier.vReferencedDeclaration instanceof VariableDeclaration);
 
       const parentFunction = node.getClosestParentByType(FunctionDefinition);
@@ -64,7 +74,7 @@ export class StaticArrayIndexer extends ASTMapper {
       const exprMemoryType = specializeType(generalizeType(expressionType)[0], DataLocation.Memory);
       const baseMemoryType = specializeType(generalizeType(baseType)[0], DataLocation.Memory);
 
-      // To only make a memory copy of each calldata array
+      // Add a memory static array for each calldata static array
       if (!this.staticArrayAccesed.has(refId)) {
         const varDecl = new VariableDeclaration(
           ast.reserveId(),
@@ -97,7 +107,6 @@ export class StaticArrayIndexer extends ASTMapper {
         } else {
           ast.insertStatementAfter(identifier.vReferencedDeclaration, varDeclStmnt);
         }
-
         this.staticArrayAccesed.set(refId, varDecl);
       }
 
@@ -114,14 +123,9 @@ export class StaticArrayIndexer extends ASTMapper {
       );
 
       ast.replaceNode(node, indexReplacement);
+      return;
     }
-  }
-
-  private isMemoryNested(node: IndexAccess): boolean {
-    return (
-      isIndexedByNonLiteral(node) ||
-      (node.vBaseExpression instanceof IndexAccess && this.isMemoryNested(node))
-    );
+    this.visitExpression(node, ast);
   }
 }
 
@@ -134,11 +138,18 @@ function isCalldataStaticArray(type: TypeNode): boolean {
   );
 }
 
+function isMemoryNested(node: IndexAccess): boolean {
+  return (
+    isIndexedByNonLiteral(node) ||
+    (node.vBaseExpression instanceof IndexAccess && isMemoryNested(node.vBaseExpression))
+  );
+}
+
 function isIndexedByNonLiteral(node: IndexAccess): boolean {
   return node.vIndexExpression !== undefined && !(node.vIndexExpression instanceof Literal);
 }
 
-function getReferenceDeclaration(expr: Expression): [number, Identifier] {
+function getReferenceDeclaration(expr: Expression): [number, Identifier] | null {
   if (expr instanceof Identifier) {
     return [expr.referencedDeclaration, expr];
   }
@@ -146,5 +157,5 @@ function getReferenceDeclaration(expr: Expression): [number, Identifier] {
     return getReferenceDeclaration(expr.vBaseExpression);
   }
 
-  throw new Error('Unexpected calldata expression');
+  return null;
 }
