@@ -1373,6 +1373,12 @@ export const expectations = flatten(
           new Dir('super_calls', [
             new File('order', 'Final', [], [Expect.Simple('f', [], ['2', '0'])]),
             new File('super_in_constructor', 'D', [], [Expect.Simple('f', [], ['15', '0'])]),
+            new File(
+              'super_in_modifier',
+              'Final',
+              [],
+              [Expect.Simple('f', ['75', '0'], ['50', '0'])],
+            ),
           ]),
           new Dir('variables', [
             new File('derived', 'Derived', [], [Expect.Simple('f', [], ['36', '0', '24', '0'])]),

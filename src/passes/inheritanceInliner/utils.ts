@@ -13,6 +13,7 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { TranspileFailedError } from '../../utils/errors';
 import { createCallToEvent } from '../../utils/functionGeneration';
 
 export function getBaseContracts(node: ContractDefinition): ContractDefinition[] {
@@ -103,4 +104,49 @@ export function removeBaseContractDependence(node: ContractDefinition): void {
 function isSpecificAccess(node: IdentifierPath): boolean {
   const name = node.name.split('.');
   return name.length > 1;
+}
+
+export function fixSuperReference(
+  node: ASTNode,
+  base: ContractDefinition,
+  contract: ContractDefinition,
+): void {
+  node.walk((n) => {
+    if (n instanceof MemberAccess && isSuperAccess(n)) {
+      const superFunc = findSuperReferenceNode(n.memberName, base, contract);
+      n.referencedDeclaration = superFunc.id;
+    }
+  });
+}
+
+// TODO: Investigate other ways to get super as the MemberAccess expression
+function isSuperAccess(n: MemberAccess): boolean {
+  const expr = n.vExpression;
+  return expr instanceof Identifier && expr.name === 'super';
+}
+
+function findSuperReferenceNode(
+  funcName: string,
+  base: ContractDefinition,
+  node: ContractDefinition,
+): FunctionDefinition {
+  let contractFound = false;
+  for (const contract of getBaseContracts(node)) {
+    if (contractFound) {
+      const functions = contract
+        .getChildren()
+        .filter(
+          (declaration): declaration is FunctionDefinition =>
+            declaration instanceof FunctionDefinition && declaration.name === funcName,
+        );
+      assert(
+        functions.length <= 1,
+        `Function ${funcName} is defined multiple times in the same contract`,
+      );
+      if (functions.length == 1) return functions[0];
+    } else {
+      contractFound = contract.id === base.id;
+    }
+  }
+  throw new TranspileFailedError(`Function ${funcName} was not found in super contracts`);
 }

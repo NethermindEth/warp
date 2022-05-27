@@ -4,8 +4,6 @@ import {
   FunctionDefinition,
   FunctionKind,
   FunctionVisibility,
-  Identifier,
-  MemberAccess,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { printNode } from '../../utils/astPrinter';
@@ -14,7 +12,7 @@ import { TranspileFailedError } from '../../utils/errors';
 import { createCallToFunction } from '../../utils/functionGeneration';
 import { createBlock, createIdentifier, createReturn } from '../../utils/nodeTemplates';
 import { isExternallyVisible } from '../../utils/utils';
-import { getBaseContracts } from './utils';
+import { fixSuperReference, getBaseContracts } from './utils';
 
 // Every function from every base contract gets included privately in the derived contract
 // To prevent name collisions, these functions have "_sX" appended
@@ -170,49 +168,4 @@ function createDelegatingFunction(
   ast.setContextRecursive(newFunc);
 
   return newFunc;
-}
-
-function fixSuperReference(
-  func: FunctionDefinition,
-  base: ContractDefinition,
-  node: ContractDefinition,
-): void {
-  func.walk((n) => {
-    if (n instanceof MemberAccess && isSuperAccess(n)) {
-      const superFunc = findSuperReferenceNode(n.memberName, base, node);
-      n.referencedDeclaration = superFunc.id;
-    }
-  });
-}
-
-// TODO: Investigate other ways to get super as the MemberAccess expression
-function isSuperAccess(n: MemberAccess): boolean {
-  const expr = n.vExpression;
-  return expr instanceof Identifier && expr.name === 'super';
-}
-
-function findSuperReferenceNode(
-  funcName: string,
-  base: ContractDefinition,
-  node: ContractDefinition,
-): FunctionDefinition {
-  let contractFound = false;
-  for (const contract of getBaseContracts(node)) {
-    if (contractFound) {
-      const functions = contract
-        .getChildren()
-        .filter(
-          (declaration): declaration is FunctionDefinition =>
-            declaration instanceof FunctionDefinition && declaration.name === funcName,
-        );
-      assert(
-        functions.length <= 1,
-        `Function ${funcName} is defined multiple times in the same contract`,
-      );
-      if (functions.length == 1) return functions[0];
-    } else {
-      contractFound = contract.id === base.id;
-    }
-  }
-  throw new TranspileFailedError(`Function ${funcName} was not found in super contracts`);
 }
