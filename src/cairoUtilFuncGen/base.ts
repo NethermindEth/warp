@@ -67,10 +67,6 @@ export function add(base: string, offset: number): string {
   return offset === 0 ? base : `${base} + ${offset}`;
 }
 
-export function locationIfPointer(type: TypeNode, location: DataLocation): DataLocation {
-  return type instanceof PointerType ? location : DataLocation.Default;
-}
-
 // This is needed because index access and member access functions return pointers, even if the data
 // pointed to is a basic type, whereas read and write functions need to only return pointers if the
 // data they're reading or writing is a complex type
