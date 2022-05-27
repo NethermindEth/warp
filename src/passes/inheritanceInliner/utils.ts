@@ -13,6 +13,7 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { TranspileFailedError } from '../../utils/errors';
 import { createCallToEvent } from '../../utils/functionGeneration';
 
 export function getBaseContracts(node: ContractDefinition): ContractDefinition[] {
@@ -103,4 +104,57 @@ export function removeBaseContractDependence(node: ContractDefinition): void {
 function isSpecificAccess(node: IdentifierPath): boolean {
   const name = node.name.split('.');
   return name.length > 1;
+}
+
+// Check whether there is a statement in the body of the node that is a member access
+// to super. If that is the case, it needs to fix the reference of that member access
+// to the correct function in the linearized order of contract
+export function fixSuperReference(
+  node: ASTNode,
+  base: ContractDefinition,
+  contract: ContractDefinition,
+): void {
+  node.walk((n) => {
+    if (n instanceof MemberAccess && isSuperAccess(n)) {
+      const superFunc = findSuperReferenceNode(n.memberName, base, contract);
+      n.referencedDeclaration = superFunc.id;
+    }
+  });
+}
+
+// TODO: Investigate if there are other ways to get super as the MemberAccess expression
+function isSuperAccess(n: MemberAccess): boolean {
+  const expr = n.vExpression;
+  return expr instanceof Identifier && expr.name === 'super';
+}
+
+// In the `base` contract there is a super member access, which points to the corresponding
+// function in the linearized order of contracts of `base`. However, it should be pointing
+// to this function in the linearized order of contracts of `contract`; so the contracts
+// after `base` should be reviewed in this order looking for the correct function to fix
+// the reference
+function findSuperReferenceNode(
+  funcName: string,
+  base: ContractDefinition,
+  node: ContractDefinition,
+): FunctionDefinition {
+  let contractFound = false;
+  for (const contract of getBaseContracts(node)) {
+    if (contractFound) {
+      const functions = contract
+        .getChildren()
+        .filter(
+          (declaration): declaration is FunctionDefinition =>
+            declaration instanceof FunctionDefinition && declaration.name === funcName,
+        );
+      assert(
+        functions.length <= 1,
+        `Function ${funcName} is defined multiple times in the same contract`,
+      );
+      if (functions.length == 1) return functions[0];
+    } else {
+      contractFound = contract.id === base.id;
+    }
+  }
+  throw new TranspileFailedError(`Function ${funcName} was not found in super contracts`);
 }
