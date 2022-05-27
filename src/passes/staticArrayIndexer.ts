@@ -30,37 +30,28 @@ import { typeNameFromTypeNode } from '../utils/utils';
 
 export class StaticArrayIndexer extends ASTMapper {
   private staticArrayAccesed = new Map<number, VariableDeclaration>();
+  private nestedDependence = new Set<number>();
 
   visitIndexAccess(node: IndexAccess, ast: AST): void {
     this.visitExpression(node, ast);
-
     const expressionType = getNodeType(node, ast.compilerVersion);
     const baseType = getNodeType(node.vBaseExpression, ast.compilerVersion);
 
-    console.log(
-      printNode(node),
-      node.vBaseExpression instanceof Identifier ? node.vBaseExpression.name : '',
-      printTypeNode(baseType),
-      isCalldataStaticArray(baseType),
-      node.vIndexExpression !== undefined && !(node.vIndexExpression instanceof Literal),
-    );
-    if (
-      isCalldataStaticArray(baseType) &&
-      node.vIndexExpression !== undefined &&
-      !(node.vIndexExpression instanceof Literal)
-    ) {
-      assert(node.vBaseExpression instanceof Identifier);
-      assert(
-        node.vBaseExpression.vReferencedDeclaration !== undefined &&
-          node.vBaseExpression.vReferencedDeclaration instanceof VariableDeclaration,
-      );
+    const [refId, identifier] = getReferenceDeclaration(node.vBaseExpression);
 
-      const refId = node.vBaseExpression.referencedDeclaration;
+    if (
+      this.nestedDependence.has(refId) ||
+      (isCalldataStaticArray(baseType) && this.isMemoryNested)
+    ) {
+      this.nestedDependence.add(refId);
+      assert(identifier.vReferencedDeclaration instanceof VariableDeclaration);
+
       const parentFunction = node.getClosestParentByType(FunctionDefinition);
       assert(
         parentFunction !== undefined,
         'Calldata types must be enclosed in a function definition',
       );
+
       const exprMemoryType = specializeType(generalizeType(expressionType)[0], DataLocation.Memory);
       const baseMemoryType = specializeType(generalizeType(baseType)[0], DataLocation.Memory);
 
@@ -75,7 +66,7 @@ export class StaticArrayIndexer extends ASTMapper {
           '',
           false,
           false,
-          `memory_${node.vBaseExpression.name}`,
+          `memory_${identifier.name}`,
           parentFunction?.id,
           false,
           DataLocation.Memory,
@@ -91,7 +82,7 @@ export class StaticArrayIndexer extends ASTMapper {
           '',
           [varDecl.id],
           [varDecl],
-          createIdentifier(node.vBaseExpression.vReferencedDeclaration, ast, DataLocation.CallData),
+          createIdentifier(identifier.vReferencedDeclaration, ast, DataLocation.CallData),
         );
         ast.setContextRecursive(varDeclStmnt);
         ast.setContextRecursive(varDecl);
@@ -101,18 +92,27 @@ export class StaticArrayIndexer extends ASTMapper {
       }
 
       const varDecl = this.staticArrayAccesed.get(refId);
+
       assert(varDecl !== undefined);
+      assert(node.vIndexExpression instanceof Expression);
 
       const indexReplacement = new IndexAccess(
         node.id,
         node.src,
-        node.typeString,
+        generateExpressionTypeString(exprMemoryType),
         createIdentifier(varDecl, ast, DataLocation.Memory),
         cloneASTNode(node.vIndexExpression, ast),
       );
 
       ast.replaceNode(node, indexReplacement);
     }
+  }
+
+  private isMemoryNested(node: IndexAccess): boolean {
+    return (
+      isIndexedByNonLiteral(node) ||
+      (node.vBaseExpression instanceof IndexAccess && this.isMemoryNested(node))
+    );
   }
 }
 
@@ -123,4 +123,19 @@ function isCalldataStaticArray(type: TypeNode): boolean {
     type.to instanceof ArrayType &&
     type.to.size !== undefined
   );
+}
+
+function isIndexedByNonLiteral(node: IndexAccess): boolean {
+  return node.vIndexExpression !== undefined && !(node.vIndexExpression instanceof Literal);
+}
+
+function getReferenceDeclaration(expr: Expression): [number, Identifier] {
+  if (expr instanceof Identifier) {
+    return [expr.referencedDeclaration, expr];
+  }
+  if (expr instanceof IndexAccess) {
+    return getReferenceDeclaration(expr.vBaseExpression);
+  }
+
+  throw new Error('Unexpected calldata expression');
 }
