@@ -1,10 +1,8 @@
 import assert from 'assert';
 import {
   ArrayType,
-  Assignment,
   DataLocation,
   Expression,
-  ExpressionStatement,
   FunctionDefinition,
   generalizeType,
   getNodeType,
@@ -12,7 +10,6 @@ import {
   IndexAccess,
   Literal,
   Mutability,
-  NewExpression,
   PointerType,
   StateVariableVisibility,
   TypeNode,
@@ -21,7 +18,6 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { printNode, printTypeNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
 import { generateExpressionTypeString } from '../utils/getTypeString';
 import { createIdentifier } from '../utils/nodeTemplates';
@@ -29,6 +25,19 @@ import { specializeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
 
 export class StaticArrayIndexer extends ASTMapper {
+  /*
+    This pass change replace all non literal calldata static array index access for 
+    non literal MEMORY static array index access.
+    This pass is needed because static arrays are handled as cairo tuples, but cairo
+    tuples (for now) can only be indexed by literals
+    e.g.
+      uint8[3] calldata b = ...
+      uint8 x = b[i]
+   // gets replaced by:
+      uint8[3] calldata b = ...
+      uint8[3] memory mem_b  = b
+      uint8[x] = mem_b[i]
+  */
   private staticArrayAccesed = new Map<number, VariableDeclaration>();
   private nestedDependence = new Set<number>();
 
@@ -55,11 +64,7 @@ export class StaticArrayIndexer extends ASTMapper {
       const exprMemoryType = specializeType(generalizeType(expressionType)[0], DataLocation.Memory);
       const baseMemoryType = specializeType(generalizeType(baseType)[0], DataLocation.Memory);
 
-      // const exprMemoryTypeString = generateExpressionTypeString(exprMemoryType);
-      // const exprMemoryTypeName = typeNameFromTypeNode(exprMemoryType, ast);
-
-      console.log('New expr type', printTypeNode(exprMemoryType));
-
+      // To only make a memory copy of each calldata array
       if (!this.staticArrayAccesed.has(refId)) {
         const varDecl = new VariableDeclaration(
           ast.reserveId(),
@@ -87,20 +92,24 @@ export class StaticArrayIndexer extends ASTMapper {
         ast.setContextRecursive(varDeclStmnt);
         ast.setContextRecursive(varDecl);
 
-        parentFunction.vBody?.insertAtBeginning(varDeclStmnt);
+        if (parentFunction.vParameters.vParameters.some((vd) => vd.id === refId)) {
+          parentFunction.vBody?.insertAtBeginning(varDeclStmnt);
+        } else {
+          ast.insertStatementAfter(identifier.vReferencedDeclaration, varDeclStmnt);
+        }
+
         this.staticArrayAccesed.set(refId, varDecl);
       }
 
-      const varDecl = this.staticArrayAccesed.get(refId);
-
-      assert(varDecl !== undefined);
+      const refVarDecl = this.staticArrayAccesed.get(refId);
+      assert(refVarDecl !== undefined);
       assert(node.vIndexExpression instanceof Expression);
 
       const indexReplacement = new IndexAccess(
         node.id,
         node.src,
         generateExpressionTypeString(exprMemoryType),
-        createIdentifier(varDecl, ast, DataLocation.Memory),
+        createIdentifier(refVarDecl, ast, DataLocation.Memory),
         cloneASTNode(node.vIndexExpression, ast),
       );
 
