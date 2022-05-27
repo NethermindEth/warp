@@ -24,7 +24,6 @@ import {
   PointerType,
   StateVariableVisibility,
   StringType,
-  StructDefinition,
   TimeUnit,
   TupleExpression,
   TypeName,
@@ -350,17 +349,4 @@ export function splitDarray(
   );
 
   return [arrayLen, dArrayVarDecl];
-}
-
-export function isReferenceType(type: TypeNode): boolean {
-  return (
-    type instanceof ArrayType ||
-    type instanceof MappingType ||
-    (type instanceof UserDefinedType && type.definition instanceof StructDefinition) ||
-    (type instanceof PointerType && isReferenceType(type.to))
-  );
-}
-
-export function isValueType(type: TypeNode): boolean {
-  return !isReferenceType(type);
 }
