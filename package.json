@@ -60,6 +60,6 @@
     "chalk": "^4.1.2",
     "commander": "^9.1.0",
     "fs-extra": "^10.0.1",
-    "solc-typed-ast": "^9.1.2"
+    "solc-typed-ast": "^10.1.2"
   }
 }
