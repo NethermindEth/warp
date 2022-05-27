@@ -57,7 +57,11 @@ export class RefTypeModifier extends ASTMapper {
           const wmDecl = cloneASTNode(decl, ast);
           wmDecl.name = wmDecl.name + '_mem';
           decl.storageLocation = DataLocation.CallData;
-          const varDeclStatement = createVariableDeclarationStatement([decl], wmDecl, ast);
+          const varDeclStatement = createVariableDeclarationStatement(
+            [wmDecl],
+            createIdentifier(decl, ast),
+            ast,
+          );
           body.insertAtBeginning(varDeclStatement);
           ids.forEach((id) => ast.replaceNode(id, createIdentifier(wmDecl, ast)));
         });

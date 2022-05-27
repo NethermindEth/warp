@@ -1939,8 +1939,7 @@ export const expectations = flatten(
               Expect.Simple('tryDeleteY', [], ['71', '0']),
             ]),
             // Uncomment once Storage -> Calldata copy is implemented
-            // File.Simple('ref_dyn_array', [Expect.Simple('tryDeleteZ', [], ['0', '0', '0'])]),
-            /* Uncomment once Storage -> Calldata copy is implemented
+            File.Simple('ref_dyn_array', [Expect.Simple('tryDeleteZ', [], ['0', '0', '0'])]),
             File.Simple('struct', [
               Expect.Simple(
                 'deleteValueStruct',
@@ -1963,7 +1962,7 @@ export const expectations = flatten(
                 ['getMapStruct', ['5'], ['10'], '0'],
               ]),
             ]),
-            */
+            //--
             File.Simple('map_2d_dyn_array', [
               new Expect('delete 2d dynamic arrays with mappings', [
                 ['n1', ['3', '0', '5', '0'], [], '0'],
