@@ -106,6 +106,9 @@ function isSpecificAccess(node: IdentifierPath): boolean {
   return name.length > 1;
 }
 
+// Check whether there is a statement in the body of the node that is a member access
+// to super. If that is the case, it needs to fix the reference of that member access
+// to the correct function in the linearized order of contract
 export function fixSuperReference(
   node: ASTNode,
   base: ContractDefinition,
@@ -119,12 +122,17 @@ export function fixSuperReference(
   });
 }
 
-// TODO: Investigate other ways to get super as the MemberAccess expression
+// TODO: Investigate if there are other ways to get super as the MemberAccess expression
 function isSuperAccess(n: MemberAccess): boolean {
   const expr = n.vExpression;
   return expr instanceof Identifier && expr.name === 'super';
 }
 
+// In the `base` contract there is a super member access, which points to the corresponding
+// function in the linearized order of contracts of `base`. However, it should be pointing
+// to this function in the linearized order of contracts of `contract`; so the contracts
+// after `base` should be reviewed in this order looking for the correct function to fix
+// the reference
 function findSuperReferenceNode(
   funcName: string,
   base: ContractDefinition,
