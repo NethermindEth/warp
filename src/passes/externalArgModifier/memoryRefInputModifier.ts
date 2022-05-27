@@ -51,7 +51,7 @@ export class RefTypeModifier extends ASTMapper {
             node.vParameters.vParameters.includes(decl) &&
             decl.storageLocation === DataLocation.Memory &&
             isReferenceType(getNodeType(decl, ast.compilerVersion)) &&
-            !this.isDynamicMemoryArray(getNodeType(decl, ast.compilerVersion)),
+            !isDynamicArray(getNodeType(decl, ast.compilerVersion)),
         )
         .forEach(([decl, ids]) => {
           const wmDecl = cloneASTNode(decl, ast);
@@ -66,8 +66,8 @@ export class RefTypeModifier extends ASTMapper {
     this.commonVisit(node, ast);
   }
   // Change the other instance of this function to isDynamicMemoryArrayRef
+}
 
-  isDynamicMemoryArray(type: TypeNode) {
-    return type instanceof ArrayType && type.size === undefined ? true : false;
-  }
+function isDynamicArray(type: TypeNode) {
+  return type instanceof ArrayType && type.size === undefined;
 }
