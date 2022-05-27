@@ -2081,6 +2081,25 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('this_keyword', [
+          File.Simple('thisKeyword', [
+            Expect.Simple(
+              'simpleThis',
+              [],
+              ['address@tests/behaviour/contracts/this_keyword/thisKeyword.WARP'],
+            ),
+            Expect.Simple(
+              'getAddress',
+              [],
+              ['address@tests/behaviour/contracts/this_keyword/thisKeyword.WARP'],
+            ),
+            Expect.Simple(
+              'getAddressAssignment',
+              [],
+              ['address@tests/behaviour/contracts/this_keyword/thisKeyword.WARP'],
+            ),
+          ]),
+        ]),
         new Dir('type_information', [
           File.Simple('informationEnum', [
             Expect.Simple('dMin', [], ['0']),
