@@ -29,21 +29,15 @@ contract WARP {
         return a[i] + a[j] + a[k];
     }
 
-    /*
-    function t2(uint8[3][3] calldata c, uint i) public pure returns (uint8) {
+    function t4(uint8[2][2] calldata c, uint i) public pure returns (uint8) {
         return c[i][0];
     }
-    function t3(uint8[3][3] calldata d, uint i) public pure returns (uint8) {
+
+    function t5(uint8[2][2] calldata d, uint i) public pure returns (uint8) {
         return d[0][i];
     }
-    function t4(uint8[3][3] calldata e, uint i) public pure returns (uint8) {
+
+    function t6(uint8[2][2] calldata e, uint i) public pure returns (uint8) {
         return e[i][i];
     }
-   
-
-    function t5(uint8[3] calldata f, uint i) public pure returns (uint8) {
-        uint8[3] memory g = f;
-        return g[i];
-    }
-     */ 
 }
