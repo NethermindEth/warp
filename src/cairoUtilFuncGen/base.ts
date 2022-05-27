@@ -3,7 +3,6 @@ import {
   DataLocation,
   generalizeType,
   MappingType,
-  PointerType,
   StructDefinition,
   TypeNode,
   UserDefinedType,
