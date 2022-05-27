@@ -2016,6 +2016,11 @@ export const expectations = flatten(
               ['10', '11', '100', '101', '1000', '1001'],
             ),
             Expect.Simple(
+              'staticArrayValueWithConversion',
+              ['10', '100', '101', '200'],
+              ['10', '0', '100', '101', '200', '0'],
+            ),
+            Expect.Simple(
               'dynamicArrayValue',
               ['10', '11', '100', '101', '1000', '1001'],
               ['10', '11', '100', '101', '1000', '1001'],
