@@ -50,7 +50,7 @@ export function shl(): void {
           `        let (preserved_bound) = pow2(preserved_width)`,
           `        let (lhs_truncated) = bitwise_and(lhs, preserved_bound - 1)`,
           `        let (multiplier) = pow2(rhs)`,
-          `        return (lhs * multiplier)`,
+          `        return (lhs_truncated * multiplier)`,
           `    end`,
           `end`,
           `func warp_shl${width}_256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
