@@ -68,7 +68,8 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
   }
   createDynamicArrayCopyFunction(funcName: string, type: ArrayType): CairoFunction {
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
-    this.requireImport('warplib.memory', 'wm_alloc');
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('warplib.memory', 'wm_new');
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
 
     assert(type.size === undefined);
@@ -107,7 +108,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         `        return ()`,
         `    end`,
         copyCode,
-        `    return ${funcName}_elem(calldata + ${callDataType.vPtr.to}.SIZE, mem_start + ${memoryElementWidth}, length - 1)`,
+        `    return ${funcName}_elem(calldata + ${callDataType.vPtr.to.width}, mem_start + ${memoryElementWidth}, length - 1)`,
         `end`,
         `func ${funcName}${implicits}(calldata : ${callDataType}) -> (mem_loc: felt):`,
         `    alloc_locals`,
@@ -121,6 +122,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
   }
   createStaticArrayCopyFunction(funcName: string, type: ArrayType): CairoFunction {
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('warplib.memory', 'wm_alloc');
 
     assert(type.size !== undefined);
@@ -169,6 +171,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
   }
   createStructCopyFunction(funcName: string, type: UserDefinedType): CairoFunction {
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('warplib.memory', 'wm_alloc');
     const callDataType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);

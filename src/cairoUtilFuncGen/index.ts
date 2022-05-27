@@ -16,7 +16,7 @@ import { DynArrayPopGen } from './storage/dynArrayPop';
 import { DynArrayPushWithArgGen } from './storage/dynArrayPushWithArg';
 import { DynArrayPushWithoutArgGen } from './storage/dynArrayPushWithoutArg';
 import { CallDataToMemoryGen } from './calldata/calldataToMemory';
-import { ExternalDynArrayStructConstructor } from './memory/externalDynArray/externalDynArrayStructConstructor';
+import { ExternalDynArrayStructConstructor } from './calldata/externalDynArray/externalDynArrayStructConstructor';
 import { MappingIndexAccessGen } from './storage/mappingIndexAccess';
 import { StorageStaticArrayIndexAccessGen } from './storage/staticArrayIndexAccess';
 import { StorageDeleteGen } from './storage/storageDelete';
@@ -91,7 +91,7 @@ export class CairoUtilFuncGen {
       read: new MemoryReadGen(ast),
       staticArrayIndexAccess: new MemoryStaticArrayIndexAccessGen(ast),
       struct: new MemoryStructGen(ast),
-      toCallData: new MemoryToCallDataGen(ast),
+      toCallData: new MemoryToCallDataGen(externalDynArrayStructConstructor, ast),
       toStorage: memoryToStorage,
       write: new MemoryWriteGen(ast),
     };
