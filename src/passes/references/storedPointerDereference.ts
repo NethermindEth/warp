@@ -13,8 +13,8 @@ import {
   isComplexMemoryType,
   isDynamicStorageArray,
   isMapping,
-  typeNameFromTypeNode,
-} from '../../utils/utils';
+} from '../../utils/nodeTypeProcessing';
+import { typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
 
 export class StoredPointerDereference extends ReferenceSubPass {

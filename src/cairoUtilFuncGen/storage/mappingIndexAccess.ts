@@ -10,8 +10,8 @@ import {
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { isComplexStorageType, typeNameFromTypeNode } from '../../utils/utils';
-import { StringIndexedFuncGen } from '../base';
+import { typeNameFromTypeNode } from '../../utils/utils';
+import { locationIfComplexType, StringIndexedFuncGen } from '../base';
 
 export class MappingIndexAccessGen extends StringIndexedFuncGen {
   gen(node: IndexAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
@@ -39,7 +39,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
         [
           'res',
           typeNameFromTypeNode(nodeType, this.ast),
-          isComplexStorageType(nodeType) ? DataLocation.Storage : DataLocation.Default,
+          locationIfComplexType(nodeType, DataLocation.Storage),
         ],
       ],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],

@@ -15,12 +15,8 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import {
-  typeNameFromTypeNode,
-  mapRange,
-  isReferenceType,
-  narrowBigIntSafe,
-} from '../../utils/utils';
+import { isReferenceType } from '../../utils/nodeTypeProcessing';
+import { typeNameFromTypeNode, mapRange, narrowBigIntSafe } from '../../utils/utils';
 import { add, CairoFunction, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
