@@ -45,6 +45,7 @@ import {
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
 } from './passes';
+import { FilePathMangler } from './passes/filePathMangler';
 import { OrderNestedStructs } from './passes/orderNestedStructs';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
@@ -80,6 +81,7 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
 
 function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
+    ['Fm', FilePathMangler],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
     ['Idi', ImportDirectiveIdentifier],
