@@ -14,6 +14,7 @@ import { shl } from './implementations/maths/shl';
 import { shr, shr_signed } from './implementations/maths/shr';
 import { sub_unsafe, sub_signed, sub_signed_unsafe } from './implementations/maths/sub';
 import { external_input_check_ints } from './implementations/external_input_checks/external_input_checks_ints';
+import { external_input_check_address } from './implementations/external_input_checks/external_input_checks_address';
 
 add();
 add_unsafe();
@@ -72,6 +73,6 @@ int_conversions();
 
 // ---external_input_checks---
 external_input_check_ints();
-
+external_input_check_address();
 // and - handwritten
 // or - handwritten

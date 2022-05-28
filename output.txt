@@ -1,0 +1,3003 @@
+---Input---
+SourceUnit #19
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray.sol
+|   context: 1
++-PragmaDirective #1
++-StructDefinition #5
+| |   name: A
+| |   scope: 19
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+| |   name: B
+| |   scope: 19
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #7
+|           typeString: int_const 3
+|           value: 3
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 19
+  +-FunctionDefinition #17
+    |   name: inputFunc
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---TupleFixes---
+SourceUnit #19
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray.sol
+|   context: 1
++-PragmaDirective #1
++-StructDefinition #5
+| |   name: A
+| |   scope: 19
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+| |   name: B
+| |   scope: 19
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #7
+|           typeString: int_const 3
+|           value: 3
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 19
+  +-FunctionDefinition #17
+    |   name: inputFunc
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---SourceUnitSplitter---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-ImportDirective #22
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|     scope: 20
+|     symbolAliases: [foreign: 18 local: WARP]
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+  |   name: B
+  |   scope: 20
+  |   visibility: public
+  +-VariableDeclaration #9
+    |   name: a
+    |   scope: 10
+    |   storageLocation: default
+    |   typeString: uint8[3]
+    |   visibility: internal
+    +-ArrayTypeName #8
+      |   typeString: uint8[3]
+      +-ElementaryTypeName #6
+      |     name: uint8
+      |     stateMutability: nonpayable
+      |     typeString: uint8
+      +-Literal #7
+            typeString: int_const 3
+            value: 3
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---TypeStringsChecker---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-ImportDirective #22
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|     scope: 20
+|     symbolAliases: [foreign: 18 local: WARP]
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+  |   name: B
+  |   scope: 20
+  |   visibility: public
+  +-VariableDeclaration #9
+    |   name: a
+    |   scope: 10
+    |   storageLocation: default
+    |   typeString: uint8[3]
+    |   visibility: internal
+    +-ArrayTypeName #8
+      |   typeString: uint8[3]
+      +-ElementaryTypeName #6
+      |     name: uint8
+      |     stateMutability: nonpayable
+      |     typeString: uint8
+      +-Literal #7
+            typeString: int_const 3
+            value: 3
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---ImportDirectiveIdentifier---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-ImportDirective #22
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|     scope: 20
+|     symbolAliases: [foreign: 18 local: WARP]
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+  |   name: B
+  |   scope: 20
+  |   visibility: public
+  +-VariableDeclaration #9
+    |   name: a
+    |   scope: 10
+    |   storageLocation: default
+    |   typeString: uint8[3]
+    |   visibility: internal
+    +-ArrayTypeName #8
+      |   typeString: uint8[3]
+      +-ElementaryTypeName #6
+      |     name: uint8
+      |     stateMutability: nonpayable
+      |     typeString: uint8
+      +-Literal #7
+            typeString: int_const 3
+            value: 3
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---RejectUnsupportedFeatures---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-ImportDirective #22
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|     scope: 20
+|     symbolAliases: [foreign: 18 local: WARP]
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+  |   name: B
+  |   scope: 20
+  |   visibility: public
+  +-VariableDeclaration #9
+    |   name: a
+    |   scope: 10
+    |   storageLocation: default
+    |   typeString: uint8[3]
+    |   visibility: internal
+    +-ArrayTypeName #8
+      |   typeString: uint8[3]
+      +-ElementaryTypeName #6
+      |     name: uint8
+      |     stateMutability: nonpayable
+      |     typeString: uint8
+      +-Literal #7
+            typeString: int_const 3
+            value: 3
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---LiteralExpressionEvaluator---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-ImportDirective #22
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|     scope: 20
+|     symbolAliases: [foreign: 18 local: WARP]
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+  |   name: B
+  |   scope: 20
+  |   visibility: public
+  +-VariableDeclaration #9
+    |   name: a
+    |   scope: 10
+    |   storageLocation: default
+    |   typeString: uint8[3]
+    |   visibility: internal
+    +-ArrayTypeName #8
+      |   typeString: uint8[3]
+      +-ElementaryTypeName #6
+      |     name: uint8
+      |     stateMutability: nonpayable
+      |     typeString: uint8
+      +-Literal #24
+            typeString: int_const 3
+            value: 3
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---NamedArgsRemover---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-ImportDirective #22
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|     scope: 20
+|     symbolAliases: [foreign: 18 local: WARP]
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+  |   name: B
+  |   scope: 20
+  |   visibility: public
+  +-VariableDeclaration #9
+    |   name: a
+    |   scope: 10
+    |   storageLocation: default
+    |   typeString: uint8[3]
+    |   visibility: internal
+    +-ArrayTypeName #8
+      |   typeString: uint8[3]
+      +-ElementaryTypeName #6
+      |     name: uint8
+      |     stateMutability: nonpayable
+      |     typeString: uint8
+      +-Literal #24
+            typeString: int_const 3
+            value: 3
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---UsingForResolver---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-ImportDirective #22
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|     scope: 20
+|     symbolAliases: [foreign: 18 local: WARP]
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+  |   name: B
+  |   scope: 20
+  |   visibility: public
+  +-VariableDeclaration #9
+    |   name: a
+    |   scope: 10
+    |   storageLocation: default
+    |   typeString: uint8[3]
+    |   visibility: internal
+    +-ArrayTypeName #8
+      |   typeString: uint8[3]
+      +-ElementaryTypeName #6
+      |     name: uint8
+      |     stateMutability: nonpayable
+      |     typeString: uint8
+      +-Literal #24
+            typeString: int_const 3
+            value: 3
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---UserDefinedTypesConverter---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-ImportDirective #22
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|     scope: 20
+|     symbolAliases: [foreign: 18 local: WARP]
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+  |   name: B
+  |   scope: 20
+  |   visibility: public
+  +-VariableDeclaration #9
+    |   name: a
+    |   scope: 10
+    |   storageLocation: default
+    |   typeString: uint8[3]
+    |   visibility: internal
+    +-ArrayTypeName #8
+      |   typeString: uint8[3]
+      +-ElementaryTypeName #6
+      |     name: uint8
+      |     stateMutability: nonpayable
+      |     typeString: uint8
+      +-Literal #24
+            typeString: int_const 3
+            value: 3
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---PublicStateVarsGetterGenerator---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-ImportDirective #22
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|     scope: 20
+|     symbolAliases: [foreign: 18 local: WARP]
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+  |   name: B
+  |   scope: 20
+  |   visibility: public
+  +-VariableDeclaration #9
+    |   name: a
+    |   scope: 10
+    |   storageLocation: default
+    |   typeString: uint8[3]
+    |   visibility: internal
+    +-ArrayTypeName #8
+      |   typeString: uint8[3]
+      +-ElementaryTypeName #6
+      |     name: uint8
+      |     stateMutability: nonpayable
+      |     typeString: uint8
+      +-Literal #24
+            typeString: int_const 3
+            value: 3
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---TypeInformationCalculator---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-ImportDirective #22
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|     scope: 20
+|     symbolAliases: [foreign: 18 local: WARP]
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+  |   name: B
+  |   scope: 20
+  |   visibility: public
+  +-VariableDeclaration #9
+    |   name: a
+    |   scope: 10
+    |   storageLocation: default
+    |   typeString: uint8[3]
+    |   visibility: internal
+    +-ArrayTypeName #8
+      |   typeString: uint8[3]
+      +-ElementaryTypeName #6
+      |     name: uint8
+      |     stateMutability: nonpayable
+      |     typeString: uint8
+      +-Literal #24
+            typeString: int_const 3
+            value: 3
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---ConstantHandler---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-ImportDirective #22
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|     scope: 20
+|     symbolAliases: [foreign: 18 local: WARP]
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+  |   name: B
+  |   scope: 20
+  |   visibility: public
+  +-VariableDeclaration #9
+    |   name: a
+    |   scope: 10
+    |   storageLocation: default
+    |   typeString: uint8[3]
+    |   visibility: internal
+    +-ArrayTypeName #8
+      |   typeString: uint8[3]
+      +-ElementaryTypeName #6
+      |     name: uint8
+      |     stateMutability: nonpayable
+      |     typeString: uint8
+      +-Literal #24
+            typeString: int_const 3
+            value: 3
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---StaticArrayIndexer---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-ImportDirective #22
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|     scope: 20
+|     symbolAliases: [foreign: 18 local: WARP]
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+  |   name: B
+  |   scope: 20
+  |   visibility: public
+  +-VariableDeclaration #9
+    |   name: a
+    |   scope: 10
+    |   storageLocation: default
+    |   typeString: uint8[3]
+    |   visibility: internal
+    +-ArrayTypeName #8
+      |   typeString: uint8[3]
+      +-ElementaryTypeName #6
+      |     name: uint8
+      |     stateMutability: nonpayable
+      |     typeString: uint8
+      +-Literal #24
+            typeString: int_const 3
+            value: 3
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---IdentifierMangler---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-ImportDirective #22
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|     scope: 20
+|     symbolAliases: [foreign: 18 local: WARP]
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+  |   name: B
+  |   scope: 20
+  |   visibility: public
+  +-VariableDeclaration #9
+    |   name: __warp_usrid1_a
+    |   scope: 10
+    |   storageLocation: default
+    |   typeString: uint8[3]
+    |   visibility: internal
+    +-ArrayTypeName #8
+      |   typeString: uint8[3]
+      +-ElementaryTypeName #6
+      |     name: uint8
+      |     stateMutability: nonpayable
+      |     typeString: uint8
+      +-Literal #24
+            typeString: int_const 3
+            value: 3
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc_0058b73c
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: __warp_usrid0_y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   name: A
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---FreeLibraryCallInliner---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-ImportDirective #22
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|     scope: 20
+|     symbolAliases: [foreign: 18 local: WARP]
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+  |   name: B
+  |   scope: 20
+  |   visibility: public
+  +-VariableDeclaration #9
+    |   name: __warp_usrid1_a
+    |   scope: 10
+    |   storageLocation: default
+    |   typeString: uint8[3]
+    |   visibility: internal
+    +-ArrayTypeName #8
+      |   typeString: uint8[3]
+      +-ElementaryTypeName #6
+      |     name: uint8
+      |     stateMutability: nonpayable
+      |     typeString: uint8
+      +-Literal #24
+            typeString: int_const 3
+            value: 3
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc_0058b73c
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: __warp_usrid0_y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   name: A
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---ReferencedLibraries---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-ImportDirective #22
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|     scope: 20
+|     symbolAliases: [foreign: 18 local: WARP]
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-StructDefinition #10
+  |   name: B
+  |   scope: 20
+  |   visibility: public
+  +-VariableDeclaration #9
+    |   name: __warp_usrid1_a
+    |   scope: 10
+    |   storageLocation: default
+    |   typeString: uint8[3]
+    |   visibility: internal
+    +-ArrayTypeName #8
+      |   typeString: uint8[3]
+      +-ElementaryTypeName #6
+      |     name: uint8
+      |     stateMutability: nonpayable
+      |     typeString: uint8
+      +-Literal #24
+            typeString: int_const 3
+            value: 3
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc_0058b73c
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: __warp_usrid0_y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   name: A
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---OrderNestedStructs---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc_0058b73c
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: __warp_usrid0_y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   name: A
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---InheritanceInliner---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc_0058b73c
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: __warp_usrid0_y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   name: A
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---ExternalContractHandler---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc_0058b73c
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: __warp_usrid0_y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   name: A
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---ModifierHandler---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-ContractDefinition #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  +-FunctionDefinition #17
+    |   name: inputFunc_0058b73c
+    |   scope: 18
+    |   stateMutability: pure
+    |   visibility: external
+    +-ParameterList #14
+    | +-VariableDeclaration #13
+    |   |   name: __warp_usrid0_y
+    |   |   scope: 17
+    |   |   storageLocation: memory
+    |   |   typeString: struct A
+    |   |   visibility: internal
+    |   +-UserDefinedTypeName #12
+    |     |   name: A
+    |     |   referencedDeclaration: 5
+    |     |   typeString: struct A
+    |     +-IdentifierPath #11
+    |           name: A
+    |           referencedDeclaration: 5
+    +-ParameterList #15
+    +-Block #16
+
+---StorageAllocator---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+
+---PublicFunctionSplitter---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+
+---ExternalArgModifier---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+
+---ExternImporter---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+
+---LoopFunctionaliser---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+
+---ReturnInserter---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  |   +-Return #29
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+      +-Return #30
+
+---ReturnVariableInitializer---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  |   +-Return #29
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+      +-Return #30
+
+---IfFunctionaliser---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  |   +-Return #29
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+      +-Return #30
+
+---TupleAssignmentSplitter---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  |   +-Return #29
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+      +-Return #30
+
+---UnloadingAssignment---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  |   +-Return #29
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+      +-Return #30
+
+---VariableDeclarationInitialiser---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  |   +-Return #29
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+      +-Return #30
+
+---VariableDeclarationExpressionSplitter---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  |   +-Return #29
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+      +-Return #30
+
+---BytesConverter---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  |   +-Return #29
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+      +-Return #30
+
+---ImplicitConversionToExplicit---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  |   +-Return #29
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+      +-Return #30
+
+---DeleteHandler---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  |   +-Return #29
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+      +-Return #30
+
+---References---
+SourceUnit #20
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|   context: 1
++-StructDefinition #10
+| |   name: B
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #9
+|   |   name: __warp_usrid1_a
+|   |   scope: 10
+|   |   storageLocation: default
+|   |   typeString: uint8[3]
+|   |   visibility: internal
+|   +-ArrayTypeName #8
+|     |   typeString: uint8[3]
+|     +-ElementaryTypeName #6
+|     |     name: uint8
+|     |     stateMutability: nonpayable
+|     |     typeString: uint8
+|     +-Literal #24
+|           typeString: int_const 3
+|           value: 3
++-StructDefinition #5
+| |   name: A
+| |   scope: 20
+| |   visibility: public
+| +-VariableDeclaration #4
+|   |   name: __warp_usrid0_member1
+|   |   scope: 5
+|   |   storageLocation: default
+|   |   typeString: struct B
+|   |   visibility: internal
+|   +-UserDefinedTypeName #3
+|     |   name: B
+|     |   referencedDeclaration: 10
+|     |   typeString: struct B
+|     +-IdentifierPath #2
+|           name: B
+|           referencedDeclaration: 10
++-ImportDirective #22
+      absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+      scope: 20
+      symbolAliases: [foreign: 18 local: WARP]
+
+SourceUnit #21
+|   absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ImportDirective #23
+|     absolutePath: example_contracts/functionInputs/structTest/structStructArray__WARP_FREE__.sol
+|     scope: 21
+|     symbolAliases: [foreign: 5 local: A, foreign: 10 local: B]
++-CairoContract #18
+  |   linearizedBaseContracts: 18
+  |   name: WARP
+  |   scope: 21
+  |   storageAllocations: 
+  +-FunctionDefinition #17
+  | |   name: inputFunc_0058b73c
+  | |   scope: 18
+  | |   stateMutability: pure
+  | |   visibility: external
+  | +-ParameterList #14
+  | | +-VariableDeclaration #13
+  | |   |   name: __warp_usrid0_y
+  | |   |   scope: 17
+  | |   |   storageLocation: memory
+  | |   |   typeString: struct A
+  | |   |   visibility: internal
+  | |   +-UserDefinedTypeName #12
+  | |     |   name: A
+  | |     |   referencedDeclaration: 5
+  | |     |   typeString: struct A
+  | |     +-IdentifierPath #11
+  | |           name: A
+  | |           referencedDeclaration: 5
+  | +-ParameterList #15
+  | +-Block #16
+  |   +-Return #29
+  +-FunctionDefinition #26
+    |   name: 
+    |   scope: 18
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #27
+    +-ParameterList #28
+    +-Block #25
+      +-Return #30
+
+---ExternalInputChecker---
