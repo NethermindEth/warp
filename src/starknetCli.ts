@@ -7,7 +7,7 @@ import { TranspileFailedError, logError } from './utils/errors';
 function checkStarknetVersion() {
   const supportedVersion = '0.8.2';
   const version = execSync('starknet-compile --version').toString();
-  if (version !== `starknet-compile ${supportedVersion}`) {
+  if (version !== `starknet-compile ${supportedVersion}\n`) {
     throw new TranspileFailedError(`Warp expects version ${supportedVersion} of cairo-lang`);
   }
 }
