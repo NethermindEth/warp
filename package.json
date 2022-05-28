@@ -14,6 +14,7 @@
     "bin",
     "build",
     "nethersolc",
+    "warp_venv.sh",
     "warplib"
   ],
   "scripts": {

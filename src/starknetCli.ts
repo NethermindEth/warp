@@ -43,8 +43,11 @@ export function compileCairo(
 function runStarknetCompile(filePath: string, cliOptions: Map<string, string>) {
   checkStarknetVersion();
   console.log(`Running starknet compile with cairoPath ${cliOptions.get('cairo_path')}`);
+  const venvPath = path.resolve(__dirname, '..', 'warp_venv', 'bin');
   execSync(
-    `starknet-compile --cairo_path warp_output ${filePath} ${[...cliOptions.entries()]
+    `PATH=${venvPath}:$PATH starknet-compile --cairo_path warp_output ${filePath} ${[
+      ...cliOptions.entries(),
+    ]
       .map(([key, value]) => `--${key} ${value}`)
       .join(' ')}`,
     { stdio: 'inherit' },
@@ -61,9 +64,13 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
   }
 
   try {
-    execSync(`starknet tx_status --hash ${tx_hash} --network ${option.network}`, {
-      stdio: 'inherit',
-    });
+    const venvPath = path.resolve(__dirname, '..', 'warp_venv', 'bin');
+    execSync(
+      `PATH=${venvPath}:$PATH starknet tx_status --hash ${tx_hash} --network ${option.network}`,
+      {
+        stdio: 'inherit',
+      },
+    );
   } catch {
     logError('starknet tx_status failed');
   }
@@ -86,9 +93,13 @@ export function runStarknetDeploy(filePath: string, options: IDeployProps) {
   const inputs = options.inputs ? `--inputs ${options.inputs.join(' ')}` : '';
 
   try {
-    execSync(`starknet deploy --contract ${resultPath} --network ${options.network} ${inputs}`, {
-      stdio: 'inherit',
-    });
+    const venvPath = path.resolve(__dirname, '..', 'warp_venv', 'bin');
+    execSync(
+      `PATH=${venvPath}:$PATH starknet deploy --contract ${resultPath} --network ${options.network} ${inputs}`,
+      {
+        stdio: 'inherit',
+      },
+    );
   } catch {
     logError('starknet deploy failed');
   }
@@ -110,8 +121,9 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
   }
 
   try {
+    const venvPath = path.resolve(__dirname, '..', 'warp_venv', 'bin');
     execSync(
-      `starknet deploy_account --wallet ${options.wallet} --network ${options.network} --account ${options.account}`,
+      `PATH=${venvPath}:$PATH starknet deploy_account --wallet ${options.wallet} --network ${options.network} --account ${options.account}`,
       {
         stdio: 'inherit',
       },
@@ -147,8 +159,9 @@ export function runStarknetCallOrInvoke(
   const inputs = options.inputs ? `--inputs ${options.inputs.join(' ')}` : '';
 
   try {
+    const venvPath = path.resolve(__dirname, '..', 'warp_venv', 'bin');
     execSync(
-      `starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${options.function} --network ${options.network} ${wallet} ${inputs}`,
+      `PATH=${venvPath}:$PATH starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${options.function} --network ${options.network} ${wallet} ${inputs}`,
       { stdio: 'inherit' },
     );
   } catch {

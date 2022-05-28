@@ -137,3 +137,6 @@ example_contracts/**/*.json
 
 #benchmark
 benchmark/*
+
+# Ignore warp_venv used for packaging
+warp_venv

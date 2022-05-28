@@ -11,6 +11,7 @@ import {
   runStarknetStatus,
 } from './starknetCli';
 import chalk from 'chalk';
+import { callVenvScript } from './utils/setupVenv';
 
 export type CompilationOptions = {
   warnings: boolean;
@@ -200,6 +201,10 @@ program
   .action((file: string, options: ICallOrInvokeProps) => {
     runStarknetCallOrInvoke(file, true, options);
   });
+
+program.command('install').action(() => {
+  callVenvScript();
+});
 
 const blue = chalk.bold.blue;
 program.command('version').action(() => console.log(blue('Warp Version 0.1.0')));
