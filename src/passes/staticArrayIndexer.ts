@@ -20,8 +20,7 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { cloneASTNode } from '../utils/cloning';
-import { NotSupportedYetError } from '../utils/errors';
+import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { generateExpressionTypeString } from '../utils/getTypeString';
 import { createIdentifier } from '../utils/nodeTemplates';
 import { specializeType } from '../utils/nodeTypeProcessing';
@@ -92,13 +91,12 @@ export class StaticArrayIndexer extends ASTMapper {
     if (expr instanceof Identifier) {
       replacement = createIdentifier(refVarDecl, ast, DataLocation.Memory);
     } else if (expr instanceof IndexAccess) {
-      assert(expr.vIndexExpression instanceof Expression);
       replacement = new IndexAccess(
         expr.id,
         expr.src,
         generateExpressionTypeString(exprMemoryType),
         this.setExpressionToMemory(expr.vBaseExpression, refVarDecl, ast),
-        cloneASTNode(expr.vIndexExpression, ast),
+        expr.vIndexExpression,
       );
     } else if (expr instanceof MemberAccess) {
       replacement = new MemberAccess(
@@ -124,10 +122,7 @@ export class StaticArrayIndexer extends ASTMapper {
     ast: AST,
   ): VariableDeclaration {
     const refId = identifier.referencedDeclaration;
-    const memoryType = specializeType(
-      generalizeType(getNodeType(identifier, ast.compilerVersion))[0],
-      DataLocation.Memory,
-    );
+    const memoryType = getNodeType(identifier, ast.compilerVersion);
 
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
@@ -140,7 +135,7 @@ export class StaticArrayIndexer extends ASTMapper {
       DataLocation.Memory,
       StateVariableVisibility.Internal,
       Mutability.Mutable,
-      generateExpressionTypeString(memoryType),
+      memoryType.pp(),
       undefined,
       typeNameFromTypeNode(memoryType, ast),
       undefined,
@@ -203,5 +198,7 @@ function getReferenceDeclaration(expr: Expression, ast: AST): Identifier {
   } else if (expr instanceof MemberAccess) {
     return getReferenceDeclaration(expr.vExpression, ast);
   }
-  throw new Error(`Unexpected expression ${printNode(expr)} while searching for identifier`);
+  throw new TranspileFailedError(
+    `Unexpected expression ${printNode(expr)} while searching for identifier`,
+  );
 }
