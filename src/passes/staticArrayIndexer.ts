@@ -45,17 +45,6 @@ export class StaticArrayIndexer extends ASTMapper {
   // Tracks calldata arrays which already have a memory counterpart
   // initalized
   private staticArrayAccesed = new Map<number, VariableDeclaration>();
-
-  visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    this.commonVisit(node, ast);
-
-    const a = node.vBody?.vStatements;
-    assert(a);
-
-    const b = a[0];
-    b.extractSourceFragment;
-  }
-
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     this.staticIndexToMemory(node, ast);
   }
