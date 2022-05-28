@@ -13,7 +13,8 @@
   "files": [
     "bin",
     "build",
-    "nethersolc"
+    "nethersolc",
+    "warplib"
   ],
   "scripts": {
     "build": "rm -rf ./build; yarn tsc",
