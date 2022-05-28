@@ -1,4 +1,5 @@
 import assert from 'assert';
+import * as path from 'path';
 import { execSync } from 'child_process';
 import { IDeployProps, ICallOrInvokeProps, IOptionalNetwork, IDeployAccountProps } from './index';
 import { logError } from './utils/errors';
@@ -65,7 +66,7 @@ export function runStarknetDeploy(filePath: string, options: IDeployProps) {
     );
     return;
   }
-  const { success, resultPath } = compileCairo(filePath, '../warplib');
+  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..', 'warplib'));
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
@@ -124,7 +125,7 @@ export function runStarknetCallOrInvoke(
 
   const wallet = options.wallet === undefined ? '--no_wallet' : `--wallet ${options.wallet}`;
 
-  const { success, abiPath } = compileCairo(filePath, '../warplib');
+  const { success, abiPath } = compileCairo(filePath, path.resolve(__dirname, '..', 'warplib'));
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;

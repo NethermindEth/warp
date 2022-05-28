@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import assert from 'assert';
 import { exec } from 'child_process';
 
@@ -15,7 +16,7 @@ export async function sh(cmd: string): Promise<{ stdout: string; stderr: string 
 }
 
 export function transpile(contractPath: string): Promise<{ stdout: string; stderr: string }> {
-  return sh(`bin/warp transpile ${contractPath} --strict`);
+  return sh(`${path.resolve(__dirname, '..', 'bin', 'warp')} transpile ${contractPath} --strict`);
 }
 
 export function starknetCompile(cairoPath: string, jsonOutputPath: string) {
