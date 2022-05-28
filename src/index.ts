@@ -11,7 +11,7 @@ import {
   runStarknetStatus,
 } from './starknetCli';
 import chalk from 'chalk';
-import { callVenvScript } from './utils/setupVenv';
+import { runVenvSetup } from './utils/setupVenv';
 
 export type CompilationOptions = {
   warnings: boolean;
@@ -202,9 +202,16 @@ program
     runStarknetCallOrInvoke(file, true, options);
   });
 
-program.command('install').action(() => {
-  callVenvScript();
-});
+interface IInstallOptions {
+  python: string;
+}
+
+program
+  .command('install')
+  .option('--python <python>', 'Path to python3.7 executable.', 'python3.7')
+  .action((options: IInstallOptions) => {
+    runVenvSetup(options.python);
+  });
 
 const blue = chalk.bold.blue;
 program.command('version').action(() => console.log(blue('Warp Version 0.1.0')));
