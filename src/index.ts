@@ -124,7 +124,7 @@ program
 interface IDeployProps_ {
   inputs?: string[];
 }
-export type IDeployProps = IDeployProps_ & IOptionalNetwork;
+export type IDeployProps = IDeployProps_ & IOptionalNetwork & IOptionalAccount;
 
 program
   .command('deploy <file>')
@@ -132,6 +132,10 @@ program
     '--inputs <inputs...>',
     'Arguments to be passed to constructor of the program.',
     undefined,
+  )
+  .option(
+    '--account <account>',
+    'The name of the account. If not given, the default for the wallet will be used.',
   )
   .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
   .action((file: string, options: IDeployProps) => {
@@ -142,17 +146,16 @@ interface IOptionalWallet {
   wallet?: string;
 }
 
-interface IDeployAccountProps_ {
+interface IOptionalAccount {
   account?: string;
 }
-export type IDeployAccountProps = IDeployAccountProps_ & IOptionalNetwork & IOptionalWallet;
+export type IDeployAccountProps = IOptionalAccount & IOptionalNetwork & IOptionalWallet;
 
 program
   .command('deploy_account')
   .option(
-    '--account',
-    'The name of the account. If not given, the "__default__" will be used.',
-    '__default__',
+    '--account <account>',
+    'The name of the account. If not given, the default for the wallet will be used.',
   )
   .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
   .option(
@@ -169,12 +172,19 @@ interface ICallOrInvokeProps_ {
   function: string;
   inputs?: string[];
 }
-export type ICallOrInvokeProps = ICallOrInvokeProps_ & IOptionalNetwork & IOptionalWallet;
+export type ICallOrInvokeProps = ICallOrInvokeProps_ &
+  IOptionalNetwork &
+  IOptionalWallet &
+  IOptionalAccount;
 
 program
   .command('invoke <file>')
   .requiredOption('--address <address>', 'Address of contract to invoke.')
   .requiredOption('--function <function>', 'Function to invoke.')
+  .option(
+    '--account <account>',
+    'The name of the account. If not given, the default for the wallet will be used.',
+  )
   .option('--inputs <inputs...>', 'Input to function.', undefined)
   .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
   .option(
@@ -190,6 +200,10 @@ program
   .command('call <file>')
   .requiredOption('--address <address>', 'Address of contract to call.')
   .requiredOption('--function <function>', 'Function to call.')
+  .option(
+    '--account <account>',
+    'The name of the account. If not given, the default for the wallet will be used.',
+  )
   .option('--inputs <inputs...>', 'Input to function.', undefined)
   .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
   .option(
