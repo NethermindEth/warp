@@ -214,5 +214,5 @@ function getReferenceDeclaration(expr: Expression, ast: AST): Identifier {
   } else if (expr instanceof MemberAccess) {
     return getReferenceDeclaration(expr.vExpression, ast);
   }
-  throw new Error(`Unexpected expression ${printNode(expr)} while searching for identifer`);
+  throw new Error(`Unexpected expression ${printNode(expr)} while searching for identifier`);
 }
