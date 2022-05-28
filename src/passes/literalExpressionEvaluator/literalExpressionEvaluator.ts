@@ -159,6 +159,10 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
         return left.equalValueOf(right);
       case '!=':
         return !left.equalValueOf(right);
+      case '<<':
+        return left.shiftLeft(right);
+      case '>>':
+        return left.shiftRight(right);
       default:
         throw new TranspileFailedError(`Unexpected number x number operator ${node.operator}`);
     }

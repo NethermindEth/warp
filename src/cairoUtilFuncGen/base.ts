@@ -3,7 +3,6 @@ import {
   DataLocation,
   generalizeType,
   MappingType,
-  PointerType,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -65,10 +64,6 @@ export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
 // Quick shortcut for writing `${base} + ${offset}` that also shortens it in the case of +0
 export function add(base: string, offset: number): string {
   return offset === 0 ? base : `${base} + ${offset}`;
-}
-
-export function locationIfPointer(type: TypeNode, location: DataLocation): DataLocation {
-  return type instanceof PointerType ? location : DataLocation.Default;
 }
 
 // This is needed because index access and member access functions return pointers, even if the data

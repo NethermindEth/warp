@@ -6,6 +6,7 @@ import {
   getNodeType,
   DataLocation,
   FunctionStateMutability,
+  TypeNode,
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
@@ -38,6 +39,11 @@ export class StorageReadGen extends StringIndexedFuncGen {
       FunctionStateMutability.View,
     );
     return createCallToFunction(functionStub, [storageLocation], this.ast);
+  }
+
+  genFuncName(type: TypeNode) {
+    const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation);
+    return this.getOrCreate(cairoType);
   }
 
   private getOrCreate(typeToRead: CairoType): string {

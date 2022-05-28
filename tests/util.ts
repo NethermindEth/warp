@@ -22,6 +22,29 @@ export function starknetCompile(cairoPath: string, jsonOutputPath: string) {
   return sh(`starknet-compile --cairo_path warp_output ${cairoPath} --output ${jsonOutputPath}`);
 }
 
+export function batchPromises<In, Out>(
+  inputs: In[],
+  parallelCount: number,
+  func: (i: In) => Promise<Out>,
+): SafePromise<Out>[] {
+  const unwrappedPromises: Promise<Out>[] = [];
+
+  for (let i = 0; i < inputs.length; ++i) {
+    if (i < parallelCount) {
+      unwrappedPromises.push(func(inputs[i]));
+    } else {
+      unwrappedPromises.push(
+        unwrappedPromises[i - parallelCount].then(
+          () => func(inputs[i]),
+          () => func(inputs[i]),
+        ),
+      );
+    }
+  }
+
+  return unwrappedPromises.map(wrapPromise);
+}
+
 export type SafePromise<T> = Promise<
   { success: true; result: T } | { success: false; result: unknown }
 >;

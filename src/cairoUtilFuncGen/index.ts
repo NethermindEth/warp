@@ -26,10 +26,14 @@ import { StorageToMemoryGen } from './storage/storageToMemory';
 import { StorageWriteGen } from './storage/storageWrite';
 import { MemoryToCallDataGen } from './memory/memoryToCalldata';
 import { MemoryToStorageGen } from './memory/memoryToStorage';
+import { CalldataToStorageGen } from './calldata/calldataToStorage';
+import { StorageToStorageGen } from './storage/copyToStorage';
+import { StorageToCalldataGen } from './storage/storageToCalldata';
 
 export class CairoUtilFuncGen {
   calldata: {
     toMemory: DynArrayLoader;
+    toStorage: CalldataToStorageGen;
   };
   memory: {
     arrayLiteral: MemoryArrayLiteralGen;
@@ -55,7 +59,9 @@ export class CairoUtilFuncGen {
     memberAccess: StorageMemberAccessGen;
     read: StorageReadGen;
     staticArrayIndexAccess: StorageStaticArrayIndexAccessGen;
+    toCallData: StorageToCalldataGen;
     toMemory: StorageToMemoryGen;
+    toStorage: StorageToStorageGen;
     write: StorageWriteGen;
   };
   externalFunctions: {
@@ -76,6 +82,7 @@ export class CairoUtilFuncGen {
 
     const memoryToStorage = new MemoryToStorageGen(this.implementation.dynArray, ast);
     const storageWrite = new StorageWriteGen(ast);
+    const externalDynArrayStructConstructor = new ExternalDynArrayStructConstructor(ast);
 
     this.memory = {
       arrayLiteral: new MemoryArrayLiteralGen(ast),
@@ -89,11 +96,12 @@ export class CairoUtilFuncGen {
       write: new MemoryWriteGen(ast),
     };
     const storageReadGen = new StorageReadGen(ast);
+    const storageDelete = new StorageDeleteGen(this.implementation.dynArray, storageReadGen, ast);
     this.storage = {
-      delete: new StorageDeleteGen(ast),
+      delete: storageDelete,
       dynArrayIndexAccess: new DynArrayIndexAccessGen(this.implementation.dynArray, ast),
       dynArrayLength: new DynArrayLengthGen(this.implementation.dynArray, ast),
-      dynArrayPop: new DynArrayPopGen(this.implementation.dynArray, ast),
+      dynArrayPop: new DynArrayPopGen(this.implementation.dynArray, storageDelete, ast),
       dynArrayPush: {
         withArg: new DynArrayPushWithArgGen(
           this.implementation.dynArray,
@@ -107,17 +115,25 @@ export class CairoUtilFuncGen {
       memberAccess: new StorageMemberAccessGen(ast),
       read: storageReadGen,
       staticArrayIndexAccess: new StorageStaticArrayIndexAccessGen(ast),
+      toCallData: new StorageToCalldataGen(
+        this.implementation.dynArray,
+        storageReadGen,
+        externalDynArrayStructConstructor,
+        ast,
+      ),
       toMemory: new StorageToMemoryGen(this.implementation.dynArray, ast),
+      toStorage: new StorageToStorageGen(this.implementation.dynArray, ast),
       write: storageWrite,
     };
     this.externalFunctions = {
       inputsChecks: { enum: new EnumBoundCheckGen(ast) },
       inputs: {
-        darrayStructConstructor: new ExternalDynArrayStructConstructor(ast),
+        darrayStructConstructor: externalDynArrayStructConstructor,
       },
     };
     this.calldata = {
       toMemory: new DynArrayLoader(ast),
+      toStorage: new CalldataToStorageGen(this.implementation.dynArray, storageWrite, ast),
     };
   }
 
@@ -127,6 +143,17 @@ export class CairoUtilFuncGen {
   getGeneratedCode(): string {
     return this.getAllChildren()
       .map((c) => c.getGeneratedCode())
+      .sort((a, b) => {
+        // This sort is needed to make sure the structs generated from CairoUtilGen are before the generated functions that
+        // reference them. This sort is also order preserving in that it will only make sure the structs come before
+        // any functions and not sort the struct/functions within their respective groups.
+        if (a.slice(0, 1) < b.slice(0, 1)) {
+          return 1;
+        } else if (a.slice(0, 1) > b.slice(0, 1)) {
+          return -1;
+        }
+        return 0;
+      })
       .join('\n\n');
   }
 

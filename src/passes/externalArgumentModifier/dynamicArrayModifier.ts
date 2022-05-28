@@ -125,6 +125,7 @@ export class DynArrayModifier extends ASTMapper {
     const structConstructor = ast
       .getUtilFuncGen(node)
       .externalFunctions.inputs.darrayStructConstructor.gen(dArrayVarDecl, node);
+    assert(structConstructor !== undefined);
     return structConstructor;
   }
 

@@ -93,6 +93,24 @@ export class RationalLiteral {
     );
   }
 
+  shiftLeft(other: RationalLiteral): RationalLiteral | null {
+    const op = other.toInteger();
+    if (op === null) {
+      return null;
+    }
+
+    return new RationalLiteral(this.numerator << op, this.denominator);
+  }
+
+  shiftRight(other: RationalLiteral): RationalLiteral | null {
+    const op = other.toInteger();
+    if (op === null) {
+      return null;
+    }
+
+    return new RationalLiteral(this.numerator >> op, this.denominator);
+  }
+
   toInteger(): bigint | null {
     if (this.numerator % this.denominator === 0n) {
       return this.numerator / this.denominator;

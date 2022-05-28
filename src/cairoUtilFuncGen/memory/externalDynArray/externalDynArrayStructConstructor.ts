@@ -1,34 +1,37 @@
 import {
   VariableDeclaration,
   FunctionCall,
-  FunctionDefinition,
   DataLocation,
   Identifier,
   FunctionStateMutability,
   getNodeType,
   ArrayType,
+  Expression,
+  ASTNode,
+  generalizeType,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
 
 import { CairoType, TypeConversionContext } from '../../../utils/cairoTypeSystem';
 import { StringIndexedFuncGen } from '../../base';
-import { cloneASTNode } from '../../../utils/cloning';
 import { createIdentifier } from '../../../utils/nodeTemplates';
 import { FunctionStubKind } from '../../../ast/cairoNodes';
+import { typeNameFromTypeNode } from '../../../utils/utils';
 
 const INDENT = ' '.repeat(4);
 
 export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
-  gen(dArrayVarDecl: VariableDeclaration, node: FunctionDefinition): FunctionCall {
-    assert(dArrayVarDecl.vType !== undefined);
+  gen(astNode: VariableDeclaration | Expression, node: ASTNode): FunctionCall | undefined {
+    const type = generalizeType(getNodeType(astNode, this.ast.compilerVersion))[0];
+    assert(type instanceof ArrayType && type.size === undefined);
 
-    const name = this.getOrCreate(dArrayVarDecl);
+    const name = this.getOrCreate(type);
 
     const structDefStub = createCairoFunctionStub(
       name,
-      [['darray', cloneASTNode(dArrayVarDecl.vType, this.ast), DataLocation.CallData]],
-      [['darray_struct', cloneASTNode(dArrayVarDecl, this.ast), DataLocation.CallData]],
+      [['darray', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
+      [['darray_struct', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
       [],
       this.ast,
       node,
@@ -36,15 +39,19 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
       FunctionStubKind.StructDefStub,
     );
 
-    const functionInputs: Identifier[] = [
-      createIdentifier(dArrayVarDecl, this.ast, DataLocation.CallData),
-    ];
-    return createCallToFunction(structDefStub, [...functionInputs], this.ast);
+    if (astNode instanceof VariableDeclaration) {
+      const functionInputs: Identifier[] = [
+        createIdentifier(astNode, this.ast, DataLocation.CallData),
+      ];
+      return createCallToFunction(structDefStub, [...functionInputs], this.ast);
+    } else {
+      // When CallData DynArrays are being returned and we do not need the StructConstructor to be returned, we just need
+      // the StructDefinition to be in the contract.
+      return;
+    }
   }
 
-  private getOrCreate(dArrayVarDecl: VariableDeclaration): string {
-    const type = getNodeType(dArrayVarDecl, this.ast.compilerVersion);
-    assert(type instanceof ArrayType);
+  getOrCreate(type: ArrayType): string {
     const elemType = type.elementT;
     const elementCairoType = CairoType.fromSol(
       elemType,

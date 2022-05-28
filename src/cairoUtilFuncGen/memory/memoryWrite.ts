@@ -7,12 +7,7 @@ import {
   DataLocation,
   PointerType,
 } from 'solc-typed-ast';
-import {
-  CairoFelt,
-  CairoType,
-  CairoUint256,
-  TypeConversionContext,
-} from '../../utils/cairoTypeSystem';
+import { CairoFelt, CairoType, CairoUint256 } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { typeNameFromTypeNode } from '../../utils/utils';
@@ -52,11 +47,7 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(typeToWrite: TypeNode): string {
-    const cairoTypeToWrite = CairoType.fromSol(
-      typeToWrite,
-      this.ast,
-      TypeConversionContext.MemoryAllocation,
-    );
+    const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
 
     if (cairoTypeToWrite instanceof CairoFelt) {
       this.requireImport('warplib.memory', 'wm_write_felt');

@@ -13,6 +13,7 @@ import {
   Continue,
   ContractDefinition,
   ContractKind,
+  DataLocation,
   DoWhileStatement,
   ElementaryTypeName,
   ElementaryTypeNameExpression,
@@ -159,8 +160,7 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
     if ((node.stateVariable || node.parent instanceof SourceUnit) && isCairoConstant(node)) {
       assert(node.vValue !== undefined, 'Constant should have a defined value.');
       const constantValue = writer.write(node.vValue);
-      const res = [documentation, `const ${node.name} = ${constantValue}`];
-      return res;
+      return [[documentation, `const ${node.name} = ${constantValue}`].join('\n')];
     }
     if (node.stateVariable) {
       let vals = [];
@@ -217,18 +217,24 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
       // This local statement is needed since Cairo is not supporting member access of structs with let.
       // The type hint also needs to be placed there since Cairo's default type hint is a felt.
       return [
-        documentation,
-        `local ${declarations.join(', ')} : ${
-          node.vInitialValue.vReferencedDeclaration.name
-        } = ${writer.write(node.vInitialValue)}`,
+        [
+          documentation,
+          `local ${declarations.join(', ')} : ${
+            node.vInitialValue.vReferencedDeclaration.name
+          } = ${writer.write(node.vInitialValue)}`,
+        ].join('\n'),
       ];
     } else if (node.vDeclarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
       return [
-        documentation,
-        `let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)}`,
+        [
+          documentation,
+          `let (${declarations.join(', ')}) = ${writer.write(node.vInitialValue)}`,
+        ].join('\n'),
       ];
     }
-    return [documentation, `let ${declarations[0]} = ${writer.write(node.vInitialValue)}`];
+    return [
+      [documentation, `let ${declarations[0]} = ${writer.write(node.vInitialValue)}`].join('\n'),
+    ];
   }
 }
 
@@ -403,25 +409,28 @@ class NotImplementedWriter extends CairoASTNodeWriter {
 
 class ParameterListWriter extends CairoASTNodeWriter {
   writeInner(node: ParameterList, writer: ASTWriter): SrcDesc {
-    const typeConversionContext =
-      node.parent instanceof FunctionDefinition
-        ? isExternallyVisible(node.parent)
-          ? TypeConversionContext.CallDataRef
-          : TypeConversionContext.Ref
-        : TypeConversionContext.CallDataRef;
+    const defContext =
+      node.parent instanceof FunctionDefinition && isExternallyVisible(node.parent)
+        ? TypeConversionContext.CallDataRef
+        : TypeConversionContext.Ref;
 
-    const params = node.vParameters.map((value, i) => {
+    const params = node.vParameters.map((value) => {
+      const varTypeConversionContext =
+        value.storageLocation === DataLocation.CallData
+          ? TypeConversionContext.CallDataRef
+          : defContext;
+
       const tp = CairoType.fromSol(
         getNodeType(value, writer.targetCompilerVersion),
         this.ast,
-        typeConversionContext,
+        varTypeConversionContext,
       );
-      if (tp instanceof CairoDynArray) {
-        return value.name
+      if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
+        return isExternallyVisible(node.parent)
           ? `${value.name}_len : ${tp.vLen.toString()}, ${value.name} : ${tp.vPtr.toString()}`
-          : `ret${i}_len : ${tp.vLen.toString()}, ret${i} : ${tp.vPtr.toString()}`;
+          : `${value.name} : ${tp.toString()}`;
       }
-      return value.name ? `${value.name} : ${tp}` : `ret${i} : ${tp}`;
+      return `${value.name} : ${tp}`;
     });
     return [params.join(', ')];
   }
@@ -540,16 +549,18 @@ class BlockWriter extends CairoASTNodeWriter {
   writeInner(node: Block, writer: ASTWriter): SrcDesc {
     const documentation = getDocumentation(node.documentation, writer);
     return [
-      documentation,
-      node.vStatements
-        .map((value) => writer.write(value))
-        .map((v) =>
-          v
-            .split('\n')
-            .map((line) => INDENT + line)
-            .join('\n'),
-        )
-        .join('\n'),
+      [
+        documentation,
+        node.vStatements
+          .map((value) => writer.write(value))
+          .map((v) =>
+            v
+              .split('\n')
+              .map((line) => INDENT + line)
+              .join('\n'),
+          )
+          .join('\n'),
+      ].join('\n'),
     ];
   }
 }
@@ -572,7 +583,7 @@ class ReturnWriter extends CairoASTNodeWriter {
       ? 'default_dict_finalize(warp_memory_start, warp_memory, 0)\n'
       : '';
 
-    return [documentation, finalizeWarpMemory, `return ${returns}`];
+    return [[documentation, finalizeWarpMemory, `return ${returns}`].join('\n')];
   }
 
   private usesWarpMemory(node: Return): boolean {
@@ -595,11 +606,13 @@ class ExpressionStatementWriter extends CairoASTNodeWriter {
       node.vExpression instanceof Assignment ||
       node.vExpression instanceof CairoAssert
     ) {
-      return [documentation, `${writer.write(node.vExpression)}`];
+      return [[documentation, `${writer.write(node.vExpression)}`].join('\n')];
     } else {
       return [
-        documentation,
-        `let __warp_uv${this.newVarCounter++} = ${writer.write(node.vExpression)}`,
+        [
+          documentation,
+          `let __warp_uv${this.newVarCounter++} = ${writer.write(node.vExpression)}`,
+        ].join('\n'),
       ];
     }
   }
@@ -652,7 +665,8 @@ class IdentifierWriter extends CairoASTNodeWriter {
   writeInner(node: Identifier, _: ASTWriter): SrcDesc {
     if (
       isDynamicCallDataArray(getNodeType(node, this.ast.compilerVersion)) &&
-      node.getClosestParentByType(Return) !== undefined
+      node.getClosestParentByType(Return) !== undefined &&
+      node.getClosestParentByType(FunctionDefinition)?.visibility === FunctionVisibility.External
     ) {
       return [`${node.name}.len, ${node.name}.ptr`];
     }
@@ -714,16 +728,18 @@ class UncheckedBlockWriter extends CairoASTNodeWriter {
   writeInner(node: UncheckedBlock, writer: ASTWriter): SrcDesc {
     const documentation = getDocumentation(node.documentation, writer);
     return [
-      documentation,
-      node.vStatements
-        .map((value) => writer.write(value))
-        .map((v) =>
-          v
-            .split('\n')
-            .map((line) => INDENT + line)
-            .join('\n'),
-        )
-        .join('\n'),
+      [
+        documentation,
+        node.vStatements
+          .map((value) => writer.write(value))
+          .map((v) =>
+            v
+              .split('\n')
+              .map((line) => INDENT + line)
+              .join('\n'),
+          )
+          .join('\n'),
+      ].join('\n'),
     ];
   }
 }
@@ -761,10 +777,12 @@ class EventDefinitionWriter extends CairoASTNodeWriter {
     const documentation = getDocumentation(node.documentation, writer);
     const args: string = writer.write(node.vParameters);
     return [
-      documentation,
-      `@event\nfunc ${node.name}_${node.canonicalSignatureHash(
-        ABIEncoderVersion.V2,
-      )}(${args}):\nend`,
+      [
+        documentation,
+        `@event`,
+        `func ${node.name}_${node.canonicalSignatureHash(ABIEncoderVersion.V2)}(${args}):`,
+        `end`,
+      ].join('\n'),
     ];
   }
 }
@@ -777,10 +795,12 @@ class EmitStatementWriter extends CairoASTNodeWriter {
     const documentation = getDocumentation(node.documentation, writer);
     const args: string = node.vEventCall.vArguments.map((v) => writer.write(v)).join(', ');
     return [
-      documentation,
-      `${node.vEventCall.vFunctionName}_${eventDef.canonicalSignatureHash(
-        ABIEncoderVersion.V2,
-      )}.emit(${args})`,
+      [
+        documentation,
+        `${node.vEventCall.vFunctionName}_${eventDef.canonicalSignatureHash(
+          ABIEncoderVersion.V2,
+        )}.emit(${args})`,
+      ].join('\n'),
     ];
   }
 }
