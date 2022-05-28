@@ -2,15 +2,7 @@ import assert from 'assert';
 import * as path from 'path';
 import { execSync } from 'child_process';
 import { IDeployProps, ICallOrInvokeProps, IOptionalNetwork, IDeployAccountProps } from './index';
-import { TranspileFailedError, logError } from './utils/errors';
-
-function checkStarknetVersion() {
-  const supportedVersion = '0.8.2';
-  const version = execSync('starknet-compile --version').toString();
-  if (version !== `starknet-compile ${supportedVersion}\n`) {
-    throw new TranspileFailedError(`Warp expects version ${supportedVersion} of cairo-lang`);
-  }
-}
+import { logError } from './utils/errors';
 
 export function compileCairo(
   filePath: string,
@@ -40,12 +32,12 @@ export function compileCairo(
   }
 }
 
+const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+
 function runStarknetCompile(filePath: string, cliOptions: Map<string, string>) {
-  checkStarknetVersion();
   console.log(`Running starknet compile with cairoPath ${cliOptions.get('cairo_path')}`);
-  const venvPath = path.resolve(__dirname, '..', 'warp_venv', 'bin');
   execSync(
-    `PATH=${venvPath}:$PATH starknet-compile --cairo_path warp_output ${filePath} ${[
+    `${warpVenvPrefix} starknet-compile --cairo_path warp_output ${filePath} ${[
       ...cliOptions.entries(),
     ]
       .map(([key, value]) => `--${key} ${value}`)
@@ -55,7 +47,6 @@ function runStarknetCompile(filePath: string, cliOptions: Map<string, string>) {
 }
 
 export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
-  checkStarknetVersion();
   if (option.network == undefined) {
     logError(
       `Error: Exception: feeder_gateway_url must be specified with the "status" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
@@ -64,9 +55,8 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
   }
 
   try {
-    const venvPath = path.resolve(__dirname, '..', 'warp_venv', 'bin');
     execSync(
-      `PATH=${venvPath}:$PATH starknet tx_status --hash ${tx_hash} --network ${option.network}`,
+      `${warpVenvPrefix} starknet tx_status --hash ${tx_hash} --network ${option.network}`,
       {
         stdio: 'inherit',
       },
@@ -77,7 +67,6 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
 }
 
 export function runStarknetDeploy(filePath: string, options: IDeployProps) {
-  checkStarknetVersion();
   if (options.network == undefined) {
     logError(
       `Error: Exception: feeder_gateway_url must be specified with the "deploy" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
@@ -93,9 +82,8 @@ export function runStarknetDeploy(filePath: string, options: IDeployProps) {
   const inputs = options.inputs ? `--inputs ${options.inputs.join(' ')}` : '';
 
   try {
-    const venvPath = path.resolve(__dirname, '..', 'warp_venv', 'bin');
     execSync(
-      `PATH=${venvPath}:$PATH starknet deploy --contract ${resultPath} --network ${options.network} ${inputs}`,
+      `${warpVenvPrefix} starknet deploy --contract ${resultPath} --network ${options.network} ${inputs}`,
       {
         stdio: 'inherit',
       },
@@ -106,7 +94,6 @@ export function runStarknetDeploy(filePath: string, options: IDeployProps) {
 }
 
 export function runStarknetDeployAccount(options: IDeployAccountProps) {
-  checkStarknetVersion();
   if (options.wallet == undefined) {
     logError(
       `Error: AssertionError: --wallet must be specified with the "deploy_account" subcommand.`,
@@ -121,9 +108,8 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
   }
 
   try {
-    const venvPath = path.resolve(__dirname, '..', 'warp_venv', 'bin');
     execSync(
-      `PATH=${venvPath}:$PATH starknet deploy_account --wallet ${options.wallet} --network ${options.network} --account ${options.account}`,
+      `${warpVenvPrefix} starknet deploy_account --wallet ${options.wallet} --network ${options.network} --account ${options.account}`,
       {
         stdio: 'inherit',
       },
@@ -138,7 +124,6 @@ export function runStarknetCallOrInvoke(
   isCall: boolean,
   options: ICallOrInvokeProps,
 ) {
-  checkStarknetVersion();
   const callOrInvoke = isCall ? 'call' : 'invoke';
 
   if (options.network == undefined) {
@@ -159,9 +144,8 @@ export function runStarknetCallOrInvoke(
   const inputs = options.inputs ? `--inputs ${options.inputs.join(' ')}` : '';
 
   try {
-    const venvPath = path.resolve(__dirname, '..', 'warp_venv', 'bin');
     execSync(
-      `PATH=${venvPath}:$PATH starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${options.function} --network ${options.network} ${wallet} ${inputs}`,
+      `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${options.function} --network ${options.network} ${wallet} ${inputs}`,
       { stdio: 'inherit' },
     );
   } catch {

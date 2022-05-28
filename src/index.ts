@@ -202,15 +202,22 @@ program
     runStarknetCallOrInvoke(file, true, options);
   });
 
-interface IInstallOptions {
+interface IOptionalVerbose {
+  verbose: boolean;
+}
+
+interface IInstallOptions_ {
   python: string;
 }
+
+export type IInstallOptions = IInstallOptions_ & IOptionalVerbose;
 
 program
   .command('install')
   .option('--python <python>', 'Path to python3.7 executable.', 'python3.7')
+  .option('-v, --verbose')
   .action((options: IInstallOptions) => {
-    runVenvSetup(options.python);
+    runVenvSetup(options);
   });
 
 const blue = chalk.bold.blue;
