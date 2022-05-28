@@ -11,7 +11,7 @@ import {
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { typeNameFromTypeNode } from '../../utils/utils';
-import { StringIndexedFuncGen } from '../base';
+import { locationIfComplexType, StringIndexedFuncGen } from '../base';
 
 export class MappingIndexAccessGen extends StringIndexedFuncGen {
   gen(node: IndexAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
@@ -35,7 +35,13 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
         // TODO check that this is always default
         ['index', typeNameFromTypeNode(baseType.to.keyType, this.ast), DataLocation.Default],
       ],
-      [['res', typeNameFromTypeNode(nodeType, this.ast)]],
+      [
+        [
+          'res',
+          typeNameFromTypeNode(nodeType, this.ast),
+          locationIfComplexType(nodeType, DataLocation.Storage),
+        ],
+      ],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       nodeInSourceUnit ?? node,

@@ -1982,8 +1982,7 @@ export const expectations = flatten(
               Expect.Simple('tryDeleteY', [], ['71', '0']),
             ]),
             // Uncomment once Storage -> Calldata copy is implemented
-            // File.Simple('ref_dyn_array', [Expect.Simple('tryDeleteZ', [], ['0', '0', '0'])]),
-            /* Uncomment once Storage -> Calldata copy is implemented
+            File.Simple('ref_dyn_array', [Expect.Simple('tryDeleteZ', [], ['0', '0', '0'])]),
             File.Simple('struct', [
               Expect.Simple(
                 'deleteValueStruct',
@@ -2006,7 +2005,7 @@ export const expectations = flatten(
                 ['getMapStruct', ['5'], ['10'], '0'],
               ]),
             ]),
-            */
+            //--
             File.Simple('map_2d_dyn_array', [
               new Expect('delete 2d dynamic arrays with mappings', [
                 ['n1', ['3', '0', '5', '0'], [], '0'],
@@ -2068,6 +2067,17 @@ export const expectations = flatten(
             Expect.Simple('nestedMappings', ['4'], ['4'], 'stepCheck'),
             Expect.Simple('nonFeltKey', ['3', '4', '5'], ['5']),
             Expect.Simple('nonFeltKey', ['4', '5', '6'], ['6'], 'stepCheck'),
+            Expect.Simple('structValue', ['10', '100', '1000'], ['10', '100', '1000']),
+            Expect.Simple(
+              'staticArrayValue',
+              ['10', '11', '100', '101', '1000', '1001'],
+              ['10', '11', '100', '101', '1000', '1001'],
+            ),
+            Expect.Simple(
+              'dynamicArrayValue',
+              ['10', '11', '100', '101', '1000', '1001'],
+              ['10', '11', '100', '101', '1000', '1001'],
+            ),
           ]),
           File.Simple('nesting', [Expect.Simple('nesting', [], ['5'])]),
           File.Simple('passingArguments', [

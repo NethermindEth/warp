@@ -17,7 +17,6 @@ struct StrucDef {
         return listA[2];
     }
     
-    // TODO Fix passing nested complex types and uncomment
     // function testStructExternal(StrucDef[3] memory listA) pure external returns (uint8, uint256) {
     //     return (listA[2].x, listA[2].y);
     // }
@@ -28,7 +27,6 @@ struct StrucDef {
 
     // function testMultiplePublic(StrucDef[3] memory listA, uint8 z, uint8[3] memory listB) pure public returns (uint8) {
     //     return listA[0].x + listB[2];
-    // } 
-
+    // }
 }
 

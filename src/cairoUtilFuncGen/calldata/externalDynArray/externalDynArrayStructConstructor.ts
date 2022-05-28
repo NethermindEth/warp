@@ -23,7 +23,7 @@ const INDENT = ' '.repeat(4);
 
 export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
   gen(astNode: VariableDeclaration, nodeInSourceUnit?: ASTNode): FunctionCall;
-  gen(astNode: Expression, nodeInSourceUnit?: ASTNode): undefined;
+  gen(astNode: Expression, nodeInSourceUnit?: ASTNode): void;
   gen(
     astNode: VariableDeclaration | Expression,
     nodeInSourceUnit?: ASTNode,
@@ -32,7 +32,6 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     assert(type instanceof ArrayType && type.size === undefined);
 
     const name = this.getOrCreate(type);
-
     const structDefStub = createCairoFunctionStub(
       name,
       [['darray', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],

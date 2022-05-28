@@ -1,9 +1,7 @@
 import {
-  VariableDeclaration,
   FunctionCall,
   getNodeType,
   DataLocation,
-  Identifier,
   ArrayType,
   Expression,
   ASTNode,
@@ -18,103 +16,9 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { add, CairoFunction, StringIndexedFuncGen } from '../base';
 import { uint256 } from '../../warplib/utils';
-import { createIdentifier } from '../../utils/nodeTemplates';
-import { cloneASTNode } from '../../utils/cloning';
-import { CairoFunctionDefinition } from '../../ast/cairoNodes';
 import { NotSupportedYetError } from '../../utils/errors';
 import { printTypeNode } from '../../utils/astPrinter';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
-
-const INDENT = ' '.repeat(4);
-
-export class DynArrayLoader extends StringIndexedFuncGen {
-  gen(
-    varDecl: VariableDeclaration,
-    structDef: CairoFunctionDefinition,
-    nodeInSourceUnit?: ASTNode,
-  ): FunctionCall {
-    assert(varDecl.vType !== undefined);
-    const type = getNodeType(varDecl, this.ast.compilerVersion);
-    if (type instanceof ArrayType && type.size === undefined) {
-      const functionInputs: Identifier[] = [createIdentifier(varDecl, this.ast)];
-      const name = this.getOrCreate(varDecl, structDef);
-      const functionStub = createCairoFunctionStub(
-        name,
-        [['dynarray', cloneASTNode(varDecl.vType, this.ast), DataLocation.CallData]],
-        [['dynarray_loc', cloneASTNode(varDecl.vType, this.ast), DataLocation.Memory]],
-        ['syscall_ptr', 'range_check_ptr', 'warp_memory'],
-        this.ast,
-        nodeInSourceUnit ?? varDecl,
-      );
-      return createCallToFunction(functionStub, [...functionInputs], this.ast);
-    } else {
-      throw new NotSupportedYetError(
-        `Copying ${printTypeNode(
-          getNodeType(varDecl, this.ast.compilerVersion),
-        )} from calldata to memory not implemented with this
-        UtilGen yet.`,
-      );
-    }
-  }
-
-  private getOrCreate(varDecl: VariableDeclaration, structDef: CairoFunctionDefinition): string {
-    const type = getNodeType(varDecl, this.ast.compilerVersion);
-
-    assert(type instanceof ArrayType && type.size === undefined);
-
-    const elementCairoType = CairoType.fromSol(
-      type.elementT,
-      this.ast,
-      TypeConversionContext.MemoryAllocation,
-    );
-
-    const cairoElm = elementCairoType.toString();
-
-    const allocFuncName = `wm_dynarry_alloc_${cairoElm}`;
-    const existing = this.generatedFunctions.get(allocFuncName);
-    if (existing != undefined) {
-      return existing.name;
-    }
-
-    const writerFuncName = `wm_dynarray_write_${cairoElm}`;
-
-    this.generatedFunctions.set(allocFuncName, {
-      name: allocFuncName,
-      code: [
-        `func ${writerFuncName}{warp_memory : DictAccess*}(`,
-        `${INDENT}dynarray_loc : felt, array_len : felt, pointer: ${elementCairoType.toString()}*, width : felt):`,
-        `${INDENT}if array_len == 0:`,
-        `${INDENT.repeat(2)}return()`,
-        `${INDENT}end`,
-        `${INDENT}wm_write_${cairoElm === 'Uint256' ? '256' : cairoElm}(dynarray_loc, pointer[0])`,
-        `${INDENT}return ${writerFuncName}(dynarray_loc=dynarray_loc + width,`,
-        `${INDENT}array_len=array_len-1,`,
-        `${INDENT}pointer=&pointer[1],`,
-        `${INDENT}width=width)`,
-        `${INDENT}`,
-        `end`,
-
-        `func ${allocFuncName}{`,
-        `${INDENT}syscall_ptr: felt*, range_check_ptr : felt, warp_memory : DictAccess*}(`,
-        `${INDENT}dyn_array_struct : ${structDef.name}) -> (dynarry_loc : felt):`,
-        `${INDENT}alloc_locals`,
-        `${INDENT}let (array_len_uint256) = warp_uint256(dyn_array_struct.len)`,
-        `${INDENT}let (dynarray_loc) = wm_new(array_len_uint256, ${uint256(
-          BigInt(elementCairoType.width),
-        )})`,
-        `${INDENT}${writerFuncName}(dynarray_loc+2, dyn_array_struct.len, dyn_array_struct.ptr, ${elementCairoType.width})`,
-        `${INDENT}return (dynarray_loc)`,
-        `end`,
-      ].join('\n'),
-    });
-    this.requireImport('warplib.maths.int_conversions', 'warp_uint256');
-    this.requireImport('warplib.memory', 'wm_new');
-    this.requireImport('warplib.memory', cairoElm === 'felt' ? 'wm_write_felt' : 'wm_write_256');
-    // TODO import uint256 struct when needed
-
-    return allocFuncName;
-  }
-}
 
 export class CallDataToMemoryGen extends StringIndexedFuncGen {
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
@@ -155,7 +59,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       }
     } else {
       throw new NotSupportedYetError(
-        `Copying ${printTypeNode(type)} from memory to calldata not implemented yet`,
+        `Copying ${printTypeNode(type)} from calldata to memory not implemented yet`,
       );
     }
 
@@ -164,7 +68,8 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
   }
   createDynamicArrayCopyFunction(funcName: string, type: ArrayType): CairoFunction {
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
-    this.requireImport('warplib.memory', 'wm_alloc');
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('warplib.memory', 'wm_new');
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
 
     assert(type.size === undefined);
@@ -175,24 +80,23 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       (type.elementT instanceof UserDefinedType &&
         type.elementT.definition instanceof StructDefinition);
     const memoryElementWidth = CairoType.fromSol(type.elementT, this.ast).width;
-    const memoryOffsetMultiplier = memoryElementWidth === 1 ? '' : `* ${memoryElementWidth}`;
 
     let copyCode: string;
 
     if (isElementComplex) {
       const recursiveFunc = this.getOrCreate(type.elementT);
       copyCode = [
-        `let cdElem = calldata[index]`,
+        `let cdElem = calldata[0]`,
         `let (mElem) = ${recursiveFunc}(cdElem)`,
-        `dict_write{dict_ptr=warp_memory}(mem_loc, mElem)`,
+        `dict_write{dict_ptr=warp_memory}(mem_start, mElem)`,
       ].join('\n');
     } else if (memoryElementWidth === 2) {
       copyCode = [
-        `dict_write{dict_ptr=warp_memory}(mem_loc, calldata[index].low)`,
-        `dict_write{dict_ptr=warp_memory}(mem_loc+1, calldata[index].high)`,
+        `dict_write{dict_ptr=warp_memory}(mem_start, calldata[0].low)`,
+        `dict_write{dict_ptr=warp_memory}(mem_start+1, calldata[0].high)`,
       ].join('\n');
     } else {
-      copyCode = `dict_write{dict_ptr=warp_memory}(mem_loc, calldata[index])`;
+      copyCode = `dict_write{dict_ptr=warp_memory}(mem_start, calldata[0])`;
     }
 
     return {
@@ -203,10 +107,8 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         `    if length == 0:`,
         `        return ()`,
         `    end`,
-        `    let index = length - 1`,
-        `    let mem_loc = mem_start + index${memoryOffsetMultiplier}`,
         copyCode,
-        `    return ${funcName}_elem(calldata, mem_start, index)`,
+        `    return ${funcName}_elem(calldata + ${callDataType.vPtr.to.width}, mem_start + ${memoryElementWidth}, length - 1)`,
         `end`,
         `func ${funcName}${implicits}(calldata : ${callDataType}) -> (mem_loc: felt):`,
         `    alloc_locals`,
@@ -220,6 +122,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
   }
   createStaticArrayCopyFunction(funcName: string, type: ArrayType): CairoFunction {
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('warplib.memory', 'wm_alloc');
 
     assert(type.size !== undefined);
@@ -268,6 +171,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
   }
   createStructCopyFunction(funcName: string, type: UserDefinedType): CairoFunction {
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('warplib.memory', 'wm_alloc');
     const callDataType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
