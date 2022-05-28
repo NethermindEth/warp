@@ -3,18 +3,15 @@ import {
   ContractDefinition,
   ContractKind,
   FunctionDefinition,
-  Statement,
-  ExpressionStatement,
-  IntType,
-  VariableDeclaration,
   FunctionCall,
   getNodeType,
+  ArrayType,
 } from 'solc-typed-ast';
 import { ASTMapper } from '../../ast/mapper';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { isExternallyVisible, typeNameFromTypeNode } from '../../utils/utils';
+import { isExternallyVisible } from '../../utils/utils';
 import assert from 'assert';
-import { createIdentifier } from '../../utils/nodeTemplates';
+import { createExpressionStatement } from '../../utils/nodeTemplates';
+import { CairoFunctionDefinition, FunctionStubKind } from '../../ast/cairoNodes';
 
 export class IntBoundChecker extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
@@ -26,56 +23,39 @@ export class IntBoundChecker extends ASTMapper {
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (isExternallyVisible(node) && node.vBody !== undefined) {
-      node.vParameters.vParameters.forEach((parameter) => {
-        const typeNode = getNodeType(parameter, ast.compilerVersion);
-        if (typeNode instanceof IntType) {
-          const functionCall = this.generateFunctionCall(parameter, typeNode, ast);
-          this.insertFunctionCall(node, functionCall, ast);
-        }
+      node.vParameters.vParameters.forEach((decl) => {
+        const functionCall = ast
+          .getUtilFuncGen(node)
+          .externalFunctions.inputsChecks.refCheck.gen(decl, node);
+        this.insertFunctionCall(node, functionCall, ast);
       });
     }
     this.commonVisit(node, ast);
   }
 
-  private generateFunctionCall(
-    parameter: VariableDeclaration,
-    typeNode: IntType,
-    ast: AST,
-  ): FunctionCall {
-    const intStubArgument = createIdentifier(parameter, ast);
-
-    const int_width = typeNode.nBits;
-
-    const name = `warp_external_input_check_int${int_width}`;
-
-    const functionStub = createCairoFunctionStub(
-      name,
-      [['x', typeNameFromTypeNode(typeNode, ast)]],
-      [],
-      ['syscall_ptr', 'range_check_ptr'],
-      ast,
-      parameter,
-    );
-
-    const functionCall = createCallToFunction(functionStub, [intStubArgument], ast);
-    ast.registerImport(functionCall, 'warplib.maths.external_input_check_ints', name);
-
-    return functionCall;
-  }
-
-  private insertFunctionCall(node: FunctionDefinition, functionCall: FunctionCall, ast: AST): void {
-    const expressionStatement = new ExpressionStatement(ast.reserveId(), '', functionCall);
-
-    const functionBlock = node.vBody;
-    assert(functionBlock !== undefined);
-    if (functionBlock.getChildren().length === 0) {
-      functionBlock.appendChild(expressionStatement);
+  private insertFunctionCall(node: FunctionDefinition, funcCall: FunctionCall, ast: AST): void {
+    const body = node.vBody;
+    assert(body !== undefined);
+    const funcType = getNodeType(funcCall, ast.compilerVersion);
+    // If there is a Dynamic Array in the parameters there should be a StructConstructorStub present by the
+    // time this pass is hit.
+    if (funcType instanceof ArrayType && funcType.size === undefined) {
+      const dynConstructorStatements = node
+        .getChildren(true)
+        .filter(
+          (n) =>
+            n instanceof FunctionCall &&
+            n.vReferencedDeclaration instanceof CairoFunctionDefinition &&
+            n.vReferencedDeclaration.functionStubKind === FunctionStubKind.StructDefStub,
+        );
+      const lastDynArrayStatement = dynConstructorStatements[-1];
+      const expressionStatement = createExpressionStatement(ast, funcCall);
+      body.insertAfter(expressionStatement, lastDynArrayStatement);
+      ast.setContextRecursive(expressionStatement);
     } else {
-      const firstStatement = functionBlock.getChildrenByType(Statement)[0];
-
-      ast.insertStatementBefore(firstStatement, expressionStatement);
+      const expressionStatement = createExpressionStatement(ast, funcCall);
+      body.insertAtBeginning(expressionStatement);
+      ast.setContextRecursive(expressionStatement);
     }
-
-    ast.setContextRecursive(expressionStatement);
   }
 }

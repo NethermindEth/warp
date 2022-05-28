@@ -14,11 +14,11 @@ contract WARP {
     return currentEnumValue1;
   }
   
-  function externalFunction2Inputs(enumSet1 enumInput1, enumSet2 enumInput2) external returns (uint8){
-    currentEnumValue1 = enumInput1;
-    currentEnumValue2 = enumInput2;
-    return 1;
-  }
+  // function externalFunction2Inputs(enumSet1 enumInput1, enumSet2 enumInput2) external returns (uint8){
+  //   currentEnumValue1 = enumInput1;
+  //   currentEnumValue2 = enumInput2;
+  //   return 1;
+  // }
 
 }
 

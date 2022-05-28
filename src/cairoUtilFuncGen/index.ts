@@ -1,7 +1,8 @@
 import { AST } from '../ast/ast';
 import { mergeImports } from '../utils/utils';
 import { CairoUtilFuncGenBase } from './base';
-import { EnumBoundCheckGen } from './enumBoundCheck';
+// import { EnumBoundCheckGen } from './inputArgCheck/enumBoundCheck';
+import { RefInputCheck } from './inputArgCheck/refInputCheck';
 import { MemoryArrayLiteralGen } from './memory/arrayLiteral';
 import { MemoryDynArrayLengthGen } from './memory/memoryDynArrayLength';
 import { MemoryMemberAccessGen } from './memory/memoryMemberAccess';
@@ -65,7 +66,10 @@ export class CairoUtilFuncGen {
     write: StorageWriteGen;
   };
   externalFunctions: {
-    inputsChecks: { enum: EnumBoundCheckGen };
+    inputsChecks: {
+      refCheck: RefInputCheck;
+      // enum: EnumBoundCheckGen;
+    };
     inputs: {
       darrayStructConstructor: ExternalDynArrayStructConstructor;
     };
@@ -126,7 +130,8 @@ export class CairoUtilFuncGen {
       write: storageWrite,
     };
     this.externalFunctions = {
-      inputsChecks: { enum: new EnumBoundCheckGen(ast) },
+      inputsChecks: { refCheck: new RefInputCheck(ast) },
+      // , enum: new EnumBoundCheckGen(ast) },
       inputs: {
         darrayStructConstructor: externalDynArrayStructConstructor,
       },
