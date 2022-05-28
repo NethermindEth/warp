@@ -103,11 +103,11 @@ function updateScope(nodes: readonly Scoped[], newScope: number): readonly Scope
 }
 
 export function mangleFreeFilePath(path: string): string {
-  return `${path}__WARP_FREE__`;
+  return `${path}_`;
 }
 
 export function mangleContractFilePath(path: string, contractName: string): string {
-  return `${path}__WARP_CONTRACT__${contractName}`;
+  return `${path}_${contractName}`;
 }
 
 function getAllSourceUnitDefinitions(sourceUnit: SourceUnit) {
