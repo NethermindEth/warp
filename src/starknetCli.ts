@@ -2,7 +2,15 @@ import assert from 'assert';
 import * as path from 'path';
 import { execSync } from 'child_process';
 import { IDeployProps, ICallOrInvokeProps, IOptionalNetwork, IDeployAccountProps } from './index';
-import { logError } from './utils/errors';
+import { TranspileFailedError, logError } from './utils/errors';
+
+function checkStarknetVersion() {
+  const supportedVersion = '0.8.2';
+  const version = execSync('starknet-compile --version').toString();
+  if (version !== `starknet-compile ${supportedVersion}`) {
+    throw new TranspileFailedError(`Warp expects version ${supportedVersion} of cairo-lang`);
+  }
+}
 
 export function compileCairo(
   filePath: string,
@@ -33,6 +41,7 @@ export function compileCairo(
 }
 
 function runStarknetCompile(filePath: string, cliOptions: Map<string, string>) {
+  checkStarknetVersion();
   console.log(`Running starknet compile with cairoPath ${cliOptions.get('cairo_path')}`);
   execSync(
     `starknet-compile --cairo_path warp_output ${filePath} ${[...cliOptions.entries()]
@@ -43,6 +52,7 @@ function runStarknetCompile(filePath: string, cliOptions: Map<string, string>) {
 }
 
 export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
+  checkStarknetVersion();
   if (option.network == undefined) {
     logError(
       `Error: Exception: feeder_gateway_url must be specified with the "status" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
@@ -60,6 +70,7 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
 }
 
 export function runStarknetDeploy(filePath: string, options: IDeployProps) {
+  checkStarknetVersion();
   if (options.network == undefined) {
     logError(
       `Error: Exception: feeder_gateway_url must be specified with the "deploy" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
@@ -84,6 +95,7 @@ export function runStarknetDeploy(filePath: string, options: IDeployProps) {
 }
 
 export function runStarknetDeployAccount(options: IDeployAccountProps) {
+  checkStarknetVersion();
   if (options.wallet == undefined) {
     logError(
       `Error: AssertionError: --wallet must be specified with the "deploy_account" subcommand.`,
@@ -114,6 +126,7 @@ export function runStarknetCallOrInvoke(
   isCall: boolean,
   options: ICallOrInvokeProps,
 ) {
+  checkStarknetVersion();
   const callOrInvoke = isCall ? 'call' : 'invoke';
 
   if (options.network == undefined) {
