@@ -1,4 +1,5 @@
 import assert from 'assert';
+import * as path from 'path';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import {
@@ -50,12 +51,14 @@ export function msbAndNext(width: number): string {
   return `0x${(pow2(width) + pow2(width - 1)).toString(16)}`;
 }
 
+const warpVenvPrefix = `PATH=${path.resolve('..', '..', 'warp_venv', 'bin')}:$PATH`;
+
 export function generateFile(name: string, imports: string[], functions: string[]): void {
   fs.writeFileSync(
     `./warplib/maths/${name}.cairo`,
     `#AUTO-GENERATED\n${imports.join('\n')}\n\n${functions.join('\n')}\n`,
   );
-  execSync(`cairo-format -i ./warplib/maths/${name}.cairo`);
+  execSync(`${warpVenvPrefix} cairo-format -i ./warplib/maths/${name}.cairo`);
 }
 
 export function IntxIntFunction(

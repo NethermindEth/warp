@@ -55,12 +55,9 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
   }
 
   try {
-    execSync(
-      `${warpVenvPrefix} starknet tx_status --hash ${tx_hash} --network ${option.network}`,
-      {
-        stdio: 'inherit',
-      },
-    );
+    execSync(`${warpVenvPrefix} starknet tx_status --hash ${tx_hash} --network ${option.network}`, {
+      stdio: 'inherit',
+    });
   } catch {
     logError('starknet tx_status failed');
   }
@@ -73,7 +70,7 @@ export function runStarknetDeploy(filePath: string, options: IDeployProps) {
     );
     return;
   }
-  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..', 'warplib'));
+  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
@@ -135,7 +132,7 @@ export function runStarknetCallOrInvoke(
 
   const wallet = options.wallet === undefined ? '--no_wallet' : `--wallet ${options.wallet}`;
 
-  const { success, abiPath } = compileCairo(filePath, path.resolve(__dirname, '..', 'warplib'));
+  const { success, abiPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;

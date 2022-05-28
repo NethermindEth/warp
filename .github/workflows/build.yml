@@ -24,6 +24,7 @@ jobs:
         run: |
           yarn
           pipx install black[colors]
+          pipx install cairo-lang==0.8.2
 
       - name: Build warplib
         run: yarn warplib
@@ -55,11 +56,11 @@ jobs:
           make
           make compile
 
+      - name: Setup warp_venv
+        run: bin/warp install --python python --verbose
+
       - name: Build warplib
         run: yarn warplib
-
-      - name: Setup warp_venv
-        run: bin/warp install --python python
 
       - name: Test code compilation
         run: make test_compilation
