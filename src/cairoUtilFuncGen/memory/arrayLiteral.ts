@@ -105,7 +105,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
         `    alloc_locals`,
         `    let (start) = wm_alloc(${uint256(alloc_len)})`,
         [
-          ...(dynamic ? [`wm_write_256{dict_ptr=warp_memory}(start, ${uint256(size)})`] : []),
+          ...(dynamic ? [`wm_write_256{warp_memory=warp_memory}(start, ${uint256(size)})`] : []),
           ...mapRange(size, (n) => elementCairoType.serialiseMembers(`e${n}`))
             .flat()
             .map(
