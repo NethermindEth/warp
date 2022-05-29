@@ -243,11 +243,10 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
 
         `func ${funcName}${implicits}(loc : felt, mem_loc : felt) -> (loc : felt):`,
         `    alloc_locals`,
-        `    let (name) = readId(loc)`,
         `    let (length) = wm_dyn_array_length(mem_loc)`,
-        `    ${lengthMapping}.write(name, length)`,
+        `    ${lengthMapping}.write(loc, length)`,
         `    let (narrowedLength) = narrow_safe(length)`,
-        `    ${funcName}_elem(name, mem_loc + 2 + ${elementMemoryWidth} * narrowedLength, length)`,
+        `    ${funcName}_elem(loc, mem_loc + 2 + ${elementMemoryWidth} * narrowedLength, length)`,
         `    return (loc)`,
         `end`,
       ].join('\n'),

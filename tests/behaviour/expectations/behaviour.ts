@@ -45,6 +45,16 @@ export const expectations = flatten(
             Expect.Simple('getB3A', [], ['4660']),
             Expect.Simple('getBsC', [], ['18']),
           ]),
+          File.Simple('bytesX', [
+            Expect.Simple('bytes2access', ['0', '0'], ['34']),
+            Expect.Simple('bytes12access', ['3', '0'], ['17']),
+            Expect.Simple('bytes17access', ['14', '0'], ['86']),
+            Expect.Simple('bytes24access', ['19', '0'], ['34']),
+            Expect.Simple('bytes32access', ['15'], ['68']),
+            Expect.Simple('bytes31access', ['30', '0'], ['254']),
+            Expect.Simple('bytes32access', ['30'], ['51']),
+            Expect.Simple('bytes32access256', ['31', '0'], ['255']),
+          ]),
           new File(
             'fixedSizeBytesArrays',
             'WARP',
@@ -103,6 +113,25 @@ export const expectations = flatten(
               ]),
             ],
           ),
+        ]),
+        new Dir('calldata', [
+          File.Simple('passingDynArrayInternally', [
+            new Expect(
+              'testing that calldata dynamic arrays can be passed to internal functions with the correct cairo type.',
+              [['externReturnIndexAccess', ['4', '10', '20', '30', '40'], ['10', '20', '30'], '0']],
+            ),
+            new Expect(
+              'testing that calldata dynamic arrays can be passed to internal functions with the correct cairo type, with whole dynarray returned',
+              [
+                [
+                  'externReturnDarray',
+                  ['4', '10', '20', '30', '40'],
+                  ['4', '10', '20', '30', '40'],
+                  '0',
+                ],
+              ],
+            ),
+          ]),
         ]),
         new Dir('conditionals', [
           File.Simple('and', [
@@ -273,6 +302,120 @@ export const expectations = flatten(
             Expect.Simple('widthsignNutoi', ['32768'], ['32768']),
           ]),
         ]),
+        new Dir('copy_calldata_to_storage', [
+          File.Simple('dynamic_arrays', [
+            new Expect('felt dynamic arrays is copied from calldata to storage', [
+              ['setX', ['4', '2', '3', '5', '7'], [], '0'],
+              ['getXFull', [], ['4', '2', '3', '5', '7'], '0'],
+              ['getX', [], ['10'], '0'],
+            ]),
+            new Expect('uint256 dynamic array is copied form calldata to storage', [
+              ['setY', ['4', '2', '0', '3', '0', '5', '0', '7', '0'], [], '0'],
+              ['getYFull', [], ['4', '2', '0', '3', '0', '5', '0', '7', '0'], '0'],
+              ['getY', [], ['10', '0'], '0'],
+            ]),
+          ]),
+          File.Simple('static_arrays', [
+            new Expect('static array is copied from calldata to storage', [
+              ['setX', ['3', '0', '5', '0', '1', '0'], [], '0'],
+              ['getX', [], ['9', '0'], '0'],
+            ]),
+          ]),
+          File.Simple('structs', [
+            new Expect('struct is copied from calldata to storage', [
+              ['setS', ['3', '5', '0'], [], '0'],
+              ['getS', [], ['8', '0'], '0'],
+            ]),
+            new Expect('struct dynamic array is copied from calldata to storage', [
+              ['setF', [], [], '0'],
+              ['getF', [], ['3', ...['1', '2', '0'], ...['2', '3', '0'], ...['3', '4', '0']], '0'],
+            ]),
+            Expect.Simple(
+              'getD',
+              [],
+              ['1', '0', '1', '0', '2', '1', '2', '0'],
+              'struct of structs is copyed form calldata to storage',
+            ),
+            new Expect('dynamic array of structs of structs is copied from calldata to storage', [
+              ['setE', [], [], '0'],
+              [
+                'getE',
+                [],
+                [
+                  '3',
+                  ...['1', '0', '1', '0', '2', '1', '2', '0'],
+                  ...['3', '0', '3', '0', '2', '3', '2', '0'],
+                  ...['5', '0', '5', '0', '7', '5', '7', '0'],
+                ],
+                '0',
+              ],
+            ]),
+          ]),
+        ]),
+        new Dir('copy_memory_to_calldata', [
+          File.Simple('dynArray', [
+            new Expect('returning a dynarray of felts', [
+              ['returnFelt', [], ['3', '10', '20', '30'], '0'],
+            ]),
+            new Expect('returning a dynarray of Uint256', [
+              ['returnUint256', [], ['3', '10', '0', '100', '0', '1000', '0'], '0'],
+            ]),
+            new Expect('returning a dynarray of structs', [
+              ['returnStruct', [], ['3', '1', '0', '10', '2', '0', '20', '3', '0', '30'], '0'],
+            ]),
+            new Expect('return a dynarray of nested structs', [
+              [
+                'returnNestedStruct',
+                [],
+                [
+                  '3',
+                  '1',
+                  '0',
+                  '10',
+                  '0',
+                  '100',
+                  '1000',
+                  '0',
+                  '2',
+                  '0',
+                  '20',
+                  '0',
+                  '200',
+                  '2000',
+                  '0',
+                  '3',
+                  '0',
+                  '30',
+                  '0',
+                  '300',
+                  '3000',
+                  '0',
+                ],
+                '0',
+              ],
+            ]),
+            new Expect('returning a 2 dynarrays of felts', [
+              [
+                'returnMultipleFeltDynArray',
+                [],
+                ['3', '1', '2', '3', '4', '5', '6', '7', '8'],
+                '0',
+              ],
+            ]),
+            new Expect('returning a dynarray as a member access.', [
+              ['returnDynArrayAsMemberAccess', [], ['2', '10', '0', '100', '0'], '0'],
+            ]),
+            new Expect('returning a dynarray as a index access.', [
+              ['returnDynArrayAsIndexAccess', [], ['2', '10', '0', '100', '0'], '0'],
+            ]),
+            new Expect('returning a dynarray from a dynarray access.', [
+              ['returnDynArrayFromDynArray', [], ['3', '10', '0', '100', '0', '1000', '0'], '0'],
+            ]),
+            new Expect('returning a dynarray function call in return statement.', [
+              ['returnDynArrayFromFunctionCall', [], ['3', '100', '200', '252'], '0'],
+            ]),
+          ]),
+        ]),
         new Dir('copy_memory_to_storage', [
           File.Simple('dynamic_arrays', [
             new Expect('arrays are initialised correctly', [
@@ -321,6 +464,34 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('copy_storage_to_calldata', [
+          File.Simple('dynamic_arrays', [
+            new Expect('felt dynamic array from storage to calldata', [
+              ['pushToX', ['1'], [], '0'],
+              ['pushToX', ['2'], [], '0'],
+              ['pushToX', ['3'], [], '0'],
+              ['getX', [], ['3', '1', '2', '3'], '0'],
+            ]),
+            new Expect('uint256 dynamic array from storage to calldata', [
+              ['pushToY', ['1', '0'], [], '0'],
+              ['pushToY', ['2', '0'], [], '0'],
+              ['pushToY', ['3', '0'], [], '0'],
+              ['getY', [], ['3', '1', '0', '2', '0', '3', '0'], '0'],
+            ]),
+          ]),
+          File.Simple('static_arrays', [
+            new Expect('static array copy from storage to calldata', [
+              ['setX', ['1', '0', '2', '0', '3', '0'], [], '0'],
+              ['getX', [], ['1', '0', '2', '0', '3', '0'], '0'],
+            ]),
+          ]),
+          File.Simple('structs', [
+            new Expect('structs copy from storage to calldata', [
+              ['setS', ['5', '7', '0'], [], '0'],
+              ['getS', [], ['5', '7', '0'], '0'],
+            ]),
+          ]),
+        ]),
         new Dir('copy_storage_to_memory', [
           File.Simple('dynamic_arrays', [
             Expect.Simple('copySimpleArrayLength', [], ['3', '0']),
@@ -339,6 +510,57 @@ export const expectations = flatten(
           File.Simple('structs', [
             Expect.Simple('setS', ['2', '3', '5', '7'], []),
             Expect.Simple('getS', [], ['2', '3', '5', '7']),
+          ]),
+        ]),
+        new Dir('copy_storage_to_storage', [
+          File.Simple('dynamic_arrays', [
+            new Expect('copy values', [
+              ['setArr1', ['5', '7', '6', ' 8', '3', '2', '1', ' 9'], [], '0'],
+              ['copy', [], [], '0'],
+              ['getArr1', [], ['5', '7', '6', ' 8', '3', '2', '1', ' 9'], '0'],
+              ['getArr2', [], ['5', '7', '6', ' 8', '3', '2', '1', ' 9'], '0'],
+            ]),
+          ]),
+          File.Simple('scalars', [
+            new Expect('copy values', [
+              ['getValues', [], ['0', '0', '0'], '0'],
+              ['set8', ['5'], [], '0'],
+              ['copy8To256', [], [], '0'],
+              ['getValues', [], ['5', '5', '0'], '0'],
+              ['set256', ['4', '3'], [], '0'],
+              ['copy256To8', [], [], '0'],
+              ['getValues', [], ['4', '4', '3'], '0'],
+            ]),
+          ]),
+          File.Simple('static_arrays', [
+            new Expect('copy values', [
+              ['setArr1', ['5', '7', '6', ' 8'], [], '0'],
+              ['copy', [], [], '0'],
+              ['getArr1', [], ['5', '7', '6', ' 8'], '0'],
+              ['getArr2', [], ['5', '7', '6', ' 8'], '0'],
+            ]),
+          ]),
+          File.Simple('structs', [
+            new Expect('copy full struct', [
+              ['getStruct1', [], ['0', '0', '0', '0', '0'], '0'],
+              ['getStruct2', [], ['0', '0', '0', '0', '0'], '0'],
+              ['setStruct1', ['1', '3', '1', '4', '2'], [], '0'],
+              ['getStruct1', [], ['1', '3', '1', '4', '2'], '0'],
+              ['getStruct2', [], ['0', '0', '0', '0', '0'], '0'],
+              ['copyFull', [], [], '0'],
+              ['getStruct1', [], ['1', '3', '1', '4', '2'], '0'],
+              ['getStruct2', [], ['1', '3', '1', '4', '2'], '0'],
+            ]),
+            new Expect('copy inner struct', [
+              ['getStruct1', [], ['1', '3', '1', '4', '2'], '0'],
+              ['getStruct2', [], ['1', '3', '1', '4', '2'], '0'],
+              ['setStruct1', ['0', '8', '7', '6', '5'], [], '0'],
+              ['getStruct1', [], ['0', '8', '7', '6', '5'], '0'],
+              ['getStruct2', [], ['1', '3', '1', '4', '2'], '0'],
+              ['copyInner', [], [], '0'],
+              ['getStruct1', [], ['0', '8', '7', '6', '5'], '0'],
+              ['getStruct2', [], ['1', '8', '7', '4', '2'], '0'],
+            ]),
           ]),
         ]),
         new Dir('cross_contract_calls', [
@@ -785,7 +1007,7 @@ export const expectations = flatten(
               'testing a static array of ints can be passed into a public function and written to memory and index returned.',
               [['testIntPublic', ['1', '2', '3'], ['3'], '0']],
             ),
-            // TODO fix passing nested complex types and uncomment
+            // These test will come online when the known nested Reference Types writing bug is sorted.
             // new Expect(
             //   'testing a static array of structs can be passed into an external function and written to memory and index returned.',
             //   [
@@ -1151,6 +1373,16 @@ export const expectations = flatten(
               Expect.Simple('set', ['1', '5'], ['1']),
             ]),
           ]),
+          new Dir('super_calls', [
+            new File('order', 'Final', [], [Expect.Simple('f', [], ['2', '0'])]),
+            new File('super_in_constructor', 'D', [], [Expect.Simple('f', [], ['15', '0'])]),
+            new File(
+              'super_in_modifier',
+              'Final',
+              [],
+              [Expect.Simple('f', ['75', '0'], ['50', '0'])],
+            ),
+          ]),
           new Dir('variables', [
             new File('derived', 'Derived', [], [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
           ]),
@@ -1385,6 +1617,8 @@ export const expectations = flatten(
             Expect.Simple('shl256_256unsafe', ['3', '5', '4', '0'], ['48', '80']),
             Expect.Simple('shl256_256signedsafe', ['3', '5', '4', '0'], ['48', '80']),
             Expect.Simple('shl256_256signedunsafe', ['3', '5', '4', '0'], ['48', '80']),
+            Expect.Simple('shl_positive_literal', [], ['1']),
+            Expect.Simple('shl_negative_literal', [], ['1']),
           ]),
           File.Simple('shr', [
             Expect.Simple('shr8safe', ['100', '2'], ['25']),
@@ -1403,6 +1637,8 @@ export const expectations = flatten(
             Expect.Simple('shr256_256unsafe', ['100', '20', '2', '0'], ['25', '5']),
             Expect.Simple('shr256_256signedsafe', ['100', '20', '2', '0'], ['25', '5']),
             Expect.Simple('shr256_256signedunsafe', ['100', '20', '2', '0'], ['25', '5']),
+            Expect.Simple('shr_positive_literal', [], ['1']),
+            Expect.Simple('shr_negative_literal', [], ['1']),
           ]),
           File.Simple('subtraction', [
             Expect.Simple('subtraction8safe', ['31', '2'], ['29']),
@@ -1504,7 +1740,19 @@ export const expectations = flatten(
             Expect.Simple('uint256new', [], ['0', '0', '0', '0']),
             Expect.Simple('uint256write', ['5', '6'], ['0', '0', '5', '6']),
           ]),
-          File.Simple('nested', [Expect.Simple('setAndGet', ['100'], ['100'])]),
+          File.Simple('nested', [
+            Expect.Simple('setAndGet', ['100'], ['100']),
+            Expect.Simple(
+              'memberAssign',
+              ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11'],
+              ['2', '3', '4', '5', '6'],
+            ),
+            Expect.Simple(
+              'identifierAssign',
+              ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11'],
+              ['7', '8', '9', '10', '11'],
+            ),
+          ]),
           File.Simple('staticArrays', [
             Expect.Simple('uint8default', [], ['0', '0']),
             Expect.Simple('uint8write', ['5'], ['0', '5']),
@@ -1682,6 +1930,69 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('storage', [
+          new Dir('delete', [
+            File.Simple('value_dyn_array', [
+              Expect.Simple('tryDeleteX', [], ['28']),
+              Expect.Simple('tryDeleteY', [], ['71', '0']),
+            ]),
+            // Uncomment once Storage -> Calldata copy is implemented
+            // File.Simple('ref_dyn_array', [Expect.Simple('tryDeleteZ', [], ['0', '0', '0'])]),
+            /* Uncomment once Storage -> Calldata copy is implemented
+            File.Simple('struct', [
+              Expect.Simple(
+                'deleteValueStruct',
+                [],
+                ['0', '0', '0', '0', '0', '0', '0'],
+                'delete struct with value members',
+              ),
+              new Expect('delete struct with dynamic array', [
+                ['setDynArrayStructVal', ['3'], [], '0'],
+                ['setDynArrayStructVal', ['5'], [], '0'],
+                ['setDynArrayStructVal', ['7'], [], '0'],
+                ['deleteDynArrayStruct', [], [], '0'],
+                ['getDynArrayStruct', ['0', '0'], null, '0'],
+                ['setDynArrayStructVal', ['15'], [], '0'],
+                ['getDynArrayStruct', ['0', '0'], ['15', '15'], '0'],
+              ]),
+              new Expect('delete struct with mapping', [
+                ['setMapStructVal', ['5', '10'], [], '0'],
+                ['deleteMapStruct', [], [], '0'],
+                ['getMapStruct', ['5'], ['10'], '0'],
+              ]),
+            ]),
+            */
+            File.Simple('map_2d_dyn_array', [
+              new Expect('delete 2d dynamic arrays with mappings', [
+                ['n1', ['3', '0', '5', '0'], [], '0'],
+                ['map', ['3', '0'], ['5', '0'], '0'],
+                ['d', [], ['0', '0'], '0'],
+                ['n2', [], [], '0'],
+                ['map', ['3', '0'], ['5', '0'], '0'],
+              ]),
+            ]),
+            File.Simple('static_array', [
+              new Expect('delete small static array', [
+                ['setSmall', ['0', '1'], [], '0'],
+                ['setSmall', ['0', '2'], [], '0'],
+                ['setSmall', ['2', '3'], [], '0'],
+                ['getSmall', ['0', '1'], ['2'], '0'],
+                ['deleteSmall', [], [], '0'],
+                ['getSmall', ['0', '1'], null, '0'],
+                ['setSmall', ['2', '15'], [], '0'],
+                ['getSmall', ['2', '0'], ['15'], '0'],
+              ]),
+              new Expect('delete big static array', [
+                ['setBig', ['0', '1'], [], '0'],
+                ['setBig', ['0', '2'], [], '0'],
+                ['setBig', ['2', '3'], [], '0'],
+                ['getBig', ['0', '1'], ['2'], '0'],
+                ['deleteBig', [], [], '0'],
+                ['getBig', ['0', '1'], null, '0'],
+                ['setBig', ['2', '15'], [], '0'],
+                ['getBig', ['2', '0'], ['15'], '0'],
+              ]),
+            ]),
+          ]),
           File.Simple('dynamic_arrays', [
             Expect.Simple('get', ['0', '0'], null, 'out of range get should fail'),
             Expect.Simple('set', ['0', '0', '0'], null, 'out of range set should fail'),
@@ -1711,6 +2022,22 @@ export const expectations = flatten(
             Expect.Simple('nestedMappings', ['4'], ['4'], 'stepCheck'),
             Expect.Simple('nonFeltKey', ['3', '4', '5'], ['5']),
             Expect.Simple('nonFeltKey', ['4', '5', '6'], ['6'], 'stepCheck'),
+            Expect.Simple('structValue', ['10', '100', '1000'], ['10', '100', '1000']),
+            Expect.Simple(
+              'staticArrayValue',
+              ['10', '11', '100', '101', '1000', '1001'],
+              ['10', '11', '100', '101', '1000', '1001'],
+            ),
+            Expect.Simple(
+              'staticArrayValueWithConversion',
+              ['10', '100', '101', '200'],
+              ['10', '0', '100', '101', '200', '0'],
+            ),
+            Expect.Simple(
+              'dynamicArrayValue',
+              ['10', '11', '100', '101', '1000', '1001'],
+              ['10', '11', '100', '101', '1000', '1001'],
+            ),
           ]),
           File.Simple('nesting', [Expect.Simple('nesting', [], ['5'])]),
           File.Simple('passingArguments', [
@@ -1755,6 +2082,25 @@ export const expectations = flatten(
               ['assign', ['10', '11'], [], '0'],
               ['getMember', [], ['10', '11'], '0'],
             ]),
+          ]),
+        ]),
+        new Dir('this_keyword', [
+          File.Simple('thisKeyword', [
+            Expect.Simple(
+              'simpleThis',
+              [],
+              ['address@tests/behaviour/contracts/this_keyword/thisKeyword.WARP'],
+            ),
+            Expect.Simple(
+              'getAddress',
+              [],
+              ['address@tests/behaviour/contracts/this_keyword/thisKeyword.WARP'],
+            ),
+            Expect.Simple(
+              'getAddressAssignment',
+              [],
+              ['address@tests/behaviour/contracts/this_keyword/thisKeyword.WARP'],
+            ),
           ]),
         ]),
         new Dir('type_information', [

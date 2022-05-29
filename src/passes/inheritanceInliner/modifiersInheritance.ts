@@ -1,7 +1,7 @@
 import { ContractDefinition, ModifierDefinition } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { cloneASTNode } from '../../utils/cloning';
-import { getBaseContracts } from './utils';
+import { fixSuperReference, getBaseContracts } from './utils';
 
 export function addNonOverridenModifiers(
   node: ContractDefinition,
@@ -26,6 +26,7 @@ export function addNonOverridenModifiers(
         idRemappingOverriders.set(modifier.id, exisitingModifier);
       }
       node.appendChild(clonedModifier);
+      fixSuperReference(clonedModifier, contract, node);
     });
   });
 }

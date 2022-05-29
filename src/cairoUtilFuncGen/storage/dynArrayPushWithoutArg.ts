@@ -1,12 +1,5 @@
 import assert from 'assert';
-import {
-  ASTNode,
-  DataLocation,
-  FunctionCall,
-  getNodeType,
-  MemberAccess,
-  PointerType,
-} from 'solc-typed-ast';
+import { ASTNode, DataLocation, FunctionCall, getNodeType, MemberAccess } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
@@ -31,13 +24,7 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
     const functionStub = createCairoFunctionStub(
       name,
       [['loc', typeNameFromTypeNode(arrayType, this.ast), DataLocation.Storage]],
-      [
-        [
-          'newElemLoc',
-          typeNameFromTypeNode(elementType, this.ast),
-          elementType instanceof PointerType ? DataLocation.Storage : DataLocation.Default,
-        ],
-      ],
+      [['newElemLoc', typeNameFromTypeNode(elementType, this.ast), DataLocation.Storage]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       nodeInSourceUnit ?? push,
@@ -64,10 +51,15 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
         `    let (newLen, carry) = uint256_add(len, Uint256(1,0))`,
         `    assert carry = 0`,
         `    ${lengthName}.write(loc, newLen)`,
-        `    let (used) = WARP_USED_STORAGE.read()`,
-        `    WARP_USED_STORAGE.write(used + ${elementType.width})`,
-        `    ${arrayName}.write(loc, len, used)`,
-        `    return (used)`,
+        `    let (existing) = ${arrayName}.read(loc, len)`,
+        `    if (existing) == 0:`,
+        `        let (used) = WARP_USED_STORAGE.read()`,
+        `        WARP_USED_STORAGE.write(used + ${elementType.width})`,
+        `        ${arrayName}.write(loc, len, used)`,
+        `        return (used)`,
+        `    else:`,
+        `        return (existing)`,
+        `    end`,
         `end`,
       ].join('\n'),
     });

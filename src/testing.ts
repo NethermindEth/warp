@@ -47,6 +47,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/address/7/prime_field', 'Success'],
   ['example_contracts/boolOp_noSideEffects', 'Success'],
   ['example_contracts/boolOp_sideEffects', 'Success'],
+  ['example_contracts/bytesXAccess', 'Success'],
   ['example_contracts/c2c', 'Success'],
   // Uses conditionals explicitly
   ['example_contracts/conditional', 'WillNotSupport'],
@@ -105,8 +106,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/memberAccess/send', 'WillNotSupport'],
   ['example_contracts/memberAccess/staticcall', 'WillNotSupport'],
   ['example_contracts/memberAccess/transfer', 'WillNotSupport'],
-  // Deleting a storage dynamic array doesn't currently affect references to elements
-  ['example_contracts/mutableReferences/deepDelete', 'NotSupportedYet'],
+  ['example_contracts/mutableReferences/deepDelete', 'Success'],
   ['example_contracts/mutableReferences/memory', 'Success'],
   ['example_contracts/mutableReferences/mutableReferences', 'Success'],
   ['example_contracts/mutableReferences/scalarStorage', 'Success'],
@@ -118,8 +118,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/nested_structs', 'Success'],
   ['example_contracts/payable_function', 'Success'],
   ['example_contracts/pure_function', 'Success'],
-  // Returns the dynamic array memory pointer instead of it's values
-  ['example_contracts/return_dyn_array', 'NotSupportedYet'],
+  ['example_contracts/return_dyn_array', 'Success'],
   ['example_contracts/return_var_capturing', 'Success'],
   ['example_contracts/returndatasize', 'WillNotSupport'],
   ['example_contracts/returnInserter', 'Success'],
@@ -142,6 +141,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeConversion/implicitReturnConversion', 'Success'],
   ['example_contracts/typeConversion/implicit_type_conv', 'Success'],
   ['example_contracts/typeConversion/shifts', 'Success'],
+  ['example_contracts/typeConversion/unusedArrayConversion', 'Success'],
   ['example_contracts/typeMinMax', 'Success'],
   // Don't automatically cast uint256 elements when creating static array
   ['example_contracts/uint256_static_array_casting', 'Success'],
