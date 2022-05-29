@@ -88,7 +88,7 @@ StaticType
       }
       if (i >= 2n ** BigInt(width)) error(`Uint${width} exceeds bound: ${input}`);
       if (i < 0n) error(`Uint${width} is less than zero: ${input}`);
-      return toUintOrFelt(i, 256);
+      return toUintOrFelt(i, width);
     }
   }
   / "int" width:BigInteger { return (input: Input) => {
@@ -105,7 +105,7 @@ StaticType
       }
       if (i >= 2n ** BigInt(width - 1n)) error(`Int${width} exceeds bound: ${input}`);
       if (i < -(2n ** BigInt(width - 1n))) error(`Int${width} exceeds bound: ${input}`);
-      return toUintOrFelt(i, 256);
+      return toUintOrFelt(i, width);
     }
   }
   / "uint" { return (input: Input) => {
