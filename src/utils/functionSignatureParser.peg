@@ -154,9 +154,9 @@ StaticType
         error(`Expected input to be number: ${input}`);
         throw "error already raised, appeasing the typesystem";
       }
-      if (i >= 2n ** BigInt(160)) error(`Address exceeds bound: ${input}`);
+      if (i >= 2n ** BigInt(251)) error(`Address exceeds bound: ${input}`);
       if (i < 0n) error(`Address is less than zero: ${input}`);
-      return toUintOrFelt(i, 160);
+      return toUintOrFelt(i, 251);
     }
   }
   / "bool" { return (input: Input) => {
