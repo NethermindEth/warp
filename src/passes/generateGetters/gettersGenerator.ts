@@ -64,7 +64,7 @@ export class GettersGenerator extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     node.vStateVariables.forEach((v) => {
       // for every public state variable, create a getter function
-      const stateVarType = typeNameFromTypeNode(getNodeType(v, ast.compilerVersion), ast);
+      const stateVarType = v.vType;
 
       if (!stateVarType) {
         // skip getter function generation for state variable
