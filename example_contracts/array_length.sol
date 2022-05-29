@@ -6,7 +6,7 @@ contract WARP {
 
     uint[] public a;
     bytes public b;
-    string public s = "storage strings are cool";
+
     function dynMemArrayLen() public pure returns (uint256){
         uint[] memory a_ = new uint[](2);
         a_[0] = 1;
