@@ -5,19 +5,27 @@ import {
   ContractDefinition,
   ContractKind,
   DataLocation,
-  ExpressionStatement,
   FunctionDefinition,
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
   getNodeType,
+  Literal,
+  LiteralKind,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
-import { createBlock, createIdentifier, createParameterList } from '../utils/nodeTemplates';
+import { cloneASTNode } from '../utils/cloning';
+import {
+  createBlock,
+  createExpressionStatement,
+  createIdentifier,
+  createParameterList,
+  createVariableDeclarationStatement,
+} from '../utils/nodeTemplates';
 import { typeNameToSpecializedTypeNode } from '../utils/nodeTypeProcessing';
 import { isCairoConstant } from '../utils/utils';
 
@@ -111,18 +119,21 @@ function extractInitialisation(node: VariableDeclaration, initialisationBlock: B
   assert(node.vType !== undefined);
   const type = typeNameToSpecializedTypeNode(node.vType, DataLocation.Storage);
 
+  let value = node.vValue;
+  if (value && value instanceof Literal && value.kind === LiteralKind.String) {
+    const memoryVariableDeclaration = cloneASTNode(node, ast);
+    memoryVariableDeclaration.storageLocation = DataLocation.Memory;
+    memoryVariableDeclaration.name = 'wm_' + memoryVariableDeclaration.name;
+    memoryVariableDeclaration.stateVariable = false;
+    initialisationBlock.appendChild(
+      createVariableDeclarationStatement([memoryVariableDeclaration], value, ast),
+    );
+    value = createIdentifier(memoryVariableDeclaration, ast, DataLocation.Memory);
+  }
   initialisationBlock.appendChild(
-    new ExpressionStatement(
-      ast.reserveId(),
-      node.src,
-      new Assignment(
-        ast.reserveId(),
-        node.src,
-        type.pp(),
-        '=',
-        createIdentifier(node, ast),
-        node.vValue,
-      ),
+    createExpressionStatement(
+      new Assignment(ast.reserveId(), node.src, type.pp(), '=', createIdentifier(node, ast), value),
+      ast,
     ),
   );
 

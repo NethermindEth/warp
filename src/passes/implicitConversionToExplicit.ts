@@ -294,7 +294,7 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
       `Unexpected unresolved rational literal ${printNode(expression)}`,
     );
   } else if (currentType instanceof StringLiteralType) {
-    insertConversion(expression, targetType, ast);
+    return;
   } else if (currentType instanceof TupleType) {
     throw new TranspileFailedError(
       `Attempted to convert tuple ${printNode(expression)} as single value`,

@@ -13,6 +13,7 @@ import {
 } from 'solc-typed-ast';
 import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
+import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createArrayTypeName, createNumberLiteral } from '../../utils/nodeTemplates';
 import { notNull } from '../../utils/typeConstructs';
@@ -30,16 +31,14 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     // Encode the literal to the uint-8 byte representation
     assert(node.kind === LiteralKind.String);
 
-    const a = Buffer.from(node.value);
-    const byteCode = a.toJSON().data;
-
+    const size = node.hexValue.length / 2;
     const baseType = new IntType(8, false);
     const baseTypeName = typeNameFromTypeNode(baseType, this.ast);
-    const name = this.getOrCreate(baseType, byteCode.length, true);
+    const name = this.getOrCreate(baseType, size, true);
 
     const stub = createCairoFunctionStub(
       name,
-      byteCode.map((_, n) => [`e${n}`, baseTypeName, DataLocation.Default]),
+      mapRange(size, (n) => [`e${n}`, cloneASTNode(baseTypeName, this.ast), DataLocation.Default]),
       [['arr', createArrayTypeName(baseTypeName, this.ast), DataLocation.Memory]],
       ['range_check_ptr', 'warp_memory'],
       this.ast,
@@ -48,7 +47,9 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
 
     return createCallToFunction(
       stub,
-      byteCode.map((v) => createNumberLiteral(v, this.ast)),
+      mapRange(size, (n) =>
+        createNumberLiteral(parseInt(node.hexValue.slice(2 * n, 2 * n + 2)), this.ast),
+      ),
       this.ast,
     );
   }

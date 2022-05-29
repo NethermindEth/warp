@@ -7,6 +7,7 @@ import {
   DataLocation,
   ElementaryTypeName,
   Expression,
+  ExpressionStatement,
   FunctionDefinition,
   FunctionKind,
   FunctionStateMutability,
@@ -86,6 +87,12 @@ export function createBytesTypeName(ast: AST): ElementaryTypeName {
 
 export function createEmptyTuple(ast: AST): TupleExpression {
   const node = new TupleExpression(ast.reserveId(), '', 'tuple()', false, []);
+  ast.setContextRecursive(node);
+  return node;
+}
+
+export function createExpressionStatement(expression: Expression, ast: AST): ExpressionStatement {
+  const node = new ExpressionStatement(ast.reserveId(), '', expression);
   ast.setContextRecursive(node);
   return node;
 }
@@ -208,6 +215,7 @@ export function createDefaultConstructor(node: ContractDefinition, ast: AST): Fu
     createParameterList([], ast),
     [],
   );
+  ast.setContextRecursive(node);
   return newFunc;
 }
 
