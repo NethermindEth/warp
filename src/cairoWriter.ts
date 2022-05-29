@@ -665,8 +665,8 @@ class IdentifierWriter extends CairoASTNodeWriter {
   writeInner(node: Identifier, _: ASTWriter): SrcDesc {
     if (
       isDynamicCallDataArray(getNodeType(node, this.ast.compilerVersion)) &&
-      node.getClosestParentByType(Return) !== undefined &&
-      node.getClosestParentByType(FunctionDefinition)?.visibility === FunctionVisibility.External
+      node.getClosestParentByType(FunctionCall) !== undefined &&
+      node.getClosestParentByType(FunctionCall)?.kind !== FunctionCallKind.StructConstructorCall
     ) {
       return [`${node.name}.len, ${node.name}.ptr`];
     }
