@@ -10,6 +10,7 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
+import { manglePath } from './filePathMangler';
 
 type Scoped = FunctionDefinition | ContractDefinition | VariableDeclaration | StructDefinition;
 
@@ -103,11 +104,11 @@ function updateScope(nodes: readonly Scoped[], newScope: number): readonly Scope
 }
 
 export function mangleFreeFilePath(path: string): string {
-  return `${path}__WARP_FREE__`;
+  return `${manglePath(path)}__WARP_FREE__`;
 }
 
 export function mangleContractFilePath(path: string, contractName: string): string {
-  return `${path}__WARP_CONTRACT__${contractName}`;
+  return `${manglePath(path)}__WARP_CONTRACT__${contractName}`;
 }
 
 function getAllSourceUnitDefinitions(sourceUnit: SourceUnit) {
