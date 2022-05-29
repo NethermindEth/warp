@@ -37,6 +37,11 @@ contract WARP {
     return (map5[1][0], map5[1][1], map5[1][2]);
   }
 
+  function staticArrayValueWithConversion(uint8 x, uint y, uint8 z) external returns (uint, uint, uint) {
+    map5[1] = [x, y, z];
+    return (map5[1][0], map5[1][1], map5[1][2]);
+  }
+
 
   mapping(int8 => uint[]) map6;
   function dynamicArrayValue(uint x, uint y, uint z) external returns (uint, uint, uint) {

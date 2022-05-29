@@ -201,6 +201,21 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       insertConversionIfNecessary(node.vIndexExpression, new IntType(256, false), ast);
     }
   }
+
+  visitTupleExpression(node: TupleExpression, ast: AST): void {
+    if (!node.isInlineArray) return this.visitExpression(node, ast);
+
+    const type = generalizeType(getNodeType(node, ast.compilerVersion))[0];
+
+    assert(
+      type instanceof ArrayType,
+      `Expected inline array ${printNode(node)} to be array type, got ${printTypeNode(type)}`,
+    );
+
+    node.vComponents.forEach((element) => insertConversionIfNecessary(element, type.elementT, ast));
+
+    this.visitExpression(node, ast);
+  }
 }
 
 function insertConversionIfNecessary(expression: Expression, targetType: TypeNode, ast: AST): void {
@@ -219,17 +234,20 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
       )}`,
     );
     const elementT = targetType.elementT;
-    if (currentType.pp() !== targetType.pp()) {
-      assert(
-        expression instanceof TupleExpression && expression.isInlineArray,
-        `Unable to perform array conversion on ${printNode(expression)}, expected an inline array`,
-      );
+    if (expression instanceof TupleExpression && expression.isInlineArray) {
       expression.vOriginalComponents.forEach((element) => {
         assert(element !== null, `Unexpected empty slot in inline array ${printNode(expression)}`);
         insertConversionIfNecessary(element, elementT, ast);
       });
       expression.typeString = generateExpressionTypeString(
         specializeType(targetType, DataLocation.Memory),
+      );
+    } else {
+      assert(
+        currentType.pp() === targetType.pp(),
+        `Unexpected mismatched tuple types ${currentType.pp()} != ${targetType.pp()} at ${printNode(
+          expression,
+        )}`,
       );
     }
   } else if (currentType instanceof BoolType) {

@@ -1390,6 +1390,16 @@ export const expectations = flatten(
               Expect.Simple('set', ['1', '5'], ['1']),
             ]),
           ]),
+          new Dir('super_calls', [
+            new File('order', 'Final', [], [Expect.Simple('f', [], ['2', '0'])]),
+            new File('super_in_constructor', 'D', [], [Expect.Simple('f', [], ['15', '0'])]),
+            new File(
+              'super_in_modifier',
+              'Final',
+              [],
+              [Expect.Simple('f', ['75', '0'], ['50', '0'])],
+            ),
+          ]),
           new Dir('variables', [
             new File('derived', 'Derived', [], [Expect.Simple('f', [], ['36', '0', '24', '0'])]),
           ]),
@@ -1624,6 +1634,8 @@ export const expectations = flatten(
             Expect.Simple('shl256_256unsafe', ['3', '5', '4', '0'], ['48', '80']),
             Expect.Simple('shl256_256signedsafe', ['3', '5', '4', '0'], ['48', '80']),
             Expect.Simple('shl256_256signedunsafe', ['3', '5', '4', '0'], ['48', '80']),
+            Expect.Simple('shl_positive_literal', [], ['1']),
+            Expect.Simple('shl_negative_literal', [], ['1']),
           ]),
           File.Simple('shr', [
             Expect.Simple('shr8safe', ['100', '2'], ['25']),
@@ -1642,6 +1654,8 @@ export const expectations = flatten(
             Expect.Simple('shr256_256unsafe', ['100', '20', '2', '0'], ['25', '5']),
             Expect.Simple('shr256_256signedsafe', ['100', '20', '2', '0'], ['25', '5']),
             Expect.Simple('shr256_256signedunsafe', ['100', '20', '2', '0'], ['25', '5']),
+            Expect.Simple('shr_positive_literal', [], ['1']),
+            Expect.Simple('shr_negative_literal', [], ['1']),
           ]),
           File.Simple('subtraction', [
             Expect.Simple('subtraction8safe', ['31', '2'], ['29']),
@@ -2074,6 +2088,11 @@ export const expectations = flatten(
               ['10', '11', '100', '101', '1000', '1001'],
             ),
             Expect.Simple(
+              'staticArrayValueWithConversion',
+              ['10', '100', '101', '200'],
+              ['10', '0', '100', '101', '200', '0'],
+            ),
+            Expect.Simple(
               'dynamicArrayValue',
               ['10', '11', '100', '101', '1000', '1001'],
               ['10', '11', '100', '101', '1000', '1001'],
@@ -2122,6 +2141,25 @@ export const expectations = flatten(
               ['assign', ['10', '11'], [], '0'],
               ['getMember', [], ['10', '11'], '0'],
             ]),
+          ]),
+        ]),
+        new Dir('this_keyword', [
+          File.Simple('thisKeyword', [
+            Expect.Simple(
+              'simpleThis',
+              [],
+              ['address@tests/behaviour/contracts/this_keyword/thisKeyword.WARP'],
+            ),
+            Expect.Simple(
+              'getAddress',
+              [],
+              ['address@tests/behaviour/contracts/this_keyword/thisKeyword.WARP'],
+            ),
+            Expect.Simple(
+              'getAddressAssignment',
+              [],
+              ['address@tests/behaviour/contracts/this_keyword/thisKeyword.WARP'],
+            ),
           ]),
         ]),
         new Dir('type_information', [
