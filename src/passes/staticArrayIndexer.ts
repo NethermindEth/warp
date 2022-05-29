@@ -44,6 +44,7 @@ export class StaticArrayIndexer extends ASTMapper {
   // Tracks calldata arrays which already have a memory counterpart
   // initalized
   private staticArrayAccesed = new Map<number, VariableDeclaration>();
+
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     this.staticIndexToMemory(node, ast);
   }
@@ -122,7 +123,7 @@ export class StaticArrayIndexer extends ASTMapper {
     ast: AST,
   ): VariableDeclaration {
     const refId = identifier.referencedDeclaration;
-    const memoryType = getNodeType(identifier, ast.compilerVersion);
+    const memoryType = generalizeType(getNodeType(identifier, ast.compilerVersion))[0];
 
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
