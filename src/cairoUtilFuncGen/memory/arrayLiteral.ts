@@ -30,7 +30,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     // Encode the literal to the uint-8 byte representation
     assert(node.kind === LiteralKind.String);
 
-    const a = Buffer.from('some string');
+    const a = Buffer.from(node.value);
     const byteCode = a.toJSON().data;
 
     const baseType = new IntType(8, false);
