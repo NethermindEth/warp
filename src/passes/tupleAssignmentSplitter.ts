@@ -91,7 +91,6 @@ export class TupleAssignmentSplitter extends ASTMapper {
 
     const tempVars = new Map<Expression, VariableDeclaration>(
       lhs.vOriginalComponents.filter(notNull).map((child) => {
-        // TODO cover all edge cases surrounding which type of typename can go here
         const [typeNode, location] = generalizeType(getNodeType(child, ast.compilerVersion));
         const typeName = typeNameFromTypeNode(typeNode, ast);
         const decl = new VariableDeclaration(

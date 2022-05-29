@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  ArrayType,
   ArrayTypeName,
   Assignment,
   ASTNode,
@@ -32,6 +33,7 @@ import {
   FunctionStateMutability,
   FunctionTypeName,
   FunctionVisibility,
+  generalizeType,
   getNodeType,
   Identifier,
   IdentifierPath,
@@ -200,14 +202,30 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     );
 
     const documentation = getDocumentation(node.documentation, writer);
-    const declarations = node.assignments.map((id) => {
+    const declarations = node.assignments.flatMap((id) => {
       if (id === null)
         throw new NotSupportedYetError(
           `VariableDeclarationStatements with gaps not implemented yet`,
         );
       const declaration = node.vDeclarations.find((decl) => decl.id === id);
       assert(declaration !== undefined, `Unable to find variable declaration for assignment ${id}`);
-      return writer.write(declaration);
+      const type = generalizeType(getNodeType(declaration, this.ast.compilerVersion))[0];
+      if (
+        type instanceof ArrayType &&
+        type.size === undefined &&
+        node.vInitialValue instanceof FunctionCall &&
+        node.vInitialValue.vReferencedDeclaration instanceof FunctionDefinition &&
+        node.vInitialValue.vReferencedDeclaration.visibility === FunctionVisibility.External
+      ) {
+        assert(
+          declaration.storageLocation === DataLocation.CallData,
+          `WARNING: declaration receiving calldata dynarray has location ${declaration.storageLocation}`,
+        );
+        const writtenVar = writer.write(declaration);
+        return [`${writtenVar}_len`, writtenVar];
+      } else {
+        return [writer.write(declaration)];
+      }
     });
     if (
       node.vInitialValue instanceof FunctionCall &&
@@ -224,7 +242,7 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
           } = ${writer.write(node.vInitialValue)}`,
         ].join('\n'),
       ];
-    } else if (node.vDeclarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
+    } else if (declarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
       return [
         [
           documentation,
@@ -665,8 +683,12 @@ class IdentifierWriter extends CairoASTNodeWriter {
   writeInner(node: Identifier, _: ASTWriter): SrcDesc {
     if (
       isDynamicCallDataArray(getNodeType(node, this.ast.compilerVersion)) &&
-      node.getClosestParentByType(Return) !== undefined &&
-      node.getClosestParentByType(FunctionDefinition)?.visibility === FunctionVisibility.External
+      ((node.getClosestParentByType(Return) !== undefined &&
+        node.getClosestParentByType(FunctionDefinition)?.visibility ===
+          FunctionVisibility.External) ||
+        (node.parent instanceof FunctionCall &&
+          node.parent.vReferencedDeclaration instanceof FunctionDefinition &&
+          node.parent.vReferencedDeclaration.visibility === FunctionVisibility.External))
     ) {
       return [`${node.name}.len, ${node.name}.ptr`];
     }

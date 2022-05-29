@@ -22,19 +22,23 @@ import { typeNameFromTypeNode } from '../../../utils/utils';
 const INDENT = ' '.repeat(4);
 
 export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
-  gen(astNode: VariableDeclaration | Expression, node: ASTNode): FunctionCall | undefined {
+  gen(astNode: VariableDeclaration, nodeInSourceUnit?: ASTNode): FunctionCall;
+  gen(astNode: Expression, nodeInSourceUnit?: ASTNode): void;
+  gen(
+    astNode: VariableDeclaration | Expression,
+    nodeInSourceUnit?: ASTNode,
+  ): FunctionCall | undefined {
     const type = generalizeType(getNodeType(astNode, this.ast.compilerVersion))[0];
     assert(type instanceof ArrayType && type.size === undefined);
 
     const name = this.getOrCreate(type);
-
     const structDefStub = createCairoFunctionStub(
       name,
       [['darray', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
       [['darray_struct', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
       [],
       this.ast,
-      node,
+      nodeInSourceUnit ?? astNode,
       FunctionStateMutability.View,
       FunctionStubKind.StructDefStub,
     );
@@ -43,7 +47,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
       const functionInputs: Identifier[] = [
         createIdentifier(astNode, this.ast, DataLocation.CallData),
       ];
-      return createCallToFunction(structDefStub, [...functionInputs], this.ast);
+      return createCallToFunction(structDefStub, functionInputs, this.ast);
     } else {
       // When CallData DynArrays are being returned and we do not need the StructConstructor to be returned, we just need
       // the StructDefinition to be in the contract.

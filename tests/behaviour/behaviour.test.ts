@@ -62,7 +62,7 @@ describe('Transpiled contracts are valid cairo', function () {
   for (let i = 0; i < expectations.length; ++i) {
     it(expectations[i].name, async function () {
       const res = await compileResults[i];
-      if (res === null) {
+      if (res.result === null) {
         this.skip();
       } else {
         expect(res.result, `starknet-compile printed errors: ${res.result}`).to.include({

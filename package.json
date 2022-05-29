@@ -13,7 +13,9 @@
   "files": [
     "bin",
     "build",
-    "nethersolc"
+    "nethersolc",
+    "warp_venv.sh",
+    "warplib"
   ],
   "scripts": {
     "build": "rm -rf ./build; yarn tsc",
@@ -29,7 +31,8 @@
     "test:behaviour": "yarn tsc && npx mocha tests/behaviour/behaviour.test.ts --extension ts --require ts-node/register --exit",
     "testnet": "python3 starknet-testnet/server.py",
     "testnet-b": "python3 starknet-testnet/server.py benchmark",
-    "warplib": "yarn tsc; node ./build/warplib/generateWarplib.js"
+    "warplib": "yarn tsc; node ./build/warplib/generateWarplib.js",
+    "release": "yarn warplib && npm publish --access public"
   },
   "prettier": {
     "printWidth": 100,

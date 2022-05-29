@@ -1,4 +1,5 @@
 import { execSync } from 'child_process';
+import * as path from 'path';
 import * as fs from 'fs-extra';
 import { OutputOptions } from '.';
 import { compileCairo } from './starknetCli';
@@ -97,6 +98,8 @@ export function outputResult(
   }
 }
 
+const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+
 function formatOutput(filePath: string): void {
-  execSync(`cairo-format -i ${filePath}`);
+  execSync(`${warpVenvPrefix} cairo-format -i ${filePath}`);
 }
