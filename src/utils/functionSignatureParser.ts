@@ -487,12 +487,9 @@ function peg$parse(input: string, options?: IParseOptions) {
         error(`Expected input to be string: ${input}`);
         throw 'error already raised, appeasing the typesystem';
       }
-      const utf8string = unescape(encodeURIComponent(input));
-      const res = [BigInt(utf8string.length)];
-      for (var i = 0; i < utf8string.length; i++) {
-        res.push(BigInt(utf8string.charCodeAt(i)));
-      }
-      return res;
+      const buff = Buffer.from(input);
+      const byteCode = buff.toJSON().data;
+      return [BigInt(byteCode.length), ...byteCode];
     };
   };
   const peg$c43 = peg$otherExpectation('biginteger');
