@@ -89,6 +89,7 @@ function cliCompile(
   const nethersolcVersion: SupportedSolcVersions = solcVersion.startsWith('0.7.') ? `7` : `8`;
   const solcCommand = nethersolcPath(nethersolcVersion);
 
+  let allowedPaths = '';
   // Check if compiler version used is v0.7.6
   // For solc v0.8.7 and before, we need to set the allow path.
   // Since we are using latest version of v0.8.x, we do not need to set allow path
@@ -97,19 +98,12 @@ function cliCompile(
     const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
     const filePath = Object.keys(input.sources)[0];
     const allowPath = path.resolve(currentDirectory, filePath);
-    return {
-      result: JSON.parse(
-        execSync(`${solcCommand} --standard-json --allow-paths ${allowPath}`, {
-          input: JSON.stringify(input),
-          maxBuffer: MAX_BUFFER_SIZE,
-        }).toString(),
-      ),
-      compilerVersion: fullVersionFromMajor(nethersolcVersion),
-    };
+    allowedPaths = `--allow-paths ${allowPath}`;
   }
+
   return {
     result: JSON.parse(
-      execSync(`${solcCommand} --standard-json`, {
+      execSync(`${solcCommand} --standard-json ${allowedPaths}`, {
         input: JSON.stringify(input),
         maxBuffer: MAX_BUFFER_SIZE,
       }).toString(),
