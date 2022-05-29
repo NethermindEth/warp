@@ -1,4 +1,5 @@
 import assert from 'assert';
+import { manglePath } from '../../../src/passes/filePathMangler';
 import { mangleContractFilePath } from '../../../src/passes/sourceUnitSplitter';
 import { stringFlatten } from './utils';
 
@@ -40,7 +41,7 @@ export class File {
   ) {}
 
   static Simple(name: string, expectations: Expect[], contract?: string) {
-    return new File(name, contract ?? 'WARP', [], expectations);
+    return new File(manglePath(name), contract ?? 'WARP', [], expectations);
   }
 }
 
