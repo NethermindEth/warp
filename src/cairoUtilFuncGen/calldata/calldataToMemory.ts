@@ -26,7 +26,6 @@ export class DynArrayLoader extends StringIndexedFuncGen {
     varDecl: VariableDeclaration,
     structDef: CairoFunctionDefinition,
   ): FunctionCall {
-    console.log('calldata to memory');
     assert(varDecl.vType !== undefined);
     const type = getNodeType(varDecl, this.ast.compilerVersion);
     if (type instanceof ArrayType && type.size === undefined) {
