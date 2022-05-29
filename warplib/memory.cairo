@@ -1,7 +1,14 @@
 from starkware.cairo.common.dict import dict_read, dict_write
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.math import split_felt
-from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_sub, uint256_le, uint256_lt, uint256_mul
+from starkware.cairo.common.uint256 import (
+    Uint256,
+    uint256_add,
+    uint256_sub,
+    uint256_le,
+    uint256_lt,
+    uint256_mul,
+)
 from warplib.maths.utils import felt_to_uint256, narrow_safe
 
 # =================================THE PLAN=================================
@@ -136,12 +143,14 @@ func wm_bytes_new{range_check_ptr, warp_memory : DictAccess*}(len : Uint256) -> 
     return (loc)
 end
 
-func wm_bytes_push{range_check_ptr, warp_memory : DictAccess*}(bytesLoc : felt, value : felt) -> (len : Uint256):
+func wm_bytes_push{range_check_ptr, warp_memory : DictAccess*}(bytesLoc : felt, value : felt) -> (
+    len : Uint256
+):
     alloc_locals
 
     # Compute the new length
     let (length) = wm_read_256(bytesLoc)
-    let (newLength, carry) = uint256_add(length, Uint256(1,0))
+    let (newLength, carry) = uint256_add(length, Uint256(1, 0))
     assert carry = 0
 
     # Update the length in memory
@@ -152,7 +161,7 @@ func wm_bytes_push{range_check_ptr, warp_memory : DictAccess*}(bytesLoc : felt, 
     let (arrayLoc) = wm_read_felt(bytesLoc + 4)
 
     # Check our memory array has enough capacity
-    let(le) = uint256_lt(length, capacity)
+    let (le) = uint256_lt(length, capacity)
     if le == 1:
         # Add length to address of array to get address of the new slot
         let (arrayLoc256) = felt_to_uint256(arrayLoc)
@@ -164,12 +173,12 @@ func wm_bytes_push{range_check_ptr, warp_memory : DictAccess*}(bytesLoc : felt, 
         dict_write{dict_ptr=warp_memory}(loc, value)
     else:
         # Double the capacity
-        let (newCapacity, mulCarry) = uint256_mul(capacity, Uint256(2,0))
+        let (newCapacity, mulCarry) = uint256_mul(capacity, Uint256(2, 0))
         # This assert isn't perfect, if the old capacity is >= 2^255 this will
         # fail while there may still be plenty of capacity left. However there
         # is no computer capable of hitting this bound so I'm happy to fail
         # early
-        assert mulCarry = Uint256(0,0)
+        assert mulCarry = Uint256(0, 0)
         let (newArrayLoc) = wm_alloc(newCapacity)
 
         # Copy the old array to the new one
@@ -191,21 +200,22 @@ func wm_bytes_push{range_check_ptr, warp_memory : DictAccess*}(bytesLoc : felt, 
 
         # Write the new value
         dict_write{dict_ptr=warp_memory}(loc, value)
-
     end
     return (newLength)
 end
 
-func wm_bytes_pop{range_check_ptr, warp_memory : DictAccess*}(bytesLoc : felt) -> (value: felt, len : Uint256):
+func wm_bytes_pop{range_check_ptr, warp_memory : DictAccess*}(bytesLoc : felt) -> (
+    value : felt, len : Uint256
+):
     alloc_locals
     let (length) = wm_read_256(bytesLoc)
     # Assert the pop operation is not on an empty array
     if length.low + length.high == 0:
-      assert 1 = 0
+        assert 1 = 0
     end
 
     # Compute the new length
-    let (newLength) = uint256_sub(length, Uint256(1,0))
+    let (newLength) = uint256_sub(length, Uint256(1, 0))
 
     # Read the popped value
 
@@ -228,7 +238,9 @@ func wm_bytes_pop{range_check_ptr, warp_memory : DictAccess*}(bytesLoc : felt) -
     return (value, newLength)
 end
 
-func wm_bytes_index{range_check_ptr, warp_memory : DictAccess*}(bytesLoc : felt, index : Uint256) -> (res : felt):
+func wm_bytes_index{range_check_ptr, warp_memory : DictAccess*}(
+    bytesLoc : felt, index : Uint256
+) -> (res : felt):
     alloc_locals
 
     # Get the arrayLoc
@@ -278,15 +290,14 @@ end
 
 # Copies length felts from src to dst
 func wm_copy{warp_memory : DictAccess*}(src : felt, dst : felt, length : felt):
-  alloc_locals
-  if length == 0:
+    alloc_locals
+    if length == 0:
+        return ()
+    end
+
+    let (srcVal) = dict_read{dict_ptr=warp_memory}(src)
+    dict_write{dict_ptr=warp_memory}(dst, srcVal)
+
+    wm_copy(src + 1, dst + 1, length - 1)
     return ()
-  end
-
-  let (srcVal) = dict_read{dict_ptr=warp_memory}(src)
-  dict_write{dict_ptr=warp_memory}(dst, srcVal)
-
-  wm_copy(src + 1, dst + 1, length -1)
-  return ()
 end
-
