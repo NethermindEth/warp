@@ -92,6 +92,21 @@ program
   });
 
 program
+  .command('test')
+  .option('-f --force')
+  .option('-r --results')
+  .option('-u --unsafe')
+  .option('-e --exact')
+  .action((options) =>
+    runTests(
+      options.force ?? false,
+      options.results ?? false,
+      options.unsafe ?? false,
+      options.exact ?? false,
+    ),
+  );
+
+program
   .command('analyse <file>')
   .option('--highlight <ids...>')
   .action((file: string, options: PrintOptions) => analyseSol(file, options));
