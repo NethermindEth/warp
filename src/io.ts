@@ -94,7 +94,8 @@ export function outputResult(
   }
 }
 
+const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+
 function formatOutput(filePath: string): void {
-  const venvPath = path.resolve(__dirname, '..', 'warp_venv', 'bin');
-  execSync(`PATH=${venvPath}:$PATH cairo-format -i ${filePath}`);
+  execSync(`${warpVenvPrefix} cairo-format -i ${filePath}`);
 }
