@@ -16,7 +16,7 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { add, StringIndexedFuncGen } from '../base';
-import { ExternalDynArrayStructConstructor } from '../memory/externalDynArray/externalDynArrayStructConstructor';
+import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/externalDynArrayStructConstructor';
 import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
 
@@ -91,8 +91,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       `func ${funcName}${implicits}(loc : felt) -> (${structName} : ${cairoStruct.toString()}):`,
       `   alloc_locals`,
       ...copyInstructions,
-      `   let ${structName} = ${structDef.name}(${members.join(', ')})`,
-      `   return (${structName})`,
+      `   return (${structDef.name}(${members.join(', ')}))`,
       `end`,
     ].join('\n');
 

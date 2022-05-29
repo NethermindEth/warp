@@ -19,6 +19,7 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 
 /*
+  TODO update description
   Handles expressions that directly insert data into memory: struct constructors, news, and inline arrays
   Requires expected data location analysis to determine whether to insert objects into memory
   For memory objects, functions are generated that return a felt associated with the start of the data
@@ -37,13 +38,11 @@ export class MemoryAllocations extends ReferenceSubPass {
       const replacement = ast.getUtilFuncGen(node).memory.struct.gen(node);
       this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
     } else if (node.vExpression instanceof NewExpression) {
-      if (this.expectedDataLocations.get(node) === DataLocation.Memory) {
+      if (actualLoc === DataLocation.Memory) {
         this.allocateMemoryDynArray(node, ast);
       } else {
         throw new NotSupportedYetError(
-          `Allocating dynamic ${
-            this.expectedDataLocations.get(node) ?? 'unknown-location'
-          } arrays not implemented yet`,
+          `Allocating dynamic ${actualLoc ?? 'unknown-location'} arrays not implemented yet`,
         );
       }
     }
@@ -70,7 +69,7 @@ export class MemoryAllocations extends ReferenceSubPass {
     this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
   }
 
-  allocateMemoryDynArray(node: FunctionCall, ast: AST) {
+  allocateMemoryDynArray(node: FunctionCall, ast: AST): void {
     assert(node.vExpression instanceof NewExpression);
 
     assert(

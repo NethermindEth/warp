@@ -7,6 +7,7 @@ import {
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
+  FunctionVisibility,
   generalizeType,
   getNodeType,
   IndexAccess,
@@ -125,6 +126,11 @@ export class ExpectedLocationAnalyser extends ASTMapper {
             //Finally, default to the type in the pointer itself if we can't infer anything else
             this.expectedLocations.set(argI, t.location);
           }
+        } else if (
+          node.vReferencedDeclaration instanceof FunctionDefinition &&
+          node.vReferencedDeclaration.visibility === FunctionVisibility.External
+        ) {
+          this.expectedLocations.set(argI, DataLocation.CallData);
         } else {
           this.expectedLocations.set(argI, t.location);
         }
