@@ -13,6 +13,11 @@ import { SupportedSolcVersions, nethersolcPath, fullVersionFromMajor } from './n
 import { TranspileFailedError } from './utils/errors';
 import { error } from './utils/formatting';
 
+// For contracts of a reasonable size the json representation of the
+// AST was exceeding the buffer size. We leave it unbounded by setting the
+// size to the largest possible
+const MAX_BUFFER_SIZE = Number.MAX_SAFE_INTEGER;
+
 export function compileSolFile(file: string, printWarnings: boolean): AST {
   const requiredSolcVersion = getSolFileVersion(file);
   const [, majorVersion] = matchCompilerVersion(requiredSolcVersion);
@@ -96,6 +101,7 @@ function cliCompile(
       result: JSON.parse(
         execSync(`${solcCommand} --standard-json --allow-paths ${allowPath}`, {
           input: JSON.stringify(input),
+          maxBuffer: MAX_BUFFER_SIZE,
         }).toString(),
       ),
       compilerVersion: fullVersionFromMajor(nethersolcVersion),
@@ -103,7 +109,10 @@ function cliCompile(
   }
   return {
     result: JSON.parse(
-      execSync(`${solcCommand} --standard-json`, { input: JSON.stringify(input) }).toString(),
+      execSync(`${solcCommand} --standard-json`, {
+        input: JSON.stringify(input),
+        maxBuffer: MAX_BUFFER_SIZE,
+      }).toString(),
     ),
     compilerVersion: fullVersionFromMajor(nethersolcVersion),
   };
