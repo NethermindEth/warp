@@ -43,8 +43,8 @@ export class EnumConverter extends ASTMapper {
     const tNode = getNodeType(node.vExpression, ast.compilerVersion);
     assert(
       tNode instanceof TypeNameType,
-      `Got non-typename type ${tNode.pp()} when parsing conversion functiobin/warp transpile --print-trees tests/behaviour/solidity/test/libsolidity/semanticTests/enums/constructing_enums_from_ints.sol
-    decl.vType.typeStringn ${node.vFunctionName}`,
+      `Got non-typename type ${tNode.pp()} when parsing conversion function
+     ${node.vFunctionName}`,
     );
     if (
       node.vExpression instanceof Identifier &&
