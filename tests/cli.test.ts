@@ -35,6 +35,14 @@ const tests: encodeTest[] = [
   ['mint(bytes8)', ['0xffffffffffffffff'], ['0xffffffffffffffff']],
   ['byte_me(bytes)', [['0xff', '0xff', '0xff', '0xff']], ['0x4', '0xff', '0xff', '0xff', '0xff']],
   ['string(string)', ['hello'], ['0x5', '0x68', '0x65', '0x6c', '0x6c', '0x6f']],
+  [
+    'uint256arr(uint256[], uint256[2])',
+    [
+      ['4', '5', '6'],
+      ['99', '100'],
+    ],
+    ['0x3', '0x4', '0x0', '0x5', '0x0', '0x6', '0x0', '0x63', '0x0', '0x64', '0x0'],
+  ],
 ];
 
 describe('Warplib files should compile', function () {

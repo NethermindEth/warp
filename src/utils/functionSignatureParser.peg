@@ -74,7 +74,7 @@ ArraySuffix
   }
 
 StaticType
-  = "uint" width:BigInteger { return (input: Input) => {
+  = "uint" width:Integer { return (input: Input) => {
       if (input instanceof Array) {
         error(`Expected input to be number: ${input}`);
         throw "error already raised, appeasing the typesystem";
@@ -91,7 +91,7 @@ StaticType
       return toUintOrFelt(i, width);
     }
   }
-  / "int" width:BigInteger { return (input: Input) => {
+  / "int" width:Integer { return (input: Input) => {
       if (input instanceof Array) {
         error(`Expected input to be number: ${input}`);
         throw "error already raised, appeasing the typesystem";
@@ -103,8 +103,8 @@ StaticType
         error(`Expected input to be number: ${input}`);
         throw "error already raised, appeasing the typesystem";
       }
-      if (i >= 2n ** BigInt(width - 1n)) error(`Int${width} exceeds bound: ${input}`);
-      if (i < -(2n ** BigInt(width - 1n))) error(`Int${width} exceeds bound: ${input}`);
+      if (i >= 2n ** BigInt(width - 1)) error(`Int${width} exceeds bound: ${input}`);
+      if (i < -(2n ** BigInt(width - 1))) error(`Int${width} exceeds bound: ${input}`);
       return toUintOrFelt(i, width);
     }
   }
@@ -225,12 +225,9 @@ StaticType
       }
       const buff = Buffer.from(input);
       const byteCode = buff.toJSON().data;
-      return [BigInt(byteCode.length), ...byteCode];
+      return [BigInt(byteCode.length), ...byteCode.map(BigInt)];
     }
   }
-
-BigInteger "biginteger"
-  = ([0-9]+ / "0x"[0-9a-fA-F]+) { return BigInt(text()) }
 
 
 Integer "integer"
