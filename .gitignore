@@ -140,3 +140,61 @@ benchmark/*
 
 # Ignore warp_venv used for packaging
 warp_venv
+
+# ---- warplib ----
+# warplib ignores moved to root because they stop from npm packaging the
+# ignored files if the ignore is not in the root
+
+warplib/maths/add.cairo
+warplib/maths/add_unsafe.cairo
+warplib/maths/add_signed.cairo
+warplib/maths/add_signed_unsafe.cairo
+
+# sub - handwritten
+warplib/maths/sub_unsafe.cairo
+warplib/maths/sub_signed.cairo
+warplib/maths/sub_signed_unsafe.cairo
+
+warplib/maths/mul.cairo
+warplib/maths/mul_unsafe.cairo
+warplib/maths/mul_signed.cairo
+warplib/maths/mul_signed_unsafe.cairo
+
+# div - handwritten
+warplib/maths/div_signed.cairo
+
+warplib/maths/exp.cairo
+warplib/maths/exp_unsafe.cairo
+warplib/maths/exp_signed.cairo
+warplib/maths/exp_signed_unsafe.cairo
+
+warplib/maths/negate.cairo
+
+warplib/maths/shl.cairo
+
+warplib/maths/shr.cairo
+warplib/maths/shr_signed.cairo
+
+# ge - handwritten
+warplib/maths/ge_signed.cairo
+
+# gt - handwritten
+warplib/maths/gt_signed.cairo
+
+# le - handwritten
+warplib/maths/le_signed.cairo
+
+# lt - handwritten
+warplib/maths/lt_signed.cairo
+
+# xor - handwritten
+# bitwise_and - handwritten
+# bitwise_or - handwritten
+warplib/maths/bitwise_not.cairo
+
+# ---conversions---
+warplib/maths/int_conversions.cairo
+
+# ---external-input-input-checks---
+warplib/maths/external_input_check_ints.cairo
+# external_input_check_bool.cairo - handwritten
