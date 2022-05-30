@@ -77,11 +77,10 @@ export function runStarknetDeploy(filePath: string, options: IDeployProps) {
   }
 
   const inputs = options.inputs ? `--inputs ${options.inputs.join(' ')}` : '';
-  const account = options.account ? `--account ${options.account}` : '';
 
   try {
     execSync(
-      `${warpVenvPrefix} starknet deploy --contract ${resultPath} --network ${options.network} ${account} ${inputs}`,
+      `${warpVenvPrefix} starknet deploy --contract ${resultPath} --network ${options.network} ${inputs}`,
       {
         stdio: 'inherit',
       },

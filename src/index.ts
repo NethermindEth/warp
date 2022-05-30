@@ -134,10 +134,6 @@ program
     'Arguments to be passed to constructor of the program.',
     undefined,
   )
-  .option(
-    '--account <account>',
-    'The name of the account. If not given, the default for the wallet will be used.',
-  )
   .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
   .action((file: string, options: IDeployProps) => {
     runStarknetDeploy(file, options);
