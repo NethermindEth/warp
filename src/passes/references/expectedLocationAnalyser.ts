@@ -216,7 +216,8 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     if (assignedLocation === undefined) return this.visitExpression(node, ast);
 
     node.vOriginalComponents.filter(notNull).forEach((element) => {
-      this.expectedLocations.set(element, assignedLocation);
+      const elementType = getNodeType(element, ast.compilerVersion);
+      this.expectedLocations.set(element, locationIfComplexType(elementType, assignedLocation));
     });
 
     this.visitExpression(node, ast);

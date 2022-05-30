@@ -74,7 +74,8 @@ export function locationIfComplexType(type: TypeNode, location: DataLocation): D
   if (
     base instanceof ArrayType ||
     base instanceof MappingType ||
-    (base instanceof UserDefinedType && base.definition instanceof StructDefinition)
+    (base instanceof UserDefinedType && base.definition instanceof StructDefinition) ||
+    base instanceof MappingType
   ) {
     return location;
   } else {
