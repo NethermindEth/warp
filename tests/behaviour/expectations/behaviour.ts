@@ -1394,6 +1394,7 @@ export const expectations = flatten(
             Expect.Simple('doWhile', ['0', '4'], ['5']),
             Expect.Simple('doWhile', ['7', '6'], ['8']),
             Expect.Simple('doWhile_continue', ['1'], ['1']),
+            Expect.Simple('doWhile_continue_2', [], ['42', '0']),
             Expect.Simple('doWhile_return', ['4'], ['2']),
             Expect.Simple('doWhile_break', ['0', '2'], ['2']),
           ]),

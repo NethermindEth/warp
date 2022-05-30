@@ -74,6 +74,16 @@ contract WARP {
     return x;
   }
 
+  function doWhile_continue_2() public pure returns (uint256 r) {
+    uint256 i = 0;
+    do {
+      if (i > 0) return 0;
+      i++;
+      continue;
+    } while (false);
+    return 42;
+  }
+
   function doWhile_return(uint8 target) public pure returns (uint8) {
     uint8 x = 0;
 
