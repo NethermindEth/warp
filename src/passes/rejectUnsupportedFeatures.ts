@@ -9,6 +9,7 @@ import {
   FunctionType,
   getNodeType,
   VariableDeclaration,
+  FunctionKind,
   FunctionCall,
   FunctionCallKind,
   SourceUnit,
@@ -128,6 +129,11 @@ export class RejectUnsupportedFeatures extends ASTMapper {
         }
       });
     }
+    if (node.kind === FunctionKind.Fallback) {
+      if (node.vParameters.vParameters.length > 0)
+        throw new WillNotSupportError(`${node.kind} with arguments is not supported`);
+    }
+    this.commonVisit(node, ast);
   }
 
   private inspectChildType(type: TypeNode, ast: AST, parentDynArray: boolean): boolean | void {

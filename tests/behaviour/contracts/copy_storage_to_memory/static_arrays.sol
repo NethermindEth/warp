@@ -6,6 +6,7 @@ contract WARP {
   uint8[5] x = [1, 2, 3, 4, 5];
   uint8[15] y;
 
+  uint scalar = 10;
 
   // Throw errors if they are not explicitly cast
   uint256[3] w = [uint256(1), uint256(2), uint256(3)];
@@ -36,6 +37,10 @@ contract WARP {
   function getZ() public view returns (uint256[6] memory) {
     uint256[6] memory zz = z;
     return zz;
+  }
+
+  function scalarInTuple() public view returns (uint[3] memory) {
+    return [1,scalar, x[2]];
   }
 }
 

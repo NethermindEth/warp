@@ -506,6 +506,7 @@ export const expectations = flatten(
             ),
             Expect.Simple('getW', [], ['1', '0', '2', '0', '3', '0']),
             Expect.Simple('getZ', [], ['1', '0', '2', '0', '3', '0', '4', '0', '5', '0', '6', '0']),
+            Expect.Simple('scalarInTuple', [], ['1', '0', '10', '0', '3', '0']),
           ]),
           File.Simple('structs', [
             Expect.Simple('setS', ['2', '3', '5', '7'], []),
@@ -1426,6 +1427,7 @@ export const expectations = flatten(
             Expect.Simple('doWhile', ['0', '4'], ['5']),
             Expect.Simple('doWhile', ['7', '6'], ['8']),
             Expect.Simple('doWhile_continue', ['1'], ['1']),
+            Expect.Simple('doWhile_continue_2', [], ['42', '0']),
             Expect.Simple('doWhile_return', ['4'], ['2']),
             Expect.Simple('doWhile_break', ['0', '2'], ['2']),
           ]),
@@ -1765,6 +1767,14 @@ export const expectations = flatten(
               'identifierAssign',
               ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11'],
               ['7', '8', '9', '10', '11'],
+            ),
+          ]),
+          File.Simple('nestedIndexAccessWrite', [
+            Expect.Simple(
+              'passDataToInnerFunction',
+              [],
+              [...['0', '0', '0'], ...['0', '0', '0'], ...['0', '0', '1'], ...['0', '0', '7']],
+              '0',
             ),
           ]),
           File.Simple('staticArrays', [
