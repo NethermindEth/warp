@@ -796,6 +796,9 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('enumtoint', [
+          File.Simple('enumtointconversion', [Expect.Simple('test', [], ['1', '0'])]),
+        ]),
         new Dir('ERC20', [
           File.Simple('ERC20', [
             new Expect('mint', [

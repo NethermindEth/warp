@@ -17,6 +17,9 @@ import {
   UserDefinedType,
   UserDefinedTypeName,
   VariableDeclaration,
+  FunctionCall,
+  FunctionCallKind,
+  ElementaryTypeNameExpression,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { AST } from '../ast/ast';
@@ -32,6 +35,37 @@ export class EnumConverter extends ASTMapper {
       throw new TranspileFailedError(`${memberName} is not a member of ${node.name}`);
     }
     return val;
+  }
+
+  visitFunctionCall(node: FunctionCall, ast: AST): void {
+    this.visitExpression(node, ast);
+    if (node.kind !== FunctionCallKind.TypeConversion) return;
+    const tNode = getNodeType(node.vExpression, ast.compilerVersion);
+    assert(
+      tNode instanceof TypeNameType,
+      `Got non-typename type ${tNode.pp()} when parsing conversion function
+     ${node.vFunctionName}`,
+    );
+    if (
+      node.vExpression instanceof Identifier &&
+      node.vExpression.vReferencedDeclaration instanceof EnumDefinition
+    ) {
+      node.vExpression.typeString = generateExpressionTypeString(replaceEnumType(tNode));
+      ast.replaceNode(
+        node.vExpression,
+        new ElementaryTypeNameExpression(
+          node.vExpression.id,
+          node.vExpression.src,
+          node.vExpression.typeString,
+          new ElementaryTypeName(
+            ast.reserveId(),
+            node.vExpression.vReferencedDeclaration.src,
+            node.vExpression.typeString,
+            node.vExpression.typeString,
+          ),
+        ),
+      );
+    }
   }
 
   visitTypeName(node: TypeName, ast: AST): void {
