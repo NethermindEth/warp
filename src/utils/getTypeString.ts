@@ -152,7 +152,7 @@ export function generateLiteralTypeString(
     }
     case LiteralKind.Number: {
       if (value.length > 32) {
-        value = `${value.slice(4)}...(${value.length - 8} digits omitted)...${value.slice(-4)}`;
+        value = `${value.slice(0, 4)}...(${value.length - 8} digits omitted)...${value.slice(-4)}`;
       }
       return `int_const ${value}`;
     }
