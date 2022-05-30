@@ -162,6 +162,7 @@ warplib/maths/mul_signed_unsafe.cairo
 
 # div - handwritten
 warplib/maths/div_signed.cairo
+warplib/maths/div_signed_unsafe.cairo
 
 # mod - handwritten
 warplib/maths/mod_signed.cairo
