@@ -89,6 +89,7 @@ jobs:
 
       - name: Push benchmarks to another repository
         uses: dmnemec/copy_file_to_another_repo_action@main
+        if: ${{ github.event_name == 'push' }}
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:

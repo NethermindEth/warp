@@ -2,8 +2,10 @@ import os
 import sys
 from generateMarkdown import (
     builtin_instance_count,
+    json_size_count,
     steps_in_function_deploy,
     steps_in_function_invoke,
+    contract_name_map,
 )
 
 from flask import Flask, jsonify, request
@@ -50,6 +52,8 @@ async def deploy():
         if BENCHMARK:
             steps_in_function_deploy(data["compiled_cairo"], execution_info)
             builtin_instance_count(data["compiled_cairo"], execution_info)
+            json_size_count(data["compiled_cairo"])
+            contract_name_map[contract_address] = data["compiled_cairo"]
         return jsonify(
             {
                 "contract_address": hex(contract_address),
