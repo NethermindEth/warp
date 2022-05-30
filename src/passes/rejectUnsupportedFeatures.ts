@@ -4,14 +4,13 @@ import {
   RevertStatement,
   ErrorDefinition,
   Conditional,
-  MappingType,
   MemberAccess,
-  PointerType,
   AddressType,
   FunctionType,
   getNodeType,
-  UserDefinedType,
   VariableDeclaration,
+  FunctionDefinition,
+  FunctionKind,
   FunctionCall,
   FunctionCallKind,
   SourceUnit,
@@ -19,7 +18,7 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
+import { WillNotSupportError } from '../utils/errors';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   visitIndexAccess(node: IndexAccess, ast: AST): void {
@@ -44,12 +43,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FunctionType)
       throw new WillNotSupportError('Function objects are not supported');
-    if (
-      typeNode instanceof PointerType &&
-      typeNode.to instanceof MappingType &&
-      typeNode.to.valueType instanceof UserDefinedType
-    )
-      throw new NotSupportedYetError('Mappings with structs are not supported yet');
     this.commonVisit(node, ast);
   }
 
@@ -106,5 +99,13 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     }
 
     this.visitExpression(node, ast);
+  }
+
+  visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
+    if (node.kind === FunctionKind.Fallback) {
+      if (node.vParameters.vParameters.length > 0)
+        throw new WillNotSupportError(`${node.kind} with arguments is not supported`);
+    }
+    this.commonVisit(node, ast);
   }
 }

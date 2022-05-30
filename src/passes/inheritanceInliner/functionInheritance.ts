@@ -12,7 +12,7 @@ import { TranspileFailedError } from '../../utils/errors';
 import { createCallToFunction } from '../../utils/functionGeneration';
 import { createBlock, createIdentifier, createReturn } from '../../utils/nodeTemplates';
 import { isExternallyVisible } from '../../utils/utils';
-import { getBaseContracts } from './utils';
+import { fixSuperReference, getBaseContracts } from './utils';
 
 // Every function from every base contract gets included privately in the derived contract
 // To prevent name collisions, these functions have "_sX" appended
@@ -28,20 +28,24 @@ export function addPrivateSuperFunctions(
   getBaseContracts(node).forEach((base, depth) => {
     base.vFunctions
       .filter((func) => !func.isConstructor)
-      .forEach((func) => {
+      .map((func) => {
         const existingEntry = currentFunctions.get(func.name);
         const clonedFunction = cloneASTNode(func, ast);
         idRemapping.set(func.id, clonedFunction);
         clonedFunction.name = `${clonedFunction.name}_s${depth + 1}`;
         clonedFunction.visibility = FunctionVisibility.Private;
         clonedFunction.scope = node.id;
-        node.appendChild(clonedFunction);
         if (existingEntry !== undefined) {
           idRemappingOverriders.set(func.id, existingEntry);
         } else {
           currentFunctions.set(func.name, clonedFunction);
           idRemappingOverriders.set(func.id, clonedFunction);
         }
+        return clonedFunction;
+      })
+      .forEach((func) => {
+        node.appendChild(func);
+        fixSuperReference(func, base, node);
       });
   });
 }

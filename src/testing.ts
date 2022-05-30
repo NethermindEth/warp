@@ -68,6 +68,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/events', 'Success'],
   ['example_contracts/external_function', 'Success'],
   ['example_contracts/fallbackWithoutArgs', 'Success'],
+  ['example_contracts/fallbackWithArgs', 'WillNotSupport'],
   // Cannot import with a - in the filename
   ['example_contracts/file-with-minus-sign-included', 'WillNotSupport'],
   // Typestring for the internal function call doesn't contain a location so a read isn't generated
@@ -141,6 +142,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeConversion/implicitReturnConversion', 'Success'],
   ['example_contracts/typeConversion/implicit_type_conv', 'Success'],
   ['example_contracts/typeConversion/shifts', 'Success'],
+  ['example_contracts/typeConversion/unusedArrayConversion', 'Success'],
   ['example_contracts/typeMinMax', 'Success'],
   // Don't automatically cast uint256 elements when creating static array
   ['example_contracts/uint256_static_array_casting', 'Success'],

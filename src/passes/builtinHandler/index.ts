@@ -5,6 +5,7 @@ import { ExplicitConversionToFunc } from './explicitConversionToFunc';
 import { MsgSender } from './msgSender';
 import { Require } from './require';
 import { ShortCircuitToConditional } from './shortCircuitToConditional';
+import { ThisKeyword } from './thisKeyword';
 
 export class BuiltinHandler extends ASTMapper {
   static map(ast: AST): AST {
@@ -13,6 +14,7 @@ export class BuiltinHandler extends ASTMapper {
     ast = ExplicitConversionToFunc.map(ast);
     ast = ShortCircuitToConditional.map(ast);
     ast = MathsOperationToFunction.map(ast);
+    ast = ThisKeyword.map(ast);
     return ast;
   }
 }

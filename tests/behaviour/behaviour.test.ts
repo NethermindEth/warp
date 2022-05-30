@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 
-import { SafePromise, cleanupSync, starknetCompile, transpile, wrapPromise } from '../util';
+import { SafePromise, cleanupSync, starknetCompile, transpile, batchPromises } from '../util';
 import { deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
 
 import { describe } from 'mocha';
@@ -10,6 +10,7 @@ import { AsyncTest, Expect } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
 
 const PRINT_STEPS = false;
+const PARALLEL_COUNT = 8;
 
 describe('Transpile solidity', function () {
   this.timeout(1800000);
@@ -22,7 +23,11 @@ describe('Transpile solidity', function () {
       cleanupSync(fileTest.compiled);
     }
 
-    transpileResults = expectations.map((fileTest) => wrapPromise(transpile(fileTest.sol)));
+    transpileResults = batchPromises(
+      expectations.map((e) => e.sol),
+      PARALLEL_COUNT,
+      transpile,
+    );
   });
 
   for (let i = 0; i < expectations.length; ++i) {
@@ -41,23 +46,25 @@ describe('Transpile solidity', function () {
 describe('Transpiled contracts are valid cairo', function () {
   this.timeout(1800000);
 
-  let compileResults: (SafePromise<{ stderr: string }> | null)[];
+  let compileResults: SafePromise<{ stderr: string } | null>[];
 
   before(function () {
-    compileResults = expectations.map((fileTest) =>
-      fs.existsSync(fileTest.cairo)
-        ? wrapPromise(starknetCompile(fileTest.cairo, fileTest.compiled))
-        : null,
+    compileResults = batchPromises(
+      expectations,
+      PARALLEL_COUNT,
+      (test: AsyncTest): Promise<{ stderr: string } | null> =>
+        fs.existsSync(test.cairo)
+          ? starknetCompile(test.cairo, test.compiled)
+          : Promise.resolve(null),
     );
   });
 
   for (let i = 0; i < expectations.length; ++i) {
     it(expectations[i].name, async function () {
-      const unresolvedResult = compileResults[i];
-      if (unresolvedResult === null) {
+      const res = await compileResults[i];
+      if (res.result === null) {
         this.skip();
       } else {
-        const res = await unresolvedResult;
         expect(res.result, `starknet-compile printed errors: ${res.result}`).to.include({
           stderr: '',
         });
@@ -83,7 +90,8 @@ describe('Compiled contracts are deployable', function () {
     //   wrapPromise(deploy(fileTest.compiled, [])),
     // );
     for (const fileTest of expectations) {
-      if (fs.existsSync(fileTest.compiled) && fs.readFileSync(fileTest.compiled).length > 0) {
+      const fileSize = fs.statSync(fileTest.compiled, { throwIfNoEntry: false })?.size;
+      if (fileSize !== undefined && fileSize > 0) {
         deployResults.push(await deploy(fileTest.compiled, await fileTest.constructorArgs));
       } else {
         deployResults.push(null);
@@ -170,6 +178,18 @@ async function behaviourTest(
       }
       return input;
     });
+
+    const replaced_expectedResult = expectedResult?.map((expectedValue) => {
+      if (expectedValue.startsWith('address@')) {
+        expectedValue = expectedValue.replace('address@', '');
+        const value = deployedAddresses.get(expectedValue);
+        if (value === undefined) {
+          expect.fail(`${name} failed, cannot find address ${expectedValue}`);
+        }
+        return BigInt(value).toString();
+      }
+      return expectedValue;
+    });
     if (funcName === 'constructor') {
       // Failing tests for constructor
       const response = await deploy(fileTest.compiled, replaced_inputs);
@@ -200,7 +220,7 @@ async function behaviourTest(
         expect(
           response.return_data,
           `${name} - Return data should match expectation`,
-        ).to.deep.equal(expectedResult);
+        ).to.deep.equal(replaced_expectedResult);
       }
     }
   }

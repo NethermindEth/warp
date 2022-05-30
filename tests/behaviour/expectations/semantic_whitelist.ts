@@ -1020,10 +1020,10 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_negative_constant_left.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_right_negative_lvalue_int32.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_right_negative_lvalue_signextend_int8_v1.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_right_negative_lvalue_signextend_int8_v2.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_right_negative_lvalue_signextend_int8_v2.sol', // irrelevant: tests abicoder
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_constant_right.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_right_negative_lvalue_signextend_int16_v2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_right_negative_lvalue_signextend_int32_v2.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_right_negative_lvalue_signextend_int16_v2.sol', // irrelevant: tests abicoder
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_right_negative_lvalue_signextend_int32_v2.sol', // irrelevant: tests abicoder
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_right_uint32.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_left_larger_type.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/operators/shifts/shift_right_negative_lvalue_signextend_int32_v1.sol',

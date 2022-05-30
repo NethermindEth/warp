@@ -27,14 +27,14 @@ contract WARP {
         delete a;
         return a;
     }
-/* Uncomment this once storage -> calldata copy is implemented
-    function deleteC(uint8[] memory val) public pure returns (C memory){
-        C memory c = C(val);
+    // Uncomment this once storage -> calldata copy is implemented
+    // function deleteC(uint8[] memory val) public pure returns (C memory){
+    //     C memory c = C(val);
 
-        delete c;
+    //     delete c;
 
-        return c;
-    }
+    //     return c;
+    // }
 
     function deleteCnotArray(uint8[] memory val) public pure returns (uint8){
         C memory c = C(val);
@@ -57,31 +57,30 @@ contract WARP {
         delete a;
         return b.length + b[0];
     }
- */
-    // Uncomment this once they are supported
-    // function deleteSArray() public pure returns (S memory) {
-        // S[] memory a = new S[](2);
-        // a[0] = S(1,2);
-        // a[1] = S(3,4);
-        // S memory s = a[1];
 
-        // delete a;
+    function deleteSArray() public pure returns (S memory) {
+        S[] memory a = new S[](2);
+        a[0] = S(1,2);
+        a[1] = S(3,4);
+        S memory s = a[1];
 
-        // return s;
-    // }
+        delete a;
 
-    // function delete2dArray() public pure returns (uint) {
-        // uint8[][] memory a = new uint8[][](5);
-        // uint8[][] memory d = a;
-        // a[0] = new uint8[](3);
-        // a[0][0] = 1;
-        // a[1] = new uint8[](4);
-        // a[1][0] = 2;
-        // uint8[] memory b = a[0];
-        // uint8[] memory c = a[1];
+        return s;
+    }
 
-        // delete a;
+    function delete2dArray() public pure returns (uint) {
+        uint8[][] memory a = new uint8[][](5);
+        uint8[][] memory d = a;
+        a[0] = new uint8[](3);
+        a[0][0] = 1;
+        a[1] = new uint8[](4);
+        a[1][0] = 2;
+        uint8[] memory b = a[0];
+        uint8[] memory c = a[1];
 
-        // return b.length + c.length + a.length + d.length + b[0][0] + a[0][0];
-    // }
+        delete a;
+
+        return b.length + c.length + a.length + d.length + b[0];
+    }
 }

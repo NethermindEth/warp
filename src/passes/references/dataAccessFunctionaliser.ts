@@ -94,6 +94,20 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
             break;
           }
         }
+      } else if (actualLoc === DataLocation.CallData) {
+        switch (expectedLoc) {
+          case DataLocation.Default:
+            // Nothing to do here
+            break;
+          case DataLocation.Memory:
+            copyFunc = ast.getUtilFuncGen(node).calldata.toMemory.gen(node);
+            break;
+          case DataLocation.Storage:
+            // Such conversions should be handled in specific visit functions, as the storage location must be known
+            throw new TranspileFailedError(
+              `Unhandled calldata -> storage conversion ${printNode(node)}`,
+            );
+        }
       }
     }
 
@@ -146,7 +160,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           .getUtilFuncGen(node)
           .calldata.toStorage.gen(node.vLeftHandSide, node.vRightHandSide);
         this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
-        this.dispatchVisit(copyFunc, ast);
+        return this.dispatchVisit(copyFunc, ast);
       } else {
         const writeFunc = ast
           .getUtilFuncGen(node)
@@ -179,13 +193,11 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       error('VariableDeclaration.vType should be defined for compiler versions > 0.4.x'),
     );
 
-    if (actualLoc === DataLocation.Storage) {
-      if (!isCairoConstant(decl)) {
-        this.visitExpression(node, ast);
-      }
-    } else if (actualLoc === DataLocation.Memory) {
-      this.visitExpression(node, ast);
+    if (actualLoc === DataLocation.Storage && isCairoConstant(decl)) {
+      return;
     }
+
+    this.visitExpression(node, ast);
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {

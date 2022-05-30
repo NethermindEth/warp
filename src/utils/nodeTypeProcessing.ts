@@ -5,6 +5,7 @@ import {
   FunctionCall,
   FunctionCallKind,
   FunctionType,
+  generalizeType,
   getNodeType,
   IntType,
   MappingType,
@@ -157,4 +158,49 @@ export function isDynamicCallDataArray(type: TypeNode): boolean {
     type.to instanceof ArrayType &&
     type.to.size === undefined
   );
+}
+
+export function isReferenceType(type: TypeNode): boolean {
+  return (
+    type instanceof ArrayType ||
+    type instanceof MappingType ||
+    (type instanceof UserDefinedType && type.definition instanceof StructDefinition) ||
+    (type instanceof PointerType && isReferenceType(type.to))
+  );
+}
+
+export function isValueType(type: TypeNode): boolean {
+  return !isReferenceType(type);
+}
+
+export function isDynamicStorageArray(type: TypeNode): boolean {
+  return (
+    type instanceof PointerType &&
+    type.location === DataLocation.Storage &&
+    type.to instanceof ArrayType &&
+    type.to.size === undefined
+  );
+}
+
+export function isComplexStorageType(type: TypeNode): boolean {
+  return (
+    type instanceof PointerType &&
+    type.location === DataLocation.Storage &&
+    (type.to instanceof ArrayType ||
+      (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
+  );
+}
+
+export function isComplexMemoryType(type: TypeNode): boolean {
+  return (
+    type instanceof PointerType &&
+    type.location === DataLocation.Memory &&
+    (type.to instanceof ArrayType ||
+      (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
+  );
+}
+
+export function isMapping(type: TypeNode): boolean {
+  const [base] = generalizeType(type);
+  return base instanceof MappingType;
 }

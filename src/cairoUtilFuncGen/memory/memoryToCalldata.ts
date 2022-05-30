@@ -12,6 +12,7 @@ import {
   TypeNode,
   UserDefinedType,
 } from 'solc-typed-ast';
+import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import {
   CairoDynArray,
@@ -23,10 +24,18 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { add, StringIndexedFuncGen } from '../base';
+import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/externalDynArrayStructConstructor';
 
 export class MemoryToCallDataGen extends StringIndexedFuncGen {
+  constructor(private dynamicArrayStructGen: ExternalDynArrayStructConstructor, ast: AST) {
+    super(ast);
+  }
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
     const type = generalizeType(getNodeType(node, this.ast.compilerVersion))[0];
+
+    if (type instanceof ArrayType && type.size === undefined) {
+      this.dynamicArrayStructGen.gen(node, nodeInSourceUnit);
+    }
 
     const name = this.getOrCreate(type);
     const functionStub = createCairoFunctionStub(
