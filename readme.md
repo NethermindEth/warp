@@ -76,6 +76,19 @@ then to run the tests:
 yarn test
 ```
 
+In order to generate benchmarks locally during development:
+
+```bash
+yarn testnet-b
+yarn test
+```
+
+```python
+python starknet-testnet/generateMarkdown.py
+```
+
+This saves the benchmarks at `benchmark/stats/data.md`
+
 ## Contribution :hammer_and_pick:
 
 Contributions are welcome but please reach out to the team before attempting
