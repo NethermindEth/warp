@@ -12,7 +12,7 @@ import {
   DeleteHandler,
   EnumConverter,
   ExpressionSplitter,
-  ExternalArgumentModifier,
+  ExternalArgModifier,
   ExternalContractHandler,
   ExternalInputChecker,
   ExternImporter,
@@ -44,6 +44,7 @@ import {
   UsingForResolver,
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
+  StaticArrayIndexer,
 } from './passes';
 import { OrderNestedStructs } from './passes/orderNestedStructs';
 import { CairoToSolASTWriterMapping } from './solWriter';
@@ -91,6 +92,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Gp', PublicStateVarsGetterGenerator],
     ['Tic', TypeInformationCalculator],
     ['Ch', ConstantHandler],
+    ['Sai', StaticArrayIndexer],
     ['M', IdentifierMangler],
     ['Fi', FreeLibraryCallInliner],
     ['Rl', ReferencedLibraries],
@@ -100,7 +102,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Mh', ModifierHandler],
     ['Sa', StorageAllocator],
     ['Pfs', PublicFunctionSplitter],
-    ['Eam', ExternalArgumentModifier],
+    ['Eam', ExternalArgModifier],
     ['Ei', ExternImporter],
     ['Lf', LoopFunctionaliser],
     ['R', ReturnInserter],

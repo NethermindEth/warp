@@ -62,7 +62,7 @@ describe('Transpiled contracts are valid cairo', function () {
   for (let i = 0; i < expectations.length; ++i) {
     it(expectations[i].name, async function () {
       const res = await compileResults[i];
-      if (res === null) {
+      if (res.result === null) {
         this.skip();
       } else {
         expect(res.result, `starknet-compile printed errors: ${res.result}`).to.include({
@@ -178,6 +178,18 @@ async function behaviourTest(
       }
       return input;
     });
+
+    const replaced_expectedResult = expectedResult?.map((expectedValue) => {
+      if (expectedValue.startsWith('address@')) {
+        expectedValue = expectedValue.replace('address@', '');
+        const value = deployedAddresses.get(expectedValue);
+        if (value === undefined) {
+          expect.fail(`${name} failed, cannot find address ${expectedValue}`);
+        }
+        return BigInt(value).toString();
+      }
+      return expectedValue;
+    });
     if (funcName === 'constructor') {
       // Failing tests for constructor
       const response = await deploy(fileTest.compiled, replaced_inputs);
@@ -208,7 +220,7 @@ async function behaviourTest(
         expect(
           response.return_data,
           `${name} - Return data should match expectation`,
-        ).to.deep.equal(expectedResult);
+        ).to.deep.equal(replaced_expectedResult);
       }
     }
   }
