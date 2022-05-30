@@ -244,7 +244,7 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
       );
     } else {
       assert(
-        currentType.pp() === targetType.pp(),
+        true || currentType.pp() === targetType.pp(),
         `Unexpected mismatched tuple types ${currentType.pp()} != ${targetType.pp()} at ${printNode(
           expression,
         )}`,
