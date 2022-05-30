@@ -12,11 +12,13 @@ import {
   FunctionCall,
   FunctionCallKind,
   SourceUnit,
+  NewExpression,
+  ArrayTypeName,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { WillNotSupportError } from '../utils/errors';
+import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   visitIndexAccess(node: IndexAccess, ast: AST): void {
@@ -94,6 +96,16 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     ) {
       const prefix = unsupportedMath.includes(funcName) ? `Math function` : `Abi function`;
       throw new WillNotSupportError(`${prefix} ${funcName} is not supported`);
+    }
+
+    this.visitExpression(node, ast);
+  }
+
+  visitNewExpression(node: NewExpression, ast: AST): void {
+    if (!(node.vTypeName instanceof ArrayTypeName)) {
+      throw new NotSupportedYetError(
+        `new expressions are not supported yet for non-array type ${node.vTypeName.typeString}`,
+      );
     }
 
     this.visitExpression(node, ast);
