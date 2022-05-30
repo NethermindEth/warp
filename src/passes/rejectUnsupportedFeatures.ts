@@ -9,6 +9,8 @@ import {
   FunctionType,
   getNodeType,
   VariableDeclaration,
+  FunctionDefinition,
+  FunctionKind,
   FunctionCall,
   FunctionCallKind,
   SourceUnit,
@@ -107,7 +109,14 @@ export class RejectUnsupportedFeatures extends ASTMapper {
         `new expressions are not supported yet for non-array type ${node.vTypeName.typeString}`,
       );
     }
-
     this.visitExpression(node, ast);
+  }
+
+  visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
+    if (node.kind === FunctionKind.Fallback) {
+      if (node.vParameters.vParameters.length > 0)
+        throw new WillNotSupportError(`${node.kind} with arguments is not supported`);
+    }
+    this.commonVisit(node, ast);
   }
 }
