@@ -69,9 +69,7 @@ export class RefInputCheck extends StringIndexedFuncGen {
         ? this.createDynArrayInputCheck(key, type)
         : this.createStaticArrayInputCheck(key, type);
     } else {
-      throw new NotSupportedYetError(
-        `Copying ${printTypeNode(type)} from memory to calldata not implemented yet`,
-      );
+      console.log(`${printTypeNode(type)} input checking will not be implemented`);
     }
   }
 
