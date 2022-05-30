@@ -506,6 +506,7 @@ export const expectations = flatten(
             ),
             Expect.Simple('getW', [], ['1', '0', '2', '0', '3', '0']),
             Expect.Simple('getZ', [], ['1', '0', '2', '0', '3', '0', '4', '0', '5', '0', '6', '0']),
+            Expect.Simple('scalarInTuple', [], ['1', '0', '10', '0', '3', '0']),
           ]),
           File.Simple('structs', [
             Expect.Simple('setS', ['2', '3', '5', '7'], []),
