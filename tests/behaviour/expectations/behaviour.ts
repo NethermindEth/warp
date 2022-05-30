@@ -1768,6 +1768,14 @@ export const expectations = flatten(
               ['7', '8', '9', '10', '11'],
             ),
           ]),
+          File.Simple('nestedIndexAccessWrite', [
+            Expect.Simple(
+              'passDataToInnerFunction',
+              [],
+              [...['0', '0', '0'], ...['0', '0', '0'], ...['0', '0', '1'], ...['0', '0', '7']],
+              '0',
+            ),
+          ]),
           File.Simple('staticArrays', [
             Expect.Simple('uint8default', [], ['0', '0']),
             Expect.Simple('uint8write', ['5'], ['0', '5']),
