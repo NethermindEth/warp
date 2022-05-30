@@ -12,11 +12,19 @@ import {
   FunctionCall,
   FunctionCallKind,
   SourceUnit,
+  FunctionDefinition,
+  ArrayType,
+  generalizeType,
+  TypeNode,
+  UserDefinedType,
+  StructDefinition,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { WillNotSupportError } from '../utils/errors';
+import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
+import { isReferenceType } from '../utils/nodeTypeProcessing';
+import { isExternallyVisible } from '../utils/utils';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   visitIndexAccess(node: IndexAccess, ast: AST): void {
@@ -98,4 +106,59 @@ export class RejectUnsupportedFeatures extends ASTMapper {
 
     this.visitExpression(node, ast);
   }
+
+  visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
+    if (isExternallyVisible(node)) {
+      node.vParameters.vParameters.forEach((decl) => {
+        // Check if this is a pointer type
+        const type = generalizeType(getNodeType(decl, ast.compilerVersion))[0];
+        if (isReferenceType(type)) {
+          if (type instanceof ArrayType) {
+            type.size === undefined
+              ? this.inspectChildType(type.elementT, ast, true)
+              : this.inspectChildType(type.elementT, ast, false);
+          } else if (
+            type instanceof UserDefinedType &&
+            type.definition instanceof StructDefinition
+          ) {
+            type.definition.vMembers.map((member) =>
+              this.inspectChildType(getNodeType(member, ast.compilerVersion), ast, false),
+            );
+          }
+        }
+      });
+    }
+  }
+
+  private inspectChildType(type: TypeNode, ast: AST, parentDynArray: boolean): boolean | void {
+    // Receiving the top level type
+    if (type instanceof ArrayType) {
+      const elemType = generalizeType(type.elementT)[0];
+      // This fist condition is here since we cannot support DynArrays of StaticArrays, but we can support DynArrays of Structs of StaticArrays ect.
+      if (type instanceof ArrayType && type.size !== undefined && parentDynArray) {
+        throw new NotSupportedYetError(
+          `Static Arrays as elements of Dynamic Arrays are not supported.`,
+        );
+      } else if (type instanceof ArrayType && type.size === undefined) {
+        throw new NotSupportedYetError(
+          `Inputs arguments with Dynamic Arrays as members or elements are not supported.`,
+        );
+      }
+      this.inspectChildType(elemType, ast, false);
+    } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+      type.definition.vMembers.map((member) => {
+        this.inspectChildType(getNodeType(member, ast.compilerVersion), ast, false);
+      });
+    }
+  }
 }
+
+// inspect Parameters
+// Inputs you can have:
+// -- Dynamic Arrays
+//    -- Cannot have Static Arrays.
+//    --Structs
+//      -- Static Arrays
+//       --. . . . Just no Dynamic Arrays
+//    -- If the first level is not a Dynamic Array it is not supported.
+//
