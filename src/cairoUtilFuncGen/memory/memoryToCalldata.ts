@@ -157,7 +157,10 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
             elementT instanceof ArrayType
           ) {
             const memberGetter = this.getOrCreate(elementT);
-            return `let (member${index}) = ${memberGetter}(${add('mem_loc', offset++)})`;
+            return [
+              `let (read${index}) = dict_read{dict_ptr=warp_memory}(${add('mem_loc', offset++)})`,
+              `let (member${index}) = ${memberGetter}(read${index})`,
+            ].join('\n');
           } else {
             const memberCairoType = CairoType.fromSol(elementT, this.ast);
             if (memberCairoType.width === 1) {
