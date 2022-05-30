@@ -15,6 +15,7 @@ import {
   UserDefinedType,
   VariableDeclaration,
 } from 'solc-typed-ast';
+import { FunctionStubKind } from '../../ast/cairoNodes';
 import { printTypeNode } from '../../utils/astPrinter';
 import {
   CairoDynArray,
@@ -41,6 +42,9 @@ export class RefInputCheck extends StringIndexedFuncGen {
       this.ast,
       nodeInSourceUnit ?? node,
       FunctionStateMutability.Pure,
+      type instanceof ArrayType && type.size === undefined
+        ? FunctionStubKind.StructDefStub
+        : FunctionStubKind.FunctionDefStub, // Rename this into something more appropriate.
     );
     return createCallToFunction(functionStub, [functionInput], this.ast);
   }
@@ -181,6 +185,11 @@ export class RefInputCheck extends StringIndexedFuncGen {
     assert(cairoType instanceof CairoDynArray);
     const ptrType = cairoType.vPtr;
     const elementType = generalizeType(type.elementT)[0];
+    const cairoElmType = CairoType.fromSol(
+      elementType,
+      this.ast,
+      TypeConversionContext.CallDataRef,
+    );
     const indexCheck = [`${this.getOrCreate(elementType)}(ptr[0])`];
 
     this.generatedFunctions.set(key, {
@@ -193,7 +202,7 @@ export class RefInputCheck extends StringIndexedFuncGen {
         `    end`,
         ...indexCheck,
         `   ${funcName}(len = len - 1, ptr = ptr + ${
-          ptrType.to instanceof CairoFelt ? '1' : cairoType.toString() + '.SIZE'
+          ptrType.to instanceof CairoFelt ? '1' : cairoElmType.toString() + '.SIZE'
         })`,
         `    return ()`,
         `end`,
