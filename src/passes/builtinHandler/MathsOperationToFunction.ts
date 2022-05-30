@@ -41,7 +41,7 @@ export class MathsOperationToFunction extends ASTMapper {
       ['-', () => functionaliseSub(node, this.inUncheckedBlock, ast)],
       ['*', () => functionaliseMul(node, this.inUncheckedBlock, ast)],
       ['/', () => functionaliseDiv(node, ast)],
-      ['%', () => functionaliseMod(node, this.inUncheckedBlock, ast)],
+      ['%', () => functionaliseMod(node, ast)],
       ['**', () => functionaliseExp(node, this.inUncheckedBlock, ast)],
       ['==', () => functionaliseEq(node, ast)],
       ['!=', () => functionaliseNeq(node, ast)],

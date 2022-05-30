@@ -1,6 +1,5 @@
 import { BinaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
-import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
 import { forAllWidths, generateFile, IntxIntFunction } from '../../utils';
 
@@ -41,12 +40,6 @@ export function mod_signed() {
   );
 }
 
-export function functionaliseMod(node: BinaryOperation, unsafe: boolean, ast: AST): void {
-  const implicitsFn = (width: number, signed: boolean): Implicits[] => {
-    if (signed || (unsafe && width >= 128 && width < 256))
-      return ['range_check_ptr', 'bitwise_ptr'];
-    else if (unsafe && width < 128) return ['bitwise_ptr'];
-    else return ['range_check_ptr'];
-  };
-  IntxIntFunction(node, 'mod', 'signedOrWide', true, unsafe, implicitsFn, ast);
+export function functionaliseMod(node: BinaryOperation, ast: AST): void {
+  IntxIntFunction(node, 'mod', 'signedOrWide', true, false, () => ['range_check_ptr'], ast);
 }

@@ -16,6 +16,9 @@ mul_signed_unsafe.cairo
 //div - handwritten
 div_signed.cairo
 
+//mod - handwritten
+mod_signed.cairo
+
 exp.cairo
 exp_unsafe.cairo
 exp_signed.cairo
