@@ -8,6 +8,7 @@ import {
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
+  Identifier,
   IfStatement,
   SourceUnit,
   Statement,
@@ -41,6 +42,15 @@ export function extractWhileToFunction(
     node.getClosestParentByType(SourceUnit);
   assert(scope !== undefined, `Couldn't find ${printNode(node)}'s function target root`);
 
+  // Create input parameters and keep the new referencing number in variablesRemapping
+  // for later fixing
+  const variablesRemapping: Map<number, VariableDeclaration> = new Map();
+  const inputParams = variables.map((v) => {
+    const param = cloneASTNode(v, ast);
+    variablesRemapping.set(v.id, param);
+    return param;
+  });
+
   const retParams = createParameterList(
     variables.map((v) => cloneASTNode(v, ast)),
     ast,
@@ -53,6 +63,19 @@ export function extractWhileToFunction(
     ast,
   );
 
+  // Fixing references of identifiers to the new input variables
+  funcBody
+    .getChildren(true)
+    .filter(
+      (n): n is Identifier =>
+        n instanceof Identifier && variablesRemapping.get(n.referencedDeclaration) !== undefined,
+    )
+    .forEach((id) => {
+      const newDecl = variablesRemapping.get(id.referencedDeclaration);
+      assert(newDecl !== undefined, 'There should be a variable declaration');
+      id.referencedDeclaration = newDecl.id;
+    });
+
   const funcDef = new FunctionDefinition(
     defId,
     node.src,
@@ -63,10 +86,7 @@ export function extractWhileToFunction(
     FunctionVisibility.Private,
     FunctionStateMutability.NonPayable,
     false,
-    createParameterList(
-      variables.map((v) => cloneASTNode(v, ast)),
-      ast,
-    ),
+    createParameterList(inputParams, ast),
     retParams,
     [],
     undefined,
@@ -81,8 +101,8 @@ export function extractWhileToFunction(
   ast.registerChild(funcDef, scope);
 
   ast.insertStatementAfter(
-    node.vBody,
-    createReturn(createLoopCall(funcDef, variables, ast), funcDef.vReturnParameters.id, ast),
+    funcBody,
+    createReturn(createLoopCall(funcDef, inputParams, ast), funcDef.vReturnParameters.id, ast),
   );
 
   return funcDef;
@@ -109,6 +129,15 @@ export function extractDoWhileToFunction(
   );
   const doBlockFuncId = ast.reserveId();
 
+  // Create input parameters and keep the new referencing number in variablesRemapping
+  // for later fixing
+  const variablesRemapping: Map<number, VariableDeclaration> = new Map();
+  const doBlockParams = variables.map((v) => {
+    const param = cloneASTNode(v, ast);
+    variablesRemapping.set(v.id, param);
+    return param;
+  });
+
   const doBlockBody = createBlock(
     [
       cloneASTNode(node.vBody, ast),
@@ -116,6 +145,19 @@ export function extractDoWhileToFunction(
     ],
     ast,
   );
+
+  // Fixing references of identifiers to the new input variables
+  doBlockBody
+    .getChildren(true)
+    .filter(
+      (n): n is Identifier =>
+        n instanceof Identifier && variablesRemapping.get(n.referencedDeclaration) !== undefined,
+    )
+    .forEach((id) => {
+      const newDecl = variablesRemapping.get(id.referencedDeclaration);
+      assert(newDecl !== undefined, 'There should be a variable declaration');
+      id.referencedDeclaration = newDecl.id;
+    });
 
   const doBlockFuncDef = new FunctionDefinition(
     doBlockFuncId,
@@ -127,10 +169,7 @@ export function extractDoWhileToFunction(
     FunctionVisibility.Private,
     FunctionStateMutability.NonPayable,
     false,
-    createParameterList(
-      variables.map((v) => cloneASTNode(v, ast)),
-      ast,
-    ),
+    createParameterList(doBlockParams, ast),
     doBlockRetParams,
     [],
     undefined,
@@ -156,8 +195,8 @@ function createStartingIf(
   return new IfStatement(
     ast.reserveId(),
     '',
-    condition,
-    body,
+    cloneASTNode(condition, ast),
+    cloneASTNode(body, ast),
     createReturn(variables, retParamsId, ast),
   );
 }
