@@ -91,7 +91,7 @@ export function createEmptyTuple(ast: AST): TupleExpression {
   return node;
 }
 
-export function createExpressionStatement(expression: Expression, ast: AST): ExpressionStatement {
+export function createExpressionStatement(ast: AST, expression: Expression): ExpressionStatement {
   const node = new ExpressionStatement(ast.reserveId(), '', expression);
   ast.setContextRecursive(node);
   return node;

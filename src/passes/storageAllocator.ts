@@ -132,8 +132,8 @@ function extractInitialisation(node: VariableDeclaration, initialisationBlock: B
   }
   initialisationBlock.appendChild(
     createExpressionStatement(
-      new Assignment(ast.reserveId(), node.src, type.pp(), '=', createIdentifier(node, ast), value),
       ast,
+      new Assignment(ast.reserveId(), node.src, type.pp(), '=', createIdentifier(node, ast), value),
     ),
   );
 
