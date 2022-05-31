@@ -15,7 +15,6 @@ import {
   SourceUnit,
   FunctionDefinition,
   ArrayType,
-  generalizeType,
   TypeNode,
   UserDefinedType,
   StructDefinition,
@@ -111,8 +110,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (isExternallyVisible(node)) {
       node.vParameters.vParameters.forEach((decl) => {
-        // Check if this is a pointer type
-        const type = generalizeType(getNodeType(decl, ast.compilerVersion))[0];
+        const type = getNodeType(decl, ast.compilerVersion);
         if (isReferenceType(type)) {
           if (type instanceof ArrayType) {
             type.size === undefined
@@ -137,10 +135,8 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
 
   private inspectChildType(type: TypeNode, ast: AST, parentDynArray: boolean): boolean | void {
-    // Receiving the top level type
     if (type instanceof ArrayType) {
-      const elemType = generalizeType(type.elementT)[0];
-      // This fist condition is here since we cannot support DynArrays of StaticArrays, but we can support DynArrays of Structs of StaticArrays ect.
+      const elemType = type.elementT;
       if (type instanceof ArrayType && type.size !== undefined && parentDynArray) {
         throw new NotSupportedYetError(
           `Static Arrays as elements of Dynamic Arrays are not supported.`,
@@ -158,13 +154,3 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     }
   }
 }
-
-// inspect Parameters
-// Inputs you can have:
-// -- Dynamic Arrays
-//    -- Cannot have Static Arrays.
-//    --Structs
-//      -- Static Arrays
-//       --. . . . Just no Dynamic Arrays
-//    -- If the first level is not a Dynamic Array it is not supported.
-//
