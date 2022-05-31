@@ -134,7 +134,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/state_variables/structs', 'Success'],
   ['example_contracts/state_variables/structs_nested', 'Success'],
   // Mappings of structs are not supported yet
-  ['example_contracts/state_variables/misc', 'NotSupportedYet'],
+  ['example_contracts/state_variables/misc', 'Success'],
   ['example_contracts/structs', 'Success'],
   ['example_contracts/tupleAssignment7', 'Success'],
   ['example_contracts/tupleAssignment8', 'SolCompileFailed'],
