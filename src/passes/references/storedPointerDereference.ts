@@ -4,15 +4,16 @@ import {
   DataLocation,
   Expression,
   FunctionCall,
-  generalizeType,
   getNodeType,
   IndexAccess,
-  MappingType,
   MemberAccess,
-  TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { isComplexMemoryType, isDynamicStorageArray } from '../../utils/nodeTypeProcessing';
+import {
+  isComplexMemoryType,
+  isDynamicStorageArray,
+  isMapping,
+} from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
 
@@ -69,9 +70,4 @@ export class StoredPointerDereference extends ReferenceSubPass {
       this.visitExpression(node, ast);
     }
   }
-}
-
-function isMapping(type: TypeNode): boolean {
-  const [base] = generalizeType(type);
-  return base instanceof MappingType;
 }

@@ -3,6 +3,7 @@ import {
   AddressType,
   ArrayType,
   ArrayTypeName,
+  Assignment,
   BoolType,
   CompileFailedError,
   DataLocation,
@@ -10,8 +11,10 @@ import {
   EtherUnit,
   Expression,
   FixedBytesType,
+  FunctionCall,
   FunctionDefinition,
   FunctionKind,
+  FunctionStateMutability,
   FunctionVisibility,
   generalizeType,
   IdentifierPath,
@@ -24,7 +27,6 @@ import {
   PointerType,
   StateVariableVisibility,
   StringType,
-  StructDefinition,
   TimeUnit,
   TupleExpression,
   TypeName,
@@ -352,15 +354,21 @@ export function splitDarray(
   return [arrayLen, dArrayVarDecl];
 }
 
-export function isReferenceType(type: TypeNode): boolean {
+export function expressionHasSideEffects(node: Expression): boolean {
   return (
-    type instanceof ArrayType ||
-    type instanceof MappingType ||
-    (type instanceof UserDefinedType && type.definition instanceof StructDefinition) ||
-    (type instanceof PointerType && isReferenceType(type.to))
+    (node instanceof FunctionCall && functionAffectsState(node)) ||
+    node instanceof Assignment ||
+    node.children.some((child) => child instanceof Expression && expressionHasSideEffects(child))
   );
 }
 
-export function isValueType(type: TypeNode): boolean {
-  return !isReferenceType(type);
+export function functionAffectsState(node: FunctionCall): boolean {
+  const funcDef = node.vReferencedDeclaration;
+  if (funcDef instanceof FunctionDefinition) {
+    return (
+      funcDef.stateMutability !== FunctionStateMutability.Pure &&
+      funcDef.stateMutability !== FunctionStateMutability.View
+    );
+  }
+  return true;
 }

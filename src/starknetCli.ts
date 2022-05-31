@@ -1,4 +1,5 @@
 import assert from 'assert';
+import * as path from 'path';
 import { execSync } from 'child_process';
 import { IDeployProps, ICallOrInvokeProps, IOptionalNetwork, IDeployAccountProps } from './index';
 import { logError } from './utils/errors';
@@ -31,10 +32,14 @@ export function compileCairo(
   }
 }
 
+const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+
 function runStarknetCompile(filePath: string, cliOptions: Map<string, string>) {
   console.log(`Running starknet compile with cairoPath ${cliOptions.get('cairo_path')}`);
   execSync(
-    `starknet-compile --cairo_path warp_output ${filePath} ${[...cliOptions.entries()]
+    `${warpVenvPrefix} starknet-compile --cairo_path warp_output ${filePath} ${[
+      ...cliOptions.entries(),
+    ]
       .map(([key, value]) => `--${key} ${value}`)
       .join(' ')}`,
     { stdio: 'inherit' },
@@ -50,7 +55,7 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
   }
 
   try {
-    execSync(`starknet tx_status --hash ${tx_hash} --network ${option.network}`, {
+    execSync(`${warpVenvPrefix} starknet tx_status --hash ${tx_hash} --network ${option.network}`, {
       stdio: 'inherit',
     });
   } catch {
@@ -65,7 +70,7 @@ export function runStarknetDeploy(filePath: string, options: IDeployProps) {
     );
     return;
   }
-  const { success, resultPath } = compileCairo(filePath, '../warplib');
+  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
@@ -74,9 +79,12 @@ export function runStarknetDeploy(filePath: string, options: IDeployProps) {
   const inputs = options.inputs ? `--inputs ${options.inputs.join(' ')}` : '';
 
   try {
-    execSync(`starknet deploy --contract ${resultPath} --network ${options.network} ${inputs}`, {
-      stdio: 'inherit',
-    });
+    execSync(
+      `${warpVenvPrefix} starknet deploy --contract ${resultPath} --network ${options.network} ${inputs}`,
+      {
+        stdio: 'inherit',
+      },
+    );
   } catch {
     logError('starknet deploy failed');
   }
@@ -96,9 +104,11 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
     return;
   }
 
+  const account = options.account ? `--account ${options.account}` : '';
+
   try {
     execSync(
-      `starknet deploy_account --wallet ${options.wallet} --network ${options.network} --account ${options.account}`,
+      `${warpVenvPrefix} starknet deploy_account --wallet ${options.wallet} --network ${options.network} ${account}`,
       {
         stdio: 'inherit',
       },
@@ -123,8 +133,9 @@ export function runStarknetCallOrInvoke(
   }
 
   const wallet = options.wallet === undefined ? '--no_wallet' : `--wallet ${options.wallet}`;
+  const account = options.account ? `--account ${options.account}` : '';
 
-  const { success, abiPath } = compileCairo(filePath, '../warplib');
+  const { success, abiPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
@@ -134,7 +145,7 @@ export function runStarknetCallOrInvoke(
 
   try {
     execSync(
-      `starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${options.function} --network ${options.network} ${wallet} ${inputs}`,
+      `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${options.function} --network ${options.network} ${wallet} ${account} ${inputs}`,
       { stdio: 'inherit' },
     );
   } catch {

@@ -7,6 +7,7 @@ import {
   FunctionVisibility,
   IfStatement,
   Statement,
+  StatementWithChildren,
   UncheckedBlock,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -117,7 +118,7 @@ function splitBlockImpl(block: Block, split: Statement, ast: AST): Block | null 
   block.children.forEach((child) => {
     if (foundSplitPoint) {
       assert(
-        child instanceof Statement,
+        child instanceof StatementWithChildren || child instanceof Statement,
         `Found non-statement ${printNode(child)} as child of ${printNode(block)}`,
       );
       statementsToExtract.push(child);

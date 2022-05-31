@@ -7,6 +7,7 @@ import {
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
+  FunctionVisibility,
   generalizeType,
   getNodeType,
   IndexAccess,
@@ -125,6 +126,11 @@ export class ExpectedLocationAnalyser extends ASTMapper {
             //Finally, default to the type in the pointer itself if we can't infer anything else
             this.expectedLocations.set(argI, t.location);
           }
+        } else if (
+          node.vReferencedDeclaration instanceof FunctionDefinition &&
+          node.vReferencedDeclaration.visibility === FunctionVisibility.External
+        ) {
+          this.expectedLocations.set(argI, DataLocation.CallData);
         } else {
           this.expectedLocations.set(argI, t.location);
         }
@@ -159,7 +165,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
         // External functions need to read out their returns
         // TODO might need to expand this to be clear that it's a deep read
         const retExpressions =
-          node.vExpression instanceof TupleExpression
+          node.vExpression instanceof TupleExpression && !node.vExpression.isInlineArray
             ? node.vExpression.vOriginalComponents.map((element) => {
                 assert(element !== null, `Cannot return tuple with empty slots`);
                 return element;
@@ -210,7 +216,8 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     if (assignedLocation === undefined) return this.visitExpression(node, ast);
 
     node.vOriginalComponents.filter(notNull).forEach((element) => {
-      this.expectedLocations.set(element, assignedLocation);
+      const elementType = getNodeType(element, ast.compilerVersion);
+      this.expectedLocations.set(element, locationIfComplexType(elementType, assignedLocation));
     });
 
     this.visitExpression(node, ast);

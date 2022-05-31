@@ -4,22 +4,29 @@ import {
   RevertStatement,
   ErrorDefinition,
   Conditional,
-  MappingType,
   MemberAccess,
-  PointerType,
   AddressType,
   FunctionType,
   getNodeType,
-  UserDefinedType,
   VariableDeclaration,
+  FunctionKind,
   FunctionCall,
   FunctionCallKind,
   SourceUnit,
+  FunctionDefinition,
+  ArrayType,
+  TypeNode,
+  UserDefinedType,
+  StructDefinition,
+  NewExpression,
+  ArrayTypeName,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
+import { isReferenceType } from '../utils/nodeTypeProcessing';
+import { isExternallyVisible } from '../utils/utils';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   visitIndexAccess(node: IndexAccess, ast: AST): void {
@@ -44,12 +51,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FunctionType)
       throw new WillNotSupportError('Function objects are not supported');
-    if (
-      typeNode instanceof PointerType &&
-      typeNode.to instanceof MappingType &&
-      typeNode.to.valueType instanceof UserDefinedType
-    )
-      throw new NotSupportedYetError('Mappings with structs are not supported yet');
     this.commonVisit(node, ast);
   }
 
@@ -106,5 +107,65 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     }
 
     this.visitExpression(node, ast);
+  }
+
+  visitNewExpression(node: NewExpression, ast: AST): void {
+    if (!(node.vTypeName instanceof ArrayTypeName)) {
+      throw new NotSupportedYetError(
+        `new expressions are not supported yet for non-array type ${node.vTypeName.typeString}`,
+      );
+    }
+    this.visitExpression(node, ast);
+  }
+
+  visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
+    if (isExternallyVisible(node)) {
+      node.vParameters.vParameters.forEach((decl) => {
+        const type = getNodeType(decl, ast.compilerVersion);
+        if (isReferenceType(type)) {
+          if (type instanceof ArrayType) {
+            type.size === undefined
+              ? this.externalFunctionArgsCheck(type.elementT, ast, true)
+              : this.externalFunctionArgsCheck(type.elementT, ast, false);
+          } else if (
+            type instanceof UserDefinedType &&
+            type.definition instanceof StructDefinition
+          ) {
+            type.definition.vMembers.map((member) =>
+              this.externalFunctionArgsCheck(getNodeType(member, ast.compilerVersion), ast, false),
+            );
+          }
+        }
+      });
+    }
+    if (node.kind === FunctionKind.Fallback) {
+      if (node.vParameters.vParameters.length > 0)
+        throw new WillNotSupportError(`${node.kind} with arguments is not supported`);
+    }
+    this.commonVisit(node, ast);
+  }
+
+  private externalFunctionArgsCheck(
+    type: TypeNode,
+    ast: AST,
+    parentDynArray: boolean,
+  ): boolean | void {
+    if (type instanceof ArrayType) {
+      const elemType = type.elementT;
+      if (type instanceof ArrayType && type.size !== undefined && parentDynArray) {
+        throw new NotSupportedYetError(
+          `Static Arrays as elements of Dynamic arrays are not supported in calldata or as inputs to externally visible functions"`,
+        );
+      } else if (type instanceof ArrayType && type.size === undefined) {
+        throw new NotSupportedYetError(
+          `Inputs arguments with nested Dynamic Arrays not supported in external functions`,
+        );
+      }
+      this.externalFunctionArgsCheck(elemType, ast, false);
+    } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+      type.definition.vMembers.map((member) => {
+        this.externalFunctionArgsCheck(getNodeType(member, ast.compilerVersion), ast, false);
+      });
+    }
   }
 }

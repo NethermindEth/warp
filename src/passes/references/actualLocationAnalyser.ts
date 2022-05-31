@@ -1,6 +1,9 @@
 import {
   DataLocation,
   Expression,
+  FunctionCall,
+  FunctionDefinition,
+  FunctionVisibility,
   getNodeType,
   Identifier,
   IndexAccess,
@@ -68,6 +71,19 @@ export class ActualLocationAnalyser extends ASTMapper {
 
     if (baseLocation !== undefined) {
       this.actualLocations.set(node, baseLocation);
+    }
+  }
+
+  visitFunctionCall(node: FunctionCall, ast: AST): void {
+    if (
+      node.vReferencedDeclaration instanceof FunctionDefinition &&
+      node.vReferencedDeclaration.visibility === FunctionVisibility.External &&
+      getNodeType(node, ast.compilerVersion) instanceof PointerType
+    ) {
+      this.actualLocations.set(node, DataLocation.CallData);
+      this.commonVisit(node, ast);
+    } else {
+      this.visitExpression(node, ast);
     }
   }
 }

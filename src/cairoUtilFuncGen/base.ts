@@ -3,7 +3,6 @@ import {
   DataLocation,
   generalizeType,
   MappingType,
-  PointerType,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -67,10 +66,6 @@ export function add(base: string, offset: number): string {
   return offset === 0 ? base : `${base} + ${offset}`;
 }
 
-export function locationIfPointer(type: TypeNode, location: DataLocation): DataLocation {
-  return type instanceof PointerType ? location : DataLocation.Default;
-}
-
 // This is needed because index access and member access functions return pointers, even if the data
 // pointed to is a basic type, whereas read and write functions need to only return pointers if the
 // data they're reading or writing is a complex type
@@ -79,7 +74,8 @@ export function locationIfComplexType(type: TypeNode, location: DataLocation): D
   if (
     base instanceof ArrayType ||
     base instanceof MappingType ||
-    (base instanceof UserDefinedType && base.definition instanceof StructDefinition)
+    (base instanceof UserDefinedType && base.definition instanceof StructDefinition) ||
+    base instanceof MappingType
   ) {
     return location;
   } else {

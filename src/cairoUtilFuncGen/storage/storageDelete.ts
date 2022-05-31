@@ -15,12 +15,7 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import {
-  typeNameFromTypeNode,
-  mapRange,
-  isReferenceType,
-  narrowBigIntSafe,
-} from '../../utils/utils';
+import { typeNameFromTypeNode, mapRange, narrowBigIntSafe } from '../../utils/utils';
 import { add, CairoFunction, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
@@ -255,13 +250,12 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     ).width;
 
     const deleteLoc = add('loc', offset);
-    const deleteCode =
-      isReferenceType(varType) && !(varType instanceof UserDefinedType)
-        ? [
-            `   let (elem_id) = ${this.storageReadGen.genFuncName(varType)}(${deleteLoc})`,
-            `   ${this.getOrCreate(varType)}(elem_id)`,
-          ]
-        : [`    ${this.getOrCreate(varType)}(${deleteLoc})`];
+    const deleteCode = requiresReadBeforeRecursing(varType)
+      ? [
+          `   let (elem_id) = ${this.storageReadGen.genFuncName(varType)}(${deleteLoc})`,
+          `   ${this.getOrCreate(varType)}(elem_id)`,
+        ]
+      : [`    ${this.getOrCreate(varType)}(${deleteLoc})`];
 
     return [
       ...deleteCode,
@@ -284,4 +278,8 @@ function getBaseType(type: TypeNode): TypeNode {
 
 function dereferenceType(type: TypeNode): TypeNode {
   return generalizeType(type)[0];
+}
+
+function requiresReadBeforeRecursing(type: TypeNode): boolean {
+  return type instanceof MappingType || (type instanceof ArrayType && type.size === undefined);
 }

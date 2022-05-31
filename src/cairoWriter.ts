@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  ArrayType,
   ArrayTypeName,
   Assignment,
   ASTNode,
@@ -13,6 +14,7 @@ import {
   Continue,
   ContractDefinition,
   ContractKind,
+  DataLocation,
   DoWhileStatement,
   ElementaryTypeName,
   ElementaryTypeNameExpression,
@@ -31,6 +33,7 @@ import {
   FunctionStateMutability,
   FunctionTypeName,
   FunctionVisibility,
+  generalizeType,
   getNodeType,
   Identifier,
   IdentifierPath,
@@ -200,14 +203,30 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     );
 
     const documentation = getDocumentation(node.documentation, writer);
-    const declarations = node.assignments.map((id) => {
+    const declarations = node.assignments.flatMap((id) => {
       if (id === null)
         throw new NotSupportedYetError(
           `VariableDeclarationStatements with gaps not implemented yet`,
         );
       const declaration = node.vDeclarations.find((decl) => decl.id === id);
       assert(declaration !== undefined, `Unable to find variable declaration for assignment ${id}`);
-      return writer.write(declaration);
+      const type = generalizeType(getNodeType(declaration, this.ast.compilerVersion))[0];
+      if (
+        type instanceof ArrayType &&
+        type.size === undefined &&
+        node.vInitialValue instanceof FunctionCall &&
+        node.vInitialValue.vReferencedDeclaration instanceof FunctionDefinition &&
+        node.vInitialValue.vReferencedDeclaration.visibility === FunctionVisibility.External
+      ) {
+        assert(
+          declaration.storageLocation === DataLocation.CallData,
+          `WARNING: declaration receiving calldata dynarray has location ${declaration.storageLocation}`,
+        );
+        const writtenVar = writer.write(declaration);
+        return [`${writtenVar}_len`, writtenVar];
+      } else {
+        return [writer.write(declaration)];
+      }
     });
     if (
       node.vInitialValue instanceof FunctionCall &&
@@ -224,7 +243,7 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
           } = ${writer.write(node.vInitialValue)}`,
         ].join('\n'),
       ];
-    } else if (node.vDeclarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
+    } else if (declarations.length > 1 || node.vInitialValue instanceof FunctionCall) {
       return [
         [
           documentation,
@@ -409,25 +428,28 @@ class NotImplementedWriter extends CairoASTNodeWriter {
 
 class ParameterListWriter extends CairoASTNodeWriter {
   writeInner(node: ParameterList, writer: ASTWriter): SrcDesc {
-    const typeConversionContext =
-      node.parent instanceof FunctionDefinition
-        ? isExternallyVisible(node.parent)
-          ? TypeConversionContext.CallDataRef
-          : TypeConversionContext.Ref
-        : TypeConversionContext.CallDataRef;
+    const defContext =
+      node.parent instanceof FunctionDefinition && isExternallyVisible(node.parent)
+        ? TypeConversionContext.CallDataRef
+        : TypeConversionContext.Ref;
 
-    const params = node.vParameters.map((value, i) => {
+    const params = node.vParameters.map((value) => {
+      const varTypeConversionContext =
+        value.storageLocation === DataLocation.CallData
+          ? TypeConversionContext.CallDataRef
+          : defContext;
+
       const tp = CairoType.fromSol(
         getNodeType(value, writer.targetCompilerVersion),
         this.ast,
-        typeConversionContext,
+        varTypeConversionContext,
       );
-      if (tp instanceof CairoDynArray) {
-        return value.name
+      if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
+        return isExternallyVisible(node.parent)
           ? `${value.name}_len : ${tp.vLen.toString()}, ${value.name} : ${tp.vPtr.toString()}`
-          : `ret${i}_len : ${tp.vLen.toString()}, ret${i} : ${tp.vPtr.toString()}`;
+          : `${value.name} : ${tp.toString()}`;
       }
-      return value.name ? `${value.name} : ${tp}` : `ret${i} : ${tp}`;
+      return `${value.name} : ${tp}`;
     });
     return [params.join(', ')];
   }
@@ -666,7 +688,12 @@ class IdentifierWriter extends CairoASTNodeWriter {
   writeInner(node: Identifier, _: ASTWriter): SrcDesc {
     if (
       isDynamicCallDataArray(getNodeType(node, this.ast.compilerVersion)) &&
-      node.getClosestParentByType(Return) !== undefined
+      ((node.getClosestParentByType(Return) !== undefined &&
+        node.getClosestParentByType(FunctionDefinition)?.visibility ===
+          FunctionVisibility.External) ||
+        (node.parent instanceof FunctionCall &&
+          node.parent.vReferencedDeclaration instanceof FunctionDefinition &&
+          node.parent.vReferencedDeclaration.visibility === FunctionVisibility.External))
     ) {
       return [`${node.name}.len, ${node.name}.ptr`];
     }
@@ -822,12 +849,9 @@ class CairoAssertWriter extends CairoASTNodeWriter {
 }
 
 class ElementaryTypeNameExpressionWriter extends CairoASTNodeWriter {
-  writeInner(node: ElementaryTypeNameExpression, _writer: ASTWriter): SrcDesc {
-    assert(
-      node.typeString === 'type(address)',
-      `Unexpected elementaryTypeNameExpression ${node.typeString}`,
-    );
-    return [``];
+  writeInner(_node: ElementaryTypeNameExpression, _writer: ASTWriter): SrcDesc {
+    //ElementaryTypeNameExpressions left in the tree by this point being unreferenced expressions, and that this needs to work with out ineffectual statement handling
+    return ['0'];
   }
 }
 

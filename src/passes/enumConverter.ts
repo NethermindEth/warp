@@ -17,6 +17,9 @@ import {
   UserDefinedType,
   UserDefinedTypeName,
   VariableDeclaration,
+  FunctionCall,
+  FunctionCallKind,
+  ElementaryTypeNameExpression,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { AST } from '../ast/ast';
@@ -32,6 +35,37 @@ export class EnumConverter extends ASTMapper {
       throw new TranspileFailedError(`${memberName} is not a member of ${node.name}`);
     }
     return val;
+  }
+
+  visitFunctionCall(node: FunctionCall, ast: AST): void {
+    this.visitExpression(node, ast);
+    if (node.kind !== FunctionCallKind.TypeConversion) return;
+    const tNode = getNodeType(node.vExpression, ast.compilerVersion);
+    assert(
+      tNode instanceof TypeNameType,
+      `Got non-typename type ${tNode.pp()} when parsing conversion function
+     ${node.vFunctionName}`,
+    );
+    if (
+      node.vExpression instanceof Identifier &&
+      node.vExpression.vReferencedDeclaration instanceof EnumDefinition
+    ) {
+      node.vExpression.typeString = generateExpressionTypeString(replaceEnumType(tNode));
+      ast.replaceNode(
+        node.vExpression,
+        new ElementaryTypeNameExpression(
+          node.vExpression.id,
+          node.vExpression.src,
+          node.vExpression.typeString,
+          new ElementaryTypeName(
+            ast.reserveId(),
+            node.vExpression.vReferencedDeclaration.src,
+            node.vExpression.typeString,
+            node.vExpression.typeString,
+          ),
+        ),
+      );
+    }
   }
 
   visitTypeName(node: TypeName, ast: AST): void {
@@ -64,15 +98,23 @@ export class EnumConverter extends ASTMapper {
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
-    this.commonVisit(node, ast);
-    if (node.vExpression instanceof Identifier) {
-      const enumDef = node.vExpression.vReferencedDeclaration;
-      if (enumDef instanceof EnumDefinition) {
-        // replace member access node with literal
-        const intLiteral = this.getEnumValue(enumDef, node.memberName);
-        ast.replaceNode(node, createNumberLiteral(intLiteral, ast, enumToIntType(enumDef).pp()));
-      }
+    const type = getNodeType(node, ast.compilerVersion);
+    const baseType = getNodeType(node.vExpression, ast.compilerVersion);
+    if (
+      type instanceof UserDefinedType &&
+      type.definition instanceof EnumDefinition &&
+      baseType instanceof TypeNameType &&
+      baseType.type instanceof UserDefinedType &&
+      baseType.type.definition instanceof EnumDefinition
+    ) {
+      const intLiteral = this.getEnumValue(type.definition, node.memberName);
+      ast.replaceNode(
+        node,
+        createNumberLiteral(intLiteral, ast, enumToIntType(type.definition).pp()),
+      );
+      return;
     }
+    this.visitExpression(node, ast);
   }
 }
 

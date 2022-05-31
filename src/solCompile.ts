@@ -13,6 +13,11 @@ import { SupportedSolcVersions, nethersolcPath, fullVersionFromMajor } from './n
 import { TranspileFailedError } from './utils/errors';
 import { error } from './utils/formatting';
 
+// For contracts of a reasonable size the json representation of the
+// AST was exceeding the buffer size. We leave it unbounded by setting the
+// size to the largest possible
+const MAX_BUFFER_SIZE = Number.MAX_SAFE_INTEGER;
+
 export function compileSolFile(file: string, printWarnings: boolean): AST {
   const requiredSolcVersion = getSolFileVersion(file);
   const [, majorVersion] = matchCompilerVersion(requiredSolcVersion);
@@ -84,6 +89,7 @@ function cliCompile(
   const nethersolcVersion: SupportedSolcVersions = solcVersion.startsWith('0.7.') ? `7` : `8`;
   const solcCommand = nethersolcPath(nethersolcVersion);
 
+  let allowedPaths = '';
   // Check if compiler version used is v0.7.6
   // For solc v0.8.7 and before, we need to set the allow path.
   // Since we are using latest version of v0.8.x, we do not need to set allow path
@@ -92,18 +98,15 @@ function cliCompile(
     const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
     const filePath = Object.keys(input.sources)[0];
     const allowPath = path.resolve(currentDirectory, filePath);
-    return {
-      result: JSON.parse(
-        execSync(`${solcCommand} --standard-json --allow-paths ${allowPath}`, {
-          input: JSON.stringify(input),
-        }).toString(),
-      ),
-      compilerVersion: fullVersionFromMajor(nethersolcVersion),
-    };
+    allowedPaths = `--allow-paths ${allowPath}`;
   }
+
   return {
     result: JSON.parse(
-      execSync(`${solcCommand} --standard-json`, { input: JSON.stringify(input) }).toString(),
+      execSync(`${solcCommand} --standard-json ${allowedPaths}`, {
+        input: JSON.stringify(input),
+        maxBuffer: MAX_BUFFER_SIZE,
+      }).toString(),
     ),
     compilerVersion: fullVersionFromMajor(nethersolcVersion),
   };
