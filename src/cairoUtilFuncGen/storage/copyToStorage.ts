@@ -38,16 +38,17 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     super(ast);
   }
   gen(from: Expression, to: Expression, nodeInSourceUnit?: ASTNode): Expression {
-    const type = generalizeType(getNodeType(to, this.ast.compilerVersion))[0];
+    const fromType = generalizeType(getNodeType(from, this.ast.compilerVersion))[0];
+    const toType = generalizeType(getNodeType(to, this.ast.compilerVersion))[0];
 
-    const name = this.getOrCreate(type);
+    const name = this.getOrCreate(toType);
     const functionStub = createCairoFunctionStub(
       name,
       [
-        ['fromLoc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage],
-        ['toLoc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage],
+        ['fromLoc', typeNameFromTypeNode(toType, this.ast), DataLocation.Storage],
+        ['toLoc', typeNameFromTypeNode(toType, this.ast), DataLocation.Storage],
       ],
-      [['retLoc', typeNameFromTypeNode(type, this.ast), DataLocation.Storage]],
+      [['retLoc', typeNameFromTypeNode(toType, this.ast), DataLocation.Storage]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       nodeInSourceUnit ?? to,
