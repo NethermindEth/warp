@@ -30,6 +30,7 @@ export * from './ReturnVariableInitializer';
 export * from './sourceUnitSplitter';
 export * from './staticArrayIndexer';
 export * from './storageAllocator';
+export * from './tupleFixes';
 export * from './references';
 export * from './tupleAssignmentSplitter';
 export * from './typeStringsChecker';
