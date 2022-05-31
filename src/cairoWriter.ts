@@ -684,7 +684,6 @@ class IdentifierWriter extends CairoASTNodeWriter {
     if (
       isDynamicCallDataArray(getNodeType(node, this.ast.compilerVersion)) &&
       ((node.getClosestParentByType(Return) !== undefined &&
-        node.getClosestParentByType(IndexAccess) === undefined &&
         node.getClosestParentByType(FunctionDefinition)?.visibility ===
           FunctionVisibility.External) ||
         (node.parent instanceof FunctionCall &&
@@ -717,7 +716,7 @@ class FunctionCallWriter extends CairoASTNodeWriter {
           }
         } else if (
           node.vReferencedDeclaration instanceof CairoFunctionDefinition &&
-          node.vReferencedDeclaration.acceptsRawDarray
+          node.vReferencedDeclaration.functionStubKind === FunctionStubKind.StructDefStub
         ) {
           return [`${func}(${args}_len, ${args})`];
         }

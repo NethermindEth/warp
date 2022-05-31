@@ -201,5 +201,4 @@ warplib/maths/int_conversions.cairo
 
 # ---external-input-input-checks---
 warplib/maths/external_input_check_ints.cairo
-warplib/maths/external_input_check_address.cairo
 # external_input_check_bool.cairo - handwritten

@@ -6,7 +6,6 @@ import {
   DataLocation,
   ElementaryTypeName,
   Expression,
-  ExpressionStatement,
   FunctionDefinition,
   FunctionKind,
   FunctionStateMutability,
@@ -75,10 +74,6 @@ export function createEmptyTuple(ast: AST): TupleExpression {
   const node = new TupleExpression(ast.reserveId(), '', 'tuple()', false, []);
   ast.setContextRecursive(node);
   return node;
-}
-
-export function createExpressionStatement(ast: AST, expression: Expression) {
-  return new ExpressionStatement(ast.reserveId(), '', expression);
 }
 
 export function createIdentifier(
