@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  AddressType,
   ArrayType,
   ASTNode,
   BoolType,
@@ -68,8 +69,10 @@ export class RefInputCheck extends StringIndexedFuncGen {
       return type.size === undefined
         ? this.createDynArrayInputCheck(key, type)
         : this.createStaticArrayInputCheck(key, type);
+    } else if (type instanceof AddressType) {
+      return this.createAddressInputCheck();
     } else {
-      console.log(`${printTypeNode(type)} input checking will not be implemented`);
+      throw new NotSupportedYetError(` Input check for ${printTypeNode(type)} not defined yet.`);
     }
   }
 
@@ -78,6 +81,15 @@ export class RefInputCheck extends StringIndexedFuncGen {
     this.requireImport(
       'warplib.maths.external_input_check_ints',
       `warp_external_input_check_int${type.nBits}`,
+    );
+    return funcName;
+  }
+
+  private createAddressInputCheck(): string {
+    const funcName = 'warp_external_input_check_address';
+    this.requireImport(
+      'warplib.maths.external_input_check_address',
+      `warp_external_input_check_address`,
     );
     return funcName;
   }
@@ -99,8 +111,12 @@ export class RefInputCheck extends StringIndexedFuncGen {
         `alloc_locals`,
         ...structDef.vMembers.map((decl) => {
           const memberType = getNodeType(decl, this.ast.compilerVersion);
-          const memberCheck = this.getOrCreate(memberType);
-          return [`${memberCheck}(arg.${decl.name})`];
+          if (this.checkableType(memberType)) {
+            const memberCheck = this.getOrCreate(memberType);
+            return [`${memberCheck}(arg.${decl.name})`];
+          } else {
+            return '';
+          }
         }),
         `return ()`,
         `end`,
@@ -207,5 +223,20 @@ export class RefInputCheck extends StringIndexedFuncGen {
       ].join('\n'),
     });
     return funcName;
+  }
+
+  checkableType(type: TypeNode): boolean {
+    if (
+      type instanceof ArrayType ||
+      (type instanceof UserDefinedType &&
+        (type.definition instanceof StructDefinition ||
+          type.definition instanceof EnumDefinition)) ||
+      type instanceof AddressType ||
+      type instanceof IntType ||
+      type instanceof BoolType
+    ) {
+      return true;
+    }
+    return false;
   }
 }

@@ -1,5 +1,19 @@
 import { AST } from '../../ast/ast';
-import { ContractDefinition, ContractKind, FunctionDefinition, FunctionCall } from 'solc-typed-ast';
+import {
+  ContractDefinition,
+  ContractKind,
+  FunctionDefinition,
+  FunctionCall,
+  getNodeType,
+  UserDefinedType,
+  StructDefinition,
+  TypeNode,
+  AddressType,
+  ArrayType,
+  IntType,
+  BoolType,
+  EnumDefinition,
+} from 'solc-typed-ast';
 import { ASTMapper } from '../../ast/mapper';
 import { isExternallyVisible } from '../../utils/utils';
 import assert from 'assert';
@@ -16,12 +30,16 @@ export class BoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (isExternallyVisible(node) && node.vBody !== undefined) {
       node.vParameters.vParameters.forEach((decl) => {
-        const functionCall = ast
-          .getUtilFuncGen(node)
-          .externalFunctions.inputsChecks.refCheck.gen(decl, node);
-        this.insertFunctionCall(node, functionCall, ast);
+        const type = getNodeType(decl, ast.compilerVersion);
+        if (this.checkableType(type)) {
+          const functionCall = ast
+            .getUtilFuncGen(node)
+            .externalFunctions.inputsChecks.refCheck.gen(decl, node);
+          this.insertFunctionCall(node, functionCall, ast);
+        }
       });
     }
+
     this.commonVisit(node, ast);
   }
 
@@ -31,5 +49,20 @@ export class BoundChecker extends ASTMapper {
     const expressionStatement = createExpressionStatement(ast, funcCall);
     body.insertAtBeginning(expressionStatement);
     ast.setContextRecursive(expressionStatement);
+  }
+
+  checkableType(type: TypeNode): boolean {
+    if (
+      type instanceof ArrayType ||
+      (type instanceof UserDefinedType &&
+        (type.definition instanceof StructDefinition ||
+          type.definition instanceof EnumDefinition)) ||
+      type instanceof AddressType ||
+      type instanceof IntType ||
+      type instanceof BoolType
+    ) {
+      return true;
+    }
+    return false;
   }
 }
