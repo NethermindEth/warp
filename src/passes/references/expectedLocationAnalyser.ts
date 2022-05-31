@@ -107,7 +107,9 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     // When calling `push`, the function recieves two paramaters nonetheless the argument is just one
     // This does not explode because javascript does not gives an index out of range exception
     parameterTypes.forEach((t, index) => {
-      const argI = node.vArguments[index];
+      // Solc 0.7.0 types push and pop as you would expect, 0.8.0 adds an extra initial argument
+      const paramIndex = index + parameterTypes.length - node.vArguments.length;
+      const argI = node.vArguments[paramIndex];
       if (t instanceof PointerType) {
         if (node.kind === FunctionCallKind.StructConstructorCall) {
           // The components of a struct being assigned to a location are also being assigned to that location
