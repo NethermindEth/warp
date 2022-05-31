@@ -2202,6 +2202,7 @@ export const expectations = flatten(
           File.Simple('simple', [
             Expect.Simple('callOnIdentifier', [], ['6', '0']),
             Expect.Simple('callOnFunctionCall', [], ['60', '0']),
+            Expect.Simple('namedArgChecker', [], ['62', '0']),
           ]),
           File.Simple('library', [
             Expect.Simple('callOnIdentifierAdd', [], ['6', '0']),
