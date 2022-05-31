@@ -234,10 +234,14 @@ export function encodeValue(tp: TypeNode, value: SolValue, compilerVersion: stri
     if (!(value instanceof Array)) {
       throw new Error(`Can't encode ${value} as arrayType`);
     }
-    return [
-      value.length.toString(),
-      ...value.flatMap((v) => encodeValue(tp.elementT, v, compilerVersion)),
-    ];
+    if (tp.size === undefined) {
+      return [
+        value.length.toString(),
+        ...value.flatMap((v) => encodeValue(tp.elementT, v, compilerVersion)),
+      ];
+    } else {
+      return value.flatMap((v) => encodeValue(tp.elementT, v, compilerVersion));
+    }
   } else if (tp instanceof BoolType) {
     if (typeof value !== 'boolean') {
       throw new Error(`Can't encode ${value} as boolType`);

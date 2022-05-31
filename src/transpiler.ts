@@ -12,7 +12,7 @@ import {
   DeleteHandler,
   EnumConverter,
   ExpressionSplitter,
-  ExternalArgumentModifier,
+  ExternalArgModifier,
   ExternalContractHandler,
   ExternalInputChecker,
   ExternImporter,
@@ -44,6 +44,8 @@ import {
   UsingForResolver,
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
+  StaticArrayIndexer,
+  TupleFixes,
 } from './passes';
 import { FilePathMangler } from './passes/filePathMangler';
 import { OrderNestedStructs } from './passes/orderNestedStructs';
@@ -82,6 +84,7 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
 function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Fm', FilePathMangler],
+    ['Tf', TupleFixes],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
     ['Idi', ImportDirectiveIdentifier],
@@ -93,6 +96,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Gp', PublicStateVarsGetterGenerator],
     ['Tic', TypeInformationCalculator],
     ['Ch', ConstantHandler],
+    ['Sai', StaticArrayIndexer],
     ['M', IdentifierMangler],
     ['Fi', FreeLibraryCallInliner],
     ['Rl', ReferencedLibraries],
@@ -102,7 +106,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Mh', ModifierHandler],
     ['Sa', StorageAllocator],
     ['Pfs', PublicFunctionSplitter],
-    ['Eam', ExternalArgumentModifier],
+    ['Eam', ExternalArgModifier],
     ['Ei', ExternImporter],
     ['Lf', LoopFunctionaliser],
     ['R', ReturnInserter],
@@ -130,7 +134,6 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
 
   printPassName('Input', options);
   printAST(ast, options);
-  checkAST(ast, options, 'None run');
 
   const finalAst = passesInOrder.reduce((ast, mapper) => {
     printPassName(mapper.getPassName(), options);

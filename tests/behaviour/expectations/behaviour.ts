@@ -506,6 +506,7 @@ export const expectations = flatten(
             ),
             Expect.Simple('getW', [], ['1', '0', '2', '0', '3', '0']),
             Expect.Simple('getZ', [], ['1', '0', '2', '0', '3', '0', '4', '0', '5', '0', '6', '0']),
+            Expect.Simple('scalarInTuple', [], ['1', '0', '10', '0', '3', '0']),
           ]),
           File.Simple('structs', [
             Expect.Simple('setS', ['2', '3', '5', '7'], []),
@@ -608,6 +609,26 @@ export const expectations = flatten(
             ],
             'C',
           ),
+          File.Simple('dynArrays', [], 'ArrayProvider'),
+          File.Simple('dynArrays', [
+            Expect.Simple(
+              'receiveArr',
+              ['address@tests/behaviour/contracts/cross_contract_calls/dynArrays.ArrayProvider'],
+              ['3', '0'],
+            ),
+            Expect.Simple(
+              'receiveMultiple',
+              [
+                '2',
+                '7',
+                '8',
+                '9',
+                '3',
+                'address@tests/behaviour/contracts/cross_contract_calls/dynArrays.ArrayProvider',
+              ],
+              ['2', '0', '5', '0', '4', '0', '2', '0', '5', '0', '4', '0'],
+            ),
+          ]),
         ]),
         // covers nested mappings
         new Dir('Dai', [
@@ -745,6 +766,10 @@ export const expectations = flatten(
               ['cancel', [], [], '0'],
               ['get', [], ['255'], '0'],
             ]),
+            new Expect('setWithContractName', [
+              ['setWithContractName', [], [], '0'],
+              ['get', [], ['1'], '0'],
+            ]),
           ]),
           File.Simple('singleEnum7', [
             Expect.Simple('get', [], ['0']),
@@ -759,6 +784,10 @@ export const expectations = flatten(
             new Expect('cancel', [
               ['cancel', [], [], '0'],
               ['get', [], ['259'], '0'],
+            ]),
+            new Expect('setWithContractName', [
+              ['setWithContractName', [], [], '0'],
+              ['get', [], ['1'], '0'],
             ]),
           ]),
           File.Simple('doubleEnum', [
@@ -775,6 +804,9 @@ export const expectations = flatten(
               ['getTopEnum', [], ['1'], '0'],
             ]),
           ]),
+        ]),
+        new Dir('enumtoint', [
+          File.Simple('enumtointconversion', [Expect.Simple('test', [], ['1', '0'])]),
         ]),
         new Dir('ERC20', [
           File.Simple('ERC20', [
@@ -863,6 +895,7 @@ export const expectations = flatten(
               ],
             ),
           ]),
+          File.Simple('tupleEdgeCases', [Expect.Simple('f', ['0', '0'], ['0', '0'])]),
         ]),
         new Dir('external_function_inputs', [
           File.Simple('dynamic_array_return_index', [
@@ -1004,33 +1037,32 @@ export const expectations = flatten(
               'testing a static array of ints can be passed into a public function and written to memory and index returned.',
               [['testIntPublic', ['1', '2', '3'], ['3'], '0']],
             ),
-            // These test will come online when the known nested Reference Types writing bug is sorted.
-            // new Expect(
-            //   'testing a static array of structs can be passed into an external function and written to memory and index returned.',
-            //   [
-            //     [
-            //       'testStructExternal',
-            //       ['1', '2', '0 ', '3', '4', '0', '5', '6', '0'],
-            //       ['5', '6', '0'],
-            //       '0',
-            //     ],
-            //   ],
-            // ),
-            // new Expect(
-            //   'testing a static array of structs can be passed into a public function and written to memory and index returned.',
-            //   [['testStructPublic', ['1', '2', '0 ', '3', '4', '0', '5', '6', '0'], ['5'], '0']],
-            // ),
-            // new Expect(
-            //   'testing when multiple inputs all of them are written into memory and read correctly.',
-            //   [
-            //     [
-            //       'testMultiplePublic',
-            //       ['1', '2', '0 ', '3', '4', '0', '5', '6', '0', '111', '10', '11', '12'],
-            //       ['13'],
-            //       '0',
-            //     ],
-            //   ],
-            // ),
+            new Expect(
+              'testing a static array of structs can be passed into an external function and written to memory and index returned.',
+              [
+                [
+                  'testStructExternal',
+                  ['1', '2', '0 ', '3', '4', '0', '5', '6', '0'],
+                  ['5', '6', '0'],
+                  '0',
+                ],
+              ],
+            ),
+            new Expect(
+              'testing a static array of structs can be passed into a public function and written to memory and index returned.',
+              [['testStructPublic', ['1', '2', '0 ', '3', '4', '0', '5', '6', '0'], ['5'], '0']],
+            ),
+            new Expect(
+              'testing when multiple inputs all of them are written into memory and read correctly.',
+              [
+                [
+                  'testMultiplePublic',
+                  ['1', '2', '0 ', '3', '4', '0', '5', '6', '0', '111', '10', '11', '12'],
+                  ['13'],
+                  '0',
+                ],
+              ],
+            ),
           ]),
         ]),
         new Dir('external_input_checks', [
@@ -1404,6 +1436,7 @@ export const expectations = flatten(
             Expect.Simple('doWhile', ['0', '4'], ['5']),
             Expect.Simple('doWhile', ['7', '6'], ['8']),
             Expect.Simple('doWhile_continue', ['1'], ['1']),
+            Expect.Simple('doWhile_continue_2', [], ['42', '0']),
             Expect.Simple('doWhile_return', ['4'], ['2']),
             Expect.Simple('doWhile_break', ['0', '2'], ['2']),
           ]),
@@ -1502,6 +1535,16 @@ export const expectations = flatten(
             Expect.Simple('division256signedsafe', ['100', '20', '5', '0'], ['20', '4']),
             Expect.Simple('division256unsafe', ['100', '20', '5', '0'], ['20', '4']),
             Expect.Simple('division256signedunsafe', ['100', '20', '5', '0'], ['20', '4']),
+          ]),
+          File.Simple('remainder', [
+            Expect.Simple('remainder8safe', ['103', '5'], ['3']),
+            Expect.Simple('remainder8signedsafe', ['137', '5'], ['2']),
+            Expect.Simple('remainder8unsafe', ['215', '9'], ['8']),
+            Expect.Simple('remainder8signedunsafe', ['2', '5'], ['2']),
+            Expect.Simple('remainder256safe', ['255', '23', '5', '0'], ['3', '0']),
+            Expect.Simple('remainder256signedsafe', ['100', '20', '5', '0'], ['0', '0']),
+            Expect.Simple('remainder256unsafe', ['100', '21', '5', '1'], ['0', '1']),
+            Expect.Simple('remainder256signedunsafe', ['100', '20', '13', '0'], ['7', '0']),
           ]),
           File.Simple('eq', [
             Expect.Simple('eq8safe', ['1', '2'], ['0']),
@@ -1708,7 +1751,6 @@ export const expectations = flatten(
             Expect.Simple('deleteFelt', [], ['0']),
             Expect.Simple('deleteUint', [], ['0', '0']),
             Expect.Simple('deleteS', [], ['0', '0'], 'Delete simple struct'),
-            /* Uncomment this once calldata -> memory is implemented
             Expect.Simple('deleteDArray', ['3', '5', '3', '2'], ['0', '0'], 'Delete dynamic array'),
             Expect.Simple(
               'copyDeleteDArray',
@@ -1716,20 +1758,16 @@ export const expectations = flatten(
               ['8', '0'],
               'Delete dynamic array but keep a reference copy',
             ),
-            */
-            /* Uncomment once dynamic arrays inside structs are aloud
-            Expect.Simple('deleteC', [], ['0'], 'Delete struct with a dyanmic array as a member'),
+            // Blocked by returning a struct containing a dynamic array
+            // Expect.Simple('deleteC', [], ['0'], 'Delete struct with a dyanmic array as a member'),
             Expect.Simple(
               'deleteCnotArray',
               ['3', '5', '1', '2'],
-              ['3'],
+              ['4'],
               'Delete struct but keep member array ',
             ),
-            */
-            // Uncomment when assignation of structs to memory dynamic array is working
-            // Expect.Simple('deleteSArray', [], ['3', '4'], 'Delete dynamic array of structs'),
-            // Uncomment once two dimensional memory arrays can be transpiled
-            // Expect.Simple('delete2dArray', [], ['15', '0'], 'Delete dynamic array of structs'),
+            Expect.Simple('deleteSArray', [], ['3', '4'], 'Delete dynamic array of structs'),
+            Expect.Simple('delete2dArray', [], ['13', '0'], 'Delete dynamic array of structs'),
           ]),
           File.Simple('dynamicArrays', [
             Expect.Simple('uint8new', [], ['0', '0']),
@@ -1748,6 +1786,14 @@ export const expectations = flatten(
               'identifierAssign',
               ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11'],
               ['7', '8', '9', '10', '11'],
+            ),
+          ]),
+          File.Simple('nestedIndexAccessWrite', [
+            Expect.Simple(
+              'passDataToInnerFunction',
+              [],
+              [...['0', '0', '0'], ...['0', '0', '0'], ...['0', '0', '1'], ...['0', '0', '7']],
+              '0',
             ),
           ]),
           File.Simple('staticArrays', [
@@ -1926,15 +1972,56 @@ export const expectations = flatten(
             Expect.Simple('insertReturn', ['7'], ['9', '7']),
           ]),
         ]),
+        new Dir('static_array_index_access', [
+          File.Simple('static_array_index_access', [
+            Expect.Simple('t0', ['3', '2', '1', '0', '0'], ['3']),
+            Expect.Simple(
+              't1',
+              [...['2', '0', '2'], ...['3', '0', '3'], '1', '0'],
+              ['3', '0', '3'],
+            ),
+            Expect.Simple(
+              't2',
+              [...['2', '0', '2', '0', '2'], ...['3', '0', '3', '0', '3'], '0', '0'],
+              ['2', '0', '2', '0', '2'],
+            ),
+            Expect.Simple('t3', ['2', '3', '5', '7', '11', '0', '0', '2', '0', '4', '0'], ['18']),
+            Expect.Simple('t4', ['2', '3', '5', '7', '1', '0'], ['5']),
+            Expect.Simple('t5', ['2', '3', '5', '7', '1', '0'], ['3']),
+            Expect.Simple('t6', ['2', '3', '5', '7', '1', '0'], ['7']),
+            Expect.Simple('n0', ['1', '2', '3', '2', '0'], ['3']),
+            Expect.Simple('n1', [...['1', '2', '3'], ...['4', '5', '6'], '0', '0'], ['4']),
+            Expect.Simple(
+              'n2',
+              [
+                ...[...['1', '2', '3'], ...['4', '5', '6']],
+                ...[...['2', '3', '4'], ...['5', '6', '7']],
+                ...[...['3', '4', '5'], ...['6', '7', '8']],
+                '2',
+                '0',
+              ],
+              ['8'],
+            ),
+            Expect.Simple(
+              'n3',
+              [
+                ...[...['1', '2', '3'], ...['4', '5', '6']],
+                ...[...['2', '3', '4'], ...['5', '6', '7']],
+                ...[...['3', '4', '5'], ...['6', '7', '8']],
+                '2',
+                '0',
+              ],
+              ['3', '4', '5'],
+            ),
+          ]),
+        ]),
         new Dir('storage', [
           new Dir('delete', [
             File.Simple('value_dyn_array', [
               Expect.Simple('tryDeleteX', [], ['28']),
               Expect.Simple('tryDeleteY', [], ['71', '0']),
             ]),
-            // Uncomment once Storage -> Calldata copy is implemented
-            // File.Simple('ref_dyn_array', [Expect.Simple('tryDeleteZ', [], ['0', '0', '0'])]),
-            /* Uncomment once Storage -> Calldata copy is implemented
+            File.Simple('ref_dyn_array', [Expect.Simple('tryDeleteZ', [], ['0', '0', '0'])]),
             File.Simple('struct', [
               Expect.Simple(
                 'deleteValueStruct',
@@ -1957,7 +2044,6 @@ export const expectations = flatten(
                 ['getMapStruct', ['5'], ['10'], '0'],
               ]),
             ]),
-            */
             File.Simple('map_2d_dyn_array', [
               new Expect('delete 2d dynamic arrays with mappings', [
                 ['n1', ['3', '0', '5', '0'], [], '0'],
