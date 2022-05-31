@@ -452,6 +452,14 @@ export const expectations = flatten(
               ['arr256', ['12', '0'], null, '0'],
             ]),
           ]),
+          File.Simple('dynamic_arrays_2d', [
+            new Expect('two dimensional dynamic arrays to storage', [
+              ['setArr8', [], [], '0'],
+              ['getArr8', ['0', '0'], ['1', '1', '0'], '0'],
+              ['getArr8', ['1', '0'], ['2', '0', '0', '2', '0'], '0'],
+              ['getArr8', ['2', '0'], ['3', '0', '0', '0', '0', '0', '0'], '0'],
+            ]),
+          ]),
           File.Simple('struct', [
             new Expect('memory to storage for structs', [
               ['getStructs', [], ['0', '0', '0', '0', '0', '0'], '0'],
