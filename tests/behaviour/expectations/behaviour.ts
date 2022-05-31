@@ -766,6 +766,10 @@ export const expectations = flatten(
               ['cancel', [], [], '0'],
               ['get', [], ['255'], '0'],
             ]),
+            new Expect('setWithContractName', [
+              ['setWithContractName', [], [], '0'],
+              ['get', [], ['1'], '0'],
+            ]),
           ]),
           File.Simple('singleEnum7', [
             Expect.Simple('get', [], ['0']),
@@ -780,6 +784,10 @@ export const expectations = flatten(
             new Expect('cancel', [
               ['cancel', [], [], '0'],
               ['get', [], ['259'], '0'],
+            ]),
+            new Expect('setWithContractName', [
+              ['setWithContractName', [], [], '0'],
+              ['get', [], ['1'], '0'],
             ]),
           ]),
           File.Simple('doubleEnum', [
