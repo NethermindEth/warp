@@ -5,7 +5,7 @@ import { OutputOptions } from '.';
 import { compileCairo } from './starknetCli';
 import { TranspileFailedError, logError } from './utils/errors';
 
-export const solABIPrefix = '# SolABI:';
+export const solABIPrefix = '# Original soldity abi:';
 
 export function isValidSolFile(path: string, printError = true): boolean {
   if (!fs.existsSync(path)) {

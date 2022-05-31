@@ -81,10 +81,10 @@ export async function encodeInputs(
 
 function parseInputs(input: string): Input {
   try {
-    const parsedInput = JSON.parse(`[${input}]`);
+    const parsedInput = JSON.parse(`[${input}]`.replaceAll(/\b0x[0-9a-fA-F]+/g, (s) => `"${s}"`));
     validateInput(parsedInput);
     return parsedInput;
-  } catch {
+  } catch (e: any) {
     throw new CLIError('Input must be a comma seperated list of numbers, strings and lists');
   }
 }
@@ -102,7 +102,7 @@ function validateInput(input: any) {
 }
 
 function parseSolAbi(filePath: string): string[] {
-  const re = /# SolABI: (?<abi>[\w()\][, "]*)/;
+  const re = /# Original soldity abi: (?<abi>[\w()\][, "]*)/;
   const abiString = readFileSync(filePath, 'utf-8');
   const matches = abiString.match(re);
   if (matches === null || matches.groups === undefined) {

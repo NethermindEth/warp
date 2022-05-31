@@ -133,7 +133,6 @@ export async function runStarknetCallOrInvoke(
   isCall: boolean,
   options: ICallOrInvokeProps,
 ) {
-  console.log(options.inputs);
   const callOrInvoke = isCall ? 'call' : 'invoke';
 
   if (options.network == undefined) {
