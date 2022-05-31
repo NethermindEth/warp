@@ -116,9 +116,11 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
     return;
   }
 
+  const account = options.account ? `--account ${options.account}` : '';
+
   try {
     execSync(
-      `${warpVenvPrefix} starknet deploy_account --wallet ${options.wallet} --network ${options.network} --account ${options.account}`,
+      `${warpVenvPrefix} starknet deploy_account --wallet ${options.wallet} --network ${options.network} ${account}`,
       {
         stdio: 'inherit',
       },
@@ -143,6 +145,7 @@ export async function runStarknetCallOrInvoke(
   }
 
   const wallet = options.wallet === undefined ? '--no_wallet' : `--wallet ${options.wallet}`;
+  const account = options.account ? `--account ${options.account}` : '';
 
   const { success, abiPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
   if (!success) {
@@ -168,7 +171,7 @@ export async function runStarknetCallOrInvoke(
 
   try {
     execSync(
-      `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${inputs}`,
+      `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${account} ${inputs}`,
       { stdio: 'inherit' },
     );
   } catch {

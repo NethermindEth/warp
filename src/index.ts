@@ -126,7 +126,7 @@ interface IDeployProps_ {
   inputs?: string;
   use_cairo_abi: boolean;
 }
-export type IDeployProps = IDeployProps_ & IOptionalNetwork;
+export type IDeployProps = IDeployProps_ & IOptionalNetwork & IOptionalAccount;
 
 program
   .command('deploy <file>')
@@ -145,17 +145,16 @@ interface IOptionalWallet {
   wallet?: string;
 }
 
-interface IDeployAccountProps_ {
+interface IOptionalAccount {
   account?: string;
 }
-export type IDeployAccountProps = IDeployAccountProps_ & IOptionalNetwork & IOptionalWallet;
+export type IDeployAccountProps = IOptionalAccount & IOptionalNetwork & IOptionalWallet;
 
 program
   .command('deploy_account')
   .option(
-    '--account',
-    'The name of the account. If not given, the "__default__" will be used.',
-    '__default__',
+    '--account <account>',
+    'The name of the account. If not given, the default for the wallet will be used.',
   )
   .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
   .option(
@@ -173,7 +172,10 @@ interface ICallOrInvokeProps_ {
   inputs?: string;
   use_cairo_abi: boolean;
 }
-export type ICallOrInvokeProps = ICallOrInvokeProps_ & IOptionalNetwork & IOptionalWallet;
+export type ICallOrInvokeProps = ICallOrInvokeProps_ &
+  IOptionalNetwork &
+  IOptionalWallet &
+  IOptionalAccount;
 
 program
   .command('invoke <file>')
@@ -185,6 +187,10 @@ program
     undefined,
   )
   .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
+  .option(
+    '--account <account>',
+    'The name of the account. If not given, the default for the wallet will be used.',
+  )
   .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
@@ -205,6 +211,10 @@ program
     undefined,
   )
   .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
+  .option(
+    '--account <account>',
+    'The name of the account. If not given, the default for the wallet will be used.',
+  )
   .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
