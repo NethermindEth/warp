@@ -41,6 +41,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
       nodeInSourceUnit ?? astNode,
       FunctionStateMutability.View,
       FunctionStubKind.StructDefStub,
+      true,
     );
 
     if (astNode instanceof VariableDeclaration) {
