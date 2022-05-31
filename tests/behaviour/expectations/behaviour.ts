@@ -271,6 +271,57 @@ export const expectations = flatten(
               ],
             ),
           ]),
+          File.Simple('storageArrays', [
+            Expect.Simple('tryX1', ['3', '1', '2', '3'], ['3', '1', '0', '2', '0', '3', '0']),
+            Expect.Simple('tryX2', ['4', '5', '6'], ['3', '4', '0', '5', '0', '6', '0']),
+            Expect.Simple(
+              'tryY1',
+              ['4', '5', '6', '7', '8'],
+              ['4', '0', '5', '0', '6', '0', '7', '0', '8', '0'],
+            ),
+            Expect.Simple(
+              'tryY2',
+              ['4', '5', '6'],
+              ['4', '0', '5', '0', '6', '0', '0', '0', '0', '0'],
+            ),
+            Expect.Simple('tryXX1', [], ['10', '0']),
+            Expect.Simple('tryXX2', [], ['11', '0']),
+            /* Cannot test yet due to transpilation errors
+            // Get's into an infinte loop
+            Expect.Simple('tryXX3', [], ['4', '0']),
+            // Nesting issues
+            Expect.Simple(
+              'tryYY1',
+              [],
+              [
+                ...['1', '0', '2', '0', '0', '0'],
+                ...['3', '0', '4', '0', '0', '0'],
+                ...['0', '0', '0', '0', '0', '0'],
+              ],
+            ),
+            // Bug related with the creating of Uin256 structs
+            Expect.Simple(
+              'tryXY1',
+              [],
+              [
+                '3',
+                ...['1', '0', '2', '0', '0', '0'],
+                ...['3', '0', '4', '0', '0', '0'],
+                ...['5', '0', '6', '0', '0', '0'],
+              ],
+            ),
+            // Some part of memory to stroage not implemented yet
+            Expect.Simple(
+              'tryYX1',
+              [],
+              [
+                ...['1', ...['1', '0']],
+                ...['2', ...['0', '0', '2', '0']],
+                ...['3', ...['0', '0', '0', '0', '3', '0']],
+              ],
+            ),
+            */
+          ]),
           File.Simple('unsignedIdentity', [
             Expect.Simple('implicit', ['210', '11', '12'], ['210', '11', '12']),
             Expect.Simple('explicit', ['200', '300', '400'], ['200', '300', '400']),
