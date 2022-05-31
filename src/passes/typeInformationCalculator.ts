@@ -38,7 +38,8 @@ function calculateIntMax(type: IntType): bigint {
 }
 
 function createEnumMemberAccess(
-  node: Expression,
+  outerTypeString: string,
+  innerTypeString: string,
   enumDef: EnumDefinition,
   member: EnumValue,
   ast: AST,
@@ -46,8 +47,8 @@ function createEnumMemberAccess(
   return new MemberAccess(
     ast.reserveId(),
     '',
-    node.typeString,
-    new Identifier(ast.reserveId(), '', node.typeString, enumDef.name, enumDef.id),
+    outerTypeString,
+    new Identifier(ast.reserveId(), '', innerTypeString, enumDef.name, enumDef.id),
     member.name,
     member.id,
   );
@@ -64,14 +65,24 @@ export class TypeInformationCalculator extends ASTMapper {
 
     const argNode = node.vExpression.vArguments[0];
 
-    const replaceNode: ASTNode | null = this.getReplacement(argNode, node.memberName, ast);
+    const replaceNode: ASTNode | null = this.getReplacement(
+      argNode,
+      node.memberName,
+      node.typeString,
+      ast,
+    );
 
     if (replaceNode !== null) {
       ast.replaceNode(node, replaceNode);
     }
   }
 
-  private getReplacement(node: Expression, memberName: string, ast: AST): ASTNode | null {
+  private getReplacement(
+    node: Expression,
+    memberName: string,
+    typestring: string,
+    ast: AST,
+  ): ASTNode | null {
     let nodeType = getNodeType(node, ast.compilerVersion);
     assert(
       nodeType instanceof TypeNameType,
@@ -88,9 +99,10 @@ export class TypeInformationCalculator extends ASTMapper {
       const userDef = nodeType.definition;
       if (userDef instanceof EnumDefinition && (memberName === 'min' || memberName === 'max'))
         return memberName === 'min'
-          ? createEnumMemberAccess(node, userDef, userDef.vMembers[0], ast)
+          ? createEnumMemberAccess(typestring, node.typeString, userDef, userDef.vMembers[0], ast)
           : createEnumMemberAccess(
-              node,
+              typestring,
+              node.typeString,
               userDef,
               userDef.vMembers[userDef.vMembers.length - 1],
               ast,

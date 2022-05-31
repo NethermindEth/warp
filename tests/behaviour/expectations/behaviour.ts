@@ -766,6 +766,10 @@ export const expectations = flatten(
               ['cancel', [], [], '0'],
               ['get', [], ['255'], '0'],
             ]),
+            new Expect('setWithContractName', [
+              ['setWithContractName', [], [], '0'],
+              ['get', [], ['1'], '0'],
+            ]),
           ]),
           File.Simple('singleEnum7', [
             Expect.Simple('get', [], ['0']),
@@ -780,6 +784,10 @@ export const expectations = flatten(
             new Expect('cancel', [
               ['cancel', [], [], '0'],
               ['get', [], ['259'], '0'],
+            ]),
+            new Expect('setWithContractName', [
+              ['setWithContractName', [], [], '0'],
+              ['get', [], ['1'], '0'],
             ]),
           ]),
           File.Simple('doubleEnum', [
@@ -1526,6 +1534,16 @@ export const expectations = flatten(
             Expect.Simple('division256signedsafe', ['100', '20', '5', '0'], ['20', '4']),
             Expect.Simple('division256unsafe', ['100', '20', '5', '0'], ['20', '4']),
             Expect.Simple('division256signedunsafe', ['100', '20', '5', '0'], ['20', '4']),
+          ]),
+          File.Simple('remainder', [
+            Expect.Simple('remainder8safe', ['103', '5'], ['3']),
+            Expect.Simple('remainder8signedsafe', ['137', '5'], ['2']),
+            Expect.Simple('remainder8unsafe', ['215', '9'], ['8']),
+            Expect.Simple('remainder8signedunsafe', ['2', '5'], ['2']),
+            Expect.Simple('remainder256safe', ['255', '23', '5', '0'], ['3', '0']),
+            Expect.Simple('remainder256signedsafe', ['100', '20', '5', '0'], ['0', '0']),
+            Expect.Simple('remainder256unsafe', ['100', '21', '5', '1'], ['0', '1']),
+            Expect.Simple('remainder256signedunsafe', ['100', '20', '13', '0'], ['7', '0']),
           ]),
           File.Simple('eq', [
             Expect.Simple('eq8safe', ['1', '2'], ['0']),

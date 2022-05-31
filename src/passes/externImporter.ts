@@ -1,21 +1,15 @@
 import assert from 'assert';
 import {
   ContractDefinition,
-  ErrorDefinition,
   FunctionDefinition,
   Identifier,
-  ImportDirective,
   SourceUnit,
   StructDefinition,
-  UserDefinedValueTypeDefinition,
-  VariableDeclaration,
   UserDefinedTypeName,
   ASTNode,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { printNode } from '../utils/astPrinter';
-import { NotSupportedYetError } from '../utils/errors';
 import * as pathLib from 'path';
 
 export class ExternImporter extends ASTMapper {
@@ -43,7 +37,6 @@ export class ExternImporter extends ASTMapper {
 
   visitIdentifier(node: Identifier, ast: AST): void {
     const declaration = node.vReferencedDeclaration;
-
     if (declaration === undefined) return;
 
     const declarationSourceUnit = declaration.getClosestParentByType(SourceUnit);
@@ -57,14 +50,6 @@ export class ExternImporter extends ASTMapper {
       (declaration instanceof StructDefinition && isFree(declaration))
     ) {
       ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
-    }
-    if (
-      declaration instanceof ErrorDefinition ||
-      declaration instanceof UserDefinedValueTypeDefinition ||
-      declaration instanceof VariableDeclaration ||
-      declaration instanceof ImportDirective
-    ) {
-      throw new NotSupportedYetError(`Importing ${printNode(declaration)} not implemented yet`);
     }
   }
 }

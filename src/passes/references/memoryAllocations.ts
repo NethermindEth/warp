@@ -40,7 +40,9 @@ export class MemoryAllocations extends ReferenceSubPass {
         this.allocateMemoryDynArray(node, ast);
       } else {
         throw new NotSupportedYetError(
-          `Allocating dynamic ${actualLoc ?? 'unknown-location'} arrays not implemented yet`,
+          `Allocating dynamic ${
+            actualLoc ?? 'unknown-location'
+          } arrays not implemented yet (${printNode(node)})`,
         );
       }
     }

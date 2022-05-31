@@ -98,15 +98,23 @@ export class EnumConverter extends ASTMapper {
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
-    this.commonVisit(node, ast);
-    if (node.vExpression instanceof Identifier) {
-      const enumDef = node.vExpression.vReferencedDeclaration;
-      if (enumDef instanceof EnumDefinition) {
-        // replace member access node with literal
-        const intLiteral = this.getEnumValue(enumDef, node.memberName);
-        ast.replaceNode(node, createNumberLiteral(intLiteral, ast, enumToIntType(enumDef).pp()));
-      }
+    const type = getNodeType(node, ast.compilerVersion);
+    const baseType = getNodeType(node.vExpression, ast.compilerVersion);
+    if (
+      type instanceof UserDefinedType &&
+      type.definition instanceof EnumDefinition &&
+      baseType instanceof TypeNameType &&
+      baseType.type instanceof UserDefinedType &&
+      baseType.type.definition instanceof EnumDefinition
+    ) {
+      const intLiteral = this.getEnumValue(type.definition, node.memberName);
+      ast.replaceNode(
+        node,
+        createNumberLiteral(intLiteral, ast, enumToIntType(type.definition).pp()),
+      );
+      return;
     }
+    this.visitExpression(node, ast);
   }
 }
 
