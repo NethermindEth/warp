@@ -146,7 +146,7 @@ const expectedResults = new Map<string, ResultType>([
   // Don't automatically cast uint256 elements when creating static array
   ['example_contracts/uint256_static_array_casting', 'Success'],
   // Serialising BytesType not supported yet
-  ['example_contracts/typestrings/basicArrays', 'NotSupportedYet'],
+  ['example_contracts/typestrings/basicArrays', 'Success'],
   // Not supported operation delete on CairoContract
   ['example_contracts/typestrings/scalars', 'NotSupportedYet'],
   ['example_contracts/typestrings/structArrays', 'Success'],
@@ -157,9 +157,9 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/unsupportedFunctions/ecrecover', `WillNotSupport`],
   ['example_contracts/unsupportedFunctions/addmod', `WillNotSupport`],
   // Uses bytes memory
-  ['example_contracts/unsupportedFunctions/shadowAbi', `NotSupportedYet`],
+  ['example_contracts/unsupportedFunctions/shadowAbi', `Success`],
   // Uses bytes memory
-  ['example_contracts/unsupportedFunctions/shadowKeccak256', `NotSupportedYet`],
+  ['example_contracts/unsupportedFunctions/shadowKeccak256', `Success`],
   ['example_contracts/unsupportedFunctions/shadowEcrecover', `Success`],
   // uses modulo (%)
   ['example_contracts/unsupportedFunctions/shadowAddmod', `NotSupportedYet`],
