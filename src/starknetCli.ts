@@ -79,7 +79,9 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
 
   let inputs: string;
   try {
-    inputs = (await encodeInputs(filePath, 'constructor', options.useCairoABI, options.inputs))[1];
+    inputs = (
+      await encodeInputs(filePath, 'constructor', options.use_cairo_abi, options.inputs)
+    )[1];
   } catch (e) {
     if (e instanceof CLIError) {
       logError(e.message);
@@ -154,7 +156,7 @@ export async function runStarknetCallOrInvoke(
     [funcName, inputs] = await encodeInputs(
       filePath,
       options.function,
-      options.useCairoABI,
+      options.use_cairo_abi,
       options.inputs,
     );
   } catch (e) {

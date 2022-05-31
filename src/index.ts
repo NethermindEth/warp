@@ -124,7 +124,7 @@ program
 
 interface IDeployProps_ {
   inputs?: string;
-  useCairoABI: boolean;
+  use_cairo_abi: boolean;
 }
 export type IDeployProps = IDeployProps_ & IOptionalNetwork;
 
@@ -135,7 +135,7 @@ program
     'Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists.',
     undefined,
   )
-  .option('--useCairoABI', 'Use the cairo abi instead of solidity for the inputs.', false)
+  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
   .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
   .action((file: string, options: IDeployProps) => {
     runStarknetDeploy(file, options);
@@ -171,7 +171,7 @@ interface ICallOrInvokeProps_ {
   address: string;
   function: string;
   inputs?: string;
-  useCairoABI: boolean;
+  use_cairo_abi: boolean;
 }
 export type ICallOrInvokeProps = ICallOrInvokeProps_ & IOptionalNetwork & IOptionalWallet;
 
@@ -184,7 +184,7 @@ program
     'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
     undefined,
   )
-  .option('--useCairoABI', 'Use the cairo abi instead of solidity for the inputs.', false)
+  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
   .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
@@ -204,7 +204,7 @@ program
     'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
     undefined,
   )
-  .option('--useCairoABI', 'Use the cairo abi instead of solidity for the inputs.', false)
+  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
   .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
