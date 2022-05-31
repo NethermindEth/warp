@@ -19,7 +19,6 @@ import {
   Literal,
   BytesType,
   StringType,
-  replaceNode,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -53,7 +52,7 @@ export class BytesConverter extends ASTMapper {
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
     const typeNode = typeNameToTypeNode(node);
     if (typeNode instanceof StringType || typeNode instanceof BytesType) {
-      replaceNode(node, createArrayTypeName(createUint8TypeName(ast), ast));
+      ast.replaceNode(node, createArrayTypeName(createUint8TypeName(ast), ast));
       return;
     }
     const replacementTypeNode = replaceBytesType(typeNode);

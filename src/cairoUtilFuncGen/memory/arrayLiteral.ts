@@ -29,7 +29,11 @@ import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
 export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
   stringGen(node: Literal): FunctionCall {
     // Encode the literal to the uint-8 byte representation
-    assert(node.kind === LiteralKind.String);
+    assert(
+      node.kind === LiteralKind.String ||
+        node.kind === LiteralKind.UnicodeString ||
+        LiteralKind.HexString,
+    );
 
     const size = node.hexValue.length / 2;
     const baseType = new IntType(8, false);
@@ -122,6 +126,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     });
 
     this.requireImport('warplib.memory', 'wm_alloc');
+    this.requireImport('warplib.memory', 'wm_write_256');
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
 

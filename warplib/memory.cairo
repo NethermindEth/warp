@@ -126,6 +126,9 @@ func wm_dyn_array_length{warp_memory : DictAccess*}(arrayLoc : felt) -> (len : U
     return (Uint256(low, high))
 end
 
+# The wm_bytes methods below are not currently in use since solidity dynamic
+# memory arrays do not support `push` and `pop` operations. They are kept with
+# the expectation that they will likely be added to solidity soon.
 func wm_bytes_new{range_check_ptr, warp_memory : DictAccess*}(len : Uint256) -> (loc : felt):
     alloc_locals
     # Create an array to hold the bytes

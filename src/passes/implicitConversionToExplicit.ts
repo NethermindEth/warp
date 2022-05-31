@@ -21,6 +21,7 @@ import {
   IndexAccess,
   IntLiteralType,
   IntType,
+  Literal,
   MappingType,
   ModuleType,
   PointerType,
@@ -42,6 +43,7 @@ import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { createElementaryConversionCall } from '../utils/functionGeneration';
 import { generateExpressionTypeString } from '../utils/getTypeString';
+import { createNumberLiteral, createUint8TypeName } from '../utils/nodeTemplates';
 import { getParameterTypes, intTypeForLiteral, specializeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
 
@@ -259,7 +261,9 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
   } else if (currentType instanceof BuiltinType) {
     return;
   } else if (currentType instanceof BytesType) {
-    throw new NotSupportedYetError(`BytesType not supported yet`);
+    throw new TranspileFailedError(
+      `Expected BytesType to have been substituted. Found at ${printNode(expression)}`,
+    );
   } else if (currentType instanceof FixedBytesType) {
     throw new TranspileFailedError(
       `Expected FixedBytesType to have been substituted. Found at ${printNode(expression)}`,
@@ -294,6 +298,19 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
       `Unexpected unresolved rational literal ${printNode(expression)}`,
     );
   } else if (currentType instanceof StringLiteralType) {
+    if (targetType instanceof IntType) {
+      if (!(expression instanceof Literal)) {
+        throw new TranspileFailedError(`Expected stringLiteralType expression to be a Literal`);
+      }
+      const padding = '0'.repeat(targetType.nBits / 4 - expression.hexValue.length);
+      const replacementNode = createNumberLiteral(
+        `0x${expression.hexValue}${padding}`,
+        ast,
+        `uint${targetType.nBits / 8}`,
+      );
+      ast.replaceNode(expression, replacementNode, expression.parent);
+      insertConversion(replacementNode, targetType, ast);
+    }
     return;
   } else if (currentType instanceof TupleType) {
     throw new TranspileFailedError(
