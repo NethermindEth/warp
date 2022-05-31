@@ -84,12 +84,12 @@ function parseInputs(input: string): Input {
     const parsedInput = JSON.parse(`[${input}]`.replaceAll(/\b0x[0-9a-fA-F]+/g, (s) => `"${s}"`));
     validateInput(parsedInput);
     return parsedInput;
-  } catch (e: any) {
+  } catch (e: unknown) {
     throw new CLIError('Input must be a comma seperated list of numbers, strings and lists');
   }
 }
 
-function validateInput(input: any) {
+function validateInput(input: unknown) {
   if (input instanceof Array) {
     input.map(validateInput);
     return;
@@ -115,7 +115,7 @@ function parseSolAbi(filePath: string): string[] {
   return solAbi;
 }
 
-function validateSolAbi(solABI: any) {
+function validateSolAbi(solABI: unknown) {
   if (solABI instanceof Array) {
     if (!solABI.every((v) => v instanceof String || typeof v === 'string'))
       throw new CLIError('Solidity abi in file is not a list of function signatures');
