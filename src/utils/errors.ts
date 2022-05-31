@@ -4,6 +4,12 @@ export function logError(message: string): void {
   console.error(error(message));
 }
 
+export class CLIError extends Error {
+  constructor(message: string) {
+    super(error(message));
+  }
+}
+
 export class TranspilationAbandonedError extends Error {
   constructor(message: string) {
     super(error(message));

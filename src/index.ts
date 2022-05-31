@@ -59,8 +59,8 @@ program
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
     try {
-      transpile(compileSolFile(file, options.warnings), options).map(([name, cairo]) => {
-        outputResult(name, cairo, options, '.cairo');
+      transpile(compileSolFile(file, options.warnings), options).map(([name, cairo, abi]) => {
+        outputResult(name, cairo, options, '.cairo', abi);
       });
     } catch (e) {
       handleTranspilationError(e);
@@ -83,7 +83,7 @@ program
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
     try {
-      transform(compileSolFile(file, options.warnings), options).map(([name, solidity]) => {
+      transform(compileSolFile(file, options.warnings), options).map(([name, solidity, _]) => {
         outputResult(name, solidity, options, '_warp.sol');
       });
     } catch (e) {
@@ -123,17 +123,19 @@ program
   });
 
 interface IDeployProps_ {
-  inputs?: string[];
+  inputs?: string;
+  use_cairo_abi: boolean;
 }
 export type IDeployProps = IDeployProps_ & IOptionalNetwork & IOptionalAccount;
 
 program
   .command('deploy <file>')
   .option(
-    '--inputs <inputs...>',
-    'Arguments to be passed to constructor of the program.',
+    '--inputs <inputs>',
+    'Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists.',
     undefined,
   )
+  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
   .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
   .action((file: string, options: IDeployProps) => {
     runStarknetDeploy(file, options);
@@ -167,7 +169,8 @@ program
 interface ICallOrInvokeProps_ {
   address: string;
   function: string;
-  inputs?: string[];
+  inputs?: string;
+  use_cairo_abi: boolean;
 }
 export type ICallOrInvokeProps = ICallOrInvokeProps_ &
   IOptionalNetwork &
@@ -179,17 +182,22 @@ program
   .requiredOption('--address <address>', 'Address of contract to invoke.')
   .requiredOption('--function <function>', 'Function to invoke.')
   .option(
+    '--inputs <inputs>',
+    'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
+    undefined,
+  )
+  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
+  .option(
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used.',
   )
-  .option('--inputs <inputs...>', 'Input to function.', undefined)
   .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
     'The name of the wallet, including the python module and wallet class.',
     process.env.STARKNET_WALLET,
   )
-  .action((file: string, options: ICallOrInvokeProps) => {
+  .action(async (file: string, options: ICallOrInvokeProps) => {
     runStarknetCallOrInvoke(file, false, options);
   });
 
@@ -198,17 +206,22 @@ program
   .requiredOption('--address <address>', 'Address of contract to call.')
   .requiredOption('--function <function>', 'Function to call.')
   .option(
+    '--inputs <inputs>',
+    'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
+    undefined,
+  )
+  .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
+  .option(
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used.',
   )
-  .option('--inputs <inputs...>', 'Input to function.', undefined)
   .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
     'The name of the wallet, including the python module and wallet class.',
     process.env.STARKNET_WALLET,
   )
-  .action((file: string, options: ICallOrInvokeProps) => {
+  .action(async (file: string, options: ICallOrInvokeProps) => {
     runStarknetCallOrInvoke(file, true, options);
   });
 
