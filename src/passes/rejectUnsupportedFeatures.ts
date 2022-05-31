@@ -125,14 +125,14 @@ export class RejectUnsupportedFeatures extends ASTMapper {
         if (isReferenceType(type)) {
           if (type instanceof ArrayType) {
             type.size === undefined
-              ? this.inspectChildType(type.elementT, ast, true)
-              : this.inspectChildType(type.elementT, ast, false);
+              ? this.externalFunctionArgsCheck(type.elementT, ast, true)
+              : this.externalFunctionArgsCheck(type.elementT, ast, false);
           } else if (
             type instanceof UserDefinedType &&
             type.definition instanceof StructDefinition
           ) {
             type.definition.vMembers.map((member) =>
-              this.inspectChildType(getNodeType(member, ast.compilerVersion), ast, false),
+              this.externalFunctionArgsCheck(getNodeType(member, ast.compilerVersion), ast, false),
             );
           }
         }
@@ -145,22 +145,26 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     this.commonVisit(node, ast);
   }
 
-  private inspectChildType(type: TypeNode, ast: AST, parentDynArray: boolean): boolean | void {
+  private externalFunctionArgsCheck(
+    type: TypeNode,
+    ast: AST,
+    parentDynArray: boolean,
+  ): boolean | void {
     if (type instanceof ArrayType) {
       const elemType = type.elementT;
       if (type instanceof ArrayType && type.size !== undefined && parentDynArray) {
         throw new NotSupportedYetError(
-          `Static Arrays as elements of Dynamic Arrays are not supported.`,
+          `Static Arrays as elements of Dynamic arrays are not supported in calldata or as inputs to externally visible functions"`,
         );
       } else if (type instanceof ArrayType && type.size === undefined) {
         throw new NotSupportedYetError(
-          `Inputs arguments with Dynamic Arrays as members or elements are not supported.`,
+          `Inputs arguments with nested Dynamic Arrays not supported in external functions`,
         );
       }
-      this.inspectChildType(elemType, ast, false);
+      this.externalFunctionArgsCheck(elemType, ast, false);
     } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
       type.definition.vMembers.map((member) => {
-        this.inspectChildType(getNodeType(member, ast.compilerVersion), ast, false);
+        this.externalFunctionArgsCheck(getNodeType(member, ast.compilerVersion), ast, false);
       });
     }
   }
