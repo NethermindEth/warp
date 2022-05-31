@@ -68,6 +68,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/events', 'Success'],
   ['example_contracts/external_function', 'Success'],
   ['example_contracts/fallbackWithoutArgs', 'Success'],
+  ['example_contracts/fallbackWithArgs', 'WillNotSupport'],
   // Cannot import with a - in the filename
   ['example_contracts/file-with-minus-sign-included', 'WillNotSupport'],
   // Typestring for the internal function call doesn't contain a location so a read isn't generated
@@ -162,7 +163,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/unsupportedFunctions/shadowKeccak256', `Success`],
   ['example_contracts/unsupportedFunctions/shadowEcrecover', `Success`],
   // uses modulo (%)
-  ['example_contracts/unsupportedFunctions/shadowAddmod', `NotSupportedYet`],
+  ['example_contracts/unsupportedFunctions/shadowAddmod', 'Success'],
   // Uses WARP_STORAGE in a free function
   ['example_contracts/using_for/imports/user_defined', 'CairoCompileFailed'],
   // global_directive.sol cannot resolve struct when file imported as identifier

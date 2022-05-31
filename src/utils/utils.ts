@@ -3,6 +3,7 @@ import {
   AddressType,
   ArrayType,
   ArrayTypeName,
+  Assignment,
   BoolType,
   BytesType,
   CompileFailedError,
@@ -11,8 +12,10 @@ import {
   EtherUnit,
   Expression,
   FixedBytesType,
+  FunctionCall,
   FunctionDefinition,
   FunctionKind,
+  FunctionStateMutability,
   FunctionVisibility,
   generalizeType,
   IdentifierPath,
@@ -357,4 +360,23 @@ export function splitDarray(
   );
 
   return [arrayLen, dArrayVarDecl];
+}
+
+export function expressionHasSideEffects(node: Expression): boolean {
+  return (
+    (node instanceof FunctionCall && functionAffectsState(node)) ||
+    node instanceof Assignment ||
+    node.children.some((child) => child instanceof Expression && expressionHasSideEffects(child))
+  );
+}
+
+export function functionAffectsState(node: FunctionCall): boolean {
+  const funcDef = node.vReferencedDeclaration;
+  if (funcDef instanceof FunctionDefinition) {
+    return (
+      funcDef.stateMutability !== FunctionStateMutability.Pure &&
+      funcDef.stateMutability !== FunctionStateMutability.View
+    );
+  }
+  return true;
 }

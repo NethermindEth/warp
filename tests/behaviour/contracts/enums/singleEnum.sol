@@ -19,6 +19,10 @@ contract WARP {
     _status = Status.Z5;
   }
 
+  function setWithContractName() public {
+    _status = WARP.Status.A1;
+  }
+
   Status public _status;
 
   enum Status {

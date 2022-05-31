@@ -48,4 +48,8 @@ contract WARP {
   function cancel() public {
     _status = Status.Z9;
   }
+
+  function setWithContractName() public {
+    _status = WARP.Status.A1;
+  }
 }

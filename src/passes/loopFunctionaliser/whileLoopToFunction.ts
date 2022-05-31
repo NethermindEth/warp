@@ -25,7 +25,7 @@ export class WhileLoopToFunction extends ASTMapper {
       this.loopToContinueFunction,
       ast,
     );
-    // const outerCall = createOuterCall(node, unboundVariables, functionDef, ast);
+
     const outerCall = createOuterCall(
       node,
       [...unboundVariables.keys()],

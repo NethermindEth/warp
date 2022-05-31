@@ -5,6 +5,7 @@ import {
   FunctionCall,
   FunctionType,
   getNodeType,
+  IntLiteralType,
   MappingType,
   MemberAccess,
   PointerType,
@@ -47,8 +48,11 @@ export class UserDefinedTypesConverter extends ASTMapper {
 
   visitExpression(node: Expression, ast: AST): void {
     this.commonVisit(node, ast);
-    const replacementNode = replaceUserDefinedType(getNodeType(node, ast.compilerVersion));
-    node.typeString = generateExpressionTypeString(replacementNode);
+    const nodeType = getNodeType(node, ast.compilerVersion);
+    if (!(nodeType instanceof IntLiteralType)) {
+      const replacementNode = replaceUserDefinedType(nodeType);
+      node.typeString = generateExpressionTypeString(replacementNode);
+    }
   }
 
   visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {

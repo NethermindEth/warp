@@ -9,14 +9,18 @@ import {
   FunctionType,
   getNodeType,
   VariableDeclaration,
+  FunctionDefinition,
+  FunctionKind,
   FunctionCall,
   FunctionCallKind,
   SourceUnit,
+  NewExpression,
+  ArrayTypeName,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { WillNotSupportError } from '../utils/errors';
+import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   visitIndexAccess(node: IndexAccess, ast: AST): void {
@@ -97,5 +101,22 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     }
 
     this.visitExpression(node, ast);
+  }
+
+  visitNewExpression(node: NewExpression, ast: AST): void {
+    if (!(node.vTypeName instanceof ArrayTypeName)) {
+      throw new NotSupportedYetError(
+        `new expressions are not supported yet for non-array type ${node.vTypeName.typeString}`,
+      );
+    }
+    this.visitExpression(node, ast);
+  }
+
+  visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
+    if (node.kind === FunctionKind.Fallback) {
+      if (node.vParameters.vParameters.length > 0)
+        throw new WillNotSupportError(`${node.kind} with arguments is not supported`);
+    }
+    this.commonVisit(node, ast);
   }
 }
