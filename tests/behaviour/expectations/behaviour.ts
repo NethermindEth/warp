@@ -1053,6 +1053,24 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('external_input_checks', [
+          File.Simple('address', [
+            new Expect('testing an address in bounds does not throw', [
+              [
+                'addressTest',
+                ['3618502788666131106986593281521497120414687020801267626233049500247285301247'],
+                ['3618502788666131106986593281521497120414687020801267626233049500247285301247'],
+                '0',
+              ],
+            ]),
+            new Expect('testing an address in bounds does', [
+              [
+                'addressTest',
+                ['3618502788666131106986593281521497120414687020801267626233049500247285301248'],
+                null,
+                '0',
+              ],
+            ]),
+          ]),
           File.Simple('dynArray', [
             new Expect('testing a dynArray of int values, no values out of bounds', [
               ['elemInt', ['4', '10', '20', '30', '40'], ['10'], '0'],
