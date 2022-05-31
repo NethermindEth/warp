@@ -32,10 +32,10 @@ export class StorageAllocator extends ASTMapper {
     const allocations: Map<VariableDeclaration, number> = new Map();
     node.vStateVariables.forEach((v) => {
       const type = getNodeType(v, ast.compilerVersion);
-      if (generalizeType(type)[0] instanceof MappingType) {
+      if (generalizeType(type)[0] instanceof MappingType || isDynamicStorageArray(type)) {
+        const width = CairoType.fromSol(type, ast, TypeConversionContext.StorageAllocation).width;
         allocations.set(v, ++usedNames);
-      } else if (isDynamicStorageArray(type)) {
-        allocations.set(v, ++usedNames);
+        usedStorage += width;
         extractInitialisation(v, initialisationBlock, ast);
       } else if (!isCairoConstant(v)) {
         const width = CairoType.fromSol(type, ast, TypeConversionContext.StorageAllocation).width;
