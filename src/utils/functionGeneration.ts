@@ -72,7 +72,6 @@ export function createCairoFunctionStub(
   nodeInSourceUnit: ASTNode,
   mutability: FunctionStateMutability = FunctionStateMutability.NonPayable,
   functionStubKind: FunctionStubKind = FunctionStubKind.FunctionDefStub,
-  acceptsRawDArray = false,
 ): CairoFunctionDefinition {
   const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
   const funcDefId = ast.reserveId();
@@ -111,7 +110,6 @@ export function createCairoFunctionStub(
     [],
     new Set(implicits),
     functionStubKind,
-    acceptsRawDArray,
   );
 
   ast.setContextRecursive(funcDef);

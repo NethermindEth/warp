@@ -1,4 +1,3 @@
-import assert from 'assert';
 import { AST } from '../../ast/ast';
 import {
   ContractDefinition,
@@ -6,14 +5,18 @@ import {
   FunctionDefinition,
   Statement,
   ExpressionStatement,
+  IntType,
   VariableDeclaration,
   FunctionCall,
+  getNodeType,
 } from 'solc-typed-ast';
 import { ASTMapper } from '../../ast/mapper';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { isExternallyVisible, typeNameFromTypeNode } from '../../utils/utils';
+import assert from 'assert';
 import { createIdentifier } from '../../utils/nodeTemplates';
-import { isExternallyVisible } from '../../utils/utils';
 
-export class EnumBoundChecker extends ASTMapper {
+export class IntBoundChecker extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     if (node.kind === ContractKind.Interface) {
       return;
@@ -24,8 +27,9 @@ export class EnumBoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (isExternallyVisible(node) && node.vBody !== undefined) {
       node.vParameters.vParameters.forEach((parameter) => {
-        if (parameter.typeString.slice(0, 4) === 'enum' && parameter.name !== undefined) {
-          const functionCall = this.generateFunctionCall(node, parameter, ast);
+        const typeNode = getNodeType(parameter, ast.compilerVersion);
+        if (typeNode instanceof IntType) {
+          const functionCall = this.generateFunctionCall(parameter, typeNode, ast);
           this.insertFunctionCall(node, functionCall, ast);
         }
       });
@@ -34,14 +38,27 @@ export class EnumBoundChecker extends ASTMapper {
   }
 
   private generateFunctionCall(
-    node: FunctionDefinition,
     parameter: VariableDeclaration,
+    typeNode: IntType,
     ast: AST,
   ): FunctionCall {
-    const enumStubArgument = createIdentifier(parameter, ast);
-    const functionCall = ast
-      .getUtilFuncGen(node)
-      .externalFunctions.inputsChecks.enum.gen(parameter, enumStubArgument);
+    const intStubArgument = createIdentifier(parameter, ast);
+
+    const int_width = typeNode.nBits;
+
+    const name = `warp_external_input_check_int${int_width}`;
+
+    const functionStub = createCairoFunctionStub(
+      name,
+      [['x', typeNameFromTypeNode(typeNode, ast)]],
+      [],
+      ['syscall_ptr', 'range_check_ptr'],
+      ast,
+      parameter,
+    );
+
+    const functionCall = createCallToFunction(functionStub, [intStubArgument], ast);
+    ast.registerImport(functionCall, 'warplib.maths.external_input_check_ints', name);
 
     return functionCall;
   }
@@ -50,7 +67,6 @@ export class EnumBoundChecker extends ASTMapper {
     const expressionStatement = new ExpressionStatement(ast.reserveId(), '', functionCall);
 
     const functionBlock = node.vBody;
-
     assert(functionBlock !== undefined);
     if (functionBlock.getChildren().length === 0) {
       functionBlock.appendChild(expressionStatement);
@@ -59,6 +75,7 @@ export class EnumBoundChecker extends ASTMapper {
 
       ast.insertStatementBefore(firstStatement, expressionStatement);
     }
+
     ast.setContextRecursive(expressionStatement);
   }
 }
