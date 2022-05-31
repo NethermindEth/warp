@@ -70,6 +70,10 @@ jobs:
           yarn testnet:benchmark &
           make test_execution
 
+  benchmark:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
       - name: Setup source hash (pull_request)
         if: ${{ github.event_name == 'pull_request' }}
         run: |
