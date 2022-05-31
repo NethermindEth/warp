@@ -285,6 +285,7 @@ export const expectations = flatten(
               ['4', '0', '5', '0', '6', '0', '0', '0', '0', '0'],
             ),
             Expect.Simple('tryXX1', [], ['10', '0']),
+            Expect.Simple('tryXX1t', [], ['10', '0']),
             Expect.Simple('tryXX2', [], ['11', '0']),
             /* Cannot test yet due to transpilation errors
             // Get's into an infinte loop

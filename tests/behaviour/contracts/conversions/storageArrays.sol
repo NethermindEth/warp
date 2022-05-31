@@ -26,14 +26,22 @@ contract WARP {
     }
 
     uint[][] xx;
+    uint8[][] xxt;
     uint[3][3] yy;
     uint[3][] xy;
     uint[][3] yx;
 
-    function tryXX1() public returns (uint) {
+    function tryXX1() public returns (uint[] memory) {
         uint8[2][2] memory m = [[1, 2], [3, 4]];
         xx = m;
-        return xx[0][0] + xx[0][1] + xx[1][0] + xx[1][1];
+        return xx[0];
+    }
+
+    // Erase this before merging
+    function tryXX1t() public returns (uint8[] memory) {
+        uint8[2][2] memory m = [[1, 2], [3, 4]];
+        xxt = m;
+        return xxt[0];
     }
 
     function tryXX2() public returns (uint) {
