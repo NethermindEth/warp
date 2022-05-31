@@ -717,7 +717,7 @@ class FunctionCallWriter extends CairoASTNodeWriter {
           }
         } else if (
           node.vReferencedDeclaration instanceof CairoFunctionDefinition &&
-          node.vReferencedDeclaration.functionStubKind === FunctionStubKind.StructDefStub
+          node.vReferencedDeclaration.acceptsRawDarray
         ) {
           return [`${func}(${args}_len, ${args})`];
         }

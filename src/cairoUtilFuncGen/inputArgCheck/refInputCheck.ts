@@ -43,9 +43,8 @@ export class RefInputCheck extends StringIndexedFuncGen {
       this.ast,
       nodeInSourceUnit ?? node,
       FunctionStateMutability.Pure,
-      type instanceof ArrayType && type.size === undefined
-        ? FunctionStubKind.StructDefStub
-        : FunctionStubKind.FunctionDefStub, // Rename this into something more appropriate.
+      FunctionStubKind.FunctionDefStub,
+      type instanceof ArrayType && type.size === undefined ? true : false,
     );
     return createCallToFunction(functionStub, [functionInput], this.ast);
   }
