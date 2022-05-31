@@ -11,7 +11,6 @@ import {
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
-  getNodeType,
   IndexAccess,
   Mapping,
   MemberAccess,
@@ -35,7 +34,7 @@ import {
   createReturn,
   createUint256TypeName,
 } from '../../utils/nodeTemplates';
-import { toSingleExpression, typeNameFromTypeNode } from '../../utils/utils';
+import { toSingleExpression } from '../../utils/utils';
 
 /**
 * This is a pass to attach the getter function for a public state variable
