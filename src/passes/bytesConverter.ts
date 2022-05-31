@@ -17,6 +17,7 @@ import {
   TypeName,
   IndexAccess,
   Literal,
+  IntLiteralType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -35,8 +36,10 @@ import {
 
 export class BytesConverter extends ASTMapper {
   visitExpression(node: Expression, ast: AST): void {
-    const typeNode = replaceFixedBytesType(getNodeType(node, ast.compilerVersion));
-    node.typeString = generateExpressionTypeString(typeNode);
+    const typeNode = getNodeType(node, ast.compilerVersion);
+    if (!(typeNode instanceof IntLiteralType)) {
+      node.typeString = generateExpressionTypeString(replaceFixedBytesType(typeNode));
+    }
     this.commonVisit(node, ast);
   }
 

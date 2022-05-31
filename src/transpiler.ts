@@ -47,6 +47,7 @@ import {
   ABIExtractor,
   dumpABI,
   StaticArrayIndexer,
+  TupleFixes,
 } from './passes';
 import { OrderNestedStructs } from './passes/orderNestedStructs';
 import { CairoToSolASTWriterMapping } from './solWriter';
@@ -88,6 +89,7 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
 
 function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
+    ['Tf', TupleFixes],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
     ['Ae', ABIExtractor],
@@ -138,7 +140,6 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
 
   printPassName('Input', options);
   printAST(ast, options);
-  checkAST(ast, options, 'None run');
 
   const finalAst = passesInOrder.reduce((ast, mapper) => {
     printPassName(mapper.getPassName(), options);

@@ -27,8 +27,8 @@ export class ContinueToLoopCall extends ASTMapper {
     ast.replaceNode(
       node,
       createReturn(
-        createLoopCall(continueFunction, continueFunction.vParameters.vParameters, ast),
-        continueFunction.vReturnParameters.id,
+        createLoopCall(continueFunction, containingFunction.vParameters.vParameters, ast),
+        containingFunction.vReturnParameters.id,
         ast,
       ),
     );
