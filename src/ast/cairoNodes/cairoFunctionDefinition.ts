@@ -29,7 +29,6 @@ export enum FunctionStubKind {
 export class CairoFunctionDefinition extends FunctionDefinition {
   implicits: Set<Implicits>;
   functionStubKind: FunctionStubKind;
-  acceptsRawDarray: boolean;
   constructor(
     id: number,
     src: string,
@@ -45,7 +44,6 @@ export class CairoFunctionDefinition extends FunctionDefinition {
     modifiers: ModifierInvocation[],
     implicits: Set<Implicits>,
     functionStubKind: FunctionStubKind = FunctionStubKind.None,
-    acceptsRawDArray = false,
     overrideSpecifier?: OverrideSpecifier,
     body?: Block,
     documentation?: string | StructuredDocumentation,
@@ -73,6 +71,5 @@ export class CairoFunctionDefinition extends FunctionDefinition {
     );
     this.implicits = implicits;
     this.functionStubKind = functionStubKind;
-    this.acceptsRawDarray = acceptsRawDArray;
   }
 }

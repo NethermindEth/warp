@@ -36,7 +36,6 @@ export class AnnotateImplicits extends ASTMapper {
       node.vModifiers,
       implicits,
       FunctionStubKind.None,
-      false,
       node.vOverrideSpecifier,
       node.vBody,
       node.documentation,

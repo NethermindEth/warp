@@ -684,7 +684,6 @@ class IdentifierWriter extends CairoASTNodeWriter {
     if (
       isDynamicCallDataArray(getNodeType(node, this.ast.compilerVersion)) &&
       ((node.getClosestParentByType(Return) !== undefined &&
-        node.getClosestParentByType(IndexAccess) === undefined &&
         node.getClosestParentByType(FunctionDefinition)?.visibility ===
           FunctionVisibility.External) ||
         (node.parent instanceof FunctionCall &&
@@ -717,7 +716,7 @@ class FunctionCallWriter extends CairoASTNodeWriter {
           }
         } else if (
           node.vReferencedDeclaration instanceof CairoFunctionDefinition &&
-          node.vReferencedDeclaration.acceptsRawDarray
+          node.vReferencedDeclaration.functionStubKind === FunctionStubKind.StructDefStub
         ) {
           return [`${func}(${args}_len, ${args})`];
         }
@@ -729,7 +728,7 @@ class FunctionCallWriter extends CairoASTNodeWriter {
       case FunctionCallKind.TypeConversion: {
         const arg = node.vArguments[0];
         if (node.vFunctionName === 'address' && arg instanceof Literal) {
-          const val: BigInt = BigInt(arg.value);
+          const val = BigInt(arg.value);
           // Make sure literal < 2**251
           assert(val < BigInt('0x800000000000000000000000000000000000000000000000000000000000000'));
           return [`${args[0]}`];
