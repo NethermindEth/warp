@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  ArrayType,
   Assignment,
   Block,
   ContractDefinition,
@@ -9,9 +10,11 @@ import {
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
+  generalizeType,
   getNodeType,
   Literal,
   LiteralKind,
+  MappingType,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -34,14 +37,20 @@ export class StorageAllocator extends ASTMapper {
     const initialisationBlock = createBlock([], ast);
 
     let usedStorage = 0;
+    let usedNames = 0;
     const allocations: Map<VariableDeclaration, number> = new Map();
     node.vStateVariables.forEach((v) => {
-      if (!isCairoConstant(v)) {
-        const width = CairoType.fromSol(
-          getNodeType(v, ast.compilerVersion),
-          ast,
-          TypeConversionContext.StorageAllocation,
-        ).width;
+      const type = getNodeType(v, ast.compilerVersion);
+      if (
+        generalizeType(type)[0] instanceof MappingType ||
+        (type instanceof ArrayType && type.size === undefined)
+      ) {
+        const width = CairoType.fromSol(type, ast, TypeConversionContext.StorageAllocation).width;
+        allocations.set(v, ++usedNames);
+        usedStorage += width;
+        extractInitialisation(v, initialisationBlock, ast);
+      } else if (!isCairoConstant(v)) {
+        const width = CairoType.fromSol(type, ast, TypeConversionContext.StorageAllocation).width;
         allocations.set(v, usedStorage);
         usedStorage += width;
         extractInitialisation(v, initialisationBlock, ast);
@@ -61,6 +70,7 @@ export class StorageAllocator extends ASTMapper {
       node.usedErrors,
       allocations,
       usedStorage,
+      usedNames,
       node.documentation,
       node.children,
       node.nameLocation,
