@@ -121,21 +121,23 @@ export class TupleAssignmentSplitter extends ASTMapper {
       node.vRightHandSide,
     );
 
-    const assignments = [...tempVars.entries()].map(
-      ([target, tempVar]) =>
-        new ExpressionStatement(
-          ast.reserveId(),
-          node.src,
-          new Assignment(
+    const assignments = [...tempVars.entries()]
+      .filter(([_, tempVar]) => tempVar.storageLocation !== DataLocation.CallData)
+      .map(
+        ([target, tempVar]) =>
+          new ExpressionStatement(
             ast.reserveId(),
             node.src,
-            target.typeString,
-            '=',
-            target,
-            createIdentifier(tempVar, ast),
+            new Assignment(
+              ast.reserveId(),
+              node.src,
+              target.typeString,
+              '=',
+              target,
+              createIdentifier(tempVar, ast),
+            ),
           ),
-        ),
-    );
+      );
 
     block.appendChild(tempTupleDeclaration);
     assignments.forEach((n) => block.appendChild(n));
