@@ -131,6 +131,7 @@ export const expectations = flatten(
                 ],
               ],
             ),
+            Expect.Simple('returnFirstIndex', ['2', ...['1', '2']], ['1']),
           ]),
         ]),
         new Dir('conditionals', [
