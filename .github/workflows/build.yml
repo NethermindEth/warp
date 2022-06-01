@@ -87,6 +87,11 @@ jobs:
         with:
           python-version: 3.7
 
+      - name: Setup env
+        run: |
+          pip install -r requirements.txt 
+          pip install cairo-lang==0.8.2
+
       - name: Setup source hash (pull_request)
         if: ${{ github.event_name == 'pull_request' }}
         run: |
