@@ -2,7 +2,8 @@ import assert from 'assert';
 import * as path from 'path';
 import { execSync } from 'child_process';
 import { IDeployProps, ICallOrInvokeProps, IOptionalNetwork, IDeployAccountProps } from './index';
-import { logError } from './utils/errors';
+import { encodeInputs } from './passes';
+import { CLIError, logError } from './utils/errors';
 
 export function compileCairo(
   filePath: string,
@@ -63,7 +64,7 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
   }
 }
 
-export function runStarknetDeploy(filePath: string, options: IDeployProps) {
+export async function runStarknetDeploy(filePath: string, options: IDeployProps) {
   if (options.network == undefined) {
     logError(
       `Error: Exception: feeder_gateway_url must be specified with the "deploy" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
@@ -76,7 +77,18 @@ export function runStarknetDeploy(filePath: string, options: IDeployProps) {
     return;
   }
 
-  const inputs = options.inputs ? `--inputs ${options.inputs.join(' ')}` : '';
+  let inputs: string;
+  try {
+    inputs = (
+      await encodeInputs(filePath, 'constructor', options.use_cairo_abi, options.inputs)
+    )[1];
+  } catch (e) {
+    if (e instanceof CLIError) {
+      logError(e.message);
+      return;
+    }
+    throw e;
+  }
 
   try {
     execSync(
@@ -104,9 +116,11 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
     return;
   }
 
+  const account = options.account ? `--account ${options.account}` : '';
+
   try {
     execSync(
-      `${warpVenvPrefix} starknet deploy_account --wallet ${options.wallet} --network ${options.network} --account ${options.account}`,
+      `${warpVenvPrefix} starknet deploy_account --wallet ${options.wallet} --network ${options.network} ${account}`,
       {
         stdio: 'inherit',
       },
@@ -116,7 +130,7 @@ export function runStarknetDeployAccount(options: IDeployAccountProps) {
   }
 }
 
-export function runStarknetCallOrInvoke(
+export async function runStarknetCallOrInvoke(
   filePath: string,
   isCall: boolean,
   options: ICallOrInvokeProps,
@@ -131,6 +145,7 @@ export function runStarknetCallOrInvoke(
   }
 
   const wallet = options.wallet === undefined ? '--no_wallet' : `--wallet ${options.wallet}`;
+  const account = options.account ? `--account ${options.account}` : '';
 
   const { success, abiPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
   if (!success) {
@@ -138,11 +153,25 @@ export function runStarknetCallOrInvoke(
     return;
   }
 
-  const inputs = options.inputs ? `--inputs ${options.inputs.join(' ')}` : '';
+  let funcName, inputs: string;
+  try {
+    [funcName, inputs] = await encodeInputs(
+      filePath,
+      options.function,
+      options.use_cairo_abi,
+      options.inputs,
+    );
+  } catch (e) {
+    if (e instanceof CLIError) {
+      logError(e.message);
+      return;
+    }
+    throw e;
+  }
 
   try {
     execSync(
-      `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${options.function} --network ${options.network} ${wallet} ${inputs}`,
+      `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${account} ${inputs}`,
       { stdio: 'inherit' },
     );
   } catch {

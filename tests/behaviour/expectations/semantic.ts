@@ -36,7 +36,7 @@ import whiteList from './semantic_whitelist';
 import { NotSupportedYetError } from '../../../src/utils/errors';
 import { compileSolFile } from '../../../src/solCompile';
 import { printTypeNode } from '../../../src/utils/astPrinter';
-import { bigintToTwosComplement, divmod } from '../../../src/utils/utils';
+import { divmod, toUintOrFelt } from '../../../src/utils/utils';
 import { AsyncTest, Expect } from './types';
 import { error } from '../../../src/utils/formatting';
 import { notNull } from '../../../src/utils/typeConstructs';
@@ -69,7 +69,6 @@ type SolValue = string | SolValue[] | { [key: string]: SolValue };
 
 //@ts-ignore: web3-eth-abi has their exports wrong
 const abiCoder: AbiCoder = new AbiCoder.constructor();
-const uint128 = BigInt('0x100000000000000000000000000000000');
 
 // ----------------------- Gather all the tests ------------------------------
 // This could benefit from some parallelism
@@ -325,21 +324,14 @@ function formatSigType(type: Parameter): string {
     : type.type.replace('tuple', '(' + type.components.map(formatSigType).join(',') + ')');
 }
 
-function encodeAsUintOrFelt(tp: TypeNode, value: SolValue, nBits: number): string[] {
+export function encodeAsUintOrFelt(tp: TypeNode, value: SolValue, nBits: number): string[] {
   if (typeof value !== 'string') {
     throw new Error(`Can't encode ${value} as ${printTypeNode(tp)}`);
   }
-  let val: bigint;
   try {
-    val = bigintToTwosComplement(BigInt(value.toString()), nBits);
+    return toUintOrFelt(BigInt(value.toString()), nBits).map((x) => x.toString());
   } catch {
     throw new Error(`Can't encode ${value} as ${printTypeNode(tp)}`);
-  }
-  if (nBits > 251) {
-    const [high, low] = divmod(val, uint128);
-    return [low.toString(), high.toString()];
-  } else {
-    return [val.toString()];
   }
 }
 

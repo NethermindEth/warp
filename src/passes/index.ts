@@ -1,3 +1,4 @@
+export * from './abiExtractor';
 export * from './annotateImplicits';
 export * from './builtinHandler';
 export * from './bytesConverter';

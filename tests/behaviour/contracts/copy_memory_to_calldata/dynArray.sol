@@ -72,7 +72,6 @@ function returnDynArrayAsMemberAccess() pure external returns (uint[] memory){
     uint256[] memory y = new uint256[](2);
     y[0] = 10;
     y[1] = 100;
-   // y[2] = 1000;
 
     structDef3 memory z = structDef3(y);
     return z.member1;
