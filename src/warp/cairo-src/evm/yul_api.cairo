@@ -11,13 +11,8 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.registers import get_label_location
 from starkware.starknet.common.syscalls import (
-    call_contract,
-    delegate_call,
-    emit_event,
-    get_block_number,
-    get_block_timestamp,
-    get_contract_address,
-)
+    call_contract, delegate_call, emit_event, get_block_number, get_block_timestamp,
+    get_contract_address)
 
 from evm.array import array_create_from_memory
 from evm.calls import general_call, returndata_write
@@ -42,12 +37,9 @@ func block_number{syscall_ptr : felt*}() -> (res : Uint256):
 end
 
 func warp_return{
-    memory_dict : DictAccess*,
-    exec_env : ExecutionEnvironment*,
-    range_check_ptr,
-    termination_token,
-    bitwise_ptr : BitwiseBuiltin*,
-}(returndata_ptr : Uint256, returndata_size : Uint256):
+        memory_dict : DictAccess*, exec_env : ExecutionEnvironment*, range_check_ptr,
+        termination_token, bitwise_ptr : BitwiseBuiltin*}(
+        returndata_ptr : Uint256, returndata_size : Uint256):
     alloc_locals
     let termination_token = 1
     returndata_write(returndata_ptr.low, returndata_size.low)
@@ -55,70 +47,40 @@ func warp_return{
 end
 
 func warp_call{
-    syscall_ptr : felt*,
-    exec_env : ExecutionEnvironment*,
-    memory_dict : DictAccess*,
-    range_check_ptr,
-    bitwise_ptr : BitwiseBuiltin*,
-}(
-    gas : Uint256,
-    address : Uint256,
-    value : Uint256,
-    in_offset : Uint256,
-    in_size : Uint256,
-    out_offset : Uint256,
-    out_size : Uint256,
-) -> (success : Uint256):
+        syscall_ptr : felt*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        gas : Uint256, address : Uint256, value : Uint256, in_offset : Uint256, in_size : Uint256,
+        out_offset : Uint256, out_size : Uint256) -> (success : Uint256):
     let (call_function) = get_label_location(call_contract)
     let (address_felt) = uint256_to_address_felt(address)
     let (success) = general_call(
-        call_function, address_felt, in_offset.low, in_size.low, out_offset.low, out_size.low
-    )
+        call_function, address_felt, in_offset.low, in_size.low, out_offset.low, out_size.low)
     return (Uint256(success, 0))
 end
 
 func staticcall{
-    syscall_ptr : felt*,
-    exec_env : ExecutionEnvironment*,
-    memory_dict : DictAccess*,
-    range_check_ptr,
-    bitwise_ptr : BitwiseBuiltin*,
-}(
-    gas : Uint256,
-    address : Uint256,
-    in_offset : Uint256,
-    in_size : Uint256,
-    out_offset : Uint256,
-    out_size : Uint256,
-) -> (success : Uint256):
+        syscall_ptr : felt*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        gas : Uint256, address : Uint256, in_offset : Uint256, in_size : Uint256,
+        out_offset : Uint256, out_size : Uint256) -> (success : Uint256):
     return warp_call(gas, address, Uint256(0, 0), in_offset, in_size, out_offset, out_size)
 end
 
 func delegatecall{
-    syscall_ptr : felt*,
-    exec_env : ExecutionEnvironment*,
-    memory_dict : DictAccess*,
-    range_check_ptr,
-    bitwise_ptr : BitwiseBuiltin*,
-}(
-    gas : Uint256,
-    address : Uint256,
-    in_offset : Uint256,
-    in_size : Uint256,
-    out_offset : Uint256,
-    out_size : Uint256,
-) -> (success : Uint256):
+        syscall_ptr : felt*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        gas : Uint256, address : Uint256, in_offset : Uint256, in_size : Uint256,
+        out_offset : Uint256, out_size : Uint256) -> (success : Uint256):
     let (call_function) = get_label_location(delegate_call)
     let (address_felt) = uint256_to_address_felt(address)
     let (success) = general_call(
-        call_function, address_felt, in_offset.low, in_size.low, out_offset.low, out_size.low
-    )
+        call_function, address_felt, in_offset.low, in_size.low, out_offset.low, out_size.low)
     return (Uint256(success, 0))
 end
 
 func log0{
-    syscall_ptr : felt*, memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
-}(mem_offset : Uint256, mem_len : Uint256):
+        syscall_ptr : felt*, memory_dict : DictAccess*, range_check_ptr,
+        bitwise_ptr : BitwiseBuiltin*}(mem_offset : Uint256, mem_len : Uint256):
     let (key) = alloc()
     let (data) = array_create_from_memory(mem_offset.low, mem_len.low)
     let (data_len) = ceil_div(mem_len.low, 16)
@@ -127,8 +89,8 @@ func log0{
 end
 
 func log1{
-    syscall_ptr : felt*, memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
-}(mem_offset : Uint256, mem_len : Uint256, t1 : Uint256):
+        syscall_ptr : felt*, memory_dict : DictAccess*, range_check_ptr,
+        bitwise_ptr : BitwiseBuiltin*}(mem_offset : Uint256, mem_len : Uint256, t1 : Uint256):
     alloc_locals
     let (local keys : felt*) = alloc()
     assert keys[0] = t1.low
@@ -140,8 +102,9 @@ func log1{
 end
 
 func log2{
-    syscall_ptr : felt*, memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
-}(mem_offset : Uint256, mem_len : Uint256, t1 : Uint256, t2 : Uint256):
+        syscall_ptr : felt*, memory_dict : DictAccess*, range_check_ptr,
+        bitwise_ptr : BitwiseBuiltin*}(
+        mem_offset : Uint256, mem_len : Uint256, t1 : Uint256, t2 : Uint256):
     alloc_locals
     let (local keys : felt*) = alloc()
     assert keys[0] = t1.low
@@ -155,8 +118,9 @@ func log2{
 end
 
 func log3{
-    syscall_ptr : felt*, memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
-}(mem_offset : Uint256, mem_len : Uint256, t1 : Uint256, t2 : Uint256, t3 : Uint256):
+        syscall_ptr : felt*, memory_dict : DictAccess*, range_check_ptr,
+        bitwise_ptr : BitwiseBuiltin*}(
+        mem_offset : Uint256, mem_len : Uint256, t1 : Uint256, t2 : Uint256, t3 : Uint256):
     alloc_locals
     let (local keys : felt*) = alloc()
     assert keys[0] = t1.low
@@ -172,8 +136,10 @@ func log3{
 end
 
 func log4{
-    syscall_ptr : felt*, memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
-}(mem_offset : Uint256, mem_len : Uint256, t1 : Uint256, t2 : Uint256, t3 : Uint256, t4 : Uint256):
+        syscall_ptr : felt*, memory_dict : DictAccess*, range_check_ptr,
+        bitwise_ptr : BitwiseBuiltin*}(
+        mem_offset : Uint256, mem_len : Uint256, t1 : Uint256, t2 : Uint256, t3 : Uint256,
+        t4 : Uint256):
     alloc_locals
     let (local keys : felt*) = alloc()
     assert keys[0] = t1.low

@@ -11,8 +11,7 @@ from evm.uint256 import Uint256
 from evm.utils import ceil_div, felt_to_uint256, update_msize
 
 func sha{range_check_ptr, memory_dict : DictAccess*, msize, bitwise_ptr : BitwiseBuiltin*}(
-    offset, size
-) -> (res : Uint256):
+        offset, size) -> (res : Uint256):
     alloc_locals
     let (msize) = update_msize(msize, offset, size)
     let (size_div, size_rem) = unsigned_div_rem(size, 16)
@@ -30,18 +29,13 @@ func sha{range_check_ptr, memory_dict : DictAccess*, msize, bitwise_ptr : Bitwis
 end
 
 func uint256_sha{range_check_ptr, memory_dict : DictAccess*, msize, bitwise_ptr : BitwiseBuiltin*}(
-    offset : Uint256, size : Uint256
-) -> (res : Uint256):
+        offset : Uint256, size : Uint256) -> (res : Uint256):
     return sha(offset.low, size.low)
 end
 
 func pedersen{
-    range_check_ptr,
-    pedersen_ptr : HashBuiltin*,
-    memory_dict : DictAccess*,
-    msize,
-    bitwise_ptr : BitwiseBuiltin*,
-}(offset, size) -> (res):
+        range_check_ptr, pedersen_ptr : HashBuiltin*, memory_dict : DictAccess*, msize,
+        bitwise_ptr : BitwiseBuiltin*}(offset, size) -> (res):
     alloc_locals
     let (msize) = update_msize(msize, offset, size)
     let (array) = alloc()
@@ -53,12 +47,8 @@ func pedersen{
 end
 
 func uint256_pedersen{
-    range_check_ptr,
-    pedersen_ptr : HashBuiltin*,
-    memory_dict : DictAccess*,
-    msize,
-    bitwise_ptr : BitwiseBuiltin*,
-}(offset : Uint256, size : Uint256) -> (res : Uint256):
+        range_check_ptr, pedersen_ptr : HashBuiltin*, memory_dict : DictAccess*, msize,
+        bitwise_ptr : BitwiseBuiltin*}(offset : Uint256, size : Uint256) -> (res : Uint256):
     let (felt_res) = pedersen(offset.low, size.low)
     let (res) = felt_to_uint256(felt_res)
     return (res)

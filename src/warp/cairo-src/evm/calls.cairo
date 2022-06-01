@@ -18,17 +18,13 @@ func caller{syscall_ptr : felt*, range_check_ptr}() -> (caller_data : Uint256):
 end
 
 func calldatacopy{
-    memory_dict : DictAccess*,
-    range_check_ptr,
-    msize,
-    exec_env : ExecutionEnvironment*,
-    bitwise_ptr : BitwiseBuiltin*,
-}(dest_offset : Uint256, offset : Uint256, size : Uint256) -> ():
+        memory_dict : DictAccess*, range_check_ptr, msize, exec_env : ExecutionEnvironment*,
+        bitwise_ptr : BitwiseBuiltin*}(dest_offset : Uint256, offset : Uint256, size : Uint256) -> (
+        ):
     alloc_locals
     let (msize) = update_msize(msize, dest_offset.low, size.low)
     array_copy_to_memory(
-        exec_env.calldata_len, exec_env.calldata, offset.low + 12, dest_offset.low, size.low
-    )
+        exec_env.calldata_len, exec_env.calldata, offset.low + 12, dest_offset.low, size.low)
     return ()
 end
 
@@ -37,21 +33,17 @@ func calldatasize{range_check_ptr, exec_env : ExecutionEnvironment*}() -> (res :
 end
 
 func calldataload{range_check_ptr, exec_env : ExecutionEnvironment*, bitwise_ptr : BitwiseBuiltin*}(
-    offset : Uint256
-) -> (value : Uint256):
+        offset : Uint256) -> (value : Uint256):
     let (value) = array_load(exec_env.calldata_len, exec_env.calldata, offset.low + 12)
     return (value=value)
 end
 
 func returndata_copy{
-    range_check_ptr,
-    exec_env : ExecutionEnvironment*,
-    memory_dict : DictAccess*,
-    bitwise_ptr : BitwiseBuiltin*,
-}(memory_pos : Uint256, returndata_pos : Uint256, size : Uint256):
+        range_check_ptr, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        bitwise_ptr : BitwiseBuiltin*}(
+        memory_pos : Uint256, returndata_pos : Uint256, size : Uint256):
     array_copy_to_memory(
-        exec_env.returndata_len, exec_env.returndata, returndata_pos.low, memory_pos.low, size.low
-    )
+        exec_env.returndata_len, exec_env.returndata, returndata_pos.low, memory_pos.low, size.low)
     return ()
 end
 
@@ -61,8 +53,8 @@ end
 const main_selector = 0x1b999a79a454af1c08c7c350b2dcee00593e13477465ce7e83f9b73d4c4ab98
 
 func calldata_copy_from_memory{
-    memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
-}(offset, size, array : felt*):
+        memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        offset, size, array : felt*):
     alloc_locals
     let (primary_size) = get_max(0, size - 4)
     let (initial) = alloc()
@@ -73,12 +65,9 @@ func calldata_copy_from_memory{
 end
 
 func general_call{
-    syscall_ptr : felt*,
-    exec_env : ExecutionEnvironment*,
-    memory_dict : DictAccess*,
-    range_check_ptr,
-    bitwise_ptr : BitwiseBuiltin*,
-}(call_function, address, in_offset, in_size, out_offset, out_size) -> (success):
+        syscall_ptr : felt*, exec_env : ExecutionEnvironment*, memory_dict : DictAccess*,
+        range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        call_function, address, in_offset, in_size, out_offset, out_size) -> (success):
     alloc_locals
     let (__fp__, _) = get_fp_and_pc()
     let (in_len) = ceil_div(in_size + 12, 16)
@@ -119,11 +108,8 @@ func general_call{
 end
 
 func returndata_write{
-    memory_dict : DictAccess*,
-    exec_env : ExecutionEnvironment*,
-    range_check_ptr,
-    bitwise_ptr : BitwiseBuiltin*,
-}(returndata_ptr, returndata_size):
+        memory_dict : DictAccess*, exec_env : ExecutionEnvironment*, range_check_ptr,
+        bitwise_ptr : BitwiseBuiltin*}(returndata_ptr, returndata_size):
     alloc_locals
     let (__fp__, _) = get_fp_and_pc()
     let (returndata : felt*) = array_create_from_memory(returndata_ptr, returndata_size)

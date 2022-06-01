@@ -5,13 +5,8 @@ from starkware.cairo.common.math import assert_lt, unsigned_div_rem
 from starkware.cairo.common.uint256 import Uint256
 
 from evm.bit_packing import (
-    exp_byte,
-    extract_byte,
-    extract_unaligned_uint128,
-    put_byte,
-    put_unaligned_uint128,
-    split_on_byte,
-)
+    exp_byte, extract_byte, extract_unaligned_uint128, put_byte, put_unaligned_uint128,
+    split_on_byte)
 from evm.uint256 import extract_lowest_byte
 from evm.utils import round_up_to_multiple, update_msize
 
@@ -68,8 +63,7 @@ func mstore{memory_dict : DictAccess*, range_check_ptr}(offset, value : Uint256)
 end
 
 func mload{memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(offset) -> (
-    value : Uint256
-):
+        value : Uint256):
     # Load a 256-bit value 'value' from memory, starting with the
     # 'offset' index.
     alloc_locals
@@ -95,8 +89,7 @@ func mstore8_{memory_dict : DictAccess*, range_check_ptr, msize}(offset, value :
 end
 
 func uint256_mstore8{memory_dict : DictAccess*, range_check_ptr, msize}(
-    offset : Uint256, value : Uint256
-):
+        offset : Uint256, value : Uint256):
     # Does what 'mstore8_' does, but with Uint256 arguments for
     # convenient use in the transpiled code.
     return mstore8_(offset.low, value)
@@ -111,16 +104,14 @@ func mstore_{memory_dict : DictAccess*, range_check_ptr, msize}(offset, value : 
 end
 
 func uint256_mstore{memory_dict : DictAccess*, range_check_ptr, msize}(
-    offset : Uint256, value : Uint256
-):
+        offset : Uint256, value : Uint256):
     # Does what 'mstore_' does, but with Uint256 arguments for
     # convenient use in the transpiled code.
     return mstore_(offset.low, value)
 end
 
 func mload_{memory_dict : DictAccess*, range_check_ptr, msize, bitwise_ptr : BitwiseBuiltin*}(
-    offset
-) -> (value : Uint256):
+        offset) -> (value : Uint256):
     # Does what 'mload' does but also updates 'msize'.
     alloc_locals
     let (msize) = update_msize(msize, offset, 32)
@@ -129,8 +120,8 @@ func mload_{memory_dict : DictAccess*, range_check_ptr, msize, bitwise_ptr : Bit
 end
 
 func uint256_mload{
-    memory_dict : DictAccess*, range_check_ptr, msize, bitwise_ptr : BitwiseBuiltin*
-}(offset : Uint256) -> (value : Uint256):
+        memory_dict : DictAccess*, range_check_ptr, msize, bitwise_ptr : BitwiseBuiltin*}(
+        offset : Uint256) -> (value : Uint256):
     # Does what 'mload_' does, but with Uint256 arguments for
     # convenient use in the transpiled code.
     return mload_(offset.low)

@@ -13,8 +13,8 @@ from evm.pow2 import pow2
 const UINT128_BOUND = 2 ** 128
 
 func array_create_from_memory{
-    memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
-}(offset, size) -> (array : felt*):
+        memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        offset, size) -> (array : felt*):
     # Create a 128-bit packed big-endian array that contains memory
     # contents from offset to offset + size
     alloc_locals
@@ -24,8 +24,8 @@ func array_create_from_memory{
 end
 
 func array_copy_from_memory{
-    memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
-}(offset, size, array : felt*):
+        memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        offset, size, array : felt*):
     # Copies memory contents from 'offset' to 'offset + size' to
     # 'array'. See 'array_create_from_memory'.
     alloc_locals
@@ -44,14 +44,12 @@ func array_copy_from_memory{
     let (p) = pow2(128 - 8 * rem)
     let (_, high_part) = unsigned_div_rem(block, p)
     copy_from_memory_shifted(
-        p=p, aligned_offset=offset + 16 - rem, high_part=high_part, size=size, array=array
-    )
+        p=p, aligned_offset=offset + 16 - rem, high_part=high_part, size=size, array=array)
     return ()
 end
 
 func copy_from_memory_aligned{memory_dict : DictAccess*, bitwise_ptr : BitwiseBuiltin*}(
-    excess, aligned_offset, n, array : felt*
-):
+        excess, aligned_offset, n, array : felt*):
     alloc_locals
     let (block) = dict_read{dict_ptr=memory_dict}(aligned_offset)
     if n == 0:
@@ -69,8 +67,7 @@ func copy_from_memory_aligned{memory_dict : DictAccess*, bitwise_ptr : BitwiseBu
 end
 
 func copy_from_memory_shifted{memory_dict : DictAccess*, range_check_ptr}(
-    p, aligned_offset, high_part, size, array : felt*
-):
+        p, aligned_offset, high_part, size, array : felt*):
     alloc_locals
     let (block) = dict_read{dict_ptr=memory_dict}(aligned_offset)
     let (low_part, new_high_part) = unsigned_div_rem(block, p)
@@ -91,14 +88,13 @@ func copy_from_memory_shifted{memory_dict : DictAccess*, range_check_ptr}(
             aligned_offset=aligned_offset + 16,
             high_part=new_high_part,
             size=size - 16,
-            array=array + 1,
-        )
+            array=array + 1)
     end
 end
 
 func array_copy_to_memory{
-    memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*
-}(array_len, array : felt*, array_offset, memory_offset, size):
+        memory_dict : DictAccess*, range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        array_len, array : felt*, array_offset, memory_offset, size):
     # Given a 128-bit packed 'array' of length 'array_len', copy from
     # the array 'size' bytes starting with 'array_offset' into memory
     # starting with 'memory_offset'.

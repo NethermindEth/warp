@@ -8,8 +8,7 @@ from evm.pow2 import pow2
 const UINT128_BOUND = 2 ** 128
 
 func extract_unaligned_uint128{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
-    shift, low, high
-) -> (value):
+        shift, low, high) -> (value):
     # Given two aligned uint128's, extract an unaligned uint128,
     # shifted by 'shift' bytes from the 'high' high end.
     let (p) = pow2(128 - 8 * shift)
