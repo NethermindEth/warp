@@ -28,4 +28,16 @@ contract WARP {
     a = b;
     return (a[0], a[1],b);
   }
+
+  uint[][2] c;
+  function copyStaticStaticToStaticDynamic() external returns (uint[] memory, uint[] memory, uint[2][2] memory) {
+    c = b;
+    return (c[0], c[1], b);
+  }
+
+  uint[2][] d;
+  function copyStaticStaticToDynamicStatic() external returns (uint, uint, uint, uint, uint[2][2] memory) {
+    d = b;
+    return (d[0][0], d[0][1], d[1][0], d[1][1], b);
+  }
 }

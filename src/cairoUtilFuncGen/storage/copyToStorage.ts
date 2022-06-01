@@ -127,11 +127,15 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     // TODO implement from->to
     const elementCopyFunc = this.getOrCreate(type.elementT, type.elementT);
 
+    const width = BigInt(
+      CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation).width,
+    );
+
     return {
       name: funcName,
       code: [
         `func ${funcName}_elem${implicits}(fromLoc: felt, toLoc: felt, index: felt) -> (retLoc: felt):`,
-        `    if index == ${type.size}:`,
+        `    if index == ${type.size * width}:`,
         `        return (toLoc)`,
         `    end`,
         `    ${elementCopyFunc}(fromLoc + index, toLoc + index)`,
