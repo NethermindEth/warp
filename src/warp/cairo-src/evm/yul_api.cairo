@@ -78,7 +78,9 @@ func delegatecall{
     return (Uint256(success, 0))
 end
 
-func log0{syscall_ptr : felt*}(mem_offset : Uint256, mem_len : Uint256):
+func log0{
+        syscall_ptr : felt*, memory_dict : DictAccess*, range_check_ptr,
+        bitwise_ptr : BitwiseBuiltin*}(mem_offset : Uint256, mem_len : Uint256):
     let (key) = alloc()
     let (data) = array_create_from_memory(mem_offset.low, mem_len.low)
     let (data_len) = ceil_div(mem_len.low, 16)

@@ -15,7 +15,7 @@ jobs:
         run: |
           pipx install black[colors]
           pipx install isort[colors]
-          pipx install cairo-lang
+          pipx install cairo-lang==0.7.0
           black . --check --verbose --diff --color
           isort . --check --verbose --diff --color
           isort --ext cairo src/warp/cairo-src --check --verbose --diff --color
@@ -88,7 +88,7 @@ jobs:
       - name: Create benchmarks
         run: |
           mkdir -p benchmark/stats benchmark/tmp
-          poetry run python -m pytest tests/behaviour/ -v --tb=short --workers=auto
+          poetry run python -m pytest tests/behaviour/ -v --tb=short
           poetry run make benchmark
           mv ./benchmark/stats/stats.md "./benchmark/stats/${{ env.source_hash }}.md"
 
