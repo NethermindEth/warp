@@ -4,15 +4,27 @@ from starkware.cairo.common.math import assert_not_zero, unsigned_div_rem
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.pow import pow
 from starkware.cairo.common.uint256 import (
-    Uint256, uint256_add, uint256_cond_neg, uint256_eq, uint256_lt, uint256_mul, uint256_pow2,
-    uint256_shl, uint256_signed_div_rem, uint256_signed_lt, uint256_sub, uint256_unsigned_div_rem)
+    Uint256,
+    uint256_add,
+    uint256_cond_neg,
+    uint256_eq,
+    uint256_lt,
+    uint256_mul,
+    uint256_pow2,
+    uint256_shl,
+    uint256_signed_div_rem,
+    uint256_signed_lt,
+    uint256_sub,
+    uint256_unsigned_div_rem,
+)
 
 from evm.pow2 import pow2
 
 const UINT128_BOUND = 2 ** 128
 
 func shr_helper{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(i, a : Uint256) -> (
-        result : Uint256):
+    result : Uint256
+):
     alloc_locals
     let (le_127) = is_le(i, 127)
     if le_127 == 1:
@@ -28,7 +40,8 @@ func shr_helper{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(i, a : Uint256) 
         let (low_part) = bitwise_and(a.low, low_mask)
         let (high_part) = bitwise_and(a.high, p - 1)
         return (
-            Uint256(low=(low_part + UINT128_BOUND * high_part) / p, high=(a.high - high_part) / p))
+            Uint256(low=(low_part + UINT128_BOUND * high_part) / p, high=(a.high - high_part) / p)
+        )
     end
     let (le_255) = is_le(i, 255)
     if le_255 == 1:
@@ -62,7 +75,8 @@ end
 
 # THE ORDER OF ARGUMENTS IS REVERSED, LIKE IN YUL
 func u256_shr{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(i : Uint256, a : Uint256) -> (
-        result : Uint256):
+    result : Uint256
+):
     if i.high != 0:
         return (Uint256(0, 0))
     end
@@ -140,7 +154,8 @@ func extract_lowest_byte{range_check_ptr}(x : Uint256) -> (byte : felt, rest : U
 end
 
 func uint256_sar{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(i : Uint256, a : Uint256) -> (
-        res : Uint256):
+    res : Uint256
+):
     alloc_locals
     let (a_neg) = is_le(2 ** 127, a.high)
     if a_neg == 0:
@@ -171,7 +186,8 @@ func uint256_sar{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(i : Uint256, a 
 end
 
 func uint256_signextend{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
-        i : Uint256, a : Uint256) -> (res : Uint256):
+    i : Uint256, a : Uint256
+) -> (res : Uint256):
     alloc_locals
     let (i, _) = uint256_mul(i, Uint256(8, 0))
     let (i) = uint256_sub(Uint256(248, 0), i)
@@ -181,7 +197,8 @@ func uint256_signextend{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
 end
 
 func uint256_byte{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(i : Uint256, a : Uint256) -> (
-        res : Uint256):
+    res : Uint256
+):
     let (i, _) = uint256_mul(i, Uint256(8, 0))
     let (i) = uint256_sub(Uint256(248, 0), i)
     let (res) = u256_shr(i, a)
@@ -190,7 +207,8 @@ func uint256_byte{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(i : Uint256, a
 end
 
 func uint256_exp{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(a : Uint256, b : Uint256) -> (
-        res : Uint256):
+    res : Uint256
+):
     alloc_locals
     if b.low + b.high == 0:
         return (Uint256(1, 0))
@@ -208,7 +226,8 @@ func uint256_exp{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(a : Uint256, b 
 end
 
 func uint256_mulmod{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
-        a : Uint256, b : Uint256, m : Uint256) -> (res : Uint256):
+    a : Uint256, b : Uint256, m : Uint256
+) -> (res : Uint256):
     alloc_locals
     let (_, ar) = uint256_unsigned_div_rem(a, m)
     let (_, br) = uint256_unsigned_div_rem(b, m)
@@ -216,7 +235,8 @@ func uint256_mulmod{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
 end
 
 func mulmod_helper{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
-        ar : Uint256, br : Uint256, m : Uint256) -> (res : Uint256):
+    ar : Uint256, br : Uint256, m : Uint256
+) -> (res : Uint256):
     alloc_locals
     if br.low + br.high == 0:
         return (Uint256(1, 0))
