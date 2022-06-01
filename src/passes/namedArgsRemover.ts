@@ -56,12 +56,14 @@ export class NamedArgsRemover extends ASTMapper {
       );
     }
 
+    orderedFieldNames = orderedFieldNames.filter((name) => fieldNames.includes(name));
+
     if (
       orderedFieldNames.length !== node.vArguments.length ||
       fieldNames.length !== orderedFieldNames.length
     ) {
       throw new TranspileFailedError(
-        `Number of field names and number of arguments are not equal.`,
+        'Number of arguments must less or euqal to number of function field names',
       );
     }
 

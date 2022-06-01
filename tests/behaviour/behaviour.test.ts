@@ -36,7 +36,7 @@ describe('Transpile solidity', function () {
       expect(res.result, `warp-ts printed errors: ${res.result}`).to.include({ stderr: '' });
       expect(
         fs.existsSync(expectations[i].cairo),
-        'Transpilation failed, cannot find output file',
+        `Transpilation failed, cannot find output file. Is the file's contract named WARP or specified in the expectations?`,
       ).to.be.true;
       expect(res.success, `${res.result}`);
     });

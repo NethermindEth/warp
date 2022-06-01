@@ -14,6 +14,7 @@ export class CairoContract extends ContractDefinition {
   // Maps each state variable to its start point in WARP_STORAGE
   storageAllocations: Map<VariableDeclaration, number>;
   usedStorage: number;
+  usedIds: number;
 
   constructor(
     id: number,
@@ -27,6 +28,7 @@ export class CairoContract extends ContractDefinition {
     usedErrors: number[],
     storageAllocations: Map<VariableDeclaration, number>,
     usedStorage: number,
+    usedStoredPointerIds: number,
     documentation?: string | StructuredDocumentation,
     children?: Iterable<ASTNode>,
     nameLocation?: string,
@@ -49,6 +51,7 @@ export class CairoContract extends ContractDefinition {
     );
     this.storageAllocations = storageAllocations;
     this.usedStorage = usedStorage;
+    this.usedIds = usedStoredPointerIds;
     this.acceptChildren();
   }
 }

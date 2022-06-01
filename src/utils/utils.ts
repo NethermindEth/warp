@@ -3,6 +3,7 @@ import {
   AddressType,
   ArrayType,
   ArrayTypeName,
+  Assignment,
   BoolType,
   CompileFailedError,
   DataLocation,
@@ -10,8 +11,10 @@ import {
   EtherUnit,
   Expression,
   FixedBytesType,
+  FunctionCall,
   FunctionDefinition,
   FunctionKind,
+  FunctionStateMutability,
   FunctionVisibility,
   generalizeType,
   IdentifierPath,
@@ -44,9 +47,11 @@ import {
 import { createAddressTypeName, createBoolTypeName, createNumberLiteral } from './nodeTemplates';
 import { Class } from './typeConstructs';
 
-export function divmod(x: bigint, y: bigint): [BigInt, BigInt] {
-  const div: BigInt = BigInt(x / y);
-  const rem: BigInt = BigInt(x % y);
+const uint128 = BigInt('0x100000000000000000000000000000000');
+
+export function divmod(x: bigint, y: bigint): [bigint, bigint] {
+  const div = BigInt(x / y);
+  const rem = BigInt(x % y);
   return [div, rem];
 }
 
@@ -349,4 +354,33 @@ export function splitDarray(
   );
 
   return [arrayLen, dArrayVarDecl];
+}
+
+export function toUintOrFelt(value: bigint, nBits: number): bigint[] {
+  const val = bigintToTwosComplement(BigInt(value.toString()), nBits);
+  if (nBits > 251) {
+    const [high, low] = divmod(val, uint128);
+    return [low, high];
+  } else {
+    return [val];
+  }
+}
+
+export function expressionHasSideEffects(node: Expression): boolean {
+  return (
+    (node instanceof FunctionCall && functionAffectsState(node)) ||
+    node instanceof Assignment ||
+    node.children.some((child) => child instanceof Expression && expressionHasSideEffects(child))
+  );
+}
+
+export function functionAffectsState(node: FunctionCall): boolean {
+  const funcDef = node.vReferencedDeclaration;
+  if (funcDef instanceof FunctionDefinition) {
+    return (
+      funcDef.stateMutability !== FunctionStateMutability.Pure &&
+      funcDef.stateMutability !== FunctionStateMutability.View
+    );
+  }
+  return true;
 }

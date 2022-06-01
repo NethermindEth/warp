@@ -504,6 +504,15 @@ export const expectations = flatten(
               ['arr256', ['12', '0'], null, '0'],
             ]),
           ]),
+          File.Simple('dynamic_arrays_2d', [
+            new Expect('two dimensional dynamic arrays to storage', [
+              ['setArr8', [], ['1', '1', '2', '0', '2', '3', '0', '0', '3'], '0'],
+              ['arr8', ['0', '0', '0', '0'], ['1'], '0'],
+              ['getArr8', ['0', '0'], ['1', '1'], '0'],
+              ['getArr8', ['1', '0'], ['2', '0', '2'], '0'],
+              ['getArr8', ['2', '0'], ['3', '0', '0', '3'], '0'],
+            ]),
+          ]),
           File.Simple('struct', [
             new Expect('memory to storage for structs', [
               ['getStructs', [], ['0', '0', '0', '0', '0', '0'], '0'],
@@ -818,6 +827,10 @@ export const expectations = flatten(
               ['cancel', [], [], '0'],
               ['get', [], ['255'], '0'],
             ]),
+            new Expect('setWithContractName', [
+              ['setWithContractName', [], [], '0'],
+              ['get', [], ['1'], '0'],
+            ]),
           ]),
           File.Simple('singleEnum7', [
             Expect.Simple('get', [], ['0']),
@@ -832,6 +845,10 @@ export const expectations = flatten(
             new Expect('cancel', [
               ['cancel', [], [], '0'],
               ['get', [], ['259'], '0'],
+            ]),
+            new Expect('setWithContractName', [
+              ['setWithContractName', [], [], '0'],
+              ['get', [], ['1'], '0'],
             ]),
           ]),
           File.Simple('doubleEnum', [
@@ -939,6 +956,7 @@ export const expectations = flatten(
               ],
             ),
           ]),
+          File.Simple('tupleEdgeCases', [Expect.Simple('f', ['0', '0'], ['0', '0'])]),
         ]),
         new Dir('external_function_inputs', [
           File.Simple('dynamic_array_return_index', [
@@ -1479,6 +1497,7 @@ export const expectations = flatten(
             Expect.Simple('doWhile', ['0', '4'], ['5']),
             Expect.Simple('doWhile', ['7', '6'], ['8']),
             Expect.Simple('doWhile_continue', ['1'], ['1']),
+            Expect.Simple('doWhile_continue_2', [], ['42', '0']),
             Expect.Simple('doWhile_return', ['4'], ['2']),
             Expect.Simple('doWhile_break', ['0', '2'], ['2']),
           ]),
@@ -1577,6 +1596,16 @@ export const expectations = flatten(
             Expect.Simple('division256signedsafe', ['100', '20', '5', '0'], ['20', '4']),
             Expect.Simple('division256unsafe', ['100', '20', '5', '0'], ['20', '4']),
             Expect.Simple('division256signedunsafe', ['100', '20', '5', '0'], ['20', '4']),
+          ]),
+          File.Simple('remainder', [
+            Expect.Simple('remainder8safe', ['103', '5'], ['3']),
+            Expect.Simple('remainder8signedsafe', ['137', '5'], ['2']),
+            Expect.Simple('remainder8unsafe', ['215', '9'], ['8']),
+            Expect.Simple('remainder8signedunsafe', ['2', '5'], ['2']),
+            Expect.Simple('remainder256safe', ['255', '23', '5', '0'], ['3', '0']),
+            Expect.Simple('remainder256signedsafe', ['100', '20', '5', '0'], ['0', '0']),
+            Expect.Simple('remainder256unsafe', ['100', '21', '5', '1'], ['0', '1']),
+            Expect.Simple('remainder256signedunsafe', ['100', '20', '13', '0'], ['7', '0']),
           ]),
           File.Simple('eq', [
             Expect.Simple('eq8safe', ['1', '2'], ['0']),
@@ -2218,6 +2247,11 @@ export const expectations = flatten(
             ),
           ]),
         ]),
+        new Dir('tuples', [
+          File.Simple('calldata_tuple', [
+            Expect.Simple('tupleSplit', ['3', '1', '2', '3', '5'], ['5']),
+          ]),
+        ]),
         new Dir('type_information', [
           File.Simple('informationEnum', [
             Expect.Simple('dMin', [], ['0']),
@@ -2234,6 +2268,7 @@ export const expectations = flatten(
           File.Simple('simple', [
             Expect.Simple('callOnIdentifier', [], ['6', '0']),
             Expect.Simple('callOnFunctionCall', [], ['60', '0']),
+            Expect.Simple('namedArgChecker', [], ['62', '0']),
           ]),
           File.Simple('library', [
             Expect.Simple('callOnIdentifierAdd', [], ['6', '0']),
