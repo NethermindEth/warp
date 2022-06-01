@@ -12,7 +12,7 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { CairoType, TypeConversionContext, WarpLocation } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
@@ -218,6 +218,30 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
     const [toElementMapping, toLengthMapping] = this.dynArrayGen.gen(toElementCairoType);
+    let copyCode: (from: string, to: string) => string;
+    if (fromElementCairoType instanceof WarpLocation) {
+      if (toElementCairoType instanceof WarpLocation) {
+        copyCode = (from: string, to: string): string =>
+          [
+            `let (fromElemId) = readId(${from})`,
+            `let (toElemId) = readId(${to})`,
+            `${elementCopyFunc}(fromElemId, toElemId)`,
+          ].join('\n');
+      } else {
+        copyCode = (from: string, to: string): string =>
+          [`let (fromElemId) = readId(${from})`, `${elementCopyFunc}(fromElemId, ${to})`].join(
+            '\n',
+          );
+      }
+    } else {
+      if (toElementCairoType instanceof WarpLocation) {
+        copyCode = (from: string, to: string): string =>
+          [`let (toElemId) = readId(${to})`, `${elementCopyFunc}(${from}, toElemId)`].join('\n');
+      } else {
+        copyCode = (from: string, to: string): string =>
+          [`${elementCopyFunc}(${from}, ${to})`].join('\n');
+      }
+    }
 
     return {
       name: funcName,
@@ -236,10 +260,10 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `        let (used) = WARP_USED_STORAGE.read()`,
         `        WARP_USED_STORAGE.write(used + ${toElementCairoType.width})`,
         `        ${toElementMapping}.write(toLoc, index, used)`,
-        `        ${elementCopyFunc}(fromElem, used)`,
+        `        ${copyCode('fromElem', 'used')}`,
         `        return ${funcName}_elem(fromElem + ${fromElementCairoType.width}, toLoc, length, nextIndex)`,
         `    else:`,
-        `        ${elementCopyFunc}(fromElem, toElem)`,
+        `        ${copyCode('fromElem', 'toElem')}`,
         `        return ${funcName}_elem(fromElem + ${fromElementCairoType.width}, toLoc, length, nextIndex)`,
         `    end`,
         `end`,

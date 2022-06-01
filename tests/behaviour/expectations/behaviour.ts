@@ -528,6 +528,26 @@ export const expectations = flatten(
               ['setStatic', ['4', '5', '7', '6'], ['4', '5', '7', '6'], '0'],
               ['copyStaticToDynamic', [], ['2', '4', '5', '7', '6', '4', '5', '7', '6'], '0'],
             ]),
+            new Expect('copy nested static to nested dynamic', [
+              [
+                'setStaticDeep',
+                [...['4', '5', '7', '6'], ...['1', '2', '3', '9']],
+                [...['4', '5', '7', '6'], ...['1', '2', '3', '9']],
+                '0',
+              ],
+              [
+                'copyStaticToDynamicDeep',
+                [],
+                [
+                  '2',
+                  ...['4', '5', '7', '6'],
+                  '2',
+                  ...['1', '2', '3', '9'],
+                  ...[...['4', '5', '7', '6'], ...['1', '2', '3', '9']],
+                ],
+                '0',
+              ],
+            ]),
           ]),
           File.Simple('dynamic_arrays', [
             new Expect('copy values', [
