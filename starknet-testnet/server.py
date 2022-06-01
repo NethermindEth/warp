@@ -109,7 +109,10 @@ async def invoke():
         )
     except StarkException as err:
         print(err)
-        if err.code == StarknetErrorCode.TRANSACTION_FAILED:
+        if (
+            err.code == StarknetErrorCode.TRANSACTION_FAILED
+            or err.code == StarknetErrorCode.OUT_OF_RESOURCES
+        ):
             return jsonify(
                 {"transaction_info": {"threw": True, "message": err.message}}
             )
