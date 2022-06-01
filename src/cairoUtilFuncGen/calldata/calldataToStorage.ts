@@ -49,7 +49,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     return createCallToFunction(functionStub, [storageLocation, calldataLocation], this.ast);
   }
 
-  private getOrCreate(type: TypeNode) {
+  getOrCreate(type: TypeNode) {
     const key = type.pp();
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {

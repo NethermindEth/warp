@@ -82,6 +82,12 @@ export class CairoUtilFuncGen {
 
     const memoryToStorage = new MemoryToStorageGen(this.implementation.dynArray, ast);
     const storageWrite = new StorageWriteGen(ast);
+    const storageToStorage = new StorageToStorageGen(this.implementation.dynArray, ast);
+    const calldataToStorage = new CalldataToStorageGen(
+      this.implementation.dynArray,
+      storageWrite,
+      ast,
+    );
     const externalDynArrayStructConstructor = new ExternalDynArrayStructConstructor(ast);
 
     this.memory = {
@@ -107,6 +113,8 @@ export class CairoUtilFuncGen {
           this.implementation.dynArray,
           storageWrite,
           memoryToStorage,
+          storageToStorage,
+          calldataToStorage,
           ast,
         ),
         withoutArg: new DynArrayPushWithoutArgGen(this.implementation.dynArray, ast),
@@ -122,7 +130,7 @@ export class CairoUtilFuncGen {
         ast,
       ),
       toMemory: new StorageToMemoryGen(this.implementation.dynArray, ast),
-      toStorage: new StorageToStorageGen(this.implementation.dynArray, ast),
+      toStorage: storageToStorage,
       write: storageWrite,
     };
     this.externalFunctions = {
@@ -133,7 +141,7 @@ export class CairoUtilFuncGen {
     };
     this.calldata = {
       toMemory: new CallDataToMemoryGen(ast),
-      toStorage: new CalldataToStorageGen(this.implementation.dynArray, storageWrite, ast),
+      toStorage: calldataToStorage,
     };
   }
 

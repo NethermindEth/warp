@@ -37,11 +37,12 @@ export class ArrayFunctions extends ReferenceSubPass {
     } else if (node.vFunctionName === 'push') {
       let replacement: FunctionCall;
       if (node.vArguments.length > 0) {
-        if (this.getLocations(node.vArguments[0])[0] !== DataLocation.Default) {
-          throw new NotSupportedYetError(`Pushing non-scalar types not supported yet`);
-        }
         replacement = ast.getUtilFuncGen(node).storage.dynArrayPush.withArg.gen(node);
         this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
+        const actualArgLoc = this.getLocations(node.vArguments[0])[0];
+        if (actualArgLoc) {
+          this.expectedDataLocations.set(node.vArguments[0], actualArgLoc);
+        }
       } else {
         replacement = ast.getUtilFuncGen(node).storage.dynArrayPush.withoutArg.gen(node);
         this.replace(node, replacement, undefined, DataLocation.Storage, expectedLoc, ast);

@@ -4,6 +4,7 @@ import {
   BinaryOperation,
   DataLocation,
   Expression,
+  ExternalReferenceType,
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
@@ -101,6 +102,16 @@ export class ExpectedLocationAnalyser extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     if (node.kind === FunctionCallKind.TypeConversion) {
       node.vArguments.forEach((arg) => this.expectedLocations.set(arg, DataLocation.Default));
+      return this.visitExpression(node, ast);
+    }
+
+    if (node.vFunctionCallType === ExternalReferenceType.Builtin && node.vFunctionName === 'push') {
+      if (node.vArguments.length > 0) {
+        const actualLoc = this.actualLocations.get(node.vArguments[0]);
+        if (actualLoc) {
+          this.expectedLocations.set(node.vArguments[0], actualLoc);
+        }
+      }
       return this.visitExpression(node, ast);
     }
 

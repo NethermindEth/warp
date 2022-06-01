@@ -42,8 +42,8 @@ export class References extends ASTMapper {
         root,
         ast,
       );
-      new MemoryAllocations(actualDataLocations, expectedDataLocations).dispatchVisit(root, ast);
       new ArrayFunctions(actualDataLocations, expectedDataLocations).dispatchVisit(root, ast);
+      new MemoryAllocations(actualDataLocations, expectedDataLocations).dispatchVisit(root, ast);
       new StorageDelete(actualDataLocations, expectedDataLocations).dispatchVisit(root, ast);
       new StoredPointerDereference(actualDataLocations, expectedDataLocations).dispatchVisit(
         root,
