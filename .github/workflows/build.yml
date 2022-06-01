@@ -67,7 +67,7 @@ jobs:
 
       - name: Test code execution
         run: |
-          yarn testnet-b &
+          yarn testnet:benchmark &
           make test_execution
 
       - name: Setup source hash (pull_request)

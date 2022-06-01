@@ -79,7 +79,7 @@ yarn test
 In order to generate benchmarks locally during development:
 
 ```bash
-yarn testnet-b
+yarn testnet:benchmark
 yarn test
 ```
 
