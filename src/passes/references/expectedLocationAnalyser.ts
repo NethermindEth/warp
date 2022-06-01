@@ -106,16 +106,16 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     const parameterTypes = getParameterTypes(node, ast);
     // When calling `push`, the function recieves two paramaters nonetheless the argument is just one
     // This does not explode because javascript does not gives an index out of range exception
-    parameterTypes.forEach((t, index) => {
+    node.vArguments.forEach((arg, index) => {
       // Solc 0.7.0 types push and pop as you would expect, 0.8.0 adds an extra initial argument
       const paramIndex = index + parameterTypes.length - node.vArguments.length;
-      const argI = node.vArguments[paramIndex];
+      const t = parameterTypes[paramIndex];
       if (t instanceof PointerType) {
         if (node.kind === FunctionCallKind.StructConstructorCall) {
           // The components of a struct being assigned to a location are also being assigned to that location
           const expectedLocation = this.expectedLocations.get(node);
           if (expectedLocation !== undefined && expectedLocation !== DataLocation.Default) {
-            this.expectedLocations.set(argI, expectedLocation);
+            this.expectedLocations.set(arg, expectedLocation);
             return;
           }
 
@@ -123,21 +123,21 @@ export class ExpectedLocationAnalyser extends ASTMapper {
           const structType = getNodeType(node, ast.compilerVersion);
           assert(structType instanceof PointerType);
           if (structType.location !== DataLocation.Default) {
-            this.expectedLocations.set(argI, structType.location);
+            this.expectedLocations.set(arg, structType.location);
           } else {
             //Finally, default to the type in the pointer itself if we can't infer anything else
-            this.expectedLocations.set(argI, t.location);
+            this.expectedLocations.set(arg, t.location);
           }
         } else if (
           node.vReferencedDeclaration instanceof FunctionDefinition &&
           node.vReferencedDeclaration.visibility === FunctionVisibility.External
         ) {
-          this.expectedLocations.set(argI, DataLocation.CallData);
+          this.expectedLocations.set(arg, DataLocation.CallData);
         } else {
-          this.expectedLocations.set(argI, t.location);
+          this.expectedLocations.set(arg, t.location);
         }
       } else {
-        this.expectedLocations.set(argI, DataLocation.Default);
+        this.expectedLocations.set(arg, DataLocation.Default);
       }
     });
     this.visitExpression(node, ast);

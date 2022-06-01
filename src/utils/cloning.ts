@@ -104,7 +104,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
     newNode = new CairoAssert(
       replaceId(node.id, ast, remappedIds),
       node.src,
-      node.vExpression,
+      cloneASTNodeImpl(node.vExpression, ast, remappedIds),
       node.assertMessage,
       node.raw,
     );
