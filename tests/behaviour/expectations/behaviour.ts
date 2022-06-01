@@ -2195,6 +2195,11 @@ export const expectations = flatten(
             ),
           ]),
         ]),
+        new Dir('tuples', [
+          File.Simple('calldata_tuple', [
+            Expect.Simple('tupleSplit', ['3', '1', '2', '3', '5'], ['5']),
+          ]),
+        ]),
         new Dir('type_information', [
           File.Simple('informationEnum', [
             Expect.Simple('dMin', [], ['0']),
