@@ -6,12 +6,8 @@ from starkware.cairo.common.uint256 import Uint256
 from starkware.starknet.common.syscalls import get_caller_address
 
 from evm.array import (
-    array_copy_from_memory,
-    array_copy_to_memory,
-    array_create_from_memory,
-    array_load,
-    validate_array,
-)
+    array_copy_from_memory, array_copy_to_memory, array_create_from_memory, array_load,
+    validate_array)
 from evm.exec_env import ExecutionEnvironment
 from evm.utils import ceil_div, felt_to_uint256, get_max, update_msize
 
