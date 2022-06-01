@@ -99,6 +99,7 @@ import {
 } from './utils/utils';
 
 const INDENT = ' '.repeat(4);
+export const INCLUDE_CAIRO_DUMP_FUNCTIONS = false;
 
 function getDocumentation(
   documentation: string | StructuredDocumentation | undefined,
@@ -402,6 +403,28 @@ class CairoContractWriter extends CairoASTNodeWriter {
             '        return (id)',
             '    end',
             'end',
+            ...(INCLUDE_CAIRO_DUMP_FUNCTIONS
+              ? [
+                  'func DUMP_WARP_STORAGE_ITER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt, ptr: felt*):',
+                  '    alloc_locals',
+                  '    if length == 0:',
+                  '        return ()',
+                  '    end',
+                  '    let index = length - 1',
+                  '    let (read) = WARP_STORAGE.read(index)',
+                  '    assert ptr[index] = read',
+                  '    DUMP_WARP_STORAGE_ITER(index, ptr)',
+                  '    return ()',
+                  'end',
+                  '@external',
+                  'func DUMP_WARP_STORAGE{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt) -> (data_len : felt, data: felt*):',
+                  '    alloc_locals',
+                  '    let (p: felt*) = alloc()',
+                  '    DUMP_WARP_STORAGE_ITER(length, p)',
+                  '    return (length, p)',
+                  'end',
+                ]
+              : []),
           ].join('\n')
         : '';
 
