@@ -12,17 +12,10 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import {
-  CairoFelt,
-  CairoStruct,
-  CairoTuple,
-  CairoType,
-  TypeConversionContext,
-  WarpLocation,
-} from '../../utils/cairoTypeSystem';
-import { TranspilationAbandonedError } from '../../utils/errors';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
+import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
+import { uint256 } from '../../warplib/utils';
 import { add, CairoFunction, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
@@ -41,7 +34,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     const fromType = generalizeType(getNodeType(from, this.ast.compilerVersion))[0];
     const toType = generalizeType(getNodeType(to, this.ast.compilerVersion))[0];
 
-    const name = this.getOrCreate(toType);
+    const name = this.getOrCreate(fromType, toType);
     const functionStub = createCairoFunctionStub(
       name,
       [
@@ -57,9 +50,8 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return createCallToFunction(functionStub, [from, to], this.ast);
   }
 
-  private getOrCreate(type: TypeNode): string {
-    const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation);
-    const key = generateKey(cairoType);
+  private getOrCreate(fromType: TypeNode, toType: TypeNode): string {
+    const key = `${fromType.pp()}->${toType.pp()}`;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
@@ -71,16 +63,22 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, { name: funcName, code: '' });
 
     let cairoFunction: CairoFunction;
-    if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-      cairoFunction = this.createStructCopyFunction(funcName, type);
-    } else if (type instanceof ArrayType) {
-      if (type.size === undefined) {
-        cairoFunction = this.createDynamicArrayCopyFunction(funcName, type);
+    if (toType instanceof UserDefinedType && toType.definition instanceof StructDefinition) {
+      assert(fromType.pp() === toType.pp());
+      cairoFunction = this.createStructCopyFunction(funcName, toType);
+    } else if (toType instanceof ArrayType) {
+      assert(fromType instanceof ArrayType);
+      if (toType.size === undefined) {
+        if (fromType.size === undefined) {
+          cairoFunction = this.createDynamicArrayCopyFunction(funcName, toType);
+        } else {
+          cairoFunction = this.createStaticToDynamicArrayCopyFunction(funcName, fromType, toType);
+        }
       } else {
-        cairoFunction = this.createStaticArrayCopyFunction(funcName, type);
+        cairoFunction = this.createStaticArrayCopyFunction(funcName, toType);
       }
     } else {
-      cairoFunction = this.createValueTypeCopyFunction(funcName, type);
+      cairoFunction = this.createValueTypeCopyFunction(funcName, toType);
     }
     this.generatedFunctions.set(key, cairoFunction);
     return cairoFunction.name;
@@ -109,7 +107,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
             (memberType instanceof UserDefinedType &&
               memberType.definition instanceof StructDefinition)
           ) {
-            const memberCopyFunc = this.getOrCreate(memberType);
+            const memberCopyFunc = this.getOrCreate(memberType, memberType);
             code = `${memberCopyFunc}(${add('fromLoc', offset)}, ${add('toLoc', offset)})`;
           } else {
             code = mapRange(width, (index) => copyAtOffset(index + offset)).join('\n');
@@ -126,7 +124,8 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
   private createStaticArrayCopyFunction(funcName: string, type: ArrayType): CairoFunction {
     assert(type.size !== undefined, 'Attempted to copy storage dynamic array as static array');
 
-    const elementCopyFunc = this.getOrCreate(type.elementT);
+    // TODO implement from->to
+    const elementCopyFunc = this.getOrCreate(type.elementT, type.elementT);
 
     return {
       name: funcName,
@@ -151,7 +150,8 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
 
-    const elementCopyFunc = this.getOrCreate(type.elementT);
+    // TODO implement from->to
+    const elementCopyFunc = this.getOrCreate(type.elementT, type.elementT);
     const elementCairoType = CairoType.fromSol(
       type.elementT,
       this.ast,
@@ -194,6 +194,66 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     };
   }
 
+  private createStaticToDynamicArrayCopyFunction(
+    funcName: string,
+    fromType: ArrayType,
+    toType: ArrayType,
+  ): CairoFunction {
+    assert(fromType.size !== undefined);
+    assert(toType.size === undefined);
+
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
+
+    // TODO implement from->to
+    const elementCopyFunc = this.getOrCreate(fromType.elementT, toType.elementT);
+    const fromElementCairoType = CairoType.fromSol(
+      fromType.elementT,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    );
+    const toElementCairoType = CairoType.fromSol(
+      toType.elementT,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    );
+    const [toElementMapping, toLengthMapping] = this.dynArrayGen.gen(toElementCairoType);
+
+    return {
+      name: funcName,
+      code: [
+        `func ${funcName}_elem${implicits}(fromElem: felt, toLoc: felt, length: Uint256, index: Uint256) -> ():`,
+        `    alloc_locals`,
+        `    if length.low == index.low:`,
+        `        if length.high == index.high:`,
+        `            return ()`,
+        `        end`,
+        `    end`,
+        `    let (toElem) = ${toElementMapping}.read(toLoc, index)`,
+        `    let (nextIndex, carry) = uint256_add(index, Uint256(1,0))`,
+        `    assert carry = 0`,
+        `    if toElem == 0:`,
+        `        let (used) = WARP_USED_STORAGE.read()`,
+        `        WARP_USED_STORAGE.write(used + ${toElementCairoType.width})`,
+        `        ${toElementMapping}.write(toLoc, index, used)`,
+        `        ${elementCopyFunc}(fromElem, used)`,
+        `        return ${funcName}_elem(fromElem + ${fromElementCairoType.width}, toLoc, length, nextIndex)`,
+        `    else:`,
+        `        ${elementCopyFunc}(fromElem, toElem)`,
+        `        return ${funcName}_elem(fromElem + ${fromElementCairoType.width}, toLoc, length, nextIndex)`,
+        `    end`,
+        `end`,
+        `func ${funcName}${implicits}(fromLoc: felt, toLoc: felt) -> (retLoc: felt):`,
+        `    alloc_locals`,
+        `    let fromLength = ${uint256(narrowBigIntSafe(fromType.size))}`,
+        `    ${toLengthMapping}.write(toLoc, fromLength)`,
+        `    ${funcName}_elem(fromLoc, toLoc, fromLength, Uint256(0,0))`,
+        `    return (toLoc)`,
+        `end`,
+      ].join('\n'),
+    };
+  }
+
   private createValueTypeCopyFunction(funcName: string, type: TypeNode): CairoFunction {
     const width = CairoType.fromSol(type, this.ast, TypeConversionContext.StorageAllocation).width;
 
@@ -211,16 +271,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
 }
 
 const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
-
-function generateKey(type: CairoType): string {
-  if (type instanceof WarpLocation) return 'w';
-  if (type instanceof CairoFelt) return 'f';
-  if (type instanceof CairoStruct) return [...type.members.values()].map(generateKey).join('');
-  if (type instanceof CairoTuple) return type.members.map(generateKey).join('');
-  throw new TranspilationAbandonedError(
-    `Attempted to create Storage->Storage copy for cairo type ${type.fullStringRepresentation}`,
-  );
-}
 
 function copyAtOffset(n: number): string {
   return [
