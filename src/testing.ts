@@ -377,7 +377,7 @@ function checkNoJson(path: string): boolean {
 
 function postTestCleanup(): void {
   deleteJson('warplib');
-  fs.rmSync('example__contracts', { recursive: true });
+  fs.rmSync('example__contracts', { recursive: true, force: true });
 }
 
 function deleteJson(path: string): void {
