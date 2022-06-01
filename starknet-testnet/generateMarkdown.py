@@ -11,6 +11,8 @@ WARP_ROOT = Path(__file__).parents[1]
 TMP = WARP_ROOT / "benchmark" / "json"
 FILE_NAME = "data"
 
+contract_name_map = {}
+
 
 def steps_in_function_deploy(contract_name: str, result: TransactionExecutionInfo):
     json_path = os.path.abspath(TMP / (FILE_NAME + ".json"))
@@ -28,7 +30,7 @@ def steps_in_function_deploy(contract_name: str, result: TransactionExecutionInf
         json.dump(benchmark_data, json_file, indent=3)
 
 
-def steps_in_function_invoke(contract_name: str, result: TransactionExecutionInfo):
+def steps_in_function_invoke(function_name: str, result: TransactionExecutionInfo):
     json_path = os.path.abspath(TMP / (FILE_NAME + ".json"))
     if os.path.exists(json_path):
         with open(json_path, "r") as json_file:
@@ -36,8 +38,9 @@ def steps_in_function_invoke(contract_name: str, result: TransactionExecutionInf
     else:
         benchmark_data = {}
 
-    benchmark_data.setdefault("_".join(contract_name.split("_")[:-1]), {})[
-        "steps"
+    contract_name = contract_name_map.get(result.call_info.contract_address, "UNKNOWN")
+    benchmark_data.setdefault(contract_name, {}).setdefault("function_steps", {})[
+        function_name
     ] = result.call_info.execution_resources.n_steps
 
     with open(json_path, "w") as json_file:
@@ -55,6 +58,22 @@ def builtin_instance_count(contract_name: str, result: TransactionExecutionInfo)
     benchmark_data.setdefault(contract_name, {})[
         "builtin_instances"
     ] = result.call_info.execution_resources.builtin_instance_counter
+
+    with open(json_path, "w") as json_file:
+        json.dump(benchmark_data, json_file, indent=3)
+
+
+def json_size_count(file_path: str):
+    json_path = os.path.abspath(TMP / (FILE_NAME + ".json"))
+    if os.path.exists(json_path):
+        with open(json_path, "r") as json_file:
+            benchmark_data = json.load(json_file)
+    else:
+        benchmark_data = {}
+
+    benchmark_data.setdefault(file_path, {})[
+        "json_size"
+    ] = f"{os.path.getsize(file_path)/1024} KB"
 
     with open(json_path, "w") as json_file:
         json.dump(benchmark_data, json_file, indent=3)
@@ -98,10 +117,22 @@ def create_markdown():
 
                 md_file.write(f"\n")
 
+        if "function_steps" in data:
+            with open(
+                os.path.join(WARP_ROOT, f"benchmark/stats/{FILE_NAME}.md"), "a"
+            ) as md_file:
+                md_file.write("| Function | Steps |\n")
+                md_file.write("| ----------- | ----------- |\n")
+
+                for function, steps in sorted(data["function_steps"].items()):
+                    md_file.write(f"| {function} | {steps} |\n")
+
+                md_file.write(f"\n")
+
 
 if __name__ == "__main__":
-    if sys.argv[1] != None:
+    if len(sys.argv) >= 2 and sys.argv[1] != None:
         FILE_NAME = sys.argv[1]
-    print(sys.argv[1])
+        print(sys.argv[1])
     print(FILE_NAME)
     create_markdown()
