@@ -12,6 +12,7 @@ import {
 } from './starknetCli';
 import chalk from 'chalk';
 import { runVenvSetup } from './utils/setupVenv';
+import { runTests } from './testing';
 
 export type CompilationOptions = {
   warnings: boolean;

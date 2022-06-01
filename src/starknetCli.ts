@@ -44,7 +44,7 @@ export function compileCairo(
 }
 
 export function runStarknetCompile(filePath: string) {
-  const { success, resultPath } = compileCairo(filePath, '../warplib');
+  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
