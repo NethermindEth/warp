@@ -130,5 +130,5 @@ end
 func get_msize{range_check_ptr, msize}() -> (value : Uint256):
     # Returns 'msize' rounded up to the nearest word, as per the yellow paper.
     let (immediate) = round_up_to_multiple(msize, 32)
-    return Uint256(immediate, 0)
+    return (Uint256(immediate, 0))
 end
