@@ -15,10 +15,10 @@ export class AsyncTest {
     return `${this.name}.sol`;
   }
   get cairo() {
-    return `warp_output/${mangleContractFilePath(this.name, this.contract)}.cairo`;
+    return `warp_output/${mangleContractFilePath(manglePath(this.name), this.contract)}.cairo`;
   }
   get compiled() {
-    return `warp_output/${mangleContractFilePath(this.name, this.contract)}.json`;
+    return `warp_output/${mangleContractFilePath(manglePath(this.name), this.contract)}.json`;
   }
 
   static fromSync(test: File): AsyncTest {
