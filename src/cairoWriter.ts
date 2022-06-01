@@ -99,6 +99,7 @@ import {
 } from './utils/utils';
 
 const INDENT = ' '.repeat(4);
+export const INCLUDE_CAIRO_DUMP_FUNCTIONS = false;
 
 function getDocumentation(
   documentation: string | StructuredDocumentation | undefined,
@@ -164,6 +165,7 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
       const constantValue = writer.write(node.vValue);
       return [[documentation, `const ${node.name} = ${constantValue}`].join('\n')];
     }
+    // TODO check that this can be removed
     if (node.stateVariable) {
       let vals = [];
       assert(
@@ -378,7 +380,7 @@ class CairoContractWriter extends CairoASTNodeWriter {
       .join('\n');
 
     const storageCode =
-      node.usedStorage > 0
+      node.usedStorage > 0 || node.usedIds > 0
         ? [
             '@storage_var',
             'func WARP_STORAGE(index: felt) -> (val: felt):',
@@ -401,6 +403,28 @@ class CairoContractWriter extends CairoASTNodeWriter {
             '        return (id)',
             '    end',
             'end',
+            ...(INCLUDE_CAIRO_DUMP_FUNCTIONS
+              ? [
+                  'func DUMP_WARP_STORAGE_ITER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt, ptr: felt*):',
+                  '    alloc_locals',
+                  '    if length == 0:',
+                  '        return ()',
+                  '    end',
+                  '    let index = length - 1',
+                  '    let (read) = WARP_STORAGE.read(index)',
+                  '    assert ptr[index] = read',
+                  '    DUMP_WARP_STORAGE_ITER(index, ptr)',
+                  '    return ()',
+                  'end',
+                  '@external',
+                  'func DUMP_WARP_STORAGE{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt) -> (data_len : felt, data: felt*):',
+                  '    alloc_locals',
+                  '    let (p: felt*) = alloc()',
+                  '    DUMP_WARP_STORAGE_ITER(length, p)',
+                  '    return (length, p)',
+                  'end',
+                ]
+              : []),
           ].join('\n')
         : '';
 
@@ -555,9 +579,13 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     if (node.kind === FunctionKind.Constructor) {
       const contract = node.vScope;
       assert(contract instanceof CairoContract);
-      if (contract.usedStorage !== 0) {
-        return `WARP_USED_STORAGE.write(${contract.usedStorage})`;
+      if (contract.usedStorage === 0 && contract.usedIds === 0) {
+        return null;
       }
+      return [
+        contract.usedStorage === 0 ? '' : `WARP_USED_STORAGE.write(${contract.usedStorage})`,
+        contract.usedIds === 0 ? '' : `WARP_NAMEGEN.write(${contract.usedIds})`,
+      ].join(`\n`);
     }
     return null;
   }
