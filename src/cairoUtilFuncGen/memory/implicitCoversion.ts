@@ -13,9 +13,9 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
+import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { CairoFunction, StringIndexedFuncGen } from '../base';
+import { add, CairoFunction, StringIndexedFuncGen } from '../base';
 import { MemoryReadGen } from './memoryRead';
 import { MemoryWriteGen } from './memoryWrite';
 
@@ -39,7 +39,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 
     const targetBaseType = getBaseType(targetType);
     const sourceBaseType = getBaseType(sourceType);
-    // Cast Ints (intY[] -> intX[], X > Y)
+    // Cast Ints: intY[] -> intX[] with X > Y
     if (
       targetBaseType instanceof IntType &&
       sourceBaseType instanceof IntType &&
@@ -156,17 +156,32 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       ];
     }
 
-    const allocSize = narrowBigIntSafe(targetType.size) * cairoTargetElementType.width;
-
-    const targetLoc = `target ${getOffset('index', cairoTargetElementType.width)}`;
     const funcName = `memory_static_array_conversion${this.generatedFunctions.size}`;
+    const targetLoc = `target ${getOffset('index', cairoTargetElementType.width)}`;
+    const allocSize = narrowBigIntSafe(targetType.size) * cairoTargetElementType.width;
     const implicit = '{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, warp_memory : DictAccess*}';
+
+    const recursionStopCase =
+      targetType.elementT instanceof PointerType && targetType.size !== sourceType.size
+        ? [
+            `if index == ${targetType.size}:`,
+            `    return()`,
+            `end`,
+            `let (lesser) = is_le(index, ${sourceType.size - 1n})`,
+            `if lesser == 0:`,
+            `   let (target_elem) = ${this.getOrCreateEmptyArrayInitializer(
+              targetType.elementT,
+            )}()`,
+            `   wm_write_felt(${targetLoc}, target_elem)`,
+            `   return ${funcName}_copy(source, target, index + 1)`,
+            `end`,
+          ]
+        : [`if index == ${sourceType.size}:`, `return()`, `end`];
+
     const code = [
       `func ${funcName}_copy${implicit}(source : felt, target : felt, index : felt):`,
       `   alloc_locals`,
-      `   if index == ${sourceType.size}:`,
-      `      return ()`,
-      `   end`,
+      ...recursionStopCase,
       ...conversionCode,
       `   ${this.memoryWrite.getOrCreate(targetType.elementT)}(${targetLoc}, target_elem)`,
       `   return ${funcName}_copy(source, target, index + 1)`,
@@ -183,6 +198,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     // Import according to how the function was generated
     if (sourceType.elementT instanceof PointerType) {
       this.requireImport('warplib.memory', 'wm_read_felt');
+      this.requireImport('starkware.cairo.common.math_cmp', 'is_le');
     }
     if (targetType.elementT instanceof IntType) {
       if (targetType.elementT.signed) {
@@ -309,6 +325,92 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
     this.requireImport('warplib.memory', 'wm_index_dyn');
+
+    return { name: funcName, code: code };
+  }
+
+  // Need to create empty array initalizer for unitiniatlized vars of static arrays.
+  // For example:
+  // uint[3][3] memory X <- uint[2][2] memory Y
+  // Y is something like [y_pointer1, y_pointer2] where y_pointer1 -> [a, b]  and y_pointer2 -> [c, d]
+  // After converting X will be [x_pointer1, x_pointer2, 0]
+  // When reading from the last element of X it will point to memory location 0
+  // which will have wrong values.
+  // With this function you get
+  // X -> [x_pointer1, x_pointer2, x_pointer3] where x_pointer3 -> [0, 0, 0]
+  private getOrCreateEmptyArrayInitializer(targetType: PointerType) {
+    const targetBaseCairoType = CairoType.fromSol(
+      getBaseType(targetType),
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    );
+
+    const key = `empty_initialization${
+      targetBaseCairoType.fullStringRepresentation
+    }_${getNestedNumber(targetType)}_${getNestedNumber(targetType)}`;
+
+    const existing = this.generatedFunctions.get(key);
+    if (existing !== undefined) {
+      return existing.name;
+    }
+
+    const empty_init_func = this.generateEmptyArrayIntializer(targetType);
+    this.generatedFunctions.set(key, empty_init_func);
+    return empty_init_func.name;
+  }
+
+  private generateEmptyArrayIntializer(targetType: PointerType): CairoFunction {
+    const deferencedType = generalizeType(targetType)[0];
+    assert(deferencedType instanceof ArrayType);
+
+    const cairoTargetElementType = CairoType.fromSol(
+      deferencedType.elementT,
+      this.ast,
+      TypeConversionContext.Ref,
+    );
+
+    const implicit = '{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, warp_memory : DictAccess*}';
+
+    // creating empty static array
+    if (deferencedType.size !== undefined) {
+      const size = narrowBigIntSafe(deferencedType.size);
+
+      const elementT = deferencedType.elementT;
+
+      const recurse =
+        elementT instanceof PointerType
+          ? mapRange(size, (index) => [
+              `let (elem) = ${this.getOrCreateEmptyArrayInitializer(elementT)}()`,
+              `wm_write_felt(${add('empty_mem_loc', index * cairoTargetElementType.width)}, elem)`,
+            ])
+          : [];
+
+      const allocSize = narrowBigIntSafe(deferencedType.size) * cairoTargetElementType.width;
+      const funcName = `init_empty_static_${this.generatedFunctions.size}`;
+      ('{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, warp_memory : DictAccess*}');
+      const code = [
+        `func ${funcName}${implicit}() -> (empty_mem_loc : felt):`,
+        `   alloc_locals`,
+        `   let (empty_mem_loc) = wm_alloc(${uint256(allocSize)})`,
+        ...recurse,
+        `   return (empty_mem_loc)`,
+        `end`,
+      ].join('\n');
+
+      return { name: funcName, code: code };
+    }
+
+    //creating empty dynamic array
+    const funcName = `init_empty_dynamic_${this.generatedFunctions.size}`;
+    const code = [
+      `func ${funcName}${implicit}() -> (empty_mem_loc):`,
+      `    alloc_locals`,
+      `    let (empty_mem_loc) = wm_new(${uint256(0)}, ${cairoTargetElementType.width})`,
+      `    return (empty_mem_loc)`,
+      `end`,
+    ].join('\n');
+
+    this.requireImport('warplib.memory', 'wm_new');
 
     return { name: funcName, code: code };
   }
