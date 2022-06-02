@@ -128,9 +128,11 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.MemoryAllocation,
     );
+    const cairoSourceElementWidth =
+      sourceType.elementT instanceof PointerType ? 1 : cairoSourceElementType.width;
 
     const sourceRead = this.memoryRead.getOrCreate(cairoSourceElementType);
-    const sourceLoc = `source ${getOffset('index', cairoSourceElementType.width)}`;
+    const sourceLoc = `source ${getOffset('index', cairoSourceElementWidth)}`;
     const conversionCode =
       targetType.elementT instanceof IntType
         ? [
@@ -138,7 +140,8 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
             `let (target_elem) = felt_to_uint256(source_elem)`,
           ]
         : [
-            `let (source_elem) = ${sourceRead}(${sourceLoc})`,
+            `let (source_elem_loc) = ${sourceRead}(${sourceLoc})`,
+            `let (source_elem) = wm_read_felt(source_elem_loc)`,
             `let (target_elem) = ${this.getOrCreate(
               targetType.elementT,
               sourceType.elementT,
@@ -147,6 +150,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 
     const allocSize = narrowBigIntSafe(targetType.size) * cairoTargetElementType.width;
 
+    const targetLoc = `target ${getOffset('index', cairoTargetElementType.width)}`;
     const funcName = `memory_static_array_conversion${this.generatedFunctions.size}`;
     const implicit = '{range_check_ptr, warp_memory : DictAccess*}';
     const code = [
@@ -156,9 +160,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       `      return ()`,
       `   end`,
       ...conversionCode,
-      `   ${this.memoryWrite.getOrCreate(targetType.elementT)}(target + index * ${
-        cairoTargetElementType.width
-      }, target_elem)`,
+      `   ${this.memoryWrite.getOrCreate(targetType.elementT)}(${targetLoc}, target_elem)`,
       `   return ${funcName}_copy(source, target, index + 1)`,
       `end`,
 
@@ -187,25 +189,24 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.MemoryAllocation,
     );
+    const cairoSourceElementWidth =
+      sourceType.elementT instanceof PointerType ? 1 : cairoSourceElementType.width;
 
     const getLen =
       sourceType.size === undefined
         ? `let (len) = wm_dyn_array_length(source)`
         : `let len = ${uint256(sourceType.size)}`;
 
-    if (this.generatedFunctions.size == 6) {
-      console.log('->', printTypeNode(sourceType.elementT), cairoSourceElementType.width);
-    }
     const getSourceLoc =
       sourceType.size === undefined
         ? [
             `let (source_elem_loc) = wm_index_dyn(source, index, ${uint256(
-              cairoSourceElementType.width,
+              cairoSourceElementWidth,
             )})`,
             sourceType.elementT instanceof PointerType
               ? `let (source_elem_loc) = wm_read_felt(source_elem_loc)`
               : '',
-          ].join('\n')
+          ]
         : [
             `let felt_index = index.low + index.high * 128`,
             sourceType.elementT instanceof PointerType
@@ -214,18 +215,18 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
                   'felt_index',
                   cairoSourceElementType.width,
                 )}`,
-          ].join('\n');
+          ];
 
     const memoryReadFunc = this.memoryRead.getOrCreate(cairoSourceElementType);
     const conversionCode =
       targetType.elementT instanceof IntType
         ? [
-            getSourceLoc,
+            ...getSourceLoc,
             `let (source_elem) = ${memoryReadFunc}(source_elem_loc)`,
             `let (target_elem) = felt_to_uint256(source_elem)`,
           ]
         : [
-            getSourceLoc,
+            ...getSourceLoc,
             `let (target_elem) = ${this.getOrCreate(
               targetType.elementT,
               sourceType.elementT,
@@ -265,6 +266,8 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       `end`,
     ].join('\n');
 
+    // Use this when necesary only
+    this.requireImport('warplib.memory', 'wm_read_felt');
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
     this.requireImport('warplib.memory', 'wm_index_dyn');
@@ -274,9 +277,12 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 }
 
 function getBaseType(type: TypeNode): TypeNode {
-  const generalType = generalizeType(type)[0];
-  return generalType instanceof ArrayType ? getBaseType(generalType.elementT) : generalType;
+  const deferencedType = generalizeType(type)[0];
+  return deferencedType instanceof ArrayType
+    ? getBaseType(deferencedType.elementT)
+    : deferencedType;
 }
+
 function getNestedNumber(type: TypeNode): string {
   const generalType = generalizeType(type)[0];
   return generalType instanceof ArrayType
