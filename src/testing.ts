@@ -191,7 +191,7 @@ const expectedResults = new Map<string, ResultType>([
   // uses modulo (%)
   ['example_contracts/unsupportedFunctions/shadowAddmod', 'Success'],
   // Uses WARP_STORAGE in a free function
-  ['example_contracts/using_for/imports/user_defined', 'CairoCompileFailed'],
+  ['example_contracts/using_for/imports/user_defined', 'Success'],
   // global_directive.sol cannot resolve struct when file imported as identifier
   ['example_contracts/using_for/imports/global_directive', 'CairoCompileFailed'],
   ['example_contracts/using_for/function', 'WillNotSupport'],
