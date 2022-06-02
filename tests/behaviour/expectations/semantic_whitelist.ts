@@ -649,7 +649,7 @@ const tests: string[] = [
     ],
     //---------Function call misc tests: 39 passing, 29 pending, 12 failing, 2 transcode error
     ...[
-      'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/array_multiple_local_vars.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/array_multiple_local_vars.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/bound_function_in_var.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/bound_function_to_string.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/calling_other_functions.sol',
