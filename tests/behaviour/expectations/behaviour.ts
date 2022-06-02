@@ -2315,6 +2315,11 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('precompiles', [
+          File.Simple('ecrecover', [
+            Expect.Simple('test', [], ['1'])
+          ])
+        ]),
         new Dir('named_args', [
           File.Simple('function', [
             Expect.Simple('f', [], []),

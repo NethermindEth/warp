@@ -85,6 +85,15 @@ export function createBytesTypeName(ast: AST): ElementaryTypeName {
   return node;
 }
 
+// prettier-ignore
+type BytesN = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32;
+
+export function createBytesNTypeName(n: BytesN, ast: AST): ElementaryTypeName {
+  const node = new ElementaryTypeName(ast.reserveId(), '', `bytes${n}`, `bytes${n}`);
+  ast.setContextRecursive(node);
+  return node;
+}
+
 export function createEmptyTuple(ast: AST): TupleExpression {
   const node = new TupleExpression(ast.reserveId(), '', 'tuple()', false, []);
   ast.setContextRecursive(node);
@@ -203,6 +212,15 @@ export function createUint256TypeName(ast: AST): ElementaryTypeName {
 
 export function createUint8TypeName(ast: AST): ElementaryTypeName {
   const typeName = new ElementaryTypeName(ast.reserveId(), '', 'uint8', 'uint8');
+  ast.setContextRecursive(typeName);
+  return typeName;
+}
+
+// prettier-ignore
+type UintN = 0 | 8 | 16 | 24 | 32 | 40 | 48 | 56 | 64 | 72 | 80 | 88 | 96 | 104 | 112 | 120 | 128 | 136 | 144 | 152 | 160 | 168 | 176 | 184 | 192 | 200 | 208 | 216 | 224 | 232 | 240 | 248 | 256;
+
+export function createUintNTypeName(n: UintN, ast: AST): ElementaryTypeName {
+  const typeName = new ElementaryTypeName(ast.reserveId(), '', `uint${n}`, `uint${n}`);
   ast.setContextRecursive(typeName);
   return typeName;
 }
