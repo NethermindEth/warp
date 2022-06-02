@@ -21,7 +21,6 @@ import {
   StructDefinition,
   NewExpression,
   ArrayTypeName,
-  TryCatchClause,
   ParameterList,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -94,6 +93,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     if (node.vParameters.some((param) => param.indexed)) {
       throw new WillNotSupportError(`Indexed parameters are not supported`);
     }
+    this.commonVisit(node, ast);
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
