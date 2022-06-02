@@ -119,7 +119,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Eam', ExternalArgModifier],
     ['Ei', ExternImporter],
     ['Lf', LoopFunctionaliser],
-    ['Raf', ArrayLenFunctionalizer],
+    ['Alf', ArrayLenFunctionalizer],
     ['R', ReturnInserter],
     ['Rv', ReturnVariableInitializer],
     ['If', IfFunctionaliser],
