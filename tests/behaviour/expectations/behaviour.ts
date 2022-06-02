@@ -284,12 +284,39 @@ export const expectations = flatten(
               ['4', '5', '6'],
               ['4', '0', '5', '0', '6', '0', '0', '0', '0', '0'],
             ),
-            Expect.Simple('tryXX1', [], ['10', '0']),
-            Expect.Simple('tryXX1t', [], ['10', '0']),
-            Expect.Simple('tryXX2', [], ['11', '0']),
+            Expect.Simple(
+              'tryXX1',
+              [],
+              [
+                ...['3', '1', '0', '2', '0', '3', '0'],
+                ...['3', '4', '0', '5', '0', '6', '0'],
+                ...['3', '7', '0', '8', '0', '9', '0'],
+              ],
+            ),
+            Expect.Simple(
+              'tryXX2',
+              [],
+              [...['2', '1', '0', '2', '0'], ...['2', '3', '0', '4', '0']],
+            ),
+            Expect.Simple(
+              'tryXX3',
+              [],
+              [
+                ...['3', '1', '0', '2', '0', '3', '0'],
+                ...['3', '4', '0', '5', '0', '6', '0'],
+                ...['3', '7', '0', '8', '0', '9', '0'],
+              ],
+            ),
+            Expect.Simple(
+              'tryXX4',
+              [],
+              [
+                ...['1', '1', '0'],
+                ...['2', '0', '0', '2', '0'],
+                ...['3', '0', '0', '0', '0', '3', '0'],
+              ],
+            ),
             /* Cannot test yet due to transpilation errors
-            // Get's into an infinte loop
-            Expect.Simple('tryXX3', [], ['4', '0']),
             // Nesting issues
             Expect.Simple(
               'tryYY1',

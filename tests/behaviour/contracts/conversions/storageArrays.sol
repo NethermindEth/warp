@@ -48,16 +48,16 @@ contract WARP {
         xx = m;
         return (xx[0], xx[1]);
     }
+
     function tryXX3() public returns (uint[] memory, uint[] memory, uint[] memory) {
-        uint8[2][] memory m = new uint8[2][](3);
-        m[0] = [1,2];
-        m[1] = [3,4];
-        m[2] = [5,6];
+        uint8[3][] memory m = new uint8[3][](3);
+        m[0] = [1, 2, 3];
+        m[1] = [4, 5, 6];
+        m[2] = [7, 8, 9];
 
         xx = m;
         return (xx[0], xx[1], xx[2]);
     }
-
 
     function tryXX4() public returns (uint[] memory, uint[] memory, uint[] memory) {
         uint8[][3] memory m = [new uint8[](1), new uint8[](2), new uint8[](3)];
