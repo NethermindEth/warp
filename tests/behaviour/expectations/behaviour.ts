@@ -318,7 +318,6 @@ export const expectations = flatten(
                 ...['3', '0', '0', '0', '0', '3', '0'],
               ],
             ),
-            /* 
             // Issues from storage to calldata when compiling
             Expect.Simple(
               'tryYY1',
@@ -326,9 +325,24 @@ export const expectations = flatten(
               [
                 ...['1', '0', '2', '0', '0', '0'],
                 ...['3', '0', '4', '0', '0', '0'],
+                ...['5', '0', '6', '0', '0', '0'],
+              ],
+            ),
+            Expect.Simple(
+              'tryYY2',
+              [],
+              [
+                ...['1', '0', '2', '0', '0', '0'],
+                ...['3', '0', '4', '0', '0', '0'],
                 ...['0', '0', '0', '0', '0', '0'],
               ],
             ),
+            Expect.Simple(
+              'tryYYY',
+              [],
+              [...['1', '0', '0', '0'], ...['0', '0', '0', '0'], ...['0', '0', '0', '0']],
+            ),
+            /* 
             // Bug related with the naming of Uint256 structs
             Expect.Simple(
               'tryXY1',
@@ -574,6 +588,7 @@ export const expectations = flatten(
               ['setX', ['1', '0', '2', '0', '3', '0'], [], '0'],
               ['getX', [], ['1', '0', '2', '0', '3', '0'], '0'],
             ]),
+            Expect.Simple('tryY', [], ['1', '0', '2', '0', '3', '0', '4', '0']),
           ]),
           File.Simple('structs', [
             new Expect('structs copy from storage to calldata', [

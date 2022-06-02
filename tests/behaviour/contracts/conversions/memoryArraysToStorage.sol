@@ -53,6 +53,8 @@ contract WARP {
     uint[][] xx;
     uint[][] xxt;
     uint[3][3] yy;
+    uint[2][2][2] yyy;
+
     uint[3][] xy;
     uint[][3] yx;
 
@@ -94,14 +96,27 @@ contract WARP {
         return (xx[0], xx[1], xx[2]);
     }
 
-    /* 
-    // Transpilation issues due to nesting issues
-    function tryYY1() public returns (uint[3][3] memory) {
-        uint8[2][2] memory m = [[1, 2], [3, 4]];
+    function tryYY1() public returns (uint[3] memory, uint[3] memory, uint[3] memory) {
+        uint8[2][3] memory m = [[1, 2], [3, 4], [5, 6]];
         yy = m;
-        return yy;
+        return (yy[0], yy[1], yy[2]);
     }
 
+    function tryYY2() public returns (uint[3] memory, uint[3] memory, uint[3] memory) {
+        uint8[2][2] memory m = [[1, 2], [3, 4]];
+        yy = m;
+        return (yy[0], yy[1], yy[2]);
+    }
+
+    function tryYYY() public returns (uint[2] memory, uint[2] memory, uint[2] memory) {
+        uint8[1][1][1] memory m = [[[1]]];
+        yyy = m;
+
+        return (yyy[0][0], yyy[0][1], yyy[1][1]);
+    }
+
+
+    /*
     //  Transpilation Issues when creating Uint256 struct array
     function tryXY1() public returns (uint[3][] memory) {
         uint8[2][] memory m = new uint8[2][](3);
