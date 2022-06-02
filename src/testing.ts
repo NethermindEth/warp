@@ -163,6 +163,7 @@ const expectedResults = new Map<string, ResultType>([
   // Mappings of structs are not supported yet
   ['example_contracts/state_variables/misc', 'NotSupportedYet'],
   ['example_contracts/structs', 'Success'],
+  ['example_contracts/this_methods_call', 'Success'],
   ['example_contracts/tupleAssignment7', 'Success'],
   ['example_contracts/tupleAssignment8', 'SolCompileFailed'],
   ['example_contracts/typeConversion/explicitTypeConversion', 'Success'],

@@ -737,10 +737,15 @@ class FunctionCallWriter extends CairoASTNodeWriter {
             nodeType instanceof UserDefinedType &&
             nodeType.definition instanceof ContractDefinition
           ) {
+            const currentContractName = node.getClosestParentByType(ContractDefinition)?.name;
             const contractType = nodeType.definition.name;
             const memberName = node.vExpression.memberName;
             const contract = writer.write(node.vExpression.vExpression);
-            return [`${contractType}.${memberName}(${contract}${args ? ', ' : ''}${args})`];
+            return [
+              `${contractType}${
+                currentContractName === contractType ? '_interface_for_this' : ''
+              }.${memberName}(${contract}${args ? ', ' : ''}${args})`,
+            ];
           }
         } else if (
           node.vReferencedDeclaration instanceof CairoFunctionDefinition &&
