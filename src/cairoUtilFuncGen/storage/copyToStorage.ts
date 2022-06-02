@@ -30,7 +30,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
   constructor(private dynArrayGen: DynArrayGen, ast: AST) {
     super(ast);
   }
-  gen(from: Expression, to: Expression, nodeInSourceUnit?: ASTNode): Expression {
+  gen(to: Expression, from: Expression, nodeInSourceUnit?: ASTNode): Expression {
     const fromType = generalizeType(getNodeType(from, this.ast.compilerVersion))[0];
     const toType = generalizeType(getNodeType(to, this.ast.compilerVersion))[0];
 
