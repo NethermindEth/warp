@@ -1,6 +1,5 @@
 export * from './abiExtractor';
 export * from './annotateImplicits';
-export * from './arrayLenFunctionalizer';
 export * from './builtinHandler';
 export * from './bytesConverter';
 export * from './cairoUtilImporter';

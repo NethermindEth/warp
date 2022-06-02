@@ -6,6 +6,10 @@ contract WARP {
     function add1(uint256 len) private pure returns (uint256) {
         return len + 1;
     }
+
+    function mul2(uint256 len) private pure returns (uint256) {
+        return len * 2;
+    }
     
     function returnArrLength(uint128[] calldata arr) public pure returns (uint256) {
         return arr.length;
@@ -18,5 +22,9 @@ contract WARP {
 
     function fnCallWithArrLength(uint128[] calldata arr) public pure returns (uint256) {
         return add1(arr.length);
+    }
+
+    function fnCallArrLengthNestedCalls(uint128[] calldata arr) public pure returns (uint256) {
+        return add1(arr.length) + mul2(arr.length) + add1(mul2(arr.length) + mul2(arr.length));
     }
 }

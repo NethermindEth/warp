@@ -12,6 +12,7 @@ export const expectations = flatten(
             Expect.Simple('returnArrLength', ['3', '1', '2', '3'], ['3', '0']),
             Expect.Simple('returnArrDoubleLength', ['2', '0', '5'], ['4', '0']),
             Expect.Simple('fnCallWithArrLength', ['1', '9'], ['2', '0']),
+            Expect.Simple('fnCallArrLengthNestedCalls', ['2', '1', '2'], ['16', '0']),
           ]),
         ]),
         new Dir('assignments', [
