@@ -318,7 +318,6 @@ export const expectations = flatten(
                 ...['3', '0', '0', '0', '0', '3', '0'],
               ],
             ),
-            // Issues from storage to calldata when compiling
             Expect.Simple(
               'tryYY1',
               [],
