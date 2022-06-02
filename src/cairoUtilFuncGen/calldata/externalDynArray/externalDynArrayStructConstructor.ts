@@ -15,7 +15,7 @@ import { createCairoFunctionStub, createCallToFunction } from '../../../utils/fu
 
 import {
   CairoType,
-  createDynamicCairoStructName,
+  generateStructName,
   TypeConversionContext,
 } from '../../../utils/cairoTypeSystem';
 import { StringIndexedFuncGen } from '../../base';
@@ -66,7 +66,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.MemoryAllocation,
     );
-    const key = createDynamicCairoStructName(elementCairoType);
+    const key = generateStructName(elementCairoType);
     const name = `cd_dynarray_${key}`;
 
     const existing = this.generatedFunctions.get(name);
