@@ -289,6 +289,7 @@ function runCairoFileTest(
   onlyResults: boolean,
   throwError = false,
 ): void {
+  if (file.endsWith('WARP_FREE__.cairo')) return;
   if (!onlyResults) console.log(`Compiling ${file}`);
   if (compileCairo(file).success) {
     results.set(removeExtension(file), 'Success');
