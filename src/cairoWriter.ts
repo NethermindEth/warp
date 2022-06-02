@@ -713,7 +713,8 @@ class IdentifierWriter extends CairoASTNodeWriter {
       isDynamicCallDataArray(getNodeType(node, this.ast.compilerVersion)) &&
       ((node.getClosestParentByType(Return) !== undefined &&
         node.getClosestParentByType(FunctionDefinition)?.visibility ===
-          FunctionVisibility.External) ||
+          FunctionVisibility.External &&
+        node.getClosestParentByType(IndexAccess) === undefined) ||
         (node.parent instanceof FunctionCall &&
           node.parent.vReferencedDeclaration instanceof FunctionDefinition &&
           node.parent.vReferencedDeclaration.visibility === FunctionVisibility.External))
