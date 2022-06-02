@@ -12,7 +12,9 @@ import {
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
+import { TranspileFailedError } from '../../utils/errors';
 import { createCallToFunction } from '../../utils/functionGeneration';
 import {
   createBlock,
@@ -40,7 +42,7 @@ import { updateReferencedDeclarations } from './utils';
     - Collecting the arguments to call each base constructor. To do that, each time an 
     argument is passed, a new variable declaration is created cloning the parameter that 
     corresponds to this argument. The value of the declaration is the expression of the 
-    argument, and references to tha parameter will change to reference the new variable 
+    argument, and references to the parameter will change to reference the new variable 
     created.
     - Calling the functions corresponding to each constructor in the correct order.
 
@@ -108,12 +110,13 @@ export function solveConstructorInheritance(
   const mappedVars: Map<number, VariableDeclaration> = new Map();
 
   const selfConstructor = generateFunctionForConstructor(node, mappedVars, ast);
-  node.vLinearizedBaseContracts.forEach((contract) => {
-    const constructorFunc = constructors.get(contract.id);
+  // There is no need to check `node` constructor args since that is solved in
+  // the previous step
+  const visitedContracts: ContractDefinition[] = [node];
+  node.vLinearizedBaseContracts.slice(1).forEach((contract) => {
     collectArguments(
       contract,
-      constructorFunc,
-      constructors,
+      visitedContracts,
       args,
       mappedVars,
       statements,
@@ -121,6 +124,7 @@ export function solveConstructorInheritance(
       ast,
       generator,
     );
+    visitedContracts.push(contract);
   });
 
   // Create calls to constructor functions:
@@ -162,13 +166,9 @@ export function solveConstructorInheritance(
   }
 }
 
-// Arguments to constructors can be passed either directly (in the inheritance specifiers)
-// or indirectly (as modifier invocations of the constructor function of a derived contract),
-// both ways are not allowed.
 function collectArguments(
   contract: ContractDefinition,
-  constructorFunc: FunctionDefinition | undefined,
-  constructors: Map<number, FunctionDefinition>,
+  visitedContracts: ContractDefinition[],
   args: Map<number, Expression[]>,
   idRemapping: Map<number, VariableDeclaration>,
   statements: Statement[],
@@ -176,53 +176,65 @@ function collectArguments(
   ast: AST,
   generator: () => number,
 ) {
-  contract.vInheritanceSpecifiers.forEach((specifier) => {
-    const contractId = specifier.vBaseType.referencedDeclaration;
-    const constructor = constructors.get(contractId);
-    const size = specifier.vArguments.length;
-    if (size > 0) {
-      assert(
-        constructor !== undefined && constructor.vParameters.vParameters.length === size,
-        'Wrong number of arguments in constructor',
-      );
-      const argList = getArguments(
-        specifier.vArguments,
-        constructor.vParameters.vParameters,
-        idRemapping,
-        statements,
-        scope,
-        ast,
-        generator,
-      );
-      args.set(contractId, argList);
-    }
-  });
+  const constructorFunc = contract.vConstructor;
+  if (constructorFunc !== undefined && constructorFunc.vParameters.vParameters.length > 0) {
+    const callArgs = findConstructorCall(visitedContracts, contract, constructorFunc);
+    const argList = getArguments(
+      callArgs,
+      constructorFunc.vParameters.vParameters,
+      idRemapping,
+      statements,
+      scope,
+      ast,
+      generator,
+    );
+    args.set(contract.id, argList);
+  }
+}
 
-  if (constructorFunc !== undefined) {
-    constructorFunc.vModifiers.forEach((modInvocation) => {
-      const contractDef = modInvocation.vModifier;
-      if (contractDef instanceof ContractDefinition) {
-        const constructor = constructors.get(contractDef.id);
-        const size = modInvocation.vArguments.length;
+// Arguments to constructors can be passed either directly (in the inheritance specifiers)
+// or indirectly (as modifier invocations of the constructor function of a derived contract),
+// both ways are not allowed.
+function findConstructorCall(
+  visitedContracts: ContractDefinition[],
+  currentContract: ContractDefinition,
+  currentConstructor: FunctionDefinition,
+): Expression[] {
+  for (const contract of visitedContracts.slice().reverse()) {
+    const constructorFunc = contract.vConstructor;
+
+    // Check Inheritance Specifiers. There might be an inheritance specifier that points
+    // to the `currentContract`, but does not pass any arguments, because they are being
+    // passed as part of a Modifier Invocation or from a more derived contract.
+    for (const specifier of contract.vInheritanceSpecifiers) {
+      const contractId = specifier.vBaseType.referencedDeclaration;
+      if (contractId == currentContract.id) {
+        const size = specifier.vArguments.length;
         if (size > 0) {
           assert(
-            constructor !== undefined && constructor.vParameters.vParameters.length === size,
+            currentConstructor !== undefined &&
+              currentConstructor.vParameters.vParameters.length === size,
             'Wrong number of arguments in constructor',
           );
-          const argList = getArguments(
-            modInvocation.vArguments,
-            constructor.vParameters.vParameters,
-            idRemapping,
-            statements,
-            scope,
-            ast,
-            generator,
-          );
-          args.set(contractDef.id, argList);
+          return specifier.vArguments;
         }
       }
-    });
+    }
+
+    // Check Modifier Invocations
+    if (constructorFunc !== undefined) {
+      for (const modInvocation of constructorFunc.vModifiers) {
+        const contractDef = modInvocation.vModifier;
+        if (contractDef instanceof ContractDefinition && contractDef.id == currentContract.id) {
+          return modInvocation.vArguments;
+        }
+      }
+    }
   }
+
+  throw new TranspileFailedError(
+    `No arguments being passed to the constructor of ${printNode(currentContract)}`,
+  );
 }
 
 function getArguments(
