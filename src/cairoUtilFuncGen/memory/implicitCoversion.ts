@@ -11,7 +11,6 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
@@ -51,9 +50,6 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.MemoryAllocation,
     );
-
-    console.log(targetBaseType.pp(), targetBaseCairoType.toString());
-    console.log(sourceBaseType.pp(), sourceBaseCairoType.toString());
 
     return targetBaseCairoType.width > sourceBaseCairoType.width
       ? [this.gen(targetExpression, sourceExpression), true]
@@ -140,8 +136,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
             `let (target_elem) = felt_to_uint256(source_elem)`,
           ]
         : [
-            `let (source_elem_loc) = ${sourceRead}(${sourceLoc})`,
-            `let (source_elem) = wm_read_felt(source_elem_loc)`,
+            `let (source_elem) = wm_read_felt(${sourceLoc})`,
             `let (target_elem) = ${this.getOrCreate(
               targetType.elementT,
               sourceType.elementT,
@@ -236,11 +231,6 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     const targetWidth = cairoTargetElementType.width;
     const implicit = '{range_check_ptr, warp_memory : DictAccess*}';
     const funcName = `memory_dynamic_array_conversion${this.generatedFunctions.size}`;
-    console.log(
-      funcName,
-      printTypeNode(sourceType.elementT),
-      sourceType.elementT instanceof ArrayType ? sourceType.elementT.size : 'elementT is not array',
-    );
     const code = [
       `func ${funcName}_copy${implicit}(source : felt, target : felt, index : Uint256, len : Uint256):`,
       `   alloc_locals`,
@@ -266,8 +256,9 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       `end`,
     ].join('\n');
 
-    // Use this when necesary only
-    this.requireImport('warplib.memory', 'wm_read_felt');
+    if (sourceType.elementT instanceof PointerType) {
+      this.requireImport('warplib.memory', 'wm_read_felt');
+    }
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
     this.requireImport('warplib.memory', 'wm_index_dyn');

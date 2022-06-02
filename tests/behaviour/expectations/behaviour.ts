@@ -316,8 +316,8 @@ export const expectations = flatten(
                 ...['3', '0', '0', '0', '0', '3', '0'],
               ],
             ),
-            /* Cannot test yet due to transpilation errors
-            // Nesting issues
+            /* 
+            // Issues from storage to calldata when compiling
             Expect.Simple(
               'tryYY1',
               [],
@@ -327,7 +327,7 @@ export const expectations = flatten(
                 ...['0', '0', '0', '0', '0', '0'],
               ],
             ),
-            // Bug related with the creating of Uin256 structs
+            // Bug related with the naming of Uint256 structs
             Expect.Simple(
               'tryXY1',
               [],
