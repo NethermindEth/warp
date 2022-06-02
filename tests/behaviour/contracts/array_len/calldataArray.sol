@@ -3,6 +3,10 @@ pragma solidity ^0.8.6;
 // SPDX-License-Identifier: MIT
 
 contract WARP {
+
+    uint256 x;
+    uint128[] y;
+
     function add1(uint256 len) private pure returns (uint256) {
         return len + 1;
     }
@@ -16,8 +20,8 @@ contract WARP {
     }
 
     function returnArrDoubleLength(uint128[] calldata arr) public pure returns (uint256) {
-        uint256 x = arr.length * 2;
-        return x;
+        uint256 a = arr.length * 2;
+        return a;
     }
 
     function fnCallWithArrLength(uint128[] calldata arr) public pure returns (uint256) {
@@ -26,5 +30,19 @@ contract WARP {
 
     function fnCallArrLengthNestedCalls(uint128[] calldata arr) public pure returns (uint256) {
         return add1(arr.length) + mul2(arr.length) + add1(mul2(arr.length) + mul2(arr.length));
+    }
+
+    function assignLengthToStorageUint(uint128[] calldata arr) public returns (uint256) {
+        x = arr.length;
+        return x;
+    }
+
+    function assignToStorageArr(uint128[] calldata arr) public returns (uint256) {
+        y = arr;
+        return y.length;
+    }
+
+    function staticArrayLength(uint128[3] calldata arr) public pure returns (uint256) {
+        return arr.length;
     }
 }

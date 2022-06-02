@@ -14,6 +14,7 @@ import { FunctionStubKind } from '../../ast/cairoNodes';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
+import { isDynamicCallDataArray } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
 
@@ -63,7 +64,7 @@ export class ArrayFunctions extends ReferenceSubPass {
 
     const baseType = getNodeType(node.vExpression, ast.compilerVersion);
     if (baseType instanceof PointerType && baseType.to instanceof ArrayType) {
-      if (baseType.location === DataLocation.CallData) {
+      if (isDynamicCallDataArray(baseType)) {
         const parent = node.parent;
         const type = generalizeType(getNodeType(node, ast.compilerVersion))[0];
 
@@ -81,31 +82,38 @@ export class ArrayFunctions extends ReferenceSubPass {
         const funcCall = createCallToFunction(funcStub, [node], ast);
 
         ast.registerImport(funcCall, 'warplib.maths.utils', 'felt_to_uint256');
-        ast.replaceNode(node, funcCall, parent);
+
+        this.replace(
+          node,
+          funcCall,
+          parent,
+          DataLocation.Default,
+          this.expectedDataLocations.get(node),
+          ast,
+        );
+
+        this.expectedDataLocations.set(node, DataLocation.Default);
         node.memberName = 'len';
-      } else if (
-        baseType.location === DataLocation.Storage ||
-        baseType.location === DataLocation.Memory
-      ) {
-        if (baseType.to.size !== undefined) {
-          const size = baseType.to.size.toString();
-          this.replace(
-            node,
-            createNumberLiteral(size, ast, 'uint256'),
-            undefined,
-            DataLocation.Default,
-            DataLocation.Default,
-            ast,
-          );
-        } else {
-          const replacement =
-            baseType.location === DataLocation.Storage
-              ? ast.getUtilFuncGen(node).storage.dynArrayLength.gen(node, baseType.to)
-              : ast.getUtilFuncGen(node).memory.dynArrayLength.gen(node, ast);
-          // The length function returns the actual length rather than a storage pointer to it,
-          // so the new actual location is Default
-          this.replace(node, replacement, undefined, DataLocation.Default, expectedLoc, ast);
-        }
+        return;
+      }
+      if (baseType.to.size !== undefined) {
+        const size = baseType.to.size.toString();
+        this.replace(
+          node,
+          createNumberLiteral(size, ast, 'uint256'),
+          undefined,
+          DataLocation.Default,
+          DataLocation.Default,
+          ast,
+        );
+      } else {
+        const replacement =
+          baseType.location === DataLocation.Storage
+            ? ast.getUtilFuncGen(node).storage.dynArrayLength.gen(node, baseType.to)
+            : ast.getUtilFuncGen(node).memory.dynArrayLength.gen(node, ast);
+        // The length function returns the actual length rather than a storage pointer to it,
+        // so the new actual location is Default
+        this.replace(node, replacement, undefined, DataLocation.Default, expectedLoc, ast);
       }
     }
   }
