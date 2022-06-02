@@ -38,8 +38,8 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     const functionStub = createCairoFunctionStub(
       name,
       [
-        ['fromLoc', typeNameFromTypeNode(toType, this.ast), DataLocation.Storage],
         ['toLoc', typeNameFromTypeNode(toType, this.ast), DataLocation.Storage],
+        ['fromLoc', typeNameFromTypeNode(toType, this.ast), DataLocation.Storage],
       ],
       [['retLoc', typeNameFromTypeNode(toType, this.ast), DataLocation.Storage]],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
@@ -75,7 +75,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
           cairoFunction = this.createStaticToDynamicArrayCopyFunction(funcName, fromType, toType);
         }
       } else {
-        cairoFunction = this.createStaticArrayCopyFunction(funcName, toType);
+        cairoFunction = this.createStaticArrayCopyFunction(funcName, fromType, toType);
       }
     } else {
       cairoFunction = this.createValueTypeCopyFunction(funcName, toType);
@@ -93,7 +93,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(fromLoc: felt, toLoc: felt) -> (retLoc: felt):`,
+        `func ${funcName}${implicits}(toLoc: felt, fromLoc: felt) -> (retLoc: felt):`,
         `    alloc_locals`,
         ...members.map((memberType): string => {
           const width = CairoType.fromSol(
@@ -108,7 +108,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
               memberType.definition instanceof StructDefinition)
           ) {
             const memberCopyFunc = this.getOrCreate(memberType, memberType);
-            code = `${memberCopyFunc}(${add('fromLoc', offset)}, ${add('toLoc', offset)})`;
+            code = `${memberCopyFunc}(${add('toLoc', offset)}, ${add('fromLoc', offset)})`;
           } else {
             code = mapRange(width, (index) => copyAtOffset(index + offset)).join('\n');
           }
@@ -134,15 +134,15 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(fromLoc: felt, toLoc: felt, index: felt) -> (retLoc: felt):`,
+        `func ${funcName}_elem${implicits}(toLoc: felt, fromLoc: felt, index: felt) -> (retLoc: felt):`,
         `    if index == ${type.size * width}:`,
         `        return (toLoc)`,
         `    end`,
-        `    ${elementCopyFunc}(fromLoc + index, toLoc + index)`,
-        `    return ${funcName}_elem(fromLoc, toLoc, index + 1)`,
+        `    ${elementCopyFunc}(toLoc + index, fromLoc + index)`,
+        `    return ${funcName}_elem(toLoc, fromLoc, index + 1)`,
         `end`,
-        `func ${funcName}${implicits}(fromLoc: felt, toLoc: felt) -> (retLoc: felt):`,
-        `    return ${funcName}_elem(fromLoc, toLoc, 0)`,
+        `func ${funcName}${implicits}(toLoc: felt, fromLoc: felt) -> (retLoc: felt):`,
+        `    return ${funcName}_elem(toLoc, fromLoc, 0)`,
         `end`,
       ].join('\n'),
     };
@@ -166,7 +166,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(fromLoc: felt, toLoc: felt, length: Uint256) -> ():`,
+        `func ${funcName}_elem${implicits}(toLoc: felt, fromLoc: felt, length: Uint256) -> ():`,
         `    alloc_locals`,
         `    if length.low == 0:`,
         `        if length.high == 0:`,
@@ -180,18 +180,18 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `        let (used) = WARP_USED_STORAGE.read()`,
         `        WARP_USED_STORAGE.write(used + ${elementCairoType.width})`,
         `        ${elementMapping}.write(toLoc, index, used)`,
-        `        ${elementCopyFunc}(fromElem, used)`,
-        `        return ${funcName}_elem(fromLoc, toLoc, index)`,
+        `        ${elementCopyFunc}(used, fromElem)`,
+        `        return ${funcName}_elem(toLoc, fromLoc, index)`,
         `    else:`,
-        `        ${elementCopyFunc}(fromElem, toElem)`,
-        `        return ${funcName}_elem(fromLoc, toLoc, index)`,
+        `        ${elementCopyFunc}(toElem, fromElem)`,
+        `        return ${funcName}_elem(toLoc, fromLoc, index)`,
         `    end`,
         `end`,
-        `func ${funcName}${implicits}(fromLoc: felt, toLoc: felt) -> (retLoc: felt):`,
+        `func ${funcName}${implicits}(toLoc: felt, fromLoc: felt) -> (retLoc: felt):`,
         `    alloc_locals`,
         `    let (fromLength) = ${lengthMapping}.read(fromLoc)`,
         `    ${lengthMapping}.write(toLoc, fromLength)`,
-        `    ${funcName}_elem(fromLoc, toLoc, fromLength)`,
+        `    ${funcName}_elem(toLoc, fromLoc, fromLength)`,
         `    return (toLoc)`,
         `end`,
       ].join('\n'),
@@ -222,35 +222,35 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
     const [toElementMapping, toLengthMapping] = this.dynArrayGen.gen(toElementCairoType);
-    let copyCode: (from: string, to: string) => string;
+    let copyCode: (to: string, from: string) => string;
     if (fromElementCairoType instanceof WarpLocation) {
       if (toElementCairoType instanceof WarpLocation) {
-        copyCode = (from: string, to: string): string =>
+        copyCode = (to: string, from: string): string =>
           [
             `let (fromElemId) = readId(${from})`,
             `let (toElemId) = readId(${to})`,
-            `${elementCopyFunc}(fromElemId, toElemId)`,
+            `${elementCopyFunc}(toElemId, fromElemId)`,
           ].join('\n');
       } else {
-        copyCode = (from: string, to: string): string =>
-          [`let (fromElemId) = readId(${from})`, `${elementCopyFunc}(fromElemId, ${to})`].join(
+        copyCode = (to: string, from: string): string =>
+          [`let (fromElemId) = readId(${from})`, `${elementCopyFunc}(${to}, fromElemId)`].join(
             '\n',
           );
       }
     } else {
       if (toElementCairoType instanceof WarpLocation) {
-        copyCode = (from: string, to: string): string =>
-          [`let (toElemId) = readId(${to})`, `${elementCopyFunc}(${from}, toElemId)`].join('\n');
+        copyCode = (to: string, from: string): string =>
+          [`let (toElemId) = readId(${to})`, `${elementCopyFunc}(toElemId, ${from})`].join('\n');
       } else {
-        copyCode = (from: string, to: string): string =>
-          [`${elementCopyFunc}(${from}, ${to})`].join('\n');
+        copyCode = (to: string, from: string): string =>
+          [`${elementCopyFunc}(${to}, ${from})`].join('\n');
       }
     }
 
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(fromElem: felt, toLoc: felt, length: Uint256, index: Uint256) -> ():`,
+        `func ${funcName}_elem${implicits}(toLoc: felt, fromElem: felt, length: Uint256, index: Uint256) -> ():`,
         `    alloc_locals`,
         `    if length.low == index.low:`,
         `        if length.high == index.high:`,
@@ -264,18 +264,18 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `        let (used) = WARP_USED_STORAGE.read()`,
         `        WARP_USED_STORAGE.write(used + ${toElementCairoType.width})`,
         `        ${toElementMapping}.write(toLoc, index, used)`,
-        `        ${copyCode('fromElem', 'used')}`,
-        `        return ${funcName}_elem(fromElem + ${fromElementCairoType.width}, toLoc, length, nextIndex)`,
+        `        ${copyCode('used', 'fromElem')}`,
+        `        return ${funcName}_elem(toLoc, fromElem + ${fromElementCairoType.width}, length, nextIndex)`,
         `    else:`,
-        `        ${copyCode('fromElem', 'toElem')}`,
-        `        return ${funcName}_elem(fromElem + ${fromElementCairoType.width}, toLoc, length, nextIndex)`,
+        `        ${copyCode('toElem', 'fromElem')}`,
+        `        return ${funcName}_elem(toLoc, fromElem + ${fromElementCairoType.width}, length, nextIndex)`,
         `    end`,
         `end`,
-        `func ${funcName}${implicits}(fromLoc: felt, toLoc: felt) -> (retLoc: felt):`,
+        `func ${funcName}${implicits}(toLoc: felt, fromLoc: felt) -> (retLoc: felt):`,
         `    alloc_locals`,
         `    let fromLength = ${uint256(narrowBigIntSafe(fromType.size))}`,
         `    ${toLengthMapping}.write(toLoc, fromLength)`,
-        `    ${funcName}_elem(fromLoc, toLoc, fromLength, Uint256(0,0))`,
+        `    ${funcName}_elem(toLoc, fromLoc, fromLength, Uint256(0,0))`,
         `    return (toLoc)`,
         `end`,
       ].join('\n'),
@@ -288,7 +288,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(fromLoc : felt, toLoc : felt) -> (retLoc : felt):`,
+        `func ${funcName}${implicits}(toLoc : felt, fromLoc : felt) -> (retLoc : felt):`,
         `    alloc_locals`,
         ...mapRange(width, copyAtOffset),
         `    return (toLoc)`,
