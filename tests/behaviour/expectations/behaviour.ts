@@ -341,8 +341,6 @@ export const expectations = flatten(
               [],
               [...['1', '0', '0', '0'], ...['0', '0', '0', '0'], ...['0', '0', '0', '0']],
             ),
-            /* 
-            // Bug related with the naming of Uint256 structs
             Expect.Simple(
               'tryXY1',
               [],
@@ -353,6 +351,7 @@ export const expectations = flatten(
                 ...['5', '0', '6', '0', '0', '0'],
               ],
             ),
+            /*
             // Some part of memory to stroage not implemented yet
             Expect.Simple(
               'tryYX1',

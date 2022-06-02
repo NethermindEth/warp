@@ -54,7 +54,6 @@ contract WARP {
     uint[][] xxt;
     uint[3][3] yy;
     uint[2][2][2] yyy;
-
     uint[3][] xy;
     uint[][3] yx;
 
@@ -115,9 +114,6 @@ contract WARP {
         return (yyy[0][0], yyy[0][1], yyy[1][1]);
     }
 
-
-    /*
-    //  Transpilation Issues when creating Uint256 struct array
     function tryXY1() public returns (uint[3][] memory) {
         uint8[2][] memory m = new uint8[2][](3);
         m[0] = [1,2];
@@ -128,6 +124,7 @@ contract WARP {
         return xy;
     }
 
+    /*
     // Transpilation fails due to copy from memory to storage
     function tryYX1() public returns (uint[][3] memory) {
         uint8[][3] memory m = [new uint8[](1), new uint8[](2), new uint8[](3)];
