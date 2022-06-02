@@ -329,7 +329,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     return { name: funcName, code: code };
   }
 
-  // Need to create empty array initalizer for unitiniatlized vars of static arrays.
+  // Need to create empty array initalizer for unitiniatlized element of static arrays.
   // For example:
   // uint[3][3] memory X <- uint[2][2] memory Y
   // Y is something like [y_pointer1, y_pointer2] where y_pointer1 -> [a, b]  and y_pointer2 -> [c, d]
@@ -360,7 +360,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
   }
 
   private generateEmptyArrayIntializer(targetType: PointerType): CairoFunction {
-    const deferencedType = generalizeType(targetType)[0];
+    const deferencedType = targetType.to;
     assert(deferencedType instanceof ArrayType);
 
     const cairoTargetElementType = CairoType.fromSol(
@@ -379,10 +379,15 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 
       const recurse =
         elementT instanceof PointerType
-          ? mapRange(size, (index) => [
-              `let (elem) = ${this.getOrCreateEmptyArrayInitializer(elementT)}()`,
-              `wm_write_felt(${add('empty_mem_loc', index * cairoTargetElementType.width)}, elem)`,
-            ])
+          ? mapRange(size, (index) =>
+              [
+                `let (elem) = ${this.getOrCreateEmptyArrayInitializer(elementT)}()`,
+                `wm_write_felt(${add(
+                  'empty_mem_loc',
+                  index * cairoTargetElementType.width,
+                )}, elem)`,
+              ].join('\n'),
+            )
           : [];
 
       const allocSize = narrowBigIntSafe(deferencedType.size) * cairoTargetElementType.width;
