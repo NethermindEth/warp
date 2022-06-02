@@ -96,6 +96,7 @@ import {
   isCairoConstant,
   isExternallyVisible,
   mergeImports,
+  mangleOwnContractInterface,
   primitiveTypeToCairo,
 } from './utils/utils';
 
@@ -720,7 +721,8 @@ class IdentifierWriter extends CairoASTNodeWriter {
       isDynamicCallDataArray(getNodeType(node, this.ast.compilerVersion)) &&
       ((node.getClosestParentByType(Return) !== undefined &&
         node.getClosestParentByType(FunctionDefinition)?.visibility ===
-          FunctionVisibility.External) ||
+          FunctionVisibility.External &&
+        node.getClosestParentByType(IndexAccess) === undefined) ||
         (node.parent instanceof FunctionCall &&
           node.parent.vReferencedDeclaration instanceof FunctionDefinition &&
           node.parent.vReferencedDeclaration.visibility === FunctionVisibility.External))
@@ -744,10 +746,17 @@ class FunctionCallWriter extends CairoASTNodeWriter {
             nodeType instanceof UserDefinedType &&
             nodeType.definition instanceof ContractDefinition
           ) {
+            const currentContract = node.getClosestParentByType(ContractDefinition);
             const contractType = nodeType.definition.name;
             const memberName = node.vExpression.memberName;
             const contract = writer.write(node.vExpression.vExpression);
-            return [`${contractType}.${memberName}(${contract}${args ? ', ' : ''}${args})`];
+            return [
+              `${
+                currentContract?.name === contractType
+                  ? mangleOwnContractInterface(currentContract)
+                  : contractType
+              }.${memberName}(${contract}${args ? ', ' : ''}${args})`,
+            ];
           }
         } else if (
           node.vReferencedDeclaration instanceof CairoFunctionDefinition &&

@@ -131,6 +131,7 @@ export const expectations = flatten(
                 ],
               ],
             ),
+            Expect.Simple('returnFirstIndex', ['2', ...['1', '2']], ['1']),
           ]),
         ]),
         new Dir('conditionals', [
@@ -643,6 +644,11 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('cross_contract_calls', [
+          File.Simple(
+            'this_methods_call',
+            [Expect.Simple('execute_add', ['2', '0', '35', '0'], ['374', '0'])],
+            'A',
+          ),
           File.Simple('simple', [Expect.Simple('f', [], ['69', '0'])], 'A'),
           File.Simple(
             'simple',
@@ -1373,6 +1379,12 @@ export const expectations = flatten(
         new Dir('inheritance', [
           new Dir('constructors', [
             new File(
+              'abstractContract',
+              'C',
+              ['250', '0'],
+              [Expect.Simple('f', ['412', '0'], ['662', '0'])],
+            ),
+            new File(
               'constructors',
               'C',
               [],
@@ -1396,10 +1408,10 @@ export const expectations = flatten(
               [Expect.Simple('a', [], ['0', '0'])],
             ),
             new File(
-              'abstractContract',
-              'C',
-              ['250', '0'],
-              [Expect.Simple('f', ['412', '0'], ['662', '0'])],
+              'order_of_eval',
+              'X',
+              [],
+              [Expect.Simple('g', [], ['4', '4', '0', '2', '0', '1', '0', '3', '0'])],
             ),
           ]),
           new Dir('functions', [
