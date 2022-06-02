@@ -587,7 +587,6 @@ export const expectations = flatten(
               ['setX', ['1', '0', '2', '0', '3', '0'], [], '0'],
               ['getX', [], ['1', '0', '2', '0', '3', '0'], '0'],
             ]),
-            Expect.Simple('tryY', [], ['1', '0', '2', '0', '3', '0', '4', '0']),
           ]),
           File.Simple('structs', [
             new Expect('structs copy from storage to calldata', [
