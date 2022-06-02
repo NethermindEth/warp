@@ -41,7 +41,7 @@ export class File {
   ) {}
 
   static Simple(name: string, expectations: Expect[], contract?: string) {
-    return new File(manglePath(name), contract ?? 'WARP', [], expectations);
+    return new File(name, contract ?? 'WARP', [], expectations);
   }
 }
 
