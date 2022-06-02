@@ -333,10 +333,10 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
   // For example:
   // uint[3][3] memory X <- uint[2][2] memory Y
   // Y is something like [y_pointer1, y_pointer2] where y_pointer1 -> [a, b]  and y_pointer2 -> [c, d]
-  // After converting X will be [x_pointer1, x_pointer2, 0]
-  // When reading from the last element of X it will point to memory location 0
-  // which will have wrong values.
-  // With this function you get
+  // After converting Y into X, X will be [x_pointer1, x_pointer2, 0]
+  // When reading the last element of X it will point to memory location 0
+  // which will have undefined values.
+  // With this function we can init unitilalized pointers and get for X:
   // X -> [x_pointer1, x_pointer2, x_pointer3] where x_pointer3 -> [0, 0, 0]
   private getOrCreateEmptyArrayInitializer(targetType: PointerType) {
     const targetBaseCairoType = CairoType.fromSol(
