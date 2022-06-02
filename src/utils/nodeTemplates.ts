@@ -1,11 +1,13 @@
 import { assert } from 'console';
 import {
+  ArrayTypeName,
   ASTNode,
   Block,
   ContractDefinition,
   DataLocation,
   ElementaryTypeName,
   Expression,
+  ExpressionStatement,
   FunctionDefinition,
   FunctionKind,
   FunctionStateMutability,
@@ -19,6 +21,7 @@ import {
   Statement,
   StructuredDocumentation,
   TupleExpression,
+  TypeName,
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
@@ -36,6 +39,12 @@ export function createAddressTypeName(payable: boolean, ast: AST): ElementaryTyp
     'address',
     payable ? 'payable' : 'nonpayable',
   );
+  ast.setContextRecursive(node);
+  return node;
+}
+
+export function createArrayTypeName(baseType: TypeName, ast: AST): ArrayTypeName {
+  const node = new ArrayTypeName(ast.reserveId(), '', `${baseType.typeString}[]`, baseType);
   ast.setContextRecursive(node);
   return node;
 }
@@ -70,8 +79,20 @@ export function createBoolTypeName(ast: AST): ElementaryTypeName {
   return node;
 }
 
+export function createBytesTypeName(ast: AST): ElementaryTypeName {
+  const node = new ElementaryTypeName(ast.reserveId(), '', 'bytes', 'bytes');
+  ast.setContextRecursive(node);
+  return node;
+}
+
 export function createEmptyTuple(ast: AST): TupleExpression {
   const node = new TupleExpression(ast.reserveId(), '', 'tuple()', false, []);
+  ast.setContextRecursive(node);
+  return node;
+}
+
+export function createExpressionStatement(ast: AST, expression: Expression): ExpressionStatement {
+  const node = new ExpressionStatement(ast.reserveId(), '', expression);
   ast.setContextRecursive(node);
   return node;
 }
@@ -194,6 +215,7 @@ export function createDefaultConstructor(node: ContractDefinition, ast: AST): Fu
     createParameterList([], ast),
     [],
   );
+  ast.setContextRecursive(node);
   return newFunc;
 }
 
