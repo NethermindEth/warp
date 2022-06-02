@@ -2,6 +2,7 @@ import assert from 'assert';
 import {
   Assignment,
   BinaryOperation,
+  ContractDefinition,
   DataLocation,
   Expression,
   FunctionCall,
@@ -10,12 +11,15 @@ import {
   FunctionVisibility,
   generalizeType,
   getNodeType,
+  Identifier,
   IndexAccess,
   MemberAccess,
   PointerType,
   Return,
   TupleExpression,
   UnaryOperation,
+  UserDefinedTypeName,
+  VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -156,7 +160,16 @@ export class ExpectedLocationAnalyser extends ASTMapper {
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     const baseLoc = this.actualLocations.get(node.vExpression);
     assert(baseLoc !== undefined);
-    this.expectedLocations.set(node.vExpression, baseLoc);
+    if (
+      node.vExpression instanceof Identifier &&
+      node.vExpression.vReferencedDeclaration instanceof VariableDeclaration &&
+      node.vExpression.vReferencedDeclaration.stateVariable &&
+      node.vExpression.vReferencedDeclaration.vType instanceof UserDefinedTypeName &&
+      node.vExpression.vReferencedDeclaration.vType.vReferencedDeclaration instanceof
+        ContractDefinition
+    ) {
+      this.expectedLocations.set(node.vExpression, DataLocation.Default);
+    } else this.expectedLocations.set(node.vExpression, baseLoc);
     this.visitExpression(node, ast);
   }
 
