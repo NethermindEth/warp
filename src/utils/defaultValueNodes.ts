@@ -2,6 +2,7 @@ import {
   AddressType,
   ArrayType,
   BoolType,
+  BytesType,
   ElementaryTypeNameExpression,
   EnumDefinition,
   Expression,
@@ -40,6 +41,7 @@ export function getDefaultValue(
 ): Expression {
   if (nodeType instanceof AddressType) return addressDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof ArrayType) return arrayDefault(nodeType, parentNode, ast);
+  else if (nodeType instanceof BytesType) return bytesDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof BoolType) return boolDefault(parentNode, ast);
   else if (nodeType instanceof FixedBytesType) return fixedBytesDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof IntType) return intDefault(nodeType, parentNode, ast);
@@ -48,7 +50,7 @@ export function getDefaultValue(
   else if (nodeType instanceof StringType) return stringDefault(parentNode, ast);
   else if (nodeType instanceof UserDefinedType) return userDefDefault(nodeType, parentNode, ast);
   else
-    throw new NotSupportedYetError(`Not supported operation delete on ${printTypeNode(nodeType)}`);
+    throw new NotSupportedYetError(`Default value not implemented for ${printTypeNode(nodeType)}`);
 }
 
 function intDefault(
@@ -131,6 +133,28 @@ function arrayDefault(
       parentNode.raw,
     );
   }
+}
+
+function bytesDefault(
+  nodeType: BytesType,
+  parentNode: Expression | VariableDeclaration,
+  ast: AST,
+): Expression {
+  return new FunctionCall(
+    ast.reserveId(),
+    parentNode.src,
+    `bytes memory`,
+    FunctionCallKind.FunctionCall,
+    new NewExpression(
+      ast.reserveId(),
+      '',
+      `function (uint256) pure returns (bytes memory)`,
+      typeNameFromTypeNode(nodeType, ast),
+    ),
+    [intDefault(new IntType(256, false), parentNode, ast)],
+    undefined,
+    parentNode.raw,
+  );
 }
 
 function stringDefault(node: Expression | VariableDeclaration, ast: AST): Expression {

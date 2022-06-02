@@ -4,6 +4,8 @@ import {
   DataLocation,
   FunctionCall,
   FunctionCallKind,
+  Literal,
+  LiteralKind,
   NewExpression,
   TupleExpression,
   typeNameToTypeNode,
@@ -48,6 +50,16 @@ export class MemoryAllocations extends ReferenceSubPass {
     }
   }
 
+  visitLiteral(node: Literal, ast: AST): void {
+    if (node.kind !== LiteralKind.String) return;
+
+    const [actualLoc, expectedLoc] = this.getLocations(node);
+    if (this.expectedDataLocations.get(node) !== DataLocation.Memory) return;
+
+    const replacement = ast.getUtilFuncGen(node).memory.arrayLiteral.stringGen(node);
+    this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
+  }
+
   visitTupleExpression(node: TupleExpression, ast: AST): void {
     this.visitExpression(node, ast);
 
@@ -55,7 +67,7 @@ export class MemoryAllocations extends ReferenceSubPass {
 
     if (!node.isInlineArray) return;
 
-    const replacement = ast.getUtilFuncGen(node).memory.arrayLiteral.gen(node);
+    const replacement = ast.getUtilFuncGen(node).memory.arrayLiteral.tupleGen(node);
     this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
   }
 
