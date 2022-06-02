@@ -91,8 +91,8 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
 
 function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
-    ['Fm', FilePathMangler],
     ['Tf', TupleFixes],
+    ['Fm', FilePathMangler],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
     ['Ae', ABIExtractor],
