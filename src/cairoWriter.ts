@@ -95,6 +95,7 @@ import {
   divmod,
   isCairoConstant,
   isExternallyVisible,
+  mangleOwnContractInterface,
   primitiveTypeToCairo,
 } from './utils/utils';
 
@@ -738,10 +739,17 @@ class FunctionCallWriter extends CairoASTNodeWriter {
             nodeType instanceof UserDefinedType &&
             nodeType.definition instanceof ContractDefinition
           ) {
+            const currentContract = node.getClosestParentByType(ContractDefinition);
             const contractType = nodeType.definition.name;
             const memberName = node.vExpression.memberName;
             const contract = writer.write(node.vExpression.vExpression);
-            return [`${contractType}.${memberName}(${contract}${args ? ', ' : ''}${args})`];
+            return [
+              `${
+                currentContract?.name === contractType
+                  ? mangleOwnContractInterface(currentContract)
+                  : contractType
+              }.${memberName}(${contract}${args ? ', ' : ''}${args})`,
+            ];
           }
         } else if (
           node.vReferencedDeclaration instanceof CairoFunctionDefinition &&
