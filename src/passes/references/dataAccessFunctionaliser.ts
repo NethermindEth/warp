@@ -136,38 +136,25 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     const [actualLoc, expectedLoc] = this.getLocations(node);
     const fromLoc = this.getLocations(node.vRightHandSide)[1];
     const toLoc = this.getLocations(node.vLeftHandSide)[1];
+    let funcGen = null;
     if (toLoc === DataLocation.Memory) {
-      const replacementFunc = ast
-        .getUtilFuncGen(node)
-        .memory.write.gen(node.vLeftHandSide, node.vRightHandSide);
-      this.replace(node, replacementFunc, undefined, actualLoc, expectedLoc, ast);
-      return this.dispatchVisit(replacementFunc, ast);
+      funcGen = ast.getUtilFuncGen(node).memory.write;
     } else if (toLoc === DataLocation.Storage) {
       if (fromLoc === DataLocation.Storage) {
-        const copyFunc = ast
-          .getUtilFuncGen(node)
-          .storage.toStorage.gen(node.vRightHandSide, node.vLeftHandSide);
-        this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
-        return this.dispatchVisit(copyFunc, ast);
+        funcGen = ast.getUtilFuncGen(node).storage.toStorage;
       } else if (fromLoc === DataLocation.Memory) {
-        const copyFunc = ast
-          .getUtilFuncGen(node)
-          .memory.toStorage.gen(node.vLeftHandSide, node.vRightHandSide);
-        this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
-        return this.dispatchVisit(copyFunc, ast);
+        funcGen = ast.getUtilFuncGen(node).memory.toStorage;
       } else if (fromLoc === DataLocation.CallData) {
-        const copyFunc = ast
-          .getUtilFuncGen(node)
-          .calldata.toStorage.gen(node.vLeftHandSide, node.vRightHandSide);
-        this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
-        return this.dispatchVisit(copyFunc, ast);
+        funcGen = ast.getUtilFuncGen(node).calldata.toStorage;
       } else {
-        const writeFunc = ast
-          .getUtilFuncGen(node)
-          .storage.write.gen(node.vLeftHandSide, node.vRightHandSide);
-        this.replace(node, writeFunc, undefined, actualLoc, expectedLoc, ast);
-        return this.dispatchVisit(writeFunc, ast);
+        funcGen = ast.getUtilFuncGen(node).storage.write;
       }
+    }
+
+    if (funcGen) {
+      const replacementFunc = funcGen.gen(node.vLeftHandSide, node.vRightHandSide);
+      this.replace(node, replacementFunc, undefined, actualLoc, expectedLoc, ast);
+      return this.dispatchVisit(replacementFunc, ast);
     }
 
     this.visitExpression(node, ast);
