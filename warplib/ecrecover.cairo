@@ -22,9 +22,7 @@ func ecrecover_eth{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, keccak_ptr : 
     let (s : BigInt3) = uint256_to_bigint(s_)
 
     let (public_key_point : EcPoint) = recover_public_key(msg_hash, r, s, v)
-    let (eth_address) = public_key_point_to_eth_address{keccak_ptr=keccak_ptr}(
-        public_key_point
-    )
+    let (eth_address) = public_key_point_to_eth_address{keccak_ptr=keccak_ptr}(public_key_point)
 
     return (eth_address)
 end
