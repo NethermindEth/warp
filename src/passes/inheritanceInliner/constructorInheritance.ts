@@ -39,12 +39,13 @@ import { updateReferencedDeclarations } from './utils';
   
   A new function will be created and added as a child of the current contract, and this
   function will be the new constructor. It will handle:
-    - Collecting the arguments to call each base constructor. To do that, each time an 
-    argument is passed, a new variable declaration is created cloning the parameter that 
-    corresponds to this argument. The value of the declaration is the expression of the 
-    argument, and references to the parameter will change to reference the new variable 
-    created.
+    - Collecting the arguments to call each base constructor.
     - Calling the functions corresponding to each constructor in the correct order.
+
+  When collecting the arguments, it's important to notice that expressions should be 
+  evaluated in the reverse order the constructors are executed. To do so, each time a
+  contract is entered, the previous constracts in the order of linearization are checked
+  looking for the call to this contract's constructor; and argument references are updated
 
   In the following example:
   
