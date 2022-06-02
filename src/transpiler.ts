@@ -49,6 +49,7 @@ import {
   StaticArrayIndexer,
   TupleFixes,
 } from './passes';
+import { Require } from './passes/builtinHandler/require';
 import { OrderNestedStructs } from './passes/orderNestedStructs';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
@@ -104,6 +105,8 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Ch', ConstantHandler],
     ['Sai', StaticArrayIndexer],
     ['M', IdentifierMangler],
+    ['Req', Require],
+    ['Bc', BytesConverter],
     ['Fi', FreeLibraryCallInliner],
     ['Rl', ReferencedLibraries],
     ['Ons', OrderNestedStructs],
@@ -122,7 +125,6 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
     ['Vs', VariableDeclarationExpressionSplitter],
-    ['Bc', BytesConverter],
     ['I', ImplicitConversionToExplicit],
     ['Dh', DeleteHandler],
     ['Rf', References],
