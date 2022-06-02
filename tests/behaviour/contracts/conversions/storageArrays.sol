@@ -26,43 +26,47 @@ contract WARP {
     }
 
     uint[][] xx;
-    uint8[][] xxt;
+    uint[][] xxt;
     uint[3][3] yy;
     uint[3][] xy;
     uint[][3] yx;
 
-    function tryXX1() public returns (uint[] memory) {
-        uint8[2][2] memory m = [[1, 2], [3, 4]];
+    function tryXX1() public returns (uint[] memory, uint[] memory, uint[] memory) {
+        uint8[3][3] memory m = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
         xx = m;
-        return xx[0];
+        return (xx[0], xx[1], xx[2]);
     }
 
-    // Erase this before merging
-    function tryXX1t() public returns (uint8[] memory) {
-        uint8[2][2] memory m = [[1, 2], [3, 4]];
-        xxt = m;
-        return xxt[0];
+    function tryXX2() public returns (uint[] memory, uint[] memory) {
+        uint8[][] memory m = new uint8[][](2);
+        m[0] = new uint8[](2);
+        m[0][0] = 1;
+        m[0][1] = 2;
+        m[1] = new uint8[](2);
+        m[1][0] = 3;
+        m[1][1] = 4;
+        xx = m;
+        return (xx[0], xx[1]);
     }
-
-    function tryXX2() public returns (uint) {
+    function tryXX3() public returns (uint[] memory, uint[] memory, uint[] memory) {
         uint8[2][] memory m = new uint8[2][](3);
         m[0] = [1,2];
         m[1] = [3,4];
         m[2] = [5,6];
 
         xx = m;
-        return xx[0][0] + xx[1][0] + xx[1][1] + xx[2][1];
+        return (xx[0], xx[1], xx[2]);
     }
 
 
-    function tryXX3() public returns (uint) {
+    function tryXX4() public returns (uint[] memory, uint[] memory, uint[] memory) {
         uint8[][3] memory m = [new uint8[](1), new uint8[](2), new uint8[](3)];
         m[0][0] = 1;
         m[1][1] = 2;
         m[2][2] = 3;
 
         xx = m;
-        return xx[0][0] + xx[1][0] + xx[1][1] + xx[2][2];
+        return (xx[0], xx[1], xx[2]);
     }
 
     /* 
