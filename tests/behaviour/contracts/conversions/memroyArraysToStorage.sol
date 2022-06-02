@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 //SPDX-License-Identifier: MIT
 
 contract WARP {
+    // ----- Simple uint -----
     uint[] x;
     uint[5] y;
     function tryX1(uint8[] memory m) public returns (uint[] memory) {
@@ -24,6 +25,30 @@ contract WARP {
         y = m;
         return y;
     }
+
+    //------ Simple int ------ 
+
+    int16[] z;
+    int32[5] w;
+
+    function tryZ1() public returns (int16[] memory) {
+        int8[] memory m = new int8[](3);
+        m[0] = -1;
+        m[1] = 5;
+        m[2] = 10;
+        z = m;
+
+        return z;
+    }
+
+    function tryZ2() public returns (int32[5] memory) {
+        int8[3] memory m = [-2, 4, 9];
+        w = m;
+        return w;
+    }
+    
+
+    //------ Nested uint ------ 
 
     uint[][] xx;
     uint[][] xxt;

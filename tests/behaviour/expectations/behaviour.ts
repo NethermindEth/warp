@@ -271,7 +271,7 @@ export const expectations = flatten(
               ],
             ),
           ]),
-          File.Simple('storageArrays', [
+          File.Simple('memroyArraysToStorage', [
             Expect.Simple('tryX1', ['3', '1', '2', '3'], ['3', '1', '0', '2', '0', '3', '0']),
             Expect.Simple('tryX2', ['4', '5', '6'], ['3', '4', '0', '5', '0', '6', '0']),
             Expect.Simple(
@@ -284,6 +284,8 @@ export const expectations = flatten(
               ['4', '5', '6'],
               ['4', '0', '5', '0', '6', '0', '0', '0', '0', '0'],
             ),
+            Expect.Simple('tryZ1', [], ['3', '65535', '5', '10']),
+            Expect.Simple('tryZ2', [], ['4294967294', '4', '9', '0', '0']),
             Expect.Simple(
               'tryXX1',
               [],
