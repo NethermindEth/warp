@@ -153,7 +153,6 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
         const [convert, result] = ast
           .getUtilFuncGen(node)
           .memory.convert.genIfNecesary(node.vLeftHandSide, node.vRightHandSide);
-        console.log(result);
         if (result) {
           ast.replaceNode(node.vRightHandSide, convert, node);
         }
