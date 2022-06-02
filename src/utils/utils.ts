@@ -6,6 +6,7 @@ import {
   Assignment,
   BoolType,
   CompileFailedError,
+  ContractDefinition,
   DataLocation,
   ElementaryTypeName,
   EtherUnit,
@@ -383,4 +384,8 @@ export function functionAffectsState(node: FunctionCall): boolean {
     );
   }
   return true;
+}
+
+export function mangleOwnContractInterface(contract: ContractDefinition) {
+  return `${contract.name}_interface`;
 }

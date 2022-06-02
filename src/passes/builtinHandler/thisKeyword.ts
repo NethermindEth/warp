@@ -13,6 +13,7 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { createAddressTypeName } from '../../utils/nodeTemplates';
 import { cloneASTNode } from '../../utils/cloning';
 import { CairoContract } from '../../ast/cairoNodes';
+import { mangleOwnContractInterface } from '../../utils/utils';
 
 export class ThisKeyword extends ASTMapper {
   visitIdentifier(node: Identifier, ast: AST): void {
@@ -63,18 +64,18 @@ export class ThisKeyword extends ASTMapper {
       if (currentContract && sourceUnit) {
         // check if currentContract.name is in sourceUnit.vContracts[]
         const contractIndex = sourceUnit.vContracts.findIndex(
-          (contract) => contract.name === `${currentContract.name}_interface_for_this`,
+          (contract) => contract.name === mangleOwnContractInterface(currentContract),
         );
         if (contractIndex === -1)
           genCairoContractInterface(
             currentContract,
             sourceUnit,
             ast,
-            `${currentContract.name}_interface_for_this`,
+            mangleOwnContractInterface(currentContract),
           );
       }
       replacementCall.typeString = currentContract
-        ? `contract ${currentContract.name}_interface_for_this`
+        ? `contract ${mangleOwnContractInterface(currentContract)}`
         : replacementCall.typeString;
       ast.replaceNode(node.vExpression.vExpression, replacementCall);
       ast.registerImport(
