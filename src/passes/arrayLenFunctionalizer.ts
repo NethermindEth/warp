@@ -6,7 +6,7 @@ import { createCairoFunctionStub, createCallToFunction } from '../utils/function
 import { isDynamicCallDataArray } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
 
-export class ReturnArrayLenFunctionalizer extends ASTMapper {
+export class ArrayLenFunctionalizer extends ASTMapper {
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     if (
       isDynamicCallDataArray(getNodeType(node.vExpression, ast.compilerVersion)) &&
