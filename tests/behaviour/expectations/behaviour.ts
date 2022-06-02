@@ -8,6 +8,11 @@ export const expectations = flatten(
         new Dir('array_len', [
           File.Simple('memoryArray', [Expect.Simple('dynMemArrayLen', [], ['45', '0'])]),
           File.Simple('storageArray', [Expect.Simple('dynStorageArrayLen', [], ['1', '0'])]),
+          File.Simple('calldataArray', [
+            Expect.Simple('returnArrLength', ['3', '1', '2', '3'], ['3', '0']),
+            Expect.Simple('returnArrDoubleLength', ['2', '0', '5'], ['4', '0']),
+            Expect.Simple('fnCallWithArrLength', ['1', '9'], ['2', '0']),
+          ]),
         ]),
         new Dir('assignments', [
           File.Simple('functionSingle', [

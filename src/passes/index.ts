@@ -26,6 +26,7 @@ export * from './namedArgsRemover';
 export * from './publicFunctionSplitter';
 export * from './referencedLibraries';
 export * from './rejectUnsupportedFeatures';
+export * from './returnArrayLenFunctionalizer';
 export * from './returnInserter';
 export * from './ReturnVariableInitializer';
 export * from './sourceUnitSplitter';

@@ -714,7 +714,8 @@ class IdentifierWriter extends CairoASTNodeWriter {
       ((node.getClosestParentByType(Return) !== undefined &&
         node.getClosestParentByType(FunctionDefinition)?.visibility ===
           FunctionVisibility.External &&
-        node.getClosestParentByType(IndexAccess) === undefined) ||
+        node.getClosestParentByType(IndexAccess) === undefined &&
+        node.getClosestParentByType(MemberAccess) === undefined) ||
         (node.parent instanceof FunctionCall &&
           node.parent.vReferencedDeclaration instanceof FunctionDefinition &&
           node.parent.vReferencedDeclaration.visibility === FunctionVisibility.External))

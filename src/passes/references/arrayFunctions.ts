@@ -59,9 +59,8 @@ export class ArrayFunctions extends ReferenceSubPass {
     const baseType = getNodeType(node.vExpression, ast.compilerVersion);
     if (baseType instanceof PointerType && baseType.to instanceof ArrayType) {
       if (baseType.location !== DataLocation.Storage && baseType.location !== DataLocation.Memory) {
-        throw new NotSupportedYetError(
-          `Accessing ${baseType.location} array length not implemented yet`,
-        );
+        node.memberName = 'len';
+        return;
       }
 
       if (baseType.to.size !== undefined) {

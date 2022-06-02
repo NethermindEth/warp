@@ -48,6 +48,7 @@ import {
   dumpABI,
   StaticArrayIndexer,
   TupleFixes,
+  ReturnArrayLenFunctionalizer,
 } from './passes';
 import { Require } from './passes/builtinHandler/require';
 import { OrderNestedStructs } from './passes/orderNestedStructs';
@@ -118,6 +119,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Eam', ExternalArgModifier],
     ['Ei', ExternImporter],
     ['Lf', LoopFunctionaliser],
+    ['Raf', ReturnArrayLenFunctionalizer],
     ['R', ReturnInserter],
     ['Rv', ReturnVariableInitializer],
     ['If', IfFunctionaliser],
