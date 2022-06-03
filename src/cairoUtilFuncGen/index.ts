@@ -29,6 +29,7 @@ import { MemoryToStorageGen } from './memory/memoryToStorage';
 import { CalldataToStorageGen } from './calldata/calldataToStorage';
 import { StorageToStorageGen } from './storage/copyToStorage';
 import { StorageToCalldataGen } from './storage/storageToCalldata';
+import { MemoryImplicitConversionGen } from './memory/implicitCoversion';
 
 export class CairoUtilFuncGen {
   calldata: {
@@ -37,6 +38,7 @@ export class CairoUtilFuncGen {
   };
   memory: {
     arrayLiteral: MemoryArrayLiteralGen;
+    convert: MemoryImplicitConversionGen;
     dynArrayLength: MemoryDynArrayLengthGen;
     memberAccess: MemoryMemberAccessGen;
     read: MemoryReadGen;
@@ -84,16 +86,19 @@ export class CairoUtilFuncGen {
     const storageWrite = new StorageWriteGen(ast);
     const externalDynArrayStructConstructor = new ExternalDynArrayStructConstructor(ast);
 
+    const memoryRead = new MemoryReadGen(ast);
+    const memoryWrite = new MemoryWriteGen(ast);
     this.memory = {
       arrayLiteral: new MemoryArrayLiteralGen(ast),
+      convert: new MemoryImplicitConversionGen(memoryWrite, memoryRead, ast),
       dynArrayLength: new MemoryDynArrayLengthGen(ast),
       memberAccess: new MemoryMemberAccessGen(ast),
-      read: new MemoryReadGen(ast),
+      read: memoryRead,
       staticArrayIndexAccess: new MemoryStaticArrayIndexAccessGen(ast),
       struct: new MemoryStructGen(ast),
       toCallData: new MemoryToCallDataGen(externalDynArrayStructConstructor, ast),
       toStorage: memoryToStorage,
-      write: new MemoryWriteGen(ast),
+      write: memoryWrite,
     };
     const storageReadGen = new StorageReadGen(ast);
     const storageDelete = new StorageDeleteGen(this.implementation.dynArray, storageReadGen, ast);
