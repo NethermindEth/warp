@@ -12,6 +12,7 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
+import { printTypeNode } from '../utils/astPrinter';
 import { formatPath } from '../utils/formatting';
 
 export type CairoFunction = {
@@ -59,9 +60,12 @@ export abstract class CairoUtilFuncGenBase {
       type instanceof UserDefinedType &&
       (type.definition instanceof StructDefinition || type.definition instanceof EnumDefinition)
     ) {
-      assert(this.sourceUnit !== undefined, 'Source unit is undefined.');
+      assert(this.sourceUnit !== undefined, 'Unable to find SourceUnit for CairoUtilGen.');
       const typeDefSourceUnit = type.definition.root;
-      assert(typeDefSourceUnit instanceof SourceUnit);
+      assert(
+        typeDefSourceUnit instanceof SourceUnit,
+        `Unable to find SourceUint holding type definition ${printTypeNode(type)}.`,
+      );
       if (this.sourceUnit !== typeDefSourceUnit) {
         this.requireImport(formatPath(typeDefSourceUnit.absolutePath), type.definition.name);
       }
