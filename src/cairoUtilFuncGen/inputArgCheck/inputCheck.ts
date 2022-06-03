@@ -29,8 +29,9 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createIdentifier } from '../../utils/nodeTemplates';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
-import { StringIndexedFuncGen } from '../base';
+import { locationIfComplexType, StringIndexedFuncGen } from '../base';
 import * as pathLib from 'path';
+import { isReferenceType } from '../../utils/nodeTypeProcessing';
 
 export class InputCheckGen extends StringIndexedFuncGen {
   sourceUnit: SourceUnit | undefined;
@@ -41,7 +42,13 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const name = this.getOrCreate(type);
     const functionStub = createCairoFunctionStub(
       name,
-      [['ref_var', typeNameFromTypeNode(type, this.ast), DataLocation.CallData]],
+      [
+        [
+          'ref_var',
+          typeNameFromTypeNode(type, this.ast),
+          locationIfComplexType(type, DataLocation.CallData),
+        ],
+      ],
       [],
       ['range_check_ptr'],
       this.ast,
@@ -60,23 +67,26 @@ export class InputCheckGen extends StringIndexedFuncGen {
       return existing.name;
     }
 
-    if (type instanceof IntType) {
+    if (isReferenceType(type)) {
+      const funcName = `extern_input_check${this.generatedFunctions.size}`;
+      this.generatedFunctions.set(key, { name: funcName, code: '' });
+      if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+        return this.createStructInputCheck(key, funcName, type);
+      } else if (type instanceof ArrayType) {
+        return type.size === undefined
+          ? this.createDynArrayInputCheck(key, funcName, type)
+          : this.createStaticArrayInputCheck(key, funcName, type);
+      }
+    } else if (type instanceof IntType) {
       return this.createIntInputCheck(type);
     } else if (type instanceof BoolType) {
       return this.createBoolInputCheck();
-    } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-      return this.createStructInputCheck(key, type);
     } else if (type instanceof UserDefinedType && type.definition instanceof EnumDefinition) {
       return this.createEnumInputCheck(key, type);
-    } else if (type instanceof ArrayType) {
-      return type.size === undefined
-        ? this.createDynArrayInputCheck(key, type)
-        : this.createStaticArrayInputCheck(key, type);
     } else if (type instanceof AddressType) {
       return this.createAddressInputCheck();
-    } else {
-      throw new NotSupportedYetError(` Input check for ${printTypeNode(type)} not defined yet.`);
     }
+    throw new NotSupportedYetError(`Input check for ${printTypeNode(type)} not defined yet.`);
   }
 
   private createIntInputCheck(type: IntType): string {
@@ -97,12 +107,9 @@ export class InputCheckGen extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private createStructInputCheck(key: string, type: UserDefinedType): string {
-    const funcName = `extern_input_check${this.generatedFunctions.size}`;
+  private createStructInputCheck(key: string, funcName: string, type: UserDefinedType): string {
     const implicits = '{range_check_ptr : felt}';
 
-    // Set an empty entry so recursive function generation doesn't clash
-    this.generatedFunctions.set(key, { name: funcName, code: '' });
     const structDef = type.definition;
     assert(structDef instanceof StructDefinition);
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
@@ -129,12 +136,8 @@ export class InputCheckGen extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private createStaticArrayInputCheck(key: string, type: ArrayType): string {
-    const funcName = `extern_input_check${this.generatedFunctions.size}`;
+  private createStaticArrayInputCheck(key: string, funcName: string, type: ArrayType): string {
     const implicits = '{range_check_ptr : felt}';
-
-    // Set an empty entry so recursive function generation doesn't clash
-    this.generatedFunctions.set(key, { name: funcName, code: '' });
 
     assert(type.size !== undefined);
     const length = narrowBigIntSafe(type.size);
@@ -169,11 +172,8 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const funcName = `extern_input_check${this.generatedFunctions.size}`;
     const implicits = '{range_check_ptr : felt}';
 
-    // Set an empty entry so recursive function generation doesn't clash
-    this.generatedFunctions.set(key, { name: funcName, code: '' });
     const enumDef = type.definition;
     assert(enumDef instanceof EnumDefinition);
-    //const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     const nMembers = enumDef.vMembers.length;
     this.generatedFunctions.set(key, {
       name: funcName,
@@ -193,12 +193,8 @@ export class InputCheckGen extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private createDynArrayInputCheck(key: string, type: ArrayType): string {
-    const funcName = `extern_input_check${this.generatedFunctions.size}`;
+  private createDynArrayInputCheck(key: string, funcName: string, type: ArrayType): string {
     const implicits = '{range_check_ptr : felt}';
-
-    // Set an empty entry so recursive function generation doesn't clash
-    this.generatedFunctions.set(key, { name: funcName, code: '' });
 
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     assert(cairoType instanceof CairoDynArray);
