@@ -124,16 +124,14 @@ contract WARP {
         return xy;
     }
 
-    /*
     // Transpilation fails due to copy from memory to storage
-    function tryYX1() public returns (uint[][3] memory) {
+    function tryYX1() public returns (uint[] memory, uint[] memory, uint[] memory) {
         uint8[][3] memory m = [new uint8[](1), new uint8[](2), new uint8[](3)];
         m[0][0] = 1;
         m[1][1] = 2;
         m[2][2] = 3;
 
         yx = m;
-        return yx;
+        return (yx[0], yx[1], yx[2]);
     }
-    */
 }
