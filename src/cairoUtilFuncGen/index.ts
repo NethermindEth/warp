@@ -30,6 +30,7 @@ import { CalldataToStorageGen } from './calldata/calldataToStorage';
 import { StorageToStorageGen } from './storage/copyToStorage';
 import { StorageToCalldataGen } from './storage/storageToCalldata';
 import { MemoryImplicitConversionGen } from './memory/implicitCoversion';
+import { MemoryConcat } from './memory/memoryConcat';
 
 export class CairoUtilFuncGen {
   calldata: {
@@ -38,6 +39,7 @@ export class CairoUtilFuncGen {
   };
   memory: {
     arrayLiteral: MemoryArrayLiteralGen;
+    concat: MemoryConcat;
     convert: MemoryImplicitConversionGen;
     dynArrayLength: MemoryDynArrayLengthGen;
     memberAccess: MemoryMemberAccessGen;
@@ -90,6 +92,7 @@ export class CairoUtilFuncGen {
     const memoryWrite = new MemoryWriteGen(ast);
     this.memory = {
       arrayLiteral: new MemoryArrayLiteralGen(ast),
+      concat: new MemoryConcat(ast),
       convert: new MemoryImplicitConversionGen(memoryWrite, memoryRead, ast),
       dynArrayLength: new MemoryDynArrayLengthGen(ast),
       memberAccess: new MemoryMemberAccessGen(ast),

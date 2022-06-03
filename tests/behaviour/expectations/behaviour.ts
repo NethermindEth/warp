@@ -134,6 +134,22 @@ export const expectations = flatten(
             Expect.Simple('returnFirstIndex', ['2', ...['1', '2']], ['1']),
           ]),
         ]),
+        new Dir('concat', [
+          File.Simple('bytes', [
+            Expect.Simple('c0', [], ['0']),
+            Expect.Simple('c1', ['3', '1', '2', '3'], ['3', '1', '2', '3']),
+            Expect.Simple(
+              'c2',
+              ['3', '1', '2', '3', '4', '5', '6', '7', '8'],
+              ['7', '1', '2', '3', '5', '6', '7', '8'],
+            ),
+            Expect.Simple(
+              'c3',
+              ['3', '1', '2', '3', '4', '5', '6', '7', '8', '2', '100', '200'],
+              ['9', '1', '2', '3', '5', '6', '7', '8', '100', '200'],
+            ),
+          ]),
+        ]),
         new Dir('conditionals', [
           File.Simple('and', [
             Expect.Simple('f', ['50', '0', '0'], ['0', '0']),

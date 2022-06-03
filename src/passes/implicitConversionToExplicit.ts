@@ -170,6 +170,9 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         });
         return;
       }
+      if (node.vFunctionName === 'concat') {
+        return;
+      }
     }
 
     const paramTypes = getParameterTypes(node, ast);
