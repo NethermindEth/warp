@@ -31,7 +31,7 @@ import { StorageToStorageGen } from './storage/copyToStorage';
 import { StorageToCalldataGen } from './storage/storageToCalldata';
 import { SourceUnit } from 'solc-typed-ast';
 import { MemoryImplicitConversionGen } from './memory/implicitCoversion';
-import { MemoryArrayConcat } from './memory/memoryConcat';
+import { MemoryArrayConcat } from './memory/arrayConcat';
 
 export class CairoUtilFuncGen {
   calldata: {
