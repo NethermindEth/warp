@@ -64,7 +64,7 @@ export abstract class CairoUtilFuncGenBase {
       const typeDefSourceUnit = type.definition.root;
       assert(
         typeDefSourceUnit instanceof SourceUnit,
-        `Unable to find SourceUint holding type definition ${printTypeNode(type)}.`,
+        `Unable to find SourceUnit holding type definition ${printTypeNode(type)}.`,
       );
       if (this.sourceUnit !== typeDefSourceUnit) {
         this.requireImport(formatPath(typeDefSourceUnit.absolutePath), type.definition.name);
