@@ -579,7 +579,7 @@ export const expectations = flatten(
         new Dir('cross_contract_calls', [
           File.Simple(
             'this_methods_call',
-            [Expect.Simple('execute_add', ['2', '0', '35', '0'], ['708', '0'])],
+            [Expect.Simple('execute_add', ['2', '0', '35', '0'], ['637', '0'])],
             'A',
           ),
           File.Simple('simple', [Expect.Simple('f', [], ['69', '0'])], 'A'),

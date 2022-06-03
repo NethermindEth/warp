@@ -11,15 +11,13 @@ import {
   FunctionVisibility,
   generalizeType,
   getNodeType,
-  Identifier,
   IndexAccess,
   MemberAccess,
   PointerType,
   Return,
   TupleExpression,
   UnaryOperation,
-  UserDefinedTypeName,
-  VariableDeclaration,
+  UserDefinedType,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -159,14 +157,11 @@ export class ExpectedLocationAnalyser extends ASTMapper {
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     const baseLoc = this.actualLocations.get(node.vExpression);
+    const baseNodeType = getNodeType(node.vExpression, ast.compilerVersion);
     assert(baseLoc !== undefined);
     if (
-      node.vExpression instanceof Identifier &&
-      node.vExpression.vReferencedDeclaration instanceof VariableDeclaration &&
-      node.vExpression.vReferencedDeclaration.stateVariable &&
-      node.vExpression.vReferencedDeclaration.vType instanceof UserDefinedTypeName &&
-      node.vExpression.vReferencedDeclaration.vType.vReferencedDeclaration instanceof
-        ContractDefinition
+      baseNodeType instanceof UserDefinedType &&
+      baseNodeType.definition instanceof ContractDefinition
     ) {
       this.expectedLocations.set(node.vExpression, DataLocation.Default);
     } else this.expectedLocations.set(node.vExpression, baseLoc);
