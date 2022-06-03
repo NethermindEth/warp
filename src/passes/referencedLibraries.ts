@@ -58,10 +58,11 @@ function getLibBase(node: ContractDefinition, ContractDefLibs: Map<number, ASTNo
   node.getChildren().forEach((child) => {
     if (child instanceof FunctionCall) {
       ContractDefLibs.forEach((astNode, id) => {
-        assert(child.vExpression instanceof MemberAccess);
-        const f_id = child.vExpression.referencedDeclaration;
-        if (astNode.getChildren().some((node) => node.id === f_id)) {
-          ids.push(id);
+        if (child.vExpression instanceof MemberAccess) {
+          const f_id = child.vExpression.referencedDeclaration;
+          if (astNode.getChildren().some((node) => node.id === f_id)) {
+            ids.push(id);
+          }
         }
       });
     }

@@ -122,6 +122,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/invalidSolidity', 'SolCompileFailed'],
   ['example_contracts/lib', 'Success'],
   ['example_contracts/libraries/using_for_star', 'Success'],
+  ['example_contracts/libraries/free_function_in_lib.sol', 'Success'],
   ['example_contracts/literalOperations', 'Success'],
   ['example_contracts/loops/for_loop_with_break', 'Success'],
   ['example_contracts/loops/for_loop_with_continue', 'Success'],
