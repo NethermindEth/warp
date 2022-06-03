@@ -15,7 +15,7 @@ import {
 import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { NotSupportedYetError } from '../../utils/errors';
+import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { add, StringIndexedFuncGen } from '../base';
@@ -101,6 +101,13 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
               return [
                 readMemFelt,
                 `WARP_STORAGE.write(${add('loc', storageOffset)}, memFelt${index})`,
+              ];
+            } else if (copyType instanceof ArrayType && copyType.size === undefined) {
+              const funcName = this.getOrCreate(copyType);
+              return [
+                readMemFelt,
+                `let (storageArr) = readId(${add('loc', storageOffset)})`,
+                `${funcName}(storageArr, memFelt${index})`,
               ];
             } else {
               const funcName = this.getOrCreate(copyType);
@@ -297,19 +304,13 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
     const narrowedWidth = narrowBigIntSafe(type.size, `Array size ${type.size} not supported`);
     members = mapRange(narrowedWidth, () => type.elementT);
   } else {
-    throw new NotSupportedYetError(
-      `Copying ${printTypeNode(type)} from memory to storage not implemented yet`,
+    throw new TranspileFailedError(
+      `Attempted to create incorrect form of memory->storage copy for ${printTypeNode(type)}`,
     );
   }
 
   let storageOffset = 0;
   return members.flatMap((memberType) => {
-    if (memberType instanceof ArrayType && memberType.size === undefined) {
-      throw new NotSupportedYetError(
-        `Copying ${printTypeNode(memberType)} from memory to storage not implemented yet`,
-      );
-    }
-
     if (isComplexType(memberType)) {
       const offset = storageOffset;
       storageOffset += CairoType.fromSol(

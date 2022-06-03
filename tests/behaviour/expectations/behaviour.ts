@@ -361,7 +361,6 @@ export const expectations = flatten(
                 ...['5', '0', '6', '0', '0', '0'],
               ],
             ),
-            /*
             // Some part of memory to stroage not implemented yet
             Expect.Simple(
               'tryYX1',
@@ -372,7 +371,6 @@ export const expectations = flatten(
                 ...['3', ...['0', '0', '0', '0', '3', '0']],
               ],
             ),
-            */
           ]),
           File.Simple('unsignedIdentity', [
             Expect.Simple('implicit', ['210', '11', '12'], ['210', '11', '12']),
