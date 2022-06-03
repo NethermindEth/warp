@@ -91,12 +91,11 @@ export function createEmptyTuple(ast: AST): TupleExpression {
   return node;
 }
 
-
 export function createExpressionStatement(ast: AST, expression: Expression): ExpressionStatement {
   const node = new ExpressionStatement(ast.reserveId(), '', expression);
   ast.setContextRecursive(node);
   return node;
-
+}
 
 export function createIdentifier(
   variable: VariableDeclaration,
