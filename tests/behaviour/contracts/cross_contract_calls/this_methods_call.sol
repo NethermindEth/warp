@@ -15,8 +15,12 @@ contract A {
   function returnThis() view public returns (A) {
     return this;
   }
+  
+  function return_curr_contract() view public returns (A) {
+    return curr_contract;
+  }
 
   function execute_add(int a, int b) view public returns (int) {
-    return this.add(a, b) + this.add(b,a) + this.c() + returnThis().d()/* + curr_contract.c()*/;
+    return this.add(a, b) + this.c() + curr_contract.d() + returnThis().d() + return_curr_contract().c();
   }
 }
