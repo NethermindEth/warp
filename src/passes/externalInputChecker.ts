@@ -5,20 +5,12 @@ import {
   FunctionDefinition,
   FunctionCall,
   getNodeType,
-  UserDefinedType,
-  StructDefinition,
-  TypeNode,
-  AddressType,
-  ArrayType,
-  IntType,
-  BoolType,
-  EnumDefinition,
 } from 'solc-typed-ast';
 import { ASTMapper } from '../ast/mapper';
 import { isExternallyVisible } from '../utils/utils';
 import assert from 'assert';
 import { createExpressionStatement } from '../utils/nodeTemplates';
-// Add throw if they try pass in a DynArray of Static Arrays
+import { checkableType } from '../utils/nodeTypeProcessing';
 export class ExternalInputChecker extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     if (node.kind === ContractKind.Interface) {
@@ -31,7 +23,7 @@ export class ExternalInputChecker extends ASTMapper {
     if (isExternallyVisible(node) && node.vBody !== undefined) {
       node.vParameters.vParameters.forEach((decl) => {
         const type = getNodeType(decl, ast.compilerVersion);
-        if (this.checkableType(type)) {
+        if (checkableType(type)) {
           const functionCall = ast
             .getUtilFuncGen(node)
             .externalFunctions.inputCheck.gen(decl, node);
@@ -49,20 +41,5 @@ export class ExternalInputChecker extends ASTMapper {
     const expressionStatement = createExpressionStatement(ast, funcCall);
     body.insertAtBeginning(expressionStatement);
     ast.setContextRecursive(expressionStatement);
-  }
-
-  checkableType(type: TypeNode): boolean {
-    if (
-      type instanceof ArrayType ||
-      (type instanceof UserDefinedType &&
-        (type.definition instanceof StructDefinition ||
-          type.definition instanceof EnumDefinition)) ||
-      type instanceof AddressType ||
-      type instanceof IntType ||
-      type instanceof BoolType
-    ) {
-      return true;
-    }
-    return false;
   }
 }

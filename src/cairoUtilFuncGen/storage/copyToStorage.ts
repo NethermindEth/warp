@@ -7,6 +7,7 @@ import {
   FunctionStateMutability,
   generalizeType,
   getNodeType,
+  SourceUnit,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -34,8 +35,8 @@ import { DynArrayGen } from './dynArray';
 */
 
 export class StorageToStorageGen extends StringIndexedFuncGen {
-  constructor(private dynArrayGen: DynArrayGen, ast: AST) {
-    super(ast);
+  constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
+    super(ast, sourceUnit);
   }
   gen(from: Expression, to: Expression, nodeInSourceUnit?: ASTNode): Expression {
     const type = generalizeType(getNodeType(to, this.ast.compilerVersion))[0];

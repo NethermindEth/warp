@@ -11,7 +11,6 @@ import {
   generalizeType,
   getNodeType,
   IntType,
-  SourceUnit,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -30,11 +29,9 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { createIdentifier } from '../../utils/nodeTemplates';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { locationIfComplexType, StringIndexedFuncGen } from '../base';
-import * as pathLib from 'path';
-import { isReferenceType } from '../../utils/nodeTypeProcessing';
+import { checkableType, isReferenceType } from '../../utils/nodeTypeProcessing';
 
 export class InputCheckGen extends StringIndexedFuncGen {
-  sourceUnit: SourceUnit | undefined;
   gen(node: VariableDeclaration, nodeInSourceUnit: ASTNode): FunctionCall {
     const type = generalizeType(getNodeType(node, this.ast.compilerVersion))[0];
     const functionInput = createIdentifier(node, this.ast);
@@ -122,7 +119,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
         ...structDef.vMembers.map((decl) => {
           const memberType = getNodeType(decl, this.ast.compilerVersion);
           this.checkForImport(memberType);
-          if (this.checkableType(memberType)) {
+          if (checkableType(memberType)) {
             const memberCheck = this.getOrCreate(memberType);
             return [`${memberCheck}(arg.${decl.name})`];
           } else {
@@ -225,39 +222,5 @@ export class InputCheckGen extends StringIndexedFuncGen {
       ].join('\n'),
     });
     return funcName;
-  }
-
-  checkableType(type: TypeNode): boolean {
-    return (
-      type instanceof ArrayType ||
-      (type instanceof UserDefinedType &&
-        (type.definition instanceof StructDefinition ||
-          type.definition instanceof EnumDefinition)) ||
-      type instanceof AddressType ||
-      type instanceof IntType ||
-      type instanceof BoolType
-    );
-  }
-
-  checkForImport(type: TypeNode): void {
-    if (
-      type instanceof UserDefinedType &&
-      (type.definition instanceof StructDefinition || type.definition instanceof EnumDefinition)
-    ) {
-      assert(this.sourceUnit !== undefined);
-      const typeDefSourceUnit = type.definition.root;
-      assert(typeDefSourceUnit instanceof SourceUnit);
-      if (this.sourceUnit !== typeDefSourceUnit) {
-        this.requireImport(this.formatPath(typeDefSourceUnit.absolutePath), type.definition.name);
-      }
-    } else if (type instanceof IntType && type.nBits === 256) {
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    }
-  }
-
-  formatPath(path: string): string {
-    assert(path.length > 0, 'Attempted to format empty import path');
-    const base = path.endsWith('.sol') ? path.slice(0, -'.sol'.length) : path;
-    return base.replaceAll(pathLib.sep, '.');
   }
 }
