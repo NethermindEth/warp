@@ -112,6 +112,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/imports/importInterface', 'Success'],
   ['example_contracts/imports/importLibrary', 'Success'],
   ['example_contracts/imports/importStruct', 'Success'],
+  ['example_contracts/index_param', 'WillNotSupport'],
   ['example_contracts/inheritance/simple', 'Success'],
   ['example_contracts/inheritance/super/base', 'Success'],
   ['example_contracts/inheritance/super/derived', 'Success'],
@@ -163,6 +164,8 @@ const expectedResults = new Map<string, ResultType>([
   // Mappings of structs are not supported yet
   ['example_contracts/state_variables/misc', 'Success'],
   ['example_contracts/structs', 'Success'],
+  ['example_contracts/this_methods_call', 'Success'],
+  ['example_contracts/try_catch', 'WillNotSupport'],
   ['example_contracts/tupleAssignment7', 'Success'],
   ['example_contracts/tupleAssignment8', 'SolCompileFailed'],
   ['example_contracts/typeConversion/explicitTypeConversion', 'Success'],
@@ -191,7 +194,7 @@ const expectedResults = new Map<string, ResultType>([
   // uses modulo (%)
   ['example_contracts/unsupportedFunctions/shadowAddmod', 'Success'],
   // Uses WARP_STORAGE in a free function
-  ['example_contracts/using_for/imports/user_defined', 'CairoCompileFailed'],
+  ['example_contracts/using_for/imports/user_defined', 'Success'],
   // global_directive.sol cannot resolve struct when file imported as identifier
   ['example_contracts/using_for/imports/global_directive', 'CairoCompileFailed'],
   ['example_contracts/using_for/function', 'WillNotSupport'],
@@ -289,6 +292,7 @@ function runCairoFileTest(
   onlyResults: boolean,
   throwError = false,
 ): void {
+  if (file.endsWith('WARP_FREE__.cairo')) return;
   if (!onlyResults) console.log(`Compiling ${file}`);
   if (compileCairo(file).success) {
     results.set(removeExtension(file), 'Success');

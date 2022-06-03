@@ -30,6 +30,11 @@ import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemp
 import { cloneASTNode } from '../../utils/cloning';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { ReferenceSubPass } from './referenceSubPass';
+import { StorageToStorageGen } from '../../cairoUtilFuncGen/storage/copyToStorage';
+import { MemoryWriteGen } from '../../cairoUtilFuncGen/memory/memoryWrite';
+import { CalldataToStorageGen } from '../../cairoUtilFuncGen/calldata/calldataToStorage';
+import { StorageWriteGen } from '../../cairoUtilFuncGen/storage/storageWrite';
+import { MemoryToStorageGen } from '../../cairoUtilFuncGen/memory/memoryToStorage';
 
 /*
   Uses the analyses of ActualLocationAnalyser and ExpectedLocationAnalyser to
@@ -136,13 +141,25 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     const [actualLoc, expectedLoc] = this.getLocations(node);
     const fromLoc = this.getLocations(node.vRightHandSide)[1];
     const toLoc = this.getLocations(node.vLeftHandSide)[1];
-    let funcGen = null;
+    let funcGen:
+      | MemoryWriteGen
+      | StorageToStorageGen
+      | MemoryToStorageGen
+      | CalldataToStorageGen
+      | StorageWriteGen
+      | null = null;
     if (toLoc === DataLocation.Memory) {
       funcGen = ast.getUtilFuncGen(node).memory.write;
     } else if (toLoc === DataLocation.Storage) {
       if (fromLoc === DataLocation.Storage) {
         funcGen = ast.getUtilFuncGen(node).storage.toStorage;
       } else if (fromLoc === DataLocation.Memory) {
+        const [convert, result] = ast
+          .getUtilFuncGen(node)
+          .memory.convert.genIfNecesary(node.vLeftHandSide, node.vRightHandSide);
+        if (result) {
+          ast.replaceNode(node.vRightHandSide, convert, node);
+        }
         funcGen = ast.getUtilFuncGen(node).memory.toStorage;
       } else if (fromLoc === DataLocation.CallData) {
         funcGen = ast.getUtilFuncGen(node).calldata.toStorage;

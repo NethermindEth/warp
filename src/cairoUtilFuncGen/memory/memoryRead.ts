@@ -43,7 +43,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
     return createCallToFunction(functionStub, [memoryRef], this.ast);
   }
 
-  private getOrCreate(typeToRead: CairoType): string {
+  getOrCreate(typeToRead: CairoType): string {
     if (typeToRead instanceof CairoFelt) {
       this.requireImport('warplib.memory', 'wm_read_felt');
       return 'wm_read_felt';

@@ -53,7 +53,7 @@ export abstract class CairoType {
       if (tp.size === undefined) {
         if (context === TypeConversionContext.CallDataRef) {
           return new CairoDynArray(
-            `cd_dynarray_${CairoType.fromSol(tp.elementT, ast, context)}`,
+            `cd_dynarray_${generateStructName(CairoType.fromSol(tp.elementT, ast, context))}`,
             CairoType.fromSol(tp.elementT, ast, context),
           );
         }
@@ -272,3 +272,9 @@ export const CairoUint256 = new CairoStruct(
     ['high', new CairoFelt()],
   ]),
 );
+
+export function generateStructName(cairoType: CairoType): string {
+  if (cairoType instanceof CairoTuple) return cairoType.members.map(generateStructName).join('_');
+
+  return cairoType.toString();
+}
