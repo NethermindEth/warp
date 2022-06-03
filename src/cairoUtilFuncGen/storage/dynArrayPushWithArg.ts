@@ -88,11 +88,11 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     let elementWriteFunc: string;
     let inputType: string;
     if (argLoc === DataLocation.Memory) {
+      // TODO update once X->storage are all implemented
       elementWriteFunc = this.memoryToStorage.getOrCreate(elementType);
       inputType = 'felt';
     } else if (argLoc === DataLocation.Storage) {
-      // TODO update once X->storage conversions are implemented
-      elementWriteFunc = this.storageToStorage.getOrCreate(argType, elementType);
+      elementWriteFunc = this.storageToStorage.getOrCreate(elementType, argType);
       inputType = 'felt';
     } else if (argLoc === DataLocation.CallData) {
       elementWriteFunc = this.calldataToStorage.getOrCreate(elementType);
