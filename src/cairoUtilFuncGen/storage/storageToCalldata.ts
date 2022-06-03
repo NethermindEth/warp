@@ -5,6 +5,7 @@ import {
   Expression,
   generalizeType,
   getNodeType,
+  SourceUnit,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -26,8 +27,9 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     private storageReadGen: StorageReadGen,
     private externalDynArrayStructConstructor: ExternalDynArrayStructConstructor,
     ast: AST,
+    sourceUnit: SourceUnit,
   ) {
-    super(ast);
+    super(ast, sourceUnit);
   }
 
   gen(storageLocation: Expression) {
@@ -115,8 +117,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       `func ${funcName}${implicits}(loc : felt) -> (static_array : ${cairoType.toString()}):`,
       `    alloc_locals`,
       ...copyInstructions,
-      `    let result = (${members.join(', ')})`,
-      `    return (result)`,
+      `    return ((${members.join(', ')}))`,
       `end`,
     ].join('\n');
 

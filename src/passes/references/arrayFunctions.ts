@@ -3,13 +3,19 @@ import {
   DataLocation,
   ExternalReferenceType,
   FunctionCall,
+  FunctionStateMutability,
+  generalizeType,
   getNodeType,
   MemberAccess,
   PointerType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { FunctionStubKind } from '../../ast/cairoNodes';
 import { NotSupportedYetError } from '../../utils/errors';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
+import { isDynamicCallDataArray } from '../../utils/nodeTypeProcessing';
+import { typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
 
 /*
@@ -61,12 +67,38 @@ export class ArrayFunctions extends ReferenceSubPass {
 
     const baseType = getNodeType(node.vExpression, ast.compilerVersion);
     if (baseType instanceof PointerType && baseType.to instanceof ArrayType) {
-      if (baseType.location !== DataLocation.Storage && baseType.location !== DataLocation.Memory) {
-        throw new NotSupportedYetError(
-          `Accessing ${baseType.location} array length not implemented yet`,
-        );
-      }
+      if (isDynamicCallDataArray(baseType)) {
+        const parent = node.parent;
+        const type = generalizeType(getNodeType(node, ast.compilerVersion))[0];
 
+        const funcStub = createCairoFunctionStub(
+          'felt_to_uint256',
+          [['cd_dstruct_array_len', typeNameFromTypeNode(type, ast)]],
+          [['len256', typeNameFromTypeNode(type, ast)]],
+          ['range_check_ptr'],
+          ast,
+          node,
+          FunctionStateMutability.Pure,
+          FunctionStubKind.FunctionDefStub,
+        );
+
+        const funcCall = createCallToFunction(funcStub, [node], ast);
+
+        ast.registerImport(funcCall, 'warplib.maths.utils', 'felt_to_uint256');
+
+        this.replace(
+          node,
+          funcCall,
+          parent,
+          DataLocation.Default,
+          this.expectedDataLocations.get(node),
+          ast,
+        );
+
+        this.expectedDataLocations.set(node, DataLocation.Default);
+        node.memberName = 'len';
+        return;
+      }
       if (baseType.to.size !== undefined) {
         const size = baseType.to.size.toString();
         this.replace(

@@ -1,4 +1,11 @@
-import { MemberAccess, ArrayType, FunctionCall, ASTNode, DataLocation } from 'solc-typed-ast';
+import {
+  MemberAccess,
+  ArrayType,
+  FunctionCall,
+  ASTNode,
+  DataLocation,
+  SourceUnit,
+} from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
@@ -8,8 +15,8 @@ import { CairoUtilFuncGenBase } from '../base';
 import { DynArrayGen } from './dynArray';
 
 export class DynArrayLengthGen extends CairoUtilFuncGenBase {
-  constructor(private dynArrayGen: DynArrayGen, ast: AST) {
-    super(ast);
+  constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
+    super(ast, sourceUnit);
   }
 
   getGeneratedCode(): string {

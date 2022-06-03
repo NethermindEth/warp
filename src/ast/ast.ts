@@ -178,7 +178,7 @@ export class AST {
     );
     const gen = this.cairoUtilFuncGen.get(sourceUnit.id);
     if (gen === undefined) {
-      const newGen = new CairoUtilFuncGen(this);
+      const newGen = new CairoUtilFuncGen(this, sourceUnit);
       this.cairoUtilFuncGen.set(sourceUnit.id, newGen);
       return newGen;
     }

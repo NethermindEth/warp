@@ -72,6 +72,5 @@ int_conversions();
 
 // ---external_input_checks---
 external_input_check_ints();
-
 // and - handwritten
 // or - handwritten

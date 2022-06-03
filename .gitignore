@@ -132,8 +132,7 @@ solc-v0.7.6
 
 # output from warp
 warp_output/
-example_contracts/**/*.cairo
-example_contracts/**/*.json
+example__contracts
 
 #benchmark
 benchmark/*
@@ -201,4 +200,5 @@ warplib/maths/int_conversions.cairo
 
 # ---external-input-input-checks---
 warplib/maths/external_input_check_ints.cairo
+# external_input_check_address.cairo - handwritten
 # external_input_check_bool.cairo - handwritten
