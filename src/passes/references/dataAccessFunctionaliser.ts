@@ -150,6 +150,12 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
         this.replace(node, copyFunc, undefined, actualLoc, expectedLoc, ast);
         return this.dispatchVisit(copyFunc, ast);
       } else if (fromLoc === DataLocation.Memory) {
+        const [convert, result] = ast
+          .getUtilFuncGen(node)
+          .memory.convert.genIfNecesary(node.vLeftHandSide, node.vRightHandSide);
+        if (result) {
+          ast.replaceNode(node.vRightHandSide, convert, node);
+        }
         const copyFunc = ast
           .getUtilFuncGen(node)
           .memory.toStorage.gen(node.vLeftHandSide, node.vRightHandSide);

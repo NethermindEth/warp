@@ -15,11 +15,13 @@ import {
   SourceUnit,
   FunctionDefinition,
   ArrayType,
+  TryStatement,
   TypeNode,
   UserDefinedType,
   StructDefinition,
   NewExpression,
   ArrayTypeName,
+  ParameterList,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -86,6 +88,14 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     this.visitExpression(node, ast);
   }
 
+  visitParameterList(node: ParameterList, ast: AST): void {
+    // any of node.vParameters has indexed flag true then throw error
+    if (node.vParameters.some((param) => param.indexed)) {
+      throw new WillNotSupportError(`Indexed parameters are not supported`);
+    }
+    this.commonVisit(node, ast);
+  }
+
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     const unsupportedMath = ['keccak256', 'sha256', 'ripemd160', 'ecrecover', 'addmod', 'mulmod'];
     const unsupportedAbi = [
@@ -143,6 +153,10 @@ export class RejectUnsupportedFeatures extends ASTMapper {
         throw new WillNotSupportError(`${node.kind} with arguments is not supported`);
     }
     this.commonVisit(node, ast);
+  }
+
+  visitTryStatement(_node: TryStatement, _ast: AST): void {
+    throw new WillNotSupportError(`Try/Catch statements are not supported`);
   }
 
   private externalFunctionArgsCheck(

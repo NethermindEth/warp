@@ -24,10 +24,10 @@ contract Dai {
   mapping (address => mapping (address => uint256)) public allowance;
   mapping (address => uint256)                      public nonces;
 
-  event Approval(address indexed owner, address indexed spender, uint256 value);
-  event Transfer(address indexed from, address indexed to, uint256 value);
-  event Rely(address indexed usr);
-  event Deny(address indexed usr);
+  event Approval(address  owner, address  spender, uint256 value);
+  event Transfer(address  from, address  to, uint256 value);
+  event Rely(address  usr);
+  event Deny(address  usr);
 
   function getAllowance(address owner, address spender) external view returns (uint256) {
     return allowance[owner][spender];

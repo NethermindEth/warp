@@ -244,13 +244,6 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
       expression.typeString = generateExpressionTypeString(
         specializeType(targetType, DataLocation.Memory),
       );
-    } else {
-      assert(
-        currentType.pp() === targetType.pp(),
-        `Unexpected mismatched tuple types ${currentType.pp()} != ${targetType.pp()} at ${printNode(
-          expression,
-        )}`,
-      );
     }
   } else if (currentType instanceof BoolType) {
     assert(
