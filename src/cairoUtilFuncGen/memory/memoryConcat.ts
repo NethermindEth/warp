@@ -1,13 +1,5 @@
 import assert from 'assert';
-import {
-  DataLocation,
-  Expression,
-  FunctionCall,
-  getNodeType,
-  MemberAccess,
-  PointerType,
-  TypeName,
-} from 'solc-typed-ast';
+import { DataLocation, FunctionCall, getNodeType, PointerType, TypeName } from 'solc-typed-ast';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
@@ -16,7 +8,7 @@ import { CairoFunction, StringIndexedFuncGen } from '../base';
 
 const IMPLICITS = '{range_check_ptr, warp_memory : DictAccess*}';
 
-export class MemoryConcat extends StringIndexedFuncGen {
+export class MemoryArrayConcat extends StringIndexedFuncGen {
   gen(concat: FunctionCall) {
     const args = concat.vArguments;
     args.forEach((expr) => {
