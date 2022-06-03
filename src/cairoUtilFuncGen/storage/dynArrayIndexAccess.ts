@@ -7,6 +7,7 @@ import {
   getNodeType,
   IndexAccess,
   PointerType,
+  SourceUnit,
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -18,8 +19,8 @@ import { StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
 export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
-  constructor(private dynArrayGen: DynArrayGen, ast: AST) {
-    super(ast);
+  constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
+    super(ast, sourceUnit);
   }
 
   gen(node: IndexAccess, nodeInSourceUnit?: ASTNode): FunctionCall {

@@ -1,7 +1,7 @@
 import { AST } from '../ast/ast';
 import { mergeImports } from '../utils/utils';
 import { CairoUtilFuncGenBase } from './base';
-import { EnumBoundCheckGen } from './enumBoundCheck';
+import { InputCheckGen } from './inputArgCheck/inputCheck';
 import { MemoryArrayLiteralGen } from './memory/arrayLiteral';
 import { MemoryDynArrayLengthGen } from './memory/memoryDynArrayLength';
 import { MemoryMemberAccessGen } from './memory/memoryMemberAccess';
@@ -29,6 +29,7 @@ import { MemoryToStorageGen } from './memory/memoryToStorage';
 import { CalldataToStorageGen } from './calldata/calldataToStorage';
 import { StorageToStorageGen } from './storage/copyToStorage';
 import { StorageToCalldataGen } from './storage/storageToCalldata';
+import { SourceUnit } from 'solc-typed-ast';
 import { MemoryImplicitConversionGen } from './memory/implicitCoversion';
 
 export class CairoUtilFuncGen {
@@ -67,7 +68,7 @@ export class CairoUtilFuncGen {
     write: StorageWriteGen;
   };
   externalFunctions: {
-    inputsChecks: { enum: EnumBoundCheckGen };
+    inputCheck: InputCheckGen;
     inputs: {
       darrayStructConstructor: ExternalDynArrayStructConstructor;
     };
@@ -77,68 +78,87 @@ export class CairoUtilFuncGen {
     dynArray: DynArrayGen;
   };
 
-  constructor(ast: AST) {
+  constructor(ast: AST, sourceUnit: SourceUnit) {
     this.implementation = {
-      dynArray: new DynArrayGen(ast),
+      dynArray: new DynArrayGen(ast, sourceUnit),
     };
 
-    const memoryToStorage = new MemoryToStorageGen(this.implementation.dynArray, ast);
-    const storageWrite = new StorageWriteGen(ast);
-    const externalDynArrayStructConstructor = new ExternalDynArrayStructConstructor(ast);
+    const memoryToStorage = new MemoryToStorageGen(this.implementation.dynArray, ast, sourceUnit);
+    const storageWrite = new StorageWriteGen(ast, sourceUnit);
+    const externalDynArrayStructConstructor = new ExternalDynArrayStructConstructor(
+      ast,
+      sourceUnit,
+    );
 
-    const memoryRead = new MemoryReadGen(ast);
-    const memoryWrite = new MemoryWriteGen(ast);
+    const memoryRead = new MemoryReadGen(ast, sourceUnit);
+    const memoryWrite = new MemoryWriteGen(ast, sourceUnit);
     this.memory = {
-      arrayLiteral: new MemoryArrayLiteralGen(ast),
-      convert: new MemoryImplicitConversionGen(memoryWrite, memoryRead, ast),
-      dynArrayLength: new MemoryDynArrayLengthGen(ast),
-      memberAccess: new MemoryMemberAccessGen(ast),
+      arrayLiteral: new MemoryArrayLiteralGen(ast, sourceUnit),
+      convert: new MemoryImplicitConversionGen(memoryWrite, memoryRead, ast, sourceUnit),
+      dynArrayLength: new MemoryDynArrayLengthGen(ast, sourceUnit),
+      memberAccess: new MemoryMemberAccessGen(ast, sourceUnit),
       read: memoryRead,
-      staticArrayIndexAccess: new MemoryStaticArrayIndexAccessGen(ast),
-      struct: new MemoryStructGen(ast),
-      toCallData: new MemoryToCallDataGen(externalDynArrayStructConstructor, ast),
+      staticArrayIndexAccess: new MemoryStaticArrayIndexAccessGen(ast, sourceUnit),
+      struct: new MemoryStructGen(ast, sourceUnit),
+      toCallData: new MemoryToCallDataGen(externalDynArrayStructConstructor, ast, sourceUnit),
       toStorage: memoryToStorage,
       write: memoryWrite,
     };
-    const storageReadGen = new StorageReadGen(ast);
-    const storageDelete = new StorageDeleteGen(this.implementation.dynArray, storageReadGen, ast);
+    const storageReadGen = new StorageReadGen(ast, sourceUnit);
+    const storageDelete = new StorageDeleteGen(
+      this.implementation.dynArray,
+      storageReadGen,
+      ast,
+      sourceUnit,
+    );
     this.storage = {
       delete: storageDelete,
-      dynArrayIndexAccess: new DynArrayIndexAccessGen(this.implementation.dynArray, ast),
-      dynArrayLength: new DynArrayLengthGen(this.implementation.dynArray, ast),
-      dynArrayPop: new DynArrayPopGen(this.implementation.dynArray, storageDelete, ast),
+      dynArrayIndexAccess: new DynArrayIndexAccessGen(
+        this.implementation.dynArray,
+        ast,
+        sourceUnit,
+      ),
+      dynArrayLength: new DynArrayLengthGen(this.implementation.dynArray, ast, sourceUnit),
+      dynArrayPop: new DynArrayPopGen(this.implementation.dynArray, storageDelete, ast, sourceUnit),
       dynArrayPush: {
         withArg: new DynArrayPushWithArgGen(
           this.implementation.dynArray,
           storageWrite,
           memoryToStorage,
           ast,
+          sourceUnit,
         ),
-        withoutArg: new DynArrayPushWithoutArgGen(this.implementation.dynArray, ast),
+        withoutArg: new DynArrayPushWithoutArgGen(this.implementation.dynArray, ast, sourceUnit),
       },
-      mappingIndexAccess: new MappingIndexAccessGen(ast),
-      memberAccess: new StorageMemberAccessGen(ast),
+      mappingIndexAccess: new MappingIndexAccessGen(ast, sourceUnit),
+      memberAccess: new StorageMemberAccessGen(ast, sourceUnit),
       read: storageReadGen,
-      staticArrayIndexAccess: new StorageStaticArrayIndexAccessGen(ast),
+      staticArrayIndexAccess: new StorageStaticArrayIndexAccessGen(ast, sourceUnit),
       toCallData: new StorageToCalldataGen(
         this.implementation.dynArray,
         storageReadGen,
         externalDynArrayStructConstructor,
         ast,
+        sourceUnit,
       ),
-      toMemory: new StorageToMemoryGen(this.implementation.dynArray, ast),
-      toStorage: new StorageToStorageGen(this.implementation.dynArray, ast),
+      toMemory: new StorageToMemoryGen(this.implementation.dynArray, ast, sourceUnit),
+      toStorage: new StorageToStorageGen(this.implementation.dynArray, ast, sourceUnit),
       write: storageWrite,
     };
     this.externalFunctions = {
-      inputsChecks: { enum: new EnumBoundCheckGen(ast) },
+      inputCheck: new InputCheckGen(ast, sourceUnit),
       inputs: {
         darrayStructConstructor: externalDynArrayStructConstructor,
       },
     };
     this.calldata = {
-      toMemory: new CallDataToMemoryGen(ast),
-      toStorage: new CalldataToStorageGen(this.implementation.dynArray, storageWrite, ast),
+      toMemory: new CallDataToMemoryGen(ast, sourceUnit),
+      toStorage: new CalldataToStorageGen(
+        this.implementation.dynArray,
+        storageWrite,
+        ast,
+        sourceUnit,
+      ),
     };
   }
 
@@ -161,7 +181,6 @@ export class CairoUtilFuncGen {
       })
       .join('\n\n');
   }
-
   private getAllChildren(): CairoUtilFuncGenBase[] {
     return getAllGenerators(this);
   }

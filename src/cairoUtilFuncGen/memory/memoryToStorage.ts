@@ -7,6 +7,7 @@ import {
   FunctionStateMutability,
   generalizeType,
   getNodeType,
+  SourceUnit,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -28,8 +29,8 @@ import { DynArrayGen } from '../storage/dynArray';
 */
 
 export class MemoryToStorageGen extends StringIndexedFuncGen {
-  constructor(private dynArrayGen: DynArrayGen, ast: AST) {
-    super(ast);
+  constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
+    super(ast, sourceUnit);
   }
   gen(
     storageLocation: Expression,

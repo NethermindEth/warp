@@ -8,6 +8,7 @@ import {
   getNodeType,
   MemberAccess,
   PointerType,
+  SourceUnit,
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -25,8 +26,9 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     private storageWrite: StorageWriteGen,
     private memoryToStorage: MemoryToStorageGen,
     ast: AST,
+    sourceUnit: SourceUnit,
   ) {
-    super(ast);
+    super(ast, sourceUnit);
   }
 
   gen(push: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {

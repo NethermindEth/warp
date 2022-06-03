@@ -1,13 +1,19 @@
+import assert from 'assert';
 import {
   ArrayType,
   DataLocation,
+  EnumDefinition,
   generalizeType,
+  IntType,
   MappingType,
+  SourceUnit,
   StructDefinition,
   TypeNode,
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
+import { printTypeNode } from '../utils/astPrinter';
+import { formatPath } from '../utils/formatting';
 
 export type CairoFunction = {
   name: string;
@@ -29,9 +35,10 @@ export type CairoStructDef = {
 export abstract class CairoUtilFuncGenBase {
   protected ast: AST;
   protected imports: Map<string, Set<string>> = new Map();
-
-  constructor(ast: AST) {
+  protected sourceUnit: SourceUnit;
+  constructor(ast: AST, sourceUnit: SourceUnit) {
     this.ast = ast;
+    this.sourceUnit = sourceUnit;
   }
 
   // import file -> import symbols
@@ -46,6 +53,25 @@ export abstract class CairoUtilFuncGenBase {
     const existingImports = this.imports.get(location) ?? new Set<string>();
     existingImports.add(name);
     this.imports.set(location, existingImports);
+  }
+
+  protected checkForImport(type: TypeNode): void {
+    if (
+      type instanceof UserDefinedType &&
+      (type.definition instanceof StructDefinition || type.definition instanceof EnumDefinition)
+    ) {
+      assert(this.sourceUnit !== undefined, 'Unable to find SourceUnit for CairoUtilGen.');
+      const typeDefSourceUnit = type.definition.root;
+      assert(
+        typeDefSourceUnit instanceof SourceUnit,
+        `Unable to find SourceUnit holding type definition ${printTypeNode(type)}.`,
+      );
+      if (this.sourceUnit !== typeDefSourceUnit) {
+        this.requireImport(formatPath(typeDefSourceUnit.absolutePath), type.definition.name);
+      }
+    } else if (type instanceof IntType && type.nBits === 256) {
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    }
   }
 }
 

@@ -8,6 +8,7 @@ import {
   getNodeType,
   MemberAccess,
   PointerType,
+  SourceUnit,
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -19,8 +20,13 @@ import { DynArrayGen } from './dynArray';
 import { StorageDeleteGen } from './storageDelete';
 
 export class DynArrayPopGen extends StringIndexedFuncGen {
-  constructor(private dynArrayGen: DynArrayGen, private storageDelete: StorageDeleteGen, ast: AST) {
-    super(ast);
+  constructor(
+    private dynArrayGen: DynArrayGen,
+    private storageDelete: StorageDeleteGen,
+    ast: AST,
+    sourceUnit: SourceUnit,
+  ) {
+    super(ast, sourceUnit);
   }
 
   gen(pop: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
