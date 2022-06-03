@@ -11,6 +11,7 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import * as pathLib from 'path';
+import { CairoContract } from '../ast/cairoNodes';
 
 export class ExternImporter extends ASTMapper {
   visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {
@@ -49,6 +50,10 @@ export class ExternImporter extends ASTMapper {
       declaration instanceof FunctionDefinition ||
       (declaration instanceof StructDefinition && isFree(declaration))
     ) {
+      ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
+    }
+
+    if (declaration instanceof CairoContract) {
       ast.registerImport(node, formatPath(declarationSourceUnit.absolutePath), declaration.name);
     }
   }

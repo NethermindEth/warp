@@ -11,6 +11,7 @@ export function compileCairo(
   filePath: string,
   cairoPath: string = extractCairoPath(filePath),
 ): { success: boolean; resultPath: string | undefined; abiPath: string | undefined } {
+  console.log(cairoPath);
   assert(filePath.endsWith('.cairo'), `Attempted to compile non-cairo file ${filePath} as cairo`);
   const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
   const resultPath = `${cairoPathRoot}_compiled.json`;
@@ -23,7 +24,7 @@ export function compileCairo(
     parameters.set('cairo_path', cairoPath);
   }
   try {
-    console.log(`Running starknet compile with cairoPath ${cairoPath}`);
+    console.log(`Running starknet compile on ${filePath}\n using cairoPath ${cairoPath}`);
     execSync(
       `${warpVenvPrefix} starknet-compile --cairo_path warp_output ${filePath} ${[
         ...parameters.entries(),
@@ -45,7 +46,7 @@ export function compileCairo(
 }
 
 export function runStarknetCompile(filePath: string) {
-  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
+  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '../warp_output'));
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
