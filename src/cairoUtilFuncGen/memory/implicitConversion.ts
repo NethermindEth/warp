@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   ArrayType,
+  ASTNode,
   DataLocation,
   Expression,
   FunctionCall,
@@ -33,8 +34,11 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     super(ast);
   }
 
-  genIfNecesary(targetExpression: Expression, sourceExpression: Expression): [Expression, boolean] {
-    const targetType = getNodeType(targetExpression, this.ast.compilerVersion);
+  genIfNecesary(
+    sourceExpression: Expression,
+    targetType: TypeNode,
+    nodeInSourceUnit?: ASTNode,
+  ): [Expression, boolean] {
     const sourceType = getNodeType(sourceExpression, this.ast.compilerVersion);
 
     const targetBaseType = getBaseType(targetType);
@@ -46,7 +50,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       targetBaseType.signed &&
       targetBaseType.nBits > sourceBaseType.nBits
     ) {
-      return [this.gen(targetExpression, sourceExpression), true];
+      return [this.gen(sourceExpression, targetType, nodeInSourceUnit), true];
     }
 
     const targetBaseCairoType = CairoType.fromSol(
@@ -64,13 +68,12 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     // Applies to uint only
     // (uintX[] -> uint256[])
     if (targetBaseCairoType.width > sourceBaseCairoType.width)
-      return [this.gen(targetExpression, sourceExpression), true];
+      return [this.gen(sourceExpression, targetType, nodeInSourceUnit), true];
 
     return [sourceExpression, false];
   }
 
-  gen(target: Expression, source: Expression): FunctionCall {
-    const targetType = getNodeType(target, this.ast.compilerVersion);
+  gen(source: Expression, targetType: TypeNode, nodeInSourceUnit?: ASTNode): FunctionCall {
     const sourceType = getNodeType(source, this.ast.compilerVersion);
 
     const name = this.getOrCreate(targetType, sourceType);
@@ -81,7 +84,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       [['target', typeNameFromTypeNode(targetType, this.ast), DataLocation.Memory]],
       ['range_check_ptr', 'bitwise_ptr', 'warp_memory'],
       this.ast,
-      target,
+      nodeInSourceUnit ?? source,
     );
 
     return createCallToFunction(functionStub, [source], this.ast);

@@ -52,13 +52,11 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       argType,
       argLoc ?? DataLocation.Default,
     );
-    console.log(`argLoc: ${argLoc}`);
     const implicits: Implicits[] =
       argLoc === DataLocation.Memory
         ? ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory']
         : ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'];
 
-    console.log(implicits);
     const functionStub = createCairoFunctionStub(
       name,
       [

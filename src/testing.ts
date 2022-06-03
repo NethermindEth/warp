@@ -156,12 +156,10 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/state_variables/scalars', 'Success'],
   ['example_contracts/state_variables/enums', 'Success'],
   ['example_contracts/state_variables/arrays', 'Success'],
-  // Tuple initialization not supported yet
-  ['example_contracts/state_variables/arrays_init', 'NotSupportedYet'],
+  ['example_contracts/state_variables/arrays_init', 'Success'],
   ['example_contracts/state_variables/mappings', 'Success'],
   ['example_contracts/state_variables/structs', 'Success'],
   ['example_contracts/state_variables/structs_nested', 'Success'],
-  // Mappings of structs are not supported yet
   ['example_contracts/state_variables/misc', 'Success'],
   ['example_contracts/structs', 'Success'],
   ['example_contracts/this_methods_call', 'Success'],

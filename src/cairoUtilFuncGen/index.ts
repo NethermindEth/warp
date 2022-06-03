@@ -29,7 +29,7 @@ import { MemoryToStorageGen } from './memory/memoryToStorage';
 import { CalldataToStorageGen } from './calldata/calldataToStorage';
 import { StorageToStorageGen } from './storage/copyToStorage';
 import { StorageToCalldataGen } from './storage/storageToCalldata';
-import { MemoryImplicitConversionGen } from './memory/implicitCoversion';
+import { MemoryImplicitConversionGen } from './memory/implicitConversion';
 
 export class CairoUtilFuncGen {
   calldata: {

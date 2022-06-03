@@ -42,9 +42,8 @@ import { printNode, printTypeNode } from '../utils/astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { createElementaryConversionCall } from '../utils/functionGeneration';
-import { generateExpressionTypeString } from '../utils/getTypeString';
 import { createNumberLiteral } from '../utils/nodeTemplates';
-import { getParameterTypes, intTypeForLiteral, specializeType } from '../utils/nodeTypeProcessing';
+import { getParameterTypes, intTypeForLiteral } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
 
 /*
@@ -221,7 +220,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 }
 
 function insertConversionIfNecessary(expression: Expression, targetType: TypeNode, ast: AST): void {
-  const currentType = generalizeType(getNodeType(expression, ast.compilerVersion))[0];
+  const [currentType, currentLoc] = generalizeType(getNodeType(expression, ast.compilerVersion));
   targetType = generalizeType(targetType)[0];
 
   if (currentType instanceof AddressType) {
@@ -235,16 +234,18 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
         targetType,
       )}`,
     );
-    const elementT = targetType.elementT;
-    if (expression instanceof TupleExpression && expression.isInlineArray) {
-      expression.vOriginalComponents.forEach((element) => {
-        assert(element !== null, `Unexpected empty slot in inline array ${printNode(expression)}`);
-        insertConversionIfNecessary(element, elementT, ast);
-      });
-      expression.typeString = generateExpressionTypeString(
-        specializeType(targetType, DataLocation.Memory),
-      );
+    if (currentLoc === DataLocation.Memory) {
+      ast.getUtilFuncGen(expression).memory.convert.genIfNecesary(expression, targetType);
     }
+    // if (expression instanceof TupleExpression && expression.isInlineArray) {
+    //   expression.vOriginalComponents.forEach((element) => {
+    //     assert(element !== null, `Unexpected empty slot in inline array ${printNode(expression)}`);
+    //     insertConversionIfNecessary(element, elementT, ast);
+    //   });
+    //   expression.typeString = generateExpressionTypeString(
+    //     specializeType(targetType, DataLocation.Memory),
+    //   );
+    // }
   } else if (currentType instanceof BoolType) {
     assert(
       targetType instanceof BoolType,
