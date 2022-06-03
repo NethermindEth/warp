@@ -1,17 +1,18 @@
 import { Command } from 'commander';
 import { isValidSolFile, outputResult } from './io';
 import { compileSolFile } from './solCompile';
-import { runTests } from './testing';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
 import {
   runStarknetCallOrInvoke,
+  runStarknetCompile,
   runStarknetDeploy,
   runStarknetDeployAccount,
   runStarknetStatus,
 } from './starknetCli';
 import chalk from 'chalk';
 import { runVenvSetup } from './utils/setupVenv';
+import { runTests } from './testing';
 
 export type CompilationOptions = {
   warnings: boolean;
@@ -242,6 +243,10 @@ program
   .action((options: IInstallOptions) => {
     runVenvSetup(options);
   });
+
+program.command('compile <file>').action((file: string) => {
+  runStarknetCompile(file);
+});
 
 const blue = chalk.bold.blue;
 program.command('version').action(() => console.log(blue('Warp Version 0.1.0')));

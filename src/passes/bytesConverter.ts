@@ -17,6 +17,8 @@ import {
   TypeName,
   IndexAccess,
   Literal,
+  BytesType,
+  StringType,
   IntLiteralType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -28,6 +30,7 @@ import {
   createNumberLiteral,
   createUint8TypeName,
   createUint256TypeName,
+  createArrayTypeName,
 } from '../utils/nodeTemplates';
 
 /* Convert fixed-size byte arrays (e.g. bytes2, bytes8) to their equivalent unsigned integer.
@@ -38,20 +41,24 @@ export class BytesConverter extends ASTMapper {
   visitExpression(node: Expression, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (!(typeNode instanceof IntLiteralType)) {
-      node.typeString = generateExpressionTypeString(replaceFixedBytesType(typeNode));
+      node.typeString = generateExpressionTypeString(replaceBytesType(typeNode));
     }
     this.commonVisit(node, ast);
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
-    const typeNode = replaceFixedBytesType(getNodeType(node, ast.compilerVersion));
+    const typeNode = replaceBytesType(getNodeType(node, ast.compilerVersion));
     node.typeString = generateExpressionTypeString(typeNode);
     this.commonVisit(node, ast);
   }
 
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
     const typeNode = typeNameToTypeNode(node);
-    const replacementTypeNode = replaceFixedBytesType(typeNode);
+    if (typeNode instanceof StringType || typeNode instanceof BytesType) {
+      ast.replaceNode(node, createArrayTypeName(createUint8TypeName(ast), ast));
+      return;
+    }
+    const replacementTypeNode = replaceBytesType(typeNode);
     if (typeNode.pp() !== replacementTypeNode.pp()) {
       const typeString = replacementTypeNode.pp();
       node.typeString = typeString;
@@ -109,14 +116,14 @@ export class BytesConverter extends ASTMapper {
       selectWarplibFunction(baseTypeName, indexTypeName),
     );
     ast.replaceNode(node, call, node.parent);
-    const typeNode = replaceFixedBytesType(getNodeType(call, ast.compilerVersion));
+    const typeNode = replaceBytesType(getNodeType(call, ast.compilerVersion));
     call.typeString = generateExpressionTypeString(typeNode);
     this.commonVisit(call, ast);
   }
 
   visitTypeName(node: TypeName, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
-    const replacementTypeNode = replaceFixedBytesType(typeNode);
+    const replacementTypeNode = replaceBytesType(typeNode);
     if (typeNode.pp() !== replacementTypeNode.pp()) {
       const typeString = replacementTypeNode.pp();
       node.typeString = typeString;
@@ -125,32 +132,36 @@ export class BytesConverter extends ASTMapper {
   }
 }
 
-function replaceFixedBytesType(type: TypeNode): TypeNode {
+function replaceBytesType(type: TypeNode): TypeNode {
   if (type instanceof ArrayType) {
-    return new ArrayType(replaceFixedBytesType(type.elementT), type.size, type.src);
+    return new ArrayType(replaceBytesType(type.elementT), type.size, type.src);
   } else if (type instanceof FixedBytesType) {
     return new IntType(type.size * 8, false, type.src);
   } else if (type instanceof FunctionType) {
     return new FunctionType(
       type.name,
-      type.parameters.map(replaceFixedBytesType),
-      type.returns.map(replaceFixedBytesType),
+      type.parameters.map(replaceBytesType),
+      type.returns.map(replaceBytesType),
       type.visibility,
       type.mutability,
       type.src,
     );
   } else if (type instanceof MappingType) {
     return new MappingType(
-      replaceFixedBytesType(type.keyType),
-      replaceFixedBytesType(type.valueType),
+      replaceBytesType(type.keyType),
+      replaceBytesType(type.valueType),
       type.src,
     );
   } else if (type instanceof PointerType) {
-    return new PointerType(replaceFixedBytesType(type.to), type.location, type.kind, type.src);
+    return new PointerType(replaceBytesType(type.to), type.location, type.kind, type.src);
   } else if (type instanceof TupleType) {
-    return new TupleType(type.elements.map(replaceFixedBytesType), type.src);
+    return new TupleType(type.elements.map(replaceBytesType), type.src);
   } else if (type instanceof TypeNameType) {
-    return new TypeNameType(replaceFixedBytesType(type.type), type.src);
+    return new TypeNameType(replaceBytesType(type.type), type.src);
+  } else if (type instanceof BytesType) {
+    return new ArrayType(new IntType(8, false, type.src), undefined, type.src);
+  } else if (type instanceof StringType) {
+    return new ArrayType(new IntType(8, false, type.src), undefined, type.src);
   } else {
     return type;
   }

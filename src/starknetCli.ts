@@ -5,6 +5,8 @@ import { IDeployProps, ICallOrInvokeProps, IOptionalNetwork, IDeployAccountProps
 import { encodeInputs } from './passes';
 import { CLIError, logError } from './utils/errors';
 
+const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+
 export function compileCairo(
   filePath: string,
   cairoPath: string = extractCairoPath(filePath),
@@ -21,7 +23,16 @@ export function compileCairo(
     parameters.set('cairo_path', cairoPath);
   }
   try {
-    runStarknetCompile(filePath, parameters);
+    console.log(`Running starknet compile with cairoPath ${cairoPath}`);
+    execSync(
+      `${warpVenvPrefix} starknet-compile --cairo_path warp_output ${filePath} ${[
+        ...parameters.entries(),
+      ]
+        .map(([key, value]) => `--${key} ${value}`)
+        .join(' ')}`,
+      { stdio: 'inherit' },
+    );
+
     return { success: true, resultPath, abiPath };
   } catch (e) {
     if (e instanceof Error) {
@@ -33,18 +44,13 @@ export function compileCairo(
   }
 }
 
-const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
-
-function runStarknetCompile(filePath: string, cliOptions: Map<string, string>) {
-  console.log(`Running starknet compile with cairoPath ${cliOptions.get('cairo_path')}`);
-  execSync(
-    `${warpVenvPrefix} starknet-compile --cairo_path warp_output ${filePath} ${[
-      ...cliOptions.entries(),
-    ]
-      .map(([key, value]) => `--${key} ${value}`)
-      .join(' ')}`,
-    { stdio: 'inherit' },
-  );
+export function runStarknetCompile(filePath: string) {
+  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
+  if (!success) {
+    logError(`Compilation of contract ${filePath} failed`);
+    return;
+  }
+  console.log(`starknet-compile output written to ${resultPath}`);
 }
 
 export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {

@@ -161,8 +161,9 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/state_variables/structs', 'Success'],
   ['example_contracts/state_variables/structs_nested', 'Success'],
   // Mappings of structs are not supported yet
-  ['example_contracts/state_variables/misc', 'NotSupportedYet'],
+  ['example_contracts/state_variables/misc', 'Success'],
   ['example_contracts/structs', 'Success'],
+  ['example_contracts/this_methods_call', 'Success'],
   ['example_contracts/tupleAssignment7', 'Success'],
   ['example_contracts/tupleAssignment8', 'SolCompileFailed'],
   ['example_contracts/typeConversion/explicitTypeConversion', 'Success'],
@@ -173,7 +174,7 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/typeMinMax', 'Success'],
   ['example_contracts/uint256_static_array_casting', 'Success'],
   // Serialising BytesType not supported yet
-  ['example_contracts/typestrings/basicArrays', 'NotSupportedYet'],
+  ['example_contracts/typestrings/basicArrays', 'Success'],
   // Not supported operation delete on CairoContract
   ['example_contracts/typestrings/scalars', 'NotSupportedYet'],
   ['example_contracts/typestrings/structArrays', 'Success'],
@@ -184,14 +185,14 @@ const expectedResults = new Map<string, ResultType>([
   ['example_contracts/unsupportedFunctions/ecrecover', `WillNotSupport`],
   ['example_contracts/unsupportedFunctions/addmod', `WillNotSupport`],
   // Uses bytes memory
-  ['example_contracts/unsupportedFunctions/shadowAbi', `NotSupportedYet`],
+  ['example_contracts/unsupportedFunctions/shadowAbi', `Success`],
   // Uses bytes memory
-  ['example_contracts/unsupportedFunctions/shadowKeccak256', `NotSupportedYet`],
+  ['example_contracts/unsupportedFunctions/shadowKeccak256', `Success`],
   ['example_contracts/unsupportedFunctions/shadowEcrecover', `Success`],
   // uses modulo (%)
   ['example_contracts/unsupportedFunctions/shadowAddmod', 'Success'],
   // Uses WARP_STORAGE in a free function
-  ['example_contracts/using_for/imports/user_defined', 'CairoCompileFailed'],
+  ['example_contracts/using_for/imports/user_defined', 'Success'],
   // global_directive.sol cannot resolve struct when file imported as identifier
   ['example_contracts/using_for/imports/global_directive', 'CairoCompileFailed'],
   ['example_contracts/using_for/function', 'WillNotSupport'],
@@ -289,6 +290,7 @@ function runCairoFileTest(
   onlyResults: boolean,
   throwError = false,
 ): void {
+  if (file.endsWith('WARP_FREE__.cairo')) return;
   if (!onlyResults) console.log(`Compiling ${file}`);
   if (compileCairo(file).success) {
     results.set(removeExtension(file), 'Success');
