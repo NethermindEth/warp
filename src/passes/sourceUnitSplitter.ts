@@ -29,14 +29,17 @@ function splitSourceUnit(sourceUnit: SourceUnit, ast: AST): SourceUnit[] {
   );
 
   const freeSourceUnitId = ast.reserveId();
-  const freeSourceChildren = [
-    ...sourceUnit.vImportDirectives.map((id) => cloneASTNode(id, ast)),
+  const freeSourceSignificantChildren = [
     ...sourceUnit.vEnums,
     ...sourceUnit.vErrors,
     ...sourceUnit.vUserDefinedValueTypes,
     ...updateScope(sourceUnit.vFunctions, freeSourceUnitId),
     ...updateScope(sourceUnit.vVariables, freeSourceUnitId),
     ...updateScope(sourceUnit.vStructs, freeSourceUnitId),
+  ];
+  const freeSourceChildren = [
+    ...sourceUnit.vImportDirectives.map((id) => cloneASTNode(id, ast)),
+    ...freeSourceSignificantChildren,
   ];
   const freeSourceUnit = new SourceUnit(
     freeSourceUnitId,
@@ -64,7 +67,7 @@ function splitSourceUnit(sourceUnit: SourceUnit, ast: AST): SourceUnit[] {
     );
   });
 
-  const sourceUnits = freeSourceChildren.length > 0 ? [freeSourceUnit, ...units] : units;
+  const sourceUnits = freeSourceSignificantChildren.length > 0 ? [freeSourceUnit, ...units] : units;
 
   sourceUnits.forEach((su) => ast.setContextRecursive(su));
 

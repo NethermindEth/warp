@@ -18,7 +18,7 @@ contract WARP {
     }
 
     event Log2(
-        address indexed _from,
+        address  _from,
         uint _id
     );
 
@@ -27,9 +27,9 @@ contract WARP {
     }
 
     event Log3(
-        address indexed _from,
-        uint indexed _id,
-        uint indexed _theAnswerToTheUniverse
+        address  _from,
+        uint  _id,
+        uint  _theAnswerToTheUniverse
     );
 
     function log_3(uint _id, uint _magic) external {

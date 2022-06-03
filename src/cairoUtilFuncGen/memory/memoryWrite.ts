@@ -46,7 +46,7 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
     return createCallToFunction(functionStub, [memoryRef, writeValue], this.ast);
   }
 
-  private getOrCreate(typeToWrite: TypeNode): string {
+  getOrCreate(typeToWrite: TypeNode): string {
     const cairoTypeToWrite = CairoType.fromSol(typeToWrite, this.ast);
 
     if (cairoTypeToWrite instanceof CairoFelt) {

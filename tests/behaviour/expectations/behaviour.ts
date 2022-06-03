@@ -131,6 +131,7 @@ export const expectations = flatten(
                 ],
               ],
             ),
+            Expect.Simple('returnFirstIndex', ['2', ...['1', '2']], ['1']),
           ]),
         ]),
         new Dir('conditionals', [
@@ -270,6 +271,99 @@ export const expectations = flatten(
                 '340282366920938463463374607431768211455',
               ],
             ),
+          ]),
+          File.Simple('memoryArraysToStorage', [
+            Expect.Simple('tryX1', ['3', '1', '2', '3'], ['3', '1', '0', '2', '0', '3', '0']),
+            Expect.Simple('tryX2', ['4', '5', '6'], ['3', '4', '0', '5', '0', '6', '0']),
+            Expect.Simple(
+              'tryY1',
+              ['4', '5', '6', '7', '8'],
+              ['4', '0', '5', '0', '6', '0', '7', '0', '8', '0'],
+            ),
+            Expect.Simple(
+              'tryY2',
+              ['4', '5', '6'],
+              ['4', '0', '5', '0', '6', '0', '0', '0', '0', '0'],
+            ),
+            Expect.Simple('tryZ1', [], ['3', '65535', '5', '10']),
+            Expect.Simple('tryZ2', [], ['4294967294', '4', '9', '0', '0']),
+            Expect.Simple(
+              'tryXX1',
+              [],
+              [
+                ...['3', '1', '0', '2', '0', '3', '0'],
+                ...['3', '4', '0', '5', '0', '6', '0'],
+                ...['3', '7', '0', '8', '0', '9', '0'],
+              ],
+            ),
+            Expect.Simple(
+              'tryXX2',
+              [],
+              [...['2', '1', '0', '2', '0'], ...['2', '3', '0', '4', '0']],
+            ),
+            Expect.Simple(
+              'tryXX3',
+              [],
+              [
+                ...['3', '1', '0', '2', '0', '3', '0'],
+                ...['3', '4', '0', '5', '0', '6', '0'],
+                ...['3', '7', '0', '8', '0', '9', '0'],
+              ],
+            ),
+            Expect.Simple(
+              'tryXX4',
+              [],
+              [
+                ...['1', '1', '0'],
+                ...['2', '0', '0', '2', '0'],
+                ...['3', '0', '0', '0', '0', '3', '0'],
+              ],
+            ),
+            Expect.Simple(
+              'tryYY1',
+              [],
+              [
+                ...['1', '0', '2', '0', '0', '0'],
+                ...['3', '0', '4', '0', '0', '0'],
+                ...['5', '0', '6', '0', '0', '0'],
+              ],
+            ),
+            Expect.Simple(
+              'tryYY2',
+              [],
+              [
+                ...['1', '0', '2', '0', '0', '0'],
+                ...['3', '0', '4', '0', '0', '0'],
+                ...['0', '0', '0', '0', '0', '0'],
+              ],
+            ),
+            Expect.Simple(
+              'tryYYY',
+              [],
+              [...['1', '0', '0', '0'], ...['0', '0', '0', '0'], ...['0', '0', '0', '0']],
+            ),
+            Expect.Simple(
+              'tryXY1',
+              [],
+              [
+                '3',
+                ...['1', '0', '2', '0', '0', '0'],
+                ...['3', '0', '4', '0', '0', '0'],
+                ...['5', '0', '6', '0', '0', '0'],
+              ],
+            ),
+            /*
+            // Some part of memory to stroage not implemented yet
+            Expect.Simple(
+              'tryYX1',
+              [],
+              [
+                ...['1', ...['1', '0']],
+                ...['2', ...['0', '0', '2', '0']],
+                ...['3', ...['0', '0', '0', '0', '3', '0']],
+              ],
+            ),
+            */
           ]),
           File.Simple('unsignedIdentity', [
             Expect.Simple('implicit', ['210', '11', '12'], ['210', '11', '12']),
@@ -576,6 +670,11 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('cross_contract_calls', [
+          File.Simple(
+            'this_methods_call',
+            [Expect.Simple('execute_add', ['2', '0', '35', '0'], ['637', '0'])],
+            'A',
+          ),
           File.Simple('simple', [Expect.Simple('f', [], ['69', '0'])], 'A'),
           File.Simple(
             'simple',
@@ -1306,6 +1405,12 @@ export const expectations = flatten(
         new Dir('inheritance', [
           new Dir('constructors', [
             new File(
+              'abstractContract',
+              'C',
+              ['250', '0'],
+              [Expect.Simple('f', ['412', '0'], ['662', '0'])],
+            ),
+            new File(
               'constructors',
               'C',
               [],
@@ -1329,10 +1434,10 @@ export const expectations = flatten(
               [Expect.Simple('a', [], ['0', '0'])],
             ),
             new File(
-              'abstractContract',
-              'C',
-              ['250', '0'],
-              [Expect.Simple('f', ['412', '0'], ['662', '0'])],
+              'order_of_eval',
+              'X',
+              [],
+              [Expect.Simple('g', [], ['4', '4', '0', '2', '0', '1', '0', '3', '0'])],
             ),
           ]),
           new Dir('functions', [
