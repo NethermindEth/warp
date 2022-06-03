@@ -143,6 +143,12 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       if (fromLoc === DataLocation.Storage) {
         funcGen = ast.getUtilFuncGen(node).storage.toStorage;
       } else if (fromLoc === DataLocation.Memory) {
+        const [convert, result] = ast
+          .getUtilFuncGen(node)
+          .memory.convert.genIfNecesary(node.vLeftHandSide, node.vRightHandSide);
+        if (result) {
+          ast.replaceNode(node.vRightHandSide, convert, node);
+        }
         funcGen = ast.getUtilFuncGen(node).memory.toStorage;
       } else if (fromLoc === DataLocation.CallData) {
         funcGen = ast.getUtilFuncGen(node).calldata.toStorage;

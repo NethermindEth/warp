@@ -2,6 +2,7 @@ import assert from 'assert';
 import {
   Assignment,
   BinaryOperation,
+  ContractDefinition,
   DataLocation,
   Expression,
   ExternalReferenceType,
@@ -17,6 +18,7 @@ import {
   Return,
   TupleExpression,
   UnaryOperation,
+  UserDefinedType,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -166,8 +168,14 @@ export class ExpectedLocationAnalyser extends ASTMapper {
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     const baseLoc = this.actualLocations.get(node.vExpression);
+    const baseNodeType = getNodeType(node.vExpression, ast.compilerVersion);
     assert(baseLoc !== undefined);
-    this.expectedLocations.set(node.vExpression, baseLoc);
+    if (
+      baseNodeType instanceof UserDefinedType &&
+      baseNodeType.definition instanceof ContractDefinition
+    ) {
+      this.expectedLocations.set(node.vExpression, DataLocation.Default);
+    } else this.expectedLocations.set(node.vExpression, baseLoc);
     this.visitExpression(node, ast);
   }
 
