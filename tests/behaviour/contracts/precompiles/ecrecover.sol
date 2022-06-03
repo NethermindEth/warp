@@ -9,8 +9,7 @@ contract WARP {
     uint8 v = 28;
     bytes32 r = 0x9242685bf161793cc25603c231bc2f568eb630ea16aa137d2664ac8038825608;
     bytes32 s = 0x4f8ae3bd7535248d0bd448298cc2e2071e56992d0774dc340c368ae950852ada;
-    require(ecrecover(hash, v, r, s) ==
-            address(0x7156526fbd7a3c72969b54f64e42c10fbb768c8a));
+    require(ecrecover(hash, v, r, s) == 0x7156526fbd7a3c72969b54f64e42c10fbb768c8a);
 
     return true;
   }
