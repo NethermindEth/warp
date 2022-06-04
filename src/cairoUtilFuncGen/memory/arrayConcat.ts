@@ -1,6 +1,7 @@
 import assert from 'assert';
 import { DataLocation, FunctionCall, getNodeType, PointerType, TypeName } from 'solc-typed-ast';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
+import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
@@ -13,16 +14,16 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     const args = concat.vArguments;
     args.forEach((expr) => {
       const exprType = getNodeType(expr, this.ast.compilerVersion);
-      assert(
-        exprType instanceof PointerType,
-        `Concatenation of expression ${printNode(expr)} of type ${printTypeNode(
-          exprType,
-        )} not supported yet`,
-      );
-      assert(
-        exprType.location === DataLocation.Memory,
-        `Concatenation of '${exprType.location}' different than memory`,
-      );
+      if (!(exprType instanceof PointerType))
+        throw new NotSupportedYetError(
+          `Concatenation of expression ${printNode(expr)} of type ${printTypeNode(
+            exprType,
+          )} not supported yet`,
+        );
+      if (exprType.location !== DataLocation.Memory)
+        throw new TranspileFailedError(
+          `Concatenation of '${exprType.location}' different than memory`,
+        );
     });
 
     const inputs: [string, TypeName, DataLocation][] = mapRange(args.length, (n) => [
@@ -63,8 +64,8 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
   private genearteBytesConcat(argAmount: number): CairoFunction {
     const funcName = `concat_${argAmount}`;
 
-    this.requireImport('warplib.memory', 'wm_new');
     if (argAmount === 0) {
+      this.requireImport('warplib.memory', 'wm_new');
       return {
         name: funcName,
         code: [
@@ -108,6 +109,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('warplib.memory', 'wm_dyn_array_length');
+    this.requireImport('warplib.memory', 'wm_new');
 
     return { name: funcName, code: code };
   }
