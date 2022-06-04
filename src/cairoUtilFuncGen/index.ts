@@ -31,6 +31,7 @@ import { StorageToStorageGen } from './storage/copyToStorage';
 import { StorageToCalldataGen } from './storage/storageToCalldata';
 import { SourceUnit } from 'solc-typed-ast';
 import { MemoryImplicitConversionGen } from './memory/implicitCoversion';
+import { MemoryArrayConcat } from './memory/arrayConcat';
 
 export class CairoUtilFuncGen {
   calldata: {
@@ -39,6 +40,7 @@ export class CairoUtilFuncGen {
   };
   memory: {
     arrayLiteral: MemoryArrayLiteralGen;
+    concat: MemoryArrayConcat;
     convert: MemoryImplicitConversionGen;
     dynArrayLength: MemoryDynArrayLengthGen;
     memberAccess: MemoryMemberAccessGen;
@@ -94,6 +96,7 @@ export class CairoUtilFuncGen {
     const memoryWrite = new MemoryWriteGen(ast, sourceUnit);
     this.memory = {
       arrayLiteral: new MemoryArrayLiteralGen(ast, sourceUnit),
+      concat: new MemoryArrayConcat(ast, sourceUnit),
       convert: new MemoryImplicitConversionGen(memoryWrite, memoryRead, ast, sourceUnit),
       dynArrayLength: new MemoryDynArrayLengthGen(ast, sourceUnit),
       memberAccess: new MemoryMemberAccessGen(ast, sourceUnit),
