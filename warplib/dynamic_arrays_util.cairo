@@ -1,7 +1,7 @@
 from starkware.cairo.common.dict import dict_read, dict_write
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.uint256 import Uint256
-from warplib.memory import (wm_index_dyn, wm_read_felt, wm_write_felt)
+from warplib.memory import wm_index_dyn, wm_read_felt, wm_write_felt
 from warplib.maths.utils import felt_to_uint256
 
 # Copies felt values from a dynamic array into another
