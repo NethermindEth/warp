@@ -73,24 +73,8 @@ function getFunctionsToInline(
     )
     .reduce(union, new Set<FunctionDefinition>());
 
-  if (funcsToInline.size > 0 || directlyCallsLibraryFunction(func)) {
-    funcsToInline.add(func);
-  }
+  funcsToInline.add(func);
   return funcsToInline;
-}
-
-function directlyCallsLibraryFunction(func: FunctionDefinition): boolean {
-  return (
-    func
-      .getChildrenByType(FunctionCall)
-      .map((fCall) => fCall.vReferencedDeclaration)
-      .filter(
-        (def) =>
-          def instanceof FunctionDefinition &&
-          def.vScope instanceof ContractDefinition &&
-          def.vScope.kind === ContractKind.Library,
-      ).length > 0
-  );
 }
 
 function updateReferencedDeclarations(
