@@ -19,10 +19,6 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
             exprType,
           )} not supported yet`,
         );
-      if (exprType.location !== DataLocation.Memory)
-        throw new TranspileFailedError(
-          `Concatenation of '${exprType.location}' different than memory`,
-        );
     });
 
     const inputs: [string, TypeName, DataLocation][] = mapRange(args.length, (n) => [
@@ -78,7 +74,6 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     }
 
     const args = mapRange(argAmount, (n) => `arg_${n} : felt`).join(', ');
-    const copyFunc = this.generateFeltCopy();
     const code = [
       `func ${funcName}${IMPLICITS}(${args}) -> (res_loc : felt):`,
       `    alloc_locals`,
@@ -97,7 +92,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       ...mapRange(argAmount, (n) => {
         const copy = [
           `let end_loc = start_loc + size_${n}`,
-          `${copyFunc}(res_loc, start_loc, end_loc, arg_${n}, 0)`,
+          `dynamic_array_copy_felt(res_loc, start_loc, end_loc, arg_${n}, 0)`,
           `let start_loc = end_loc`,
         ];
         return n < argAmount - 1 ? copy.join('\n') : copy.slice(0, -1).join('\n');
@@ -109,39 +104,8 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('warplib.memory', 'wm_dyn_array_length');
     this.requireImport('warplib.memory', 'wm_new');
+    this.requireImport('warplib.dynamic_arrays_util', 'dynamic_array_copy_felt');
 
     return { name: funcName, code: code };
-  }
-
-  private generateFeltCopy() {
-    const func = this.generatedFunctions.get('felt_copy');
-    if (func !== undefined) return func.name;
-
-    const funcName = 'felt_copy';
-    const code = [
-      `func ${funcName}${IMPLICITS}(
-        res_loc, res_index, res_end_loc, arg_loc, arg_index):`,
-      `   alloc_locals`,
-      `   if res_index == res_end_loc:`,
-      `       return ()`,
-      `   end`,
-      `   let (res_index256) = felt_to_uint256(res_index)`,
-      `   let (arg_index256) = felt_to_uint256(arg_index)`,
-      `   let (res_index_loc) = wm_index_dyn(res_loc, res_index256, ${uint256(1)})`,
-      `   let (arg_index_loc) = wm_index_dyn(arg_loc, arg_index256, ${uint256(1)})`,
-      `   let (arg_elem) = wm_read_felt(arg_index_loc)`,
-      `   wm_write_felt(res_index_loc, arg_elem)`,
-      `   return ${funcName}(res_loc, res_index + 1, res_end_loc, arg_loc, arg_index + 1)`,
-      `end`,
-    ].join('\n');
-
-    this.requireImport('warplib.memory', 'wm_read_felt');
-    this.requireImport('warplib.memory', 'wm_write_felt');
-    this.requireImport('warplib.memory', 'wm_index_dyn');
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('warplib.maths.utils', 'felt_to_uint256');
-
-    this.generatedFunctions.set(funcName, { name: funcName, code: code });
-    return funcName;
   }
 }
