@@ -1,6 +1,5 @@
 import {
   ContractDefinition,
-  ContractKind,
   FunctionCall,
   FunctionDefinition,
   FunctionKind,
@@ -22,7 +21,7 @@ import { union } from '../utils/utils';
   function which do that.
 */
 
-export class FreeLibraryCallInliner extends ASTMapper {
+export class FreeFunctionInliner extends ASTMapper {
   funcCounter = 0;
 
   visitContractDefinition(node: ContractDefinition, ast: AST): void {

@@ -11,7 +11,7 @@ export * from './externalArgModifier';
 export * from './externalContractHandler';
 export * from './externalInputChecker';
 export * from './externImporter';
-export * from './FreeLibraryCallInliner';
+export * from './freeFunctionInliner';
 export * from './functionModifierHandler';
 export * from './generateGetters';
 export * from './identifierManglerPass';
