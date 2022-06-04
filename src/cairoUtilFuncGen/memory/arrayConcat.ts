@@ -1,4 +1,3 @@
-import assert from 'assert';
 import { DataLocation, FunctionCall, getNodeType, PointerType, TypeName } from 'solc-typed-ast';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
