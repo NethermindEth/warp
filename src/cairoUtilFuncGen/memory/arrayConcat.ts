@@ -1,6 +1,6 @@
 import { DataLocation, FunctionCall, getNodeType, PointerType, TypeName } from 'solc-typed-ast';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
-import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
+import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
