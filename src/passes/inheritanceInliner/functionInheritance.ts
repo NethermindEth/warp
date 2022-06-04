@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   ContractDefinition,
+  ContractKind,
   FunctionDefinition,
   FunctionKind,
   FunctionVisibility,
@@ -76,7 +77,7 @@ export function addNonoverridenPublicFunctions(
 }
 
 // Get all visible function names accessible from a contract
-function getVisibleFunctions(node: ContractDefinition): Set<string> {
+export function getVisibleFunctions(node: ContractDefinition): Set<string> {
   const visibleFunctions = new Set(
     node.vFunctions
       .filter((func) => isExternallyVisible(func) && !func.isConstructor)
@@ -89,6 +90,8 @@ function getVisibleFunctions(node: ContractDefinition): Set<string> {
 function squashInterface(node: ContractDefinition): Set<string> {
   const visibleFunctions = getVisibleFunctions(node);
   getBaseContracts(node).forEach((contract) => {
+    // The public interfaces of a library are not exposed by the contract itself
+    if (contract.kind === ContractKind.Library) return;
     const inheritedVisibleFunctions = getVisibleFunctions(contract);
     inheritedVisibleFunctions.forEach((f) => visibleFunctions.add(f));
   });

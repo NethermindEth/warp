@@ -38,6 +38,7 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
+import { getVisibleFunctions } from '../passes/inheritanceInliner/functionInheritance';
 import { isSane } from './astChecking';
 import { printTypeNode } from './astPrinter';
 import {
@@ -141,8 +142,8 @@ export function unitValue(unit?: EtherUnit | TimeUnit): number {
   }
 }
 
-export function runSanityCheck(ast: AST, printResult: boolean): boolean {
-  if (printResult) console.log('Running sanity check');
+export function runSanityCheck(ast: AST, printResult: boolean, passName: string): boolean {
+  if (printResult) console.log(`Running sanity check after ${passName}`);
   if (isSane(ast)) {
     if (printResult) console.log('AST passed sanity check');
     return true;

@@ -50,6 +50,7 @@ import {
   TupleFixes,
 } from './passes';
 import { Require } from './passes/builtinHandler/require';
+import { DropFreeSourceUnit } from './passes/DropFreeSourceUnit';
 import { OrderNestedStructs } from './passes/orderNestedStructs';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
@@ -135,6 +136,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
     ['Ci', CairoUtilImporter],
+    ['Dff', DropFreeSourceUnit],
   ]);
 
   const passesInOrder: typeof ASTMapper[] = parsePassOrder(options.order, options.until, passes);
@@ -184,7 +186,7 @@ function printAST(ast: AST, options: TranspilationOptions) {
 function checkAST(ast: AST, options: TranspilationOptions, mostRecentPassName: string) {
   if (options.checkTrees || options.strict) {
     try {
-      const success = runSanityCheck(ast, options.checkTrees ?? false);
+      const success = runSanityCheck(ast, options.checkTrees ?? false, mostRecentPassName);
       if (!success && options.strict) {
         throw new TranspileFailedError(
           `AST failed internal consistency check. Most recently run pass: ${mostRecentPassName}`,
