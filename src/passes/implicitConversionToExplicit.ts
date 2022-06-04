@@ -96,10 +96,6 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       const leftNodeType = getNodeType(node.vLeftExpression, ast.compilerVersion);
       const rightNodeType = getNodeType(node.vRightExpression, ast.compilerVersion);
 
-      // if( leftNodeType instanceof IntLiteralType && rightNodeType instanceof IntLiteralType){
-      //   return;
-      // }
-
       const targetType = pickLargerType(
         leftNodeType,
         rightNodeType,
@@ -386,7 +382,8 @@ function pickLargerType(
   if (typeA.pp() === typeB.pp()) {
     if (typeA instanceof IntLiteralType) {
       assert(typeA.literal !== undefined, `Unexpected unencoded literal value`);
-      return intTypeForLiteral(`int_const ${typeA.literal.toString()}`);
+      assert(leftLiteralBound !== undefined, `Unexpected unencoded literal value`);
+      return intTypeForLiteral(`int_const ${leftLiteralBound}`);
     }
     return typeA;
   }
