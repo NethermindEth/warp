@@ -38,7 +38,6 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { getVisibleFunctions } from '../passes/inheritanceInliner/functionInheritance';
 import { isSane } from './astChecking';
 import { printTypeNode } from './astPrinter';
 import {

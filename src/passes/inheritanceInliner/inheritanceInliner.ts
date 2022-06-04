@@ -10,11 +10,7 @@ import { ASTMapper } from '../../ast/mapper';
 import { TranspileFailedError } from '../../utils/errors';
 import { solveConstructorInheritance } from './constructorInheritance';
 import { addEventDefintion } from './eventInheritance';
-import {
-  addNonoverridenPublicFunctions,
-  addPrivateSuperFunctions,
-  getVisibleFunctions,
-} from './functionInheritance';
+import { addNonoverridenPublicFunctions, addPrivateSuperFunctions } from './functionInheritance';
 import { addNonOverridenModifiers } from './modifiersInheritance';
 import { addStorageVariables } from './storageVariablesInheritance';
 import { addStructDefinition } from './structInheritance';

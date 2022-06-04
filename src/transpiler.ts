@@ -50,7 +50,7 @@ import {
   TupleFixes,
 } from './passes';
 import { Require } from './passes/builtinHandler/require';
-import { DropFreeSourceUnit } from './passes/DropFreeSourceUnit';
+import { DropFreeSourceUnit } from './passes/dropFreeSourceUnit';
 import { OrderNestedStructs } from './passes/orderNestedStructs';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
