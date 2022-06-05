@@ -8,6 +8,15 @@ export const expectations = flatten(
         new Dir('array_len', [
           File.Simple('memoryArray', [Expect.Simple('dynMemArrayLen', [], ['45', '0'])]),
           File.Simple('storageArray', [Expect.Simple('dynStorageArrayLen', [], ['1', '0'])]),
+          File.Simple('calldataArray', [
+            Expect.Simple('returnArrLength', ['3', '1', '2', '3'], ['3', '0']),
+            Expect.Simple('returnArrDoubleLength', ['2', '0', '5'], ['4', '0']),
+            Expect.Simple('fnCallWithArrLength', ['1', '9'], ['2', '0']),
+            Expect.Simple('fnCallArrLengthNestedCalls', ['2', '1', '2'], ['16', '0']),
+            Expect.Simple('assignLengthToStorageUint', ['3', '1', '2', '3'], ['3', '0']),
+            Expect.Simple('assignToStorageArr', ['3', '1', '2', '3'], ['3', '0']),
+            Expect.Simple('staticArrayLength', ['1', '2', '3'], ['3', '0']),
+          ]),
         ]),
         new Dir('assignments', [
           File.Simple('functionSingle', [
@@ -132,6 +141,48 @@ export const expectations = flatten(
               ],
             ),
             Expect.Simple('returnFirstIndex', ['2', ...['1', '2']], ['1']),
+          ]),
+        ]),
+        new Dir('concat', [
+          File.Simple('bytes', [
+            Expect.Simple('c0', [], ['0']),
+            Expect.Simple('c1', ['3', '1', '2', '3'], ['3', '1', '2', '3']),
+            Expect.Simple(
+              'c2',
+              ['3', '1', '2', '3', '4', '5', '6', '7', '8'],
+              ['7', '1', '2', '3', '5', '6', '7', '8'],
+            ),
+            Expect.Simple(
+              'c3',
+              ['3', '1', '2', '3', '4', '5', '6', '7', '8', '2', '100', '200'],
+              ['9', '1', '2', '3', '5', '6', '7', '8', '100', '200'],
+            ),
+            Expect.Simple(
+              'c4',
+              ['3', '1', '2', '3', '4', '5', '6', '7', '8'],
+              ['7', '1', '2', '3', '5', '6', '7', '8'],
+            ),
+            Expect.Simple('c5', [], ['4', '1', '2', '3', '4']),
+          ]),
+          File.Simple('strings', [
+            Expect.Simple('s0', [], ['0']),
+            Expect.Simple('s1', ['3', '1', '2', '3'], ['3', '1', '2', '3']),
+            Expect.Simple(
+              's2',
+              ['3', '1', '2', '3', '4', '5', '6', '7', '8'],
+              ['7', '1', '2', '3', '5', '6', '7', '8'],
+            ),
+            Expect.Simple(
+              's3',
+              ['3', '1', '2', '3', '4', '5', '6', '7', '8', '2', '100', '200'],
+              ['9', '1', '2', '3', '5', '6', '7', '8', '100', '200'],
+            ),
+            Expect.Simple(
+              's4',
+              ['3', '1', '2', '3', '4', '5', '6', '7', '8'],
+              ['7', '1', '2', '3', '5', '6', '7', '8'],
+            ),
+            Expect.Simple('s5', [], ['5', '61', '61', '62', '62', '63']),
           ]),
         ]),
         new Dir('conditionals', [
@@ -1241,6 +1292,56 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('external_input_checks', [
+          File.Simple('address', [
+            new Expect('testing an address in bounds does not throw', [
+              [
+                'addressTest',
+                ['3618502788666131106986593281521497120414687020801267626233049500247285301247'],
+                ['3618502788666131106986593281521497120414687020801267626233049500247285301247'],
+                '0',
+              ],
+            ]),
+            new Expect('testing an address in bounds does', [
+              [
+                'addressTest',
+                ['3618502788666131106986593281521497120414687020801267626233049500247285301248'],
+                null,
+                '0',
+              ],
+            ]),
+          ]),
+          File.Simple('dynArray', [
+            new Expect('testing a dynArray of int values, no values out of bounds', [
+              ['elemInt', ['4', '10', '20', '30', '40'], ['10'], '0'],
+            ]),
+            new Expect('testing a dynArray of int values, with values out of bounds', [
+              [
+                'elemInt',
+                ['4', '10', '20', '30', '400'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Value must be less than 2**8',
+              ],
+            ]),
+            new Expect('testing a dynArray of struct values, with values out of bounds', [
+              [
+                'elemStruct',
+                ['2', '20', '21', '50', '30', '40', '400'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Value must be less than 2**8',
+              ],
+            ]),
+            new Expect('testing a dynArray of struct values, with no values out of bounds', [
+              [
+                'elemStruct',
+                ['3', '10', '20', '30', '11', '12', '13', '20', '21', '40'],
+                ['10', '20', '30'],
+                '0',
+                'Error: value out-of-bounds. Value must be less than 2**8',
+              ],
+            ]),
+          ]),
           File.Simple('int', [
             new Expect('testing solidity pure external signed int8 lower bound', [
               ['testInt8', ['0'], ['0'], '0'],
@@ -1390,6 +1491,92 @@ export const expectations = flatten(
                 ],
               ],
             ),
+          ]),
+          File.Simple('staticArray', [
+            new Expect('testing an array of ints with no values out of bounds', [
+              ['elemInt', ['10', '20', '30', '40', '50'], ['10'], '0'],
+            ]),
+            new Expect('testing an array of ints with no values out of bounds', [
+              [
+                'elemInt',
+                ['10', '20', '30', '40', '300'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Value must be less than 2**8',
+              ],
+            ]),
+            new Expect('testing an array of structs with no values out of bounds', [
+              [
+                'elemStruct',
+                ['10', '0', '11', '20', '0', '22', '30', '0', '33'],
+                ['10', '0', '11'],
+                '0',
+              ],
+            ]),
+            new Expect('testing an array of structs with values out of bounds', [
+              [
+                'elemStruct',
+                ['10', '0', '11', '20', '0', '22', '30', '0', '330'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Value must be less than 2**8',
+              ],
+            ]),
+            new Expect('testing an array of static arrays with no values out of bounds', [
+              [
+                'elemStruct',
+                ['10', '11', '12', '20', '21', '22', '30', '31', '33'],
+                ['10', '11', '12'],
+                '0',
+              ],
+            ]),
+            new Expect('testing an array of structs with values out of bounds', [
+              [
+                'elemStruct',
+                ['10', '11', '12', '20', '21', '300', '30', '31', '33'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Value must be less than 2**8',
+              ],
+            ]),
+          ]),
+          File.Simple('struct', [
+            new Expect('testing a struct of with int values, no values out of bounds', [
+              ['memberInts', ['10', '20', '30'], ['30'], '0'],
+            ]),
+            new Expect('testing a struct of with int values, values out of bounds', [
+              [
+                'memberInts',
+                ['10', '20', '300'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Value must be less than 2**8',
+              ],
+            ]),
+            new Expect('testing a struct of with int values, no values out of bounds', [
+              ['memberStructs', ['10', '10', '20', '30'], ['10'], '0'],
+            ]),
+            new Expect('testing a struct of with int values, values out of bounds', [
+              [
+                'memberStructs',
+                ['10', '10', '20', '300'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Value must be less than 2**8',
+              ],
+            ]),
+            new Expect('testing a struct of with int values, no values out of bounds', [
+              ['memberStaticArray', ['10', '10', '20', '30'], ['10'], '0'],
+            ]),
+            new Expect('testing a struct of with int values, values out of bounds', [
+              [
+                'memberStaticArray',
+                ['10', '10', '20', '300'],
+                null,
+                '0',
+                'Error: value out-of-bounds. Value must be less than 2**8',
+              ],
+            ]),
           ]),
           File.Simple('bool', [
             new Expect('testing that false input does not throw error', [

@@ -6,6 +6,7 @@ import {
   Expression,
   generalizeType,
   getNodeType,
+  SourceUnit,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -25,8 +26,9 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     private dynArrayGen: DynArrayGen,
     private storageWriteGen: StorageWriteGen,
     ast: AST,
+    sourceUnit: SourceUnit,
   ) {
-    super(ast);
+    super(ast, sourceUnit);
   }
 
   gen(storageLocation: Expression, calldataLocation: Expression, nodeInSourceUnit?: ASTNode) {

@@ -1,7 +1,10 @@
 import assert from 'assert';
 import {
+  AddressType,
   ArrayType,
+  BoolType,
   DataLocation,
+  EnumDefinition,
   FunctionCall,
   FunctionCallKind,
   FunctionType,
@@ -203,4 +206,15 @@ export function isComplexMemoryType(type: TypeNode): boolean {
 export function isMapping(type: TypeNode): boolean {
   const [base] = generalizeType(type);
   return base instanceof MappingType;
+}
+
+export function checkableType(type: TypeNode): boolean {
+  return (
+    type instanceof ArrayType ||
+    (type instanceof UserDefinedType &&
+      (type.definition instanceof StructDefinition || type.definition instanceof EnumDefinition)) ||
+    type instanceof AddressType ||
+    type instanceof IntType ||
+    type instanceof BoolType
+  );
 }

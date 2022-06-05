@@ -49,6 +49,7 @@ import {
   StaticArrayIndexer,
   TupleFixes,
 } from './passes';
+import { FilePathMangler } from './passes/filePathMangler';
 import { Require } from './passes/builtinHandler/require';
 import { OrderNestedStructs } from './passes/orderNestedStructs';
 import { CairoToSolASTWriterMapping } from './solWriter';
@@ -91,6 +92,7 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
 function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Tf', TupleFixes],
+    ['Fm', FilePathMangler],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
     ['Ae', ABIExtractor],
