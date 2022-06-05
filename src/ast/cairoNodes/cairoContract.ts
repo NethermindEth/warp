@@ -12,7 +12,8 @@ import {
 */
 export class CairoContract extends ContractDefinition {
   // Maps each state variable to its start point in WARP_STORAGE
-  storageAllocations: Map<VariableDeclaration, number>;
+  dynamicStorageAllocations: Map<VariableDeclaration, number>;
+  staticStorageAllocations: Map<VariableDeclaration, number>;
   usedStorage: number;
   usedIds: number;
 
@@ -26,7 +27,8 @@ export class CairoContract extends ContractDefinition {
     fullyImplemented: boolean,
     linearizedBaseContracts: number[],
     usedErrors: number[],
-    storageAllocations: Map<VariableDeclaration, number>,
+    dynamicStorageAllocations: Map<VariableDeclaration, number>,
+    staticStorageAllocations: Map<VariableDeclaration, number>,
     usedStorage: number,
     usedStoredPointerIds: number,
     documentation?: string | StructuredDocumentation,
@@ -49,7 +51,8 @@ export class CairoContract extends ContractDefinition {
       nameLocation,
       raw,
     );
-    this.storageAllocations = storageAllocations;
+    this.dynamicStorageAllocations = dynamicStorageAllocations;
+    this.staticStorageAllocations = staticStorageAllocations;
     this.usedStorage = usedStorage;
     this.usedIds = usedStoredPointerIds;
     this.acceptChildren();

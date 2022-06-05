@@ -356,9 +356,18 @@ class CairoContractWriter extends CairoASTNodeWriter {
         `# This contract may be abstract, it may not implement an abstract parent's methods\n# completely or it may not invoke an inherited contract's constructor correctly.\n`,
       ];
 
-    const variables = [...node.storageAllocations.entries()].map(
+    const dynamicVariables = [...node.dynamicStorageAllocations.entries()].map(
       ([decl, loc]) => `const ${decl.name} = ${loc}`,
     );
+    const staticVariables = [...node.staticStorageAllocations.entries()].map(
+      ([decl, loc]) => `const ${decl.name} = ${loc}`,
+    );
+    const variables = [
+      `# Dynamic variables - Arrays and Maps`,
+      ...dynamicVariables,
+      `# Static variables`,
+      ...staticVariables,
+    ];
 
     const documentation = getDocumentation(node.documentation, writer);
 

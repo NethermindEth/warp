@@ -1,10 +1,11 @@
-import { ContractDefinition, ModifierDefinition } from 'solc-typed-ast';
+import { ModifierDefinition } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoContract } from '../../ast/cairoNodes';
 import { cloneASTNode } from '../../utils/cloning';
 import { fixSuperReference, getBaseContracts } from './utils';
 
 export function addNonOverridenModifiers(
-  node: ContractDefinition,
+  node: CairoContract,
   idRemapping: Map<number, ModifierDefinition>,
   idRemappingOverriders: Map<number, ModifierDefinition>,
   ast: AST,
