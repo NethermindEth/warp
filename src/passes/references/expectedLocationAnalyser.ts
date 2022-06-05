@@ -115,6 +115,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
             this.expectedLocations.set(node.vArguments[0], actualLoc);
           }
         }
+        return this.visitExpression(node, ast);
       }
       if (node.vFunctionName === 'concat') {
         node.vArguments.forEach((arg) => this.expectedLocations.set(arg, DataLocation.Memory));

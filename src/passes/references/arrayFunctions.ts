@@ -11,7 +11,6 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { FunctionStubKind } from '../../ast/cairoNodes';
-import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import { isDynamicCallDataArray } from '../../utils/nodeTypeProcessing';
