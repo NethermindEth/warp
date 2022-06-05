@@ -292,6 +292,7 @@ function runCairoFileTest(
   onlyResults: boolean,
   throwError = false,
 ): void {
+  if (file.endsWith('WARP_FREE__.cairo')) return;
   if (!onlyResults) console.log(`Compiling ${file}`);
   if (compileCairo(file).success) {
     results.set(removeExtension(file), 'Success');
@@ -311,10 +312,11 @@ function combineResults(results: ResultType[]): ResultType {
 
 function getTestsWithUnexpectedResults(results: Map<string, ResultType>): string[] {
   const testsWithUnexpectedResults: string[] = [];
-  const groupedResults = groupBy(
-    [...results.entries()],
-    ([file, _]) => file.split('__WARP_CONTRACT__')[0],
-  );
+  const groupedResults = groupBy([...results.entries()], ([file, _]) => {
+    return file.endsWith('__WARP_FREE__')
+      ? file.slice(0, file.length - '__WARP_FREE__'.length)
+      : file.split('__WARP_CONTRACT__')[0];
+  });
   [...groupedResults.entries()].forEach((e) => {
     const expected = expectedResults.get(e[0]);
     const collectiveResult = combineResults(
@@ -345,12 +347,16 @@ function printResults(results: Map<string, ResultType>, unexpectedResults: strin
       console.log(`Actual outcome:`);
       const Actual = new Map<string, ResultType>();
       results.forEach((value, key) => {
-        if (key === o || key.startsWith(`${o}__WARP_CONTRACT__`)) {
+        if (
+          key === o ||
+          key.startsWith(`${o}__WARP_CONTRACT__`) ||
+          key.startsWith(`${o}__WARP_FREE__`)
+        ) {
           Actual.set(key, value);
         }
       });
       Actual.forEach((value, key) => {
-        if (key.includes('__WARP_CONTRACT__')) {
+        if (key.includes('__WARP_CONTRACT__') || key.includes('__WARP_FREE__')) {
           console.log(key + '.cairo' + ' : ' + value);
         } else {
           console.log(key + '.sol' + ' : ' + value);

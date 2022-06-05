@@ -50,7 +50,7 @@ import {
   TupleFixes,
 } from './passes';
 import { Require } from './passes/builtinHandler/require';
-import { DropFreeSourceUnit } from './passes/dropFreeSourceUnit';
+import { DropFreeSourceUnitFunctions } from './passes/dropFreeSourceUnit';
 import { OrderNestedStructs } from './passes/orderNestedStructs';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
@@ -136,7 +136,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
     ['Ci', CairoUtilImporter],
-    ['Dff', DropFreeSourceUnit],
+    ['Dff', DropFreeSourceUnitFunctions],
   ]);
 
   const passesInOrder: typeof ASTMapper[] = parsePassOrder(options.order, options.until, passes);
