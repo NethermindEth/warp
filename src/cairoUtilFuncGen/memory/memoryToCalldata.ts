@@ -8,6 +8,7 @@ import {
   FunctionStateMutability,
   generalizeType,
   getNodeType,
+  SourceUnit,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -27,8 +28,12 @@ import { add, StringIndexedFuncGen } from '../base';
 import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/externalDynArrayStructConstructor';
 
 export class MemoryToCallDataGen extends StringIndexedFuncGen {
-  constructor(private dynamicArrayStructGen: ExternalDynArrayStructConstructor, ast: AST) {
-    super(ast);
+  constructor(
+    private dynamicArrayStructGen: ExternalDynArrayStructConstructor,
+    ast: AST,
+    sourceUnit: SourceUnit,
+  ) {
+    super(ast, sourceUnit);
   }
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
     const type = generalizeType(getNodeType(node, this.ast.compilerVersion))[0];

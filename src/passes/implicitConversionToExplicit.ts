@@ -33,6 +33,7 @@ import {
   TupleType,
   TypeNameType,
   TypeNode,
+  UnaryOperation,
   UserDefinedType,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
@@ -45,7 +46,7 @@ import { createElementaryConversionCall } from '../utils/functionGeneration';
 import { generateExpressionTypeString } from '../utils/getTypeString';
 import { createNumberLiteral } from '../utils/nodeTemplates';
 import { getParameterTypes, intTypeForLiteral, specializeType } from '../utils/nodeTypeProcessing';
-import { typeNameFromTypeNode } from '../utils/utils';
+import { typeNameFromTypeNode, bigintToTwosComplement, toHexString } from '../utils/utils';
 
 /*
 Detects implicit conversions by running solc-typed-ast's type analyser on
@@ -92,10 +93,20 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       insertConversionIfNecessary(node.vLeftExpression, resultType, ast);
       insertConversionIfNecessary(node.vRightExpression, resultType, ast);
     } else if (['<', '>', '<=', '>=', '==', '!='].includes(node.operator)) {
+      const leftNodeType = getNodeType(node.vLeftExpression, ast.compilerVersion);
+      const rightNodeType = getNodeType(node.vRightExpression, ast.compilerVersion);
+
       const targetType = pickLargerType(
-        getNodeType(node.vLeftExpression, ast.compilerVersion),
-        getNodeType(node.vLeftExpression, ast.compilerVersion),
+        leftNodeType,
+        rightNodeType,
+        leftNodeType instanceof IntLiteralType
+          ? getLiteralValueBound(node.vLeftExpression.typeString)
+          : undefined,
+        rightNodeType instanceof IntLiteralType
+          ? getLiteralValueBound(node.vRightExpression.typeString)
+          : undefined,
       );
+
       insertConversionIfNecessary(node.vLeftExpression, targetType, ast);
       insertConversionIfNecessary(node.vRightExpression, targetType, ast);
     }
@@ -170,6 +181,9 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         });
         return;
       }
+      if (node.vFunctionName === 'concat') {
+        return;
+      }
     }
 
     const paramTypes = getParameterTypes(node, ast);
@@ -217,6 +231,28 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     node.vComponents.forEach((element) => insertConversionIfNecessary(element, type.elementT, ast));
 
     this.visitExpression(node, ast);
+  }
+
+  visitUnaryOperation(node: UnaryOperation, ast: AST): void {
+    const nodeType = getNodeType(node, ast.compilerVersion);
+    if (nodeType instanceof IntLiteralType) {
+      node.typeString = intTypeForLiteral(
+        `int_const ${getLiteralValueBound(node.typeString)}`,
+      ).pp();
+    }
+    this.commonVisit(node, ast);
+  }
+
+  visitLiteral(node: Literal, ast: AST): void {
+    const nodeType = getNodeType(node, ast.compilerVersion);
+    if (nodeType instanceof IntLiteralType) {
+      const typeTo = intTypeForLiteral(`int_const ${getLiteralValueBound(node.typeString)}`);
+      const truncated = bigintToTwosComplement(BigInt(node.value), typeTo.nBits).toString(10);
+      node.value = truncated;
+      node.hexValue = toHexString(truncated);
+      node.typeString = typeTo.pp();
+    }
+    this.commonVisit(node, ast);
   }
 }
 
@@ -336,25 +372,54 @@ function insertConversion(expression: Expression, targetType: TypeNode, ast: AST
   ast.replaceNode(expression, call, parent);
 }
 
-function pickLargerType(typeA: TypeNode, typeB: TypeNode): TypeNode {
+function pickLargerType(
+  typeA: TypeNode,
+  typeB: TypeNode,
+  leftLiteralBound?: string,
+  rightLiteralBound?: string,
+): TypeNode {
   // Generalise the types to remove any location differences
   typeA = generalizeType(typeA)[0];
   typeB = generalizeType(typeB)[0];
-  if (typeA.pp() === typeB.pp()) return typeA;
+
+  if (typeA.pp() === typeB.pp()) {
+    if (typeA instanceof IntLiteralType) {
+      assert(typeA.literal !== undefined, `Unexpected unencoded literal value`);
+      assert(leftLiteralBound !== undefined, `Unexpected unencoded literal value`);
+      return intTypeForLiteral(`int_const ${leftLiteralBound}`);
+    }
+    return typeA;
+  }
 
   // Literals always need to be cast to match the other type
   if (typeA instanceof IntLiteralType) {
     if (typeB instanceof IntLiteralType) {
-      assert(typeA.literal, `Unexpected unencoded literal value`);
-      assert(typeB.literal, `Unexpected unencoded literal value`);
+      assert(typeA.literal !== undefined, `Unexpected unencoded literal value`);
+      assert(typeB.literal !== undefined, `Unexpected unencoded literal value`);
+      assert(
+        leftLiteralBound !== undefined && rightLiteralBound !== undefined,
+        `Unexpected literal bounds`,
+      );
+
       return pickLargerType(
-        intTypeForLiteral(`int_const ${typeA.literal.toString()}`),
-        intTypeForLiteral(`int_const ${typeB.literal.toString()}`),
+        intTypeForLiteral(`int_const ${leftLiteralBound}`),
+        intTypeForLiteral(`int_const ${rightLiteralBound}`),
       );
     } else {
       return typeB;
     }
   } else if (typeB instanceof IntLiteralType) {
+    return typeA;
+  }
+
+  if (typeA instanceof IntType) {
+    if (typeB instanceof IntType) {
+      if (typeA.nBits > typeB.nBits) {
+        return typeA;
+      }
+    }
+    return typeB;
+  } else if (typeB instanceof IntType) {
     return typeA;
   }
 
@@ -372,4 +437,45 @@ function pickLargerType(typeA: TypeNode, typeB: TypeNode): TypeNode {
   throw new NotSupportedYetError(
     `Unhandled type conversion case: ${printTypeNode(typeA)} vs ${printTypeNode(typeB)}`,
   );
+}
+
+function getLiteralValueBound(typeString: string): string {
+  // remove any character that is not a digit or '('or ')' or '-'
+  const cleanTypeString = typeString.replace(/[^\d()-]/g, '');
+
+  // assert '-' is only used for negative numbers
+  assert(
+    cleanTypeString.indexOf('-') === -1 || cleanTypeString.indexOf('-') === 0,
+    `Unexpected literal value: ${typeString}`,
+  );
+
+  // if it doesn't contain '(', it is a literal
+  if (!cleanTypeString.includes('(')) {
+    //assert it has no ')'
+    assert(!cleanTypeString.includes(')'), `Unexpected ')' in literal value bound: ${typeString}`);
+    return cleanTypeString;
+  }
+
+  // get string between '(', ')' and type-cast to int
+  const literalValue = parseInt(
+    cleanTypeString.substring(cleanTypeString.indexOf('(') + 1, cleanTypeString.indexOf(')')),
+  );
+
+  // replace string between '(', ')' with literal value number of zeros
+  const newTypeString = cleanTypeString.replace(`(${literalValue})`, '9'.repeat(literalValue));
+
+  const maxBound: BigInt = BigInt(`2`) ** BigInt(`256`) - BigInt(1);
+  const minBound: BigInt = BigInt(`-2`) ** BigInt(`255`) + BigInt(1);
+
+  if (maxBound < BigInt(newTypeString)) {
+    // solidity doesn't support literals larger than 256 bits
+    return maxBound.toString();
+  }
+
+  if (minBound > BigInt(newTypeString)) {
+    // solidity doesn't support literals smaller than 255 bits
+    return minBound.toString();
+  }
+
+  return newTypeString;
 }

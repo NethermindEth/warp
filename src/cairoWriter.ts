@@ -356,9 +356,18 @@ class CairoContractWriter extends CairoASTNodeWriter {
         `# This contract may be abstract, it may not implement an abstract parent's methods\n# completely or it may not invoke an inherited contract's constructor correctly.\n`,
       ];
 
-    const variables = [...node.storageAllocations.entries()].map(
+    const dynamicVariables = [...node.dynamicStorageAllocations.entries()].map(
       ([decl, loc]) => `const ${decl.name} = ${loc}`,
     );
+    const staticVariables = [...node.staticStorageAllocations.entries()].map(
+      ([decl, loc]) => `const ${decl.name} = ${loc}`,
+    );
+    const variables = [
+      `# Dynamic variables - Arrays and Maps`,
+      ...dynamicVariables,
+      `# Static variables`,
+      ...staticVariables,
+    ];
 
     const documentation = getDocumentation(node.documentation, writer);
 
@@ -713,9 +722,11 @@ class IdentifierWriter extends CairoASTNodeWriter {
     if (
       isDynamicCallDataArray(getNodeType(node, this.ast.compilerVersion)) &&
       ((node.getClosestParentByType(Return) !== undefined &&
+        node.getClosestParentByType(IndexAccess) === undefined &&
         node.getClosestParentByType(FunctionDefinition)?.visibility ===
           FunctionVisibility.External &&
-        node.getClosestParentByType(IndexAccess) === undefined) ||
+        node.getClosestParentByType(IndexAccess) === undefined &&
+        node.getClosestParentByType(MemberAccess) === undefined) ||
         (node.parent instanceof FunctionCall &&
           node.parent.vReferencedDeclaration instanceof FunctionDefinition &&
           node.parent.vReferencedDeclaration.visibility === FunctionVisibility.External))
@@ -753,7 +764,7 @@ class FunctionCallWriter extends CairoASTNodeWriter {
           }
         } else if (
           node.vReferencedDeclaration instanceof CairoFunctionDefinition &&
-          node.vReferencedDeclaration.functionStubKind === FunctionStubKind.StructDefStub
+          node.vReferencedDeclaration.acceptsRawDarray
         ) {
           return [`${func}(${args}_len, ${args})`];
         }

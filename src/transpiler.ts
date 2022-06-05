@@ -49,6 +49,7 @@ import {
   StaticArrayIndexer,
   TupleFixes,
 } from './passes';
+import { FilePathMangler } from './passes/filePathMangler';
 import { Require } from './passes/builtinHandler/require';
 import { DropFreeSourceUnitFunctions } from './passes/dropFreeSourceUnit';
 import { OrderNestedStructs } from './passes/orderNestedStructs';
@@ -92,6 +93,7 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
 function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Tf', TupleFixes],
+    ['Fm', FilePathMangler],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
     ['Ae', ABIExtractor],
@@ -111,10 +113,10 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Ffi', FreeFunctionInliner],
     ['Rl', ReferencedLibraries],
     ['Ons', OrderNestedStructs],
-    ['Ii', InheritanceInliner],
     ['Ech', ExternalContractHandler],
-    ['Mh', ModifierHandler],
     ['Sa', StorageAllocator],
+    ['Ii', InheritanceInliner],
+    ['Mh', ModifierHandler],
     ['Pfs', PublicFunctionSplitter],
     ['Eam', ExternalArgModifier],
     ['Ei', ExternImporter],

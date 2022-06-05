@@ -8,6 +8,7 @@ import {
   getNodeType,
   IntType,
   PointerType,
+  SourceUnit,
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -29,8 +30,13 @@ import { MemoryWriteGen } from './memoryWrite';
   Only int/uint type implicit conversions
 */
 export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
-  constructor(private memoryWrite: MemoryWriteGen, private memoryRead: MemoryReadGen, ast: AST) {
-    super(ast);
+  constructor(
+    private memoryWrite: MemoryWriteGen,
+    private memoryRead: MemoryReadGen,
+    ast: AST,
+    sourceUnit: SourceUnit,
+  ) {
+    super(ast, sourceUnit);
   }
 
   genIfNecesary(targetExpression: Expression, sourceExpression: Expression): [Expression, boolean] {

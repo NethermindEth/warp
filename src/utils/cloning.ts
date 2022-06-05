@@ -37,6 +37,7 @@ import {
   StructDefinition,
   EventDefinition,
   EmitStatement,
+  NewExpression,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoAssert, CairoFunctionDefinition } from '../ast/cairoNodes';
@@ -166,6 +167,14 @@ function cloneASTNodeImpl<T extends ASTNode>(
       cloneASTNodeImpl(node.vExpression, ast, remappedIds),
       node.memberName,
       node.referencedDeclaration,
+      node.raw,
+    );
+  } else if (node instanceof NewExpression) {
+    newNode = new NewExpression(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.typeString,
+      cloneASTNode(node.vTypeName, ast),
       node.raw,
     );
   } else if (node instanceof TupleExpression) {
@@ -334,6 +343,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.vModifiers.map((m) => cloneASTNodeImpl(m, ast, remappedIds)),
       new Set([...node.implicits]),
       node.functionStubKind,
+      node.acceptsRawDarray,
       node.vOverrideSpecifier && cloneASTNodeImpl(node.vOverrideSpecifier, ast, remappedIds),
       node.vBody && cloneASTNodeImpl(node.vBody, ast, remappedIds),
       cloneDocumentation(node.documentation, ast, remappedIds),

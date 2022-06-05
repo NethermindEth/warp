@@ -1,11 +1,11 @@
 import {
-  ContractDefinition,
   EventDefinition,
   FunctionDefinition,
   ModifierDefinition,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoContract } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
 import { TranspileFailedError } from '../../utils/errors';
 import { solveConstructorInheritance } from './constructorInheritance';
@@ -24,7 +24,7 @@ import {
 export class InheritanceInliner extends ASTMapper {
   counter = 0;
 
-  visitContractDefinition(node: ContractDefinition, ast: AST): void {
+  visitCairoContract(node: CairoContract, ast: AST): void {
     if (node.vLinearizedBaseContracts.length < 2) {
       // LinearizedBaseContracts includes self as the first element,
       // and we only care about those which inherit from something else
@@ -109,7 +109,15 @@ export class InheritanceInliner extends ASTMapper {
     // The inheritance inliner needs to process subclasses before their parents
     // If a base contract is processed before a derived one then the methods added
     // to the base will get copied into the derived leading to unnecessary duplication
-    let contractsToProcess = ast.roots.flatMap((root) => root.vContracts);
+    const contractsToProcess_ = ast.roots.flatMap((root) => root.vContracts);
+    let contractsToProcess = contractsToProcess_.map((cd) => {
+      if (!(cd instanceof CairoContract)) {
+        throw new TranspileFailedError(
+          `Expected all contracts to be cairo contracts prior to inlining`,
+        );
+      }
+      return cd;
+    });
     while (contractsToProcess.length > 0) {
       // Find contracts that no other contract inherits from
       const mostDerivedContracts = contractsToProcess.filter(
