@@ -106,6 +106,7 @@ function genCairoContractInterface(
     contract.linearizedBaseContracts,
     contract.usedErrors,
     new Map(),
+    new Map(),
     0,
     0,
   );

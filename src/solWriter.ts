@@ -19,9 +19,12 @@ class CairoContractSolWriter extends ASTNodeWriter {
   writeInner(node: CairoContract, writer: ASTWriter): SrcDesc {
     const result: SrcDesc = [];
 
-    if (node.storageAllocations.size > 0) {
+    if (node.dynamicStorageAllocations.size + node.staticStorageAllocations.size > 0) {
       result.push('<cairo information - multiline start> storage allocations\n');
-      node.storageAllocations.forEach((idx, varDecl) => {
+      node.dynamicStorageAllocations.forEach((idx, varDecl) => {
+        result.push(`${idx}: ${writer.write(varDecl)}\n`);
+      });
+      node.staticStorageAllocations.forEach((idx, varDecl) => {
         result.push(`${idx}: ${writer.write(varDecl)}\n`);
       });
       result.push('<cairo information - multiline end>\n\n');

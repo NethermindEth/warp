@@ -1,11 +1,7 @@
 import assert from 'assert';
-import {
-  ContractDefinition,
-  FunctionDefinition,
-  FunctionKind,
-  FunctionVisibility,
-} from 'solc-typed-ast';
+import { FunctionDefinition, FunctionKind, FunctionVisibility } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoContract } from '../../ast/cairoNodes';
 import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { TranspileFailedError } from '../../utils/errors';
@@ -17,7 +13,7 @@ import { fixSuperReference, getBaseContracts } from './utils';
 // Every function from every base contract gets included privately in the derived contract
 // To prevent name collisions, these functions have "_sX" appended
 export function addPrivateSuperFunctions(
-  node: ContractDefinition,
+  node: CairoContract,
   idRemapping: Map<number, FunctionDefinition>,
   idRemappingOverriders: Map<number, FunctionDefinition>,
   ast: AST,
@@ -52,7 +48,7 @@ export function addPrivateSuperFunctions(
 
 // Add inherited public/external functions
 export function addNonoverridenPublicFunctions(
-  node: ContractDefinition,
+  node: CairoContract,
   idRemapping: Map<number, FunctionDefinition>,
   ast: AST,
 ) {
@@ -76,7 +72,7 @@ export function addNonoverridenPublicFunctions(
 }
 
 // Get all visible function names accessible from a contract
-function getVisibleFunctions(node: ContractDefinition): Set<string> {
+function getVisibleFunctions(node: CairoContract): Set<string> {
   const visibleFunctions = new Set(
     node.vFunctions
       .filter((func) => isExternallyVisible(func) && !func.isConstructor)
@@ -86,7 +82,7 @@ function getVisibleFunctions(node: ContractDefinition): Set<string> {
   return visibleFunctions;
 }
 
-function squashInterface(node: ContractDefinition): Set<string> {
+function squashInterface(node: CairoContract): Set<string> {
   const visibleFunctions = getVisibleFunctions(node);
   getBaseContracts(node).forEach((contract) => {
     const inheritedVisibleFunctions = getVisibleFunctions(contract);
@@ -97,7 +93,7 @@ function squashInterface(node: ContractDefinition): Set<string> {
 }
 
 function findFunctionName(
-  node: ContractDefinition,
+  node: CairoContract,
   functionName: string,
 ): FunctionDefinition | undefined {
   const matches = node.vFunctions.filter((f) => f.name === functionName);
@@ -112,7 +108,7 @@ function findFunctionName(
   } else return undefined;
 }
 
-function resolveFunctionName(node: ContractDefinition, functionName: string): FunctionDefinition {
+function resolveFunctionName(node: CairoContract, functionName: string): FunctionDefinition {
   let matches = findFunctionName(node, functionName);
   if (matches !== undefined) return matches;
 
