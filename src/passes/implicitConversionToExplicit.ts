@@ -221,21 +221,27 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 
 function insertConversionIfNecessary(expression: Expression, targetType: TypeNode, ast: AST): void {
   const [currentType, currentLoc] = generalizeType(getNodeType(expression, ast.compilerVersion));
-  targetType = generalizeType(targetType)[0];
+  const generalisedTargetType = generalizeType(targetType)[0];
 
   if (currentType instanceof AddressType) {
-    if (!(targetType instanceof AddressType)) {
-      insertConversion(expression, targetType, ast);
+    if (!(generalisedTargetType instanceof AddressType)) {
+      insertConversion(expression, generalisedTargetType, ast);
     }
   } else if (currentType instanceof ArrayType) {
     assert(
-      targetType instanceof ArrayType,
+      generalisedTargetType instanceof ArrayType,
       `Unable to convert array ${printNode(expression)} to non-array type ${printTypeNode(
-        targetType,
+        generalisedTargetType,
       )}`,
     );
     if (currentLoc === DataLocation.Memory) {
-      ast.getUtilFuncGen(expression).memory.convert.genIfNecesary(expression, targetType);
+      const parent = expression.parent;
+      const [replacement, shouldReplace] = ast
+        .getUtilFuncGen(expression)
+        .memory.convert.genIfNecesary(expression, targetType);
+      if (shouldReplace) {
+        ast.replaceNode(expression, replacement, parent);
+      }
     }
     // if (expression instanceof TupleExpression && expression.isInlineArray) {
     //   expression.vOriginalComponents.forEach((element) => {
@@ -248,8 +254,8 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
     // }
   } else if (currentType instanceof BoolType) {
     assert(
-      targetType instanceof BoolType,
-      `Unable to convert bool to ${printTypeNode(targetType)}`,
+      generalisedTargetType instanceof BoolType,
+      `Unable to convert bool to ${printTypeNode(generalisedTargetType)}`,
     );
     return;
   } else if (currentType instanceof BuiltinType) {
@@ -267,12 +273,15 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
   } else if (currentType instanceof ImportRefType) {
     return;
   } else if (currentType instanceof IntLiteralType) {
-    insertConversion(expression, targetType, ast);
+    insertConversion(expression, generalisedTargetType, ast);
   } else if (currentType instanceof IntType) {
-    if (targetType instanceof IntType && targetType.pp() === currentType.pp()) {
+    if (
+      generalisedTargetType instanceof IntType &&
+      generalisedTargetType.pp() === currentType.pp()
+    ) {
       return;
     } else {
-      insertConversion(expression, targetType, ast);
+      insertConversion(expression, generalisedTargetType, ast);
     }
   } else if (currentType instanceof MappingType) {
     return;
@@ -292,18 +301,18 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
       `Unexpected unresolved rational literal ${printNode(expression)}`,
     );
   } else if (currentType instanceof StringLiteralType) {
-    if (targetType instanceof IntType) {
+    if (generalisedTargetType instanceof IntType) {
       if (!(expression instanceof Literal)) {
         throw new TranspileFailedError(`Expected stringLiteralType expression to be a Literal`);
       }
-      const padding = '0'.repeat(targetType.nBits / 4 - expression.hexValue.length);
+      const padding = '0'.repeat(generalisedTargetType.nBits / 4 - expression.hexValue.length);
       const replacementNode = createNumberLiteral(
         `0x${expression.hexValue}${padding}`,
         ast,
-        `uint${targetType.nBits / 8}`,
+        `uint${generalisedTargetType.nBits / 8}`,
       );
       ast.replaceNode(expression, replacementNode, expression.parent);
-      insertConversion(replacementNode, targetType, ast);
+      insertConversion(replacementNode, generalisedTargetType, ast);
     }
     return;
   } else if (currentType instanceof TupleType) {
