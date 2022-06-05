@@ -371,11 +371,14 @@ function printResults(results: Map<string, ResultType>, unexpectedResults: strin
 }
 
 function checkNoCairo(path: string): boolean {
-  return findCairoSourceFilePaths(path, true).length === 0;
+  return !fs.existsSync(path) || findCairoSourceFilePaths(path, true).length === 0;
 }
 
 function checkNoJson(path: string): boolean {
-  return findAllFiles(path, true).filter((file) => file.endsWith('.json')).length === 0;
+  return (
+    !fs.existsSync(path) ||
+    findAllFiles(path, true).filter((file) => file.endsWith('.json')).length === 0
+  );
 }
 
 function postTestCleanup(): void {
