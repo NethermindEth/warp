@@ -650,6 +650,11 @@ export const expectations = flatten(
           File.Simple('dynamic_arrays', [
             Expect.Simple('copySimpleArrayLength', [], ['3', '0']),
             Expect.Simple('copySimpleArrayValues', [], ['5', '0', '4']),
+            Expect.Simple(
+              'testNestedArray',
+              [...['3', '1', '2', '3'], ...['2', '1', '0'], ...['3', '4', '5', '6']],
+              [...['3', '1', '2', '3'], ...['2', '1', '0'], ...['3', '4', '5', '6']],
+            ),
           ]),
           File.Simple('static_arrays', [
             Expect.Simple('getX', [], ['1', '2', '3', '4', '5']),
@@ -661,6 +666,30 @@ export const expectations = flatten(
             Expect.Simple('getW', [], ['1', '0', '2', '0', '3', '0']),
             Expect.Simple('getZ', [], ['1', '0', '2', '0', '3', '0', '4', '0', '5', '0', '6', '0']),
             Expect.Simple('scalarInTuple', [], ['1', '0', '10', '0', '3', '0']),
+            Expect.Simple(
+              'getNested',
+              [...['3', '1', '2', '3'], ...['2', '1', '0'], ...['3', '4', '5', '6']],
+              [...['3', '1', '2', '3'], ...['2', '1', '0'], ...['3', '4', '5', '6']],
+            ),
+            Expect.Simple(
+              'getNestedLarge',
+              [
+                ...['3', '1', '2', '3'],
+                ...['2', '1', '0'],
+                ...['3', '4', '5', '6'],
+                ...['1', '5'],
+                ...['2', '11', '13'],
+                ...['2', '17', '19'],
+              ],
+              [
+                ...['3', '1', '2', '3'],
+                ...['2', '1', '0'],
+                ...['3', '4', '5', '6'],
+                ...['1', '5'],
+                ...['2', '11', '13'],
+                ...['2', '17', '19'],
+              ],
+            ),
           ]),
           File.Simple('structs', [
             Expect.Simple('setS', ['2', '3', '5', '7'], []),
