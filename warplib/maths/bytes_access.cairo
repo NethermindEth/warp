@@ -44,7 +44,7 @@ func byte_at_index{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
 end
 
 func byte256_at_index{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
-    base : Uint256, index : felt, width : felt
+    base : Uint256, index : felt 
 ) -> (res : felt):
     alloc_locals
     assert_nn_le(index, 31)
@@ -67,7 +67,7 @@ func byte256_at_index{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
 end
 
 func byte256_at_index_uint256{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
-    base : Uint256, index : Uint256, width : felt
+    base : Uint256, index : Uint256 
 ) -> (res : felt):
     alloc_locals
 
