@@ -12,7 +12,6 @@ from warplib.maths.utils import get_min
 const BYTES_IN_FELT = 8
 const BITS_IN_BYTE = 8
 
-@external
 func warp_keccak{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, keccak_ptr : felt*}(
     input_len : felt, input : felt*
 ) -> (output : Uint256):
