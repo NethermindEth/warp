@@ -73,6 +73,7 @@ export const expectations = flatten(
               Expect.Simple('getB', [], ['0']),
               Expect.Simple('getC', [], ['0']),
               Expect.Simple('getD', [], ['340282366920938463463374607431768211455']),
+              Expect.Simple('literalByte', [], ['1463898704']), // "WARP" = 0x57415250
               Expect.Simple('shiftBytesBy', ['2'], ['18640']),
               // 0x12345678
               Expect.Simple('shiftBytesByConstant', ['305419896'], ['76354974']),
@@ -2533,6 +2534,15 @@ export const expectations = flatten(
               ['assign', ['10', '11'], [], '0'],
               ['getMember', [], ['10', '11'], '0'],
             ]),
+          ]),
+        ]),
+        new Dir('string', [
+          File.Simple('stringLiteralMemory', [
+            Expect.Simple('varDecl', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('tupleRet', [], ['2', '87', '65', '2', '82', '80']),
+            Expect.Simple('funcCall', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('funcCallWithArg', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('nestedFuncCallWithArg', [], ['4', '87', '65', '82', '80']),
           ]),
         ]),
         new Dir('this_keyword', [

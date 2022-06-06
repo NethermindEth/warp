@@ -29,6 +29,10 @@ contract WARP {
     return d;
   }
 
+  function literalByte() public pure returns (bytes4) {
+	  return "WARP";
+  }
+
   function shiftBytesBy(uint8 u) external view returns (bytes2) {
     return a << u;
   }
