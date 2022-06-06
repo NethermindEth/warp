@@ -1,4 +1,4 @@
-import { FunctionCall } from 'solc-typed-ast';
+import { ExternalReferenceType, FunctionCall } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
@@ -6,7 +6,14 @@ import { createUintNTypeName } from '../../utils/nodeTemplates';
 
 export class Ecrecover extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    if (node.vFunctionName !== 'ecrecover') return;
+    if (
+      !(
+        node.vFunctionName === 'ecrecover' &&
+        node.vFunctionCallType === ExternalReferenceType.Builtin
+      )
+    ) {
+      return this.commonVisit(node, ast);
+    }
 
     const ecrecoverEth = createCairoFunctionStub(
       'ecrecover_eth',
