@@ -21,7 +21,6 @@ import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/ut
 import { uint256 } from '../../warplib/utils';
 import { add, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
-import { StorageReadGen } from './storageRead';
 
 /*
   Generates functions to copy data from WARP_STORAGE to warp_memory
@@ -31,12 +30,7 @@ import { StorageReadGen } from './storageRead';
 */
 
 export class StorageToMemoryGen extends StringIndexedFuncGen {
-  constructor(
-    private dynArrayGen: DynArrayGen,
-    private storageReadGen: StorageReadGen,
-    ast: AST,
-    sourceUnit: SourceUnit,
-  ) {
+  constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
   }
   gen(node: Expression, nodeInSourceUnit?: ASTNode): Expression {
@@ -105,7 +99,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
               const copy =
                 copyType instanceof ArrayType && copyType.size === undefined
                   ? [
-                      `let (dyn_loc) = ${this.storageReadGen.genFuncName(copyType)}(loc)`,
+                      `let (dyn_loc) = WARP_STORAGE.read(loc)`,
                       `let (copy${index}) = ${funcName}(dyn_loc)`,
                     ]
                   : [`let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`];
