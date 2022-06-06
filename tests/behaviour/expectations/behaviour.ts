@@ -163,6 +163,17 @@ export const expectations = flatten(
               ['7', '1', '2', '3', '5', '6', '7', '8'],
             ),
             Expect.Simple('c5', [], ['4', '1', '2', '3', '4']),
+            Expect.Simple('d1', ['6553600'], ['3', '100', '0', '0']),
+            Expect.Simple(
+              'd2',
+              ['255', '255', '0'],
+              ['33', '255', ...new Array(31).fill('0'), '255'],
+            ),
+            Expect.Simple(
+              'd3',
+              ['128', '3', '1', '2', '3', '256'],
+              ['20', '128', '1', '2', '3', ...new Array(14).fill('0'), '1', '0'],
+            ),
           ]),
           File.Simple('strings', [
             Expect.Simple('s0', [], ['0']),

@@ -34,4 +34,18 @@ contract WARP {
         bytes memory m = bytes.concat(b1, b2);
         return m;
     }
+
+    function d1(bytes3 x1) public pure returns (bytes memory) {
+        bytes memory m = bytes.concat(x1);      
+        return m;
+    }
+    function d2(bytes1 x1, bytes32 x2) public pure returns (bytes memory) {
+        bytes memory m = bytes.concat(x1, x2);      
+        return m;
+    }
+    function d3(bytes1 x1, bytes memory x2, bytes16 x3) public pure returns (bytes memory) {
+        bytes memory m = bytes.concat(x1, x2, x3);      
+        return m;
+    }
 }
+
