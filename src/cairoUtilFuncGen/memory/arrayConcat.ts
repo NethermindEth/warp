@@ -91,6 +91,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     const funcName = `concat${this.generatedFunctions.size}_${argAmount}`;
 
     if (argAmount === 0) {
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256');
       this.requireImport('warplib.memory', 'wm_new');
       return {
         name: funcName,
