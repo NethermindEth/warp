@@ -22,6 +22,8 @@ import {
   NewExpression,
   ArrayTypeName,
   ParameterList,
+  Identifier,
+  ExternalReferenceType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -54,6 +56,14 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     if (typeNode instanceof FunctionType)
       throw new WillNotSupportError('Function objects are not supported');
     this.commonVisit(node, ast);
+  }
+
+  visitIdentifier(node: Identifier, _ast: AST): void {
+    if (node.name === 'msg' && node.vIdentifierType === ExternalReferenceType.Builtin) {
+      if (!(node.parent instanceof MemberAccess && node.parent.memberName === 'sender')) {
+        throw new WillNotSupportError(`msg object not supported outside of 'msg.sender'`);
+      }
+    }
   }
 
   visitSourceUnit(sourceUnit: SourceUnit, ast: AST): void {
