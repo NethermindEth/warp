@@ -666,7 +666,6 @@ export const expectations = flatten(
             Expect.Simple('setS', ['2', '3', '5', '7'], []),
             Expect.Simple('getS', [], ['2', '3', '5', '7']),
             Expect.Simple('setP', ['3', '3', '5', '7'], []),
-            Expect.Simple('getPcalldata', [], ['3', '3', '5', '7']),
             Expect.Simple('getP', [], ['3', '3', '5', '7']),
           ]),
         ]),
