@@ -20,6 +20,8 @@ contract WARP {
     function returnDArray(uint8[] calldata x) pure internal returns (uint8[] calldata){
         return (x);
     }
-
- 
+    
+    function returnFirstIndex(uint8[] calldata x) pure public returns (uint8) {
+        return x[0];
+    }
 }

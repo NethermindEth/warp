@@ -5,7 +5,9 @@ import {
   ArrayTypeName,
   Assignment,
   BoolType,
+  BytesType,
   CompileFailedError,
+  ContractDefinition,
   DataLocation,
   ElementaryTypeName,
   EtherUnit,
@@ -44,7 +46,12 @@ import {
   TranspileFailedError,
   WillNotSupportError,
 } from './errors';
-import { createAddressTypeName, createBoolTypeName, createNumberLiteral } from './nodeTemplates';
+import {
+  createAddressTypeName,
+  createBoolTypeName,
+  createBytesTypeName,
+  createNumberLiteral,
+} from './nodeTemplates';
 import { Class } from './typeConstructs';
 
 const uint128 = BigInt('0x100000000000000000000000000000000');
@@ -201,6 +208,8 @@ export function typeNameFromTypeNode(node: TypeNode, ast: AST): TypeName {
       typeNameFromTypeNode(node.elementT, ast),
       node.size === undefined ? undefined : createNumberLiteral(node.size, ast),
     );
+  } else if (node instanceof BytesType) {
+    result = createBytesTypeName(ast);
   } else if (node instanceof BoolType) {
     result = createBoolTypeName(ast);
   } else if (node instanceof FixedBytesType) {
@@ -383,4 +392,8 @@ export function functionAffectsState(node: FunctionCall): boolean {
     );
   }
   return true;
+}
+
+export function mangleOwnContractInterface(contract: ContractDefinition) {
+  return `${contract.name}_interface`;
 }

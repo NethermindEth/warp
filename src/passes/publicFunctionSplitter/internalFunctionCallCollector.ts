@@ -3,8 +3,10 @@ import {
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
+  getNodeType,
   Identifier,
   MemberAccess,
+  UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
@@ -31,6 +33,16 @@ export class InternalFunctionCallCollector extends ASTMapper {
       functionDefinition.getClosestParentByType(ContractDefinition) ===
         node.getClosestParentByType(ContractDefinition)
     ) {
+      if (node.vExpression instanceof MemberAccess) {
+        const typeNode = getNodeType(node.vExpression.vExpression, ast.compilerVersion);
+        if (
+          typeNode instanceof UserDefinedType &&
+          typeNode.definition instanceof ContractDefinition
+        ) {
+          this.commonVisit(node, ast);
+          return;
+        }
+      }
       this.internalFunctionCallSet.add(functionDefinition);
     }
     this.commonVisit(node, ast);

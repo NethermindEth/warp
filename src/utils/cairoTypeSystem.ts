@@ -53,7 +53,7 @@ export abstract class CairoType {
       if (tp.size === undefined) {
         if (context === TypeConversionContext.CallDataRef) {
           return new CairoDynArray(
-            `cd_dynarray_${CairoType.fromSol(tp.elementT, ast, context)}`,
+            `cd_dynarray_${generateStructName(CairoType.fromSol(tp.elementT, ast, context))}`,
             CairoType.fromSol(tp.elementT, ast, context),
           );
         }
@@ -77,7 +77,12 @@ export abstract class CairoType {
     } else if (tp instanceof BuiltinStructType) {
       throw new NotSupportedYetError('Serialising BuiltinStructType not supported yet');
     } else if (tp instanceof BytesType) {
-      throw new NotSupportedYetError('Serialising BytesType not supported yet');
+      switch (context) {
+        case TypeConversionContext.CallDataRef:
+          return new CairoDynArray('Bytes', new CairoFelt());
+        default:
+          return new WarpLocation();
+      }
     } else if (tp instanceof FixedBytesType) {
       return tp.size === 32 ? CairoUint256 : new CairoFelt();
     } else if (tp instanceof FunctionType) {
@@ -267,3 +272,9 @@ export const CairoUint256 = new CairoStruct(
     ['high', new CairoFelt()],
   ]),
 );
+
+export function generateStructName(cairoType: CairoType): string {
+  if (cairoType instanceof CairoTuple) return cairoType.members.map(generateStructName).join('_');
+
+  return cairoType.toString();
+}

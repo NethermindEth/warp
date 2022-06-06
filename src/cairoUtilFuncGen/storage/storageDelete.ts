@@ -8,6 +8,7 @@ import {
   generalizeType,
   getNodeType,
   MappingType,
+  SourceUnit,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -21,8 +22,13 @@ import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
 
 export class StorageDeleteGen extends StringIndexedFuncGen {
-  constructor(private dynArrayGen: DynArrayGen, private storageReadGen: StorageReadGen, ast: AST) {
-    super(ast);
+  constructor(
+    private dynArrayGen: DynArrayGen,
+    private storageReadGen: StorageReadGen,
+    ast: AST,
+    sourceUnit: SourceUnit,
+  ) {
+    super(ast, sourceUnit);
   }
 
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {

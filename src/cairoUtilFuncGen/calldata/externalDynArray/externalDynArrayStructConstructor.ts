@@ -13,7 +13,11 @@ import {
 import assert from 'assert';
 import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
 
-import { CairoType, TypeConversionContext } from '../../../utils/cairoTypeSystem';
+import {
+  CairoType,
+  generateStructName,
+  TypeConversionContext,
+} from '../../../utils/cairoTypeSystem';
 import { StringIndexedFuncGen } from '../../base';
 import { createIdentifier } from '../../../utils/nodeTemplates';
 import { FunctionStubKind } from '../../../ast/cairoNodes';
@@ -41,6 +45,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
       nodeInSourceUnit ?? astNode,
       FunctionStateMutability.View,
       FunctionStubKind.StructDefStub,
+      true,
     );
 
     if (astNode instanceof VariableDeclaration) {
@@ -62,7 +67,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.MemoryAllocation,
     );
-    const key = elementCairoType.toString();
+    const key = generateStructName(elementCairoType);
     const name = `cd_dynarray_${key}`;
 
     const existing = this.generatedFunctions.get(name);
@@ -75,7 +80,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
       code: [
         `struct ${name}:`,
         `${INDENT}member len : felt `,
-        `${INDENT}member ptr : ${key}*`,
+        `${INDENT}member ptr : ${elementCairoType.toString()}*`,
         `end`,
       ].join('\n'),
     });

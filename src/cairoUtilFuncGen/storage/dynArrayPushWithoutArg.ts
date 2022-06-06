@@ -1,5 +1,12 @@
 import assert from 'assert';
-import { ASTNode, DataLocation, FunctionCall, getNodeType, MemberAccess } from 'solc-typed-ast';
+import {
+  ASTNode,
+  DataLocation,
+  FunctionCall,
+  getNodeType,
+  MemberAccess,
+  SourceUnit,
+} from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
@@ -8,8 +15,8 @@ import { StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
 export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
-  constructor(private dynArrayGen: DynArrayGen, ast: AST) {
-    super(ast);
+  constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
+    super(ast, sourceUnit);
   }
 
   gen(push: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {

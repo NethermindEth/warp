@@ -100,7 +100,7 @@ def create_markdown():
             md_file.write("| ----------- | ----------- |\n")
 
             for metric, value in sorted(data.items()):
-                if metric == "builtin_instances":
+                if metric in ["builtin_instances", "function_steps"]:
                     continue
                 md_file.write(f"| {metric} | {value} |\n")
             md_file.write(f"\n")
