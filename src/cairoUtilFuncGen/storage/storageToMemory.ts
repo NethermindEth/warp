@@ -88,27 +88,10 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    alloc_locals`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)})`,
         ...generateCopyInstructions(type, this.ast).flatMap(
-          ({ storageOffset, copyType }, index) => {
-            if (copyType === undefined) {
-              return [
-                `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)})`,
-                `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
-              ];
-            } else {
-              const funcName = this.getOrCreate(copyType);
-              const copy =
-                copyType instanceof ArrayType && copyType.size === undefined
-                  ? [
-                      `let (dyn_loc) = WARP_STORAGE.read(loc)`,
-                      `let (copy${index}) = ${funcName}(dyn_loc)`,
-                    ]
-                  : [`let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`];
-              return [
-                ...copy,
-                `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
-              ];
-            }
-          },
+          ({ storageOffset, copyType }, index) => [
+            this.getIterCopyCode(copyType, index, storageOffset),
+            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
+          ],
         ),
         `    return (mem_start)`,
         `end`,
@@ -146,20 +129,10 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    let length = ${uint256(memoryType.width)}`,
         `    let (mem_start) = wm_alloc(length)`,
         ...generateCopyInstructions(type, this.ast).flatMap(
-          ({ storageOffset, copyType }, index) => {
-            if (copyType === undefined) {
-              return [
-                `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)})`,
-                `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
-              ];
-            } else {
-              const funcName = this.getOrCreate(copyType);
-              return [
-                `let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`,
-                `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
-              ];
-            }
-          },
+          ({ storageOffset, copyType }, index) => [
+            this.getIterCopyCode(copyType, index, storageOffset),
+            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
+          ],
         ),
         `    return (mem_start)`,
         `end`,
@@ -191,20 +164,8 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.StorageAllocation,
     ).width;
-    let copyCode: string;
-    if (isStaticArrayOrStruct(type.elementT)) {
-      copyCode = [
-        `   let (copy) = ${this.getOrCreate(type.elementT)}('loc')`,
-        `   dict_write{dict_ptr=warp_memory}(mem_start, copy)`,
-      ].join('\n');
-    } else {
-      copyCode = mapRange(elementMemoryWidth, (n) =>
-        [
-          `   let (copy) = WARP_STORAGE.read(${add('loc', n)})`,
-          `   dict_write{dict_ptr=warp_memory}(${add('mem_start', n)}, copy)`,
-        ].join('\n'),
-      ).join('\n');
-    }
+
+    let copyCode: string = this.getRecursiveCopyCode(type, elementMemoryWidth, 'loc', 'mem_start');
 
     this.generatedFunctions.set(key, {
       name: funcName,
@@ -259,21 +220,12 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     // This is the code to copy a single element
     // Complex types require calls to another function generated here
     // Simple types take one or two WARP_STORAGE-dict_write pairs
-    let copyCode: string;
-    if (
-      type.elementT instanceof ArrayType ||
-      (type.elementT instanceof UserDefinedType &&
-        type.elementT.definition instanceof StructDefinition)
-    ) {
-      copyCode = `let (copy) = ${this.getOrCreate(type.elementT)}`;
-    } else {
-      copyCode = mapRange(CairoType.fromSol(type.elementT, this.ast).width, (n) =>
-        [
-          `    let (copy) = WARP_STORAGE.read(${add('element_storage_loc', n)})`,
-          `    dict_write{dict_ptr=warp_memory}(${add('mem_loc', n)}, copy)`,
-        ].join('\n'),
-      ).join('\n');
-    }
+    let copyCode: string = this.getRecursiveCopyCode(
+      type,
+      memoryElementType.width,
+      'element_storage_loc',
+      'mem_loc',
+    );
 
     // Now generate two functions: the setup function funcName, and the elementwise copy function: funcName_elem
     this.generatedFunctions.set(key, {
@@ -310,6 +262,53 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     this.requireImport('warplib.memory', 'wm_index_dyn');
 
     return funcName;
+  }
+
+  // Copy code generation for iterative copy instructions (small static arrays and structs)
+  private getIterCopyCode(
+    copyType: TypeNode | undefined,
+    index: number,
+    storageOffset: number,
+  ): string {
+    if (copyType === undefined) {
+      return `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)})`;
+    }
+
+    const funcName = this.getOrCreate(copyType);
+    return copyType instanceof ArrayType && copyType.size === undefined
+      ? [
+          `let (dyn_loc) = WARP_STORAGE.read(${add('loc', storageOffset)})`,
+          `let (copy${index}) = ${funcName}(dyn_loc)`,
+        ].join('\n')
+      : `let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`;
+  }
+
+  // Copy code generation for recursive copy instructions (large static arrays and dynamic arrays)
+  private getRecursiveCopyCode(
+    type: ArrayType,
+    elementMemoryWidth: number,
+    storageLoc: string,
+    memoryLoc: string,
+  ) {
+    if (isStaticArrayOrStruct(type.elementT)) {
+      return [
+        `   let (copy) = ${this.getOrCreate(type.elementT)}(${storageLoc})`,
+        `   dict_write{dict_ptr=warp_memory}(${memoryLoc}, copy)`,
+      ].join('\n');
+    } else if (type.elementT instanceof ArrayType) {
+      return [
+        `   let (dyn_loc) = WARP_STORAGE.read(${storageLoc})`,
+        `   let (copy) = ${this.getOrCreate(type.elementT)}(dyn_loc)`,
+        `   dict_write{dict_ptr=warp_memory}(${memoryLoc}, copy)`,
+      ].join('\n');
+    } else {
+      return mapRange(elementMemoryWidth, (n) =>
+        [
+          `   let (copy) = WARP_STORAGE.read(${add(`${storageLoc}`, n)})`,
+          `   dict_write{dict_ptr=warp_memory}(${add(`${memoryLoc}`, n)}, copy)`,
+        ].join('\n'),
+      ).join('\n');
+    }
   }
 }
 
