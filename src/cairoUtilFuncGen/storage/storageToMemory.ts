@@ -165,7 +165,12 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     ).width;
 
-    let copyCode: string = this.getRecursiveCopyCode(type, elementMemoryWidth, 'loc', 'mem_start');
+    const copyCode: string = this.getRecursiveCopyCode(
+      type,
+      elementMemoryWidth,
+      'loc',
+      'mem_start',
+    );
 
     this.generatedFunctions.set(key, {
       name: funcName,
@@ -220,7 +225,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     // This is the code to copy a single element
     // Complex types require calls to another function generated here
     // Simple types take one or two WARP_STORAGE-dict_write pairs
-    let copyCode: string = this.getRecursiveCopyCode(
+    const copyCode: string = this.getRecursiveCopyCode(
       type,
       memoryElementType.width,
       'element_storage_loc',
