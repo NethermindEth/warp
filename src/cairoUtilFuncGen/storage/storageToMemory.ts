@@ -21,6 +21,7 @@ import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/ut
 import { uint256 } from '../../warplib/utils';
 import { add, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
+import { StorageReadGen } from './storageRead';
 
 /*
   Generates functions to copy data from WARP_STORAGE to warp_memory
@@ -30,7 +31,12 @@ import { DynArrayGen } from './dynArray';
 */
 
 export class StorageToMemoryGen extends StringIndexedFuncGen {
-  constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
+  constructor(
+    private dynArrayGen: DynArrayGen,
+    private storageReadGen: StorageReadGen,
+    ast: AST,
+    sourceUnit: SourceUnit,
+  ) {
     super(ast, sourceUnit);
   }
   gen(node: Expression, nodeInSourceUnit?: ASTNode): Expression {
@@ -96,8 +102,15 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
               ];
             } else {
               const funcName = this.getOrCreate(copyType);
+              const copy =
+                copyType instanceof ArrayType && copyType.size === undefined
+                  ? [
+                      `let (dyn_loc) = ${this.storageReadGen.genFuncName(copyType)}(loc)`,
+                      `let (copy${index}) = ${funcName}(dyn_loc)`,
+                    ]
+                  : [`let (copy${index} = ${funcName}(${add('loc', storageOffset)}))`];
               return [
-                `let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`,
+                ...copy,
                 `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
               ];
             }
@@ -298,6 +311,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
 
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('warplib.memory', 'wm_new');
     this.requireImport('warplib.memory', 'wm_index_dyn');
 
@@ -328,12 +342,6 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
 
   let storageOffset = 0;
   return members.flatMap((memberType) => {
-    if (memberType instanceof ArrayType && memberType.size === undefined) {
-      throw new NotSupportedYetError(
-        `Copying ${printTypeNode(memberType)} from storage to memory not implemented yet`,
-      );
-    }
-
     if (isStaticArrayOrStruct(memberType)) {
       const offset = storageOffset;
       storageOffset += CairoType.fromSol(
@@ -342,6 +350,8 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
         TypeConversionContext.StorageAllocation,
       ).width;
       return [{ storageOffset: offset, copyType: memberType }];
+    } else if (memberType instanceof ArrayType) {
+      return [{ storageOffset: storageOffset++, copyType: memberType }];
     } else {
       const width = CairoType.fromSol(
         memberType,

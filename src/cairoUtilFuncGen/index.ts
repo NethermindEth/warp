@@ -144,7 +144,12 @@ export class CairoUtilFuncGen {
         ast,
         sourceUnit,
       ),
-      toMemory: new StorageToMemoryGen(this.implementation.dynArray, ast, sourceUnit),
+      toMemory: new StorageToMemoryGen(
+        this.implementation.dynArray,
+        storageReadGen,
+        ast,
+        sourceUnit,
+      ),
       toStorage: new StorageToStorageGen(this.implementation.dynArray, ast, sourceUnit),
       write: storageWrite,
     };
