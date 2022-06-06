@@ -24,6 +24,7 @@ import {
   ParameterList,
   Identifier,
   ExternalReferenceType,
+  FunctionCallOptions,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -50,6 +51,11 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
   visitConditional(_node: Conditional, _ast: AST): void {
     throw new WillNotSupportError('Conditional expressions (ternary operator) are not supported');
+  }
+  visitFunctionCallOptions(_node: FunctionCallOptions, _ast: AST): void {
+    throw new WillNotSupportError(
+      'Function call options, such as {gas:X} and {value:X} are not supported',
+    );
   }
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
