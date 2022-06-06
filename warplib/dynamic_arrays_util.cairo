@@ -64,6 +64,6 @@ func fixed_byte256_to_dynamic_array{
     let (from_elem) = byte256_at_index(fixed_byte, fixed_byte_index)
     wm_write_felt(to_index_loc, from_elem)
     return fixed_byte256_to_dynamic_array(
-        to_loc, to_index + 1, to_final_index, fixed_byte, fixed_byte_index - 1 
+        to_loc, to_index + 1, to_final_index, fixed_byte, fixed_byte_index - 1
     )
 end
