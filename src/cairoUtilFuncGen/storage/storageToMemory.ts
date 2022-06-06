@@ -108,7 +108,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
                       `let (dyn_loc) = ${this.storageReadGen.genFuncName(copyType)}(loc)`,
                       `let (copy${index}) = ${funcName}(dyn_loc)`,
                     ]
-                  : [`let (copy${index} = ${funcName}(${add('loc', storageOffset)}))`];
+                  : [`let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`];
               return [
                 ...copy,
                 `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
