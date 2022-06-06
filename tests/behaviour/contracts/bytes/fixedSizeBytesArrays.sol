@@ -62,4 +62,8 @@ contract WARP {
 		bytes2 temp = _nestedBitwiseOp(k, i);
 		return i & temp;
 	}
+
+	function length() public view returns (uint8, uint8) {
+		return (b.length, z.length);
+	}
 }
