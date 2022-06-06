@@ -85,6 +85,8 @@ def create_markdown():
     with open(json_path, "r") as json_file:
         benchmark_data = json.load(json_file)
 
+    os.makedirs("benchmark/stats", exist_ok=True)
+
     with open(
         os.path.join(WARP_ROOT, f"benchmark/stats/{FILE_NAME}.md"), "w"
     ) as md_file:
