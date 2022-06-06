@@ -155,7 +155,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
 // Dynarray inside structs to/from external functions
 // Dynarray inside dynarray to/from external functions
 // Dynarray as direct child of static array to/from external functions
-// Static array as direct child of dynamic array in calldata or to/from external functions
 function functionArgsCheck(
   type: TypeNode,
   ast: AST,
@@ -180,15 +179,6 @@ function functionArgsCheck(
     if (externallyVisible && findDynArrayRecursive(type.elementT, ast)) {
       throw new WillNotSupportError(
         `Dynamic arrays are not allowed as (indirect) children of dynamic arrays passed to/from external functions`,
-      );
-    }
-    if (
-      (externallyVisible || dataLocation === DataLocation.CallData) &&
-      type.elementT instanceof ArrayType &&
-      type.elementT.size !== undefined
-    ) {
-      throw new WillNotSupportError(
-        `Static arrays are not allowed as direct children of dynamic arrays in calldata or when passed to/from external functions`,
       );
     }
     functionArgsCheck(type.elementT, ast, externallyVisible, dataLocation);
