@@ -12,7 +12,7 @@ func get_max{range_check_ptr}(op1, op2) -> (result):
 end
 
 func get_min{range_check_ptr}(op1, op2) -> (result):
-    let (le) = is_le_felt(op1, op2)
+    let (le) = is_le(op1, op2)
     if le == 1:
         return (op1)
     else:

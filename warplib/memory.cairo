@@ -1,3 +1,4 @@
+from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.dict import dict_read, dict_write
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.math import split_felt
@@ -303,4 +304,31 @@ func wm_copy{warp_memory : DictAccess*}(src : felt, dst : felt, length : felt):
 
     wm_copy(src + 1, dst + 1, length - 1)
     return ()
+end
+
+# Converts an array in memory to a felt array
+func wm_to_felt_array{range_check_ptr, warp_memory : DictAccess*}(loc : felt) -> (length : felt, output : felt*):
+    alloc_locals
+    let (output : felt*) = alloc()
+
+    let (lengthUint256 : Uint256) = wm_read_256(loc)
+    let (length_felt : felt) = narrow_safe(lengthUint256)
+
+    wm_to_felt_array_helper(loc + 2, 0, length_felt, output)
+
+    return (length_felt, output)
+end
+
+func wm_to_felt_array_helper{range_check_ptr, warp_memory : DictAccess*}(
+    loc : felt, index : felt, length : felt, output : felt*
+):
+    alloc_locals
+    if index == length:
+        return ()
+    end
+
+    let (value : felt) = dict_read{dict_ptr=warp_memory}(loc)
+    assert output[index] = value
+
+    return wm_to_felt_array_helper(loc + 1, index + 1, length, output)
 end

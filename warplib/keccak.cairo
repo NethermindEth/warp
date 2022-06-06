@@ -3,19 +3,22 @@
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.cairo_keccak.keccak import keccak_bigend
+from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.math_cmp import is_le_felt
 from starkware.cairo.common.uint256 import Uint256
 
 from warplib.maths.pow2 import pow2
 from warplib.maths.utils import get_min
+from warplib.memory import wm_to_felt_array
 
 const BYTES_IN_FELT = 8
 const BITS_IN_BYTE = 8
 
-func warp_keccak{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, keccak_ptr : felt*}(
-    input_len : felt, input : felt*
-) -> (output : Uint256):
+func warp_keccak{
+    range_check_ptr, bitwise_ptr : BitwiseBuiltin*, warp_memory : DictAccess*, keccak_ptr : felt*
+}(loc : felt) -> (output : Uint256):
     alloc_locals
+    let (input_len, input) = wm_to_felt_array(loc)
     let (packed_bytes) = pack_bytes_felt(input_len, input)
 
     let (res : Uint256) = keccak_bigend{keccak_ptr=keccak_ptr}(packed_bytes, input_len)
@@ -23,9 +26,7 @@ func warp_keccak{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, keccak_ptr : fe
     return (res)
 end
 
-func pack_bytes_felt{range_check_ptr}(input_len : felt, input : felt*) -> (
-    output_len : felt, output : felt*
-):
+func pack_bytes_felt{range_check_ptr}(input_len : felt, input : felt*) -> (output : felt*):
     alloc_locals
     let (bytes_buffer : felt*) = alloc()
     pack_bytes_felt_loop(0, bytes_buffer, input_len, input)
