@@ -22,12 +22,15 @@ import {
   NewExpression,
   ArrayTypeName,
   ParameterList,
+  ElementaryTypeName,
+  BytesType,
+  DataLocation,
+  PointerType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
-import { isReferenceType } from '../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../utils/utils';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
@@ -120,7 +123,10 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
 
   visitNewExpression(node: NewExpression, ast: AST): void {
-    if (!(node.vTypeName instanceof ArrayTypeName)) {
+    if (
+      !(node.vTypeName instanceof ArrayTypeName) &&
+      !(node.vTypeName instanceof ElementaryTypeName && node.vTypeName.name === 'bytes')
+    ) {
       throw new NotSupportedYetError(
         `new expressions are not supported yet for non-array type ${node.vTypeName.typeString}`,
       );
@@ -129,25 +135,10 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    if (isExternallyVisible(node)) {
-      node.vParameters.vParameters.forEach((decl) => {
-        const type = getNodeType(decl, ast.compilerVersion);
-        if (isReferenceType(type)) {
-          if (type instanceof ArrayType) {
-            type.size === undefined
-              ? this.externalFunctionArgsCheck(type.elementT, ast, true)
-              : this.externalFunctionArgsCheck(type.elementT, ast, false);
-          } else if (
-            type instanceof UserDefinedType &&
-            type.definition instanceof StructDefinition
-          ) {
-            type.definition.vMembers.map((member) =>
-              this.externalFunctionArgsCheck(getNodeType(member, ast.compilerVersion), ast, false),
-            );
-          }
-        }
-      });
-    }
+    [...node.vParameters.vParameters, ...node.vReturnParameters.vParameters].forEach((decl) => {
+      const type = getNodeType(decl, ast.compilerVersion);
+      functionArgsCheck(type, ast, isExternallyVisible(node), decl.storageLocation);
+    });
     if (node.kind === FunctionKind.Fallback) {
       if (node.vParameters.vParameters.length > 0)
         throw new WillNotSupportError(`${node.kind} with arguments is not supported`);
@@ -158,28 +149,78 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   visitTryStatement(_node: TryStatement, _ast: AST): void {
     throw new WillNotSupportError(`Try/Catch statements are not supported`);
   }
+}
 
-  private externalFunctionArgsCheck(
-    type: TypeNode,
-    ast: AST,
-    parentDynArray: boolean,
-  ): boolean | void {
-    if (type instanceof ArrayType) {
-      const elemType = type.elementT;
-      if (type instanceof ArrayType && type.size !== undefined && parentDynArray) {
-        throw new NotSupportedYetError(
-          `Static Arrays as elements of Dynamic arrays are not supported in calldata or as inputs to externally visible functions"`,
-        );
-      } else if (type instanceof ArrayType && type.size === undefined) {
-        throw new NotSupportedYetError(
-          `Inputs arguments with nested Dynamic Arrays not supported in external functions`,
-        );
-      }
-      this.externalFunctionArgsCheck(elemType, ast, false);
-    } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-      type.definition.vMembers.map((member) => {
-        this.externalFunctionArgsCheck(getNodeType(member, ast.compilerVersion), ast, false);
-      });
+// Cases not allowed:
+// Dynarray inside structs to/from external functions
+// Dynarray inside dynarray to/from external functions
+// Dynarray as direct child of static array to/from external functions
+// Static array as direct child of dynamic array in calldata or to/from external functions
+function functionArgsCheck(
+  type: TypeNode,
+  ast: AST,
+  externallyVisible: boolean,
+  dataLocation: DataLocation,
+): void {
+  if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+    if (externallyVisible && findDynArrayRecursive(type, ast)) {
+      throw new WillNotSupportError(
+        `Dynamic arrays are not allowed as (indirect) children of structs passed to/from external functions`,
+      );
     }
+    type.definition.vMembers.forEach((member) =>
+      functionArgsCheck(
+        getNodeType(member, ast.compilerVersion),
+        ast,
+        externallyVisible,
+        dataLocation,
+      ),
+    );
+  } else if (type instanceof ArrayType && type.size === undefined) {
+    if (externallyVisible && findDynArrayRecursive(type.elementT, ast)) {
+      throw new WillNotSupportError(
+        `Dynamic arrays are not allowed as (indirect) children of dynamic arrays passed to/from external functions`,
+      );
+    }
+    if (
+      (externallyVisible || dataLocation === DataLocation.CallData) &&
+      type.elementT instanceof ArrayType &&
+      type.elementT.size !== undefined
+    ) {
+      throw new WillNotSupportError(
+        `Static arrays are not allowed as direct children of dynamic arrays in calldata or when passed to/from external functions`,
+      );
+    }
+    functionArgsCheck(type.elementT, ast, externallyVisible, dataLocation);
+  } else if (type instanceof ArrayType) {
+    if (
+      (type.elementT instanceof ArrayType && type.elementT.size === undefined) ||
+      type.elementT instanceof BytesType
+    ) {
+      throw new WillNotSupportError(
+        `Dynamic arrays are not allowed as direct children of static arrays passed to/from external functions`,
+      );
+    }
+    functionArgsCheck(type.elementT, ast, externallyVisible, dataLocation);
+  }
+}
+
+// Returns whether the given type is a dynamic array, or contains one
+function findDynArrayRecursive(type: TypeNode, ast: AST): boolean {
+  if (type instanceof PointerType) {
+    return findDynArrayRecursive(type.to, ast);
+  } else if (type instanceof ArrayType) {
+    if (type.size === undefined) {
+      return true;
+    }
+    return findDynArrayRecursive(type.elementT, ast);
+  } else if (type instanceof BytesType) {
+    return true;
+  } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+    return type.definition.vMembers.some((member) =>
+      findDynArrayRecursive(getNodeType(member, ast.compilerVersion), ast),
+    );
+  } else {
+    return false;
   }
 }
