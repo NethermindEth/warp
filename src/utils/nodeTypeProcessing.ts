@@ -3,6 +3,7 @@ import {
   AddressType,
   ArrayType,
   BoolType,
+  BytesType,
   DataLocation,
   EnumDefinition,
   FunctionCall,
@@ -166,6 +167,7 @@ export function isDynamicCallDataArray(type: TypeNode): boolean {
 export function isReferenceType(type: TypeNode): boolean {
   return (
     type instanceof ArrayType ||
+    type instanceof BytesType ||
     type instanceof MappingType ||
     (type instanceof UserDefinedType && type.definition instanceof StructDefinition) ||
     (type instanceof PointerType && isReferenceType(type.to))
@@ -180,8 +182,7 @@ export function isDynamicStorageArray(type: TypeNode): boolean {
   return (
     type instanceof PointerType &&
     type.location === DataLocation.Storage &&
-    type.to instanceof ArrayType &&
-    type.to.size === undefined
+    ((type.to instanceof ArrayType && type.to.size === undefined) || type.to instanceof BytesType)
   );
 }
 

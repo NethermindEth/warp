@@ -3,6 +3,7 @@ import {
   ArrayType,
   Assignment,
   Block,
+  BytesType,
   ContractDefinition,
   ContractKind,
   DataLocation,
@@ -44,7 +45,8 @@ export class StorageAllocator extends ASTMapper {
       const type = getNodeType(v, ast.compilerVersion);
       if (
         generalizeType(type)[0] instanceof MappingType ||
-        (type instanceof ArrayType && type.size === undefined)
+        (type instanceof ArrayType && type.size === undefined) ||
+        type instanceof BytesType
       ) {
         const width = CairoType.fromSol(type, ast, TypeConversionContext.StorageAllocation).width;
         dynamicAllocations.set(v, ++usedNames);
