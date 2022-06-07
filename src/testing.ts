@@ -140,6 +140,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/memberAccess/send', 'WillNotSupport'],
     ['example_contracts/memberAccess/staticcall', 'WillNotSupport'],
     ['example_contracts/memberAccess/transfer', 'WillNotSupport'],
+    ['example_contracts/msg', 'WillNotSupport'],
     ['example_contracts/mutableReferences/deepDelete', 'Success'],
     ['example_contracts/mutableReferences/memory', 'Success'],
     ['example_contracts/mutableReferences/mutableReferences', 'Success'],
@@ -161,8 +162,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/state_variables/scalars', 'Success'],
     ['example_contracts/state_variables/enums', 'Success'],
     ['example_contracts/state_variables/arrays', 'Success'],
-    // Tuple initialization not supported yet
-    ['example_contracts/state_variables/arrays_init', 'NotSupportedYet'],
+    ['example_contracts/state_variables/arrays_init', 'Success'],
     ['example_contracts/state_variables/mappings', 'Success'],
     ['example_contracts/state_variables/structs', 'Success'],
     ['example_contracts/state_variables/structs_nested', 'Success'],

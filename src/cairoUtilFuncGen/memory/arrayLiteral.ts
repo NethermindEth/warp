@@ -52,7 +52,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     return createCallToFunction(
       stub,
       mapRange(size, (n) =>
-        createNumberLiteral(parseInt(node.hexValue.slice(2 * n, 2 * n + 2)), this.ast),
+        createNumberLiteral(parseInt(node.hexValue.slice(2 * n, 2 * n + 2), 16), this.ast),
       ),
       this.ast,
     );

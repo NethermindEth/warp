@@ -92,23 +92,25 @@ export class BytesConverter extends ASTMapper {
         ? createUint256TypeName(ast)
         : typeNameFromTypeNode(getNodeType(node.vIndexExpression, ast.compilerVersion), ast);
 
+    const stubParams: [string, TypeName][] = [
+      ['base', baseTypeName],
+      ['index', indexTypeName],
+    ];
+    const callArgs = [node.vBaseExpression, node.vIndexExpression];
+    if (baseTypeName.typeString !== 'bytes32') {
+      stubParams.push(['width', createUint8TypeName(ast)]);
+      callArgs.push(createNumberLiteral(width, ast, 'uint8'));
+    }
+
     const functionStub = createCairoFunctionStub(
       selectWarplibFunction(baseTypeName, indexTypeName),
-      [
-        ['base', baseTypeName],
-        ['index', indexTypeName],
-        ['width', createUint8TypeName(ast)],
-      ],
+      stubParams,
       [['res', createUint8TypeName(ast)]],
       ['bitwise_ptr', 'range_check_ptr'],
       ast,
       node,
     );
-    const call = createCallToFunction(
-      functionStub,
-      [node.vBaseExpression, node.vIndexExpression, createNumberLiteral(width, ast, 'uint8')],
-      ast,
-    );
+    const call = createCallToFunction(functionStub, callArgs, ast);
 
     ast.registerImport(
       call,

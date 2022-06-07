@@ -1,31 +1,34 @@
 import {
-  IndexAccess,
-  InlineAssembly,
-  RevertStatement,
-  ErrorDefinition,
-  Conditional,
-  MemberAccess,
   AddressType,
-  FunctionType,
-  getNodeType,
-  VariableDeclaration,
-  FunctionKind,
+  ArrayType,
+  ArrayTypeName,
+  BytesType,
+  Conditional,
+  DataLocation,
+  ElementaryTypeName,
+  ErrorDefinition,
+  ExternalReferenceType,
   FunctionCall,
   FunctionCallKind,
-  SourceUnit,
+  FunctionCallOptions,
   FunctionDefinition,
-  ArrayType,
+  FunctionKind,
+  FunctionType,
+  getNodeType,
+  Identifier,
+  IndexAccess,
+  InlineAssembly,
+  MemberAccess,
+  NewExpression,
+  ParameterList,
+  PointerType,
+  RevertStatement,
+  SourceUnit,
+  StructDefinition,
   TryStatement,
   TypeNode,
   UserDefinedType,
-  StructDefinition,
-  NewExpression,
-  ArrayTypeName,
-  ParameterList,
-  ElementaryTypeName,
-  BytesType,
-  DataLocation,
-  PointerType,
+  VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -52,11 +55,24 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   visitConditional(_node: Conditional, _ast: AST): void {
     throw new WillNotSupportError('Conditional expressions (ternary operator) are not supported');
   }
+  visitFunctionCallOptions(_node: FunctionCallOptions, _ast: AST): void {
+    throw new WillNotSupportError(
+      'Function call options, such as {gas:X} and {value:X} are not supported',
+    );
+  }
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FunctionType)
       throw new WillNotSupportError('Function objects are not supported');
     this.commonVisit(node, ast);
+  }
+
+  visitIdentifier(node: Identifier, _ast: AST): void {
+    if (node.name === 'msg' && node.vIdentifierType === ExternalReferenceType.Builtin) {
+      if (!(node.parent instanceof MemberAccess && node.parent.memberName === 'sender')) {
+        throw new WillNotSupportError(`msg object not supported outside of 'msg.sender'`);
+      }
+    }
   }
 
   visitSourceUnit(sourceUnit: SourceUnit, ast: AST): void {
