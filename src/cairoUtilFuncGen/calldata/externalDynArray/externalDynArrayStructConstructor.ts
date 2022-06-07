@@ -9,6 +9,9 @@ import {
   Expression,
   ASTNode,
   generalizeType,
+  BytesType,
+  FixedBytesType,
+  TypeNode,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
@@ -22,6 +25,7 @@ import { StringIndexedFuncGen } from '../../base';
 import { createIdentifier } from '../../../utils/nodeTemplates';
 import { FunctionStubKind } from '../../../ast/cairoNodes';
 import { typeNameFromTypeNode } from '../../../utils/utils';
+import { printTypeNode } from '../../../utils/astPrinter';
 
 const INDENT = ' '.repeat(4);
 
@@ -33,7 +37,10 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     nodeInSourceUnit?: ASTNode,
   ): FunctionCall | undefined {
     const type = generalizeType(getNodeType(astNode, this.ast.compilerVersion))[0];
-    assert(type instanceof ArrayType && type.size === undefined);
+    assert(
+      (type instanceof ArrayType && type.size === undefined) || type instanceof BytesType,
+      `Attempted to create dynArray struct for non-dynarray type ${printTypeNode(type)}`,
+    );
 
     const name = this.getOrCreate(type);
     const structDefStub = createCairoFunctionStub(
@@ -60,8 +67,8 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     }
   }
 
-  getOrCreate(type: ArrayType): string {
-    const elemType = type.elementT;
+  getOrCreate(type: ArrayType | BytesType): string {
+    const elemType = getElementType(type);
     const elementCairoType = CairoType.fromSol(
       elemType,
       this.ast,
@@ -86,5 +93,13 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     });
 
     return name;
+  }
+}
+
+function getElementType(type: ArrayType | BytesType): TypeNode {
+  if (type instanceof ArrayType) {
+    return type.elementT;
+  } else {
+    return new FixedBytesType(1);
   }
 }
