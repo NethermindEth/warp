@@ -100,7 +100,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(toLoc: felt, fromLoc: felt) -> (retLoc: felt):`,
+        `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt):`,
         `    alloc_locals`,
         ...members.map((memberType): string => {
           const width = CairoType.fromSol(
@@ -115,14 +115,14 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
               memberType.definition instanceof StructDefinition)
           ) {
             const memberCopyFunc = this.getOrCreate(memberType, memberType);
-            code = `${memberCopyFunc}(${add('toLoc', offset)}, ${add('fromLoc', offset)})`;
+            code = `${memberCopyFunc}(${add('to_loc', offset)}, ${add('from_loc', offset)})`;
           } else {
             code = mapRange(width, (index) => copyAtOffset(index + offset)).join('\n');
           }
           offset += width;
           return code;
         }),
-        `    return (toLoc)`,
+        `    return (to_loc)`,
         `end`,
       ].join('\n'),
     };
@@ -298,11 +298,11 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `        return ${funcName}_elem(to_loc, from_elem_loc + ${fromElementCairoType.width}, length, next_index)`,
         `    end`,
         `end`,
-        `func ${funcName}${implicits}(to_loc: felt, fromLoc: felt) -> (retLoc: felt):`,
+        `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt):`,
         `    alloc_locals`,
         `    let fromLength = ${uint256(narrowBigIntSafe(fromType.size))}`,
         `    ${toLengthMapping}.write(to_loc, fromLength)`,
-        `    ${funcName}_elem(to_loc, fromLoc, fromLength, Uint256(0,0))`,
+        `    ${funcName}_elem(to_loc, from_loc, fromLength, Uint256(0,0))`,
         `    return (to_loc)`,
         `end`,
       ].join('\n'),
@@ -377,10 +377,10 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(toLoc : felt, fromLoc : felt) -> (retLoc : felt):`,
+        `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt):`,
         `    alloc_locals`,
         ...mapRange(width, copyAtOffset),
-        `    return (toLoc)`,
+        `    return (to_loc)`,
         `end`,
       ].join('\n'),
     };
@@ -392,8 +392,8 @@ const implicits =
 
 function copyAtOffset(n: number): string {
   return [
-    `let (copy) = WARP_STORAGE.read(${add('fromLoc', n)})`,
-    `WARP_STORAGE.write(${add('toLoc', n)}, copy)`,
+    `let (copy) = WARP_STORAGE.read(${add('from_loc', n)})`,
+    `WARP_STORAGE.write(${add('to_loc', n)}, copy)`,
   ].join('\n');
 }
 
@@ -406,18 +406,20 @@ function createElementCopy(
     if (toElementCairoType instanceof WarpLocation) {
       return (to: string, from: string): string =>
         [
-          `let (fromElemId) = readId(${from})`,
-          `let (toElemId) = readId(${to})`,
-          `${elementCopyFunc}(toElemId, fromElemId)`,
+          `let (from_elem_id) = readId(${from})`,
+          `let (to_elem_id) = readId(${to})`,
+          `${elementCopyFunc}(to_elem_id, from_elem_id)`,
         ].join('\n');
     } else {
       return (to: string, from: string): string =>
-        [`let (fromElemId) = readId(${from})`, `${elementCopyFunc}(${to}, fromElemId)`].join('\n');
+        [`let (from_elem_id) = readId(${from})`, `${elementCopyFunc}(${to}, from_elem_id)`].join(
+          '\n',
+        );
     }
   } else {
     if (toElementCairoType instanceof WarpLocation) {
       return (to: string, from: string): string =>
-        [`let (toElemId) = readId(${to})`, `${elementCopyFunc}(toElemId, ${from})`].join('\n');
+        [`let (to_elem_id) = readId(${to})`, `${elementCopyFunc}(to_elem_id, ${from})`].join('\n');
     } else {
       return (to: string, from: string): string =>
         [`${elementCopyFunc}(${to}, ${from})`].join('\n');
