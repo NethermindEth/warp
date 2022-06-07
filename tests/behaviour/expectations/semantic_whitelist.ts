@@ -129,11 +129,11 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/checked_add_v2.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/checked_called_by_unchecked.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/checked_modifier_called_by_unchecked.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/divisiod_by_zero.sol',
+    'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/divisiod_by_zero.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/exp_associativity.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/signed_mod.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/unchecked_called_by_checked.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/unchecked_div_by_zero.sol',
+    'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/unchecked_div_by_zero.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/check_var_init.sol', // REQUIRES CAIRO 0.9 - uses new
   ],
   //---------Array tests 143 passing, 424 pending, 164 failing, 16 transcode Error
