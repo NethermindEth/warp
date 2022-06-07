@@ -93,6 +93,7 @@ export const expectations = flatten(
                   'Error message: Error: value out-of-bounds. Value must be less than 2**128.',
                 ],
               ]),
+              Expect.Simple('length', [], ['4', '32']),
             ],
           ),
           new File(
