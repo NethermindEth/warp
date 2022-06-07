@@ -171,27 +171,38 @@ export class StaticToDynArray extends StringIndexedFuncGen {
 
     assert(sizeSource !== undefined && sizeTarget !== undefined);
     // Make sure these are the right way round.
+    let offset = 0;
     const conversionCode = mapRange(sizeSource, (index) => {
       if (targetElementType instanceof IntType) {
         assert(sourceElementType instanceof IntType);
-        return targetElementType.signed
-          ? `    let (target_elem${index}) = warp_int${sourceElementType.nBits}_to_int${
-              targetElementType.nBits
-            }(source_elem[${index}])
+        if (targetElementType.signed) {
+          this.requireImport(
+            'warplib.maths.int_conversions',
+            `warp_int${sourceElementType.nBits}_to_int${targetElementType.nBits}`,
+          );
+          const code = `    let (target_elem${index}) = warp_int${sourceElementType.nBits}_to_int${
+            targetElementType.nBits
+          }(source_elem[${index}])
              ${this.storageWriteGen.getOrCreate(targetElementType)}(${add(
-              'loc',
-              cairoTargetElementType.width,
-            )}, target_elem${index})`
-          : `    let (target_elem${index}) = felt_to_uint256(source_elem[${index}])
+            'loc',
+            offset,
+          )}, target_elem${index})`;
+          offset = offset + cairoTargetElementType.width;
+          return code;
+        } else {
+          `    let (target_elem${index}) = felt_to_uint256(source_elem[${index}])
              ${this.storageWriteGen.getOrCreate(targetElementType)}(${add(
-              'loc',
-              cairoTargetElementType.width,
-            )}, target_elem${index})`;
+            'loc',
+            cairoTargetElementType.width,
+          )}, target_elem${index})`;
+        }
       } else {
-        return `    ${this.getOrCreate(
-          targetElementType,
-          sourceElementType,
-        )}(source_elem[${index}], ${add('loc', cairoTargetElementType.width)})`;
+        const code = `    ${this.getOrCreate(targetElementType, sourceElementType)}(${add(
+          'loc',
+          offset,
+        )}, source_elem[${index}])`;
+        offset = offset + cairoTargetElementType.width;
+        return code;
       }
     });
 
@@ -203,10 +214,14 @@ export class StaticToDynArray extends StringIndexedFuncGen {
     //   )}(loc + ${storageOffset}, target_elem${index})`;
     // });
 
+    // TODO check implicit order does not matter.
+    const implicit =
+      '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*, warp_memory : DictAccess*}';
     const code = [
-      `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt, source_elem: ${cairoSourceTypeString}) -> (loc: felt):`,
+      `func ${funcName}${implicit}(loc: felt, source_elem: ${cairoSourceTypeString}) -> (loc: felt):`,
+      `alloc_locals`,
       ...conversionCode,
-      '    return (value)',
+      '    return (loc)',
       'end',
     ].join('\n');
 

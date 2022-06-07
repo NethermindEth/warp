@@ -166,7 +166,9 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           .getUtilFuncGen(node)
           .calldata.convert.genIfNecessary(node.vLeftHandSide, node.vRightHandSide);
         if (result) {
-          ast.replaceNode(node.vRightHandSide, convertExpression, node);
+          const parent = node.parent;
+          assert(parent !== undefined);
+          ast.replaceNode(node, convertExpression, parent);
         } else {
           funcGen = ast.getUtilFuncGen(node).calldata.toStorage;
         }
