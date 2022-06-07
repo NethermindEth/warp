@@ -214,9 +214,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
         `        return ()`,
         `    end`,
         ...indexCheck,
-        `   ${funcName}(len = len - 1, ptr = ptr + ${
-          ptrType.to instanceof CairoFelt ? '1' : cairoElmType.toString() + '.SIZE'
-        })`,
+        `   ${funcName}(len = len - 1, ptr = ptr + ${ptrType.to.width})`,
         `    return ()`,
         `end`,
       ].join('\n'),
