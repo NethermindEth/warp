@@ -21,7 +21,6 @@ import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/ut
 import { uint256 } from '../../warplib/utils';
 import { add, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
-import { StorageReadGen } from './storageRead';
 
 /*
   Generates functions to copy data from WARP_STORAGE to warp_memory
