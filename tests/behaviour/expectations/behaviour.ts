@@ -778,6 +778,13 @@ export const expectations = flatten(
                 '0',
               ],
             ]),
+            Expect.Simple('scalingUint', ['3', '2', '3', '5'], ['3', '2', '0', '3', '0', '5', '0']),
+            Expect.Simple('scalingInt', ['1', '255'], ['1', '4294967295']),
+            Expect.Simple(
+              'identity',
+              [],
+              [...['3', '2', '3', '5'], ...['3', '2', '0', '3', '0', '5', '0']],
+            ),
           ]),
           File.Simple('dynamic_arrays', [
             new Expect('copy values', [
