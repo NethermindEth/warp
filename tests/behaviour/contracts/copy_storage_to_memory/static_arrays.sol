@@ -12,6 +12,9 @@ contract WARP {
   uint256[3] w = [uint256(1), uint256(2), uint256(3)];
   uint256[6] z = [uint256(1), uint256(2), uint256(3), uint256(4), uint256(5), uint256(6)];
 
+  uint8[][3] nested;
+  uint8[][6] nestedLarge;
+
   constructor() {
       y[0] = 5;
       y[5] = 10;
@@ -41,6 +44,33 @@ contract WARP {
 
   function scalarInTuple() public view returns (uint[3] memory) {
     return [1,scalar, x[2]];
+  }
+
+  function getNested(uint8[] memory a, uint8[] memory b, uint8[] memory c) public returns (uint8[] memory, uint8[] memory, uint8[] memory) {
+    uint8[][3] memory m = [a, b, c];
+    nested = m;
+
+    return (nested[0], nested[1], nested[2]);
+  }
+
+  function getNestedLarge(
+      uint8[] memory a,
+      uint8[] memory b,
+      uint8[] memory c,
+      uint8[] memory d,
+      uint8[] memory e,
+      uint8[] memory f
+  ) public returns (
+  uint8[] memory,
+  uint8[] memory,
+  uint8[] memory,
+  uint8[] memory,
+  uint8[] memory,
+  uint8[] memory) {
+    uint8[][6] memory m = [a, b, c, d, e, f];
+    nestedLarge = m;
+
+    return (nestedLarge[0], nestedLarge[1], nestedLarge[2], nestedLarge[3], nestedLarge[4], nestedLarge[5]);
   }
 }
 

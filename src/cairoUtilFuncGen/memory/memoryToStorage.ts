@@ -153,14 +153,14 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     let copyCode: string;
     if (type.elementT instanceof ArrayType && type.elementT.size === undefined) {
       copyCode = [
-        `    let (elemName) = readId(storage_loc)`,
+        `    let (elemName) = readId(loc)`,
         `    let (read) = dict_read{dict_ptr=warp_memory}(mem_loc)`,
         `    ${this.getOrCreate(type.elementT)}(elemName, read)`,
       ].join('\n');
     } else if (isComplexType(type.elementT)) {
       copyCode = [
         `    let (read) = dict_read{dict_ptr=warp_memory}(mem_loc)`,
-        `    ${this.getOrCreate(type.elementT)}(storage_loc, read)`,
+        `    ${this.getOrCreate(type.elementT)}(loc, read)`,
       ].join('\n');
     } else {
       copyCode = mapRange(elementStorageWidth, (n) =>
