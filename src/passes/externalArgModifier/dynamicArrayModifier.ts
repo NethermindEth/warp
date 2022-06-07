@@ -3,6 +3,7 @@ import assert = require('assert');
 import {
   ArrayTypeName,
   DataLocation,
+  ElementaryTypeName,
   FunctionCall,
   FunctionDefinition,
   VariableDeclaration,
@@ -79,8 +80,8 @@ export class DynArrayModifier extends ASTMapper {
             node.vParameters.vParameters.includes(decl) &&
             (decl.storageLocation === DataLocation.Memory ||
               decl.storageLocation == DataLocation.CallData) &&
-            decl.vType instanceof ArrayTypeName &&
-            decl.vType.vLength === undefined,
+            ((decl.vType instanceof ArrayTypeName && decl.vType.vLength === undefined) ||
+              (decl.vType instanceof ElementaryTypeName && decl.vType.name === 'bytes')),
         )
         .forEach(([varDecl, ids]) => {
           // Irrespective of the whether the storage location is Memory or Calldata a struct is created to store the len & ptr

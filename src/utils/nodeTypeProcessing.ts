@@ -6,6 +6,7 @@ import {
   BytesType,
   DataLocation,
   EnumDefinition,
+  FixedBytesType,
   FunctionCall,
   FunctionCallKind,
   FunctionType,
@@ -155,12 +156,19 @@ export function intTypeForLiteral(typestring: string): IntType {
   }
 }
 
+export function isDynamicArray(type: TypeNode): boolean {
+  return (
+    (type instanceof PointerType && isDynamicArray(type.to)) ||
+    (type instanceof ArrayType && type.size === undefined) ||
+    type instanceof BytesType
+  );
+}
+
 export function isDynamicCallDataArray(type: TypeNode): boolean {
   return (
     type instanceof PointerType &&
     type.location === DataLocation.CallData &&
-    type.to instanceof ArrayType &&
-    type.to.size === undefined
+    isDynamicArray(type.to)
   );
 }
 
@@ -180,18 +188,7 @@ export function isValueType(type: TypeNode): boolean {
 
 export function isDynamicStorageArray(type: TypeNode): boolean {
   return (
-    type instanceof PointerType &&
-    type.location === DataLocation.Storage &&
-    ((type.to instanceof ArrayType && type.to.size === undefined) || type.to instanceof BytesType)
-  );
-}
-
-export function isComplexStorageType(type: TypeNode): boolean {
-  return (
-    type instanceof PointerType &&
-    type.location === DataLocation.Storage &&
-    (type.to instanceof ArrayType ||
-      (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
+    type instanceof PointerType && type.location === DataLocation.Storage && isDynamicArray(type.to)
   );
 }
 
@@ -200,6 +197,7 @@ export function isComplexMemoryType(type: TypeNode): boolean {
     type instanceof PointerType &&
     type.location === DataLocation.Memory &&
     (type.to instanceof ArrayType ||
+      type.to instanceof BytesType ||
       (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
   );
 }
@@ -212,6 +210,8 @@ export function isMapping(type: TypeNode): boolean {
 export function checkableType(type: TypeNode): boolean {
   return (
     type instanceof ArrayType ||
+    type instanceof BytesType ||
+    type instanceof FixedBytesType ||
     (type instanceof UserDefinedType &&
       (type.definition instanceof StructDefinition || type.definition instanceof EnumDefinition)) ||
     type instanceof AddressType ||
