@@ -59,7 +59,7 @@ export abstract class CairoType {
         }
         return new WarpLocation();
       } else if (context === TypeConversionContext.Ref) {
-        return new CairoFelt();
+        return new MemoryLocation();
       } else {
         const recursionContext =
           context === TypeConversionContext.MemoryAllocation ? TypeConversionContext.Ref : context;
@@ -95,7 +95,7 @@ export abstract class CairoType {
       if (context !== TypeConversionContext.Ref) {
         return CairoType.fromSol(tp.to, ast, context);
       }
-      return new CairoFelt();
+      return new MemoryLocation();
     } else if (tp instanceof StringType) {
       return new CairoFelt();
     } else if (tp instanceof UserDefinedType) {
@@ -103,7 +103,7 @@ export abstract class CairoType {
         return CairoType.fromSol(enumToIntType(tp.definition), ast);
       } else if (tp.definition instanceof StructDefinition) {
         if (context === TypeConversionContext.Ref) {
-          return new CairoFelt();
+          return new MemoryLocation();
         } else if (context === TypeConversionContext.MemoryAllocation) {
           return new CairoStruct(
             tp.definition.name,
@@ -264,6 +264,8 @@ export class WarpLocation extends CairoFelt {
     return `[Id]`;
   }
 }
+
+export class MemoryLocation extends CairoFelt {}
 
 export const CairoUint256 = new CairoStruct(
   'Uint256',

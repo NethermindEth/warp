@@ -8,7 +8,7 @@ import {
   FunctionStateMutability,
   generalizeType,
 } from 'solc-typed-ast';
-import { CairoFelt, CairoType, CairoUint256 } from '../../utils/cairoTypeSystem';
+import { CairoFelt, CairoType, CairoUint256, MemoryLocation } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
@@ -44,7 +44,10 @@ export class MemoryReadGen extends StringIndexedFuncGen {
   }
 
   getOrCreate(typeToRead: CairoType): string {
-    if (typeToRead instanceof CairoFelt) {
+    if (typeToRead instanceof MemoryLocation) {
+      this.requireImport('warplib.memory', 'wm_read_id');
+      return 'wm_read_id';
+    } else if (typeToRead instanceof CairoFelt) {
       this.requireImport('warplib.memory', 'wm_read_felt');
       return 'wm_read_felt';
     } else if (typeToRead.fullStringRepresentation === CairoUint256.fullStringRepresentation) {
