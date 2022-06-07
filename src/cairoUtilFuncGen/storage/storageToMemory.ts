@@ -302,7 +302,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       ].join('\n');
     } else if (type.elementT instanceof ArrayType) {
       return [
-        `   let (dyn_loc) = WARP_STORAGE.read(${storageLoc})`,
+        `   let (dyn_loc) = readId(${storageLoc})`,
         `   let (copy) = ${this.getOrCreate(type.elementT)}(dyn_loc)`,
         `   dict_write{dict_ptr=warp_memory}(${memoryLoc}, copy)`,
       ].join('\n');
