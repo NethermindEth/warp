@@ -3,8 +3,13 @@ import { ImportDirective, SourceUnit } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 
+const ALLOWED_PATH_REGEX = /([a-zA-Z]:)?[\w-\/\\]*/;
+
 export function manglePath(path: string): string {
   return path.replaceAll('_', '__').replaceAll('-', '_');
+}
+
+export function checkPath(path: string) {
 }
 
 export class FilePathMangler extends ASTMapper {
