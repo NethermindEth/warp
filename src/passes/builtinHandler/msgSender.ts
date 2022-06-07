@@ -1,4 +1,4 @@
-import { MemberAccess, Identifier } from 'solc-typed-ast';
+import { MemberAccess, Identifier, ExternalReferenceType } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
@@ -9,6 +9,7 @@ export class MsgSender extends ASTMapper {
     if (
       node.vExpression instanceof Identifier &&
       node.vExpression.name === 'msg' &&
+      node.vExpression.vIdentifierType === ExternalReferenceType.Builtin &&
       node.memberName === 'sender'
     ) {
       const replacementCall = createCallToFunction(
