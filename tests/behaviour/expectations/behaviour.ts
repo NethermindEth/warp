@@ -1903,7 +1903,8 @@ export const expectations = flatten(
           ]),
           File.Simple('remainder', [
             Expect.Simple('remainder8safe', ['103', '5'], ['3']),
-            Expect.Simple('remainder8signedsafe', ['137', '5'], ['2']),
+            //-119 % 5 = -4
+            Expect.Simple('remainder8signedsafe', ['137', '5'], ['252']),
             Expect.Simple('remainder8unsafe', ['215', '9'], ['8']),
             Expect.Simple('remainder8signedunsafe', ['2', '5'], ['2']),
             Expect.Simple('remainder256safe', ['255', '23', '5', '0'], ['3', '0']),
