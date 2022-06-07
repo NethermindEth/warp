@@ -23,21 +23,21 @@ contract WARP {
     }
   }
 
-  function remainder8signedsafe (uint8 lhs, uint8 rhs) pure public returns (uint8) {
+  function remainder8signedsafe (int8 lhs, int8 rhs) pure public returns (int8) {
     return lhs % rhs;
   }
 
-  function remainder8signedunsafe (uint8 lhs, uint8 rhs) pure public returns (uint8) {
+  function remainder8signedunsafe (int8 lhs, int8 rhs) pure public returns (int8) {
     unchecked {
       return lhs % rhs;
     }
   }
 
-  function remainder256signedsafe (uint256 lhs, uint256 rhs) pure public returns (uint256) {
+  function remainder256signedsafe (int256 lhs, int256 rhs) pure public returns (int256) {
     return lhs % rhs;
   }
 
-  function remainder256signedunsafe (uint256 lhs, uint256 rhs) pure public returns (uint256) {
+  function remainder256signedunsafe (int256 lhs, int256 rhs) pure public returns (int256) {
     unchecked {
       return lhs % rhs;
     }

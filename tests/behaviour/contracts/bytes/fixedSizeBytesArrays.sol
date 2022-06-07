@@ -29,6 +29,10 @@ contract WARP {
     return d;
   }
 
+  function literalByte() public pure returns (bytes4) {
+	  return "WARP";
+  }
+
   function shiftBytesBy(uint8 u) external view returns (bytes2) {
     return a << u;
   }
@@ -61,5 +65,9 @@ contract WARP {
 	function nestedBitwiseOp(bytes2 k, bytes2 i) public view returns (bytes2) {
 		bytes2 temp = _nestedBitwiseOp(k, i);
 		return i & temp;
+	}
+
+	function length() public view returns (uint8, uint8) {
+		return (b.length, z.length);
 	}
 }

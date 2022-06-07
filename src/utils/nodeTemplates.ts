@@ -137,6 +137,13 @@ export function createNumberLiteral(
   return node;
 }
 
+export function createNumberTypeName(width: number, signed: boolean, ast: AST): ElementaryTypeName {
+  const typestring = `${signed ? '' : 'u'}int${width}`;
+  const typeName = new ElementaryTypeName(ast.reserveId(), '', typestring, typestring);
+  ast.setContextRecursive(typeName);
+  return typeName;
+}
+
 export function createStringLiteral(value: string, ast: AST): Literal {
   const node = new Literal(
     ast.reserveId(),

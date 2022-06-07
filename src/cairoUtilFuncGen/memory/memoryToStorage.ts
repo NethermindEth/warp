@@ -153,20 +153,20 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     let copyCode: string;
     if (type.elementT instanceof ArrayType && type.elementT.size === undefined) {
       copyCode = [
-        `    let (elemName) = readId(storage_loc)`,
+        `    let (elemName) = readId(loc)`,
         `    let (read) = dict_read{dict_ptr=warp_memory}(mem_loc)`,
         `    ${this.getOrCreate(type.elementT)}(elemName, read)`,
       ].join('\n');
     } else if (isComplexType(type.elementT)) {
       copyCode = [
         `    let (read) = dict_read{dict_ptr=warp_memory}(mem_loc)`,
-        `    ${this.getOrCreate(type.elementT)}(storage_loc, read)`,
+        `    ${this.getOrCreate(type.elementT)}(loc, read)`,
       ].join('\n');
     } else {
       copyCode = mapRange(elementStorageWidth, (n) =>
         [
           `    let (copy) = dict_read{dict_ptr=warp_memory}(${add('mem_loc', n)})`,
-          `    WARP_STORAGE.write(${add('loc', n)}, copy)`,
+          `    WARP_STORAGE.write(${add('storage_loc', n)}, copy)`,
         ].join('\n'),
       ).join('\n');
     }
@@ -174,14 +174,14 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(loc: felt, mem_loc : felt, length: felt) -> ():`,
+        `func ${funcName}_elem${implicits}(storage_loc: felt, mem_loc : felt, length: felt) -> ():`,
         `    alloc_locals`,
         `    if length == 0:`,
         `        return ()`,
         `    end`,
         `    let index = length - 1`,
         copyCode,
-        `    return ${funcName}_elem(${add('loc', elementStorageWidth)}, ${add(
+        `    return ${funcName}_elem(${add('storage_loc', elementStorageWidth)}, ${add(
           'mem_loc',
           elementMemoryWidth,
         )}, index)`,
