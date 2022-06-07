@@ -193,6 +193,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/unsupportedFunctions/addmod', `WillNotSupport`],
     // Supported precompiles
     ['example_contracts/precompiles/ecrecover', 'Success'],
+    ['example_contracts/precompiles/keccak', 'Success'],
     // Uses bytes memory
     ['example_contracts/unsupportedFunctions/shadowAbi', `Success`],
     // Uses bytes memory
