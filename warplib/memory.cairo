@@ -307,7 +307,9 @@ func wm_copy{warp_memory : DictAccess*}(src : felt, dst : felt, length : felt):
 end
 
 # Converts an array in memory to a felt array
-func wm_to_felt_array{range_check_ptr, warp_memory : DictAccess*}(loc : felt) -> (length : felt, output : felt*):
+func wm_to_felt_array{range_check_ptr, warp_memory : DictAccess*}(loc : felt) -> (
+    length : felt, output : felt*
+):
     alloc_locals
     let (output : felt*) = alloc()
 
