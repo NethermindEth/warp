@@ -5,7 +5,7 @@ const SHIFT = 2 ** 128
 
 func warp_mod{range_check_ptr}(lhs : felt, rhs : felt) -> (res : felt):
     if rhs == 0:
-        with_attr error_message("Division by zero error"):
+        with_attr error_message("Modulo by zero error"):
             assert 1 = 0
         end
     end
@@ -18,7 +18,7 @@ end
 func warp_mod256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):
     if rhs.high == 0:
         if rhs.low == 0:
-            with_attr error_message("Division by zero error"):
+            with_attr error_message("Modulo by zero error"):
                 assert 1 = 0
             end
         end
