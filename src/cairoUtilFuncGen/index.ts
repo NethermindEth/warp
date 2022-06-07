@@ -30,7 +30,7 @@ import { CalldataToStorageGen } from './calldata/calldataToStorage';
 import { StorageToStorageGen } from './storage/copyToStorage';
 import { StorageToCalldataGen } from './storage/storageToCalldata';
 import { SourceUnit } from 'solc-typed-ast';
-import { MemoryImplicitConversionGen } from './memory/implicitCoversion';
+import { MemoryImplicitConversionGen } from './memory/implicitConversion';
 import { MemoryArrayConcat } from './memory/arrayConcat';
 
 export class CairoUtilFuncGen {
@@ -87,6 +87,13 @@ export class CairoUtilFuncGen {
 
     const memoryToStorage = new MemoryToStorageGen(this.implementation.dynArray, ast, sourceUnit);
     const storageWrite = new StorageWriteGen(ast, sourceUnit);
+    const storageToStorage = new StorageToStorageGen(this.implementation.dynArray, ast, sourceUnit);
+    const calldataToStorage = new CalldataToStorageGen(
+      this.implementation.dynArray,
+      storageWrite,
+      ast,
+      sourceUnit,
+    );
     const externalDynArrayStructConstructor = new ExternalDynArrayStructConstructor(
       ast,
       sourceUnit,
@@ -128,6 +135,8 @@ export class CairoUtilFuncGen {
           this.implementation.dynArray,
           storageWrite,
           memoryToStorage,
+          storageToStorage,
+          calldataToStorage,
           ast,
           sourceUnit,
         ),
@@ -144,13 +153,8 @@ export class CairoUtilFuncGen {
         ast,
         sourceUnit,
       ),
-      toMemory: new StorageToMemoryGen(
-        this.implementation.dynArray,
-        storageReadGen,
-        ast,
-        sourceUnit,
-      ),
-      toStorage: new StorageToStorageGen(this.implementation.dynArray, ast, sourceUnit),
+      toMemory: new StorageToMemoryGen(this.implementation.dynArray, ast, sourceUnit),
+      toStorage: storageToStorage,
       write: storageWrite,
     };
     this.externalFunctions = {
@@ -161,12 +165,7 @@ export class CairoUtilFuncGen {
     };
     this.calldata = {
       toMemory: new CallDataToMemoryGen(ast, sourceUnit),
-      toStorage: new CalldataToStorageGen(
-        this.implementation.dynArray,
-        storageWrite,
-        ast,
-        sourceUnit,
-      ),
+      toStorage: calldataToStorage,
     };
   }
 

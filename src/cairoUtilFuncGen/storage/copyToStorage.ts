@@ -54,7 +54,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return createCallToFunction(functionStub, [to, from], this.ast);
   }
 
-  private getOrCreate(toType: TypeNode, fromType: TypeNode): string {
+  getOrCreate(toType: TypeNode, fromType: TypeNode): string {
     const key = `${fromType.pp()}->${toType.pp()}`;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
