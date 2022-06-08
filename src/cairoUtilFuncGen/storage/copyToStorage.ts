@@ -21,6 +21,7 @@ import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/ut
 import { uint256 } from '../../warplib/utils';
 import { add, CairoFunction, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
+import { StorageDeleteGen } from './storageDelete';
 
 /*
   Generates functions to copy data from WARP_STORAGE to WARP_STORAGE
@@ -30,7 +31,12 @@ import { DynArrayGen } from './dynArray';
 */
 
 export class StorageToStorageGen extends StringIndexedFuncGen {
-  constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
+  constructor(
+    private dynArrayGen: DynArrayGen,
+    private storageDeleteGen: StorageDeleteGen,
+    ast: AST,
+    sourceUnit: SourceUnit,
+  ) {
     super(ast, sourceUnit);
   }
   gen(to: Expression, from: Expression, nodeInSourceUnit?: ASTNode): Expression {
@@ -147,6 +153,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
 
     const elementCopyFunc = this.getOrCreate(toType.elementT, fromType.elementT);
 
+    const toElementT = toType.elementT;
     const toElemType = CairoType.fromSol(
       toType.elementT,
       this.ast,
@@ -159,13 +166,27 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     );
     const copyCode = createElementCopy(toElemType, fromElemType, elementCopyFunc);
 
+    const fromSize = narrowBigIntSafe(fromType.size);
+    const toSize = narrowBigIntSafe(toType.size);
+    const stopRecursion =
+      fromSize === toSize
+        ? [`if index == ${fromSize}:`, `return ()`, `end`]
+        : [
+            `let (lesser) = is_le(index, ${fromSize - 1})`,
+            `if lesser == 0:`,
+            `    ${this.storageDeleteGen.genFuncName(toElementT)}(to_elem_loc)`,
+            `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc, index + 1)`,
+            `end`,
+            `if index == ${toSize}:`,
+            `    return ()`,
+            `end`,
+          ];
+
     return {
       name: funcName,
       code: [
         `func ${funcName}_elem${implicits}(to_elem_loc: felt, from_elem_loc: felt, index: felt) -> ():`,
-        `    if index == ${narrowBigIntSafe(fromType.size)}:`,
-        `        return ()`,
-        `    end`,
+        ...stopRecursion,
         `    ${copyCode('to_elem_loc', 'from_elem_loc')}`,
         `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc + ${fromElemType.width}, index + 1)`,
         `end`,
