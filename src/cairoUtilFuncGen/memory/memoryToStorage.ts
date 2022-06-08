@@ -252,7 +252,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       copyCode = [
         `    let (storage_id) = readId(storage_loc)`,
         `    let (read) = wm_read_id(mem_loc, ${uint256(2)})`,
-        `    ${this.getOrCreate(elementT)}(elemName, read)`,
+        `    ${this.getOrCreate(elementT)}(storage_id, read)`,
       ].join('\n');
     } else if (isReferenceType(elementT)) {
       copyCode = [
