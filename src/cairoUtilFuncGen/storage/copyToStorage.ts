@@ -78,7 +78,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
             fromType instanceof StringType,
         );
         if (getSize(fromType) === undefined) {
-          return this.createDynamicArrayCopyFunction(key, toType, fromType);
+          return this.createDynamicArrayCopyFunction(funcName, toType, fromType);
         } else {
           assert(fromType instanceof ArrayType);
           return this.createStaticToDynamicArrayCopyFunction(funcName, toType, fromType);
@@ -86,7 +86,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       },
       (toType) => {
         assert(fromType instanceof ArrayType);
-        return this.createStaticArrayCopyFunction(key, toType, fromType);
+        return this.createStaticArrayCopyFunction(funcName, toType, fromType);
       },
       (toType) => this.createStructCopyFunction(funcName, toType),
       () => {
