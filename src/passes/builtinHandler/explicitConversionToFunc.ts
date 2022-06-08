@@ -153,8 +153,8 @@ export class ExplicitConversionToFunc extends ASTMapper {
         return;
       } else if (argType instanceof IntType) {
         assert(
-          typeTo.size * 8 === argType.nBits,
-          `Unexpected size changing ${argType.pp()}->${typeTo.pp()} conversion encountered`,
+          typeTo.size * 8 >= argType.nBits,
+          `Unexpected narrowing ${argType.pp()}->${typeTo.pp()} conversion encountered`,
         );
         const operand = node.vArguments[0];
         operand.typeString = node.typeString;
