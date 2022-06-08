@@ -133,13 +133,13 @@ const tests: string[] = [
   ...[
     //---------Array concat tests: 20 passing, 6 pending, 2 failing
     ...[
-      'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_2_args.sol',
-      'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_3_args.sol',
-      'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_as_argument.sol',
-      'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_different_types.sol',
-      'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_empty_argument_list.sol',
-      'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_empty_strings.sol',
-      'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_nested.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_2_args.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_3_args.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_as_argument.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_different_types.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_empty_argument_list.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_empty_strings.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_nested.sol',
     ],
     //---------Array copying tests 101 passing, 68 pending, 36 failing
     ...[
