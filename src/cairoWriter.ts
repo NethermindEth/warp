@@ -1,6 +1,5 @@
 import assert from 'assert';
 import {
-  ArrayType,
   ArrayTypeName,
   Assignment,
   ASTNode,
@@ -88,7 +87,7 @@ import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
 import { implicitOrdering, implicitTypes } from './utils/implicits';
 import { getMappingTypes } from './utils/mappings';
-import { isDynamicCallDataArray } from './utils/nodeTypeProcessing';
+import { isDynamicArray, isDynamicCallDataArray } from './utils/nodeTypeProcessing';
 import { notNull, notUndefined } from './utils/typeConstructs';
 import {
   canonicalMangler,
@@ -215,8 +214,7 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
       assert(declaration !== undefined, `Unable to find variable declaration for assignment ${id}`);
       const type = generalizeType(getNodeType(declaration, this.ast.compilerVersion))[0];
       if (
-        type instanceof ArrayType &&
-        type.size === undefined &&
+        isDynamicArray(type) &&
         node.vInitialValue instanceof FunctionCall &&
         node.vInitialValue.vReferencedDeclaration instanceof FunctionDefinition &&
         node.vInitialValue.vReferencedDeclaration.visibility === FunctionVisibility.External

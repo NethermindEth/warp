@@ -1,10 +1,10 @@
-import { ArrayType, DataLocation, FunctionDefinition, getNodeType, TypeNode } from 'solc-typed-ast';
+import { DataLocation, FunctionDefinition, getNodeType } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { collectUnboundVariables } from '../../utils/functionGeneration';
 import { createIdentifier, createVariableDeclarationStatement } from '../../utils/nodeTemplates';
-import { isReferenceType } from '../../utils/nodeTypeProcessing';
+import { isDynamicArray, isReferenceType } from '../../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../../utils/utils';
 
 export class RefTypeModifier extends ASTMapper {
@@ -70,8 +70,4 @@ export class RefTypeModifier extends ASTMapper {
     this.commonVisit(node, ast);
   }
   // Change the other instance of this function to isDynamicMemoryArrayRef
-}
-
-function isDynamicArray(type: TypeNode) {
-  return type instanceof ArrayType && type.size === undefined;
 }

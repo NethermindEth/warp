@@ -2,22 +2,25 @@ import assert from 'assert';
 import {
   ArrayType,
   ASTNode,
+  BytesType,
   DataLocation,
   Expression,
   FunctionCall,
   generalizeType,
   getNodeType,
   MappingType,
+  PointerType,
   SourceUnit,
+  StringType,
   StructDefinition,
   TypeNode,
-  UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { getElementType, isDynamicArray } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, mapRange, narrowBigIntSafe } from '../../utils/utils';
-import { add, CairoFunction, StringIndexedFuncGen } from '../base';
+import { add, CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
 
@@ -52,42 +55,25 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(type: TypeNode): string {
-    let prefix;
-    if (type instanceof ArrayType && type.size === undefined) {
-      prefix = `DELETE_DARRAY_${getNestedNumber(type).toString()}`;
-    } else if (type instanceof MappingType) {
-      prefix = `DELETE_MAPPING`;
-    } else {
-      prefix = '';
-    }
-    const fromType = getBaseType(type);
-
-    const cairoType = CairoType.fromSol(
-      fromType,
-      this.ast,
-      TypeConversionContext.StorageAllocation,
-    );
-    const key = `${prefix}${cairoType.fullStringRepresentation}`;
+    const key = type.pp();
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
     }
 
-    let cairoFunc;
-    if (type instanceof ArrayType) {
-      cairoFunc =
-        type.size === undefined
-          ? this.deleteDynamicArray(type)
-          : type.size <= 5
+    const cairoFunc = delegateBasedOnType<CairoFunction>(
+      type,
+      (type) => this.deleteDynamicArray(type),
+      (type) => {
+        assert(type.size !== undefined);
+        return type.size <= 5
           ? this.deleteSmallStaticArray(type)
           : this.deleteLargeStaticArray(type);
-    } else if (type instanceof MappingType) {
-      cairoFunc = this.deleteNothing();
-    } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-      cairoFunc = this.deleteStruct(type.definition);
-    } else {
-      cairoFunc = this.deleteGeneric(cairoType);
-    }
+      },
+      (_type, def) => this.deleteStruct(def),
+      () => this.deleteNothing(),
+      () => this.deleteGeneric(CairoType.fromSol(type, this.ast)),
+    );
 
     this.generatedFunctions.set(key, cairoFunc);
 
@@ -108,22 +94,20 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     };
   }
 
-  private deleteDynamicArray(type: ArrayType): CairoFunction {
+  private deleteDynamicArray(type: ArrayType | BytesType | StringType): CairoFunction {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
-    const elementT = dereferenceType(type.elementT);
+    const elementT = dereferenceType(getElementType(type));
     const [arrayName, lengthName] = this.dynArrayGen.gen(
       CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
     );
 
-    const deleteCode =
-      (elementT instanceof ArrayType && elementT.size === undefined) ||
-      elementT instanceof MappingType
-        ? [
-            `   let (elem_id) = ${this.storageReadGen.genFuncName(elementT)}(elem_loc)`,
-            `   ${this.getOrCreate(elementT)}(elem_id)`,
-          ]
-        : [`    ${this.getOrCreate(elementT)}(elem_loc)`];
+    const deleteCode = requiresReadBeforeRecursing(elementT)
+      ? [
+          `   let (elem_id) = ${this.storageReadGen.genFuncName(elementT)}(elem_loc)`,
+          `   ${this.getOrCreate(elementT)}(elem_id)`,
+        ]
+      : [`    ${this.getOrCreate(elementT)}(elem_loc)`];
 
     const funcName = `WS${this.generatedFunctions.size}_DYNAMIC_ARRAY_DELETE`;
     const deleteFunc = [
@@ -184,14 +168,12 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     ).width;
 
-    const deleteCode =
-      (elementT instanceof ArrayType && elementT.size === undefined) ||
-      elementT instanceof MappingType
-        ? [
-            `   let (elem_id) = ${this.storageReadGen.genFuncName(elementT)}(loc)`,
-            `   ${this.getOrCreate(elementT)}(elem_id)`,
-          ]
-        : [`    ${this.getOrCreate(elementT)}(loc)`];
+    const deleteCode = requiresReadBeforeRecursing(elementT)
+      ? [
+          `   let (elem_id) = ${this.storageReadGen.genFuncName(elementT)}(loc)`,
+          `   ${this.getOrCreate(elementT)}(elem_id)`,
+        ]
+      : [`    ${this.getOrCreate(elementT)}(loc)`];
     const funcName = `WS${this.generatedFunctions.size}_STATIC_ARRAY_DELETE`;
     const length = narrowBigIntSafe(type.size);
     const nextLoc = add('loc', elementTWidht);
@@ -270,22 +252,11 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 }
 
-function getNestedNumber(type: ArrayType | MappingType): number {
-  const valueType = dereferenceType(type instanceof ArrayType ? type.elementT : type.valueType);
-
-  return 1 + (valueType instanceof ArrayType ? getNestedNumber(valueType) : 0);
-}
-
-function getBaseType(type: TypeNode): TypeNode {
-  return type instanceof ArrayType && type.size === undefined
-    ? getBaseType(dereferenceType(type.elementT))
-    : type;
-}
-
 function dereferenceType(type: TypeNode): TypeNode {
   return generalizeType(type)[0];
 }
 
 function requiresReadBeforeRecursing(type: TypeNode): boolean {
-  return type instanceof MappingType || (type instanceof ArrayType && type.size === undefined);
+  if (type instanceof PointerType) return requiresReadBeforeRecursing(type.to);
+  return isDynamicArray(type) || type instanceof MappingType;
 }

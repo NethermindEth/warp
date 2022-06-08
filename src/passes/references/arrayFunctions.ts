@@ -1,20 +1,21 @@
 import {
   ArrayType,
+  BytesType,
   DataLocation,
   ExternalReferenceType,
+  FixedBytesType,
   FunctionCall,
   FunctionStateMutability,
   generalizeType,
   getNodeType,
-  IntType,
   MemberAccess,
   PointerType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { FunctionStubKind } from '../../ast/cairoNodes';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
-import { isDynamicCallDataArray } from '../../utils/nodeTypeProcessing';
+import { getSize, isDynamicCallDataArray } from '../../utils/nodeTypeProcessing';
+import { createNumberLiteral } from '../../utils/nodeTemplates';
 import { expressionHasSideEffects, typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
 
@@ -69,18 +70,20 @@ export class ArrayFunctions extends ReferenceSubPass {
     const expectedLoc = this.getLocations(node)[1];
 
     const baseType = getNodeType(node.vExpression, ast.compilerVersion);
-    // Converted fixed-bytes
-    if (baseType instanceof IntType) {
-      const literal = createNumberLiteral(baseType.nBits / 8, ast, 'uint8');
+    if (baseType instanceof FixedBytesType) {
+      const literal = createNumberLiteral(baseType.size, ast, 'uint8');
       if (expressionHasSideEffects(node.vExpression)) {
         ast.extractToConstant(
           node.vExpression,
-          createNumberTypeName(baseType.nBits, baseType.signed, ast),
+          typeNameFromTypeNode(baseType, ast),
           `__warp_tb${this.counter++}`,
         );
       }
       this.replace(node, literal, node.parent, DataLocation.Default, expectedLoc, ast);
-    } else if (baseType instanceof PointerType && baseType.to instanceof ArrayType) {
+    } else if (
+      baseType instanceof PointerType &&
+      (baseType.to instanceof ArrayType || baseType.to instanceof BytesType)
+    ) {
       if (isDynamicCallDataArray(baseType)) {
         const parent = node.parent;
         const type = generalizeType(getNodeType(node, ast.compilerVersion))[0];
@@ -113,8 +116,8 @@ export class ArrayFunctions extends ReferenceSubPass {
         node.memberName = 'len';
         return;
       }
-      if (baseType.to.size !== undefined) {
-        const size = baseType.to.size.toString();
+      const size = getSize(baseType.to);
+      if (size !== undefined) {
         this.replace(
           node,
           createNumberLiteral(size, ast, 'uint256'),

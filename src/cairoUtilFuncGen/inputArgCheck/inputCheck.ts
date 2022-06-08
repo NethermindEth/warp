@@ -4,13 +4,16 @@ import {
   ArrayType,
   ASTNode,
   BoolType,
+  BytesType,
   DataLocation,
   EnumDefinition,
+  FixedBytesType,
   FunctionCall,
   FunctionStateMutability,
   generalizeType,
   getNodeType,
   IntType,
+  StringType,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -23,8 +26,8 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createIdentifier } from '../../utils/nodeTemplates';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
-import { locationIfComplexType, StringIndexedFuncGen } from '../base';
-import { checkableType, isReferenceType } from '../../utils/nodeTypeProcessing';
+import { delegateBasedOnType, locationIfComplexType, StringIndexedFuncGen } from '../base';
+import { checkableType, getElementType, isDynamicArray } from '../../utils/nodeTypeProcessing';
 
 export class InputCheckGen extends StringIndexedFuncGen {
   gen(node: VariableDeclaration, nodeInSourceUnit: ASTNode): FunctionCall {
@@ -47,7 +50,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
       nodeInSourceUnit ?? node,
       FunctionStateMutability.Pure,
       FunctionStubKind.FunctionDefStub,
-      type instanceof ArrayType && type.size === undefined ? true : false,
+      isDynamicArray(type),
     );
     return createCallToFunction(functionStub, [functionInput], this.ast);
   }
@@ -59,33 +62,45 @@ export class InputCheckGen extends StringIndexedFuncGen {
       return existing.name;
     }
 
-    if (isReferenceType(type)) {
-      const funcName = `extern_input_check${this.generatedFunctions.size}`;
-      this.generatedFunctions.set(key, { name: funcName, code: '' });
-      if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-        return this.createStructInputCheck(key, funcName, type);
-      } else if (type instanceof ArrayType) {
-        return type.size === undefined
-          ? this.createDynArrayInputCheck(key, funcName, type)
-          : this.createStaticArrayInputCheck(key, funcName, type);
-      }
-    } else if (type instanceof IntType) {
-      return this.createIntInputCheck(type);
-    } else if (type instanceof BoolType) {
-      return this.createBoolInputCheck();
-    } else if (type instanceof UserDefinedType && type.definition instanceof EnumDefinition) {
-      return this.createEnumInputCheck(key, type);
-    } else if (type instanceof AddressType) {
-      return this.createAddressInputCheck();
-    }
-    throw new NotSupportedYetError(`Input check for ${printTypeNode(type)} not defined yet.`);
+    const unexpectedTypeFunc = () => {
+      throw new NotSupportedYetError(`Input check for ${printTypeNode(type)} not defined yet.`);
+    };
+
+    return delegateBasedOnType<string>(
+      type,
+      (type) => this.createDynArrayInputCheck(key, this.generateFuncName(key), type),
+      (type) => this.createStaticArrayInputCheck(key, this.generateFuncName(key), type),
+      (type) => this.createStructInputCheck(key, this.generateFuncName(key), type),
+      unexpectedTypeFunc,
+      (type) => {
+        if (type instanceof FixedBytesType) {
+          return this.createIntInputCheck(type.size * 8);
+        } else if (type instanceof IntType) {
+          return this.createIntInputCheck(type.nBits);
+        } else if (type instanceof BoolType) {
+          return this.createBoolInputCheck();
+        } else if (type instanceof UserDefinedType && type.definition instanceof EnumDefinition) {
+          return this.createEnumInputCheck(key, type);
+        } else if (type instanceof AddressType) {
+          return this.createAddressInputCheck();
+        } else {
+          return unexpectedTypeFunc();
+        }
+      },
+    );
   }
 
-  private createIntInputCheck(type: IntType): string {
-    const funcName = `warp_external_input_check_int${type.nBits}`;
+  private generateFuncName(key: string): string {
+    const funcName = `extern_input_check${this.generatedFunctions.size}`;
+    this.generatedFunctions.set(key, { name: funcName, code: '' });
+    return funcName;
+  }
+
+  private createIntInputCheck(bitWidth: number): string {
+    const funcName = `warp_external_input_check_int${bitWidth}`;
     this.requireImport(
       'warplib.maths.external_input_check_ints',
-      `warp_external_input_check_int${type.nBits}`,
+      `warp_external_input_check_int${bitWidth}`,
     );
     return funcName;
   }
@@ -185,13 +200,17 @@ export class InputCheckGen extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private createDynArrayInputCheck(key: string, funcName: string, type: ArrayType): string {
+  private createDynArrayInputCheck(
+    key: string,
+    funcName: string,
+    type: ArrayType | BytesType | StringType,
+  ): string {
     const implicits = '{range_check_ptr : felt}';
 
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     assert(cairoType instanceof CairoDynArray);
     const ptrType = cairoType.vPtr;
-    const elementType = generalizeType(type.elementT)[0];
+    const elementType = generalizeType(getElementType(type))[0];
     this.checkForImport(elementType);
     const indexCheck = [`${this.getOrCreate(elementType)}(ptr[0])`];
 

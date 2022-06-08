@@ -1,7 +1,7 @@
 import assert from 'assert';
 import {
-  ArrayType,
   DataLocation,
+  FixedBytesType,
   FunctionCall,
   getNodeType,
   IntType,
@@ -10,12 +10,13 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
-import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { CairoType } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { Implicits } from '../../utils/implicits';
+import { isDynamicArray } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
-import { uint256 } from '../../warplib/utils';
+import { getIntOrFixedByteBitWidth, uint256 } from '../../warplib/utils';
 import { CairoFunction, StringIndexedFuncGen } from '../base';
 
 export class MemoryArrayConcat extends StringIndexedFuncGen {
@@ -24,12 +25,12 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     args.forEach((expr) => {
       const exprType = getNodeType(expr, this.ast.compilerVersion);
       if (
-        !(exprType instanceof PointerType && exprType.to instanceof ArrayType) &&
-        !(exprType instanceof IntType)
+        !isDynamicArray(exprType) &&
+        !(exprType instanceof IntType || exprType instanceof FixedBytesType)
       )
         throw new TranspileFailedError(
           `Unexpected type ${printTypeNode(exprType)} in ${printNode(expr)} to concatenate.` +
-            'Expected IntType or ArrayType',
+            'Expected FixedBytes, IntType, ArrayType, BytesType, or StringType',
         );
     });
 
@@ -47,7 +48,9 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     const argTypes = args.map((e) => getNodeType(e, this.ast.compilerVersion));
     const name = this.getOrCreate(argTypes);
 
-    const implicits: Implicits[] = argTypes.some((type) => type instanceof IntType)
+    const implicits: Implicits[] = argTypes.some(
+      (type) => type instanceof IntType || type instanceof FixedBytesType,
+    )
       ? ['bitwise_ptr', 'range_check_ptr', 'warp_memory']
       : ['range_check_ptr', 'warp_memory'];
 
@@ -67,8 +70,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     const key = argTypes
       .map((type) => {
         if (type instanceof PointerType) return 'A';
-        assert(type instanceof IntType);
-        return `B${type.nBits}`;
+        return `B${getIntOrFixedByteBitWidth(type)}`;
       })
       .join('');
 
@@ -77,7 +79,9 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       return existing.name;
     }
 
-    const implicits = argTypes.some((type) => type instanceof IntType)
+    const implicits = argTypes.some(
+      (type) => type instanceof IntType || type instanceof FixedBytesType,
+    )
       ? '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}'
       : '{range_check_ptr : felt, warp_memory : DictAccess*}';
 
@@ -106,11 +110,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     }
 
     const cairoArgs = argTypes.map((type, index) => {
-      const cairoType = CairoType.fromSol(
-        type,
-        this.ast,
-        TypeConversionContext.MemoryAllocation,
-      ).toString();
+      const cairoType = CairoType.fromSol(type, this.ast).toString();
       return `arg_${index} : ${cairoType}`;
     });
     const code = [
@@ -141,8 +141,8 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       if (type instanceof PointerType) {
         this.requireImport('warplib.memory', 'wm_dyn_array_length');
         this.requireImport('warplib.dynamic_arrays_util', 'dynamic_array_copy_felt');
-      } else if (type instanceof IntType) {
-        type.nBits / 8 < 32
+      } else {
+        getIntOrFixedByteBitWidth(type) < 256
           ? this.requireImport('warplib.dynamic_arrays_util', 'fixed_byte_to_dynamic_array')
           : this.requireImport('warplib.dynamic_arrays_util', 'fixed_byte256_to_dynamic_array');
       }
@@ -158,17 +158,24 @@ function getSize(type: TypeNode, index: number): string {
       `let size_${index} = size256_${index}.low + size256_${index}.high*128`,
     ].join('\n');
 
-  assert(type instanceof IntType);
-  return `let size_${index} = ${type.nBits / 8}`;
+  if (type instanceof IntType) {
+    return `let size_${index} = ${type.nBits / 8}`;
+  } else if (type instanceof FixedBytesType) {
+    return `let size_${index} = ${type.size}`;
+  } else {
+    throw new TranspileFailedError(
+      `Attempted to get size for unexpected type ${printTypeNode(type)} in concat`,
+    );
+  }
 }
 
 function getCopyFunctionCall(type: TypeNode, index: number): string {
   if (type instanceof PointerType)
     return `dynamic_array_copy_felt(res_loc, start_loc, end_loc, arg_${index}, 0)`;
 
-  assert(type instanceof IntType);
+  assert(type instanceof FixedBytesType);
 
-  if (type.nBits / 8 < 32)
+  if (type.size < 32)
     return `fixed_byte_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, size_${index} - 1, size_${index})`;
 
   return `fixed_byte256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 31)`;

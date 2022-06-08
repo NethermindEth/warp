@@ -2,6 +2,7 @@ import assert from 'assert';
 import {
   ArrayType,
   ASTNode,
+  BytesType,
   DataLocation,
   Expression,
   FunctionStateMutability,
@@ -9,6 +10,7 @@ import {
   getNodeType,
   IntType,
   SourceUnit,
+  StringType,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -16,11 +18,12 @@ import {
 import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext, WarpLocation } from '../../utils/cairoTypeSystem';
-import { NotSupportedYetError } from '../../utils/errors';
+import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { getElementType, getSize, isReferenceType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { add, CairoFunction, StringIndexedFuncGen } from '../base';
+import { add, CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
 /*
@@ -66,27 +69,39 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     // Set an empty entry so recursive function generation doesn't clash
     this.generatedFunctions.set(key, { name: funcName, code: '' });
 
-    let cairoFunction: CairoFunction;
-    if (toType instanceof UserDefinedType && toType.definition instanceof StructDefinition) {
-      assert(fromType.pp() === toType.pp());
-      cairoFunction = this.createStructCopyFunction(funcName, toType);
-    } else if (toType instanceof ArrayType) {
-      assert(fromType instanceof ArrayType);
-      if (toType.size === undefined) {
-        if (fromType.size === undefined) {
-          cairoFunction = this.createDynamicArrayCopyFunction(funcName, toType, fromType);
+    const cairoFunction = delegateBasedOnType<CairoFunction>(
+      toType,
+      (toType) => {
+        assert(
+          fromType instanceof ArrayType ||
+            fromType instanceof BytesType ||
+            fromType instanceof StringType,
+        );
+        if (getSize(fromType) === undefined) {
+          return this.createDynamicArrayCopyFunction(funcName, toType, fromType);
         } else {
-          cairoFunction = this.createStaticToDynamicArrayCopyFunction(funcName, toType, fromType);
+          assert(fromType instanceof ArrayType);
+          return this.createStaticToDynamicArrayCopyFunction(funcName, toType, fromType);
         }
-      } else {
-        cairoFunction = this.createStaticArrayCopyFunction(funcName, toType, fromType);
-      }
-    } else if (toType instanceof IntType) {
-      assert(fromType instanceof IntType);
-      cairoFunction = this.createScalarCopyFunction(funcName, toType, fromType);
-    } else {
-      cairoFunction = this.createValueTypeCopyFunction(funcName, toType);
-    }
+      },
+      (toType) => {
+        assert(fromType instanceof ArrayType);
+        return this.createStaticArrayCopyFunction(funcName, toType, fromType);
+      },
+      (toType) => this.createStructCopyFunction(funcName, toType),
+      () => {
+        throw new TranspileFailedError('Attempted to create mapping clone function');
+      },
+      (toType) => {
+        if (toType instanceof IntType) {
+          assert(fromType instanceof IntType);
+          return this.createScalarCopyFunction(funcName, toType, fromType);
+        } else {
+          return this.createValueTypeCopyFunction(funcName, toType);
+        }
+      },
+    );
+
     this.generatedFunctions.set(key, cairoFunction);
     return cairoFunction.name;
   }
@@ -109,11 +124,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
             TypeConversionContext.StorageAllocation,
           ).width;
           let code: string;
-          if (
-            memberType instanceof ArrayType ||
-            (memberType instanceof UserDefinedType &&
-              memberType.definition instanceof StructDefinition)
-          ) {
+          if (isReferenceType(memberType)) {
             const memberCopyFunc = this.getOrCreate(memberType, memberType);
             code = `${memberCopyFunc}(${add('to_loc', offset)}, ${add('from_loc', offset)})`;
           } else {
@@ -186,26 +197,27 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
 
   private createDynamicArrayCopyFunction(
     funcName: string,
-    toType: ArrayType,
-    fromType: ArrayType,
+    toType: ArrayType | BytesType | StringType,
+    fromType: ArrayType | BytesType | StringType,
   ): CairoFunction {
-    assert(toType.size === undefined, 'Attempted to copy to storage static array as dynamic array');
-    assert(
-      fromType.size === undefined,
-      'Attempted to copy from storage static array as dynamic array',
-    );
+    const fromElementT = getElementType(fromType);
+    const fromSize = getSize(fromType);
+    const toElementT = getElementType(toType);
+    const toSize = getSize(toType);
+    assert(toSize === undefined, 'Attempted to copy to storage static array as dynamic array');
+    assert(fromSize === undefined, 'Attempted to copy from storage static array as dynamic array');
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
 
-    const elementCopyFunc = this.getOrCreate(toType.elementT, fromType.elementT);
+    const elementCopyFunc = this.getOrCreate(toElementT, fromElementT);
     const fromElementCairoType = CairoType.fromSol(
-      fromType.elementT,
+      fromElementT,
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
     const toElementCairoType = CairoType.fromSol(
-      toType.elementT,
+      toElementT,
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
@@ -251,23 +263,25 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
 
   private createStaticToDynamicArrayCopyFunction(
     funcName: string,
-    toType: ArrayType,
+    toType: ArrayType | BytesType | StringType,
     fromType: ArrayType,
   ): CairoFunction {
+    const toSize = getSize(toType);
+    const toElementT = getElementType(toType);
     assert(fromType.size !== undefined);
-    assert(toType.size === undefined);
+    assert(toSize === undefined);
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
 
-    const elementCopyFunc = this.getOrCreate(toType.elementT, fromType.elementT);
+    const elementCopyFunc = this.getOrCreate(toElementT, fromType.elementT);
     const fromElementCairoType = CairoType.fromSol(
       fromType.elementT,
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
     const toElementCairoType = CairoType.fromSol(
-      toType.elementT,
+      toElementT,
       this.ast,
       TypeConversionContext.StorageAllocation,
     );

@@ -64,6 +64,28 @@ export const expectations = flatten(
             Expect.Simple('bytes32access', ['30'], ['51']),
             Expect.Simple('bytes32access256', ['31', '0'], ['255']),
           ]),
+          File.Simple('conversions', [
+            Expect.Simple('bytes1To2', ['150'], ['38400']),
+            Expect.Simple('bytes3To3', ['1111'], ['1111']),
+            Expect.Simple('bytes4To32', ['65534'], ['0', '5192138402209799099855309241319424']),
+            Expect.Simple('bytes8To4', ['12378913312101057897'], ['2882190354']),
+            Expect.Simple(
+              'bytes32To16',
+              ['15874680775494891679575061431532588017', '28760374527829798034901604089752130979'],
+              ['28760374527829798034901604089752130979'],
+            ),
+            Expect.Simple(
+              'bytes32To1',
+              ['15874680775494891679575061431532588017', '28760374527829798034901604089752130979'],
+              ['21'],
+            ),
+            Expect.Simple(
+              'bytes25To7',
+              ['135817028705001336493080341132658109378489430838222946241521'],
+              ['6090246200111295'],
+            ),
+            Expect.Simple('bytes4To2Assignment', [], ['4660']),
+          ]),
           new File(
             'fixedSizeBytesArrays',
             'WARP',
@@ -416,7 +438,6 @@ export const expectations = flatten(
                 ...['5', '0', '6', '0', '0', '0'],
               ],
             ),
-            // Some part of memory to stroage not implemented yet
             Expect.Simple(
               'tryYX1',
               [],
@@ -2672,12 +2693,10 @@ export const expectations = flatten(
             Expect.Simple('dMin', [], ['0']),
             Expect.Simple('dMax', [], ['3']),
           ]),
-
-          // Requires handling strings
-          // File.Simple('informationContract', [
-          //   Expect.Simple('getName', [], ['1463898704']), // 'WARP' -> 0x57415250
-          //   Expect.Simple('getId', [], ['3619205059']),
-          // ]),
+          File.Simple('informationContract', [
+            Expect.Simple('getName', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('getId', [], ['3619205059']),
+          ]),
         ]),
         new Dir('using_for', [
           File.Simple('simple', [
