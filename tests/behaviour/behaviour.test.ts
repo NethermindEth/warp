@@ -20,14 +20,18 @@ describe('Transpile solidity', function () {
 
   before(async function () {
     for (const fileTest of expectations) {
-      cleanupSync(fileTest.cairo);
-      cleanupSync(fileTest.compiled);
+      if (fileTest.encodingError === undefined) {
+        cleanupSync(fileTest.cairo);
+        cleanupSync(fileTest.compiled);
+      }
     }
 
     transpileResults = batchPromises(
-      expectations.map((e) => e.sol),
+      expectations.map((e) =>
+        e.encodingError === undefined ? e.sol : { stderr: e.encodingError },
+      ),
       PARALLEL_COUNT,
-      transpile,
+      (input) => (typeof input === 'string' ? transpile(input) : Promise.resolve(input)),
     );
   });
 
