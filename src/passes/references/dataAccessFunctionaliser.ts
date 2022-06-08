@@ -18,15 +18,21 @@ import {
   UserDefinedType,
   ContractDefinition,
   generalizeType,
+  FixedBytesType,
+  BytesType,
 } from 'solc-typed-ast';
-import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
+import { TranspileFailedError, WillNotSupportError } from '../../utils/errors';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
 
 import { AST } from '../../ast/ast';
 import { isCairoConstant, typeNameFromTypeNode } from '../../utils/utils';
 import { error } from '../../utils/formatting';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
+import {
+  createNumberLiteral,
+  createUint256TypeName,
+  createUint8TypeName,
+} from '../../utils/nodeTemplates';
 import { cloneASTNode } from '../../utils/cloning';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { ReferenceSubPass } from './referenceSubPass';
@@ -35,6 +41,7 @@ import { MemoryWriteGen } from '../../cairoUtilFuncGen/memory/memoryWrite';
 import { CalldataToStorageGen } from '../../cairoUtilFuncGen/calldata/calldataToStorage';
 import { StorageWriteGen } from '../../cairoUtilFuncGen/storage/storageWrite';
 import { MemoryToStorageGen } from '../../cairoUtilFuncGen/memory/memoryToStorage';
+import { getElementType } from '../../utils/nodeTypeProcessing';
 
 /*
   Uses the analyses of ActualLocationAnalyser and ExpectedLocationAnalyser to
@@ -187,8 +194,8 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
 
     const decl = node.vReferencedDeclaration;
     if (decl === undefined || !(decl instanceof VariableDeclaration)) {
-      throw new NotSupportedYetError(
-        `Non-variable ${actualLoc} identifier ${printNode(node)} not supported`,
+      throw new WillNotSupportError(
+        `Writing to Non-variable ${actualLoc} identifier ${printNode(node)} not supported`,
       );
     }
 
@@ -222,7 +229,8 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     const type = getNodeType(node.vExpression, ast.compilerVersion);
     if (!(type instanceof PointerType)) {
       assert(
-        type instanceof UserDefinedType && type.definition instanceof ContractDefinition,
+        (type instanceof UserDefinedType && type.definition instanceof ContractDefinition) ||
+          type instanceof FixedBytesType,
         `Unexpected unhandled non-pointer non-contract member access. Found at ${printNode(node)}`,
       );
       return this.visitExpression(node, ast);
@@ -259,6 +267,8 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           } else {
             replacement = ast.getUtilFuncGen(node).storage.staticArrayIndexAccess.gen(node);
           }
+        } else if (baseType.to instanceof BytesType) {
+          replacement = ast.getUtilFuncGen(node).storage.dynArrayIndexAccess.gen(node);
         } else if (baseType.to instanceof MappingType) {
           replacement = ast.getUtilFuncGen(node).storage.mappingIndexAccess.gen(node);
         } else {
@@ -275,6 +285,8 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
               .getUtilFuncGen(node)
               .memory.staticArrayIndexAccess.gen(node, baseType.to);
           }
+        } else if (baseType.to instanceof BytesType) {
+          replacement = createMemoryDynArrayIndexAccess(node, ast);
         } else {
           throw new TranspileFailedError(
             `Unexpected index access base type ${printTypeNode(baseType.to)} at ${printNode(node)}`,
@@ -299,10 +311,10 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
     getNodeType(indexAccess.vBaseExpression, ast.compilerVersion),
   )[0];
   const arrayTypeName = typeNameFromTypeNode(arrayType, ast);
-  assert(
-    arrayTypeName instanceof ArrayTypeName,
-    `Created unexpected typename ${printNode(arrayTypeName)} for base of ${printNode(indexAccess)}`,
-  );
+  const returnTypeName =
+    arrayTypeName instanceof ArrayTypeName
+      ? cloneASTNode(arrayTypeName.vBaseType, ast)
+      : createUint8TypeName(ast);
 
   const stub = createCairoFunctionStub(
     'wm_index_dyn',
@@ -311,15 +323,15 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
       ['index', createUint256TypeName(ast)],
       ['width', createUint256TypeName(ast)],
     ],
-    [['loc', cloneASTNode(arrayTypeName.vBaseType, ast), DataLocation.Memory]],
+    [['loc', returnTypeName, DataLocation.Memory]],
     ['range_check_ptr', 'warp_memory'],
     ast,
     indexAccess,
   );
 
   assert(indexAccess.vIndexExpression);
-  assert(arrayType instanceof ArrayType);
-  const elementCairoTypeWidth = CairoType.fromSol(arrayType.elementT, ast).width;
+  assert(arrayType instanceof ArrayType || arrayType instanceof BytesType);
+  const elementCairoTypeWidth = CairoType.fromSol(getElementType(arrayType), ast).width;
 
   const call = createCallToFunction(
     stub,

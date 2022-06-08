@@ -1,12 +1,15 @@
 import assert from 'assert';
 import {
   ArrayTypeName,
+  BytesType,
   DataLocation,
   FunctionCall,
   FunctionCallKind,
+  generalizeType,
+  getNodeType,
   Literal,
-  LiteralKind,
   NewExpression,
+  StringType,
   TupleExpression,
   typeNameToTypeNode,
 } from 'solc-typed-ast';
@@ -47,17 +50,14 @@ export class MemoryAllocations extends ReferenceSubPass {
           } arrays not implemented yet (${printNode(node)})`,
         );
       }
+    } else if (node.kind === FunctionCallKind.TypeConversion) {
+      const type = generalizeType(getNodeType(node, ast.compilerVersion))[0];
+      const arg = node.vArguments[0];
+      if ((type instanceof BytesType || type instanceof StringType) && arg instanceof Literal) {
+        const replacement = ast.getUtilFuncGen(node).memory.arrayLiteral.stringGen(arg);
+        this.replace(node, replacement, node.parent, actualLoc, expectedLoc, ast);
+      }
     }
-  }
-
-  visitLiteral(node: Literal, ast: AST): void {
-    if (node.kind !== LiteralKind.String) return;
-
-    const [actualLoc, expectedLoc] = this.getLocations(node);
-    if (this.expectedDataLocations.get(node) !== DataLocation.Memory) return;
-
-    const replacement = ast.getUtilFuncGen(node).memory.arrayLiteral.stringGen(node);
-    this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
   }
 
   visitTupleExpression(node: TupleExpression, ast: AST): void {

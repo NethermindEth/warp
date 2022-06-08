@@ -219,3 +219,19 @@ export function checkableType(type: TypeNode): boolean {
     type instanceof BoolType
   );
 }
+
+export function getElementType(type: ArrayType | BytesType): TypeNode {
+  if (type instanceof ArrayType) {
+    return type.elementT;
+  } else {
+    return new FixedBytesType(1);
+  }
+}
+
+export function getSize(type: ArrayType | BytesType): bigint | undefined {
+  if (type instanceof ArrayType) {
+    return type.size;
+  } else {
+    return undefined;
+  }
+}

@@ -1,5 +1,6 @@
 import {
   ArrayType,
+  BytesType,
   DataLocation,
   ExternalReferenceType,
   FunctionCall,
@@ -14,7 +15,7 @@ import { FunctionStubKind } from '../../ast/cairoNodes';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
-import { isDynamicCallDataArray } from '../../utils/nodeTypeProcessing';
+import { getSize, isDynamicCallDataArray } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
 
@@ -66,7 +67,10 @@ export class ArrayFunctions extends ReferenceSubPass {
     const expectedLoc = this.getLocations(node)[1];
 
     const baseType = getNodeType(node.vExpression, ast.compilerVersion);
-    if (baseType instanceof PointerType && baseType.to instanceof ArrayType) {
+    if (
+      baseType instanceof PointerType &&
+      (baseType.to instanceof ArrayType || baseType.to instanceof BytesType)
+    ) {
       if (isDynamicCallDataArray(baseType)) {
         const parent = node.parent;
         const type = generalizeType(getNodeType(node, ast.compilerVersion))[0];
@@ -99,8 +103,8 @@ export class ArrayFunctions extends ReferenceSubPass {
         node.memberName = 'len';
         return;
       }
-      if (baseType.to.size !== undefined) {
-        const size = baseType.to.size.toString();
+      const size = getSize(baseType.to);
+      if (size !== undefined) {
         this.replace(
           node,
           createNumberLiteral(size, ast, 'uint256'),

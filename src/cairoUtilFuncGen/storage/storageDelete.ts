@@ -2,12 +2,14 @@ import assert from 'assert';
 import {
   ArrayType,
   ASTNode,
+  BytesType,
   DataLocation,
   Expression,
   FunctionCall,
   generalizeType,
   getNodeType,
   MappingType,
+  PointerType,
   SourceUnit,
   StructDefinition,
   TypeNode,
@@ -16,6 +18,7 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { getElementType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, mapRange, narrowBigIntSafe } from '../../utils/utils';
 import { add, CairoFunction, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
@@ -81,6 +84,8 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
           : type.size <= 5
           ? this.deleteSmallStaticArray(type)
           : this.deleteLargeStaticArray(type);
+    } else if (type instanceof BytesType) {
+      cairoFunc = this.deleteDynamicArray(type);
     } else if (type instanceof MappingType) {
       cairoFunc = this.deleteNothing();
     } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
@@ -108,22 +113,20 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     };
   }
 
-  private deleteDynamicArray(type: ArrayType): CairoFunction {
+  private deleteDynamicArray(type: ArrayType | BytesType): CairoFunction {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
-    const elementT = dereferenceType(type.elementT);
+    const elementT = dereferenceType(getElementType(type));
     const [arrayName, lengthName] = this.dynArrayGen.gen(
       CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
     );
 
-    const deleteCode =
-      (elementT instanceof ArrayType && elementT.size === undefined) ||
-      elementT instanceof MappingType
-        ? [
-            `   let (elem_id) = ${this.storageReadGen.genFuncName(elementT)}(elem_loc)`,
-            `   ${this.getOrCreate(elementT)}(elem_id)`,
-          ]
-        : [`    ${this.getOrCreate(elementT)}(elem_loc)`];
+    const deleteCode = requiresReadBeforeRecursing(elementT)
+      ? [
+          `   let (elem_id) = ${this.storageReadGen.genFuncName(elementT)}(elem_loc)`,
+          `   ${this.getOrCreate(elementT)}(elem_id)`,
+        ]
+      : [`    ${this.getOrCreate(elementT)}(elem_loc)`];
 
     const funcName = `WS${this.generatedFunctions.size}_DYNAMIC_ARRAY_DELETE`;
     const deleteFunc = [
@@ -184,14 +187,12 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     ).width;
 
-    const deleteCode =
-      (elementT instanceof ArrayType && elementT.size === undefined) ||
-      elementT instanceof MappingType
-        ? [
-            `   let (elem_id) = ${this.storageReadGen.genFuncName(elementT)}(loc)`,
-            `   ${this.getOrCreate(elementT)}(elem_id)`,
-          ]
-        : [`    ${this.getOrCreate(elementT)}(loc)`];
+    const deleteCode = requiresReadBeforeRecursing(elementT)
+      ? [
+          `   let (elem_id) = ${this.storageReadGen.genFuncName(elementT)}(loc)`,
+          `   ${this.getOrCreate(elementT)}(elem_id)`,
+        ]
+      : [`    ${this.getOrCreate(elementT)}(loc)`];
     const funcName = `WS${this.generatedFunctions.size}_STATIC_ARRAY_DELETE`;
     const length = narrowBigIntSafe(type.size);
     const nextLoc = add('loc', elementTWidht);
@@ -270,8 +271,10 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 }
 
-function getNestedNumber(type: ArrayType | MappingType): number {
-  const valueType = dereferenceType(type instanceof ArrayType ? type.elementT : type.valueType);
+function getNestedNumber(type: ArrayType | BytesType | MappingType): number {
+  const valueType = dereferenceType(
+    type instanceof MappingType ? type.valueType : getElementType(type),
+  );
 
   return 1 + (valueType instanceof ArrayType ? getNestedNumber(valueType) : 0);
 }
@@ -287,5 +290,10 @@ function dereferenceType(type: TypeNode): TypeNode {
 }
 
 function requiresReadBeforeRecursing(type: TypeNode): boolean {
-  return type instanceof MappingType || (type instanceof ArrayType && type.size === undefined);
+  if (type instanceof PointerType) return requiresReadBeforeRecursing(type.to);
+  return (
+    (type instanceof ArrayType && type.size === undefined) ||
+    type instanceof BytesType ||
+    type instanceof MappingType
+  );
 }
