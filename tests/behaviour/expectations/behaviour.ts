@@ -769,7 +769,17 @@ export const expectations = flatten(
                 '0',
               ],
               [
-                'copyDiferentStaticSize',
+                'copyStaticDifferentSize',
+                [],
+                [
+                  ...['4', '5', '7', '6', '0', '0'],
+                  ...['1', '2', '3', '9', '0', '0'],
+                  ...['0', '0', '0', '0', '0', '0'],
+                ],
+                '0',
+              ],
+              [
+                'copyStaticDifferentSizeComplicated',
                 [],
                 [
                   ...['4', '5', '7', '6', '0', '0'],
