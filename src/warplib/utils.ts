@@ -143,15 +143,16 @@ export function Comparison(
   const lhsType = getNodeType(node.vLeftExpression, ast.compilerVersion);
   const rhsType = getNodeType(node.vLeftExpression, ast.compilerVersion);
   const retType = getNodeType(node, ast.compilerVersion);
-  const width = getIntOrFixedByteBitWidth(lhsType);
-  const wide = width === 256;
+  const wide =
+    (lhsType instanceof IntType || lhsType instanceof FixedBytesType) &&
+    getIntOrFixedByteBitWidth(lhsType) === 256;
   const signed = lhsType instanceof IntType && lhsType.signed;
   const shouldAppendWidth = wide || (appendWidth === 'signedOrWide' && signed);
   const fullName = [
     'warp_',
     name,
     separateSigned && signed ? '_signed' : '',
-    shouldAppendWidth ? `${width}` : '',
+    shouldAppendWidth ? `${getIntOrFixedByteBitWidth(lhsType)}` : '',
   ].join('');
 
   const importName = `warplib.maths.${name}${signed && separateSigned ? '_signed' : ''}`;
