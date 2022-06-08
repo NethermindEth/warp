@@ -1,19 +1,24 @@
 import assert from 'assert';
 import {
   ArrayType,
+  BytesType,
   DataLocation,
   EnumDefinition,
   generalizeType,
   IntType,
   MappingType,
+  PointerType,
   SourceUnit,
+  StringType,
   StructDefinition,
   TypeNode,
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { printTypeNode } from '../utils/astPrinter';
+import { TranspileFailedError } from '../utils/errors';
 import { formatPath } from '../utils/formatting';
+import { isDynamicArray, isReferenceType } from '../utils/nodeTypeProcessing';
 
 export type CairoFunction = {
   name: string;
@@ -97,14 +102,35 @@ export function add(base: string, offset: number): string {
 // data they're reading or writing is a complex type
 export function locationIfComplexType(type: TypeNode, location: DataLocation): DataLocation {
   const base = generalizeType(type)[0];
-  if (
-    base instanceof ArrayType ||
-    base instanceof MappingType ||
-    (base instanceof UserDefinedType && base.definition instanceof StructDefinition) ||
-    base instanceof MappingType
-  ) {
+  if (isReferenceType(base)) {
     return location;
   } else {
     return DataLocation.Default;
+  }
+}
+
+export function delegateBasedOnType<T>(
+  type: TypeNode,
+  dynamicArrayFunc: (type: ArrayType | BytesType | StringType) => T,
+  staticArrayFunc: (type: ArrayType) => T,
+  structFunc: (type: UserDefinedType, def: StructDefinition) => T,
+  mappingFunc: (type: MappingType) => T,
+  valueFunc: (type: TypeNode) => T,
+): T {
+  if (type instanceof PointerType) {
+    throw new TranspileFailedError(
+      `Attempted to delegate copy semantics based on specialised type ${type.pp()}`,
+    );
+  } else if (isDynamicArray(type)) {
+    assert(type instanceof ArrayType || type instanceof BytesType || type instanceof StringType);
+    return dynamicArrayFunc(type);
+  } else if (type instanceof ArrayType) {
+    return staticArrayFunc(type);
+  } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+    return structFunc(type, type.definition);
+  } else if (type instanceof MappingType) {
+    return mappingFunc(type);
+  } else {
+    return valueFunc(type);
   }
 }

@@ -2,13 +2,14 @@ import assert from 'assert';
 import {
   ArrayType,
   ASTNode,
+  BytesType,
   DataLocation,
   FunctionCall,
   generalizeType,
   getNodeType,
   MemberAccess,
-  PointerType,
   SourceUnit,
+  StringType,
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -22,6 +23,7 @@ import { StorageWriteGen } from './storageWrite';
 import { StorageToStorageGen } from './copyToStorage';
 import { CalldataToStorageGen } from '../calldata/calldataToStorage';
 import { Implicits } from '../../utils/implicits';
+import { getElementType } from '../../utils/nodeTypeProcessing';
 
 export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
   constructor(
@@ -38,8 +40,14 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
 
   gen(push: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
     assert(push.vExpression instanceof MemberAccess);
-    const arrayType = getNodeType(push.vExpression.vExpression, this.ast.compilerVersion);
-    assert(arrayType instanceof PointerType && arrayType.to instanceof ArrayType);
+    const arrayType = generalizeType(
+      getNodeType(push.vExpression.vExpression, this.ast.compilerVersion),
+    )[0];
+    assert(
+      arrayType instanceof ArrayType ||
+        arrayType instanceof BytesType ||
+        arrayType instanceof StringType,
+    );
 
     assert(
       push.vArguments.length > 0,
@@ -50,7 +58,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     );
 
     const name = this.getOrCreate(
-      generalizeType(arrayType.to.elementT)[0],
+      getElementType(arrayType),
       argType,
       argLoc ?? DataLocation.Default,
     );

@@ -1,8 +1,8 @@
-import { ElementaryTypeName, FunctionVisibility } from 'solc-typed-ast';
+import { ElementaryTypeName } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
-import { primitiveTypeToCairo } from '../utils/utils';
+import { isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
 
 /*
   Analyses the tree after all processing has been done to find code the relies on
@@ -18,14 +18,16 @@ export class CairoUtilImporter extends ASTMapper {
   }
 
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
-    if (
-      node.implicits.has('warp_memory') &&
-      (node.visibility === FunctionVisibility.External ||
-        node.visibility === FunctionVisibility.Public)
-    ) {
+    if (node.implicits.has('warp_memory') && isExternallyVisible(node)) {
       ast.registerImport(node, 'starkware.cairo.common.default_dict', 'default_dict_new');
       ast.registerImport(node, 'starkware.cairo.common.default_dict', 'default_dict_finalize');
       ast.registerImport(node, 'starkware.cairo.common.dict', 'dict_write');
+    }
+
+    if (node.implicits.has('keccak_ptr') && isExternallyVisible(node)) {
+      ast.registerImport(node, 'starkware.cairo.common.cairo_keccak.keccak', 'finalize_keccak');
+      // Required to create a keccak_ptr
+      ast.registerImport(node, 'starkware.cairo.common.alloc', 'alloc');
     }
 
     this.commonVisit(node, ast);
