@@ -12,11 +12,7 @@ import {
 import { CairoFelt, CairoType, CairoUint256, MemoryLocation } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import {
-  createNumberLiteral,
-  createNumberTypeName,
-  createUint256TypeName,
-} from '../../utils/nodeTemplates';
+import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
 import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
 
