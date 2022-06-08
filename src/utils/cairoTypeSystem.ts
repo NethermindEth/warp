@@ -103,8 +103,6 @@ export abstract class CairoType {
         return CairoType.fromSol(tp.to, ast, context);
       }
       return new MemoryLocation();
-    } else if (tp instanceof StringType) {
-      return new CairoFelt();
     } else if (tp instanceof UserDefinedType) {
       if (tp.definition instanceof EnumDefinition) {
         return CairoType.fromSol(enumToIntType(tp.definition), ast);
