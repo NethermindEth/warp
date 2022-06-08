@@ -421,7 +421,6 @@ export const expectations = flatten(
                 ...['5', '0', '6', '0', '0', '0'],
               ],
             ),
-            // Some part of memory to stroage not implemented yet
             Expect.Simple(
               'tryYX1',
               [],
@@ -2666,12 +2665,10 @@ export const expectations = flatten(
             Expect.Simple('dMin', [], ['0']),
             Expect.Simple('dMax', [], ['3']),
           ]),
-
-          // Requires handling strings
-          // File.Simple('informationContract', [
-          //   Expect.Simple('getName', [], ['1463898704']), // 'WARP' -> 0x57415250
-          //   Expect.Simple('getId', [], ['3619205059']),
-          // ]),
+          File.Simple('informationContract', [
+            Expect.Simple('getName', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('getId', [], ['3619205059']),
+          ]),
         ]),
         new Dir('using_for', [
           File.Simple('simple', [
