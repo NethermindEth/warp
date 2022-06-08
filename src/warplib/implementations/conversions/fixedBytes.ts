@@ -9,7 +9,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printTypeNode, printNode } from '../../../utils/astPrinter';
-import { createCairoFunctionStub } from '../../../utils/functionGeneration';
+import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
 import { createNumberLiteral, createUint8TypeName } from '../../../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../../../utils/utils';
 
@@ -44,19 +44,10 @@ export function functionaliseFixedBytesConversion(conversion: FunctionCall, ast:
       conversion,
     );
 
-    const call = new FunctionCall(
-      ast.reserveId(),
-      conversion.src,
-      conversion.typeString,
-      FunctionCallKind.FunctionCall,
-      new Identifier(
-        ast.reserveId(),
-        '',
-        `function (${fromType.pp()}, uint8) returns (${toType.pp()})`,
-        fullName,
-        stub.id,
-      ),
+    const call = createCallToFunction(
+      stub,
       [arg, createNumberLiteral(8 * (toType.size - fromType.size), ast, 'uint8')],
+      ast,
     );
 
     ast.replaceNode(conversion, call);
@@ -79,19 +70,10 @@ export function functionaliseFixedBytesConversion(conversion: FunctionCall, ast:
       conversion,
     );
 
-    const call = new FunctionCall(
-      ast.reserveId(),
-      conversion.src,
-      conversion.typeString,
-      FunctionCallKind.FunctionCall,
-      new Identifier(
-        ast.reserveId(),
-        '',
-        `function (${fromType.pp()}, uint8) returns (${toType.pp()})`,
-        fullName,
-        stub.id,
-      ),
+    const call = createCallToFunction(
+      stub,
       [arg, createNumberLiteral(8 * (fromType.size - toType.size), ast, 'uint8')],
+      ast,
     );
 
     ast.replaceNode(conversion, call);
