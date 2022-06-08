@@ -6,6 +6,7 @@ import {
   DataLocation,
   Expression,
   ExternalReferenceType,
+  FixedBytesType,
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
@@ -169,7 +170,12 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     assert(node.vIndexExpression !== undefined);
     const baseLoc = this.actualLocations.get(node.vBaseExpression);
     assert(baseLoc !== undefined);
-    this.expectedLocations.set(node.vBaseExpression, baseLoc);
+    const baseType = getNodeType(node.vBaseExpression, ast.compilerVersion);
+    if (baseType instanceof FixedBytesType) {
+      this.expectedLocations.set(node.vBaseExpression, DataLocation.Default);
+    } else {
+      this.expectedLocations.set(node.vBaseExpression, baseLoc);
+    }
     this.expectedLocations.set(node.vIndexExpression, DataLocation.Default);
     this.visitExpression(node, ast);
   }
@@ -179,8 +185,9 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     const baseNodeType = getNodeType(node.vExpression, ast.compilerVersion);
     assert(baseLoc !== undefined);
     if (
-      baseNodeType instanceof UserDefinedType &&
-      baseNodeType.definition instanceof ContractDefinition
+      (baseNodeType instanceof UserDefinedType &&
+        baseNodeType.definition instanceof ContractDefinition) ||
+      baseNodeType instanceof FixedBytesType
     ) {
       this.expectedLocations.set(node.vExpression, DataLocation.Default);
     } else this.expectedLocations.set(node.vExpression, baseLoc);

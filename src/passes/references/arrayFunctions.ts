@@ -3,11 +3,11 @@ import {
   BytesType,
   DataLocation,
   ExternalReferenceType,
+  FixedBytesType,
   FunctionCall,
   FunctionStateMutability,
   generalizeType,
   getNodeType,
-  IntType,
   MemberAccess,
   PointerType,
 } from 'solc-typed-ast';
@@ -15,7 +15,7 @@ import { AST } from '../../ast/ast';
 import { FunctionStubKind } from '../../ast/cairoNodes';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { getSize, isDynamicCallDataArray } from '../../utils/nodeTypeProcessing';
-import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
+import { createNumberLiteral } from '../../utils/nodeTemplates';
 import { expressionHasSideEffects, typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
 
@@ -70,13 +70,12 @@ export class ArrayFunctions extends ReferenceSubPass {
     const expectedLoc = this.getLocations(node)[1];
 
     const baseType = getNodeType(node.vExpression, ast.compilerVersion);
-    // Converted fixed-bytes
-    if (baseType instanceof IntType) {
-      const literal = createNumberLiteral(baseType.nBits / 8, ast, 'uint8');
+    if (baseType instanceof FixedBytesType) {
+      const literal = createNumberLiteral(baseType.size, ast, 'uint8');
       if (expressionHasSideEffects(node.vExpression)) {
         ast.extractToConstant(
           node.vExpression,
-          createNumberTypeName(baseType.nBits, baseType.signed, ast),
+          typeNameFromTypeNode(baseType, ast),
           `__warp_tb${this.counter++}`,
         );
       }

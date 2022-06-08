@@ -64,6 +64,11 @@ export const expectations = flatten(
             Expect.Simple('bytes32access', ['30'], ['51']),
             Expect.Simple('bytes32access256', ['31', '0'], ['255']),
           ]),
+          File.Simple('conversions', [
+            Expect.Simple('bytes1To2', ['150'], ['38400']),
+            Expect.Simple('bytes3To3', ['1111'], ['1111']),
+            Expect.Simple('bytes4To32', ['65534'], ['0', '5192138402209799099855309241319424']),
+          ]),
           new File(
             'fixedSizeBytesArrays',
             'WARP',

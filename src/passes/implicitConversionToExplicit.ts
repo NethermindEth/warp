@@ -62,7 +62,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
   visitReturn(node: Return, ast: AST): void {
     this.commonVisit(node, ast);
 
-    if (node.vExpression == undefined) return;
+    if (node.vExpression === undefined) return;
 
     const returnDeclarations = node.vFunctionReturnParameters.vParameters;
     // Tuple returns handled by TupleAssignmentSplitter
@@ -316,8 +316,10 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
   } else if (currentType instanceof FixedBytesType) {
     if (generalisedTargetType instanceof BytesType || generalisedTargetType instanceof StringType) {
       insertConversionIfNecessary(expression, generalisedTargetType, ast);
-    } else if (targetType instanceof FixedBytesType) {
-      return;
+    } else if (generalisedTargetType instanceof FixedBytesType) {
+      if (currentType.size !== generalisedTargetType.size) {
+        insertConversion(expression, generalisedTargetType, ast);
+      }
     } else {
       throw new TranspileFailedError(
         `Unexpected implicit conversion from ${currentType.pp()} to ${generalisedTargetType.pp()}`,
