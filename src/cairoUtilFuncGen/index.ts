@@ -85,9 +85,21 @@ export class CairoUtilFuncGen {
       dynArray: new DynArrayGen(ast, sourceUnit),
     };
 
+    const storageReadGen = new StorageReadGen(ast, sourceUnit);
+    const storageDelete = new StorageDeleteGen(
+      this.implementation.dynArray,
+      storageReadGen,
+      ast,
+      sourceUnit,
+    );
     const memoryToStorage = new MemoryToStorageGen(this.implementation.dynArray, ast, sourceUnit);
     const storageWrite = new StorageWriteGen(ast, sourceUnit);
-    const storageToStorage = new StorageToStorageGen(this.implementation.dynArray, ast, sourceUnit);
+    const storageToStorage = new StorageToStorageGen(
+      this.implementation.dynArray,
+      storageDelete,
+      ast,
+      sourceUnit,
+    );
     const calldataToStorage = new CalldataToStorageGen(
       this.implementation.dynArray,
       storageWrite,
@@ -114,13 +126,6 @@ export class CairoUtilFuncGen {
       toStorage: memoryToStorage,
       write: memoryWrite,
     };
-    const storageReadGen = new StorageReadGen(ast, sourceUnit);
-    const storageDelete = new StorageDeleteGen(
-      this.implementation.dynArray,
-      storageReadGen,
-      ast,
-      sourceUnit,
-    );
     this.storage = {
       delete: storageDelete,
       dynArrayIndexAccess: new DynArrayIndexAccessGen(
