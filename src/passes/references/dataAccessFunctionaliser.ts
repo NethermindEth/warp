@@ -35,7 +35,7 @@ import {
   createUint8TypeName,
 } from '../../utils/nodeTemplates';
 import { cloneASTNode } from '../../utils/cloning';
-import { CairoType } from '../../utils/cairoTypeSystem';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { ReferenceSubPass } from './referenceSubPass';
 import { StorageToStorageGen } from '../../cairoUtilFuncGen/storage/copyToStorage';
 import { MemoryWriteGen } from '../../cairoUtilFuncGen/memory/memoryWrite';
@@ -339,7 +339,11 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
       arrayType instanceof BytesType ||
       arrayType instanceof StringType,
   );
-  const elementCairoTypeWidth = CairoType.fromSol(getElementType(arrayType), ast).width;
+  const elementCairoTypeWidth = CairoType.fromSol(
+    getElementType(arrayType),
+    ast,
+    TypeConversionContext.Ref,
+  ).width;
 
   const call = createCallToFunction(
     stub,

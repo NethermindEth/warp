@@ -15,7 +15,7 @@ import {
 import { ReferenceSubPass } from './referenceSubPass';
 import { AST } from '../../ast/ast';
 import { printNode } from '../../utils/astPrinter';
-import { CairoType } from '../../utils/cairoTypeSystem';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
@@ -100,7 +100,11 @@ export class MemoryAllocations extends ReferenceSubPass {
         arrayType instanceof StringType,
     );
 
-    const elementCairoType = CairoType.fromSol(getElementType(arrayType), ast);
+    const elementCairoType = CairoType.fromSol(
+      getElementType(arrayType),
+      ast,
+      TypeConversionContext.Ref,
+    );
 
     const call = createCallToFunction(
       stub,
