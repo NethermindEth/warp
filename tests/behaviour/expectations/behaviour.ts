@@ -2339,13 +2339,25 @@ export const expectations = flatten(
         new Dir('precompiles', [
           File.Simple('ecrecover', [Expect.Simple('test', [], ['1'])]),
           File.Simple('keccak256', [
-            Expect.Simple('testCalldataBytes', ['4', '0xff', '0xff', '0xaa', '0xdd'],
-              ['175324288422466550073545188793205740709', '193807281875048316986278682415904036447']),
-            Expect.Simple('testMemoryBytes', ['1', '0x63'],
-              ['224080190154071229201179410017478621618', '14967895479457470500441594449402441164']),
-            Expect.Simple('testString', [],
-              ['224080190154071229201179410017478621618', '14967895479457470500441594449402441164']),
-          ])
+            Expect.Simple(
+              'testCalldataBytes',
+              ['4', '0xff', '0xff', '0xaa', '0xdd'],
+              [
+                '175324288422466550073545188793205740709',
+                '193807281875048316986278682415904036447',
+              ],
+            ),
+            Expect.Simple(
+              'testMemoryBytes',
+              ['1', '0x63'],
+              ['224080190154071229201179410017478621618', '14967895479457470500441594449402441164'],
+            ),
+            Expect.Simple(
+              'testString',
+              [],
+              ['224080190154071229201179410017478621618', '14967895479457470500441594449402441164'],
+            ),
+          ]),
         ]),
         new Dir('named_args', [
           File.Simple('function', [
@@ -2655,13 +2667,23 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
-        new Dir('string', [
+        new Dir('stringLiteral', [
           File.Simple('stringLiteralMemory', [
+            Expect.Simple('returnLiteral', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('plainLiteral', [], []),
             Expect.Simple('varDecl', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple(
+              'literalAssignmentToMemoryFromParams',
+              ['2', '87', '65'],
+              ['4', '87', '65', '82', '80'],
+            ),
             Expect.Simple('tupleRet', [], ['2', '87', '65', '2', '82', '80']),
-            Expect.Simple('funcCall', [], ['4', '87', '65', '82', '80']),
             Expect.Simple('funcCallWithArg', [], ['4', '87', '65', '82', '80']),
             Expect.Simple('nestedFuncCallWithArg', [], ['4', '87', '65', '82', '80']),
+          ]),
+          File.Simple('stringLiteralStorage', [
+            Expect.Simple('literalAssignment', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('memoryToStorageAssignment', [], ['4', '87', '65', '82', '80']),
           ]),
         ]),
         new Dir('this_keyword', [
