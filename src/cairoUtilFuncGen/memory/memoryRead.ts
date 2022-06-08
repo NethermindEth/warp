@@ -7,10 +7,16 @@ import {
   DataLocation,
   FunctionStateMutability,
   generalizeType,
+  ArrayType,
 } from 'solc-typed-ast';
 import { CairoFelt, CairoType, CairoUint256, MemoryLocation } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  createNumberLiteral,
+  createNumberTypeName,
+  createUint256TypeName,
+} from '../../utils/nodeTemplates';
 import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
 
@@ -24,10 +30,29 @@ export class MemoryReadGen extends StringIndexedFuncGen {
   gen(memoryRef: Expression, type: TypeName, nodeInSourceUnit?: ASTNode): FunctionCall {
     const valueType = generalizeType(getNodeType(memoryRef, this.ast.compilerVersion))[0];
     const resultCairoType = CairoType.fromSol(valueType, this.ast);
+
+    const params: [string, TypeName, DataLocation][] = [
+      ['loc', cloneASTNode(type, this.ast), DataLocation.Memory],
+    ];
+    const args = [memoryRef];
+
+    if (resultCairoType instanceof MemoryLocation) {
+      params.push(['size', createNumberTypeName(8, false, this.ast), DataLocation.Default]);
+      args.push(
+        createNumberLiteral(
+          valueType instanceof ArrayType && valueType.size === undefined
+            ? 2
+            : resultCairoType.width,
+          this.ast,
+          'uint256',
+        ),
+      );
+    }
+
     const name = this.getOrCreate(resultCairoType);
     const functionStub = createCairoFunctionStub(
       name,
-      [['loc', cloneASTNode(type, this.ast), DataLocation.Memory]],
+      params,
       [
         [
           'val',
@@ -40,7 +65,8 @@ export class MemoryReadGen extends StringIndexedFuncGen {
       nodeInSourceUnit ?? memoryRef,
       FunctionStateMutability.View,
     );
-    return createCallToFunction(functionStub, [memoryRef], this.ast);
+
+    return createCallToFunction(functionStub, args, this.ast);
   }
 
   getOrCreate(typeToRead: CairoType): string {
