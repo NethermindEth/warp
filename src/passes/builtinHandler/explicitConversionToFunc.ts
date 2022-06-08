@@ -1,9 +1,11 @@
 import assert from 'assert';
 import {
   AddressType,
+  BytesType,
   ContractDefinition,
   ElementaryTypeNameExpression,
   Expression,
+  FixedBytesType,
   FunctionCall,
   FunctionCallKind,
   generalizeType,
@@ -22,6 +24,7 @@ import { createAddressTypeName, createUint256TypeName } from '../../utils/nodeTe
 import { bigintToTwosComplement, toHexString } from '../../utils/utils';
 import { functionaliseIntConversion } from '../../warplib/implementations/conversions/int';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { functionaliseFixedBytesConversion } from '../../warplib/implementations/conversions/fixedBytes';
 
 export class ExplicitConversionToFunc extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -58,7 +61,15 @@ export class ExplicitConversionToFunc extends ASTMapper {
     const argType = generalizeType(getNodeType(node.vArguments[0], ast.compilerVersion))[0];
 
     if (typeTo instanceof IntType) {
-      if (argType instanceof IntLiteralType) {
+      if (argType instanceof FixedBytesType) {
+        assert(
+          typeTo.nBits === argType.size * 8,
+          `Unexpected size changing ${argType.pp()}->${typeTo.pp()} conversion encountered`,
+        );
+        const operand = node.vArguments[0];
+        operand.typeString = node.typeString;
+        ast.replaceNode(node, operand);
+      } else if (argType instanceof IntLiteralType) {
         ast.replaceNode(node, literalToTypedInt(node.vArguments[0], typeTo));
       } else if (argType instanceof IntType) {
         functionaliseIntConversion(node, ast);
@@ -87,7 +98,10 @@ export class ExplicitConversionToFunc extends ASTMapper {
     }
 
     if (typeTo instanceof AddressType) {
-      if (argType instanceof IntType && argType.nBits == 256) {
+      if (
+        (argType instanceof IntType && argType.nBits == 256) ||
+        (argType instanceof FixedBytesType && argType.size === 32)
+      ) {
         const replacementCall = createCallToFunction(
           createCairoFunctionStub(
             'uint256_to_address_felt',
@@ -109,6 +123,46 @@ export class ExplicitConversionToFunc extends ASTMapper {
       return;
     }
 
+    if (typeTo instanceof FixedBytesType) {
+      if (argType instanceof AddressType) {
+        const replacementCall = createCallToFunction(
+          createCairoFunctionStub(
+            'felt_to_uint256',
+            [['address_arg', createAddressTypeName(false, ast)]],
+            [['uint_ret', createUint256TypeName(ast)]],
+            [],
+            ast,
+            node,
+          ),
+          [node.vArguments[0]],
+          ast,
+        );
+
+        ast.replaceNode(node, replacementCall);
+        ast.registerImport(replacementCall, 'warplib.maths.utils', 'felt_to_uint256');
+        return;
+      } else if (argType instanceof BytesType) {
+        throw new NotSupportedYetError(
+          `Runtime conversion of ${argType.pp()} to ${typeTo.pp()} not supported yet`,
+        );
+      } else if (argType instanceof FixedBytesType) {
+        functionaliseFixedBytesConversion(node, ast);
+        return;
+      } else if (argType instanceof IntLiteralType) {
+        ast.replaceNode(node, literalToFixedBytes(node.vArguments[0], typeTo));
+        return;
+      } else if (argType instanceof IntType) {
+        assert(
+          typeTo.size * 8 >= argType.nBits,
+          `Unexpected narrowing ${argType.pp()}->${typeTo.pp()} conversion encountered`,
+        );
+        const operand = node.vArguments[0];
+        operand.typeString = node.typeString;
+        ast.replaceNode(node, operand);
+        return;
+      }
+    }
+
     throw new NotSupportedYetError(
       `${printTypeNode(argType)} to ${printTypeNode(typeTo)} conversion not supported yet`,
     );
@@ -127,6 +181,16 @@ function literalToTypedInt(arg: Expression, typeTo: IntType): Expression {
 
   arg.value = truncated;
   arg.hexValue = toHexString(truncated);
+  arg.typeString = typeTo.pp();
+  return arg;
+}
+
+function literalToFixedBytes(arg: Expression, typeTo: FixedBytesType): Expression {
+  assert(
+    arg instanceof Literal,
+    `Found non-literal ${printNode(arg)} to have literal type ${arg.typeString}`,
+  );
+
   arg.typeString = typeTo.pp();
   return arg;
 }

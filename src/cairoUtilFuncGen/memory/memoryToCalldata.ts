@@ -2,6 +2,7 @@ import assert from 'assert';
 import {
   ArrayType,
   ASTNode,
+  BytesType,
   DataLocation,
   Expression,
   FunctionCall,
@@ -9,6 +10,7 @@ import {
   generalizeType,
   getNodeType,
   SourceUnit,
+  StringType,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -23,9 +25,15 @@ import {
 } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import {
+  getElementType,
+  getSize,
+  isDynamicArray,
+  isReferenceType,
+} from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { add, StringIndexedFuncGen } from '../base';
+import { add, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/externalDynArrayStructConstructor';
 
 export class MemoryToCallDataGen extends StringIndexedFuncGen {
@@ -39,7 +47,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
     const type = generalizeType(getNodeType(node, this.ast.compilerVersion))[0];
 
-    if (type instanceof ArrayType && type.size === undefined) {
+    if (isDynamicArray(type)) {
       this.dynamicArrayStructGen.gen(node, nodeInSourceUnit);
     }
 
@@ -63,19 +71,20 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       return existing.name;
     }
 
-    if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-      return this.createStructCopyFunction(key, type);
-    } else if (type instanceof ArrayType) {
-      if (type.size === undefined) {
-        return this.createDynamicArrayCopyFunction(key, type);
-      } else {
-        return this.createStaticArrayCopyFunction(key, type);
-      }
-    } else {
+    const unexpectedTypeFunc = () => {
       throw new NotSupportedYetError(
         `Copying ${printTypeNode(type)} from memory to calldata not implemented yet`,
       );
-    }
+    };
+
+    return delegateBasedOnType<string>(
+      type,
+      (type) => this.createDynamicArrayCopyFunction(key, type),
+      (type) => this.createStaticArrayCopyFunction(key, type),
+      (type) => this.createStructCopyFunction(key, type),
+      unexpectedTypeFunc,
+      unexpectedTypeFunc,
+    );
   }
 
   private createStructCopyFunction(key: string, type: TypeNode): string {
@@ -99,11 +108,11 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `    alloc_locals`,
         ...structDef.vMembers.map((decl, index) => {
           const memberType = getNodeType(decl, this.ast.compilerVersion);
-          const allocSize =
-            memberType instanceof ArrayType && memberType === undefined
-              ? 2
-              : CairoType.fromSol(memberType, this.ast, TypeConversionContext.Ref).width;
-          if (isComplexType(memberType)) {
+          if (isReferenceType(memberType)) {
+            const allocSize =
+              memberType instanceof ArrayType && memberType === undefined
+                ? 2
+                : CairoType.fromSol(memberType, this.ast, TypeConversionContext.Ref).width;
             const memberGetter = this.getOrCreate(memberType);
             return [
               `let (read_${index}) = wm_read_id(${add('mem_loc', offset++)}, ${uint256(
@@ -138,13 +147,12 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private createStaticArrayCopyFunction(key: string, type: TypeNode): string {
+  private createStaticArrayCopyFunction(key: string, type: ArrayType): string {
     const funcName = `wm_to_calldata${this.generatedFunctions.size}`;
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
     const outputType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
 
-    assert(type instanceof ArrayType);
     assert(type.size !== undefined);
     const length = narrowBigIntSafe(type.size);
     const elementT = type.elementT;
@@ -159,7 +167,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `func ${funcName}${implicits}(mem_loc : felt) -> (retData: ${outputType.toString()}):`,
         `    alloc_locals`,
         ...mapRange(length, (index) => {
-          if (isComplexType(elementT)) {
+          if (isReferenceType(elementT)) {
             this.requireImport('warplib.memory', 'wm_read_id');
             const memberGetter = this.getOrCreate(elementT);
             const allocSize =
@@ -205,11 +213,11 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     const outputType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     assert(outputType instanceof CairoDynArray);
 
-    assert(type instanceof ArrayType);
-    assert(type.size === undefined);
+    assert(type instanceof ArrayType || type instanceof BytesType || type instanceof StringType);
+    assert(getSize(type) === undefined);
 
-    const elementT = type.elementT;
-    if (elementT instanceof ArrayType && elementT.size === undefined) {
+    const elementT = getElementType(type);
+    if (isDynamicArray(elementT)) {
       throw new NotSupportedYetError(
         `Copying dynamic arrays with element type ${printTypeNode(
           elementT,

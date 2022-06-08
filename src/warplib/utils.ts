@@ -6,11 +6,13 @@ import {
   BinaryOperation,
   BoolType,
   Expression,
+  FixedBytesType,
   FunctionCall,
   FunctionCallKind,
   getNodeType,
   Identifier,
   IntType,
+  TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from '../utils/astPrinter';
@@ -77,26 +79,26 @@ export function IntxIntFunction(
   );
   const retType = getNodeType(node, ast.compilerVersion);
   assert(
-    retType instanceof IntType,
+    retType instanceof IntType || retType instanceof FixedBytesType,
     `${printNode(node)} has type ${printTypeNode(retType)}, which is not compatible with ${name}`,
   );
+  const width = getIntOrFixedByteBitWidth(retType);
+  const signed = retType instanceof IntType && retType.signed;
   const shouldAppendWidth =
-    appendWidth === 'always' ||
-    (appendWidth === 'signedOrWide' && retType.signed) ||
-    retType.nBits === 256;
+    appendWidth === 'always' || (appendWidth === 'signedOrWide' && signed) || width === 256;
   const fullName = [
     'warp_',
     name,
-    retType.signed && separateSigned ? '_signed' : '',
+    signed && separateSigned ? '_signed' : '',
     unsafe ? '_unsafe' : '',
 
-    shouldAppendWidth ? `${retType.nBits}` : '',
+    shouldAppendWidth ? `${width}` : '',
   ].join('');
 
   const importName = [
     'warplib.maths.',
     name,
-    retType.signed && separateSigned ? '_signed' : '',
+    signed && separateSigned ? '_signed' : '',
     unsafe ? '_unsafe' : '',
   ].join('');
 
@@ -107,7 +109,7 @@ export function IntxIntFunction(
       ['rhs', rhsType],
     ],
     [['res', typeNameFromTypeNode(retType, ast)]],
-    implicits(retType.nBits, retType.signed),
+    implicits(width, signed),
     ast,
     node,
   );
@@ -141,14 +143,16 @@ export function Comparison(
   const lhsType = getNodeType(node.vLeftExpression, ast.compilerVersion);
   const rhsType = getNodeType(node.vLeftExpression, ast.compilerVersion);
   const retType = getNodeType(node, ast.compilerVersion);
-  const wide = lhsType instanceof IntType && lhsType.nBits === 256;
+  const wide =
+    (lhsType instanceof IntType || lhsType instanceof FixedBytesType) &&
+    getIntOrFixedByteBitWidth(lhsType) === 256;
   const signed = lhsType instanceof IntType && lhsType.signed;
   const shouldAppendWidth = wide || (appendWidth === 'signedOrWide' && signed);
   const fullName = [
     'warp_',
     name,
     separateSigned && signed ? '_signed' : '',
-    shouldAppendWidth ? `${lhsType.nBits}` : '',
+    shouldAppendWidth ? `${getIntOrFixedByteBitWidth(lhsType)}` : '',
   ].join('');
 
   const importName = `warplib.maths.${name}${signed && separateSigned ? '_signed' : ''}`;
@@ -194,13 +198,17 @@ export function IntFunction(
 ): void {
   const opType = getNodeType(argument, ast.compilerVersion);
   const retType = getNodeType(node, ast.compilerVersion);
-  assert(retType instanceof IntType, `Expected IntType for ${name}, got ${printTypeNode(retType)}`);
-  const fullName = `warp_${name}${retType.nBits}`;
+  assert(
+    retType instanceof IntType || retType instanceof FixedBytesType,
+    `Expected IntType or FixedBytes for ${name}, got ${printTypeNode(retType)}`,
+  );
+  const width = getIntOrFixedByteBitWidth(retType);
+  const fullName = `warp_${name}${width}`;
   const stub = createCairoFunctionStub(
     fullName,
     [['op', typeNameFromTypeNode(opType, ast)]],
     [['res', typeNameFromTypeNode(retType, ast)]],
-    implicits(retType.nBits === 256),
+    implicits(width === 256),
     ast,
     node,
   );
@@ -272,4 +280,17 @@ export function BoolxBoolFunction(node: BinaryOperation, name: string, ast: AST)
 
   ast.replaceNode(node, call);
   ast.registerImport(call, `warplib.maths.${name}`, fullName);
+}
+
+export function getIntOrFixedByteBitWidth(type: TypeNode): number {
+  if (type instanceof IntType) {
+    return type.nBits;
+  } else if (type instanceof FixedBytesType) {
+    return type.size * 8;
+  } else {
+    assert(
+      false,
+      `Attempted to get width for non-int, non-fixed bytes type ${printTypeNode(type)}`,
+    );
+  }
 }

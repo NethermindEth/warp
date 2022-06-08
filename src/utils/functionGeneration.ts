@@ -13,6 +13,7 @@ import {
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
+  getNodeType,
   Identifier,
   Mutability,
   StateVariableVisibility,
@@ -24,6 +25,7 @@ import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
 import { Implicits } from './implicits';
 import { createIdentifier, createParameterList } from './nodeTemplates';
+import { isDynamicArray } from './nodeTypeProcessing';
 import { toSingleExpression } from './utils';
 
 export function createCallToFunction(
@@ -125,12 +127,18 @@ export function createElementaryConversionCall(
   expression: Expression,
   ast: AST,
 ): FunctionCall {
+  const isDynArray = isDynamicArray(getNodeType(typeTo, ast.compilerVersion));
+  const innerTypeString = isDynArray
+    ? `type(${typeTo.typeString} storage pointer)`
+    : `type(${typeTo.typeString})`;
+  const outerTypeString = isDynArray ? `${typeTo.typeString} memory` : typeTo.typeString;
+
   const node = new FunctionCall(
     ast.reserveId(),
     '',
-    typeTo.typeString,
+    outerTypeString,
     FunctionCallKind.TypeConversion,
-    new ElementaryTypeNameExpression(ast.reserveId(), '', `type(${typeTo.typeString})`, typeTo),
+    new ElementaryTypeNameExpression(ast.reserveId(), '', innerTypeString, typeTo),
     [expression],
   );
   ast.setContextRecursive(node);

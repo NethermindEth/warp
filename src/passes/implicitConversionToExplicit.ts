@@ -62,7 +62,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
   visitReturn(node: Return, ast: AST): void {
     this.commonVisit(node, ast);
 
-    if (node.vExpression == undefined) return;
+    if (node.vExpression === undefined) return;
 
     const returnDeclarations = node.vFunctionReturnParameters.vParameters;
     // Tuple returns handled by TupleAssignmentSplitter
@@ -158,6 +158,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       if (node.vFunctionName === 'revert') {
         return;
       }
+      // TODO fixedbytes for literal?
       if (['assert', 'require'].includes(node.vFunctionName) && node.vArguments.length > 1) {
         const paramType = getParameterTypes(node, ast)[0];
         insertConversionIfNecessary(node.vArguments[0], paramType, ast);
@@ -181,6 +182,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         return;
       }
       if (node.vFunctionName === 'concat') {
+        // TODO concat
         return;
       }
     }
@@ -297,13 +299,32 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
   } else if (currentType instanceof BuiltinType) {
     return;
   } else if (currentType instanceof BytesType) {
-    throw new TranspileFailedError(
-      `Expected BytesType to have been substituted. Found at ${printNode(expression)}`,
-    );
+    if (generalisedTargetType instanceof BytesType || generalisedTargetType instanceof StringType) {
+      return;
+    }
+    if (generalisedTargetType instanceof FixedBytesType) {
+      throw new NotSupportedYetError(
+        `${printTypeNode(
+          currentType,
+        )} to fixed bytes type (${targetType.pp()}) not implemented yet`,
+      );
+    } else {
+      throw new TranspileFailedError(
+        `Unexpected implicit conversion from ${currentType.pp()} to ${targetType.pp()}`,
+      );
+    }
   } else if (currentType instanceof FixedBytesType) {
-    throw new TranspileFailedError(
-      `Expected FixedBytesType to have been substituted. Found at ${printNode(expression)}`,
-    );
+    if (generalisedTargetType instanceof BytesType || generalisedTargetType instanceof StringType) {
+      insertConversionIfNecessary(expression, generalisedTargetType, ast);
+    } else if (generalisedTargetType instanceof FixedBytesType) {
+      if (currentType.size !== generalisedTargetType.size) {
+        insertConversion(expression, generalisedTargetType, ast);
+      }
+    } else {
+      throw new TranspileFailedError(
+        `Unexpected implicit conversion from ${currentType.pp()} to ${generalisedTargetType.pp()}`,
+      );
+    }
   } else if (currentType instanceof FunctionType) {
     return;
   } else if (currentType instanceof ImportRefType) {
@@ -324,8 +345,20 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
   } else if (currentType instanceof ModuleType) {
     return;
   } else if (currentType instanceof StringType) {
-    // TODO bytes conversion
-    return;
+    if (generalisedTargetType instanceof BytesType || generalisedTargetType instanceof StringType) {
+      return;
+    }
+    if (generalisedTargetType instanceof FixedBytesType) {
+      throw new NotSupportedYetError(
+        `${printTypeNode(
+          currentType,
+        )} to fixed bytes type (${generalisedTargetType.pp()}) not implemented yet`,
+      );
+    } else {
+      throw new TranspileFailedError(
+        `Unexpected implicit conversion from ${currentType.pp()} to ${generalisedTargetType.pp()}`,
+      );
+    }
   } else if (currentType instanceof PointerType) {
     throw new TranspileFailedError(
       `Type conversion analysis error. Unexpected ${printTypeNode(
@@ -337,18 +370,23 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
       `Unexpected unresolved rational literal ${printNode(expression)}`,
     );
   } else if (currentType instanceof StringLiteralType) {
-    if (generalisedTargetType instanceof IntType) {
+    if (generalisedTargetType instanceof FixedBytesType) {
       if (!(expression instanceof Literal)) {
         throw new TranspileFailedError(`Expected stringLiteralType expression to be a Literal`);
       }
-      const padding = '0'.repeat(generalisedTargetType.nBits / 4 - expression.hexValue.length);
+      const padding = '0'.repeat(generalisedTargetType.size * 2 - expression.hexValue.length);
       const replacementNode = createNumberLiteral(
         `0x${expression.hexValue}${padding}`,
         ast,
-        `uint${generalisedTargetType.nBits / 8}`,
+        generalisedTargetType.pp(),
       );
       ast.replaceNode(expression, replacementNode, expression.parent);
       insertConversion(replacementNode, generalisedTargetType, ast);
+    } else if (
+      generalisedTargetType instanceof StringType ||
+      generalisedTargetType instanceof BytesType
+    ) {
+      insertConversion(expression, generalisedTargetType, ast);
     }
     return;
   } else if (currentType instanceof TupleType) {
@@ -430,6 +468,17 @@ function pickLargerType(
     }
     return typeB;
   } else if (typeB instanceof IntType) {
+    return typeA;
+  }
+
+  if (typeA instanceof FixedBytesType) {
+    if (typeB instanceof FixedBytesType) {
+      if (typeA.size > typeB.size) {
+        return typeA;
+      }
+    }
+    return typeB;
+  } else if (typeB instanceof FixedBytesType) {
     return typeA;
   }
 

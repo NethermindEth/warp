@@ -78,7 +78,7 @@ export abstract class CairoType {
       throw new NotSupportedYetError('Serialising BuiltinType not supported yet');
     } else if (tp instanceof BuiltinStructType) {
       throw new NotSupportedYetError('Serialising BuiltinStructType not supported yet');
-    } else if (tp instanceof BytesType) {
+    } else if (tp instanceof BytesType || tp instanceof StringType) {
       switch (context) {
         case TypeConversionContext.CallDataRef:
           return new CairoDynArray(

@@ -188,9 +188,12 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/typestrings/structs', 'Success'],
     ['example_contracts/units', 'Success'],
     ['example_contracts/unsupportedFunctions/abi', `WillNotSupport`],
-    ['example_contracts/unsupportedFunctions/keccak256', `WillNotSupport`],
-    ['example_contracts/unsupportedFunctions/ecrecover', `WillNotSupport`],
+    ['example_contracts/unsupportedFunctions/keccak256', `Success`],
+    ['example_contracts/unsupportedFunctions/ecrecover', `Success`],
     ['example_contracts/unsupportedFunctions/addmod', `WillNotSupport`],
+    // Supported precompiles
+    ['example_contracts/precompiles/ecrecover', 'Success'],
+    ['example_contracts/precompiles/keccak256', 'Success'],
     // Uses bytes memory
     ['example_contracts/unsupportedFunctions/shadowAbi', `Success`],
     // Uses bytes memory

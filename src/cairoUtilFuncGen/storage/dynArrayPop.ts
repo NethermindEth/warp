@@ -2,18 +2,20 @@ import assert from 'assert';
 import {
   ArrayType,
   ASTNode,
+  BytesType,
   DataLocation,
   FunctionCall,
   generalizeType,
   getNodeType,
   MemberAccess,
-  PointerType,
   SourceUnit,
+  StringType,
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { getElementType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
@@ -31,10 +33,16 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
 
   gen(pop: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
     assert(pop.vExpression instanceof MemberAccess);
-    const arrayType = getNodeType(pop.vExpression.vExpression, this.ast.compilerVersion);
-    assert(arrayType instanceof PointerType && arrayType.to instanceof ArrayType);
+    const arrayType = generalizeType(
+      getNodeType(pop.vExpression.vExpression, this.ast.compilerVersion),
+    )[0];
+    assert(
+      arrayType instanceof ArrayType ||
+        arrayType instanceof BytesType ||
+        arrayType instanceof StringType,
+    );
 
-    const name = this.getOrCreate(arrayType.to.elementT);
+    const name = this.getOrCreate(getElementType(arrayType));
 
     const functionStub = createCairoFunctionStub(
       name,
@@ -62,7 +70,7 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
     }
 
     const [arrayName, lengthName] = this.dynArrayGen.gen(cairoElementType);
-    const deleteFuncName = this.storageDelete.genFuncName(generalizeType(elementType)[0]);
+    const deleteFuncName = this.storageDelete.genFuncName(elementType);
 
     const funcName = `${arrayName}_POP`;
     this.generatedFunctions.set(key, {

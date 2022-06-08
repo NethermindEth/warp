@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   BinaryOperation,
+  FixedBytesType,
   FunctionCall,
   FunctionCallKind,
   getNodeType,
@@ -11,7 +12,14 @@ import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
 import { createCairoFunctionStub } from '../../../utils/functionGeneration';
 import { mapRange, typeNameFromTypeNode } from '../../../utils/utils';
-import { generateFile, forAllWidths, bound, msb, mask } from '../../utils';
+import {
+  generateFile,
+  forAllWidths,
+  bound,
+  msb,
+  mask,
+  getIntOrFixedByteBitWidth,
+} from '../../utils';
 
 export function shr(): void {
   generateFile(
@@ -209,7 +217,7 @@ export function functionaliseShr(node: BinaryOperation, ast: AST): void {
   const retType = getNodeType(node, ast.compilerVersion);
 
   assert(
-    lhsType instanceof IntType,
+    lhsType instanceof IntType || lhsType instanceof FixedBytesType,
     `lhs of >> ${printNode(node)} non-int type ${printTypeNode(lhsType)}`,
   );
   assert(
@@ -217,11 +225,14 @@ export function functionaliseShr(node: BinaryOperation, ast: AST): void {
     `rhs of >> ${printNode(node)} non-int type ${printTypeNode(rhsType)}`,
   );
 
-  const fullName = `warp_shr${lhsType.signed ? '_signed' : ''}${lhsType.nBits}${
+  const lhsWidth = getIntOrFixedByteBitWidth(lhsType);
+  const signed = lhsType instanceof IntType && lhsType.signed;
+
+  const fullName = `warp_shr${signed ? '_signed' : ''}${lhsWidth}${
     rhsType.nBits === 256 ? '_256' : ''
   }`;
 
-  const importName = `warplib.maths.shr${lhsType.signed ? '_signed' : ''}`;
+  const importName = `warplib.maths.shr${signed ? '_signed' : ''}`;
 
   const stub = createCairoFunctionStub(
     fullName,
