@@ -79,7 +79,7 @@ export abstract class CairoType {
     } else if (tp instanceof BytesType || tp instanceof StringType) {
       switch (context) {
         case TypeConversionContext.CallDataRef:
-          return new CairoDynArray('Bytes', new CairoFelt());
+          return new CairoDynArray('cd_dynarray_felt', new CairoFelt());
         default:
           return new WarpLocation();
       }

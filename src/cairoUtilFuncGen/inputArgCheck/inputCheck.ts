@@ -7,6 +7,7 @@ import {
   BytesType,
   DataLocation,
   EnumDefinition,
+  FixedBytesType,
   FunctionCall,
   FunctionStateMutability,
   generalizeType,
@@ -77,8 +78,10 @@ export class InputCheckGen extends StringIndexedFuncGen {
       (type) => this.createStructInputCheck(key, this.generateFuncName(key), type),
       unexpectedTypeFunc,
       (type) => {
-        if (type instanceof IntType) {
-          return this.createIntInputCheck(type);
+        if (type instanceof FixedBytesType) {
+          return this.createIntInputCheck(type.size * 8);
+        } else if (type instanceof IntType) {
+          return this.createIntInputCheck(type.nBits);
         } else if (type instanceof BoolType) {
           return this.createBoolInputCheck();
         } else if (type instanceof UserDefinedType && type.definition instanceof EnumDefinition) {
@@ -98,11 +101,11 @@ export class InputCheckGen extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private createIntInputCheck(type: IntType): string {
-    const funcName = `warp_external_input_check_int${type.nBits}`;
+  private createIntInputCheck(bitWidth: number): string {
+    const funcName = `warp_external_input_check_int${bitWidth}`;
     this.requireImport(
       'warplib.maths.external_input_check_ints',
-      `warp_external_input_check_int${type.nBits}`,
+      `warp_external_input_check_int${bitWidth}`,
     );
     return funcName;
   }
