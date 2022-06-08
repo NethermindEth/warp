@@ -121,7 +121,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
                 `let (${elemLoc}) = wm_read_id(${add('mem_loc', index)}, ${uint256(
                   copyTypeWidth,
                 )})`,
-                `${funcName}(${add('loc', storageOffset)}, memFelt${index})`,
+                `${funcName}(${add('loc', storageOffset)}, ${elemLoc})`,
               ];
             }
           },
