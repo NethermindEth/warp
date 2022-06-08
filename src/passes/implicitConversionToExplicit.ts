@@ -43,9 +43,8 @@ import { printNode, printTypeNode } from '../utils/astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { createElementaryConversionCall } from '../utils/functionGeneration';
-import { generateExpressionTypeString } from '../utils/getTypeString';
 import { createArrayTypeName, createNumberLiteral } from '../utils/nodeTemplates';
-import { getParameterTypes, intTypeForLiteral, specializeType } from '../utils/nodeTypeProcessing';
+import { getParameterTypes, intTypeForLiteral } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, bigintToTwosComplement, toHexString } from '../utils/utils';
 
 /*
@@ -352,7 +351,7 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
       );
       ast.replaceNode(expression, replacementNode, expression.parent);
       insertConversion(replacementNode, generalisedTargetType, ast);
-    } else if (targetType instanceof ArrayType) {
+    } else if (generalisedTargetType instanceof ArrayType) {
       if (
         expression.getClosestParentByType(VariableDeclarationStatement) === undefined &&
         expression.getClosestParentByType(FunctionCall) === undefined &&
@@ -364,7 +363,7 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
         expression.typeString = 'uint8[] memory';
         ast.extractToConstant(
           expression,
-          createArrayTypeName(typeNameFromTypeNode(targetType.elementT, ast), ast),
+          createArrayTypeName(typeNameFromTypeNode(generalisedTargetType.elementT, ast), ast),
           variablePrefix + variableCount++,
         );
       }
