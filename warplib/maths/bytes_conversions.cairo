@@ -4,6 +4,8 @@ from warplib.maths.utils import felt_to_uint256
 from starkware.cairo.common.bitwise import bitwise_and, bitwise_not
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 
+const SHIFT = 2 ** 128
+
 func warp_bytes_widen(x : felt, widthDiff : felt) -> (res : felt):
     let (multiplier) = pow2(widthDiff)
     return (x * multiplier)
@@ -29,5 +31,5 @@ func warp_bytes_narrow_256{range_check_ptr : felt}(x : Uint256, widthDiff : felt
     let (divisor_felt) = pow2(widthDiff)
     let (divisor) = felt_to_uint256(divisor_felt)
     let (res, _) = uint256_unsigned_div_rem(x, divisor)
-    return (340282366920938463463374607431768211456 * res.high + res.low)
+    return (SHIFT * res.high + res.low)
 end
