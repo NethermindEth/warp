@@ -22,7 +22,7 @@ contract WARP {
     }
 
     function setF() public {
-        f.push(S(1, 2));
+        f.push(S(10, 20));
         f.push(S(2, 3));
         f.push(S(3, 4));
     }

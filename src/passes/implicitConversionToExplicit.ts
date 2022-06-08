@@ -40,12 +40,11 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode, printTypeNode } from '../utils/astPrinter';
-import { NotSupportedYetError, TranspileFailedError, WillNotSupportError } from '../utils/errors';
+import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { createElementaryConversionCall } from '../utils/functionGeneration';
-import { generateExpressionTypeString } from '../utils/getTypeString';
 import { createNumberLiteral } from '../utils/nodeTemplates';
-import { getParameterTypes, intTypeForLiteral, specializeType } from '../utils/nodeTypeProcessing';
+import { getParameterTypes, intTypeForLiteral } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, bigintToTwosComplement, toHexString } from '../utils/utils';
 
 /*
@@ -259,34 +258,42 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 }
 
 function insertConversionIfNecessary(expression: Expression, targetType: TypeNode, ast: AST): void {
-  const currentType = generalizeType(getNodeType(expression, ast.compilerVersion))[0];
-  targetType = generalizeType(targetType)[0];
+  const [currentType, currentLoc] = generalizeType(getNodeType(expression, ast.compilerVersion));
+  const generalisedTargetType = generalizeType(targetType)[0];
 
   if (currentType instanceof AddressType) {
-    if (!(targetType instanceof AddressType)) {
-      insertConversion(expression, targetType, ast);
+    if (!(generalisedTargetType instanceof AddressType)) {
+      insertConversion(expression, generalisedTargetType, ast);
     }
   } else if (currentType instanceof ArrayType) {
     assert(
-      targetType instanceof ArrayType,
+      generalisedTargetType instanceof ArrayType,
       `Unable to convert array ${printNode(expression)} to non-array type ${printTypeNode(
-        targetType,
+        generalisedTargetType,
       )}`,
     );
-    const elementT = targetType.elementT;
-    if (expression instanceof TupleExpression && expression.isInlineArray) {
-      expression.vOriginalComponents.forEach((element) => {
-        assert(element !== null, `Unexpected empty slot in inline array ${printNode(expression)}`);
-        insertConversionIfNecessary(element, elementT, ast);
-      });
-      expression.typeString = generateExpressionTypeString(
-        specializeType(targetType, DataLocation.Memory),
-      );
+    if (currentLoc === DataLocation.Memory) {
+      const parent = expression.parent;
+      const [replacement, shouldReplace] = ast
+        .getUtilFuncGen(expression)
+        .memory.convert.genIfNecesary(expression, targetType);
+      if (shouldReplace) {
+        ast.replaceNode(expression, replacement, parent);
+      }
     }
+    // if (expression instanceof TupleExpression && expression.isInlineArray) {
+    //   expression.vOriginalComponents.forEach((element) => {
+    //     assert(element !== null, `Unexpected empty slot in inline array ${printNode(expression)}`);
+    //     insertConversionIfNecessary(element, elementT, ast);
+    //   });
+    //   expression.typeString = generateExpressionTypeString(
+    //     specializeType(targetType, DataLocation.Memory),
+    //   );
+    // }
   } else if (currentType instanceof BoolType) {
     assert(
-      targetType instanceof BoolType,
-      `Unable to convert bool to ${printTypeNode(targetType)}`,
+      generalisedTargetType instanceof BoolType,
+      `Unable to convert bool to ${printTypeNode(generalisedTargetType)}`,
     );
     return;
   } else if (currentType instanceof BuiltinType) {
@@ -321,12 +328,15 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
   } else if (currentType instanceof ImportRefType) {
     return;
   } else if (currentType instanceof IntLiteralType) {
-    insertConversion(expression, targetType, ast);
+    insertConversion(expression, generalisedTargetType, ast);
   } else if (currentType instanceof IntType) {
-    if (targetType instanceof IntType && targetType.pp() === currentType.pp()) {
+    if (
+      generalisedTargetType instanceof IntType &&
+      generalisedTargetType.pp() === currentType.pp()
+    ) {
       return;
     } else {
-      insertConversion(expression, targetType, ast);
+      insertConversion(expression, generalisedTargetType, ast);
     }
   } else if (currentType instanceof MappingType) {
     return;
@@ -369,7 +379,7 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
         targetType.pp(),
       );
       ast.replaceNode(expression, replacementNode, expression.parent);
-      insertConversion(replacementNode, targetType, ast);
+      insertConversion(replacementNode, generalisedTargetType, ast);
     }
     return;
   } else if (currentType instanceof TupleType) {

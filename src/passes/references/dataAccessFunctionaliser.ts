@@ -163,7 +163,10 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       } else if (fromLoc === DataLocation.Memory) {
         const [convert, result] = ast
           .getUtilFuncGen(node)
-          .memory.convert.genIfNecesary(node.vLeftHandSide, node.vRightHandSide);
+          .memory.convert.genIfNecesary(
+            node.vLeftHandSide,
+            getNodeType(node.vRightHandSide, ast.compilerVersion),
+          );
         if (result) {
           ast.replaceNode(node.vRightHandSide, convert, node);
         }
