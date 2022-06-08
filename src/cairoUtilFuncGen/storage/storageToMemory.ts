@@ -170,7 +170,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     ).width;
 
     const copyCode: string = this.getRecursiveCopyCode(
-      type,
+      type.elementT,
       elementMemoryWidth,
       'loc',
       'mem_start',
