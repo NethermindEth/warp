@@ -56,6 +56,8 @@ export abstract class CairoType {
             `cd_dynarray_${generateStructName(CairoType.fromSol(tp.elementT, ast, context))}`,
             CairoType.fromSol(tp.elementT, ast, context),
           );
+        } else if (context === TypeConversionContext.Ref) {
+          return new MemoryLocation();
         }
         return new WarpLocation();
       } else if (context === TypeConversionContext.Ref) {
@@ -80,6 +82,8 @@ export abstract class CairoType {
       switch (context) {
         case TypeConversionContext.CallDataRef:
           return new CairoDynArray('Bytes', new CairoFelt());
+        case TypeConversionContext.Ref:
+          return new MemoryLocation();
         default:
           return new WarpLocation();
       }
