@@ -109,10 +109,10 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         ...structDef.vMembers.map((decl, index) => {
           const memberType = getNodeType(decl, this.ast.compilerVersion);
           if (isReferenceType(memberType)) {
-            const allocSize =
-              memberType instanceof ArrayType && memberType === undefined
-                ? 2
-                : CairoType.fromSol(memberType, this.ast, TypeConversionContext.Ref).width;
+            this.requireImport('warplib.memory', 'wm_read_id');
+            const allocSize = isDynamicArray(memberType)
+              ? 2
+              : CairoType.fromSol(memberType, this.ast, TypeConversionContext.Ref).width;
             const memberGetter = this.getOrCreate(memberType);
             return [
               `let (read_${index}) = wm_read_id(${add('mem_loc', offset++)}, ${uint256(
@@ -170,10 +170,9 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
           if (isReferenceType(elementT)) {
             this.requireImport('warplib.memory', 'wm_read_id');
             const memberGetter = this.getOrCreate(elementT);
-            const allocSize =
-              elementT instanceof ArrayType && elementT.size === undefined
-                ? 2
-                : CairoType.fromSol(elementT, this.ast, TypeConversionContext.Ref).width;
+            const allocSize = isDynamicArray(elementT)
+              ? 2
+              : CairoType.fromSol(elementT, this.ast, TypeConversionContext.Ref).width;
             return [
               `let (read${index}) = wm_read_id(${add('mem_loc', offset++)}, ${uint256(allocSize)})`,
               `let (member${index}) = ${memberGetter}(read${index})`,
@@ -262,11 +261,10 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     const ptrString = `${cairoType.toString()}`;
 
     let code = [''];
-    if (isComplexType(elementT)) {
-      const allocSize =
-        elementT instanceof ArrayType && elementT.size === undefined
-          ? 2
-          : CairoType.fromSol(elementT, this.ast, TypeConversionContext.Ref).width;
+    if (isReferenceType(elementT)) {
+      const allocSize = isDynamicArray(elementT)
+        ? 2
+        : CairoType.fromSol(elementT, this.ast, TypeConversionContext.Ref).width;
       code = [
         `let (mem_read0) = wm_read_id(mem_loc, ${uint256(allocSize)})`,
         `let (mem_read1) = ${this.getOrCreate(elementT)}(mem_read0)`,
@@ -304,11 +302,4 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
 
     return funcName;
   }
-}
-
-function isComplexType(type: TypeNode) {
-  return (
-    type instanceof ArrayType ||
-    (type instanceof UserDefinedType && type.definition instanceof StructDefinition)
-  );
 }

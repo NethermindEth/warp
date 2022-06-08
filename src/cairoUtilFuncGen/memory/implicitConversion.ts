@@ -15,6 +15,7 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { isDynamicArray } from '../../utils/nodeTypeProcessing';
 import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { CairoFunction, StringIndexedFuncGen } from '../base';
@@ -158,10 +159,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
           : `let (target_elem) = felt_to_uint256(source_elem)`,
       ];
     } else {
-      const allocSize =
-        sourceType.elementT instanceof ArrayType && sourceType.elementT.size === undefined
-          ? 2
-          : cairoSourceElementType.width;
+      const allocSize = isDynamicArray(sourceType.elementT) ? 2 : cairoSourceElementType.width;
       conversionCode = [
         `let (source_elem) = wm_read_id(${sourceLoc}, ${uint256(allocSize)})`,
         `let (target_elem) = ${this.getOrCreate(
