@@ -8,6 +8,9 @@ on:
       - warp-ts
   pull_request:
 
+env:
+  CAIRO_LANG_VERSION: 0.8.2.1
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -24,7 +27,7 @@ jobs:
         run: |
           yarn
           pipx install black[colors]
-          pipx install cairo-lang==0.8.2.1
+          pipx install cairo-lang=="$CAIRO_LANG_VERSION"
 
       - name: Build warplib
         run: yarn warplib
@@ -90,7 +93,7 @@ jobs:
       - name: Setup env
         run: |
           pip install -r requirements.txt 
-          pip install cairo-lang==0.8.2
+          pip install cairo-lang=="$CAIRO_LANG_VERSION"
 
       - name: Setup source hash (pull_request)
         if: ${{ github.event_name == 'pull_request' }}
