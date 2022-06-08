@@ -29,5 +29,5 @@ func warp_bytes_narrow_256{range_check_ptr : felt}(x : Uint256, widthDiff : felt
     let (divisor_felt) = pow2(widthDiff)
     let (divisor) = felt_to_uint256(divisor_felt)
     let (res, _) = uint256_unsigned_div_rem(x, divisor)
-    return (340282366920938463463374607431768211456 * res.high + res.low) # 2^128 * high + low
+    return (340282366920938463463374607431768211456 * res.high + res.low)
 end
