@@ -5,6 +5,22 @@
 Warp brings Solidity to StarkNet, making it possible to transpile Ethereum
 smart contracts to Cairo, and use them on StarkNet.
 
+## Pre-requisites
+
+You will need [z3](https://github.com/Z3Prover/z3) to use warp, installation instructions:
+
+On macos:
+
+```bash
+brew install z3
+```
+
+On ubuntu:
+
+```bash
+sudo apt install libz3-dev
+```
+
 ## Installation :gear:
 
 To get the dependencies:
@@ -12,10 +28,6 @@ To get the dependencies:
 ```bash
 yarn
 ```
-
-Additionally, solc 0.8.11 must be installed and usable via 'solc' Instructions
-can be found at
-https://docs.soliditylang.org/en/v0.8.11/installing-solidity.html
 
 Compile the project:
 
