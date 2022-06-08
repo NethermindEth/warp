@@ -146,12 +146,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       )}->${printTypeNode(toType)}`,
     );
 
-    if (fromType.size !== toType.size) {
-      throw new NotSupportedYetError(
-        `Copying static arrays of mismatched size not implemented yet`,
-      );
-    }
-
     const elementCopyFunc = this.getOrCreate(toType.elementT, fromType.elementT);
 
     const toElemType = CairoType.fromSol(
@@ -170,7 +164,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}_elem${implicits}(to_elem_loc: felt, from_elem_loc: felt, index: felt) -> ():`,
-        `    if index == ${narrowBigIntSafe(toType.size)}:`,
+        `    if index == ${narrowBigIntSafe(fromType.size)}:`,
         `        return ()`,
         `    end`,
         `    ${copyCode('to_elem_loc', 'from_elem_loc')}`,

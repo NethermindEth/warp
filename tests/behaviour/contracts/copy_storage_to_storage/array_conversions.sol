@@ -24,6 +24,12 @@ contract WARP {
     return b;
   }
 
+  uint[3][3] bb;
+  function copyDiferentStaticSize() external returns (uint[3][3] memory) {
+    bb = b; 
+    return bb;
+  }
+
   function copyStaticToDynamicDeep() external returns (uint[] memory, uint[] memory, uint[2][2] memory) {
     a = b;
     return (a[0], a[1],b);

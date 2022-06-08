@@ -740,6 +740,24 @@ export const expectations = flatten(
                 '0',
               ],
             ]),
+            new Expect('copy nested static to nested static of different size', [
+              [
+                'setStaticDeep',
+                [...['4', '5', '7', '6'], ...['1', '2', '3', '9']],
+                [...['4', '5', '7', '6'], ...['1', '2', '3', '9']],
+                '0',
+              ],
+              [
+                'copyDiferentStaticSize',
+                [],
+                [
+                  ...['4', '5', '7', '6', '0', '0'],
+                  ...['1', '2', '3', '9', '0', '0'],
+                  ...['0', '0', '0', '0', '0', '0'],
+                ],
+                '0',
+              ],
+            ]),
             new Expect('copy nested static to T[][X]', [
               [
                 'setStaticDeep',
