@@ -35,7 +35,6 @@ import {
   TypeNode,
   UnaryOperation,
   UserDefinedType,
-  VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -352,14 +351,11 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
           throw new TranspileFailedError(`Expected stringLiteralType expression to be a Literal`);
         }
         expression.typeString = 'uint8[] memory';
-        const identifier = ast.extractToConstant(
+        ast.extractToConstant(
           expression,
           createArrayTypeName(typeNameFromTypeNode(targetType.elementT, ast), ast),
           variablePrefix + variableCount++,
         );
-        if (identifier.vReferencedDeclaration instanceof VariableDeclaration) {
-          identifier.vReferencedDeclaration.storageLocation = DataLocation.Memory;
-        }
       }
     }
     return;
