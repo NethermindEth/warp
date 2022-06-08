@@ -161,7 +161,13 @@ export class CairoUtilFuncGen {
         ast,
         sourceUnit,
       ),
-      convert: new StaticToDynArray(storageWrite, ast, sourceUnit),
+      convert: new StaticToDynArray(
+        storageWrite,
+        this.implementation.dynArray,
+        this.storage.dynArrayIndexAccess,
+        ast,
+        sourceUnit,
+      ),
     };
   }
 
