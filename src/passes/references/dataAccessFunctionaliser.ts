@@ -20,6 +20,7 @@ import {
   generalizeType,
   FixedBytesType,
   BytesType,
+  StringType,
 } from 'solc-typed-ast';
 import { TranspileFailedError, WillNotSupportError } from '../../utils/errors';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
@@ -270,7 +271,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           } else {
             replacement = ast.getUtilFuncGen(node).storage.staticArrayIndexAccess.gen(node);
           }
-        } else if (baseType.to instanceof BytesType) {
+        } else if (baseType.to instanceof BytesType || baseType.to instanceof StringType) {
           replacement = ast.getUtilFuncGen(node).storage.dynArrayIndexAccess.gen(node);
         } else if (baseType.to instanceof MappingType) {
           replacement = ast.getUtilFuncGen(node).storage.mappingIndexAccess.gen(node);
@@ -288,7 +289,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
               .getUtilFuncGen(node)
               .memory.staticArrayIndexAccess.gen(node, baseType.to);
           }
-        } else if (baseType.to instanceof BytesType) {
+        } else if (baseType.to instanceof BytesType || baseType.to instanceof StringType) {
           replacement = createMemoryDynArrayIndexAccess(node, ast);
         } else {
           throw new TranspileFailedError(
@@ -333,7 +334,11 @@ function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): Fu
   );
 
   assert(indexAccess.vIndexExpression);
-  assert(arrayType instanceof ArrayType || arrayType instanceof BytesType);
+  assert(
+    arrayType instanceof ArrayType ||
+      arrayType instanceof BytesType ||
+      arrayType instanceof StringType,
+  );
   const elementCairoTypeWidth = CairoType.fromSol(getElementType(arrayType), ast).width;
 
   const call = createCallToFunction(

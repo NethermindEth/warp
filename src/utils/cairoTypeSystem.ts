@@ -76,7 +76,7 @@ export abstract class CairoType {
       throw new NotSupportedYetError('Serialising BuiltinType not supported yet');
     } else if (tp instanceof BuiltinStructType) {
       throw new NotSupportedYetError('Serialising BuiltinStructType not supported yet');
-    } else if (tp instanceof BytesType) {
+    } else if (tp instanceof BytesType || tp instanceof StringType) {
       switch (context) {
         case TypeConversionContext.CallDataRef:
           return new CairoDynArray('Bytes', new CairoFelt());
@@ -95,8 +95,6 @@ export abstract class CairoType {
       if (context !== TypeConversionContext.Ref) {
         return CairoType.fromSol(tp.to, ast, context);
       }
-      return new CairoFelt();
-    } else if (tp instanceof StringType) {
       return new CairoFelt();
     } else if (tp instanceof UserDefinedType) {
       if (tp.definition instanceof EnumDefinition) {

@@ -6,6 +6,7 @@ import {
   DataLocation,
   SourceUnit,
   BytesType,
+  StringType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
@@ -27,7 +28,7 @@ export class DynArrayLengthGen extends CairoUtilFuncGenBase {
 
   gen(
     node: MemberAccess,
-    arrayType: ArrayType | BytesType,
+    arrayType: ArrayType | BytesType | StringType,
     nodeInSourceUnit?: ASTNode,
   ): FunctionCall {
     const lengthName = this.dynArrayGen.gen(

@@ -2,12 +2,14 @@ import assert from 'assert';
 import {
   ArrayType,
   ASTNode,
+  BytesType,
   DataLocation,
   Expression,
   FunctionStateMutability,
   generalizeType,
   getNodeType,
   SourceUnit,
+  StringType,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -17,8 +19,9 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { getElementType, isDynamicArray, isReferenceType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
-import { add, StringIndexedFuncGen } from '../base';
+import { add, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from '../storage/dynArray';
 
 /*
@@ -62,19 +65,20 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       return existing.name;
     }
 
-    if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-      return this.createStructCopyFunction(key, type);
-    } else if (type instanceof ArrayType) {
-      if (type.size === undefined) {
-        return this.createDynamicArrayCopyFunction(key, type);
-      } else {
-        return this.createStaticArrayCopyFunction(key, type);
-      }
-    } else {
+    const unexpectedTypeFunc = () => {
       throw new NotSupportedYetError(
         `Copying ${printTypeNode(type)} from memory to storage not implemented yet`,
       );
-    }
+    };
+
+    return delegateBasedOnType<string>(
+      type,
+      (type) => this.createDynamicArrayCopyFunction(key, type),
+      (type) => this.createStaticArrayCopyFunction(key, type),
+      (type) => this.createStructCopyFunction(key, type),
+      unexpectedTypeFunc,
+      unexpectedTypeFunc,
+    );
   }
 
   // This can also be used for arrays, in which case they are treated like structs with <length> members
@@ -102,7 +106,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
                 readMemFelt,
                 `WARP_STORAGE.write(${add('loc', storageOffset)}, memFelt${index})`,
               ];
-            } else if (copyType instanceof ArrayType && copyType.size === undefined) {
+            } else if (isDynamicArray(copyType)) {
               const funcName = this.getOrCreate(copyType);
               return [
                 readMemFelt,
@@ -151,13 +155,13 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     ).width;
     const elementMemoryWidth = CairoType.fromSol(type.elementT, this.ast).width;
     let copyCode: string;
-    if (type.elementT instanceof ArrayType && type.elementT.size === undefined) {
+    if (isDynamicArray(type.elementT)) {
       copyCode = [
         `    let (elemName) = readId(storage_loc)`,
         `    let (read) = dict_read{dict_ptr=warp_memory}(mem_loc)`,
         `    ${this.getOrCreate(type.elementT)}(elemName, read)`,
       ].join('\n');
-    } else if (isComplexType(type.elementT)) {
+    } else if (isReferenceType(type.elementT)) {
       copyCode = [
         `    let (read) = dict_read{dict_ptr=warp_memory}(mem_loc)`,
         `    ${this.getOrCreate(type.elementT)}(loc, read)`,
@@ -203,35 +207,40 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private createDynamicArrayCopyFunction(key: string, type: ArrayType): string {
+  private createDynamicArrayCopyFunction(
+    key: string,
+    type: ArrayType | BytesType | StringType,
+  ): string {
     const funcName = `wm_to_storage${this.generatedFunctions.size}`;
 
     this.generatedFunctions.set(key, { name: funcName, code: '' });
 
+    const elementT = getElementType(type);
+
     const [elemMapping, lengthMapping] = this.dynArrayGen.gen(
-      CairoType.fromSol(type.elementT, this.ast, TypeConversionContext.StorageAllocation),
+      CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
     );
 
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
     const elementStorageWidth = CairoType.fromSol(
-      type.elementT,
+      elementT,
       this.ast,
       TypeConversionContext.StorageAllocation,
     ).width;
-    const elementMemoryWidth = CairoType.fromSol(type.elementT, this.ast).width;
+    const elementMemoryWidth = CairoType.fromSol(elementT, this.ast).width;
     let copyCode: string;
-    if (type.elementT instanceof ArrayType && type.elementT.size === undefined) {
+    if (isDynamicArray(elementT)) {
       copyCode = [
         `    let (elemName) = readId(storage_loc)`,
         `    let (read) = dict_read{dict_ptr=warp_memory}(mem_loc)`,
-        `    ${this.getOrCreate(type.elementT)}(elemName, read)`,
+        `    ${this.getOrCreate(elementT)}(elemName, read)`,
       ].join('\n');
-    } else if (isComplexType(type.elementT)) {
+    } else if (isReferenceType(elementT)) {
       copyCode = [
         `    let (read) = dict_read{dict_ptr=warp_memory}(mem_loc)`,
-        `    ${this.getOrCreate(type.elementT)}(storage_loc, read)`,
+        `    ${this.getOrCreate(elementT)}(storage_loc, read)`,
       ].join('\n');
     } else {
       copyCode = mapRange(elementStorageWidth, (n) =>
@@ -311,7 +320,7 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
 
   let storageOffset = 0;
   return members.flatMap((memberType) => {
-    if (isComplexType(memberType)) {
+    if (isReferenceType(memberType)) {
       const offset = storageOffset;
       storageOffset += CairoType.fromSol(
         memberType,
@@ -328,11 +337,4 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
       return mapRange(width, () => ({ storageOffset: storageOffset++ }));
     }
   });
-}
-
-function isComplexType(type: TypeNode) {
-  return (
-    type instanceof ArrayType ||
-    (type instanceof UserDefinedType && type.definition instanceof StructDefinition)
-  );
 }

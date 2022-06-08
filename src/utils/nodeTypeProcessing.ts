@@ -16,6 +16,7 @@ import {
   MappingType,
   PackedArrayType,
   PointerType,
+  StringType,
   StructDefinition,
   TupleType,
   TypeName,
@@ -160,7 +161,8 @@ export function isDynamicArray(type: TypeNode): boolean {
   return (
     (type instanceof PointerType && isDynamicArray(type.to)) ||
     (type instanceof ArrayType && type.size === undefined) ||
-    type instanceof BytesType
+    type instanceof BytesType ||
+    type instanceof StringType
   );
 }
 
@@ -177,6 +179,7 @@ export function isReferenceType(type: TypeNode): boolean {
     type instanceof ArrayType ||
     type instanceof BytesType ||
     type instanceof MappingType ||
+    type instanceof StringType ||
     (type instanceof UserDefinedType && type.definition instanceof StructDefinition) ||
     (type instanceof PointerType && isReferenceType(type.to))
   );
@@ -194,11 +197,7 @@ export function isDynamicStorageArray(type: TypeNode): boolean {
 
 export function isComplexMemoryType(type: TypeNode): boolean {
   return (
-    type instanceof PointerType &&
-    type.location === DataLocation.Memory &&
-    (type.to instanceof ArrayType ||
-      type.to instanceof BytesType ||
-      (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
+    type instanceof PointerType && type.location === DataLocation.Memory && isReferenceType(type.to)
   );
 }
 
@@ -216,11 +215,12 @@ export function checkableType(type: TypeNode): boolean {
       (type.definition instanceof StructDefinition || type.definition instanceof EnumDefinition)) ||
     type instanceof AddressType ||
     type instanceof IntType ||
-    type instanceof BoolType
+    type instanceof BoolType ||
+    type instanceof StringType
   );
 }
 
-export function getElementType(type: ArrayType | BytesType): TypeNode {
+export function getElementType(type: ArrayType | BytesType | StringType): TypeNode {
   if (type instanceof ArrayType) {
     return type.elementT;
   } else {
@@ -228,7 +228,7 @@ export function getElementType(type: ArrayType | BytesType): TypeNode {
   }
 }
 
-export function getSize(type: ArrayType | BytesType): bigint | undefined {
+export function getSize(type: ArrayType | BytesType | StringType): bigint | undefined {
   if (type instanceof ArrayType) {
     return type.size;
   } else {

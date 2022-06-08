@@ -11,16 +11,16 @@ import {
   MappingType,
   PointerType,
   SourceUnit,
+  StringType,
   StructDefinition,
   TypeNode,
-  UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { getElementType } from '../../utils/nodeTypeProcessing';
+import { getElementType, isDynamicArray } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, mapRange, narrowBigIntSafe } from '../../utils/utils';
-import { add, CairoFunction, StringIndexedFuncGen } from '../base';
+import { add, CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
 
@@ -55,44 +55,25 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   private getOrCreate(type: TypeNode): string {
-    let prefix;
-    if (type instanceof ArrayType && type.size === undefined) {
-      prefix = `DELETE_DARRAY_${getNestedNumber(type).toString()}`;
-    } else if (type instanceof MappingType) {
-      prefix = `DELETE_MAPPING`;
-    } else {
-      prefix = '';
-    }
-    const fromType = getBaseType(type);
-
-    const cairoType = CairoType.fromSol(
-      fromType,
-      this.ast,
-      TypeConversionContext.StorageAllocation,
-    );
-    const key = `${prefix}${cairoType.fullStringRepresentation}`;
+    const key = type.pp();
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
     }
 
-    let cairoFunc;
-    if (type instanceof ArrayType) {
-      cairoFunc =
-        type.size === undefined
-          ? this.deleteDynamicArray(type)
-          : type.size <= 5
+    const cairoFunc = delegateBasedOnType<CairoFunction>(
+      type,
+      (type) => this.deleteDynamicArray(type),
+      (type) => {
+        assert(type.size !== undefined);
+        return type.size <= 5
           ? this.deleteSmallStaticArray(type)
           : this.deleteLargeStaticArray(type);
-    } else if (type instanceof BytesType) {
-      cairoFunc = this.deleteDynamicArray(type);
-    } else if (type instanceof MappingType) {
-      cairoFunc = this.deleteNothing();
-    } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-      cairoFunc = this.deleteStruct(type.definition);
-    } else {
-      cairoFunc = this.deleteGeneric(cairoType);
-    }
+      },
+      (_type, def) => this.deleteStruct(def),
+      () => this.deleteNothing(),
+      () => this.deleteGeneric(CairoType.fromSol(type, this.ast)),
+    );
 
     this.generatedFunctions.set(key, cairoFunc);
 
@@ -113,7 +94,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     };
   }
 
-  private deleteDynamicArray(type: ArrayType | BytesType): CairoFunction {
+  private deleteDynamicArray(type: ArrayType | BytesType | StringType): CairoFunction {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
     const elementT = dereferenceType(getElementType(type));
@@ -271,29 +252,11 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 }
 
-function getNestedNumber(type: ArrayType | BytesType | MappingType): number {
-  const valueType = dereferenceType(
-    type instanceof MappingType ? type.valueType : getElementType(type),
-  );
-
-  return 1 + (valueType instanceof ArrayType ? getNestedNumber(valueType) : 0);
-}
-
-function getBaseType(type: TypeNode): TypeNode {
-  return type instanceof ArrayType && type.size === undefined
-    ? getBaseType(dereferenceType(type.elementT))
-    : type;
-}
-
 function dereferenceType(type: TypeNode): TypeNode {
   return generalizeType(type)[0];
 }
 
 function requiresReadBeforeRecursing(type: TypeNode): boolean {
   if (type instanceof PointerType) return requiresReadBeforeRecursing(type.to);
-  return (
-    (type instanceof ArrayType && type.size === undefined) ||
-    type instanceof BytesType ||
-    type instanceof MappingType
-  );
+  return isDynamicArray(type) || type instanceof MappingType;
 }

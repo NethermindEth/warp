@@ -10,6 +10,7 @@ import {
   ASTNode,
   generalizeType,
   BytesType,
+  StringType,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
@@ -66,7 +67,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     }
   }
 
-  getOrCreate(type: ArrayType | BytesType): string {
+  getOrCreate(type: ArrayType | BytesType | StringType): string {
     const elemType = getElementType(type);
     const elementCairoType = CairoType.fromSol(
       elemType,

@@ -299,10 +299,10 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
   } else if (currentType instanceof BuiltinType) {
     return;
   } else if (currentType instanceof BytesType) {
-    if (targetType instanceof BytesType || targetType instanceof StringType) {
+    if (generalisedTargetType instanceof BytesType || generalisedTargetType instanceof StringType) {
       return;
     }
-    if (targetType instanceof FixedBytesType) {
+    if (generalisedTargetType instanceof FixedBytesType) {
       throw new NotSupportedYetError(
         `${printTypeNode(
           currentType,
@@ -314,13 +314,13 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
       );
     }
   } else if (currentType instanceof FixedBytesType) {
-    if (targetType instanceof BytesType || targetType instanceof StringType) {
-      insertConversionIfNecessary(expression, targetType, ast);
+    if (generalisedTargetType instanceof BytesType || generalisedTargetType instanceof StringType) {
+      insertConversionIfNecessary(expression, generalisedTargetType, ast);
     } else if (targetType instanceof FixedBytesType) {
       return;
     } else {
       throw new TranspileFailedError(
-        `Unexpected implicit conversion from ${currentType.pp()} to ${targetType.pp()}`,
+        `Unexpected implicit conversion from ${currentType.pp()} to ${generalisedTargetType.pp()}`,
       );
     }
   } else if (currentType instanceof FunctionType) {
@@ -343,18 +343,18 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
   } else if (currentType instanceof ModuleType) {
     return;
   } else if (currentType instanceof StringType) {
-    if (targetType instanceof BytesType || targetType instanceof StringType) {
+    if (generalisedTargetType instanceof BytesType || generalisedTargetType instanceof StringType) {
       return;
     }
-    if (targetType instanceof FixedBytesType) {
+    if (generalisedTargetType instanceof FixedBytesType) {
       throw new NotSupportedYetError(
         `${printTypeNode(
           currentType,
-        )} to fixed bytes type (${targetType.pp()}) not implemented yet`,
+        )} to fixed bytes type (${generalisedTargetType.pp()}) not implemented yet`,
       );
     } else {
       throw new TranspileFailedError(
-        `Unexpected implicit conversion from ${currentType.pp()} to ${targetType.pp()}`,
+        `Unexpected implicit conversion from ${currentType.pp()} to ${generalisedTargetType.pp()}`,
       );
     }
   } else if (currentType instanceof PointerType) {
@@ -368,15 +368,15 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
       `Unexpected unresolved rational literal ${printNode(expression)}`,
     );
   } else if (currentType instanceof StringLiteralType) {
-    if (targetType instanceof FixedBytesType) {
+    if (generalisedTargetType instanceof FixedBytesType) {
       if (!(expression instanceof Literal)) {
         throw new TranspileFailedError(`Expected stringLiteralType expression to be a Literal`);
       }
-      const padding = '0'.repeat(targetType.size * 2 - expression.hexValue.length);
+      const padding = '0'.repeat(generalisedTargetType.size * 2 - expression.hexValue.length);
       const replacementNode = createNumberLiteral(
         `0x${expression.hexValue}${padding}`,
         ast,
-        targetType.pp(),
+        generalisedTargetType.pp(),
       );
       ast.replaceNode(expression, replacementNode, expression.parent);
       insertConversion(replacementNode, generalisedTargetType, ast);

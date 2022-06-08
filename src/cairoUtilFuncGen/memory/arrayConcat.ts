@@ -2,6 +2,7 @@ import assert from 'assert';
 import {
   ArrayType,
   DataLocation,
+  FixedBytesType,
   FunctionCall,
   getNodeType,
   IntType,
@@ -166,9 +167,9 @@ function getCopyFunctionCall(type: TypeNode, index: number): string {
   if (type instanceof PointerType)
     return `dynamic_array_copy_felt(res_loc, start_loc, end_loc, arg_${index}, 0)`;
 
-  assert(type instanceof IntType);
+  assert(type instanceof FixedBytesType);
 
-  if (type.nBits / 8 < 32)
+  if (type.size < 32)
     return `fixed_byte_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, size_${index} - 1, size_${index})`;
 
   return `fixed_byte256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 31)`;

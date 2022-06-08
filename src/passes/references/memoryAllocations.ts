@@ -1,6 +1,6 @@
 import assert from 'assert';
 import {
-  ArrayTypeName,
+  ArrayType,
   BytesType,
   DataLocation,
   FunctionCall,
@@ -11,7 +11,6 @@ import {
   NewExpression,
   StringType,
   TupleExpression,
-  typeNameToTypeNode,
 } from 'solc-typed-ast';
 import { ReferenceSubPass } from './referenceSubPass';
 import { AST } from '../../ast/ast';
@@ -20,6 +19,7 @@ import { CairoType } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
+import { getElementType } from '../../utils/nodeTypeProcessing';
 
 /*
   TODO update description
@@ -93,12 +93,14 @@ export class MemoryAllocations extends ReferenceSubPass {
       node,
     );
 
-    assert(node.vExpression.vTypeName instanceof ArrayTypeName);
-
-    const elementCairoType = CairoType.fromSol(
-      typeNameToTypeNode(node.vExpression.vTypeName.vBaseType),
-      ast,
+    const arrayType = generalizeType(getNodeType(node, ast.compilerVersion))[0];
+    assert(
+      arrayType instanceof ArrayType ||
+        arrayType instanceof BytesType ||
+        arrayType instanceof StringType,
     );
+
+    const elementCairoType = CairoType.fromSol(getElementType(arrayType), ast);
 
     const call = createCallToFunction(
       stub,

@@ -1,9 +1,7 @@
 import assert from 'assert';
 import {
-  ArrayType,
   Assignment,
   Block,
-  BytesType,
   ContractDefinition,
   ContractKind,
   DataLocation,
@@ -30,7 +28,7 @@ import {
   createParameterList,
   createVariableDeclarationStatement,
 } from '../utils/nodeTemplates';
-import { typeNameToSpecializedTypeNode } from '../utils/nodeTypeProcessing';
+import { isDynamicArray, typeNameToSpecializedTypeNode } from '../utils/nodeTypeProcessing';
 import { isCairoConstant } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {
@@ -43,11 +41,7 @@ export class StorageAllocator extends ASTMapper {
     const staticAllocations: Map<VariableDeclaration, number> = new Map();
     node.vStateVariables.forEach((v) => {
       const type = getNodeType(v, ast.compilerVersion);
-      if (
-        generalizeType(type)[0] instanceof MappingType ||
-        (type instanceof ArrayType && type.size === undefined) ||
-        type instanceof BytesType
-      ) {
+      if (generalizeType(type)[0] instanceof MappingType || isDynamicArray(type)) {
         const width = CairoType.fromSol(type, ast, TypeConversionContext.StorageAllocation).width;
         dynamicAllocations.set(v, ++usedNames);
         usedStorage += width;

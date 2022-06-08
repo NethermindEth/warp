@@ -10,15 +10,18 @@ import {
   TypeNode,
   UserDefinedType,
   StructDefinition,
+  BytesType,
+  StringType,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { add, CairoFunction, StringIndexedFuncGen } from '../base';
+import { add, CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { uint256 } from '../../warplib/utils';
 import { NotSupportedYetError } from '../../utils/errors';
 import { printTypeNode } from '../../utils/astPrinter';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
+import { getElementType, getSize, isReferenceType } from '../../utils/nodeTypeProcessing';
 
 export class CallDataToMemoryGen extends StringIndexedFuncGen {
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
@@ -48,43 +51,44 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     // Set an empty entry so recursive function generation doesn't clash
     this.generatedFunctions.set(key, { name: funcName, code: '' });
 
-    let code: CairoFunction;
-    if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-      code = this.createStructCopyFunction(funcName, type);
-    } else if (type instanceof ArrayType) {
-      if (type.size === undefined) {
-        code = this.createDynamicArrayCopyFunction(funcName, type);
-      } else {
-        code = this.createStaticArrayCopyFunction(funcName, type);
-      }
-    } else {
+    const unexpectedTypeFunc = () => {
       throw new NotSupportedYetError(
         `Copying ${printTypeNode(type)} from calldata to memory not implemented yet`,
       );
-    }
+    };
+
+    const code = delegateBasedOnType<CairoFunction>(
+      type,
+      (type) => this.createDynamicArrayCopyFunction(funcName, type),
+      (type) => this.createStaticArrayCopyFunction(funcName, type),
+      (type) => this.createStructCopyFunction(funcName, type),
+      unexpectedTypeFunc,
+      unexpectedTypeFunc,
+    );
 
     this.generatedFunctions.set(key, code);
     return code.name;
   }
-  createDynamicArrayCopyFunction(funcName: string, type: ArrayType): CairoFunction {
+  createDynamicArrayCopyFunction(
+    funcName: string,
+    type: ArrayType | BytesType | StringType,
+  ): CairoFunction {
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('warplib.memory', 'wm_new');
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+    const elementT = getElementType(type);
+    const size = getSize(type);
 
-    assert(type.size === undefined);
+    assert(size === undefined);
     const callDataType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     assert(callDataType instanceof CairoDynArray);
-    const isElementComplex =
-      type.elementT instanceof ArrayType ||
-      (type.elementT instanceof UserDefinedType &&
-        type.elementT.definition instanceof StructDefinition);
-    const memoryElementWidth = CairoType.fromSol(type.elementT, this.ast).width;
+    const memoryElementWidth = CairoType.fromSol(elementT, this.ast).width;
 
     let copyCode: string;
 
-    if (isElementComplex) {
-      const recursiveFunc = this.getOrCreate(type.elementT);
+    if (isReferenceType(elementT)) {
+      const recursiveFunc = this.getOrCreate(elementT);
       copyCode = [
         `let cdElem = calldata[0]`,
         `let (mElem) = ${recursiveFunc}(cdElem)`,
@@ -128,10 +132,6 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     assert(type.size !== undefined);
     const callDataType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
-    const isElementComplex =
-      type.elementT instanceof ArrayType ||
-      (type.elementT instanceof UserDefinedType &&
-        type.elementT.definition instanceof StructDefinition);
     const memoryElementWidth = CairoType.fromSol(type.elementT, this.ast).width;
     const memoryOffsetMultiplier = memoryElementWidth === 1 ? '' : `* ${memoryElementWidth}`;
 
@@ -139,7 +139,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
 
     const loc = (index: number) =>
       index === 0 ? `mem_start` : `mem_start  + ${index}${memoryOffsetMultiplier}`;
-    if (isElementComplex) {
+    if (isReferenceType(type.elementT)) {
       const recursiveFunc = this.getOrCreate(type.elementT);
       copyCode = (index) =>
         [
@@ -188,11 +188,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)})`,
         ...structDef.vMembers.map((decl): string => {
           const memberType = getNodeType(decl, this.ast.compilerVersion);
-          if (
-            memberType instanceof ArrayType ||
-            (memberType instanceof UserDefinedType &&
-              memberType.definition instanceof StructDefinition)
-          ) {
+          if (isReferenceType(memberType)) {
             const recursiveFunc = this.getOrCreate(memberType);
             const code = [
               `let (m${memOffset}) = ${recursiveFunc}(calldata.${decl.name})`,
