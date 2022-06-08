@@ -382,6 +382,11 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
       );
       ast.replaceNode(expression, replacementNode, expression.parent);
       insertConversion(replacementNode, generalisedTargetType, ast);
+    } else if (
+      generalisedTargetType instanceof StringType ||
+      generalisedTargetType instanceof BytesType
+    ) {
+      insertConversion(expression, generalisedTargetType, ast);
     }
     return;
   } else if (currentType instanceof TupleType) {
