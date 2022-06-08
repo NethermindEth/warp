@@ -35,6 +35,7 @@ import {
   TypeNode,
   UnaryOperation,
   UserDefinedType,
+  VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -44,7 +45,7 @@ import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { createElementaryConversionCall } from '../utils/functionGeneration';
 import { generateExpressionTypeString } from '../utils/getTypeString';
-import { createNumberLiteral } from '../utils/nodeTemplates';
+import { createArrayTypeName, createNumberLiteral } from '../utils/nodeTemplates';
 import { getParameterTypes, intTypeForLiteral, specializeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, bigintToTwosComplement, toHexString } from '../utils/utils';
 
@@ -256,6 +257,8 @@ export class ImplicitConversionToExplicit extends ASTMapper {
   }
 }
 
+const variablePrefix = '__warp_string_literal_arr';
+let variableCount = 0;
 function insertConversionIfNecessary(expression: Expression, targetType: TypeNode, ast: AST): void {
   const currentType = generalizeType(getNodeType(expression, ast.compilerVersion))[0];
   targetType = generalizeType(targetType)[0];
@@ -339,6 +342,25 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
       );
       ast.replaceNode(expression, replacementNode, expression.parent);
       insertConversion(replacementNode, targetType, ast);
+    } else if (targetType instanceof ArrayType) {
+      if (
+        expression.getClosestParentByType(VariableDeclarationStatement) === undefined &&
+        expression.getClosestParentByType(FunctionCall) === undefined &&
+        expression.getClosestParentByType(TupleExpression) === undefined
+      ) {
+        if (!(expression instanceof Literal)) {
+          throw new TranspileFailedError(`Expected stringLiteralType expression to be a Literal`);
+        }
+        expression.typeString = 'uint8[] memory';
+        const identifier = ast.extractToConstant(
+          expression,
+          createArrayTypeName(typeNameFromTypeNode(targetType.elementT, ast), ast),
+          variablePrefix + variableCount++,
+        );
+        if (identifier.vReferencedDeclaration instanceof VariableDeclaration) {
+          identifier.vReferencedDeclaration.storageLocation = DataLocation.Memory;
+        }
+      }
     }
     return;
   } else if (currentType instanceof TupleType) {
