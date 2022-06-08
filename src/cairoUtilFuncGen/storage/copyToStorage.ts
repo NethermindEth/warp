@@ -214,6 +214,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
+    this.requireImport('starkware.cairo.common.uint256', 'uint256_le');
 
     const elementCopyFunc = this.getOrCreate(toType.elementT, fromType.elementT);
     const fromElementCairoType = CairoType.fromSol(
