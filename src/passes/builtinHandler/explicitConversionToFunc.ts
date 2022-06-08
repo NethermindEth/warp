@@ -69,7 +69,7 @@ export class ExplicitConversionToFunc extends ASTMapper {
         const operand = node.vArguments[0];
         operand.typeString = node.typeString;
         ast.replaceNode(node, operand);
-      } else if (argType instanceof IntLiteralType || node.vArguments[0] instanceof Literal) {
+      } else if (argType instanceof IntLiteralType) {
         ast.replaceNode(node, literalToTypedInt(node.vArguments[0], typeTo));
       } else if (argType instanceof IntType) {
         functionaliseIntConversion(node, ast);
@@ -148,7 +148,7 @@ export class ExplicitConversionToFunc extends ASTMapper {
       } else if (argType instanceof FixedBytesType) {
         functionaliseFixedBytesConversion(node, ast);
         return;
-      } else if (argType instanceof IntLiteralType || node.vArguments[0] instanceof Literal) {
+      } else if (argType instanceof IntLiteralType) {
         ast.replaceNode(node, literalToFixedBytes(node.vArguments[0], typeTo));
         return;
       } else if (argType instanceof IntType) {
