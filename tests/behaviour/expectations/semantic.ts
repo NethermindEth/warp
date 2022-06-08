@@ -34,7 +34,7 @@ import { InvalidTestError } from '../errors';
 import whiteList from './semantic_whitelist';
 
 import { NotSupportedYetError } from '../../../src/utils/errors';
-import { compileSolFile } from '../../../src/solCompile';
+import { compileSolFile, compileSolFileAndExtractContracts } from '../../../src/solCompile';
 import { printTypeNode } from '../../../src/utils/astPrinter';
 import { toUintOrFelt } from '../../../src/utils/utils';
 import { AsyncTest, Expect } from './types';
@@ -259,6 +259,7 @@ export function encodeValue(tp: TypeNode, value: SolValue, compilerVersion: stri
     }
     return [value ? '1' : '0'];
   } else if (tp instanceof BytesType) {
+    if (value === null) return ['0'];
     if (typeof value !== 'string') {
       throw new Error(`Can't encode ${value} as bytesType`);
     }
@@ -381,8 +382,7 @@ async function getContractAbiAndDefinition(
   lastContractName: string,
 ): Promise<[FunABI[], ContractDefinition, AST]> {
   // Get the abi of the contract for web3
-  const source = await compileSol(file, 'auto', []);
-  const contracts: { [key: string]: { abi: FunABI[] } } = source.data.contracts[file];
+  const contracts: any = compileSolFileAndExtractContracts(file);
   const lastContract = contracts[lastContractName];
   if (lastContract === undefined) {
     throw new InvalidTestError(`Unable to find contract ${lastContractName} in file ${file}`);

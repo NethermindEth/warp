@@ -165,3 +165,16 @@ function printErrors(cliOutput: unknown, printWarnings: boolean, compilerVersion
     ]);
   }
 }
+
+// used for the semantic test suite
+export function compileSolFileAndExtractContracts(file: string): unknown {
+  const requiredSolcVersion = getSolFileVersion(file);
+  const [, majorVersion] = matchCompilerVersion(requiredSolcVersion);
+  if (majorVersion != '7' && majorVersion != '8') {
+    throw new TranspileFailedError(`Unsupported version of solidity source ${requiredSolcVersion}`);
+  }
+
+  const { result } = cliCompile(formatInput(file), requiredSolcVersion);
+  assert(typeof result === 'object' && result !== null);
+  return Object.entries(result).filter(([name]) => name === 'contracts')[0][1][file];
+}
