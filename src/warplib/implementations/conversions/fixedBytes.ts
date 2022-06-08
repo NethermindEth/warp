@@ -1,12 +1,5 @@
 import assert from 'assert';
-import {
-  FixedBytesType,
-  FunctionCall,
-  FunctionCallKind,
-  generalizeType,
-  getNodeType,
-  Identifier,
-} from 'solc-typed-ast';
+import { FixedBytesType, FunctionCall, generalizeType, getNodeType } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printTypeNode, printNode } from '../../../utils/astPrinter';
 import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
