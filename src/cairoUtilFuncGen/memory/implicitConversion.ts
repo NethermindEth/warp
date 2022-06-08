@@ -10,16 +10,14 @@ import {
   IntType,
   PointerType,
   SourceUnit,
-  StructDefinition,
   TypeNode,
-  UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
+import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { add, CairoFunction, StringIndexedFuncGen } from '../base';
+import { CairoFunction, StringIndexedFuncGen } from '../base';
 import { MemoryReadGen } from './memoryRead';
 import { MemoryWriteGen } from './memoryWrite';
 
