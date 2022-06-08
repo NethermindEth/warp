@@ -168,19 +168,22 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
 
     const fromSize = narrowBigIntSafe(fromType.size);
     const toSize = narrowBigIntSafe(toType.size);
-    const stopRecursion =
-      fromSize === toSize
-        ? [`if index == ${fromSize}:`, `return ()`, `end`]
-        : [
-            `let (lesser) = is_le(index, ${fromSize - 1})`,
-            `if lesser == 0:`,
-            `    ${this.storageDeleteGen.genFuncName(toElementT)}(to_elem_loc)`,
-            `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc, index + 1)`,
-            `end`,
-            `if index == ${toSize}:`,
-            `    return ()`,
-            `end`,
-          ];
+    let stopRecursion;
+    if (fromSize === toSize) {
+      stopRecursion = [`if index == ${fromSize}:`, `return ()`, `end`];
+    } else {
+      this.requireImport('starkware.cairo.common.math_cmp', 'is_le');
+      stopRecursion = [
+        `let (lesser) = is_le(index, ${fromSize - 1})`,
+        `if lesser == 0:`,
+        `    ${this.storageDeleteGen.genFuncName(toElementT)}(to_elem_loc)`,
+        `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc, index + 1)`,
+        `end`,
+        `if index == ${toSize}:`,
+        `    return ()`,
+        `end`,
+      ];
+    }
 
     return {
       name: funcName,
@@ -228,6 +231,10 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
 
     const copyCode = createElementCopy(toElementCairoType, fromElementCairoType, elementCopyFunc);
 
+    const deleteRemainingCode = `${this.storageDeleteGen.genAuxFuncName(
+      toType,
+    )}(to_loc, from_length, to_length)`;
+
     return {
       name: funcName,
       code: [
@@ -255,6 +262,11 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt):`,
         `    alloc_locals`,
         `    let (from_length) = ${fromLengthMapping}.read(from_loc)`,
+        `    let (to_length) = ${toLengthMapping}.read(to_loc)`,
+        `    let (lesser) = uint256_le(from_length, to_length)`,
+        `    if lesser == 1:`,
+        `       ${deleteRemainingCode}`,
+        `    end`,
         `    ${toLengthMapping}.write(to_loc, from_length)`,
         `    ${funcName}_elem(to_loc, from_loc, from_length)`,
         `    return (to_loc)`,
@@ -273,6 +285,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
+    this.requireImport('starkware.cairo.common.uint256', 'uint256_le');
 
     const elementCopyFunc = this.getOrCreate(toType.elementT, fromType.elementT);
     const fromElementCairoType = CairoType.fromSol(
@@ -287,6 +300,10 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     );
     const [toElementMapping, toLengthMapping] = this.dynArrayGen.gen(toElementCairoType);
     const copyCode = createElementCopy(toElementCairoType, fromElementCairoType, elementCopyFunc);
+
+    const deleteRemainingCode = `${this.storageDeleteGen.genAuxFuncName(
+      toType,
+    )}(to_loc, from_length, to_length)`;
 
     return {
       name: funcName,
@@ -315,6 +332,11 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt):`,
         `    alloc_locals`,
         `    let fromLength = ${uint256(narrowBigIntSafe(fromType.size))}`,
+        `    let (to_length) = ${toLengthMapping}.read(to_loc)`,
+        `    let (lesser) = uint256_le(from_length, to_length)`,
+        `    if lesser == 1:`,
+        `       ${deleteRemainingCode}`,
+        `    end`,
         `    ${toLengthMapping}.write(to_loc, fromLength)`,
         `    ${funcName}_elem(to_loc, from_loc, fromLength, Uint256(0,0))`,
         `    return (to_loc)`,
