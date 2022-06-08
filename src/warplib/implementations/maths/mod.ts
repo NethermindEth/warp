@@ -1,5 +1,6 @@
 import { BinaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
+import { Implicits } from '../../../utils/implicits';
 import { mapRange } from '../../../utils/utils';
 import { forAllWidths, generateFile, IntxIntFunction } from '../../utils';
 
@@ -20,6 +21,13 @@ export function mod_signed() {
       if (width === 256) {
         return [
           'func warp_mod_signed256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):',
+          `    if rhs.high == 0:`,
+          `       if rhs.low == 0:`,
+          `           with_attr error_message("Modulo by zero error"):`,
+          `             assert 1 = 0`,
+          `           end`,
+          `       end`,
+          `    end`,
           '    let (_, res : Uint256) = uint256_signed_div_rem(lhs, rhs)',
           '    return (res)',
           'end',
@@ -28,6 +36,11 @@ export function mod_signed() {
         return [
           `func warp_mod_signed${width}{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt):`,
           `    alloc_locals`,
+          `    if rhs == 0:`,
+          `        with_attr error_message("Modulo by zero error"):`,
+          `            assert 1 = 0`,
+          `        end`,
+          `    end`,
           `    let (local lhs_256) = warp_int${width}_to_int256(lhs)`,
           `    let (rhs_256) = warp_int${width}_to_int256(rhs)`,
           '    let (_, res256) = uint256_signed_div_rem(lhs_256, rhs_256)',
@@ -41,5 +54,9 @@ export function mod_signed() {
 }
 
 export function functionaliseMod(node: BinaryOperation, ast: AST): void {
-  IntxIntFunction(node, 'mod', 'signedOrWide', true, false, () => ['range_check_ptr'], ast);
+  const implicits = (width: number, signed: boolean): Implicits[] => {
+    if (width !== 256 && signed) return ['range_check_ptr', 'bitwise_ptr'];
+    return ['range_check_ptr'];
+  };
+  IntxIntFunction(node, 'mod', 'signedOrWide', true, false, implicits, ast);
 }

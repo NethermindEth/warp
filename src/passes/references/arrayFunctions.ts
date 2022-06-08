@@ -6,16 +6,16 @@ import {
   FunctionStateMutability,
   generalizeType,
   getNodeType,
+  IntType,
   MemberAccess,
   PointerType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { FunctionStubKind } from '../../ast/cairoNodes';
-import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { createNumberLiteral } from '../../utils/nodeTemplates';
+import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
 import { isDynamicCallDataArray } from '../../utils/nodeTypeProcessing';
-import { typeNameFromTypeNode } from '../../utils/utils';
+import { expressionHasSideEffects, typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
 
 /*
@@ -29,6 +29,8 @@ import { ReferenceSubPass } from './referenceSubPass';
   most member access become a read/write function and an offset function)
 */
 export class ArrayFunctions extends ReferenceSubPass {
+  counter = 0;
+
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     this.visitExpression(node, ast);
 
@@ -43,11 +45,12 @@ export class ArrayFunctions extends ReferenceSubPass {
     } else if (node.vFunctionName === 'push') {
       let replacement: FunctionCall;
       if (node.vArguments.length > 0) {
-        if (this.getLocations(node.vArguments[0])[0] !== DataLocation.Default) {
-          throw new NotSupportedYetError(`Pushing non-scalar types not supported yet`);
-        }
         replacement = ast.getUtilFuncGen(node).storage.dynArrayPush.withArg.gen(node);
         this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
+        const actualArgLoc = this.getLocations(node.vArguments[0])[0];
+        if (actualArgLoc) {
+          this.expectedDataLocations.set(node.vArguments[0], actualArgLoc);
+        }
       } else {
         replacement = ast.getUtilFuncGen(node).storage.dynArrayPush.withoutArg.gen(node);
         this.replace(node, replacement, undefined, DataLocation.Storage, expectedLoc, ast);
@@ -66,7 +69,18 @@ export class ArrayFunctions extends ReferenceSubPass {
     const expectedLoc = this.getLocations(node)[1];
 
     const baseType = getNodeType(node.vExpression, ast.compilerVersion);
-    if (baseType instanceof PointerType && baseType.to instanceof ArrayType) {
+    // Converted fixed-bytes
+    if (baseType instanceof IntType) {
+      const literal = createNumberLiteral(baseType.nBits / 8, ast, 'uint8');
+      if (expressionHasSideEffects(node.vExpression)) {
+        ast.extractToConstant(
+          node.vExpression,
+          createNumberTypeName(baseType.nBits, baseType.signed, ast),
+          `__warp_tb${this.counter++}`,
+        );
+      }
+      this.replace(node, literal, node.parent, DataLocation.Default, expectedLoc, ast);
+    } else if (baseType instanceof PointerType && baseType.to instanceof ArrayType) {
       if (isDynamicCallDataArray(baseType)) {
         const parent = node.parent;
         const type = generalizeType(getNodeType(node, ast.compilerVersion))[0];
