@@ -12,10 +12,9 @@ import {
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
-
 import {
   CairoType,
-  generateStructName,
+  generateCallDataDynArrayStructName,
   TypeConversionContext,
 } from '../../../utils/cairoTypeSystem';
 import { StringIndexedFuncGen } from '../../base';
@@ -65,26 +64,25 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     const elementCairoType = CairoType.fromSol(
       elemType,
       this.ast,
-      TypeConversionContext.MemoryAllocation,
+      TypeConversionContext.CallDataRef,
     );
-    const key = generateStructName(elementCairoType);
-    const name = `cd_dynarray_${key}`;
+    const key = generateCallDataDynArrayStructName(elemType, this.ast);
 
-    const existing = this.generatedFunctions.get(name);
+    const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
     }
 
     this.generatedFunctions.set(key, {
-      name: name,
+      name: key,
       code: [
-        `struct ${name}:`,
+        `struct ${key}:`,
         `${INDENT}member len : felt `,
         `${INDENT}member ptr : ${elementCairoType.toString()}*`,
         `end`,
       ].join('\n'),
     });
 
-    return name;
+    return key;
   }
 }

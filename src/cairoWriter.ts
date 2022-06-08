@@ -95,6 +95,7 @@ import {
   divmod,
   isCairoConstant,
   isExternallyVisible,
+  mergeImports,
   mangleOwnContractInterface,
   primitiveTypeToCairo,
 } from './utils/utils';
@@ -284,6 +285,12 @@ class TupleExpressionWriter extends CairoASTNodeWriter {
 }
 
 function writeImports(imports: Map<string, Set<string>>): string {
+  if (INCLUDE_CAIRO_DUMP_FUNCTIONS) {
+    imports = mergeImports(
+      imports,
+      new Map([['starkware.cairo.common.alloc', new Set(['alloc'])]]),
+    );
+  }
   return [...imports.entries()]
     .map(
       ([location, importedSymbols]) =>
