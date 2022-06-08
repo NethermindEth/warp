@@ -22,6 +22,13 @@ export function div_signed() {
       if (width === 256) {
         return [
           'func warp_div_signed256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):',
+          `    if rhs.high == 0:`,
+          `       if rhs.low == 0:`,
+          `           with_attr error_message("Division by zero error"):`,
+          `             assert 1 = 0`,
+          `           end`,
+          `       end`,
+          `    end`,
           `    let (is_minus_one) = uint256_eq(rhs, Uint256(${mask(128)}, ${mask(128)}))`,
           `    if is_minus_one == 1:`,
           '        let (res : Uint256) = warp_mul_signed256(lhs, rhs)',
@@ -35,6 +42,11 @@ export function div_signed() {
         return [
           `func warp_div_signed${width}{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt):`,
           `    alloc_locals`,
+          `    if rhs == 0:`,
+          `        with_attr error_message("Division by zero error"):`,
+          `            assert 1 = 0`,
+          `        end`,
+          `    end`,
           `    if rhs == ${mask(width)}:`,
           `        let (res : felt) = warp_mul_signed${width}(lhs, rhs)`,
           `        return (res)`,
@@ -72,6 +84,13 @@ export function div_signed_unsafe() {
       if (width === 256) {
         return [
           'func warp_div_signed_unsafe256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):',
+          `    if rhs.high == 0:`,
+          `       if rhs.low == 0:`,
+          `           with_attr error_message("Division by zero error"):`,
+          `             assert 1 = 0`,
+          `           end`,
+          `       end`,
+          `    end`,
           `    let (is_minus_one) = uint256_eq(rhs, Uint256(${mask(128)}, ${mask(128)}))`,
           `    if is_minus_one == 1:`,
           '        let (res : Uint256) = warp_mul_signed_unsafe256(lhs, rhs)',
@@ -85,6 +104,11 @@ export function div_signed_unsafe() {
         return [
           `func warp_div_signed_unsafe${width}{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt):`,
           `    alloc_locals`,
+          `    if rhs == 0:`,
+          `        with_attr error_message("Division by zero error"):`,
+          `            assert 1 = 0`,
+          `        end`,
+          `    end`,
           `    if rhs == ${mask(width)}:`,
           `        let (res : felt) = warp_mul_signed_unsafe${width}(lhs, rhs)`,
           `        return (res)`,

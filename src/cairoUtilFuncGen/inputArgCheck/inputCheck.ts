@@ -21,12 +21,7 @@ import {
 } from 'solc-typed-ast';
 import { FunctionStubKind } from '../../ast/cairoNodes';
 import { printTypeNode } from '../../utils/astPrinter';
-import {
-  CairoDynArray,
-  CairoFelt,
-  CairoType,
-  TypeConversionContext,
-} from '../../utils/cairoTypeSystem';
+import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createIdentifier } from '../../utils/nodeTemplates';
@@ -217,11 +212,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const ptrType = cairoType.vPtr;
     const elementType = generalizeType(getElementType(type))[0];
     this.checkForImport(elementType);
-    const cairoElmType = CairoType.fromSol(
-      elementType,
-      this.ast,
-      TypeConversionContext.CallDataRef,
-    );
     const indexCheck = [`${this.getOrCreate(elementType)}(ptr[0])`];
 
     this.generatedFunctions.set(key, {
@@ -233,9 +223,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
         `        return ()`,
         `    end`,
         ...indexCheck,
-        `   ${funcName}(len = len - 1, ptr = ptr + ${
-          ptrType.to instanceof CairoFelt ? '1' : cairoElmType.toString() + '.SIZE'
-        })`,
+        `   ${funcName}(len = len - 1, ptr = ptr + ${ptrType.to.width})`,
         `    return ()`,
         `end`,
       ].join('\n'),

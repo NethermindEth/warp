@@ -19,8 +19,8 @@ import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import {
   CairoDynArray,
-  CairoFelt,
   CairoType,
+  generateCallDataDynArrayStructName,
   TypeConversionContext,
 } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
@@ -204,18 +204,13 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     assert(getSize(type) === undefined);
 
     const elementT = getElementType(type);
-    if (elementT instanceof ArrayType) {
+    if (isDynamicArray(elementT)) {
       throw new NotSupportedYetError(
         `Copying dynamic arrays with element type ${printTypeNode(
           elementT,
         )} from memory to calldata is not supported yet`,
       );
     }
-    const cairoElementType = CairoType.fromSol(
-      elementT,
-      this.ast,
-      TypeConversionContext.CallDataRef,
-    );
 
     this.generatedFunctions.set(key, {
       name: funcName,
@@ -226,7 +221,10 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `    let (ptr : ${outputType.vPtr.toString()}) = alloc()`,
         `    let (len_felt) = narrow_safe(len_256)`,
         `    ${this.createDynArrayReader(elementT)}(len_felt, ptr, mem_loc + 2)`,
-        `    return (cd_dynarray_${cairoElementType.toString()}(len=len_felt, ptr=ptr))`,
+        `    return (${generateCallDataDynArrayStructName(
+          elementT,
+          this.ast,
+        )}(len=len_felt, ptr=ptr))`,
         `end`,
       ].join('\n'),
     });
@@ -237,24 +235,27 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private createDynArrayReader(type: TypeNode): string {
+  private createDynArrayReader(elementT: TypeNode): string {
     const funcName = `wm_to_calldata${this.generatedFunctions.size}`;
-    const key = type.pp() + 'dynReader';
+    const key = elementT.pp() + 'dynReader';
     // Set an empty entry so recursive function generation doesn't clash
     this.generatedFunctions.set(key, { name: funcName, code: '' });
 
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
-    const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
-    const cairoTypeWidth = CairoType.fromSol(type, this.ast).width;
+    const cairoType = CairoType.fromSol(elementT, this.ast, TypeConversionContext.CallDataRef);
+    const memWidth = CairoType.fromSol(elementT, this.ast).width;
     const ptrString = `${cairoType.toString()}`;
 
     let code = [''];
-    if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+    if (
+      (elementT instanceof UserDefinedType && elementT.definition instanceof StructDefinition) ||
+      elementT instanceof ArrayType
+    ) {
       code = [
         `let (mem_read0) = wm_read_felt(mem_loc)`,
-        `let (mem_read1) = ${this.getOrCreate(type)}(mem_read0)`,
+        `let (mem_read1) = ${this.getOrCreate(elementT)}(mem_read0)`,
         `assert ptr[0] = mem_read1`,
       ];
       this.requireImport('warplib.memory', 'wm_read_felt');
@@ -264,6 +265,10 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     } else if (cairoType.width === 2) {
       code = ['let (mem_read0) = wm_read_256(mem_loc)', 'assert ptr[0] = mem_read0'];
       this.requireImport('warplib.memory', 'wm_read_256');
+    } else {
+      throw new NotSupportedYetError(
+        `Element type ${cairoType.toString()} not supported yet in m->c`,
+      );
     }
 
     this.generatedFunctions.set(funcName, {
@@ -275,9 +280,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `         return ()`,
         `    end`,
         ...code,
-        `    ${funcName}(len=len - 1, ptr=ptr + ${
-          cairoType instanceof CairoFelt ? 1 : cairoType.toString() + '.SIZE'
-        }, mem_loc=mem_loc + ${cairoTypeWidth})`,
+        `    ${funcName}(len=len - 1, ptr=ptr + ${cairoType.width}, mem_loc=mem_loc + ${memWidth})`,
         `    return ()`,
         `end`,
       ].join('\n'),

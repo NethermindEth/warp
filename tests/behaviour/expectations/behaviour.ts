@@ -1275,6 +1275,42 @@ export const expectations = flatten(
               ],
             ),
           ]),
+          File.Simple('dynarray_array_conversion', [
+            new Expect(
+              'testing that dynamic arrays of (nested) static arrays have their length encoded correctly when returned from memory',
+              [
+                [
+                  'inAndOutLength',
+                  [
+                    '2',
+                    ...[...['1', '2', '3', '4'], ...['5', '6', '7', '8']],
+                    ...[...['9', '10', '11', '12'], ...['13', '14', '15', '16']],
+                  ],
+                  ['2', '0', '2', '0'],
+                  '0',
+                ],
+              ],
+            ),
+            new Expect(
+              'testing that dynamic arrays of (nested) static arrays can be passed in and out of functions and memory',
+              [
+                [
+                  'inAndOut',
+                  [
+                    '2',
+                    ...[...['1', '2', '3', '4'], ...['5', '6', '7', '8']],
+                    ...[...['9', '10', '11', '12'], ...['13', '14', '15', '16']],
+                  ],
+                  [
+                    '2',
+                    ...[...['1', '2', '3', '4'], ...['5', '6', '7', '8']],
+                    ...[...['9', '10', '11', '12'], ...['13', '14', '15', '16']],
+                  ],
+                  '0',
+                ],
+              ],
+            ),
+          ]),
           File.Simple('struct_return_member', [
             new Expect('testing that memory struct is written to memory and member is returned', [
               ['testReturnMember', ['1', '2'], ['1'], '0'],
