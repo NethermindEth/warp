@@ -11,7 +11,7 @@ import { DeployResponse } from '../testnetInterface';
 
 const PRINT_STEPS = false;
 const PARALLEL_COUNT = 8;
-const TIME_LIMIT = 60 * 60 * 1000;
+const TIME_LIMIT = 2 * 60 * 60 * 1000;
 
 describe('Transpile solidity', function () {
   this.timeout(TIME_LIMIT);

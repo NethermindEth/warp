@@ -6,6 +6,6 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && 
 $PYTHON_BIN -m venv "$SCRIPT_DIR"/warp_venv
 source $SCRIPT_DIR/warp_venv/bin/activate
 
-pip install cairo-lang==0.8.2
+pip install cairo-lang==0.8.2.1
 
 deactivate
