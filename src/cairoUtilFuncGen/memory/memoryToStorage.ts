@@ -160,7 +160,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     } else if (isComplexType(type.elementT)) {
       copyCode = [
         `    let (read) = dict_read{dict_ptr=warp_memory}(mem_loc)`,
-        `    ${this.getOrCreate(type.elementT)}(loc, read)`,
+        `    ${this.getOrCreate(type.elementT)}(storage_loc, read)`,
       ].join('\n');
     } else {
       copyCode = mapRange(elementStorageWidth, (n) =>
