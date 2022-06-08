@@ -125,7 +125,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       `     let (next_index, _) = uint256_add(index, ${uint256(1)})`,
       `     let (elem_loc) = ${arrayName}.read(loc, next_index)`,
       ...deleteCode,
-      `     return ${funcName}_elem(loc, next_index)`,
+      `     return ${funcName}_elem(loc, next_index, length)`,
       `end`,
       `func ${funcName}${implicits}(loc : felt):`,
       `   alloc_locals`,
