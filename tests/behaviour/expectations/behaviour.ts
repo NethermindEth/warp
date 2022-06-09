@@ -2335,6 +2335,9 @@ export const expectations = flatten(
             Expect.Simple('f', ['90000', '0'], ['10000', '0']),
             Expect.Simple('f', ['110000', '0'], ['0', '0']),
           ]),
+          File.Simple('modifierWithReturn', [
+            Expect.Simple('returnFiveThroughModifiers', [], ['5']),
+          ]),
           File.Simple('multipleModifiers', [
             new Expect('modifier', [
               ['openEvent', [], [], '0'],
