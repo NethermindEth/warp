@@ -760,6 +760,12 @@ export const expectations = flatten(
                 ],
                 '0',
               ],
+              [
+                'copyStaticToDynamicPush',
+                [],
+                [...['2', '4', '5', '7', '6'], ...['2', '1', '2', '3', '9'], '0'],
+                '0',
+              ],
             ]),
             new Expect('copy nested static to nested static of different size', [
               [
@@ -779,7 +785,7 @@ export const expectations = flatten(
                 '0',
               ],
               [
-                'copyStaticDifferentSizeComplicated',
+                'copyStaticDifferentSizeComplex',
                 [],
                 [
                   ...['4', '5', '7', '6', '0', '0'],
