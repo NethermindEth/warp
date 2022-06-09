@@ -24,4 +24,3 @@ contract WARP {
     return (m1[1], m1[2], m2[1], m2[2]);
   }
 }
-}
