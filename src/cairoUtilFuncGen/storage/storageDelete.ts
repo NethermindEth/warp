@@ -20,6 +20,7 @@ import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { getElementType, isDynamicArray } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, mapRange, narrowBigIntSafe } from '../../utils/utils';
+import { uint256 } from '../../warplib/utils';
 import { add, CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
@@ -52,6 +53,10 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
   genFuncName(node: TypeNode): string {
     return this.getOrCreate(node);
+  }
+
+  genAuxFuncName(node: TypeNode): string {
+    return `${this.getOrCreate(node)}_elem`;
   }
 
   private getOrCreate(type: TypeNode): string {
@@ -111,27 +116,27 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
     const funcName = `WS${this.generatedFunctions.size}_DYNAMIC_ARRAY_DELETE`;
     const deleteFunc = [
-      `func ${funcName}_elem${implicits}(loc : felt, index : Uint256):`,
+      `func ${funcName}_elem${implicits}(loc : felt, index : Uint256, length : Uint256):`,
       `     alloc_locals`,
-      `     let (stop) = uint256_eq(index, Uint256(0, 0))`,
+      `     let (stop) = uint256_eq(index, length)`,
       `     if stop == 1:`,
       `        return ()`,
       `     end`,
-      `     let (next_index) = uint256_sub(index, Uint256(1, 0))`,
-      `     let (elem_loc) = ${arrayName}.read(loc, next_index)`,
+      `     let (elem_loc) = ${arrayName}.read(loc, index)`,
       ...deleteCode,
-      `     return ${funcName}_elem(loc, next_index)`,
+      `     let (next_index, _) = uint256_add(index, ${uint256(1)})`,
+      `     return ${funcName}_elem(loc, next_index, length)`,
       `end`,
       `func ${funcName}${implicits}(loc : felt):`,
       `   alloc_locals`,
       `   let (length) = ${lengthName}.read(loc)`,
-      `   ${lengthName}.write(loc, Uint256(0, 0))`,
-      `   return ${funcName}_elem(loc, length)`,
+      `   ${lengthName}.write(loc, ${uint256(0)})`,
+      `   return ${funcName}_elem(loc, ${uint256(0)}, length)`,
       `end`,
     ].join('\n');
 
     this.requireImport('starkware.cairo.common.uint256', 'uint256_eq');
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
+    this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
 
     return { name: funcName, code: deleteFunc };

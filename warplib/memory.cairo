@@ -276,6 +276,19 @@ end
 
 # -----------------Helper functions-----------------
 
+# Returns an exisiting pointer to a reference data type structure. If it does not exist, it will
+# create a new pointer
+func wm_read_id{range_check_ptr : felt, warp_memory : DictAccess*}(loc : felt, size : Uint256) -> (
+    val : felt
+):
+    let (id) = dict_read{dict_ptr=warp_memory}(loc)
+    if id != 0:
+        return (id)
+    end
+    let (id) = wm_alloc(size)
+    return (id)
+end
+
 # Moves the free-memory pointer to allocate the given number of cells, and returns the index
 # of the start of the allocated space
 func wm_alloc{range_check_ptr, warp_memory : DictAccess*}(space : Uint256) -> (start : felt):

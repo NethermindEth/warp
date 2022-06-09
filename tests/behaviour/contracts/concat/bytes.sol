@@ -23,6 +23,14 @@ contract WARP {
         bytes memory m = bytes.concat(x1, x2);
         return m;
     }
+    function dynamicAndLiteral(bytes calldata b) public pure returns (bytes memory, bytes memory) {
+        return (bytes.concat(b, "hi"),
+        bytes.concat("hi", b));
+    }
+
+    function long() public pure returns (bytes memory) {
+        return bytes.concat("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    }
 
     bytes b1;
     bytes b2;
@@ -46,6 +54,10 @@ contract WARP {
     function d3(bytes1 x1, bytes memory x2, bytes16 x3) public pure returns (bytes memory) {
         bytes memory m = bytes.concat(x1, x2, x3);      
         return m;
+    }
+    function staticAndLiteral(bytes2 b) public pure returns (bytes memory, bytes memory) {
+        return (bytes.concat(b, "hi"),
+        bytes.concat("hi", b));
     }
 }
 
