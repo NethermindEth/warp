@@ -146,6 +146,10 @@ export const expectations = flatten(
               ]),
             ],
           ),
+          File.Simple('stringsBytesConversion', [
+            Expect.Simple('getCharacter', ['4', '10', '12', '14', '16', ...['2', '0']], ['14']),
+            Expect.Simple('getLength', [], ['4', '0']),
+          ]),
         ]),
         new Dir('calldata', [
           File.Simple('passingDynArrayInternally', [
@@ -187,6 +191,33 @@ export const expectations = flatten(
               ['7', '1', '2', '3', '5', '6', '7', '8'],
             ),
             Expect.Simple('c5', [], ['4', '1', '2', '3', '4']),
+            Expect.Simple(
+              'dynamicAndLiteral',
+              ['2', ...['4', '5']],
+              ['4', ...['4', '5', '104', '105'], '4', ...['104', '105', '4', '5']],
+            ),
+            Expect.Simple(
+              'long',
+              [],
+              [
+                '52',
+                ...[
+                  ...['97', '98', '99', '100'],
+                  ...['101', '102', '103', '104'],
+                  ...['105', '106', '107', '108'],
+                  ...['109', '110', '111', '112'],
+                  ...['113', '114', '115', '116'],
+                  ...['117', '118', '119', '120'],
+                  ...['121', '122', '65', '66'],
+                  ...['67', '68', '69', '70'],
+                  ...['71', '72', '73', '74'],
+                  ...['75', '76', '77', '78'],
+                  ...['79', '80', '81', '82'],
+                  ...['83', '84', '85', '86'],
+                  ...['87', '88', '89', '90'],
+                ],
+              ],
+            ),
             Expect.Simple('d1', ['6553600'], ['3', '100', '0', '0']),
             Expect.Simple(
               'd2',
@@ -197,6 +228,11 @@ export const expectations = flatten(
               'd3',
               ['128', '3', '1', '2', '3', '256'],
               ['20', '128', '1', '2', '3', ...new Array(14).fill('0'), '1', '0'],
+            ),
+            Expect.Simple(
+              'staticAndLiteral',
+              ['0xabcd'],
+              ['4', ...['0xab', '0xcd', '104', '105'], '4', ...['104', '105', '0xab', '0xcd']],
             ),
           ]),
           File.Simple('strings', [
@@ -1796,6 +1832,12 @@ export const expectations = flatten(
             Expect.Simple('loops', ['1'], ['1'], 'true branch'),
             Expect.Simple('loops', ['0'], ['0'], 'false branch'),
           ]),
+          File.Simple('noBlocks', [
+            Expect.Simple('test', ['0', '0'], ['0b00']),
+            Expect.Simple('test', ['0', '1'], ['0b01']),
+            Expect.Simple('test', ['1', '0'], ['0b10']),
+            Expect.Simple('test', ['1', '1'], ['0b11']),
+          ]),
         ]),
         new Dir('imports', [
           File.Simple('importto', [Expect.Simple('checkImports', ['3', '2'], ['1'])]),
@@ -2330,6 +2372,9 @@ export const expectations = flatten(
           File.Simple('modifier', [
             Expect.Simple('f', ['90000', '0'], ['10000', '0']),
             Expect.Simple('f', ['110000', '0'], ['0', '0']),
+          ]),
+          File.Simple('modifierWithReturn', [
+            Expect.Simple('returnFiveThroughModifiers', [], ['5']),
           ]),
           File.Simple('multipleModifiers', [
             new Expect('modifier', [

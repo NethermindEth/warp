@@ -13,6 +13,7 @@ import {
   IntLiteralType,
   IntType,
   Literal,
+  StringType,
   TypeNameType,
   UserDefinedType,
 } from 'solc-typed-ast';
@@ -57,7 +58,7 @@ export class ExplicitConversionToFunc extends ASTMapper {
       node.vExpression instanceof ElementaryTypeNameExpression,
       `Unexpected node type ${node.vExpression.type}`,
     );
-    const typeTo = typeNameType.type;
+    const typeTo = generalizeType(typeNameType.type)[0];
     const argType = generalizeType(getNodeType(node.vArguments[0], ast.compilerVersion))[0];
 
     if (typeTo instanceof IntType) {
@@ -156,6 +157,15 @@ export class ExplicitConversionToFunc extends ASTMapper {
           typeTo.size * 8 >= argType.nBits,
           `Unexpected narrowing ${argType.pp()}->${typeTo.pp()} conversion encountered`,
         );
+        const operand = node.vArguments[0];
+        operand.typeString = node.typeString;
+        ast.replaceNode(node, operand);
+        return;
+      }
+    }
+
+    if (typeTo instanceof BytesType || typeTo instanceof StringType) {
+      if (argType instanceof BytesType || argType instanceof StringType) {
         const operand = node.vArguments[0];
         operand.typeString = node.typeString;
         ast.replaceNode(node, operand);
