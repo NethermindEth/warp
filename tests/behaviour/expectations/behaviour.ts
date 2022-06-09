@@ -2667,13 +2667,23 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
-        new Dir('string', [
+        new Dir('stringLiteral', [
           File.Simple('stringLiteralMemory', [
+            Expect.Simple('plainLiteral', [], []),
+            Expect.Simple('returnLiteral', [], ['4', '87', '65', '82', '80']),
             Expect.Simple('varDecl', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple(
+              'literalAssignmentToMemoryFromParams',
+              ['2', '86', '65'],
+              ['4', '87', '65', '82', '80'],
+            ),
             Expect.Simple('tupleRet', [], ['2', '87', '65', '2', '82', '80']),
-            Expect.Simple('funcCall', [], ['4', '87', '65', '82', '80']),
             Expect.Simple('funcCallWithArg', [], ['4', '87', '65', '82', '80']),
             Expect.Simple('nestedFuncCallWithArg', [], ['4', '87', '65', '82', '80']),
+          ]),
+          File.Simple('stringLiteralStorage', [
+            Expect.Simple('literalAssignment', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('memoryToStorageAssignment', [], ['4', '87', '65', '82', '80']),
           ]),
         ]),
         new Dir('this_keyword', [
