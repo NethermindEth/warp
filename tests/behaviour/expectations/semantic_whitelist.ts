@@ -1118,7 +1118,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/failure.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/multiline_comments.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/multiline.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/structs.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/structs.sol', // nested dynarray
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/alignment.sol', // REQUIRES CAIRO 0.9
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/basic.sol', // WILL NOT SUPPORT msg.data
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/constructor.sol', // WILL NOT SUPPORT addr.balance
