@@ -92,7 +92,12 @@ export class CairoUtilFuncGen {
       ast,
       sourceUnit,
     );
-    const memoryToStorage = new MemoryToStorageGen(this.implementation.dynArray, ast, sourceUnit);
+    const memoryToStorage = new MemoryToStorageGen(
+      this.implementation.dynArray,
+      storageDelete,
+      ast,
+      sourceUnit,
+    );
     const storageWrite = new StorageWriteGen(ast, sourceUnit);
     const storageToStorage = new StorageToStorageGen(
       this.implementation.dynArray,
