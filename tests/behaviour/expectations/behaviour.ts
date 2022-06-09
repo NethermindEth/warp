@@ -1762,6 +1762,12 @@ export const expectations = flatten(
             Expect.Simple('loops', ['1'], ['1'], 'true branch'),
             Expect.Simple('loops', ['0'], ['0'], 'false branch'),
           ]),
+          File.Simple('noBlocks', [
+            Expect.Simple('test', ['0', '0'], ['0b00']),
+            Expect.Simple('test', ['0', '1'], ['0b01']),
+            Expect.Simple('test', ['1', '0'], ['0b10']),
+            Expect.Simple('test', ['1', '1'], ['0b11']),
+          ]),
         ]),
         new Dir('imports', [
           File.Simple('importto', [Expect.Simple('checkImports', ['3', '2'], ['1'])]),
