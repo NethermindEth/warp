@@ -37,4 +37,4 @@ jobs:
         run: yarn warplib
 
       - name: Run semantic tests
-        run: ./build/autoRunSemanticTests.js
+        run: node ./build/autoRunSemanticTests.js
