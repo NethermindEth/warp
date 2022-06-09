@@ -146,6 +146,15 @@ export const expectations = flatten(
               ]),
             ],
           ),
+          File.Simple('index', [
+            Expect.Simple('getByteAtIndex', ['0'], ['0']),
+            Expect.Simple('getByteAtIndex', ['4'], ['4']),
+            Expect.Simple(
+              'flip',
+              ['0x0102030405060708'],
+              ['8', '8', '7', '6', '5', '4', '3', '2', '1'],
+            ),
+          ]),
           File.Simple('stringsBytesConversion', [
             Expect.Simple('getCharacter', ['4', '10', '12', '14', '16', ...['2', '0']], ['14']),
             Expect.Simple('getLength', [], ['4', '0']),
