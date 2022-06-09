@@ -31,7 +31,7 @@ contract WARP {
     }
   }
 
-  function assignToTupleArray() public returns(uint16) {
+  function assignToInlineDynArray() public returns(uint16) {
     arr16[3] = 10;
     return arr16[3];
   }
