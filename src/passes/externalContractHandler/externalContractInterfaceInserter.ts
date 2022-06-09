@@ -15,6 +15,7 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
+import { isExternallyVisible } from '../../utils/utils';
 
 export class ExternalContractInterfaceInserter extends ASTMapper {
   /*
@@ -108,7 +109,7 @@ function genContractInterface(
   );
 
   contract.vFunctions
-    .filter((func) => func.kind !== FunctionKind.Constructor)
+    .filter((func) => func.kind !== FunctionKind.Constructor && isExternallyVisible(func))
     .forEach((func) => {
       const funcBody = func.vBody;
       func.vBody = undefined;
