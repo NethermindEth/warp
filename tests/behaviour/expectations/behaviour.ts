@@ -146,6 +146,10 @@ export const expectations = flatten(
               ]),
             ],
           ),
+          File.Simple('stringsBytesConversion', [
+            Expect.Simple('getCharacter', ['4', '10', '12', '14', '16', ...['2', '0']], ['14']),
+            Expect.Simple('getLength', [], ['4', '0']),
+          ]),
         ]),
         new Dir('calldata', [
           File.Simple('passingDynArrayInternally', [
