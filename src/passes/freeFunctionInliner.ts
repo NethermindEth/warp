@@ -41,7 +41,7 @@ export class FreeFunctionInliner extends ASTMapper {
       .reduce(union, new Set<FunctionDefinition>())
       .forEach((funcToInline) => {
         const clonedFunction = cloneASTNode(funcToInline, ast);
-        clonedFunction.name = `${clonedFunction.name}_f${this.funcCounter++}`;
+        clonedFunction.name = `f${this.funcCounter++}_${clonedFunction.name}`;
         clonedFunction.visibility = FunctionVisibility.Internal;
         clonedFunction.scope = node.id;
         clonedFunction.kind = FunctionKind.Function;

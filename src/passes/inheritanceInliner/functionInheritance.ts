@@ -28,7 +28,7 @@ export function addPrivateSuperFunctions(
         const existingEntry = currentFunctions.get(func.name);
         const clonedFunction = cloneASTNode(func, ast);
         idRemapping.set(func.id, clonedFunction);
-        clonedFunction.name = `${clonedFunction.name}_s${depth + 1}`;
+        clonedFunction.name = `s${depth + 1}_${clonedFunction.name}`;
         clonedFunction.visibility = FunctionVisibility.Private;
         clonedFunction.scope = node.id;
         if (existingEntry !== undefined) {
