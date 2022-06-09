@@ -22,7 +22,7 @@ func byte_at_index_uint256{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
     assert_nn_le(index.low, width - 1)
     let index_felt = index.low
 
-    let index_from_right = width-1-index_felt
+    let index_from_right = width - 1 - index_felt
 
     let (byte_accesor_felt) = byte_accessor(index_from_right)
     let (slicer) = pow2(index_from_right * 8)
@@ -38,7 +38,7 @@ func byte_at_index{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
 
     assert_nn_le(index, width - 1)
 
-    let index_from_right = width-1-index
+    let index_from_right = width - 1 - index
 
     let (byte_accesor_felt) = byte_accessor(index_from_right)
     let (slicer) = pow2(index_from_right * 8)
