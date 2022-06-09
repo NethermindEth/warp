@@ -98,26 +98,38 @@ const initialRun: Promise<CompileResult> =
     : Promise.resolve({ data: null, files: new Map(), inferredRemappings: new Map() });
 
 export const expectations: AsyncTest[] = validTests.map(([file, tests]): AsyncTest => {
-  // The solidity test dsl assumes the last contract defined in the file is
-  // the target of the function calls. solc-typed-ast sorts the contracts
-  // so we need to do a dumb regex to find the right contract
-  const contractNames = [...readFileSync(file, 'utf-8').matchAll(/contract (\w+)/g)].map(
-    ([_, name]) => name,
-  );
-  const lastContract = contractNames[contractNames.length - 1];
-  const truncatedFileName = file.substring(0, file.length - '.sol'.length);
+  try {
+    // The solidity test dsl assumes the last contract defined in the file is
+    // the target of the function calls. solc-typed-ast sorts the contracts
+    // so we need to do a dumb regex to find the right contract
+    const contractNames = [
+      ...readFileSync(file, 'utf-8')
+        .split('\n')
+        .map((line) => {
+          const commentStart = line.indexOf('//');
+          if (commentStart === -1) return line;
+          return line.slice(0, commentStart);
+        })
+        .join('\n')
+        .matchAll(/contract (\w+)/g),
+    ].map(([_, name]) => name);
+    const lastContract = contractNames[contractNames.length - 1];
+    const truncatedFileName = file.substring(0, file.length - '.sol'.length);
 
-  const contractAbiDefAst = getContractAbiAndDefinition(file, lastContract);
+    const contractAbiDefAst = getContractAbiAndDefinition(file, lastContract);
 
-  // Encode constructor arguments
-  const constructorArgs: Promise<string[]> = encodeConstructors(tests[0], contractAbiDefAst);
+    // Encode constructor arguments
+    const constructorArgs: Promise<string[]> = encodeConstructors(tests[0], contractAbiDefAst);
 
-  return new AsyncTest(
-    truncatedFileName,
-    lastContract,
-    constructorArgs,
-    transcodeTests(tests, contractAbiDefAst),
-  );
+    return new AsyncTest(
+      truncatedFileName,
+      lastContract,
+      constructorArgs,
+      transcodeTests(tests, contractAbiDefAst),
+    );
+  } catch (e) {
+    return new AsyncTest(file, '', [], [], `${e}`);
+  }
 });
 
 // ------------------------ Transcode the tests ------------------------------
@@ -138,7 +150,7 @@ async function transcodeTests(
         return transcodeTest(abi, contractDef, test, compilerVersion, ast);
       } catch (e) {
         console.log(error(`Failed to transcode ${test.signature}: ${e}`));
-        return null;
+        throw e;
       }
     })
     .filter(notNull);
@@ -366,12 +378,16 @@ async function encodeConstructors(
 
 async function getContractAbiAndDefinition(
   file: string,
-  lastContract: string,
+  lastContractName: string,
 ): Promise<[FunABI[], ContractDefinition, AST]> {
   // Get the abi of the contract for web3
   const source = await compileSol(file, 'auto', []);
   const contracts: { [key: string]: { abi: FunABI[] } } = source.data.contracts[file];
-  const contractAbi = contracts[lastContract].abi;
+  const lastContract = contracts[lastContractName];
+  if (lastContract === undefined) {
+    throw new InvalidTestError(`Unable to find contract ${lastContractName} in file ${file}`);
+  }
+  const contractAbi = lastContract.abi;
 
   // Get the ast itself so we can resolve the types for our type conversion
   // later
@@ -379,7 +395,7 @@ async function getContractAbiAndDefinition(
   const astRoot = ast.roots[ast.roots.length - 1];
   const [contractDef] = astRoot
     .getChildrenByType(ContractDefinition, true)
-    .filter((contract) => contract.name === lastContract);
+    .filter((contract) => contract.name === lastContractName);
 
   return [contractAbi, contractDef, ast];
 }

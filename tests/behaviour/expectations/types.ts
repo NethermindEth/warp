@@ -9,6 +9,7 @@ export class AsyncTest {
     public contract: string,
     public constructorArgs: Promise<string[]> | string[],
     public expectations: Promise<Expect[]> | Expect[],
+    public encodingError?: string,
   ) {}
 
   get sol() {
