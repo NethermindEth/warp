@@ -6,17 +6,26 @@ contract WARP {
         return x;
     }
 
+    function plainLiteral() public pure {
+        "WARP";
+    } 
+
+    function returnLiteral() public pure returns (string memory) {
+        return "WARP";
+    }
+
     function varDecl() public pure returns (string memory) {
         string memory x = "WARP";
         return x;
     }
 
-    function tupleRet() public pure returns (string memory, string memory) {
-        return ("WA", "RP");
+    function literalAssignmentToMemoryFromParams(string memory x) public pure returns (string memory) {
+        x = "WARP";
+        return x;
     }
 
-    function funcCall() public pure returns (string memory) {
-        return varDecl();
+    function tupleRet() public pure returns (string memory, string memory) {
+        return ("WA", "RP");
     }
 
     function funcCallWithArg() public pure returns (string memory) {
