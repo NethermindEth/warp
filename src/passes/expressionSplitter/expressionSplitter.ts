@@ -14,6 +14,8 @@ import {
   StateVariableVisibility,
   VariableDeclaration,
   VariableDeclarationStatement,
+  generalizeType,
+  getNodeType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
@@ -175,6 +177,8 @@ function createVariableDeclarationStatement(
   scope: number,
   ast: AST,
 ): VariableDeclarationStatement {
+  const location =
+    generalizeType(getNodeType(initalValue, ast.compilerVersion))[1] ?? DataLocation.Default;
   const varDecl = new VariableDeclaration(
     ast.reserveId(),
     '',
@@ -183,7 +187,7 @@ function createVariableDeclarationStatement(
     name,
     scope,
     false,
-    DataLocation.Memory,
+    location,
     StateVariableVisibility.Internal,
     Mutability.Constant,
     initalValue.typeString,
