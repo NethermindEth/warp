@@ -109,8 +109,8 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Sai', StaticArrayIndexer],
     ['M', IdentifierMangler],
     ['Req', Require],
-    ['Bc', BytesConverter],
     ['Ffi', FreeFunctionInliner],
+    ['Dff', DropFreeSourceUnitFunctions],
     ['Rl', ReferencedLibraries],
     ['Ons', OrderNestedStructs],
     ['Ech', ExternalContractHandler],
@@ -119,7 +119,6 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Mh', ModifierHandler],
     ['Pfs', PublicFunctionSplitter],
     ['Eam', ExternalArgModifier],
-    ['Ei', ExternImporter],
     ['Lf', LoopFunctionaliser],
     ['R', ReturnInserter],
     ['Rv', ReturnVariableInitializer],
@@ -139,7 +138,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
     ['Ci', CairoUtilImporter],
-    ['Dff', DropFreeSourceUnitFunctions],
+    ['Ei', ExternImporter],
   ]);
 
   const passesInOrder: typeof ASTMapper[] = parsePassOrder(options.order, options.until, passes);
