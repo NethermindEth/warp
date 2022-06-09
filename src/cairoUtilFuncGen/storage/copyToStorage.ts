@@ -165,7 +165,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
 
     const elementCopyFunc = this.getOrCreate(toType.elementT, fromType.elementT);
 
-    const toElementT = toType.elementT;
     const toElemType = CairoType.fromSol(
       toType.elementT,
       this.ast,
@@ -186,13 +185,13 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     } else {
       this.requireImport('starkware.cairo.common.math_cmp', 'is_le');
       stopRecursion = [
-        `let (lesser) = is_le(index, ${fromSize - 1})`,
-        `if lesser == 0:`,
-        `    ${this.storageDeleteGen.genFuncName(toElementT)}(to_elem_loc)`,
-        `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc, index + 1)`,
-        `end`,
         `if index == ${toSize}:`,
         `    return ()`,
+        `end`,
+        `let (lesser) = is_le(index, ${fromSize - 1})`,
+        `if lesser == 0:`,
+        `    ${this.storageDeleteGen.genFuncName(toType.elementT)}(to_elem_loc)`,
+        `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc, index + 1)`,
         `end`,
       ];
     }
@@ -277,13 +276,15 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `    alloc_locals`,
         `    let (from_length) = ${fromLengthMapping}.read(from_loc)`,
         `    let (to_length) = ${toLengthMapping}.read(to_loc)`,
+        `    ${toLengthMapping}.write(to_loc, from_length)`,
+        `    ${funcName}_elem(to_loc, from_loc, from_length)`,
         `    let (lesser) = uint256_lt(from_length, to_length)`,
         `    if lesser == 1:`,
         `       ${deleteRemainingCode}`,
+        `       return (to_loc)`,
+        `    else:`,
+        `       return (to_loc)`,
         `    end`,
-        `    ${toLengthMapping}.write(to_loc, from_length)`,
-        `    ${funcName}_elem(to_loc, from_loc, from_length)`,
-        `    return (to_loc)`,
         `end`,
       ].join('\n'),
     };
@@ -349,13 +350,15 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `    alloc_locals`,
         `    let from_length  = ${uint256(narrowBigIntSafe(fromType.size))}`,
         `    let (to_length) = ${toLengthMapping}.read(to_loc)`,
+        `    ${toLengthMapping}.write(to_loc, from_length)`,
+        `    ${funcName}_elem(to_loc, from_loc, from_length , Uint256(0,0))`,
         `    let (lesser) = uint256_lt(from_length, to_length)`,
         `    if lesser == 1:`,
         `       ${deleteRemainingCode}`,
+        `       return (to_loc)`,
+        `    else:`,
+        `       return (to_loc)`,
         `    end`,
-        `    ${toLengthMapping}.write(to_loc, from_length)`,
-        `    ${funcName}_elem(to_loc, from_loc, from_length , Uint256(0,0))`,
-        `    return (to_loc)`,
         `end`,
       ].join('\n'),
     };
