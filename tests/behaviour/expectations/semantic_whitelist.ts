@@ -1603,7 +1603,7 @@ const tests: string[] = [
   //---------Misc: 52 passing, 3 pending, 9 failing, 6 transcode error
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor_with_params_diamond_inheritance.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor_inheritance_init_order_3_legacy.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor_inheritance_init_order_3_legacy.sol', // We don't support the legacy bug behaviour and instead implement viaYul behaviour.
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/empty_for_loop.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/empty_contract.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/isoltestFormatting.sol',

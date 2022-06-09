@@ -2,12 +2,14 @@ import assert from 'assert';
 import {
   ArrayType,
   ASTNode,
+  BytesType,
   DataLocation,
   Expression,
   FunctionStateMutability,
   generalizeType,
   getNodeType,
   SourceUnit,
+  StringType,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -17,9 +19,10 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { getElementType, isDynamicArray } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { add, StringIndexedFuncGen } from '../base';
+import { add, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
 /*
@@ -56,19 +59,20 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       return existing.name;
     }
 
-    if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-      return this.createStructCopyFunction(key, type);
-    } else if (type instanceof ArrayType) {
-      if (type.size === undefined) {
-        return this.createDynamicArrayCopyFunction(key, type);
-      } else {
-        return this.createStaticArrayCopyFunction(key, type);
-      }
-    } else {
+    const unexpectedTypeFunc = () => {
       throw new NotSupportedYetError(
         `Copying ${printTypeNode(type)} from storage to memory not implemented yet`,
       );
-    }
+    };
+
+    return delegateBasedOnType<string>(
+      type,
+      (type) => this.createDynamicArrayCopyFunction(key, type),
+      (type) => this.createStaticArrayCopyFunction(key, type),
+      (type) => this.createStructCopyFunction(key, type),
+      unexpectedTypeFunc,
+      unexpectedTypeFunc,
+    );
   }
 
   private createStructCopyFunction(key: string, type: UserDefinedType): string {
@@ -88,20 +92,10 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    alloc_locals`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)})`,
         ...generateCopyInstructions(type, this.ast).flatMap(
-          ({ storageOffset, copyType }, index) => {
-            if (copyType === undefined) {
-              return [
-                `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)})`,
-                `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
-              ];
-            } else {
-              const funcName = this.getOrCreate(copyType);
-              return [
-                `let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`,
-                `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
-              ];
-            }
-          },
+          ({ storageOffset, copyType }, index) => [
+            this.getIterCopyCode(copyType, index, storageOffset),
+            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
+          ],
         ),
         `    return (mem_start)`,
         `end`,
@@ -139,20 +133,10 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    let length = ${uint256(memoryType.width)}`,
         `    let (mem_start) = wm_alloc(length)`,
         ...generateCopyInstructions(type, this.ast).flatMap(
-          ({ storageOffset, copyType }, index) => {
-            if (copyType === undefined) {
-              return [
-                `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)})`,
-                `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
-              ];
-            } else {
-              const funcName = this.getOrCreate(copyType);
-              return [
-                `let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`,
-                `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
-              ];
-            }
-          },
+          ({ storageOffset, copyType }, index) => [
+            this.getIterCopyCode(copyType, index, storageOffset),
+            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
+          ],
         ),
         `    return (mem_start)`,
         `end`,
@@ -184,20 +168,13 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       this.ast,
       TypeConversionContext.StorageAllocation,
     ).width;
-    let copyCode: string;
-    if (isStaticArrayOrStruct(type.elementT)) {
-      copyCode = [
-        `   let (copy) = ${this.getOrCreate(type.elementT)}('loc')`,
-        `   dict_write{dict_ptr=warp_memory}(mem_start, copy)`,
-      ].join('\n');
-    } else {
-      copyCode = mapRange(elementMemoryWidth, (n) =>
-        [
-          `   let (copy) = WARP_STORAGE.read(${add('loc', n)})`,
-          `   dict_write{dict_ptr=warp_memory}(${add('mem_start', n)}, copy)`,
-        ].join('\n'),
-      ).join('\n');
-    }
+
+    const copyCode: string = this.getRecursiveCopyCode(
+      type.elementT,
+      elementMemoryWidth,
+      'loc',
+      'mem_start',
+    );
 
     this.generatedFunctions.set(key, {
       name: funcName,
@@ -235,8 +212,12 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private createDynamicArrayCopyFunction(key: string, type: ArrayType): string {
-    const memoryElementType = CairoType.fromSol(type.elementT, this.ast);
+  private createDynamicArrayCopyFunction(
+    key: string,
+    type: ArrayType | BytesType | StringType,
+  ): string {
+    const elementT = getElementType(type);
+    const memoryElementType = CairoType.fromSol(elementT, this.ast);
     const funcName = `ws_to_memory${this.generatedFunctions.size}`;
     this.generatedFunctions.set(key, {
       name: funcName,
@@ -244,7 +225,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     });
 
     const [elemMapping, lengthMapping] = this.dynArrayGen.gen(
-      CairoType.fromSol(type.elementT, this.ast, TypeConversionContext.StorageAllocation),
+      CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
     );
     const implicits =
       '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -252,21 +233,12 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     // This is the code to copy a single element
     // Complex types require calls to another function generated here
     // Simple types take one or two WARP_STORAGE-dict_write pairs
-    let copyCode: string;
-    if (
-      type.elementT instanceof ArrayType ||
-      (type.elementT instanceof UserDefinedType &&
-        type.elementT.definition instanceof StructDefinition)
-    ) {
-      copyCode = `let (copy) = ${this.getOrCreate(type.elementT)}`;
-    } else {
-      copyCode = mapRange(CairoType.fromSol(type.elementT, this.ast).width, (n) =>
-        [
-          `    let (copy) = WARP_STORAGE.read(${add('element_storage_loc', n)})`,
-          `    dict_write{dict_ptr=warp_memory}(${add('mem_loc', n)}, copy)`,
-        ].join('\n'),
-      ).join('\n');
-    }
+    const copyCode: string = this.getRecursiveCopyCode(
+      elementT,
+      memoryElementType.width,
+      'element_storage_loc',
+      'mem_loc',
+    );
 
     // Now generate two functions: the setup function funcName, and the elementwise copy function: funcName_elem
     this.generatedFunctions.set(key, {
@@ -298,10 +270,58 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
 
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('warplib.memory', 'wm_new');
     this.requireImport('warplib.memory', 'wm_index_dyn');
 
     return funcName;
+  }
+
+  // Copy code generation for iterative copy instructions (small static arrays and structs)
+  private getIterCopyCode(
+    copyType: TypeNode | undefined,
+    index: number,
+    storageOffset: number,
+  ): string {
+    if (copyType === undefined) {
+      return `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)})`;
+    }
+
+    const funcName = this.getOrCreate(copyType);
+    return isDynamicArray(copyType)
+      ? [
+          `let (dyn_loc) = WARP_STORAGE.read(${add('loc', storageOffset)})`,
+          `let (copy${index}) = ${funcName}(dyn_loc)`,
+        ].join('\n')
+      : `let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`;
+  }
+
+  // Copy code generation for recursive copy instructions (large static arrays and dynamic arrays)
+  private getRecursiveCopyCode(
+    elementT: TypeNode,
+    elementMemoryWidth: number,
+    storageLoc: string,
+    memoryLoc: string,
+  ) {
+    if (isStaticArrayOrStruct(elementT)) {
+      return [
+        `   let (copy) = ${this.getOrCreate(elementT)}(${storageLoc})`,
+        `   dict_write{dict_ptr=warp_memory}(${memoryLoc}, copy)`,
+      ].join('\n');
+    } else if (isDynamicArray(elementT)) {
+      return [
+        `   let (dyn_loc) = readId(${storageLoc})`,
+        `   let (copy) = ${this.getOrCreate(elementT)}(dyn_loc)`,
+        `   dict_write{dict_ptr=warp_memory}(${memoryLoc}, copy)`,
+      ].join('\n');
+    } else {
+      return mapRange(elementMemoryWidth, (n) =>
+        [
+          `   let (copy) = WARP_STORAGE.read(${add(`${storageLoc}`, n)})`,
+          `   dict_write{dict_ptr=warp_memory}(${add(`${memoryLoc}`, n)}, copy)`,
+        ].join('\n'),
+      ).join('\n');
+    }
   }
 }
 
@@ -328,12 +348,6 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
 
   let storageOffset = 0;
   return members.flatMap((memberType) => {
-    if (memberType instanceof ArrayType && memberType.size === undefined) {
-      throw new NotSupportedYetError(
-        `Copying ${printTypeNode(memberType)} from storage to memory not implemented yet`,
-      );
-    }
-
     if (isStaticArrayOrStruct(memberType)) {
       const offset = storageOffset;
       storageOffset += CairoType.fromSol(
@@ -342,6 +356,8 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
         TypeConversionContext.StorageAllocation,
       ).width;
       return [{ storageOffset: offset, copyType: memberType }];
+    } else if (isDynamicArray(memberType)) {
+      return [{ storageOffset: storageOffset++, copyType: memberType }];
     } else {
       const width = CairoType.fromSol(
         memberType,

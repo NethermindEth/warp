@@ -1,6 +1,5 @@
 import assert from 'assert';
 import {
-  ArrayType,
   ASTNode,
   DataLocation,
   FunctionCall,
@@ -14,6 +13,7 @@ import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createUint256TypeName } from '../../utils/nodeTemplates';
+import { isDynamicArray } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
@@ -31,7 +31,7 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
     const nodeType = getNodeType(node, this.ast.compilerVersion);
     const baseType = getNodeType(base, this.ast.compilerVersion);
 
-    assert(baseType instanceof PointerType && baseType.to instanceof ArrayType);
+    assert(baseType instanceof PointerType && isDynamicArray(baseType.to));
     const name = this.getOrCreate(nodeType);
 
     const functionStub = createCairoFunctionStub(

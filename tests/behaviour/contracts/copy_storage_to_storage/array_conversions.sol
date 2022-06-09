@@ -40,4 +40,26 @@ contract WARP {
     d = b;
     return (d[0][0], d[0][1], d[1][0], d[1][1], b);
   }
+
+  uint8[] u8;
+  uint256[] u256;
+  function scalingUint(uint8[] memory m) external returns (uint256[] memory) {
+    u8 = m;
+    u256 = u8;
+    return u256;
+  }
+
+  int8[] i8;
+  int32[] i32;
+  function scalingInt(int8[] memory m) external returns (int32[] memory) {
+      i8 = m;
+      i32 = i8;
+      return i32;
+  }
+
+  function identity() external returns (uint8[] memory, uint256[] memory) {
+      u8 = u8;
+      u256 = u256;
+      return (u8, u256);
+  }
 }

@@ -134,6 +134,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Eic', ExternalInputChecker],
     ['Ec', EnumConverter],
     ['B', BuiltinHandler],
+    ['Bc', BytesConverter],
     ['Us', UnreachableStatementPruner],
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],

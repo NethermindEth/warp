@@ -36,7 +36,7 @@ import whiteList from './semantic_whitelist';
 import { NotSupportedYetError } from '../../../src/utils/errors';
 import { compileSolFile } from '../../../src/solCompile';
 import { printTypeNode } from '../../../src/utils/astPrinter';
-import { divmod, toUintOrFelt } from '../../../src/utils/utils';
+import { toUintOrFelt } from '../../../src/utils/utils';
 import { AsyncTest, Expect } from './types';
 import { error } from '../../../src/utils/formatting';
 import { notNull } from '../../../src/utils/typeConstructs';

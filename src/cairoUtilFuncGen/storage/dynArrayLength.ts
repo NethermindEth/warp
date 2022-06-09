@@ -5,11 +5,14 @@ import {
   ASTNode,
   DataLocation,
   SourceUnit,
+  BytesType,
+  StringType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createUint256TypeName } from '../../utils/nodeTemplates';
+import { getElementType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { CairoUtilFuncGenBase } from '../base';
 import { DynArrayGen } from './dynArray';
@@ -23,9 +26,17 @@ export class DynArrayLengthGen extends CairoUtilFuncGenBase {
     return '';
   }
 
-  gen(node: MemberAccess, arrayType: ArrayType, nodeInSourceUnit?: ASTNode): FunctionCall {
+  gen(
+    node: MemberAccess,
+    arrayType: ArrayType | BytesType | StringType,
+    nodeInSourceUnit?: ASTNode,
+  ): FunctionCall {
     const lengthName = this.dynArrayGen.gen(
-      CairoType.fromSol(arrayType.elementT, this.ast, TypeConversionContext.StorageAllocation),
+      CairoType.fromSol(
+        getElementType(arrayType),
+        this.ast,
+        TypeConversionContext.StorageAllocation,
+      ),
     )[1];
 
     const functionStub = createCairoFunctionStub(

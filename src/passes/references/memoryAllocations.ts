@@ -1,22 +1,25 @@
 import assert from 'assert';
 import {
-  ArrayTypeName,
+  ArrayType,
+  BytesType,
   DataLocation,
   FunctionCall,
   FunctionCallKind,
+  generalizeType,
+  getNodeType,
   Literal,
-  LiteralKind,
   NewExpression,
+  StringType,
   TupleExpression,
-  typeNameToTypeNode,
 } from 'solc-typed-ast';
 import { ReferenceSubPass } from './referenceSubPass';
 import { AST } from '../../ast/ast';
 import { printNode } from '../../utils/astPrinter';
-import { CairoType } from '../../utils/cairoTypeSystem';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
+import { getElementType } from '../../utils/nodeTypeProcessing';
 
 /*
   TODO update description
@@ -47,17 +50,14 @@ export class MemoryAllocations extends ReferenceSubPass {
           } arrays not implemented yet (${printNode(node)})`,
         );
       }
+    } else if (node.kind === FunctionCallKind.TypeConversion) {
+      const type = generalizeType(getNodeType(node, ast.compilerVersion))[0];
+      const arg = node.vArguments[0];
+      if ((type instanceof BytesType || type instanceof StringType) && arg instanceof Literal) {
+        const replacement = ast.getUtilFuncGen(node).memory.arrayLiteral.stringGen(arg);
+        this.replace(node, replacement, node.parent, actualLoc, expectedLoc, ast);
+      }
     }
-  }
-
-  visitLiteral(node: Literal, ast: AST): void {
-    if (node.kind !== LiteralKind.String) return;
-
-    const [actualLoc, expectedLoc] = this.getLocations(node);
-    if (this.expectedDataLocations.get(node) !== DataLocation.Memory) return;
-
-    const replacement = ast.getUtilFuncGen(node).memory.arrayLiteral.stringGen(node);
-    this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
   }
 
   visitTupleExpression(node: TupleExpression, ast: AST): void {
@@ -93,11 +93,17 @@ export class MemoryAllocations extends ReferenceSubPass {
       node,
     );
 
-    assert(node.vExpression.vTypeName instanceof ArrayTypeName);
+    const arrayType = generalizeType(getNodeType(node, ast.compilerVersion))[0];
+    assert(
+      arrayType instanceof ArrayType ||
+        arrayType instanceof BytesType ||
+        arrayType instanceof StringType,
+    );
 
     const elementCairoType = CairoType.fromSol(
-      typeNameToTypeNode(node.vExpression.vTypeName.vBaseType),
+      getElementType(arrayType),
       ast,
+      TypeConversionContext.Ref,
     );
 
     const call = createCallToFunction(
