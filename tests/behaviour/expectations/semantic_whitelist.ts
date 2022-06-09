@@ -248,7 +248,7 @@ const tests: string[] = [
     ],
     //---------Array pop tests: 12 passing, 36 pending, 12 failing, 2 transcodeError
     ...[
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_array_transition.sol', // RUNS OUT OF RESOURCES
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_array_transition.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_empty_exception.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_isolated.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_storage_empty.sol',

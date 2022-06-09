@@ -633,6 +633,7 @@ export const expectations = flatten(
               ['arr256', ['11', '0'], ['0', '0'], '0'],
               ['arr256', ['12', '0'], null, '0'],
             ]),
+            Expect.Simple('assignToTupleArray', [], ['10']),
           ]),
           File.Simple('dynamic_arrays_2d', [
             new Expect('two dimensional dynamic arrays to storage', [

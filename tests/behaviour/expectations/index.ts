@@ -45,4 +45,4 @@ function filterTests(
   return tests.filter((test) => test.name.includes(filter));
 }
 
-export const expectations = filterTests(behaviour, semantic, '2Darray_push_pop');
+export const expectations = filterTests(behaviour, semantic);
