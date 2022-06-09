@@ -18,13 +18,14 @@ import {
 import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext, WarpLocation } from '../../utils/cairoTypeSystem';
-import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
+import { TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { getElementType, getSize, isReferenceType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
+import { StorageDeleteGen } from './storageDelete';
 
 /*
   Generates functions to copy data from WARP_STORAGE to WARP_STORAGE
@@ -34,7 +35,12 @@ import { DynArrayGen } from './dynArray';
 */
 
 export class StorageToStorageGen extends StringIndexedFuncGen {
-  constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
+  constructor(
+    private dynArrayGen: DynArrayGen,
+    private storageDeleteGen: StorageDeleteGen,
+    ast: AST,
+    sourceUnit: SourceUnit,
+  ) {
     super(ast, sourceUnit);
   }
   gen(to: Expression, from: Expression, nodeInSourceUnit?: ASTNode): Expression {
@@ -157,12 +163,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       )}->${printTypeNode(toType)}`,
     );
 
-    if (fromType.size !== toType.size) {
-      throw new NotSupportedYetError(
-        `Copying static arrays of mismatched size not implemented yet`,
-      );
-    }
-
     const elementCopyFunc = this.getOrCreate(toType.elementT, fromType.elementT);
 
     const toElemType = CairoType.fromSol(
@@ -177,13 +177,30 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     );
     const copyCode = createElementCopy(toElemType, fromElemType, elementCopyFunc);
 
+    const fromSize = narrowBigIntSafe(fromType.size);
+    const toSize = narrowBigIntSafe(toType.size);
+    let stopRecursion;
+    if (fromSize === toSize) {
+      stopRecursion = [`if index == ${fromSize}:`, `return ()`, `end`];
+    } else {
+      this.requireImport('starkware.cairo.common.math_cmp', 'is_le');
+      stopRecursion = [
+        `if index == ${toSize}:`,
+        `    return ()`,
+        `end`,
+        `let (lesser) = is_le(index, ${fromSize - 1})`,
+        `if lesser == 0:`,
+        `    ${this.storageDeleteGen.genFuncName(toType.elementT)}(to_elem_loc)`,
+        `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc, index + 1)`,
+        `end`,
+      ];
+    }
+
     return {
       name: funcName,
       code: [
         `func ${funcName}_elem${implicits}(to_elem_loc: felt, from_elem_loc: felt, index: felt) -> ():`,
-        `    if index == ${narrowBigIntSafe(toType.size)}:`,
-        `        return ()`,
-        `    end`,
+        ...stopRecursion,
         `    ${copyCode('to_elem_loc', 'from_elem_loc')}`,
         `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc + ${fromElemType.width}, index + 1)`,
         `end`,
@@ -209,6 +226,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
+    this.requireImport('starkware.cairo.common.uint256', 'uint256_lt');
 
     const elementCopyFunc = this.getOrCreate(toElementT, fromElementT);
     const fromElementCairoType = CairoType.fromSol(
@@ -225,6 +243,10 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     const [toElementMapping, toLengthMapping] = this.dynArrayGen.gen(toElementCairoType);
 
     const copyCode = createElementCopy(toElementCairoType, fromElementCairoType, elementCopyFunc);
+
+    const deleteRemainingCode = `${this.storageDeleteGen.genAuxFuncName(
+      toType,
+    )}(to_loc, from_length, to_length)`;
 
     return {
       name: funcName,
@@ -253,9 +275,16 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt):`,
         `    alloc_locals`,
         `    let (from_length) = ${fromLengthMapping}.read(from_loc)`,
+        `    let (to_length) = ${toLengthMapping}.read(to_loc)`,
         `    ${toLengthMapping}.write(to_loc, from_length)`,
         `    ${funcName}_elem(to_loc, from_loc, from_length)`,
-        `    return (to_loc)`,
+        `    let (lesser) = uint256_lt(from_length, to_length)`,
+        `    if lesser == 1:`,
+        `       ${deleteRemainingCode}`,
+        `       return (to_loc)`,
+        `    else:`,
+        `       return (to_loc)`,
+        `    end`,
         `end`,
       ].join('\n'),
     };
@@ -273,6 +302,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
+    this.requireImport('starkware.cairo.common.uint256', 'uint256_lt');
 
     const elementCopyFunc = this.getOrCreate(toElementT, fromType.elementT);
     const fromElementCairoType = CairoType.fromSol(
@@ -287,6 +317,10 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     );
     const [toElementMapping, toLengthMapping] = this.dynArrayGen.gen(toElementCairoType);
     const copyCode = createElementCopy(toElementCairoType, fromElementCairoType, elementCopyFunc);
+
+    const deleteRemainingCode = `${this.storageDeleteGen.genAuxFuncName(
+      toType,
+    )}(to_loc, from_length, to_length)`;
 
     return {
       name: funcName,
@@ -314,10 +348,17 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `end`,
         `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt):`,
         `    alloc_locals`,
-        `    let fromLength = ${uint256(narrowBigIntSafe(fromType.size))}`,
-        `    ${toLengthMapping}.write(to_loc, fromLength)`,
-        `    ${funcName}_elem(to_loc, from_loc, fromLength, Uint256(0,0))`,
-        `    return (to_loc)`,
+        `    let from_length  = ${uint256(narrowBigIntSafe(fromType.size))}`,
+        `    let (to_length) = ${toLengthMapping}.read(to_loc)`,
+        `    ${toLengthMapping}.write(to_loc, from_length)`,
+        `    ${funcName}_elem(to_loc, from_loc, from_length , Uint256(0,0))`,
+        `    let (lesser) = uint256_lt(from_length, to_length)`,
+        `    if lesser == 1:`,
+        `       ${deleteRemainingCode}`,
+        `       return (to_loc)`,
+        `    else:`,
+        `       return (to_loc)`,
+        `    end`,
         `end`,
       ].join('\n'),
     };
