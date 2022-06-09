@@ -547,25 +547,29 @@ export const expectations = flatten(
         new Dir('copy_memory_to_storage', [
           File.Simple('array_conversions', [
             Expect.Simple(
-              'tryX1',
+              'scalingDynamicCopy',
               ['4', '1', '2', '3', '4'],
               ['4', '1', '0', '2', '0', '3', '0', '4', '0'],
             ),
-            Expect.Simple('tryX2', ['4', '5', '6'], ['4', '4', '0', '5', '0', '6', '0', '0', '0']),
             Expect.Simple(
-              'tryY1',
+              'scalingStaticToDynamicCopy',
+              ['4', '5', '6'],
+              ['4', '4', '0', '5', '0', '6', '0', '0', '0'],
+            ),
+            Expect.Simple(
+              'scalingStaticCopy',
               ['4', '5', '6', '7', '8'],
               ['4', '0', '5', '0', '6', '0', '7', '0', '8', '0'],
             ),
             Expect.Simple(
-              'tryY2',
+              'scalingStaticCopyShorterToLarger',
               ['4', '5', '6'],
               ['4', '0', '5', '0', '6', '0', '0', '0', '0', '0'],
             ),
-            Expect.Simple('tryZ1', [], ['3', '65535', '5', '10']),
-            Expect.Simple('tryZ2', [], ['4294967294', '4', '9', '0', '0']),
+            Expect.Simple('scalingIntDynamic', [], ['3', '65535', '5', '10']),
+            Expect.Simple('scalingIntStatic', [], ['4294967294', '4', '9', '0', '0']),
             Expect.Simple(
-              'tryXX1',
+              'nestedStaticToDynamic',
               [],
               [
                 ...['3', '1', '0', '2', '0', '3', '0'],
@@ -574,12 +578,17 @@ export const expectations = flatten(
               ],
             ),
             Expect.Simple(
-              'tryXX2',
+              'nestedDynamicToDynamic',
               [],
               [...['2', '1', '0', '2', '0'], ...['2', '3', '0', '4', '0']],
             ),
             Expect.Simple(
-              'tryXX3',
+              'nestedSmallerStaticToDynamic',
+              [],
+              [...['2', '1', '0', '2', '0'], ...['2', '3', '0', '4', '0'], '0'],
+            ),
+            Expect.Simple(
+              'nestedDynamicStaticToDynamic',
               [],
               [
                 ...['3', '1', '0', '2', '0', '3', '0'],
@@ -588,7 +597,7 @@ export const expectations = flatten(
               ],
             ),
             Expect.Simple(
-              'tryXX4',
+              'nestedStaticDynamicToDynamic',
               [],
               [
                 ...['1', '1', '0'],
@@ -597,7 +606,7 @@ export const expectations = flatten(
               ],
             ),
             Expect.Simple(
-              'tryYY1',
+              'nestedStaticToStatic',
               [],
               [
                 ...['1', '0', '2', '0', '0', '0'],
@@ -606,7 +615,7 @@ export const expectations = flatten(
               ],
             ),
             Expect.Simple(
-              'tryYY2',
+              'nestedSmallerStaticToStatic',
               [],
               [
                 ...['1', '0', '2', '0', '0', '0'],
@@ -615,12 +624,12 @@ export const expectations = flatten(
               ],
             ),
             Expect.Simple(
-              'tryYYY',
+              'nestedNestedStatic',
               [],
               [...['1', '0', '0', '0'], ...['0', '0', '0', '0'], ...['0', '0', '0', '0']],
             ),
             Expect.Simple(
-              'tryXY1',
+              'nestedDynamicStaticToDynamicStatic',
               [],
               [
                 '3',
@@ -630,7 +639,7 @@ export const expectations = flatten(
               ],
             ),
             Expect.Simple(
-              'tryYX1',
+              'nestedStaticDynamicToStaticDynamic',
               [],
               [
                 ...['1', ...['1', '0']],
