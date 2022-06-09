@@ -182,7 +182,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         return;
       }
       if (node.vFunctionName === 'concat') {
-        // TODO concat
+        handleConcatArgs(node, ast);
         return;
       }
     }
@@ -537,4 +537,17 @@ function getLiteralValueBound(typeString: string): string {
   }
 
   return newTypeString;
+}
+
+function handleConcatArgs(node: FunctionCall, ast: AST) {
+  node.vArguments.forEach((arg) => {
+    const type = getNodeType(arg, ast.compilerVersion);
+    if (type instanceof StringLiteralType) {
+      if (type.literal.length < 32) {
+        insertConversionIfNecessary(arg, new FixedBytesType(type.literal.length), ast);
+      } else {
+        insertConversionIfNecessary(arg, new BytesType(), ast);
+      }
+    }
+  });
 }
