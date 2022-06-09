@@ -114,8 +114,12 @@ contract WARP {
     }
 
     function nestedSmallerStaticToStatic() public returns (uint[3] memory, uint[3] memory, uint[3] memory) {
-        uint8[2][2] memory m = [[1, 2], [3, 4]];
-        yy = m;
+        uint8[3][3] memory m1 = [[1,2,3], [4,5,6], [7,8,9]];
+        yy = m1;
+
+        uint8[2][2] memory m2 = [[1, 2], [3, 4]];
+        yy = m2;
+
         return (yy[0], yy[1], yy[2]);
     }
 
