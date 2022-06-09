@@ -104,6 +104,8 @@ export const expectations = flatten(
               Expect.Simple('bitwiseOr', ['17185'], ['21301']),
               Expect.Simple('bitwiseXor', ['17185'], ['20757']),
               Expect.Simple('bitwiseNor', [], ['60875']),
+              Expect.Simple('comparisonWithAB', ['0x4142'], ['1']),
+              Expect.Simple('comparisonWithAB', ['0x4242'], ['0']),
               // 0xffff, 0xabcd
               Expect.Simple('nestedBitwiseOp', ['65535', '43981'], ['43465']),
               new Expect('testing constructor arguments out of bounds', [
