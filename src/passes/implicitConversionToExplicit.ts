@@ -460,6 +460,20 @@ function pickLargerType(
     return typeA;
   }
 
+  if (typeA instanceof StringLiteralType) {
+    if (typeB instanceof StringLiteralType) {
+      const length = Math.max(typeA.literal.length, typeB.literal.length);
+      if (length >= 32) {
+        return new BytesType();
+      }
+      return new FixedBytesType(length);
+    } else {
+      return typeB;
+    }
+  } else if (typeB instanceof StringLiteralType) {
+    return typeA;
+  }
+
   if (typeA instanceof IntType) {
     if (typeB instanceof IntType) {
       if (typeA.nBits > typeB.nBits) {

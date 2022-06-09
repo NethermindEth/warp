@@ -104,6 +104,8 @@ export const expectations = flatten(
               Expect.Simple('bitwiseOr', ['17185'], ['21301']),
               Expect.Simple('bitwiseXor', ['17185'], ['20757']),
               Expect.Simple('bitwiseNor', [], ['60875']),
+              Expect.Simple('comparisonWithAB', ['0x4142'], ['1']),
+              Expect.Simple('comparisonWithAB', ['0x4242'], ['0']),
               // 0xffff, 0xabcd
               Expect.Simple('nestedBitwiseOp', ['65535', '43981'], ['43465']),
               new Expect('testing constructor arguments out of bounds', [
@@ -2339,13 +2341,25 @@ export const expectations = flatten(
         new Dir('precompiles', [
           File.Simple('ecrecover', [Expect.Simple('test', [], ['1'])]),
           File.Simple('keccak256', [
-            Expect.Simple('testCalldataBytes', ['4', '0xff', '0xff', '0xaa', '0xdd'],
-              ['175324288422466550073545188793205740709', '193807281875048316986278682415904036447']),
-            Expect.Simple('testMemoryBytes', ['1', '0x63'],
-              ['224080190154071229201179410017478621618', '14967895479457470500441594449402441164']),
-            Expect.Simple('testString', [],
-              ['224080190154071229201179410017478621618', '14967895479457470500441594449402441164']),
-          ])
+            Expect.Simple(
+              'testCalldataBytes',
+              ['4', '0xff', '0xff', '0xaa', '0xdd'],
+              [
+                '175324288422466550073545188793205740709',
+                '193807281875048316986278682415904036447',
+              ],
+            ),
+            Expect.Simple(
+              'testMemoryBytes',
+              ['1', '0x63'],
+              ['224080190154071229201179410017478621618', '14967895479457470500441594449402441164'],
+            ),
+            Expect.Simple(
+              'testString',
+              [],
+              ['224080190154071229201179410017478621618', '14967895479457470500441594449402441164'],
+            ),
+          ]),
         ]),
         new Dir('named_args', [
           File.Simple('function', [
