@@ -58,14 +58,14 @@ func byte256_at_index{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
         let index_from_right = 15 - index
         let (byte_accesor_felt) = byte_accessor(index_from_right)
         let (slicer) = pow2(index_from_right * 8)
-        let (res_and) = bitwise_and(base.low, byte_accesor_felt)
+        let (res_and) = bitwise_and(base.high, byte_accesor_felt)
         let res = res_and / slicer
         return (res)
     else:
         let index_from_right = 31 - index
         let (byte_accesor_felt) = byte_accessor(index_from_right)
         let (slicer) = pow2(index_from_right * 8)
-        let (res_and) = bitwise_and(base.high, byte_accesor_felt)
+        let (res_and) = bitwise_and(base.low, byte_accesor_felt)
         let res = res_and / slicer
         return (res)
     end
@@ -84,14 +84,14 @@ func byte256_at_index_uint256{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
         let index_from_right = 15 - index.low
         let (byte_accesor_felt) = byte_accessor(index_from_right)
         let (slicer) = pow2(index_from_right * 8)
-        let (res_and) = bitwise_and(base.low, byte_accesor_felt)
+        let (res_and) = bitwise_and(base.high, byte_accesor_felt)
         let res = res_and / slicer
         return (res)
     else:
         let index_from_right = 31 - index.low
         let (byte_accesor_felt) = byte_accessor(index_from_right)
         let (slicer) = pow2(index_from_right * 8)
-        let (res_and) = bitwise_and(base.high, byte_accesor_felt)
+        let (res_and) = bitwise_and(base.low, byte_accesor_felt)
         let res = res_and / slicer
         return (res)
     end
