@@ -13,6 +13,7 @@ contract WARP {
 
     function tryX2(uint8[3] memory m) public returns (uint[] memory) {
         x = m;
+        x.push();
         return x;
     }
 
