@@ -58,7 +58,7 @@ describe('Transpiled contracts are valid cairo', function () {
       expectations,
       PARALLEL_COUNT,
       (test: AsyncTest): Promise<{ stderr: string } | null> =>
-        fs.existsSync(test.cairo)
+        test.encodingError === undefined && fs.existsSync(test.cairo)
           ? starknetCompile(test.cairo, test.compiled)
           : Promise.resolve(null),
     );
