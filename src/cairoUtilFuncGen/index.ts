@@ -17,7 +17,7 @@ import { DynArrayPushWithArgGen } from './storage/dynArrayPushWithArg';
 import { DynArrayPushWithoutArgGen } from './storage/dynArrayPushWithoutArg';
 import { CallDataToMemoryGen } from './calldata/calldataToMemory';
 import { ExternalDynArrayStructConstructor } from './calldata/externalDynArray/externalDynArrayStructConstructor';
-import { StaticToDynArray } from './calldata/staticToDynamic';
+import { StaticToDynArray } from './calldata/staticToDynamic2';
 import { MappingIndexAccessGen } from './storage/mappingIndexAccess';
 import { StorageStaticArrayIndexAccessGen } from './storage/staticArrayIndexAccess';
 import { StorageDeleteGen } from './storage/storageDelete';

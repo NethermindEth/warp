@@ -406,7 +406,13 @@ export const expectations = flatten(
         new Dir('copy_calldata_to_storage', [
           File.Simple('implictConversion', [
             new Expect('testing an array of lower dim and int size is being convertd', [
-              ['test', ['10', '20', '30', '40'], ['40', '30', '20', '10'], '0'],
+              ['testZ2', ['10', '20', '30', '40'], ['40', '30', '20', '10'], '0'],
+            ]),
+            new Expect('testing an array of lower dim and int size is being convertd', [
+              ['testZ3', ['10', '20', '30', '40'], ['40', '30', '20', '10'], '0'],
+            ]),
+            new Expect('testing an array of lower dim and int size is being convertd', [
+              ['testZ4', ['10', '20', '30', '40'], ['40', '30', '20', '10'], '0'],
             ]),
           ]),
           File.Simple('dynamic_arrays', [
