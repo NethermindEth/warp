@@ -1,5 +1,9 @@
 import { exec, execSync } from 'child_process';
-import { readFileSync, writeFileSync } from 'fs-extra';
+import { existsSync, readFileSync, writeFileSync } from 'fs-extra';
+
+if (!existsSync('./tests/behaviour/solidity')) {
+  execSync('bash ./tests/behaviour/setup.sh');
+}
 
 const filters = [
   // 'solidity/test/libsolidity/semanticTests/abiEncoderV1',
