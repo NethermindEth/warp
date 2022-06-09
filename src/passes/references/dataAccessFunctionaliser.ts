@@ -297,8 +297,6 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           );
         }
       }
-    } else {
-      console.log(`Non-pointer index access ${printNode(node)}`);
     }
 
     if (replacement !== null) {

@@ -55,14 +55,14 @@ export const expectations = flatten(
             Expect.Simple('getBsC', [], ['18']),
           ]),
           File.Simple('bytesX', [
-            Expect.Simple('bytes2access', ['0', '0'], ['34']),
-            Expect.Simple('bytes12access', ['3', '0'], ['17']),
-            Expect.Simple('bytes17access', ['14', '0'], ['86']),
-            Expect.Simple('bytes24access', ['19', '0'], ['34']),
-            Expect.Simple('bytes32access', ['15'], ['68']),
-            Expect.Simple('bytes31access', ['30', '0'], ['254']),
-            Expect.Simple('bytes32access', ['30'], ['51']),
-            Expect.Simple('bytes32access256', ['31', '0'], ['255']),
+            Expect.Simple('bytes2access', ['0', '0'], ['0x11']),
+            Expect.Simple('bytes12access', ['3', '0'], ['0x22']),
+            Expect.Simple('bytes17access', ['14', '0'], ['0xde']),
+            Expect.Simple('bytes24access', ['19', '0'], ['0x22']),
+            Expect.Simple('bytes32access', ['15'], ['0x33']),
+            Expect.Simple('bytes31access', ['30', '0'], ['0xff']),
+            Expect.Simple('bytes32access', ['30'], ['0x44']),
+            Expect.Simple('bytes32access256', ['31', '0'], ['0x11']),
           ]),
           File.Simple('conversions', [
             Expect.Simple('bytes1To2', ['150'], ['38400']),
@@ -148,6 +148,15 @@ export const expectations = flatten(
               ]),
             ],
           ),
+          File.Simple('index', [
+            Expect.Simple('getByteAtIndex', ['0'], ['0']),
+            Expect.Simple('getByteAtIndex', ['4'], ['4']),
+            Expect.Simple(
+              'flip',
+              ['0x0102030405060708'],
+              ['8', '8', '7', '6', '5', '4', '3', '2', '1'],
+            ),
+          ]),
           File.Simple('stringsBytesConversion', [
             Expect.Simple('getCharacter', ['4', '10', '12', '14', '16', ...['2', '0']], ['14']),
             Expect.Simple('getLength', [], ['4', '0']),

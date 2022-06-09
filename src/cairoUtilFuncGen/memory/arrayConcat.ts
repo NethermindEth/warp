@@ -176,7 +176,7 @@ function getCopyFunctionCall(type: TypeNode, index: number): string {
   assert(type instanceof FixedBytesType);
 
   if (type.size < 32)
-    return `fixed_byte_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, size_${index} - 1, size_${index})`;
+    return `fixed_byte_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0, size_${index})`;
 
-  return `fixed_byte256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 31)`;
+  return `fixed_byte256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0)`;
 }
