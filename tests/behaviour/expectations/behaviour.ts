@@ -104,6 +104,8 @@ export const expectations = flatten(
               Expect.Simple('bitwiseOr', ['17185'], ['21301']),
               Expect.Simple('bitwiseXor', ['17185'], ['20757']),
               Expect.Simple('bitwiseNor', [], ['60875']),
+              Expect.Simple('comparisonWithAB', ['0x4142'], ['1']),
+              Expect.Simple('comparisonWithAB', ['0x4242'], ['0']),
               // 0xffff, 0xabcd
               Expect.Simple('nestedBitwiseOp', ['65535', '43981'], ['43465']),
               new Expect('testing constructor arguments out of bounds', [
@@ -146,6 +148,10 @@ export const expectations = flatten(
               ]),
             ],
           ),
+          File.Simple('stringsBytesConversion', [
+            Expect.Simple('getCharacter', ['4', '10', '12', '14', '16', ...['2', '0']], ['14']),
+            Expect.Simple('getLength', [], ['4', '0']),
+          ]),
         ]),
         new Dir('calldata', [
           File.Simple('passingDynArrayInternally', [
@@ -187,6 +193,33 @@ export const expectations = flatten(
               ['7', '1', '2', '3', '5', '6', '7', '8'],
             ),
             Expect.Simple('c5', [], ['4', '1', '2', '3', '4']),
+            Expect.Simple(
+              'dynamicAndLiteral',
+              ['2', ...['4', '5']],
+              ['4', ...['4', '5', '104', '105'], '4', ...['104', '105', '4', '5']],
+            ),
+            Expect.Simple(
+              'long',
+              [],
+              [
+                '52',
+                ...[
+                  ...['97', '98', '99', '100'],
+                  ...['101', '102', '103', '104'],
+                  ...['105', '106', '107', '108'],
+                  ...['109', '110', '111', '112'],
+                  ...['113', '114', '115', '116'],
+                  ...['117', '118', '119', '120'],
+                  ...['121', '122', '65', '66'],
+                  ...['67', '68', '69', '70'],
+                  ...['71', '72', '73', '74'],
+                  ...['75', '76', '77', '78'],
+                  ...['79', '80', '81', '82'],
+                  ...['83', '84', '85', '86'],
+                  ...['87', '88', '89', '90'],
+                ],
+              ],
+            ),
             Expect.Simple('d1', ['6553600'], ['3', '100', '0', '0']),
             Expect.Simple(
               'd2',
@@ -197,6 +230,11 @@ export const expectations = flatten(
               'd3',
               ['128', '3', '1', '2', '3', '256'],
               ['20', '128', '1', '2', '3', ...new Array(14).fill('0'), '1', '0'],
+            ),
+            Expect.Simple(
+              'staticAndLiteral',
+              ['0xabcd'],
+              ['4', ...['0xab', '0xcd', '104', '105'], '4', ...['104', '105', '0xab', '0xcd']],
             ),
           ]),
           File.Simple('strings', [
@@ -757,6 +795,40 @@ export const expectations = flatten(
                   '2',
                   ...['1', '2', '3', '9'],
                   ...[...['4', '5', '7', '6'], ...['1', '2', '3', '9']],
+                ],
+                '0',
+              ],
+              [
+                'copyStaticToDynamicPush',
+                [],
+                [...['2', '4', '5', '7', '6'], ...['2', '1', '2', '3', '9'], '0'],
+                '0',
+              ],
+            ]),
+            new Expect('copy nested static to nested static of different size', [
+              [
+                'setStaticDeep',
+                [...['4', '5', '7', '6'], ...['1', '2', '3', '9']],
+                [...['4', '5', '7', '6'], ...['1', '2', '3', '9']],
+                '0',
+              ],
+              [
+                'copyStaticDifferentSize',
+                [],
+                [
+                  ...['4', '5', '7', '6', '0', '0'],
+                  ...['1', '2', '3', '9', '0', '0'],
+                  ...['0', '0', '0', '0', '0', '0'],
+                ],
+                '0',
+              ],
+              [
+                'copyStaticDifferentSizeComplex',
+                [],
+                [
+                  ...['4', '5', '7', '6', '0', '0'],
+                  ...['1', '2', '3', '9', '0', '0'],
+                  ...['0', '0', '0', '0', '0', '0'],
                 ],
                 '0',
               ],
@@ -1758,6 +1830,12 @@ export const expectations = flatten(
             Expect.Simple('loops', ['1'], ['1'], 'true branch'),
             Expect.Simple('loops', ['0'], ['0'], 'false branch'),
           ]),
+          File.Simple('noBlocks', [
+            Expect.Simple('test', ['0', '0'], ['0b00']),
+            Expect.Simple('test', ['0', '1'], ['0b01']),
+            Expect.Simple('test', ['1', '0'], ['0b10']),
+            Expect.Simple('test', ['1', '1'], ['0b11']),
+          ]),
         ]),
         new Dir('imports', [
           File.Simple('importto', [Expect.Simple('checkImports', ['3', '2'], ['1'])]),
@@ -2293,6 +2371,9 @@ export const expectations = flatten(
             Expect.Simple('f', ['90000', '0'], ['10000', '0']),
             Expect.Simple('f', ['110000', '0'], ['0', '0']),
           ]),
+          File.Simple('modifierWithReturn', [
+            Expect.Simple('returnFiveThroughModifiers', [], ['5']),
+          ]),
           File.Simple('multipleModifiers', [
             new Expect('modifier', [
               ['openEvent', [], [], '0'],
@@ -2339,13 +2420,25 @@ export const expectations = flatten(
         new Dir('precompiles', [
           File.Simple('ecrecover', [Expect.Simple('test', [], ['1'])]),
           File.Simple('keccak256', [
-            Expect.Simple('testCalldataBytes', ['4', '0xff', '0xff', '0xaa', '0xdd'],
-              ['175324288422466550073545188793205740709', '193807281875048316986278682415904036447']),
-            Expect.Simple('testMemoryBytes', ['1', '0x63'],
-              ['224080190154071229201179410017478621618', '14967895479457470500441594449402441164']),
-            Expect.Simple('testString', [],
-              ['224080190154071229201179410017478621618', '14967895479457470500441594449402441164']),
-          ])
+            Expect.Simple(
+              'testCalldataBytes',
+              ['4', '0xff', '0xff', '0xaa', '0xdd'],
+              [
+                '175324288422466550073545188793205740709',
+                '193807281875048316986278682415904036447',
+              ],
+            ),
+            Expect.Simple(
+              'testMemoryBytes',
+              ['1', '0x63'],
+              ['224080190154071229201179410017478621618', '14967895479457470500441594449402441164'],
+            ),
+            Expect.Simple(
+              'testString',
+              [],
+              ['224080190154071229201179410017478621618', '14967895479457470500441594449402441164'],
+            ),
+          ]),
         ]),
         new Dir('named_args', [
           File.Simple('function', [
@@ -2655,13 +2748,23 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
-        new Dir('string', [
+        new Dir('stringLiteral', [
           File.Simple('stringLiteralMemory', [
+            Expect.Simple('plainLiteral', [], []),
+            Expect.Simple('returnLiteral', [], ['4', '87', '65', '82', '80']),
             Expect.Simple('varDecl', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple(
+              'literalAssignmentToMemoryFromParams',
+              ['2', '86', '65'],
+              ['4', '87', '65', '82', '80'],
+            ),
             Expect.Simple('tupleRet', [], ['2', '87', '65', '2', '82', '80']),
-            Expect.Simple('funcCall', [], ['4', '87', '65', '82', '80']),
             Expect.Simple('funcCallWithArg', [], ['4', '87', '65', '82', '80']),
             Expect.Simple('nestedFuncCallWithArg', [], ['4', '87', '65', '82', '80']),
+          ]),
+          File.Simple('stringLiteralStorage', [
+            Expect.Simple('literalAssignment', [], ['4', '87', '65', '82', '80']),
+            Expect.Simple('memoryToStorageAssignment', [], ['4', '87', '65', '82', '80']),
           ]),
         ]),
         new Dir('this_keyword', [

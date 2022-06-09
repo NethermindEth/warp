@@ -3,16 +3,16 @@ import * as path from 'path';
 
 import { NotSupportedYetError } from './utils/errors';
 
-type SupportedPlatforms = 'linux' | 'darwin';
+type SupportedPlatforms = 'linux_x64' | 'darwin_x64' | 'darwin_arm64';
 export type SupportedSolcVersions = '7' | '8';
 
 function getPlatform(): SupportedPlatforms {
-  const platform = os.platform();
+  const platform = `${os.platform()}_${os.arch()}`;
 
   switch (platform) {
-    case 'darwin':
-      return platform;
-    case 'linux':
+    case 'linux_x64':
+    case 'darwin_x64':
+    case 'darwin_arm64':
       return platform;
     default:
       throw new NotSupportedYetError(`Unsupported plaform ${platform}`);

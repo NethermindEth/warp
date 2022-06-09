@@ -27,6 +27,7 @@ export class IfFunctionaliser extends ASTMapper {
   generatedFunctionCount: Map<FunctionDefinition, number> = new Map();
 
   visitIfStatement(node: IfStatement, ast: AST): void {
+    ensureBothBranchesAreBlocks(node, ast);
     const block = getContainingBlock(node);
 
     const postIfStatements = splitBlock(block, node, ast);
@@ -51,8 +52,6 @@ export class IfFunctionaliser extends ASTMapper {
     addSplitFunctionToScope(originalFunction, funcDef, ast);
     addCallsToSplitFunction(node, originalFunction, funcCall, ast);
 
-    ensureBothBranchesAreBlocks(node, ast);
-
     this.visitStatement(node, ast);
   }
 }
@@ -70,7 +69,9 @@ function getContainingBlock(node: IfStatement): Block {
     }
     assert(
       block instanceof Block || block instanceof UncheckedBlock,
-      `Attempted to functionalise inner if ${printNode(node)} without wrapping`,
+      `Attempted to functionalise inner if ${printNode(
+        node,
+      )} without wrapping. Expected block/unchecked block, got ${printNode(block)}`,
     );
     return block;
   }

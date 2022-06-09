@@ -20,14 +20,18 @@ describe('Transpile solidity', function () {
 
   before(async function () {
     for (const fileTest of expectations) {
-      cleanupSync(fileTest.cairo);
-      cleanupSync(fileTest.compiled);
+      if (fileTest.encodingError === undefined) {
+        cleanupSync(fileTest.cairo);
+        cleanupSync(fileTest.compiled);
+      }
     }
 
     transpileResults = batchPromises(
-      expectations.map((e) => e.sol),
+      expectations.map((e) =>
+        e.encodingError === undefined ? e.sol : { stderr: e.encodingError },
+      ),
       PARALLEL_COUNT,
-      transpile,
+      (input) => (typeof input === 'string' ? transpile(input) : Promise.resolve(input)),
     );
   });
 
@@ -54,7 +58,7 @@ describe('Transpiled contracts are valid cairo', function () {
       expectations,
       PARALLEL_COUNT,
       (test: AsyncTest): Promise<{ stderr: string } | null> =>
-        fs.existsSync(test.cairo)
+        test.encodingError === undefined && fs.existsSync(test.cairo)
           ? starknetCompile(test.cairo, test.compiled)
           : Promise.resolve(null),
     );

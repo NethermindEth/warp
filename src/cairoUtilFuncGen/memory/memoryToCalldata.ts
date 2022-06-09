@@ -32,6 +32,7 @@ import {
   isReferenceType,
 } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
+import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/externalDynArrayStructConstructor';
 
@@ -108,10 +109,16 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         ...structDef.vMembers.map((decl, index) => {
           const memberType = getNodeType(decl, this.ast.compilerVersion);
           if (isReferenceType(memberType)) {
+            this.requireImport('warplib.memory', 'wm_read_id');
+            const allocSize = isDynamicArray(memberType)
+              ? 2
+              : CairoType.fromSol(memberType, this.ast, TypeConversionContext.Ref).width;
             const memberGetter = this.getOrCreate(memberType);
             return [
-              `let (memRead${index}) = wm_read_felt(${add('mem_loc', offset++)})`,
-              `let (member${index}) = ${memberGetter}(memRead${index})`,
+              `let (read_${index}) = wm_read_id(${add('mem_loc', offset++)}, ${uint256(
+                allocSize,
+              )})`,
+              `let (member${index}) = ${memberGetter}(read_${index})`,
             ].join('\n');
           } else {
             const memberCairoType = CairoType.fromSol(memberType, this.ast);
@@ -161,9 +168,13 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `    alloc_locals`,
         ...mapRange(length, (index) => {
           if (isReferenceType(elementT)) {
+            this.requireImport('warplib.memory', 'wm_read_id');
             const memberGetter = this.getOrCreate(elementT);
+            const allocSize = isDynamicArray(elementT)
+              ? 2
+              : CairoType.fromSol(elementT, this.ast, TypeConversionContext.Ref).width;
             return [
-              `let (read${index}) = dict_read{dict_ptr=warp_memory}(${add('mem_loc', offset++)})`,
+              `let (read${index}) = wm_read_id(${add('mem_loc', offset++)}, ${uint256(allocSize)})`,
               `let (member${index}) = ${memberGetter}(read${index})`,
             ].join('\n');
           } else {
@@ -186,6 +197,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     });
 
     this.requireImport('starkware.cairo.common.dict', 'dict_read');
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
 
     return funcName;
   }
@@ -249,16 +261,17 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     const ptrString = `${cairoType.toString()}`;
 
     let code = [''];
-    if (
-      (elementT instanceof UserDefinedType && elementT.definition instanceof StructDefinition) ||
-      elementT instanceof ArrayType
-    ) {
+    if (isReferenceType(elementT)) {
+      const allocSize = isDynamicArray(elementT)
+        ? 2
+        : CairoType.fromSol(elementT, this.ast, TypeConversionContext.Ref).width;
       code = [
-        `let (mem_read0) = wm_read_felt(mem_loc)`,
+        `let (mem_read0) = wm_read_id(mem_loc, ${uint256(allocSize)})`,
         `let (mem_read1) = ${this.getOrCreate(elementT)}(mem_read0)`,
         `assert ptr[0] = mem_read1`,
       ];
-      this.requireImport('warplib.memory', 'wm_read_felt');
+      this.requireImport('warplib.memory', 'wm_read_id');
+      this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     } else if (cairoType.width === 1) {
       code = ['let (mem_read0) = wm_read_felt(mem_loc)', 'assert ptr[0] = mem_read0'];
       this.requireImport('warplib.memory', 'wm_read_felt');

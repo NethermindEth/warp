@@ -56,10 +56,12 @@ export abstract class CairoType {
             generateCallDataDynArrayStructName(tp.elementT, ast),
             CairoType.fromSol(tp.elementT, ast, context),
           );
+        } else if (context === TypeConversionContext.Ref) {
+          return new MemoryLocation();
         }
         return new WarpLocation();
       } else if (context === TypeConversionContext.Ref) {
-        return new CairoFelt();
+        return new MemoryLocation();
       } else {
         const recursionContext =
           context === TypeConversionContext.MemoryAllocation ? TypeConversionContext.Ref : context;
@@ -83,6 +85,8 @@ export abstract class CairoType {
             generateCallDataDynArrayStructName(new FixedBytesType(1), ast),
             new CairoFelt(),
           );
+        case TypeConversionContext.Ref:
+          return new MemoryLocation();
         default:
           return new WarpLocation();
       }
@@ -98,13 +102,13 @@ export abstract class CairoType {
       if (context !== TypeConversionContext.Ref) {
         return CairoType.fromSol(tp.to, ast, context);
       }
-      return new CairoFelt();
+      return new MemoryLocation();
     } else if (tp instanceof UserDefinedType) {
       if (tp.definition instanceof EnumDefinition) {
         return CairoType.fromSol(enumToIntType(tp.definition), ast);
       } else if (tp.definition instanceof StructDefinition) {
         if (context === TypeConversionContext.Ref) {
-          return new CairoFelt();
+          return new MemoryLocation();
         } else if (context === TypeConversionContext.MemoryAllocation) {
           return new CairoStruct(
             tp.definition.name,
@@ -265,6 +269,8 @@ export class WarpLocation extends CairoFelt {
     return `[Id]`;
   }
 }
+
+export class MemoryLocation extends CairoFelt {}
 
 export const CairoUint256 = new CairoStruct(
   'Uint256',
