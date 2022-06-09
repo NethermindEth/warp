@@ -31,7 +31,8 @@ import { CalldataToStorageGen } from './calldata/calldataToStorage';
 import { StorageToStorageGen } from './storage/copyToStorage';
 import { StorageToCalldataGen } from './storage/storageToCalldata';
 import { SourceUnit } from 'solc-typed-ast';
-import { MemoryImplicitConversionGen } from './memory/implicitCoversion';
+import { MemoryImplicitConversionGen } from './memory/implicitConversion';
+import { MemoryArrayConcat } from './memory/arrayConcat';
 
 export class CairoUtilFuncGen {
   calldata: {
@@ -41,6 +42,7 @@ export class CairoUtilFuncGen {
   };
   memory: {
     arrayLiteral: MemoryArrayLiteralGen;
+    concat: MemoryArrayConcat;
     convert: MemoryImplicitConversionGen;
     dynArrayLength: MemoryDynArrayLengthGen;
     memberAccess: MemoryMemberAccessGen;
@@ -85,8 +87,27 @@ export class CairoUtilFuncGen {
       dynArray: new DynArrayGen(ast, sourceUnit),
     };
 
+    const storageReadGen = new StorageReadGen(ast, sourceUnit);
+    const storageDelete = new StorageDeleteGen(
+      this.implementation.dynArray,
+      storageReadGen,
+      ast,
+      sourceUnit,
+    );
     const memoryToStorage = new MemoryToStorageGen(this.implementation.dynArray, ast, sourceUnit);
     const storageWrite = new StorageWriteGen(ast, sourceUnit);
+    const storageToStorage = new StorageToStorageGen(
+      this.implementation.dynArray,
+      storageDelete,
+      ast,
+      sourceUnit,
+    );
+    const calldataToStorage = new CalldataToStorageGen(
+      this.implementation.dynArray,
+      storageWrite,
+      ast,
+      sourceUnit,
+    );
     const externalDynArrayStructConstructor = new ExternalDynArrayStructConstructor(
       ast,
       sourceUnit,
@@ -96,6 +117,7 @@ export class CairoUtilFuncGen {
     const memoryWrite = new MemoryWriteGen(ast, sourceUnit);
     this.memory = {
       arrayLiteral: new MemoryArrayLiteralGen(ast, sourceUnit),
+      concat: new MemoryArrayConcat(ast, sourceUnit),
       convert: new MemoryImplicitConversionGen(memoryWrite, memoryRead, ast, sourceUnit),
       dynArrayLength: new MemoryDynArrayLengthGen(ast, sourceUnit),
       memberAccess: new MemoryMemberAccessGen(ast, sourceUnit),
@@ -106,13 +128,6 @@ export class CairoUtilFuncGen {
       toStorage: memoryToStorage,
       write: memoryWrite,
     };
-    const storageReadGen = new StorageReadGen(ast, sourceUnit);
-    const storageDelete = new StorageDeleteGen(
-      this.implementation.dynArray,
-      storageReadGen,
-      ast,
-      sourceUnit,
-    );
     this.storage = {
       delete: storageDelete,
       dynArrayIndexAccess: new DynArrayIndexAccessGen(
@@ -127,6 +142,8 @@ export class CairoUtilFuncGen {
           this.implementation.dynArray,
           storageWrite,
           memoryToStorage,
+          storageToStorage,
+          calldataToStorage,
           ast,
           sourceUnit,
         ),
@@ -144,7 +161,7 @@ export class CairoUtilFuncGen {
         sourceUnit,
       ),
       toMemory: new StorageToMemoryGen(this.implementation.dynArray, ast, sourceUnit),
-      toStorage: new StorageToStorageGen(this.implementation.dynArray, ast, sourceUnit),
+      toStorage: storageToStorage,
       write: storageWrite,
     };
     this.externalFunctions = {
@@ -155,12 +172,6 @@ export class CairoUtilFuncGen {
     };
     this.calldata = {
       toMemory: new CallDataToMemoryGen(ast, sourceUnit),
-      toStorage: new CalldataToStorageGen(
-        this.implementation.dynArray,
-        storageWrite,
-        ast,
-        sourceUnit,
-      ),
       convert: new StaticToDynArray(
         storageWrite,
         this.implementation.dynArray,
@@ -168,6 +179,7 @@ export class CairoUtilFuncGen {
         ast,
         sourceUnit,
       ),
+      toStorage: calldataToStorage,
     };
   }
 

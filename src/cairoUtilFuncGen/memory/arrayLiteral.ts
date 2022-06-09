@@ -1,13 +1,15 @@
 import assert = require('assert');
 import {
   ArrayType,
+  BytesType,
   DataLocation,
+  FixedBytesType,
   FunctionCall,
   generalizeType,
   getNodeType,
-  IntType,
   Literal,
   LiteralKind,
+  StringType,
   TupleExpression,
   TypeNode,
 } from 'solc-typed-ast';
@@ -16,6 +18,7 @@ import { CairoType } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createArrayTypeName, createNumberLiteral } from '../../utils/nodeTemplates';
+import { getElementType, getSize, isDynamicArray } from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
@@ -36,7 +39,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     );
 
     const size = node.hexValue.length / 2;
-    const baseType = new IntType(8, false);
+    const baseType = new FixedBytesType(1);
     const baseTypeName = typeNameFromTypeNode(baseType, this.ast);
     const name = this.getOrCreate(baseType, size, true);
 
@@ -52,7 +55,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     return createCallToFunction(
       stub,
       mapRange(size, (n) =>
-        createNumberLiteral(parseInt(node.hexValue.slice(2 * n, 2 * n + 2)), this.ast),
+        createNumberLiteral(parseInt(node.hexValue.slice(2 * n, 2 * n + 2), 16), this.ast),
       ),
       this.ast,
     );
@@ -63,21 +66,24 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     assert(elements.length === node.vOriginalComponents.length);
 
     const type = generalizeType(getNodeType(node, this.ast.compilerVersion))[0];
-    assert(type instanceof ArrayType);
+    assert(type instanceof ArrayType || type instanceof BytesType || type instanceof StringType);
 
-    const dynamic = type.size === undefined;
-    const size = type.size
-      ? narrowBigIntSafe(type.size, `${printNode(node)} too long to process`)
-      : elements.length;
+    const elementT = getElementType(type);
 
-    const name = this.getOrCreate(type.elementT, size, dynamic);
+    const wideSize = getSize(type);
+    const size =
+      wideSize !== undefined
+        ? narrowBigIntSafe(wideSize, `${printNode(node)} too long to process`)
+        : elements.length;
+
+    const name = this.getOrCreate(elementT, size, isDynamicArray(type));
 
     const stub = createCairoFunctionStub(
       name,
       mapRange(size, (n) => [
         `e${n}`,
-        typeNameFromTypeNode(type.elementT, this.ast),
-        locationIfComplexType(type.elementT, DataLocation.Memory),
+        typeNameFromTypeNode(elementT, this.ast),
+        locationIfComplexType(elementT, DataLocation.Memory),
       ]),
       [['arr', typeNameFromTypeNode(type, this.ast), DataLocation.Memory]],
       ['range_check_ptr', 'warp_memory'],

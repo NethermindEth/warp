@@ -17,7 +17,7 @@ import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { add, CairoFunction, StringIndexedFuncGen } from '../base';
-import { getBaseType, getNestedNumber } from '../memory/implicitCoversion';
+import { getBaseType, getNestedNumber } from '../memory/implicitConversion';
 import { DynArrayGen } from '../storage/dynArray';
 import { DynArrayIndexAccessGen } from '../storage/dynArrayIndexAccess';
 import { StorageWriteGen } from '../storage/storageWrite';

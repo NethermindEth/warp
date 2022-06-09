@@ -1,10 +1,11 @@
-import { ContractDefinition, EventDefinition } from 'solc-typed-ast';
+import { EventDefinition } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoContract } from '../../ast/cairoNodes';
 import { cloneASTNode } from '../../utils/cloning';
 import { getBaseContracts } from './utils';
 
 export function addEventDefintion(
-  node: ContractDefinition,
+  node: CairoContract,
   idRemapping: Map<number, EventDefinition>,
   ast: AST,
 ): void {

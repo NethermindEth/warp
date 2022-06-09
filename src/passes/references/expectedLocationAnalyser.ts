@@ -5,6 +5,8 @@ import {
   ContractDefinition,
   DataLocation,
   Expression,
+  ExternalReferenceType,
+  FixedBytesType,
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
@@ -102,8 +104,26 @@ export class ExpectedLocationAnalyser extends ASTMapper {
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     if (node.kind === FunctionCallKind.TypeConversion) {
-      node.vArguments.forEach((arg) => this.expectedLocations.set(arg, DataLocation.Default));
+      const location =
+        generalizeType(getNodeType(node, ast.compilerVersion))[1] ?? DataLocation.Default;
+      node.vArguments.forEach((arg) => this.expectedLocations.set(arg, location));
       return this.visitExpression(node, ast);
+    }
+
+    if (node.vFunctionCallType === ExternalReferenceType.Builtin) {
+      if (node.vFunctionName === 'push') {
+        if (node.vArguments.length > 0) {
+          const actualLoc = this.actualLocations.get(node.vArguments[0]);
+          if (actualLoc) {
+            this.expectedLocations.set(node.vArguments[0], actualLoc);
+          }
+        }
+        return this.visitExpression(node, ast);
+      }
+      if (node.vFunctionName === 'concat') {
+        node.vArguments.forEach((arg) => this.expectedLocations.set(arg, DataLocation.Memory));
+        return this.visitExpression(node, ast);
+      }
     }
 
     const parameterTypes = getParameterTypes(node, ast);
@@ -150,7 +170,12 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     assert(node.vIndexExpression !== undefined);
     const baseLoc = this.actualLocations.get(node.vBaseExpression);
     assert(baseLoc !== undefined);
-    this.expectedLocations.set(node.vBaseExpression, baseLoc);
+    const baseType = getNodeType(node.vBaseExpression, ast.compilerVersion);
+    if (baseType instanceof FixedBytesType) {
+      this.expectedLocations.set(node.vBaseExpression, DataLocation.Default);
+    } else {
+      this.expectedLocations.set(node.vBaseExpression, baseLoc);
+    }
     this.expectedLocations.set(node.vIndexExpression, DataLocation.Default);
     this.visitExpression(node, ast);
   }
@@ -160,8 +185,9 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     const baseNodeType = getNodeType(node.vExpression, ast.compilerVersion);
     assert(baseLoc !== undefined);
     if (
-      baseNodeType instanceof UserDefinedType &&
-      baseNodeType.definition instanceof ContractDefinition
+      (baseNodeType instanceof UserDefinedType &&
+        baseNodeType.definition instanceof ContractDefinition) ||
+      baseNodeType instanceof FixedBytesType
     ) {
       this.expectedLocations.set(node.vExpression, DataLocation.Default);
     } else this.expectedLocations.set(node.vExpression, baseLoc);

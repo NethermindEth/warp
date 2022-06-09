@@ -1,6 +1,5 @@
 import assert from 'assert';
 import {
-  ArrayType,
   ArrayTypeName,
   Assignment,
   ASTNode,
@@ -88,13 +87,14 @@ import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
 import { implicitOrdering, implicitTypes } from './utils/implicits';
 import { getMappingTypes } from './utils/mappings';
-import { isDynamicCallDataArray } from './utils/nodeTypeProcessing';
+import { isDynamicArray, isDynamicCallDataArray } from './utils/nodeTypeProcessing';
 import { notNull, notUndefined } from './utils/typeConstructs';
 import {
   canonicalMangler,
   divmod,
   isCairoConstant,
   isExternallyVisible,
+  mergeImports,
   mangleOwnContractInterface,
   primitiveTypeToCairo,
 } from './utils/utils';
@@ -214,8 +214,7 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
       assert(declaration !== undefined, `Unable to find variable declaration for assignment ${id}`);
       const type = generalizeType(getNodeType(declaration, this.ast.compilerVersion))[0];
       if (
-        type instanceof ArrayType &&
-        type.size === undefined &&
+        isDynamicArray(type) &&
         node.vInitialValue instanceof FunctionCall &&
         node.vInitialValue.vReferencedDeclaration instanceof FunctionDefinition &&
         node.vInitialValue.vReferencedDeclaration.visibility === FunctionVisibility.External
@@ -284,6 +283,12 @@ class TupleExpressionWriter extends CairoASTNodeWriter {
 }
 
 function writeImports(imports: Map<string, Set<string>>): string {
+  if (INCLUDE_CAIRO_DUMP_FUNCTIONS) {
+    imports = mergeImports(
+      imports,
+      new Map([['starkware.cairo.common.alloc', new Set(['alloc'])]]),
+    );
+  }
   return [...imports.entries()]
     .map(
       ([location, importedSymbols]) =>
@@ -356,9 +361,18 @@ class CairoContractWriter extends CairoASTNodeWriter {
         `# This contract may be abstract, it may not implement an abstract parent's methods\n# completely or it may not invoke an inherited contract's constructor correctly.\n`,
       ];
 
-    const variables = [...node.storageAllocations.entries()].map(
+    const dynamicVariables = [...node.dynamicStorageAllocations.entries()].map(
       ([decl, loc]) => `const ${decl.name} = ${loc}`,
     );
+    const staticVariables = [...node.staticStorageAllocations.entries()].map(
+      ([decl, loc]) => `const ${decl.name} = ${loc}`,
+    );
+    const variables = [
+      `# Dynamic variables - Arrays and Maps`,
+      ...dynamicVariables,
+      `# Static variables`,
+      ...staticVariables,
+    ];
 
     const documentation = getDocumentation(node.documentation, writer);
 
@@ -529,21 +543,38 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   private getBody(node: CairoFunctionDefinition, writer: ASTWriter): string | null {
     if (node.vBody === undefined) return null;
 
+    const [keccakPtrInit, [withKeccak, end]] =
+      node.implicits.has('keccak_ptr') && isExternallyVisible(node)
+        ? [
+            ['let (local keccak_ptr_start : felt*) = alloc()', 'let keccak_ptr = keccak_ptr_start'],
+            ['with keccak_ptr:', 'end'],
+          ]
+        : [[], ['', '']];
+
     if (!isExternallyVisible(node) || !node.implicits.has('warp_memory')) {
-      return ['alloc_locals', this.getConstructorStorageAllocation(node), writer.write(node.vBody)]
+      return [
+        'alloc_locals',
+        this.getConstructorStorageAllocation(node),
+        ...keccakPtrInit,
+        withKeccak,
+        writer.write(node.vBody),
+        end,
+      ]
         .filter(notNull)
         .join('\n');
     }
 
     assert(node.vBody.children.length > 0, error(`${printNode(node)} has an empty body`));
+    const keccakPtr = withKeccak !== '' ? ', keccak_ptr' : '';
 
     return [
       'alloc_locals',
       this.getConstructorStorageAllocation(node),
+      ...keccakPtrInit,
       'let (local warp_memory : DictAccess*) = default_dict_new(0)',
       'local warp_memory_start: DictAccess* = warp_memory',
       'dict_write{dict_ptr=warp_memory}(0,1)',
-      'with warp_memory:',
+      `with warp_memory${keccakPtr}:`,
       writer.write(node.vBody),
       'end',
     ]
@@ -564,10 +595,10 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     }
 
     const implicits = [...node.implicits.values()].filter(
-      // External functions should not print the warp_memory implicit argument, even
-      // if they use warp_memory internally. Instead their contents are wrapped
-      // in code to initialise warp_memory
-      (i) => !isExternallyVisible(node) || i !== 'warp_memory',
+      // External functions should not print the warp_memory or keccak_ptr implicit argument, even
+      // if they use them internally. Instead their contents are wrapped
+      // in code to initialise them
+      (i) => !isExternallyVisible(node) || (i !== 'warp_memory' && i !== 'keccak_ptr'),
     );
     if (implicits.length === 0) return '';
     return `{${implicits
@@ -630,7 +661,11 @@ class ReturnWriter extends CairoASTNodeWriter {
       ? 'default_dict_finalize(warp_memory_start, warp_memory, 0)\n'
       : '';
 
-    return [[documentation, finalizeWarpMemory, `return ${returns}`].join('\n')];
+    const finalizeKeccakPtr = this.usesKeccak(node)
+      ? 'finalize_keccak(keccak_ptr_start, keccak_ptr)\n'
+      : '';
+
+    return [[documentation, finalizeWarpMemory, finalizeKeccakPtr, `return ${returns}`].join('\n')];
   }
 
   private usesWarpMemory(node: Return): boolean {
@@ -638,6 +673,15 @@ class ReturnWriter extends CairoASTNodeWriter {
     return (
       parentFunc instanceof CairoFunctionDefinition &&
       parentFunc.implicits.has('warp_memory') &&
+      isExternallyVisible(parentFunc)
+    );
+  }
+
+  private usesKeccak(node: Return): boolean {
+    const parentFunc = node.getClosestParentByType(CairoFunctionDefinition);
+    return (
+      parentFunc instanceof CairoFunctionDefinition &&
+      parentFunc.implicits.has('keccak_ptr') &&
       isExternallyVisible(parentFunc)
     );
   }

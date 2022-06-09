@@ -3,8 +3,10 @@ import {
   AddressType,
   ArrayType,
   BoolType,
+  BytesType,
   DataLocation,
   EnumDefinition,
+  FixedBytesType,
   FunctionCall,
   FunctionCallKind,
   FunctionType,
@@ -14,6 +16,7 @@ import {
   MappingType,
   PackedArrayType,
   PointerType,
+  StringType,
   StructDefinition,
   TupleType,
   TypeName,
@@ -154,19 +157,29 @@ export function intTypeForLiteral(typestring: string): IntType {
   }
 }
 
+export function isDynamicArray(type: TypeNode): boolean {
+  return (
+    (type instanceof PointerType && isDynamicArray(type.to)) ||
+    (type instanceof ArrayType && type.size === undefined) ||
+    type instanceof BytesType ||
+    type instanceof StringType
+  );
+}
+
 export function isDynamicCallDataArray(type: TypeNode): boolean {
   return (
     type instanceof PointerType &&
     type.location === DataLocation.CallData &&
-    type.to instanceof ArrayType &&
-    type.to.size === undefined
+    isDynamicArray(type.to)
   );
 }
 
 export function isReferenceType(type: TypeNode): boolean {
   return (
     type instanceof ArrayType ||
+    type instanceof BytesType ||
     type instanceof MappingType ||
+    type instanceof StringType ||
     (type instanceof UserDefinedType && type.definition instanceof StructDefinition) ||
     (type instanceof PointerType && isReferenceType(type.to))
   );
@@ -178,28 +191,13 @@ export function isValueType(type: TypeNode): boolean {
 
 export function isDynamicStorageArray(type: TypeNode): boolean {
   return (
-    type instanceof PointerType &&
-    type.location === DataLocation.Storage &&
-    type.to instanceof ArrayType &&
-    type.to.size === undefined
-  );
-}
-
-export function isComplexStorageType(type: TypeNode): boolean {
-  return (
-    type instanceof PointerType &&
-    type.location === DataLocation.Storage &&
-    (type.to instanceof ArrayType ||
-      (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
+    type instanceof PointerType && type.location === DataLocation.Storage && isDynamicArray(type.to)
   );
 }
 
 export function isComplexMemoryType(type: TypeNode): boolean {
   return (
-    type instanceof PointerType &&
-    type.location === DataLocation.Memory &&
-    (type.to instanceof ArrayType ||
-      (type.to instanceof UserDefinedType && type.to.definition instanceof StructDefinition))
+    type instanceof PointerType && type.location === DataLocation.Memory && isReferenceType(type.to)
   );
 }
 
@@ -211,10 +209,29 @@ export function isMapping(type: TypeNode): boolean {
 export function checkableType(type: TypeNode): boolean {
   return (
     type instanceof ArrayType ||
+    type instanceof BytesType ||
+    type instanceof FixedBytesType ||
     (type instanceof UserDefinedType &&
       (type.definition instanceof StructDefinition || type.definition instanceof EnumDefinition)) ||
     type instanceof AddressType ||
     type instanceof IntType ||
-    type instanceof BoolType
+    type instanceof BoolType ||
+    type instanceof StringType
   );
+}
+
+export function getElementType(type: ArrayType | BytesType | StringType): TypeNode {
+  if (type instanceof ArrayType) {
+    return type.elementT;
+  } else {
+    return new FixedBytesType(1);
+  }
+}
+
+export function getSize(type: ArrayType | BytesType | StringType): bigint | undefined {
+  if (type instanceof ArrayType) {
+    return type.size;
+  } else {
+    return undefined;
+  }
 }

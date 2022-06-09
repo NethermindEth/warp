@@ -37,6 +37,8 @@ import {
   StructDefinition,
   EventDefinition,
   EmitStatement,
+  NewExpression,
+  FunctionTypeName,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoAssert, CairoFunctionDefinition } from '../ast/cairoNodes';
@@ -168,6 +170,14 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.referencedDeclaration,
       node.raw,
     );
+  } else if (node instanceof NewExpression) {
+    newNode = new NewExpression(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.typeString,
+      cloneASTNode(node.vTypeName, ast),
+      node.raw,
+    );
   } else if (node instanceof TupleExpression) {
     const tupleComponents = node.vOriginalComponents.map((component) => {
       return component !== null ? cloneASTNodeImpl(component, ast, remappedIds) : null;
@@ -207,6 +217,17 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.typeString,
       node.name,
       node.stateMutability,
+      node.raw,
+    );
+  } else if (node instanceof FunctionTypeName) {
+    newNode = new FunctionTypeName(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.typeString,
+      node.visibility,
+      node.stateMutability,
+      cloneASTNodeImpl(node.vParameterTypes, ast, remappedIds),
+      cloneASTNodeImpl(node.vReturnParameterTypes, ast, remappedIds),
       node.raw,
     );
   } else if (node instanceof Mapping) {

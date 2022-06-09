@@ -18,7 +18,7 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { isDynamicStorageArray } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { add, CairoFunction, StringIndexedFuncGen } from '../base';
-import { getBaseType, getNestedNumber } from '../memory/implicitCoversion';
+import { getBaseType, getNestedNumber } from '../memory/implicitConversion';
 import { DynArrayGen } from '../storage/dynArray';
 import { DynArrayIndexAccessGen } from '../storage/dynArrayIndexAccess';
 import { StorageWriteGen } from '../storage/storageWrite';

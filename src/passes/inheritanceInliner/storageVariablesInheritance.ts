@@ -1,26 +1,40 @@
-import { ContractDefinition, VariableDeclaration } from 'solc-typed-ast';
+import { VariableDeclaration } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoContract } from '../../ast/cairoNodes';
 import { cloneASTNode } from '../../utils/cloning';
 import { getBaseContracts } from './utils';
 
 export function addStorageVariables(
-  node: ContractDefinition,
+  node: CairoContract,
   idRemapping: Map<number, VariableDeclaration>,
   ast: AST,
 ) {
-  const inheritedVariables: Map<string, VariableDeclaration> = new Map();
+  const dynamicAllocations: Map<VariableDeclaration, number> = node.dynamicStorageAllocations;
+  const staticAllocations: Map<VariableDeclaration, number> = node.staticStorageAllocations;
+  let usedStorage = node.usedStorage;
+  let usedIds = node.usedIds;
+
   getBaseContracts(node)
     .reverse()
     .forEach((base) => {
-      base.vStateVariables.forEach((decl) => {
-        inheritedVariables.set(decl.name, decl);
+      base.dynamicStorageAllocations.forEach((allocation, variable) => {
+        const newVariable = cloneASTNode(variable, ast);
+        idRemapping.set(variable.id, newVariable);
+        newVariable.scope = node.id;
+        node.insertAtBeginning(newVariable);
+        dynamicAllocations.set(newVariable, allocation + usedIds);
       });
+      base.staticStorageAllocations.forEach((allocation, variable) => {
+        const newVariable = cloneASTNode(variable, ast);
+        idRemapping.set(variable.id, newVariable);
+        newVariable.scope = node.id;
+        node.insertAtBeginning(newVariable);
+        staticAllocations.set(newVariable, allocation + usedStorage);
+      });
+      usedStorage += base.usedStorage;
+      usedIds += base.usedIds;
     });
 
-  inheritedVariables.forEach((variable) => {
-    const newVariable = cloneASTNode(variable, ast);
-    newVariable.scope = node.id;
-    node.insertAtBeginning(newVariable);
-    idRemapping.set(variable.id, newVariable);
-  });
+  node.usedStorage = usedStorage;
+  node.usedIds = usedIds;
 }

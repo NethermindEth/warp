@@ -53,13 +53,15 @@ export abstract class CairoType {
       if (tp.size === undefined) {
         if (context === TypeConversionContext.CallDataRef) {
           return new CairoDynArray(
-            `cd_dynarray_${generateStructName(CairoType.fromSol(tp.elementT, ast, context))}`,
+            generateCallDataDynArrayStructName(tp.elementT, ast),
             CairoType.fromSol(tp.elementT, ast, context),
           );
+        } else if (context === TypeConversionContext.Ref) {
+          return new MemoryLocation();
         }
         return new WarpLocation();
       } else if (context === TypeConversionContext.Ref) {
-        return new CairoFelt();
+        return new MemoryLocation();
       } else {
         const recursionContext =
           context === TypeConversionContext.MemoryAllocation ? TypeConversionContext.Ref : context;
@@ -76,10 +78,15 @@ export abstract class CairoType {
       throw new NotSupportedYetError('Serialising BuiltinType not supported yet');
     } else if (tp instanceof BuiltinStructType) {
       throw new NotSupportedYetError('Serialising BuiltinStructType not supported yet');
-    } else if (tp instanceof BytesType) {
+    } else if (tp instanceof BytesType || tp instanceof StringType) {
       switch (context) {
         case TypeConversionContext.CallDataRef:
-          return new CairoDynArray('Bytes', new CairoFelt());
+          return new CairoDynArray(
+            generateCallDataDynArrayStructName(new FixedBytesType(1), ast),
+            new CairoFelt(),
+          );
+        case TypeConversionContext.Ref:
+          return new MemoryLocation();
         default:
           return new WarpLocation();
       }
@@ -95,15 +102,13 @@ export abstract class CairoType {
       if (context !== TypeConversionContext.Ref) {
         return CairoType.fromSol(tp.to, ast, context);
       }
-      return new CairoFelt();
-    } else if (tp instanceof StringType) {
-      return new CairoFelt();
+      return new MemoryLocation();
     } else if (tp instanceof UserDefinedType) {
       if (tp.definition instanceof EnumDefinition) {
         return CairoType.fromSol(enumToIntType(tp.definition), ast);
       } else if (tp.definition instanceof StructDefinition) {
         if (context === TypeConversionContext.Ref) {
-          return new CairoFelt();
+          return new MemoryLocation();
         } else if (context === TypeConversionContext.MemoryAllocation) {
           return new CairoStruct(
             tp.definition.name,
@@ -265,6 +270,8 @@ export class WarpLocation extends CairoFelt {
   }
 }
 
+export class MemoryLocation extends CairoFelt {}
+
 export const CairoUint256 = new CairoStruct(
   'Uint256',
   new Map([
@@ -273,8 +280,32 @@ export const CairoUint256 = new CairoStruct(
   ]),
 );
 
-export function generateStructName(cairoType: CairoType): string {
-  if (cairoType instanceof CairoTuple) return cairoType.members.map(generateStructName).join('_');
+const cd_dynarray_prefix = 'cd_dynarray_';
+export function generateCallDataDynArrayStructName(elementType: TypeNode, ast: AST): string {
+  return `${cd_dynarray_prefix}${generateCallDataDynArrayStructNameInner(elementType, ast)}`;
+}
 
-  return cairoType.toString();
+function generateCallDataDynArrayStructNameInner(elementType: TypeNode, ast: AST): string {
+  if (elementType instanceof PointerType) {
+    return generateCallDataDynArrayStructNameInner(elementType.to, ast);
+  } else if (elementType instanceof ArrayType) {
+    if (elementType.size !== undefined) {
+      return `arr_${narrowBigIntSafe(elementType.size)}_${generateCallDataDynArrayStructNameInner(
+        elementType.elementT,
+        ast,
+      )}`;
+    } else {
+      // This is included only for completeness. Starknet does not currently allow dynarrays of dynarrays to be passed
+      return `arr_d_${generateCallDataDynArrayStructNameInner(elementType.elementT, ast)}`;
+    }
+  } else if (elementType instanceof BytesType) {
+    return `arr_d_felt`;
+  } else if (
+    elementType instanceof UserDefinedType &&
+    elementType.definition instanceof StructDefinition
+  ) {
+    return elementType.definition.name;
+  } else {
+    return CairoType.fromSol(elementType, ast, TypeConversionContext.CallDataRef).toString();
+  }
 }

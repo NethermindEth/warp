@@ -1,11 +1,13 @@
 import assert from 'assert';
 import {
   ArrayType,
+  BytesType,
   DataLocation,
   Expression,
   generalizeType,
   getNodeType,
   SourceUnit,
+  StringType,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -15,8 +17,9 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { getElementType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
-import { add, StringIndexedFuncGen } from '../base';
+import { add, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/externalDynArrayStructConstructor';
 import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
@@ -55,18 +58,19 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       return existing.name;
     }
 
-    if (type instanceof ArrayType) {
-      return type.size === undefined
-        ? this.createDynamicArrayCopyFunction(key, type)
-        : this.createStaticArrayCopyFunction(key, type);
-    }
+    const unexpectedTypeFunc = () => {
+      throw new NotSupportedYetError(
+        `Copying ${printTypeNode(type)} from storage to calldata is not supported yet`,
+      );
+    };
 
-    if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-      return this.createStructCopyFunction(key, type);
-    }
-
-    throw new NotSupportedYetError(
-      `Copying ${printTypeNode(type)} from storage to calldata is not supported yet`,
+    return delegateBasedOnType<string>(
+      type,
+      (type) => this.createDynamicArrayCopyFunction(key, type),
+      (type) => this.createStaticArrayCopyFunction(key, type),
+      (type) => this.createStructCopyFunction(key, type),
+      unexpectedTypeFunc,
+      unexpectedTypeFunc,
     );
   }
 
@@ -126,16 +130,20 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private createDynamicArrayCopyFunction(key: string, arrayType: ArrayType): string {
+  private createDynamicArrayCopyFunction(
+    key: string,
+    arrayType: ArrayType | BytesType | StringType,
+  ): string {
+    const elementT = getElementType(arrayType);
     const structDef = CairoType.fromSol(arrayType, this.ast, TypeConversionContext.CallDataRef);
     assert(structDef instanceof CairoDynArray);
 
     this.externalDynArrayStructConstructor.getOrCreate(arrayType);
     const [arrayName, arrayLen] = this.dynArrayGen.gen(
-      CairoType.fromSol(arrayType.elementT, this.ast, TypeConversionContext.StorageAllocation),
+      CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
     );
     const cairoElementType = CairoType.fromSol(
-      arrayType.elementT,
+      elementT,
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
@@ -156,7 +164,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       `   end`,
       `   let (index_uint256) = warp_uint256(index)`,
       `   let (elem_loc) = ${arrayName}.read(loc, index_uint256)`, // elem_loc should never be zero
-      `   let (elem) = ${this.storageReadGen.genFuncName(arrayType.elementT)}(elem_loc)`,
+      `   let (elem) = ${this.storageReadGen.genFuncName(elementT)}(elem_loc)`,
       `   assert ptr[index] = elem`,
       `   return ${funcName}_write(loc, index + 1, len, ptr)`,
       `end`,

@@ -11,6 +11,15 @@ func get_max{range_check_ptr}(op1, op2) -> (result):
     end
 end
 
+func get_min{range_check_ptr}(op1, op2) -> (result):
+    let (le) = is_le(op1, op2)
+    if le == 1:
+        return (op1)
+    else:
+        return (op2)
+    end
+end
+
 func floor_div{range_check_ptr}(a, b) -> (res):
     let (q, _) = unsigned_div_rem(a, b)
     return (q)

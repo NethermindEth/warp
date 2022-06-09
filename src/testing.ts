@@ -80,31 +80,33 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/function_with_nested_return', 'Success'],
     ['example_contracts/functionArgumentConversions', 'Success'],
     ['example_contracts/functionInputs/arrayTest/arrayArrayArray', 'Success'],
-    ['example_contracts/functionInputs/arrayTest/arrayArrayDynArray', 'NotSupportedYet'],
+    ['example_contracts/functionInputs/arrayTest/arrayArrayBytes', 'WillNotSupport'],
+    ['example_contracts/functionInputs/arrayTest/arrayArrayDynArray', 'WillNotSupport'],
     ['example_contracts/functionInputs/arrayTest/arrayArrayStruct', 'Success'],
-    ['example_contracts/functionInputs/arrayTest/arrayDynArrayArray', 'NotSupportedYet'],
-    ['example_contracts/functionInputs/arrayTest/arrayDynArrayDynArray', 'NotSupportedYet'],
-    ['example_contracts/functionInputs/arrayTest/arrayDynArrayStruct', 'NotSupportedYet'],
+    ['example_contracts/functionInputs/arrayTest/arrayDynArrayArray', 'WillNotSupport'],
+    ['example_contracts/functionInputs/arrayTest/arrayDynArrayDynArray', 'WillNotSupport'],
+    ['example_contracts/functionInputs/arrayTest/arrayDynArrayStruct', 'WillNotSupport'],
     ['example_contracts/functionInputs/arrayTest/arrayStructArray', 'Success'],
-    ['example_contracts/functionInputs/arrayTest/arrayStructDynArray', 'NotSupportedYet'],
+    ['example_contracts/functionInputs/arrayTest/arrayStructDynArray', 'WillNotSupport'],
     ['example_contracts/functionInputs/arrayTest/arrayStructStruct', 'Success'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayArrayArray', 'NotSupportedYet'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayArrayDynArray', 'NotSupportedYet'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayArrayStruct', 'NotSupportedYet'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayDynArrayArray', 'NotSupportedYet'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayDynArrayDynArray', 'NotSupportedYet'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayDynArrayStruct', 'NotSupportedYet'],
+    ['example_contracts/functionInputs/dynArrayTest/dynArrayArrayArray', 'Success'],
+    ['example_contracts/functionInputs/dynArrayTest/dynArrayArrayDynArray', 'WillNotSupport'],
+    ['example_contracts/functionInputs/dynArrayTest/dynArrayArrayStruct', 'Success'],
+    ['example_contracts/functionInputs/dynArrayTest/dynArrayDynArrayArray', 'WillNotSupport'],
+    ['example_contracts/functionInputs/dynArrayTest/dynArrayDynArrayDynArray', 'WillNotSupport'],
+    ['example_contracts/functionInputs/dynArrayTest/dynArrayDynArrayStruct', 'WillNotSupport'],
     ['example_contracts/functionInputs/dynArrayTest/dynArrayStructArray', 'Success'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayStructDynArray', 'NotSupportedYet'],
+    ['example_contracts/functionInputs/dynArrayTest/dynArrayStructDynArray', 'WillNotSupport'],
     ['example_contracts/functionInputs/dynArrayTest/dynArrayStructStruct', 'Success'],
     ['example_contracts/functionInputs/structTest/structArrayArray', 'Success'],
-    ['example_contracts/functionInputs/structTest/structArrayDynArray', 'NotSupportedYet'],
+    ['example_contracts/functionInputs/structTest/structArrayDynArray', 'WillNotSupport'],
     ['example_contracts/functionInputs/structTest/structArrayStruct', 'Success'],
-    ['example_contracts/functionInputs/structTest/structDynArrayArray', 'NotSupportedYet'],
-    ['example_contracts/functionInputs/structTest/structDynArrayDynArray', 'NotSupportedYet'],
-    ['example_contracts/functionInputs/structTest/structDynArrayStruct', 'NotSupportedYet'],
+    ['example_contracts/functionInputs/structTest/structDynArrayArray', 'WillNotSupport'],
+    ['example_contracts/functionInputs/structTest/structDynArrayDynArray', 'WillNotSupport'],
+    ['example_contracts/functionInputs/structTest/structDynArrayStruct', 'WillNotSupport'],
     ['example_contracts/functionInputs/structTest/structStructArray', 'Success'],
-    ['example_contracts/functionInputs/structTest/structStructDynArray', 'NotSupportedYet'],
+    ['example_contracts/functionInputs/structTest/structStructBytes', 'WillNotSupport'],
+    ['example_contracts/functionInputs/structTest/structStructDynArray', 'WillNotSupport'],
     ['example_contracts/functionInputs/structTest/structStructStruct', 'Success'],
     ['example_contracts/idManglingTest8', 'Success'],
     ['example_contracts/idManglingTest9', 'Success'],
@@ -138,6 +140,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/memberAccess/send', 'WillNotSupport'],
     ['example_contracts/memberAccess/staticcall', 'WillNotSupport'],
     ['example_contracts/memberAccess/transfer', 'WillNotSupport'],
+    ['example_contracts/msg', 'WillNotSupport'],
     ['example_contracts/mutableReferences/deepDelete', 'Success'],
     ['example_contracts/mutableReferences/memory', 'Success'],
     ['example_contracts/mutableReferences/mutableReferences', 'Success'],
@@ -159,8 +162,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/state_variables/scalars', 'Success'],
     ['example_contracts/state_variables/enums', 'Success'],
     ['example_contracts/state_variables/arrays', 'Success'],
-    // Tuple initialization not supported yet
-    ['example_contracts/state_variables/arrays_init', 'NotSupportedYet'],
+    ['example_contracts/state_variables/arrays_init', 'Success'],
     ['example_contracts/state_variables/mappings', 'Success'],
     ['example_contracts/state_variables/structs', 'Success'],
     ['example_contracts/state_variables/structs_nested', 'Success'],
@@ -186,9 +188,12 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/typestrings/structs', 'Success'],
     ['example_contracts/units', 'Success'],
     ['example_contracts/unsupportedFunctions/abi', `WillNotSupport`],
-    ['example_contracts/unsupportedFunctions/keccak256', `WillNotSupport`],
-    ['example_contracts/unsupportedFunctions/ecrecover', `WillNotSupport`],
+    ['example_contracts/unsupportedFunctions/keccak256', `Success`],
+    ['example_contracts/unsupportedFunctions/ecrecover', `Success`],
     ['example_contracts/unsupportedFunctions/addmod', `WillNotSupport`],
+    // Supported precompiles
+    ['example_contracts/precompiles/ecrecover', 'Success'],
+    ['example_contracts/precompiles/keccak256', 'Success'],
     // Uses bytes memory
     ['example_contracts/unsupportedFunctions/shadowAbi', `Success`],
     // Uses bytes memory
@@ -372,11 +377,14 @@ function printResults(results: Map<string, ResultType>, unexpectedResults: strin
 }
 
 function checkNoCairo(path: string): boolean {
-  return findCairoSourceFilePaths(path, true).length === 0;
+  return !fs.existsSync(path) || findCairoSourceFilePaths(path, true).length === 0;
 }
 
 function checkNoJson(path: string): boolean {
-  return findAllFiles(path, true).filter((file) => file.endsWith('.json')).length === 0;
+  return (
+    !fs.existsSync(path) ||
+    findAllFiles(path, true).filter((file) => file.endsWith('.json')).length === 0
+  );
 }
 
 function postTestCleanup(): void {

@@ -11,22 +11,27 @@ import { DeployResponse } from '../testnetInterface';
 
 const PRINT_STEPS = false;
 const PARALLEL_COUNT = 8;
+const TIME_LIMIT = 2 * 60 * 60 * 1000;
 
 describe('Transpile solidity', function () {
-  this.timeout(1800000);
+  this.timeout(TIME_LIMIT);
 
   let transpileResults: SafePromise<{ stderr: string }>[];
 
   before(async function () {
     for (const fileTest of expectations) {
-      cleanupSync(fileTest.cairo);
-      cleanupSync(fileTest.compiled);
+      if (fileTest.encodingError === undefined) {
+        cleanupSync(fileTest.cairo);
+        cleanupSync(fileTest.compiled);
+      }
     }
 
     transpileResults = batchPromises(
-      expectations.map((e) => e.sol),
+      expectations.map((e) =>
+        e.encodingError === undefined ? e.sol : { stderr: e.encodingError },
+      ),
       PARALLEL_COUNT,
-      transpile,
+      (input) => (typeof input === 'string' ? transpile(input) : Promise.resolve(input)),
     );
   });
 
@@ -44,7 +49,7 @@ describe('Transpile solidity', function () {
 });
 
 describe('Transpiled contracts are valid cairo', function () {
-  this.timeout(1800000);
+  this.timeout(TIME_LIMIT);
 
   let compileResults: SafePromise<{ stderr: string } | null>[];
 
@@ -78,7 +83,7 @@ describe('Transpiled contracts are valid cairo', function () {
 const deployedAddresses: Map<string, string> = new Map();
 
 describe('Compiled contracts are deployable', function () {
-  this.timeout(1800000);
+  this.timeout(TIME_LIMIT);
 
   // let deployResults: SafePromise<string>[];
   const deployResults: (DeployResponse | null)[] = [];
@@ -119,7 +124,7 @@ describe('Compiled contracts are deployable', function () {
 });
 
 describe('Deployed contracts have correct behaviour', function () {
-  this.timeout(1800000);
+  this.timeout(TIME_LIMIT);
 
   for (const fileTest of expectations) {
     if (fileTest.expectations instanceof Promise) {

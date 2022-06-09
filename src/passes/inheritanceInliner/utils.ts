@@ -1,7 +1,6 @@
 import assert from 'assert';
 import {
   ASTNode,
-  ContractDefinition,
   EmitStatement,
   EventDefinition,
   FunctionDefinition,
@@ -13,11 +12,19 @@ import {
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoContract } from '../../ast/cairoNodes';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCallToEvent } from '../../utils/functionGeneration';
 
-export function getBaseContracts(node: ContractDefinition): ContractDefinition[] {
-  return node.vLinearizedBaseContracts.slice(1);
+export function getBaseContracts(node: CairoContract): CairoContract[] {
+  return node.vLinearizedBaseContracts.slice(1).map((cc) => {
+    if (!(cc instanceof CairoContract)) {
+      throw new TranspileFailedError(
+        `Expected all contracts to be cairo contracts prior to inlining`,
+      );
+    }
+    return cc;
+  });
 }
 
 // Usually overriders remapping should be used to update references, but when the
@@ -91,7 +98,7 @@ export function updateReferenceEmitStatemets(
   });
 }
 
-export function removeBaseContractDependence(node: ContractDefinition): void {
+export function removeBaseContractDependence(node: CairoContract): void {
   const toRemove = node.children.filter(
     (child): child is InheritanceSpecifier => child instanceof InheritanceSpecifier,
   );
@@ -111,8 +118,8 @@ function isSpecificAccess(node: IdentifierPath): boolean {
 // to the correct function in the linearized order of contract
 export function fixSuperReference(
   node: ASTNode,
-  base: ContractDefinition,
-  contract: ContractDefinition,
+  base: CairoContract,
+  contract: CairoContract,
 ): void {
   node.walk((n) => {
     if (n instanceof MemberAccess && isSuperAccess(n)) {
@@ -135,8 +142,8 @@ function isSuperAccess(n: MemberAccess): boolean {
 // the reference
 function findSuperReferenceNode(
   funcName: string,
-  base: ContractDefinition,
-  node: ContractDefinition,
+  base: CairoContract,
+  node: CairoContract,
 ): FunctionDefinition {
   let contractFound = false;
   for (const contract of getBaseContracts(node)) {

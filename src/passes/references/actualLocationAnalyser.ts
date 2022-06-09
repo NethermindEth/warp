@@ -1,6 +1,7 @@
 import {
   DataLocation,
   Expression,
+  FixedBytesType,
   FunctionCall,
   FunctionDefinition,
   FunctionVisibility,
@@ -59,7 +60,12 @@ export class ActualLocationAnalyser extends ASTMapper {
     const baseLocation = this.actualLocations.get(node.vExpression);
 
     if (baseLocation !== undefined) {
-      this.actualLocations.set(node, baseLocation);
+      const baseType = getNodeType(node.vExpression, ast.compilerVersion);
+      if (baseType instanceof FixedBytesType) {
+        this.actualLocations.set(node, DataLocation.Default);
+      } else {
+        this.actualLocations.set(node, baseLocation);
+      }
     }
   }
 
@@ -70,7 +76,12 @@ export class ActualLocationAnalyser extends ASTMapper {
     const baseLocation = this.actualLocations.get(node.vBaseExpression);
 
     if (baseLocation !== undefined) {
-      this.actualLocations.set(node, baseLocation);
+      const baseType = getNodeType(node.vBaseExpression, ast.compilerVersion);
+      if (baseType instanceof FixedBytesType) {
+        this.actualLocations.set(node, DataLocation.Default);
+      } else {
+        this.actualLocations.set(node, baseLocation);
+      }
     }
   }
 

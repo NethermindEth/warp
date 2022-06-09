@@ -9,19 +9,22 @@ import {
   Expression,
   ASTNode,
   generalizeType,
+  BytesType,
+  StringType,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
-
 import {
   CairoType,
-  generateStructName,
+  generateCallDataDynArrayStructName,
   TypeConversionContext,
 } from '../../../utils/cairoTypeSystem';
 import { StringIndexedFuncGen } from '../../base';
 import { createIdentifier } from '../../../utils/nodeTemplates';
 import { FunctionStubKind } from '../../../ast/cairoNodes';
 import { typeNameFromTypeNode } from '../../../utils/utils';
+import { printTypeNode } from '../../../utils/astPrinter';
+import { getElementType, isDynamicArray } from '../../../utils/nodeTypeProcessing';
 
 const INDENT = ' '.repeat(4);
 
@@ -33,7 +36,10 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     nodeInSourceUnit?: ASTNode,
   ): FunctionCall | undefined {
     const type = generalizeType(getNodeType(astNode, this.ast.compilerVersion))[0];
-    assert(type instanceof ArrayType && type.size === undefined);
+    assert(
+      isDynamicArray(type),
+      `Attempted to create dynArray struct for non-dynarray type ${printTypeNode(type)}`,
+    );
 
     const name = this.getOrCreate(type);
     const structDefStub = createCairoFunctionStub(
@@ -60,31 +66,30 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     }
   }
 
-  getOrCreate(type: ArrayType): string {
-    const elemType = type.elementT;
+  getOrCreate(type: ArrayType | BytesType | StringType): string {
+    const elemType = getElementType(type);
     const elementCairoType = CairoType.fromSol(
       elemType,
       this.ast,
-      TypeConversionContext.MemoryAllocation,
+      TypeConversionContext.CallDataRef,
     );
-    const key = generateStructName(elementCairoType);
-    const name = `cd_dynarray_${key}`;
+    const key = generateCallDataDynArrayStructName(elemType, this.ast);
 
-    const existing = this.generatedFunctions.get(name);
+    const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
     }
 
     this.generatedFunctions.set(key, {
-      name: name,
+      name: key,
       code: [
-        `struct ${name}:`,
+        `struct ${key}:`,
         `${INDENT}member len : felt `,
         `${INDENT}member ptr : ${elementCairoType.toString()}*`,
         `end`,
       ].join('\n'),
     });
 
-    return name;
+    return key;
   }
 }

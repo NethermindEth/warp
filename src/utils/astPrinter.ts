@@ -110,6 +110,7 @@ export const DefaultASTPrinter = new ASTPrinter()
     print: context,
   })
   .lookFor('fieldNames')
+  .lookFor('functionReturnParameters')
   .lookFor({
     prop: 'implicits',
     nodeType: 'CairoFunctionDefinition',

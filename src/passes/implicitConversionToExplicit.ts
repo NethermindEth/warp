@@ -33,6 +33,7 @@ import {
   TupleType,
   TypeNameType,
   TypeNode,
+  UnaryOperation,
   UserDefinedType,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
@@ -42,10 +43,9 @@ import { printNode, printTypeNode } from '../utils/astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { createElementaryConversionCall } from '../utils/functionGeneration';
-import { generateExpressionTypeString } from '../utils/getTypeString';
 import { createNumberLiteral } from '../utils/nodeTemplates';
-import { getParameterTypes, intTypeForLiteral, specializeType } from '../utils/nodeTypeProcessing';
-import { typeNameFromTypeNode } from '../utils/utils';
+import { getParameterTypes, intTypeForLiteral } from '../utils/nodeTypeProcessing';
+import { typeNameFromTypeNode, bigintToTwosComplement, toHexString } from '../utils/utils';
 
 /*
 Detects implicit conversions by running solc-typed-ast's type analyser on
@@ -62,7 +62,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
   visitReturn(node: Return, ast: AST): void {
     this.commonVisit(node, ast);
 
-    if (node.vExpression == undefined) return;
+    if (node.vExpression === undefined) return;
 
     const returnDeclarations = node.vFunctionReturnParameters.vParameters;
     // Tuple returns handled by TupleAssignmentSplitter
@@ -92,10 +92,20 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       insertConversionIfNecessary(node.vLeftExpression, resultType, ast);
       insertConversionIfNecessary(node.vRightExpression, resultType, ast);
     } else if (['<', '>', '<=', '>=', '==', '!='].includes(node.operator)) {
+      const leftNodeType = getNodeType(node.vLeftExpression, ast.compilerVersion);
+      const rightNodeType = getNodeType(node.vRightExpression, ast.compilerVersion);
+
       const targetType = pickLargerType(
-        getNodeType(node.vLeftExpression, ast.compilerVersion),
-        getNodeType(node.vLeftExpression, ast.compilerVersion),
+        leftNodeType,
+        rightNodeType,
+        leftNodeType instanceof IntLiteralType
+          ? getLiteralValueBound(node.vLeftExpression.typeString)
+          : undefined,
+        rightNodeType instanceof IntLiteralType
+          ? getLiteralValueBound(node.vRightExpression.typeString)
+          : undefined,
       );
+
       insertConversionIfNecessary(node.vLeftExpression, targetType, ast);
       insertConversionIfNecessary(node.vRightExpression, targetType, ast);
     }
@@ -148,6 +158,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       if (node.vFunctionName === 'revert') {
         return;
       }
+      // TODO fixedbytes for literal?
       if (['assert', 'require'].includes(node.vFunctionName) && node.vArguments.length > 1) {
         const paramType = getParameterTypes(node, ast)[0];
         insertConversionIfNecessary(node.vArguments[0], paramType, ast);
@@ -168,6 +179,10 @@ export class ImplicitConversionToExplicit extends ASTMapper {
           const paramIndex = index + paramTypes.length - node.vArguments.length;
           insertConversionIfNecessary(arg, paramTypes[paramIndex], ast);
         });
+        return;
+      }
+      if (node.vFunctionName === 'concat') {
+        handleConcatArgs(node, ast);
         return;
       }
     }
@@ -218,68 +233,132 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 
     this.visitExpression(node, ast);
   }
+
+  visitUnaryOperation(node: UnaryOperation, ast: AST): void {
+    const nodeType = getNodeType(node, ast.compilerVersion);
+    if (nodeType instanceof IntLiteralType) {
+      node.typeString = intTypeForLiteral(
+        `int_const ${getLiteralValueBound(node.typeString)}`,
+      ).pp();
+    }
+    this.commonVisit(node, ast);
+  }
+
+  visitLiteral(node: Literal, ast: AST): void {
+    const nodeType = getNodeType(node, ast.compilerVersion);
+    if (nodeType instanceof IntLiteralType) {
+      const typeTo = intTypeForLiteral(`int_const ${getLiteralValueBound(node.typeString)}`);
+      const truncated = bigintToTwosComplement(BigInt(node.value), typeTo.nBits).toString(10);
+      node.value = truncated;
+      node.hexValue = toHexString(truncated);
+      node.typeString = typeTo.pp();
+    }
+    this.commonVisit(node, ast);
+  }
 }
 
 function insertConversionIfNecessary(expression: Expression, targetType: TypeNode, ast: AST): void {
-  const currentType = generalizeType(getNodeType(expression, ast.compilerVersion))[0];
-  targetType = generalizeType(targetType)[0];
+  const [currentType, currentLoc] = generalizeType(getNodeType(expression, ast.compilerVersion));
+  const generalisedTargetType = generalizeType(targetType)[0];
 
   if (currentType instanceof AddressType) {
-    if (!(targetType instanceof AddressType)) {
-      insertConversion(expression, targetType, ast);
+    if (!(generalisedTargetType instanceof AddressType)) {
+      insertConversion(expression, generalisedTargetType, ast);
     }
   } else if (currentType instanceof ArrayType) {
     assert(
-      targetType instanceof ArrayType,
+      generalisedTargetType instanceof ArrayType,
       `Unable to convert array ${printNode(expression)} to non-array type ${printTypeNode(
-        targetType,
+        generalisedTargetType,
       )}`,
     );
-    const elementT = targetType.elementT;
-    if (expression instanceof TupleExpression && expression.isInlineArray) {
-      expression.vOriginalComponents.forEach((element) => {
-        assert(element !== null, `Unexpected empty slot in inline array ${printNode(expression)}`);
-        insertConversionIfNecessary(element, elementT, ast);
-      });
-      expression.typeString = generateExpressionTypeString(
-        specializeType(targetType, DataLocation.Memory),
-      );
+    if (currentLoc === DataLocation.Memory) {
+      const parent = expression.parent;
+      const [replacement, shouldReplace] = ast
+        .getUtilFuncGen(expression)
+        .memory.convert.genIfNecesary(expression, targetType);
+      if (shouldReplace) {
+        ast.replaceNode(expression, replacement, parent);
+      }
     }
+    // if (expression instanceof TupleExpression && expression.isInlineArray) {
+    //   expression.vOriginalComponents.forEach((element) => {
+    //     assert(element !== null, `Unexpected empty slot in inline array ${printNode(expression)}`);
+    //     insertConversionIfNecessary(element, elementT, ast);
+    //   });
+    //   expression.typeString = generateExpressionTypeString(
+    //     specializeType(targetType, DataLocation.Memory),
+    //   );
+    // }
   } else if (currentType instanceof BoolType) {
     assert(
-      targetType instanceof BoolType,
-      `Unable to convert bool to ${printTypeNode(targetType)}`,
+      generalisedTargetType instanceof BoolType,
+      `Unable to convert bool to ${printTypeNode(generalisedTargetType)}`,
     );
     return;
   } else if (currentType instanceof BuiltinType) {
     return;
   } else if (currentType instanceof BytesType) {
-    throw new TranspileFailedError(
-      `Expected BytesType to have been substituted. Found at ${printNode(expression)}`,
-    );
+    if (generalisedTargetType instanceof BytesType || generalisedTargetType instanceof StringType) {
+      return;
+    }
+    if (generalisedTargetType instanceof FixedBytesType) {
+      throw new NotSupportedYetError(
+        `${printTypeNode(
+          currentType,
+        )} to fixed bytes type (${targetType.pp()}) not implemented yet`,
+      );
+    } else {
+      throw new TranspileFailedError(
+        `Unexpected implicit conversion from ${currentType.pp()} to ${targetType.pp()}`,
+      );
+    }
   } else if (currentType instanceof FixedBytesType) {
-    throw new TranspileFailedError(
-      `Expected FixedBytesType to have been substituted. Found at ${printNode(expression)}`,
-    );
+    if (generalisedTargetType instanceof BytesType || generalisedTargetType instanceof StringType) {
+      insertConversionIfNecessary(expression, generalisedTargetType, ast);
+    } else if (generalisedTargetType instanceof FixedBytesType) {
+      if (currentType.size !== generalisedTargetType.size) {
+        insertConversion(expression, generalisedTargetType, ast);
+      }
+    } else {
+      throw new TranspileFailedError(
+        `Unexpected implicit conversion from ${currentType.pp()} to ${generalisedTargetType.pp()}`,
+      );
+    }
   } else if (currentType instanceof FunctionType) {
     return;
   } else if (currentType instanceof ImportRefType) {
     return;
   } else if (currentType instanceof IntLiteralType) {
-    insertConversion(expression, targetType, ast);
+    insertConversion(expression, generalisedTargetType, ast);
   } else if (currentType instanceof IntType) {
-    if (targetType instanceof IntType && targetType.pp() === currentType.pp()) {
+    if (
+      generalisedTargetType instanceof IntType &&
+      generalisedTargetType.pp() === currentType.pp()
+    ) {
       return;
     } else {
-      insertConversion(expression, targetType, ast);
+      insertConversion(expression, generalisedTargetType, ast);
     }
   } else if (currentType instanceof MappingType) {
     return;
   } else if (currentType instanceof ModuleType) {
     return;
   } else if (currentType instanceof StringType) {
-    // TODO bytes conversion
-    return;
+    if (generalisedTargetType instanceof BytesType || generalisedTargetType instanceof StringType) {
+      return;
+    }
+    if (generalisedTargetType instanceof FixedBytesType) {
+      throw new NotSupportedYetError(
+        `${printTypeNode(
+          currentType,
+        )} to fixed bytes type (${generalisedTargetType.pp()}) not implemented yet`,
+      );
+    } else {
+      throw new TranspileFailedError(
+        `Unexpected implicit conversion from ${currentType.pp()} to ${generalisedTargetType.pp()}`,
+      );
+    }
   } else if (currentType instanceof PointerType) {
     throw new TranspileFailedError(
       `Type conversion analysis error. Unexpected ${printTypeNode(
@@ -291,18 +370,23 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
       `Unexpected unresolved rational literal ${printNode(expression)}`,
     );
   } else if (currentType instanceof StringLiteralType) {
-    if (targetType instanceof IntType) {
+    if (generalisedTargetType instanceof FixedBytesType) {
       if (!(expression instanceof Literal)) {
         throw new TranspileFailedError(`Expected stringLiteralType expression to be a Literal`);
       }
-      const padding = '0'.repeat(targetType.nBits / 4 - expression.hexValue.length);
+      const padding = '0'.repeat(generalisedTargetType.size * 2 - expression.hexValue.length);
       const replacementNode = createNumberLiteral(
         `0x${expression.hexValue}${padding}`,
         ast,
-        `uint${targetType.nBits / 8}`,
+        generalisedTargetType.pp(),
       );
       ast.replaceNode(expression, replacementNode, expression.parent);
-      insertConversion(replacementNode, targetType, ast);
+      insertConversion(replacementNode, generalisedTargetType, ast);
+    } else if (
+      generalisedTargetType instanceof StringType ||
+      generalisedTargetType instanceof BytesType
+    ) {
+      insertConversion(expression, generalisedTargetType, ast);
     }
     return;
   } else if (currentType instanceof TupleType) {
@@ -336,25 +420,79 @@ function insertConversion(expression: Expression, targetType: TypeNode, ast: AST
   ast.replaceNode(expression, call, parent);
 }
 
-function pickLargerType(typeA: TypeNode, typeB: TypeNode): TypeNode {
+function pickLargerType(
+  typeA: TypeNode,
+  typeB: TypeNode,
+  leftLiteralBound?: string,
+  rightLiteralBound?: string,
+): TypeNode {
   // Generalise the types to remove any location differences
   typeA = generalizeType(typeA)[0];
   typeB = generalizeType(typeB)[0];
-  if (typeA.pp() === typeB.pp()) return typeA;
+
+  if (typeA.pp() === typeB.pp()) {
+    if (typeA instanceof IntLiteralType) {
+      assert(typeA.literal !== undefined, `Unexpected unencoded literal value`);
+      assert(leftLiteralBound !== undefined, `Unexpected unencoded literal value`);
+      return intTypeForLiteral(`int_const ${leftLiteralBound}`);
+    }
+    return typeA;
+  }
 
   // Literals always need to be cast to match the other type
   if (typeA instanceof IntLiteralType) {
     if (typeB instanceof IntLiteralType) {
-      assert(typeA.literal, `Unexpected unencoded literal value`);
-      assert(typeB.literal, `Unexpected unencoded literal value`);
+      assert(typeA.literal !== undefined, `Unexpected unencoded literal value`);
+      assert(typeB.literal !== undefined, `Unexpected unencoded literal value`);
+      assert(
+        leftLiteralBound !== undefined && rightLiteralBound !== undefined,
+        `Unexpected literal bounds`,
+      );
+
       return pickLargerType(
-        intTypeForLiteral(`int_const ${typeA.literal.toString()}`),
-        intTypeForLiteral(`int_const ${typeB.literal.toString()}`),
+        intTypeForLiteral(`int_const ${leftLiteralBound}`),
+        intTypeForLiteral(`int_const ${rightLiteralBound}`),
       );
     } else {
       return typeB;
     }
   } else if (typeB instanceof IntLiteralType) {
+    return typeA;
+  }
+
+  if (typeA instanceof StringLiteralType) {
+    if (typeB instanceof StringLiteralType) {
+      const length = Math.max(typeA.literal.length, typeB.literal.length);
+      if (length >= 32) {
+        return new BytesType();
+      }
+      return new FixedBytesType(length);
+    } else {
+      return typeB;
+    }
+  } else if (typeB instanceof StringLiteralType) {
+    return typeA;
+  }
+
+  if (typeA instanceof IntType) {
+    if (typeB instanceof IntType) {
+      if (typeA.nBits > typeB.nBits) {
+        return typeA;
+      }
+    }
+    return typeB;
+  } else if (typeB instanceof IntType) {
+    return typeA;
+  }
+
+  if (typeA instanceof FixedBytesType) {
+    if (typeB instanceof FixedBytesType) {
+      if (typeA.size > typeB.size) {
+        return typeA;
+      }
+    }
+    return typeB;
+  } else if (typeB instanceof FixedBytesType) {
     return typeA;
   }
 
@@ -372,4 +510,58 @@ function pickLargerType(typeA: TypeNode, typeB: TypeNode): TypeNode {
   throw new NotSupportedYetError(
     `Unhandled type conversion case: ${printTypeNode(typeA)} vs ${printTypeNode(typeB)}`,
   );
+}
+
+function getLiteralValueBound(typeString: string): string {
+  // remove any character that is not a digit or '('or ')' or '-'
+  const cleanTypeString = typeString.replace(/[^\d()-]/g, '');
+
+  // assert '-' is only used for negative numbers
+  assert(
+    cleanTypeString.indexOf('-') === -1 || cleanTypeString.indexOf('-') === 0,
+    `Unexpected literal value: ${typeString}`,
+  );
+
+  // if it doesn't contain '(', it is a literal
+  if (!cleanTypeString.includes('(')) {
+    //assert it has no ')'
+    assert(!cleanTypeString.includes(')'), `Unexpected ')' in literal value bound: ${typeString}`);
+    return cleanTypeString;
+  }
+
+  // get string between '(', ')' and type-cast to int
+  const literalValue = parseInt(
+    cleanTypeString.substring(cleanTypeString.indexOf('(') + 1, cleanTypeString.indexOf(')')),
+  );
+
+  // replace string between '(', ')' with literal value number of zeros
+  const newTypeString = cleanTypeString.replace(`(${literalValue})`, '9'.repeat(literalValue));
+
+  const maxBound: BigInt = BigInt(`2`) ** BigInt(`256`) - BigInt(1);
+  const minBound: BigInt = BigInt(`-2`) ** BigInt(`255`) + BigInt(1);
+
+  if (maxBound < BigInt(newTypeString)) {
+    // solidity doesn't support literals larger than 256 bits
+    return maxBound.toString();
+  }
+
+  if (minBound > BigInt(newTypeString)) {
+    // solidity doesn't support literals smaller than 255 bits
+    return minBound.toString();
+  }
+
+  return newTypeString;
+}
+
+function handleConcatArgs(node: FunctionCall, ast: AST) {
+  node.vArguments.forEach((arg) => {
+    const type = getNodeType(arg, ast.compilerVersion);
+    if (type instanceof StringLiteralType) {
+      if (type.literal.length < 32) {
+        insertConversionIfNecessary(arg, new FixedBytesType(type.literal.length), ast);
+      } else {
+        insertConversionIfNecessary(arg, new BytesType(), ast);
+      }
+    }
+  });
 }

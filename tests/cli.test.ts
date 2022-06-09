@@ -45,7 +45,7 @@ const tests: encodeTest[] = [
   ],
 ];
 
-describe('Warplib files should compile', function () {
+describe('Solidity abi parsing and decode tests', function () {
   tests.map(([signature, input, output]) =>
     it(`parses ${signature}`, () => {
       const result = parse(signature)(input);
