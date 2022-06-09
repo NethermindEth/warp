@@ -27,6 +27,7 @@ import {
   PointerType,
   RationalLiteralType,
   Return,
+  specializeType,
   StringLiteralType,
   StringType,
   TupleExpression,
@@ -43,6 +44,7 @@ import { printNode, printTypeNode } from '../utils/astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { createElementaryConversionCall } from '../utils/functionGeneration';
+import { generateExpressionTypeString } from '../utils/getTypeString';
 import { createNumberLiteral } from '../utils/nodeTemplates';
 import { getParameterTypes, intTypeForLiteral } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, bigintToTwosComplement, toHexString } from '../utils/utils';
@@ -272,6 +274,7 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
         generalisedTargetType,
       )}`,
     );
+
     if (currentLoc === DataLocation.Memory) {
       const parent = expression.parent;
       const [replacement, shouldReplace] = ast
@@ -281,15 +284,16 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
         ast.replaceNode(expression, replacement, parent);
       }
     }
-    // if (expression instanceof TupleExpression && expression.isInlineArray) {
-    //   expression.vOriginalComponents.forEach((element) => {
-    //     assert(element !== null, `Unexpected empty slot in inline array ${printNode(expression)}`);
-    //     insertConversionIfNecessary(element, elementT, ast);
-    //   });
-    //   expression.typeString = generateExpressionTypeString(
-    //     specializeType(targetType, DataLocation.Memory),
-    //   );
-    // }
+
+    if (expression instanceof TupleExpression && expression.isInlineArray) {
+      expression.vOriginalComponents.forEach((element) => {
+        assert(element !== null, `Unexpected empty slot in inline array ${printNode(expression)}`);
+        insertConversionIfNecessary(element, generalisedTargetType.elementT, ast);
+      });
+      expression.typeString = generateExpressionTypeString(
+        specializeType(generalisedTargetType, DataLocation.Memory),
+      );
+    }
   } else if (currentType instanceof BoolType) {
     assert(
       generalisedTargetType instanceof BoolType,
