@@ -30,14 +30,20 @@ contract WARP {
 //   }
 
   //int16[][][] zz;
-//   int16[][] z1;   // tick
+  
+  int16[][] z1;   // tick
   int16[2][] z2;  // now
   int16[2][2] z3; // tick
   int16[][2] z4;  // tick
-  
+
+  function testZ1(int8[2][2] calldata yy) external returns (int16, int16, int16, int16){
+    z1 = yy;
+    return (z1[1][1], z1[1][0], z1[0][1], z1[0][0]);
+  }
+
   function testZ2(int8[2][2] calldata yy) external returns (int16, int16, int16, int16){
     z2 = yy;
-    return (z3[1][1], z3[1][0], z3[0][1], z3[0][0]);
+    return (z2[1][1], z2[1][0], z2[0][1], z2[0][0]);
   }
 
   function testZ3(int8[2][2] calldata yy) external returns (int16, int16, int16, int16){

@@ -316,15 +316,29 @@ export class StaticToDynArray extends StringIndexedFuncGen {
           return code;
         }
       } else {
-        const code = [
-          ` let (loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
-            targetElementType,
-          )}(ref, Uint256(${index}, 0))`,
-          `    ${this.getOrCreate(
-            targetElementType,
-            sourceElementType,
-          )}(loc${index}, source_elem[${index}])`,
-        ].join('\n');
+        let code;
+        if (isDynamicStorageArray(targetElementType)) {
+          code = [
+            ` let (loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
+              targetElementType,
+            )}(ref, Uint256(${index}, 0))`,
+            `let (ref_${index}) = readId(loc${index})`,
+            `${this.getOrCreate(
+              targetElementType,
+              sourceElementType,
+            )}(ref_${index}, source_elem[${index}])`,
+          ].join('\n');
+        } else {
+          code = [
+            ` let (loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
+              targetElementType,
+            )}(ref, Uint256(${index}, 0))`,
+            `    ${this.getOrCreate(
+              targetElementType,
+              sourceElementType,
+            )}(loc${index}, source_elem[${index}])`,
+          ].join('\n');
+        }
         offset = offset + cairoTargetElementType.width;
         return code;
       }

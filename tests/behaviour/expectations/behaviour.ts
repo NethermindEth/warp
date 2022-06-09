@@ -519,15 +519,10 @@ export const expectations = flatten(
         ]),
         new Dir('copy_calldata_to_storage', [
           File.Simple('implictConversion', [
-            new Expect('testing an array of lower dim and int size is being convertd', [
-              ['testZ2', ['10', '20', '30', '40'], ['40', '30', '20', '10'], '0'],
-            ]),
-            new Expect('testing an array of lower dim and int size is being convertd', [
-              ['testZ3', ['10', '20', '30', '40'], ['40', '30', '20', '10'], '0'],
-            ]),
-            new Expect('testing an array of lower dim and int size is being convertd', [
-              ['testZ4', ['10', '20', '30', '40'], ['40', '30', '20', '10'], '0'],
-            ]),
+            new Expect('Z1', [['testZ1', ['10', '20', '30', '40'], ['40', '30', '20', '10'], '0']]),
+            new Expect('Z2', [['testZ2', ['10', '20', '30', '40'], ['40', '30', '20', '10'], '0']]),
+            new Expect('Z3', [['testZ3', ['10', '20', '30', '40'], ['40', '30', '20', '10'], '0']]),
+            new Expect('Z4', [['testZ4', ['10', '20', '30', '40'], ['40', '30', '20', '10'], '0']]),
           ]),
           File.Simple('dynamic_arrays', [
             new Expect('felt dynamic arrays is copied from calldata to storage', [
