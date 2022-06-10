@@ -104,6 +104,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/functionInputs/structTest/structDynArrayArray', 'WillNotSupport'],
     ['example_contracts/functionInputs/structTest/structDynArrayDynArray', 'WillNotSupport'],
     ['example_contracts/functionInputs/structTest/structDynArrayStruct', 'WillNotSupport'],
+    ['example_contracts/functionInputs/structTest/structString', 'WillNotSupport'],
     ['example_contracts/functionInputs/structTest/structStructArray', 'Success'],
     ['example_contracts/functionInputs/structTest/structStructBytes', 'WillNotSupport'],
     ['example_contracts/functionInputs/structTest/structStructDynArray', 'WillNotSupport'],

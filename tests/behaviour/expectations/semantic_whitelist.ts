@@ -1106,6 +1106,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/bytes_and_strings.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/multiline_comments.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/multiline.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/structs.sol', // nested dynarray
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/structs.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/arrays.sol', // dynarray of static array
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/failure.sol', // non-literal require message
