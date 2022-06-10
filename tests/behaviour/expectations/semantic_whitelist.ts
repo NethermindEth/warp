@@ -901,6 +901,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/using_for_overload.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/using_for_storage_structs.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/using_library_mappings_return.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/using_library_structs.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/using_library_mappings_public.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_contract.sol', // STRETCH new
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/mapping_returns_in_library.sol', // STRETCH conditional
