@@ -56,7 +56,10 @@ export class StaticToDynArray extends StringIndexedFuncGen {
     const lhsBaseType = getBaseType(lhsType);
     const rhsBaseType = getBaseType(rhsType);
     assert(lhsBaseType instanceof IntType && rhsBaseType instanceof IntType);
-    return lhsBaseType.nBits > rhsBaseType.nBits && rhsBaseType.signed;
+    return (
+      (lhsBaseType.nBits > rhsBaseType.nBits && rhsBaseType.signed) ||
+      (!lhsBaseType.signed && lhsBaseType.nBits === 256 && 256 > rhsBaseType.nBits)
+    );
   }
   // Right now this will only check that the uint[3] -> uint[4]
   checkDims(lhsType: TypeNode, rhsType: TypeNode): boolean {
@@ -115,15 +118,33 @@ export class StaticToDynArray extends StringIndexedFuncGen {
   }
 
   getOrCreate(targetType: TypeNode, sourceType: TypeNode): string {
-    const targetBaseCairoType = CairoType.fromSol(
-      getBaseType(sourceType),
+    const targetCairoType = CairoType.fromSol(
+      generalizeType(targetType)[0],
       this.ast,
       TypeConversionContext.StorageAllocation,
     );
 
-    const key = `${targetBaseCairoType.fullStringRepresentation}_${getNestedNumber(
-      targetType,
-    )}_${getNestedNumber(sourceType)}`;
+    const sourceCairoType = CairoType.fromSol(
+      generalizeType(sourceType)[0],
+      this.ast,
+      TypeConversionContext.CallDataRef,
+    );
+
+    const targetBaseCairoType = CairoType.fromSol(
+      getBaseType(targetType),
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    );
+
+    const sourceBaseCairoType = CairoType.fromSol(
+      getBaseType(sourceType),
+      this.ast,
+      TypeConversionContext.CallDataRef,
+    );
+
+    const key = `${targetCairoType.fullStringRepresentation}_${targetBaseCairoType} -> ${
+      sourceCairoType.fullStringRepresentation
+    }_${getNestedNumber(targetType)}_${sourceBaseCairoType}_${getNestedNumber(sourceType)}`;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
@@ -302,25 +323,27 @@ export class StaticToDynArray extends StringIndexedFuncGen {
           this.requireImport('starkware.cairo.common.uint256', 'Uint256');
           this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
           // TODO find util to convert index to Uint256
-          const code = ` let (target_elem${index}) = warp_int${sourceElementType.nBits}_to_int${
-            targetElementType.nBits
-          }(source_elem[${index}])
-            let (loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
-            targetElementType,
-          )}(ref, Uint256(${index}, 0))
-            ${this.storageWriteGen.getOrCreate(
+          const code = [
+            `    let (target_elem${index}) = warp_int${sourceElementType.nBits}_to_int${targetElementType.nBits}(source_elem[${index}])`,
+            `    let (loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElementType,
-            )}(loc${index}, target_elem${index})`;
-          offset = offset + cairoTargetElementType.width;
+            )}(ref, Uint256(${index}, 0))`,
+            `    ${this.storageWriteGen.getOrCreate(
+              targetElementType,
+            )}(loc${index}, target_elem${index})`,
+          ].join('\n');
           return code;
         } else {
           this.requireImport('warplib.maths.utils', 'felt_to_uint256');
-          const code = `    let (target_elem${index}) = felt_to_uint256(source_elem[${index}])
-             ${this.storageWriteGen.getOrCreate(targetElementType)}(${add(
-            'loc',
-            offset,
-          )}, target_elem${index})`;
-          offset = offset + cairoTargetElementType.width;
+          const code = [
+            `    let (target_elem${index}) = felt_to_uint256(source_elem[${index}])`,
+            `    let (loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
+              targetElementType,
+            )}(ref, Uint256(${index}, 0))`,
+            `    ${this.storageWriteGen.getOrCreate(
+              targetElementType,
+            )}(loc${index}, target_elem${index})`,
+          ].join('\n');
           return code;
         }
       } else {
@@ -391,6 +414,12 @@ export class StaticToDynArray extends StringIndexedFuncGen {
 
     const sourceElementType = sourceType.to.elementT;
 
+    const cairoSourceElementType = CairoType.fromSol(
+      sourceType.to.elementT,
+      this.ast,
+      TypeConversionContext.CallDataRef,
+    );
+
     const cairoTargetElementType = CairoType.fromSol(
       targetType.to.elementT,
       this.ast,
@@ -416,6 +445,7 @@ export class StaticToDynArray extends StringIndexedFuncGen {
         'warplib.maths.int_conversions',
         `warp_int${sourceElementType.nBits}_to_int${targetElementType.nBits}`,
       );
+      this.requireImport('warplib.maths.utils', 'felt_to_uint256');
       code = [
         `func ${loaderName}${implicit}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt ):`,
         `    alloc_locals`,
@@ -426,10 +456,11 @@ export class StaticToDynArray extends StringIndexedFuncGen {
           targetElementType,
         )}(ref, Uint256(target_index, 0))`,
         `    let target_index = target_index + 1`,
-
-        `    let (val) = warp_int${sourceElementType.nBits}_to_int${targetElementType.nBits}(ptr[0])`,
+        sourceElementType.signed
+          ? `    let (val) = warp_int${sourceElementType.nBits}_to_int${targetElementType.nBits}(ptr[0])`
+          : `    let (val) = felt_to_uint256(ptr[0])`,
         `    ${this.storageWriteGen.getOrCreate(targetElementType)}(loc, val)`,
-        `    return ${loaderName}(ref, len - 1, ptr + ${cairoTargetElementType.width}, target_index)`,
+        `    return ${loaderName}(ref, len - 1, ptr + ${cairoSourceElementType.width}, target_index)`,
         `end`,
         ``,
 
@@ -454,7 +485,7 @@ export class StaticToDynArray extends StringIndexedFuncGen {
           ? `let (ref0) = readId(loc)
           ${this.getOrCreate(targetElementType, sourceElementType)}(ref0, ptr[0])`
           : `    ${this.getOrCreate(targetElementType, sourceElementType)}(loc, ptr[0])`,
-        `    return ${loaderName}(ref, len - 1, ptr + ${cairoSourceType.width}, target_index+1)`,
+        `    return ${loaderName}(ref, len - 1, ptr + ${cairoSourceType.ptr_member.width}, target_index+1)`,
         `end`,
         ``,
 
