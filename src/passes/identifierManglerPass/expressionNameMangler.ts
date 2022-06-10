@@ -9,7 +9,6 @@ import {
   UserDefinedValueTypeDefinition,
   ExternalReferenceType,
   ImportDirective,
-  ContractDefinition,
 } from 'solc-typed-ast';
 
 import { AST } from '../../ast/ast';
@@ -19,8 +18,7 @@ export class ExpressionNameMangler extends ASTMapper {
   visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {
     if (
       node.vReferencedDeclaration instanceof UserDefinedValueTypeDefinition ||
-      node.vReferencedDeclaration instanceof StructDefinition ||
-      node.vReferencedDeclaration instanceof ContractDefinition
+      node.vReferencedDeclaration instanceof StructDefinition
     ) {
       node.name = node.vReferencedDeclaration.name;
     }
@@ -32,7 +30,6 @@ export class ExpressionNameMangler extends ASTMapper {
     if (
       node.vIdentifierType === ExternalReferenceType.UserDefined &&
       (node.vReferencedDeclaration instanceof VariableDeclaration ||
-        node.vReferencedDeclaration instanceof ContractDefinition ||
         (node.vReferencedDeclaration instanceof FunctionDefinition &&
           !(node.parent instanceof ImportDirective)))
     ) {
@@ -50,7 +47,6 @@ export class ExpressionNameMangler extends ASTMapper {
     } else if (
       declaration instanceof FunctionDefinition ||
       declaration instanceof VariableDeclaration ||
-      declaration instanceof ContractDefinition ||
       declaration instanceof EnumValue
     ) {
       node.memberName = declaration.name;
