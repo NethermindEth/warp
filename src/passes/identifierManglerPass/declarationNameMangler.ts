@@ -61,7 +61,9 @@ export function checkSourceTerms(term: string, node: ASTNode) {
 
   unsupportedCharacters.forEach((c: string) => {
     if (term.includes(c)) {
-      throw new WillNotSupportError(`${printNode(node)} ${term} contains unsupported character ${c}`);
+      throw new WillNotSupportError(
+        `${printNode(node)} ${term} contains unsupported character ${c}`,
+      );
     }
   });
 }
