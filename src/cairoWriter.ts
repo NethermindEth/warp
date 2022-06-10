@@ -775,12 +775,14 @@ class LiteralWriter extends CairoASTNodeWriter {
         return [node.value === 'true' ? '1' : '0'];
       case LiteralKind.String:
       case LiteralKind.UnicodeString: {
-        const cairoString = node.value
-          .split('')
-          .filter((v) => v.charCodeAt(0) < 127)
-          .join('')
-          .substring(0, 32);
-        return [`'${cairoString}'`];
+        if (
+          node.value.length === node.hexValue.length / 2 &&
+          node.value.length < 32 &&
+          node.value.split('').every((v) => v.charCodeAt(0) < 127)
+        ) {
+          return [`'${node.value}'`];
+        }
+        return [`0x${node.hexValue}`];
       }
       case LiteralKind.HexString:
         switch (primitiveTypeToCairo(node.typeString)) {
