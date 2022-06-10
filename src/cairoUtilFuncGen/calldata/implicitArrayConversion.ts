@@ -28,7 +28,7 @@ import { StorageWriteGen } from '../storage/storageWrite';
 // The first is that any static calldata array can become a larger storage static array uint[2] -> uint[3].
 // The second is that any static calldata array can become a dynamic calldata array uint[2] -> uint[].
 // The third is that any int can become a larger int in the above two cases uint8[2] -> uint256[]
-export class StaticToDynArray extends StringIndexedFuncGen {
+export class ImplicitArrayConversion extends StringIndexedFuncGen {
   constructor(
     private storageWriteGen: StorageWriteGen,
     private dynArrayGen: DynArrayGen,

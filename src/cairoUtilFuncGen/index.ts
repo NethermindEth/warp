@@ -17,7 +17,7 @@ import { DynArrayPushWithArgGen } from './storage/dynArrayPushWithArg';
 import { DynArrayPushWithoutArgGen } from './storage/dynArrayPushWithoutArg';
 import { CallDataToMemoryGen } from './calldata/calldataToMemory';
 import { ExternalDynArrayStructConstructor } from './calldata/externalDynArray/externalDynArrayStructConstructor';
-import { StaticToDynArray } from './calldata/staticToDynamic2';
+import { ImplicitArrayConversion } from './calldata/implicitArrayConversion';
 import { MappingIndexAccessGen } from './storage/mappingIndexAccess';
 import { StorageStaticArrayIndexAccessGen } from './storage/staticArrayIndexAccess';
 import { StorageDeleteGen } from './storage/storageDelete';
@@ -38,7 +38,7 @@ export class CairoUtilFuncGen {
   calldata: {
     toMemory: CallDataToMemoryGen;
     toStorage: CalldataToStorageGen;
-    convert: StaticToDynArray;
+    convert: ImplicitArrayConversion;
   };
   memory: {
     arrayLiteral: MemoryArrayLiteralGen;
@@ -172,7 +172,7 @@ export class CairoUtilFuncGen {
     };
     this.calldata = {
       toMemory: new CallDataToMemoryGen(ast, sourceUnit),
-      convert: new StaticToDynArray(
+      convert: new ImplicitArrayConversion(
         storageWrite,
         this.implementation.dynArray,
         this.storage.dynArrayIndexAccess,
