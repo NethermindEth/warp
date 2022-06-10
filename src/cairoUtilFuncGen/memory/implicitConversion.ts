@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  AddressType,
   ArrayType,
   ASTNode,
   DataLocation,
@@ -15,7 +16,7 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { isDynamicArray } from '../../utils/nodeTypeProcessing';
+import { isDynamicArray, isValueType } from '../../utils/nodeTypeProcessing';
 import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { CairoFunction, StringIndexedFuncGen } from '../base';
@@ -76,6 +77,19 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     // (uintX[] -> uint256[])
     if (targetBaseCairoType.width > sourceBaseCairoType.width)
       return [this.gen(sourceExpression, targetType, nodeInSourceUnit), true];
+
+    const [generalisedSourceType, sourceLocation] = generalizeType(sourceType);
+    const generalisedTargetType = generalizeType(targetType)[0];
+
+    // Currently only supports int / uint / address
+    if (
+      isArrayConversionNeeded(generalisedSourceType, generalisedTargetType) &&
+      sourceLocation === DataLocation.Memory &&
+      isValueType(sourceBaseType) &&
+      isValueType(targetBaseType)
+    ) {
+      return [this.gen(sourceExpression, targetType, nodeInSourceUnit), true];
+    }
 
     return [sourceExpression, false];
   }
@@ -154,9 +168,17 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       const targetBits = targetType.elementT.nBits;
       conversionCode = [
         `let (source_elem) = ${sourceRead}(${sourceLoc})`,
-        targetType.elementT.signed
+        sourceBits !== targetBits
           ? `let (target_elem) = warp_int${sourceBits}_to_int${targetBits}(source_elem)`
-          : `let (target_elem) = felt_to_uint256(source_elem)`,
+          : `let target_elem = source_elem`,
+      ];
+    } else if (targetType.elementT instanceof AddressType) {
+      assert(sourceType.elementT instanceof AddressType);
+      conversionCode = [
+        `let (source_elem) = ${this.memoryRead.getOrCreate(
+          cairoSourceElementType,
+        )}(source_elem_loc)`,
+        `let target_elem = source_elem`,
       ];
     } else {
       const allocSize = isDynamicArray(sourceType.elementT) ? 2 : cairoSourceElementType.width;
@@ -199,7 +221,11 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       this.requireImport('starkware.cairo.common.math_cmp', 'is_le');
     }
     if (targetType.elementT instanceof IntType) {
-      if (targetType.elementT.signed) {
+      if (
+        targetType.elementT instanceof IntType &&
+        sourceType.elementT instanceof IntType &&
+        sourceType.elementT.nBits !== targetType.elementT.nBits
+      ) {
         assert(sourceType.elementT instanceof IntType);
         this.requireImport(
           'warplib.maths.int_conversions',
@@ -212,6 +238,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       this.requireImport('warplib.memory', 'wm_read_id');
     }
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('warplib.memory', 'wm_alloc');
 
     return { name: funcName, code: code };
   }
@@ -261,9 +288,18 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
         `let (source_elem) = ${this.memoryRead.getOrCreate(
           cairoSourceElementType,
         )}(source_elem_loc)`,
-        targetType.elementT.signed
+        sourceType.elementT.nBits !== targetType.elementT.nBits
           ? `let (target_elem) = warp_int${sourceType.elementT.nBits}_to_int${targetType.elementT.nBits}(source_elem)`
-          : `let (target_elem) = felt_to_uint256(source_elem)`,
+          : `let target_elem = source_elem`,
+      ];
+    } else if (targetType.elementT instanceof AddressType) {
+      assert(sourceType.elementT instanceof AddressType);
+      conversionCode = [
+        ...getSourceLoc,
+        `let (source_elem) = ${this.memoryRead.getOrCreate(
+          cairoSourceElementType,
+        )}(source_elem_loc)`,
+        `let target_elem = source_elem`,
       ];
     } else {
       conversionCode = [
@@ -312,8 +348,11 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     if (sourceType.elementT instanceof PointerType) {
       this.requireImport('warplib.memory', 'wm_read_felt');
     }
-    if (targetType.elementT instanceof IntType && targetType.elementT.signed) {
-      assert(sourceType.elementT instanceof IntType);
+    if (
+      targetType.elementT instanceof IntType &&
+      sourceType.elementT instanceof IntType &&
+      sourceType.elementT.nBits !== targetType.elementT.nBits
+    ) {
       this.requireImport(
         'warplib.maths.int_conversions',
         `warp_int${sourceType.elementT.nBits}_to_int${targetType.elementT.nBits}`,
@@ -325,6 +364,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
     this.requireImport('warplib.memory', 'wm_index_dyn');
+    this.requireImport('warplib.memory', 'wm_new');
 
     return { name: funcName, code: code };
   }
@@ -347,4 +387,22 @@ function getNestedNumber(type: TypeNode): string {
 
 function getOffset(index: string, offset: number): string {
   return offset === 0 ? '' : offset === 1 ? `+ ${index}` : `+ ${index} * ${offset}`;
+}
+
+// Returns true if dimension number of arrays are equal
+// and at least 1 corresponding dimension is not same in terms of static/dynamic
+function isArrayConversionNeeded(sourceType: TypeNode, targetType: TypeNode): boolean {
+  while (sourceType instanceof ArrayType && targetType instanceof ArrayType) {
+    if (
+      (sourceType.size === undefined && targetType.size !== undefined) ||
+      (sourceType.size !== undefined && targetType.size === undefined)
+    ) {
+      return true;
+    } else {
+      sourceType = sourceType.elementT;
+      targetType = targetType.elementT;
+    }
+  }
+
+  return false;
 }

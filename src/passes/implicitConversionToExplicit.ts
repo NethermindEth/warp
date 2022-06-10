@@ -281,15 +281,6 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
         ast.replaceNode(expression, replacement, parent);
       }
     }
-    // if (expression instanceof TupleExpression && expression.isInlineArray) {
-    //   expression.vOriginalComponents.forEach((element) => {
-    //     assert(element !== null, `Unexpected empty slot in inline array ${printNode(expression)}`);
-    //     insertConversionIfNecessary(element, elementT, ast);
-    //   });
-    //   expression.typeString = generateExpressionTypeString(
-    //     specializeType(targetType, DataLocation.Memory),
-    //   );
-    // }
   } else if (currentType instanceof BoolType) {
     assert(
       generalisedTargetType instanceof BoolType,
