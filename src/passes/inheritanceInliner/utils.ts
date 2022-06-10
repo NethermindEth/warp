@@ -3,6 +3,7 @@ import {
   ASTNode,
   EmitStatement,
   EventDefinition,
+  FunctionCall,
   FunctionDefinition,
   Identifier,
   IdentifierPath,
@@ -15,6 +16,7 @@ import { AST } from '../../ast/ast';
 import { CairoContract } from '../../ast/cairoNodes';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCallToEvent } from '../../utils/functionGeneration';
+import { isExternalCall } from '../../utils/utils';
 
 export function getBaseContracts(node: CairoContract): CairoContract[] {
   return node.vLinearizedBaseContracts.slice(1).map((cc) => {
@@ -53,6 +55,7 @@ export function updateReferencedDeclarations(
         node.name = remapping.name;
       }
     } else if (node instanceof MemberAccess) {
+      if (node.parent instanceof FunctionCall && isExternalCall(node.parent)) return;
       const remapping = idRemapping.get(node.referencedDeclaration);
       if (remapping !== undefined) {
         ast.replaceNode(

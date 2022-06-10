@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   ContractDefinition,
+  ContractKind,
   Expression,
   ExpressionStatement,
   FunctionDefinition,
@@ -95,6 +96,10 @@ export function solveConstructorInheritance(
   // Contracts marked as abstract won't be deployed
   if (node.abstract) {
     removeModifiersFromConstructor(node);
+    return;
+  }
+
+  if (node.kind === ContractKind.Interface) {
     return;
   }
 

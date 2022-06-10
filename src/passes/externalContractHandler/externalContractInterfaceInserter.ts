@@ -88,7 +88,7 @@ function importExternalContract(
   contractInterfaces.set(contract.id, genContractInterface(contract, sourceUnit, ast));
 }
 
-function genContractInterface(
+export function genContractInterface(
   contract: ContractDefinition,
   sourceUnit: SourceUnit,
   ast: AST,

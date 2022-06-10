@@ -2,7 +2,7 @@ import {
   ContractDefinition,
   ContractKind,
   FunctionCall,
-  FunctionKind,
+  getNodeType,
   Identifier,
   MemberAccess,
   SourceUnit,
@@ -10,10 +10,10 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { createAddressTypeName } from '../../utils/nodeTemplates';
-import { cloneASTNode } from '../../utils/cloning';
 import { CairoContract } from '../../ast/cairoNodes';
-import { mangleOwnContractInterface } from '../../utils/utils';
+import { mangleOwnContractInterface, typeNameFromTypeNode } from '../../utils/utils';
+import { genContractInterface } from '../externalContractHandler/externalContractInterfaceInserter';
+import { assert } from 'console';
 
 export class ThisKeyword extends ASTMapper {
   visitIdentifier(node: Identifier, ast: AST): void {
@@ -22,7 +22,7 @@ export class ThisKeyword extends ASTMapper {
         createCairoFunctionStub(
           'get_contract_address',
           [],
-          [['address', createAddressTypeName(false, ast)]],
+          [['address', typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast)]],
           ['syscall_ptr'],
           ast,
           node,
@@ -47,87 +47,43 @@ export class ThisKeyword extends ASTMapper {
       node.vExpression.vExpression instanceof Identifier &&
       node.vExpression.vExpression.name === 'this'
     ) {
-      const replacementCall = createCallToFunction(
-        createCairoFunctionStub(
-          'get_contract_address',
-          [],
-          [['address', createAddressTypeName(false, ast)]],
-          ['syscall_ptr'],
-          ast,
-          node,
-        ),
-        [],
-        ast,
-      );
       const currentContract = node.getClosestParentByType(ContractDefinition);
       const sourceUnit = node.getClosestParentByType(SourceUnit);
       if (currentContract && sourceUnit) {
-        // check if currentContract.name is in sourceUnit.vContracts[]
+        // check if the interface has already been added
         const contractIndex = sourceUnit.vContracts.findIndex(
           (contract) => contract.name === mangleOwnContractInterface(currentContract),
         );
-        if (contractIndex === -1)
-          genCairoContractInterface(
-            currentContract,
-            sourceUnit,
-            ast,
-            mangleOwnContractInterface(currentContract),
-          );
+        if (contractIndex === -1) {
+          const insertedInterface = genContractInterface(currentContract, sourceUnit, ast);
+          replaceInterfaceWithCairoContract(insertedInterface, ast);
+        }
       }
-      replacementCall.typeString = currentContract
-        ? `contract ${mangleOwnContractInterface(currentContract)}`
-        : replacementCall.typeString;
-      ast.replaceNode(node.vExpression.vExpression, replacementCall);
-      ast.registerImport(
-        replacementCall,
-        'starkware.starknet.common.syscalls',
-        'get_contract_address',
-      );
     }
     this.commonVisit(node, ast);
   }
 }
 
-function genCairoContractInterface(
-  contract: ContractDefinition,
-  sourceUnit: SourceUnit,
-  ast: AST,
-  contractName: string,
-): ContractDefinition {
-  const contractId = ast.reserveId();
-  const contractInterface = new CairoContract(
-    contractId,
-    '',
-    contractName,
-    sourceUnit.id,
-    ContractKind.Interface,
-    contract.abstract,
-    false,
-    contract.linearizedBaseContracts,
-    contract.usedErrors,
+function replaceInterfaceWithCairoContract(node: ContractDefinition, ast: AST): void {
+  assert(node.kind === ContractKind.Interface);
+  const replacement = new CairoContract(
+    node.id,
+    node.src,
+    node.name,
+    node.scope,
+    node.kind,
+    node.abstract,
+    node.fullyImplemented,
+    node.linearizedBaseContracts,
+    node.usedErrors,
     new Map(),
     new Map(),
     0,
     0,
+    node.documentation,
+    [...node.children],
+    node.nameLocation,
+    node.raw,
   );
-
-  contract.vFunctions
-    .filter((func) => func.kind !== FunctionKind.Constructor)
-    .forEach((func) => {
-      const funcBody = func.vBody;
-      func.vBody = undefined;
-      const funcClone = cloneASTNode(func, ast);
-
-      // TODO check whether it's worth detaching all bodies in the contract's functions,
-      // cloning the entire contract, then reattaching (can anything in the function but
-      // not the body reference the containing contract other than .scope?)
-      funcClone.scope = contractId;
-      funcClone.implemented = false;
-      func.vBody = funcBody;
-      contractInterface.appendChild(funcClone);
-      ast.registerChild(funcClone, contractInterface);
-    });
-  sourceUnit.appendChild(contractInterface);
-  ast.registerChild(contractInterface, sourceUnit);
-  return contractInterface;
+  ast.replaceNode(node, replacement);
 }

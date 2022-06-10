@@ -398,3 +398,10 @@ export function mangleOwnContractInterface(contractOrName: ContractDefinition | 
   const name = typeof contractOrName === 'string' ? contractOrName : contractOrName.name;
   return `${name}_interface`;
 }
+
+export function isExternalCall(node: FunctionCall): boolean {
+  return (
+    node.vReferencedDeclaration instanceof FunctionDefinition &&
+    isExternallyVisible(node.vReferencedDeclaration)
+  );
+}

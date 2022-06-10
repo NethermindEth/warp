@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { FunctionDefinition, FunctionKind, FunctionVisibility } from 'solc-typed-ast';
+import { ContractKind, FunctionDefinition, FunctionKind, FunctionVisibility } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoContract } from '../../ast/cairoNodes';
 import { printNode } from '../../utils/astPrinter';
@@ -18,6 +18,7 @@ export function addPrivateSuperFunctions(
   idRemappingOverriders: Map<number, FunctionDefinition>,
   ast: AST,
 ): void {
+  if (node.kind === ContractKind.Interface) return;
   const currentFunctions: Map<string, FunctionDefinition> = new Map();
   // collect functions in the current contract
   node.vFunctions.forEach((f) => currentFunctions.set(f.name, f));
