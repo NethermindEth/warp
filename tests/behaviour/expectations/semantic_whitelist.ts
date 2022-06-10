@@ -907,7 +907,6 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/mapping_returns_in_library.sol', // STRETCH conditional
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_address_named_send_transfer.sol', // WILL NOT SUPPORT raw address calls
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_interface.sol', // STRETCH new
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/using_library_structs.sol', // nested dynarray inputs
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/external_call_with_function_pointer_parameter.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_external_function.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_function_named_selector.sol', // WILL NOT SUPPORT function objects

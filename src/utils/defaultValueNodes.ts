@@ -12,7 +12,6 @@ import {
   getNodeType,
   Identifier,
   IntType,
-  MappingType,
   MemberAccess,
   NewExpression,
   PointerType,
@@ -26,12 +25,14 @@ import {
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from './astPrinter';
 import { NotSupportedYetError } from './errors';
+import { generateExpressionTypeString } from './getTypeString';
 import {
   createAddressTypeName,
   createBoolLiteral,
   createNumberLiteral,
   createStringLiteral,
 } from './nodeTemplates';
+import { isStorageSpecificType } from './nodeTypeProcessing';
 import { typeNameFromTypeNode } from './utils';
 
 export function getDefaultValue(
@@ -39,13 +40,13 @@ export function getDefaultValue(
   parentNode: Expression | VariableDeclaration,
   ast: AST,
 ): Expression {
-  if (nodeType instanceof AddressType) return addressDefault(nodeType, parentNode, ast);
+  if (isStorageSpecificType(nodeType, ast)) return intDefault(nodeType, parentNode, ast);
+  else if (nodeType instanceof AddressType) return addressDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof ArrayType) return arrayDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof BytesType) return bytesDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof BoolType) return boolDefault(parentNode, ast);
   else if (nodeType instanceof FixedBytesType) return fixedBytesDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof IntType) return intDefault(nodeType, parentNode, ast);
-  else if (nodeType instanceof MappingType) return intDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof PointerType) return pointerDefault(nodeType, parentNode, ast);
   else if (nodeType instanceof StringType) return stringDefault(parentNode, ast);
   else if (nodeType instanceof UserDefinedType) return userDefDefault(nodeType, parentNode, ast);
@@ -58,7 +59,7 @@ function intDefault(
   parentNode: Expression | VariableDeclaration,
   ast: AST,
 ): Expression {
-  return createNumberLiteral(0, ast, node.pp());
+  return createNumberLiteral(0, ast, generateExpressionTypeString(node));
 }
 
 function fixedBytesDefault(

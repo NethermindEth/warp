@@ -235,3 +235,14 @@ export function getSize(type: ArrayType | BytesType | StringType): bigint | unde
     return undefined;
   }
 }
+
+export function isStorageSpecificType(type: TypeNode, ast: AST): boolean {
+  if (type instanceof MappingType) return true;
+  if (type instanceof PointerType) return isStorageSpecificType(type.to, ast);
+  if (type instanceof ArrayType) return isStorageSpecificType(type.elementT, ast);
+  if (type instanceof UserDefinedType && type.definition instanceof StructDefinition)
+    return type.definition.vMembers.some((m) =>
+      isStorageSpecificType(getNodeType(m, ast.compilerVersion), ast),
+    );
+  return false;
+}
