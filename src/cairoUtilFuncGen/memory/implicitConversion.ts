@@ -1,7 +1,9 @@
 import assert from 'assert';
 import {
+  AddressType,
   ArrayType,
   DataLocation,
+  EnumDefinition,
   Expression,
   FixedBytesType,
   FunctionCall,
@@ -11,6 +13,7 @@ import {
   PointerType,
   SourceUnit,
   TypeNode,
+  UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
@@ -374,6 +377,8 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     } else if (targetType instanceof PointerType) {
       assert(sourceType instanceof PointerType);
       return `let (target_elem) = ${this.getOrCreate(targetType, sourceType)}(source_elem)`;
+    } else if (isNoScalableType(targetType)) {
+      return `let target_elem = source_elem`;
     } else {
       throw new TranspileFailedError(
         `Cannot scale ${printTypeNode(sourceType)} into ${printTypeNode(
@@ -448,11 +453,18 @@ function differentSizeArrays(targetType: TypeNode, sourceType: TypeNode): boolea
     return differentSizeArrays(targetType.elementT, sourceType.elementT);
   }
 
-  if (isDynamicArray(sourceType)) {
+  if (isDynamicArray(targetType)) {
     return true;
   }
   assert(targetType.size !== undefined && sourceType.size !== undefined);
   if (targetType.size > sourceType.size) return true;
 
   return differentSizeArrays(targetType.elementT, sourceType.elementT);
+}
+
+function isNoScalableType(type: TypeNode) {
+  return (
+    type instanceof AddressType ||
+    (type instanceof UserDefinedType && type.definition instanceof EnumDefinition)
+  );
 }
