@@ -49,10 +49,10 @@ export class References extends ASTMapper {
         root,
         ast,
       );
-      new DataAccessFunctionaliser(actualDataLocations, expectedDataLocations).dispatchVisit(
-        root,
-        ast,
-      );
+      // new DataAccessFunctionaliser(actualDataLocations, expectedDataLocations).dispatchVisit(
+      //   root,
+      //   ast,
+      // );
     });
     return ast;
   }
