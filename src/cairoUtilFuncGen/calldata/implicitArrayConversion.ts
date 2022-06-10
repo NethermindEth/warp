@@ -22,7 +22,8 @@ import { getBaseType, getNestedNumber } from '../memory/implicitConversion';
 import { DynArrayGen } from '../storage/dynArray';
 import { DynArrayIndexAccessGen } from '../storage/dynArrayIndexAccess';
 import { StorageWriteGen } from '../storage/storageWrite';
-// ADD WARP_USED_STORAGE!
+
+// STILL LOOKED FOR UTIL THAT CREATES UINT256STRUCT CONSTRUCTOR.
 // There are 3 conditions here:
 // These are only supported with ints.
 // The first is that any static calldata array can become a larger storage static array uint[2] -> uint[3].
@@ -56,11 +57,13 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
   checkSizes(targetType: TypeNode, sourceType: TypeNode): boolean {
     const targetBaseType = getBaseType(targetType);
     const sourceBaseType = getBaseType(sourceType);
-    assert(targetBaseType instanceof IntType && sourceBaseType instanceof IntType);
-    return (
-      (targetBaseType.nBits > sourceBaseType.nBits && sourceBaseType.signed) ||
-      (!targetBaseType.signed && targetBaseType.nBits === 256 && 256 > sourceBaseType.nBits)
-    );
+    if (targetBaseType instanceof IntType && sourceBaseType instanceof IntType) {
+      return (
+        (targetBaseType.nBits > sourceBaseType.nBits && sourceBaseType.signed) ||
+        (!targetBaseType.signed && targetBaseType.nBits === 256 && 256 > sourceBaseType.nBits)
+      );
+    }
+    return false;
   }
 
   checkDims(targetType: TypeNode, sourceType: TypeNode): boolean {
@@ -257,7 +260,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const implicit =
       '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
     const code = [
-      `func ${funcName}${implicit}(storage_loc: felt, arg: ${cairoSourceTypeString}) -> ():`,
+      `func ${funcName}${implicit}(storage_loc: felt, arg: ${cairoSourceTypeString}):`,
       `alloc_locals`,
       ...writeCode,
       '    return ()',
@@ -379,7 +382,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const implicit =
       '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
     const code = [
-      `func ${funcName}${implicit}(ref: felt, arg: ${cairoSourceTypeString}) -> ():`,
+      `func ${funcName}${implicit}(ref: felt, arg: ${cairoSourceTypeString}):`,
       `     alloc_locals`,
       isDynamicStorageArray(targetType)
         ? `    ${dynArrayLengthName}.write(ref, Uint256(${sourceType.to.size}, 0))`
@@ -406,8 +409,8 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
 
     assert(targetType.to.size === undefined && sourceType.to.size === undefined);
 
-    const targetElementType = targetType.to.elementT;
-    const sourceElementType = sourceType.to.elementT;
+    const targetElmType = targetType.to.elementT;
+    const sourceElmType = sourceType.to.elementT;
 
     const funcName = `CD_DY_TO_WS_DY${this.generatedFunctions.size}`;
     this.generatedFunctions.set(key, { name: funcName, code: '' });
@@ -435,59 +438,57 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const implicit =
       '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
     const loaderName = `DY_LOADER${this.generatedFunctions.size}`;
-    this.requireImport('starkware.cairo.common.math', 'split_felt');
-    this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
     let code;
-    if (sourceElementType instanceof IntType && targetElementType instanceof IntType) {
-      this.requireImport(
-        'warplib.maths.int_conversions',
-        `warp_int${sourceElementType.nBits}_to_int${targetElementType.nBits}`,
-      );
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+    if (sourceElmType instanceof IntType && targetElmType instanceof IntType) {
       code = [
-        `func ${loaderName}${implicit}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt ):`,
+        `func ${loaderName}${implicit}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt):`,
         `    alloc_locals`,
         `    if len == 0:`,
         `      return ()`,
         `    end`,
-        `    let (loc) = ${this.dynArrayIndexAccessGen.getOrCreate(
-          targetElementType,
+        `    let (storage_loc) = ${this.dynArrayIndexAccessGen.getOrCreate(
+          targetElmType,
         )}(ref, Uint256(target_index, 0))`,
         `    let target_index = target_index + 1`,
-        sourceElementType.signed
-          ? `    let (val) = warp_int${sourceElementType.nBits}_to_int${targetElementType.nBits}(ptr[0])`
+        sourceElmType.signed
+          ? `    let (val) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(ptr[0])`
           : `    let (val) = felt_to_uint256(ptr[0])`,
-        `    ${this.storageWriteGen.getOrCreate(targetElementType)}(loc, val)`,
+        `    ${this.storageWriteGen.getOrCreate(targetElmType)}(storage_loc, val)`,
         `    return ${loaderName}(ref, len - 1, ptr + ${cairoSourceElementType.width}, target_index)`,
         `end`,
         ``,
 
-        `func ${funcName}${implicit}(ref: felt, source: ${cairoSourceTypeString}) -> ():`,
+        `func ${funcName}${implicit}(ref: felt, source: ${cairoSourceTypeString}):`,
         `     alloc_locals`,
         `    ${dynArrayLengthName}.write(ref, Uint256(source.len, 0))`,
         `    ${loaderName}(ref, source.len, source.ptr, 0)`,
         '    return ()',
         'end',
       ].join('\n');
+      this.requireImport(
+        'warplib.maths.int_conversions',
+        `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
+      );
+      this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     } else {
       code = [
-        `func ${loaderName}${implicit}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt ):`,
+        `func ${loaderName}${implicit}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt):`,
         `    alloc_locals`,
         `    if len == 0:`,
         `      return ()`,
         `    end`,
-        `    let (loc) = ${this.dynArrayIndexAccessGen.getOrCreate(
-          targetElementType,
+        `    let (storage_loc) = ${this.dynArrayIndexAccessGen.getOrCreate(
+          targetElmType,
         )}(ref, Uint256(target_index, 0))`,
-        isDynamicStorageArray(targetElementType)
-          ? `let (ref0) = readId(loc)
-          ${this.getOrCreate(targetElementType, sourceElementType)}(ref0, ptr[0])`
-          : `    ${this.getOrCreate(targetElementType, sourceElementType)}(loc, ptr[0])`,
-        `    return ${loaderName}(ref, len - 1, ptr + ${cairoSourceType.ptr_member.width}, target_index+1)`,
+        isDynamicStorageArray(targetElmType)
+          ? `let (ref_name) = readId(storage_loc)
+          ${this.getOrCreate(targetElmType, sourceElmType)}(ref_name, ptr[0])`
+          : `    ${this.getOrCreate(targetElmType, sourceElmType)}(storage_loc, ptr[0])`,
+        `    return ${loaderName}(ref, len - 1, ptr + ${cairoSourceType.ptr_member.width}, target_index + 1)`,
         `end`,
         ``,
 
-        `func ${funcName}${implicit}(ref: felt, source: ${cairoSourceTypeString}) -> ():`,
+        `func ${funcName}${implicit}(ref: felt, source: ${cairoSourceTypeString}):`,
         `     alloc_locals`,
         `    ${dynArrayLengthName}.write(ref, Uint256(source.len, 0))`,
         `    ${loaderName}(ref, source.len, source.ptr, 0)`,
