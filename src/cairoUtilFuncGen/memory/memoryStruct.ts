@@ -30,7 +30,8 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       TypeConversionContext.MemoryAllocation,
     );
     assert(cairoType instanceof CairoStruct);
-    const name = this.getOrCreate(cairoType);
+    // Struct writes are generated in the defining struct's scope
+    const name = this.ast.getUtilFuncGen(structDef).memory.struct.getOrCreate(cairoType);
 
     const stub = createCairoFunctionStub(
       name,
@@ -59,11 +60,9 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       ],
       ['range_check_ptr', 'warp_memory'],
       this.ast,
-      node,
+      structDef,
     );
 
-    stub.vScope.removeChild(stub);
-    structDef.vScope.appendChild(stub);
     structDef.vScope.acceptChildren();
 
     return createCallToFunction(stub, node.vArguments, this.ast);
@@ -99,6 +98,7 @@ export class MemoryStructGen extends StringIndexedFuncGen {
 
     this.requireImport('warplib.memory', 'wm_alloc');
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
+    this.requireImport('starkware.cairo.common.dict', 'DictAccess');
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
 
     return funcName;
