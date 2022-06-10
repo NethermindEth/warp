@@ -55,9 +55,8 @@ export function updateReferencedDeclarations(
         node.name = remapping.name;
       }
     } else if (node instanceof MemberAccess) {
-      if (node.parent instanceof FunctionCall && isExternalCall(node.parent)) return;
       const remapping = idRemapping.get(node.referencedDeclaration);
-      if (remapping !== undefined) {
+      if (remapping !== undefined && !node.typeString.includes(' external ')) {
         ast.replaceNode(
           node,
           new Identifier(
