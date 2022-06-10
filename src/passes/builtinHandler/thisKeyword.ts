@@ -11,8 +11,11 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { CairoContract } from '../../ast/cairoNodes';
-import { mangleOwnContractInterface, typeNameFromTypeNode } from '../../utils/utils';
-import { genContractInterface } from '../externalContractHandler/externalContractInterfaceInserter';
+import { typeNameFromTypeNode } from '../../utils/utils';
+import {
+  genContractInterface,
+  getTemporaryInterfaceName,
+} from '../externalContractHandler/externalContractInterfaceInserter';
 import { assert } from 'console';
 
 export class ThisKeyword extends ASTMapper {
@@ -52,7 +55,7 @@ export class ThisKeyword extends ASTMapper {
       if (currentContract && sourceUnit) {
         // check if the interface has already been added
         const contractIndex = sourceUnit.vContracts.findIndex(
-          (contract) => contract.name === mangleOwnContractInterface(currentContract),
+          (contract) => contract.name === getTemporaryInterfaceName(currentContract.name),
         );
         if (contractIndex === -1) {
           const insertedInterface = genContractInterface(currentContract, sourceUnit, ast);
