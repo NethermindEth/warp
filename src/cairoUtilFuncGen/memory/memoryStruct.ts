@@ -98,7 +98,7 @@ export class MemoryStructGen extends StringIndexedFuncGen {
 
     this.requireImport('warplib.memory', 'wm_alloc');
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
-    this.requireImport('starkware.cairo.common.dict', 'DictAccess');
+    this.requireImport('starkware.cairo.common.dict_access', 'DictAccess');
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
 
     return funcName;

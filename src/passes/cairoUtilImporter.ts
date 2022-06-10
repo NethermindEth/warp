@@ -1,4 +1,4 @@
-import { ElementaryTypeName } from 'solc-typed-ast';
+import { ElementaryTypeName, getNodeType, IntLiteralType, IntType, Literal } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
@@ -13,6 +13,13 @@ import { isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
 export class CairoUtilImporter extends ASTMapper {
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
     if (primitiveTypeToCairo(node.name) === 'Uint256') {
+      ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
+    }
+  }
+
+  visitLiteral(node: Literal, ast: AST): void {
+    const type = getNodeType(node, ast.compilerVersion);
+    if (type instanceof IntType && type.nBits > 251) {
       ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
     }
   }
