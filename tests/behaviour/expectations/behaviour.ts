@@ -579,6 +579,7 @@ export const expectations = flatten(
             ),
             Expect.Simple('scalingIntDynamic', [], ['3', '65535', '5', '10']),
             Expect.Simple('scalingIntStatic', [], ['4294967294', '4', '9', '0', '0']),
+            Expect.Simple('wideningBytes', [], ['2', '65280', '65280']),
             Expect.Simple(
               'nestedStaticToDynamic',
               [],

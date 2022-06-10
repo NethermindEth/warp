@@ -47,12 +47,21 @@ contract WARP {
         w = m;
         return w;
     }
+
+
+    //------ Simmple bytes -----
     
+    bytes2[] b2;
+
+    function wideningBytes() public returns (bytes2[] memory) {
+        bytes1[2] memory mb1 = [bytes1(0xff), bytes1(0xff)];
+        b2 = mb1;
+        return b2;
+    }
 
     //------ Nested uint ------ 
 
     uint[][] xx;
-    uint[][] xxt;
     uint[3][3] yy;
     uint[2][2][2] yyy;
     uint[3][] xy;
@@ -80,7 +89,7 @@ contract WARP {
         uint8[3][3] memory m1 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
         xx = m1;
 
-        uint8[2][2] memory m2 = [[1, 2], [3, 4]];
+        uint[2][2] memory m2 = [[uint(1), uint(2)], [uint(3), uint(4)]];
         xx = m2;
 
         xx.push();
