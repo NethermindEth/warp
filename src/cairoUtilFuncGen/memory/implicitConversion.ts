@@ -52,12 +52,28 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     const targetBaseType = getBaseType(targetType);
     const sourceBaseType = getBaseType(sourceType);
 
+    console.log(
+      'Gen if necesary',
+      'target:',
+      printTypeNode(targetType),
+      'source',
+      printTypeNode(sourceType),
+    );
+
     // Cast Ints: intY[] -> intX[] with X > Y
     if (
       targetBaseType instanceof IntType &&
       sourceBaseType instanceof IntType &&
       targetBaseType.signed &&
       targetBaseType.nBits > sourceBaseType.nBits
+    ) {
+      return [this.gen(sourceExpression, targetType), true];
+    }
+
+    if (
+      targetBaseType instanceof FixedBytesType &&
+      sourceBaseType instanceof FixedBytesType &&
+      targetBaseType.size > sourceBaseType.size
     ) {
       return [this.gen(sourceExpression, targetType), true];
     }
@@ -191,7 +207,6 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       `   ${sourceLocationCode}`,
       `   ${conversionCode}`,
       `   ${targetCopyCode}`,
-      `   ${this.memoryWrite.getOrCreate(targetType.elementT)}(${targetLoc}, target_elem)`,
       `   return ${funcName}_copy(source, target, index + 1)`,
       `end`,
 
@@ -204,6 +219,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     ].join('\n');
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('warplib.memory', 'wm_alloc');
 
     return { name: funcName, code: code };
   }
@@ -241,9 +257,6 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
         )})`,
       );
     }
-    //sourceLocationCode.push(
-    //  `let (source_elem) = ${this.memoryRead.getOrCreate(cairoSourceElementType)}(source_elem_loc)`,
-    //);
 
     const conversionCode = `let (target_elem) = ${this.generateScalingCode(
       targetType.elementT,
@@ -265,7 +278,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       `       end`,
       `   end`,
       ...sourceLocationCode,
-      conversionCode,
+      `   ${conversionCode}`,
       ...targetCopyCode,
       `   let (next_index, _) = uint256_add(index, ${uint256(1)})`,
       `   return ${funcName}_copy(source, target, next_index, len)`,
@@ -282,6 +295,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
     this.requireImport('warplib.memory', 'wm_index_dyn');
+    this.requireImport('warplib.memory', 'wm_new');
 
     return { name: funcName, code: code };
   }
@@ -337,7 +351,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       `       end`,
       `   end`,
       ...sourceLocationCode,
-      conversionCode,
+      `   ${conversionCode}`,
       ...targetCopyCode,
       `   let (next_index, _) = uint256_add(index, ${uint256(1)})`,
       `   return ${funcName}_copy(source, target, next_index, len)`,
@@ -352,14 +366,10 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       `end`,
     ].join('\n');
 
-    // Import according to how the function was generated
-    if (sourceType.elementT instanceof PointerType) {
-      this.requireImport('warplib.memory', 'wm_read_felt');
-    }
-
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
     this.requireImport('warplib.memory', 'wm_index_dyn');
+    this.requireImport('warplib.memory', 'wm_new');
 
     return { name: funcName, code: code };
   }
@@ -414,9 +424,9 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     }
 
     const conversionFunc = targetType.size === 32 ? 'warp_bytes_widen_256' : 'warp_bytes_widen';
-    this.requireImport('warplib.maths.bytes_conversion', conversionFunc);
+    this.requireImport('warplib.maths.bytes_conversions', conversionFunc);
 
-    return `${conversionFunc}(${sourceVar}, ${widthDiff})`;
+    return `${conversionFunc}(${sourceVar}, ${widthDiff * 8})`;
   }
 }
 
@@ -425,14 +435,6 @@ function getBaseType(type: TypeNode): TypeNode {
   return deferencedType instanceof ArrayType
     ? getBaseType(deferencedType.elementT)
     : deferencedType;
-}
-
-function getNestedNumber(type: TypeNode): string {
-  const generalType = generalizeType(type)[0];
-  return generalType instanceof ArrayType
-    ? (generalType.size === undefined ? 'D' : `S${generalType.size}`) +
-        getNestedNumber(generalType.elementT)
-    : '';
 }
 
 function typesToCairoTypes(
