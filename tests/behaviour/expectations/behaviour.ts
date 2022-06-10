@@ -265,6 +265,8 @@ export const expectations = flatten(
               ['7', '1', '2', '3', '5', '6', '7', '8'],
             ),
             Expect.Simple('s5', [], ['5', '97', '97', '98', '98', '99']),
+            Expect.Simple('emptySingle', [], ['0']),
+            Expect.Simple('emptyMultiple', [], ['0']),
           ]),
         ]),
         new Dir('conditionals', [

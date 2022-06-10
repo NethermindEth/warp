@@ -30,4 +30,12 @@ contract WARP {
         string memory m = string.concat(h1, h2);
         return m;
     }
+
+    function emptySingle() public returns (string memory) {
+        return string.concat("");
+    }
+
+    function emptyMultiple() public returns (string memory) {
+        return string.concat("", "");
+    }
 }

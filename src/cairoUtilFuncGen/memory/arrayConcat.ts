@@ -136,6 +136,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     ].join('\n');
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     this.requireImport('warplib.memory', 'wm_new');
     argTypes.forEach((type) => {
       if (type instanceof PointerType) {
