@@ -518,7 +518,7 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('copy_calldata_to_storage', [
-          File.Simple('implictConversion', [
+          File.Simple('implictArrayConversion', [
             new Expect('A1', [['testa1', ['10', '20', '30'], ['30', '20', '10'], '0']]),
             new Expect('A2', [['testa2', ['10', '20', '30'], ['0', '0', '30', '20', '10'], '0']]),
             new Expect('A3', [['testa3', ['3', '10', '20', '30'], ['30', '20', '10'], '0']]),

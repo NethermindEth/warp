@@ -43,52 +43,48 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     targetExpression: Expression,
     sourceExpression: Expression,
   ): [Expression, boolean] {
-    const lhsType = generalizeType(getNodeType(targetExpression, this.ast.compilerVersion))[0];
-    const rhsType = generalizeType(getNodeType(sourceExpression, this.ast.compilerVersion))[0];
+    const targetType = generalizeType(getNodeType(targetExpression, this.ast.compilerVersion))[0];
+    const sourceType = generalizeType(getNodeType(sourceExpression, this.ast.compilerVersion))[0];
 
-    if (this.checkDims(lhsType, rhsType) || this.checkSizes(lhsType, rhsType)) {
+    if (this.checkDims(targetType, sourceType) || this.checkSizes(targetType, sourceType)) {
       return [this.gen(targetExpression, sourceExpression), true];
     } else {
       return [sourceExpression, false];
     }
   }
-  checkSizes(lhsType: TypeNode, rhsType: TypeNode): boolean {
-    const lhsBaseType = getBaseType(lhsType);
-    const rhsBaseType = getBaseType(rhsType);
-    assert(lhsBaseType instanceof IntType && rhsBaseType instanceof IntType);
+
+  checkSizes(targetType: TypeNode, sourceType: TypeNode): boolean {
+    const targetBaseType = getBaseType(targetType);
+    const sourceBaseType = getBaseType(sourceType);
+    assert(targetBaseType instanceof IntType && sourceBaseType instanceof IntType);
     return (
-      (lhsBaseType.nBits > rhsBaseType.nBits && rhsBaseType.signed) ||
-      (!lhsBaseType.signed && lhsBaseType.nBits === 256 && 256 > rhsBaseType.nBits)
+      (targetBaseType.nBits > sourceBaseType.nBits && sourceBaseType.signed) ||
+      (!targetBaseType.signed && targetBaseType.nBits === 256 && 256 > sourceBaseType.nBits)
     );
   }
-  // Right now this will only check that the uint[3] -> uint[4]
-  checkDims(lhsType: TypeNode, rhsType: TypeNode): boolean {
-    const lhsBaseType = generalizeType(lhsType)[0];
-    const rhsBaseType = generalizeType(rhsType)[0];
 
-    if (lhsBaseType instanceof ArrayType && rhsBaseType instanceof ArrayType) {
-      const lhsSize = lhsBaseType.size;
-      const rhsSize = rhsBaseType.size;
-      const lhsElm = generalizeType(lhsBaseType.elementT)[0];
-      const rhsElm = generalizeType(rhsBaseType.elementT)[0];
+  checkDims(targetType: TypeNode, sourceType: TypeNode): boolean {
+    const targetArray = generalizeType(targetType)[0];
+    const sourceArray = generalizeType(sourceType)[0];
 
-      //Checking for staticArrays
-      if (lhsSize !== undefined && rhsSize !== undefined) {
-        if (lhsSize > rhsSize) {
+    if (targetArray instanceof ArrayType && sourceArray instanceof ArrayType) {
+      const targetArrayElm = generalizeType(targetArray.elementT)[0];
+      const sourceArrayElm = generalizeType(sourceArray.elementT)[0];
+      // Check to see if this is done by another pass.
+      if (targetArray.size !== undefined && sourceArray.size !== undefined) {
+        if (targetArray.size > sourceArray.size) {
           return true;
-        } else if (lhsElm instanceof ArrayType && rhsElm instanceof ArrayType) {
-          return this.checkDims(lhsElm, rhsElm);
+        } else if (targetArrayElm instanceof ArrayType && sourceArrayElm instanceof ArrayType) {
+          return this.checkDims(targetArrayElm, sourceArrayElm);
         } else {
           return false;
         }
-      } else if (lhsSize === undefined && rhsSize !== undefined) {
+      } else if (targetArray.size === undefined && sourceArray.size !== undefined) {
         return true;
-      } else if (lhsSize === undefined && rhsSize === undefined)
-        if (lhsElm instanceof ArrayType && rhsElm instanceof ArrayType) {
-          return this.checkDims(lhsElm, rhsElm);
+      } else if (targetArray.size === undefined && sourceArray.size === undefined)
+        if (targetArrayElm instanceof ArrayType && sourceArrayElm instanceof ArrayType) {
+          return this.checkDims(targetArrayElm, sourceArrayElm);
         }
-    } else {
-      return false;
     }
     return false;
   }
@@ -105,11 +101,12 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
         ['lhs', typeNameFromTypeNode(lhsType, this.ast), DataLocation.Storage],
         ['rhs', typeNameFromTypeNode(rhsType, this.ast), DataLocation.CallData],
       ],
-      [['lhs', typeNameFromTypeNode(lhsType, this.ast), DataLocation.Storage]],
+      [],
       ['syscall_ptr', 'bitwise_ptr', 'range_check_ptr', 'pedersen_ptr', 'bitwise_ptr'],
       this.ast,
       rhs,
     );
+
     return createCallToFunction(
       functionStub,
       [cloneASTNode(lhs, this.ast), cloneASTNode(rhs, this.ast)],
@@ -145,6 +142,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const key = `${targetCairoType.fullStringRepresentation}_${targetBaseCairoType} -> ${
       sourceCairoType.fullStringRepresentation
     }_${getNestedNumber(targetType)}_${sourceBaseCairoType}_${getNestedNumber(sourceType)}`;
+
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
@@ -177,12 +175,11 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
         targetType.to.size >= sourceType.to.size,
     );
 
-    const targetElementType = targetType.to.elementT;
+    const targetElmType = targetType.to.elementT;
+    const sourceElmType = sourceType.to.elementT;
 
-    const funcName = `CD_ST_TO_ST${this.generatedFunctions.size}`;
+    const funcName = `CD_ST_TO_WS_ST${this.generatedFunctions.size}`;
     this.generatedFunctions.set(key, { name: funcName, code: '' });
-
-    const sourceElementType = sourceType.to.elementT;
 
     const cairoTargetElementType = CairoType.fromSol(
       targetType.to.elementT,
@@ -204,75 +201,66 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     assert(sizeSource !== undefined && sizeTarget !== undefined);
     // Make sure these are the right way round.
     let offset = 0;
-    const conversionCode = mapRange(sizeSource, (index) => {
-      if (targetElementType instanceof IntType) {
-        assert(sourceElementType instanceof IntType);
-        if (targetElementType.nBits === sourceElementType.nBits) {
-          const code = `     ${this.storageWriteGen.getOrCreate(targetElementType)}(${add(
-            'loc',
+    const writeCode = mapRange(sizeSource, (index) => {
+      let code;
+      if (targetElmType instanceof IntType) {
+        assert(sourceElmType instanceof IntType);
+        if (targetElmType.nBits === sourceElmType.nBits) {
+          code = `     ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
+            'storage_loc',
             offset,
-          )}, source_elem[${index}])`;
-          offset = offset + cairoTargetElementType.width;
-          return code;
-        } else if (targetElementType.signed) {
+          )}, arg[${index}])`;
+        } else if (targetElmType.signed) {
+          code = [
+            `    let (arg_${index}) = warp_int${sourceElmType.nBits}_to_int${
+              targetElmType.nBits
+            }(arg[${index}])
+            ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
+              'storage_loc',
+              offset,
+            )}, arg_${index})`,
+          ].join('\n');
           this.requireImport(
             'warplib.maths.int_conversions',
-            `warp_int${sourceElementType.nBits}_to_int${targetElementType.nBits}`,
+            `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
           );
-          const code = [
-            `    let (target_elem${index}) = warp_int${sourceElementType.nBits}_to_int${
-              targetElementType.nBits
-            }(source_elem[${index}])
-               ${this.storageWriteGen.getOrCreate(targetElementType)}(${add(
-              'loc',
-              offset,
-            )}, target_elem${index})`,
-          ].join('\n');
-          offset = offset + cairoTargetElementType.width;
-          return code;
         } else {
-          this.requireImport('warplib.maths.utils', 'felt_to_uint256');
-          const code = [
-            `    let (target_elem${index}) = felt_to_uint256(source_elem[${index}])`,
-            `    ${this.storageWriteGen.getOrCreate(targetElementType)}(${add(
-              'loc',
+          code = [
+            `    let (arg_${index}) = felt_to_uint256(arg[${index}])`,
+            `    ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
+              'storage_loc',
               offset,
-            )}, target_elem${index})`,
+            )}, arg_${index})`,
           ].join('\n');
-          offset = offset + cairoTargetElementType.width;
-          return code;
+          this.requireImport('warplib.maths.utils', 'felt_to_uint256');
         }
       } else {
-        let code;
-        if (isDynamicStorageArray(targetElementType)) {
+        if (isDynamicStorageArray(targetElmType)) {
           code = [
-            `let (ref_${index}) = readId(${add('loc', offset)})`,
-            `${this.getOrCreate(
-              targetElementType,
-              sourceElementType,
-            )}(ref_${index}, source_elem[${index}])`,
+            `let (ref_${index}) = readId(${add('storage_loc', offset)})`,
+            `${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}])`,
           ].join('\n');
         } else {
           code = [
-            `    ${this.getOrCreate(targetElementType, sourceElementType)}(${add(
-              'loc',
+            `    ${this.getOrCreate(targetElmType, sourceElmType)}(${add(
+              'storage_loc',
               offset,
-            )}, source_elem[${index}])`,
+            )}, arg[${index}])`,
           ].join('\n');
         }
-        offset = offset + cairoTargetElementType.width;
-        return code;
       }
+      offset = offset + cairoTargetElementType.width;
+      return code;
     });
 
     // TODO check implicit order does not matter. //Does not matter.
     const implicit =
       '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
     const code = [
-      `func ${funcName}${implicit}(loc: felt, source_elem: ${cairoSourceTypeString}) -> (loc: felt):`,
+      `func ${funcName}${implicit}(storage_loc: felt, arg: ${cairoSourceTypeString}) -> ():`,
       `alloc_locals`,
-      ...conversionCode,
-      '    return (loc)',
+      ...writeCode,
+      '    return ()',
       'end',
     ].join('\n');
 
@@ -292,12 +280,11 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
 
     assert(targetType.to.size === undefined && sourceType.to.size !== undefined);
 
-    const targetElementType = targetType.to.elementT;
+    const targetElmType = targetType.to.elementT;
+    const sourceElmType = sourceType.to.elementT;
 
     const funcName = `CD_ST_TO_WS_DY${this.generatedFunctions.size}`;
     this.generatedFunctions.set(key, { name: funcName, code: '' });
-
-    const sourceElementType = sourceType.to.elementT;
 
     const cairoTargetElementType = CairoType.fromSol(
       targetType.to.elementT,
@@ -317,93 +304,87 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
 
     assert(sizeSource !== undefined);
     // Make sure these are the right way round.
-    let offset = 0;
+
     const dynArrayLengthName = this.dynArrayGen.gen(cairoTargetElementType)[1];
-    const conversionCode = mapRange(sizeSource, (index) => {
-      if (targetElementType instanceof IntType) {
-        assert(sourceElementType instanceof IntType);
-        if (targetElementType.nBits === sourceElementType.nBits) {
-          const code = [
-            `    let target_elem${index} = source_elem[${index}]`,
-            `    let (loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
-              targetElementType,
+    const writeCode = mapRange(sizeSource, (index) => {
+      let code;
+      if (targetElmType instanceof IntType) {
+        assert(sourceElmType instanceof IntType);
+        if (targetElmType.nBits === sourceElmType.nBits) {
+          code = [
+            `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
+              targetElmType,
             )}(ref, Uint256(${index}, 0))`,
             `    ${this.storageWriteGen.getOrCreate(
-              targetElementType,
-            )}(loc${index}, target_elem${index})`,
+              targetElmType,
+            )}(storage_loc${index}, arg[${index}])`,
           ].join('\n');
-          return code;
-        } else if (targetElementType.signed) {
+        } else if (targetElmType.signed) {
+          // TODO find util to convert index to Uint256
+          code = [
+            `    let (arg_${index}) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(arg[${index}])`,
+            `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
+              targetElmType,
+            )}(ref, Uint256(${index}, 0))`,
+            `    ${this.storageWriteGen.getOrCreate(
+              targetElmType,
+            )}(storage_loc${index}, arg_${index})`,
+          ].join('\n');
+
           this.requireImport(
             'warplib.maths.int_conversions',
-            `warp_int${sourceElementType.nBits}_to_int${targetElementType.nBits}`,
+            `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
           );
           this.requireImport('starkware.cairo.common.uint256', 'Uint256');
           this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
-          // TODO find util to convert index to Uint256
-          const code = [
-            `    let (target_elem${index}) = warp_int${sourceElementType.nBits}_to_int${targetElementType.nBits}(source_elem[${index}])`,
-            `    let (loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
-              targetElementType,
-            )}(ref, Uint256(${index}, 0))`,
-            `    ${this.storageWriteGen.getOrCreate(
-              targetElementType,
-            )}(loc${index}, target_elem${index})`,
-          ].join('\n');
           return code;
         } else {
-          this.requireImport('warplib.maths.utils', 'felt_to_uint256');
-          const code = [
-            `    let (target_elem${index}) = felt_to_uint256(source_elem[${index}])`,
-            `    let (loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
-              targetElementType,
+          code = [
+            `    let (arg_${index}) = felt_to_uint256(arg[${index}])`,
+            `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
+              targetElmType,
             )}(ref, Uint256(${index}, 0))`,
             `    ${this.storageWriteGen.getOrCreate(
-              targetElementType,
-            )}(loc${index}, target_elem${index})`,
+              targetElmType,
+            )}(storage_loc${index}, arg_${index})`,
           ].join('\n');
+          this.requireImport('warplib.maths.utils', 'felt_to_uint256');
           return code;
         }
       } else {
-        let code;
-        if (isDynamicStorageArray(targetElementType)) {
+        if (isDynamicStorageArray(targetElmType)) {
           code = [
-            ` let (loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
-              targetElementType,
+            ` let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
+              targetElmType,
             )}(ref, Uint256(${index}, 0))`,
-            `let (ref_${index}) = readId(loc${index})`,
+            `let (ref_${index}) = readId(storage_loc${index})`,
             `${dynArrayLengthName}.write(ref_${index}, Uint256(${sizeSource}, 0))`,
-            `${this.getOrCreate(
-              targetElementType,
-              sourceElementType,
-            )}(ref_${index}, source_elem[${index}])`,
+            `${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}])`,
           ].join('\n');
         } else {
           code = [
-            ` let (loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
-              targetElementType,
+            ` let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
+              targetElmType,
             )}(ref, Uint256(${index}, 0))`,
             `    ${this.getOrCreate(
-              targetElementType,
-              sourceElementType,
-            )}(loc${index}, source_elem[${index}])`,
+              targetElmType,
+              sourceElmType,
+            )}(storage_loc${index}, arg[${index}])`,
           ].join('\n');
         }
-        offset = offset + cairoTargetElementType.width;
-        return code;
       }
+      return code;
     });
 
-    // TODO check implicit order does not matter. //Does not matter.
     const implicit =
       '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
     const code = [
-      `func ${funcName}${implicit}(ref: felt, source_elem: ${cairoSourceTypeString}) -> ():`,
+      `func ${funcName}${implicit}(ref: felt, arg: ${cairoSourceTypeString}) -> ():`,
       `     alloc_locals`,
       isDynamicStorageArray(targetType)
         ? `    ${dynArrayLengthName}.write(ref, Uint256(${sourceType.to.size}, 0))`
         : '',
-      ...conversionCode,
+      ...writeCode,
       '    return ()',
       'end',
     ].join('\n');
@@ -426,11 +407,10 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     assert(targetType.to.size === undefined && sourceType.to.size === undefined);
 
     const targetElementType = targetType.to.elementT;
+    const sourceElementType = sourceType.to.elementT;
 
     const funcName = `CD_DY_TO_WS_DY${this.generatedFunctions.size}`;
     this.generatedFunctions.set(key, { name: funcName, code: '' });
-
-    const sourceElementType = sourceType.to.elementT;
 
     const cairoSourceElementType = CairoType.fromSol(
       sourceType.to.elementT,
