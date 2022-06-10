@@ -1,9 +1,9 @@
 import assert from 'assert';
 import {
   ArrayType,
-  ASTNode,
   DataLocation,
   Expression,
+  FixedBytesType,
   FunctionCall,
   generalizeType,
   getNodeType,
@@ -13,12 +13,14 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { isDynamicArray } from '../../utils/nodeTypeProcessing';
 import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { CairoFunction, StringIndexedFuncGen } from '../base';
+import { CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { MemoryReadGen } from './memoryRead';
 import { MemoryWriteGen } from './memoryWrite';
 
@@ -31,6 +33,9 @@ import { MemoryWriteGen } from './memoryWrite';
     uint8[3] -> uint256[8]
   Only int/uint type implicit conversions
 */
+
+const IMPLICITS = '{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, warp_memory : DictAccess*}';
+
 export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
   constructor(
     private memoryWrite: MemoryWriteGen,
@@ -41,15 +46,12 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
 
-  genIfNecesary(
-    sourceExpression: Expression,
-    targetType: TypeNode,
-    nodeInSourceUnit?: ASTNode,
-  ): [Expression, boolean] {
+  genIfNecesary(sourceExpression: Expression, targetType: TypeNode): [Expression, boolean] {
     const sourceType = getNodeType(sourceExpression, this.ast.compilerVersion);
 
     const targetBaseType = getBaseType(targetType);
     const sourceBaseType = getBaseType(sourceType);
+
     // Cast Ints: intY[] -> intX[] with X > Y
     if (
       targetBaseType instanceof IntType &&
@@ -57,7 +59,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       targetBaseType.signed &&
       targetBaseType.nBits > sourceBaseType.nBits
     ) {
-      return [this.gen(sourceExpression, targetType, nodeInSourceUnit), true];
+      return [this.gen(sourceExpression, targetType), true];
     }
 
     const targetBaseCairoType = CairoType.fromSol(
@@ -75,12 +77,12 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     // Applies to uint only
     // (uintX[] -> uint256[])
     if (targetBaseCairoType.width > sourceBaseCairoType.width)
-      return [this.gen(sourceExpression, targetType, nodeInSourceUnit), true];
+      return [this.gen(sourceExpression, targetType), true];
 
     return [sourceExpression, false];
   }
 
-  gen(source: Expression, targetType: TypeNode, nodeInSourceUnit?: ASTNode): FunctionCall {
+  gen(source: Expression, targetType: TypeNode): FunctionCall {
     const sourceType = getNodeType(source, this.ast.compilerVersion);
 
     const name = this.getOrCreate(targetType, sourceType);
@@ -91,101 +93,109 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       [['target', typeNameFromTypeNode(targetType, this.ast), DataLocation.Memory]],
       ['range_check_ptr', 'bitwise_ptr', 'warp_memory'],
       this.ast,
-      nodeInSourceUnit ?? source,
+      this.sourceUnit,
     );
 
     return createCallToFunction(functionStub, [source], this.ast);
   }
 
   getOrCreate(targetType: TypeNode, sourceType: TypeNode): string {
-    assert(targetType instanceof PointerType && sourceType instanceof PointerType);
-    assert(targetType.to instanceof ArrayType && sourceType.to instanceof ArrayType);
+    const key = targetType.pp() + sourceType.pp();
 
-    const targetBaseCairoType = CairoType.fromSol(
-      getBaseType(targetType),
-      this.ast,
-      TypeConversionContext.StorageAllocation,
-    );
-
-    const key = `${targetBaseCairoType.fullStringRepresentation}_${getNestedNumber(
-      targetType,
-    )}_${getNestedNumber(sourceType)}`;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
     }
 
-    const cairoFunc =
-      targetType.to.size === undefined
-        ? this.dynamicArrayConversion(targetType.to, sourceType.to)
-        : this.staticArrayConversion(targetType.to, sourceType.to);
+    // const generalizedSourceType = generalizeType(sourceType)[0];
+    // const generalizedTargetType = generalizeType(targetType)[0];
+
+    assert(targetType instanceof PointerType && sourceType instanceof PointerType);
+    targetType = targetType.to;
+    sourceType = sourceType.to;
+
+    const unexpectedTypeFunc = () => {
+      throw new NotSupportedYetError(
+        `Scaling ${printTypeNode(sourceType)} to ${printTypeNode(
+          targetType,
+        )} from memory to storage not implemented yet`,
+      );
+    };
+
+    const cairoFunc = delegateBasedOnType<CairoFunction>(
+      targetType,
+      (targetType) => {
+        assert(targetType instanceof ArrayType && sourceType instanceof ArrayType);
+        return sourceType.size === undefined
+          ? this.dynamicToDynamicArrayConversion(targetType, sourceType)
+          : this.staticToDynamicArrayConversion(targetType, sourceType);
+      },
+      (targetType) => {
+        assert(sourceType instanceof ArrayType);
+        return this.staticToStaticArrayConversion(targetType, sourceType);
+      },
+      unexpectedTypeFunc,
+      unexpectedTypeFunc,
+      unexpectedTypeFunc,
+    );
 
     this.generatedFunctions.set(key, cairoFunc);
     return cairoFunc.name;
   }
 
-  // static array conversion handle all cases wiht any dimension
-  // uint8[x] -> uint[y],  with x <= y
-  // int8[x] -> int32[y],  with x <= y
-  private staticArrayConversion(targetType: ArrayType, sourceType: ArrayType): CairoFunction {
+  private staticToStaticArrayConversion(
+    targetType: ArrayType,
+    sourceType: ArrayType,
+  ): CairoFunction {
     assert(
       targetType.size !== undefined &&
         sourceType.size !== undefined &&
         targetType.size >= sourceType.size,
     );
-
-    const cairoTargetElementType = CairoType.fromSol(
-      targetType.elementT,
-      this.ast,
-      TypeConversionContext.Ref,
-    );
-    const cairoSourceElementType = CairoType.fromSol(
-      sourceType.elementT,
+    const [cairoTargetElementType, cairoSourceElementType] = typesToCairoTypes(
+      [targetType.elementT, sourceType.elementT],
       this.ast,
       TypeConversionContext.Ref,
     );
 
-    const sourceRead = this.memoryRead.getOrCreate(cairoSourceElementType);
-    const sourceLoc = `source ${getOffset('index', cairoSourceElementType.width)}`;
-    let conversionCode;
-    if (targetType.elementT instanceof IntType) {
-      assert(sourceType.elementT instanceof IntType);
-      const sourceBits = sourceType.elementT.nBits;
-      const targetBits = targetType.elementT.nBits;
-      conversionCode = [
-        `let (source_elem) = ${sourceRead}(${sourceLoc})`,
-        targetType.elementT.signed
-          ? `let (target_elem) = warp_int${sourceBits}_to_int${targetBits}(source_elem)`
-          : `let (target_elem) = felt_to_uint256(source_elem)`,
-      ];
+    const sourceLoc = `${getOffset('source', 'index', cairoSourceElementType.width)}`;
+    let sourceLocationCode;
+    if (targetType.elementT instanceof PointerType) {
+      this.requireImport('warplib.memory', 'wm_read_id');
+      const idAllocSize = isDynamicArray(sourceType.elementT) ? 2 : cairoSourceElementType.width;
+      sourceLocationCode = `let (source_elem) = wm_read_id(${sourceLoc}, ${uint256(idAllocSize)})`;
     } else {
-      const allocSize = isDynamicArray(sourceType.elementT) ? 2 : cairoSourceElementType.width;
-      conversionCode = [
-        `let (source_elem) = wm_read_id(${sourceLoc}, ${uint256(allocSize)})`,
-        `let (target_elem) = ${this.getOrCreate(
-          targetType.elementT,
-          sourceType.elementT,
-        )}(source_elem)`,
-      ];
+      sourceLocationCode = `let (source_elem) = ${this.memoryRead.getOrCreate(
+        cairoSourceElementType,
+      )}(${sourceLoc})`;
     }
 
-    const funcName = `memory_static_array_conversion${this.generatedFunctions.size}`;
-    const targetLoc = `target ${getOffset('index', cairoTargetElementType.width)}`;
-    const allocSize = narrowBigIntSafe(targetType.size) * cairoTargetElementType.width;
-    const implicit = '{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, warp_memory : DictAccess*}';
+    const conversionCode = `let (target_elem) = ${this.generateScalingCode(
+      targetType.elementT,
+      sourceType.elementT,
+    )}`;
 
+    const targetLoc = `${getOffset('target', 'index', cairoTargetElementType.width)}`;
+    const targetCopyCode = `${this.memoryWrite.getOrCreate(
+      targetType.elementT,
+    )}(${targetLoc}, target_elem)`;
+
+    const allocSize = narrowBigIntSafe(targetType.size) * cairoTargetElementType.width;
+    const funcName = `memory_conversion_static_to_static${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}_copy${implicit}(source : felt, target : felt, index : felt):`,
+      `func ${funcName}_copy${IMPLICITS}(source : felt, target : felt, index : felt):`,
       `   alloc_locals`,
       `   if index == ${sourceType.size}:`,
       `       return ()`,
       `   end`,
-      ...conversionCode,
+      `   ${sourceLocationCode}`,
+      `   ${conversionCode}`,
+      `   ${targetCopyCode}`,
       `   ${this.memoryWrite.getOrCreate(targetType.elementT)}(${targetLoc}, target_elem)`,
       `   return ${funcName}_copy(source, target, index + 1)`,
       `end`,
 
-      `func ${funcName}${implicit}(source : felt) -> (target : felt):`,
+      `func ${funcName}${IMPLICITS}(source : felt) -> (target : felt):`,
       `   alloc_locals`,
       `   let (target) = wm_alloc(${uint256(allocSize)})`,
       `   ${funcName}_copy(source, target, 0)`,
@@ -193,96 +203,131 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       `end`,
     ].join('\n');
 
-    // Import according to how the function was generated
-    if (sourceType.elementT instanceof PointerType) {
-      this.requireImport('warplib.memory', 'wm_read_felt');
-      this.requireImport('starkware.cairo.common.math_cmp', 'is_le');
-    }
-    if (targetType.elementT instanceof IntType) {
-      if (targetType.elementT.signed) {
-        assert(sourceType.elementT instanceof IntType);
-        this.requireImport(
-          'warplib.maths.int_conversions',
-          `warp_int${sourceType.elementT.nBits}_to_int${targetType.elementT.nBits}`,
-        );
-      } else {
-        this.requireImport('warplib.maths.utils', 'felt_to_uint256');
-      }
-    } else {
-      this.requireImport('warplib.memory', 'wm_read_id');
-    }
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
 
     return { name: funcName, code: code };
   }
 
-  // dynamic arrays handle all uint/int cases with any dimensionality
-  // uint8[] -> uint[]
-  // int16[] -> int32[]
-  // uint8[n] -> uint[]
-  // int16[n] -> int32[]
-  private dynamicArrayConversion(targetType: ArrayType, sourceType: ArrayType): CairoFunction {
-    const cairoTargetElementType = CairoType.fromSol(
+  private staticToDynamicArrayConversion(
+    targetType: ArrayType,
+    sourceType: ArrayType,
+  ): CairoFunction {
+    assert(sourceType.size !== undefined);
+    const [cairoTargetElementType, cairoSourceElementType] = typesToCairoTypes(
+      [targetType.elementT, sourceType.elementT],
+      this.ast,
+      TypeConversionContext.Ref,
+    );
+    const sourceTWidth = cairoSourceElementType.width;
+    const targetTWidth = cairoTargetElementType.width;
+
+    let sourceLocationCode = ['let felt_index = index.low + index.high * 128'];
+    if (sourceType.elementT instanceof PointerType) {
+      this.requireImport('warplib.memory', 'wm_read_id');
+      const idAllocSize = isDynamicArray(sourceType.elementT) ? 2 : cairoSourceElementType.width;
+      sourceLocationCode.push(
+        `let (source_elem) = wm_read_id(${getOffset(
+          'source',
+          'felt_index',
+          sourceTWidth,
+        )}, ${uint256(idAllocSize)})`,
+      );
+    } else {
+      sourceLocationCode.push(
+        `let (source_elem) = ${this.memoryRead.getOrCreate(cairoSourceElementType)}(${getOffset(
+          'source',
+          'felt_index',
+          sourceTWidth,
+        )})`,
+      );
+    }
+    //sourceLocationCode.push(
+    //  `let (source_elem) = ${this.memoryRead.getOrCreate(cairoSourceElementType)}(source_elem_loc)`,
+    //);
+
+    const conversionCode = `let (target_elem) = ${this.generateScalingCode(
       targetType.elementT,
-      this.ast,
-      TypeConversionContext.Ref,
-    );
-    const cairoSourceElementType = CairoType.fromSol(
       sourceType.elementT,
+    )}`;
+
+    const targetCopyCode = [
+      `let (target_elem_loc) = wm_index_dyn(target, index, ${uint256(targetTWidth)})`,
+      `${this.memoryWrite.getOrCreate(targetType.elementT)}(target_elem_loc, target_elem)`,
+    ];
+
+    const funcName = `memory_conversion_static_to_dynamic${this.generatedFunctions.size}`;
+    const code = [
+      `func ${funcName}_copy${IMPLICITS}(source : felt, target : felt, index : Uint256, len : Uint256):`,
+      `   alloc_locals`,
+      `   if len.low == index.low:`,
+      `       if len.high == index.high:`,
+      `           return ()`,
+      `       end`,
+      `   end`,
+      ...sourceLocationCode,
+      conversionCode,
+      ...targetCopyCode,
+      `   let (next_index, _) = uint256_add(index, ${uint256(1)})`,
+      `   return ${funcName}_copy(source, target, next_index, len)`,
+      `end`,
+      `func ${funcName}${IMPLICITS}(source : felt) -> (target : felt):`,
+      `   alloc_locals`,
+      `   let len = ${uint256(sourceType.size)}`,
+      `   let (target) = wm_new(len, ${uint256(targetTWidth)})`,
+      `   ${funcName}_copy(source, target, Uint256(0, 0), len)`,
+      `   return (target=target)`,
+      `end`,
+    ].join('\n');
+
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
+    this.requireImport('warplib.memory', 'wm_index_dyn');
+
+    return { name: funcName, code: code };
+  }
+
+  private dynamicToDynamicArrayConversion(
+    targetType: ArrayType,
+    sourceType: ArrayType,
+  ): CairoFunction {
+    const [cairoTargetElementType, cairoSourceElementType] = typesToCairoTypes(
+      [targetType.elementT, sourceType.elementT],
       this.ast,
       TypeConversionContext.Ref,
     );
+    const sourceTWidth = cairoSourceElementType.width;
+    const targetTWidth = cairoTargetElementType.width;
 
-    const getSourceLoc =
-      sourceType.size === undefined
-        ? [
-            `let (source_elem_loc) = wm_index_dyn(source, index, ${uint256(
-              cairoSourceElementType.width,
-            )})`,
-            sourceType.elementT instanceof PointerType
-              ? `let (source_elem_loc) = wm_read_felt(source_elem_loc)`
-              : '',
-          ]
-        : [
-            `let felt_index = index.low + index.high * 128`,
-            sourceType.elementT instanceof PointerType
-              ? `let (source_elem_loc) = wm_read_felt(source + felt_index)`
-              : `let source_elem_loc = source ${getOffset(
-                  'felt_index',
-                  cairoSourceElementType.width,
-                )}`,
-          ];
-
-    let conversionCode;
-    if (targetType.elementT instanceof IntType) {
-      assert(sourceType.elementT instanceof IntType);
-      conversionCode = [
-        ...getSourceLoc,
+    const sourceLocationCode = [
+      `let (source_elem_loc) = wm_index_dyn(source, index, ${uint256(sourceTWidth)})`,
+    ];
+    if (sourceType.elementT instanceof PointerType) {
+      this.requireImport('warplib.memory', 'wm_read_id');
+      const idAllocSize = isDynamicArray(sourceType.elementT) ? 2 : cairoSourceElementType.width;
+      sourceLocationCode.push(
+        `let (source_elem) = wm_read_id(source_elem_loc, ${uint256(idAllocSize)})`,
+      );
+    } else {
+      sourceLocationCode.push(
         `let (source_elem) = ${this.memoryRead.getOrCreate(
           cairoSourceElementType,
         )}(source_elem_loc)`,
-        targetType.elementT.signed
-          ? `let (target_elem) = warp_int${sourceType.elementT.nBits}_to_int${targetType.elementT.nBits}(source_elem)`
-          : `let (target_elem) = felt_to_uint256(source_elem)`,
-      ];
-    } else {
-      conversionCode = [
-        ...getSourceLoc,
-        `let (target_elem) = ${this.getOrCreate(
-          targetType.elementT,
-          sourceType.elementT,
-        )}(source_elem_loc)`,
-      ];
+      );
     }
 
-    const getLen =
-      sourceType.size === undefined
-        ? `let (len) = wm_dyn_array_length(source)`
-        : `let len = ${uint256(sourceType.size)}`;
+    const conversionCode = `let (target_elem) = ${this.generateScalingCode(
+      targetType.elementT,
+      sourceType.elementT,
+    )}`;
+
+    const targetCopyCode = [
+      `let (target_elem_loc) = wm_index_dyn(target, index, ${uint256(targetTWidth)})`,
+      `${this.memoryWrite.getOrCreate(targetType.elementT)}(target_elem_loc, target_elem)`,
+    ];
 
     const targetWidth = cairoTargetElementType.width;
     const implicit = '{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, warp_memory : DictAccess*}';
-    const funcName = `memory_dynamic_array_conversion${this.generatedFunctions.size}`;
+    const funcName = `memory_conversion_dynamic_to_dynamic${this.generatedFunctions.size}`;
     const code = [
       `func ${funcName}_copy${implicit}(source : felt, target : felt, index : Uint256, len : Uint256):`,
       `   alloc_locals`,
@@ -291,17 +336,16 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       `           return ()`,
       `       end`,
       `   end`,
-      ...conversionCode,
-      `   let (target_elem_loc) = wm_index_dyn(target, index, ${uint256(targetWidth)})`,
-      `   ${this.memoryWrite.getOrCreate(targetType.elementT)}(target_elem_loc, target_elem)`,
-      `   let (next_index, carry) = uint256_add(index, ${uint256(1)})`,
-      `   assert carry = 0`,
+      ...sourceLocationCode,
+      conversionCode,
+      ...targetCopyCode,
+      `   let (next_index, _) = uint256_add(index, ${uint256(1)})`,
       `   return ${funcName}_copy(source, target, next_index, len)`,
       `end`,
 
       `func ${funcName}${implicit}(source : felt) -> (target : felt):`,
       `   alloc_locals`,
-      `   ${getLen}`,
+      `   let (len) = wm_dyn_array_length(source)`,
       `   let (target) = wm_new(len, ${uint256(targetWidth)})`,
       `   ${funcName}_copy(source, target, Uint256(0, 0), len)`,
       `   return (target=target)`,
@@ -312,21 +356,67 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     if (sourceType.elementT instanceof PointerType) {
       this.requireImport('warplib.memory', 'wm_read_felt');
     }
-    if (targetType.elementT instanceof IntType && targetType.elementT.signed) {
-      assert(sourceType.elementT instanceof IntType);
-      this.requireImport(
-        'warplib.maths.int_conversions',
-        `warp_int${sourceType.elementT.nBits}_to_int${targetType.elementT.nBits}`,
-      );
-    } else {
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256');
-    }
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
     this.requireImport('warplib.memory', 'wm_index_dyn');
 
     return { name: funcName, code: code };
+  }
+
+  private generateScalingCode(targetType: TypeNode, sourceType: TypeNode) {
+    if (targetType instanceof IntType) {
+      assert(sourceType instanceof IntType);
+      return this.generateIntegerScalingCode(targetType, sourceType, 'source_elem');
+    } else if (targetType instanceof FixedBytesType) {
+      assert(sourceType instanceof FixedBytesType);
+      return this.generateFixedBytesScalingCode(targetType, sourceType, 'source_elem');
+    } else if (targetType instanceof PointerType) {
+      assert(sourceType instanceof PointerType);
+      return `${this.getOrCreate(targetType, sourceType)}(source_elem)`;
+    } else {
+      throw new TranspileFailedError(
+        `Cannot scale ${printTypeNode(sourceType)} into ${printTypeNode(
+          targetType,
+        )} from memory to strage`,
+      );
+    }
+  }
+
+  private generateIntegerScalingCode(
+    targetType: IntType,
+    sourceType: IntType,
+    sourceVar: string,
+  ): string {
+    if (targetType.signed) {
+      const conversionFunc = `warp_int${sourceType.nBits}_to_int${targetType.nBits}`;
+      this.requireImport('warplib.maths.int_conversions', conversionFunc);
+      return `${conversionFunc}(${sourceVar})`;
+    } else if (targetType.nBits === 256 && sourceType.nBits < 256) {
+      const conversionFunc = `felt_to_uint256`;
+      this.requireImport('warplib.maths.utils', conversionFunc);
+      return `${conversionFunc}(${sourceVar})`;
+    }
+
+    throw new TranspileFailedError(
+      `Attempting to scale ${printTypeNode(targetType)} into ${printTypeNode(sourceType)}`,
+    );
+  }
+
+  private generateFixedBytesScalingCode(
+    targetType: FixedBytesType,
+    sourceType: FixedBytesType,
+    sourceVar: string,
+  ): string {
+    const widthDiff = targetType.size - sourceType.size;
+    if (widthDiff === 0) {
+      throw new TranspileFailedError('Attemped to scale same size fixed bytes');
+    }
+
+    const conversionFunc = targetType.size === 32 ? 'warp_bytes_widen_256' : 'warp_bytes_widen';
+    this.requireImport('warplib.maths.bytes_conversion', conversionFunc);
+
+    return `${conversionFunc}(${sourceVar}, ${widthDiff})`;
   }
 }
 
@@ -345,6 +435,14 @@ function getNestedNumber(type: TypeNode): string {
     : '';
 }
 
-function getOffset(index: string, offset: number): string {
-  return offset === 0 ? '' : offset === 1 ? `+ ${index}` : `+ ${index} * ${offset}`;
+function typesToCairoTypes(
+  types: TypeNode[],
+  ast: AST,
+  conversionContext: TypeConversionContext,
+): CairoType[] {
+  return types.map((t) => CairoType.fromSol(t, ast, conversionContext));
+}
+
+function getOffset(base: string, index: string, offset: number): string {
+  return offset === 0 ? base : offset === 1 ? `${base} + ${index}` : `${base} + ${index}*${offset}`;
 }
