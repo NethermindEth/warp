@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { ContractKind, FunctionDefinition, FunctionKind, FunctionVisibility } from 'solc-typed-ast';
+import { FunctionDefinition, FunctionKind, FunctionVisibility } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoContract } from '../../ast/cairoNodes';
 import { printNode } from '../../utils/astPrinter';
@@ -18,7 +18,6 @@ export function addPrivateSuperFunctions(
   idRemappingOverriders: Map<number, FunctionDefinition>,
   ast: AST,
 ): void {
-  if (node.kind === ContractKind.Interface) return;
   const currentFunctions: Map<string, FunctionDefinition> = new Map();
   // collect functions in the current contract
   node.vFunctions.forEach((f) => currentFunctions.set(f.name, f));
@@ -67,7 +66,10 @@ export function addNonoverridenPublicFunctions(
   // So to make them accessible with the expected name, new public or external functions are created that call the private one
   functionsToMove.forEach((f) => {
     const privateFunc = idRemapping.get(f.id);
-    assert(privateFunc !== undefined, `Unable to find inlined base function for ${printNode(f)}`);
+    assert(
+      privateFunc !== undefined,
+      `Unable to find inlined base function for ${printNode(f)} in ${node.name}`,
+    );
     node.appendChild(createDelegatingFunction(f, privateFunc, node.id, ast));
   });
 }
