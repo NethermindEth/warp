@@ -440,17 +440,15 @@ function getOffset(base: string, index: string, offset: number): string {
 }
 
 function differentSizeArrays(targetType: TypeNode, sourceType: TypeNode): boolean {
-  if (!isReferenceType(targetType)) {
-    assert(!isReferenceType(sourceType));
+  if (!(targetType instanceof ArrayType) || !(sourceType instanceof ArrayType)) {
     return false;
   }
-  assert(targetType instanceof ArrayType && sourceType instanceof ArrayType);
 
   if (isDynamicArray(targetType) && isDynamicArray(sourceType)) {
     return differentSizeArrays(targetType.elementT, sourceType.elementT);
   }
 
-  if (isDynamicArray(targetType)) {
+  if (isDynamicArray(sourceType)) {
     return true;
   }
   assert(targetType.size !== undefined && sourceType.size !== undefined);
