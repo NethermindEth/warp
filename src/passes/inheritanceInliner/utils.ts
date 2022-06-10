@@ -3,7 +3,6 @@ import {
   ASTNode,
   EmitStatement,
   EventDefinition,
-  FunctionCall,
   FunctionDefinition,
   Identifier,
   IdentifierPath,
@@ -16,7 +15,6 @@ import { AST } from '../../ast/ast';
 import { CairoContract } from '../../ast/cairoNodes';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCallToEvent } from '../../utils/functionGeneration';
-import { isExternalCall } from '../../utils/utils';
 
 export function getBaseContracts(node: CairoContract): CairoContract[] {
   return node.vLinearizedBaseContracts.slice(1).map((cc) => {
