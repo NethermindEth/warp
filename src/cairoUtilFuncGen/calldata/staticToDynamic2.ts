@@ -207,7 +207,14 @@ export class StaticToDynArray extends StringIndexedFuncGen {
     const conversionCode = mapRange(sizeSource, (index) => {
       if (targetElementType instanceof IntType) {
         assert(sourceElementType instanceof IntType);
-        if (targetElementType.signed) {
+        if (targetElementType.nBits === sourceElementType.nBits) {
+          const code = `     ${this.storageWriteGen.getOrCreate(targetElementType)}(${add(
+            'loc',
+            offset,
+          )}, source_elem[${index}])`;
+          offset = offset + cairoTargetElementType.width;
+          return code;
+        } else if (targetElementType.signed) {
           this.requireImport(
             'warplib.maths.int_conversions',
             `warp_int${sourceElementType.nBits}_to_int${targetElementType.nBits}`,
@@ -315,7 +322,18 @@ export class StaticToDynArray extends StringIndexedFuncGen {
     const conversionCode = mapRange(sizeSource, (index) => {
       if (targetElementType instanceof IntType) {
         assert(sourceElementType instanceof IntType);
-        if (targetElementType.signed) {
+        if (targetElementType.nBits === sourceElementType.nBits) {
+          const code = [
+            `    let target_elem${index} = source_elem[${index}]`,
+            `    let (loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
+              targetElementType,
+            )}(ref, Uint256(${index}, 0))`,
+            `    ${this.storageWriteGen.getOrCreate(
+              targetElementType,
+            )}(loc${index}, target_elem${index})`,
+          ].join('\n');
+          return code;
+        } else if (targetElementType.signed) {
           this.requireImport(
             'warplib.maths.int_conversions',
             `warp_int${sourceElementType.nBits}_to_int${targetElementType.nBits}`,
