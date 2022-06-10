@@ -181,6 +181,9 @@ export const expectations = flatten(
             ),
             Expect.Simple('returnFirstIndex', ['2', ...['1', '2']], ['1']),
           ]),
+          File.Simple('returningDynArrayExternally', [
+            Expect.Simple('tester', ['3', '4', '5', ' 6'], ['6']),
+          ]),
         ]),
         new Dir('concat', [
           File.Simple('bytes', [

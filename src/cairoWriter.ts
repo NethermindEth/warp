@@ -97,6 +97,7 @@ import {
   mergeImports,
   mangleOwnContractInterface,
   primitiveTypeToCairo,
+  isExternalCall,
 } from './utils/utils';
 
 const INDENT = ' '.repeat(4);
@@ -216,8 +217,7 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
       if (
         isDynamicArray(type) &&
         node.vInitialValue instanceof FunctionCall &&
-        node.vInitialValue.vReferencedDeclaration instanceof FunctionDefinition &&
-        node.vInitialValue.vReferencedDeclaration.visibility === FunctionVisibility.External
+        isExternalCall(node.vInitialValue)
       ) {
         assert(
           declaration.storageLocation === DataLocation.CallData,
@@ -767,9 +767,7 @@ class IdentifierWriter extends CairoASTNodeWriter {
           FunctionVisibility.External &&
         node.getClosestParentByType(IndexAccess) === undefined &&
         node.getClosestParentByType(MemberAccess) === undefined) ||
-        (node.parent instanceof FunctionCall &&
-          node.parent.vReferencedDeclaration instanceof FunctionDefinition &&
-          node.parent.vReferencedDeclaration.visibility === FunctionVisibility.External))
+        (node.parent instanceof FunctionCall && isExternalCall(node.parent)))
     ) {
       return [`${node.name}.len, ${node.name}.ptr`];
     }
