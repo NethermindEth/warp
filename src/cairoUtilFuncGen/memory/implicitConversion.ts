@@ -229,7 +229,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     const sourceTWidth = cairoSourceElementType.width;
     const targetTWidth = cairoTargetElementType.width;
 
-    let sourceLocationCode = ['let felt_index = index.low + index.high * 128'];
+    const sourceLocationCode = ['let felt_index = index.low + index.high * 128'];
     if (sourceType.elementT instanceof PointerType) {
       this.requireImport('warplib.memory', 'wm_read_id');
       const idAllocSize = isDynamicArray(sourceType.elementT) ? 2 : cairoSourceElementType.width;
