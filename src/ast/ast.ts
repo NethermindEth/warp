@@ -5,6 +5,7 @@ import {
   Block,
   DataLocation,
   Expression,
+  FunctionCall,
   generalizeType,
   getNodeType,
   Identifier,
@@ -23,7 +24,7 @@ import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { Implicits } from '../utils/implicits';
 import { createBlock } from '../utils/nodeTemplates';
-import { mergeImports } from '../utils/utils';
+import { isExternalCall, mergeImports } from '../utils/utils';
 import { CairoFunctionDefinition } from './cairoNodes';
 
 /*
@@ -86,7 +87,15 @@ export class AST {
 
   extractToConstant(node: Expression, vType: TypeName, newName: string): Identifier {
     const scope = this.getContainingScope(node);
-    const location = generalizeType(getNodeType(node, this.compilerVersion))[1];
+    let location: DataLocation;
+    if (node instanceof FunctionCall && isExternalCall(node)) {
+      location =
+        generalizeType(getNodeType(node, this.compilerVersion))[1] === undefined
+          ? DataLocation.Default
+          : DataLocation.CallData;
+    } else {
+      location = generalizeType(getNodeType(node, this.compilerVersion))[1] ?? DataLocation.Default;
+    }
     const replacementVariable = new VariableDeclaration(
       this.tempId,
       node.src,
@@ -95,7 +104,7 @@ export class AST {
       newName,
       scope,
       false,
-      location ?? DataLocation.Default,
+      location,
       StateVariableVisibility.Private,
       Mutability.Constant,
       node.typeString,

@@ -45,7 +45,12 @@ import { error } from '../utils/formatting';
 import { createElementaryConversionCall } from '../utils/functionGeneration';
 import { createNumberLiteral } from '../utils/nodeTemplates';
 import { getParameterTypes, intTypeForLiteral } from '../utils/nodeTypeProcessing';
-import { typeNameFromTypeNode, bigintToTwosComplement, toHexString } from '../utils/utils';
+import {
+  typeNameFromTypeNode,
+  bigintToTwosComplement,
+  toHexString,
+  isExternalCall,
+} from '../utils/utils';
 
 /*
 Detects implicit conversions by running solc-typed-ast's type analyser on
@@ -212,7 +217,10 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 
     if (baseType instanceof MappingType) {
       insertConversionIfNecessary(node.vIndexExpression, baseType.keyType, ast);
-    } else if (location === DataLocation.CallData) {
+    } else if (
+      location === DataLocation.CallData ||
+      (node.vBaseExpression instanceof FunctionCall && isExternalCall(node.vBaseExpression))
+    ) {
       insertConversionIfNecessary(node.vIndexExpression, new IntType(248, false), ast);
     } else {
       insertConversionIfNecessary(node.vIndexExpression, new IntType(256, false), ast);
