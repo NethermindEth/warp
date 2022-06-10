@@ -13,6 +13,7 @@ import {
   IntLiteralType,
   IntType,
   Literal,
+  StringLiteralType,
   StringType,
   TypeNameType,
   UserDefinedType,
@@ -161,6 +162,10 @@ export class ExplicitConversionToFunc extends ASTMapper {
         operand.typeString = node.typeString;
         ast.replaceNode(node, operand);
         return;
+      } else if (argType instanceof StringLiteralType) {
+        const replacement = literalToFixedBytes(node.vArguments[0], typeTo);
+        ast.replaceNode(node, replacement);
+        return;
       }
     }
 
@@ -195,6 +200,7 @@ function literalToTypedInt(arg: Expression, typeTo: IntType): Expression {
   return arg;
 }
 
+// todo widening and narrowing
 function literalToFixedBytes(arg: Expression, typeTo: FixedBytesType): Expression {
   assert(
     arg instanceof Literal,

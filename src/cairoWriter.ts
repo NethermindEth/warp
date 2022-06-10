@@ -783,8 +783,17 @@ class LiteralWriter extends CairoASTNodeWriter {
         return [`'${cairoString}'`];
       }
       case LiteralKind.HexString:
-        this.logNotImplemented('HexStr not implemented yet');
-        return ['<hexStr>'];
+        switch (primitiveTypeToCairo(node.typeString)) {
+          case 'Uint256': {
+            return [
+              `Uint256(low=0x${node.hexValue.slice(32, 64)}, high=0x${node.hexValue.slice(0, 32)})`,
+            ];
+          }
+          case 'felt':
+            return [`0x${node.hexValue}`];
+          default:
+            throw new TranspileFailedError('Attempted to write unexpected cairo type');
+        }
     }
   }
 }
