@@ -342,7 +342,12 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
   );
   // Handle the workaround of genContractInterface function of externalContractInterfaceInserter.ts
   // Remove `@interface` to get the actual contract interface name
-  const name = node.name.replace('@interface', '');
+  let name = node.name.replace('@interface', '');
+
+  if (node.getClosestParentByType(SourceUnit)?.vContracts.some((c) => c.name === name)) {
+    name = mangleOwnContractInterface(name);
+  }
+
   return [
     [
       documentation,
@@ -779,7 +784,7 @@ class FunctionCallWriter extends CairoASTNodeWriter {
     switch (node.kind) {
       case FunctionCallKind.FunctionCall: {
         if (node.vExpression instanceof MemberAccess) {
-          // check if node.vExpression.vExpression.typeString includes "contract"
+          // check if we're calling a member of a contract
           const nodeType = getNodeType(node.vExpression.vExpression, writer.targetCompilerVersion);
           if (
             nodeType instanceof UserDefinedType &&

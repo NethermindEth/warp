@@ -1001,6 +1001,28 @@ export const expectations = flatten(
             ],
             'C',
           ),
+          File.Simple(
+            'other_contract_same_type',
+            [Expect.Simple('counter', [], ['0', '0'])],
+            'WARPDuplicate',
+          ),
+          File.Simple('other_contract_same_type', [
+            Expect.Simple('counter', [], ['0', '0']),
+            Expect.Simple(
+              'getAndIncrementOtherCounter',
+              [
+                'address@tests/behaviour/contracts/cross_contract_calls/other_contract_same_type.WARPDuplicate',
+              ],
+              ['0', '0'],
+            ),
+            Expect.Simple(
+              'getCounters',
+              [
+                'address@tests/behaviour/contracts/cross_contract_calls/other_contract_same_type.WARPDuplicate',
+              ],
+              [...['0', '0'], ...['1', '0']],
+            ),
+          ]),
           File.Simple('dynArrays', [], 'ArrayProvider'),
           File.Simple('dynArrays', [
             Expect.Simple(
