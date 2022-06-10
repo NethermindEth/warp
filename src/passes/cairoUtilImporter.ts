@@ -1,4 +1,4 @@
-import { ElementaryTypeName, getNodeType, IntLiteralType, IntType, Literal } from 'solc-typed-ast';
+import { ElementaryTypeName, getNodeType, IntType, Literal } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
