@@ -12,7 +12,7 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { isDynamicStorageArray } from '../../utils/nodeTypeProcessing';
@@ -56,7 +56,7 @@ export class StaticToDynArray extends StringIndexedFuncGen {
     const lhsBaseType = getBaseType(lhsType);
     const rhsBaseType = getBaseType(rhsType);
     assert(lhsBaseType instanceof IntType && rhsBaseType instanceof IntType);
-    return lhsBaseType.nBits > rhsBaseType.nBits;
+    return lhsBaseType.nBits > rhsBaseType.nBits && rhsBaseType.signed;
   }
   // Right now this will only check that the uint[3] -> uint[4]
   checkDims(lhsType: TypeNode, rhsType: TypeNode): boolean {
@@ -80,9 +80,12 @@ export class StaticToDynArray extends StringIndexedFuncGen {
         }
       } else if (lhsSize === undefined && rhsSize !== undefined) {
         return true;
-      } else {
-        return false;
-      }
+      } else if (lhsSize === undefined && rhsSize === undefined)
+        if (lhsElm instanceof ArrayType && rhsElm instanceof ArrayType) {
+          return this.checkDims(lhsElm, rhsElm);
+        }
+    } else {
+      return false;
     }
     return false;
   }
@@ -128,11 +131,14 @@ export class StaticToDynArray extends StringIndexedFuncGen {
     assert(targetType instanceof PointerType && sourceType instanceof PointerType);
     assert(targetType.to instanceof ArrayType && sourceType.to instanceof ArrayType);
 
-    const cairoFunc =
-      targetType.to.size !== undefined
-        ? this.staticToStaticConversion(key, targetType, sourceType)
-        : this.staticToDynamicConversion(key, targetType, sourceType);
-
+    let cairoFunc: CairoFunction;
+    if (targetType.to.size === undefined && sourceType.to.size === undefined) {
+      cairoFunc = this.DynamicToDynamicConversion(key, targetType, sourceType);
+    } else if (targetType.to.size === undefined && sourceType.to.size !== undefined) {
+      cairoFunc = this.staticToDynamicConversion(key, targetType, sourceType);
+    } else {
+      cairoFunc = this.staticToStaticConversion(key, targetType, sourceType);
+    }
     return cairoFunc.name;
   }
 
@@ -245,7 +251,9 @@ export class StaticToDynArray extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, { name: funcName, code: code });
     return { name: funcName, code: code };
   }
-
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
   private staticToDynamicConversion(
     key: string,
     targetType: TypeNode,
@@ -323,6 +331,7 @@ export class StaticToDynArray extends StringIndexedFuncGen {
               targetElementType,
             )}(ref, Uint256(${index}, 0))`,
             `let (ref_${index}) = readId(loc${index})`,
+            `${dynArrayLengthName}.write(ref_${index}, Uint256(${sizeSource}, 0))`,
             `${this.getOrCreate(
               targetElementType,
               sourceElementType,
@@ -350,11 +359,113 @@ export class StaticToDynArray extends StringIndexedFuncGen {
     const code = [
       `func ${funcName}${implicit}(ref: felt, source_elem: ${cairoSourceTypeString}) -> ():`,
       `     alloc_locals`,
-      `    ${dynArrayLengthName}.write(ref, Uint256(${sourceType.to.size}, 0))`,
+      isDynamicStorageArray(targetType)
+        ? `    ${dynArrayLengthName}.write(ref, Uint256(${sourceType.to.size}, 0))`
+        : '',
       ...conversionCode,
       '    return ()',
       'end',
     ].join('\n');
+
+    this.generatedFunctions.set(key, { name: funcName, code: code });
+    return { name: funcName, code: code };
+  }
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+
+  private DynamicToDynamicConversion(
+    key: string,
+    targetType: TypeNode,
+    sourceType: TypeNode,
+  ): CairoFunction {
+    assert(targetType instanceof PointerType && sourceType instanceof PointerType);
+    assert(targetType.to instanceof ArrayType && sourceType.to instanceof ArrayType);
+
+    assert(targetType.to.size === undefined && sourceType.to.size === undefined);
+
+    const targetElementType = targetType.to.elementT;
+
+    const funcName = `CD_DY_TO_WS_DY${this.generatedFunctions.size}`;
+    this.generatedFunctions.set(key, { name: funcName, code: '' });
+
+    const sourceElementType = sourceType.to.elementT;
+
+    const cairoTargetElementType = CairoType.fromSol(
+      targetType.to.elementT,
+      this.ast,
+      TypeConversionContext.StorageAllocation,
+    );
+
+    const cairoSourceType = CairoType.fromSol(
+      sourceType,
+      this.ast,
+      TypeConversionContext.CallDataRef,
+    );
+    assert(cairoSourceType instanceof CairoDynArray);
+    const cairoSourceTypeString = cairoSourceType.toString();
+    const dynArrayLengthName = this.dynArrayGen.gen(cairoTargetElementType)[1];
+    const implicit =
+      '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
+    const loaderName = `DY_LOADER${this.generatedFunctions.size}`;
+    this.requireImport('starkware.cairo.common.math', 'split_felt');
+    this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
+    let code;
+    if (sourceElementType instanceof IntType && targetElementType instanceof IntType) {
+      this.requireImport(
+        'warplib.maths.int_conversions',
+        `warp_int${sourceElementType.nBits}_to_int${targetElementType.nBits}`,
+      );
+      code = [
+        `func ${loaderName}${implicit}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt ):`,
+        `    alloc_locals`,
+        `    if len == 0:`,
+        `      return ()`,
+        `    end`,
+        `    let (loc) = ${this.dynArrayIndexAccessGen.getOrCreate(
+          targetElementType,
+        )}(ref, Uint256(target_index, 0))`,
+        `    let target_index = target_index + 1`,
+
+        `    let (val) = warp_int${sourceElementType.nBits}_to_int${targetElementType.nBits}(ptr[0])`,
+        `    ${this.storageWriteGen.getOrCreate(targetElementType)}(loc, val)`,
+        `    return ${loaderName}(ref, len - 1, ptr + ${cairoTargetElementType.width}, target_index)`,
+        `end`,
+        ``,
+
+        `func ${funcName}${implicit}(ref: felt, source: ${cairoSourceTypeString}) -> ():`,
+        `     alloc_locals`,
+        `    ${dynArrayLengthName}.write(ref, Uint256(source.len, 0))`,
+        `    ${loaderName}(ref, source.len, source.ptr, 0)`,
+        '    return ()',
+        'end',
+      ].join('\n');
+    } else {
+      code = [
+        `func ${loaderName}${implicit}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt ):`,
+        `    alloc_locals`,
+        `    if len == 0:`,
+        `      return ()`,
+        `    end`,
+        `    let (loc) = ${this.dynArrayIndexAccessGen.getOrCreate(
+          targetElementType,
+        )}(ref, Uint256(target_index, 0))`,
+        isDynamicStorageArray(targetElementType)
+          ? `let (ref0) = readId(loc)
+          ${this.getOrCreate(targetElementType, sourceElementType)}(ref0, ptr[0])`
+          : `    ${this.getOrCreate(targetElementType, sourceElementType)}(loc, ptr[0])`,
+        `    return ${loaderName}(ref, len - 1, ptr + ${cairoSourceType.width}, target_index+1)`,
+        `end`,
+        ``,
+
+        `func ${funcName}${implicit}(ref: felt, source: ${cairoSourceTypeString}) -> ():`,
+        `     alloc_locals`,
+        `    ${dynArrayLengthName}.write(ref, Uint256(source.len, 0))`,
+        `    ${loaderName}(ref, source.len, source.ptr, 0)`,
+        '    return ()',
+        'end',
+      ].join('\n');
+    }
 
     this.generatedFunctions.set(key, { name: funcName, code: code });
     return { name: funcName, code: code };

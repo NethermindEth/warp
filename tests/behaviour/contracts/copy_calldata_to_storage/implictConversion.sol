@@ -3,38 +3,35 @@ pragma solidity ^0.8.0;
 //SPDX-License-Identifier: MIT
 
 contract WARP {
-//   int16[2][3] x;
-//   uint256[2][3] z;
+  // need to check small dim to larger size.
+  // need to check small nBits to larger nBits
+  // Static to Dynamic
 
-//   function testSigned(int8[2][2] calldata y) external returns (int16, int16, int16, int16) {
-//     x = y;
-//     return (x[1][1], x[1][0], x[0][1], x[0][0]);
-//   }
+  int16[][] z1;   // <- int8[3][2]
+  int16[2][] z2;  // <- int8[3][2]
+  int16[2][2] z3; // <- int8[3][2]
+  int16[][2] z4;  // <- int8[3][2]
 
-//   function testUint256(uint[2][2] calldata y) external returns (uint, uint, uint, uint){
-//       z = y;
-//       return (z[1][1], z[1][0], z[0][1], z[0][0]);
-//   }
 
-// [1,1,2,3,4]
+  int16[] y3;     // <- int8[]
+  int16[2][] y4;  // <- int8[2][]
+  int16[][] y5;   // <- int8[2][]
 
-//   int16[][2] zz;
+  function testA1(int8[] calldata yy) external returns (int16, int16, int16, int16) {
+      y3 = yy;
+      return (y3[3], y3[2], y3[1], y3[0]);
+  }
 
-//   function test() external {
-//     int16[] memory x = new int16[](1);
-//     int16[] memory z = new int16[](1);
-    
-//     int16[][2] memory yy = [x, z];
+  function testA2(int8[2][] calldata yy) external returns (int16, int16, int16, int16) {
+      y4 = yy;
+      return (y4[1][1], y4[1][0], y4[0][1], y4[0][0]);
+  }
 
-//     zz = yy;
-//   }
+  function testA3(int8[2][] calldata yy) external returns (int16, int16, int16, int16){
+      y5 = yy;
+      return (y5[1][1], y5[1][0], y5[0][1], y5[0][0]);
+  }
 
-  //int16[][][] zz;
-  
-  int16[][] z1;   // tick
-  int16[2][] z2;  // now
-  int16[2][2] z3; // tick
-  int16[][2] z4;  // tick
 
   function testZ1(int8[2][2] calldata yy) external returns (int16, int16, int16, int16){
     z1 = yy;

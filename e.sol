@@ -4,13 +4,10 @@ pragma solidity ^0.8.0;
 
 contract WARP {
 
-  int16[][] z1;   // tick
-  int16[2][] z2;  // now
-  int16[2][2] z3; // tick
-  int16[][2] z4;  // tick
+  int16[] x; 
 
-  function test(int8[2][2] calldata yy) external {
-    z2 = yy;
+  function test(int8[] calldata yy) external {
+    x = yy;
     }
 
 }
