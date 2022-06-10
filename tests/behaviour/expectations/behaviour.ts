@@ -1043,6 +1043,9 @@ export const expectations = flatten(
               ['2', '0', '5', '0', '4', '0', '2', '0', '5', '0', '4', '0'],
             ),
           ]),
+          File.Simple('external_base_this_call', [
+            Expect.Simple('externalCallSelfAsBase', [], ['23', '0']),
+          ]),
         ]),
         // covers nested mappings
         new Dir('Dai', [
