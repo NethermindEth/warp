@@ -151,7 +151,7 @@ export function intTypeForLiteral(typestring: string): IntType {
     return new IntType(width, false);
   } else {
     // This is not the exact binary length in all cases, but it puts the values into the correct 8bit range
-    const binaryLength = (-value - 1n).toString(2).length;
+    const binaryLength = (-value - 1n).toString(2).length + 1;
     const width = 8 * Math.ceil(binaryLength / 8);
     return new IntType(width, true);
   }
