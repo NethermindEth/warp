@@ -2169,14 +2169,20 @@ export const expectations = flatten(
             Expect.Simple('eq256signedunsafe', ['1', '2', '1', '2'], ['1']),
           ]),
           File.Simple('exp', [
-            Expect.Simple('exp8safe', ['0', '0'], ['0']),
+            Expect.Simple('exp8safe', ['0', '0'], ['1']),
             Expect.Simple('exp8signedsafe', ['255', '10'], ['1']),
             Expect.Simple('exp8unsafe', ['100', '1'], ['100']),
             Expect.Simple('exp8signedunsafe', ['4', '3'], ['64']),
             Expect.Simple('exp256safe', ['0', '0', '1', '0'], ['0', '0']),
             Expect.Simple('exp256signedsafe', ['1000', '500', '0', '0'], ['1', '0']),
             Expect.Simple('exp256unsafe', ['2', '0', '3', '0'], ['8', '0']),
-            Expect.Simple('exp256signedunsafe', ['0', '0', '0', '0'], ['0', '0']),
+            Expect.Simple('exp256signedunsafe', ['0', '0', '0', '0'], ['1', '0']),
+            Expect.Simple(
+              'exp_minus_256',
+              ['31', '0'],
+              ['0', '0xff000000000000000000000000000000'],
+            ),
+            Expect.Simple('exp_minus_256', ['32', '0'], null),
           ]),
           File.Simple('ge', [
             Expect.Simple('ge8safe', ['1', '2'], ['0']),
