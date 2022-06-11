@@ -1,7 +1,7 @@
 import { BinaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { mapRange } from '../../../utils/utils';
-import { forAllWidths, generateFile, IntxIntFunction } from '../../utils';
+import { forAllWidths, generateFile, IntxIntFunction, mask } from '../../utils';
 
 export function exp() {
   createExp(false, false);
@@ -47,16 +47,17 @@ function createExp(signed: boolean, unsafe: boolean) {
           `    return (res)`,
           `end`,
           `func warp_exp${suffix}${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):`,
-          '    if lhs.high == 0 :',
-          `        if lhs.low == 0:`,
-          '            return (Uint256(0,0))',
-          `        end`,
-          `    end`,
           `    if rhs.high == 0:`,
           `        if rhs.low == 0:`,
           `            return (Uint256(1, 0))`,
           `        end`,
           '    end',
+          '    if lhs.high == 0 :',
+          `        if lhs.low * (lhs.low - 1) == 0:`,
+          '            return (lhs)',
+          `        end`,
+          `    end`,
+          ...getNegativeOneShortcutCode(signed, width),
           `    return _repeated_multiplication${width}(lhs, rhs)`,
           `end`,
         ];
@@ -74,20 +75,41 @@ function createExp(signed: boolean, unsafe: boolean) {
           `    end`,
           `end`,
           `func warp_exp${suffix}${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt):`,
+          '    if rhs == 0:',
+          '        return (1)',
+          `    end`,
           '    if lhs * (lhs-1) * (rhs-1) == 0:',
           '        return (lhs)',
-          `    else:`,
-          '        if rhs == 0:',
-          '            return (1)',
-          '        else:',
-          `            return _repeated_multiplication${width}(lhs, rhs)`,
-          '        end',
-          `    end`,
+          '    end',
+          ...getNegativeOneShortcutCode(signed, width),
+          `    return _repeated_multiplication${width}(lhs, rhs)`,
           'end',
         ];
       }
     }),
   );
+}
+
+function getNegativeOneShortcutCode(signed: boolean, width: number): string[] {
+  if (!signed) return [];
+
+  if (width < 256) {
+    return [
+      `if (lhs - ${mask(width)}) == 0:`,
+      `    let (is_odd) = bitwise_and(rhs, 1)`,
+      `    return (1 + is_odd * 0x${'f'.repeat(width / 8 - 1)}e)`,
+      `end`,
+    ];
+  } else {
+    return [
+      `if (lhs.low - ${mask(128)}) == 0:`,
+      `    if (lhs.high - ${mask(128)}) == 0:`,
+      `        let (is_odd) = bitwise_and(rhs.low, 1)`,
+      `        return (Uint256(1 + is_odd * 0x${'f'.repeat(31)}e, is_odd * ${mask(128)}))`,
+      `    end`,
+      `end`,
+    ];
+  }
 }
 
 export function functionaliseExp(node: BinaryOperation, unsafe: boolean, ast: AST) {
