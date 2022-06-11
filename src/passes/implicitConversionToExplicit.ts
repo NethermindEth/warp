@@ -142,7 +142,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     // Assuming all variable declarations are split and have an initial value
 
     // VariableDeclarationExpressionSplitter must be run before this pass
-    if (node.vDeclarations.length !== 1) return;
+    if (node.assignments.length !== 1) return;
 
     insertConversionIfNecessary(
       node.vInitialValue,
@@ -398,9 +398,12 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
     }
     return;
   } else if (currentType instanceof TupleType) {
-    throw new TranspileFailedError(
-      `Attempted to convert tuple ${printNode(expression)} as single value`,
-    );
+    if (!(targetType instanceof TupleType)) {
+      throw new TranspileFailedError(
+        `Attempted to convert tuple ${printNode(expression)} as single value`,
+      );
+    }
+    return;
   } else if (currentType instanceof TypeNameType) {
     return;
   } else if (currentType instanceof UserDefinedType) {
