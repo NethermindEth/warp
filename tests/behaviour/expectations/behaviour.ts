@@ -2793,13 +2793,9 @@ export const expectations = flatten(
           ]),
           File.Simple('pushPopLoops', [
             Expect.Simple('test_indices', ['1', '0'], ['1', '0']),
-            Expect.Simple('test_indices', ['129', '0'], ['129', '0']),
             Expect.Simple('test_indices', ['5', '0'], ['5', '0']),
             Expect.Simple('test_indices', ['10', '0'], ['10', '0']),
-            Expect.Simple('test_indices', ['15', '0'], ['15', '0']),
-            Expect.Simple('test_indices', ['255', '0'], ['255', '0']),
-            Expect.Simple('test_indices', ['129', '0'], ['129', '0']),
-            Expect.Simple('test_indices', ['128', '0'], ['128', '0']),
+            Expect.Simple('test_indices', ['9', '0'], ['9', '0']),
             Expect.Simple('test_indices', ['1', '0'], ['1', '0']),
           ]),
           File.Simple('pushPopLoopsAddress', [
