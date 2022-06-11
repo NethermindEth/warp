@@ -208,7 +208,7 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     const documentation = getDocumentation(node.documentation, writer);
     const declarations = node.assignments.flatMap((id) => {
       if (id === null) {
-        return ['__warp_gv'];
+        return [`__warp_gv${this.gapVarCounter++}`];
       }
       const declaration = node.vDeclarations.find((decl) => decl.id === id);
       assert(declaration !== undefined, `Unable to find variable declaration for assignment ${id}`);
