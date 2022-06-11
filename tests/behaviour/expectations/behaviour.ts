@@ -27,6 +27,7 @@ export const expectations = flatten(
             Expect.Simple('test', ['3'], ['3']),
             Expect.Simple('test256', ['3', '4'], ['3', '4']),
           ]),
+          File.Simple('tupleAssignments', [Expect.Simple('gapAndOrder', [], ['4', '42', '1'])]),
         ]),
         new Dir('bool_operators', [
           File.Simple('and', [
