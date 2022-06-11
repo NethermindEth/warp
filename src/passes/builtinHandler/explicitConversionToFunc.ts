@@ -13,6 +13,7 @@ import {
   IntLiteralType,
   IntType,
   Literal,
+  LiteralKind,
   StringLiteralType,
   StringType,
   TypeNameType,
@@ -206,6 +207,12 @@ function literalToFixedBytes(arg: Expression, typeTo: FixedBytesType): Expressio
     arg instanceof Literal,
     `Found non-literal ${printNode(arg)} to have literal type ${arg.typeString}`,
   );
+
+  if (arg.kind === LiteralKind.HexString || arg.kind === LiteralKind.String) {
+    if (arg.hexValue.length < typeTo.size * 2) {
+      arg.hexValue = `${arg.hexValue}${'0'.repeat(typeTo.size * 2 - arg.hexValue.length)}`;
+    }
+  }
 
   arg.typeString = typeTo.pp();
   return arg;
