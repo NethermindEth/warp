@@ -198,6 +198,7 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
 }
 
 class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
+  gapVarCounter = 0;
   writeInner(node: VariableDeclarationStatement, writer: ASTWriter): SrcDesc {
     assert(
       node.vInitialValue !== undefined,
@@ -206,10 +207,9 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
 
     const documentation = getDocumentation(node.documentation, writer);
     const declarations = node.assignments.flatMap((id) => {
-      if (id === null)
-        throw new NotSupportedYetError(
-          `VariableDeclarationStatements with gaps not implemented yet`,
-        );
+      if (id === null) {
+        return [`__warp_gv${this.gapVarCounter++}`];
+      }
       const declaration = node.vDeclarations.find((decl) => decl.id === id);
       assert(declaration !== undefined, `Unable to find variable declaration for assignment ${id}`);
       const type = generalizeType(getNodeType(declaration, this.ast.compilerVersion))[0];
@@ -775,12 +775,14 @@ class LiteralWriter extends CairoASTNodeWriter {
         return [node.value === 'true' ? '1' : '0'];
       case LiteralKind.String:
       case LiteralKind.UnicodeString: {
-        const cairoString = node.value
-          .split('')
-          .filter((v) => v.charCodeAt(0) < 127)
-          .join('')
-          .substring(0, 32);
-        return [`'${cairoString}'`];
+        if (
+          node.value.length === node.hexValue.length / 2 &&
+          node.value.length < 32 &&
+          node.value.split('').every((v) => v.charCodeAt(0) < 127)
+        ) {
+          return [`'${node.value}'`];
+        }
+        return [`0x${node.hexValue}`];
       }
       case LiteralKind.HexString:
         switch (primitiveTypeToCairo(node.typeString)) {
