@@ -1105,9 +1105,8 @@ const tests: string[] = [
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/bytes_and_strings.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/multiline_comments.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/multiline.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/multiline.sol', // attempts to call non-existant function
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/structs.sol', // nested dynarray
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/structs.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/arrays.sol', // dynarray of static array
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/failure.sol', // non-literal require message
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/alignment.sol', // REQUIRES CAIRO 0.9
@@ -1549,12 +1548,12 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/return_storage_pointers.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/short_circuit.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/simple_assignment.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/smoke_test.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/string_format.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/string_literals.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/tuple_evaluation_order.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/unary_fixedbytes.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/virtual_functions.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/smoke_test.sol', // attempts to call non-existant function
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/empty_return_corrupted_free_memory_pointer.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/calldata_array_length.sol', // nested dynarray args
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/calldata_array_three_dimensional.sol', // nested dynarray args

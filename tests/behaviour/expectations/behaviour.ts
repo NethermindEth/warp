@@ -2588,6 +2588,9 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('returns', [
+          File.Simple('initialiseStorageReturns', [
+            Expect.Simple('getDefaultArrayLengths', [], ['0', '0', '0', '0']),
+          ]),
           File.Simple('returnInserter', [
             Expect.Simple('default_returnInsert', ['6'], ['0']),
             Expect.Simple('condition_returnInsert', ['1'], ['2'], 'Return from conditional branch'),
