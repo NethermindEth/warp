@@ -155,6 +155,8 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/nested_static_array_struct', 'Success'],
     ['example_contracts/nested_struct_static_array', 'Success'],
     ['example_contracts/nested_structs', 'Success'],
+    ['example_contracts/old_code_gen_err', 'WillNotSupport'],
+    ['example_contracts/old_code_gen_err_7', 'WillNotSupport'],
     ['example_contracts/payable_function', 'Success'],
     ['example_contracts/pure_function', 'Success'],
     ['example_contracts/return_dyn_array', 'Success'],

@@ -25,10 +25,13 @@ export function compileSolFile(file: string, printWarnings: boolean): AST {
     throw new TranspileFailedError(`Unsupported version of solidity source ${requiredSolcVersion}`);
   }
 
-  const { result, compilerVersion } = cliCompile(formatInput(file), requiredSolcVersion);
-  printErrors(result, printWarnings, compilerVersion);
+  let solcOutput = cliCompile(formatInput(file, true), requiredSolcVersion);
+  if (errorInSolcOutput(solcOutput.result)) {
+    solcOutput = cliCompile(formatInput(file, false), requiredSolcVersion);
+  }
+  printErrors(solcOutput.result, printWarnings, solcOutput.compilerVersion);
   const reader = new ASTReader();
-  const sourceUnits = reader.read(result);
+  const sourceUnits = reader.read(solcOutput.result);
 
   return new AST(sourceUnits, requiredSolcVersion);
 }
@@ -53,6 +56,7 @@ type SolcInput = {
     };
   };
   settings?: {
+    viaIR: boolean;
     outputSelection: {
       '*': {
         '*': ['*'];
@@ -62,7 +66,7 @@ type SolcInput = {
   };
 };
 
-function formatInput(fileName: string): SolcInput {
+function formatInput(fileName: string, viaYul: boolean): SolcInput {
   return {
     language: 'Solidity',
     sources: {
@@ -71,6 +75,7 @@ function formatInput(fileName: string): SolcInput {
       },
     },
     settings: {
+      viaIR: viaYul,
       outputSelection: {
         '*': {
           '*': ['*'],
@@ -120,6 +125,18 @@ function matchCompilerVersion(version: string): [string, string, string] {
   }
 
   return [match[1], match[2], match[3]];
+}
+
+function errorInSolcOutput(cliOutput: unknown): boolean {
+  assert(
+    typeof cliOutput === 'object' && cliOutput !== null,
+    error(`Obtained unexpected output from solc: ${cliOutput}`),
+  );
+  const errorsAndWarnings = Object.entries(cliOutput).find(
+    ([propName]) => propName === 'errors',
+  )?.[1];
+
+  return errorsAndWarnings !== undefined;
 }
 
 function printErrors(cliOutput: unknown, printWarnings: boolean, compilerVersion: string): void {
@@ -174,7 +191,10 @@ export function compileSolFileAndExtractContracts(file: string): unknown {
     throw new TranspileFailedError(`Unsupported version of solidity source ${requiredSolcVersion}`);
   }
 
-  const { result } = cliCompile(formatInput(file), requiredSolcVersion);
-  assert(typeof result === 'object' && result !== null);
-  return Object.entries(result).filter(([name]) => name === 'contracts')[0][1][file];
+  let solcOutput = cliCompile(formatInput(file, true), requiredSolcVersion);
+  if (errorInSolcOutput(solcOutput.result)) {
+    solcOutput = cliCompile(formatInput(file, false), requiredSolcVersion);
+  }
+  assert(typeof solcOutput.result === 'object' && solcOutput.result !== null);
+  return Object.entries(solcOutput.result).filter(([name]) => name === 'contracts')[0][1][file];
 }
