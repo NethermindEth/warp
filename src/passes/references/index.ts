@@ -8,6 +8,7 @@ import { StorageDelete } from './delete';
 import { ExpectedLocationAnalyser } from './expectedLocationAnalyser';
 import { ExternalReturnReceiver } from './externalReturnReceiver';
 import { MemoryAllocations } from './memoryAllocations';
+import { StateVarRefFlattener } from './stateVarRefFlattener';
 import { StoredPointerDereference } from './storedPointerDereference';
 
 /*
@@ -36,6 +37,7 @@ export class References extends ASTMapper {
       const actualDataLocations: Map<Expression, DataLocation> = new Map();
       const expectedDataLocations: Map<Expression, DataLocation> = new Map();
 
+      new StateVarRefFlattener().dispatchVisit(root, ast);
       new ExternalReturnReceiver().dispatchVisit(root, ast);
       new ActualLocationAnalyser(actualDataLocations).dispatchVisit(root, ast);
       new ExpectedLocationAnalyser(actualDataLocations, expectedDataLocations).dispatchVisit(
