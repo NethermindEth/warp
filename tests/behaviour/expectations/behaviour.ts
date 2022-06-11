@@ -2236,6 +2236,27 @@ export const expectations = flatten(
             Expect.Simple('multiplication8signedunsafe', ['100', '40'], ['160'], 'overflow'),
             Expect.Simple('multiplication128signedsafe', ['255', '255'], ['65025']),
             Expect.Simple('multiplication128signedunsafe', ['192', '2'], ['384']),
+            Expect.Simple(
+              'multiplication256signedsafe',
+              [
+                '0',
+                '0x40000000000000000000000000000000',
+                '0xfffffffffffffffffffffffffffffffe',
+                '0xffffffffffffffffffffffffffffffff',
+              ],
+              ['0', '0x80000000000000000000000000000000'],
+            ),
+            Expect.Simple(
+              'multiplication256signedsafe',
+              [
+                '1',
+                '0x40000000000000000000000000000000',
+                '0xfffffffffffffffffffffffffffffffe',
+                '0xffffffffffffffffffffffffffffffff',
+              ],
+              null,
+            ),
+            Expect.Simple('multiplication256signedsafe', ['20', '1', '5', '0'], ['100', '5']),
             Expect.Simple('multiplication256signedsafe', ['20', '1', '5', '0'], ['100', '5']),
             Expect.Simple('multiplication256signedunsafe', ['20', '0', '5', '1'], ['100', '20']),
           ]),
