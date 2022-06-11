@@ -6,6 +6,7 @@ contract WARP {
 		ptr2 = arr2;
 	}
 	function getDefaultArrayLengths() public returns (uint, uint) {
-		return (arr1.length, arr2.length);
+		(uint[] storage a, uint[][] storage b) = getStorageArrays();
+		return (a.length, b.length);
 	}
 }
