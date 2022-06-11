@@ -1,6 +1,7 @@
 import {
   DataLocation,
   Expression,
+  ExternalReferenceType,
   FixedBytesType,
   FunctionCall,
   FunctionDefinition,
@@ -87,6 +88,13 @@ export class ActualLocationAnalyser extends ASTMapper {
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     if (
+      node.vFunctionCallType === ExternalReferenceType.Builtin &&
+      node.vFunctionName === 'push' &&
+      node.vArguments.length === 0
+    ) {
+      this.actualLocations.set(node, DataLocation.Storage);
+      this.commonVisit(node, ast);
+    } else if (
       node.vReferencedDeclaration instanceof FunctionDefinition &&
       node.vReferencedDeclaration.visibility === FunctionVisibility.External &&
       getNodeType(node, ast.compilerVersion) instanceof PointerType

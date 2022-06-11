@@ -2797,6 +2797,20 @@ export const expectations = flatten(
             Expect.Simple('passMap', [], ['20']),
             Expect.Simple('passStruct', [], ['5']),
           ]),
+          File.Simple('pushPopLoops', [
+            Expect.Simple('test_indices', ['1', '0'], ['1', '0']),
+            Expect.Simple('test_indices', ['5', '0'], ['5', '0']),
+            Expect.Simple('test_indices', ['10', '0'], ['10', '0']),
+            Expect.Simple('test_indices', ['9', '0'], ['9', '0']),
+            Expect.Simple('test_indices', ['1', '0'], ['1', '0']),
+          ]),
+          File.Simple('pushPopLoopsAddress', [
+            Expect.Simple('test_indices', ['0', '0'], ['0', '0']),
+            Expect.Simple('test_indices', ['11', '0'], ['11', '0']),
+            Expect.Simple('test_indices', ['11', '0'], ['11', '0']),
+            Expect.Simple('test_indices', ['5', '0'], ['5', '0']),
+            Expect.Simple('test_indices', ['0', '0'], ['0', '0']),
+          ]),
           File.Simple('returns', [
             Expect.Simple('ints', [], ['3']),
             Expect.Simple('arrays', [], ['2', '2']),
