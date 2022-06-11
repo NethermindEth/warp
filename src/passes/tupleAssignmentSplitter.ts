@@ -137,7 +137,8 @@ export class TupleAssignmentSplitter extends ASTMapper {
               createIdentifier(tempVar, ast),
             ),
           ),
-      );
+      )
+      .reverse();
 
     block.appendChild(tempTupleDeclaration);
     assignments.forEach((n) => block.appendChild(n));
