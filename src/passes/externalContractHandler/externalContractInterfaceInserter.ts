@@ -88,7 +88,11 @@ function importExternalContract(
   contractInterfaces.set(contract.id, genContractInterface(contract, sourceUnit, ast));
 }
 
-function genContractInterface(
+export function getTemporaryInterfaceName(contractName: string): string {
+  return `${contractName}@interface`;
+}
+
+export function genContractInterface(
   contract: ContractDefinition,
   sourceUnit: SourceUnit,
   ast: AST,
@@ -99,7 +103,7 @@ function genContractInterface(
     '',
     // `@interface` is a workaround to avoid the conflict with
     // the existing contract with the same name
-    `${contract.name}@interface`,
+    getTemporaryInterfaceName(contract.name),
     sourceUnit.id,
     ContractKind.Interface,
     contract.abstract,

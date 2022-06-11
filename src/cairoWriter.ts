@@ -95,7 +95,6 @@ import {
   isCairoConstant,
   isExternallyVisible,
   mergeImports,
-  mangleOwnContractInterface,
   primitiveTypeToCairo,
   isExternalCall,
 } from './utils/utils';
@@ -297,8 +296,55 @@ function writeImports(imports: Map<string, Set<string>>): string {
     .join('\n');
 }
 
+const interfaceNameMappings: Map<SourceUnit, Map<string, string>> = new Map();
+
+function generateInterfaceNameMappings(node: SourceUnit) {
+  const map: Map<string, string> = new Map();
+  const existingNames = node.vContracts
+    .filter((c) => c.kind !== ContractKind.Interface)
+    .map((c) => c.name);
+
+  node.vContracts
+    .filter((c) => c.kind === ContractKind.Interface)
+    .forEach((c) => {
+      const baseName = c.name.replace('@interface', '');
+      const interfaceName = `${baseName}_warped_interface`;
+      if (!existingNames.includes(baseName)) {
+        map.set(baseName, interfaceName);
+      } else {
+        let i = 1;
+        while (existingNames.includes(`${interfaceName}_${i}`)) ++i;
+        map.set(baseName, `${interfaceName}_${i}`);
+      }
+    });
+
+  interfaceNameMappings.set(node, map);
+}
+
+function getInterfaceNameForContract(contractName: string, nodeInSourceUnit: ASTNode): string {
+  const sourceUnit =
+    nodeInSourceUnit instanceof SourceUnit
+      ? nodeInSourceUnit
+      : nodeInSourceUnit.getClosestParentByType(SourceUnit);
+
+  assert(
+    sourceUnit !== undefined,
+    `Unable to find source unit for interface ${contractName} while writing`,
+  );
+
+  const interfaceName = interfaceNameMappings.get(sourceUnit)?.get(contractName);
+  assert(
+    interfaceName !== undefined,
+    `An error occured during name substitution for the interface ${contractName}`,
+  );
+
+  return interfaceName;
+}
+
 class SourceUnitWriter extends CairoASTNodeWriter {
   writeInner(node: SourceUnit, writer: ASTWriter): SrcDesc {
+    generateInterfaceNameMappings(node);
+
     const structs = [...node.vStructs, ...node.vContracts.flatMap((c) => c.vStructs)].map((v) =>
       writer.write(v),
     );
@@ -342,16 +388,13 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
   );
   // Handle the workaround of genContractInterface function of externalContractInterfaceInserter.ts
   // Remove `@interface` to get the actual contract interface name
-  let name = node.name.replace('@interface', '');
-
-  if (node.getClosestParentByType(SourceUnit)?.vContracts.some((c) => c.name === name)) {
-    name = mangleOwnContractInterface(name);
-  }
+  const baseName = node.name.replace('@interface', '');
+  const interfaceName = getInterfaceNameForContract(baseName, node);
 
   return [
     [
       documentation,
-      [`@contract_interface`, `namespace ${name}:`, ...functions, `end`].join('\n'),
+      [`@contract_interface`, `namespace ${interfaceName}:`, ...functions, `end`].join('\n'),
     ].join('\n'),
   ];
 }
@@ -381,7 +424,7 @@ class CairoContractWriter extends CairoASTNodeWriter {
 
     const documentation = getDocumentation(node.documentation, writer);
 
-    // Don't need to write structs, SourceUnitWriter so already
+    // Don't need to write structs, SourceUnitWriter does so already
 
     const enums = node.vEnums.map((value) => writer.write(value));
 
@@ -788,16 +831,13 @@ class FunctionCallWriter extends CairoASTNodeWriter {
             nodeType instanceof UserDefinedType &&
             nodeType.definition instanceof ContractDefinition
           ) {
-            const currentContract = node.getClosestParentByType(ContractDefinition);
-            const contractType = nodeType.definition.name;
             const memberName = node.vExpression.memberName;
             const contract = writer.write(node.vExpression.vExpression);
             return [
-              `${
-                currentContract?.name === contractType
-                  ? mangleOwnContractInterface(currentContract)
-                  : contractType
-              }.${memberName}(${contract}${args ? ', ' : ''}${args})`,
+              `${getInterfaceNameForContract(
+                nodeType.definition.name,
+                node,
+              )}.${memberName}(${contract}${args ? ', ' : ''}${args})`,
             ];
           }
         } else if (
