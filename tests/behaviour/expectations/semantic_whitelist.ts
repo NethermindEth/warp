@@ -1105,7 +1105,6 @@ const tests: string[] = [
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/bytes_and_strings.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/multiline_comments.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/structs.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/multiline.sol', // attempts to call non-existant function
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/structs.sol', // nested dynarray
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/arrays.sol', // dynarray of static array
