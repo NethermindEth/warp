@@ -1513,9 +1513,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/assert.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/assert_and_require.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/assign_tuple_from_function_call.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/calldata_bytes_array_bounds.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/comparison.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/comparison_functions.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/define_tuple_from_function_call.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/detect_add_overflow.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/detect_add_overflow_signed.sol',
@@ -1533,7 +1531,6 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/exp_neg_overflow.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/exp_overflow.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/exp_various.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/function_entry_checks.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/if.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/local_address_assignment.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/local_assignment.sol',
@@ -1553,6 +1550,9 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/tuple_evaluation_order.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/unary_fixedbytes.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/virtual_functions.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/function_entry_checks.sol', // tests invalid solidity calldata
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/comparison_functions.sol', // WILL NOT SUPPORT function objects
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/calldata_bytes_array_bounds.sol', //invalid calldata
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/smoke_test.sol', // attempts to call non-existant function
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/empty_return_corrupted_free_memory_pointer.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/calldata_array_length.sol', // nested dynarray args

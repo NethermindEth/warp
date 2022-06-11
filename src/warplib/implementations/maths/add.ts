@@ -90,10 +90,15 @@ export function add_signed(): void {
         return [
           `func warp_add_signed${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (`,
           `        res : felt):`,
-          `    let raw_res = lhs + rhs`,
-          `    let (overflowBits) = bitwise_and(raw_res, ${msbAndNext(width)})`,
+          `# Do the addition sign extended`,
+          `    let (lmsb) = bitwise_and(lhs, ${msb(width)})`,
+          `    let (rmsb) = bitwise_and(rhs, ${msb(width)})`,
+          `    let big_res = lhs + rhs + 2*(lmsb+rmsb)`,
+          `# Check the result is valid`,
+          `    let (overflowBits) = bitwise_and(big_res,  ${msbAndNext(width)})`,
           `    assert overflowBits * (overflowBits - ${msbAndNext(width)}) = 0`,
-          `    return (raw_res)`,
+          `# Truncate and return`,
+          `    return bitwise_and(big_res, ${mask(width)})`,
           `end`,
         ];
       }

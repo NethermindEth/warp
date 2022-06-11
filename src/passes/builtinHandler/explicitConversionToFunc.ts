@@ -13,6 +13,8 @@ import {
   IntLiteralType,
   IntType,
   Literal,
+  LiteralKind,
+  StringLiteralType,
   StringType,
   TypeNameType,
   UserDefinedType,
@@ -161,6 +163,10 @@ export class ExplicitConversionToFunc extends ASTMapper {
         operand.typeString = node.typeString;
         ast.replaceNode(node, operand);
         return;
+      } else if (argType instanceof StringLiteralType) {
+        const replacement = literalToFixedBytes(node.vArguments[0], typeTo);
+        ast.replaceNode(node, replacement);
+        return;
       }
     }
 
@@ -195,11 +201,18 @@ function literalToTypedInt(arg: Expression, typeTo: IntType): Expression {
   return arg;
 }
 
+// todo widening and narrowing
 function literalToFixedBytes(arg: Expression, typeTo: FixedBytesType): Expression {
   assert(
     arg instanceof Literal,
     `Found non-literal ${printNode(arg)} to have literal type ${arg.typeString}`,
   );
+
+  if (arg.kind === LiteralKind.HexString || arg.kind === LiteralKind.String) {
+    if (arg.hexValue.length < typeTo.size * 2) {
+      arg.hexValue = `${arg.hexValue}${'0'.repeat(typeTo.size * 2 - arg.hexValue.length)}`;
+    }
+  }
 
   arg.typeString = typeTo.pp();
   return arg;
