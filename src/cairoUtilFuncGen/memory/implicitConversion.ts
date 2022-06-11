@@ -16,7 +16,7 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { isDynamicArray, isValueType } from '../../utils/nodeTypeProcessing';
+import { isDynamicArray } from '../../utils/nodeTypeProcessing';
 import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { CairoFunction, StringIndexedFuncGen } from '../base';
@@ -82,11 +82,12 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     const generalisedTargetType = generalizeType(targetType)[0];
 
     // Currently only supports int / uint / address
+    // TODO: Add enum / string / struct support
     if (
       isArrayConversionNeeded(generalisedSourceType, generalisedTargetType) &&
       sourceLocation === DataLocation.Memory &&
-      isValueType(sourceBaseType) &&
-      isValueType(targetBaseType)
+      ((targetBaseType instanceof IntType && sourceBaseType instanceof IntType) ||
+        (targetBaseType instanceof AddressType && sourceBaseType instanceof AddressType))
     ) {
       return [this.gen(sourceExpression, targetType, nodeInSourceUnit), true];
     }
@@ -226,7 +227,6 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
         sourceType.elementT instanceof IntType &&
         sourceType.elementT.nBits !== targetType.elementT.nBits
       ) {
-        assert(sourceType.elementT instanceof IntType);
         this.requireImport(
           'warplib.maths.int_conversions',
           `warp_int${sourceType.elementT.nBits}_to_int${targetType.elementT.nBits}`,
