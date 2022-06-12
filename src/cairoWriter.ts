@@ -64,6 +64,7 @@ import {
   TryCatchClause,
   TryStatement,
   TupleExpression,
+  TypeNameType,
   UnaryOperation,
   UncheckedBlock,
   UserDefinedType,
@@ -750,7 +751,11 @@ class ExpressionStatementWriter extends CairoASTNodeWriter {
       return [
         [
           documentation,
-          `let __warp_uv${this.newVarCounter++} = ${writer.write(node.vExpression)}`,
+          `let __warp_uv${this.newVarCounter++} = ${
+            getNodeType(node.vExpression, writer.targetCompilerVersion) instanceof TypeNameType
+              ? '0'
+              : writer.write(node.vExpression)
+          }`,
         ].join('\n'),
       ];
     }
