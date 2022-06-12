@@ -9,6 +9,7 @@ contract WARP {
 
   // Single layer - Signed, Source Static
   //Check with dom if int8[3] -> int16[3]
+  int[] a0;   // <- int8[3]
   int16[] a1; // <- int8[3]
   int16[5] a2; // <- int8[3]
   // Single layer - Unsigned, Source Static
