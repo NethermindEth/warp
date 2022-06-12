@@ -886,7 +886,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_types_in_library.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_return_var_size.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_stray_values.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_stray_values.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_staticcall_delegatecall.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_call_in_homestead.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_enum_as_an_expression.sol',
