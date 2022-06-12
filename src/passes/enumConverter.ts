@@ -47,8 +47,10 @@ export class EnumConverter extends ASTMapper {
      ${node.vFunctionName}`,
     );
     if (
-      node.vExpression instanceof Identifier &&
-      node.vExpression.vReferencedDeclaration instanceof EnumDefinition
+      (node.vExpression instanceof Identifier &&
+        node.vExpression.vReferencedDeclaration instanceof EnumDefinition) ||
+      (node.vExpression instanceof MemberAccess &&
+        node.vExpression.vReferencedDeclaration instanceof EnumDefinition)
     ) {
       node.vExpression.typeString = generateExpressionTypeString(replaceEnumType(tNode));
       ast.replaceNode(
