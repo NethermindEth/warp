@@ -27,6 +27,9 @@ export const expectations = flatten(
             Expect.Simple('test', ['3'], ['3']),
             Expect.Simple('test256', ['3', '4'], ['3', '4']),
           ]),
+          File.Simple('tupleAssignments', [
+            Expect.Simple('gapAndOrder', [], ['4', '0', '17', '0', '1', '0']),
+          ]),
         ]),
         new Dir('bool_operators', [
           File.Simple('and', [
@@ -55,14 +58,14 @@ export const expectations = flatten(
             Expect.Simple('getBsC', [], ['18']),
           ]),
           File.Simple('bytesX', [
-            Expect.Simple('bytes2access', ['0', '0'], ['34']),
-            Expect.Simple('bytes12access', ['3', '0'], ['17']),
-            Expect.Simple('bytes17access', ['14', '0'], ['86']),
-            Expect.Simple('bytes24access', ['19', '0'], ['34']),
-            Expect.Simple('bytes32access', ['15'], ['68']),
-            Expect.Simple('bytes31access', ['30', '0'], ['254']),
-            Expect.Simple('bytes32access', ['30'], ['51']),
-            Expect.Simple('bytes32access256', ['31', '0'], ['255']),
+            Expect.Simple('bytes2access', ['0', '0'], ['0x11']),
+            Expect.Simple('bytes12access', ['3', '0'], ['0x22']),
+            Expect.Simple('bytes17access', ['14', '0'], ['0xde']),
+            Expect.Simple('bytes24access', ['19', '0'], ['0x22']),
+            Expect.Simple('bytes32access', ['15'], ['0x33']),
+            Expect.Simple('bytes31access', ['30', '0'], ['0xff']),
+            Expect.Simple('bytes32access', ['30'], ['0x44']),
+            Expect.Simple('bytes32access256', ['31', '0'], ['0x11']),
           ]),
           File.Simple('conversions', [
             Expect.Simple('bytes1To2', ['150'], ['38400']),
@@ -148,6 +151,15 @@ export const expectations = flatten(
               ]),
             ],
           ),
+          File.Simple('index', [
+            Expect.Simple('getByteAtIndex', ['0'], ['0']),
+            Expect.Simple('getByteAtIndex', ['4'], ['4']),
+            Expect.Simple(
+              'flip',
+              ['0x0102030405060708'],
+              ['8', '8', '7', '6', '5', '4', '3', '2', '1'],
+            ),
+          ]),
           File.Simple('stringsBytesConversion', [
             Expect.Simple('getCharacter', ['4', '10', '12', '14', '16', ...['2', '0']], ['14']),
             Expect.Simple('getLength', [], ['4', '0']),
@@ -171,6 +183,9 @@ export const expectations = flatten(
               ],
             ),
             Expect.Simple('returnFirstIndex', ['2', ...['1', '2']], ['1']),
+          ]),
+          File.Simple('returningDynArrayExternally', [
+            Expect.Simple('tester', ['3', '4', '5', ' 6'], ['6']),
           ]),
         ]),
         new Dir('concat', [
@@ -256,6 +271,8 @@ export const expectations = flatten(
               ['7', '1', '2', '3', '5', '6', '7', '8'],
             ),
             Expect.Simple('s5', [], ['5', '97', '97', '98', '98', '99']),
+            Expect.Simple('emptySingle', [], ['0']),
+            Expect.Simple('emptyMultiple', [], ['0']),
           ]),
         ]),
         new Dir('conditionals', [
@@ -393,96 +410,6 @@ export const expectations = flatten(
                 '65520',
                 '340282366920938463463374607431768211440',
                 '340282366920938463463374607431768211455',
-              ],
-            ),
-          ]),
-          File.Simple('memoryArraysToStorage', [
-            Expect.Simple('tryX1', ['3', '1', '2', '3'], ['3', '1', '0', '2', '0', '3', '0']),
-            Expect.Simple('tryX2', ['4', '5', '6'], ['3', '4', '0', '5', '0', '6', '0']),
-            Expect.Simple(
-              'tryY1',
-              ['4', '5', '6', '7', '8'],
-              ['4', '0', '5', '0', '6', '0', '7', '0', '8', '0'],
-            ),
-            Expect.Simple(
-              'tryY2',
-              ['4', '5', '6'],
-              ['4', '0', '5', '0', '6', '0', '0', '0', '0', '0'],
-            ),
-            Expect.Simple('tryZ1', [], ['3', '65535', '5', '10']),
-            Expect.Simple('tryZ2', [], ['4294967294', '4', '9', '0', '0']),
-            Expect.Simple(
-              'tryXX1',
-              [],
-              [
-                ...['3', '1', '0', '2', '0', '3', '0'],
-                ...['3', '4', '0', '5', '0', '6', '0'],
-                ...['3', '7', '0', '8', '0', '9', '0'],
-              ],
-            ),
-            Expect.Simple(
-              'tryXX2',
-              [],
-              [...['2', '1', '0', '2', '0'], ...['2', '3', '0', '4', '0']],
-            ),
-            Expect.Simple(
-              'tryXX3',
-              [],
-              [
-                ...['3', '1', '0', '2', '0', '3', '0'],
-                ...['3', '4', '0', '5', '0', '6', '0'],
-                ...['3', '7', '0', '8', '0', '9', '0'],
-              ],
-            ),
-            Expect.Simple(
-              'tryXX4',
-              [],
-              [
-                ...['1', '1', '0'],
-                ...['2', '0', '0', '2', '0'],
-                ...['3', '0', '0', '0', '0', '3', '0'],
-              ],
-            ),
-            Expect.Simple(
-              'tryYY1',
-              [],
-              [
-                ...['1', '0', '2', '0', '0', '0'],
-                ...['3', '0', '4', '0', '0', '0'],
-                ...['5', '0', '6', '0', '0', '0'],
-              ],
-            ),
-            Expect.Simple(
-              'tryYY2',
-              [],
-              [
-                ...['1', '0', '2', '0', '0', '0'],
-                ...['3', '0', '4', '0', '0', '0'],
-                ...['0', '0', '0', '0', '0', '0'],
-              ],
-            ),
-            Expect.Simple(
-              'tryYYY',
-              [],
-              [...['1', '0', '0', '0'], ...['0', '0', '0', '0'], ...['0', '0', '0', '0']],
-            ),
-            Expect.Simple(
-              'tryXY1',
-              [],
-              [
-                '3',
-                ...['1', '0', '2', '0', '0', '0'],
-                ...['3', '0', '4', '0', '0', '0'],
-                ...['5', '0', '6', '0', '0', '0'],
-              ],
-            ),
-            Expect.Simple(
-              'tryYX1',
-              [],
-              [
-                ...['1', ...['1', '0']],
-                ...['2', ...['0', '0', '2', '0']],
-                ...['3', ...['0', '0', '0', '0', '3', '0']],
               ],
             ),
           ]),
@@ -1028,6 +955,110 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('copy_memory_to_storage', [
+          File.Simple('array_conversions', [
+            Expect.Simple(
+              'scalingDynamicCopy',
+              ['4', '1', '2', '3', '4'],
+              ['4', '1', '0', '2', '0', '3', '0', '4', '0'],
+            ),
+            Expect.Simple(
+              'scalingStaticToDynamicCopy',
+              ['4', '5', '6'],
+              ['4', '4', '0', '5', '0', '6', '0', '0', '0'],
+            ),
+            Expect.Simple(
+              'scalingStaticCopy',
+              ['4', '5', '6', '7', '8'],
+              ['4', '0', '5', '0', '6', '0', '7', '0', '8', '0'],
+            ),
+            Expect.Simple(
+              'scalingStaticCopyShorterToLarger',
+              ['4', '5', '6'],
+              ['4', '0', '5', '0', '6', '0', '0', '0', '0', '0'],
+            ),
+            Expect.Simple('scalingIntDynamic', [], ['3', '65535', '5', '10']),
+            Expect.Simple('scalingIntStatic', [], ['4294967294', '4', '9', '0', '0']),
+            Expect.Simple('wideningBytes', [], ['2', '65280', '65280']),
+            Expect.Simple(
+              'nestedStaticToDynamic',
+              [],
+              [
+                ...['3', '1', '0', '2', '0', '3', '0'],
+                ...['3', '4', '0', '5', '0', '6', '0'],
+                ...['3', '7', '0', '8', '0', '9', '0'],
+              ],
+            ),
+            Expect.Simple(
+              'nestedDynamicToDynamic',
+              [],
+              [...['2', '1', '0', '2', '0'], ...['2', '3', '0', '4', '0']],
+            ),
+            Expect.Simple(
+              'nestedSmallerStaticToDynamic',
+              [],
+              [...['2', '1', '0', '2', '0'], ...['2', '3', '0', '4', '0'], '0'],
+            ),
+            Expect.Simple(
+              'nestedDynamicStaticToDynamic',
+              [],
+              [
+                ...['3', '1', '0', '2', '0', '3', '0'],
+                ...['3', '4', '0', '5', '0', '6', '0'],
+                ...['3', '7', '0', '8', '0', '9', '0'],
+              ],
+            ),
+            Expect.Simple(
+              'nestedStaticDynamicToDynamic',
+              [],
+              [
+                ...['1', '1', '0'],
+                ...['2', '0', '0', '2', '0'],
+                ...['3', '0', '0', '0', '0', '3', '0'],
+              ],
+            ),
+            Expect.Simple(
+              'nestedStaticToStatic',
+              [],
+              [
+                ...['1', '0', '2', '0', '0', '0'],
+                ...['3', '0', '4', '0', '0', '0'],
+                ...['5', '0', '6', '0', '0', '0'],
+              ],
+            ),
+            Expect.Simple(
+              'nestedSmallerStaticToStatic',
+              [],
+              [
+                ...['1', '0', '2', '0', '0', '0'],
+                ...['3', '0', '4', '0', '0', '0'],
+                ...['0', '0', '0', '0', '0', '0'],
+              ],
+            ),
+            Expect.Simple(
+              'nestedNestedStatic',
+              [],
+              [...['1', '0', '0', '0'], ...['0', '0', '0', '0'], ...['0', '0', '0', '0']],
+            ),
+            Expect.Simple(
+              'nestedDynamicStaticToDynamicStatic',
+              [],
+              [
+                '3',
+                ...['1', '0', '2', '0', '0', '0'],
+                ...['3', '0', '4', '0', '0', '0'],
+                ...['5', '0', '6', '0', '0', '0'],
+              ],
+            ),
+            Expect.Simple(
+              'nestedStaticDynamicToStaticDynamic',
+              [],
+              [
+                ...['1', ...['1', '0']],
+                ...['2', ...['0', '0', '2', '0']],
+                ...['3', ...['0', '0', '0', '0', '3', '0']],
+              ],
+            ),
+          ]),
           File.Simple('dynamic_arrays', [
             new Expect('arrays are initialised correctly', [
               ['getLengths', [], ['5', '0', '10', '0'], '0'],
@@ -1370,6 +1401,28 @@ export const expectations = flatten(
             ],
             'C',
           ),
+          File.Simple(
+            'other_contract_same_type',
+            [Expect.Simple('counter', [], ['0', '0'])],
+            'WARPDuplicate',
+          ),
+          File.Simple('other_contract_same_type', [
+            Expect.Simple('counter', [], ['0', '0']),
+            Expect.Simple(
+              'getAndIncrementOtherCounter',
+              [
+                'address@tests/behaviour/contracts/cross_contract_calls/other_contract_same_type.WARPDuplicate',
+              ],
+              ['0', '0'],
+            ),
+            Expect.Simple(
+              'getCounters',
+              [
+                'address@tests/behaviour/contracts/cross_contract_calls/other_contract_same_type.WARPDuplicate',
+              ],
+              [...['0', '0'], ...['1', '0']],
+            ),
+          ]),
           File.Simple('dynArrays', [], 'ArrayProvider'),
           File.Simple('dynArrays', [
             Expect.Simple(
@@ -1389,6 +1442,9 @@ export const expectations = flatten(
               ],
               ['2', '0', '5', '0', '4', '0', '2', '0', '5', '0', '4', '0'],
             ),
+          ]),
+          File.Simple('external_base_this_call', [
+            Expect.Simple('externalCallSelfAsBase', [], ['23', '0']),
           ]),
         ]),
         // covers nested mappings
@@ -1614,6 +1670,7 @@ export const expectations = flatten(
           File.Simple('assignments_as_rvalues', [
             Expect.Simple('addingLocalAssignments', ['5', '11'], ['16']),
             Expect.Simple('addingStorageAssignments', ['5', '11'], ['16', '0']),
+            Expect.Simple('assigningLocalStoragePointers', [], ['42', '0', '0', '21']),
           ]),
           File.Simple('ineffectual', [Expect.Simple('test', ['1'], ['1'])]),
           File.Simple('literals', [
@@ -2503,14 +2560,20 @@ export const expectations = flatten(
             Expect.Simple('eq256signedunsafe', ['1', '2', '1', '2'], ['1']),
           ]),
           File.Simple('exp', [
-            Expect.Simple('exp8safe', ['0', '0'], ['0']),
+            Expect.Simple('exp8safe', ['0', '0'], ['1']),
             Expect.Simple('exp8signedsafe', ['255', '10'], ['1']),
             Expect.Simple('exp8unsafe', ['100', '1'], ['100']),
             Expect.Simple('exp8signedunsafe', ['4', '3'], ['64']),
             Expect.Simple('exp256safe', ['0', '0', '1', '0'], ['0', '0']),
             Expect.Simple('exp256signedsafe', ['1000', '500', '0', '0'], ['1', '0']),
             Expect.Simple('exp256unsafe', ['2', '0', '3', '0'], ['8', '0']),
-            Expect.Simple('exp256signedunsafe', ['0', '0', '0', '0'], ['0', '0']),
+            Expect.Simple('exp256signedunsafe', ['0', '0', '0', '0'], ['1', '0']),
+            Expect.Simple(
+              'exp_minus_256',
+              ['31', '0'],
+              ['0', '0xff000000000000000000000000000000'],
+            ),
+            Expect.Simple('exp_minus_256', ['32', '0'], null),
           ]),
           File.Simple('ge', [
             Expect.Simple('ge8safe', ['1', '2'], ['0']),
@@ -2573,6 +2636,27 @@ export const expectations = flatten(
             Expect.Simple('multiplication8signedunsafe', ['100', '40'], ['160'], 'overflow'),
             Expect.Simple('multiplication128signedsafe', ['255', '255'], ['65025']),
             Expect.Simple('multiplication128signedunsafe', ['192', '2'], ['384']),
+            Expect.Simple(
+              'multiplication256signedsafe',
+              [
+                '0',
+                '0x40000000000000000000000000000000',
+                '0xfffffffffffffffffffffffffffffffe',
+                '0xffffffffffffffffffffffffffffffff',
+              ],
+              ['0', '0x80000000000000000000000000000000'],
+            ),
+            Expect.Simple(
+              'multiplication256signedsafe',
+              [
+                '1',
+                '0x40000000000000000000000000000000',
+                '0xfffffffffffffffffffffffffffffffe',
+                '0xffffffffffffffffffffffffffffffff',
+              ],
+              null,
+            ),
+            Expect.Simple('multiplication256signedsafe', ['20', '1', '5', '0'], ['100', '5']),
             Expect.Simple('multiplication256signedsafe', ['20', '1', '5', '0'], ['100', '5']),
             Expect.Simple('multiplication256signedunsafe', ['20', '0', '5', '1'], ['100', '20']),
           ]),
@@ -2925,6 +3009,9 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('returns', [
+          File.Simple('initialiseStorageReturns', [
+            Expect.Simple('getDefaultArrayLengths', [], ['0', '0', '0', '0']),
+          ]),
           File.Simple('returnInserter', [
             Expect.Simple('default_returnInsert', ['6'], ['0']),
             Expect.Simple('condition_returnInsert', ['1'], ['2'], 'Return from conditional branch'),
@@ -3100,6 +3187,20 @@ export const expectations = flatten(
             Expect.Simple('passInt', [], ['0', '0']),
             Expect.Simple('passMap', [], ['20']),
             Expect.Simple('passStruct', [], ['5']),
+          ]),
+          File.Simple('pushPopLoops', [
+            Expect.Simple('test_indices', ['1', '0'], ['1', '0']),
+            Expect.Simple('test_indices', ['5', '0'], ['5', '0']),
+            Expect.Simple('test_indices', ['10', '0'], ['10', '0']),
+            Expect.Simple('test_indices', ['9', '0'], ['9', '0']),
+            Expect.Simple('test_indices', ['1', '0'], ['1', '0']),
+          ]),
+          File.Simple('pushPopLoopsAddress', [
+            Expect.Simple('test_indices', ['0', '0'], ['0', '0']),
+            Expect.Simple('test_indices', ['11', '0'], ['11', '0']),
+            Expect.Simple('test_indices', ['11', '0'], ['11', '0']),
+            Expect.Simple('test_indices', ['5', '0'], ['5', '0']),
+            Expect.Simple('test_indices', ['0', '0'], ['0', '0']),
           ]),
           File.Simple('returns', [
             Expect.Simple('ints', [], ['3']),

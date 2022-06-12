@@ -11,7 +11,7 @@ contract WARP {
   }
 
   function readValues() view public returns (uint8, int16) {
-    uint8 a = x;
+    uint8 a = WARP.x;
     int16 b = y;
     return (a,b);
   }

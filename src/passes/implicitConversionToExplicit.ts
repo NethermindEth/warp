@@ -45,7 +45,12 @@ import { error } from '../utils/formatting';
 import { createElementaryConversionCall } from '../utils/functionGeneration';
 import { createNumberLiteral } from '../utils/nodeTemplates';
 import { getParameterTypes, intTypeForLiteral } from '../utils/nodeTypeProcessing';
-import { typeNameFromTypeNode, bigintToTwosComplement, toHexString } from '../utils/utils';
+import {
+  typeNameFromTypeNode,
+  bigintToTwosComplement,
+  toHexString,
+  isExternalCall,
+} from '../utils/utils';
 
 /*
 Detects implicit conversions by running solc-typed-ast's type analyser on
@@ -137,7 +142,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     // Assuming all variable declarations are split and have an initial value
 
     // VariableDeclarationExpressionSplitter must be run before this pass
-    if (node.vDeclarations.length !== 1) return;
+    if (node.assignments.length !== 1) return;
 
     insertConversionIfNecessary(
       node.vInitialValue,
@@ -212,7 +217,10 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 
     if (baseType instanceof MappingType) {
       insertConversionIfNecessary(node.vIndexExpression, baseType.keyType, ast);
-    } else if (location === DataLocation.CallData) {
+    } else if (
+      location === DataLocation.CallData ||
+      (node.vBaseExpression instanceof FunctionCall && isExternalCall(node.vBaseExpression))
+    ) {
       insertConversionIfNecessary(node.vIndexExpression, new IntType(248, false), ast);
     } else {
       insertConversionIfNecessary(node.vIndexExpression, new IntType(256, false), ast);
@@ -390,9 +398,12 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
     }
     return;
   } else if (currentType instanceof TupleType) {
-    throw new TranspileFailedError(
-      `Attempted to convert tuple ${printNode(expression)} as single value`,
-    );
+    if (!(targetType instanceof TupleType)) {
+      throw new TranspileFailedError(
+        `Attempted to convert tuple ${printNode(expression)} as single value`,
+      );
+    }
+    return;
   } else if (currentType instanceof TypeNameType) {
     return;
   } else if (currentType instanceof UserDefinedType) {
@@ -557,7 +568,7 @@ function handleConcatArgs(node: FunctionCall, ast: AST) {
   node.vArguments.forEach((arg) => {
     const type = getNodeType(arg, ast.compilerVersion);
     if (type instanceof StringLiteralType) {
-      if (type.literal.length < 32) {
+      if (type.literal.length < 32 && type.literal.length > 0) {
         insertConversionIfNecessary(arg, new FixedBytesType(type.literal.length), ast);
       } else {
         insertConversionIfNecessary(arg, new BytesType(), ast);

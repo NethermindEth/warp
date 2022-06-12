@@ -394,6 +394,14 @@ export function functionAffectsState(node: FunctionCall): boolean {
   return true;
 }
 
-export function mangleOwnContractInterface(contract: ContractDefinition) {
-  return `${contract.name}_interface`;
+export function mangleOwnContractInterface(contractOrName: ContractDefinition | string): string {
+  const name = typeof contractOrName === 'string' ? contractOrName : contractOrName.name;
+  return `${name}_interface`;
+}
+
+export function isExternalCall(node: FunctionCall): boolean {
+  return (
+    node.vReferencedDeclaration instanceof FunctionDefinition &&
+    isExternallyVisible(node.vReferencedDeclaration)
+  );
 }

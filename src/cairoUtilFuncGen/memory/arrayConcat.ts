@@ -136,6 +136,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     ].join('\n');
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     this.requireImport('warplib.memory', 'wm_new');
     argTypes.forEach((type) => {
       if (type instanceof PointerType) {
@@ -176,7 +177,7 @@ function getCopyFunctionCall(type: TypeNode, index: number): string {
   assert(type instanceof FixedBytesType);
 
   if (type.size < 32)
-    return `fixed_byte_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, size_${index} - 1, size_${index})`;
+    return `fixed_byte_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0, size_${index})`;
 
-  return `fixed_byte256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 31)`;
+  return `fixed_byte256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0)`;
 }

@@ -151,7 +151,7 @@ export function intTypeForLiteral(typestring: string): IntType {
     return new IntType(width, false);
   } else {
     // This is not the exact binary length in all cases, but it puts the values into the correct 8bit range
-    const binaryLength = (-value - 1n).toString(2).length;
+    const binaryLength = (-value - 1n).toString(2).length + 1;
     const width = 8 * Math.ceil(binaryLength / 8);
     return new IntType(width, true);
   }
@@ -234,4 +234,15 @@ export function getSize(type: ArrayType | BytesType | StringType): bigint | unde
   } else {
     return undefined;
   }
+}
+
+export function isStorageSpecificType(type: TypeNode, ast: AST): boolean {
+  if (type instanceof MappingType) return true;
+  if (type instanceof PointerType) return isStorageSpecificType(type.to, ast);
+  if (type instanceof ArrayType) return isStorageSpecificType(type.elementT, ast);
+  if (type instanceof UserDefinedType && type.definition instanceof StructDefinition)
+    return type.definition.vMembers.some((m) =>
+      isStorageSpecificType(getNodeType(m, ast.compilerVersion), ast),
+    );
+  return false;
 }
