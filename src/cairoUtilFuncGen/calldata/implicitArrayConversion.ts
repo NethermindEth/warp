@@ -24,13 +24,6 @@ import { DynArrayGen } from '../storage/dynArray';
 import { DynArrayIndexAccessGen } from '../storage/dynArrayIndexAccess';
 import { StorageWriteGen } from '../storage/storageWrite';
 
-// STILL LOOKED FOR UTIL THAT CREATES UINT256STRUCT CONSTRUCTOR.
-// There are 3 conditions here:
-// These are only supported with ints.
-// The first is that any static calldata array can become a larger storage static array uint[2] -> uint[3].
-// The second is that any static calldata array can become a dynamic calldata array uint[2] -> uint[].
-// The third is that any int can become a larger int in the above two cases uint8[2] -> uint256[]
-
 export class ImplicitArrayConversion extends StringIndexedFuncGen {
   constructor(
     private storageWriteGen: StorageWriteGen,
@@ -174,12 +167,6 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     assert(targetType instanceof PointerType && sourceType instanceof PointerType);
     assert(targetType.to instanceof ArrayType && sourceType.to instanceof ArrayType);
 
-    assert(
-      targetType.to.size !== undefined &&
-        sourceType.to.size !== undefined &&
-        targetType.to.size >= sourceType.to.size,
-    );
-
     const targetElmType = targetType.to.elementT;
     const sourceElmType = sourceType.to.elementT;
 
@@ -192,30 +179,25 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       TypeConversionContext.CallDataRef,
     );
 
-    const cairoSourceTypeString = cairoSourceType.toString();
-
+    assert(sourceType.to.size !== undefined);
     const sizeSource = narrowBigIntSafe(sourceType.to.size);
-    const sizeTarget = narrowBigIntSafe(targetType.to.size);
 
-    assert(sizeSource !== undefined && sizeTarget !== undefined);
     const copyInstructions = this.generateS2SCopyInstructions(
       targetElmType,
       sourceElmType,
       sizeSource,
     );
-    // Make sure these are the right way round.
 
-    // TODO check implicit order does not matter. //Does not matter.
     const implicit =
       '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
     const code = [
-      `func ${funcName}${implicit}(storage_loc: felt, arg: ${cairoSourceTypeString}):`,
+      `func ${funcName}${implicit}(storage_loc: felt, arg: ${cairoSourceType.toString()}):`,
       `alloc_locals`,
       ...copyInstructions,
       '    return ()',
       'end',
     ].join('\n');
-
+    this.addImports(targetElmType, sourceElmType);
     this.generatedFunctions.set(key, { name: funcName, code: code });
     return { name: funcName, code: code };
   }
@@ -251,10 +233,6 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
               offset,
             )}, arg_${index})`,
           ].join('\n');
-          this.requireImport(
-            'warplib.maths.int_conversions',
-            `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
-          );
         } else {
           code = [
             `    let (arg_${index}) = felt_to_uint256(arg[${index}])`,
@@ -263,13 +241,12 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
               offset,
             )}, arg_${index})`,
           ].join('\n');
-          this.requireImport('warplib.maths.utils', 'felt_to_uint256');
         }
       } else {
         if (isDynamicStorageArray(targetElmType)) {
           code = [
-            `let (ref_${index}) = readId(${add('storage_loc', offset)})`,
-            `${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}])`,
+            `    let (ref_${index}) = readId(${add('storage_loc', offset)})`,
+            `    ${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}])`,
           ].join('\n');
         } else {
           code = [
@@ -321,7 +298,6 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const sizeSource = narrowBigIntSafe(sourceType.to.size);
 
     assert(sizeSource !== undefined);
-    // Make sure these are the right way round.
 
     const dynArrayLengthName = this.dynArrayGen.gen(cairoTargetElementType)[1];
     const copyInstructions = this.generateS2DCopyInstructions(
@@ -336,13 +312,13 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       `func ${funcName}${implicit}(ref: felt, arg: ${cairoSourceTypeString}):`,
       `     alloc_locals`,
       isDynamicStorageArray(targetType)
-        ? `    ${dynArrayLengthName}.write(ref, ${sourceType.to.size}, 0))`
+        ? `    ${dynArrayLengthName}.write(ref, ${uint256(sourceType.to.size)})`
         : '',
       ...copyInstructions,
       '    return ()',
       'end',
     ].join('\n');
-
+    this.addImports(targetElmType, sourceElmType);
     this.generatedFunctions.set(key, { name: funcName, code: code });
     return { name: funcName, code: code };
   }
@@ -365,41 +341,32 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           code = [
             `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, Uint256(${index}, 0))`,
+            )}(ref, ${uint256(index)})`,
             `    ${this.storageWriteGen.getOrCreate(
               targetElmType,
             )}(storage_loc${index}, arg[${index}])`,
           ].join('\n');
         } else if (targetElmType.signed) {
-          // TODO find util to convert index to Uint256
           code = [
             `    let (arg_${index}) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(arg[${index}])`,
             `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, Uint256(${index}, 0))`,
+            )}(ref, ${uint256(index)})`,
             `    ${this.storageWriteGen.getOrCreate(
               targetElmType,
             )}(storage_loc${index}, arg_${index})`,
           ].join('\n');
-
-          this.requireImport(
-            'warplib.maths.int_conversions',
-            `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
-          );
-          this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-          this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
           return code;
         } else {
           code = [
             `    let (arg_${index}) = felt_to_uint256(arg[${index}])`,
             `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, Uint256(${index}, 0))`,
+            )}(ref, ${uint256(index)})`,
             `    ${this.storageWriteGen.getOrCreate(
               targetElmType,
             )}(storage_loc${index}, arg_${index})`,
           ].join('\n');
-          this.requireImport('warplib.maths.utils', 'felt_to_uint256');
           return code;
         }
       } else {
@@ -408,16 +375,16 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           code = [
             ` let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, Uint256(${index}, 0))`,
+            )}(ref, ${uint256(index)})`,
             `let (ref_${index}) = readId(storage_loc${index})`,
-            `${dynArrayLengthName}.write(ref_${index}, Uint256(${length}, 0))`,
+            `${dynArrayLengthName}.write(ref_${index}, ${uint256(length)})`,
             `${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}])`,
           ].join('\n');
         } else {
           code = [
             `     let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, Uint256(${index}, 0))`,
+            )}(ref, ${uint256(index)})`,
             `    ${this.getOrCreate(
               targetElmType,
               sourceElmType,
@@ -461,7 +428,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       TypeConversionContext.CallDataRef,
     );
     assert(cairoSourceType instanceof CairoDynArray);
-    const cairoSourceTypeString = cairoSourceType.toString();
+
     const dynArrayLengthName = this.dynArrayGen.gen(cairoTargetElementType)[1];
     const implicit =
       '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
@@ -483,38 +450,46 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       `    return ${loaderName}(ref, len - 1, ptr + ${cairoSourceType.ptr_member.width}, target_index+ 1 )`,
       `end`,
       ``,
-      `func ${funcName}${implicit}(ref: felt, source: ${cairoSourceTypeString}):`,
+      `func ${funcName}${implicit}(ref: felt, source: ${cairoSourceType.toString()}):`,
       `     alloc_locals`,
       `    ${dynArrayLengthName}.write(ref, Uint256(source.len, 0))`,
       `    ${loaderName}(ref, source.len, source.ptr, 0)`,
       '    return ()',
       'end',
     ].join('\n');
-
+    this.addImports(targetElmType, sourceElmType);
     this.generatedFunctions.set(key, { name: funcName, code: code });
     return { name: funcName, code: code };
   }
 
   private generateDynCopyInstructions(targetElmType: TypeNode, sourceElmType: TypeNode): string {
-    let copyInstructions;
     if (sourceElmType instanceof IntType && targetElmType instanceof IntType) {
-      copyInstructions = [
+      return [
         sourceElmType.signed
           ? `let (val) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(ptr[0])`
           : `    let (val) = felt_to_uint256(ptr[0])`,
         `    ${this.storageWriteGen.getOrCreate(targetElmType)}(storage_loc, val)`,
       ].join('\n');
-      this.requireImport(
-        'warplib.maths.int_conversions',
-        `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
-      );
-      this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     } else {
-      copyInstructions = isDynamicStorageArray(targetElmType)
-        ? `let (ref_name) = readId(storage_loc)
+      return isDynamicStorageArray(targetElmType)
+        ? `    let (ref_name) = readId(storage_loc)
           ${this.getOrCreate(targetElmType, sourceElmType)}(ref_name, ptr[0])`
         : `    ${this.getOrCreate(targetElmType, sourceElmType)}(storage_loc, ptr[0])`;
     }
-    return copyInstructions;
+  }
+
+  addImports(targetElmType: TypeNode, sourceElmType: TypeNode): void {
+    if (targetElmType instanceof IntType) {
+      assert(sourceElmType instanceof IntType);
+      if (targetElmType.nBits > sourceElmType.nBits && targetElmType.signed) {
+        this.requireImport(
+          'warplib.maths.int_conversions',
+          `warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}`,
+        );
+      } else {
+        this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+      }
+    }
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
   }
 }
