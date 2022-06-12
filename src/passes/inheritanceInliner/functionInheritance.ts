@@ -59,6 +59,14 @@ export function addNonoverridenPublicFunctions(
   const resolvedVisibleFunctions = [...visibleFunctionNames].map((name) =>
     resolveFunctionName(node, name),
   );
+
+  // Special functions (fallback, receive) have an empty name, therefore they need to be
+  // handled separately
+  const fallbackFunc = findSpecialFunction(node, FunctionKind.Fallback);
+  if (fallbackFunc !== undefined) resolvedVisibleFunctions.push(fallbackFunc);
+  const receiveFunc = findSpecialFunction(node, FunctionKind.Receive);
+  if (receiveFunc !== undefined) resolvedVisibleFunctions.push(receiveFunc);
+
   // Only functions that are defined only in base contracts need to get moved
   const functionsToMove = resolvedVisibleFunctions.filter((func) => func.vScope !== node);
 
@@ -75,7 +83,7 @@ export function addNonoverridenPublicFunctions(
 function getVisibleFunctions(node: CairoContract): Set<string> {
   const visibleFunctions = new Set(
     node.vFunctions
-      .filter((func) => isExternallyVisible(func) && !func.isConstructor)
+      .filter((func) => isExternallyVisible(func) && func.kind === FunctionKind.Function)
       .map((func) => func.name),
   );
 
@@ -164,4 +172,15 @@ function createDelegatingFunction(
   ast.setContextRecursive(newFunc);
 
   return newFunc;
+}
+function findSpecialFunction(
+  node: CairoContract,
+  kind: FunctionKind,
+): FunctionDefinition | undefined {
+  for (let contract of node.vLinearizedBaseContracts) {
+    for (let func of contract.vFunctions) {
+      if (func.kind === kind) return func;
+    }
+  }
+  return undefined;
 }
