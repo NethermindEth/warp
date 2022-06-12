@@ -7,7 +7,6 @@ import {
   DataLocation,
   ElementaryTypeName,
   ErrorDefinition,
-  Expression,
   ExpressionStatement,
   ExternalReferenceType,
   FunctionCall,
