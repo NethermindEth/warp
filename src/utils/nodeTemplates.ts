@@ -191,12 +191,13 @@ export function createReturn(
   toReturn: Expression | VariableDeclaration[] | undefined,
   retParamListId: number,
   ast: AST,
+  lookupNode?: ASTNode,
 ): Return {
   const retValue =
     toReturn === undefined || toReturn instanceof Expression
       ? toReturn
       : toSingleExpression(
-          toReturn.map((decl) => createIdentifier(decl, ast)),
+          toReturn.map((decl) => createIdentifier(decl, ast, undefined, lookupNode)),
           ast,
         );
   const node = new Return(ast.reserveId(), '', retParamListId, retValue);

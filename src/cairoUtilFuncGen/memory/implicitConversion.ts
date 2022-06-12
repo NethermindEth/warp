@@ -425,11 +425,19 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
   }
 }
 
-function getBaseType(type: TypeNode): TypeNode {
+export function getBaseType(type: TypeNode): TypeNode {
   const deferencedType = generalizeType(type)[0];
   return deferencedType instanceof ArrayType
     ? getBaseType(deferencedType.elementT)
     : deferencedType;
+}
+
+export function getNestedNumber(type: TypeNode): string {
+  const generalType = generalizeType(type)[0];
+  return generalType instanceof ArrayType
+    ? (generalType.size === undefined ? 'D' : `S${generalType.size}`) +
+        getNestedNumber(generalType.elementT)
+    : '';
 }
 
 function typesToCairoTypes(

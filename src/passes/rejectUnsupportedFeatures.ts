@@ -7,6 +7,7 @@ import {
   DataLocation,
   ElementaryTypeName,
   ErrorDefinition,
+  ExpressionStatement,
   ExternalReferenceType,
   FunctionCall,
   FunctionCallKind,
@@ -63,6 +64,13 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
+    if (typeNode instanceof FunctionType)
+      throw new WillNotSupportError('Function objects are not supported');
+    this.commonVisit(node, ast);
+  }
+
+  visitExpressionStatement(node: ExpressionStatement, ast: AST): void {
+    const typeNode = getNodeType(node.vExpression, ast.compilerVersion);
     if (typeNode instanceof FunctionType)
       throw new WillNotSupportError('Function objects are not supported');
     this.commonVisit(node, ast);

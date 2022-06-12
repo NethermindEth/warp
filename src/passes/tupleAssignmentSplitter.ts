@@ -7,10 +7,13 @@ import {
   ExpressionStatement,
   generalizeType,
   getNodeType,
+  IntLiteralType,
   Mutability,
   Return,
   StateVariableVisibility,
+  StringLiteralType,
   TupleExpression,
+  TupleType,
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
@@ -74,24 +77,34 @@ export class TupleAssignmentSplitter extends ASTMapper {
         '',
         returnExpression.typeString,
         false,
-        vars.map((v) => createIdentifier(v, ast)),
+        vars.map((v) => createIdentifier(v, ast, undefined, node)),
       );
       ast.registerChild(node.vExpression, node);
     }
   }
 
   splitTupleAssignment(node: Assignment, ast: AST): Block {
-    const lhs = node.vLeftHandSide;
+    const [lhs, rhs] = [node.vLeftHandSide, node.vRightHandSide];
     assert(
       lhs instanceof TupleExpression,
       `Split tuple assignment was called on non-tuple assignment ${node.type} # ${node.id}`,
+    );
+    const rhsType = getNodeType(rhs, ast.compilerVersion);
+    assert(
+      rhsType instanceof TupleType,
+      `Expected rhs of tuple assignment to be tuple type ${printNode(node)}`,
     );
 
     const block = createBlock([], ast);
 
     const tempVars = new Map<Expression, VariableDeclaration>(
-      lhs.vOriginalComponents.filter(notNull).map((child) => {
-        const [typeNode, location] = generalizeType(getNodeType(child, ast.compilerVersion));
+      lhs.vOriginalComponents.filter(notNull).map((child, index) => {
+        const lhsElementType = getNodeType(child, ast.compilerVersion);
+        const rhsElementType = rhsType.elements[index];
+        const [typeNode, location] =
+          rhsElementType instanceof IntLiteralType || rhsElementType instanceof StringLiteralType
+            ? generalizeType(lhsElementType)
+            : generalizeType(rhsElementType);
         const typeName = typeNameFromTypeNode(typeNode, ast);
         const decl = new VariableDeclaration(
           ast.reserveId(),
@@ -134,7 +147,7 @@ export class TupleAssignmentSplitter extends ASTMapper {
               target.typeString,
               '=',
               target,
-              createIdentifier(tempVar, ast),
+              createIdentifier(tempVar, ast, undefined, node),
             ),
           ),
       )

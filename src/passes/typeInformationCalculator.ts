@@ -23,7 +23,7 @@ import { createNumberLiteral, createStringLiteral } from '../utils/nodeTemplates
 
 function calculateIntMin(type: IntType): bigint {
   if (type.signed) {
-    return -(2n ** BigInt(type.nBits - 1));
+    return 2n ** BigInt(type.nBits - 1);
   } else {
     return 0n;
   }
@@ -92,7 +92,7 @@ export class TypeInformationCalculator extends ASTMapper {
 
     if (nodeType instanceof IntType && (memberName === 'min' || memberName === 'max')) {
       const value = memberName === 'min' ? calculateIntMin(nodeType) : calculateIntMax(nodeType);
-      return createNumberLiteral(value, ast);
+      return createNumberLiteral(value, ast, nodeType.pp());
     }
 
     if (nodeType instanceof UserDefinedType) {

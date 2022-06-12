@@ -886,7 +886,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_types_in_library.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_return_var_size.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_stray_values.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_stray_values.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_staticcall_delegatecall.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_call_in_homestead.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_enum_as_an_expression.sol',
@@ -1378,7 +1378,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/variables/delete_locals.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/variables/storing_invalid_boolean.sol', // WILL NOT SUPPORT yul
   ],
-  //---------Various tests: 91 passing, 26 pending, 11 failing
+  //---------Various tests:124 passing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/assignment_to_const_var_involving_expression.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/crazy_elementary_typenames_on_stack.sol',
@@ -1395,7 +1395,6 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/memory_overwrite.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/multi_modifiers.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/multi_variable_declaration.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/negative_stack_height.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/nested_calldata_struct.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/nested_calldata_struct_to_memory.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/positive_integers_to_signed.sol',
@@ -1412,6 +1411,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/swap_in_storage_overwrite.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/tuples.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/typed_multi_variable_declaration.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/negative_stack_height.sol', // starknet-compile takes too long to transpile the output, testnet dies
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/erc20.sol', // WILL NOT SUPPORT indexed
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/skip_dynamic_types_for_static_arrays_with_dynamic_elements.sol', // nested dynarrays
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/store_bytes.sol', // msg.data
@@ -1440,9 +1440,9 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/code_access_content.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/codebalance_assembly.sol', // WILL NOT SUPPORT yul
   ],
-  //---------ViaYul: 250 passing, 23 pending, 28 failing
+  //---------ViaYul: 268 passing
   ...[
-    //---------ViaYul array memory allocation: 19 passing, 1 failing
+    //---------ViaYul array memory allocation: 20 passing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/array_memory_allocation/array_zeroed_memory_index_access.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/array_memory_allocation/array_2d_zeroed_memory_index_access.sol',
@@ -1463,12 +1463,12 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_with_assignment.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_true_false_literal.sol',
     ],
-    //---------ViaYul conversion: 12 passing, 3 pending, 1 failing
+    //---------ViaYul conversion: 12 passing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conversion/explicit_cast_local_assignment.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conversion/explicit_cast_function_call.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conversion/explicit_cast_assignment.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conversion/explicit_string_bytes_calldata_cast.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conversion/explicit_string_bytes_calldata_cast.sol', // STRETCH slices
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conversion/function_cast.sol', // WILL NOT SUPPORT function objects
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conversion/implicit_cast_assignment.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conversion/implicit_cast_local_assignment.sol', // WILL NOT SUPPORT yul
