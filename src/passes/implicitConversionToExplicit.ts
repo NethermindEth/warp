@@ -45,12 +45,7 @@ import { error } from '../utils/formatting';
 import { createElementaryConversionCall } from '../utils/functionGeneration';
 import { createNumberLiteral } from '../utils/nodeTemplates';
 import { getParameterTypes, intTypeForLiteral } from '../utils/nodeTypeProcessing';
-import {
-  typeNameFromTypeNode,
-  bigintToTwosComplement,
-  toHexString,
-  isExternalCall,
-} from '../utils/utils';
+import { typeNameFromTypeNode, isExternalCall } from '../utils/utils';
 
 /*
 Detects implicit conversions by running solc-typed-ast's type analyser on
@@ -248,18 +243,6 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       node.typeString = intTypeForLiteral(
         `int_const ${getLiteralValueBound(node.typeString)}`,
       ).pp();
-    }
-    this.commonVisit(node, ast);
-  }
-
-  visitLiteral(node: Literal, ast: AST): void {
-    const nodeType = getNodeType(node, ast.compilerVersion);
-    if (nodeType instanceof IntLiteralType) {
-      const typeTo = intTypeForLiteral(`int_const ${getLiteralValueBound(node.typeString)}`);
-      const truncated = bigintToTwosComplement(BigInt(node.value), typeTo.nBits).toString(10);
-      node.value = truncated;
-      node.hexValue = toHexString(truncated);
-      node.typeString = typeTo.pp();
     }
     this.commonVisit(node, ast);
   }

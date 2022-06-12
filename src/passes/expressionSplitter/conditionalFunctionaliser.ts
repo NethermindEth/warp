@@ -107,15 +107,20 @@ export function createFunctionBody(node: Conditional, returns: ParameterList, as
         ast.reserveId(),
         '',
         node.vCondition,
-        createReturnBody(returns, node.vTrueExpression, ast),
-        createReturnBody(returns, node.vFalseExpression, ast),
+        createReturnBody(returns, node.vTrueExpression, ast, node),
+        createReturnBody(returns, node.vFalseExpression, ast, node),
       ),
     ],
     ast,
   );
 }
 
-export function createReturnBody(returns: ParameterList, value: Expression, ast: AST): Block {
+export function createReturnBody(
+  returns: ParameterList,
+  value: Expression,
+  ast: AST,
+  lookupNode?: ASTNode,
+): Block {
   const firstVar = returns.vParameters[0];
   return createBlock(
     [
@@ -127,11 +132,11 @@ export function createReturnBody(returns: ParameterList, value: Expression, ast:
           '',
           firstVar.typeString,
           '=',
-          createIdentifier(firstVar, ast),
+          createIdentifier(firstVar, ast, undefined, lookupNode),
           value,
         ),
       ),
-      createReturn(returns.vParameters, returns.id, ast),
+      createReturn(returns.vParameters, returns.id, ast, lookupNode),
     ],
     ast,
   );

@@ -22,6 +22,23 @@ contract WARP {
 
     B public d;
 
+    struct S {
+        uint256 x;
+        string a; // this is present in the accessor
+        uint256[] b; // this is not present
+        uint256 y;
+    }
+    S public s;
+
+    function getStructIgnoringDynArray(uint x, uint y) public returns (uint256, uint256) {
+        s.x = x;
+        s.a = "abc";
+        s.b = [7, 8, 9];
+        s.y = y;
+        (uint256 q, , uint256 w) = this.s();
+        return (q, w);
+    }
+
     constructor() public {
         a.a = 1;
         a.b = 2;

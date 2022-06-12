@@ -92,7 +92,7 @@ export class TypeInformationCalculator extends ASTMapper {
 
     if (nodeType instanceof IntType && (memberName === 'min' || memberName === 'max')) {
       const value = memberName === 'min' ? calculateIntMin(nodeType) : calculateIntMax(nodeType);
-      return createNumberLiteral(value, ast);
+      return createNumberLiteral(value, ast, nodeType.pp());
     }
 
     if (nodeType instanceof UserDefinedType) {

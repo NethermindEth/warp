@@ -98,6 +98,12 @@ function evaluateUnaryLiteral(node: UnaryOperation): RationalLiteral | boolean |
   if (op === null) return null;
 
   switch (node.operator) {
+    case '~': {
+      if (typeof op === 'boolean') {
+        throw new TranspileFailedError('Attempted to apply unary bitwise negation to boolean');
+      }
+      return op.bitwiseNegate();
+    }
     case '-':
       if (typeof op === 'boolean') {
         throw new TranspileFailedError('Attempted to apply unary numeric negation to boolean');

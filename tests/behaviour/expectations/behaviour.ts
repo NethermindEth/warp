@@ -702,6 +702,10 @@ export const expectations = flatten(
               ['arr256', ['11', '0'], ['0', '0'], '0'],
               ['arr256', ['12', '0'], null, '0'],
             ]),
+            new Expect('lengths set properly with tuple assignment', [
+              ['tupleAssign', ['12', '0', '5', '0'], [], '0'],
+              ['getLengths', [], ['12', '0', '5', '0'], '0'],
+            ]),
           ]),
           File.Simple('dynamic_arrays_2d', [
             new Expect('two dimensional dynamic arrays to storage', [
@@ -2598,6 +2602,7 @@ export const expectations = flatten(
                 '0',
               ],
             ),
+            Expect.Simple('getStructIgnoringDynArray', ['7', '9', '8', '0'], ['7', '9', '8', '0']),
           ]),
           File.Simple('misc', [
             Expect.Simple('a', ['0', '0'], ['1', '0', '2', '0']),
@@ -2847,6 +2852,12 @@ export const expectations = flatten(
               ['assign', ['10', '11'], [], '0'],
               ['getMember', [], ['10', '11'], '0'],
             ]),
+          ]),
+          File.Simple('swap', [
+            Expect.Simple('set', ['5', '6', '7', '8'], []),
+            Expect.Simple('swap', [], []),
+            Expect.Simple('struct1', [], ['5', '6']),
+            Expect.Simple('struct2', [], ['5', '6']),
           ]),
         ]),
         new Dir('stringLiteral', [
