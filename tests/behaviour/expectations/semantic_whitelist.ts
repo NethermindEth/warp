@@ -1366,7 +1366,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/cleanup.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/storage_layout_struct.sol', // WILL NOT SUPPORT yul
   ],
-  //---------Variables: 20 passing, 9 pending, 3 failing
+  //---------Variables: 32 passing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/variables/public_state_overridding.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/variables/delete_local.sol',
