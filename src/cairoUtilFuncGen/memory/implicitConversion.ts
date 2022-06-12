@@ -432,14 +432,6 @@ export function getBaseType(type: TypeNode): TypeNode {
     : deferencedType;
 }
 
-export function getNestedNumber(type: TypeNode): string {
-  const generalType = generalizeType(type)[0];
-  return generalType instanceof ArrayType
-    ? (generalType.size === undefined ? 'D' : `S${generalType.size}`) +
-        getNestedNumber(generalType.elementT)
-    : '';
-}
-
 function typesToCairoTypes(
   types: TypeNode[],
   ast: AST,

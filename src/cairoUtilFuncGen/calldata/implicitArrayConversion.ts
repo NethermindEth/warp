@@ -19,7 +19,7 @@ import { isDynamicStorageArray } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, CairoFunction, StringIndexedFuncGen } from '../base';
-import { getBaseType, getNestedNumber } from '../memory/implicitConversion';
+import { getBaseType } from '../memory/implicitConversion';
 import { DynArrayGen } from '../storage/dynArray';
 import { DynArrayIndexAccessGen } from '../storage/dynArrayIndexAccess';
 import { StorageWriteGen } from '../storage/storageWrite';
@@ -68,7 +68,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     if (targetArray instanceof ArrayType && sourceArray instanceof ArrayType) {
       const targetArrayElm = generalizeType(targetArray.elementT)[0];
       const sourceArrayElm = generalizeType(sourceArray.elementT)[0];
-      // Check to see if this is done by another pass.
+
       if (targetArray.size !== undefined && sourceArray.size !== undefined) {
         if (targetArray.size > sourceArray.size) {
           return true;
@@ -113,33 +113,24 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
   }
 
   getOrCreate(targetType: TypeNode, sourceType: TypeNode): string {
-    const targetCairoType = CairoType.fromSol(
-      generalizeType(targetType)[0],
-      this.ast,
-      TypeConversionContext.StorageAllocation,
-    );
-
-    const sourceCairoType = CairoType.fromSol(
+    const sourceRepForKey = CairoType.fromSol(
       generalizeType(sourceType)[0],
       this.ast,
       TypeConversionContext.CallDataRef,
-    );
+    ).fullStringRepresentation;
 
-    const targetBaseCairoType = CairoType.fromSol(
-      getBaseType(targetType),
-      this.ast,
-      TypeConversionContext.StorageAllocation,
-    );
-
-    const sourceBaseCairoType = CairoType.fromSol(
-      getBaseType(sourceType),
+    // Even though the target is in Storage, a unique key is needed to set the function.
+    // Using Calldata here gives us the full representation instead of WarpId provided by Storage.
+    // This is only for KeyGen and no further processing.
+    const targetRepForKey = CairoType.fromSol(
+      generalizeType(targetType)[0],
       this.ast,
       TypeConversionContext.CallDataRef,
-    );
+    ).fullStringRepresentation;
 
-    const key = `${targetCairoType.fullStringRepresentation}_${targetBaseCairoType} -> ${
-      sourceCairoType.fullStringRepresentation
-    }_${getNestedNumber(targetType)}_${sourceBaseCairoType}_${getNestedNumber(sourceType)}`;
+    const key = `${targetRepForKey}_${getBaseType(
+      targetType,
+    ).pp()} -> ${sourceRepForKey}_${getBaseType(sourceType).pp()}`;
 
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
