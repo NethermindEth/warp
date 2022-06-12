@@ -29,4 +29,8 @@ contract WARP {
       arr256[i] = i + 1 + shift * (i + 2);
     }
   }
+
+  function tupleAssign(uint length1, uint length2) public {
+    (arr8, arr256) = (new uint8[](length1), new uint256[](length2));
+  }
 }
