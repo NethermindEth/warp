@@ -23,7 +23,7 @@ export function addPrivateSuperFunctions(
   node.vFunctions.forEach((f) => currentFunctions.set(f.name, f));
   getBaseContracts(node).forEach((base, depth) => {
     base.vFunctions
-      .filter((func) => !func.isConstructor)
+      .filter((func) => func.kind === FunctionKind.Function)
       .map((func) => {
         const existingEntry = currentFunctions.get(func.name);
         const clonedFunction = cloneASTNode(func, ast);
@@ -60,13 +60,6 @@ export function addNonoverridenPublicFunctions(
     resolveFunctionName(node, name),
   );
 
-  // Special functions (fallback, receive) have an empty name, therefore they need to be
-  // handled separately
-  const fallbackFunc = findSpecialFunction(node, FunctionKind.Fallback);
-  if (fallbackFunc !== undefined) resolvedVisibleFunctions.push(fallbackFunc);
-  const receiveFunc = findSpecialFunction(node, FunctionKind.Receive);
-  if (receiveFunc !== undefined) resolvedVisibleFunctions.push(receiveFunc);
-
   // Only functions that are defined only in base contracts need to get moved
   const functionsToMove = resolvedVisibleFunctions.filter((func) => func.vScope !== node);
 
@@ -77,6 +70,11 @@ export function addNonoverridenPublicFunctions(
     assert(privateFunc !== undefined, `Unable to find inlined base function for ${printNode(f)}`);
     node.appendChild(createDelegatingFunction(f, privateFunc, node.id, ast));
   });
+
+  // Special functions (fallback, receive) have an empty name and don't have their respective private duplicate,
+  // therefore they need to be handled separately
+  findSpecialFunction(node, FunctionKind.Fallback, ast);
+  findSpecialFunction(node, FunctionKind.Receive, ast);
 }
 
 // Get all visible function names accessible from a contract
@@ -173,14 +171,18 @@ function createDelegatingFunction(
 
   return newFunc;
 }
-function findSpecialFunction(
-  node: CairoContract,
-  kind: FunctionKind,
-): FunctionDefinition | undefined {
-  for (let contract of node.vLinearizedBaseContracts) {
-    for (let func of contract.vFunctions) {
-      if (func.kind === kind) return func;
+function findSpecialFunction(node: CairoContract, kind: FunctionKind, ast: AST): void {
+  for (const contract of node.vLinearizedBaseContracts) {
+    for (const func of contract.vFunctions) {
+      if (func.kind === kind) {
+        if (func.vScope !== node) {
+          const newFunc = cloneASTNode(func, ast);
+          newFunc.scope = node.id;
+          newFunc.vOverrideSpecifier = undefined;
+          node.appendChild(newFunc);
+        }
+        return;
+      }
     }
   }
-  return undefined;
 }
