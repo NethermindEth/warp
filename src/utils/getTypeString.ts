@@ -79,6 +79,8 @@ export function getFunctionTypeString(node: FunctionDefinition, compilerVersion:
       const baseType = getNodeType(decl, compilerVersion);
       if (
         baseType instanceof ArrayType ||
+        baseType instanceof BytesType ||
+        baseType instanceof StringType ||
         (baseType instanceof UserDefinedType && baseType.definition instanceof StructDefinition)
       ) {
         if (decl.storageLocation === DataLocation.Default) {

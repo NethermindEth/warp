@@ -23,6 +23,7 @@ import {
   ErrorDefinition,
   EventDefinition,
   ExpressionStatement,
+  ExternalReferenceType,
   ForStatement,
   FunctionCall,
   FunctionCallKind,
@@ -65,6 +66,8 @@ import {
   TryStatement,
   TupleExpression,
   TypeNameType,
+  TupleType,
+  TypeNode,
   UnaryOperation,
   UncheckedBlock,
   UserDefinedType,
@@ -207,18 +210,35 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     );
 
     const documentation = getDocumentation(node.documentation, writer);
-    const declarations = node.assignments.flatMap((id) => {
-      if (id === null) {
-        return [`__warp_gv${this.gapVarCounter++}`];
-      }
+    const initialValueType = getNodeType(node.vInitialValue, this.ast.compilerVersion);
+
+    const getValueN = (n: number): TypeNode => {
+      if (initialValueType instanceof TupleType) {
+        return initialValueType.elements[n];
+      } else if (n === 0) return initialValueType;
+      throw new TranspileFailedError(
+        `Attempted to extract value at index ${n} of non-tuple return`,
+      );
+    };
+
+    const getDeclarationForId = (id: number): VariableDeclaration => {
       const declaration = node.vDeclarations.find((decl) => decl.id === id);
       assert(declaration !== undefined, `Unable to find variable declaration for assignment ${id}`);
-      const type = generalizeType(getNodeType(declaration, this.ast.compilerVersion))[0];
+      return declaration;
+    };
+
+    const declarations = node.assignments.flatMap((id, index) => {
+      const type = generalizeType(getValueN(index))[0];
       if (
         isDynamicArray(type) &&
         node.vInitialValue instanceof FunctionCall &&
         isExternalCall(node.vInitialValue)
       ) {
+        if (id === null) {
+          const uniqueSuffix = this.gapVarCounter++;
+          return [`__warp_gv_len${uniqueSuffix}`, `__warp_gv${uniqueSuffix}`];
+        }
+        const declaration = getDeclarationForId(id);
         assert(
           declaration.storageLocation === DataLocation.CallData,
           `WARNING: declaration receiving calldata dynarray has location ${declaration.storageLocation}`,
@@ -226,7 +246,10 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
         const writtenVar = writer.write(declaration);
         return [`${writtenVar}_len`, writtenVar];
       } else {
-        return [writer.write(declaration)];
+        if (id === null) {
+          return [`__warp_gv${this.gapVarCounter++}`];
+        }
+        return [writer.write(getDeclarationForId(id))];
       }
     });
     if (
@@ -818,6 +841,13 @@ class IndexAccessWriter extends CairoASTNodeWriter {
 }
 class IdentifierWriter extends CairoASTNodeWriter {
   writeInner(node: Identifier, _: ASTWriter): SrcDesc {
+    if (
+      node.vIdentifierType === ExternalReferenceType.Builtin &&
+      node.name === 'super' &&
+      !(node.parent instanceof MemberAccess)
+    ) {
+      return ['0'];
+    }
     if (
       isDynamicCallDataArray(getNodeType(node, this.ast.compilerVersion)) &&
       ((node.getClosestParentByType(Return) !== undefined &&

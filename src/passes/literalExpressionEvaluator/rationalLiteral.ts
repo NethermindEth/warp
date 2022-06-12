@@ -111,6 +111,16 @@ export class RationalLiteral {
     return new RationalLiteral(this.numerator >> op, this.denominator);
   }
 
+  bitwiseNegate(): RationalLiteral | null {
+    const intValue = this.toInteger();
+    if (intValue === null) {
+      return null;
+    }
+
+    // -x = ~x + 1 in two's complement
+    return new RationalLiteral(-intValue - 1n, 1n);
+  }
+
   toInteger(): bigint | null {
     if (this.numerator % this.denominator === 0n) {
       return this.numerator / this.denominator;
