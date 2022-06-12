@@ -23,7 +23,7 @@ import { createNumberLiteral, createStringLiteral } from '../utils/nodeTemplates
 
 function calculateIntMin(type: IntType): bigint {
   if (type.signed) {
-    return -(2n ** BigInt(type.nBits - 1));
+    return 2n ** BigInt(type.nBits - 1);
   } else {
     return 0n;
   }
