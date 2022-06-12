@@ -870,7 +870,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_call_bound_with_parentheses.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_call_bound_with_parentheses1.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_literal.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_fixed_bytes.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_fixed_bytes.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_address.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_bool.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound.sol',
