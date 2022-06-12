@@ -2768,6 +2768,11 @@ export const expectations = flatten(
             Expect.Simple('get', ['0', '0'], null),
             Expect.Simple('pop', [], null, 'attempting to pop an empty array should fail'),
           ]),
+          File.Simple('dynamicInStructs', [
+            Expect.Simple('s', [], ['0', '0', '0']),
+            Expect.Simple('set', ['5', '2', '2', '0x80', '0x81'], []),
+            Expect.Simple('s', [], ['5', '2', '2', '0x80', '0x81']),
+          ]),
           File.Simple('mappings', [
             Expect.Simple('nestedMappings', ['3'], ['3']),
             Expect.Simple('nestedMappings', ['4'], ['4'], 'stepCheck'),

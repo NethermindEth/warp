@@ -1,4 +1,3 @@
-import assert from 'assert';
 import {
   Assignment,
   DataLocation,
@@ -11,8 +10,9 @@ import {
 import { AST } from '../../ast/ast';
 import {
   isComplexMemoryType,
-  isDynamicStorageArray,
+  isDynamicArray,
   isMapping,
+  isReferenceType,
 } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
@@ -31,15 +31,13 @@ export class StoredPointerDereference extends ReferenceSubPass {
     const nodeType = getNodeType(node, ast.compilerVersion);
 
     // Next, if the node is a type that requires an extra read, insert this first
-    if (isDynamicStorageArray(nodeType) || isComplexMemoryType(nodeType) || isMapping(nodeType)) {
-      let readFunc: FunctionCall;
-      if (actualLoc === DataLocation.Storage) {
-        readFunc = utilFuncGen.storage.read.gen(node, typeNameFromTypeNode(nodeType, ast), parent);
-      } else if (actualLoc === DataLocation.Memory) {
-        readFunc = utilFuncGen.memory.read.gen(node, typeNameFromTypeNode(nodeType, ast), parent);
-      } else {
-        assert(false);
-      }
+    let readFunc: FunctionCall | null = null;
+    if (actualLoc === DataLocation.Storage && (isDynamicArray(nodeType) || isMapping(nodeType))) {
+      readFunc = utilFuncGen.storage.read.gen(node, typeNameFromTypeNode(nodeType, ast), parent);
+    } else if (actualLoc === DataLocation.Memory && isReferenceType(nodeType)) {
+      readFunc = utilFuncGen.memory.read.gen(node, typeNameFromTypeNode(nodeType, ast), parent);
+    }
+    if (readFunc !== null) {
       this.replace(node, readFunc, parent, actualLoc, expectedLoc, ast);
       if (actualLoc === undefined) {
         this.expectedDataLocations.delete(node);
