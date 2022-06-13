@@ -47,6 +47,8 @@ export class ABIExtractor extends ASTMapper {
     });
   }
 
+  // The CanonicalSignature fails for ArrayTypeNames with non-literal, non-undefined length
+  // This replaces such cases with literals
   visitArrayTypeName(node: ArrayTypeName, ast: AST): void {
     this.commonVisit(node, ast);
 
