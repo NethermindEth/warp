@@ -1720,6 +1720,13 @@ export const expectations = flatten(
           ]),
           File.Simple('tupleEdgeCases', [Expect.Simple('f', ['0', '0'], ['0', '0'])]),
         ]),
+        new Dir('externalStructs', [
+          File.Simple('externalStructs', [
+            Expect.Simple('test1', [], ['5', '0']),
+            Expect.Simple('test2', ['4', '0'], ['4', '0']),
+            Expect.Simple('test3', ['3', '0', '8', '0'], ['3', '0', '8', '0']),
+          ]),
+        ]),
         new Dir('external_function_inputs', [
           File.Simple('dynamic_array_return_index', [
             new Expect(

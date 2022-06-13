@@ -134,7 +134,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
             }
           }
         }),
-        `    return (${structDef.name}(${mapRange(
+        `    return (${outputType.toString()}(${mapRange(
           structDef.vMembers.length,
           (n) => `member${n}`,
         )}))`,

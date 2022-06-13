@@ -61,20 +61,7 @@ export abstract class CairoUtilFuncGenBase {
   }
 
   protected checkForImport(type: TypeNode): void {
-    if (
-      type instanceof UserDefinedType &&
-      (type.definition instanceof StructDefinition || type.definition instanceof EnumDefinition)
-    ) {
-      assert(this.sourceUnit !== undefined, 'Unable to find SourceUnit for CairoUtilGen.');
-      const typeDefSourceUnit = type.definition.root;
-      assert(
-        typeDefSourceUnit instanceof SourceUnit,
-        `Unable to find SourceUnit holding type definition ${printTypeNode(type)}.`,
-      );
-      if (this.sourceUnit !== typeDefSourceUnit) {
-        this.requireImport(formatPath(typeDefSourceUnit.absolutePath), type.definition.name);
-      }
-    } else if (type instanceof IntType && type.nBits === 256) {
+    if (type instanceof IntType && type.nBits === 256) {
       this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     }
   }

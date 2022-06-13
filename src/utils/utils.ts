@@ -29,6 +29,7 @@ import {
   PointerType,
   StateVariableVisibility,
   StringType,
+  StructDefinition,
   TimeUnit,
   TupleExpression,
   TypeName,
@@ -37,6 +38,7 @@ import {
   UserDefinedTypeName,
   VariableDeclaration,
 } from 'solc-typed-ast';
+import Web3 from 'web3';
 import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
 import { printTypeNode } from './astPrinter';
@@ -91,10 +93,6 @@ export function* counterGenerator(start = 0): Generator<number, number, unknown>
     yield count;
     count++;
   }
-}
-
-export function canonicalMangler(name: string) {
-  return name.replaceAll('_', '__').replaceAll('.', '_');
 }
 
 export function toHexString(stringValue: string): string {
@@ -392,6 +390,10 @@ export function functionAffectsState(node: FunctionCall): boolean {
     );
   }
   return true;
+}
+
+export function mangleStructName(structDef: StructDefinition): string {
+  return `${structDef.name}_${Web3.utils.sha3(structDef.canonicalName)?.slice(2, 10)}`;
 }
 
 export function mangleOwnContractInterface(contractOrName: ContractDefinition | string): string {

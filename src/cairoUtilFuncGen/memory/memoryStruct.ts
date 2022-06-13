@@ -30,8 +30,7 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       TypeConversionContext.MemoryAllocation,
     );
     assert(cairoType instanceof CairoStruct);
-    // Struct writes are generated in the defining struct's scope
-    const name = this.ast.getUtilFuncGen(structDef).memory.struct.getOrCreate(cairoType);
+    const name = this.getOrCreate(cairoType);
 
     const stub = createCairoFunctionStub(
       name,
@@ -60,7 +59,7 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       ],
       ['range_check_ptr', 'warp_memory'],
       this.ast,
-      structDef,
+      node,
     );
 
     structDef.vScope.acceptChildren();
