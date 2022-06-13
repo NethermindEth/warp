@@ -62,7 +62,6 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
       name,
       [
         ['name', typeNameFromTypeNode(baseType, this.ast), DataLocation.Storage],
-        // TODO check that this is always default
         [
           'index',
           typeNameFromTypeNode(baseType.to.keyType, this.ast),
