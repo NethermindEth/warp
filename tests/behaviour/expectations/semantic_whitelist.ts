@@ -131,7 +131,7 @@ const tests: string[] = [
   ],
   //---------Array tests - 374 passing, 103 pending, 52 failing
   ...[
-    //---------Array concat tests: 20 passing, 6 pending, 2 failing
+    //---------Array concat tests: 24 passing, 3 pending, 1 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_2_args.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_3_args.sol',
@@ -141,7 +141,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_empty_strings.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_nested.sol',
     ],
-    //---------Array copying tests 114 passing, 62 pending, 29 failing
+    //---------Array copying tests 147 passing, 36 pending, 22 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_different_packing.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_including_array.sol',
@@ -215,7 +215,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_clear_storage.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/empty_bytes_copy.sol', // WILL NOT SUPPORT yul
     ],
-    //---------Array delete tests: 9 passing, 2 pending, 1 failing
+    //---------Array delete tests: 12 passing, 0 pending, 0 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/delete/bytes_delete_element.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/delete/delete_on_array_of_structs.sol',
@@ -258,7 +258,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/byte_array_pop_isolated.sol', // WILL NOT SUPPORT function objects
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/byte_array_pop_long_storage_empty_garbage_ref.sol', // WILL NOT SUPPORT yul
     ],
-    //-------Array push tests: 41 passing, 5 pending, 6 failing
+    //-------Array push tests: 46 passing, 2 pending, 4 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/push/byte_array_push.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/push/push_no_args_1d.sol',
@@ -283,7 +283,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/slices/array_calldata_assignment.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/slices/array_slice_calldata_as_argument_of_external_calls.sol',
     ],
-    //-------Array misc tests: 110 passing, 24 pending, 10 failing
+    //-------Array misc tests: 124 passing, 12 pending, 8 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/arrays_complex_from_and_to_storage.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/byte_array_transitional_2.sol',
@@ -361,7 +361,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/ripemd160_empty.sol', // WillNotSupport
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/sha256_empty.sol', // WillNotSupport
   ],
-  //---------Calldata tests: 33 passing, 11 pending, 4 failing
+  //---------Calldata tests: 41 passing, 5 pending, 2 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_bound_bytes.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_bound_static_array.sol',
@@ -383,7 +383,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_struct_cleaning.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/copy_from_calldata_removes_bytes_data.sol', // address.call
   ],
-  //---------Cleanup tests: 20 passing, 6 pending, 6 failing
+  //---------Cleanup tests: 27 passing, 0 pending, 5 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/bool_conversion_v2.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/cleanup_bytes_types_v1.sol',
@@ -407,7 +407,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constantEvaluator/rounding.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constantEvaluator/negative_fractional_mod.sol',
   ],
-  //---------Constants: 12 passing, 6 pending, 2 failing
+  //---------Constants: 17 passing, 2 pending, 1 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constants/constant_string.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constants/constant_string_at_file_level.sol',
@@ -420,7 +420,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constants/asm_address_constant_regression.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constants/asm_constant_file_level.sol', // WILL NOT SUPPORT yul
   ],
-  //---------Constructor tests: 36 passing
+  //---------Constructor tests: 36 passing, 6 pending, 2 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/functions_called_by_constructor.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_static_array_argument.sol',
@@ -445,7 +445,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/store_internal_unused_function_in_constructor.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/store_internal_unused_library_function_in_constructor.sol', // WILL NOT SUPPORT function objects
   ],
-  //---------Conversions: 0 passing, 3 pending, 1 failing
+  //---------Conversions: 4 passing, 0 pending, 0 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/conversions/string_to_bytes.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/conversions/function_type_array_to_storage.sol', // WILL NOT SUPPORT function objects
@@ -637,7 +637,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/inheritance/call_base_explicit.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/inheritance/call_base_base.sol',
     ],
-    //---------Function call misc tests: 52 passing, 9 pending, 3 failing
+    //---------Function call misc tests: 64 passing, 0 pending, 0 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/array_multiple_local_vars.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/bound_function_in_var.sol',
@@ -714,7 +714,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/uninitialized_internal_storage_function_call.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/comparison_operator_for_external_function_cleans_dirty_bits.sol', // WILL NOT SUPPORT yul
   ],
-  //---------Getter tests 24 passing, 9 pending, 3 failing
+  //---------Getter tests 30 passing, 3 pending, 3 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/getters/mapping_to_struct.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/getters/bytes.sol',
@@ -744,7 +744,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/immutable/immutable_signed.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/immutable/getter_call_in_constructor.sol', // WILL NOT SUPPORT try catch
   ],
-  //---------Inheritance tests 61 passing, 2 pending, 1 failing
+  //---------Inheritance tests 64 passing, 0 pending, 0 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/pass_dynamic_arguments_to_the_base_base.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/overloaded_function_call_resolve_to_first.sol',
@@ -859,7 +859,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/isoltestTesting/balance_other_contract.sol', // WILL NOT SUPPORT value
     ],
   ],
-  //---------libraries: 107 passing, 40 pending, 17 failing
+  //---------libraries: 153 passing, 7 pending, 4 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/bound_returning_calldata_external.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/bound_returning_calldata.sol',
@@ -946,7 +946,7 @@ const tests: string[] = [
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/metaTypes/name_other_contract.sol'
   ],
-  //---------Modifiers: 80 passing, 18 pending, 10 failing
+  //---------Modifiers: 96 passing, 6 pending, 6 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/access_through_contract_name.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/break_in_modifier.sol',
@@ -1069,7 +1069,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/reverts/invalid_enum_compared.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/reverts/revert_return_area.sol', // WILL NOT SUPPORT yul
   ],
-  //---------RevertStrings: tests abi checks
+  //---------RevertStrings: tests abi checks -> 26 passing, 2 pending, 9 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/called_contract_has_code.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/enum_v1.sol',
@@ -1114,7 +1114,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/constructor.sol', // WILL NOT SUPPORT addr.balance
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/fallback.sol', // WILL NOT SUPPORT msg.data
   ],
-  //---------specialFunctions - 4 passing
+  //---------specialFunctions - 4 passing, 6 pending, 2 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/specialFunctions/abi_encode_with_signature_from_string.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/specialFunctions/abi_functions_member_access.sol',
@@ -1143,7 +1143,7 @@ const tests: string[] = [
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/statements/do_while_loop_continue.sol',
   ],
-  //---------storage: 60 passing, 5 pending, 3 failing
+  //---------storage: 64 passing, 2 pending, 2 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/storage/state_smoke_test.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/storage/packed_storage_signed.sol',
@@ -1164,7 +1164,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/storage/array_accessor.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/storage/packed_functions.sol', // WILL NOT SUPPORT function objects
   ],
-  //---------strings - 35 passing, 8 pending, 5 failing
+  //---------strings - 40 passing, 5 pending, 3 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/strings/return_string.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/strings/empty_string_input.sol',
@@ -1181,7 +1181,7 @@ const tests: string[] = [
   ],
   //---------structs: 124 passing, 36 pending, 20 failing
   ...[
-    //---------structs calldata: 30 passing, 2 failing
+    //---------structs calldata: 32 passing, 0 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/calldata/calldata_struct.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/calldata/calldata_struct_and_ints.sol',
@@ -1203,12 +1203,12 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/calldata/dynamic_nested.sol', // nested dynarrays
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/calldata/dynamically_encoded.sol', // nested dynarrays
     ],
-    //---------structs conversion: 3 passing, 3 pending, 2 failing
+    //---------structs conversion: 0 passing, 6 pending, 2 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/conversion/recursive_storage_memory.sol', // recursive structs
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/conversion/recursive_storage_memory_complex.sol', // recursive structs
     ],
-    //---------structs misc: 86 passing, 31 pending, 15 failing
+    //---------structs misc: 115 passing, 10 pending, 7 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/copy_struct_array_from_storage.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/struct_storage_to_memory.sol',
@@ -1280,11 +1280,11 @@ const tests: string[] = [
   ],
   //---------types: 87 passing, 27 pending, 10 failing
   ...[
-    //---------types mapping tests: 0 passing, 3 pending, 1 failing
+    //---------types mapping tests: 1 passing, 2 pending, 1 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/mapping/user_defined_types_mapping_storage.sol',
     ],
-    //---------types misc tests: 87 passing, 24 pending, 9 failing
+    //---------types misc tests: 99 passing, 15 pending, 6 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/mapping_enum_key_getter_v2.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/assign_calldata_value_type.sol',
@@ -1320,9 +1320,9 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/external_function_to_address.sol', // WILL NOT SUPPORT function address
     ],
   ],
-  //---------underscore: 4 passing
+  //---------underscore: 0 passing
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/underscore/as_function.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/underscore/as_function.sol', // WILL NOT SUPPORT function objects
   ],
   //---------uninitializedFunctionPointer - Will Not Support
   ...[
@@ -1333,15 +1333,15 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/uninitializedFunctionPointer/invalidInConstructor.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/uninitializedFunctionPointer/uninitialized_internal_storage_function_via_yul.sol', // WILL NOT SUPPORT yul
   ],
-  //---------UserDefinedValueType - 45 passing, 4 pending, 3 failing
+  //---------UserDefinedValueType - 43 passing, 6 pending, 3 failing
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/in_parenthesis.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/in_parenthesis.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/conversion.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/simple.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/zero_cost_abstraction_comparison_userdefined.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/conversion_abicoderv1.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/mapping_key.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/wrap_unwrap.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/wrap_unwrap.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/memory_to_storage.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/wrap_unwrap_via_contract_name.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/constant.sol',
@@ -1366,7 +1366,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/cleanup.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/storage_layout_struct.sol', // WILL NOT SUPPORT yul
   ],
-  //---------Variables: 20 passing, 9 pending, 3 failing
+  //---------Variables: 30 passing, 0 pending, 2 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/variables/public_state_overridding.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/variables/delete_local.sol',
@@ -1378,7 +1378,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/variables/delete_locals.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/variables/storing_invalid_boolean.sol', // WILL NOT SUPPORT yul
   ],
-  //---------Various tests:124 passing
+  //---------Various tests:123 passing, 1 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/assignment_to_const_var_involving_expression.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/crazy_elementary_typenames_on_stack.sol',
@@ -1492,7 +1492,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/storage/dirty_storage_static_array.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/storage/dirty_storage_struct.sol', // WILL NOT SUPPORT yul
     ],
-    //---------ViaYul misc: 212 passing
+    //---------ViaYul misc: 205 passing, 7 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/array_2d_assignment.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/array_2d_new.sol',
