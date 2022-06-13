@@ -2,7 +2,9 @@ import {
   ElementaryTypeNameExpression,
   ExpressionStatement,
   getNodeType,
+  Identifier,
   IndexAccess,
+  MemberAccess,
   TypeNameType,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
@@ -17,6 +19,8 @@ export class TypeNameRemover extends ASTMapper {
   visitExpressionStatement(node: ExpressionStatement, ast: AST): void {
     if (
       (node.vExpression instanceof IndexAccess ||
+        node.vExpression instanceof MemberAccess ||
+        node.vExpression instanceof Identifier ||
         node.vExpression instanceof ElementaryTypeNameExpression) &&
       getNodeType(node.vExpression, ast.compilerVersion) instanceof TypeNameType
     ) {
