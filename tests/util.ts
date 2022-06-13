@@ -16,6 +16,7 @@ export async function sh(cmd: string): Promise<{ stdout: string; stderr: string 
 }
 
 const warpBin = path.resolve(__dirname, '..', 'bin', 'warp');
+const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
 export function transpile(contractPath: string): Promise<{ stdout: string; stderr: string }> {
   return sh(`${warpBin} transpile ${contractPath} --strict`);
@@ -25,7 +26,7 @@ export function starknetCompile(
   cairoPath: string,
   jsonOutputPath: string,
 ): Promise<{ stdout: string; stderr: string }> {
-  return sh(`starknet-compile --cairo_path warp_output ${cairoPath} --output ${jsonOutputPath}`);
+  return sh(`${warpVenvPrefix} starknet-compile --cairo_path warp_output ${cairoPath} --output ${jsonOutputPath}`);
 }
 
 export function batchPromises<In, Out>(
