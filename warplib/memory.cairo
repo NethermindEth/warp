@@ -286,6 +286,7 @@ func wm_read_id{range_check_ptr : felt, warp_memory : DictAccess*}(loc : felt, s
         return (id)
     end
     let (id) = wm_alloc(size)
+    dict_write{dict_ptr=warp_memory}(loc, id)
     return (id)
 end
 

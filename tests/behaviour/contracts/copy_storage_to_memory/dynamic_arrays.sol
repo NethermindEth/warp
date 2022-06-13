@@ -22,6 +22,12 @@ contract WARP {
         return (m[0], m[1], m[2]);
     }
 
+    function copySimpleArrayToIdentifier() external returns (uint8[] memory) {
+        uint8[] memory x;
+        x = simple;
+        return x;
+    }
+
     function testNestedArray(uint8[] memory a, uint8[] memory b, uint8[] memory c) public returns (uint8[] memory, uint8[] memory, uint8[] memory) {
         uint8[][] memory m = new uint8[][](3);
         m[0] = a;
