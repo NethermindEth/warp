@@ -45,4 +45,4 @@ function filterTests(
   return tests.filter((test) => test.name.includes(filter));
 }
 
-export const expectations = filterTests(behaviour, semantic, 'bytesKeyMapping');
+export const expectations = filterTests(behaviour, semantic);
