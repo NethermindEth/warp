@@ -14,7 +14,7 @@ import {
 import { AST } from '../../ast/ast';
 import { FunctionStubKind } from '../../ast/cairoNodes';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { getSize, isDynamicCallDataArray } from '../../utils/nodeTypeProcessing';
+import { getSize, isDynamicArray, isDynamicCallDataArray } from '../../utils/nodeTypeProcessing';
 import { createNumberLiteral } from '../../utils/nodeTemplates';
 import { expressionHasSideEffects, typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
@@ -39,25 +39,35 @@ export class ArrayFunctions extends ReferenceSubPass {
     if (node.vFunctionCallType !== ExternalReferenceType.Builtin) return;
 
     const [actualLoc, expectedLoc] = this.getLocations(node);
+    const utilGen = ast.getUtilFuncGen(node);
 
     if (node.vFunctionName === 'pop') {
-      const replacement = ast.getUtilFuncGen(node).storage.dynArrayPop.gen(node);
+      const replacement = utilGen.storage.dynArrayPop.gen(node);
       this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
     } else if (node.vFunctionName === 'push') {
       let replacement: FunctionCall;
       if (node.vArguments.length > 0) {
-        replacement = ast.getUtilFuncGen(node).storage.dynArrayPush.withArg.gen(node);
+        replacement = utilGen.storage.dynArrayPush.withArg.gen(node);
         this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
         const actualArgLoc = this.getLocations(node.vArguments[0])[0];
         if (actualArgLoc) {
           this.expectedDataLocations.set(node.vArguments[0], actualArgLoc);
         }
       } else {
-        replacement = ast.getUtilFuncGen(node).storage.dynArrayPush.withoutArg.gen(node);
+        const parent = node.parent;
+        const type = getNodeType(node, ast.compilerVersion);
+        replacement = utilGen.storage.dynArrayPush.withoutArg.gen(node);
+        if (isDynamicArray(type)) {
+          replacement = utilGen.storage.read.gen(
+            replacement,
+            typeNameFromTypeNode(type, ast),
+            parent,
+          );
+        }
         this.replace(node, replacement, undefined, DataLocation.Storage, expectedLoc, ast);
       }
     } else if (node.vFunctionName === 'concat') {
-      const replacement = ast.getUtilFuncGen(node).memory.concat.gen(node);
+      const replacement = utilGen.memory.concat.gen(node);
       this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
     }
   }

@@ -3190,6 +3190,7 @@ export const expectations = flatten(
             Expect.Simple('length', [], ['0', '0'], 'length should decrease after pop'),
             Expect.Simple('get', ['0', '0'], null),
             Expect.Simple('pop', [], null, 'attempting to pop an empty array should fail'),
+            Expect.Simple('pushReturnDynArray', [], ['0', '0', '0']),
           ]),
           File.Simple('dynamicInStructs', [
             Expect.Simple('s', [], ['0', '0', '0']),
