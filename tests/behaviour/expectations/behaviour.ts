@@ -1151,6 +1151,7 @@ export const expectations = flatten(
           File.Simple('dynamic_arrays', [
             Expect.Simple('copySimpleArrayLength', [], ['3', '0']),
             Expect.Simple('copySimpleArrayValues', [], ['5', '0', '4']),
+            Expect.Simple('copySimpleArrayToIdentifier', [], ['3', '5', '0', '4']),
             Expect.Simple(
               'testNestedArray',
               [...['3', '1', '2', '3'], ...['2', '1', '0'], ...['3', '4', '5', '6']],
