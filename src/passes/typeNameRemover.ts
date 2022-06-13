@@ -11,9 +11,8 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import assert from 'assert';
-import { Expression, TupleExpression } from 'solc-typed-ast';
+import { TupleExpression } from 'solc-typed-ast';
 import { notNull } from '../utils/typeConstructs';
-import { expressionHasSideEffects } from '../utils/utils';
 
 export class TypeNameRemover extends ASTMapper {
   visitExpressionStatement(node: ExpressionStatement, ast: AST): void {
@@ -44,26 +43,23 @@ export class TypeNameRemover extends ASTMapper {
       .map((value, index) => (value === null ? index : null))
       .filter(notNull);
     const typeNameTypeSlots = rhs.vOriginalComponents
-      .map((value, index) => (this.isTypeNameType(value, index, ast) ? index : null))
+      .map((value, index) => (this.isTypeNameType(rhs, index, ast) ? index : null))
       .filter(notNull);
 
     node.assignments = lhs.filter(
-      (_value, index) => !emptySlots.includes(index) && !typeNameTypeSlots.includes(index),
+      (_value, index) => !emptySlots.includes(index) || !typeNameTypeSlots.includes(index),
     );
     rhs.vOriginalComponents = rhs.vOriginalComponents.filter(
-      (_value, index) => !emptySlots.includes(index) && !typeNameTypeSlots.includes(index),
+      (_value, index) => !emptySlots.includes(index) || !typeNameTypeSlots.includes(index),
     );
 
     updateTypeString(rhs);
   }
 
-  isTypeNameType(rhs: Expression | null, index: number, ast: AST): boolean {
+  isTypeNameType(rhs: TupleExpression | null, index: number, ast: AST): boolean {
     if (!(rhs instanceof TupleExpression)) return false;
     const elem = rhs.vOriginalComponents[index];
-    return elem !== null
-      ? getNodeType(elem, ast.compilerVersion) instanceof TypeNameType &&
-          !expressionHasSideEffects(elem)
-      : false;
+    return elem !== null ? getNodeType(elem, ast.compilerVersion) instanceof TypeNameType : false;
   }
 }
 
