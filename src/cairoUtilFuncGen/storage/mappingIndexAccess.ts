@@ -4,6 +4,7 @@ import {
   DataLocation,
   Expression,
   FunctionCall,
+  generalizeType,
   getNodeType,
   IndexAccess,
   MappingType,
@@ -49,11 +50,8 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
         baseType.to.keyType.to instanceof StringType,
         `Found invalid key pointer type in mapping in ${printNode(node)}`,
       );
-      const stringLoc = index.typeString.includes('calldata')
-        ? DataLocation.CallData
-        : index.typeString.includes('memory')
-        ? DataLocation.Memory
-        : DataLocation.Storage;
+      const stringLoc = generalizeType(getNodeType(index, this.ast.compilerVersion))[1];
+      assert(stringLoc !== undefined);
       const call = this.createStringHashFunction(node, stringLoc, indexCairoType);
       index = call;
     }
