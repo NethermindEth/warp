@@ -25,7 +25,6 @@ import { StorageToStorageGen } from './copyToStorage';
 import { CalldataToStorageGen } from '../calldata/calldataToStorage';
 import { Implicits } from '../../utils/implicits';
 import { getElementType, isDynamicArray } from '../../utils/nodeTypeProcessing';
-import { printTypeNode } from '../../utils/astPrinter';
 
 export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
   constructor(
@@ -126,7 +125,6 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
         ? '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory: DictAccess*}'
         : '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
-    console.log('at', printTypeNode(argType), 'et', printTypeNode(elementType));
     const callWriteFunc = (cairoVar: string) =>
       isDynamicArray(argType) || argType instanceof MappingType
         ? [`let (elem_id) = readId(${cairoVar})`, `${elementWriteFunc}(elem_id, value)`]
