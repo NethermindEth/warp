@@ -9,7 +9,13 @@ import {
   generalizeType,
   ArrayType,
 } from 'solc-typed-ast';
-import { CairoFelt, CairoType, CairoUint256, MemoryLocation } from '../../utils/cairoTypeSystem';
+import {
+  CairoFelt,
+  CairoType,
+  CairoUint256,
+  MemoryLocation,
+  TypeConversionContext,
+} from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
@@ -33,12 +39,14 @@ export class MemoryReadGen extends StringIndexedFuncGen {
     const args = [memoryRef];
 
     if (resultCairoType instanceof MemoryLocation) {
-      params.push(['size', createNumberTypeName(8, false, this.ast), DataLocation.Default]);
+      // The size parameter represents how much space to allocate
+      // for the contents of the newly accessed suboject
+      params.push(['size', createNumberTypeName(256, false, this.ast), DataLocation.Default]);
       args.push(
         createNumberLiteral(
           valueType instanceof ArrayType && valueType.size === undefined
             ? 2
-            : resultCairoType.width,
+            : CairoType.fromSol(valueType, this.ast, TypeConversionContext.MemoryAllocation).width,
           this.ast,
           'uint256',
         ),
