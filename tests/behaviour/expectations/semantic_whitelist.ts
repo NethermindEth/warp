@@ -131,15 +131,15 @@ const tests: string[] = [
   ],
   //---------Array tests - 374 passing, 103 pending, 52 failing
   ...[
-    //---------Array concat tests: 20 passing, 6 pending, 2 failing
+    //---------Array concat tests: 24 passing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_2_args.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_3_args.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_as_argument.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_different_types.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_empty_argument_list.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_empty_strings.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_nested.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/concat/bytes_concat_different_types.sol', // STRETCH slices
     ],
     //---------Array copying tests 114 passing, 62 pending, 29 failing
     ...[
@@ -215,7 +215,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_clear_storage.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/empty_bytes_copy.sol', // WILL NOT SUPPORT yul
     ],
-    //---------Array delete tests: 9 passing, 2 pending, 1 failing
+    //---------Array delete tests: 12 passing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/delete/bytes_delete_element.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/delete/delete_on_array_of_structs.sol',
@@ -226,7 +226,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/delete/delete_storage_array.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/delete/delete_bytes_array.sol', // WILL NOT SUPPORT yul
     ],
-    //---------Array index access tests: 32 passing, 2 pending, 2 failing
+    //---------Array index access tests: 36 passing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/indexAccess/arrays_complex_memory_index_access.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/indexAccess/bytes_index_access.sol',
@@ -258,7 +258,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/byte_array_pop_isolated.sol', // WILL NOT SUPPORT function objects
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/byte_array_pop_long_storage_empty_garbage_ref.sol', // WILL NOT SUPPORT yul
     ],
-    //-------Array push tests: 41 passing, 5 pending, 6 failing
+    //-------Array push tests: 52 passing, 3 pending, 1 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/push/byte_array_push.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/push/push_no_args_1d.sol',
