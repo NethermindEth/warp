@@ -188,6 +188,10 @@ export class CairoUtilFuncGen {
     };
   }
 
+  addDefImports(): void {
+    this.getAllChildren().forEach((c) => c.addDefImports());
+  }
+
   getImports(): Map<string, Set<string>> {
     return mergeImports(...this.getAllChildren().map((c) => c.getImports()));
   }

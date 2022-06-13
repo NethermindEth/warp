@@ -175,6 +175,7 @@ export class AST {
     const reachableNodeImports = sourceUnit
       .getChildren(true)
       .map((node) => this.imports.get(node) ?? new Map<string, Set<string>>());
+    this.getUtilFuncGen(sourceUnit).addDefImports();
     const utilFunctionImports = this.getUtilFuncGen(sourceUnit)?.getImports();
     return mergeImports(utilFunctionImports, ...reachableNodeImports);
   }

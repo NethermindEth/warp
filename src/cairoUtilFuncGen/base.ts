@@ -3,7 +3,10 @@ import {
   ArrayType,
   BytesType,
   DataLocation,
+  EnumDefinition,
+  FunctionCall,
   generalizeType,
+  getNodeType,
   MappingType,
   PointerType,
   SourceUnit,
@@ -11,9 +14,12 @@ import {
   StructDefinition,
   TypeNode,
   UserDefinedType,
+  VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
+import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
+import { formatPath } from '../utils/formatting';
 import { isDynamicArray, isReferenceType } from '../utils/nodeTypeProcessing';
 
 export type CairoFunction = {
@@ -54,6 +60,75 @@ export abstract class CairoUtilFuncGenBase {
     const existingImports = this.imports.get(location) ?? new Set<string>();
     existingImports.add(name);
     this.imports.set(location, existingImports);
+  }
+
+  addDefImports(): void {
+    this.sourceUnit
+      .getChildrenByType(FunctionCall, true)
+      .filter((n) => {
+        return n.vReferencedDeclaration instanceof StructDefinition;
+      })
+      .forEach((n) => {
+        assert(n.vReferencedDeclaration instanceof StructDefinition);
+        this.checkForDefImport(n.vReferencedDeclaration);
+      });
+
+    this.sourceUnit.getChildrenByType(VariableDeclaration, true).forEach((n) => {
+      const type = getNodeType(n, this.ast.compilerVersion);
+      this.searchForDef(type);
+      // if (
+      //   type instanceof UserDefinedType &&
+      //   (type.definition instanceof StructDefinition || type.definition instanceof EnumDefinition)
+      // ) {
+      //   return type.definition;
+      // } else if (
+      //   type instanceof ArrayType &&
+      //   type.elementT instanceof UserDefinedType &&
+      //   (type.elementT.definition instanceof StructDefinition ||
+      //     type.elementT.definition instanceof EnumDefinition)
+      // ) {
+      //   return type.elementT.definition;
+      // }
+    });
+
+    // const structDefs = new Set<StructDefinition>();
+    // [...constructorStructDefs, ...varDeclDefs].forEach((n) => {
+    //   if (n instanceof StructDefinition) {
+    //     structDefs.add(n);
+    //   }
+    // });
+
+    // structDefs.forEach((def) => {
+    //   assert(def instanceof StructDefinition);
+    //   this.checkForDefImport(def);
+    // });
+  }
+
+  searchForDef(type: TypeNode): void {
+    if (
+      type instanceof UserDefinedType &&
+      (type.definition instanceof StructDefinition || type.definition instanceof EnumDefinition)
+    ) {
+      this.checkForDefImport(type.definition);
+      if (type.definition instanceof StructDefinition) {
+        type.definition.vMembers.forEach((n) =>
+          this.searchForDef(getNodeType(n, this.ast.compilerVersion)),
+        );
+      }
+    } else if (type instanceof ArrayType) {
+      this.searchForDef(generalizeType(type.elementT)[0]);
+    }
+  }
+
+  protected checkForDefImport(def: StructDefinition | EnumDefinition): void {
+    const typeDefSourceUnit = def.root;
+    assert(
+      typeDefSourceUnit instanceof SourceUnit,
+      `Unable to find SourceUnit holding type definition ${printNode(def)}.`,
+    );
+    if (this.sourceUnit !== typeDefSourceUnit) {
+      this.requireImport(formatPath(typeDefSourceUnit.absolutePath), def.name);
+    }
   }
 }
 /*

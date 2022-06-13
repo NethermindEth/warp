@@ -40,8 +40,46 @@ export class CairoUtilImporter extends ASTMapper {
       ) {
         ast.getUtilFuncGen(node).externalFunctions.inputs.darrayStructConstructor.gen(decl, node);
       }
+      //   this.checkForImports(decl, ast);
     });
 
     this.commonVisit(node, ast);
   }
+
+  // protected checkForImports(decl: VariableDeclaration, ast: AST): void {
+  //   const type = generalizeType(getNodeType(decl, ast.compilerVersion))[0];
+  //   const sourceUnit = decl.root;
+  //   if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+  //     assert(sourceUnit !== undefined, 'Unable to find SourceUnit for CairoUtilGen.');
+  //     const typeDefSourceUnit = type.definition.root;
+  //     assert(
+  //       typeDefSourceUnit instanceof SourceUnit,
+  //       `Unable to find SourceUnit holding type definition ${printTypeNode(type)}.`,
+  //     );
+  //     if (sourceUnit !== typeDefSourceUnit) {
+  //       ast.registerImport(
+  //         type.definition,
+  //         formatPath(typeDefSourceUnit.absolutePath),
+  //         type.definition.name,
+  //       );
+  //     }
+  //     type.definition.vMembers.forEach((decl) => this.checkForImports(decl, ast));
+  //   } else if (
+  //     type instanceof ArrayType &&
+  //     type.elementT instanceof UserDefinedType &&
+  //     type.elementT.definition instanceof StructDefinition
+  //   ) {
+  //     if (
+  //       sourceUnit !== type.elementT.definition.root &&
+  //       type.elementT.definition.root instanceof SourceUnit
+  //     ) {
+  //       ast.registerImport(
+  //         type.elementT.definition,
+  //         formatPath(type.elementT.definition.root.absolutePath),
+  //         type.elementT.definition.name,
+  //       );
+  //       type.elementT.definition.vMembers.forEach((decl) => this.checkForImports(decl, ast));
+  //     }
+  //   }
+  // }
 }
