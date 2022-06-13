@@ -2467,6 +2467,14 @@ export const expectations = flatten(
             Expect.Simple('emptySlot', [], ['0']),
             Expect.Simple('nestedMapCalls', [], ['25']),
           ]),
+          File.Simple('bytesKeyMapping', [
+            Expect.Simple('cdBytes', ['1', '97'], ['5']),
+            Expect.Simple('memBytesLiteral', [], ['10']),
+            Expect.Simple('memBytesVariable', [], ['15']),
+            Expect.Simple('storageBytes', [], ['20']),
+            Expect.Simple('emptySlot', [], ['0']),
+            Expect.Simple('nestedMapCalls', [], ['25']),
+          ]),
         ]),
         new Dir('maths', [
           File.Simple('addition', [

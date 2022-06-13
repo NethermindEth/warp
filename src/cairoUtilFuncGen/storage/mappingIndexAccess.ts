@@ -156,7 +156,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
     } else {
       const [data, len] = this.dynArrayGen.gen(indexCairoType);
       const key = `${data}/${len}_hash`;
-      const funcName = `ws_string_hash${this.generatedHashFunctionNumber}`;
+      let funcName = `ws_string_hash${this.generatedHashFunctionNumber}`;
       const helperFuncName = `ws_to_felt_array${this.generatedHashFunctionNumber}`;
 
       const existing = this.generatedFunctions.get(key);
@@ -193,8 +193,9 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
           ].join('\n'),
         });
         this.generatedHashFunctionNumber++;
+      } else {
+        funcName = existing.name;
       }
-
       const stub = createCairoFunctionStub(
         funcName,
         [['name', indexTypeName, DataLocation.Storage]],
