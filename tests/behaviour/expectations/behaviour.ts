@@ -2222,7 +2222,7 @@ export const expectations = flatten(
             new Expect('testing that external function with out of bounds input throws error', [
               [
                 'externalFunction',
-                ['3'],
+                ['2'],
                 null,
                 '0',
                 'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
@@ -2231,7 +2231,7 @@ export const expectations = flatten(
             new Expect('testing external function and more than 1 input asserts are placed pt. 1', [
               [
                 'externalFunction2Inputs',
-                ['3', '0'],
+                ['2', '0'],
                 null,
                 '0',
                 'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
@@ -2240,7 +2240,7 @@ export const expectations = flatten(
             new Expect('testing external function and more than 1 input asserts are placed pt. 2', [
               [
                 'externalFunction2Inputs',
-                ['0', '3'],
+                ['0', '2'],
                 null,
                 '0',
                 'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
