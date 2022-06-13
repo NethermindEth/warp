@@ -888,7 +888,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_return_var_size.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_stray_values.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_staticcall_delegatecall.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_call_in_homestead.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_call_in_homestead.sol', // MOVED to behaviour tests, relies on address of test CALLER
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_enum_as_an_expression.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_struct_as_an_expression.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/mapping_returns_in_library_named.sol',
@@ -1366,7 +1366,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/cleanup.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/storage_layout_struct.sol', // WILL NOT SUPPORT yul
   ],
-  //---------Variables: 20 passing, 9 pending, 3 failing
+  //---------Variables: 32 passing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/variables/public_state_overridding.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/variables/delete_local.sol',

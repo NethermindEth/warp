@@ -96,13 +96,13 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
 
   private getOrCreate(type: TypeNode, size: number, dynamic: boolean): string {
     const elementCairoType = CairoType.fromSol(type, this.ast);
-    const key = `${size}${elementCairoType.fullStringRepresentation}`;
+    const key = `${dynamic ? 'd' : 's'}${size}${elementCairoType.fullStringRepresentation}`;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
     }
 
-    const funcName = `WM${this.generatedFunctions.size}_arr`;
+    const funcName = `WM${this.generatedFunctions.size}_${dynamic ? 'd' : 's'}_arr`;
 
     const argString = mapRange(size, (n) => `e${n}: ${elementCairoType.toString()}`).join(', ');
 

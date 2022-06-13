@@ -1,17 +1,30 @@
+import assert from 'assert';
 import { readFileSync } from 'fs';
 import prompts from 'prompts';
-import { FunctionVisibility, SourceUnit } from 'solc-typed-ast';
+import {
+  ArrayType,
+  ArrayTypeName,
+  generalizeType,
+  getNodeType,
+  Literal,
+  SourceUnit,
+} from 'solc-typed-ast';
 import Web3 from 'web3';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { printNode, printTypeNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
 import { CLIError } from '../utils/errors';
 import { parse } from '../utils/functionSignatureParser';
+import { generateLiteralTypeString } from '../utils/getTypeString';
+import { createNumberLiteral } from '../utils/nodeTemplates';
+import { isExternallyVisible } from '../utils/utils';
 
 type Input = (string | number | Input)[];
 
 export class ABIExtractor extends ASTMapper {
   visitSourceUnit(node: SourceUnit, ast: AST): void {
+    this.commonVisit(node, ast);
     node.vFunctions.forEach((fd) =>
       // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
       addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2')),
@@ -26,14 +39,34 @@ export class ABIExtractor extends ASTMapper {
         addSignature(node, ast, fakeConstructor.canonicalSignature('ABIEncoderV2'));
       }
       cd.vFunctions.forEach((fd) => {
-        if (
-          fd.visibility === FunctionVisibility.External ||
-          fd.visibility === FunctionVisibility.Public
-        )
+        if (isExternallyVisible(fd)) {
           // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
           addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2'));
+        }
       });
     });
+  }
+
+  // The CanonicalSignature fails for ArrayTypeNames with non-literal, non-undefined length
+  // This replaces such cases with literals
+  visitArrayTypeName(node: ArrayTypeName, ast: AST): void {
+    this.commonVisit(node, ast);
+
+    if (node.vLength !== undefined && !(node.vLength instanceof Literal)) {
+      const type = generalizeType(getNodeType(node, ast.compilerVersion))[0];
+      assert(
+        type instanceof ArrayType,
+        `${printNode(node)} ${node.typeString} has non-array type ${printTypeNode(type, true)}`,
+      );
+      assert(type.size !== undefined, `Static array ${printNode(node)} ${node.typeString}`);
+      const literal = createNumberLiteral(
+        type.size,
+        ast,
+        generateLiteralTypeString(type.size.toString()),
+      );
+      node.vLength = literal;
+      ast.registerChild(node.vLength, node);
+    }
   }
 }
 
