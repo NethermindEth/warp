@@ -28,7 +28,7 @@ import { AST } from '../../ast/ast';
 import { CairoAssert } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
 import { locationIfComplexType } from '../../cairoUtilFuncGen/base';
-import { printNode, printTypeNode } from '../../utils/astPrinter';
+import { printNode } from '../../utils/astPrinter';
 import { TranspileFailedError } from '../../utils/errors';
 import { error } from '../../utils/formatting';
 import { getParameterTypes, isReferenceType } from '../../utils/nodeTypeProcessing';
