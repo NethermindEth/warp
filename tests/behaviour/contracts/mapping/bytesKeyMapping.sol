@@ -39,4 +39,18 @@ contract WARP {
     map_bu[map_bb["yz"]] = 25;
     return map_bu["hello"];
   }
+
+  function sameBytesKey() public returns (bool) {
+    bytes memory s1 = "hi";
+    bytes memory s2 = "hi";
+    map_bu[s1] = 30;
+    return map_bu[s2] == map_bu[s1];
+  }
+
+  function bytesValueChange() public returns (bool) {
+    bytes memory s1 = "yo";
+    map_bu[s1] = 35;
+    s1 = "lol";
+    return map_bu[s1] != map_bu["yo"];
+  }
 }
