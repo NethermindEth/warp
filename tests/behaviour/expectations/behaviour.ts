@@ -1719,6 +1719,7 @@ export const expectations = flatten(
             ),
           ]),
           File.Simple('tupleEdgeCases', [Expect.Simple('f', ['0', '0'], ['0', '0'])]),
+          File.Simple('tupleOfInlineArrays', [Expect.Simple('g', [], ['21'])]),
         ]),
         new Dir('external_function_inputs', [
           File.Simple('dynamic_array_return_index', [
