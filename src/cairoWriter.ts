@@ -100,7 +100,7 @@ import {
   mergeImports,
   primitiveTypeToCairo,
   isExternalCall,
-  isHashFunction,
+  isExpectingSplit,
 } from './utils/utils';
 
 const INDENT = ' '.repeat(4);
@@ -844,17 +844,7 @@ class IdentifierWriter extends CairoASTNodeWriter {
     ) {
       return ['0'];
     }
-    if (
-      isDynamicCallDataArray(getNodeType(node, this.ast.compilerVersion)) &&
-      ((node.getClosestParentByType(Return) !== undefined &&
-        node.getClosestParentByType(IndexAccess) === undefined &&
-        node.getClosestParentByType(FunctionDefinition)?.visibility ===
-          FunctionVisibility.External &&
-        node.getClosestParentByType(IndexAccess) === undefined &&
-        node.getClosestParentByType(MemberAccess) === undefined) ||
-        (node.parent instanceof FunctionCall && isExternalCall(node.parent)) ||
-        (node.parent instanceof FunctionCall && isHashFunction(node.parent)))
-    ) {
+    if (isExpectingSplit(node, this.ast.compilerVersion)) {
       return [`${node.name}.len, ${node.name}.ptr`];
     }
     return [`${node.name}`];
