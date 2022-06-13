@@ -15,6 +15,7 @@ import {
   getNodeType,
   Identifier,
   IndexAccess,
+  MappingType,
   MemberAccess,
   PointerType,
   Return,
@@ -182,7 +183,17 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     } else {
       this.expectedLocations.set(node.vBaseExpression, baseLoc);
     }
-    this.expectedLocations.set(node.vIndexExpression, DataLocation.Default);
+    if (
+      baseType instanceof PointerType &&
+      baseType.to instanceof MappingType &&
+      baseType.to.keyType instanceof PointerType
+    ) {
+      const indexLoc = generalizeType(getNodeType(node.vIndexExpression, ast.compilerVersion))[1];
+      assert(indexLoc !== undefined);
+      this.expectedLocations.set(node.vIndexExpression, indexLoc);
+    } else {
+      this.expectedLocations.set(node.vIndexExpression, DataLocation.Default);
+    }
     this.visitExpression(node, ast);
   }
 
