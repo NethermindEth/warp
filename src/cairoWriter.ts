@@ -100,6 +100,7 @@ import {
   mergeImports,
   primitiveTypeToCairo,
   isExternalCall,
+  isHashFunction,
 } from './utils/utils';
 
 const INDENT = ' '.repeat(4);
@@ -851,7 +852,8 @@ class IdentifierWriter extends CairoASTNodeWriter {
           FunctionVisibility.External &&
         node.getClosestParentByType(IndexAccess) === undefined &&
         node.getClosestParentByType(MemberAccess) === undefined) ||
-        (node.parent instanceof FunctionCall && isExternalCall(node.parent)))
+        (node.parent instanceof FunctionCall && isExternalCall(node.parent)) ||
+        (node.parent instanceof FunctionCall && isHashFunction(node.parent)))
     ) {
       return [`${node.name}.len, ${node.name}.ptr`];
     }

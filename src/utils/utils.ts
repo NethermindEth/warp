@@ -405,3 +405,7 @@ export function isExternalCall(node: FunctionCall): boolean {
     isExternallyVisible(node.vReferencedDeclaration)
   );
 }
+
+export function isHashFunction(node: FunctionCall): boolean {
+  return node.vFunctionName === 'string_hash';
+}

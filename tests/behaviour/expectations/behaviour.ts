@@ -2458,6 +2458,15 @@ export const expectations = flatten(
             Expect.Simple('s', [], ['10']),
           ]),
         ]),
+        new Dir('mapping', [
+          File.Simple('stringKeyMapping', [
+            // Expect.Simple('cdString', ['1', '97'], ['5']),
+            Expect.Simple('memStringLiteral', [], ['10']),
+            // // Expect.Simple('memStringVariable', [], ['15']),
+            // Expect.Simple('storageString', [], ['20']),
+            // Expect.Simple('emptySlot', [], ['0']),
+          ]),
+        ]),
         new Dir('maths', [
           File.Simple('addition', [
             Expect.Simple('addition8safe', ['3', '20'], ['23']),
