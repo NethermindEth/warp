@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   ASTNode,
+  BytesType,
   DataLocation,
   Expression,
   FunctionCall,
@@ -47,7 +48,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
 
     if (baseType.to.keyType instanceof PointerType) {
       assert(
-        baseType.to.keyType.to instanceof StringType,
+        baseType.to.keyType.to instanceof StringType || baseType.to.keyType.to instanceof BytesType,
         `Found invalid key pointer type in mapping in ${printNode(node)}`,
       );
       const stringLoc = generalizeType(getNodeType(index, this.ast.compilerVersion))[1];
@@ -191,6 +192,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
             `end`,
           ].join('\n'),
         });
+        this.generatedHashFunctionNumber++;
       }
 
       const stub = createCairoFunctionStub(

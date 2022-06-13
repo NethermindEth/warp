@@ -242,7 +242,7 @@ const tests: string[] = [
     //---------Array pop tests: 48 passing, 2 pending, 2 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_array_transition.sol', // fails to deploy, blocks other tests running
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_array_transition.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_empty_exception.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_storage_empty.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_uint16_transition.sol',

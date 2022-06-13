@@ -65,7 +65,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     const implicits: Implicits[] =
       argLoc === DataLocation.Memory
         ? ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory']
-        : ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'];
+        : ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'bitwise_ptr'];
 
     const functionStub = createCairoFunctionStub(
       name,
@@ -119,7 +119,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     const implicits =
       argLoc === DataLocation.Memory
         ? '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory: DictAccess*}'
-        : '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
+        : '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, bitwise_ptr: BitwiseBuiltin*}';
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
