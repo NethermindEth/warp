@@ -55,18 +55,20 @@ export class ReferencedLibraries extends ASTMapper {
 function getLibBase(node: ContractDefinition, ContractDefLibs: Map<number, ASTNode>): number[] {
   const ids: number[] = [node.id];
 
-  node.getChildren().forEach((child) => {
-    if (child instanceof FunctionCall) {
-      ContractDefLibs.forEach((astNode, id) => {
-        if (child.vExpression instanceof MemberAccess) {
+  node
+    .getChildren()
+    .filter((child) => child instanceof FunctionCall && child.vExpression instanceof MemberAccess)
+    .forEach((child) => {
+      if (child instanceof FunctionCall) {
+        ContractDefLibs.forEach((astNode, id) => {
+          assert(child.vExpression instanceof MemberAccess);
           const f_id = child.vExpression.referencedDeclaration;
           if (astNode.getChildren().some((node) => node.id === f_id)) {
             ids.push(id);
           }
-        }
-      });
-    }
-  });
+        });
+      }
+    });
 
   return ids;
 }

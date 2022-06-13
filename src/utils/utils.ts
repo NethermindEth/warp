@@ -19,14 +19,19 @@ import {
   FunctionStateMutability,
   FunctionVisibility,
   generalizeType,
+  getNodeType,
+  Identifier,
   IdentifierPath,
+  IndexAccess,
   IntLiteralType,
   IntType,
   Literal,
   Mapping,
   MappingType,
+  MemberAccess,
   Mutability,
   PointerType,
+  Return,
   StateVariableVisibility,
   StringType,
   StructDefinition,
@@ -54,6 +59,7 @@ import {
   createBytesTypeName,
   createNumberLiteral,
 } from './nodeTemplates';
+import { isDynamicCallDataArray } from './nodeTypeProcessing';
 import { Class } from './typeConstructs';
 
 const uint128 = BigInt('0x100000000000000000000000000000000');
@@ -405,5 +411,19 @@ export function isExternalCall(node: FunctionCall): boolean {
   return (
     node.vReferencedDeclaration instanceof FunctionDefinition &&
     isExternallyVisible(node.vReferencedDeclaration)
+  );
+}
+
+// 'string_hash' function can not be user defined, due to mangling identifiers
+export function isExpectingSplit(node: Identifier, compilerVersion: string): boolean {
+  return (
+    isDynamicCallDataArray(getNodeType(node, compilerVersion)) &&
+    ((node.getClosestParentByType(Return) !== undefined &&
+      node.getClosestParentByType(IndexAccess) === undefined &&
+      node.getClosestParentByType(FunctionDefinition)?.visibility === FunctionVisibility.External &&
+      node.getClosestParentByType(IndexAccess) === undefined &&
+      node.getClosestParentByType(MemberAccess) === undefined) ||
+      (node.parent instanceof FunctionCall && isExternalCall(node.parent)) ||
+      (node.parent instanceof FunctionCall && node.parent.vFunctionName === 'string_hash'))
   );
 }

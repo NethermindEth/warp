@@ -1,9 +1,17 @@
 import { TupleExpression } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
+import { WillNotSupportError } from '../../utils/errors';
 
 export class TupleFlattener extends ASTMapper {
   visitTupleExpression(node: TupleExpression, ast: AST): void {
+    if (
+      node.parent instanceof TupleExpression &&
+      node.parent.isInlineArray === false &&
+      node.isInlineArray === false
+    ) {
+      throw new WillNotSupportError('Nested Tuple References not Supported');
+    }
     if (
       node.vOriginalComponents.length === 1 &&
       node.vOriginalComponents[0] !== null &&

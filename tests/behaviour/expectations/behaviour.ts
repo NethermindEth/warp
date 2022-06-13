@@ -1719,6 +1719,7 @@ export const expectations = flatten(
             ),
           ]),
           File.Simple('tupleEdgeCases', [Expect.Simple('f', ['0', '0'], ['0', '0'])]),
+          File.Simple('tupleOfInlineArrays', [Expect.Simple('g', [], ['21'])]),
         ]),
         new Dir('externalStructs', [
           File.Simple('externalStructs', [
@@ -2463,6 +2464,28 @@ export const expectations = flatten(
           File.Simple('free_function', [
             Expect.Simple('f', [], ['20']),
             Expect.Simple('s', [], ['10']),
+          ]),
+        ]),
+        new Dir('mapping', [
+          File.Simple('stringKeyMapping', [
+            Expect.Simple('cdString', ['1', '97'], ['5']),
+            Expect.Simple('memStringLiteral', [], ['10']),
+            Expect.Simple('memStringVariable', [], ['15']),
+            Expect.Simple('storageString', [], ['20']),
+            Expect.Simple('emptySlot', [], ['0']),
+            Expect.Simple('nestedMapCalls', [], ['25']),
+            Expect.Simple('sameStringKey', [], ['1']),
+            Expect.Simple('stringValueChange', [], ['1']),
+          ]),
+          File.Simple('bytesKeyMapping', [
+            Expect.Simple('cdBytes', ['1', '97'], ['5']),
+            Expect.Simple('memBytesLiteral', [], ['10']),
+            Expect.Simple('memBytesVariable', [], ['15']),
+            Expect.Simple('storageBytes', [], ['20']),
+            Expect.Simple('emptySlot', [], ['0']),
+            Expect.Simple('nestedMapCalls', [], ['25']),
+            Expect.Simple('sameBytesKey', [], ['1']),
+            Expect.Simple('bytesValueChange', [], ['1']),
           ]),
         ]),
         new Dir('maths', [

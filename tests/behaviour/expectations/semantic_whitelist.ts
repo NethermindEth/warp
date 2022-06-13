@@ -242,7 +242,7 @@ const tests: string[] = [
     //---------Array pop tests: 48 passing, 2 pending, 2 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_array_transition.sol', // fails to deploy, blocks other tests running
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_array_transition.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_empty_exception.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_storage_empty.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_uint16_transition.sol',
@@ -258,7 +258,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/byte_array_pop_isolated.sol', // WILL NOT SUPPORT function objects
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/byte_array_pop_long_storage_empty_garbage_ref.sol', // WILL NOT SUPPORT yul
     ],
-    //-------Array push tests: 41 passing, 5 pending, 6 failing
+    //-------Array push tests: 52 passing, 3 pending, 1 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/push/byte_array_push.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/push/push_no_args_1d.sol',

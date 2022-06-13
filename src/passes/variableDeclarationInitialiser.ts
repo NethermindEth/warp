@@ -18,6 +18,7 @@ export class VariableDeclarationInitialiser extends ASTMapper {
       // This could be transpile failed because a previous pass didn't specify a type,
       throw new TranspileFailedError('Please specify all types');
     }
+
     node.vInitialValue = getDefaultValue(
       getNodeType(declaration, ast.compilerVersion),
       declaration,
