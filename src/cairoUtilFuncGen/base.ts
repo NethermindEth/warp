@@ -3,9 +3,7 @@ import {
   ArrayType,
   BytesType,
   DataLocation,
-  FunctionCall,
   generalizeType,
-  getNodeType,
   MappingType,
   PointerType,
   SourceUnit,
@@ -13,12 +11,9 @@ import {
   StructDefinition,
   TypeNode,
   UserDefinedType,
-  VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
-import { formatPath } from '../utils/formatting';
 import { isDynamicArray, isReferenceType } from '../utils/nodeTypeProcessing';
 
 export type CairoFunction = {
@@ -59,53 +54,6 @@ export abstract class CairoUtilFuncGenBase {
     const existingImports = this.imports.get(location) ?? new Set<string>();
     existingImports.add(name);
     this.imports.set(location, existingImports);
-  }
-
-  addStructDefImports(): void {
-    const constructorStructDefs = this.sourceUnit
-      .getChildrenByType(FunctionCall, true)
-      .filter((n) => {
-        return n.vReferencedDeclaration instanceof StructDefinition;
-      })
-      .map((n) => n.vReferencedDeclaration);
-
-    const varDeclStructDefs = this.sourceUnit
-      .getChildrenByType(VariableDeclaration, true)
-      .map((n) => {
-        const type = getNodeType(n, this.ast.compilerVersion);
-        if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-          return type.definition;
-        }
-      });
-
-    const structDefs = new Set<StructDefinition>();
-    [...constructorStructDefs, ...varDeclStructDefs].forEach((n) => {
-      if (n instanceof StructDefinition) {
-        structDefs.add(n);
-      }
-    });
-
-    structDefs.forEach((def) => {
-      assert(def instanceof StructDefinition);
-      this.checkForStructDefImport(def);
-    });
-  }
-
-  protected checkForStructDefImport(structDef: StructDefinition): void {
-    const typeDefSourceUnit = structDef.root;
-    assert(
-      typeDefSourceUnit instanceof SourceUnit,
-      `Unable to find SourceUnit holding type definition ${printNode(structDef)}.`,
-    );
-    if (this.sourceUnit !== typeDefSourceUnit) {
-      this.requireImport(formatPath(typeDefSourceUnit.absolutePath), structDef.name);
-    }
-    structDef.vMembers.forEach((n) => {
-      const type = generalizeType(getNodeType(n, this.ast.compilerVersion))[0];
-      if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-        this.checkForStructDefImport(type.definition);
-      }
-    });
   }
 }
 /*
