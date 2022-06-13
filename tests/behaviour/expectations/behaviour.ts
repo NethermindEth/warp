@@ -1572,6 +1572,12 @@ export const expectations = flatten(
         ]),
         new Dir('ElementaryTypeNames', [
           File.Simple('example', [Expect.Simple('ArrayFunc', [], ['69', '0'])]),
+          File.Simple('type_name_type_removal', [
+            Expect.Simple('simple', [], ['3']),
+            Expect.Simple('indexAccess', [], ['3']),
+            Expect.Simple('assignment', [], ['3']),
+            Expect.Simple('varDeclStatement', [], ['3']),
+          ]),
         ]),
         new Dir('enums', [
           File.Simple('singleEnum', [
