@@ -23,6 +23,7 @@ import {
   ErrorDefinition,
   EventDefinition,
   ExpressionStatement,
+  ExternalReferenceType,
   ForStatement,
   FunctionCall,
   FunctionCallKind,
@@ -64,6 +65,8 @@ import {
   TryCatchClause,
   TryStatement,
   TupleExpression,
+  TupleType,
+  TypeNode,
   UnaryOperation,
   UncheckedBlock,
   UserDefinedType,
@@ -95,8 +98,8 @@ import {
   isCairoConstant,
   isExternallyVisible,
   mergeImports,
-  mangleOwnContractInterface,
   primitiveTypeToCairo,
+  isExternalCall,
 } from './utils/utils';
 
 const INDENT = ' '.repeat(4);
@@ -198,6 +201,7 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
 }
 
 class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
+  gapVarCounter = 0;
   writeInner(node: VariableDeclarationStatement, writer: ASTWriter): SrcDesc {
     assert(
       node.vInitialValue !== undefined,
@@ -205,20 +209,35 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     );
 
     const documentation = getDocumentation(node.documentation, writer);
-    const declarations = node.assignments.flatMap((id) => {
-      if (id === null)
-        throw new NotSupportedYetError(
-          `VariableDeclarationStatements with gaps not implemented yet`,
-        );
+    const initialValueType = getNodeType(node.vInitialValue, this.ast.compilerVersion);
+
+    const getValueN = (n: number): TypeNode => {
+      if (initialValueType instanceof TupleType) {
+        return initialValueType.elements[n];
+      } else if (n === 0) return initialValueType;
+      throw new TranspileFailedError(
+        `Attempted to extract value at index ${n} of non-tuple return`,
+      );
+    };
+
+    const getDeclarationForId = (id: number): VariableDeclaration => {
       const declaration = node.vDeclarations.find((decl) => decl.id === id);
       assert(declaration !== undefined, `Unable to find variable declaration for assignment ${id}`);
-      const type = generalizeType(getNodeType(declaration, this.ast.compilerVersion))[0];
+      return declaration;
+    };
+
+    const declarations = node.assignments.flatMap((id, index) => {
+      const type = generalizeType(getValueN(index))[0];
       if (
         isDynamicArray(type) &&
         node.vInitialValue instanceof FunctionCall &&
-        node.vInitialValue.vReferencedDeclaration instanceof FunctionDefinition &&
-        node.vInitialValue.vReferencedDeclaration.visibility === FunctionVisibility.External
+        isExternalCall(node.vInitialValue)
       ) {
+        if (id === null) {
+          const uniqueSuffix = this.gapVarCounter++;
+          return [`__warp_gv_len${uniqueSuffix}`, `__warp_gv${uniqueSuffix}`];
+        }
+        const declaration = getDeclarationForId(id);
         assert(
           declaration.storageLocation === DataLocation.CallData,
           `WARNING: declaration receiving calldata dynarray has location ${declaration.storageLocation}`,
@@ -226,7 +245,10 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
         const writtenVar = writer.write(declaration);
         return [`${writtenVar}_len`, writtenVar];
       } else {
-        return [writer.write(declaration)];
+        if (id === null) {
+          return [`__warp_gv${this.gapVarCounter++}`];
+        }
+        return [writer.write(getDeclarationForId(id))];
       }
     });
     if (
@@ -297,8 +319,55 @@ function writeImports(imports: Map<string, Set<string>>): string {
     .join('\n');
 }
 
+const interfaceNameMappings: Map<SourceUnit, Map<string, string>> = new Map();
+
+function generateInterfaceNameMappings(node: SourceUnit) {
+  const map: Map<string, string> = new Map();
+  const existingNames = node.vContracts
+    .filter((c) => c.kind !== ContractKind.Interface)
+    .map((c) => c.name);
+
+  node.vContracts
+    .filter((c) => c.kind === ContractKind.Interface)
+    .forEach((c) => {
+      const baseName = c.name.replace('@interface', '');
+      const interfaceName = `${baseName}_warped_interface`;
+      if (!existingNames.includes(baseName)) {
+        map.set(baseName, interfaceName);
+      } else {
+        let i = 1;
+        while (existingNames.includes(`${interfaceName}_${i}`)) ++i;
+        map.set(baseName, `${interfaceName}_${i}`);
+      }
+    });
+
+  interfaceNameMappings.set(node, map);
+}
+
+function getInterfaceNameForContract(contractName: string, nodeInSourceUnit: ASTNode): string {
+  const sourceUnit =
+    nodeInSourceUnit instanceof SourceUnit
+      ? nodeInSourceUnit
+      : nodeInSourceUnit.getClosestParentByType(SourceUnit);
+
+  assert(
+    sourceUnit !== undefined,
+    `Unable to find source unit for interface ${contractName} while writing`,
+  );
+
+  const interfaceName = interfaceNameMappings.get(sourceUnit)?.get(contractName);
+  assert(
+    interfaceName !== undefined,
+    `An error occured during name substitution for the interface ${contractName}`,
+  );
+
+  return interfaceName;
+}
+
 class SourceUnitWriter extends CairoASTNodeWriter {
   writeInner(node: SourceUnit, writer: ASTWriter): SrcDesc {
+    generateInterfaceNameMappings(node);
+
     const structs = [...node.vStructs, ...node.vContracts.flatMap((c) => c.vStructs)].map((v) =>
       writer.write(v),
     );
@@ -342,11 +411,13 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
   );
   // Handle the workaround of genContractInterface function of externalContractInterfaceInserter.ts
   // Remove `@interface` to get the actual contract interface name
-  const name = node.name.replace('@interface', '');
+  const baseName = node.name.replace('@interface', '');
+  const interfaceName = getInterfaceNameForContract(baseName, node);
+
   return [
     [
       documentation,
-      [`@contract_interface`, `namespace ${name}:`, ...functions, `end`].join('\n'),
+      [`@contract_interface`, `namespace ${interfaceName}:`, ...functions, `end`].join('\n'),
     ].join('\n'),
   ];
 }
@@ -376,7 +447,7 @@ class CairoContractWriter extends CairoASTNodeWriter {
 
     const documentation = getDocumentation(node.documentation, writer);
 
-    // Don't need to write structs, SourceUnitWriter so already
+    // Don't need to write structs, SourceUnitWriter does so already
 
     const enums = node.vEnums.map((value) => writer.write(value));
 
@@ -727,16 +798,27 @@ class LiteralWriter extends CairoASTNodeWriter {
         return [node.value === 'true' ? '1' : '0'];
       case LiteralKind.String:
       case LiteralKind.UnicodeString: {
-        const cairoString = node.value
-          .split('')
-          .filter((v) => v.charCodeAt(0) < 127)
-          .join('')
-          .substring(0, 32);
-        return [`'${cairoString}'`];
+        if (
+          node.value.length === node.hexValue.length / 2 &&
+          node.value.length < 32 &&
+          node.value.split('').every((v) => v.charCodeAt(0) < 127)
+        ) {
+          return [`'${node.value}'`];
+        }
+        return [`0x${node.hexValue}`];
       }
       case LiteralKind.HexString:
-        this.logNotImplemented('HexStr not implemented yet');
-        return ['<hexStr>'];
+        switch (primitiveTypeToCairo(node.typeString)) {
+          case 'Uint256': {
+            return [
+              `Uint256(low=0x${node.hexValue.slice(32, 64)}, high=0x${node.hexValue.slice(0, 32)})`,
+            ];
+          }
+          case 'felt':
+            return [`0x${node.hexValue}`];
+          default:
+            throw new TranspileFailedError('Attempted to write unexpected cairo type');
+        }
     }
   }
 }
@@ -755,6 +837,13 @@ class IndexAccessWriter extends CairoASTNodeWriter {
 class IdentifierWriter extends CairoASTNodeWriter {
   writeInner(node: Identifier, _: ASTWriter): SrcDesc {
     if (
+      node.vIdentifierType === ExternalReferenceType.Builtin &&
+      node.name === 'super' &&
+      !(node.parent instanceof MemberAccess)
+    ) {
+      return ['0'];
+    }
+    if (
       isDynamicCallDataArray(getNodeType(node, this.ast.compilerVersion)) &&
       ((node.getClosestParentByType(Return) !== undefined &&
         node.getClosestParentByType(IndexAccess) === undefined &&
@@ -762,9 +851,7 @@ class IdentifierWriter extends CairoASTNodeWriter {
           FunctionVisibility.External &&
         node.getClosestParentByType(IndexAccess) === undefined &&
         node.getClosestParentByType(MemberAccess) === undefined) ||
-        (node.parent instanceof FunctionCall &&
-          node.parent.vReferencedDeclaration instanceof FunctionDefinition &&
-          node.parent.vReferencedDeclaration.visibility === FunctionVisibility.External))
+        (node.parent instanceof FunctionCall && isExternalCall(node.parent)))
     ) {
       return [`${node.name}.len, ${node.name}.ptr`];
     }
@@ -779,22 +866,19 @@ class FunctionCallWriter extends CairoASTNodeWriter {
     switch (node.kind) {
       case FunctionCallKind.FunctionCall: {
         if (node.vExpression instanceof MemberAccess) {
-          // check if node.vExpression.vExpression.typeString includes "contract"
+          // check if we're calling a member of a contract
           const nodeType = getNodeType(node.vExpression.vExpression, writer.targetCompilerVersion);
           if (
             nodeType instanceof UserDefinedType &&
             nodeType.definition instanceof ContractDefinition
           ) {
-            const currentContract = node.getClosestParentByType(ContractDefinition);
-            const contractType = nodeType.definition.name;
             const memberName = node.vExpression.memberName;
             const contract = writer.write(node.vExpression.vExpression);
             return [
-              `${
-                currentContract?.name === contractType
-                  ? mangleOwnContractInterface(currentContract)
-                  : contractType
-              }.${memberName}(${contract}${args ? ', ' : ''}${args})`,
+              `${getInterfaceNameForContract(
+                nodeType.definition.name,
+                node,
+              )}.${memberName}(${contract}${args ? ', ' : ''}${args})`,
             ];
           }
         } else if (
@@ -865,7 +949,21 @@ class BinaryOperationWriter extends CairoASTNodeWriter {
 class AssignmentWriter extends CairoASTNodeWriter {
   writeInner(node: Assignment, writer: ASTWriter): SrcDesc {
     assert(node.operator === '=', `Unexpected operator ${node.operator}`);
-    const nodes = [node.vLeftHandSide, node.vRightHandSide].map((v) => writer.write(v));
+    const [lhs, rhs] = [node.vLeftHandSide, node.vRightHandSide];
+    const nodes = [lhs, rhs].map((v) => writer.write(v));
+    // This is specifically needed because of the construtions involved with writing
+    // conditionals (derived from short circuit expressions). Other tuple assignments
+    // and function call assignments will have been split
+    if (
+      rhs instanceof FunctionCall &&
+      !(
+        rhs.vReferencedDeclaration instanceof CairoFunctionDefinition &&
+        rhs.vReferencedDeclaration.functionStubKind === FunctionStubKind.StructDefStub
+      ) &&
+      !(lhs instanceof TupleExpression)
+    ) {
+      return [`let (${nodes[0]}) ${node.operator} ${nodes[1]}`];
+    }
     return [`let ${nodes[0]} ${node.operator} ${nodes[1]}`];
   }
 }

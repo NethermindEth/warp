@@ -15,6 +15,7 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
+import { isExternallyVisible } from '../../utils/utils';
 
 export class ExternalContractInterfaceInserter extends ASTMapper {
   /*
@@ -80,18 +81,18 @@ function importExternalContract(
   contractInterfaces: Map<number, ContractDefinition>,
   ast: AST,
 ) {
-  const contractSourceUnit = contract.getClosestParentByType(SourceUnit);
-
   assert(sourceUnit !== undefined, 'Trying to import a definition into an unknown source unit');
-
-  if (contractSourceUnit === undefined || sourceUnit === contractSourceUnit) return;
 
   if (contract.kind === ContractKind.Library) return;
   if (contractInterfaces.has(contract.id)) return;
   contractInterfaces.set(contract.id, genContractInterface(contract, sourceUnit, ast));
 }
 
-function genContractInterface(
+export function getTemporaryInterfaceName(contractName: string): string {
+  return `${contractName}@interface`;
+}
+
+export function genContractInterface(
   contract: ContractDefinition,
   sourceUnit: SourceUnit,
   ast: AST,
@@ -102,7 +103,7 @@ function genContractInterface(
     '',
     // `@interface` is a workaround to avoid the conflict with
     // the existing contract with the same name
-    `${contract.name}@interface`,
+    getTemporaryInterfaceName(contract.name),
     sourceUnit.id,
     ContractKind.Interface,
     contract.abstract,
@@ -112,7 +113,7 @@ function genContractInterface(
   );
 
   contract.vFunctions
-    .filter((func) => func.kind !== FunctionKind.Constructor)
+    .filter((func) => func.kind !== FunctionKind.Constructor && isExternallyVisible(func))
     .forEach((func) => {
       const funcBody = func.vBody;
       func.vBody = undefined;

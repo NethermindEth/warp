@@ -7,10 +7,14 @@ import {
   ExpressionStatement,
   generalizeType,
   getNodeType,
+  IntLiteralType,
   Mutability,
   Return,
   StateVariableVisibility,
+  StringLiteralType,
   TupleExpression,
+  TupleType,
+  TypeNode,
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
@@ -74,24 +78,43 @@ export class TupleAssignmentSplitter extends ASTMapper {
         '',
         returnExpression.typeString,
         false,
-        vars.map((v) => createIdentifier(v, ast)),
+        vars.map((v) => createIdentifier(v, ast, undefined, node)),
       );
       ast.registerChild(node.vExpression, node);
     }
   }
 
   splitTupleAssignment(node: Assignment, ast: AST): Block {
-    const lhs = node.vLeftHandSide;
+    const [lhs, rhs] = [node.vLeftHandSide, node.vRightHandSide];
     assert(
       lhs instanceof TupleExpression,
       `Split tuple assignment was called on non-tuple assignment ${node.type} # ${node.id}`,
+    );
+    const rhsType = getNodeType(rhs, ast.compilerVersion);
+    assert(
+      rhsType instanceof TupleType,
+      `Expected rhs of tuple assignment to be tuple type ${printNode(node)}`,
     );
 
     const block = createBlock([], ast);
 
     const tempVars = new Map<Expression, VariableDeclaration>(
-      lhs.vOriginalComponents.filter(notNull).map((child) => {
-        const [typeNode, location] = generalizeType(getNodeType(child, ast.compilerVersion));
+      lhs.vOriginalComponents.filter(notNull).map((child, index) => {
+        const lhsElementType = getNodeType(child, ast.compilerVersion);
+        const rhsElementType = rhsType.elements[index];
+
+        // We need to calculate a type and location for the temporary variable
+        // By default we can use the rhs value, unless it is a literal
+        let typeNode: TypeNode;
+        let location: DataLocation | undefined;
+        if (rhsElementType instanceof IntLiteralType) {
+          [typeNode, location] = generalizeType(lhsElementType);
+        } else if (rhsElementType instanceof StringLiteralType) {
+          typeNode = generalizeType(lhsElementType)[0];
+          location = DataLocation.Memory;
+        } else {
+          [typeNode, location] = generalizeType(rhsElementType);
+        }
         const typeName = typeNameFromTypeNode(typeNode, ast);
         const decl = new VariableDeclaration(
           ast.reserveId(),
@@ -134,10 +157,11 @@ export class TupleAssignmentSplitter extends ASTMapper {
               target.typeString,
               '=',
               target,
-              createIdentifier(tempVar, ast),
+              createIdentifier(tempVar, ast, undefined, node),
             ),
           ),
-      );
+      )
+      .reverse();
 
     block.appendChild(tempTupleDeclaration);
     assignments.forEach((n) => block.appendChild(n));

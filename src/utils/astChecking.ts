@@ -600,9 +600,11 @@ export function checkSane(unit: SourceUnit, ctx: ASTContext): void {
 
       checkDirectChildren(node, 'vCondition', 'vTrueBody', 'vFalseBody');
     } else if (node instanceof Return) {
-      checkFieldAndVFieldMatch(node, 'functionReturnParameters', 'vFunctionReturnParameters');
-
-      checkVFieldCtx(node, 'vFunctionReturnParameters', ctx);
+      // return functionReturnParameters member is undefined for returns in modifiers
+      if (node.functionReturnParameters !== undefined) {
+        checkFieldAndVFieldMatch(node, 'functionReturnParameters', 'vFunctionReturnParameters');
+        checkVFieldCtx(node, 'vFunctionReturnParameters', ctx);
+      }
       checkDirectChildren(node, 'vExpression');
     } else if (node instanceof TryCatchClause) {
       checkDirectChildren(node, 'vParameters', 'vBlock');

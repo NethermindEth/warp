@@ -249,6 +249,11 @@ program.command('compile <file>').action((file: string) => {
 });
 
 const blue = chalk.bold.blue;
-program.command('version').action(() => console.log(blue('Warp Version 0.1.0')));
+const green = chalk.bold.green;
+program.command('version').action(() => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const pjson = require('../package.json');
+  console.log(blue(`Warp Version `) + green(pjson.version));
+});
 
 program.parse(process.argv);

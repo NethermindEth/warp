@@ -74,6 +74,14 @@ export class StorageAllocator extends ASTMapper {
       node.nameLocation,
       node.raw,
     );
+
+    if (node.kind === ContractKind.Library) {
+      // mark all library functions as private
+      cairoNode.vFunctions.forEach((f) => {
+        f.visibility = FunctionVisibility.Private;
+      });
+    }
+
     ast.replaceNode(node, cairoNode);
 
     // This next code line is a hotfix when there is struct inheritance and the base contract's definiton

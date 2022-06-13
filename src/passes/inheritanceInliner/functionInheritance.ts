@@ -66,7 +66,10 @@ export function addNonoverridenPublicFunctions(
   // So to make them accessible with the expected name, new public or external functions are created that call the private one
   functionsToMove.forEach((f) => {
     const privateFunc = idRemapping.get(f.id);
-    assert(privateFunc !== undefined, `Unable to find inlined base function for ${printNode(f)}`);
+    assert(
+      privateFunc !== undefined,
+      `Unable to find inlined base function for ${printNode(f)} in ${node.name}`,
+    );
     node.appendChild(createDelegatingFunction(f, privateFunc, node.id, ast));
   });
 }

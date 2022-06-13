@@ -49,7 +49,7 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
     return createCallToFunction(functionStub, [base, index], this.ast);
   }
 
-  private getOrCreate(valueType: TypeNode): string {
+  getOrCreate(valueType: TypeNode): string {
     const valueCairoType = CairoType.fromSol(
       valueType,
       this.ast,

@@ -42,4 +42,7 @@ contract WARP {
       return lhs ** rhs;
     }
   }
+  function exp_minus_256(uint y) public returns (int) {
+      return (-256)**y;
+  }
 }

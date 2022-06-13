@@ -7,6 +7,7 @@ import {
   DataLocation,
   ElementaryTypeName,
   ErrorDefinition,
+  ExpressionStatement,
   ExternalReferenceType,
   FunctionCall,
   FunctionCallKind,
@@ -34,6 +35,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
+import { isDynamicArray } from '../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../utils/utils';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
@@ -62,6 +64,13 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
+    if (typeNode instanceof FunctionType)
+      throw new WillNotSupportError('Function objects are not supported');
+    this.commonVisit(node, ast);
+  }
+
+  visitExpressionStatement(node: ExpressionStatement, ast: AST): void {
+    const typeNode = getNodeType(node.vExpression, ast.compilerVersion);
     if (typeNode instanceof FunctionType)
       throw new WillNotSupportError('Function objects are not supported');
     this.commonVisit(node, ast);
@@ -199,12 +208,9 @@ function functionArgsCheck(
     }
     functionArgsCheck(type.elementT, ast, externallyVisible, dataLocation);
   } else if (type instanceof ArrayType) {
-    if (
-      (type.elementT instanceof ArrayType && type.elementT.size === undefined) ||
-      type.elementT instanceof BytesType
-    ) {
+    if (isDynamicArray(type.elementT)) {
       throw new WillNotSupportError(
-        `Dynamic arrays are not allowed as direct children of static arrays passed to/from external functions`,
+        `Dynamic arrays are not allowed as children of static arrays passed to/from external functions`,
       );
     }
     functionArgsCheck(type.elementT, ast, externallyVisible, dataLocation);
@@ -213,12 +219,10 @@ function functionArgsCheck(
 
 // Returns whether the given type is a dynamic array, or contains one
 function findDynArrayRecursive(type: TypeNode, ast: AST): boolean {
+  if (isDynamicArray(type)) return true;
   if (type instanceof PointerType) {
     return findDynArrayRecursive(type.to, ast);
   } else if (type instanceof ArrayType) {
-    if (type.size === undefined) {
-      return true;
-    }
     return findDynArrayRecursive(type.elementT, ast);
   } else if (type instanceof BytesType) {
     return true;

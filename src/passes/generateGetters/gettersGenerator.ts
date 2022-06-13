@@ -1,3 +1,4 @@
+import assert from 'assert';
 import { ASTMapper } from '../../ast/mapper';
 
 import {
@@ -11,6 +12,7 @@ import {
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
+  getNodeType,
   IndexAccess,
   Mapping,
   MemberAccess,
@@ -35,6 +37,7 @@ import {
   createUint256TypeName,
 } from '../../utils/nodeTemplates';
 import { toSingleExpression } from '../../utils/utils';
+import { isReferenceType } from '../../utils/nodeTypeProcessing';
 
 /**
 * This is a pass to attach the getter function for a public state variable
@@ -142,7 +145,11 @@ function genReturnParameters(
     );
   };
   if (vType instanceof ElementaryTypeName) {
-    return [newVarDecl(vType)];
+    if (isReferenceType(getNodeType(vType, ast.compilerVersion))) {
+      return [newVarDecl(vType, DataLocation.Memory)];
+    } else {
+      return [newVarDecl(vType)];
+    }
   } else if (vType instanceof ArrayTypeName) {
     return genReturnParameters(vType.vBaseType, funcDefID, ast);
   } else if (vType instanceof Mapping) {
@@ -154,11 +161,15 @@ function genReturnParameters(
       // Mappings and arrays are omitted
       vType.vReferencedDeclaration.vMembers.forEach((v) => {
         if (v.vType instanceof Mapping || v.vType instanceof ArrayTypeName) return;
+        const memberTypeName = v.vType;
+        assert(
+          memberTypeName !== undefined,
+          `Missing TypeName for ${v.name} when generating getter`,
+        );
         returnVariables.push(
           newVarDecl(
             v.vType,
-            v.vType instanceof UserDefinedTypeName &&
-              v.vType.vReferencedDeclaration instanceof StructDefinition
+            isReferenceType(getNodeType(memberTypeName, ast.compilerVersion))
               ? DataLocation.Memory
               : DataLocation.Default,
           ),

@@ -24,6 +24,7 @@ import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/ut
 import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from '../storage/dynArray';
+import { StorageDeleteGen } from '../storage/storageDelete';
 
 /*
   Generates functions to copy data from warp_memory to WARP_STORAGE
@@ -33,7 +34,12 @@ import { DynArrayGen } from '../storage/dynArray';
 */
 
 export class MemoryToStorageGen extends StringIndexedFuncGen {
-  constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
+  constructor(
+    private dynArrayGen: DynArrayGen,
+    private storageDeleteGen: StorageDeleteGen,
+    ast: AST,
+    sourceUnit: SourceUnit,
+  ) {
     super(ast, sourceUnit);
   }
   gen(
@@ -268,6 +274,10 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       ).join('\n');
     }
 
+    const deleteRemainingCode = `${this.storageDeleteGen.genAuxFuncName(
+      type,
+    )}(loc, mem_length, length)`;
+
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
@@ -295,17 +305,25 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
 
         `func ${funcName}${implicits}(loc : felt, mem_loc : felt) -> (loc : felt):`,
         `    alloc_locals`,
-        `    let (length) = wm_dyn_array_length(mem_loc)`,
-        `    ${lengthMapping}.write(loc, length)`,
-        `    let (narrowedLength) = narrow_safe(length)`,
-        `    ${funcName}_elem(loc, mem_loc + 2 + ${elementMemoryWidth} * narrowedLength, length)`,
-        `    return (loc)`,
+        `    let (length) = ${lengthMapping}.read(loc)`,
+        `    let (mem_length) = wm_dyn_array_length(mem_loc)`,
+        `    ${lengthMapping}.write(loc, mem_length)`,
+        `    let (narrowedLength) = narrow_safe(mem_length)`,
+        `    ${funcName}_elem(loc, mem_loc + 2 + ${elementMemoryWidth} * narrowedLength, mem_length)`,
+        `    let (lesser) = uint256_lt(mem_length, length)`,
+        `    if lesser == 1:`,
+        `       ${deleteRemainingCode}`,
+        `       return (loc)`,
+        `    else:`,
+        `       return (loc)`,
+        `    end`,
         `end`,
       ].join('\n'),
     });
 
     this.requireImport('starkware.cairo.common.dict', 'dict_read');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
+    this.requireImport('starkware.cairo.common.uint256', 'uint256_lt');
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('warplib.memory', 'wm_dyn_array_length');
     this.requireImport('warplib.maths.utils', 'narrow_safe');

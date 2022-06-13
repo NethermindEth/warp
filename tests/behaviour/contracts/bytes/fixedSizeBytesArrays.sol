@@ -67,6 +67,10 @@ contract WARP {
 		return i & temp;
 	}
 
+	function comparisonWithAB(bytes2 k) public pure returns (bool) {
+		return k == "AB";
+	}
+
 	function length() public view returns (uint8, uint8) {
 		return (b.length, z.length);
 	}

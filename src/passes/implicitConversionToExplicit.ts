@@ -45,7 +45,7 @@ import { error } from '../utils/formatting';
 import { createElementaryConversionCall } from '../utils/functionGeneration';
 import { createNumberLiteral } from '../utils/nodeTemplates';
 import { getParameterTypes, intTypeForLiteral } from '../utils/nodeTypeProcessing';
-import { typeNameFromTypeNode, bigintToTwosComplement, toHexString } from '../utils/utils';
+import { typeNameFromTypeNode, isExternalCall } from '../utils/utils';
 
 /*
 Detects implicit conversions by running solc-typed-ast's type analyser on
@@ -137,7 +137,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     // Assuming all variable declarations are split and have an initial value
 
     // VariableDeclarationExpressionSplitter must be run before this pass
-    if (node.vDeclarations.length !== 1) return;
+    if (node.assignments.length !== 1) return;
 
     insertConversionIfNecessary(
       node.vInitialValue,
@@ -182,7 +182,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         return;
       }
       if (node.vFunctionName === 'concat') {
-        // TODO concat
+        handleConcatArgs(node, ast);
         return;
       }
     }
@@ -212,7 +212,10 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 
     if (baseType instanceof MappingType) {
       insertConversionIfNecessary(node.vIndexExpression, baseType.keyType, ast);
-    } else if (location === DataLocation.CallData) {
+    } else if (
+      location === DataLocation.CallData ||
+      (node.vBaseExpression instanceof FunctionCall && isExternalCall(node.vBaseExpression))
+    ) {
       insertConversionIfNecessary(node.vIndexExpression, new IntType(248, false), ast);
     } else {
       insertConversionIfNecessary(node.vIndexExpression, new IntType(256, false), ast);
@@ -240,18 +243,6 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       node.typeString = intTypeForLiteral(
         `int_const ${getLiteralValueBound(node.typeString)}`,
       ).pp();
-    }
-    this.commonVisit(node, ast);
-  }
-
-  visitLiteral(node: Literal, ast: AST): void {
-    const nodeType = getNodeType(node, ast.compilerVersion);
-    if (nodeType instanceof IntLiteralType) {
-      const typeTo = intTypeForLiteral(`int_const ${getLiteralValueBound(node.typeString)}`);
-      const truncated = bigintToTwosComplement(BigInt(node.value), typeTo.nBits).toString(10);
-      node.value = truncated;
-      node.hexValue = toHexString(truncated);
-      node.typeString = typeTo.pp();
     }
     this.commonVisit(node, ast);
   }
@@ -390,9 +381,12 @@ function insertConversionIfNecessary(expression: Expression, targetType: TypeNod
     }
     return;
   } else if (currentType instanceof TupleType) {
-    throw new TranspileFailedError(
-      `Attempted to convert tuple ${printNode(expression)} as single value`,
-    );
+    if (!(targetType instanceof TupleType)) {
+      throw new TranspileFailedError(
+        `Attempted to convert tuple ${printNode(expression)} as single value`,
+      );
+    }
+    return;
   } else if (currentType instanceof TypeNameType) {
     return;
   } else if (currentType instanceof UserDefinedType) {
@@ -457,6 +451,20 @@ function pickLargerType(
       return typeB;
     }
   } else if (typeB instanceof IntLiteralType) {
+    return typeA;
+  }
+
+  if (typeA instanceof StringLiteralType) {
+    if (typeB instanceof StringLiteralType) {
+      const length = Math.max(typeA.literal.length, typeB.literal.length);
+      if (length >= 32) {
+        return new BytesType();
+      }
+      return new FixedBytesType(length);
+    } else {
+      return typeB;
+    }
+  } else if (typeB instanceof StringLiteralType) {
     return typeA;
   }
 
@@ -537,4 +545,17 @@ function getLiteralValueBound(typeString: string): string {
   }
 
   return newTypeString;
+}
+
+function handleConcatArgs(node: FunctionCall, ast: AST) {
+  node.vArguments.forEach((arg) => {
+    const type = getNodeType(arg, ast.compilerVersion);
+    if (type instanceof StringLiteralType) {
+      if (type.literal.length < 32 && type.literal.length > 0) {
+        insertConversionIfNecessary(arg, new FixedBytesType(type.literal.length), ast);
+      } else {
+        insertConversionIfNecessary(arg, new BytesType(), ast);
+      }
+    }
+  });
 }
