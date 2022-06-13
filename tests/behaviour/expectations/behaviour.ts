@@ -2466,6 +2466,8 @@ export const expectations = flatten(
             Expect.Simple('storageString', [], ['20']),
             Expect.Simple('emptySlot', [], ['0']),
             Expect.Simple('nestedMapCalls', [], ['25']),
+            Expect.Simple('sameStringKey', [], ['1']),
+            Expect.Simple('stringValueChange', [], ['1']),
           ]),
           File.Simple('bytesKeyMapping', [
             Expect.Simple('cdBytes', ['1', '97'], ['5']),
@@ -2474,6 +2476,8 @@ export const expectations = flatten(
             Expect.Simple('storageBytes', [], ['20']),
             Expect.Simple('emptySlot', [], ['0']),
             Expect.Simple('nestedMapCalls', [], ['25']),
+            Expect.Simple('sameBytesKey', [], ['1']),
+            Expect.Simple('bytesValueChange', [], ['1']),
           ]),
         ]),
         new Dir('maths', [
