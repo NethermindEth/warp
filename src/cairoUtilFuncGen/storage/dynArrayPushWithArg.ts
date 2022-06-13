@@ -96,7 +96,6 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     let elementWriteFunc: string;
     let inputType: string;
     if (argLoc === DataLocation.Memory) {
-      // TODO update once X->storage are all implemented
       elementWriteFunc = this.memoryToStorage.getOrCreate(elementType);
       inputType = 'felt';
     } else if (argLoc === DataLocation.Storage) {
@@ -104,7 +103,11 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       inputType = 'felt';
     } else if (argLoc === DataLocation.CallData) {
       elementWriteFunc = this.calldataToStorage.getOrCreate(elementType);
-      inputType = 'felt';
+      inputType = CairoType.fromSol(
+        elementType,
+        this.ast,
+        TypeConversionContext.CallDataRef,
+      ).toString();
     } else {
       elementWriteFunc = this.storageWrite.getOrCreate(elementType);
       inputType = CairoType.fromSol(elementType, this.ast).toString();
