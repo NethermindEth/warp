@@ -1,7 +1,6 @@
 import assert from 'assert';
 import {
   ASTNode,
-  BytesType,
   DataLocation,
   Expression,
   FunctionCall,
@@ -11,13 +10,12 @@ import {
   MappingType,
   PointerType,
   SourceUnit,
-  StringType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { printNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createUint8TypeName } from '../../utils/nodeTemplates';
+import { isReferenceType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
@@ -46,11 +44,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
 
-    if (baseType.to.keyType instanceof PointerType) {
-      assert(
-        baseType.to.keyType.to instanceof StringType || baseType.to.keyType.to instanceof BytesType,
-        `Found invalid key pointer type in mapping in ${printNode(node)}`,
-      );
+    if (isReferenceType(baseType.to.keyType)) {
       const stringLoc = generalizeType(getNodeType(index, this.ast.compilerVersion))[1];
       assert(stringLoc !== undefined);
       const call = this.createStringHashFunction(node, stringLoc, indexCairoType);
