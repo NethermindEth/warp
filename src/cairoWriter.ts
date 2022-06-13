@@ -909,13 +909,15 @@ class FunctionCallWriter extends CairoASTNodeWriter {
         return [`${func}(${args})`];
       }
       case FunctionCallKind.StructConstructorCall:
-        const structConstructorFunc =
-          node.vReferencedDeclaration && node.vReferencedDeclaration instanceof StructDefinition
-            ? `${node.vReferencedDeclaration.name}_${Web3.utils
-                .sha3(node.vReferencedDeclaration.canonicalName)
-                ?.slice(2, 10)}`
-            : func;
-        return [`${structConstructorFunc}(${args})`];
+        return [
+          `${
+            node.vReferencedDeclaration && node.vReferencedDeclaration instanceof StructDefinition
+              ? node.vReferencedDeclaration
+                ? mangleStructName(node.vReferencedDeclaration)
+                : func
+              : func
+          }(${args})`,
+        ];
 
       case FunctionCallKind.TypeConversion: {
         const arg = node.vArguments[0];

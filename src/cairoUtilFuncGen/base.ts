@@ -3,7 +3,6 @@ import {
   ArrayType,
   BytesType,
   DataLocation,
-  EnumDefinition,
   generalizeType,
   IntType,
   MappingType,
@@ -15,9 +14,7 @@ import {
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { printTypeNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
-import { formatPath } from '../utils/formatting';
 import { isDynamicArray, isReferenceType } from '../utils/nodeTypeProcessing';
 
 export type CairoFunction = {
