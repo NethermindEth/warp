@@ -105,6 +105,30 @@ import {
 const INDENT = ' '.repeat(4);
 export const INCLUDE_CAIRO_DUMP_FUNCTIONS = false;
 
+const STORAGE_PRELUDE = [
+  '@storage_var',
+  'func WARP_STORAGE(index: felt) -> (val: felt):',
+  'end',
+  '@storage_var',
+  'func WARP_USED_STORAGE() -> (val: felt):',
+  'end',
+  '@storage_var',
+  'func WARP_NAMEGEN() -> (name: felt):',
+  'end',
+  'func readId{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (val: felt):',
+  '    alloc_locals',
+  '    let (id) = WARP_STORAGE.read(loc)',
+  '    if id == 0:',
+  '        let (id) = WARP_NAMEGEN.read()',
+  '        WARP_NAMEGEN.write(id + 1)',
+  '        WARP_STORAGE.write(loc, id + 1)',
+  '        return (id + 1)',
+  '    else:',
+  '        return (id)',
+  '    end',
+  'end',
+];
+
 function getDocumentation(
   documentation: string | StructuredDocumentation | undefined,
   writer: ASTWriter,
@@ -379,7 +403,9 @@ class SourceUnitWriter extends CairoASTNodeWriter {
     const functions = node.vFunctions.map((v) => writer.write(v));
 
     const contracts = node.vContracts.map((v) => writer.write(v));
-
+    if (node.absolutePath.includes('__WARP_FREE__')) {
+      this.ast.registerImport(node, 'starkware.cairo.common.cairo_builtins', 'HashBuiltin');
+    }
     const generatedUtilFunctions = this.ast.getUtilFuncGen(node).getGeneratedCode();
     const imports = writeImports(this.ast.getImports(node));
     return [
@@ -390,6 +416,7 @@ class SourceUnitWriter extends CairoASTNodeWriter {
           ...structs,
           ...userDefinedConstants,
           generatedUtilFunctions,
+          ...(node.absolutePath.includes('__WARP_FREE__') ? STORAGE_PRELUDE : []),
           ...functions,
           ...contracts,
         ].join('\n\n\n'),
@@ -468,27 +495,7 @@ class CairoContractWriter extends CairoASTNodeWriter {
     const storageCode =
       node.usedStorage > 0 || node.usedIds > 0
         ? [
-            '@storage_var',
-            'func WARP_STORAGE(index: felt) -> (val: felt):',
-            'end',
-            '@storage_var',
-            'func WARP_USED_STORAGE() -> (val: felt):',
-            'end',
-            '@storage_var',
-            'func WARP_NAMEGEN() -> (name: felt):',
-            'end',
-            'func readId{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (val: felt):',
-            '    alloc_locals',
-            '    let (id) = WARP_STORAGE.read(loc)',
-            '    if id == 0:',
-            '        let (id) = WARP_NAMEGEN.read()',
-            '        WARP_NAMEGEN.write(id + 1)',
-            '        WARP_STORAGE.write(loc, id + 1)',
-            '        return (id + 1)',
-            '    else:',
-            '        return (id)',
-            '    end',
-            'end',
+            ...STORAGE_PRELUDE,
             ...(INCLUDE_CAIRO_DUMP_FUNCTIONS
               ? [
                   'func DUMP_WARP_STORAGE_ITER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt, ptr: felt*):',
