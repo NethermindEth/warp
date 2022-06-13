@@ -73,7 +73,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
           rhsLocation !== undefined,
           `${printNode(node.vRightHandSide)} has no known location, needed for memory assignment`,
         );
-        this.expectedLocations.set(node.vRightHandSide, rhsLocation);
+        this.expectedLocations.set(node.vRightHandSide, lhsLocation);
       }
     } else if (lhsLocation === DataLocation.CallData) {
       throw new TranspileFailedError(
