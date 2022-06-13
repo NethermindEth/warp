@@ -3,9 +3,9 @@ import {
   ArrayType,
   BytesType,
   DataLocation,
-  EnumDefinition,
+  FunctionCall,
   generalizeType,
-  IntType,
+  getNodeType,
   MappingType,
   PointerType,
   SourceUnit,
@@ -13,9 +13,10 @@ import {
   StructDefinition,
   TypeNode,
   UserDefinedType,
+  VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { printTypeNode } from '../utils/astPrinter';
+import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { formatPath } from '../utils/formatting';
 import { isDynamicArray, isReferenceType } from '../utils/nodeTypeProcessing';
@@ -60,26 +61,53 @@ export abstract class CairoUtilFuncGenBase {
     this.imports.set(location, existingImports);
   }
 
-  protected checkForImport(type: TypeNode): void {
-    if (
-      type instanceof UserDefinedType &&
-      (type.definition instanceof StructDefinition || type.definition instanceof EnumDefinition)
-    ) {
-      assert(this.sourceUnit !== undefined, 'Unable to find SourceUnit for CairoUtilGen.');
-      const typeDefSourceUnit = type.definition.root;
-      assert(
-        typeDefSourceUnit instanceof SourceUnit,
-        `Unable to find SourceUnit holding type definition ${printTypeNode(type)}.`,
-      );
-      if (this.sourceUnit !== typeDefSourceUnit) {
-        this.requireImport(formatPath(typeDefSourceUnit.absolutePath), type.definition.name);
+  addStructDefImports(): void {
+    const constructorStructDefs = this.sourceUnit
+      .getChildrenByType(FunctionCall, true)
+      .filter((n) => {
+        return n.vReferencedDeclaration instanceof StructDefinition;
+      })
+      .map((n) => n.vReferencedDeclaration);
+
+    const varDeclStructDefs = this.sourceUnit
+      .getChildrenByType(VariableDeclaration, true)
+      .map((n) => {
+        const type = getNodeType(n, this.ast.compilerVersion);
+        if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+          return type.definition;
+        }
+      });
+
+    const structDefs = new Set<StructDefinition>();
+    [...constructorStructDefs, ...varDeclStructDefs].forEach((n) => {
+      if (n instanceof StructDefinition) {
+        structDefs.add(n);
       }
-    } else if (type instanceof IntType && type.nBits === 256) {
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    });
+
+    structDefs.forEach((def) => {
+      assert(def instanceof StructDefinition);
+      this.checkForStructDefImport(def);
+    });
+  }
+
+  protected checkForStructDefImport(structDef: StructDefinition): void {
+    const typeDefSourceUnit = structDef.root;
+    assert(
+      typeDefSourceUnit instanceof SourceUnit,
+      `Unable to find SourceUnit holding type definition ${printNode(structDef)}.`,
+    );
+    if (this.sourceUnit !== typeDefSourceUnit) {
+      this.requireImport(formatPath(typeDefSourceUnit.absolutePath), structDef.name);
     }
+    structDef.vMembers.forEach((n) => {
+      const type = generalizeType(getNodeType(n, this.ast.compilerVersion))[0];
+      if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+        this.checkForStructDefImport(type.definition);
+      }
+    });
   }
 }
-
 /*
   Most subclasses of CairoUtilFuncGenBase index their CairoFunctions off a single string,
   usually the cairo type of the input that the function's code depends on
