@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   ArrayType,
+  MappingType,
   ASTNode,
   BytesType,
   DataLocation,
@@ -23,7 +24,7 @@ import { StorageWriteGen } from './storageWrite';
 import { StorageToStorageGen } from './copyToStorage';
 import { CalldataToStorageGen } from '../calldata/calldataToStorage';
 import { Implicits } from '../../utils/implicits';
-import { getElementType } from '../../utils/nodeTypeProcessing';
+import { getElementType, isDynamicArray } from '../../utils/nodeTypeProcessing';
 
 export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
   constructor(
@@ -123,6 +124,12 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       argLoc === DataLocation.Memory
         ? '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory: DictAccess*}'
         : '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
+
+    const callWriteFunc = (cairoVar: string) =>
+      isDynamicArray(argType) || argType instanceof MappingType
+        ? [`let (elem_id) = readId(${cairoVar})`, `${elementWriteFunc}(elem_id, value)`]
+        : [`${elementWriteFunc}(${cairoVar}, value)`];
+
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
@@ -137,9 +144,9 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
         `        let (used) = WARP_USED_STORAGE.read()`,
         `        WARP_USED_STORAGE.write(used + ${allocationCairoType.width})`,
         `        ${arrayName}.write(loc, len, used)`,
-        `        ${elementWriteFunc}(used, value)`,
+        ...callWriteFunc('used'),
         `    else:`,
-        `        ${elementWriteFunc}(existing, value)`,
+        ...callWriteFunc('existing'),
         `    end`,
         `    return ()`,
         `end`,
