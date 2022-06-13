@@ -28,4 +28,10 @@ contract WARP {
   function pop() public {
     return x.pop();
   }
+
+  string[] strs;
+  function pushReturnDynArray() public returns (string memory, uint) {
+    string storage s = strs.push();
+    return (s, bytes(s).length);
+  }
 }
