@@ -13,6 +13,7 @@ import {
   FunctionVisibility,
   generalizeType,
   getNodeType,
+  Identifier,
   IndexAccess,
   MemberAccess,
   PointerType,
@@ -63,12 +64,17 @@ export class ExpectedLocationAnalyser extends ASTMapper {
       this.expectedLocations.set(node.vRightHandSide, rhsLocation);
     } else if (lhsLocation === DataLocation.Memory) {
       this.expectedLocations.set(node.vLeftHandSide, lhsLocation);
-      const rhsLocation = this.actualLocations.get(node.vRightHandSide);
-      assert(
-        rhsLocation !== undefined,
-        `${printNode(node.vRightHandSide)} has no known location, needed for memory assignment`,
-      );
-      this.expectedLocations.set(node.vRightHandSide, rhsLocation);
+      // This pairs with the shouldLeaveAsCairoAssignment function in DataAccessFunctionaliser.visitAssignment
+      if (node.vLeftHandSide instanceof Identifier) {
+        this.expectedLocations.set(node.vRightHandSide, DataLocation.Memory);
+      } else {
+        const rhsLocation = this.actualLocations.get(node.vRightHandSide);
+        assert(
+          rhsLocation !== undefined,
+          `${printNode(node.vRightHandSide)} has no known location, needed for memory assignment`,
+        );
+        this.expectedLocations.set(node.vRightHandSide, rhsLocation);
+      }
     } else if (lhsLocation === DataLocation.CallData) {
       throw new TranspileFailedError(
         `Left hand side of assignment has calldata location ${printNode(node)}`,

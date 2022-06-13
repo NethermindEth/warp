@@ -1151,6 +1151,7 @@ export const expectations = flatten(
           File.Simple('dynamic_arrays', [
             Expect.Simple('copySimpleArrayLength', [], ['3', '0']),
             Expect.Simple('copySimpleArrayValues', [], ['5', '0', '4']),
+            Expect.Simple('copySimpleArrayToIdentifier', [], ['3', '5', '0', '4']),
             Expect.Simple(
               'testNestedArray',
               [...['3', '1', '2', '3'], ...['2', '1', '0'], ...['3', '4', '5', '6']],
@@ -2428,6 +2429,10 @@ export const expectations = flatten(
           ]),
           File.Simple('importLibs', [Expect.Simple('addSub', ['5', '4'], ['9', '1'])]),
           File.Simple('LibInLib', [Expect.Simple('mulDiv', ['5', '2'], ['10', '2', '1'])]),
+          File.Simple('library_call_in_homestead', [
+            new Expect('f', [['f', [], [], '234']]),
+            new Expect('sender', [['sender', [], ['234'], '465']]),
+          ]),
           new Dir('freeFunctionsLib', [
             File.Simple('direct_and_indirect', [Expect.Simple('freeFuncLib', ['2'], ['5'])]),
             File.Simple('sameName', [Expect.Simple('freeFuncLib', ['1'], ['0'])]),
@@ -3163,6 +3168,11 @@ export const expectations = flatten(
             Expect.Simple('length', [], ['0', '0'], 'length should decrease after pop'),
             Expect.Simple('get', ['0', '0'], null),
             Expect.Simple('pop', [], null, 'attempting to pop an empty array should fail'),
+          ]),
+          File.Simple('dynamicInStructs', [
+            Expect.Simple('s', [], ['0', '0', '0']),
+            Expect.Simple('set', ['5', '2', '2', '0x80', '0x81'], []),
+            Expect.Simple('s', [], ['5', '2', '2', '0x80', '0x81']),
           ]),
           File.Simple('mappings', [
             Expect.Simple('nestedMappings', ['3'], ['3']),

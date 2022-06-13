@@ -14,6 +14,7 @@ import {
   StringLiteralType,
   TupleExpression,
   TupleType,
+  TypeNode,
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
@@ -101,10 +102,19 @@ export class TupleAssignmentSplitter extends ASTMapper {
       lhs.vOriginalComponents.filter(notNull).map((child, index) => {
         const lhsElementType = getNodeType(child, ast.compilerVersion);
         const rhsElementType = rhsType.elements[index];
-        const [typeNode, location] =
-          rhsElementType instanceof IntLiteralType || rhsElementType instanceof StringLiteralType
-            ? generalizeType(lhsElementType)
-            : generalizeType(rhsElementType);
+
+        // We need to calculate a type and location for the temporary variable
+        // By default we can use the rhs value, unless it is a literal
+        let typeNode: TypeNode;
+        let location: DataLocation | undefined;
+        if (rhsElementType instanceof IntLiteralType) {
+          [typeNode, location] = generalizeType(lhsElementType);
+        } else if (rhsElementType instanceof StringLiteralType) {
+          typeNode = generalizeType(lhsElementType)[0];
+          location = DataLocation.Memory;
+        } else {
+          [typeNode, location] = generalizeType(rhsElementType);
+        }
         const typeName = typeNameFromTypeNode(typeNode, ast);
         const decl = new VariableDeclaration(
           ast.reserveId(),
