@@ -7,7 +7,6 @@ import {
   DataLocation,
   FunctionStateMutability,
   generalizeType,
-  ArrayType,
 } from 'solc-typed-ast';
 import {
   CairoFelt,
@@ -19,6 +18,7 @@ import {
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
+import { isDynamicArray } from '../../utils/nodeTypeProcessing';
 import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
 
@@ -44,7 +44,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
       params.push(['size', createNumberTypeName(256, false, this.ast), DataLocation.Default]);
       args.push(
         createNumberLiteral(
-          valueType instanceof ArrayType && valueType.size === undefined
+          isDynamicArray(valueType)
             ? 2
             : CairoType.fromSol(valueType, this.ast, TypeConversionContext.MemoryAllocation).width,
           this.ast,
