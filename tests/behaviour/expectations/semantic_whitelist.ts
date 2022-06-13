@@ -258,7 +258,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/byte_array_pop_isolated.sol', // WILL NOT SUPPORT function objects
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/byte_array_pop_long_storage_empty_garbage_ref.sol', // WILL NOT SUPPORT yul
     ],
-    //-------Array push tests: 41 passing, 5 pending, 6 failing
+    //-------Array push tests: 52 passing, 3 pending, 1 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/push/byte_array_push.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/push/push_no_args_1d.sol',
