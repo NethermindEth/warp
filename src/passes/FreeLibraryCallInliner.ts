@@ -1,6 +1,5 @@
 import {
   ContractDefinition,
-  ContractKind,
   FunctionCall,
   FunctionDefinition,
   FunctionKind,
@@ -11,7 +10,6 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
 import { union } from '../utils/utils';
-
 /* 
   Library calls in solidity are delegate calls
   i.e  libraries can be seen as implicit base contracts of the contracts that use them
@@ -28,7 +26,6 @@ export class FreeLibraryCallInliner extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     // Stores old FunctionDefinition and cloned FunctionDefinition
     const remappings = new Map<FunctionDefinition, FunctionDefinition>();
-
     // Visit all FunctionCalls in a Contract and check if they call
     // free functions that call Library Functions
     node
@@ -42,18 +39,16 @@ export class FreeLibraryCallInliner extends ASTMapper {
       .reduce(union, new Set<FunctionDefinition>())
       .forEach((funcToInline) => {
         const clonedFunction = cloneASTNode(funcToInline, ast);
-        clonedFunction.name = `${clonedFunction.name}_f${this.funcCounter++}`;
+        clonedFunction.name = `f${this.funcCounter++}_${clonedFunction.name}`;
         clonedFunction.visibility = FunctionVisibility.Internal;
         clonedFunction.scope = node.id;
         clonedFunction.kind = FunctionKind.Function;
         node.appendChild(clonedFunction);
         remappings.set(funcToInline, clonedFunction);
       });
-
     updateReferencedDeclarations(node, remappings);
   }
 }
-
 // Checks the given free function for library calls, and recurses through any free functions it calls
 // to see if any of them call libraries. All functions reachable from func that call library functions
 // directly or indirectly are returned to be inlined
@@ -73,24 +68,8 @@ function getFunctionsToInline(
     )
     .reduce(union, new Set<FunctionDefinition>());
 
-  if (funcsToInline.size > 0 || directlyCallsLibraryFunction(func)) {
-    funcsToInline.add(func);
-  }
+  funcsToInline.add(func);
   return funcsToInline;
-}
-
-function directlyCallsLibraryFunction(func: FunctionDefinition): boolean {
-  return (
-    func
-      .getChildrenByType(FunctionCall)
-      .map((fCall) => fCall.vReferencedDeclaration)
-      .filter(
-        (def) =>
-          def instanceof FunctionDefinition &&
-          def.vScope instanceof ContractDefinition &&
-          def.vScope.kind === ContractKind.Library,
-      ).length > 0
-  );
 }
 
 function updateReferencedDeclarations(
@@ -101,7 +80,6 @@ function updateReferencedDeclarations(
     if (node instanceof Identifier) {
       if (node.vReferencedDeclaration instanceof FunctionDefinition) {
         const remapping = remappingIds.get(node.vReferencedDeclaration);
-
         if (remapping !== undefined) {
           node.referencedDeclaration = remapping.id;
           node.name = remapping.name;
