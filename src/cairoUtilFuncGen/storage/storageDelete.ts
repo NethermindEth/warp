@@ -26,6 +26,7 @@ import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
 
 export class StorageDeleteGen extends StringIndexedFuncGen {
+  private nothingHandlerGen: boolean;
   constructor(
     private dynArrayGen: DynArrayGen,
     private storageReadGen: StorageReadGen,
@@ -33,6 +34,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     sourceUnit: SourceUnit,
   ) {
     super(ast, sourceUnit);
+    this.nothingHandlerGen = false;
   }
 
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
@@ -79,6 +81,16 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       () => this.deleteNothing(),
       () => this.deleteGeneric(CairoType.fromSol(type, this.ast)),
     );
+
+    // WSMAP_DELETE can be keyed with multiple types but since its definition
+    // is always the same we want to make sure its not duplicated or else it
+    // clashes with itself.
+    if (cairoFunc.name === 'WSMAP_DELETE' && !this.nothingHandlerGen) {
+      this.nothingHandlerGen = true;
+    } else if (cairoFunc.name === 'WSMAP_DELETE' && this.nothingHandlerGen) {
+      this.generatedFunctions.set(key, { ...cairoFunc, code: '' });
+      return cairoFunc.name;
+    }
 
     this.generatedFunctions.set(key, cairoFunc);
 
