@@ -2459,6 +2459,28 @@ export const expectations = flatten(
             Expect.Simple('s', [], ['10']),
           ]),
         ]),
+        new Dir('mapping', [
+          File.Simple('stringKeyMapping', [
+            Expect.Simple('cdString', ['1', '97'], ['5']),
+            Expect.Simple('memStringLiteral', [], ['10']),
+            Expect.Simple('memStringVariable', [], ['15']),
+            Expect.Simple('storageString', [], ['20']),
+            Expect.Simple('emptySlot', [], ['0']),
+            Expect.Simple('nestedMapCalls', [], ['25']),
+            Expect.Simple('sameStringKey', [], ['1']),
+            Expect.Simple('stringValueChange', [], ['1']),
+          ]),
+          File.Simple('bytesKeyMapping', [
+            Expect.Simple('cdBytes', ['1', '97'], ['5']),
+            Expect.Simple('memBytesLiteral', [], ['10']),
+            Expect.Simple('memBytesVariable', [], ['15']),
+            Expect.Simple('storageBytes', [], ['20']),
+            Expect.Simple('emptySlot', [], ['0']),
+            Expect.Simple('nestedMapCalls', [], ['25']),
+            Expect.Simple('sameBytesKey', [], ['1']),
+            Expect.Simple('bytesValueChange', [], ['1']),
+          ]),
+        ]),
         new Dir('maths', [
           File.Simple('addition', [
             Expect.Simple('addition8safe', ['3', '20'], ['23']),
