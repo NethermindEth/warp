@@ -39,4 +39,18 @@ contract WARP {
     map_su[map_ss["yz"]] = 25;
     return map_su["hello"];
   }
+
+  function sameStringKey() public returns (bool) {
+    string memory s1 = "hi";
+    string memory s2 = "hi";
+    map_su[s1] = 30;
+    return map_su[s2] == map_su[s1];
+  }
+
+  function stringValueChange() public returns (bool) {
+    string memory s1 = "yo";
+    map_su[s1] = 35;
+    s1 = "lol";
+    return map_su[s1] != map_su["yo"];
+  }
 }
