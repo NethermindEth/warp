@@ -21,7 +21,7 @@ func ecrecover_eth{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, keccak_ptr : 
     let (v_is_28) = warp_eq(v, 28)
 
     if v_is_27 + v_is_28 == 0:
-      return (0)
+        return (0)
     end
 
     let v = v - 27
