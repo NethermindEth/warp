@@ -410,7 +410,7 @@ const tests: string[] = [
   //---------Constants: 12 passing, 6 pending, 2 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constants/constant_string.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constants/constant_string_at_file_level.sol',
+    'tests/behaviour/solidity/test/libsolidity/semanticTests/constants/constant_string_at_file_level.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constants/constant_variables.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constants/consteval_array_length.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constants/simple_constant_variables_test.sol',
