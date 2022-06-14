@@ -1697,6 +1697,12 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('enums', [
+          File.Simple('boundCheck', [
+            Expect.Simple('checkInt256', ['3', '0'], null),
+            Expect.Simple('checkInt256', ['2', '0'], []),
+            Expect.Simple('checkInt8', ['3'], null),
+            Expect.Simple('checkInt8', ['2'], []),
+          ]),
           File.Simple('singleEnum', [
             Expect.Simple('get', [], ['0']),
             new Expect('set', [
