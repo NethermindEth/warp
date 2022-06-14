@@ -1315,7 +1315,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/mapping_contract_key_getter.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/convert_uint_to_fixed_bytes_greater_size.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/convert_fixed_bytes_to_uint_same_min_size.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/mapping_enum_key_getter_v1.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/mapping_enum_key_getter_v1.sol', // irrelevant, tests abicoder v1 wrapping
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/type_conversion_cleanup.sol', //160 bit address
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/external_function_to_address.sol', // WILL NOT SUPPORT function address
     ],
