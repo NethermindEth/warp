@@ -1,12 +1,12 @@
 import {
   Expression,
   TypeName,
-  ASTNode,
   FunctionCall,
   getNodeType,
   DataLocation,
   FunctionStateMutability,
   TypeNode,
+  ASTNode,
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
