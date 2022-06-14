@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { FunctionDefinition, FunctionKind, FunctionVisibility } from 'solc-typed-ast';
+import { ContractKind, FunctionDefinition, FunctionKind, FunctionVisibility } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoContract } from '../../ast/cairoNodes';
 import { printNode } from '../../utils/astPrinter';
@@ -23,7 +23,11 @@ export function addPrivateSuperFunctions(
   node.vFunctions.forEach((f) => currentFunctions.set(f.name, f));
   getBaseContracts(node).forEach((base, depth) => {
     base.vFunctions
-      .filter((func) => !func.isConstructor)
+      .filter(
+        (func) =>
+          !func.isConstructor &&
+          (node.kind === ContractKind.Interface ? isExternallyVisible(func) : true),
+      )
       .map((func) => {
         const existingEntry = currentFunctions.get(func.name);
         const clonedFunction = cloneASTNode(func, ast);
