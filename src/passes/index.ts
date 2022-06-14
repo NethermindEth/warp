@@ -9,7 +9,7 @@ export * from './enumConverter';
 export * from './expressionSplitter/expressionSplitter';
 export * from './externalArgModifier';
 export * from './externalContractHandler';
-export * from './externalInputChecker';
+export * from './argBoundChecker';
 export * from './externImporter';
 export * from './FreeLibraryCallInliner';
 export * from './functionModifierHandler';
