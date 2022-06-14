@@ -19,6 +19,10 @@ contract WARP {
 		return b[b.length - 1][key];
 	}
 
+	function p() public {
+		a.pop();
+	}
+
 	function d() public returns (uint) {
 		delete a;
 		return a.length;
