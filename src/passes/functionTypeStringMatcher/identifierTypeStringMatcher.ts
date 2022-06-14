@@ -15,7 +15,6 @@ export class IdentifierTypeStringMatcher extends ASTMapper {
       const typeString = node.vReferencedDeclaration.typeString;
       if (node.vReferencedDeclaration.storageLocation !== DataLocation.Default) {
         node.typeString = `${typeString} ${node.vReferencedDeclaration.storageLocation}`;
-        console.log(node.id, node.vReferencedDeclaration.id, node.typeString);
       }
     }
   }
