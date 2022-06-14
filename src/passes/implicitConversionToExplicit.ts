@@ -88,7 +88,19 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         );
       }
       return;
-    } else if (['**', '*', '/', '%', '+', '-', '&', '^', '|', '&&', '||'].includes(node.operator)) {
+    } else if (node.operator === '**') {
+      const rightNodeType = getNodeType(node.vRightExpression, ast.compilerVersion);
+
+      insertConversionIfNecessary(node.vLeftExpression, resultType, ast);
+      if (rightNodeType instanceof IntLiteralType) {
+        const bound = getLiteralValueBound(node.vRightExpression.typeString);
+        insertConversionIfNecessary(
+          node.vRightExpression,
+          intTypeForLiteral(`int_const ${bound}`),
+          ast,
+        );
+      }
+    } else if (['*', '/', '%', '+', '-', '&', '^', '|', '&&', '||'].includes(node.operator)) {
       insertConversionIfNecessary(node.vLeftExpression, resultType, ast);
       insertConversionIfNecessary(node.vRightExpression, resultType, ast);
     } else if (['<', '>', '<=', '>=', '==', '!='].includes(node.operator)) {

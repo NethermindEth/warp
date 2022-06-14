@@ -383,16 +383,16 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_struct_cleaning.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/copy_from_calldata_removes_bytes_data.sol', // address.call
   ],
-  //---------Cleanup tests: 20 passing, 6 pending, 6 failing
+  //---------Cleanup tests: 24 passing
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/bool_conversion_v2.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/cleanup_bytes_types_v1.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/cleanup_bytes_types_v2.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/cleanup_in_compound_assign.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/exp_cleanup.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/exp_cleanup_direct.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/exp_cleanup_nonzero_base.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/exp_cleanup_smaller_base.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/bool_conversion_v2.sol', // covered in behaviour tests where invalid input can be sent reliably
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/cleanup_bytes_types_v2.sol', // irrelevant, tests abiencoder behaviour
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/cleanup_address_types_v1.sol', //160 bit address
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/cleanup_address_types_v2.sol', //160 bit address
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/bool_conversion_v1.sol', //testing abiencoder behaviour
