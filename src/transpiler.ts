@@ -48,6 +48,7 @@ import {
   dumpABI,
   StaticArrayIndexer,
   TupleFixes,
+  ConstantPropagator,
 } from './passes';
 import { FilePathMangler } from './passes/filePathMangler';
 import { Require } from './passes/builtinHandler/require';
@@ -93,6 +94,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Tf', TupleFixes],
     ['Fm', FilePathMangler],
+    ['Cp', ConstantPropagator],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
     ['Ae', ABIExtractor],
