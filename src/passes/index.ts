@@ -13,6 +13,7 @@ export * from './externalContractHandler';
 export * from './externalInputChecker';
 export * from './freeFunctionInliner';
 export * from './functionModifierHandler';
+export * from './functionTypeStringMatcher';
 export * from './generateGetters';
 export * from './identifierManglerPass';
 export * from './ifFunctionaliser';

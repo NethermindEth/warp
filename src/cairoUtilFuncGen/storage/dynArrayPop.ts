@@ -15,7 +15,7 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { getElementType } from '../../utils/nodeTypeProcessing';
+import { getElementType, isDynamicArray, isMapping } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
@@ -72,6 +72,14 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
     const [arrayName, lengthName] = this.dynArrayGen.gen(cairoElementType);
     const deleteFuncName = this.storageDelete.genFuncName(elementType);
 
+    const getElemLoc =
+      isDynamicArray(elementType) || isMapping(elementType)
+        ? [
+            `let (elem_loc) = ${arrayName}.read(loc, newLen)`,
+            `let (elem_loc) = readId(elem_loc)`,
+          ].join('\n')
+        : `let (elem_loc) = ${arrayName}.read(loc, newLen)`;
+
     const funcName = `${arrayName}_POP`;
     this.generatedFunctions.set(key, {
       name: funcName,
@@ -83,7 +91,7 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
         `    assert isEmpty = 0`,
         `    let (newLen) = uint256_sub(len, Uint256(1,0))`,
         `    ${lengthName}.write(loc, newLen)`,
-        `    let (elem_loc) = ${arrayName}.read(loc, newLen)`,
+        `    ${getElemLoc}`,
         `    return ${deleteFuncName}(elem_loc)`,
         `end`,
       ].join('\n'),
