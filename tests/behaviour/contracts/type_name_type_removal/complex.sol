@@ -25,6 +25,7 @@ contract WARP {
 
     function tupleExpression() public {
         (WARP, D.A, 2);
-        (2, (WARP, D.A, 4));
+        (2, (WARP, D.A, s[7][], 4));
+        (2, (WARP, D.A, s[7][]));
     }
 }
