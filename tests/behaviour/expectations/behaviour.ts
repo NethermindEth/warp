@@ -2373,17 +2373,8 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('fallback', [
-          File.Simple('simple', [
-            Expect.Simple('x', [], ['0', '0']),
-            Expect.Simple('unexistent', [], []),
-            Expect.Simple('x', [], ['1', '0']),
-            Expect.Simple('unexistent', ['3', '4', '5'], []),
-            Expect.Simple('x', [], ['2', '0']),
-            Expect.Simple('unexistent', ['10', '4', '5', '20'], []),
-            Expect.Simple('x', [], ['3', '0']),
-          ]),
           new File(
-            'inheritance',
+            'fallback_overriden',
             'A',
             ['100', '0'],
             [
@@ -2397,7 +2388,7 @@ export const expectations = flatten(
             ],
           ),
           new File(
-            'inheritance',
+            'fallback_overriden',
             'B',
             ['100', '0'],
             [
@@ -2408,7 +2399,7 @@ export const expectations = flatten(
             ],
           ),
           new File(
-            'inheritance',
+            'fallback_overriden',
             'C',
             ['100', '0'],
             [
@@ -2417,6 +2408,35 @@ export const expectations = flatten(
               ]),
             ],
           ),
+          File.Simple('fallback_return', [
+            Expect.Simple('unexistent', [], []),
+            Expect.Simple('x', [], ['1', '0']),
+            Expect.Simple('unexistent', [], []),
+            Expect.Simple('x', [], ['2', '0']),
+            Expect.Simple('unexistent', [], []),
+            Expect.Simple('x', [], ['2', '0']),
+            Expect.Simple('unexistent', [], []),
+            Expect.Simple('x', [], ['2', '0']),
+          ]),
+          new File(
+            'inherited',
+            'B',
+            [],
+            [
+              Expect.Simple('getData', [], ['0', '0']),
+              Expect.Simple('unexistent', ['42'], []),
+              Expect.Simple('getData', [], ['1', '0']),
+            ],
+          ),
+          File.Simple('simple', [
+            Expect.Simple('x', [], ['0', '0']),
+            Expect.Simple('unexistent', [], []),
+            Expect.Simple('x', [], ['1', '0']),
+            Expect.Simple('unexistent', ['3', '4', '5'], []),
+            Expect.Simple('x', [], ['2', '0']),
+            Expect.Simple('unexistent', ['10', '4', '5', '20'], []),
+            Expect.Simple('x', [], ['3', '0']),
+          ]),
         ]),
         new Dir('if', [
           File.Simple('localVariables', [
@@ -2592,6 +2612,14 @@ export const expectations = flatten(
           File.Simple('library_call_in_homestead', [
             new Expect('f', [['f', [], [], '234']]),
             new Expect('sender', [['sender', [], ['234'], '465']]),
+          ]),
+          File.Simple('libStructs', [
+            Expect.Simple(
+              'f',
+              [],
+              ['7', '0', '8', '0'],
+              'test using struct defined in library in other contract',
+            ),
           ]),
           new Dir('freeFunctionsLib', [
             File.Simple('direct_and_indirect', [Expect.Simple('freeFuncLib', ['2'], ['4'])]),

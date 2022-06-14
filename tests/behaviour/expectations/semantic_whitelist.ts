@@ -599,9 +599,9 @@ const tests: string[] = [
   ],
   //---------Fallback tests - 5 passing, 3 pending, 5 failing - test suite issues
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/falback_return.sol', // TODO needs moving to behaviour tests
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/inherited.sol', // TODO move to behaviour tests
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/short_data_calls_fallback.sol', // TODO move to behaviour tests
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/falback_return.sol', // Moved to behaviour tests
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/inherited.sol', // Moved to behaviour tests
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/short_data_calls_fallback.sol', // WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/fallback_or_receive.sol', // STRETCH payable, receive
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/fallback_override.sol', // WILL NOT SUPPORT fallback with arguments
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/fallback_argument_to_storage.sol', // WILL NOT SUPPORT fallback with arguments
@@ -859,7 +859,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/isoltestTesting/balance_other_contract.sol', // WILL NOT SUPPORT value
     ],
   ],
-  //---------libraries: 107 passing, 40 pending, 17 failing
+  //---------libraries: 150 passing, 4 pending, 2 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/bound_returning_calldata_external.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/bound_returning_calldata.sol',
