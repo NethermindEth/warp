@@ -93,10 +93,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 
       insertConversionIfNecessary(node.vLeftExpression, resultType, ast);
       if (rightNodeType instanceof IntLiteralType) {
-        console.log(node.vRightExpression.typeString);
         const bound = getLiteralValueBound(node.vRightExpression.typeString);
-        console.log(bound);
-        console.log(node.vRightExpression.typeString);
         insertConversionIfNecessary(
           node.vRightExpression,
           intTypeForLiteral(`int_const ${bound}`),
