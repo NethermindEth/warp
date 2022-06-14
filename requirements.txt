@@ -1,3 +1,5 @@
 wheel
 flask[async]
 flask-cors >= 3.0.10
+# Required by the testnet
+cairo-lang==0.8.2.1

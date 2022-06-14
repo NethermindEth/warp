@@ -7,7 +7,11 @@ smart contracts to Cairo, and use them on StarkNet.
 
 ## Pre-requisites
 
-You will need [z3](https://github.com/Z3Prover/z3) to use warp, installation instructions:
+Make sure that you have the [`venv`](https://docs.python.org/3/library/venv.html)
+module for your python installation.
+
+You will also need [z3](https://github.com/Z3Prover/z3) to use warp,
+installation instructions:
 
 On macos:
 

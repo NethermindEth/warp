@@ -72,8 +72,7 @@ export class BytesConverter extends ASTMapper {
       !(
         node.vIndexExpression &&
         generalizeType(getNodeType(node.vBaseExpression, ast.compilerVersion))[0] instanceof
-          FixedBytesType &&
-        getNodeType(node, ast.compilerVersion) instanceof FixedBytesType
+          FixedBytesType
       )
     ) {
       this.visitExpression(node, ast);

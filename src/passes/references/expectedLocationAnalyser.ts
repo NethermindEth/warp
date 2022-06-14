@@ -13,8 +13,8 @@ import {
   FunctionVisibility,
   generalizeType,
   getNodeType,
-  Identifier,
   IndexAccess,
+  MappingType,
   MemberAccess,
   PointerType,
   Return,
@@ -30,7 +30,7 @@ import { locationIfComplexType } from '../../cairoUtilFuncGen/base';
 import { printNode } from '../../utils/astPrinter';
 import { TranspileFailedError } from '../../utils/errors';
 import { error } from '../../utils/formatting';
-import { getParameterTypes } from '../../utils/nodeTypeProcessing';
+import { getParameterTypes, isReferenceType } from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
 import { isExternallyVisible } from '../../utils/utils';
 
@@ -64,17 +64,11 @@ export class ExpectedLocationAnalyser extends ASTMapper {
       this.expectedLocations.set(node.vRightHandSide, rhsLocation);
     } else if (lhsLocation === DataLocation.Memory) {
       this.expectedLocations.set(node.vLeftHandSide, lhsLocation);
-      // This pairs with the shouldLeaveAsCairoAssignment function in DataAccessFunctionaliser.visitAssignment
-      if (node.vLeftHandSide instanceof Identifier) {
-        this.expectedLocations.set(node.vRightHandSide, DataLocation.Memory);
-      } else {
-        const rhsLocation = this.actualLocations.get(node.vRightHandSide);
-        assert(
-          rhsLocation !== undefined,
-          `${printNode(node.vRightHandSide)} has no known location, needed for memory assignment`,
-        );
-        this.expectedLocations.set(node.vRightHandSide, rhsLocation);
-      }
+      const rhsType = getNodeType(node.vRightHandSide, ast.compilerVersion);
+      this.expectedLocations.set(
+        node.vRightHandSide,
+        locationIfComplexType(rhsType, DataLocation.Memory),
+      );
     } else if (lhsLocation === DataLocation.CallData) {
       throw new TranspileFailedError(
         `Left hand side of assignment has calldata location ${printNode(node)}`,
@@ -182,7 +176,17 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     } else {
       this.expectedLocations.set(node.vBaseExpression, baseLoc);
     }
-    this.expectedLocations.set(node.vIndexExpression, DataLocation.Default);
+    if (
+      baseType instanceof PointerType &&
+      baseType.to instanceof MappingType &&
+      isReferenceType(baseType.to.keyType)
+    ) {
+      const indexLoc = generalizeType(getNodeType(node.vIndexExpression, ast.compilerVersion))[1];
+      assert(indexLoc !== undefined);
+      this.expectedLocations.set(node.vIndexExpression, indexLoc);
+    } else {
+      this.expectedLocations.set(node.vIndexExpression, DataLocation.Default);
+    }
     this.visitExpression(node, ast);
   }
 

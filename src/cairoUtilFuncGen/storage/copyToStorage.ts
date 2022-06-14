@@ -5,6 +5,7 @@ import {
   BytesType,
   DataLocation,
   Expression,
+  FixedBytesType,
   FunctionStateMutability,
   generalizeType,
   getNodeType,
@@ -101,7 +102,10 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       (toType) => {
         if (toType instanceof IntType) {
           assert(fromType instanceof IntType);
-          return this.createScalarCopyFunction(funcName, toType, fromType);
+          return this.createIntegerCopyFunction(funcName, toType, fromType);
+        } else if (toType instanceof FixedBytesType) {
+          assert(fromType instanceof FixedBytesType);
+          return this.createFixedBytesCopyFunction(funcName, toType, fromType);
         } else {
           return this.createValueTypeCopyFunction(funcName, toType);
         }
@@ -364,7 +368,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     };
   }
 
-  private createScalarCopyFunction(
+  private createIntegerCopyFunction(
     funcName: string,
     toType: IntType,
     fromType: IntType,
@@ -406,6 +410,53 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     // Copy changes depending if To is 256 bits or less
     const copyToCode =
       toType.nBits === 256
+        ? [
+            'WARP_STORAGE.write(to_loc, to_elem.low)',
+            'WARP_STORAGE.write(to_loc + 1, to_elem.high)',
+          ].join('\n')
+        : 'WARP_STORAGE.write(to_loc, to_elem)';
+
+    return {
+      name: funcName,
+      code: [
+        `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt):`,
+        `   alloc_locals`,
+        `   ${readFromCode}`,
+        `   ${scalingCode}`,
+        `   ${copyToCode}`,
+        `   return (to_loc)`,
+        `end`,
+      ].join('\n'),
+    };
+  }
+
+  private createFixedBytesCopyFunction(
+    funcName: string,
+    toType: FixedBytesType,
+    fromType: FixedBytesType,
+  ) {
+    const bitWidthDiff = (toType.size - fromType.size) * 8;
+    assert(bitWidthDiff >= 0, `Attempted to scale fixed byte ${fromType.size} to ${toType.size}`);
+
+    const conversionFunc = toType.size === 32 ? 'warp_bytes_widen_256' : 'warp_bytes_widen';
+    this.requireImport('warplib.maths.bytes_conversions', conversionFunc);
+
+    const readFromCode =
+      fromType.size === 32
+        ? [
+            'let (from_low) = WARP_STORAGE.read(from_loc)',
+            'let (from_high) = WARP_STORAGE.read(from_loc + 1)',
+            'tempvar from_elem = Uint256(from_low, from_high)',
+          ].join('\n')
+        : 'let (from_elem) = WARP_STORAGE.read(from_loc)';
+
+    const scalingCode =
+      bitWidthDiff !== 0
+        ? `let (to_elem) = ${conversionFunc}(from_elem, ${bitWidthDiff})`
+        : 'let to_elem = from_elem';
+
+    const copyToCode =
+      toType.size === 32
         ? [
             'WARP_STORAGE.write(to_loc, to_elem.low)',
             'WARP_STORAGE.write(to_loc + 1, to_elem.high)',

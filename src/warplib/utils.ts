@@ -53,7 +53,7 @@ export function msbAndNext(width: number): string {
   return `0x${(pow2(width) + pow2(width - 1)).toString(16)}`;
 }
 
-const warpVenvPrefix = `PATH=${path.resolve('..', '..', 'warp_venv', 'bin')}:$PATH`;
+const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
 
 export function generateFile(name: string, imports: string[], functions: string[]): void {
   fs.writeFileSync(
