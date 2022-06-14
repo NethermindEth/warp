@@ -54,17 +54,23 @@ export class ArrayFunctions extends ReferenceSubPass {
           this.expectedDataLocations.set(node.vArguments[0], actualArgLoc);
         }
       } else {
-        const parent = node.parent;
         const type = getNodeType(node, ast.compilerVersion);
         replacement = utilGen.storage.dynArrayPush.withoutArg.gen(node);
+        this.replace(node, replacement, node.parent, DataLocation.Storage, expectedLoc, ast);
         if (isDynamicArray(type)) {
-          replacement = utilGen.storage.read.gen(
+          const readReplacement = utilGen.storage.read.gen(
             replacement,
             typeNameFromTypeNode(type, ast),
-            parent,
+          );
+          this.replace(
+            replacement,
+            readReplacement,
+            node.parent,
+            DataLocation.Storage,
+            expectedLoc,
+            ast,
           );
         }
-        this.replace(node, replacement, undefined, DataLocation.Storage, expectedLoc, ast);
       }
     } else if (node.vFunctionName === 'concat') {
       const replacement = utilGen.memory.concat.gen(node);
