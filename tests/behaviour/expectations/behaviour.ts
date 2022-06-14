@@ -3412,6 +3412,19 @@ export const expectations = flatten(
             Expect.Simple('getId', [], ['3619205059']),
           ]),
         ]),
+        new Dir('type_name_type_removal', [
+          File.Simple('complex', [
+            Expect.Simple('assignment', [], []),
+            Expect.Simple('varDeclStatement', [], []),
+            Expect.Simple('tupleExpression', [], []),
+          ]),
+          File.Simple('simple', [
+            Expect.Simple('memberAccess', [], []),
+            Expect.Simple('identifier', [], []),
+            Expect.Simple('simple', [], []),
+            Expect.Simple('indexAccess', [], []),
+          ]),
+        ]),
         new Dir('user_defined_value_types', [
           File.Simple('user_defined_value_types', [
             Expect.Simple('narrowUnsigned', ['1', '0'], ['1']),
