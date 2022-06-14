@@ -4,6 +4,8 @@ import {
   ArrayTypeName,
   BytesType,
   Conditional,
+  ContractDefinition,
+  ContractKind,
   DataLocation,
   ElementaryTypeName,
   ErrorDefinition,
@@ -160,10 +162,12 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    [...node.vParameters.vParameters, ...node.vReturnParameters.vParameters].forEach((decl) => {
-      const type = getNodeType(decl, ast.compilerVersion);
-      functionArgsCheck(type, ast, isExternallyVisible(node), decl.storageLocation);
-    });
+    if (!(node.vScope instanceof ContractDefinition && node.vScope.kind === ContractKind.Library)) {
+      [...node.vParameters.vParameters, ...node.vReturnParameters.vParameters].forEach((decl) => {
+        const type = getNodeType(decl, ast.compilerVersion);
+        functionArgsCheck(type, ast, isExternallyVisible(node), decl.storageLocation);
+      });
+    }
     if (node.kind === FunctionKind.Fallback) {
       if (node.vParameters.vParameters.length > 0)
         throw new WillNotSupportError(`${node.kind} with arguments is not supported`);

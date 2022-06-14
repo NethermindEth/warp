@@ -186,7 +186,7 @@ function createSplitFunction(
 
   const args = [...unboundVariables.keys()].map((decl) => createIdentifier(decl, ast));
 
-  const call = createCallToFunction(funcDef, args, ast);
+  const call = createCallToFunction(funcDef, args, ast, existingFunction);
 
   return [funcDef, call];
 }
