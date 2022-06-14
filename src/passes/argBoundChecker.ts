@@ -29,7 +29,7 @@ export class ArgBoundChecker extends ASTMapper {
         if (checkableType(type)) {
           const functionCall = ast
             .getUtilFuncGen(node)
-            .externalFunctions.inputCheck.gen(decl, type, node);
+            .boundChecks.inputCheck.gen(decl, type, node);
           this.insertFunctionCall(node, functionCall, ast);
         }
       });
@@ -55,7 +55,7 @@ export class ArgBoundChecker extends ASTMapper {
       const enumDef = node.vReferencedDeclaration;
       const enumCheckFuncCall = ast
         .getUtilFuncGen(node)
-        .enum.gen(node, node.vArguments[0], enumDef, node);
+        .boundChecks.enums.gen(node, node.vArguments[0], enumDef, node);
       const parent = node.parent;
       ast.replaceNode(node, enumCheckFuncCall, parent);
     }

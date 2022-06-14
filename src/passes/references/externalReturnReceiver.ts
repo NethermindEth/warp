@@ -78,7 +78,7 @@ function generatePackStatement(
 
   const packExpression = ast
     .getUtilFuncGen(decl)
-    .externalFunctions.inputs.darrayStructConstructor.gen(callDataRawDecl, decl);
+    .calldata.dynArrayStructConstructor.gen(callDataRawDecl, decl);
 
   ast.replaceNode(decl, callDataRawDecl);
 
