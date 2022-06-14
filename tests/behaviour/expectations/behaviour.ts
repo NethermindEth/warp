@@ -2339,6 +2339,41 @@ export const expectations = flatten(
             Expect.Simple('unexistent', ['10', '4', '5', '20'], []),
             Expect.Simple('x', [], ['3', '0']),
           ]),
+          new File(
+            'inheritance',
+            'A',
+            ['100', '0'],
+            [
+              new Expect('modified', [
+                ['unexistent', [], null, '0', 'x can not exceed the amount of 100'],
+                ['sub', ['2', '0'], [], '0'],
+                ['x', [], ['98', '0'], '0'],
+                ['unexistent', [], [], '0'],
+                ['x', [], ['99', '0'], '0'],
+              ]),
+            ],
+          ),
+          new File(
+            'inheritance',
+            'B',
+            ['100', '0'],
+            [
+              new Expect('overriden', [
+                ['unexistent', [], [], '0'],
+                ['x', [], ['110', '0'], '0'],
+              ]),
+            ],
+          ),
+          new File(
+            'inheritance',
+            'C',
+            ['100', '0'],
+            [
+              new Expect('inherited', [
+                ['unexistent', [], null, '0', 'x can not exceed the amount of 100'],
+              ]),
+            ],
+          ),
         ]),
         new Dir('if', [
           File.Simple('localVariables', [
