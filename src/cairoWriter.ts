@@ -84,6 +84,7 @@ import {
   CairoFunctionDefinition,
   FunctionStubKind,
 } from './ast/cairoNodes';
+import { getStructsAndRemappings } from './freeStructWritter';
 import { printNode } from './utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
@@ -93,13 +94,13 @@ import { getMappingTypes } from './utils/mappings';
 import { isDynamicArray, isDynamicCallDataArray } from './utils/nodeTypeProcessing';
 import { notNull, notUndefined } from './utils/typeConstructs';
 import {
-  canonicalMangler,
   divmod,
   isCairoConstant,
   isExternallyVisible,
   mergeImports,
   primitiveTypeToCairo,
   isExternalCall,
+  mangleStructName,
   isExpectingSplit,
 } from './utils/utils';
 
@@ -139,7 +140,7 @@ class StructDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: StructDefinition, writer: ASTWriter): SrcDesc {
     return [
       [
-        `struct ${canonicalMangler(node.name)}:`,
+        `struct ${mangleStructName(node)}:`,
         ...node.vMembers
           .map(
             (value) =>
@@ -365,11 +366,23 @@ function getInterfaceNameForContract(contractName: string, nodeInSourceUnit: AST
   return interfaceName;
 }
 
+let structRemappings: Map<number, string>;
+
 class SourceUnitWriter extends CairoASTNodeWriter {
   writeInner(node: SourceUnit, writer: ASTWriter): SrcDesc {
     generateInterfaceNameMappings(node);
 
-    const structs = [...node.vStructs, ...node.vContracts.flatMap((c) => c.vStructs)].map((v) =>
+    // Every sourceUnit should only define a single contract
+    const mainContract_ = node.vContracts.filter((cd) => cd.kind !== ContractKind.Interface);
+    assert(mainContract_.length <= 1, 'There should only be one active contract per sourceUnit');
+    const [mainContract] = mainContract_;
+
+    const [freeStructs, freeStructRemappings_] = mainContract
+      ? getStructsAndRemappings(node, this.ast)
+      : [[], new Map()];
+    structRemappings = freeStructRemappings_;
+
+    const structs = [...freeStructs, ...node.vStructs, ...(mainContract?.vStructs || [])].map((v) =>
       writer.write(v),
     );
 
@@ -847,7 +860,13 @@ class IdentifierWriter extends CairoASTNodeWriter {
     if (isExpectingSplit(node, this.ast.compilerVersion)) {
       return [`${node.name}.len, ${node.name}.ptr`];
     }
-    return [`${node.name}`];
+    return [
+      `${
+        node.vReferencedDeclaration
+          ? structRemappings.get(node.vReferencedDeclaration?.id) || node.name
+          : node.name
+      }`,
+    ];
   }
 }
 
@@ -882,7 +901,15 @@ class FunctionCallWriter extends CairoASTNodeWriter {
         return [`${func}(${args})`];
       }
       case FunctionCallKind.StructConstructorCall:
-        return [`${func}(${args})`];
+        return [
+          `${
+            node.vReferencedDeclaration && node.vReferencedDeclaration instanceof StructDefinition
+              ? node.vReferencedDeclaration
+                ? mangleStructName(node.vReferencedDeclaration)
+                : func
+              : func
+          }(${args})`,
+        ];
 
       case FunctionCallKind.TypeConversion: {
         const arg = node.vArguments[0];

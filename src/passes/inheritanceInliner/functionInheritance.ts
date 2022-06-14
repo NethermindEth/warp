@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { FunctionDefinition, FunctionKind, FunctionVisibility } from 'solc-typed-ast';
+import { ContractKind, FunctionDefinition, FunctionKind, FunctionVisibility } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoContract } from '../../ast/cairoNodes';
 import { printNode } from '../../utils/astPrinter';
@@ -23,12 +23,16 @@ export function addPrivateSuperFunctions(
   node.vFunctions.forEach((f) => currentFunctions.set(f.name, f));
   getBaseContracts(node).forEach((base, depth) => {
     base.vFunctions
-      .filter((func) => !func.isConstructor)
+      .filter(
+        (func) =>
+          func.kind === FunctionKind.Function &&
+          (node.kind === ContractKind.Interface ? isExternallyVisible(func) : true),
+      )
       .map((func) => {
         const existingEntry = currentFunctions.get(func.name);
         const clonedFunction = cloneASTNode(func, ast);
         idRemapping.set(func.id, clonedFunction);
-        clonedFunction.name = `${clonedFunction.name}_s${depth + 1}`;
+        clonedFunction.name = `s${depth + 1}_${clonedFunction.name}`;
         clonedFunction.visibility = FunctionVisibility.Private;
         clonedFunction.scope = node.id;
         if (existingEntry !== undefined) {
@@ -59,6 +63,7 @@ export function addNonoverridenPublicFunctions(
   const resolvedVisibleFunctions = [...visibleFunctionNames].map((name) =>
     resolveFunctionName(node, name),
   );
+
   // Only functions that are defined only in base contracts need to get moved
   const functionsToMove = resolvedVisibleFunctions.filter((func) => func.vScope !== node);
 
@@ -72,13 +77,18 @@ export function addNonoverridenPublicFunctions(
     );
     node.appendChild(createDelegatingFunction(f, privateFunc, node.id, ast));
   });
+
+  // Special functions (fallback, receive) have an empty name and don't have their respective private duplicate,
+  // therefore they need to be handled separately
+  findSpecialFunction(node, FunctionKind.Fallback, ast);
+  findSpecialFunction(node, FunctionKind.Receive, ast);
 }
 
 // Get all visible function names accessible from a contract
 function getVisibleFunctions(node: CairoContract): Set<string> {
   const visibleFunctions = new Set(
     node.vFunctions
-      .filter((func) => isExternallyVisible(func) && !func.isConstructor)
+      .filter((func) => isExternallyVisible(func) && func.kind === FunctionKind.Function)
       .map((func) => func.name),
   );
 
@@ -88,6 +98,8 @@ function getVisibleFunctions(node: CairoContract): Set<string> {
 function squashInterface(node: CairoContract): Set<string> {
   const visibleFunctions = getVisibleFunctions(node);
   getBaseContracts(node).forEach((contract) => {
+    // The public interfaces of a library are not exposed by the contract itself
+    if (contract.kind === ContractKind.Library) return;
     const inheritedVisibleFunctions = getVisibleFunctions(contract);
     inheritedVisibleFunctions.forEach((f) => visibleFunctions.add(f));
   });
@@ -167,4 +179,19 @@ function createDelegatingFunction(
   ast.setContextRecursive(newFunc);
 
   return newFunc;
+}
+function findSpecialFunction(node: CairoContract, kind: FunctionKind, ast: AST): void {
+  for (const contract of node.vLinearizedBaseContracts) {
+    for (const func of contract.vFunctions) {
+      if (func.kind === kind) {
+        if (func.vScope !== node) {
+          const newFunc = cloneASTNode(func, ast);
+          newFunc.scope = node.id;
+          newFunc.vOverrideSpecifier = undefined;
+          node.appendChild(newFunc);
+        }
+        return;
+      }
+    }
+  }
 }

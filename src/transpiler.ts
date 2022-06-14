@@ -15,8 +15,8 @@ import {
   ExternalArgModifier,
   ExternalContractHandler,
   ArgBoundChecker,
-  ExternImporter,
-  FreeLibraryCallInliner,
+  FreeFunctionInliner,
+  FunctionTypeStringMatcher,
   IdentifierMangler,
   IfFunctionaliser,
   ImplicitConversionToExplicit,
@@ -37,6 +37,7 @@ import {
   SourceUnitSplitter,
   StorageAllocator,
   TupleAssignmentSplitter,
+  TypeNameRemover,
   TypeStringsChecker,
   UnloadingAssignment,
   UnreachableStatementPruner,
@@ -48,6 +49,7 @@ import {
   dumpABI,
   StaticArrayIndexer,
   TupleFixes,
+  DropFreeSourceUnits,
 } from './passes';
 import { FilePathMangler } from './passes/filePathMangler';
 import { Require } from './passes/builtinHandler/require';
@@ -97,10 +99,12 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Ct', TypeStringsChecker],
     ['Ae', ABIExtractor],
     ['Idi', ImportDirectiveIdentifier],
+    ['Tnr', TypeNameRemover],
     ['Ru', RejectUnsupportedFeatures],
     ['L', LiteralExpressionEvaluator],
     ['Na', NamedArgsRemover],
     ['Ufr', UsingForResolver],
+    ['Fd', FunctionTypeStringMatcher],
     ['Udt', UserDefinedTypesConverter],
     ['Gp', PublicStateVarsGetterGenerator],
     ['Tic', TypeInformationCalculator],
@@ -108,7 +112,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Sai', StaticArrayIndexer],
     ['M', IdentifierMangler],
     ['Req', Require],
-    ['Fi', FreeLibraryCallInliner],
+    ['Ffi', FreeFunctionInliner],
     ['Rl', ReferencedLibraries],
     ['Ons', OrderNestedStructs],
     ['Ech', ExternalContractHandler],
@@ -117,7 +121,6 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Mh', ModifierHandler],
     ['Pfs', PublicFunctionSplitter],
     ['Eam', ExternalArgModifier],
-    ['Ei', ExternImporter],
     ['Lf', LoopFunctionaliser],
     ['R', ReturnInserter],
     ['Rv', ReturnVariableInitializer],
@@ -137,6 +140,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
     ['Ci', CairoUtilImporter],
+    ['Dff', DropFreeSourceUnits],
   ]);
 
   const passesInOrder: typeof ASTMapper[] = parsePassOrder(options.order, options.until, passes);
@@ -186,7 +190,7 @@ function printAST(ast: AST, options: TranspilationOptions) {
 function checkAST(ast: AST, options: TranspilationOptions, mostRecentPassName: string) {
   if (options.checkTrees || options.strict) {
     try {
-      const success = runSanityCheck(ast, options.checkTrees ?? false);
+      const success = runSanityCheck(ast, options.checkTrees ?? false, mostRecentPassName);
       if (!success && options.strict) {
         throw new TranspileFailedError(
           `AST failed internal consistency check. Most recently run pass: ${mostRecentPassName}`,
