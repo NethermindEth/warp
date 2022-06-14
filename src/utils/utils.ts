@@ -34,6 +34,7 @@ import {
   Return,
   StateVariableVisibility,
   StringType,
+  StructDefinition,
   TimeUnit,
   TupleExpression,
   TypeName,
@@ -42,6 +43,7 @@ import {
   UserDefinedTypeName,
   VariableDeclaration,
 } from 'solc-typed-ast';
+import Web3 from 'web3';
 import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
 import { printTypeNode } from './astPrinter';
@@ -99,10 +101,6 @@ export function* counterGenerator(start = 0): Generator<number, number, unknown>
   }
 }
 
-export function canonicalMangler(name: string) {
-  return name.replaceAll('_', '__').replaceAll('.', '_');
-}
-
 export function toHexString(stringValue: string): string {
   return stringValue
     .split('')
@@ -147,8 +145,8 @@ export function unitValue(unit?: EtherUnit | TimeUnit): number {
   }
 }
 
-export function runSanityCheck(ast: AST, printResult: boolean): boolean {
-  if (printResult) console.log('Running sanity check');
+export function runSanityCheck(ast: AST, printResult: boolean, passName: string): boolean {
+  if (printResult) console.log(`Running sanity check after ${passName}`);
   if (isSane(ast)) {
     if (printResult) console.log('AST passed sanity check');
     return true;
@@ -398,6 +396,10 @@ export function functionAffectsState(node: FunctionCall): boolean {
     );
   }
   return true;
+}
+
+export function mangleStructName(structDef: StructDefinition): string {
+  return `${structDef.name}_${Web3.utils.sha3(structDef.canonicalName)?.slice(2, 10)}`;
 }
 
 export function mangleOwnContractInterface(contractOrName: ContractDefinition | string): string {

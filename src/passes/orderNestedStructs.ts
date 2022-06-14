@@ -37,12 +37,12 @@ export class OrderNestedStructs extends ASTMapper {
 
   private reorderNestedStructs(node: SourceUnit | ContractDefinition, ast: AST) {
     const structs = node.vStructs;
-    const [roots, tree] = this.makeStructTree(new Set(structs), ast);
+    const [roots, tree] = makeStructTree(new Set(structs), ast);
 
     // there are no nested structs
     if (roots.size === structs.length) return;
 
-    const newStructOrder = this.reorderStructs(roots, tree);
+    const newStructOrder = reorderStructs(roots, tree);
 
     // remove old struct definiton
     structs.forEach((child) => {
@@ -54,43 +54,18 @@ export class OrderNestedStructs extends ASTMapper {
     // insert back in new order
     newStructOrder.reverse().forEach((struct) => node.insertAtBeginning(struct));
   }
+}
 
-  private makeStructTree(
-    structs: Set<StructDefinition>,
-    ast: AST,
-  ): [Set<StructDefinition>, Map<StructDefinition, StructDefinition[]>] {
-    const roots = new Set<StructDefinition>(structs);
-    const tree = new Map<StructDefinition, StructDefinition[]>();
+export function reorderStructs(
+  roots: Set<StructDefinition>,
+  tree: Map<StructDefinition, StructDefinition[]>,
+) {
+  const newOrder: StructDefinition[] = [];
+  const visited = new Set<StructDefinition>();
 
-    structs.forEach((struct) => {
-      struct.vMembers.forEach((varDecl) => {
-        const nestedStruct = findStruct(getNodeType(varDecl, ast.compilerVersion));
-        // second check to avoid adding imported structs to contract defintion
-        if (nestedStruct !== null && structs.has(nestedStruct)) {
-          roots.delete(nestedStruct);
-          tree.has(struct)
-            ? tree.get(struct)?.push(nestedStruct)
-            : tree.set(struct, [nestedStruct]);
-        }
-      });
-    });
+  roots.forEach((root) => visitTree(root, tree, visited, newOrder));
 
-    // roots are struct definition from which none other struct defintion
-    // depends on
-    return [roots, tree];
-  }
-
-  private reorderStructs(
-    roots: Set<StructDefinition>,
-    tree: Map<StructDefinition, StructDefinition[]>,
-  ) {
-    const newOrder: StructDefinition[] = [];
-    const visited = new Set<StructDefinition>();
-
-    roots.forEach((root) => visitTree(root, tree, visited, newOrder));
-
-    return newOrder;
-  }
+  return newOrder;
 }
 
 // dfs through the tree
@@ -109,6 +84,29 @@ function visitTree(
   tree.get(root)?.forEach((nested) => visitTree(nested, tree, visited, orderedStructs));
 
   orderedStructs.push(root);
+}
+
+export function makeStructTree(
+  structs: Set<StructDefinition>,
+  ast: AST,
+): [Set<StructDefinition>, Map<StructDefinition, StructDefinition[]>] {
+  const roots = new Set<StructDefinition>(structs);
+  const tree = new Map<StructDefinition, StructDefinition[]>();
+
+  structs.forEach((struct) => {
+    struct.vMembers.forEach((varDecl) => {
+      const nestedStruct = findStruct(getNodeType(varDecl, ast.compilerVersion));
+      // second check to avoid adding imported structs to contract defintion
+      if (nestedStruct !== null && structs.has(nestedStruct)) {
+        roots.delete(nestedStruct);
+        tree.has(struct) ? tree.get(struct)?.push(nestedStruct) : tree.set(struct, [nestedStruct]);
+      }
+    });
+  });
+
+  // roots are struct definition from which none other struct defintion
+  // depends on
+  return [roots, tree];
 }
 
 function findStruct(varType: TypeNode): StructDefinition | null {

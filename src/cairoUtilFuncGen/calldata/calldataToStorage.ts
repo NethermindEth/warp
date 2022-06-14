@@ -86,7 +86,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
 
-    const structName = `struct_${structDef.name}`;
+    const structName = `struct_${cairoStruct.toString()}`;
 
     const members = structDef.vMembers.map((varDecl) => `${structName}.${varDecl.name}`);
     const copyInstructions = this.generateStructCopyInstructions(
@@ -95,7 +95,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     );
 
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
-    const funcName = `cd_struct_${structDef.name}_to_storage`;
+    const funcName = `cd_struct_${cairoStruct.toString()}_to_storage`;
     const code = [
       `func ${funcName}${implicits}(loc : felt, ${structName} : ${cairoStruct.toString()}) -> (loc : felt):`,
       `   alloc_locals`,
