@@ -5,6 +5,7 @@ import {
   Literal,
   Mutability,
   StateVariableVisibility,
+  StructuredDocumentation,
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
@@ -43,6 +44,16 @@ export class ConstantHandler extends ASTMapper {
       )
         return;
 
+      const newDocu =
+        decl.documentation === undefined || typeof decl.documentation === `string`
+          ? decl.documentation
+          : new StructuredDocumentation(
+              ast.reserveId(),
+              decl.documentation.src,
+              decl.documentation.text,
+              decl.documentation.raw,
+            );
+
       const newDecl = new VariableDeclaration(
         ast.reserveId(),
         node.src,
@@ -55,7 +66,7 @@ export class ConstantHandler extends ASTMapper {
         StateVariableVisibility.Default,
         Mutability.Constant,
         decl.typeString,
-        decl.documentation,
+        newDocu,
         new ElementaryTypeName(
           ast.reserveId(),
           node.src,
