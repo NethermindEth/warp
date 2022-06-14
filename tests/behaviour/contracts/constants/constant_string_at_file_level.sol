@@ -20,7 +20,7 @@ contract WARP {
     }
 
     function i() public returns (uint, ActionChoices, bytes32) {
-        return (x, ActionChoices.GoRight, st);
+        return (x, choices, st);
     }
 }
 

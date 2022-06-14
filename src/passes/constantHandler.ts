@@ -1,94 +1,30 @@
-import {
-  DataLocation,
-  ElementaryTypeName,
-  FunctionDefinition,
-  getNodeType,
-  Literal,
-  Mutability,
-  StateVariableVisibility,
-  VariableDeclaration,
-  VariableDeclarationStatement,
-} from 'solc-typed-ast';
+import { Identifier, Literal, MemberAccess, Mutability, VariableDeclaration } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { CairoFelt, CairoType, MemoryLocation, WarpLocation } from '../utils/cairoTypeSystem';
-import { collectUnboundVariables } from '../utils/functionGeneration';
+import { cloneASTNode } from '../utils/cloning';
 
 export class ConstantHandler extends ASTMapper {
-  // Visit all functions and inject non felt constants into the functions that
-  // refer to these constants. Felt constants are handled as native
-  // Cairo constants that are directly printed in cairoWriter.ts
-  // Note that all constants are excluded from the storage passes.
-
-  visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    if (node.vBody === undefined) return;
-
-    const unboundConstantsToReplace = new Map(
-      [...collectUnboundVariables(node.vBody).entries()].filter(([decl]) => {
-        const cairoType = CairoType.fromSol(getNodeType(decl, ast.compilerVersion), ast);
-        return (
-          decl.mutability === Mutability.Constant &&
-          decl.vValue instanceof Literal &&
-          (cairoType instanceof WarpLocation ||
-            cairoType instanceof MemoryLocation ||
-            !(cairoType instanceof CairoFelt))
-        );
-      }),
+  isConstant(node: VariableDeclaration): boolean {
+    return (
+      node.mutability === Mutability.Constant &&
+      (node.vValue instanceof Literal || node.vValue instanceof MemberAccess)
     );
+  }
 
-    const block = node.vBody;
-    const blockId = block.id;
-
-    [...unboundConstantsToReplace.entries()].map(([decl, ids]) => {
-      if (
-        decl.vType === undefined ||
-        decl.vValue === undefined ||
-        !(decl.vValue instanceof Literal)
+  visitIdentifier(node: Identifier, ast: AST): void {
+    const referencedDeclaration = node.vReferencedDeclaration;
+    if (
+      !(
+        referencedDeclaration instanceof VariableDeclaration &&
+        referencedDeclaration.vValue &&
+        this.isConstant(referencedDeclaration)
       )
-        return;
+    ) {
+      return;
+    }
 
-      const newDecl = new VariableDeclaration(
-        ast.reserveId(),
-        node.src,
-        true,
-        false,
-        `${decl.name}_${node.name}`,
-        blockId,
-        false,
-        DataLocation.Memory,
-        StateVariableVisibility.Default,
-        Mutability.Constant,
-        decl.typeString,
-        decl.documentation,
-        new ElementaryTypeName(
-          ast.reserveId(),
-          node.src,
-          `${decl.vType.typeString}`,
-          decl.vType.typeString,
-        ),
-        undefined,
-        undefined,
-      );
-      ast.setContextRecursive(newDecl);
+    const literalConstant = cloneASTNode(referencedDeclaration.vValue, ast);
 
-      const newDeclStmt = new VariableDeclarationStatement(
-        ast.reserveId(),
-        decl.src,
-        [newDecl.id],
-        [newDecl],
-        new Literal(
-          ast.reserveId(),
-          '',
-          decl.vValue.typeString,
-          decl.vValue.kind,
-          decl.vValue.hexValue,
-          decl.vValue.value,
-        ),
-      );
-      block.insertAtBeginning(newDeclStmt);
-      ast.setContextRecursive(block);
-      ast.registerChild(newDeclStmt, block);
-      ids.forEach((id) => (id.referencedDeclaration = newDecl.id));
-    });
+    ast.replaceNode(node, literalConstant);
   }
 }

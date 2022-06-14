@@ -386,10 +386,6 @@ class SourceUnitWriter extends CairoASTNodeWriter {
       writer.write(v),
     );
 
-    const userDefinedConstants = node.vVariables
-      .filter((v) => isCairoConstant(v))
-      .map((value) => writer.write(value));
-
     const functions = node.vFunctions.map((v) => writer.write(v));
 
     const contracts = node.vContracts.map((v) => writer.write(v));
@@ -402,7 +398,6 @@ class SourceUnitWriter extends CairoASTNodeWriter {
           '%lang starknet',
           [imports],
           ...structs,
-          ...userDefinedConstants,
           generatedUtilFunctions,
           ...functions,
           ...contracts,
@@ -465,15 +460,11 @@ class CairoContractWriter extends CairoASTNodeWriter {
 
     const enums = node.vEnums.map((value) => writer.write(value));
 
-    const userDefinedConstants = node.vStateVariables
-      .filter((sv) => isCairoConstant(sv))
-      .map((value) => writer.write(value));
-
     const functions = node.vFunctions.map((value) => writer.write(value));
 
     const events = node.vEvents.map((value) => writer.write(value));
 
-    const body = [...variables, ...enums, ...userDefinedConstants, ...functions]
+    const body = [...variables, ...enums, ...functions]
       .join('\n\n')
       .split('\n')
       .map((l) => (l.length > 0 ? INDENT + l : l))
