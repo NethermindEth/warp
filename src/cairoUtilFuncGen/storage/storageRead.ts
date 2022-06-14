@@ -6,6 +6,7 @@ import {
   DataLocation,
   FunctionStateMutability,
   TypeNode,
+  ASTNode,
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
@@ -14,7 +15,7 @@ import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
 
 export class StorageReadGen extends StringIndexedFuncGen {
-  gen(storageLocation: Expression, type: TypeName): FunctionCall {
+  gen(storageLocation: Expression, type: TypeName, nodeInSourceUnit?: ASTNode): FunctionCall {
     const valueType = getNodeType(storageLocation, this.ast.compilerVersion);
     const resultCairoType = CairoType.fromSol(
       valueType,
@@ -34,7 +35,7 @@ export class StorageReadGen extends StringIndexedFuncGen {
       ],
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
-      this.sourceUnit,
+      nodeInSourceUnit ?? storageLocation,
       FunctionStateMutability.View,
     );
     return createCallToFunction(functionStub, [storageLocation], this.ast);
