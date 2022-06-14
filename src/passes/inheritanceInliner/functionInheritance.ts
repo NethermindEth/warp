@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { FunctionDefinition, FunctionKind, FunctionVisibility } from 'solc-typed-ast';
+import { ContractKind, FunctionDefinition, FunctionKind, FunctionVisibility } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoContract } from '../../ast/cairoNodes';
 import { printNode } from '../../utils/astPrinter';
@@ -28,7 +28,7 @@ export function addPrivateSuperFunctions(
         const existingEntry = currentFunctions.get(func.name);
         const clonedFunction = cloneASTNode(func, ast);
         idRemapping.set(func.id, clonedFunction);
-        clonedFunction.name = `${clonedFunction.name}_s${depth + 1}`;
+        clonedFunction.name = `s${depth + 1}_${clonedFunction.name}`;
         clonedFunction.visibility = FunctionVisibility.Private;
         clonedFunction.scope = node.id;
         if (existingEntry !== undefined) {
@@ -88,6 +88,8 @@ function getVisibleFunctions(node: CairoContract): Set<string> {
 function squashInterface(node: CairoContract): Set<string> {
   const visibleFunctions = getVisibleFunctions(node);
   getBaseContracts(node).forEach((contract) => {
+    // The public interfaces of a library are not exposed by the contract itself
+    if (contract.kind === ContractKind.Library) return;
     const inheritedVisibleFunctions = getVisibleFunctions(contract);
     inheritedVisibleFunctions.forEach((f) => visibleFunctions.add(f));
   });
