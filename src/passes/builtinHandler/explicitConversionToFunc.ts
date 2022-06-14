@@ -28,6 +28,7 @@ import { bigintToTwosComplement, toHexString } from '../../utils/utils';
 import { functionaliseIntConversion } from '../../warplib/implementations/conversions/int';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { functionaliseFixedBytesConversion } from '../../warplib/implementations/conversions/fixedBytes';
+import { functionaliseBytesToFixedBytes } from '../../warplib/implementations/conversions/dynBytesToFixed';
 
 export class ExplicitConversionToFunc extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -145,9 +146,8 @@ export class ExplicitConversionToFunc extends ASTMapper {
         ast.registerImport(replacementCall, 'warplib.maths.utils', 'felt_to_uint256');
         return;
       } else if (argType instanceof BytesType) {
-        throw new NotSupportedYetError(
-          `Runtime conversion of ${argType.pp()} to ${typeTo.pp()} not supported yet`,
-        );
+        functionaliseBytesToFixedBytes(node, typeTo, ast);
+        return;
       } else if (argType instanceof FixedBytesType) {
         functionaliseFixedBytesConversion(node, ast);
         return;
