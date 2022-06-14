@@ -1795,6 +1795,13 @@ export const expectations = flatten(
           File.Simple('tupleEdgeCases', [Expect.Simple('f', ['0', '0'], ['0', '0'])]),
           File.Simple('tupleOfInlineArrays', [Expect.Simple('g', [], ['21'])]),
         ]),
+        new Dir('externalStructs', [
+          File.Simple('externalStructs', [
+            Expect.Simple('test1', [], ['5', '0']),
+            Expect.Simple('test2', ['4', '0'], ['4', '0']),
+            Expect.Simple('test3', ['3', '0', '8', '0'], ['3', '0', '8', '0']),
+          ]),
+        ]),
         new Dir('external_function_inputs', [
           File.Simple('dynamic_array_return_index', [
             new Expect(
@@ -2296,7 +2303,7 @@ export const expectations = flatten(
             new Expect('testing that external function with out of bounds input throws error', [
               [
                 'externalFunction',
-                ['3'],
+                ['2'],
                 null,
                 '0',
                 'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
@@ -2305,7 +2312,7 @@ export const expectations = flatten(
             new Expect('testing external function and more than 1 input asserts are placed pt. 1', [
               [
                 'externalFunction2Inputs',
-                ['3', '0'],
+                ['2', '0'],
                 null,
                 '0',
                 'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
@@ -2314,7 +2321,7 @@ export const expectations = flatten(
             new Expect('testing external function and more than 1 input asserts are placed pt. 2', [
               [
                 'externalFunction2Inputs',
-                ['0', '3'],
+                ['0', '2'],
                 null,
                 '0',
                 'Error: value out-of-bounds. Boolean values passed to must be in range (0, 1].',
@@ -2332,6 +2339,41 @@ export const expectations = flatten(
             Expect.Simple('unexistent', ['10', '4', '5', '20'], []),
             Expect.Simple('x', [], ['3', '0']),
           ]),
+          new File(
+            'inheritance',
+            'A',
+            ['100', '0'],
+            [
+              new Expect('modified', [
+                ['unexistent', [], null, '0', 'x can not exceed the amount of 100'],
+                ['sub', ['2', '0'], [], '0'],
+                ['x', [], ['98', '0'], '0'],
+                ['unexistent', [], [], '0'],
+                ['x', [], ['99', '0'], '0'],
+              ]),
+            ],
+          ),
+          new File(
+            'inheritance',
+            'B',
+            ['100', '0'],
+            [
+              new Expect('overriden', [
+                ['unexistent', [], [], '0'],
+                ['x', [], ['110', '0'], '0'],
+              ]),
+            ],
+          ),
+          new File(
+            'inheritance',
+            'C',
+            ['100', '0'],
+            [
+              new Expect('inherited', [
+                ['unexistent', [], null, '0', 'x can not exceed the amount of 100'],
+              ]),
+            ],
+          ),
         ]),
         new Dir('if', [
           File.Simple('localVariables', [
@@ -2509,7 +2551,7 @@ export const expectations = flatten(
             new Expect('sender', [['sender', [], ['234'], '465']]),
           ]),
           new Dir('freeFunctionsLib', [
-            File.Simple('direct_and_indirect', [Expect.Simple('freeFuncLib', ['2'], ['5'])]),
+            File.Simple('direct_and_indirect', [Expect.Simple('freeFuncLib', ['2'], ['4'])]),
             File.Simple('sameName', [Expect.Simple('freeFuncLib', ['1'], ['0'])]),
           ]),
         ]),
@@ -3410,6 +3452,19 @@ export const expectations = flatten(
           File.Simple('informationContract', [
             Expect.Simple('getName', [], ['4', '87', '65', '82', '80']),
             Expect.Simple('getId', [], ['3619205059']),
+          ]),
+        ]),
+        new Dir('type_name_type_removal', [
+          File.Simple('complex', [
+            Expect.Simple('assignment', [], []),
+            Expect.Simple('varDeclStatement', [], []),
+            Expect.Simple('tupleExpression', [], []),
+          ]),
+          File.Simple('simple', [
+            Expect.Simple('memberAccess', [], []),
+            Expect.Simple('identifier', [], []),
+            Expect.Simple('simple', [], []),
+            Expect.Simple('indexAccess', [], []),
           ]),
         ]),
         new Dir('user_defined_value_types', [

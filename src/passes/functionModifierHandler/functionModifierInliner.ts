@@ -38,8 +38,12 @@ export class FunctionModifierInliner extends ASTMapper {
   }
 
   visitPlaceholderStatement(node: PlaceholderStatement, ast: AST) {
-    const args = this.parameters.map((v) => createIdentifier(v, ast));
-    const resultIdentifiers = this.retVariables.map((v) => createIdentifier(v, ast));
+    const args = this.parameters.map((v) =>
+      createIdentifier(v, ast, undefined, this.currentFunction),
+    );
+    const resultIdentifiers = this.retVariables.map((v) =>
+      createIdentifier(v, ast, undefined, this.currentFunction),
+    );
     const assignmentValue = toSingleExpression(resultIdentifiers, ast);
 
     ast.replaceNode(

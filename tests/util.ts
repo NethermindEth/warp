@@ -26,7 +26,9 @@ export function starknetCompile(
   cairoPath: string,
   jsonOutputPath: string,
 ): Promise<{ stdout: string; stderr: string }> {
-  return sh(`${warpVenvPrefix} starknet-compile --cairo_path warp_output ${cairoPath} --output ${jsonOutputPath}`);
+  return sh(
+    `${warpVenvPrefix} starknet-compile --cairo_path warp_output ${cairoPath} --output ${jsonOutputPath}`,
+  );
 }
 
 export function batchPromises<In, Out>(

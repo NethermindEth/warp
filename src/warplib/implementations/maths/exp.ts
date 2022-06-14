@@ -1,7 +1,17 @@
-import { BinaryOperation } from 'solc-typed-ast';
+import assert from 'assert';
+import {
+  BinaryOperation,
+  FunctionCall,
+  FunctionCallKind,
+  getNodeType,
+  Identifier,
+  IntType,
+} from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
-import { mapRange } from '../../../utils/utils';
-import { forAllWidths, generateFile, IntxIntFunction, mask } from '../../utils';
+import { printNode, printTypeNode } from '../../../utils/astPrinter';
+import { createCairoFunctionStub } from '../../../utils/functionGeneration';
+import { mapRange, typeNameFromTypeNode } from '../../../utils/utils';
+import { forAllWidths, generateFile, getIntOrFixedByteBitWidth, mask } from '../../utils';
 
 export function exp() {
   createExp(false, false);
@@ -35,18 +45,38 @@ function createExp(signed: boolean, unsafe: boolean) {
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          `func _repeated_multiplication${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(op : Uint256, count : Uint256) -> (res : Uint256):`,
+          `func _repeated_multiplication${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(op : Uint256, count : felt) -> (res : Uint256):`,
+          `    if count == 0:`,
+          `        return (Uint256(1, 0))`,
+          `    end`,
+          `    let (x) = _repeated_multiplication${width}(op, count - 1)`,
+          `    let (res) = warp_mul${suffix}${width}(op, x)`,
+          `    return (res)`,
+          `end`,
+          `func warp_exp${suffix}${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : felt) -> (res : Uint256):`,
+          `    if rhs == 0:`,
+          `        return (Uint256(1, 0))`,
+          '    end',
+          '    if lhs.high == 0 :',
+          `        if lhs.low * (lhs.low - 1) == 0:`,
+          '            return (lhs)',
+          `        end`,
+          `    end`,
+          ...getNegativeOneShortcutCode(signed, width, false),
+          `    return _repeated_multiplication${width}(lhs, rhs)`,
+          `end`,
+          `func _repeated_multiplication_256_${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(op : Uint256, count : Uint256) -> (res : Uint256):`,
           `    if count.low == 0:`,
           `        if count.high == 0:`,
           `            return (Uint256(1, 0))`,
           `        end`,
           `    end`,
           `    let (decr) = uint256_sub(count, Uint256(1, 0))`,
-          `    let (x) = _repeated_multiplication${width}(op, decr)`,
+          `    let (x) = _repeated_multiplication_256_${width}(op, decr)`,
           `    let (res) = warp_mul${suffix}${width}(op, x)`,
           `    return (res)`,
           `end`,
-          `func warp_exp${suffix}${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):`,
+          `func warp_exp_wide${suffix}${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):`,
           `    if rhs.high == 0:`,
           `        if rhs.low == 0:`,
           `            return (Uint256(1, 0))`,
@@ -57,8 +87,8 @@ function createExp(signed: boolean, unsafe: boolean) {
           '            return (lhs)',
           `        end`,
           `    end`,
-          ...getNegativeOneShortcutCode(signed, width),
-          `    return _repeated_multiplication${width}(lhs, rhs)`,
+          ...getNegativeOneShortcutCode(signed, width, true),
+          `    return _repeated_multiplication_256_${width}(lhs, rhs)`,
           `end`,
         ];
       } else {
@@ -81,8 +111,38 @@ function createExp(signed: boolean, unsafe: boolean) {
           '    if lhs * (lhs-1) * (rhs-1) == 0:',
           '        return (lhs)',
           '    end',
-          ...getNegativeOneShortcutCode(signed, width),
+          ...getNegativeOneShortcutCode(signed, width, false),
           `    return _repeated_multiplication${width}(lhs, rhs)`,
+          'end',
+          `func _repeated_multiplication_256_${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(op : felt, count : Uint256) -> (res : felt):`,
+          `    alloc_locals`,
+          `    if count.low == 0:`,
+          `        if count.high == 0:`,
+          `            return (1)`,
+          `        end`,
+          `    end`,
+          `    let (decr) = uint256_sub(count, Uint256(1, 0))`,
+          `    let (x) = _repeated_multiplication_256_${width}(op, decr)`,
+          `    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr`,
+          `    let (res) = warp_mul${suffix}${width}(op, x)`,
+          `    return (res)`,
+          `end`,
+          `func warp_exp_wide${suffix}${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : Uint256) -> (res : felt):`,
+          '    if rhs.low == 0:',
+          '        if rhs.high == 0:',
+          '            return (1)',
+          '        end',
+          `    end`,
+          '    if lhs * (lhs-1) == 0:',
+          '        return (lhs)',
+          '    end',
+          '    if rhs.low == 1:',
+          '        if rhs.high == 0:',
+          '            return (lhs)',
+          '        end',
+          '    end',
+          ...getNegativeOneShortcutCode(signed, width, true),
+          `    return _repeated_multiplication_256_${width}(lhs, rhs)`,
           'end',
         ];
       }
@@ -90,21 +150,21 @@ function createExp(signed: boolean, unsafe: boolean) {
   );
 }
 
-function getNegativeOneShortcutCode(signed: boolean, width: number): string[] {
+function getNegativeOneShortcutCode(signed: boolean, lhsWidth: number, rhsWide: boolean): string[] {
   if (!signed) return [];
 
-  if (width < 256) {
+  if (lhsWidth < 256) {
     return [
-      `if (lhs - ${mask(width)}) == 0:`,
-      `    let (is_odd) = bitwise_and(rhs, 1)`,
-      `    return (1 + is_odd * 0x${'f'.repeat(width / 8 - 1)}e)`,
+      `if (lhs - ${mask(lhsWidth)}) == 0:`,
+      `    let (is_odd) = bitwise_and(${rhsWide ? 'rhs.low' : 'rhs'}, 1)`,
+      `    return (1 + is_odd * 0x${'f'.repeat(lhsWidth / 8 - 1)}e)`,
       `end`,
     ];
   } else {
     return [
       `if (lhs.low - ${mask(128)}) == 0:`,
       `    if (lhs.high - ${mask(128)}) == 0:`,
-      `        let (is_odd) = bitwise_and(rhs.low, 1)`,
+      `        let (is_odd) = bitwise_and(${rhsWide ? 'rhs.low' : 'rhs'}, 1)`,
       `        return (Uint256(1 + is_odd * 0x${'f'.repeat(31)}e, is_odd * ${mask(128)}))`,
       `    end`,
       `end`,
@@ -113,13 +173,59 @@ function getNegativeOneShortcutCode(signed: boolean, width: number): string[] {
 }
 
 export function functionaliseExp(node: BinaryOperation, unsafe: boolean, ast: AST) {
-  IntxIntFunction(
-    node,
-    'exp',
-    'always',
-    true,
-    unsafe,
-    () => ['range_check_ptr', 'bitwise_ptr'],
-    ast,
+  const lhsType = getNodeType(node.vLeftExpression, ast.compilerVersion);
+  const rhsType = getNodeType(node.vRightExpression, ast.compilerVersion);
+  const retType = getNodeType(node, ast.compilerVersion);
+  assert(
+    retType instanceof IntType,
+    `${printNode(node)} has type ${printTypeNode(retType)}, which is not compatible with **`,
   );
+  assert(
+    rhsType instanceof IntType,
+    `${printNode(node)} has rhs-type ${rhsType.pp()}, which is not compatible with **`,
+  );
+  const fullName = [
+    'warp_',
+    'exp',
+    rhsType.nBits === 256 ? '_wide' : '',
+    retType.signed ? '_signed' : '',
+    unsafe ? '_unsafe' : '',
+    `${getIntOrFixedByteBitWidth(retType)}`,
+  ].join('');
+
+  const importName = [
+    'warplib.maths.',
+    'exp',
+    retType.signed ? '_signed' : '',
+    unsafe ? '_unsafe' : '',
+  ].join('');
+
+  const stub = createCairoFunctionStub(
+    fullName,
+    [
+      ['lhs', typeNameFromTypeNode(lhsType, ast)],
+      ['rhs', typeNameFromTypeNode(rhsType, ast)],
+    ],
+    [['res', typeNameFromTypeNode(retType, ast)]],
+    ['range_check_ptr', 'bitwise_ptr'],
+    ast,
+    node,
+  );
+  const call = new FunctionCall(
+    ast.reserveId(),
+    node.src,
+    node.typeString,
+    FunctionCallKind.FunctionCall,
+    new Identifier(
+      ast.reserveId(),
+      '',
+      `function (${node.typeString}, ${node.typeString}) returns (${node.typeString})`,
+      fullName,
+      stub.id,
+    ),
+    [node.vLeftExpression, node.vRightExpression],
+  );
+
+  ast.replaceNode(node, call);
+  ast.registerImport(call, importName, fullName);
 }

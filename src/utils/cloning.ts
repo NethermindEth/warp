@@ -546,7 +546,7 @@ function clonePlaceholder(
   );
 }
 
-function cloneDocumentation(
+export function cloneDocumentation(
   node: string | StructuredDocumentation | undefined,
   ast: AST,
   remappedIds: Map<number, number>,

@@ -13,7 +13,6 @@ import { addEventDefintion } from './eventInheritance';
 import { addNonoverridenPublicFunctions, addPrivateSuperFunctions } from './functionInheritance';
 import { addNonOverridenModifiers } from './modifiersInheritance';
 import { addStorageVariables } from './storageVariablesInheritance';
-import { addStructDefinition } from './structInheritance';
 import {
   getBaseContracts,
   removeBaseContractDependence,
@@ -91,7 +90,6 @@ export class InheritanceInliner extends ASTMapper {
     // inherited struct must be updated. (e.g. An Identifier which references a VariableDeclaration
     // which references an inherited struct)
     // By just adding the structs this issues are avoided and valid cairo code is produced.
-    addStructDefinition(node, ast);
 
     updateReferencedDeclarations(node, functionRemapping, functionRemappingOverriders, ast);
     updateReferencedDeclarations(node, variableRemapping, variableRemapping, ast);

@@ -782,29 +782,45 @@ class IdChecker extends ASTMapper {
   static Ids = new Set();
 
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
-    assert(IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope));
+    assert(
+      IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope),
+      `${printNode(node)} has invalid scope`,
+    );
   }
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    assert(IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope));
+    assert(
+      IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope),
+      `${printNode(node)} has invalid scope`,
+    );
   }
 
   visitImportDirective(node: ImportDirective, ast: AST): void {
-    assert(IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope));
+    assert(
+      IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope),
+      `${printNode(node)} has invalid scope`,
+    );
   }
 
   visitStructDefinition(node: StructDefinition, ast: AST): void {
-    assert(IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope));
+    assert(
+      IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope),
+      `${printNode(node)} has invalid scope`,
+    );
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
-    assert(IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope));
+    assert(
+      IdChecker.Ids.has(node.scope) || !ast.context.map.has(node.scope),
+      `${printNode(node)} has invalid scope`,
+    );
   }
 
   visitIdentifier(node: Identifier, ast: AST): void {
     assert(
       IdChecker.Ids.has(node.referencedDeclaration) ||
         !ast.context.map.has(node.referencedDeclaration),
+      `${printNode(node)} has invalid referenced declaration`,
     );
   }
 
@@ -812,6 +828,7 @@ class IdChecker extends ASTMapper {
     assert(
       IdChecker.Ids.has(node.referencedDeclaration) ||
         !ast.context.map.has(node.referencedDeclaration),
+      `${printNode(node)} has invalid referenced declaration`,
     );
   }
 
@@ -819,6 +836,7 @@ class IdChecker extends ASTMapper {
     assert(
       IdChecker.Ids.has(node.referencedDeclaration) ||
         !ast.context.map.has(node.referencedDeclaration),
+      `${printNode(node)} has invalid referenced declaration`,
     );
   }
 
@@ -826,6 +844,7 @@ class IdChecker extends ASTMapper {
     assert(
       IdChecker.Ids.has(node.referencedDeclaration) ||
         !ast.context.map.has(node.referencedDeclaration),
+      `${printNode(node)} has invalid referenced declaration`,
     );
   }
 

@@ -1,6 +1,5 @@
 import {
   ContractDefinition,
-  ContractKind,
   FunctionCall,
   FunctionDefinition,
   FunctionKind,
@@ -22,7 +21,7 @@ import { union } from '../utils/utils';
   function which do that.
 */
 
-export class FreeLibraryCallInliner extends ASTMapper {
+export class FreeFunctionInliner extends ASTMapper {
   funcCounter = 0;
 
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
@@ -42,7 +41,7 @@ export class FreeLibraryCallInliner extends ASTMapper {
       .reduce(union, new Set<FunctionDefinition>())
       .forEach((funcToInline) => {
         const clonedFunction = cloneASTNode(funcToInline, ast);
-        clonedFunction.name = `${clonedFunction.name}_f${this.funcCounter++}`;
+        clonedFunction.name = `f${this.funcCounter++}_${clonedFunction.name}`;
         clonedFunction.visibility = FunctionVisibility.Internal;
         clonedFunction.scope = node.id;
         clonedFunction.kind = FunctionKind.Function;
@@ -73,24 +72,8 @@ function getFunctionsToInline(
     )
     .reduce(union, new Set<FunctionDefinition>());
 
-  if (funcsToInline.size > 0 || directlyCallsLibraryFunction(func)) {
-    funcsToInline.add(func);
-  }
+  funcsToInline.add(func);
   return funcsToInline;
-}
-
-function directlyCallsLibraryFunction(func: FunctionDefinition): boolean {
-  return (
-    func
-      .getChildrenByType(FunctionCall)
-      .map((fCall) => fCall.vReferencedDeclaration)
-      .filter(
-        (def) =>
-          def instanceof FunctionDefinition &&
-          def.vScope instanceof ContractDefinition &&
-          def.vScope.kind === ContractKind.Library,
-      ).length > 0
-  );
 }
 
 function updateReferencedDeclarations(
