@@ -2,6 +2,7 @@ import {
   DataLocation,
   ElementaryTypeName,
   FunctionDefinition,
+  getNodeType,
   Literal,
   Mutability,
   StateVariableVisibility,
@@ -10,12 +11,12 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import {CairoFelt, CairoType, MemoryLocation, WarpLocation} from '../utils/cairoTypeSystem';
 import { collectUnboundVariables } from '../utils/functionGeneration';
-import { primitiveTypeToCairo } from '../utils/utils';
 
 export class ConstantHandler extends ASTMapper {
-  // Visit all functions and inject 256 bit constants into the functions that
-  // refer to these constants. Constants less than 256 bits are handled as native
+  // Visit all functions and inject non felt constants into the functions that
+  // refer to these constants. Felt constants are handled as native
   // Cairo constants that are directly printed in cairoWriter.ts
   // Note that all constants are excluded from the storage passes.
 
@@ -25,10 +26,14 @@ export class ConstantHandler extends ASTMapper {
     const unboundConstantsToReplace = new Map(
       [...collectUnboundVariables(node.vBody).entries()].filter(
         ([decl]) =>
-          decl.mutability === Mutability.Constant &&
-          decl.vValue instanceof Literal &&
-          decl.vType instanceof ElementaryTypeName &&
-          primitiveTypeToCairo(decl.vType.name) === 'Uint256',
+        {
+          const cairoType = CairoType.fromSol(getNodeType(decl, ast.compilerVersion), ast);
+          return decl.mutability === Mutability.Constant &&
+          decl.vValue instanceof Literal && (
+          cairoType instanceof WarpLocation ||
+          cairoType instanceof MemoryLocation ||
+          !(cairoType instanceof CairoFelt))
+        }
       ),
     );
 

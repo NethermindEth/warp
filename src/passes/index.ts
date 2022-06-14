@@ -4,7 +4,6 @@ export * from './builtinHandler';
 export * from './bytesConverter';
 export * from './cairoUtilImporter';
 export * from './constantHandler';
-export * from './constantPropagator';
 export * from './deleteHandler';
 export * from './enumConverter';
 export * from './expressionSplitter/expressionSplitter';
