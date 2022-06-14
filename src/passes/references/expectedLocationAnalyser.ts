@@ -13,7 +13,6 @@ import {
   FunctionVisibility,
   generalizeType,
   getNodeType,
-  Identifier,
   IndexAccess,
   MemberAccess,
   PointerType,
