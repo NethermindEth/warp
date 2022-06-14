@@ -23,7 +23,11 @@ export function addPrivateSuperFunctions(
   node.vFunctions.forEach((f) => currentFunctions.set(f.name, f));
   getBaseContracts(node).forEach((base, depth) => {
     base.vFunctions
-      .filter((func) => func.kind === FunctionKind.Function)
+      .filter(
+        (func) =>
+          func.kind === FunctionKind.Function &&
+          (node.kind === ContractKind.Interface ? isExternallyVisible(func) : true),
+      )
       .map((func) => {
         const existingEntry = currentFunctions.get(func.name);
         const clonedFunction = cloneASTNode(func, ast);
