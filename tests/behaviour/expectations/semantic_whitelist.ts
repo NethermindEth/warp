@@ -1233,7 +1233,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/memory_structs_as_function_args.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/memory_structs_nested_load.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/memory_struct_named_constructor.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/struct_referencing.sol',
+      'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/struct_referencing.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/struct_constructor_nested.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/struct_storage_to_mapping.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/struct_delete_storage.sol',
