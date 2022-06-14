@@ -34,7 +34,9 @@ const filters = [
   'tests/behaviour/solidity/test/libsolidity/semanticTests/constants',
   'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor',
   'tests/behaviour/solidity/test/libsolidity/semanticTests/conversions',
-  'tests/behaviour/solidity/test/libsolidity/semanticTests/ecrecover',
+
+  // 'tests/behaviour/solidity/test/libsolidity/semanticTests/ecrecover',
+
   'tests/behaviour/solidity/test/libsolidity/semanticTests/enums',
 
   // 'tests/behaviour/solidity/test/libsolidity/semanticTests/error',
@@ -58,8 +60,8 @@ const filters = [
   // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_relative_imports/dir/G',
   // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_source_name_starting_with_dots',
   // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_source_name_starting_with_dots/dir',
+  // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback',
 
-  'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback',
   'tests/behaviour/solidity/test/libsolidity/semanticTests/freeFunctions',
   'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall',
   'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/inheritance',
@@ -110,8 +112,8 @@ const filters = [
   'tests/behaviour/solidity/test/libsolidity/semanticTests/strings/concat',
   'tests/behaviour/solidity/test/libsolidity/semanticTests/structs',
   'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/calldata',
-  'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/conversion',
 
+  // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/conversion',
   // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch',
 
   'tests/behaviour/solidity/test/libsolidity/semanticTests/types',
