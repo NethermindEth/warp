@@ -446,6 +446,80 @@ export const expectations = flatten(
         ]),
         new Dir('copy_calldata_to_storage', [
           new Dir('implicitArrayConversions', [
+            File.Simple('singleLayerBytes', [
+              new Expect('BY0', [['testby0', ['10', '20', '30'], ['30', '20', '10'], '0']]),
+              new Expect('BY1', [['testby1', ['10', '20', '30'], ['30', '20', '10'], '0']]),
+              new Expect('BY2', [['testby2', ['3', '10', '20', '30'], ['30', '20', '10'], '0']]),
+              new Expect('BY3', [
+                [
+                  'testby3',
+                  ['10', '20', '30'],
+                  ['128849018880', '85899345920', '42949672960'],
+                  '0',
+                ],
+              ]),
+              new Expect('BY4', [
+                [
+                  'testby4',
+                  ['10', '20', '30'],
+                  ['128849018880', '85899345920', '42949672960'],
+                  '0',
+                ],
+              ]),
+              new Expect('BY5', [
+                [
+                  'testby5',
+                  ['3', '10', '20', '30'],
+                  ['128849018880', '85899345920', '42949672960'],
+                  '0',
+                ],
+              ]),
+              new Expect('BY6', [
+                [
+                  'testby6',
+                  ['10', '20', '30'],
+                  [
+                    '0',
+                    '2376844875427930127806318510080',
+                    '0',
+                    '1584563250285286751870879006720',
+                    '0',
+                    '792281625142643375935439503360',
+                  ],
+                  '0',
+                ],
+              ]),
+              new Expect('BY7', [
+                [
+                  'testby7',
+                  ['10', '20', '30'],
+                  [
+                    '0',
+                    '2376844875427930127806318510080',
+                    '0',
+                    '1584563250285286751870879006720',
+                    '0',
+                    '792281625142643375935439503360',
+                  ],
+                  '0',
+                ],
+              ]),
+              new Expect('BY8', [
+                [
+                  'testby8',
+                  ['3', '10', '20', '30'],
+                  [
+                    '0',
+                    '2376844875427930127806318510080',
+                    '0',
+                    '1584563250285286751870879006720',
+                    '0',
+                    '792281625142643375935439503360',
+                  ],
+                  '0',
+                ],
+              ]),
+            ]),
             File.Simple('singleLayer', [
               new Expect('A0', [
                 ['testa0', ['10', '20', '30'], ['30', '0', '20', '0', '10', '0'], '0'],
@@ -2459,6 +2533,28 @@ export const expectations = flatten(
             Expect.Simple('s', [], ['10']),
           ]),
         ]),
+        new Dir('mapping', [
+          File.Simple('stringKeyMapping', [
+            Expect.Simple('cdString', ['1', '97'], ['5']),
+            Expect.Simple('memStringLiteral', [], ['10']),
+            Expect.Simple('memStringVariable', [], ['15']),
+            Expect.Simple('storageString', [], ['20']),
+            Expect.Simple('emptySlot', [], ['0']),
+            Expect.Simple('nestedMapCalls', [], ['25']),
+            Expect.Simple('sameStringKey', [], ['1']),
+            Expect.Simple('stringValueChange', [], ['1']),
+          ]),
+          File.Simple('bytesKeyMapping', [
+            Expect.Simple('cdBytes', ['1', '97'], ['5']),
+            Expect.Simple('memBytesLiteral', [], ['10']),
+            Expect.Simple('memBytesVariable', [], ['15']),
+            Expect.Simple('storageBytes', [], ['20']),
+            Expect.Simple('emptySlot', [], ['0']),
+            Expect.Simple('nestedMapCalls', [], ['25']),
+            Expect.Simple('sameBytesKey', [], ['1']),
+            Expect.Simple('bytesValueChange', [], ['1']),
+          ]),
+        ]),
         new Dir('maths', [
           File.Simple('addition', [
             Expect.Simple('addition8safe', ['3', '20'], ['23']),
@@ -3314,6 +3410,34 @@ export const expectations = flatten(
           File.Simple('informationContract', [
             Expect.Simple('getName', [], ['4', '87', '65', '82', '80']),
             Expect.Simple('getId', [], ['3619205059']),
+          ]),
+        ]),
+        new Dir('user_defined_value_types', [
+          File.Simple('user_defined_value_types', [
+            Expect.Simple('narrowUnsigned', ['1', '0'], ['1']),
+            Expect.Simple('narrowUnsigned', ['2', '0'], ['2']),
+            Expect.Simple('narrowUnsigned', ['257', '0'], ['1']),
+            Expect.Simple('narrowSigned', ['1', '0'], ['1']),
+            Expect.Simple('narrowSigned', ['2', '0'], ['2']),
+            Expect.Simple('narrowSigned', ['255', '0'], ['255']),
+            Expect.Simple('narrowSigned', ['257', '0'], ['1']),
+            Expect.Simple('unsignedToSigned', ['1'], ['1']),
+            Expect.Simple('unsignedToSigned', ['2'], ['2']),
+            Expect.Simple('unsignedToSigned', ['255'], ['255']),
+            Expect.Simple('unsignedToSigned', ['257'], null),
+            Expect.Simple('widenWrap', ['250'], ['250']),
+            Expect.Simple('widenNoWrap', ['1'], ['1', '0']),
+            Expect.Simple('widenNoWrap', ['2'], ['2', '0']),
+            Expect.Simple('widenNoWrap', ['255'], ['0xff', '0']),
+            Expect.Simple('widenNoWrap', ['257'], null),
+            Expect.Simple('widenWrap', ['1'], ['1']),
+            Expect.Simple('widenWrap', ['2'], ['2']),
+            Expect.Simple('widenWrap', ['255'], ['0xff']),
+            Expect.Simple('widenWrap', ['257'], null),
+            Expect.Simple('narrowWithUnwrap', ['1'], ['1']),
+            Expect.Simple('narrowWithUnwrap', ['2'], ['2']),
+            Expect.Simple('narrowWithUnwrap', ['255'], ['0xff']),
+            Expect.Simple('narrowWithUnwrap', ['257'], ['1']),
           ]),
         ]),
         new Dir('using_for', [

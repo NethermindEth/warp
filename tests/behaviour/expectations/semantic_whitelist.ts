@@ -242,7 +242,7 @@ const tests: string[] = [
     //---------Array pop tests: 48 passing, 2 pending, 2 failing
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_array_transition.sol', // fails to deploy, blocks other tests running
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_array_transition.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_empty_exception.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_storage_empty.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/pop/array_pop_uint16_transition.sol',
@@ -714,7 +714,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/uninitialized_internal_storage_function_call.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/comparison_operator_for_external_function_cleans_dirty_bits.sol', // WILL NOT SUPPORT yul
   ],
-  //---------Getter tests 24 passing, 9 pending, 3 failing
+  //---------Getter tests 36 passing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/getters/mapping_to_struct.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/getters/bytes.sol',
@@ -1333,21 +1333,21 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/uninitializedFunctionPointer/invalidInConstructor.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/uninitializedFunctionPointer/uninitialized_internal_storage_function_via_yul.sol', // WILL NOT SUPPORT yul
   ],
-  //---------UserDefinedValueType - 45 passing, 4 pending, 3 failing
+  //---------UserDefinedValueType - 40 passing
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/in_parenthesis.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/conversion.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/simple.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/zero_cost_abstraction_comparison_userdefined.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/conversion_abicoderv1.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/mapping_key.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/wrap_unwrap.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/memory_to_storage.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/wrap_unwrap_via_contract_name.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/constant.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/calldata_to_storage.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/zero_cost_abstraction_comparison_elementary.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/constant.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/conversion_abicoderv1.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/fixedpoint.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/mapping_key.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/memory_to_storage.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/simple.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/wrap_unwrap_via_contract_name.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/zero_cost_abstraction_comparison_elementary.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/zero_cost_abstraction_comparison_userdefined.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/in_parenthesis.sol', // WILL NOT SUPPORT function objects
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/wrap_unwrap.sol', // WILL NOT SUPPORT function objects
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/conversion.sol', // moved to behaviour tests for reliable passing of out of bounds data
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/abicodec.sol', // WILL NOT SUPPORT abi.encode
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/calldata.sol', // WILL NOT SUPPORT address members
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/erc20.sol', // WILL NOT SUPPORT indexed parameters

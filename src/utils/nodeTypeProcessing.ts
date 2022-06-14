@@ -236,13 +236,23 @@ export function getSize(type: ArrayType | BytesType | StringType): bigint | unde
   }
 }
 
-export function isStorageSpecificType(type: TypeNode, ast: AST): boolean {
+export function isStorageSpecificType(
+  type: TypeNode,
+  ast: AST,
+  visitedStructs: number[] = [],
+): boolean {
   if (type instanceof MappingType) return true;
-  if (type instanceof PointerType) return isStorageSpecificType(type.to, ast);
-  if (type instanceof ArrayType) return isStorageSpecificType(type.elementT, ast);
-  if (type instanceof UserDefinedType && type.definition instanceof StructDefinition)
+  if (type instanceof PointerType) return isStorageSpecificType(type.to, ast, visitedStructs);
+  if (type instanceof ArrayType) return isStorageSpecificType(type.elementT, ast, visitedStructs);
+  if (
+    type instanceof UserDefinedType &&
+    type.definition instanceof StructDefinition &&
+    !visitedStructs.includes(type.definition.id)
+  ) {
+    visitedStructs.push(type.definition.id);
     return type.definition.vMembers.some((m) =>
-      isStorageSpecificType(getNodeType(m, ast.compilerVersion), ast),
+      isStorageSpecificType(getNodeType(m, ast.compilerVersion), ast, visitedStructs),
     );
+  }
   return false;
 }
