@@ -3468,6 +3468,14 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('user_defined_value_types', [
+          File.Simple('overloading', [
+            Expect.Simple(
+              'callOverloads',
+              ['4'],
+              ['4', '5'],
+              'test wrapped value goes to different overload',
+            ),
+          ]),
           File.Simple('user_defined_value_types', [
             Expect.Simple('narrowUnsigned', ['1', '0'], ['1']),
             Expect.Simple('narrowUnsigned', ['2', '0'], ['2']),
