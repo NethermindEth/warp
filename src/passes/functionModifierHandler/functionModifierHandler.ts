@@ -1,5 +1,8 @@
 import assert from 'assert';
 import {
+  Assignment,
+  ASTNode,
+  ExpressionStatement,
   FunctionDefinition,
   FunctionKind,
   FunctionVisibility,
@@ -12,6 +15,7 @@ import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction } from '../../utils/functionGeneration';
 import {
   createBlock,
+  createExpressionStatement,
   createIdentifier,
   createParameterList,
   createReturn,
@@ -45,11 +49,12 @@ export class FunctionModifierHandler extends ASTMapper {
     }, this.extractOriginalFunction(node, ast));
 
     const functionArgs = node.vParameters.vParameters.map((v) => createIdentifier(v, ast));
+    const retCaptureArgs = node.vReturnParameters.vParameters.map((v) => createIdentifier(v, ast));
     const modArgs = node.vModifiers
       .map((modInvocation) => modInvocation.vArguments)
       .flat()
       .map((arg) => cloneASTNode(arg, ast));
-    const argsList = [...modArgs, ...functionArgs];
+    const argsList = [...modArgs, ...functionArgs, ...retCaptureArgs];
     const returnStatement = createReturn(
       createCallToFunction(functionToCall, argsList, ast),
       node.vReturnParameters.id,
@@ -72,6 +77,14 @@ export class FunctionModifierHandler extends ASTMapper {
     funcDef.isConstructor = false;
     funcDef.kind = FunctionKind.Function;
     funcDef.vModifiers = [];
+
+    createOutputCaptures(funcDef, node, ast).forEach(([input, assignment]) => {
+      funcDef.vParameters.vParameters.push(input);
+      ast.registerChild(input, funcDef.vParameters);
+      if (funcDef.vBody !== undefined) {
+        funcDef.vBody.insertAtBeginning(assignment);
+      }
+    });
 
     scope.insertAtBeginning(funcDef);
     ast.registerChild(funcDef, scope);
@@ -119,6 +132,9 @@ export class FunctionModifierHandler extends ASTMapper {
       modifierClone.vBody,
     );
 
+    node.vScope.insertAtBeginning(modifierAsFunction);
+    ast.registerChild(modifierAsFunction, node.vScope);
+
     if (modifierAsFunction.vBody) {
       new FunctionModifierInliner(functionToCall, functionParams, retParamList).dispatchVisit(
         modifierAsFunction.vBody,
@@ -126,8 +142,8 @@ export class FunctionModifierHandler extends ASTMapper {
       );
     }
 
-    node.vScope.insertAtBeginning(modifierAsFunction);
-    ast.registerChild(modifierAsFunction, node.vScope);
+    ast.setContextRecursive(modifierAsFunction);
+
     return modifierAsFunction;
   }
 
@@ -142,4 +158,37 @@ export class FunctionModifierHandler extends ASTMapper {
     param.name = `__warp_ret_parameter${this.count++}`;
     return param;
   }
+}
+
+function createOutputCaptures(
+  func: FunctionDefinition,
+  nodeInSourceUnit: ASTNode,
+  ast: AST,
+): [VariableDeclaration, ExpressionStatement][] {
+  return func.vReturnParameters.vParameters.map((v) => {
+    const captureVar = cloneASTNode(v, ast);
+    captureVar.name = `${captureVar.name}_m_capture`;
+    return [captureVar, createAssignmentStatement(v, captureVar, ast, nodeInSourceUnit)];
+  });
+}
+
+function createAssignmentStatement(
+  lhs: VariableDeclaration,
+  rhs: VariableDeclaration,
+  ast: AST,
+  nodeInSourceUnit: ASTNode,
+): ExpressionStatement {
+  const lhsIdentifier = createIdentifier(lhs, ast, undefined, nodeInSourceUnit);
+  const rhsIdentifier = createIdentifier(rhs, ast, undefined, nodeInSourceUnit);
+  return createExpressionStatement(
+    ast,
+    new Assignment(
+      ast.reserveId(),
+      '',
+      lhsIdentifier.typeString,
+      '=',
+      lhsIdentifier,
+      rhsIdentifier,
+    ),
+  );
 }
