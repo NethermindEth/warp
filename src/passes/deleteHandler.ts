@@ -12,6 +12,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { cloneDocumentation } from '../utils/cloning';
 import { getDefaultValue } from '../utils/defaultValueNodes';
 
 export class DeleteHandler extends ASTMapper {
@@ -55,7 +56,7 @@ export class DeleteHandler extends ASTMapper {
           ast.reserveId(),
           node.src,
           node.vExpression,
-          node.documentation,
+          cloneDocumentation(node.documentation, ast, new Map<number, number>()),
           node.raw,
         );
         ast.insertStatementBefore(node, statement);

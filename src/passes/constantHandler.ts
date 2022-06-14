@@ -5,12 +5,12 @@ import {
   Literal,
   Mutability,
   StateVariableVisibility,
-  StructuredDocumentation,
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { cloneDocumentation } from '../utils/cloning';
 import { collectUnboundVariables } from '../utils/functionGeneration';
 import { primitiveTypeToCairo } from '../utils/utils';
 
@@ -44,16 +44,6 @@ export class ConstantHandler extends ASTMapper {
       )
         return;
 
-      const newDocu =
-        decl.documentation === undefined || typeof decl.documentation === `string`
-          ? decl.documentation
-          : new StructuredDocumentation(
-              ast.reserveId(),
-              decl.documentation.src,
-              decl.documentation.text,
-              decl.documentation.raw,
-            );
-
       const newDecl = new VariableDeclaration(
         ast.reserveId(),
         node.src,
@@ -66,7 +56,7 @@ export class ConstantHandler extends ASTMapper {
         StateVariableVisibility.Default,
         Mutability.Constant,
         decl.typeString,
-        newDocu,
+        cloneDocumentation(decl.documentation, ast, new Map<number, number>()),
         new ElementaryTypeName(
           ast.reserveId(),
           node.src,
