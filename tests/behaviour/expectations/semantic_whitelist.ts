@@ -431,8 +431,8 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/order_of_evaluation.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/base_constructor_arguments.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_arguments_external.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/functions_called_by_constructor_through_dispatch.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_function_complex.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/functions_called_by_constructor_through_dispatch.sol', // WILL NOT SUPPORT function objects
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_function_complex.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/no_callvalue_check.sol', // STRETCH new
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/evm_exceptions_in_constructor_call_fail.sol', // address.call
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_arguments_internal.sol', // STRETCH new
@@ -1117,7 +1117,7 @@ const tests: string[] = [
   //---------specialFunctions - 4 passing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/specialFunctions/abi_encode_with_signature_from_string.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/specialFunctions/abi_functions_member_access.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/specialFunctions/abi_functions_member_access.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/specialFunctions/keccak256_optimized.sol',
   ],
   //---------state - no relevant tests
@@ -1322,7 +1322,7 @@ const tests: string[] = [
   ],
   //---------underscore: 4 passing
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/underscore/as_function.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/underscore/as_function.sol', // WILL NOT SUPPORT function objects
   ],
   //---------uninitializedFunctionPointer - Will Not Support
   ...[
