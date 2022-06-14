@@ -11,7 +11,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import {CairoFelt, CairoType, MemoryLocation, WarpLocation} from '../utils/cairoTypeSystem';
+import { CairoFelt, CairoType, MemoryLocation, WarpLocation } from '../utils/cairoTypeSystem';
 import { collectUnboundVariables } from '../utils/functionGeneration';
 
 export class ConstantHandler extends ASTMapper {
@@ -24,17 +24,16 @@ export class ConstantHandler extends ASTMapper {
     if (node.vBody === undefined) return;
 
     const unboundConstantsToReplace = new Map(
-      [...collectUnboundVariables(node.vBody).entries()].filter(
-        ([decl]) =>
-        {
-          const cairoType = CairoType.fromSol(getNodeType(decl, ast.compilerVersion), ast);
-          return decl.mutability === Mutability.Constant &&
-          decl.vValue instanceof Literal && (
-          cairoType instanceof WarpLocation ||
-          cairoType instanceof MemoryLocation ||
-          !(cairoType instanceof CairoFelt))
-        }
-      ),
+      [...collectUnboundVariables(node.vBody).entries()].filter(([decl]) => {
+        const cairoType = CairoType.fromSol(getNodeType(decl, ast.compilerVersion), ast);
+        return (
+          decl.mutability === Mutability.Constant &&
+          decl.vValue instanceof Literal &&
+          (cairoType instanceof WarpLocation ||
+            cairoType instanceof MemoryLocation ||
+            !(cairoType instanceof CairoFelt))
+        );
+      }),
     );
 
     const block = node.vBody;
