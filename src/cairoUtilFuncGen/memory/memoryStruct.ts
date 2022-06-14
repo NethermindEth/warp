@@ -62,8 +62,6 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       node,
     );
 
-    stub.vScope.removeChild(stub);
-    structDef.vScope.appendChild(stub);
     structDef.vScope.acceptChildren();
 
     return createCallToFunction(stub, node.vArguments, this.ast);
@@ -99,6 +97,7 @@ export class MemoryStructGen extends StringIndexedFuncGen {
 
     this.requireImport('warplib.memory', 'wm_alloc');
     this.requireImport('starkware.cairo.common.dict', 'dict_write');
+    this.requireImport('starkware.cairo.common.dict_access', 'DictAccess');
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
 
     return funcName;

@@ -369,7 +369,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_bytes_external.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_bytes_internal.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_bytes_to_memory.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_internal_library.sol',
+    'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_internal_library.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_internal_multi_fixed_array.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_memory_mixed.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_string_array.sol',
@@ -383,16 +383,16 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_struct_cleaning.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/copy_from_calldata_removes_bytes_data.sol', // address.call
   ],
-  //---------Cleanup tests: 20 passing, 6 pending, 6 failing
+  //---------Cleanup tests: 24 passing
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/bool_conversion_v2.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/cleanup_bytes_types_v1.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/cleanup_bytes_types_v2.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/cleanup_in_compound_assign.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/exp_cleanup.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/exp_cleanup_direct.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/exp_cleanup_nonzero_base.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/exp_cleanup_smaller_base.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/bool_conversion_v2.sol', // covered in behaviour tests where invalid input can be sent reliably
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/cleanup_bytes_types_v2.sol', // irrelevant, tests abiencoder behaviour
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/cleanup_address_types_v1.sol', //160 bit address
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/cleanup_address_types_v2.sol', //160 bit address
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/cleanup/bool_conversion_v1.sol', //testing abiencoder behaviour
@@ -959,10 +959,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_library.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_local_variables.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_loop_viair.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_loop.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_multi_invocation_viair.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_multi_invocation.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_multi_with_return.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_multiple_times_local_vars.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_multiple_times.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_overriding.sol',
@@ -975,6 +972,9 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/return_does_not_skip_modifier.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/return_in_modifier.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/stacked_return_with_modifiers.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_loop.sol', // tests old code gen, clashes with function_modifier_loop
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_multi_invocation.sol', // tests old code gen, clashes with function_modifier_multi_invocation_viair
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_multi_with_return.sol', // tests old code gen, clashes with above
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/modifer_recursive.sol', // STRETCH conditionals
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/access_through_module_name.sol', // WILL NOT SUPPORT module
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier.sol', // WILL NOT SUPPORT msg.value

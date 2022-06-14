@@ -23,7 +23,7 @@ import {
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
-import { narrowBigIntSafe } from './utils';
+import { mangleStructName, narrowBigIntSafe } from './utils';
 
 export enum TypeConversionContext {
   MemoryAllocation,
@@ -111,7 +111,7 @@ export abstract class CairoType {
           return new MemoryLocation();
         } else if (context === TypeConversionContext.MemoryAllocation) {
           return new CairoStruct(
-            tp.definition.name,
+            mangleStructName(tp.definition),
             new Map(
               tp.definition.vMembers.map((decl) => [
                 decl.name,
@@ -125,7 +125,7 @@ export abstract class CairoType {
           );
         } else {
           return new CairoStruct(
-            tp.definition.name,
+            mangleStructName(tp.definition),
             new Map(
               tp.definition.vMembers.map((decl) => [
                 decl.name,
@@ -304,7 +304,7 @@ function generateCallDataDynArrayStructNameInner(elementType: TypeNode, ast: AST
     elementType instanceof UserDefinedType &&
     elementType.definition instanceof StructDefinition
   ) {
-    return elementType.definition.name;
+    return mangleStructName(elementType.definition);
   } else {
     return CairoType.fromSol(elementType, ast, TypeConversionContext.CallDataRef).toString();
   }
