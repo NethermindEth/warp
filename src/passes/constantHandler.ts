@@ -11,7 +11,7 @@ export class ConstantHandler extends ASTMapper {
     );
   }
 
-  visitIdentifier(node: Identifier, ast: AST): void {
+  inlineConstant(node: Identifier | MemberAccess, ast: AST): void {
     const referencedDeclaration = node.vReferencedDeclaration;
     if (
       !(
@@ -26,5 +26,13 @@ export class ConstantHandler extends ASTMapper {
     const literalConstant = cloneASTNode(referencedDeclaration.vValue, ast);
 
     ast.replaceNode(node, literalConstant);
+  }
+
+  visitIdentifier(node: Identifier, ast: AST): void {
+    this.inlineConstant(node, ast);
+  }
+
+  visitMemberAccess(node: MemberAccess, ast: AST): void {
+    this.inlineConstant(node, ast);
   }
 }

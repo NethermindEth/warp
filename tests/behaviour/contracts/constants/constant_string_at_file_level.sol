@@ -1,4 +1,7 @@
-bytes constant a = "\x03\x01\x02";
+library W {
+  bytes constant a = "\x03\x01\x02";
+}
+
 bytes constant b = hex"030102";
 string constant c = "hello";
 uint256 constant x = 56;
@@ -8,7 +11,7 @@ bytes32 constant st = "abc\x00\xff__";
 
 contract WARP {
     function f() public returns (bytes memory) {
-        return a;
+        return W.a;
     }
 
     function g() public returns (bytes memory) {
