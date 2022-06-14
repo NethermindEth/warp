@@ -38,6 +38,7 @@ import {
 } from '../../utils/nodeTemplates';
 import { toSingleExpression } from '../../utils/utils';
 import { isReferenceType } from '../../utils/nodeTypeProcessing';
+import { locationIfComplexType } from '../../cairoUtilFuncGen/base';
 
 /**
 * This is a pass to attach the getter function for a public state variable
@@ -230,7 +231,7 @@ function genFunctionParams(
         `_i${varCount}`,
         funcDefID,
         false,
-        DataLocation.Default,
+        locationIfComplexType(getNodeType(vType, ast.compilerVersion), DataLocation.Memory),
         StateVariableVisibility.Internal,
         Mutability.Mutable,
         vType.vKeyType.typeString,

@@ -30,7 +30,7 @@ import { locationIfComplexType } from '../../cairoUtilFuncGen/base';
 import { printNode } from '../../utils/astPrinter';
 import { TranspileFailedError } from '../../utils/errors';
 import { error } from '../../utils/formatting';
-import { getParameterTypes } from '../../utils/nodeTypeProcessing';
+import { getParameterTypes, isReferenceType } from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
 import { isExternallyVisible } from '../../utils/utils';
 
@@ -179,7 +179,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     if (
       baseType instanceof PointerType &&
       baseType.to instanceof MappingType &&
-      baseType.to.keyType instanceof PointerType
+      isReferenceType(baseType.to.keyType)
     ) {
       const indexLoc = generalizeType(getNodeType(node.vIndexExpression, ast.compilerVersion))[1];
       assert(indexLoc !== undefined);

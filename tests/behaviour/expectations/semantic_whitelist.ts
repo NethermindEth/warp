@@ -714,7 +714,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/uninitialized_internal_storage_function_call.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/comparison_operator_for_external_function_cleans_dirty_bits.sol', // WILL NOT SUPPORT yul
   ],
-  //---------Getter tests 24 passing, 9 pending, 3 failing
+  //---------Getter tests 36 passing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/getters/mapping_to_struct.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/getters/bytes.sol',
