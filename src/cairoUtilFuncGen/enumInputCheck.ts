@@ -11,7 +11,6 @@ import {
   TypeNode,
 } from 'solc-typed-ast';
 import { FunctionStubKind } from '../ast/cairoNodes';
-import { cloneASTNode } from '../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../utils/functionGeneration';
 import { typeNameFromTypeNode } from '../utils/utils';
 import { StringIndexedFuncGen } from './base';
@@ -31,21 +30,19 @@ export class EnumInputCheck extends StringIndexedFuncGen {
     const functionStub = createCairoFunctionStub(
       name,
       [['arg', typeNameFromTypeNode(inputType, this.ast), DataLocation.Default]],
-      [['ret', typeNameFromTypeNode(nodeType, this.ast), DataLocation.Storage]],
+      [['ret', typeNameFromTypeNode(nodeType, this.ast), DataLocation.Default]],
       ['range_check_ptr'],
       this.ast,
       nodeInSourceUnit ?? nodeInput,
       FunctionStateMutability.Pure,
       FunctionStubKind.FunctionDefStub,
     );
-    const functionInput = cloneASTNode(nodeInput, this.ast);
 
-    this.ast.setContextRecursive(functionInput);
-    return createCallToFunction(functionStub, [functionInput], this.ast);
+    return createCallToFunction(functionStub, [nodeInput], this.ast);
   }
 
   private getOrCreate(type: TypeNode, enumDef: EnumDefinition): string {
-    const key = type.pp();
+    const key = `${enumDef.name}_${type.pp()}`;
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
       return existing.name;
