@@ -64,17 +64,11 @@ export class ExpectedLocationAnalyser extends ASTMapper {
       this.expectedLocations.set(node.vRightHandSide, rhsLocation);
     } else if (lhsLocation === DataLocation.Memory) {
       this.expectedLocations.set(node.vLeftHandSide, lhsLocation);
-      // This pairs with the shouldLeaveAsCairoAssignment function in DataAccessFunctionaliser.visitAssignment
-      if (node.vLeftHandSide instanceof Identifier) {
-        this.expectedLocations.set(node.vRightHandSide, DataLocation.Memory);
-      } else {
-        const rhsLocation = this.actualLocations.get(node.vRightHandSide);
-        assert(
-          rhsLocation !== undefined,
-          `${printNode(node.vRightHandSide)} has no known location, needed for memory assignment`,
-        );
-        this.expectedLocations.set(node.vRightHandSide, lhsLocation);
-      }
+      const rhsType = getNodeType(node.vRightHandSide, ast.compilerVersion);
+      this.expectedLocations.set(
+        node.vRightHandSide,
+        locationIfComplexType(rhsType, DataLocation.Memory),
+      );
     } else if (lhsLocation === DataLocation.CallData) {
       throw new TranspileFailedError(
         `Left hand side of assignment has calldata location ${printNode(node)}`,
