@@ -599,9 +599,9 @@ const tests: string[] = [
   ],
   //---------Fallback tests - 5 passing, 3 pending, 5 failing - test suite issues
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/falback_return.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/inherited.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/short_data_calls_fallback.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/falback_return.sol', // Moved to behaviour tests
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/inherited.sol', // Moved to behaviour tests
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/short_data_calls_fallback.sol', // WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/fallback_or_receive.sol', // STRETCH payable, receive
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/fallback_override.sol', // WILL NOT SUPPORT fallback with arguments
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/fallback_argument_to_storage.sol', // WILL NOT SUPPORT fallback with arguments
