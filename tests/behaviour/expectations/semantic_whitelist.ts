@@ -859,7 +859,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/isoltestTesting/balance_other_contract.sol', // WILL NOT SUPPORT value
     ],
   ],
-  //---------libraries: 107 passing, 40 pending, 17 failing
+  //---------libraries: 150 passing, 4 pending, 2 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/bound_returning_calldata_external.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/bound_returning_calldata.sol',
