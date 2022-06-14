@@ -2550,6 +2550,14 @@ export const expectations = flatten(
             new Expect('f', [['f', [], [], '234']]),
             new Expect('sender', [['sender', [], ['234'], '465']]),
           ]),
+          File.Simple('libStructs', [
+            Expect.Simple(
+              'f',
+              [],
+              ['7', '0', '8', '0'],
+              'test using struct defined in library in other contract',
+            ),
+          ]),
           new Dir('freeFunctionsLib', [
             File.Simple('direct_and_indirect', [Expect.Simple('freeFuncLib', ['2'], ['4'])]),
             File.Simple('sameName', [Expect.Simple('freeFuncLib', ['1'], ['0'])]),
