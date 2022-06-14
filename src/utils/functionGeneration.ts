@@ -32,16 +32,17 @@ export function createCallToFunction(
   functionDef: FunctionDefinition,
   argList: Expression[],
   ast: AST,
+  nodeInSourceUnit?: ASTNode,
 ): FunctionCall {
   return new FunctionCall(
     ast.reserveId(),
     '',
-    getReturnTypeString(functionDef, ast),
+    getReturnTypeString(functionDef, ast, nodeInSourceUnit),
     FunctionCallKind.FunctionCall,
     new Identifier(
       ast.reserveId(),
       '',
-      getFunctionTypeString(functionDef, ast.compilerVersion),
+      getFunctionTypeString(functionDef, ast.compilerVersion, nodeInSourceUnit),
       functionDef.name,
       functionDef.id,
     ),
