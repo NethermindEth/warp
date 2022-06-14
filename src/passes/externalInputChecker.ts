@@ -5,6 +5,11 @@ import {
   FunctionDefinition,
   FunctionCall,
   getNodeType,
+  FunctionCallKind,
+  EnumDefinition,
+  IntType,
+  Statement,
+  Block,
 } from 'solc-typed-ast';
 import { ASTMapper } from '../ast/mapper';
 import { isExternallyVisible } from '../utils/utils';
@@ -26,7 +31,7 @@ export class ExternalInputChecker extends ASTMapper {
         if (checkableType(type)) {
           const functionCall = ast
             .getUtilFuncGen(node)
-            .externalFunctions.inputCheck.gen(decl, node);
+            .externalFunctions.inputCheck.gen(decl, type, node);
           this.insertFunctionCall(node, functionCall, ast);
         }
       });
@@ -41,5 +46,25 @@ export class ExternalInputChecker extends ASTMapper {
     const expressionStatement = createExpressionStatement(ast, funcCall);
     body.insertAtBeginning(expressionStatement);
     ast.setContextRecursive(expressionStatement);
+  }
+
+  visitFunctionCall(node: FunctionCall, ast: AST): void {
+    if (
+      node.kind === FunctionCallKind.TypeConversion &&
+      node.vReferencedDeclaration instanceof EnumDefinition &&
+      getNodeType(node.vArguments[0], ast.compilerVersion) instanceof IntType
+    ) {
+      const type = getNodeType(node, ast.compilerVersion);
+      const statement = node.getClosestParentByType(Statement);
+      assert(statement !== undefined);
+      const body = node.getClosestParentByType(Block);
+      const enumCheck = ast
+        .getUtilFuncGen(node)
+        .externalFunctions.inputCheck.gen(node.vArguments[0], type, node);
+      const expressionStatement = createExpressionStatement(ast, enumCheck);
+      body?.insertBefore(expressionStatement, statement);
+      ast.setContextRecursive(expressionStatement);
+    }
+    this.commonVisit(node, ast);
   }
 }

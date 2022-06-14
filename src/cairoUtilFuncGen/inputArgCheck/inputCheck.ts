@@ -7,6 +7,7 @@ import {
   BytesType,
   DataLocation,
   EnumDefinition,
+  Expression,
   FixedBytesType,
   FunctionCall,
   FunctionStateMutability,
@@ -28,34 +29,48 @@ import { createIdentifier } from '../../utils/nodeTemplates';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { delegateBasedOnType, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { checkableType, getElementType, isDynamicArray } from '../../utils/nodeTypeProcessing';
+import { cloneASTNode } from '../../utils/cloning';
 
 export class InputCheckGen extends StringIndexedFuncGen {
-  gen(node: VariableDeclaration, nodeInSourceUnit: ASTNode): FunctionCall {
-    const type = generalizeType(getNodeType(node, this.ast.compilerVersion))[0];
-    const functionInput = createIdentifier(node, this.ast);
+  gen(
+    nodeInput: VariableDeclaration | Expression,
+    typeToCheck: TypeNode,
+    nodeInSourceUnit: ASTNode,
+  ): FunctionCall {
+    let functionInput;
+    let isUint256 = false;
+    if (nodeInput instanceof VariableDeclaration) {
+      functionInput = createIdentifier(nodeInput, this.ast);
+    } else {
+      functionInput = cloneASTNode(nodeInput, this.ast);
+      const inputType = getNodeType(nodeInput, this.ast.compilerVersion);
+      this.ast.setContextRecursive(functionInput);
+      isUint256 = inputType instanceof IntType && inputType.nBits === 256;
+      this.requireImport('warplib.maths.utils', 'narrow_safe');
+    }
     this.sourceUnit = this.ast.getContainingRoot(nodeInSourceUnit);
-    const name = this.getOrCreate(type);
+    const name = this.getOrCreate(typeToCheck, isUint256);
     const functionStub = createCairoFunctionStub(
       name,
       [
         [
           'ref_var',
-          typeNameFromTypeNode(type, this.ast),
-          locationIfComplexType(type, DataLocation.CallData),
+          typeNameFromTypeNode(typeToCheck, this.ast),
+          locationIfComplexType(typeToCheck, DataLocation.CallData),
         ],
       ],
       [],
       ['range_check_ptr'],
       this.ast,
-      nodeInSourceUnit ?? node,
+      nodeInSourceUnit ?? nodeInput,
       FunctionStateMutability.Pure,
       FunctionStubKind.FunctionDefStub,
-      isDynamicArray(type),
+      isDynamicArray(typeToCheck),
     );
     return createCallToFunction(functionStub, [functionInput], this.ast);
   }
 
-  private getOrCreate(type: TypeNode): string {
+  private getOrCreate(type: TypeNode, takesUint = false): string {
     const key = type.pp();
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
@@ -80,7 +95,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
         } else if (type instanceof BoolType) {
           return this.createBoolInputCheck();
         } else if (type instanceof UserDefinedType && type.definition instanceof EnumDefinition) {
-          return this.createEnumInputCheck(key, type);
+          return this.createEnumInputCheck(key, type, takesUint);
         } else if (type instanceof AddressType) {
           return this.createAddressInputCheck();
         } else {
@@ -175,7 +190,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private createEnumInputCheck(key: string, type: UserDefinedType): string {
+  private createEnumInputCheck(key: string, type: UserDefinedType, takesUint = false): string {
     const funcName = `extern_input_check${this.generatedFunctions.size}`;
     const implicits = '{range_check_ptr : felt}';
 
@@ -185,8 +200,13 @@ export class InputCheckGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(arg : felt) -> ():`,
-        `    let (inRange : felt) = is_le_felt(arg, ${nMembers - 1})`,
+        `func ${funcName}${implicits}(arg : ${takesUint ? 'Uint256' : 'felt'}) -> ():`,
+        takesUint
+          ? [
+              '    let (arg_0) = narrow_safe(arg)',
+              `    let (inRange: felt) = is_le_felt(arg_0, ${nMembers - 1})`,
+            ].join('\n')
+          : `    let (inRange : felt) = is_le_felt(arg, ${nMembers - 1})`,
         `    with_attr error_message("Error: value out-of-bounds. Values passed to must be in enum range (0, ${
           nMembers - 1
         }]."):`,
