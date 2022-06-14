@@ -2,6 +2,7 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.dict import dict_read, dict_write
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.math import split_felt
+from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.uint256 import (
     Uint256,
     uint256_add,
@@ -267,6 +268,35 @@ func wm_bytes_length{warp_memory : DictAccess*}(bytesLoc : felt) -> (len : Uint2
     return wm_read_256(bytesLoc)
 end
 
+func wm_bytes_to_fixed32{range_check_ptr, warp_memory : DictAccess*}(bytesLoc : felt) -> (res : Uint256):
+    alloc_locals
+    let (dataLength) = wm_read_256(bytesLoc)
+    if dataLength.high == 0:
+        let (high) = wm_bytes_to_fixed_helper(bytesLoc + 2, 16, dataLength.low, 0)
+        let (short) = is_le(dataLength.low, 16)
+        if short == 0:
+            let (low) = wm_bytes_to_fixed_helper(bytesLoc + 18, 16, dataLength.low - 16, 0)
+            return (Uint256(low, high))
+        else:
+            return (Uint256(0, high))
+        end
+    else:
+        let (high) = wm_bytes_to_fixed_helper(bytesLoc + 2, 16, 16, 0)
+        let (low) = wm_bytes_to_fixed_helper(bytesLoc + 18, 16, 16, 0)
+        return (Uint256(low, high))
+    end
+end
+
+func wm_bytes_to_fixed{warp_memory : DictAccess*}(bytesLoc : felt, width : felt) -> (res : felt):
+    alloc_locals
+    let (dataLength) = wm_read_256(bytesLoc)
+    if dataLength.high == 0:
+        return wm_bytes_to_fixed_helper(bytesLoc + 2, width, dataLength.low, 0)
+    else:
+        return wm_bytes_to_fixed_helper(bytesLoc + 2, width, width, 0)
+    end
+end
+
 # -----------------Structs-----------------
 
 func index_struct(loc : felt, index : felt) -> (indexLoc : felt):
@@ -347,4 +377,17 @@ func wm_to_felt_array_helper{range_check_ptr, warp_memory : DictAccess*}(
     assert output[index] = value
 
     return wm_to_felt_array_helper(loc + 1, index + 1, length, output)
+end
+
+func wm_bytes_to_fixed_helper{warp_memory : DictAccess*}(bytesDataLoc : felt, targetWidth : felt, dataLength : felt, acc : felt) -> (res : felt):
+    alloc_locals
+    if targetWidth == 0:
+        return (0)
+    end
+    if dataLength == 0:
+        return wm_bytes_to_fixed_helper(bytesDataLoc + 1, targetWidth - 1, dataLength - 1, 256 * acc)
+    else:
+        let (byte) = wm_read_felt(bytesDataLoc)
+        return wm_bytes_to_fixed_helper(bytesDataLoc + 1, targetWidth - 1, dataLength - 1, 256 * acc + byte)
+    end
 end
