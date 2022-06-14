@@ -24,7 +24,21 @@ export class TypeNameRemover extends ASTMapper {
       getNodeType(node.vExpression, ast.compilerVersion) instanceof TypeNameType
     ) {
       ast.removeStatement(node);
+    } else if (node.vExpression instanceof TupleExpression) {
+      this.visitTupleExpression(node.vExpression, ast);
     }
+  }
+
+  visitTupleExpression(node: TupleExpression, ast: AST): void {
+    node.vOriginalComponents.forEach((n) => {
+      if (n instanceof TupleExpression) {
+        this.visitTupleExpression(n, ast);
+      }
+    });
+
+    node.vOriginalComponents = node.vOriginalComponents.filter(
+      (n, index) => !this.isTypeNameType(node, index, ast),
+    );
   }
 
   visitVariableDeclarationStatement(node: VariableDeclarationStatement, ast: AST): void {

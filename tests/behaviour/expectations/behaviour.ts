@@ -3319,6 +3319,7 @@ export const expectations = flatten(
           File.Simple('complex', [
             Expect.Simple('assignment', [], []),
             Expect.Simple('varDeclStatement', [], []),
+            Expect.Simple('tupleExpression', [], []),
           ]),
           File.Simple('simple', [
             Expect.Simple('memberAccess', [], []),

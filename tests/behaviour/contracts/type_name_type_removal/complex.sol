@@ -1,3 +1,10 @@
+library D {
+    enum A{a}
+    struct B{
+        A a;
+    }
+}
+
 contract WARP {
     struct s {
         uint256 a;
@@ -14,5 +21,10 @@ contract WARP {
 
     function varDeclStatement() public {  
         (uint a, uint b, ) = (3, 4, s[7][]);
+    }
+
+    function tupleExpression() public {
+        (WARP, D.A, 2);
+        (2, (WARP, D.A, 4));
     }
 }
