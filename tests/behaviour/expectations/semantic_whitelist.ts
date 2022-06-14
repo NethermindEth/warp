@@ -599,9 +599,9 @@ const tests: string[] = [
   ],
   //---------Fallback tests - 5 passing, 3 pending, 5 failing - test suite issues
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/falback_return.sol',  // WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/falback_return.sol',  // WILL NOT SUPPORT fallback with arguments
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/inherited.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/short_data_calls_fallback.sol', // WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/short_data_calls_fallback.sol', // WILL NOT SUPPORT fallback with arguments
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/fallback_or_receive.sol', // STRETCH payable, receive
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/fallback_override.sol', // WILL NOT SUPPORT fallback with arguments
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/fallback/fallback_argument_to_storage.sol', // WILL NOT SUPPORT fallback with arguments
@@ -1103,7 +1103,7 @@ const tests: string[] = [
   ],
   //---------smoke 10 passing, 2 pending, 5 failing - test errors
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/bytes_and_strings.sol', // WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/bytes_and_strings.sol', // WILL NOT SUPPORT abi.decode
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/multiline_comments.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/multiline.sol', // attempts to call non-existant function
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/smoke/structs.sol', // nested dynarray
@@ -1218,7 +1218,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/delete_struct.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/using_for_function_on_struct.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/struct_copy_via_local.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/lone_struct_array_type.sol', // WILL NOT SUPPORT
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/lone_struct_array_type.sol', // WILL NOT SUPPORT abi.decode
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/struct_copy.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/structs.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/struct_memory_to_storage.sol',
@@ -1288,13 +1288,13 @@ const tests: string[] = [
     ...[
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/mapping_enum_key_getter_v2.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/assign_calldata_value_type.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/nested_tuples.sol',  // WILL NOT SUPPORT
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/nested_tuples.sol',  // WILL NOT SUPPORT nested tuples
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/packing_signed_types.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/convert_fixed_bytes_to_uint_greater_size.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/tuple_assign_multi_slot_grow.sol', // WILL NOT SUPPORT
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/tuple_assign_multi_slot_grow.sol', // WILL NOT SUPPORT nested tuples
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/mapping_enum_key_v1.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/mapping_enum_key_library_v2.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/mapping_abstract_constructor_param.sol', // WILL NOT SUPPORT
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/mapping_abstract_constructor_param.sol', // WILL NOT SUPPORT abi.encode
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/convert_fixed_bytes_to_fixed_bytes_greater_size.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/struct_mapping_abstract_constructor_param.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/mapping_enum_key_v2.sol',
@@ -1311,7 +1311,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/convert_uint_to_fixed_bytes_same_size.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/strings.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/mapping_contract_key_library.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/array_mapping_abstract_constructor_param.sol', // WILL NOT SUPPORT
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/array_mapping_abstract_constructor_param.sol', // WILL NOT SUPPORT abi.encode
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/mapping_contract_key_getter.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/convert_uint_to_fixed_bytes_greater_size.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/types/convert_fixed_bytes_to_uint_same_min_size.sol',
