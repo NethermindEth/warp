@@ -361,7 +361,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/ripemd160_empty.sol', // WillNotSupport
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/sha256_empty.sol', // WillNotSupport
   ],
-  //---------Calldata tests: 33 passing, 11 pending, 4 failing
+  //---------Calldata tests: 44 passing, 0 pending, 0 failing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_bound_bytes.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_bound_static_array.sol',
@@ -369,10 +369,10 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_bytes_external.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_bytes_internal.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_bytes_to_memory.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_internal_library.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_internal_library.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_internal_multi_fixed_array.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_memory_mixed.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_string_array.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_string_array.sol', // Dynamic arrays are not allowed as (indirect) children
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_struct.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_struct_internal.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_bound_dynamic_array_or_slice.sol', // STRETCH slices
