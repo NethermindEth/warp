@@ -5,6 +5,22 @@ export const expectations = flatten(
   new Dir('tests', [
     new Dir('behaviour', [
       new Dir('contracts', [
+        new Dir('abstractContracts', [
+          File.Simple('mappingInConstructor', [
+            Expect.Simple(
+              'map',
+              ['0', '0'],
+              ['0', '0'],
+              'test a value not set by the abstract constructor',
+            ),
+            Expect.Simple(
+              'map',
+              ['5', '0'],
+              ['20', '0'],
+              'test the value set by the abstract constructor',
+            ),
+          ]),
+        ]),
         new Dir('array_len', [
           File.Simple('memoryArray', [Expect.Simple('dynMemArrayLen', [], ['45', '0'])]),
           File.Simple('storageArray', [Expect.Simple('dynStorageArrayLen', [], ['1', '0'])]),
