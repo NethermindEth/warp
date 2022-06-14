@@ -1,12 +1,5 @@
 import assert from 'assert';
-import {
-  ASTNode,
-  DataLocation,
-  FunctionCall,
-  getNodeType,
-  MemberAccess,
-  SourceUnit,
-} from 'solc-typed-ast';
+import { DataLocation, FunctionCall, getNodeType, MemberAccess, SourceUnit } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
