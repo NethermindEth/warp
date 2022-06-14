@@ -10,6 +10,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { cloneDocumentation } from '../utils/cloning';
 import { collectUnboundVariables } from '../utils/functionGeneration';
 import { primitiveTypeToCairo } from '../utils/utils';
 
@@ -55,7 +56,7 @@ export class ConstantHandler extends ASTMapper {
         StateVariableVisibility.Default,
         Mutability.Constant,
         decl.typeString,
-        decl.documentation,
+        cloneDocumentation(decl.documentation, ast, new Map<number, number>()),
         new ElementaryTypeName(
           ast.reserveId(),
           node.src,
