@@ -29,22 +29,24 @@ export class ABIExtractor extends ASTMapper {
       // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
       addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2')),
     );
-    node.vContracts.forEach((cd) => {
-      if (cd.vConstructor !== undefined) {
-        // We do this to trick the canonicalSignature method into giving us a result
-        const fakeConstructor = cloneASTNode(cd.vConstructor, ast);
-        fakeConstructor.isConstructor = false;
-        fakeConstructor.name = 'constructor';
-        // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
-        addSignature(node, ast, fakeConstructor.canonicalSignature('ABIEncoderV2'));
-      }
-      cd.vFunctions.forEach((fd) => {
-        if (isExternallyVisible(fd)) {
+    node.vContracts
+      .filter((c) => !c.abstract)
+      .forEach((cd) => {
+        if (cd.vConstructor !== undefined) {
+          // We do this to trick the canonicalSignature method into giving us a result
+          const fakeConstructor = cloneASTNode(cd.vConstructor, ast);
+          fakeConstructor.isConstructor = false;
+          fakeConstructor.name = 'constructor';
           // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
-          addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2'));
+          addSignature(node, ast, fakeConstructor.canonicalSignature('ABIEncoderV2'));
         }
+        cd.vFunctions.forEach((fd) => {
+          if (isExternallyVisible(fd)) {
+            // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
+            addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2'));
+          }
+        });
       });
-    });
   }
 
   // The CanonicalSignature fails for ArrayTypeNames with non-literal, non-undefined length
