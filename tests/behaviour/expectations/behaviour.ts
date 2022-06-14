@@ -5,6 +5,22 @@ export const expectations = flatten(
   new Dir('tests', [
     new Dir('behaviour', [
       new Dir('contracts', [
+        new Dir('abstractContracts', [
+          File.Simple('mappingInConstructor', [
+            Expect.Simple(
+              'map',
+              ['0', '0'],
+              ['0', '0'],
+              'test a value not set by the abstract constructor',
+            ),
+            Expect.Simple(
+              'map',
+              ['5', '0'],
+              ['20', '0'],
+              'test the value set by the abstract constructor',
+            ),
+          ]),
+        ]),
         new Dir('array_len', [
           File.Simple('memoryArray', [Expect.Simple('dynMemArrayLen', [], ['45', '0'])]),
           File.Simple('storageArray', [Expect.Simple('dynStorageArrayLen', [], ['1', '0'])]),
@@ -1653,6 +1669,33 @@ export const expectations = flatten(
         new Dir('ElementaryTypeNames', [
           File.Simple('example', [Expect.Simple('ArrayFunc', [], ['69', '0'])]),
         ]),
+        new Dir('ecrecover', [
+          File.Simple('failing_ecrecover_invalid_input', [
+            Expect.Simple('f', [], ['0'])
+          ]),
+          File.Simple('ecrecover_abiV2', [
+            Expect.Simple('a', [
+              '234745004841049624363786949598178524444',
+              '32925812571728971113564727197502457669',
+              '28',
+              '96147544071759159599371930037513463647',
+              '153782390194236923625092705480893473134',
+              '337845726153857016191633394724627039561',
+              '317318150077682688293495167967147192469',
+            ], ['0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'])
+          ]),
+          File.Simple('ecrecover', [
+            Expect.Simple('a', [
+              '234745004841049624363786949598178524444',
+              '32925812571728971113564727197502457669',
+              '28',
+              '96147544071759159599371930037513463647',
+              '153782390194236923625092705480893473134',
+              '337845726153857016191633394724627039561',
+              '317318150077682688293495167967147192469',
+            ], ['0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b'])
+          ]),
+        ]),
         new Dir('enums', [
           File.Simple('singleEnum', [
             Expect.Simple('get', [], ['0']),
@@ -2345,6 +2388,41 @@ export const expectations = flatten(
             Expect.Simple('unexistent', ['10', '4', '5', '20'], []),
             Expect.Simple('x', [], ['3', '0']),
           ]),
+          new File(
+            'inheritance',
+            'A',
+            ['100', '0'],
+            [
+              new Expect('modified', [
+                ['unexistent', [], null, '0', 'x can not exceed the amount of 100'],
+                ['sub', ['2', '0'], [], '0'],
+                ['x', [], ['98', '0'], '0'],
+                ['unexistent', [], [], '0'],
+                ['x', [], ['99', '0'], '0'],
+              ]),
+            ],
+          ),
+          new File(
+            'inheritance',
+            'B',
+            ['100', '0'],
+            [
+              new Expect('overriden', [
+                ['unexistent', [], [], '0'],
+                ['x', [], ['110', '0'], '0'],
+              ]),
+            ],
+          ),
+          new File(
+            'inheritance',
+            'C',
+            ['100', '0'],
+            [
+              new Expect('inherited', [
+                ['unexistent', [], null, '0', 'x can not exceed the amount of 100'],
+              ]),
+            ],
+          ),
         ]),
         new Dir('if', [
           File.Simple('localVariables', [
@@ -3226,6 +3304,9 @@ export const expectations = flatten(
             File.Simple('map_2d_dyn_array', [
               new Expect('delete 2d dynamic arrays with mappings', [
                 ['n1', ['3', '0', '5', '0'], [], '0'],
+                ['map', ['3', '0'], ['5', '0'], '0'],
+                ['p', [], [], '0'],
+                ['n2', [], [], '0'],
                 ['map', ['3', '0'], ['5', '0'], '0'],
                 ['d', [], ['0', '0'], '0'],
                 ['n2', [], [], '0'],
