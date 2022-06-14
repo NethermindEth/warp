@@ -3,6 +3,7 @@ import {
   ArrayType,
   DataLocation,
   Expression,
+  FixedBytesType,
   FunctionCall,
   generalizeType,
   getNodeType,
@@ -58,6 +59,9 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
         (!targetBaseType.signed && targetBaseType.nBits === 256 && 256 > sourceBaseType.nBits)
       );
     }
+    if (targetBaseType instanceof FixedBytesType && sourceBaseType instanceof FixedBytesType) {
+      return targetBaseType.size > sourceBaseType.size;
+    }
     return false;
   }
 
@@ -111,7 +115,6 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       this.ast,
     );
   }
-
   getOrCreate(targetType: TypeNode, sourceType: TypeNode): string {
     const sourceRepForKey = CairoType.fromSol(
       generalizeType(sourceType)[0],
@@ -232,6 +235,26 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
               offset,
             )}, arg_${index})`,
           ].join('\n');
+        }
+      } else if (
+        targetElmType instanceof FixedBytesType &&
+        sourceElmType instanceof FixedBytesType
+      ) {
+        if (targetElmType.size > sourceElmType.size) {
+          code = [
+            `    let (arg_${index}) = warp_bytes_widen${
+              targetElmType.size === 32 ? '_256' : ''
+            }(arg[${index}], ${(targetElmType.size - sourceElmType.size) * 8})`,
+            `    ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
+              'storage_loc',
+              offset,
+            )}, arg_${index})`,
+          ].join('\n');
+        } else {
+          code = `     ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
+            'storage_loc',
+            offset,
+          )}, arg[${index}])`;
         }
       } else {
         if (isDynamicStorageArray(targetElmType)) {
@@ -355,16 +378,42 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
             )}(storage_loc${index}, arg_${index})`,
           ].join('\n');
         }
+      } else if (
+        targetElmType instanceof FixedBytesType &&
+        sourceElmType instanceof FixedBytesType
+      ) {
+        if (targetElmType.size > sourceElmType.size) {
+          return [
+            `    let (arg_${index}) = warp_bytes_widen${
+              targetElmType.size === 32 ? '_256' : ''
+            }(arg[${index}], ${(targetElmType.size - sourceElmType.size) * 8})`,
+            `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
+              targetElmType,
+            )}(ref, ${uint256(index)})`,
+            `    ${this.storageWriteGen.getOrCreate(
+              targetElmType,
+            )}(storage_loc${index}, arg_${index})`,
+          ].join('\n');
+        } else {
+          return [
+            `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
+              targetElmType,
+            )}(ref, ${uint256(index)})`,
+            `    ${this.storageWriteGen.getOrCreate(
+              targetElmType,
+            )}(storage_loc${index}, arg[${index}])`,
+          ].join('\n');
+        }
       } else {
         if (isDynamicStorageArray(targetElmType)) {
           const dynArrayLengthName = this.dynArrayGen.gen(cairoTargetElementType)[1];
           return [
-            ` let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
+            `     let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
             )}(ref, ${uint256(index)})`,
-            `let (ref_${index}) = readId(storage_loc${index})`,
-            `${dynArrayLengthName}.write(ref_${index}, ${uint256(length)})`,
-            `${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}])`,
+            `     let (ref_${index}) = readId(storage_loc${index})`,
+            `     ${dynArrayLengthName}.write(ref_${index}, ${uint256(length)})`,
+            `     ${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}])`,
           ].join('\n');
         } else {
           return [
@@ -448,8 +497,19 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     if (sourceElmType instanceof IntType && targetElmType instanceof IntType) {
       return [
         sourceElmType.signed
-          ? `let (val) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(ptr[0])`
+          ? `    let (val) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(ptr[0])`
           : `    let (val) = felt_to_uint256(ptr[0])`,
+        `    ${this.storageWriteGen.getOrCreate(targetElmType)}(storage_loc, val)`,
+      ].join('\n');
+    } else if (targetElmType instanceof FixedBytesType && sourceElmType instanceof FixedBytesType) {
+      return [
+        targetElmType.size === 32
+          ? `    let (val) = warp_bytes_widen_256(ptr[0], ${
+              (targetElmType.size - sourceElmType.size) * 8
+            })`
+          : `    let (val) = warp_bytes_widen(ptr[0], ${
+              (targetElmType.size - sourceElmType.size) * 8
+            })`,
         `    ${this.storageWriteGen.getOrCreate(targetElmType)}(storage_loc, val)`,
       ].join('\n');
     } else {
@@ -471,6 +531,11 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       } else {
         this.requireImport('warplib.maths.utils', 'felt_to_uint256');
       }
+    } else if (targetElmType instanceof FixedBytesType) {
+      this.requireImport(
+        'warplib.maths.bytes_conversions',
+        targetElmType.size === 32 ? 'warp_bytes_widen_256' : 'warp_bytes_widen',
+      );
     }
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
   }
