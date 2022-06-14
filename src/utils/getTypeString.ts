@@ -2,6 +2,7 @@ import assert from 'assert';
 import {
   AddressType,
   ArrayType,
+  ASTNode,
   BoolType,
   BuiltinStructType,
   BuiltinType,
@@ -15,7 +16,7 @@ import {
   FunctionType,
   FunctionVisibility,
   generalizeType,
-  getNodeType,
+  getNodeTypeInCtx,
   ImportRefType,
   IntLiteralType,
   IntType,
@@ -73,10 +74,14 @@ export function getEnumTypeString(node: EnumDefinition): string {
   return `enum ${node.name}`;
 }
 
-export function getFunctionTypeString(node: FunctionDefinition, compilerVersion: string): string {
+export function getFunctionTypeString(
+  node: FunctionDefinition,
+  compilerVersion: string,
+  nodeInSourceUnit?: ASTNode,
+): string {
   const inputs = node.vParameters.vParameters
     .map((decl) => {
-      const baseType = getNodeType(decl, compilerVersion);
+      const baseType = getNodeTypeInCtx(decl, compilerVersion, nodeInSourceUnit ?? decl);
       if (
         baseType instanceof ArrayType ||
         baseType instanceof BytesType ||
@@ -114,11 +119,15 @@ export function getFunctionTypeString(node: FunctionDefinition, compilerVersion:
   return `function (${inputs})${visibility} ${node.stateMutability} ${outputs}`;
 }
 
-export function getReturnTypeString(node: FunctionDefinition, ast: AST): string {
+export function getReturnTypeString(
+  node: FunctionDefinition,
+  ast: AST,
+  nodeInSourceUnit?: ASTNode,
+): string {
   const retParams = node.vReturnParameters.vParameters;
   const parametersTypeString = retParams
     .map((decl) => {
-      const type = getNodeType(decl, ast.compilerVersion);
+      const type = getNodeTypeInCtx(decl, ast.compilerVersion, nodeInSourceUnit ?? decl);
       return type instanceof PointerType
         ? type
         : specializeType(generalizeType(type)[0], decl.storageLocation);
