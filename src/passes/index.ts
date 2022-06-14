@@ -34,6 +34,7 @@ export * from './storageAllocator';
 export * from './tupleFixes';
 export * from './references';
 export * from './tupleAssignmentSplitter';
+export * from './typeNameRemover';
 export * from './typeStringsChecker';
 export * from './unloadingAssignment';
 export * from './unreachableStatementPruner';

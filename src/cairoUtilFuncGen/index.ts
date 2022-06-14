@@ -154,7 +154,7 @@ export class CairoUtilFuncGen {
         ),
         withoutArg: new DynArrayPushWithoutArgGen(this.implementation.dynArray, ast, sourceUnit),
       },
-      mappingIndexAccess: new MappingIndexAccessGen(ast, sourceUnit),
+      mappingIndexAccess: new MappingIndexAccessGen(this.implementation.dynArray, ast, sourceUnit),
       memberAccess: new StorageMemberAccessGen(ast, sourceUnit),
       read: storageReadGen,
       staticArrayIndexAccess: new StorageStaticArrayIndexAccessGen(ast, sourceUnit),
