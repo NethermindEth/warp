@@ -30,7 +30,7 @@ import { locationIfComplexType } from '../../cairoUtilFuncGen/base';
 import { printNode } from '../../utils/astPrinter';
 import { TranspileFailedError } from '../../utils/errors';
 import { error } from '../../utils/formatting';
-import { getParameterTypes, isReferenceType } from '../../utils/nodeTypeProcessing';
+import { getParameterTypes, isDynamicArray, isReferenceType } from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
 import { isExternallyVisible } from '../../utils/utils';
 
@@ -104,9 +104,15 @@ export class ExpectedLocationAnalyser extends ASTMapper {
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     if (node.kind === FunctionCallKind.TypeConversion) {
-      const location =
-        generalizeType(getNodeType(node, ast.compilerVersion))[1] ?? DataLocation.Default;
-      node.vArguments.forEach((arg) => this.expectedLocations.set(arg, location));
+      const toType = getNodeType(node, ast.compilerVersion);
+      node.vArguments.forEach((arg) => {
+        const [type, location] = generalizeType(getNodeType(arg, ast.compilerVersion));
+        if (isDynamicArray(type) && !isReferenceType(toType)) {
+          this.expectedLocations.set(arg, locationIfComplexType(type, DataLocation.Memory));
+        } else {
+          this.expectedLocations.set(arg, location ?? DataLocation.Default);
+        }
+      });
       return this.visitExpression(node, ast);
     }
 
