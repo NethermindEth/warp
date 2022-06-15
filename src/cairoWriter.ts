@@ -419,7 +419,8 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
     writer
       .write(v)
       .split('\n')
-      .filter((line) => line.trim().startsWith('func') || line.trim().startsWith('end'))
+      .filter((line) => line.trim().startsWith('func '))
+      .flatMap((line) => [line, 'end', ''])
       .map((l) => INDENT + l)
       .join('\n'),
   );

@@ -125,7 +125,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/inheritance/super/mid', 'Success'],
     ['example_contracts/inheritance/variables', 'Success'],
     // Requires struct imports
-    ['example_contracts/interfaces', 'CairoCompileFailed'],
+    ['example_contracts/interfaces', 'Success'],
     ['example_contracts/invalidSolidity', 'SolCompileFailed'],
     ['example_contracts/lib', 'Success'],
     ['example_contracts/libraries/using_for_star', 'Success'],

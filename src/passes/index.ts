@@ -5,7 +5,7 @@ export * from './bytesConverter';
 export * from './cairoUtilImporter';
 export * from './constantHandler';
 export * from './deleteHandler';
-export * from './dropFreeSourceUnit';
+export * from './dropUnusedSourceUnit';
 export * from './enumConverter';
 export * from './expressionSplitter/expressionSplitter';
 export * from './externalArgModifier';
