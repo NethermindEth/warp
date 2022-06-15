@@ -3,6 +3,7 @@ import {
   ArrayType,
   BoolType,
   BytesType,
+  ContractDefinition,
   DataLocation,
   ElementaryTypeNameExpression,
   EnumDefinition,
@@ -21,11 +22,12 @@ import {
   TupleExpression,
   TypeNode,
   UserDefinedType,
+  UserDefinedValueTypeDefinition,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from './astPrinter';
-import { NotSupportedYetError } from './errors';
+import { NotSupportedYetError, TranspileFailedError } from './errors';
 import { generateExpressionTypeString } from './getTypeString';
 import {
   createAddressTypeName,
@@ -191,10 +193,30 @@ function userDefDefault(
     return structDefault(nodeType.definition, parentNode, ast);
   if (nodeType.definition instanceof EnumDefinition)
     return enumDefault(nodeType, nodeType.definition, parentNode, ast);
-  else
-    throw new NotSupportedYetError(
-      `Not supported operation delete on ${printNode(nodeType.definition)}`,
+  if (nodeType.definition instanceof ContractDefinition)
+    return new FunctionCall(
+      ast.reserveId(),
+      '',
+      nodeType.pp(),
+      FunctionCallKind.TypeConversion,
+      new Identifier(
+        ast.reserveId(),
+        '',
+        `type(${nodeType.pp()})`,
+        nodeType.definition.name,
+        nodeType.definition.id,
+      ),
+      [addressDefault(new AddressType(false), parentNode, ast)],
     );
+  if (nodeType.definition instanceof UserDefinedValueTypeDefinition)
+    return getDefaultValue(
+      getNodeType(nodeType.definition.underlyingType, ast.compilerVersion),
+      parentNode,
+      ast,
+    );
+  throw new TranspileFailedError(
+    `Not supported operation delete on ${printNode(nodeType.definition)}`,
+  );
 }
 
 function enumDefault(

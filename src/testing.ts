@@ -173,7 +173,6 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/state_variables/mappings', 'Success'],
     ['example_contracts/state_variables/structs', 'Success'],
     ['example_contracts/state_variables/structs_nested', 'Success'],
-    // Mappings of structs are not supported yet
     ['example_contracts/state_variables/misc', 'Success'],
     ['example_contracts/structs', 'Success'],
     ['example_contracts/this_methods_call', 'Success'],
@@ -187,10 +186,8 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/typeConversion/unusedArrayConversion', 'Success'],
     ['example_contracts/typeMinMax', 'Success'],
     ['example_contracts/uint256_static_array_casting', 'Success'],
-    // Serialising BytesType not supported yet
     ['example_contracts/typestrings/basicArrays', 'Success'],
-    // Not supported operation delete on CairoContract
-    ['example_contracts/typestrings/scalars', 'NotSupportedYet'],
+    ['example_contracts/typestrings/scalars', 'Success'],
     ['example_contracts/typestrings/structArrays', 'Success'],
     ['example_contracts/typestrings/structs', 'Success'],
     ['example_contracts/units', 'Success'],
