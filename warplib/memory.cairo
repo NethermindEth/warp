@@ -268,7 +268,9 @@ func wm_bytes_length{warp_memory : DictAccess*}(bytesLoc : felt) -> (len : Uint2
     return wm_read_256(bytesLoc)
 end
 
-func wm_bytes_to_fixed32{range_check_ptr, warp_memory : DictAccess*}(bytesLoc : felt) -> (res : Uint256):
+func wm_bytes_to_fixed32{range_check_ptr, warp_memory : DictAccess*}(bytesLoc : felt) -> (
+    res : Uint256
+):
     alloc_locals
     let (dataLength) = wm_read_256(bytesLoc)
     if dataLength.high == 0:
@@ -379,15 +381,21 @@ func wm_to_felt_array_helper{range_check_ptr, warp_memory : DictAccess*}(
     return wm_to_felt_array_helper(loc + 1, index + 1, length, output)
 end
 
-func wm_bytes_to_fixed_helper{warp_memory : DictAccess*}(bytesDataLoc : felt, targetWidth : felt, dataLength : felt, acc : felt) -> (res : felt):
+func wm_bytes_to_fixed_helper{warp_memory : DictAccess*}(
+    bytesDataLoc : felt, targetWidth : felt, dataLength : felt, acc : felt
+) -> (res : felt):
     alloc_locals
     if targetWidth == 0:
         return (acc)
     end
     if dataLength == 0:
-        return wm_bytes_to_fixed_helper(bytesDataLoc + 1, targetWidth - 1, dataLength - 1, 256 * acc)
+        return wm_bytes_to_fixed_helper(
+            bytesDataLoc + 1, targetWidth - 1, dataLength - 1, 256 * acc
+        )
     else:
         let (byte) = wm_read_felt(bytesDataLoc)
-        return wm_bytes_to_fixed_helper(bytesDataLoc + 1, targetWidth - 1, dataLength - 1, 256 * acc + byte)
+        return wm_bytes_to_fixed_helper(
+            bytesDataLoc + 1, targetWidth - 1, dataLength - 1, 256 * acc + byte
+        )
     end
 end
