@@ -19,7 +19,6 @@ import {
   ParameterList,
   Return,
   Statement,
-  StringType,
   StructuredDocumentation,
   TupleExpression,
   TypeName,

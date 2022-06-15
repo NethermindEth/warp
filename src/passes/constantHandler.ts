@@ -9,7 +9,6 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
-import { isReferenceType } from '../utils/nodeTypeProcessing';
 import { insertConversionIfNecessary } from './implicitConversionToExplicit';
 
 export class ConstantHandler extends ASTMapper {
