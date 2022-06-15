@@ -160,13 +160,13 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_target_leftover2.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_target_simple.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_target_simple_2.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_nested_calldata_to_storage.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_nested_calldata_to_storage.sol', // solc --standard-json error
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_nested_memory_to_storage.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_struct_calldata_to_memory.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_struct_calldata_to_storage.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_struct_memory_to_storage.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_structs_containing_arrays_calldata_to_storage.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_structs_containing_arrays_memory_to_storage.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_struct_calldata_to_storage.sol', // solc --standard-json error
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_struct_memory_to_storage.sol', // solc --standard-json error
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_structs_containing_arrays_calldata_to_storage.sol', // solc --standard-json error
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_structs_containing_arrays_memory_to_storage.sol', // solc --standard-json error
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_storage_multi_items_per_slot.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/arrays_from_and_to_storage.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/bytes_calldata_to_string_calldata.sol',
