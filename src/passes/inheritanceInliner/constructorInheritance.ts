@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  ASTNode,
   ContractDefinition,
   Expression,
   ExpressionStatement,
@@ -188,6 +189,7 @@ function collectArguments(
       scope,
       ast,
       generator,
+      contract,
     );
     args.set(contract.id, argList);
   }
@@ -246,6 +248,7 @@ function getArguments(
   scope: number,
   ast: AST,
   generator: () => number,
+  nodeInSourceUnit: ASTNode,
 ): Expression[] {
   const size = args.length;
   const argList: Expression[] = [];
@@ -257,7 +260,7 @@ function getArguments(
     newVar.scope = scope;
 
     idRemapping.set(parameters[i].id, newVar);
-    argList.push(createIdentifier(newVar, ast));
+    argList.push(createIdentifier(newVar, ast, undefined, nodeInSourceUnit));
     statements.push(
       new VariableDeclarationStatement(ast.reserveId(), '', [newVar.id], [newVar], newArg),
     );
