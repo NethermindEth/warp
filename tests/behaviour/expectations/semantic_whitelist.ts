@@ -886,9 +886,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_types_in_library.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_return_var_size.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_stray_values.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_staticcall_delegatecall.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_call_in_homestead.sol', // MOVED to behaviour tests, relies on address of test CALLER
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_enum_as_an_expression.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_struct_as_an_expression.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/mapping_returns_in_library_named.sol',
@@ -903,6 +901,8 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/using_library_mappings_return.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/using_library_structs.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/using_library_mappings_public.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_call_in_homestead.sol', // MOVED to behaviour tests, relies on address of test CALLER
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_stray_values.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_contract.sol', // STRETCH new
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/mapping_returns_in_library.sol', // STRETCH conditional
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_address_named_send_transfer.sol', // WILL NOT SUPPORT raw address calls
