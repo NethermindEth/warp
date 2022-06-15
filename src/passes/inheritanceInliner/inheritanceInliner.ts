@@ -82,14 +82,6 @@ export class InheritanceInliner extends ASTMapper {
     addStorageVariables(node, variableRemapping, ast);
     addNonOverridenModifiers(node, modifierRemapping, modifierRemappingOverriders, ast);
     addEventDefintion(node, eventRemapping, ast);
-    // Structs from parent classes are added but references inside the contract definition
-    // are not updated since this is not enough.
-    // The typeStrings of everything that reference an inherited struct must be updated as
-    // well because two equally defined structs in different contracts are considered different
-    // types. Also the typeString of anything that references something which reference an
-    // inherited struct must be updated. (e.g. An Identifier which references a VariableDeclaration
-    // which references an inherited struct)
-    // By just adding the structs this issues are avoided and valid cairo code is produced.
 
     updateReferencedDeclarations(node, functionRemapping, functionRemappingOverriders, ast);
     updateReferencedDeclarations(node, variableRemapping, variableRemapping, ast);

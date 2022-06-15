@@ -49,7 +49,7 @@ import {
   dumpABI,
   StaticArrayIndexer,
   TupleFixes,
-  DropFreeSourceUnits,
+  DropUnusedSourceUnits,
 } from './passes';
 import { FilePathMangler } from './passes/filePathMangler';
 import { Require } from './passes/builtinHandler/require';
@@ -140,7 +140,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
     ['Ci', CairoUtilImporter],
-    ['Dff', DropFreeSourceUnits],
+    ['Dus', DropUnusedSourceUnits],
   ]);
 
   const passesInOrder: typeof ASTMapper[] = parsePassOrder(options.order, options.until, passes);
