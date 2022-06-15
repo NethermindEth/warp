@@ -438,7 +438,10 @@ export function getSourceFromLocation(source: string, location: SourceLocation):
 
   const [previousLines, currentLineNum] = sourceBeforeLocation
     .slice(sourceBeforeLocation.length - (linesAroundSource + 1), sourceBeforeLocation.length - 1)
-    .reduce(([s, n], c) => [[...s, `${n}  ${c}`], n + 1], [new Array<string>(), startLineNum < 0 ? 0 : startLineNum]);
+    .reduce(
+      ([s, n], c) => [[...s, `${n}  ${c}`], n + 1],
+      [new Array<string>(), startLineNum < 0 ? 0 : startLineNum],
+    );
 
   const [currentLine, followingLineNum] = [
     sourceBeforeLocation.slice(-1),

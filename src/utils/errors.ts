@@ -25,10 +25,12 @@ function getSourceCode(node: ASTNode | undefined): string {
   if (sourceUnit === undefined) return '';
   const filePath = sourceUnit.absolutePath;
   const content = fs.readFileSync(filePath, { encoding: 'utf-8' });
-  return getSourceFromLocation(content, parseSourceLocation(node.src))
-    .split('\n')
-    .map((l) => `\t${l}`)
-    .join('\n');
+  return [
+    `File ${filePath}:\n`,
+    ...getSourceFromLocation(content, parseSourceLocation(node.src))
+      .split('\n')
+      .map((l) => `\t${l}`),
+  ].join('\n');
 }
 
 // For features that will not be supported unless Cairo changes to make implementing them feasible
