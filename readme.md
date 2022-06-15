@@ -25,28 +25,6 @@ sudo apt install libz3-dev
 Make sure that you have the [`venv`](https://docs.python.org/3/library/venv.html)
 module for your python installation.
 
-Install warp:
-
-```bash
-yarn global add @nethermindeth/warp
-warp install
-```
-
-If python3.7 can't be found:
-
-```
-warp install --python <path-to-python3.7>
-```
-
-## Usage :computer:
-
-To transpile a contract:
-
-```bash
-bin/warp transpile example_contracts/ERC20.sol
-```
-
-## Contributing :hammer_and_pick:
 
 ### Installation from source
 
@@ -72,6 +50,17 @@ pip install -r requirements.txt
 ```bash
 bin/warp
 ```
+
+## Usage :computer:
+
+To transpile a contract:
+
+```bash
+bin/warp transpile example_contracts/ERC20.sol
+```
+
+## Contributing :hammer_and_pick:
+
 
 ## Testing
 
