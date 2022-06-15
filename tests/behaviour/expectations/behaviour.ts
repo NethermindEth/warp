@@ -365,6 +365,12 @@ export const expectations = flatten(
           ),
         ]),
         new Dir('constants', [
+          File.Simple('constant_string_at_file_level', [
+            Expect.Simple('f', [], ['3', '0x3', '0x1', '0x2']),
+            Expect.Simple('g', [], ['3', '0x3', '0x1', '0x2']),
+            Expect.Simple('h', [], ['5', '0x68', '0x65', '0x6C', '0x6C', '0x6F']),
+            Expect.Simple('i', [], ['0x38', '0', '0x1', '0', '129445968720857988376759499178045865984']),
+          ]),
           File.Simple('simpleConstants', [
             Expect.Simple('getX', [], ['247']),
             Expect.Simple('stateVarOp', [], ['9']),

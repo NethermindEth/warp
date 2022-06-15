@@ -43,6 +43,18 @@ export function createAddressTypeName(payable: boolean, ast: AST): ElementaryTyp
   return node;
 }
 
+export function createStringTypeName(payable: boolean, ast: AST): ElementaryTypeName {
+  const node = new ElementaryTypeName(
+    ast.reserveId(),
+    '',
+    'string',
+    'string',
+    payable ? 'payable' : 'nonpayable',
+  );
+  ast.setContextRecursive(node);
+  return node;
+}
+
 export function createArrayTypeName(baseType: TypeName, ast: AST): ArrayTypeName {
   const node = new ArrayTypeName(ast.reserveId(), '', `${baseType.typeString}[]`, baseType);
   ast.setContextRecursive(node);
