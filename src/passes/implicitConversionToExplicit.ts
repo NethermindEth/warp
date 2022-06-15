@@ -260,7 +260,11 @@ export class ImplicitConversionToExplicit extends ASTMapper {
   }
 }
 
-function insertConversionIfNecessary(expression: Expression, targetType: TypeNode, ast: AST): void {
+export function insertConversionIfNecessary(
+  expression: Expression,
+  targetType: TypeNode,
+  ast: AST,
+): void {
   const [currentType, currentLoc] = generalizeType(getNodeType(expression, ast.compilerVersion));
   const generalisedTargetType = generalizeType(targetType)[0];
 

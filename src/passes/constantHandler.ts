@@ -1,7 +1,16 @@
-import { Identifier, Literal, MemberAccess, Mutability, VariableDeclaration } from 'solc-typed-ast';
+import {
+  getNodeType,
+  Identifier,
+  Literal,
+  MemberAccess,
+  Mutability,
+  VariableDeclaration,
+} from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
+import { isReferenceType } from '../utils/nodeTypeProcessing';
+import { insertConversionIfNecessary } from './implicitConversionToExplicit';
 
 export class ConstantHandler extends ASTMapper {
   isConstant(node: VariableDeclaration): boolean {
@@ -24,12 +33,11 @@ export class ConstantHandler extends ASTMapper {
     }
 
     const constant = cloneASTNode(referencedDeclaration.vValue, ast);
-    // Use the declaration's type string because the vValue's typestring might
-    // const literal and creates problem further down the line since you cannot
-    // infer its width.
-    constant.typeString = referencedDeclaration.typeString;
 
+    const typeTo = getNodeType(node, ast.compilerVersion);
+    console.log(constant.typeString);
     ast.replaceNode(node, constant);
+    insertConversionIfNecessary(constant, typeTo, ast);
   }
 
   visitIdentifier(node: Identifier, ast: AST): void {
