@@ -146,6 +146,12 @@ export function printNode(node: ASTNode): string {
   if (node instanceof FunctionCall) {
     return `${node.type} #${node.id} ${node.vFunctionName}`;
   }
+
+  if ('name' in node) {
+    //@ts-ignore name clearly exists in node
+    return `${node.type} #${node.id} ${node.name}`;
+  }
+
   return `${node.type} #${node.id}`;
 }
 

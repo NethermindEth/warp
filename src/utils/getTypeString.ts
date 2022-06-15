@@ -226,5 +226,8 @@ export function generateExpressionTypeString(type: TypeNode): string {
   } else if (type instanceof TypeNameType) {
     return `type(${generateExpressionTypeString(type.type)})`;
   } else if (instanceOfNonRecursivePP(type)) return type.pp();
-  else throw new TranspileFailedError('Unable to determine typestring');
+  else
+    throw new TranspileFailedError(
+      `Unable to determine typestring for TypeNode #${type.id} ${type.pp()}`,
+    );
 }
