@@ -1,7 +1,6 @@
 import assert from 'assert';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
-import * as path from 'path';
 import {
   ASTReader,
   CompileFailedError,
@@ -101,9 +100,7 @@ function cliCompile(
   // for v0.8.x contracts.
   if (nethersolcVersion == '7') {
     const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
-    const filePath = Object.keys(input.sources)[0];
-    const allowPath = path.resolve(currentDirectory, filePath);
-    allowedPaths = `--allow-paths ${allowPath}`;
+    allowedPaths = `--allow-paths ${currentDirectory}`;
   }
 
   return {
