@@ -53,7 +53,7 @@ program
   .option('--print-trees')
   .option('--no-result')
   .option('--no-stubs')
-  .option('--strict')
+  .option('--no-strict')
   // Stops transpilation after the specified pass
   .option('--until <pass>')
   .option('--no-warnings')
@@ -78,7 +78,7 @@ program
   .option('--print-trees')
   .option('--no-result')
   .option('--no-stubs')
-  .option('--strict')
+  .option('--no-strict')
   .option('--until <pass>')
   .option('--no-warnings')
   .action((file: string, options: CliOptions) => {
