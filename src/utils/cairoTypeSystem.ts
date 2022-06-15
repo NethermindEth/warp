@@ -19,9 +19,10 @@ import {
   StructDefinition,
   getNodeType,
   FixedBytesType,
+  UserDefinedValueTypeDefinition,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { printNode, printTypeNode } from './astPrinter';
+import { printTypeNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
 import { mangleStructName, narrowBigIntSafe } from './utils';
 
@@ -104,6 +105,7 @@ export abstract class CairoType {
       }
       return new MemoryLocation();
     } else if (tp instanceof UserDefinedType) {
+      const specificType = tp.definition.type;
       if (tp.definition instanceof EnumDefinition) {
         return CairoType.fromSol(enumToIntType(tp.definition), ast);
       } else if (tp.definition instanceof StructDefinition) {
@@ -136,11 +138,15 @@ export abstract class CairoType {
         }
       } else if (tp.definition instanceof ContractDefinition) {
         return new CairoFelt();
+      } else if (tp.definition instanceof UserDefinedValueTypeDefinition) {
+        return CairoType.fromSol(
+          getNodeType(tp.definition.underlyingType, ast.compilerVersion),
+          ast,
+          context,
+        );
       }
-      throw new NotSupportedYetError(
-        `Serialising ${tp.definition.type} UserDefinedType not supported yet. Found at ${printNode(
-          tp.definition,
-        )}`,
+      throw new TranspileFailedError(
+        `Failed to analyse user defined ${specificType} type as cairo type}`,
       );
     } else {
       throw new Error(`Don't know how to convert type ${printTypeNode(tp)}`);
