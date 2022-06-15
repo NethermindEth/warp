@@ -201,7 +201,6 @@ function literalToTypedInt(arg: Expression, typeTo: IntType): Expression {
   return arg;
 }
 
-// todo widening and narrowing
 function literalToFixedBytes(arg: Expression, typeTo: FixedBytesType): Expression {
   assert(
     arg instanceof Literal,

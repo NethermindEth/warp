@@ -151,7 +151,8 @@ export class AST {
       (node) => node instanceof Block || node instanceof UncheckedBlock,
     );
     if (scope === undefined) {
-      // TODO improve this to always produce the scope
+      // post-audit TODO improve this to always produce the scope and to follow solc-typed-ast's
+      // rules for scope being lexical scope
       console.log(`WARNING: Unable to find scope of ${printNode(node)}`);
       return -1;
     }
@@ -310,7 +311,6 @@ export class AST {
     }
   }
 
-  // TODO tighten these restraints
   // Reference notes/astnodetypes.ts for exact restrictions on what can safely be replaced with what
   replaceNode(
     oldNode: Expression,

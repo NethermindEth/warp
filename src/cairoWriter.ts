@@ -46,7 +46,6 @@ import {
   Literal,
   LiteralKind,
   Mapping,
-  MappingType,
   MemberAccess,
   ModifierDefinition,
   ModifierInvocation,
@@ -54,7 +53,6 @@ import {
   OverrideSpecifier,
   ParameterList,
   PlaceholderStatement,
-  PointerType,
   Return,
   RevertStatement,
   SourceUnit,
@@ -90,7 +88,6 @@ import { CairoDynArray, CairoType, TypeConversionContext } from './utils/cairoTy
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
 import { implicitOrdering, implicitTypes } from './utils/implicits';
-import { getMappingTypes } from './utils/mappings';
 import { isDynamicArray, isDynamicCallDataArray } from './utils/nodeTypeProcessing';
 import { notNull, notUndefined } from './utils/typeConstructs';
 import {
@@ -170,32 +167,6 @@ class VariableDeclarationWriter extends CairoASTNodeWriter {
       assert(node.vValue !== undefined, 'Constant should have a defined value.');
       const constantValue = writer.write(node.vValue);
       return [[documentation, `const ${node.name} = ${constantValue}`].join('\n')];
-    }
-    // TODO check that this can be removed
-    if (node.stateVariable) {
-      let vals = [];
-      assert(
-        node.vType !== undefined,
-        'VariableDeclaration.vType should only be undefined for Solidity < 0.5.0',
-      );
-      const nodeType = getNodeType(node.vType, writer.targetCompilerVersion);
-      if (nodeType instanceof PointerType && nodeType.to instanceof MappingType) {
-        vals = getMappingTypes(nodeType.to);
-      } else {
-        vals.push(nodeType);
-      }
-      vals = vals.map((value) => CairoType.fromSol(value, this.ast).toString());
-      const keys = vals.slice(0, vals.length - 1).map((t, i) => `key${i}: ${t}`);
-      const returns = vals.slice(vals.length - 1, vals.length);
-
-      return [
-        [
-          documentation,
-          `@storage_var`,
-          `func ${node.name}(${keys.join(', ')}) -> (res: ${returns[0]}):`,
-          `end`,
-        ].join('\n'),
-      ];
     }
 
     return [node.name];

@@ -170,7 +170,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       if (node.vFunctionName === 'revert') {
         return;
       }
-      // TODO fixedbytes for literal?
+      // post-audit TODO fixedbytes for second argument to allow non-literals
       if (['assert', 'require'].includes(node.vFunctionName) && node.vArguments.length > 1) {
         const paramType = getParameterTypes(node, ast)[0];
         insertConversionIfNecessary(node.vArguments[0], paramType, ast);

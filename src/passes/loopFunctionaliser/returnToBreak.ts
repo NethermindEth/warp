@@ -166,7 +166,7 @@ function insertReturnValueDeclaration(node: Block, ast: AST): VariableDeclaratio
     '',
     declarations.map((n) => n.id),
     declarations,
-    // TODO initial value once default value function is done
+    // variableDeclarationInitialiser runs after this, so no need to give a default value
   );
 
   node.insertAtBeginning(declarationStatement);

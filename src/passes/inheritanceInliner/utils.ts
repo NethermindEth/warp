@@ -129,7 +129,6 @@ export function fixSuperReference(
   });
 }
 
-// TODO: Investigate if there are other ways to get super as the MemberAccess expression
 function isSuperAccess(n: MemberAccess): boolean {
   const expr = n.vExpression;
   return expr instanceof Identifier && expr.name === 'super';

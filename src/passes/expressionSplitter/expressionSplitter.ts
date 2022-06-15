@@ -85,9 +85,6 @@ export class ExpressionSplitter extends ASTMapper {
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     this.commonVisit(node, ast);
-    // TODO implement this for other instances
-    // TODO check how vReferencedDeclaration works for functions like require
-    // TODO don't split tail recursion unless necessary (can be necessary because of implicit arguments/returns)
     if (
       !(node.vReferencedDeclaration instanceof FunctionDefinition) ||
       node.parent instanceof ExpressionStatement ||

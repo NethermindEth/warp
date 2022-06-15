@@ -268,7 +268,6 @@ export class CairoPointer extends CairoType {
 
 export class WarpLocation extends CairoFelt {
   get typeName(): string {
-    // TODO make sure that struct names get mangled
     return 'warp_id';
   }
   get fullStringRepresentation(): string {

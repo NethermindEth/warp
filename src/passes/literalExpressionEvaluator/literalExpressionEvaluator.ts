@@ -34,8 +34,6 @@ export class LiteralExpressionEvaluator extends ASTMapper {
     // and because very large int and rational literals omit some digits
     const result = createLiteralFromType(node.typeString) ?? evaluateLiteralExpression(node);
 
-    // TODO add generalised checking that child nodes that are removed aren't referenced elsewhere
-
     if (result === null) {
       this.commonVisit(node, ast);
     } else if (typeof result === 'boolean') {

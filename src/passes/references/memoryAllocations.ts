@@ -22,11 +22,9 @@ import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemp
 import { getElementType } from '../../utils/nodeTypeProcessing';
 
 /*
-  TODO update description
   Handles expressions that directly insert data into memory: struct constructors, news, and inline arrays
   Requires expected data location analysis to determine whether to insert objects into memory
   For memory objects, functions are generated that return a felt associated with the start of the data
-  For others, they are as explicit expressions to be transpiled to cairo
 */
 export class MemoryAllocations extends ReferenceSubPass {
   visitFunctionCall(node: FunctionCall, ast: AST): void {

@@ -22,8 +22,6 @@ import { createIdentifier } from '../utils/nodeTemplates';
 import { notNull } from '../utils/typeConstructs';
 import { typeNameFromTypeNode } from '../utils/utils';
 
-// TODO check for case where a for loop contains a single tuple declaration as its body
-
 export class VariableDeclarationExpressionSplitter extends ASTMapper {
   lastUsedConstantId = 0;
   generateNewConstantName(): string {
