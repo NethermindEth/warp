@@ -177,7 +177,6 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/calldata_array_of_struct_to_memory.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/calldata_array_static_to_memory.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/calldata_bytes_to_storage.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/calldata_dyn_2d_bytes_to_memory.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/calldata_to_storage_different_base.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/copy_byte_array_in_struct_to_storage.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/memory_dyn_2d_bytes_to_storage.sol',
@@ -188,6 +187,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/storage_memory_packed.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/storage_memory_packed_dyn.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/string_calldata_to_bytes_calldata.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/calldata_dyn_2d_bytes_to_memory.sol', // nested dyn arrays
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/calldata_2d_bytes_to_memory.sol', // nested dyn arrays
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/calldata_2d_bytes_to_memory_2.sol', // nested dyn arrays
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/calldata_bytes_array_to_memory.sol', // nested dyn arrays
