@@ -2,8 +2,6 @@ pragma solidity ^0.8.6;
 
 // SPDX-License-Identifier: MIT
 
-//TODO test what happens when accessing arr3 before it is assigned
-
 contract WARP {
   function memoryTest() public pure returns (uint){
     uint[] memory arr = new uint[](4);
