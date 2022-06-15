@@ -7,7 +7,6 @@ import {
   MemberAccess,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 
 // Library calls in solidity are delegate calls
@@ -37,7 +36,7 @@ export class ReferencedLibraries extends ASTMapper {
       //free functions calling library functions are not yet supported
       librariesById.forEach((library, _) => {
         if (library.vFunctions.some((libraryFunc) => libraryFunc.id === calledDeclaration.id)) {
-          const parent = node.getClosestParentByType(CairoContract);
+          const parent = node.getClosestParentByType(ContractDefinition);
           if (parent === undefined) return;
 
           getLibrariesToInherit(library, librariesById).forEach((id) => {
