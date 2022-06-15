@@ -5,13 +5,16 @@ import {
   FunctionDefinition,
   FunctionCall,
   getNodeType,
+  FunctionCallKind,
+  EnumDefinition,
+  IntType,
 } from 'solc-typed-ast';
 import { ASTMapper } from '../ast/mapper';
 import { isExternallyVisible } from '../utils/utils';
 import assert from 'assert';
 import { createExpressionStatement } from '../utils/nodeTemplates';
 import { checkableType } from '../utils/nodeTypeProcessing';
-export class ExternalInputChecker extends ASTMapper {
+export class ArgBoundChecker extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     if (node.kind === ContractKind.Interface) {
       return;
@@ -26,7 +29,7 @@ export class ExternalInputChecker extends ASTMapper {
         if (checkableType(type)) {
           const functionCall = ast
             .getUtilFuncGen(node)
-            .externalFunctions.inputCheck.gen(decl, node);
+            .boundChecks.inputCheck.gen(decl, type, node);
           this.insertFunctionCall(node, functionCall, ast);
         }
       });
@@ -41,5 +44,21 @@ export class ExternalInputChecker extends ASTMapper {
     const expressionStatement = createExpressionStatement(ast, funcCall);
     body.insertAtBeginning(expressionStatement);
     ast.setContextRecursive(expressionStatement);
+  }
+
+  visitFunctionCall(node: FunctionCall, ast: AST): void {
+    if (
+      node.kind === FunctionCallKind.TypeConversion &&
+      node.vReferencedDeclaration instanceof EnumDefinition &&
+      getNodeType(node.vArguments[0], ast.compilerVersion) instanceof IntType
+    ) {
+      const enumDef = node.vReferencedDeclaration;
+      const enumCheckFuncCall = ast
+        .getUtilFuncGen(node)
+        .boundChecks.enums.gen(node, node.vArguments[0], enumDef, node);
+      const parent = node.parent;
+      ast.replaceNode(node, enumCheckFuncCall, parent);
+    }
+    this.commonVisit(node, ast);
   }
 }

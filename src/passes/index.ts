@@ -10,7 +10,7 @@ export * from './enumConverter';
 export * from './expressionSplitter/expressionSplitter';
 export * from './externalArgModifier';
 export * from './externalContractHandler';
-export * from './externalInputChecker';
+export * from './argBoundChecker';
 export * from './freeFunctionInliner';
 export * from './functionModifierHandler';
 export * from './functionTypeStringMatcher';

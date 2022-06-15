@@ -33,9 +33,11 @@ import { StorageToCalldataGen } from './storage/storageToCalldata';
 import { SourceUnit } from 'solc-typed-ast';
 import { MemoryImplicitConversionGen } from './memory/implicitConversion';
 import { MemoryArrayConcat } from './memory/arrayConcat';
+import { EnumInputCheck } from './enumInputCheck';
 
 export class CairoUtilFuncGen {
   calldata: {
+    dynArrayStructConstructor: ExternalDynArrayStructConstructor;
     toMemory: CallDataToMemoryGen;
     toStorage: CalldataToStorageGen;
     convert: ImplicitArrayConversion;
@@ -71,11 +73,9 @@ export class CairoUtilFuncGen {
     toStorage: StorageToStorageGen;
     write: StorageWriteGen;
   };
-  externalFunctions: {
+  boundChecks: {
     inputCheck: InputCheckGen;
-    inputs: {
-      darrayStructConstructor: ExternalDynArrayStructConstructor;
-    };
+    enums: EnumInputCheck;
   };
 
   private implementation: {
@@ -169,13 +169,12 @@ export class CairoUtilFuncGen {
       toStorage: storageToStorage,
       write: storageWrite,
     };
-    this.externalFunctions = {
+    this.boundChecks = {
       inputCheck: new InputCheckGen(ast, sourceUnit),
-      inputs: {
-        darrayStructConstructor: externalDynArrayStructConstructor,
-      },
+      enums: new EnumInputCheck(ast, sourceUnit),
     };
     this.calldata = {
+      dynArrayStructConstructor: externalDynArrayStructConstructor,
       toMemory: new CallDataToMemoryGen(ast, sourceUnit),
       convert: new ImplicitArrayConversion(
         storageWrite,
