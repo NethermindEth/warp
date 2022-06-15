@@ -32,6 +32,7 @@ import {
   Mutability,
   PointerType,
   Return,
+  SourceLocation,
   StateVariableVisibility,
   StringType,
   StructDefinition,
@@ -53,6 +54,7 @@ import {
   TranspileFailedError,
   WillNotSupportError,
 } from './errors';
+import { error } from './formatting';
 import {
   createAddressTypeName,
   createBoolTypeName,
@@ -426,4 +428,30 @@ export function isExpectingSplit(node: Identifier, compilerVersion: string): boo
       (node.parent instanceof FunctionCall && isExternalCall(node.parent)) ||
       (node.parent instanceof FunctionCall && node.parent.vFunctionName === 'string_hash'))
   );
+}
+
+export function getSourceFromLocation(source: string, location: SourceLocation): string {
+  const linesAroundSource = 2;
+  const sourceBeforeLocation = source.substring(0, location.offset).split('\n');
+  const sourceAfterLocation = source.substring(location.offset).split('\n');
+  const startLineNum = sourceBeforeLocation.length - linesAroundSource;
+
+  const [previousLines, currentLineNum] = sourceBeforeLocation
+    .slice(sourceBeforeLocation.length - (linesAroundSource + 1), sourceBeforeLocation.length - 1)
+    .reduce(([s, n], c) => [[...s, `${n}  ${c}`], n + 1], [new Array<string>(), startLineNum]);
+
+  const currentLine = `${currentLineNum}  ${
+    sourceBeforeLocation.slice(-1) +
+    error(source.substring(location.offset, location.offset + location.length)) +
+    sourceAfterLocation[0].substring(location.length)
+  }`;
+
+  const [followingLines] = sourceAfterLocation
+    .slice(1, linesAroundSource + 1)
+    .reduce(
+      ([s, n], c) => [[...s, `${n}  ${c}`], n + 1],
+      [new Array<string>(), currentLineNum + 1],
+    );
+
+  return [...previousLines, currentLine, ...followingLines].join('\n');
 }

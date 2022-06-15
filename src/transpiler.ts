@@ -94,13 +94,13 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
 function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Tf', TupleFixes],
+    ['Ru', RejectUnsupportedFeatures],
     ['Fm', FilePathMangler],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
     ['Ae', ABIExtractor],
     ['Idi', ImportDirectiveIdentifier],
     ['Tnr', TypeNameRemover],
-    ['Ru', RejectUnsupportedFeatures],
     ['L', LiteralExpressionEvaluator],
     ['Na', NamedArgsRemover],
     ['Ufr', UsingForResolver],

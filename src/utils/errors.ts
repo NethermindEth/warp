@@ -1,4 +1,7 @@
+import fs from 'fs';
+import { ASTNode, parseSourceLocation, SourceUnit } from 'solc-typed-ast';
 import { error } from './formatting';
+import { getSourceFromLocation } from './utils';
 
 export function logError(message: string): void {
   console.error(error(message));
@@ -11,9 +14,21 @@ export class CLIError extends Error {
 }
 
 export class TranspilationAbandonedError extends Error {
-  constructor(message: string) {
-    super(error(message));
+  constructor(message: string, node?: ASTNode) {
+    super(`${error(message)}${`\n\n${getSourceCode(node)}\n`}`);
   }
+}
+
+function getSourceCode(node: ASTNode | undefined): string {
+  if (node === undefined) return '';
+  const sourceUnit = node.getClosestParentByType(SourceUnit);
+  if (sourceUnit === undefined) return '';
+  const filePath = sourceUnit.absolutePath;
+  const content = fs.readFileSync(filePath, { encoding: 'utf-8' });
+  return getSourceFromLocation(content, parseSourceLocation(node.src))
+    .split('\n')
+    .map((l) => `\t${l}`)
+    .join('\n');
 }
 
 // For features that will not be supported unless Cairo changes to make implementing them feasible
