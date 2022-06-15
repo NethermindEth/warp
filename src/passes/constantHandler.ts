@@ -23,9 +23,13 @@ export class ConstantHandler extends ASTMapper {
       return;
     }
 
-    const literalConstant = cloneASTNode(referencedDeclaration.vValue, ast);
+    const constant = cloneASTNode(referencedDeclaration.vValue, ast);
+    // Use the declaration's type string because the vValue's typestring might
+    // const literal and creates problem further down the line since you cannot
+    // infer its width.
+    constant.typeString = referencedDeclaration.typeString;
 
-    ast.replaceNode(node, literalConstant);
+    ast.replaceNode(node, constant);
   }
 
   visitIdentifier(node: Identifier, ast: AST): void {
