@@ -24,7 +24,8 @@ import { StorageWriteGen } from './storageWrite';
 import { StorageToStorageGen } from './copyToStorage';
 import { CalldataToStorageGen } from '../calldata/calldataToStorage';
 import { Implicits } from '../../utils/implicits';
-import { getElementType, isDynamicArray } from '../../utils/nodeTypeProcessing';
+import { getElementType, isDynamicArray, specializeType } from '../../utils/nodeTypeProcessing';
+import { ImplicitArrayConversion } from '../calldata/implicitArrayConversion';
 
 export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
   constructor(
@@ -33,6 +34,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     private memoryToStorage: MemoryToStorageGen,
     private storageToStorage: StorageToStorageGen,
     private calldataToStorage: CalldataToStorageGen,
+    private calldataToStorageConversion: ImplicitArrayConversion,
     ast: AST,
     sourceUnit: SourceUnit,
   ) {
@@ -103,9 +105,16 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       elementWriteFunc = this.storageToStorage.getOrCreate(elementType, argType);
       inputType = 'felt';
     } else if (argLoc === DataLocation.CallData) {
-      elementWriteFunc = this.calldataToStorage.getOrCreate(elementType);
+      if (elementType.pp() !== argType.pp()) {
+        elementWriteFunc = this.calldataToStorageConversion.getOrCreate(
+          specializeType(elementType, DataLocation.Storage),
+          specializeType(argType, DataLocation.CallData),
+        );
+      } else {
+        elementWriteFunc = this.calldataToStorage.getOrCreate(elementType);
+      }
       inputType = CairoType.fromSol(
-        elementType,
+        argType,
         this.ast,
         TypeConversionContext.CallDataRef,
       ).toString();

@@ -979,6 +979,15 @@ export const expectations = flatten(
                 ],
               ]),
             ]),
+            File.Simple('push', [
+              Expect.Simple('passInt8ToInt256', ['2', '1', '255'], []),
+              Expect.Simple('arr', ['0', '0', '0', '0'], ['1', '0']),
+              Expect.Simple(
+                'arr',
+                ['0', '0', '1', '0'],
+                ['0xffffffffffffffffffffffffffffffff', '0xffffffffffffffffffffffffffffffff'],
+              ),
+            ]),
           ]),
           File.Simple('dynamic_arrays', [
             new Expect('felt dynamic arrays is copied from calldata to storage', [
