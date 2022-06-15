@@ -17,7 +17,7 @@ import { printNode } from '../../utils/astPrinter';
 import { CairoType } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { createArrayTypeName, createNumberLiteral } from '../../utils/nodeTemplates';
+import { createNumberLiteral, createStringTypeName } from '../../utils/nodeTemplates';
 import { getElementType, getSize, isDynamicArray } from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
@@ -46,7 +46,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     const stub = createCairoFunctionStub(
       name,
       mapRange(size, (n) => [`e${n}`, cloneASTNode(baseTypeName, this.ast), DataLocation.Default]),
-      [['arr', createArrayTypeName(baseTypeName, this.ast), DataLocation.Memory]],
+      [['arr', createStringTypeName(false, this.ast), DataLocation.Memory]],
       ['range_check_ptr', 'warp_memory'],
       this.ast,
       node,

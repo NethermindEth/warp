@@ -19,6 +19,7 @@ import {
   ParameterList,
   Return,
   Statement,
+  StringType,
   StructuredDocumentation,
   TupleExpression,
   TypeName,
@@ -37,6 +38,18 @@ export function createAddressTypeName(payable: boolean, ast: AST): ElementaryTyp
     '',
     payable ? 'address payable' : 'address',
     'address',
+    payable ? 'payable' : 'nonpayable',
+  );
+  ast.setContextRecursive(node);
+  return node;
+}
+
+export function createStringTypeName(payable: boolean, ast: AST): ElementaryTypeName {
+  const node = new ElementaryTypeName(
+    ast.reserveId(),
+    '',
+    'string',
+    'string',
     payable ? 'payable' : 'nonpayable',
   );
   ast.setContextRecursive(node);
