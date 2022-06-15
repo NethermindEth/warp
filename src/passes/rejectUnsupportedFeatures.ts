@@ -27,7 +27,6 @@ import {
   ParameterList,
   PointerType,
   RevertStatement,
-  SourceUnit,
   StructDefinition,
   TryStatement,
   TypeNode,
