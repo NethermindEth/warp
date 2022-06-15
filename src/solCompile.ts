@@ -101,7 +101,6 @@ function cliCompile(
   // for v0.8.x contracts.
   if (nethersolcVersion == '7') {
     const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
-    console.log(currentDirectory);
     allowedPaths = `--allow-paths ${currentDirectory}`;
   }
 
