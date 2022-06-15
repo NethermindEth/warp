@@ -8,7 +8,11 @@ import {
 import { AST } from '../../../ast/ast';
 import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
 import { Implicits } from '../../../utils/implicits';
-import { createBytesTypeName, createUint8TypeName } from '../../../utils/nodeTemplates';
+import {
+  createBytesTypeName,
+  createNumberLiteral,
+  createUint8TypeName,
+} from '../../../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../../../utils/utils';
 
 export function functionaliseBytesToFixedBytes(
@@ -36,6 +40,13 @@ export function functionaliseBytesToFixedBytes(
     FunctionStateMutability.Pure,
   );
 
-  const replacement = createCallToFunction(stub, node.vArguments, ast);
+  const replacement = createCallToFunction(
+    stub,
+    wide
+      ? node.vArguments
+      : [...node.vArguments, createNumberLiteral(targetType.size, ast, 'uint8')],
+    ast,
+  );
   ast.replaceNode(node, replacement);
+  ast.registerImport(replacement, 'warplib.memory', `wm_bytes_to_fixed${wide ? '32' : ''}`);
 }

@@ -104,9 +104,10 @@ export class ExpectedLocationAnalyser extends ASTMapper {
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     if (node.kind === FunctionCallKind.TypeConversion) {
-      const location =
-        generalizeType(getNodeType(node, ast.compilerVersion))[1] ?? DataLocation.Default;
-      node.vArguments.forEach((arg) => this.expectedLocations.set(arg, location));
+      node.vArguments.forEach((arg) => {
+        const type = getNodeType(arg, ast.compilerVersion);
+        this.expectedLocations.set(arg, locationIfComplexType(type, DataLocation.Memory));
+      });
       return this.visitExpression(node, ast);
     }
 

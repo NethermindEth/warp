@@ -382,7 +382,7 @@ end
 func wm_bytes_to_fixed_helper{warp_memory : DictAccess*}(bytesDataLoc : felt, targetWidth : felt, dataLength : felt, acc : felt) -> (res : felt):
     alloc_locals
     if targetWidth == 0:
-        return (0)
+        return (acc)
     end
     if dataLength == 0:
         return wm_bytes_to_fixed_helper(bytesDataLoc + 1, targetWidth - 1, dataLength - 1, 256 * acc)
