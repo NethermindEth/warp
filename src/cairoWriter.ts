@@ -46,7 +46,6 @@ import {
   Literal,
   LiteralKind,
   Mapping,
-  MappingType,
   MemberAccess,
   ModifierDefinition,
   ModifierInvocation,
@@ -54,7 +53,6 @@ import {
   OverrideSpecifier,
   ParameterList,
   PlaceholderStatement,
-  PointerType,
   Return,
   RevertStatement,
   SourceUnit,
@@ -90,7 +88,6 @@ import { CairoDynArray, CairoType, TypeConversionContext } from './utils/cairoTy
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
 import { implicitOrdering, implicitTypes } from './utils/implicits';
-import { getMappingTypes } from './utils/mappings';
 import { isDynamicArray, isDynamicCallDataArray } from './utils/nodeTypeProcessing';
 import { notNull, notUndefined } from './utils/typeConstructs';
 import {
