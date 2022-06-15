@@ -50,7 +50,6 @@ function generateCopyStatement(
   decl: VariableDeclaration,
   ast: AST,
 ): [VariableDeclarationStatement, number] {
-  // TODO check scope
   const callDataDecl = cloneASTNode(decl, ast);
   callDataDecl.storageLocation = DataLocation.CallData;
   callDataDecl.name = `${callDataDecl.name}_cd`;

@@ -185,7 +185,7 @@ export async function runStarknetCallOrInvoke(
   }
 }
 
-// TODO use actual path libraries rather than doing this manually
+// post-audit TODO use actual path libraries rather than doing this manually
 function extractCairoPath(filePath: string): string {
   return filePath.split('/').slice(0, -1).join('/');
 }

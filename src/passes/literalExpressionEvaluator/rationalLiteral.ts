@@ -86,7 +86,6 @@ export class RationalLiteral {
   }
 
   mod(other: RationalLiteral): RationalLiteral {
-    //TODO test negative cases against remix
     return new RationalLiteral(
       (this.numerator * other.denominator) % (other.numerator * this.denominator),
       this.denominator * other.denominator,

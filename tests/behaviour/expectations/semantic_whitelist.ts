@@ -6,7 +6,6 @@
 
 const tests: string[] = [
   //---------AbiEncodeDecode tests - WillNotSupport
-  // TODO: ensure these all throw a WillNotSupport
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/abi_decode_simple.sol', // WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/offset_overflow_in_array_decoding_3.sol', // WILL NOT SUPPORT

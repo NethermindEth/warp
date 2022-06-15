@@ -116,7 +116,6 @@ export class DeclarationNameMangler extends ASTMapper {
   mangleFunctionDefinition(node: FunctionDefinition): void {
     if (node.isConstructor) return;
 
-    // TODO switch based on type
     switch (node.visibility) {
       case FunctionVisibility.External:
       case FunctionVisibility.Public:

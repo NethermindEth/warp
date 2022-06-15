@@ -51,7 +51,7 @@ contract WARP {
       return (b2[1][3], b2[1][2], b2[1][1], b2[1][0], b2[0][3], b2[0][2], b2[0][1], b2[0][0]);
     }
 
-    //   int16[4][3] b3; // <- int8[3][2] TODO
+    //   int16[4][3] b3; // <- int8[3][2]
     function testb3(int8[3][2] calldata x) external returns (int16, int16, int16, int16, int16, int16, int16, int16, int16, int16, int16, int16) {
       b3 = x;
       return (b3[2][3], b3[2][2], b3[2][1], b3[2][0], b3[1][3], b3[1][2], b3[1][1], b3[1][0], b3[0][3], b3[0][2], b3[0][1], b3[0][0]);

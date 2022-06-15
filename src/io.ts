@@ -41,7 +41,6 @@ export function findAllFiles(targetPath: string, recurse: boolean): string[] {
   } else if (targetInformation.isFile()) {
     return [targetPath];
   } else {
-    // TODO check all non-file, non-directory options and remove this
     console.log(`WARNING: Found ${targetPath}, which is neither a file nor directory`);
     return [];
   }

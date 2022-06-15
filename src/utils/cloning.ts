@@ -47,7 +47,6 @@ import { NotSupportedYetError, TranspileFailedError } from './errors';
 import { createParameterList } from './nodeTemplates';
 import { notNull } from './typeConstructs';
 
-// TODO update referenced declarations
 export function cloneASTNode<T extends ASTNode>(node: T, ast: AST): T {
   const idRemappings = new Map<number, number>();
   const clonedNode = cloneASTNodeImpl(node, ast, idRemappings);

@@ -210,7 +210,6 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     if (isExternallyVisible(func)) {
       if (node.vExpression) {
         // External functions need to read out their returns
-        // TODO might need to expand this to be clear that it's a deep read
         const retExpressions =
           node.vExpression instanceof TupleExpression && !node.vExpression.isInlineArray
             ? node.vExpression.vOriginalComponents.map((element) => {

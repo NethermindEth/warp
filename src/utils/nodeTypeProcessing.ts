@@ -133,8 +133,8 @@ export function specializeType(typeNode: TypeNode, loc: DataLocation): TypeNode 
     return new PointerType(new MappingType(concreteKeyT, concreteValueT), DataLocation.Storage);
   }
 
-  // TODO: What to do about string literals?
-  // All other types are "value" types.
+  // Note string literals are a special case where the location cannot be known by a function like this
+  // We insert conversions around string literals based on how they are being used in implicitConversionToExplicit
   return typeNode;
 }
 
