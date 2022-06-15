@@ -25,7 +25,7 @@ export function addNonOverridenModifiers(
           currentModifiers.set(modifier.name, clonedModifier);
           idRemappingOverriders.set(modifier.id, clonedModifier);
         } else {
-          clonedModifier.name = `${clonedModifier.name}_m${depth + 1}`;
+          clonedModifier.name = `m${depth + 1}_${clonedModifier.name}`;
           idRemappingOverriders.set(modifier.id, exisitingModifier);
         }
         node.appendChild(clonedModifier);

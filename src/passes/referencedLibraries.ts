@@ -4,7 +4,6 @@ import {
   ContractDefinition,
   ContractKind,
   FunctionCall,
-  FunctionDefinition,
   MemberAccess,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -44,9 +43,6 @@ export class ReferencedLibraries extends ASTMapper {
           getLibrariesToInherit(library, librariesById).forEach((id) => {
             if (!parent.linearizedBaseContracts.includes(id)) {
               parent.linearizedBaseContracts.push(id);
-              if (calledDeclaration instanceof FunctionDefinition) {
-                parent.usedLibraryFunctions.add(calledDeclaration);
-              }
             }
           });
         }

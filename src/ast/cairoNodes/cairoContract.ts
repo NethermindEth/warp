@@ -2,7 +2,6 @@ import {
   ASTNode,
   ContractDefinition,
   ContractKind,
-  FunctionDefinition,
   StructuredDocumentation,
   VariableDeclaration,
 } from 'solc-typed-ast';
@@ -17,7 +16,6 @@ export class CairoContract extends ContractDefinition {
   staticStorageAllocations: Map<VariableDeclaration, number>;
   usedStorage: number;
   usedIds: number;
-  usedLibraryFunctions: Set<FunctionDefinition> = new Set();
 
   constructor(
     id: number,
