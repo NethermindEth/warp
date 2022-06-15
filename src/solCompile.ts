@@ -111,6 +111,7 @@ function cliCompile(
       execSync(`${solcCommand} --standard-json ${allowedPaths}`, {
         input: JSON.stringify(input),
         maxBuffer: MAX_BUFFER_SIZE,
+        stdio: ['pipe', 'pipe', 'ignore'],
       }).toString(),
     ),
     compilerVersion: fullVersionFromMajor(nethersolcVersion),
