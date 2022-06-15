@@ -3,12 +3,9 @@
 # Warp
 
 Warp brings Solidity to StarkNet, making it possible to transpile Ethereum
-smart contracts to Cairo, and use them on StarkNet.
+smart contracts to StarkNet Cairo Contracts.
 
-## Pre-requisites
-
-Make sure that you have the [`venv`](https://docs.python.org/3/library/venv.html)
-module for your python installation.
+## Installation :gear:
 
 You will also need [z3](https://github.com/Z3Prover/z3) to use warp,
 installation instructions:
@@ -25,7 +22,33 @@ On ubuntu:
 sudo apt install libz3-dev
 ```
 
-## Installation :gear:
+Make sure that you have the [`venv`](https://docs.python.org/3/library/venv.html)
+module for your python installation.
+
+Install warp:
+
+```bash
+yarn global add @nethermindeth/warp
+warp install
+```
+
+If python3.7 can't be found:
+
+```
+warp install --python <path-to-python3.7>
+```
+
+## Usage :computer:
+
+To transpile a contract:
+
+```bash
+bin/warp transpile example_contracts/ERC20.sol
+```
+
+## Contributing :hammer_and_pick:
+
+### Installation from source
 
 To get the dependencies:
 
@@ -39,12 +62,15 @@ Compile the project:
 yarn tsc
 ```
 
-## Usage :computer:
-
-To transpile a contract:
+Get python dev dependencies:
+(recommended to create a python3.7 venv for this)
 
 ```bash
-bin/warp transpile example_contracts/ERC20.sol
+pip install -r requirements.txt
+```
+
+```bash
+bin/warp
 ```
 
 ## Testing
@@ -104,12 +130,3 @@ python starknet-testnet/generateMarkdown.py
 ```
 
 This saves the benchmarks at `benchmark/stats/data.md`
-
-## Contribution :hammer_and_pick:
-
-Contributions are welcome but please reach out to the team before attempting
-any large modifications to the source. You can get an overview of the project's
-progress on [our notion
-board](https://nethermind.notion.site/eab63c6df3f7442c8761bc65d7b45e82?v=d9efd18a8a9947e9b760f3959e43a4fc)
-along with good starting issues and descriptions of the intended solutions for
-a number of others.
