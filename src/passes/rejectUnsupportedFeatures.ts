@@ -94,16 +94,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     }
   }
 
-  visitSourceUnit(sourceUnit: SourceUnit, ast: AST): void {
-    if (sourceUnit.absolutePath.includes('-')) {
-      throw new WillNotSupportError(
-        `Cairo filenames should not include "-", as this prevents importing, please rename. Found in ${sourceUnit.absolutePath}`,
-        sourceUnit,
-      );
-    }
-    this.commonVisit(sourceUnit, ast);
-  }
-
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     if (!(getNodeType(node.vExpression, ast.compilerVersion) instanceof AddressType)) {
       this.visitExpression(node, ast);
