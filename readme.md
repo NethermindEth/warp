@@ -1,4 +1,4 @@
-img src="https://github.com/NethermindEth/warp-ts/blob/develop/resources/WARP.svg" width="900" height="512" />
+<img src="https://github.com/NethermindEth/warp-ts/blob/develop/resources/WARP.svg" width="900" height="512" />
 
 # Warp
 
@@ -31,14 +31,24 @@ Without any virtual environment activated run the following in order:
 
 ```bash
 yarn global add @nethermindeth/warp
-which warp - /home/guy/.yarn/bin/warp
+```
+
+Run the following to see the version and that it was installed:
+
+```bash
+warp version
+```
+
+Finally run the following to install the dependencies:
+
+```bash
 warp install
 ```
 
-Test installation works with:
+Test installation works your own an example ERC20 contract:
 
-```
-warp transpile <somecontract>
+```bash
+warp transpile example_contracts/ERC20.sol
 ```
 
 ### Installation Method 2 (from source):
@@ -67,7 +77,7 @@ pip install -r requirements.txt
 To transpile a contract:
 
 ```bash
-bin/warp transpile example_contracts/ERC20.sol
+warp transpile example_contracts/ERC20.sol
 ```
 
 ## Testing
@@ -75,7 +85,7 @@ bin/warp transpile example_contracts/ERC20.sol
 To test run warp on all example contracts:
 
 ```bash
-bin/warp test
+warp test
 ```
 
 For this to work, you must have the cairo-lang package installed.
@@ -159,6 +169,8 @@ Please see the list below:
 |                typeName expressions                |    :question:     |
 |                     gasleft()                      |    :question:     |
 |                     msg.value                      |    :question:     |
+|                      msg.sig                       |    :question:     |
+|                      msg.data                      |    :question:     |
 |                    tx.gasprice                     |    :question:     |
 |                     tx.origin                      |    :question:     |
 |                     try/catch                      |    :question:     |
@@ -167,7 +179,10 @@ Please see the list below:
 |                   block.basefee                    |    :question:     |
 |                   block.chainid                    |    :question:     |
 |                  block.difficulty                  |        :x:        |
-|                    precompiles                     |    :question:     |
+|        precompiles (appart from ecrecover)         |    :question:     |
 |                    selfdestruct                    |    :question:     |
 |                     blockHash                      |    :question:     |
 |                 functions as data                  |    :question:     |
+|           sha256 (use keccak256 instead)           |        :x:        |
+|                       addmod                       |        :x:        |
+|                       mulmod                       |        :x:        |
