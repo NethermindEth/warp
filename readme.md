@@ -1,4 +1,4 @@
-<img src="https://github.com/NethermindEth/warp-ts/blob/develop/resources/WARP.svg" width="900" height="512" />
+img src="https://github.com/NethermindEth/warp-ts/blob/develop/resources/WARP.svg" width="900" height="512" />
 
 # Warp
 
@@ -131,5 +131,43 @@ This saves the benchmarks at `benchmark/stats/data.md`
 
 ## Transpiling
 
-Please not that transpiling a library by itself and not a contract will result in no output.
+Please note that transpiling a library by itself and not a contract will result in no output.
 Libraries are bundled into point of use.
+
+### Solidity Features Not Supported
+
+There are a number of features that are not supported/do not have analogs in Starknet yet.
+We will try our best to add these features as Starknet supports them, but some may not be
+possible due to fundamental differences in the platforms.
+
+Please see the list below:
+
+|           Support Status            |      Symbol       |
+| :---------------------------------: | :---------------: |
+|   Will likely never be supported    |        :x:        |
+|    Being developed/investigated     | :hammer_and_pick: |
+| Currently Unknown/If added in Cairo |    :question:     |
+
+|                      Solidity                      |  Support Status   |
+| :------------------------------------------------: | :---------------: |
+|            fallback functions with args            | :hammer_and_pick: |
+|                   delagate calls                   | :hammer_and_pick: |
+| contract creation from contracts (new, new w/salt) | :hammer_and_pick: |
+|                  low level calls                   |        :x:        |
+|              abi methods (abi.encode)              |        :x:        |
+|              nested tuple expressions              |    :question:     |
+|                typeName expressions                |    :question:     |
+|                     gasleft()                      |    :question:     |
+|                     msg.value                      |    :question:     |
+|                    tx.gasprice                     |    :question:     |
+|                     tx.origin                      |    :question:     |
+|                     try/catch                      |    :question:     |
+|                   block.coinbase                   |    :question:     |
+|                   block.gaslimit                   |    :question:     |
+|                   block.basefee                    |    :question:     |
+|                   block.chainid                    |    :question:     |
+|                  block.difficulty                  |        :x:        |
+|                    precompiles                     |    :question:     |
+|                    selfdestruct                    |    :question:     |
+|                     blockHash                      |    :question:     |
+|                 functions as data                  |    :question:     |
