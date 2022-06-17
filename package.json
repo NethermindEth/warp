@@ -1,6 +1,6 @@
 {
   "name": "@nethermindeth/warp",
-  "version": "0.0.2",
+  "version": "2.0.0",
   "description": "Solidity to Cairo Transpiler",
   "main": "index.ts",
   "author": "Nethermind",
