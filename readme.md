@@ -25,8 +25,23 @@ sudo apt install libz3-dev
 Make sure that you have the [`venv`](https://docs.python.org/3/library/venv.html)
 module for your python installation.
 
+### Installation Method 1:
 
-### Installation from source
+Without any virtual environment activated run the following in order:
+
+```bash
+yarn global add @nethermindeth/warp
+which warp - /home/guy/.yarn/bin/warp
+warp install
+```
+
+Test installation works with:
+
+```
+warp transpile <somecontract>
+```
+
+### Installation Method 2 (from source):
 
 To get the dependencies:
 
@@ -47,10 +62,6 @@ Get python dev dependencies:
 pip install -r requirements.txt
 ```
 
-```bash
-bin/warp
-```
-
 ## Usage :computer:
 
 To transpile a contract:
@@ -58,9 +69,6 @@ To transpile a contract:
 ```bash
 bin/warp transpile example_contracts/ERC20.sol
 ```
-
-## Contributing :hammer_and_pick:
-
 
 ## Testing
 
@@ -70,10 +78,11 @@ To test run warp on all example contracts:
 bin/warp test
 ```
 
-For this to work, you must be able to run
+For this to work, you must have the cairo-lang package installed.
+To test try:
 
 ```bash
-starknet-compile
+starknet-compile -v
 ```
 
 Instructions to set this up can be found at
@@ -82,7 +91,7 @@ https://www.cairo-lang.org/docs/quickstart.html
 To examine a solidity file in unwarped AST form:
 
 ```bash
-bin/warp analyse example_contracts/ERC20.sol
+warp analyse example_contracts/ERC20.sol
 ```
 
 ---New tests---
@@ -119,3 +128,8 @@ python starknet-testnet/generateMarkdown.py
 ```
 
 This saves the benchmarks at `benchmark/stats/data.md`
+
+## Transpiling
+
+Please not that transpiling a library by itself and not a contract will result in no output.
+Libraries are bundled into point of use.
