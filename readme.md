@@ -51,7 +51,7 @@ Test installation works your own an example ERC20 contract:
 warp transpile example_contracts/ERC20.sol
 ```
 
-### Installation Method 2 (from source):
+### Installation Method 2 (from source/for devs):
 
 To get the dependencies:
 
@@ -79,67 +79,6 @@ To transpile a contract:
 ```bash
 warp transpile example_contracts/ERC20.sol
 ```
-
-## Testing
-
-To test run warp on all example contracts:
-
-```bash
-warp test
-```
-
-For this to work, you must have the cairo-lang package installed.
-To test try:
-
-```bash
-starknet-compile -v
-```
-
-Instructions to set this up can be found at
-https://www.cairo-lang.org/docs/quickstart.html
-
-To examine a solidity file in unwarped AST form:
-
-```bash
-warp analyse example_contracts/ERC20.sol
-```
-
----New tests---
-The old tests check for successfully compiling cairo code
-The new tests check for correctly running cairo code
-
-First run the setup script:
-
-```bash
-tests/behaviour/setup.sh
-```
-
-Second, in a separate terminal, start a starknet-testnet server:
-
-```bash
-yarn testnet
-```
-
-then to run the tests:
-
-```bash
-yarn test
-```
-
-In order to generate benchmarks locally during development:
-
-```bash
-yarn testnet:benchmark
-yarn test
-```
-
-```python
-python starknet-testnet/generateMarkdown.py
-```
-
-This saves the benchmarks at `benchmark/stats/data.md`
-
-## Transpiling
 
 Please note that transpiling a library by itself and not a contract will result in no output.
 Libraries are bundled into point of use.
@@ -186,3 +125,66 @@ Please see the list below:
 |           sha256 (use keccak256 instead)           |        :x:        |
 |                       addmod                       |        :x:        |
 |                       mulmod                       |        :x:        |
+
+## Testing :stethoscope:
+
+To test run warp on all example contracts:
+
+```bash
+warp test
+```
+
+For this to work, you must have the cairo-lang package installed.
+To test try:
+
+```bash
+starknet-compile -v
+```
+
+Instructions to set this up can be found at
+https://www.cairo-lang.org/docs/quickstart.html
+
+To examine a solidity file in unwarped AST form:
+
+```bash
+warp analyse example_contracts/ERC20.sol
+```
+
+---New tests---
+The previous section of tests check for successfully compiling cairo code.
+The next sections tests check for correct inputs and outputs of cairo contracts.
+
+First run the setup script:
+
+```bash
+tests/behaviour/setup.sh
+```
+
+Second, in a separate terminal, start a starknet-testnet server (in an environment with cairo-lang installed):
+
+```bash
+yarn testnet
+```
+
+then to run the tests:
+
+```bash
+yarn test
+```
+
+In order to generate benchmarks locally during development:
+
+```bash
+yarn testnet:benchmark
+yarn test
+```
+
+```python
+python starknet-testnet/generateMarkdown.py
+```
+
+This saves the benchmarks at `benchmark/stats/data.md`
+
+## Contact Us :phone:
+
+If you run into any problems please raise an issue or contact us on our Nethermind discord server: https://discord.com/invite/PaCMRFdvWT
