@@ -63,6 +63,7 @@ Compile the project:
 
 ```bash
 yarn tsc
+yarn warplib
 ```
 
 Get python dev dependencies:
