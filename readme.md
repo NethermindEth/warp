@@ -45,7 +45,7 @@ Finally run the following to install the dependencies:
 warp install
 ```
 
-Test installation works your own an example ERC20 contract:
+Test installation works by transpiling an example ERC20 contract:
 
 ```bash
 warp transpile example_contracts/ERC20.sol
@@ -79,6 +79,12 @@ To transpile a contract:
 
 ```bash
 warp transpile example_contracts/ERC20.sol
+```
+
+To transpile a contract and then cairo compile run:
+
+```bash
+warp transpile example_contracts/ERC20.sol --compile-cairo
 ```
 
 Please note that transpiling a library by itself and not a contract will result in no output.
@@ -127,9 +133,9 @@ Please see the list below:
 |                       addmod                       |        :x:        |
 |                       mulmod                       |        :x:        |
 
-## Testing :stethoscope:
+## Testing for contributors :stethoscope:
 
-To test run warp on all example contracts:
+To test that your contribution doesn't break any features you can test that all previous example contracts transpile and then cairo compile by running the following:
 
 ```bash
 warp test
@@ -145,15 +151,7 @@ starknet-compile -v
 Instructions to set this up can be found at
 https://www.cairo-lang.org/docs/quickstart.html
 
-To examine a solidity file in unwarped AST form:
-
-```bash
-warp analyse example_contracts/ERC20.sol
-```
-
----New tests---
-The previous section of tests check for successfully compiling cairo code.
-The next sections tests check for correct inputs and outputs of cairo contracts.
+Then to see that your contribution doesn't break the behaviour tests follow these steps:
 
 First run the setup script:
 
