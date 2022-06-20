@@ -371,7 +371,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
         node.vParameters.vParameters.map((o) => cloneASTNodeImpl(o, ast, remappedIds)),
         ast,
       ),
-      node.documentation,
+      cloneDocumentation(node.documentation, ast, remappedIds),
     );
   } else if (node instanceof FunctionDefinition) {
     newNode = new FunctionDefinition(
