@@ -372,6 +372,8 @@ function cloneASTNodeImpl<T extends ASTNode>(
         ast,
       ),
       cloneDocumentation(node.documentation, ast, remappedIds),
+      node.nameLocation,
+      node.raw,
     );
   } else if (node instanceof FunctionDefinition) {
     newNode = new FunctionDefinition(
