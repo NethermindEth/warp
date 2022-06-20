@@ -127,7 +127,7 @@ Please see the list below:
 |                  block.difficulty                  |        :x:        |
 |         precompiles (apart from ecrecover)         |    :question:     |
 |                    selfdestruct                    |    :question:     |
-|                     blockHash                      |    :question:     |
+|                     blockhash                      |    :question:     |
 |                 functions as data                  |    :question:     |
 |           sha256 (use keccak256 instead)           |        :x:        |
 |                       addmod                       |        :x:        |
