@@ -110,7 +110,7 @@ Please see the list below:
 |                   delegate calls                   | :hammer_and_pick: |
 | contract creation from contracts (new, new w/salt) | :hammer_and_pick: |
 |                  low level calls                   |        :x:        |
-|              abi methods (abi.encode)              |        :x:        |
+|              abi methods (abi.encode)              |    :question:     |
 |              nested tuple expressions              |    :question:     |
 |                typeName expressions                |    :question:     |
 |                     gasleft()                      |    :question:     |
@@ -125,13 +125,16 @@ Please see the list below:
 |                   block.basefee                    |    :question:     |
 |                   block.chainid                    |    :question:     |
 |                  block.difficulty                  |        :x:        |
-|        precompiles (apart from ecrecover)         |    :question:     |
+|         precompiles (apart from ecrecover)         |    :question:     |
 |                    selfdestruct                    |    :question:     |
 |                     blockHash                      |    :question:     |
 |                 functions as data                  |    :question:     |
 |           sha256 (use keccak256 instead)           |        :x:        |
 |                       addmod                       |        :x:        |
 |                       mulmod                       |        :x:        |
+|                  ternary operator                  |    :question:     |
+|                 indexed parameters                 |        :x:        |
+|                      receive                       |    :question:     |
 
 Note: We have changed the return of `ecrecover` to be `uint160` because we use the `address` type for StarkNet addresses.
 
