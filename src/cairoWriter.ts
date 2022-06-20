@@ -615,8 +615,17 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     assert(node.vBody.children.length > 0, error(`${printNode(node)} has an empty body`));
     const keccakPtr = withKeccak !== '' ? ', keccak_ptr' : '';
 
+    const fallbackReference =
+      node.kind === FunctionKind.Fallback && node.vParameters.vParameters.length > 0
+        ? [
+            `let ${node.vParameters.vParameters[0].name}_len = calldata_size`,
+            `let ${node.vParameters.vParameters[0].name} = calldata`,
+          ]
+        : [];
+
     return [
       'alloc_locals',
+      ...fallbackReference,
       this.getConstructorStorageAllocation(node),
       ...keccakPtrInit,
       'let (local warp_memory : DictAccess*) = default_dict_new(0)',
@@ -632,7 +641,9 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   }
 
   private getReturns(node: CairoFunctionDefinition, writer: ASTWriter): string {
-    if (node.kind === FunctionKind.Constructor) return '';
+    if (node.kind === FunctionKind.Constructor || node.vReturnParameters.vParameters.length === 0)
+      return '';
+    if (node.kind === FunctionKind.Fallback) return '-> (retdata_size: felt, retdata: felt*)';
     return `-> (${writer.write(node.vReturnParameters)})`;
   }
 
