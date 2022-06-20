@@ -1,4 +1,4 @@
-<img src="https://github.com/NethermindEth/warp-ts/blob/develop/resources/WARP.svg" width="900" height="512" />
+<img src="./resources/WARP.svg" width="900" height="512" />
 
 # Warp
 
