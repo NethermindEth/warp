@@ -99,6 +99,7 @@ import {
   isExternalCall,
   mangleStructName,
   isExpectingSplit,
+  isExternalMemoryDynArray,
 } from './utils/utils';
 
 const INDENT = ' '.repeat(4);
@@ -823,6 +824,10 @@ class IdentifierWriter extends CairoASTNodeWriter {
     if (isExpectingSplit(node, this.ast.compilerVersion)) {
       return [`${node.name}.len, ${node.name}.ptr`];
     }
+    if (isExternalMemoryDynArray(node, this.ast.compilerVersion)) {
+      return [`${node.name}_len, ${node.name}`];
+    }
+
     return [
       `${
         node.vReferencedDeclaration
