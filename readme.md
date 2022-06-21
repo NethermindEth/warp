@@ -135,6 +135,13 @@ Please see the list below:
 |                  ternary operator                  |    :question:     |
 |                 indexed parameters                 |        :x:        |
 |                      receive                       |    :question:     |
+|         named arguments in function calls          |    :question:     |
+|                     Yul Blocks                     |    :question:     |
+|             reverts with custom errors             |    :question:     |
+|                user defined errors                 |    :question:     |
+|               function call options                |    :question:     |
+| member access of address object (address.balance)  |    :question:     |
+|              nested tuple expressions              |    :question:     |
 
 Note: We have changed the return of `ecrecover` to be `uint160` because we use the `address` type for StarkNet addresses.
 
