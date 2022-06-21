@@ -47,7 +47,7 @@ import {
 import Web3 from 'web3';
 import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
-import { printNode, printTypeNode } from './astPrinter';
+import { printTypeNode } from './astPrinter';
 import {
   logError,
   NotSupportedYetError,
