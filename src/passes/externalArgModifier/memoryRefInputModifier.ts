@@ -15,7 +15,7 @@ export class RefTypeModifier extends ASTMapper {
   The original dataLocation of each of the filtered VariableDeclarations is then set to CallData.
   
   A VariableDeclarationStatement is then inserted into the beginning of the fuction body with a 
-  cloned VariableDeclaration with the DataLocation set to Memory the and the initialValue being an 
+  cloned VariableDeclaration with the DataLocation set to Memory and the initialValue being an 
   Identifier referencing the original VariableDeclaration in the Parameter list, 
   with the DataLocation as CallData. 
 

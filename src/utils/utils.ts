@@ -47,7 +47,7 @@ import {
 import Web3 from 'web3';
 import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
-import { printTypeNode } from './astPrinter';
+import { printNode, printTypeNode } from './astPrinter';
 import {
   logError,
   NotSupportedYetError,
@@ -416,7 +416,16 @@ export function isExternalCall(node: FunctionCall): boolean {
   );
 }
 
-// 'string_hash' function can not be user defined, due to mangling identifiers
+export function isExternalMemoryDynArray(node: Identifier, compilerVersion: string): boolean {
+  const declaration = node.vReferencedDeclaration;
+  if (declaration === undefined || !(declaration instanceof VariableDeclaration)) return false;
+
+  const declarationLocation = declaration.storageLocation;
+  const typeLocation = generalizeType(getNodeType(node, compilerVersion))[1];
+
+  return declarationLocation === DataLocation.CallData && typeLocation === DataLocation.Memory;
+}
+
 export function isExpectingSplit(node: Identifier, compilerVersion: string): boolean {
   return (
     isDynamicCallDataArray(getNodeType(node, compilerVersion)) &&
@@ -426,6 +435,7 @@ export function isExpectingSplit(node: Identifier, compilerVersion: string): boo
       node.getClosestParentByType(IndexAccess) === undefined &&
       node.getClosestParentByType(MemberAccess) === undefined) ||
       (node.parent instanceof FunctionCall && isExternalCall(node.parent)) ||
+      // 'string_hash' function can not be user defined, due to mangling identifiers
       (node.parent instanceof FunctionCall && node.parent.vFunctionName === 'string_hash'))
   );
 }
