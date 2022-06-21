@@ -369,7 +369,11 @@ export const expectations = flatten(
             Expect.Simple('f', [], ['3', '0x3', '0x1', '0x2']),
             Expect.Simple('g', [], ['3', '0x3', '0x1', '0x2']),
             Expect.Simple('h', [], ['5', '0x68', '0x65', '0x6C', '0x6C', '0x6F']),
-            Expect.Simple('i', [], ['0x38', '0', '0x1', '0', '129445968720857988376759499178045865984']),
+            Expect.Simple(
+              'i',
+              [],
+              ['0x38', '0', '0x1', '0', '129445968720857988376759499178045865984'],
+            ),
           ]),
           File.Simple('simpleConstants', [
             Expect.Simple('getX', [], ['247']),
@@ -1733,7 +1737,13 @@ export const expectations = flatten(
           File.Simple('example', [Expect.Simple('ArrayFunc', [], ['69', '0'])]),
         ]),
         new Dir('ecrecover', [
-          File.Simple('failing_ecrecover_invalid_input', [Expect.Simple('f', [], ['0'])]),
+          File.Simple('failing_ecrecover_invalid_input', [
+            Expect.Simple('f', [], ['0']),
+            Expect.Simple('g', [], ['0']),
+            Expect.Simple('h', [], ['0']),
+            Expect.Simple('i', [], ['0']),
+            Expect.Simple('j', [], ['0']),
+          ]),
           File.Simple('ecrecover_abiV2', [
             Expect.Simple(
               'a',
