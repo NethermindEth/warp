@@ -255,7 +255,8 @@ export const expectations = flatten(
             Expect.Simple('returnFirstIndex', ['2', ...['1', '2']], ['1']),
           ]),
           File.Simple('returningDynArrayExternally', [
-            Expect.Simple('tester', ['3', '4', '5', ' 6'], ['6']),
+            Expect.Simple('test', ['3', '4', '5', '6'], ['3', '4', '5', '6']),
+            Expect.Simple('testIndexing', ['3', '4', '5', ' 6'], ['6']),
           ]),
         ]),
         new Dir('concat', [
@@ -369,7 +370,11 @@ export const expectations = flatten(
             Expect.Simple('f', [], ['3', '0x3', '0x1', '0x2']),
             Expect.Simple('g', [], ['3', '0x3', '0x1', '0x2']),
             Expect.Simple('h', [], ['5', '0x68', '0x65', '0x6C', '0x6C', '0x6F']),
-            Expect.Simple('i', [], ['0x38', '0', '0x1', '0', '129445968720857988376759499178045865984']),
+            Expect.Simple(
+              'i',
+              [],
+              ['0x38', '0', '0x1', '0', '129445968720857988376759499178045865984'],
+            ),
           ]),
           File.Simple('simpleConstants', [
             Expect.Simple('getX', [], ['247']),

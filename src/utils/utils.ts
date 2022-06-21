@@ -418,7 +418,12 @@ export function isExternalCall(node: FunctionCall): boolean {
 
 export function isExternalMemoryDynArray(node: Identifier, compilerVersion: string): boolean {
   const declaration = node.vReferencedDeclaration;
-  if (declaration === undefined || !(declaration instanceof VariableDeclaration)) return false;
+  if (
+    !(declaration instanceof VariableDeclaration) ||
+    node.parent instanceof IndexAccess ||
+    node.parent instanceof MemberAccess
+  )
+    return false;
 
   const declarationLocation = declaration.storageLocation;
   const typeLocation = generalizeType(getNodeType(node, compilerVersion))[1];
