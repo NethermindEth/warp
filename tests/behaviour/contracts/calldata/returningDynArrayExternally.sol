@@ -14,4 +14,8 @@ contract WARP {
     function testIndexing(bytes calldata x) public returns (bytes1) {
         return this.identity(x)[2];
     }
+
+    function testTwice(bytes calldata x) public returns (bytes memory) {
+        return this.test(this.test(x));
+    }
 }
