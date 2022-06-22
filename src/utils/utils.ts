@@ -61,7 +61,7 @@ import {
   createBytesTypeName,
   createNumberLiteral,
 } from './nodeTemplates';
-import { isDynamicCallDataArray } from './nodeTypeProcessing';
+import { isDynamicArray, isDynamicCallDataArray } from './nodeTypeProcessing';
 import { Class } from './typeConstructs';
 
 const uint128 = BigInt('0x100000000000000000000000000000000');
@@ -416,6 +416,8 @@ export function isExternalCall(node: FunctionCall): boolean {
   );
 }
 
+// Detects when an identifier represents a memory dynamic arrays that's being treated as calldata
+// (which only occurs when the memory dynamic array is the output of a cross contract call function)
 export function isExternalMemoryDynArray(node: Identifier, compilerVersion: string): boolean {
   const declaration = node.vReferencedDeclaration;
   if (
@@ -426,12 +428,17 @@ export function isExternalMemoryDynArray(node: Identifier, compilerVersion: stri
     return false;
 
   const declarationLocation = declaration.storageLocation;
-  const typeLocation = generalizeType(getNodeType(node, compilerVersion))[1];
+  const [nodeType, typeLocation] = generalizeType(getNodeType(node, compilerVersion));
 
-  return declarationLocation === DataLocation.CallData && typeLocation === DataLocation.Memory;
+  return (
+    isDynamicArray(nodeType) &&
+    declarationLocation === DataLocation.CallData &&
+    typeLocation === DataLocation.Memory
+  );
 }
 
-export function isExpectingSplit(node: Identifier, compilerVersion: string): boolean {
+// Detects when an identifier represents a calldata dynamic array in solidity
+export function isCalldataDynArrayStruct(node: Identifier, compilerVersion: string): boolean {
   return (
     isDynamicCallDataArray(getNodeType(node, compilerVersion)) &&
     ((node.getClosestParentByType(Return) !== undefined &&

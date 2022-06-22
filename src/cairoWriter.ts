@@ -98,7 +98,7 @@ import {
   primitiveTypeToCairo,
   isExternalCall,
   mangleStructName,
-  isExpectingSplit,
+  isCalldataDynArrayStruct,
   isExternalMemoryDynArray,
 } from './utils/utils';
 
@@ -821,10 +821,16 @@ class IdentifierWriter extends CairoASTNodeWriter {
     ) {
       return ['0'];
     }
-    if (isExpectingSplit(node, this.ast.compilerVersion)) {
+    if (isCalldataDynArrayStruct(node, this.ast.compilerVersion)) {
+      // Calldata dynamic arrays have the element pointer and length variables
+      // stored inside a struct. When the dynamic array is accessed, struct's members
+      // must be used instead
       return [`${node.name}.len, ${node.name}.ptr`];
     }
     if (isExternalMemoryDynArray(node, this.ast.compilerVersion)) {
+      // Memory treated as calldata behaves similarly to calldata but it's
+      // element pointer and length variabes are not wrapped inside a struct.
+      // When access to the dynamic array is needed, this two variables are used instead
       return [`${node.name}_len, ${node.name}`];
     }
 
