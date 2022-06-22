@@ -25,6 +25,7 @@ export class CallGraphBuilder extends ASTMapper {
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST) {
     this.currentFunction = node;
+    this.functionId.set(node.id, node);
     this.callGraph.set(node.id, new Set());
     this.commonVisit(node, ast);
     this.currentFunction = undefined;
