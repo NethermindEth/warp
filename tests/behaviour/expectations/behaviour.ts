@@ -235,6 +235,7 @@ export const expectations = flatten(
             Expect.Simple('getLength', [], ['4', '0']),
           ]),
         ]),
+        new Dir('cairo_stubs', [File.Simple('basic', [Expect.Simple('useStub', [], ['5'])])]),
         new Dir('calldata', [
           File.Simple('passingDynArrayInternally', [
             new Expect(
