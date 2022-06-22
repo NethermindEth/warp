@@ -104,37 +104,42 @@ Please see the list below:
 |    Being developed/investigated     | :hammer_and_pick: |
 | Currently Unknown/If added in Cairo |    :question:     |
 
-|                      Solidity                      |  Support Status   |
-| :------------------------------------------------: | :---------------: |
-|            fallback functions with args            | :hammer_and_pick: |
-|                   delegate calls                   | :hammer_and_pick: |
-| contract creation from contracts (new, new w/salt) | :hammer_and_pick: |
-|                  low level calls                   |        :x:        |
-|              abi methods (abi.encode)              |    :question:     |
-|              nested tuple expressions              |    :question:     |
-|                typeName expressions                |    :question:     |
-|                     gasleft()                      |    :question:     |
-|                     msg.value                      |    :question:     |
-|                      msg.sig                       |    :question:     |
-|                      msg.data                      |    :question:     |
-|                    tx.gasprice                     |    :question:     |
-|                     tx.origin                      |    :question:     |
-|                     try/catch                      |    :question:     |
-|                   block.coinbase                   |    :question:     |
-|                   block.gaslimit                   |    :question:     |
-|                   block.basefee                    |    :question:     |
-|                   block.chainid                    |    :question:     |
-|                  block.difficulty                  |        :x:        |
-|         precompiles (apart from ecrecover)         |    :question:     |
-|                    selfdestruct                    |    :question:     |
-|                     blockhash                      |    :question:     |
-|                 functions as data                  |    :question:     |
-|           sha256 (use keccak256 instead)           |        :x:        |
-|                       addmod                       |        :x:        |
-|                       mulmod                       |        :x:        |
-|                  ternary operator                  |    :question:     |
-|                 indexed parameters                 |        :x:        |
-|                      receive                       |    :question:     |
+|                      Solidity                       |  Support Status   |
+| :-------------------------------------------------: | :---------------: |
+|            fallback functions with args             | :hammer_and_pick: |
+|                   delegate calls                    | :hammer_and_pick: |
+| contract creation from contracts (new, new w/salt)  | :hammer_and_pick: |
+|                 indexed parameters                  | :hammer_and_pick: |
+|                   low level calls                   |        :x:        |
+|              abi methods (abi.encode)               |    :question:     |
+|              nested tuple expressions               |    :question:     |
+|                typeName expressions                 |    :question:     |
+|                      gasleft()                      |    :question:     |
+|                      msg.value                      |    :question:     |
+|                       msg.sig                       |    :question:     |
+|                      msg.data                       |    :question:     |
+|                     tx.gasprice                     |    :question:     |
+|                      tx.origin                      |    :question:     |
+|                      try/catch                      |    :question:     |
+|                   block.coinbase                    |    :question:     |
+|                   block.gaslimit                    |    :question:     |
+|                    block.basefee                    |    :question:     |
+|                    block.chainid                    |    :question:     |
+|                  block.difficulty                   |        :x:        |
+|         precompiles (apart from ecrecover)          |    :question:     |
+|                    selfdestruct                     |    :question:     |
+|                      blockhash                      |    :question:     |
+|                  functions as data                  |    :question:     |
+|           sha256 (use keccak256 instead)            |        :x:        |
+|                       addmod                        |        :x:        |
+|                       mulmod                        |        :x:        |
+|                  ternary operator                   |    :question:     |
+|                       receive                       |    :question:     |
+|                     Yul Blocks                      |    :question:     |
+|                 user defined errors                 |    :question:     |
+|   function call options e.g x.f{gas: 10000}(arg1)   |    :question:     |
+| member access of address object e.g address.balance |    :question:     |
+|              nested tuple assignments               |    :question:     |
 
 Note: We have changed the return of `ecrecover` to be `uint160` because we use the `address` type for StarkNet addresses.
 
