@@ -16,7 +16,6 @@ import {
   FunctionCallKind,
   FunctionCallOptions,
   FunctionDefinition,
-  FunctionKind,
   FunctionType,
   getNodeType,
   Identifier,
