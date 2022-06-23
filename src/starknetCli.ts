@@ -9,7 +9,7 @@ const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')
 
 export function compileCairo(
   filePath: string,
-  cairoPath: string = extractCairoPath(filePath),
+  cairoPath: string = path.resolve(__dirname, '..'),
 ): { success: boolean; resultPath: string | undefined; abiPath: string | undefined } {
   assert(filePath.endsWith('.cairo'), `Attempted to compile non-cairo file ${filePath} as cairo`);
   const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
@@ -25,9 +25,7 @@ export function compileCairo(
   try {
     console.log(`Running starknet compile with cairoPath ${cairoPath}`);
     execSync(
-      `${warpVenvPrefix} starknet-compile --cairo_path warp_output ${filePath} ${[
-        ...parameters.entries(),
-      ]
+      `${warpVenvPrefix} starknet-compile ${filePath} ${[...parameters.entries()]
         .map(([key, value]) => `--${key} ${value}`)
         .join(' ')}`,
       { stdio: 'inherit' },
@@ -183,9 +181,4 @@ export async function runStarknetCallOrInvoke(
   } catch {
     logError(`starknet ${callOrInvoke} failed`);
   }
-}
-
-// post-audit TODO use actual path libraries rather than doing this manually
-function extractCairoPath(filePath: string): string {
-  return filePath.split('/').slice(0, -1).join('/');
 }

@@ -86,7 +86,7 @@ export function outputResult(
     formatOutput(fullCodeOutPath);
 
     if (options.compileCairo) {
-      const { resultPath, abiPath } = compileCairo(fullCodeOutPath, options.outputDir);
+      const { resultPath, abiPath } = compileCairo(fullCodeOutPath);
       if (resultPath) {
         fs.unlinkSync(resultPath);
       }
