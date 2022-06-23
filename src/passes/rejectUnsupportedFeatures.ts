@@ -16,6 +16,7 @@ import {
   FunctionCallKind,
   FunctionCallOptions,
   FunctionDefinition,
+  FunctionKind,
   FunctionType,
   getNodeType,
   Identifier,
@@ -134,14 +135,14 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       'encodeWithSignature',
       'encodeCall',
     ];
+    const unsupportedMisc = ['blockhash', 'selfdestruct'];
     const funcName = node.vFunctionName;
     if (
       node.kind === FunctionCallKind.FunctionCall &&
       node.vReferencedDeclaration === undefined &&
-      [...unsupportedMath, ...unsupportedAbi].includes(funcName)
+      [...unsupportedMath, ...unsupportedAbi, ...unsupportedMisc].includes(funcName)
     ) {
-      const prefix = unsupportedMath.includes(funcName) ? `Math function` : `Abi function`;
-      throw new WillNotSupportError(`${prefix} ${funcName} is not supported`, node);
+      throw new WillNotSupportError(`Solidity builtin ${funcName} is not supported`, node);
     }
 
     this.visitExpression(node, ast);
@@ -166,6 +167,9 @@ export class RejectUnsupportedFeatures extends ASTMapper {
         const type = getNodeType(decl, ast.compilerVersion);
         functionArgsCheck(type, ast, isExternallyVisible(node), decl.storageLocation, node);
       });
+    }
+    if (node.kind === FunctionKind.Receive) {
+      throw new WillNotSupportError(`Receive functions are not supported`, node);
     }
     this.commonVisit(node, ast);
   }
