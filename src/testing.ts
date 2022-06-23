@@ -71,7 +71,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/events', 'Success'],
     ['example_contracts/external_function', 'Success'],
     ['example_contracts/fallbackWithoutArgs', 'Success'],
-    ['example_contracts/fallbackWithArgs', 'WillNotSupport'],
+    ['example_contracts/fallbackWithArgs', 'Success'],
     // Cannot import with a - in the filename
     ['example_contracts/file-with-minus-sign-included', 'Success'],
     // Typestring for the internal function call doesn't contain a location so a read isn't generated
