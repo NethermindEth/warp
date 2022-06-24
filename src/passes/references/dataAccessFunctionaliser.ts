@@ -309,7 +309,14 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
     }
 
     if (replacement !== null) {
-      this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
+      this.replace(
+        node,
+        replacement,
+        undefined,
+        actualLoc,
+        expectedLoc ?? DataLocation.Default,
+        ast,
+      );
       this.dispatchVisit(replacement, ast);
     } else {
       this.visitExpression(node, ast);

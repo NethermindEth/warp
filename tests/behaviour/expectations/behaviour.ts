@@ -2564,6 +2564,16 @@ export const expectations = flatten(
         new Dir('imports', [
           File.Simple('importto', [Expect.Simple('checkImports', ['3', '2'], ['1'])]),
         ]),
+        new Dir('index_access', [
+          File.Simple('arrayIndexAccess', [
+            Expect.Simple('inIfExpression', ['5'], ['6']),
+            Expect.Simple('inRequire', ['5'], ['6']),
+          ]),
+          File.Simple('mapIndexAccess', [
+            Expect.Simple('inIfExpression', ['5'], ['6']),
+            Expect.Simple('inRequire', ['5'], ['6']),
+          ]),
+        ]),
         new Dir('inheritance', [
           new Dir('constructors', [
             new File(
