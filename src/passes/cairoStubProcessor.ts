@@ -7,6 +7,7 @@ import {
   TranspileFailedError,
   WillNotSupportError,
 } from '../utils/errors';
+import { isExternallyVisible } from '../utils/utils';
 
 export class CairoStubProcessor extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, _ast: AST): void {
@@ -17,6 +18,7 @@ export class CairoStubProcessor extends ASTMapper {
 
     documentation = processDecoratorTags(documentation);
     documentation = processStateVarTags(documentation, node);
+    documentation = processInternalFunctionTag(documentation, node);
     setDocString(node, documentation);
   }
 }
@@ -46,6 +48,36 @@ function processStateVarTags(documentation: string, node: FunctionDefinition): s
     } else {
       throw new TranspileFailedError(
         `Unable to pick between multiple state vars matching ${arg}`,
+        errorNode,
+      );
+    }
+  });
+}
+
+function processInternalFunctionTag(documentation: string, node: FunctionDefinition): string {
+  const contract = node.getClosestParentByType(CairoContract);
+  const errorNode = node.documentation instanceof ASTNode ? node.documentation : node;
+  if (contract === undefined) {
+    throw new WillNotSupportError(
+      `Cairo stub macro 'INTERNALFUNC' is only allowed in member function definitions`,
+      errorNode,
+    );
+  }
+  return processMacro(documentation, /INTERNALFUNC\((.*?)\)/g, (arg) => {
+    const funcNames = contract.vFunctions.filter((f) => !isExternallyVisible(f)).map((f) => f.name);
+    const matchingFuncs = funcNames.filter((name) => {
+      return name.replace(/__warp_usrfn[0-9]+_/, '') === arg;
+    });
+    if (matchingFuncs.length === 0) {
+      throw new TranspilationAbandonedError(
+        `Unable to find matching internal function ${arg}`,
+        errorNode,
+      );
+    } else if (matchingFuncs.length === 1) {
+      return matchingFuncs[0];
+    } else {
+      throw new TranspileFailedError(
+        `Unable to pick between multiple internal functions matching ${arg}`,
         errorNode,
       );
     }
