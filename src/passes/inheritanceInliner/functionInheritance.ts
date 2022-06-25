@@ -162,7 +162,9 @@ function createDelegatingFunction(
       createReturn(
         createCallToFunction(
           delegate,
-          newFunc.vParameters.vParameters.map((v) => createIdentifier(v, ast)),
+          newFunc.vParameters.vParameters.map((v) =>
+            createIdentifier(v, ast, undefined, funcToCopy),
+          ),
           ast,
         ),
         newFunc.vReturnParameters.id,
