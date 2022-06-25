@@ -88,7 +88,8 @@ warp transpile example_contracts/ERC20.sol --compile-cairo
 ```
 
 Please note that transpiling a library by itself and not a contract will result in no output.
-Libraries are bundled into point of use.
+Libraries are bundled into point of use. If you would like to deploy a library standalone
+please alter its declaration to `contract`.
 
 ### Solidity Features Not Supported
 
