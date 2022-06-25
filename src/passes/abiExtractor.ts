@@ -31,6 +31,7 @@ export class ABIExtractor extends ASTMapper {
     );
     node.vContracts
       .filter((c) => !c.abstract)
+      .flatMap((cd) => cd.vLinearizedBaseContracts)
       .forEach((cd) => {
         if (cd.vConstructor !== undefined) {
           // We do this to trick the canonicalSignature method into giving us a result
