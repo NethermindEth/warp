@@ -1,4 +1,3 @@
-import { match } from 'assert';
 import { ElementaryTypeName, getNodeType, IntType, Literal } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoFunctionDefinition } from '../ast/cairoNodes';
