@@ -58,8 +58,14 @@ export abstract class CairoUtilFuncGenBase {
   }
 
   protected checkForImport(type: TypeNode): void {
-    if (type instanceof IntType && type.nBits === 256) {
-      this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    if (type instanceof IntType) {
+      console.log('mc', type.pp());
+      if (type.signed) {
+        this.requireImport('warplib.types.ints', `Int${Math.ceil(type.nBits / 8) * 8}`);
+      } else if (type.nBits > 251) this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+      else {
+        this.requireImport('warplib.types.uints', `Uint${Math.ceil(type.nBits / 8) * 8}`);
+      }
     }
   }
 }

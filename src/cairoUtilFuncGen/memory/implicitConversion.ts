@@ -394,16 +394,25 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     targetVar: string,
     sourceVar: string,
   ): string {
-    if (targetType.signed && targetType.nBits !== sourceType.nBits) {
-      const conversionFunc = `warp_int${sourceType.nBits}_to_int${targetType.nBits}`;
+    // if (targetType.signed && targetType.nBits !== sourceType.nBits) {
+    //   const conversionFunc = `warp_int${sourceType.nBits}_to_int${targetType.nBits}`;
+    //   this.requireImport('warplib.maths.int_conversions', conversionFunc);
+    //   return `let (${targetVar}) = ${conversionFunc}(${sourceVar})`;
+    // } else if (!targetType.signed && targetType.nBits === 256 && sourceType.nBits < 256) {
+    //   const conversionFunc = `felt_to_uint256`;
+    //   this.requireImport('warplib.maths.utils', conversionFunc);
+    //   return `let (${targetVar}) = ${conversionFunc}(${sourceVar})`;
+    // } else {
+    //   return `let ${targetVar} = ${sourceVar}`;
+    // }
+    if (targetType.signed === sourceType.signed && targetType.nBits === sourceType.nBits) {
+      return `let ${targetVar} = ${sourceVar}`;
+    } else {
+      const conversionFunc = `warp_${sourceType.signed ? '' : 'u'}int${sourceType.nBits}_to_${
+        sourceType.signed ? '' : 'u'
+      }int${targetType.nBits}`;
       this.requireImport('warplib.maths.int_conversions', conversionFunc);
       return `let (${targetVar}) = ${conversionFunc}(${sourceVar})`;
-    } else if (!targetType.signed && targetType.nBits === 256 && sourceType.nBits < 256) {
-      const conversionFunc = `felt_to_uint256`;
-      this.requireImport('warplib.maths.utils', conversionFunc);
-      return `let (${targetVar}) = ${conversionFunc}(${sourceVar})`;
-    } else {
-      return `let ${targetVar} = ${sourceVar}`;
     }
   }
 

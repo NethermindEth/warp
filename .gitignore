@@ -154,6 +154,7 @@ warplib/maths/add_signed.cairo
 warplib/maths/add_signed_unsafe.cairo
 
 # sub - handwritten
+warplib/maths/sub.cairo
 warplib/maths/sub_unsafe.cairo
 warplib/maths/sub_signed.cairo
 warplib/maths/sub_signed_unsafe.cairo
@@ -204,5 +205,10 @@ warplib/maths/int_conversions.cairo
 
 # ---external-input-input-checks---
 warplib/maths/external_input_check_ints.cairo
+warplib/maths/external_input_check_uints.cairo
 # external_input_check_address.cairo - handwritten
 # external_input_check_bool.cairo - handwritten
+
+# ---types---
+warplib/types/ints.cairo
+warplib/types/uints.cairo

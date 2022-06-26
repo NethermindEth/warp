@@ -766,10 +766,18 @@ class LiteralWriter extends CairoASTNodeWriter {
             const [high, low] = divmod(BigInt(node.value), BigInt(Math.pow(2, 128)));
             return [`Uint256(low=${low}, high=${high})`];
           }
+          case 'Int256': {
+            const [high, low] = divmod(BigInt(node.value), BigInt(Math.pow(2, 128)));
+            return [`Int256(value=Uint256(low=${low}, high=${high}))`];
+          }
           case 'felt':
             return [node.value];
-          default:
+          default: {
+            if (primitiveTypeToCairo(node.typeString).match(/^(Int|Uint)(\d+)$/)) {
+              return [`${primitiveTypeToCairo(node.typeString)}(value=${node.value})`];
+            }
             throw new TranspileFailedError('Attempted to write unexpected cairo type');
+          }
         }
       case LiteralKind.Bool:
         return [node.value === 'true' ? '1' : '0'];

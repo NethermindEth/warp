@@ -12,15 +12,18 @@ import { mul, mul_unsafe, mul_signed, mul_signed_unsafe } from './implementation
 import { negate } from './implementations/maths/negate';
 import { shl } from './implementations/maths/shl';
 import { shr, shr_signed } from './implementations/maths/shr';
-import { sub_unsafe, sub_signed, sub_signed_unsafe } from './implementations/maths/sub';
+import { sub_unsafe, sub_signed, sub_signed_unsafe, sub } from './implementations/maths/sub';
 import { external_input_check_ints } from './implementations/external_input_checks/external_input_checks_ints';
+import { external_input_check_uints } from './implementations/external_input_checks/external_input_checks_uints';
+import { ints_structs } from './implementations/types/ints';
+import { uints_structs } from './implementations/types/uints';
 
 add();
 add_unsafe();
 add_signed();
 add_signed_unsafe();
 
-//sub - handwritten
+sub();
 sub_unsafe();
 sub_signed();
 sub_signed_unsafe();
@@ -72,5 +75,10 @@ int_conversions();
 
 // ---external_input_checks---
 external_input_check_ints();
+external_input_check_uints();
 // and - handwritten
 // or - handwritten
+
+// -- type structs ---
+ints_structs();
+uints_structs();
