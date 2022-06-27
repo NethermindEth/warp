@@ -13,7 +13,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction } from '../../utils/functionGeneration';
-import { MANGLED_PARAMETER, MANGLED_RETURN_PARAMETER } from '../../utils/manglingPrefix';
+import { MANGLED_PARAMETER, MANGLED_RETURN_PARAMETER } from '../../utils/nameModifiers';
 import {
   createBlock,
   createExpressionStatement,

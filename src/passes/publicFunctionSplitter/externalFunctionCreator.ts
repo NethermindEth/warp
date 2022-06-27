@@ -10,7 +10,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction } from '../../utils/functionGeneration';
-import { INTERNAL_FUNCTION_SUFFIX } from '../../utils/manglingPrefix';
+import { INTERNAL_FUNCTION_SUFFIX } from '../../utils/nameModifiers';
 import { createBlock, createIdentifier, createReturn } from '../../utils/nodeTemplates';
 export class ExternalFunctionCreator extends ASTMapper {
   constructor(

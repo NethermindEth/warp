@@ -27,7 +27,7 @@ import {
 } from '../../utils/nodeTemplates';
 import { cloneASTNode } from '../../utils/cloning';
 import { toSingleExpression } from '../../utils/utils';
-import { RETURN_FLAG_PREFIX, RETURN_VALUE_PREFIX } from '../../utils/manglingPrefix';
+import { RETURN_FLAG_PREFIX, RETURN_VALUE_PREFIX } from '../../utils/nameModifiers';
 
 export class ReturnToBreak extends ASTMapper {
   returnFlags: Map<WhileStatement | DoWhileStatement, VariableDeclaration> = new Map();

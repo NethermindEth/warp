@@ -19,7 +19,7 @@ import { AST } from '../../ast/ast';
 import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
-import { WHILE_PREFIX } from '../../utils/manglingPrefix';
+import { WHILE_PREFIX } from '../../utils/nameModifiers';
 import {
   createBlock,
   createIdentifier,

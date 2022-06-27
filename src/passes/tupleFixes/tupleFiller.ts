@@ -17,7 +17,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { getDefaultValue } from '../../utils/defaultValueNodes';
-import { TUPLE_FILLER_PREFIX } from '../../utils/manglingPrefix';
+import { TUPLE_FILLER_PREFIX } from '../../utils/nameModifiers';
 import { createIdentifier, createVariableDeclarationStatement } from '../../utils/nodeTemplates';
 import { notNull } from '../../utils/typeConstructs';
 import { expressionHasSideEffects, typeNameFromTypeNode } from '../../utils/utils';

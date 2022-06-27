@@ -1,5 +1,4 @@
 // TODO:
-// Check there are no issues path mangling, although it seems there won't be any
 // External contract handler should be passed here?
 // StorageAllocator adds a 'wm_' prefix to some vars
 // Update script name
@@ -18,6 +17,9 @@ export const CONTRACT_PREFIX = '__WARP_CONTRACT__';
 export const MANGLED_INTERNAL_USER_FUNCTION = '__warp_usrfn';
 export const MANGLED_TYPE_NAME = '__warp_usrT';
 export const MANGLED_LOCAL_VAR = '__warp_usrid';
+
+// Used in StaticArrayIndexer
+export const CALLDATA_TO_MEMORY_PREFIX = 'cd_to_wm_';
 
 // Used in ModifierHandler in FunctionModifierHandler
 export const MANGLED_PARAMETER = '__warp_parameter';

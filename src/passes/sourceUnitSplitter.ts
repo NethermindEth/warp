@@ -10,7 +10,7 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
-import { CONTRACT_PREFIX, FREE_FILE } from '../utils/manglingPrefix';
+import { CONTRACT_PREFIX, FREE_FILE } from '../utils/nameModifiers';
 
 type Scoped = FunctionDefinition | ContractDefinition | VariableDeclaration | StructDefinition;
 

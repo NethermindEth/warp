@@ -16,7 +16,7 @@ import {
   MANGLED_INTERNAL_USER_FUNCTION,
   MANGLED_LOCAL_VAR,
   MANGLED_TYPE_NAME,
-} from '../../utils/manglingPrefix';
+} from '../../utils/nameModifiers';
 import { isNameless } from '../../utils/utils';
 
 // Terms grabbed from here
@@ -87,15 +87,15 @@ export class DeclarationNameMangler extends ASTMapper {
 
   // This strategy should allow checked demangling post transpilation for a more readable result
   createNewInternalFunctionName(existingName: string): string {
-    return `${MANGLED_INTERNAL_USER_FUNCTION}{this.lastUsedFunctionId++}_${existingName}`;
+    return `${MANGLED_INTERNAL_USER_FUNCTION}${this.lastUsedFunctionId++}_${existingName}`;
   }
 
   createNewTypeName(existingName: string): string {
-    return `${MANGLED_TYPE_NAME}{this.lastUsedTypeId++}_${existingName}`;
+    return `${MANGLED_TYPE_NAME}${this.lastUsedTypeId++}_${existingName}`;
   }
 
   createNewVariableName(existingName: string): string {
-    return `${MANGLED_LOCAL_VAR}{this.lastUsedVariableId++}_${existingName}`;
+    return `${MANGLED_LOCAL_VAR}${this.lastUsedVariableId++}_${existingName}`;
   }
 
   visitStructDefinition(_node: StructDefinition, _ast: AST): void {

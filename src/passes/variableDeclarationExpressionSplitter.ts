@@ -18,7 +18,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
-import { SPLIT_VARIABLE_PREFIX } from '../utils/manglingPrefix';
+import { SPLIT_VARIABLE_PREFIX } from '../utils/nameModifiers';
 import { createIdentifier } from '../utils/nodeTemplates';
 import { notNull } from '../utils/typeConstructs';
 import { typeNameFromTypeNode } from '../utils/utils';

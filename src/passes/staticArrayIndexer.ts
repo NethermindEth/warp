@@ -22,6 +22,7 @@ import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { generateExpressionTypeString } from '../utils/getTypeString';
+import { CALLDATA_TO_MEMORY_PREFIX } from '../utils/nameModifiers';
 import { createIdentifier } from '../utils/nodeTemplates';
 import { specializeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
@@ -132,7 +133,7 @@ export class StaticArrayIndexer extends ASTMapper {
       '',
       false,
       false,
-      `memory_${identifier.name}`,
+      `${CALLDATA_TO_MEMORY_PREFIX}${identifier.name}`,
       parentFunction?.id,
       false,
       DataLocation.Memory,

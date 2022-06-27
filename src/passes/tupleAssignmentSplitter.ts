@@ -22,7 +22,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
-import { TUPLE_VALUE_PREFIX } from '../utils/manglingPrefix';
+import { TUPLE_VALUE_PREFIX } from '../utils/nameModifiers';
 import { createBlock, createIdentifier } from '../utils/nodeTemplates';
 import { notNull } from '../utils/typeConstructs';
 import { typeNameFromTypeNode } from '../utils/utils';
