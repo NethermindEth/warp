@@ -1,12 +1,5 @@
 import assert from 'assert';
-import {
-  Expression,
-  FunctionCall,
-  FunctionDefinition,
-  Identifier,
-  IdentifierPath,
-  MemberAccess,
-} from 'solc-typed-ast';
+import { FunctionCall, FunctionDefinition } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
@@ -41,10 +34,9 @@ export class CallGraphBuilder extends ASTMapper {
       existingCalls !== undefined,
       `${printNode(this.currentFunction)} should have been added to the map`,
     );
-
-    const refFuncId = getReferencedFunctionId(node.vExpression);
-    if (refFuncId !== undefined) {
-      existingCalls.add(refFuncId);
+    const refFunc = node.vReferencedDeclaration;
+    if (refFunc !== undefined && refFunc instanceof FunctionDefinition) {
+      existingCalls.add(refFunc.id);
       this.callGraph.set(this.currentFunction.id, existingCalls);
     }
 
@@ -63,10 +55,4 @@ export class CallGraphBuilder extends ASTMapper {
       }),
     );
   }
-}
-
-function getReferencedFunctionId(node: Expression): number | undefined {
-  if (node instanceof Identifier || node instanceof IdentifierPath || node instanceof MemberAccess)
-    return node.referencedDeclaration;
-  return undefined;
 }
