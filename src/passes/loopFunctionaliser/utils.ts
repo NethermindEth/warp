@@ -19,6 +19,7 @@ import { AST } from '../../ast/ast';
 import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
+import { WHILE_PREFIX } from '../../utils/manglingPrefix';
 import {
   createBlock,
   createIdentifier,
@@ -35,7 +36,7 @@ export function extractWhileToFunction(
   variables: VariableDeclaration[],
   loopToContinueFunction: Map<number, FunctionDefinition>,
   ast: AST,
-  prefix = '__warp_while',
+  prefix = WHILE_PREFIX,
 ): FunctionDefinition {
   const scope =
     node.getClosestParentByType<ContractDefinition>(ContractDefinition) ??

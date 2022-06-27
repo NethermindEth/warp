@@ -18,6 +18,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
+import { SPLIT_VARIABLE_PREFIX } from '../utils/manglingPrefix';
 import { createIdentifier } from '../utils/nodeTemplates';
 import { notNull } from '../utils/typeConstructs';
 import { typeNameFromTypeNode } from '../utils/utils';
@@ -25,7 +26,7 @@ import { typeNameFromTypeNode } from '../utils/utils';
 export class VariableDeclarationExpressionSplitter extends ASTMapper {
   lastUsedConstantId = 0;
   generateNewConstantName(): string {
-    return `__warp_td_${this.lastUsedConstantId++}`;
+    return `${SPLIT_VARIABLE_PREFIX}${this.lastUsedConstantId++}`;
   }
 
   visitBlock(node: Block, ast: AST): void {

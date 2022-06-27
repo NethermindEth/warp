@@ -27,6 +27,7 @@ import {
 } from '../../utils/nodeTemplates';
 import { cloneASTNode } from '../../utils/cloning';
 import { toSingleExpression } from '../../utils/utils';
+import { RETURN_FLAG_PREFIX, RETURN_VALUE_PREFIX } from '../../utils/manglingPrefix';
 
 export class ReturnToBreak extends ASTMapper {
   returnFlags: Map<WhileStatement | DoWhileStatement, VariableDeclaration> = new Map();
@@ -103,7 +104,7 @@ export class ReturnToBreak extends ASTMapper {
       '',
       false,
       false,
-      `__warp_rf${this.returnFlags.size}`,
+      `${RETURN_FLAG_PREFIX}${this.returnFlags.size}`,
       ast.getContainingScope(containingWhile),
       false,
       DataLocation.Default,
@@ -159,7 +160,7 @@ function insertReturnValueDeclaration(node: Block, ast: AST): VariableDeclaratio
   const declarations = containingFunction.vReturnParameters.vParameters.map((v) =>
     cloneASTNode(v, ast),
   );
-  declarations.forEach((v) => (v.name = `__warp_rv${retVarCounter++}`));
+  declarations.forEach((v) => (v.name = `${RETURN_VALUE_PREFIX}${retVarCounter++}`));
 
   const declarationStatement = new VariableDeclarationStatement(
     ast.reserveId(),

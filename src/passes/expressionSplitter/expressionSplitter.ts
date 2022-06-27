@@ -23,6 +23,7 @@ import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
+import { SPLIT_VARIABLE_PREFIX } from '../../utils/manglingPrefix';
 import { createEmptyTuple, createIdentifier } from '../../utils/nodeTemplates';
 import { counterGenerator } from '../../utils/utils';
 import {
@@ -39,12 +40,12 @@ import {
 function* expressionGenerator(prefix: string): Generator<string, string, unknown> {
   const count = counterGenerator();
   while (true) {
-    yield `${prefix}_${count.next().value}`;
+    yield `${prefix}${count.next().value}`;
   }
 }
 
 export class ExpressionSplitter extends ASTMapper {
-  eGen = expressionGenerator('__warp_se');
+  eGen = expressionGenerator(SPLIT_VARIABLE_PREFIX);
   funcNameCounter = 0;
   varNameCounter = 0;
 

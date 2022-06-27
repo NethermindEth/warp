@@ -13,6 +13,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction } from '../../utils/functionGeneration';
+import { MANGLED_PARAMETER, MANGLED_RETURN_PARAMETER } from '../../utils/manglingPrefix';
 import {
   createBlock,
   createExpressionStatement,
@@ -149,13 +150,13 @@ export class FunctionModifierHandler extends ASTMapper {
 
   createInputParameter(v: VariableDeclaration, ast: AST): VariableDeclaration {
     const variable = cloneASTNode(v, ast);
-    variable.name = `__warp_parameter${this.count++}`;
+    variable.name = `${MANGLED_PARAMETER}{this.count++}`;
     return variable;
   }
 
   createReturnParameter(v: VariableDeclaration, ast: AST): VariableDeclaration {
     const param = cloneASTNode(v, ast);
-    param.name = `__warp_ret_parameter${this.count++}`;
+    param.name = `${MANGLED_RETURN_PARAMETER}{this.count++}`;
     return param;
   }
 }
