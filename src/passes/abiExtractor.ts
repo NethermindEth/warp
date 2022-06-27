@@ -30,10 +30,9 @@ export class ABIExtractor extends ASTMapper {
       addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2')),
     );
     node.vContracts
-      .filter((c) => !c.abstract)
       .flatMap((cd) => cd.vLinearizedBaseContracts)
       .forEach((cd) => {
-        if (cd.vConstructor !== undefined) {
+        if (!cd.abstract && cd.vConstructor !== undefined) {
           // We do this to trick the canonicalSignature method into giving us a result
           const fakeConstructor = cloneASTNode(cd.vConstructor, ast);
           fakeConstructor.isConstructor = false;
