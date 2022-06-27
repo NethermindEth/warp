@@ -120,7 +120,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Ii', InheritanceInliner],
     ['Mh', ModifierHandler],
     ['Pfs', PublicFunctionSplitter],
-    // ['Eam', ExternalArgModifier],
+    ['Eam', ExternalArgModifier],
     ['Lf', LoopFunctionaliser],
     ['R', ReturnInserter],
     ['Rv', ReturnVariableInitializer],

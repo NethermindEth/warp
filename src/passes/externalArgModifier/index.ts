@@ -5,8 +5,8 @@ import { RefTypeModifier } from './memoryRefInputModifier';
 
 export class ExternalArgModifier extends ASTMapper {
   static map(ast: AST): AST {
-    // ast = RefTypeModifier.map(ast);
-    // ast = DynArrayModifier.map(ast);
+    ast = RefTypeModifier.map(ast);
+    ast = DynArrayModifier.map(ast);
     return ast;
   }
 }
