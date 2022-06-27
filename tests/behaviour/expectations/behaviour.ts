@@ -2530,6 +2530,13 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('if', [
+          File.Simple('complexTypeInCondition', [
+            Expect.Simple('arr1DInIfExpression', ['5'], ['6']),
+            Expect.Simple('map1DInIfExpression', ['5'], ['6']),
+            Expect.Simple('arr2DInIfExpression', ['5'], ['6']),
+            Expect.Simple('map2DInIfExpression', ['5'], ['6']),
+            Expect.Simple('nestedExpressions', ['5'], ['5']),
+          ]),
           File.Simple('localVariables', [
             Expect.Simple('ifNoElse', ['1'], ['1'], 'true branch'),
             Expect.Simple('ifNoElse', ['0'], ['0'], 'false branch'),
@@ -2563,16 +2570,6 @@ export const expectations = flatten(
         ]),
         new Dir('imports', [
           File.Simple('importto', [Expect.Simple('checkImports', ['3', '2'], ['1'])]),
-        ]),
-        new Dir('index_access', [
-          File.Simple('arrayIndexAccess', [
-            Expect.Simple('inIfExpression', ['5'], ['6']),
-            Expect.Simple('inRequire', ['5'], ['6']),
-          ]),
-          File.Simple('mapIndexAccess', [
-            Expect.Simple('inIfExpression', ['5'], ['6']),
-            Expect.Simple('inRequire', ['5'], ['6']),
-          ]),
         ]),
         new Dir('inheritance', [
           new Dir('constructors', [
