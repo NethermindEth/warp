@@ -45,7 +45,7 @@ contract WARP {
       twoDArr[0][0] = true;
       oneDMap[0] = false;
       twoDMap[0][0] = false;
-      if((oneDArr[0] && oneDMap[0]) || (oneDMap[0] && twoDArr[0][0])) {
+      if((oneDArr[0] && oneDMap[0]) || (twoDMap[0][0] && twoDArr[0][0])) {
         x = x + 1;
       }
       return x;
