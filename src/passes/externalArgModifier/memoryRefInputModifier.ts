@@ -37,7 +37,7 @@ export class RefTypeModifier extends ASTMapper {
 
   function testReturnMember(structDef calldata structA) external pure returns (uint8) {
       structDef memory __warp_usrid2_structA_mem = structA;
-      return structA_mem.__warp_usrid0_member1;
+      return __warp_usirid1_structA.__warp_usrid0_member1;
   }
   */
 
