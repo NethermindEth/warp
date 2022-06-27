@@ -146,7 +146,7 @@ export function IntxIntFunction(
 export function Comparison(
   node: BinaryOperation,
   name: string,
-  appendWidth: 'only256' | 'signedOrWide',
+  appendWidth: 'only256' | 'signedOrWide' | 'always',
   separateSigned: boolean,
   implicits: (wide: boolean, signed: boolean) => Implicits[],
   ast: AST,
@@ -158,7 +158,8 @@ export function Comparison(
     (lhsType instanceof IntType || lhsType instanceof FixedBytesType) &&
     getIntOrFixedByteBitWidth(lhsType) === 256;
   const signed = lhsType instanceof IntType && lhsType.signed;
-  const shouldAppendWidth = wide || (appendWidth === 'signedOrWide' && signed);
+  const shouldAppendWidth =
+    wide || (appendWidth === 'signedOrWide' && signed) || appendWidth === 'always';
   const fullName = [
     'warp_',
     name,
