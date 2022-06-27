@@ -150,13 +150,13 @@ export class FunctionModifierHandler extends ASTMapper {
 
   createInputParameter(v: VariableDeclaration, ast: AST): VariableDeclaration {
     const variable = cloneASTNode(v, ast);
-    variable.name = `${MANGLED_PARAMETER}{this.count++}`;
+    variable.name = `${MANGLED_PARAMETER}${this.count++}`;
     return variable;
   }
 
   createReturnParameter(v: VariableDeclaration, ast: AST): VariableDeclaration {
     const param = cloneASTNode(v, ast);
-    param.name = `${MANGLED_RETURN_PARAMETER}{this.count++}`;
+    param.name = `${MANGLED_RETURN_PARAMETER}${this.count++}`;
     return param;
   }
 }
