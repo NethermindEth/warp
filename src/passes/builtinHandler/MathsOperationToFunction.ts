@@ -1,8 +1,21 @@
-import { BinaryOperation, UnaryOperation, UncheckedBlock } from 'solc-typed-ast';
+import {
+  BinaryOperation,
+  FunctionCall,
+  FunctionKind,
+  FunctionStateMutability,
+  FunctionVisibility,
+  Identifier,
+  ParameterList,
+  UnaryOperation,
+  UncheckedBlock,
+  VariableDeclaration,
+} from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { CairoFunctionDefinition } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
 import { NotSupportedYetError } from '../../utils/errors';
-import { createNumberLiteral } from '../../utils/nodeTemplates';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { functionaliseAdd } from '../../warplib/implementations/maths/add';
 import { functionaliseAnd } from '../../warplib/implementations/maths/and';
 import { functionaliseBitwiseAnd } from '../../warplib/implementations/maths/bitwise_and';
@@ -25,6 +38,7 @@ import { functionaliseShr } from '../../warplib/implementations/maths/shr';
 import { functionaliseSub } from '../../warplib/implementations/maths/sub';
 import { functionaliseXor } from '../../warplib/implementations/maths/xor';
 
+/* Note we also include mulmod and add mod here */
 export class MathsOperationToFunction extends ASTMapper {
   inUncheckedBlock = false;
 
@@ -86,6 +100,34 @@ export class MathsOperationToFunction extends ASTMapper {
     }
 
     thunk();
+  }
+
+  visitFunctionCall(node: FunctionCall, ast: AST): void {
+    this.commonVisit(node, ast);
+
+    if (
+      node.vExpression instanceof Identifier &&
+      node.vExpression.vReferencedDeclaration === undefined
+    ) {
+      console.log(node.vExpression.name);
+      if (['mulmod', 'addmod'].includes(node.vExpression.name)) {
+        const name = `warp_${node.vExpression.name}`;
+        const cairoStub = createCairoFunctionStub(
+          name,
+          [
+            ['x', createUint256TypeName(ast)],
+            ['y', createUint256TypeName(ast)],
+          ],
+          [['res', createUint256TypeName(ast)]],
+          [],
+          ast,
+          node,
+        );
+        const replacement = createCallToFunction(cairoStub, node.vArguments, ast);
+        ast.replaceNode(node, replacement);
+        ast.registerImport(replacement, `warplib.maths.${node.vExpression.name}`, name);
+      }
+    }
   }
 }
 

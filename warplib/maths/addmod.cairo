@@ -3,22 +3,7 @@ from warplib.maths.utils import felt_to_uint256
 
 const SHIFT = 2 ** 128
 
-func warp_addmod{range_check_ptr}(x : felt, y : felt, k : felt) -> (res : felt):
-    if k == 0:
-        with_attr error_message("Modulo by zero error"):
-            assert 1 = 0
-        end
-    end
-    let (x_256) = felt_to_uint256(x)
-    let (y_256) = felt_to_uint256(y)
-    let (k_256) = felt_to_uint256(k)
-    # We know for certain the carry is 0
-    let (xy, _) = uint256_add(x_256, y_256)
-    let (_, res256) = uint256_unsigned_div_rem(xy, k_256)
-    return (res256.low + SHIFT * res256.high)
-end
-
-func warp_addmod256{range_check_ptr}(x : Uint256, y : Uint256, k : Uint256) -> (res : Uint256):
+func warp_addmod{range_check_ptr}(x : Uint256, y : Uint256, k : Uint256) -> (res : Uint256):
     alloc_locals
     if k.high + k.low == 0:
         with_attr error_message("Modulo by zero error"):
