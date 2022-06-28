@@ -3721,12 +3721,12 @@ export const expectations = flatten(
           ),
         ],
       ),
-      File.Simple('ERC20_storage', [
-        Expect.Simple('deposit', ['74', '0', '500', '0'], []),
-        Expect.Simple('transferFrom', ['74', '0', '68', '0', '400', '0', '74', '0'], ['1']),
-        Expect.Simple('withdraw', ['80', '0', '74', '0'], []),
-        Expect.Simple('get_balance', ['74', '0'], ['20', '0']),
-      ]),
+      // File.Simple('ERC20_storage', [
+      //   Expect.Simple('deposit', ['74', '0', '500', '0'], []),
+      //   Expect.Simple('transferFrom', ['74', '0', '68', '0', '400', '0', '74', '0'], ['1']),
+      //   Expect.Simple('withdraw', ['80', '0', '74', '0'], []),
+      //   Expect.Simple('get_balance', ['74', '0'], ['20', '0']),
+      // ]),
       new File(
         'ERC20',
         'ERC20',
@@ -3738,6 +3738,9 @@ export const expectations = flatten(
           Expect.Simple('totalSupply', [], ['0', '0']),
           Expect.Simple('balanceOf', ['1234'], ['0', '0']),
           Expect.Simple('allowance', ['123', '765'], ['0', '0']),
+          new Expect('transfer', [['transfer', ['123', '0', '0'], ['1'], '4']]),
+          new Expect('approve', [['approve', ['1234', '0', '0'], ['1'], '4']]),
+          new Expect('transferFrom', [['transferFrom', ['4', '123', '0', '0'], ['1'], '1234']]),
         ],
       ),
     ]),
