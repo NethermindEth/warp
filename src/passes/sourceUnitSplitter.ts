@@ -14,7 +14,7 @@ import { cloneASTNode } from '../utils/cloning';
 type Scoped = FunctionDefinition | ContractDefinition | VariableDeclaration | StructDefinition;
 
 export const CONTRACT_INFIX = '__WC__';
-export const FREE_SUFIX = '__WARP_FREE__';
+export const FREE_SUFIX = '__WC_FREE';
 
 export class SourceUnitSplitter extends ASTMapper {
   static map(ast: AST): AST {
