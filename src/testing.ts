@@ -13,6 +13,7 @@ import * as fs from 'fs';
 import { outputFileSync } from 'fs-extra';
 import { error } from './utils/formatting';
 import { manglePath } from './passes/filePathMangler';
+import { CONTRACT_INFIX } from './utils/nameModifiers';
 
 type ResultType =
   | 'CairoCompileFailed'
@@ -325,7 +326,7 @@ function combineResults(results: ResultType[]): ResultType {
 function getTestsWithUnexpectedResults(results: Map<string, ResultType>): string[] {
   const testsWithUnexpectedResults: string[] = [];
   const groupedResults = groupBy([...results.entries()], ([file, _]) => {
-    return file.split('__WARP_CONTRACT__')[0];
+    return file.split(CONTRACT_INFIX)[0];
   });
   [...groupedResults.entries()].forEach((e) => {
     const expected = expectedResults.get(e[0]);
@@ -357,12 +358,12 @@ function printResults(results: Map<string, ResultType>, unexpectedResults: strin
       console.log(`Actual outcome:`);
       const Actual = new Map<string, ResultType>();
       results.forEach((value, key) => {
-        if (key === o || key.startsWith(`${o}__WARP_CONTRACT__`)) {
+        if (key === o || key.startsWith(`${o}${CONTRACT_INFIX}`)) {
           Actual.set(key, value);
         }
       });
       Actual.forEach((value, key) => {
-        if (key.includes('__WARP_CONTRACT__')) {
+        if (key.includes(CONTRACT_INFIX)) {
           console.log(key + '.cairo' + ' : ' + value);
         } else {
           console.log(key + '.sol' + ' : ' + value);
