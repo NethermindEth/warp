@@ -1,0 +1,727 @@
+---Solc warnings:
+Warning: Unused local variable.
+  --> dCall.sol:30:23:
+   |
+30 |         (bool result, bytes memory retData) = contractDAddress.delegatecall(
+   |                       ^^^^^^^^^^^^^^^^^^^^
+
+
+---
+---Input---
+SourceUnit #76
+|   absolutePath: dCall.sol
+|   context: 1
++-PragmaDirective #1
++-ContractDefinition #32 D
+| |   linearizedBaseContracts: 32
+| |   name: D
+| |   scope: 76
+| +-VariableDeclaration #3 x
+| | |   name: x
+| | |   scope: 32
+| | |   storageLocation: default
+| | |   typeString: uint8
+| | |   visibility: public
+| | +-ElementaryTypeName #2 uint8
+| |       name: uint8
+| |       stateMutability: nonpayable
+| |       typeString: uint8
+| +-FunctionDefinition #11 
+| | |   name: 
+| | |   scope: 32
+| | |   stateMutability: nonpayable
+| | |   visibility: public
+| | +-ParameterList #4
+| | +-ParameterList #5
+| | +-Block #10
+| |   +-ExpressionStatement #9
+| |     +-Assignment #8
+| |       |   operator: =
+| |       |   typeString: uint8
+| |       +-Identifier #6 x
+| |       |     name: x
+| |       |     referencedDeclaration: 3
+| |       |     typeString: uint8
+| |       +-Literal #7
+| |             hexValue: 30
+| |             typeString: int_const 0
+| |             value: 0
+| +-FunctionDefinition #23 increaseX
+| | |   name: increaseX
+| | |   scope: 32
+| | |   stateMutability: nonpayable
+| | |   visibility: external
+| | +-ParameterList #14
+| | | +-VariableDeclaration #13 y
+| | |   |   name: y
+| | |   |   scope: 23
+| | |   |   storageLocation: default
+| | |   |   typeString: uint8
+| | |   |   visibility: internal
+| | |   +-ElementaryTypeName #12 uint8
+| | |         name: uint8
+| | |         stateMutability: nonpayable
+| | |         typeString: uint8
+| | +-ParameterList #15
+| | +-Block #22
+| |   +-ExpressionStatement #21
+| |     +-Assignment #20
+| |       |   operator: =
+| |       |   typeString: uint8
+| |       +-Identifier #16 x
+| |       |     name: x
+| |       |     referencedDeclaration: 3
+| |       |     typeString: uint8
+| |       +-BinaryOperation #19
+| |         |   operator: +
+| |         |   typeString: uint8
+| |         +-Identifier #17 x
+| |         |     name: x
+| |         |     referencedDeclaration: 3
+| |         |     typeString: uint8
+| |         +-Identifier #18 y
+| |               name: y
+| |               referencedDeclaration: 13
+| |               typeString: uint8
+| +-FunctionDefinition #31 retX
+|   |   name: retX
+|   |   scope: 32
+|   |   stateMutability: view
+|   |   visibility: external
+|   +-ParameterList #24
+|   +-ParameterList #27
+|   | +-VariableDeclaration #26 
+|   |   |   name: 
+|   |   |   scope: 31
+|   |   |   storageLocation: default
+|   |   |   typeString: uint8
+|   |   |   visibility: internal
+|   |   +-ElementaryTypeName #25 uint8
+|   |         name: uint8
+|   |         stateMutability: nonpayable
+|   |         typeString: uint8
+|   +-Block #30
+|     +-Return #29
+|       |   functionReturnParameters: 27
+|       +-Identifier #28 x
+|             name: x
+|             referencedDeclaration: 3
+|             typeString: uint8
++-ContractDefinition #75 C
+  |   linearizedBaseContracts: 75
+  |   name: C
+  |   scope: 76
+  +-VariableDeclaration #34 z
+  | |   name: z
+  | |   scope: 75
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: public
+  | +-ElementaryTypeName #33 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #42 
+  | |   name: 
+  | |   scope: 75
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #35
+  | +-ParameterList #36
+  | +-Block #41
+  |   +-ExpressionStatement #40
+  |     +-Assignment #39
+  |       |   operator: =
+  |       |   typeString: uint8
+  |       +-Identifier #37 z
+  |       |     name: z
+  |       |     referencedDeclaration: 34
+  |       |     typeString: uint8
+  |       +-Literal #38
+  |             hexValue: 30
+  |             typeString: int_const 0
+  |             value: 0
+  +-FunctionDefinition #74 callDel
+    |   name: callDel
+    |   scope: 75
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #43
+    +-ParameterList #46
+    | +-VariableDeclaration #45 
+    |   |   name: 
+    |   |   scope: 74
+    |   |   storageLocation: default
+    |   |   typeString: bool
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #44 bool
+    |         name: bool
+    |         stateMutability: nonpayable
+    |         typeString: bool
+    +-Block #73
+      +-VariableDeclarationStatement #56
+      | +-VariableDeclaration #48 contractDAddress
+      | | |   name: contractDAddress
+      | | |   scope: 73
+      | | |   storageLocation: default
+      | | |   typeString: address
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #47 address
+      | |       name: address
+      | |       stateMutability: nonpayable
+      | |       typeString: address
+      | +-FunctionCall #55 address
+      |   |   typeString: address
+      |   +-ElementaryTypeNameExpression #50
+      |   | |   typeString: type(address)
+      |   | +-ElementaryTypeName #49 address
+      |   |       name: address
+      |   |       stateMutability: nonpayable
+      |   +-FunctionCall #54 uint256
+      |     |   typeString: uint256
+      |     +-ElementaryTypeNameExpression #52
+      |     | |   typeString: type(uint256)
+      |     | +-ElementaryTypeName #51 uint256
+      |     |       name: uint256
+      |     |       stateMutability: nonpayable
+      |     +-Literal #53
+      |           hexValue: 30786464614164333430623066314566
+      |           typeString: int_const 62393794153214447
+      |           value: 0xddaAd340b0f1Ef
+      +-VariableDeclarationStatement #70
+      | +-VariableDeclaration #58 result
+      | | |   name: result
+      | | |   scope: 73
+      | | |   storageLocation: default
+      | | |   typeString: bool
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #57 bool
+      | |       name: bool
+      | |       stateMutability: nonpayable
+      | |       typeString: bool
+      | +-VariableDeclaration #60 retData
+      | | |   name: retData
+      | | |   scope: 73
+      | | |   storageLocation: memory
+      | | |   typeString: bytes
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #59 bytes
+      | |       name: bytes
+      | |       stateMutability: nonpayable
+      | |       typeString: bytes
+      | +-FunctionCall #69 delegatecall
+      |   |   typeString: tuple(bool,bytes memory)
+      |   +-MemberAccess #62
+      |   | |   memberName: delegatecall
+      |   | |   typeString: function (bytes memory) returns (bool,bytes memory)
+      |   | +-Identifier #61 contractDAddress
+      |   |       name: contractDAddress
+      |   |       referencedDeclaration: 48
+      |   |       typeString: address
+      |   +-FunctionCall #68 encodeCall
+      |     |   typeString: bytes memory
+      |     +-MemberAccess #64
+      |     | |   memberName: encodeCall
+      |     | |   typeString: function () pure returns (bytes memory)
+      |     | +-Identifier #63 abi
+      |     |       name: abi
+      |     |       referencedDeclaration: -1
+      |     |       typeString: abi
+      |     +-MemberAccess #66
+      |     | |   memberName: increaseX
+      |     | |   referencedDeclaration: 23
+      |     | |   typeString: function D.increaseX(uint8)
+      |     | +-Identifier #65 D
+      |     |       name: D
+      |     |       referencedDeclaration: 32
+      |     |       typeString: type(contract D)
+      |     +-Literal #67
+      |           hexValue: 38
+      |           typeString: int_const 8
+      |           value: 8
+      +-Return #72
+        |   functionReturnParameters: 46
+        +-Identifier #71 result
+              name: result
+              referencedDeclaration: 58
+              typeString: bool
+
+---TupleFixes---
+SourceUnit #76
+|   absolutePath: dCall.sol
+|   context: 1
++-PragmaDirective #1
++-ContractDefinition #32 D
+| |   linearizedBaseContracts: 32
+| |   name: D
+| |   scope: 76
+| +-VariableDeclaration #3 x
+| | |   name: x
+| | |   scope: 32
+| | |   storageLocation: default
+| | |   typeString: uint8
+| | |   visibility: public
+| | +-ElementaryTypeName #2 uint8
+| |       name: uint8
+| |       stateMutability: nonpayable
+| |       typeString: uint8
+| +-FunctionDefinition #11 
+| | |   name: 
+| | |   scope: 32
+| | |   stateMutability: nonpayable
+| | |   visibility: public
+| | +-ParameterList #4
+| | +-ParameterList #5
+| | +-Block #10
+| |   +-ExpressionStatement #9
+| |     +-Assignment #8
+| |       |   operator: =
+| |       |   typeString: uint8
+| |       +-Identifier #6 x
+| |       |     name: x
+| |       |     referencedDeclaration: 3
+| |       |     typeString: uint8
+| |       +-Literal #7
+| |             hexValue: 30
+| |             typeString: int_const 0
+| |             value: 0
+| +-FunctionDefinition #23 increaseX
+| | |   name: increaseX
+| | |   scope: 32
+| | |   stateMutability: nonpayable
+| | |   visibility: external
+| | +-ParameterList #14
+| | | +-VariableDeclaration #13 y
+| | |   |   name: y
+| | |   |   scope: 23
+| | |   |   storageLocation: default
+| | |   |   typeString: uint8
+| | |   |   visibility: internal
+| | |   +-ElementaryTypeName #12 uint8
+| | |         name: uint8
+| | |         stateMutability: nonpayable
+| | |         typeString: uint8
+| | +-ParameterList #15
+| | +-Block #22
+| |   +-ExpressionStatement #21
+| |     +-Assignment #20
+| |       |   operator: =
+| |       |   typeString: uint8
+| |       +-Identifier #16 x
+| |       |     name: x
+| |       |     referencedDeclaration: 3
+| |       |     typeString: uint8
+| |       +-BinaryOperation #19
+| |         |   operator: +
+| |         |   typeString: uint8
+| |         +-Identifier #17 x
+| |         |     name: x
+| |         |     referencedDeclaration: 3
+| |         |     typeString: uint8
+| |         +-Identifier #18 y
+| |               name: y
+| |               referencedDeclaration: 13
+| |               typeString: uint8
+| +-FunctionDefinition #31 retX
+|   |   name: retX
+|   |   scope: 32
+|   |   stateMutability: view
+|   |   visibility: external
+|   +-ParameterList #24
+|   +-ParameterList #27
+|   | +-VariableDeclaration #26 
+|   |   |   name: 
+|   |   |   scope: 31
+|   |   |   storageLocation: default
+|   |   |   typeString: uint8
+|   |   |   visibility: internal
+|   |   +-ElementaryTypeName #25 uint8
+|   |         name: uint8
+|   |         stateMutability: nonpayable
+|   |         typeString: uint8
+|   +-Block #30
+|     +-Return #29
+|       |   functionReturnParameters: 27
+|       +-Identifier #28 x
+|             name: x
+|             referencedDeclaration: 3
+|             typeString: uint8
++-ContractDefinition #75 C
+  |   linearizedBaseContracts: 75
+  |   name: C
+  |   scope: 76
+  +-VariableDeclaration #34 z
+  | |   name: z
+  | |   scope: 75
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: public
+  | +-ElementaryTypeName #33 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #42 
+  | |   name: 
+  | |   scope: 75
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #35
+  | +-ParameterList #36
+  | +-Block #41
+  |   +-ExpressionStatement #40
+  |     +-Assignment #39
+  |       |   operator: =
+  |       |   typeString: uint8
+  |       +-Identifier #37 z
+  |       |     name: z
+  |       |     referencedDeclaration: 34
+  |       |     typeString: uint8
+  |       +-Literal #38
+  |             hexValue: 30
+  |             typeString: int_const 0
+  |             value: 0
+  +-FunctionDefinition #74 callDel
+    |   name: callDel
+    |   scope: 75
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #43
+    +-ParameterList #46
+    | +-VariableDeclaration #45 
+    |   |   name: 
+    |   |   scope: 74
+    |   |   storageLocation: default
+    |   |   typeString: bool
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #44 bool
+    |         name: bool
+    |         stateMutability: nonpayable
+    |         typeString: bool
+    +-Block #73
+      +-VariableDeclarationStatement #56
+      | +-VariableDeclaration #48 contractDAddress
+      | | |   name: contractDAddress
+      | | |   scope: 73
+      | | |   storageLocation: default
+      | | |   typeString: address
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #47 address
+      | |       name: address
+      | |       stateMutability: nonpayable
+      | |       typeString: address
+      | +-FunctionCall #55 address
+      |   |   typeString: address
+      |   +-ElementaryTypeNameExpression #50
+      |   | |   typeString: type(address)
+      |   | +-ElementaryTypeName #49 address
+      |   |       name: address
+      |   |       stateMutability: nonpayable
+      |   +-FunctionCall #54 uint256
+      |     |   typeString: uint256
+      |     +-ElementaryTypeNameExpression #52
+      |     | |   typeString: type(uint256)
+      |     | +-ElementaryTypeName #51 uint256
+      |     |       name: uint256
+      |     |       stateMutability: nonpayable
+      |     +-Literal #53
+      |           hexValue: 30786464614164333430623066314566
+      |           typeString: int_const 62393794153214447
+      |           value: 0xddaAd340b0f1Ef
+      +-VariableDeclarationStatement #70
+      | +-VariableDeclaration #58 result
+      | | |   name: result
+      | | |   scope: 73
+      | | |   storageLocation: default
+      | | |   typeString: bool
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #57 bool
+      | |       name: bool
+      | |       stateMutability: nonpayable
+      | |       typeString: bool
+      | +-VariableDeclaration #60 retData
+      | | |   name: retData
+      | | |   scope: 73
+      | | |   storageLocation: memory
+      | | |   typeString: bytes
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #59 bytes
+      | |       name: bytes
+      | |       stateMutability: nonpayable
+      | |       typeString: bytes
+      | +-FunctionCall #69 delegatecall
+      |   |   typeString: tuple(bool,bytes memory)
+      |   +-MemberAccess #62
+      |   | |   memberName: delegatecall
+      |   | |   typeString: function (bytes memory) returns (bool,bytes memory)
+      |   | +-Identifier #61 contractDAddress
+      |   |       name: contractDAddress
+      |   |       referencedDeclaration: 48
+      |   |       typeString: address
+      |   +-FunctionCall #68 encodeCall
+      |     |   typeString: bytes memory
+      |     +-MemberAccess #64
+      |     | |   memberName: encodeCall
+      |     | |   typeString: function () pure returns (bytes memory)
+      |     | +-Identifier #63 abi
+      |     |       name: abi
+      |     |       referencedDeclaration: -1
+      |     |       typeString: abi
+      |     +-MemberAccess #66
+      |     | |   memberName: increaseX
+      |     | |   referencedDeclaration: 23
+      |     | |   typeString: function D.increaseX(uint8)
+      |     | +-Identifier #65 D
+      |     |       name: D
+      |     |       referencedDeclaration: 32
+      |     |       typeString: type(contract D)
+      |     +-Literal #67
+      |           hexValue: 38
+      |           typeString: int_const 8
+      |           value: 8
+      +-Return #72
+        |   functionReturnParameters: 46
+        +-Identifier #71 result
+              name: result
+              referencedDeclaration: 58
+              typeString: bool
+
+---TypeNameRemover---
+SourceUnit #76
+|   absolutePath: dCall.sol
+|   context: 1
++-PragmaDirective #1
++-ContractDefinition #32 D
+| |   linearizedBaseContracts: 32
+| |   name: D
+| |   scope: 76
+| +-VariableDeclaration #3 x
+| | |   name: x
+| | |   scope: 32
+| | |   storageLocation: default
+| | |   typeString: uint8
+| | |   visibility: public
+| | +-ElementaryTypeName #2 uint8
+| |       name: uint8
+| |       stateMutability: nonpayable
+| |       typeString: uint8
+| +-FunctionDefinition #11 
+| | |   name: 
+| | |   scope: 32
+| | |   stateMutability: nonpayable
+| | |   visibility: public
+| | +-ParameterList #4
+| | +-ParameterList #5
+| | +-Block #10
+| |   +-ExpressionStatement #9
+| |     +-Assignment #8
+| |       |   operator: =
+| |       |   typeString: uint8
+| |       +-Identifier #6 x
+| |       |     name: x
+| |       |     referencedDeclaration: 3
+| |       |     typeString: uint8
+| |       +-Literal #7
+| |             hexValue: 30
+| |             typeString: int_const 0
+| |             value: 0
+| +-FunctionDefinition #23 increaseX
+| | |   name: increaseX
+| | |   scope: 32
+| | |   stateMutability: nonpayable
+| | |   visibility: external
+| | +-ParameterList #14
+| | | +-VariableDeclaration #13 y
+| | |   |   name: y
+| | |   |   scope: 23
+| | |   |   storageLocation: default
+| | |   |   typeString: uint8
+| | |   |   visibility: internal
+| | |   +-ElementaryTypeName #12 uint8
+| | |         name: uint8
+| | |         stateMutability: nonpayable
+| | |         typeString: uint8
+| | +-ParameterList #15
+| | +-Block #22
+| |   +-ExpressionStatement #21
+| |     +-Assignment #20
+| |       |   operator: =
+| |       |   typeString: uint8
+| |       +-Identifier #16 x
+| |       |     name: x
+| |       |     referencedDeclaration: 3
+| |       |     typeString: uint8
+| |       +-BinaryOperation #19
+| |         |   operator: +
+| |         |   typeString: uint8
+| |         +-Identifier #17 x
+| |         |     name: x
+| |         |     referencedDeclaration: 3
+| |         |     typeString: uint8
+| |         +-Identifier #18 y
+| |               name: y
+| |               referencedDeclaration: 13
+| |               typeString: uint8
+| +-FunctionDefinition #31 retX
+|   |   name: retX
+|   |   scope: 32
+|   |   stateMutability: view
+|   |   visibility: external
+|   +-ParameterList #24
+|   +-ParameterList #27
+|   | +-VariableDeclaration #26 
+|   |   |   name: 
+|   |   |   scope: 31
+|   |   |   storageLocation: default
+|   |   |   typeString: uint8
+|   |   |   visibility: internal
+|   |   +-ElementaryTypeName #25 uint8
+|   |         name: uint8
+|   |         stateMutability: nonpayable
+|   |         typeString: uint8
+|   +-Block #30
+|     +-Return #29
+|       |   functionReturnParameters: 27
+|       +-Identifier #28 x
+|             name: x
+|             referencedDeclaration: 3
+|             typeString: uint8
++-ContractDefinition #75 C
+  |   linearizedBaseContracts: 75
+  |   name: C
+  |   scope: 76
+  +-VariableDeclaration #34 z
+  | |   name: z
+  | |   scope: 75
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: public
+  | +-ElementaryTypeName #33 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #42 
+  | |   name: 
+  | |   scope: 75
+  | |   stateMutability: nonpayable
+  | |   visibility: public
+  | +-ParameterList #35
+  | +-ParameterList #36
+  | +-Block #41
+  |   +-ExpressionStatement #40
+  |     +-Assignment #39
+  |       |   operator: =
+  |       |   typeString: uint8
+  |       +-Identifier #37 z
+  |       |     name: z
+  |       |     referencedDeclaration: 34
+  |       |     typeString: uint8
+  |       +-Literal #38
+  |             hexValue: 30
+  |             typeString: int_const 0
+  |             value: 0
+  +-FunctionDefinition #74 callDel
+    |   name: callDel
+    |   scope: 75
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #43
+    +-ParameterList #46
+    | +-VariableDeclaration #45 
+    |   |   name: 
+    |   |   scope: 74
+    |   |   storageLocation: default
+    |   |   typeString: bool
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #44 bool
+    |         name: bool
+    |         stateMutability: nonpayable
+    |         typeString: bool
+    +-Block #73
+      +-VariableDeclarationStatement #56
+      | +-VariableDeclaration #48 contractDAddress
+      | | |   name: contractDAddress
+      | | |   scope: 73
+      | | |   storageLocation: default
+      | | |   typeString: address
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #47 address
+      | |       name: address
+      | |       stateMutability: nonpayable
+      | |       typeString: address
+      | +-FunctionCall #55 address
+      |   |   typeString: address
+      |   +-ElementaryTypeNameExpression #50
+      |   | |   typeString: type(address)
+      |   | +-ElementaryTypeName #49 address
+      |   |       name: address
+      |   |       stateMutability: nonpayable
+      |   +-FunctionCall #54 uint256
+      |     |   typeString: uint256
+      |     +-ElementaryTypeNameExpression #52
+      |     | |   typeString: type(uint256)
+      |     | +-ElementaryTypeName #51 uint256
+      |     |       name: uint256
+      |     |       stateMutability: nonpayable
+      |     +-Literal #53
+      |           hexValue: 30786464614164333430623066314566
+      |           typeString: int_const 62393794153214447
+      |           value: 0xddaAd340b0f1Ef
+      +-VariableDeclarationStatement #70
+      | +-VariableDeclaration #58 result
+      | | |   name: result
+      | | |   scope: 73
+      | | |   storageLocation: default
+      | | |   typeString: bool
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #57 bool
+      | |       name: bool
+      | |       stateMutability: nonpayable
+      | |       typeString: bool
+      | +-VariableDeclaration #60 retData
+      | | |   name: retData
+      | | |   scope: 73
+      | | |   storageLocation: memory
+      | | |   typeString: bytes
+      | | |   visibility: internal
+      | | +-ElementaryTypeName #59 bytes
+      | |       name: bytes
+      | |       stateMutability: nonpayable
+      | |       typeString: bytes
+      | +-FunctionCall #69 delegatecall
+      |   |   typeString: tuple(bool,bytes memory)
+      |   +-MemberAccess #62
+      |   | |   memberName: delegatecall
+      |   | |   typeString: function (bytes memory) returns (bool,bytes memory)
+      |   | +-Identifier #61 contractDAddress
+      |   |       name: contractDAddress
+      |   |       referencedDeclaration: 48
+      |   |       typeString: address
+      |   +-FunctionCall #68 encodeCall
+      |     |   typeString: bytes memory
+      |     +-MemberAccess #64
+      |     | |   memberName: encodeCall
+      |     | |   typeString: function () pure returns (bytes memory)
+      |     | +-Identifier #63 abi
+      |     |       name: abi
+      |     |       referencedDeclaration: -1
+      |     |       typeString: abi
+      |     +-MemberAccess #66
+      |     | |   memberName: increaseX
+      |     | |   referencedDeclaration: 23
+      |     | |   typeString: function D.increaseX(uint8)
+      |     | +-Identifier #65 D
+      |     |       name: D
+      |     |       referencedDeclaration: 32
+      |     |       typeString: type(contract D)
+      |     +-Literal #67
+      |           hexValue: 38
+      |           typeString: int_const 8
+      |           value: 8
+      +-Return #72
+        |   functionReturnParameters: 46
+        +-Identifier #71 result
+              name: result
+              referencedDeclaration: 58
+              typeString: bool
+
+---RejectUnsupportedFeatures---

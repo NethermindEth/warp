@@ -1,0 +1,17 @@
+[
+  {
+    "inputs": [
+      {
+        "name": "class_hash",
+        "type": "felt"
+      },
+      {
+        "name": "amount",
+        "type": "felt"
+      }
+    ],
+    "name": "increase_my_balance",
+    "outputs": [],
+    "type": "function"
+  }
+]

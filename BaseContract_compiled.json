@@ -1,0 +1,4391 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "name": "class_hash",
+          "type": "felt"
+        },
+        {
+          "name": "amount",
+          "type": "felt"
+        }
+      ],
+      "name": "increase_my_balance",
+      "outputs": [],
+      "type": "function"
+    }
+  ],
+  "entry_points_by_type": {
+    "CONSTRUCTOR": [],
+    "EXTERNAL": [
+      {
+        "offset": "0x29",
+        "selector": "0x12f6cb5b229819ba5d31f65d40a9639775ef551b9ff2834f822858a36a7310a"
+      }
+    ],
+    "L1_HANDLER": []
+  },
+  "program": {
+    "attributes": [],
+    "builtins": ["range_check"],
+    "data": [
+      "0x40780017fff7fff",
+      "0x1",
+      "0x208b7fff7fff7ffe",
+      "0x480680017fff8000",
+      "0x43616c6c436f6e7472616374",
+      "0x400280007ff97fff",
+      "0x400380017ff97ffa",
+      "0x400380027ff97ffb",
+      "0x400380037ff97ffc",
+      "0x400380047ff97ffd",
+      "0x482680017ff98000",
+      "0x7",
+      "0x480280057ff98000",
+      "0x480280067ff98000",
+      "0x208b7fff7fff7ffe",
+      "0x40780017fff7fff",
+      "0x1",
+      "0x1104800180018000",
+      "0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffff0",
+      "0x40137fff7fff8000",
+      "0x4003800080007ffd",
+      "0x4826800180008000",
+      "0x1",
+      "0x480a7ffa7fff8000",
+      "0x480a7ffc7fff8000",
+      "0x480680017fff8000",
+      "0x68b674e2cd16099143f7b2db9ea7de7b1a1055f5212bcffa3344a99ec1aab6",
+      "0x4828800080007ffc",
+      "0x480a80007fff8000",
+      "0x1104800180018000",
+      "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffe7",
+      "0x48127ffd7fff8000",
+      "0x480a7ffb7fff8000",
+      "0x208b7fff7fff7ffe",
+      "0x480a7ffa7fff8000",
+      "0x480a7ffb7fff8000",
+      "0x480a7ffc7fff8000",
+      "0x480a7ffd7fff8000",
+      "0x1104800180018000",
+      "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffea",
+      "0x208b7fff7fff7ffe",
+      "0x482680017ffd8000",
+      "0x2",
+      "0x402a7ffd7ffc7fff",
+      "0x480280007ffb8000",
+      "0x480280017ffb8000",
+      "0x480280007ffd8000",
+      "0x480280017ffd8000",
+      "0x1104800180018000",
+      "0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffff3",
+      "0x40780017fff7fff",
+      "0x1",
+      "0x48127ffd7fff8000",
+      "0x48127ffd7fff8000",
+      "0x480680017fff8000",
+      "0x0",
+      "0x48127ffc7fff8000",
+      "0x208b7fff7fff7ffe"
+    ],
+    "debug_info": {
+      "file_contents": {
+        "autogen/starknet/arg_processor/1b562308a65653425ce06491fa4b4539466f3251a07e73e099d0afe86a48900e.cairo": "assert [cast(fp + (-4), felt*)] = __calldata_actual_size\n",
+        "autogen/starknet/arg_processor/54a156e0167c228bb5d76d8c55e55e37a2b00e0a593e94e6ceb591bcf2576f95.cairo": "let __calldata_arg_class_hash = [__calldata_ptr]\nlet __calldata_ptr = __calldata_ptr + 1\n",
+        "autogen/starknet/arg_processor/5e1cc73f0b484f90bb02da164d88332b40c6f698801aa4d3c603dab22157e902.cairo": "let __calldata_actual_size =  __calldata_ptr - cast([cast(fp + (-3), felt**)], felt*)\n",
+        "autogen/starknet/arg_processor/69c1cf8129f27519b0d137abea5387c3664927b28c870bc532626f111683af23.cairo": "assert [__calldata_ptr] = amount\nlet __calldata_ptr = __calldata_ptr + 1\n",
+        "autogen/starknet/arg_processor/7a16feca69d1dc1343a49177e1e57103319136de3f2c6fabefae170177a1305e.cairo": "let __calldata_arg_amount = [__calldata_ptr]\nlet __calldata_ptr = __calldata_ptr + 1\n",
+        "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/1d3804afbbf1f871eb0d2508f3ebc0bfe8b4d03e9ede1f59f054758e46ad17b9.cairo": "func library_call_increase_balance{syscall_ptr : felt*, range_check_ptr}(\n    contract_address : felt):\nend\n",
+        "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/3b692dedd2c44d2387603d103150d54c4d1a08ee33e54b3bbc47f00a2a3641d1.cairo": "\nalloc_locals\nlet (local calldata_ptr_start : felt*) = alloc()\nlet __calldata_ptr = calldata_ptr_start\n",
+        "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/933838c3a6f14937bff8e572cccfd0faeb336f4ec33250adc0048b54901e2dc4.cairo": "\nlet (retdata_size, retdata) = call_contract(\n    contract_address=contract_address,\n    function_selector=LIBRARY_CALL_INCREASE_BALANCE_SELECTOR,\n    calldata_size=__calldata_ptr - calldata_ptr_start,\n    calldata=calldata_ptr_start)\n",
+        "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/f50361dd9bfac65181c540d35f212e1c4d9a5552b713bad47868a2b80022ed2a.cairo": "\nreturn ()\n",
+        "autogen/starknet/external/increase_my_balance/3ac21b4d8e0825ee47602d06534922f8d40a1540760fd492c27d91e52ab7d640.cairo": "let ret_struct = __wrapped_func{syscall_ptr=syscall_ptr, range_check_ptr=range_check_ptr}(class_hash=__calldata_arg_class_hash, amount=__calldata_arg_amount,)\n%{ memory[ap] = segments.add() %}        # Allocate memory for return value.\ntempvar retdata : felt*\nlet retdata_size = 0\n",
+        "autogen/starknet/external/increase_my_balance/8ff3c870faa0ee083f062bf6c6add3444ce3ffe843b9047321f6c9172381996c.cairo": "return (syscall_ptr,range_check_ptr,retdata_size,retdata)\n",
+        "autogen/starknet/external/increase_my_balance/a0096d4e36b6a7b51efe8ce04fabefa7656bfce054940eced93c852f6fb7162c.cairo": "let range_check_ptr = [cast([cast(fp + (-5), felt**)] + 1, felt*)]\n",
+        "autogen/starknet/external/increase_my_balance/c7060df96cb0acca1380ae43bf758cab727bfdf73cb5d34a93e24a9742817fda.cairo": "let syscall_ptr = [cast([cast(fp + (-5), felt**)] + 0, felt**)]\n"
+      },
+      "instruction_locations": {
+        "0": {
+          "accessible_scopes": [
+            "starkware.cairo.common.alloc",
+            "starkware.cairo.common.alloc.alloc"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 0,
+              "offset": 0
+            },
+            "reference_ids": {}
+          },
+          "hints": [
+            {
+              "location": {
+                "end_col": 38,
+                "end_line": 3,
+                "input_file": {
+                  "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/cairo/common/alloc.cairo"
+                },
+                "start_col": 5,
+                "start_line": 3
+              },
+              "n_prefix_newlines": 0
+            }
+          ],
+          "inst": {
+            "end_col": 12,
+            "end_line": 4,
+            "input_file": {
+              "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/cairo/common/alloc.cairo"
+            },
+            "start_col": 5,
+            "start_line": 4
+          }
+        },
+        "2": {
+          "accessible_scopes": [
+            "starkware.cairo.common.alloc",
+            "starkware.cairo.common.alloc.alloc"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 0,
+              "offset": 1
+            },
+            "reference_ids": {}
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 39,
+            "end_line": 5,
+            "input_file": {
+              "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/cairo/common/alloc.cairo"
+            },
+            "start_col": 5,
+            "start_line": 5
+          }
+        },
+        "3": {
+          "accessible_scopes": [
+            "starkware.starknet.common.syscalls",
+            "starkware.starknet.common.syscalls.call_contract"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 1,
+              "offset": 0
+            },
+            "reference_ids": {
+              "starkware.starknet.common.syscalls.call_contract.calldata": 3,
+              "starkware.starknet.common.syscalls.call_contract.calldata_size": 2,
+              "starkware.starknet.common.syscalls.call_contract.contract_address": 0,
+              "starkware.starknet.common.syscalls.call_contract.function_selector": 1,
+              "starkware.starknet.common.syscalls.call_contract.syscall": 5,
+              "starkware.starknet.common.syscalls.call_contract.syscall_ptr": 4
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 40,
+            "end_line": 47,
+            "input_file": {
+              "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/starknet/common/syscalls.cairo"
+            },
+            "start_col": 18,
+            "start_line": 47
+          }
+        },
+        "5": {
+          "accessible_scopes": [
+            "starkware.starknet.common.syscalls",
+            "starkware.starknet.common.syscalls.call_contract"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 1,
+              "offset": 1
+            },
+            "reference_ids": {
+              "starkware.starknet.common.syscalls.call_contract.__temp0": 6,
+              "starkware.starknet.common.syscalls.call_contract.calldata": 3,
+              "starkware.starknet.common.syscalls.call_contract.calldata_size": 2,
+              "starkware.starknet.common.syscalls.call_contract.contract_address": 0,
+              "starkware.starknet.common.syscalls.call_contract.function_selector": 1,
+              "starkware.starknet.common.syscalls.call_contract.syscall": 5,
+              "starkware.starknet.common.syscalls.call_contract.syscall_ptr": 4
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 27,
+            "end_line": 51,
+            "input_file": {
+              "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/starknet/common/syscalls.cairo"
+            },
+            "start_col": 5,
+            "start_line": 46
+          }
+        },
+        "6": {
+          "accessible_scopes": [
+            "starkware.starknet.common.syscalls",
+            "starkware.starknet.common.syscalls.call_contract"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 1,
+              "offset": 1
+            },
+            "reference_ids": {
+              "starkware.starknet.common.syscalls.call_contract.__temp0": 6,
+              "starkware.starknet.common.syscalls.call_contract.calldata": 3,
+              "starkware.starknet.common.syscalls.call_contract.calldata_size": 2,
+              "starkware.starknet.common.syscalls.call_contract.contract_address": 0,
+              "starkware.starknet.common.syscalls.call_contract.function_selector": 1,
+              "starkware.starknet.common.syscalls.call_contract.syscall": 5,
+              "starkware.starknet.common.syscalls.call_contract.syscall_ptr": 4
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 27,
+            "end_line": 51,
+            "input_file": {
+              "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/starknet/common/syscalls.cairo"
+            },
+            "start_col": 5,
+            "start_line": 46
+          }
+        },
+        "7": {
+          "accessible_scopes": [
+            "starkware.starknet.common.syscalls",
+            "starkware.starknet.common.syscalls.call_contract"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 1,
+              "offset": 1
+            },
+            "reference_ids": {
+              "starkware.starknet.common.syscalls.call_contract.__temp0": 6,
+              "starkware.starknet.common.syscalls.call_contract.calldata": 3,
+              "starkware.starknet.common.syscalls.call_contract.calldata_size": 2,
+              "starkware.starknet.common.syscalls.call_contract.contract_address": 0,
+              "starkware.starknet.common.syscalls.call_contract.function_selector": 1,
+              "starkware.starknet.common.syscalls.call_contract.syscall": 5,
+              "starkware.starknet.common.syscalls.call_contract.syscall_ptr": 4
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 27,
+            "end_line": 51,
+            "input_file": {
+              "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/starknet/common/syscalls.cairo"
+            },
+            "start_col": 5,
+            "start_line": 46
+          }
+        },
+        "8": {
+          "accessible_scopes": [
+            "starkware.starknet.common.syscalls",
+            "starkware.starknet.common.syscalls.call_contract"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 1,
+              "offset": 1
+            },
+            "reference_ids": {
+              "starkware.starknet.common.syscalls.call_contract.__temp0": 6,
+              "starkware.starknet.common.syscalls.call_contract.calldata": 3,
+              "starkware.starknet.common.syscalls.call_contract.calldata_size": 2,
+              "starkware.starknet.common.syscalls.call_contract.contract_address": 0,
+              "starkware.starknet.common.syscalls.call_contract.function_selector": 1,
+              "starkware.starknet.common.syscalls.call_contract.syscall": 5,
+              "starkware.starknet.common.syscalls.call_contract.syscall_ptr": 4
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 27,
+            "end_line": 51,
+            "input_file": {
+              "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/starknet/common/syscalls.cairo"
+            },
+            "start_col": 5,
+            "start_line": 46
+          }
+        },
+        "9": {
+          "accessible_scopes": [
+            "starkware.starknet.common.syscalls",
+            "starkware.starknet.common.syscalls.call_contract"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 1,
+              "offset": 1
+            },
+            "reference_ids": {
+              "starkware.starknet.common.syscalls.call_contract.__temp0": 6,
+              "starkware.starknet.common.syscalls.call_contract.calldata": 3,
+              "starkware.starknet.common.syscalls.call_contract.calldata_size": 2,
+              "starkware.starknet.common.syscalls.call_contract.contract_address": 0,
+              "starkware.starknet.common.syscalls.call_contract.function_selector": 1,
+              "starkware.starknet.common.syscalls.call_contract.syscall": 5,
+              "starkware.starknet.common.syscalls.call_contract.syscall_ptr": 4
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 27,
+            "end_line": 51,
+            "input_file": {
+              "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/starknet/common/syscalls.cairo"
+            },
+            "start_col": 5,
+            "start_line": 46
+          }
+        },
+        "10": {
+          "accessible_scopes": [
+            "starkware.starknet.common.syscalls",
+            "starkware.starknet.common.syscalls.call_contract"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 1,
+              "offset": 1
+            },
+            "reference_ids": {
+              "starkware.starknet.common.syscalls.call_contract.__temp0": 6,
+              "starkware.starknet.common.syscalls.call_contract.calldata": 3,
+              "starkware.starknet.common.syscalls.call_contract.calldata_size": 2,
+              "starkware.starknet.common.syscalls.call_contract.contract_address": 0,
+              "starkware.starknet.common.syscalls.call_contract.function_selector": 1,
+              "starkware.starknet.common.syscalls.call_contract.response": 7,
+              "starkware.starknet.common.syscalls.call_contract.syscall": 5,
+              "starkware.starknet.common.syscalls.call_contract.syscall_ptr": 8
+            }
+          },
+          "hints": [
+            {
+              "location": {
+                "end_col": 88,
+                "end_line": 52,
+                "input_file": {
+                  "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/starknet/common/syscalls.cairo"
+                },
+                "start_col": 5,
+                "start_line": 52
+              },
+              "n_prefix_newlines": 0
+            }
+          ],
+          "inst": {
+            "end_col": 54,
+            "end_line": 55,
+            "input_file": {
+              "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/starknet/common/syscalls.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 39,
+                "end_line": 42,
+                "input_file": {
+                  "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/starknet/common/syscalls.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 74,
+                    "end_line": 56,
+                    "input_file": {
+                      "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/starknet/common/syscalls.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 56
+                  },
+                  "While trying to retrieve the implicit argument 'syscall_ptr' in:"
+                ],
+                "start_col": 20,
+                "start_line": 42
+              },
+              "While expanding the reference 'syscall_ptr' in:"
+            ],
+            "start_col": 23,
+            "start_line": 55
+          }
+        },
+        "12": {
+          "accessible_scopes": [
+            "starkware.starknet.common.syscalls",
+            "starkware.starknet.common.syscalls.call_contract"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 1,
+              "offset": 2
+            },
+            "reference_ids": {
+              "starkware.starknet.common.syscalls.call_contract.__temp0": 6,
+              "starkware.starknet.common.syscalls.call_contract.calldata": 3,
+              "starkware.starknet.common.syscalls.call_contract.calldata_size": 2,
+              "starkware.starknet.common.syscalls.call_contract.contract_address": 0,
+              "starkware.starknet.common.syscalls.call_contract.function_selector": 1,
+              "starkware.starknet.common.syscalls.call_contract.response": 7,
+              "starkware.starknet.common.syscalls.call_contract.syscall": 5,
+              "starkware.starknet.common.syscalls.call_contract.syscall_ptr": 8
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 47,
+            "end_line": 56,
+            "input_file": {
+              "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/starknet/common/syscalls.cairo"
+            },
+            "start_col": 26,
+            "start_line": 56
+          }
+        },
+        "13": {
+          "accessible_scopes": [
+            "starkware.starknet.common.syscalls",
+            "starkware.starknet.common.syscalls.call_contract"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 1,
+              "offset": 3
+            },
+            "reference_ids": {
+              "starkware.starknet.common.syscalls.call_contract.__temp0": 6,
+              "starkware.starknet.common.syscalls.call_contract.calldata": 3,
+              "starkware.starknet.common.syscalls.call_contract.calldata_size": 2,
+              "starkware.starknet.common.syscalls.call_contract.contract_address": 0,
+              "starkware.starknet.common.syscalls.call_contract.function_selector": 1,
+              "starkware.starknet.common.syscalls.call_contract.response": 7,
+              "starkware.starknet.common.syscalls.call_contract.syscall": 5,
+              "starkware.starknet.common.syscalls.call_contract.syscall_ptr": 8
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 73,
+            "end_line": 56,
+            "input_file": {
+              "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/starknet/common/syscalls.cairo"
+            },
+            "start_col": 57,
+            "start_line": 56
+          }
+        },
+        "14": {
+          "accessible_scopes": [
+            "starkware.starknet.common.syscalls",
+            "starkware.starknet.common.syscalls.call_contract"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 1,
+              "offset": 4
+            },
+            "reference_ids": {
+              "starkware.starknet.common.syscalls.call_contract.__temp0": 6,
+              "starkware.starknet.common.syscalls.call_contract.calldata": 3,
+              "starkware.starknet.common.syscalls.call_contract.calldata_size": 2,
+              "starkware.starknet.common.syscalls.call_contract.contract_address": 0,
+              "starkware.starknet.common.syscalls.call_contract.function_selector": 1,
+              "starkware.starknet.common.syscalls.call_contract.response": 7,
+              "starkware.starknet.common.syscalls.call_contract.syscall": 5,
+              "starkware.starknet.common.syscalls.call_contract.syscall_ptr": 8
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 74,
+            "end_line": 56,
+            "input_file": {
+              "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/starknet/common/syscalls.cairo"
+            },
+            "start_col": 5,
+            "start_line": 56
+          }
+        },
+        "15": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__.IBalanceContract",
+            "__main__.IBalanceContract.library_call_increase_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 2,
+              "offset": 0
+            },
+            "reference_ids": {
+              "__main__.IBalanceContract.library_call_increase_balance.amount": 10,
+              "__main__.IBalanceContract.library_call_increase_balance.contract_address": 9,
+              "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr": 12,
+              "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr": 11
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 13,
+            "end_line": 2,
+            "input_file": {
+              "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/3b692dedd2c44d2387603d103150d54c4d1a08ee33e54b3bbc47f00a2a3641d1.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 39,
+                "end_line": 13,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "start_col": 10,
+                "start_line": 13
+              },
+              "While handling contract interface function:"
+            ],
+            "start_col": 1,
+            "start_line": 2
+          }
+        },
+        "17": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__.IBalanceContract",
+            "__main__.IBalanceContract.library_call_increase_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 2,
+              "offset": 1
+            },
+            "reference_ids": {
+              "__main__.IBalanceContract.library_call_increase_balance.amount": 10,
+              "__main__.IBalanceContract.library_call_increase_balance.contract_address": 9,
+              "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr": 12,
+              "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr": 11
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 49,
+            "end_line": 3,
+            "input_file": {
+              "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/3b692dedd2c44d2387603d103150d54c4d1a08ee33e54b3bbc47f00a2a3641d1.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 39,
+                "end_line": 13,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "start_col": 10,
+                "start_line": 13
+              },
+              "While handling contract interface function:"
+            ],
+            "start_col": 42,
+            "start_line": 3
+          }
+        },
+        "19": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__.IBalanceContract",
+            "__main__.IBalanceContract.library_call_increase_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 2,
+              "offset": 4
+            },
+            "reference_ids": {
+              "__main__.IBalanceContract.library_call_increase_balance.amount": 10,
+              "__main__.IBalanceContract.library_call_increase_balance.calldata_ptr_start": 13,
+              "__main__.IBalanceContract.library_call_increase_balance.contract_address": 9,
+              "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr": 12,
+              "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr": 11
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 38,
+            "end_line": 3,
+            "input_file": {
+              "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/3b692dedd2c44d2387603d103150d54c4d1a08ee33e54b3bbc47f00a2a3641d1.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 39,
+                "end_line": 13,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "start_col": 10,
+                "start_line": 13
+              },
+              "While handling contract interface function:"
+            ],
+            "start_col": 6,
+            "start_line": 3
+          }
+        },
+        "20": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__.IBalanceContract",
+            "__main__.IBalanceContract.library_call_increase_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 2,
+              "offset": 4
+            },
+            "reference_ids": {
+              "__main__.IBalanceContract.library_call_increase_balance.__calldata_ptr": 15,
+              "__main__.IBalanceContract.library_call_increase_balance.amount": 10,
+              "__main__.IBalanceContract.library_call_increase_balance.calldata_ptr_start": 14,
+              "__main__.IBalanceContract.library_call_increase_balance.contract_address": 9,
+              "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr": 12,
+              "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr": 11
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 33,
+            "end_line": 1,
+            "input_file": {
+              "filename": "autogen/starknet/arg_processor/69c1cf8129f27519b0d137abea5387c3664927b28c870bc532626f111683af23.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 46,
+                "end_line": 13,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "start_col": 40,
+                "start_line": 13
+              },
+              "While handling calldata argument 'amount'"
+            ],
+            "start_col": 1,
+            "start_line": 1
+          }
+        },
+        "21": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__.IBalanceContract",
+            "__main__.IBalanceContract.library_call_increase_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 2,
+              "offset": 4
+            },
+            "reference_ids": {
+              "__main__.IBalanceContract.library_call_increase_balance.__calldata_ptr": 16,
+              "__main__.IBalanceContract.library_call_increase_balance.amount": 10,
+              "__main__.IBalanceContract.library_call_increase_balance.calldata_ptr_start": 14,
+              "__main__.IBalanceContract.library_call_increase_balance.contract_address": 9,
+              "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr": 12,
+              "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr": 11
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 40,
+            "end_line": 2,
+            "input_file": {
+              "filename": "autogen/starknet/arg_processor/69c1cf8129f27519b0d137abea5387c3664927b28c870bc532626f111683af23.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 46,
+                "end_line": 13,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 33,
+                    "end_line": 5,
+                    "input_file": {
+                      "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/933838c3a6f14937bff8e572cccfd0faeb336f4ec33250adc0048b54901e2dc4.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 39,
+                        "end_line": 13,
+                        "input_file": {
+                          "filename": "BaseContract.cairo"
+                        },
+                        "start_col": 10,
+                        "start_line": 13
+                      },
+                      "While handling contract interface function:"
+                    ],
+                    "start_col": 19,
+                    "start_line": 5
+                  },
+                  "While expanding the reference '__calldata_ptr' in:"
+                ],
+                "start_col": 40,
+                "start_line": 13
+              },
+              "While handling calldata argument 'amount'"
+            ],
+            "start_col": 22,
+            "start_line": 2
+          }
+        },
+        "23": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__.IBalanceContract",
+            "__main__.IBalanceContract.library_call_increase_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 2,
+              "offset": 5
+            },
+            "reference_ids": {
+              "__main__.IBalanceContract.library_call_increase_balance.__calldata_ptr": 16,
+              "__main__.IBalanceContract.library_call_increase_balance.__temp1": 17,
+              "__main__.IBalanceContract.library_call_increase_balance.amount": 10,
+              "__main__.IBalanceContract.library_call_increase_balance.calldata_ptr_start": 14,
+              "__main__.IBalanceContract.library_call_increase_balance.contract_address": 9,
+              "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr": 12,
+              "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr": 11
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 55,
+            "end_line": 1,
+            "input_file": {
+              "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/1d3804afbbf1f871eb0d2508f3ebc0bfe8b4d03e9ede1f59f054758e46ad17b9.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 39,
+                "end_line": 13,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 39,
+                    "end_line": 42,
+                    "input_file": {
+                      "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/starknet/common/syscalls.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 33,
+                        "end_line": 6,
+                        "input_file": {
+                          "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/933838c3a6f14937bff8e572cccfd0faeb336f4ec33250adc0048b54901e2dc4.cairo"
+                        },
+                        "parent_location": [
+                          {
+                            "end_col": 39,
+                            "end_line": 13,
+                            "input_file": {
+                              "filename": "BaseContract.cairo"
+                            },
+                            "start_col": 10,
+                            "start_line": 13
+                          },
+                          "While handling contract interface function:"
+                        ],
+                        "start_col": 31,
+                        "start_line": 2
+                      },
+                      "While trying to retrieve the implicit argument 'syscall_ptr' in:"
+                    ],
+                    "start_col": 20,
+                    "start_line": 42
+                  },
+                  "While expanding the reference 'syscall_ptr' in:"
+                ],
+                "start_col": 10,
+                "start_line": 13
+              },
+              "While handling contract interface function:"
+            ],
+            "start_col": 36,
+            "start_line": 1
+          }
+        },
+        "24": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__.IBalanceContract",
+            "__main__.IBalanceContract.library_call_increase_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 2,
+              "offset": 6
+            },
+            "reference_ids": {
+              "__main__.IBalanceContract.library_call_increase_balance.__calldata_ptr": 16,
+              "__main__.IBalanceContract.library_call_increase_balance.__temp1": 17,
+              "__main__.IBalanceContract.library_call_increase_balance.amount": 10,
+              "__main__.IBalanceContract.library_call_increase_balance.calldata_ptr_start": 14,
+              "__main__.IBalanceContract.library_call_increase_balance.contract_address": 9,
+              "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr": 12,
+              "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr": 11
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 28,
+            "end_line": 2,
+            "input_file": {
+              "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/1d3804afbbf1f871eb0d2508f3ebc0bfe8b4d03e9ede1f59f054758e46ad17b9.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 39,
+                "end_line": 13,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 38,
+                    "end_line": 3,
+                    "input_file": {
+                      "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/933838c3a6f14937bff8e572cccfd0faeb336f4ec33250adc0048b54901e2dc4.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 39,
+                        "end_line": 13,
+                        "input_file": {
+                          "filename": "BaseContract.cairo"
+                        },
+                        "start_col": 10,
+                        "start_line": 13
+                      },
+                      "While handling contract interface function:"
+                    ],
+                    "start_col": 22,
+                    "start_line": 3
+                  },
+                  "While expanding the reference 'contract_address' in:"
+                ],
+                "start_col": 10,
+                "start_line": 13
+              },
+              "While handling contract interface function:"
+            ],
+            "start_col": 5,
+            "start_line": 2
+          }
+        },
+        "25": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__.IBalanceContract",
+            "__main__.IBalanceContract.library_call_increase_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 2,
+              "offset": 7
+            },
+            "reference_ids": {
+              "__main__.IBalanceContract.library_call_increase_balance.__calldata_ptr": 16,
+              "__main__.IBalanceContract.library_call_increase_balance.__temp1": 17,
+              "__main__.IBalanceContract.library_call_increase_balance.amount": 10,
+              "__main__.IBalanceContract.library_call_increase_balance.calldata_ptr_start": 14,
+              "__main__.IBalanceContract.library_call_increase_balance.contract_address": 9,
+              "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr": 12,
+              "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr": 11
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 61,
+            "end_line": 4,
+            "input_file": {
+              "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/933838c3a6f14937bff8e572cccfd0faeb336f4ec33250adc0048b54901e2dc4.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 39,
+                "end_line": 13,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "start_col": 10,
+                "start_line": 13
+              },
+              "While handling contract interface function:"
+            ],
+            "start_col": 23,
+            "start_line": 4
+          }
+        },
+        "27": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__.IBalanceContract",
+            "__main__.IBalanceContract.library_call_increase_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 2,
+              "offset": 8
+            },
+            "reference_ids": {
+              "__main__.IBalanceContract.library_call_increase_balance.__calldata_ptr": 16,
+              "__main__.IBalanceContract.library_call_increase_balance.__temp1": 17,
+              "__main__.IBalanceContract.library_call_increase_balance.amount": 10,
+              "__main__.IBalanceContract.library_call_increase_balance.calldata_ptr_start": 14,
+              "__main__.IBalanceContract.library_call_increase_balance.contract_address": 9,
+              "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr": 12,
+              "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr": 11
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 54,
+            "end_line": 5,
+            "input_file": {
+              "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/933838c3a6f14937bff8e572cccfd0faeb336f4ec33250adc0048b54901e2dc4.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 39,
+                "end_line": 13,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "start_col": 10,
+                "start_line": 13
+              },
+              "While handling contract interface function:"
+            ],
+            "start_col": 19,
+            "start_line": 5
+          }
+        },
+        "28": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__.IBalanceContract",
+            "__main__.IBalanceContract.library_call_increase_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 2,
+              "offset": 9
+            },
+            "reference_ids": {
+              "__main__.IBalanceContract.library_call_increase_balance.__calldata_ptr": 16,
+              "__main__.IBalanceContract.library_call_increase_balance.__temp1": 17,
+              "__main__.IBalanceContract.library_call_increase_balance.amount": 10,
+              "__main__.IBalanceContract.library_call_increase_balance.calldata_ptr_start": 14,
+              "__main__.IBalanceContract.library_call_increase_balance.contract_address": 9,
+              "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr": 12,
+              "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr": 11
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 30,
+            "end_line": 3,
+            "input_file": {
+              "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/3b692dedd2c44d2387603d103150d54c4d1a08ee33e54b3bbc47f00a2a3641d1.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 39,
+                "end_line": 13,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 32,
+                    "end_line": 6,
+                    "input_file": {
+                      "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/933838c3a6f14937bff8e572cccfd0faeb336f4ec33250adc0048b54901e2dc4.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 39,
+                        "end_line": 13,
+                        "input_file": {
+                          "filename": "BaseContract.cairo"
+                        },
+                        "start_col": 10,
+                        "start_line": 13
+                      },
+                      "While handling contract interface function:"
+                    ],
+                    "start_col": 14,
+                    "start_line": 6
+                  },
+                  "While expanding the reference 'calldata_ptr_start' in:"
+                ],
+                "start_col": 10,
+                "start_line": 13
+              },
+              "While handling contract interface function:"
+            ],
+            "start_col": 12,
+            "start_line": 3
+          }
+        },
+        "29": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__.IBalanceContract",
+            "__main__.IBalanceContract.library_call_increase_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 2,
+              "offset": 10
+            },
+            "reference_ids": {
+              "__main__.IBalanceContract.library_call_increase_balance.__calldata_ptr": 16,
+              "__main__.IBalanceContract.library_call_increase_balance.__temp1": 17,
+              "__main__.IBalanceContract.library_call_increase_balance.amount": 10,
+              "__main__.IBalanceContract.library_call_increase_balance.calldata_ptr_start": 14,
+              "__main__.IBalanceContract.library_call_increase_balance.contract_address": 9,
+              "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr": 12,
+              "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr": 11
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 33,
+            "end_line": 6,
+            "input_file": {
+              "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/933838c3a6f14937bff8e572cccfd0faeb336f4ec33250adc0048b54901e2dc4.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 39,
+                "end_line": 13,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "start_col": 10,
+                "start_line": 13
+              },
+              "While handling contract interface function:"
+            ],
+            "start_col": 31,
+            "start_line": 2
+          }
+        },
+        "31": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__.IBalanceContract",
+            "__main__.IBalanceContract.library_call_increase_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 2,
+              "offset": 16
+            },
+            "reference_ids": {
+              "__main__.IBalanceContract.library_call_increase_balance.__calldata_ptr": 16,
+              "__main__.IBalanceContract.library_call_increase_balance.__temp1": 17,
+              "__main__.IBalanceContract.library_call_increase_balance.amount": 10,
+              "__main__.IBalanceContract.library_call_increase_balance.calldata_ptr_start": 14,
+              "__main__.IBalanceContract.library_call_increase_balance.contract_address": 9,
+              "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr": 12,
+              "__main__.IBalanceContract.library_call_increase_balance.retdata": 20,
+              "__main__.IBalanceContract.library_call_increase_balance.retdata_size": 19,
+              "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr": 18
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 39,
+            "end_line": 42,
+            "input_file": {
+              "filename": "/home/guy/venv/cairo082/lib/python3.8/site-packages/starkware/starknet/common/syscalls.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 33,
+                "end_line": 6,
+                "input_file": {
+                  "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/933838c3a6f14937bff8e572cccfd0faeb336f4ec33250adc0048b54901e2dc4.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 39,
+                    "end_line": 13,
+                    "input_file": {
+                      "filename": "BaseContract.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 55,
+                        "end_line": 1,
+                        "input_file": {
+                          "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/1d3804afbbf1f871eb0d2508f3ebc0bfe8b4d03e9ede1f59f054758e46ad17b9.cairo"
+                        },
+                        "parent_location": [
+                          {
+                            "end_col": 39,
+                            "end_line": 13,
+                            "input_file": {
+                              "filename": "BaseContract.cairo"
+                            },
+                            "parent_location": [
+                              {
+                                "end_col": 10,
+                                "end_line": 2,
+                                "input_file": {
+                                  "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/f50361dd9bfac65181c540d35f212e1c4d9a5552b713bad47868a2b80022ed2a.cairo"
+                                },
+                                "parent_location": [
+                                  {
+                                    "end_col": 39,
+                                    "end_line": 13,
+                                    "input_file": {
+                                      "filename": "BaseContract.cairo"
+                                    },
+                                    "start_col": 10,
+                                    "start_line": 13
+                                  },
+                                  "While handling contract interface function:"
+                                ],
+                                "start_col": 1,
+                                "start_line": 2
+                              },
+                              "While trying to retrieve the implicit argument 'syscall_ptr' in:"
+                            ],
+                            "start_col": 10,
+                            "start_line": 13
+                          },
+                          "While handling contract interface function:"
+                        ],
+                        "start_col": 36,
+                        "start_line": 1
+                      },
+                      "While expanding the reference 'syscall_ptr' in:"
+                    ],
+                    "start_col": 10,
+                    "start_line": 13
+                  },
+                  "While handling contract interface function:"
+                ],
+                "start_col": 31,
+                "start_line": 2
+              },
+              "While trying to update the implicit return value 'syscall_ptr' in:"
+            ],
+            "start_col": 20,
+            "start_line": 42
+          }
+        },
+        "32": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__.IBalanceContract",
+            "__main__.IBalanceContract.library_call_increase_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 2,
+              "offset": 17
+            },
+            "reference_ids": {
+              "__main__.IBalanceContract.library_call_increase_balance.__calldata_ptr": 16,
+              "__main__.IBalanceContract.library_call_increase_balance.__temp1": 17,
+              "__main__.IBalanceContract.library_call_increase_balance.amount": 10,
+              "__main__.IBalanceContract.library_call_increase_balance.calldata_ptr_start": 14,
+              "__main__.IBalanceContract.library_call_increase_balance.contract_address": 9,
+              "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr": 12,
+              "__main__.IBalanceContract.library_call_increase_balance.retdata": 20,
+              "__main__.IBalanceContract.library_call_increase_balance.retdata_size": 19,
+              "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr": 18
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 72,
+            "end_line": 1,
+            "input_file": {
+              "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/1d3804afbbf1f871eb0d2508f3ebc0bfe8b4d03e9ede1f59f054758e46ad17b9.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 39,
+                "end_line": 13,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 72,
+                    "end_line": 1,
+                    "input_file": {
+                      "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/1d3804afbbf1f871eb0d2508f3ebc0bfe8b4d03e9ede1f59f054758e46ad17b9.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 39,
+                        "end_line": 13,
+                        "input_file": {
+                          "filename": "BaseContract.cairo"
+                        },
+                        "parent_location": [
+                          {
+                            "end_col": 10,
+                            "end_line": 2,
+                            "input_file": {
+                              "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/f50361dd9bfac65181c540d35f212e1c4d9a5552b713bad47868a2b80022ed2a.cairo"
+                            },
+                            "parent_location": [
+                              {
+                                "end_col": 39,
+                                "end_line": 13,
+                                "input_file": {
+                                  "filename": "BaseContract.cairo"
+                                },
+                                "start_col": 10,
+                                "start_line": 13
+                              },
+                              "While handling contract interface function:"
+                            ],
+                            "start_col": 1,
+                            "start_line": 2
+                          },
+                          "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                        ],
+                        "start_col": 10,
+                        "start_line": 13
+                      },
+                      "While handling contract interface function:"
+                    ],
+                    "start_col": 57,
+                    "start_line": 1
+                  },
+                  "While expanding the reference 'range_check_ptr' in:"
+                ],
+                "start_col": 10,
+                "start_line": 13
+              },
+              "While handling contract interface function:"
+            ],
+            "start_col": 57,
+            "start_line": 1
+          }
+        },
+        "33": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__.IBalanceContract",
+            "__main__.IBalanceContract.library_call_increase_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 2,
+              "offset": 18
+            },
+            "reference_ids": {
+              "__main__.IBalanceContract.library_call_increase_balance.__calldata_ptr": 16,
+              "__main__.IBalanceContract.library_call_increase_balance.__temp1": 17,
+              "__main__.IBalanceContract.library_call_increase_balance.amount": 10,
+              "__main__.IBalanceContract.library_call_increase_balance.calldata_ptr_start": 14,
+              "__main__.IBalanceContract.library_call_increase_balance.contract_address": 9,
+              "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr": 12,
+              "__main__.IBalanceContract.library_call_increase_balance.retdata": 20,
+              "__main__.IBalanceContract.library_call_increase_balance.retdata_size": 19,
+              "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr": 18
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 10,
+            "end_line": 2,
+            "input_file": {
+              "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/f50361dd9bfac65181c540d35f212e1c4d9a5552b713bad47868a2b80022ed2a.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 39,
+                "end_line": 13,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "start_col": 10,
+                "start_line": 13
+              },
+              "While handling contract interface function:"
+            ],
+            "start_col": 1,
+            "start_line": 2
+          }
+        },
+        "34": {
+          "accessible_scopes": ["__main__", "__main__", "__main__.increase_my_balance"],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 3,
+              "offset": 0
+            },
+            "reference_ids": {
+              "__main__.increase_my_balance.amount": 22,
+              "__main__.increase_my_balance.class_hash": 21,
+              "__main__.increase_my_balance.range_check_ptr": 24,
+              "__main__.increase_my_balance.syscall_ptr": 23
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 45,
+            "end_line": 21,
+            "input_file": {
+              "filename": "BaseContract.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 55,
+                "end_line": 1,
+                "input_file": {
+                  "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/1d3804afbbf1f871eb0d2508f3ebc0bfe8b4d03e9ede1f59f054758e46ad17b9.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 39,
+                    "end_line": 13,
+                    "input_file": {
+                      "filename": "BaseContract.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 6,
+                        "end_line": 28,
+                        "input_file": {
+                          "filename": "BaseContract.cairo"
+                        },
+                        "start_col": 5,
+                        "start_line": 26
+                      },
+                      "While trying to retrieve the implicit argument 'syscall_ptr' in:"
+                    ],
+                    "start_col": 10,
+                    "start_line": 13
+                  },
+                  "While handling contract interface function:"
+                ],
+                "start_col": 36,
+                "start_line": 1
+              },
+              "While expanding the reference 'syscall_ptr' in:"
+            ],
+            "start_col": 26,
+            "start_line": 21
+          }
+        },
+        "35": {
+          "accessible_scopes": ["__main__", "__main__", "__main__.increase_my_balance"],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 3,
+              "offset": 1
+            },
+            "reference_ids": {
+              "__main__.increase_my_balance.amount": 22,
+              "__main__.increase_my_balance.class_hash": 21,
+              "__main__.increase_my_balance.range_check_ptr": 24,
+              "__main__.increase_my_balance.syscall_ptr": 23
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 62,
+            "end_line": 21,
+            "input_file": {
+              "filename": "BaseContract.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 72,
+                "end_line": 1,
+                "input_file": {
+                  "filename": "autogen/starknet/contract_interface/IBalanceContract/library_call_increase_balance/1d3804afbbf1f871eb0d2508f3ebc0bfe8b4d03e9ede1f59f054758e46ad17b9.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 39,
+                    "end_line": 13,
+                    "input_file": {
+                      "filename": "BaseContract.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 6,
+                        "end_line": 28,
+                        "input_file": {
+                          "filename": "BaseContract.cairo"
+                        },
+                        "start_col": 5,
+                        "start_line": 26
+                      },
+                      "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                    ],
+                    "start_col": 10,
+                    "start_line": 13
+                  },
+                  "While handling contract interface function:"
+                ],
+                "start_col": 57,
+                "start_line": 1
+              },
+              "While expanding the reference 'range_check_ptr' in:"
+            ],
+            "start_col": 47,
+            "start_line": 21
+          }
+        },
+        "36": {
+          "accessible_scopes": ["__main__", "__main__", "__main__.increase_my_balance"],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 3,
+              "offset": 2
+            },
+            "reference_ids": {
+              "__main__.increase_my_balance.amount": 22,
+              "__main__.increase_my_balance.class_hash": 21,
+              "__main__.increase_my_balance.range_check_ptr": 24,
+              "__main__.increase_my_balance.syscall_ptr": 23
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 22,
+            "end_line": 22,
+            "input_file": {
+              "filename": "BaseContract.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 19,
+                "end_line": 27,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "start_col": 9,
+                "start_line": 27
+              },
+              "While expanding the reference 'class_hash' in:"
+            ],
+            "start_col": 5,
+            "start_line": 22
+          }
+        },
+        "37": {
+          "accessible_scopes": ["__main__", "__main__", "__main__.increase_my_balance"],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 3,
+              "offset": 3
+            },
+            "reference_ids": {
+              "__main__.increase_my_balance.amount": 22,
+              "__main__.increase_my_balance.class_hash": 21,
+              "__main__.increase_my_balance.range_check_ptr": 24,
+              "__main__.increase_my_balance.syscall_ptr": 23
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 37,
+            "end_line": 22,
+            "input_file": {
+              "filename": "BaseContract.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 27,
+                "end_line": 27,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "start_col": 21,
+                "start_line": 27
+              },
+              "While expanding the reference 'amount' in:"
+            ],
+            "start_col": 24,
+            "start_line": 22
+          }
+        },
+        "38": {
+          "accessible_scopes": ["__main__", "__main__", "__main__.increase_my_balance"],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 3,
+              "offset": 4
+            },
+            "reference_ids": {
+              "__main__.increase_my_balance.amount": 22,
+              "__main__.increase_my_balance.class_hash": 21,
+              "__main__.increase_my_balance.range_check_ptr": 24,
+              "__main__.increase_my_balance.syscall_ptr": 23
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 6,
+            "end_line": 28,
+            "input_file": {
+              "filename": "BaseContract.cairo"
+            },
+            "start_col": 5,
+            "start_line": 26
+          }
+        },
+        "40": {
+          "accessible_scopes": ["__main__", "__main__", "__main__.increase_my_balance"],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 3,
+              "offset": 24
+            },
+            "reference_ids": {
+              "__main__.increase_my_balance.amount": 22,
+              "__main__.increase_my_balance.class_hash": 21,
+              "__main__.increase_my_balance.range_check_ptr": 26,
+              "__main__.increase_my_balance.syscall_ptr": 25
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 14,
+            "end_line": 29,
+            "input_file": {
+              "filename": "BaseContract.cairo"
+            },
+            "start_col": 5,
+            "start_line": 29
+          }
+        },
+        "41": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__",
+            "__wrappers__",
+            "__wrappers__.increase_my_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 4,
+              "offset": 0
+            },
+            "reference_ids": {
+              "__wrappers__.increase_my_balance.__calldata_actual_size": 34,
+              "__wrappers__.increase_my_balance.__calldata_arg_amount": 32,
+              "__wrappers__.increase_my_balance.__calldata_arg_class_hash": 30,
+              "__wrappers__.increase_my_balance.__calldata_ptr": 33,
+              "__wrappers__.increase_my_balance.range_check_ptr": 28,
+              "__wrappers__.increase_my_balance.syscall_ptr": 27
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 40,
+            "end_line": 2,
+            "input_file": {
+              "filename": "autogen/starknet/arg_processor/7a16feca69d1dc1343a49177e1e57103319136de3f2c6fabefae170177a1305e.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 37,
+                "end_line": 22,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 45,
+                    "end_line": 1,
+                    "input_file": {
+                      "filename": "autogen/starknet/arg_processor/5e1cc73f0b484f90bb02da164d88332b40c6f698801aa4d3c603dab22157e902.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 25,
+                        "end_line": 21,
+                        "input_file": {
+                          "filename": "BaseContract.cairo"
+                        },
+                        "parent_location": [
+                          {
+                            "end_col": 57,
+                            "end_line": 1,
+                            "input_file": {
+                              "filename": "autogen/starknet/arg_processor/1b562308a65653425ce06491fa4b4539466f3251a07e73e099d0afe86a48900e.cairo"
+                            },
+                            "parent_location": [
+                              {
+                                "end_col": 25,
+                                "end_line": 21,
+                                "input_file": {
+                                  "filename": "BaseContract.cairo"
+                                },
+                                "start_col": 6,
+                                "start_line": 21
+                              },
+                              "While handling calldata of"
+                            ],
+                            "start_col": 35,
+                            "start_line": 1
+                          },
+                          "While expanding the reference '__calldata_actual_size' in:"
+                        ],
+                        "start_col": 6,
+                        "start_line": 21
+                      },
+                      "While handling calldata of"
+                    ],
+                    "start_col": 31,
+                    "start_line": 1
+                  },
+                  "While expanding the reference '__calldata_ptr' in:"
+                ],
+                "start_col": 24,
+                "start_line": 22
+              },
+              "While handling calldata argument 'amount'"
+            ],
+            "start_col": 22,
+            "start_line": 2
+          }
+        },
+        "43": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__",
+            "__wrappers__",
+            "__wrappers__.increase_my_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 4,
+              "offset": 1
+            },
+            "reference_ids": {
+              "__wrappers__.increase_my_balance.__calldata_actual_size": 34,
+              "__wrappers__.increase_my_balance.__calldata_arg_amount": 32,
+              "__wrappers__.increase_my_balance.__calldata_arg_class_hash": 30,
+              "__wrappers__.increase_my_balance.__calldata_ptr": 33,
+              "__wrappers__.increase_my_balance.__temp2": 35,
+              "__wrappers__.increase_my_balance.range_check_ptr": 28,
+              "__wrappers__.increase_my_balance.syscall_ptr": 27
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 57,
+            "end_line": 1,
+            "input_file": {
+              "filename": "autogen/starknet/arg_processor/1b562308a65653425ce06491fa4b4539466f3251a07e73e099d0afe86a48900e.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 25,
+                "end_line": 21,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "start_col": 6,
+                "start_line": 21
+              },
+              "While handling calldata of"
+            ],
+            "start_col": 1,
+            "start_line": 1
+          }
+        },
+        "44": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__",
+            "__wrappers__",
+            "__wrappers__.increase_my_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 4,
+              "offset": 1
+            },
+            "reference_ids": {
+              "__wrappers__.increase_my_balance.__calldata_actual_size": 34,
+              "__wrappers__.increase_my_balance.__calldata_arg_amount": 32,
+              "__wrappers__.increase_my_balance.__calldata_arg_class_hash": 30,
+              "__wrappers__.increase_my_balance.__calldata_ptr": 33,
+              "__wrappers__.increase_my_balance.__temp2": 35,
+              "__wrappers__.increase_my_balance.range_check_ptr": 28,
+              "__wrappers__.increase_my_balance.syscall_ptr": 27
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 64,
+            "end_line": 1,
+            "input_file": {
+              "filename": "autogen/starknet/external/increase_my_balance/c7060df96cb0acca1380ae43bf758cab727bfdf73cb5d34a93e24a9742817fda.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 45,
+                "end_line": 21,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 56,
+                    "end_line": 1,
+                    "input_file": {
+                      "filename": "autogen/starknet/external/increase_my_balance/3ac21b4d8e0825ee47602d06534922f8d40a1540760fd492c27d91e52ab7d640.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 25,
+                        "end_line": 21,
+                        "input_file": {
+                          "filename": "BaseContract.cairo"
+                        },
+                        "start_col": 6,
+                        "start_line": 21
+                      },
+                      "While constructing the external wrapper for:"
+                    ],
+                    "start_col": 45,
+                    "start_line": 1
+                  },
+                  "While expanding the reference 'syscall_ptr' in:"
+                ],
+                "start_col": 26,
+                "start_line": 21
+              },
+              "While constructing the external wrapper for:"
+            ],
+            "start_col": 19,
+            "start_line": 1
+          }
+        },
+        "45": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__",
+            "__wrappers__",
+            "__wrappers__.increase_my_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 4,
+              "offset": 2
+            },
+            "reference_ids": {
+              "__wrappers__.increase_my_balance.__calldata_actual_size": 34,
+              "__wrappers__.increase_my_balance.__calldata_arg_amount": 32,
+              "__wrappers__.increase_my_balance.__calldata_arg_class_hash": 30,
+              "__wrappers__.increase_my_balance.__calldata_ptr": 33,
+              "__wrappers__.increase_my_balance.__temp2": 35,
+              "__wrappers__.increase_my_balance.range_check_ptr": 28,
+              "__wrappers__.increase_my_balance.syscall_ptr": 27
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 67,
+            "end_line": 1,
+            "input_file": {
+              "filename": "autogen/starknet/external/increase_my_balance/a0096d4e36b6a7b51efe8ce04fabefa7656bfce054940eced93c852f6fb7162c.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 62,
+                "end_line": 21,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 89,
+                    "end_line": 1,
+                    "input_file": {
+                      "filename": "autogen/starknet/external/increase_my_balance/3ac21b4d8e0825ee47602d06534922f8d40a1540760fd492c27d91e52ab7d640.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 25,
+                        "end_line": 21,
+                        "input_file": {
+                          "filename": "BaseContract.cairo"
+                        },
+                        "start_col": 6,
+                        "start_line": 21
+                      },
+                      "While constructing the external wrapper for:"
+                    ],
+                    "start_col": 74,
+                    "start_line": 1
+                  },
+                  "While expanding the reference 'range_check_ptr' in:"
+                ],
+                "start_col": 47,
+                "start_line": 21
+              },
+              "While constructing the external wrapper for:"
+            ],
+            "start_col": 23,
+            "start_line": 1
+          }
+        },
+        "46": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__",
+            "__wrappers__",
+            "__wrappers__.increase_my_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 4,
+              "offset": 3
+            },
+            "reference_ids": {
+              "__wrappers__.increase_my_balance.__calldata_actual_size": 34,
+              "__wrappers__.increase_my_balance.__calldata_arg_amount": 32,
+              "__wrappers__.increase_my_balance.__calldata_arg_class_hash": 30,
+              "__wrappers__.increase_my_balance.__calldata_ptr": 33,
+              "__wrappers__.increase_my_balance.__temp2": 35,
+              "__wrappers__.increase_my_balance.range_check_ptr": 28,
+              "__wrappers__.increase_my_balance.syscall_ptr": 27
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 49,
+            "end_line": 1,
+            "input_file": {
+              "filename": "autogen/starknet/arg_processor/54a156e0167c228bb5d76d8c55e55e37a2b00e0a593e94e6ceb591bcf2576f95.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 22,
+                "end_line": 22,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 127,
+                    "end_line": 1,
+                    "input_file": {
+                      "filename": "autogen/starknet/external/increase_my_balance/3ac21b4d8e0825ee47602d06534922f8d40a1540760fd492c27d91e52ab7d640.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 25,
+                        "end_line": 21,
+                        "input_file": {
+                          "filename": "BaseContract.cairo"
+                        },
+                        "start_col": 6,
+                        "start_line": 21
+                      },
+                      "While constructing the external wrapper for:"
+                    ],
+                    "start_col": 102,
+                    "start_line": 1
+                  },
+                  "While expanding the reference '__calldata_arg_class_hash' in:"
+                ],
+                "start_col": 5,
+                "start_line": 22
+              },
+              "While handling calldata argument 'class_hash'"
+            ],
+            "start_col": 33,
+            "start_line": 1
+          }
+        },
+        "47": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__",
+            "__wrappers__",
+            "__wrappers__.increase_my_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 4,
+              "offset": 4
+            },
+            "reference_ids": {
+              "__wrappers__.increase_my_balance.__calldata_actual_size": 34,
+              "__wrappers__.increase_my_balance.__calldata_arg_amount": 32,
+              "__wrappers__.increase_my_balance.__calldata_arg_class_hash": 30,
+              "__wrappers__.increase_my_balance.__calldata_ptr": 33,
+              "__wrappers__.increase_my_balance.__temp2": 35,
+              "__wrappers__.increase_my_balance.range_check_ptr": 28,
+              "__wrappers__.increase_my_balance.syscall_ptr": 27
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 45,
+            "end_line": 1,
+            "input_file": {
+              "filename": "autogen/starknet/arg_processor/7a16feca69d1dc1343a49177e1e57103319136de3f2c6fabefae170177a1305e.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 37,
+                "end_line": 22,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 157,
+                    "end_line": 1,
+                    "input_file": {
+                      "filename": "autogen/starknet/external/increase_my_balance/3ac21b4d8e0825ee47602d06534922f8d40a1540760fd492c27d91e52ab7d640.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 25,
+                        "end_line": 21,
+                        "input_file": {
+                          "filename": "BaseContract.cairo"
+                        },
+                        "start_col": 6,
+                        "start_line": 21
+                      },
+                      "While constructing the external wrapper for:"
+                    ],
+                    "start_col": 136,
+                    "start_line": 1
+                  },
+                  "While expanding the reference '__calldata_arg_amount' in:"
+                ],
+                "start_col": 24,
+                "start_line": 22
+              },
+              "While handling calldata argument 'amount'"
+            ],
+            "start_col": 29,
+            "start_line": 1
+          }
+        },
+        "48": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__",
+            "__wrappers__",
+            "__wrappers__.increase_my_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 4,
+              "offset": 5
+            },
+            "reference_ids": {
+              "__wrappers__.increase_my_balance.__calldata_actual_size": 34,
+              "__wrappers__.increase_my_balance.__calldata_arg_amount": 32,
+              "__wrappers__.increase_my_balance.__calldata_arg_class_hash": 30,
+              "__wrappers__.increase_my_balance.__calldata_ptr": 33,
+              "__wrappers__.increase_my_balance.__temp2": 35,
+              "__wrappers__.increase_my_balance.range_check_ptr": 28,
+              "__wrappers__.increase_my_balance.syscall_ptr": 27
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 25,
+            "end_line": 21,
+            "input_file": {
+              "filename": "BaseContract.cairo"
+            },
+            "start_col": 6,
+            "start_line": 21
+          }
+        },
+        "50": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__",
+            "__wrappers__",
+            "__wrappers__.increase_my_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 4,
+              "offset": 31
+            },
+            "reference_ids": {
+              "__wrappers__.increase_my_balance.__calldata_actual_size": 34,
+              "__wrappers__.increase_my_balance.__calldata_arg_amount": 32,
+              "__wrappers__.increase_my_balance.__calldata_arg_class_hash": 30,
+              "__wrappers__.increase_my_balance.__calldata_ptr": 33,
+              "__wrappers__.increase_my_balance.__temp2": 35,
+              "__wrappers__.increase_my_balance.range_check_ptr": 37,
+              "__wrappers__.increase_my_balance.ret_struct": 38,
+              "__wrappers__.increase_my_balance.syscall_ptr": 36
+            }
+          },
+          "hints": [
+            {
+              "location": {
+                "end_col": 34,
+                "end_line": 2,
+                "input_file": {
+                  "filename": "autogen/starknet/external/increase_my_balance/3ac21b4d8e0825ee47602d06534922f8d40a1540760fd492c27d91e52ab7d640.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 25,
+                    "end_line": 21,
+                    "input_file": {
+                      "filename": "BaseContract.cairo"
+                    },
+                    "start_col": 6,
+                    "start_line": 21
+                  },
+                  "While constructing the external wrapper for:"
+                ],
+                "start_col": 1,
+                "start_line": 2
+              },
+              "n_prefix_newlines": 0
+            }
+          ],
+          "inst": {
+            "end_col": 24,
+            "end_line": 3,
+            "input_file": {
+              "filename": "autogen/starknet/external/increase_my_balance/3ac21b4d8e0825ee47602d06534922f8d40a1540760fd492c27d91e52ab7d640.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 25,
+                "end_line": 21,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "start_col": 6,
+                "start_line": 21
+              },
+              "While constructing the external wrapper for:"
+            ],
+            "start_col": 1,
+            "start_line": 3
+          }
+        },
+        "52": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__",
+            "__wrappers__",
+            "__wrappers__.increase_my_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 4,
+              "offset": 32
+            },
+            "reference_ids": {
+              "__wrappers__.increase_my_balance.__calldata_actual_size": 34,
+              "__wrappers__.increase_my_balance.__calldata_arg_amount": 32,
+              "__wrappers__.increase_my_balance.__calldata_arg_class_hash": 30,
+              "__wrappers__.increase_my_balance.__calldata_ptr": 33,
+              "__wrappers__.increase_my_balance.__temp2": 35,
+              "__wrappers__.increase_my_balance.range_check_ptr": 37,
+              "__wrappers__.increase_my_balance.ret_struct": 38,
+              "__wrappers__.increase_my_balance.retdata": 39,
+              "__wrappers__.increase_my_balance.retdata_size": 40,
+              "__wrappers__.increase_my_balance.syscall_ptr": 36
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 56,
+            "end_line": 1,
+            "input_file": {
+              "filename": "autogen/starknet/external/increase_my_balance/3ac21b4d8e0825ee47602d06534922f8d40a1540760fd492c27d91e52ab7d640.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 25,
+                "end_line": 21,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 20,
+                    "end_line": 1,
+                    "input_file": {
+                      "filename": "autogen/starknet/external/increase_my_balance/8ff3c870faa0ee083f062bf6c6add3444ce3ffe843b9047321f6c9172381996c.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 25,
+                        "end_line": 21,
+                        "input_file": {
+                          "filename": "BaseContract.cairo"
+                        },
+                        "start_col": 6,
+                        "start_line": 21
+                      },
+                      "While constructing the external wrapper for:"
+                    ],
+                    "start_col": 9,
+                    "start_line": 1
+                  },
+                  "While expanding the reference 'syscall_ptr' in:"
+                ],
+                "start_col": 6,
+                "start_line": 21
+              },
+              "While constructing the external wrapper for:"
+            ],
+            "start_col": 45,
+            "start_line": 1
+          }
+        },
+        "53": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__",
+            "__wrappers__",
+            "__wrappers__.increase_my_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 4,
+              "offset": 33
+            },
+            "reference_ids": {
+              "__wrappers__.increase_my_balance.__calldata_actual_size": 34,
+              "__wrappers__.increase_my_balance.__calldata_arg_amount": 32,
+              "__wrappers__.increase_my_balance.__calldata_arg_class_hash": 30,
+              "__wrappers__.increase_my_balance.__calldata_ptr": 33,
+              "__wrappers__.increase_my_balance.__temp2": 35,
+              "__wrappers__.increase_my_balance.range_check_ptr": 37,
+              "__wrappers__.increase_my_balance.ret_struct": 38,
+              "__wrappers__.increase_my_balance.retdata": 39,
+              "__wrappers__.increase_my_balance.retdata_size": 40,
+              "__wrappers__.increase_my_balance.syscall_ptr": 36
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 89,
+            "end_line": 1,
+            "input_file": {
+              "filename": "autogen/starknet/external/increase_my_balance/3ac21b4d8e0825ee47602d06534922f8d40a1540760fd492c27d91e52ab7d640.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 25,
+                "end_line": 21,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 36,
+                    "end_line": 1,
+                    "input_file": {
+                      "filename": "autogen/starknet/external/increase_my_balance/8ff3c870faa0ee083f062bf6c6add3444ce3ffe843b9047321f6c9172381996c.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 25,
+                        "end_line": 21,
+                        "input_file": {
+                          "filename": "BaseContract.cairo"
+                        },
+                        "start_col": 6,
+                        "start_line": 21
+                      },
+                      "While constructing the external wrapper for:"
+                    ],
+                    "start_col": 21,
+                    "start_line": 1
+                  },
+                  "While expanding the reference 'range_check_ptr' in:"
+                ],
+                "start_col": 6,
+                "start_line": 21
+              },
+              "While constructing the external wrapper for:"
+            ],
+            "start_col": 74,
+            "start_line": 1
+          }
+        },
+        "54": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__",
+            "__wrappers__",
+            "__wrappers__.increase_my_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 4,
+              "offset": 34
+            },
+            "reference_ids": {
+              "__wrappers__.increase_my_balance.__calldata_actual_size": 34,
+              "__wrappers__.increase_my_balance.__calldata_arg_amount": 32,
+              "__wrappers__.increase_my_balance.__calldata_arg_class_hash": 30,
+              "__wrappers__.increase_my_balance.__calldata_ptr": 33,
+              "__wrappers__.increase_my_balance.__temp2": 35,
+              "__wrappers__.increase_my_balance.range_check_ptr": 37,
+              "__wrappers__.increase_my_balance.ret_struct": 38,
+              "__wrappers__.increase_my_balance.retdata": 39,
+              "__wrappers__.increase_my_balance.retdata_size": 40,
+              "__wrappers__.increase_my_balance.syscall_ptr": 36
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 21,
+            "end_line": 4,
+            "input_file": {
+              "filename": "autogen/starknet/external/increase_my_balance/3ac21b4d8e0825ee47602d06534922f8d40a1540760fd492c27d91e52ab7d640.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 25,
+                "end_line": 21,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 49,
+                    "end_line": 1,
+                    "input_file": {
+                      "filename": "autogen/starknet/external/increase_my_balance/8ff3c870faa0ee083f062bf6c6add3444ce3ffe843b9047321f6c9172381996c.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 25,
+                        "end_line": 21,
+                        "input_file": {
+                          "filename": "BaseContract.cairo"
+                        },
+                        "start_col": 6,
+                        "start_line": 21
+                      },
+                      "While constructing the external wrapper for:"
+                    ],
+                    "start_col": 37,
+                    "start_line": 1
+                  },
+                  "While expanding the reference 'retdata_size' in:"
+                ],
+                "start_col": 6,
+                "start_line": 21
+              },
+              "While constructing the external wrapper for:"
+            ],
+            "start_col": 20,
+            "start_line": 4
+          }
+        },
+        "56": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__",
+            "__wrappers__",
+            "__wrappers__.increase_my_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 4,
+              "offset": 35
+            },
+            "reference_ids": {
+              "__wrappers__.increase_my_balance.__calldata_actual_size": 34,
+              "__wrappers__.increase_my_balance.__calldata_arg_amount": 32,
+              "__wrappers__.increase_my_balance.__calldata_arg_class_hash": 30,
+              "__wrappers__.increase_my_balance.__calldata_ptr": 33,
+              "__wrappers__.increase_my_balance.__temp2": 35,
+              "__wrappers__.increase_my_balance.range_check_ptr": 37,
+              "__wrappers__.increase_my_balance.ret_struct": 38,
+              "__wrappers__.increase_my_balance.retdata": 39,
+              "__wrappers__.increase_my_balance.retdata_size": 40,
+              "__wrappers__.increase_my_balance.syscall_ptr": 36
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 16,
+            "end_line": 3,
+            "input_file": {
+              "filename": "autogen/starknet/external/increase_my_balance/3ac21b4d8e0825ee47602d06534922f8d40a1540760fd492c27d91e52ab7d640.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 25,
+                "end_line": 21,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "parent_location": [
+                  {
+                    "end_col": 57,
+                    "end_line": 1,
+                    "input_file": {
+                      "filename": "autogen/starknet/external/increase_my_balance/8ff3c870faa0ee083f062bf6c6add3444ce3ffe843b9047321f6c9172381996c.cairo"
+                    },
+                    "parent_location": [
+                      {
+                        "end_col": 25,
+                        "end_line": 21,
+                        "input_file": {
+                          "filename": "BaseContract.cairo"
+                        },
+                        "start_col": 6,
+                        "start_line": 21
+                      },
+                      "While constructing the external wrapper for:"
+                    ],
+                    "start_col": 50,
+                    "start_line": 1
+                  },
+                  "While expanding the reference 'retdata' in:"
+                ],
+                "start_col": 6,
+                "start_line": 21
+              },
+              "While constructing the external wrapper for:"
+            ],
+            "start_col": 9,
+            "start_line": 3
+          }
+        },
+        "57": {
+          "accessible_scopes": [
+            "__main__",
+            "__main__",
+            "__wrappers__",
+            "__wrappers__.increase_my_balance"
+          ],
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 4,
+              "offset": 36
+            },
+            "reference_ids": {
+              "__wrappers__.increase_my_balance.__calldata_actual_size": 34,
+              "__wrappers__.increase_my_balance.__calldata_arg_amount": 32,
+              "__wrappers__.increase_my_balance.__calldata_arg_class_hash": 30,
+              "__wrappers__.increase_my_balance.__calldata_ptr": 33,
+              "__wrappers__.increase_my_balance.__temp2": 35,
+              "__wrappers__.increase_my_balance.range_check_ptr": 37,
+              "__wrappers__.increase_my_balance.ret_struct": 38,
+              "__wrappers__.increase_my_balance.retdata": 39,
+              "__wrappers__.increase_my_balance.retdata_size": 40,
+              "__wrappers__.increase_my_balance.syscall_ptr": 36
+            }
+          },
+          "hints": [],
+          "inst": {
+            "end_col": 58,
+            "end_line": 1,
+            "input_file": {
+              "filename": "autogen/starknet/external/increase_my_balance/8ff3c870faa0ee083f062bf6c6add3444ce3ffe843b9047321f6c9172381996c.cairo"
+            },
+            "parent_location": [
+              {
+                "end_col": 25,
+                "end_line": 21,
+                "input_file": {
+                  "filename": "BaseContract.cairo"
+                },
+                "start_col": 6,
+                "start_line": 21
+              },
+              "While constructing the external wrapper for:"
+            ],
+            "start_col": 1,
+            "start_line": 1
+          }
+        }
+      }
+    },
+    "hints": {
+      "0": [
+        {
+          "accessible_scopes": [
+            "starkware.cairo.common.alloc",
+            "starkware.cairo.common.alloc.alloc"
+          ],
+          "code": "memory[ap] = segments.add()",
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 0,
+              "offset": 0
+            },
+            "reference_ids": {}
+          }
+        }
+      ],
+      "10": [
+        {
+          "accessible_scopes": [
+            "starkware.starknet.common.syscalls",
+            "starkware.starknet.common.syscalls.call_contract"
+          ],
+          "code": "syscall_handler.call_contract(segments=segments, syscall_ptr=ids.syscall_ptr)",
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 1,
+              "offset": 1
+            },
+            "reference_ids": {
+              "starkware.starknet.common.syscalls.call_contract.__temp0": 6,
+              "starkware.starknet.common.syscalls.call_contract.calldata": 3,
+              "starkware.starknet.common.syscalls.call_contract.calldata_size": 2,
+              "starkware.starknet.common.syscalls.call_contract.contract_address": 0,
+              "starkware.starknet.common.syscalls.call_contract.function_selector": 1,
+              "starkware.starknet.common.syscalls.call_contract.syscall": 5,
+              "starkware.starknet.common.syscalls.call_contract.syscall_ptr": 4
+            }
+          }
+        }
+      ],
+      "50": [
+        {
+          "accessible_scopes": [
+            "__main__",
+            "__main__",
+            "__wrappers__",
+            "__wrappers__.increase_my_balance"
+          ],
+          "code": "memory[ap] = segments.add()",
+          "flow_tracking_data": {
+            "ap_tracking": {
+              "group": 4,
+              "offset": 31
+            },
+            "reference_ids": {
+              "__wrappers__.increase_my_balance.__calldata_actual_size": 34,
+              "__wrappers__.increase_my_balance.__calldata_arg_amount": 32,
+              "__wrappers__.increase_my_balance.__calldata_arg_class_hash": 30,
+              "__wrappers__.increase_my_balance.__calldata_ptr": 33,
+              "__wrappers__.increase_my_balance.__temp2": 35,
+              "__wrappers__.increase_my_balance.range_check_ptr": 37,
+              "__wrappers__.increase_my_balance.ret_struct": 38,
+              "__wrappers__.increase_my_balance.syscall_ptr": 36
+            }
+          }
+        }
+      ]
+    },
+    "identifiers": {
+      "__main__.HashBuiltin": {
+        "destination": "starkware.cairo.common.cairo_builtins.HashBuiltin",
+        "type": "alias"
+      },
+      "__main__.IBalanceContract": {
+        "type": "namespace"
+      },
+      "__main__.IBalanceContract.Args": {
+        "full_name": "__main__.IBalanceContract.Args",
+        "members": {},
+        "size": 0,
+        "type": "struct"
+      },
+      "__main__.IBalanceContract.GET_BALANCE_SELECTOR": {
+        "type": "const",
+        "value": 1636223440827086009537493065587328807418413867743950350615962740049133672085
+      },
+      "__main__.IBalanceContract.ImplicitArgs": {
+        "full_name": "__main__.IBalanceContract.ImplicitArgs",
+        "members": {},
+        "size": 0,
+        "type": "struct"
+      },
+      "__main__.IBalanceContract.LIBRARY_CALL_INCREASE_BALANCE_SELECTOR": {
+        "type": "const",
+        "value": 185011363810826680709617221632921596908919906935442155603593315478392646326
+      },
+      "__main__.IBalanceContract.Return": {
+        "full_name": "__main__.IBalanceContract.Return",
+        "members": {},
+        "size": 0,
+        "type": "struct"
+      },
+      "__main__.IBalanceContract.SIZEOF_LOCALS": {
+        "type": "const",
+        "value": 0
+      },
+      "__main__.IBalanceContract.alloc": {
+        "destination": "starkware.cairo.common.alloc.alloc",
+        "type": "alias"
+      },
+      "__main__.IBalanceContract.call_contract": {
+        "destination": "starkware.starknet.common.syscalls.call_contract",
+        "type": "alias"
+      },
+      "__main__.IBalanceContract.delegate_call": {
+        "destination": "starkware.starknet.common.syscalls.delegate_call",
+        "type": "alias"
+      },
+      "__main__.IBalanceContract.library_call_increase_balance": {
+        "decorators": [],
+        "pc": 15,
+        "type": "function"
+      },
+      "__main__.IBalanceContract.library_call_increase_balance.Args": {
+        "full_name": "__main__.IBalanceContract.library_call_increase_balance.Args",
+        "members": {
+          "amount": {
+            "cairo_type": "felt",
+            "offset": 1
+          },
+          "contract_address": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "__main__.IBalanceContract.library_call_increase_balance.ImplicitArgs": {
+        "full_name": "__main__.IBalanceContract.library_call_increase_balance.ImplicitArgs",
+        "members": {
+          "range_check_ptr": {
+            "cairo_type": "felt",
+            "offset": 1
+          },
+          "syscall_ptr": {
+            "cairo_type": "felt*",
+            "offset": 0
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "__main__.IBalanceContract.library_call_increase_balance.Return": {
+        "full_name": "__main__.IBalanceContract.library_call_increase_balance.Return",
+        "members": {},
+        "size": 0,
+        "type": "struct"
+      },
+      "__main__.IBalanceContract.library_call_increase_balance.SIZEOF_LOCALS": {
+        "type": "const",
+        "value": 1
+      },
+      "__main__.IBalanceContract.library_call_increase_balance.__calldata_ptr": {
+        "cairo_type": "felt*",
+        "full_name": "__main__.IBalanceContract.library_call_increase_balance.__calldata_ptr",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 2,
+              "offset": 4
+            },
+            "pc": 20,
+            "value": "[cast(fp, felt**)]"
+          },
+          {
+            "ap_tracking_data": {
+              "group": 2,
+              "offset": 4
+            },
+            "pc": 21,
+            "value": "cast([fp] + 1, felt*)"
+          }
+        ],
+        "type": "reference"
+      },
+      "__main__.IBalanceContract.library_call_increase_balance.__temp1": {
+        "cairo_type": "felt",
+        "full_name": "__main__.IBalanceContract.library_call_increase_balance.__temp1",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 2,
+              "offset": 5
+            },
+            "pc": 23,
+            "value": "[cast(ap + (-1), felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__main__.IBalanceContract.library_call_increase_balance.amount": {
+        "cairo_type": "felt",
+        "full_name": "__main__.IBalanceContract.library_call_increase_balance.amount",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 2,
+              "offset": 0
+            },
+            "pc": 15,
+            "value": "[cast(fp + (-3), felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__main__.IBalanceContract.library_call_increase_balance.calldata_ptr_start": {
+        "cairo_type": "felt*",
+        "full_name": "__main__.IBalanceContract.library_call_increase_balance.calldata_ptr_start",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 2,
+              "offset": 4
+            },
+            "pc": 19,
+            "value": "[cast(ap + (-1), felt**)]"
+          },
+          {
+            "ap_tracking_data": {
+              "group": 2,
+              "offset": 4
+            },
+            "pc": 20,
+            "value": "[cast(fp, felt**)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__main__.IBalanceContract.library_call_increase_balance.contract_address": {
+        "cairo_type": "felt",
+        "full_name": "__main__.IBalanceContract.library_call_increase_balance.contract_address",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 2,
+              "offset": 0
+            },
+            "pc": 15,
+            "value": "[cast(fp + (-4), felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr": {
+        "cairo_type": "felt",
+        "full_name": "__main__.IBalanceContract.library_call_increase_balance.range_check_ptr",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 2,
+              "offset": 0
+            },
+            "pc": 15,
+            "value": "[cast(fp + (-5), felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__main__.IBalanceContract.library_call_increase_balance.retdata": {
+        "cairo_type": "felt*",
+        "full_name": "__main__.IBalanceContract.library_call_increase_balance.retdata",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 2,
+              "offset": 16
+            },
+            "pc": 31,
+            "value": "[cast(ap + (-1), felt**)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__main__.IBalanceContract.library_call_increase_balance.retdata_size": {
+        "cairo_type": "felt",
+        "full_name": "__main__.IBalanceContract.library_call_increase_balance.retdata_size",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 2,
+              "offset": 16
+            },
+            "pc": 31,
+            "value": "[cast(ap + (-2), felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr": {
+        "cairo_type": "felt*",
+        "full_name": "__main__.IBalanceContract.library_call_increase_balance.syscall_ptr",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 2,
+              "offset": 0
+            },
+            "pc": 15,
+            "value": "[cast(fp + (-6), felt**)]"
+          },
+          {
+            "ap_tracking_data": {
+              "group": 2,
+              "offset": 16
+            },
+            "pc": 31,
+            "value": "[cast(ap + (-3), felt**)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__main__.IBalanceContract.memcpy": {
+        "destination": "starkware.cairo.common.memcpy.memcpy",
+        "type": "alias"
+      },
+      "__main__.balance": {
+        "type": "namespace"
+      },
+      "__main__.balance.Args": {
+        "full_name": "__main__.balance.Args",
+        "members": {},
+        "size": 0,
+        "type": "struct"
+      },
+      "__main__.balance.HashBuiltin": {
+        "destination": "starkware.cairo.common.cairo_builtins.HashBuiltin",
+        "type": "alias"
+      },
+      "__main__.balance.ImplicitArgs": {
+        "full_name": "__main__.balance.ImplicitArgs",
+        "members": {},
+        "size": 0,
+        "type": "struct"
+      },
+      "__main__.balance.Return": {
+        "full_name": "__main__.balance.Return",
+        "members": {},
+        "size": 0,
+        "type": "struct"
+      },
+      "__main__.balance.SIZEOF_LOCALS": {
+        "type": "const",
+        "value": 0
+      },
+      "__main__.balance.hash2": {
+        "destination": "starkware.cairo.common.hash.hash2",
+        "type": "alias"
+      },
+      "__main__.balance.normalize_address": {
+        "destination": "starkware.starknet.common.storage.normalize_address",
+        "type": "alias"
+      },
+      "__main__.balance.storage_read": {
+        "destination": "starkware.starknet.common.syscalls.storage_read",
+        "type": "alias"
+      },
+      "__main__.balance.storage_write": {
+        "destination": "starkware.starknet.common.syscalls.storage_write",
+        "type": "alias"
+      },
+      "__main__.increase_my_balance": {
+        "decorators": ["external"],
+        "pc": 34,
+        "type": "function"
+      },
+      "__main__.increase_my_balance.Args": {
+        "full_name": "__main__.increase_my_balance.Args",
+        "members": {
+          "amount": {
+            "cairo_type": "felt",
+            "offset": 1
+          },
+          "class_hash": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "__main__.increase_my_balance.ImplicitArgs": {
+        "full_name": "__main__.increase_my_balance.ImplicitArgs",
+        "members": {
+          "range_check_ptr": {
+            "cairo_type": "felt",
+            "offset": 1
+          },
+          "syscall_ptr": {
+            "cairo_type": "felt*",
+            "offset": 0
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "__main__.increase_my_balance.Return": {
+        "full_name": "__main__.increase_my_balance.Return",
+        "members": {},
+        "size": 0,
+        "type": "struct"
+      },
+      "__main__.increase_my_balance.SIZEOF_LOCALS": {
+        "type": "const",
+        "value": 0
+      },
+      "__main__.increase_my_balance.amount": {
+        "cairo_type": "felt",
+        "full_name": "__main__.increase_my_balance.amount",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 3,
+              "offset": 0
+            },
+            "pc": 34,
+            "value": "[cast(fp + (-3), felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__main__.increase_my_balance.class_hash": {
+        "cairo_type": "felt",
+        "full_name": "__main__.increase_my_balance.class_hash",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 3,
+              "offset": 0
+            },
+            "pc": 34,
+            "value": "[cast(fp + (-4), felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__main__.increase_my_balance.range_check_ptr": {
+        "cairo_type": "felt",
+        "full_name": "__main__.increase_my_balance.range_check_ptr",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 3,
+              "offset": 0
+            },
+            "pc": 34,
+            "value": "[cast(fp + (-5), felt*)]"
+          },
+          {
+            "ap_tracking_data": {
+              "group": 3,
+              "offset": 24
+            },
+            "pc": 40,
+            "value": "[cast(ap + (-1), felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__main__.increase_my_balance.syscall_ptr": {
+        "cairo_type": "felt*",
+        "full_name": "__main__.increase_my_balance.syscall_ptr",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 3,
+              "offset": 0
+            },
+            "pc": 34,
+            "value": "[cast(fp + (-6), felt**)]"
+          },
+          {
+            "ap_tracking_data": {
+              "group": 3,
+              "offset": 24
+            },
+            "pc": 40,
+            "value": "[cast(ap + (-2), felt**)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__wrappers__.increase_my_balance": {
+        "decorators": ["external"],
+        "pc": 41,
+        "type": "function"
+      },
+      "__wrappers__.increase_my_balance.Args": {
+        "full_name": "__wrappers__.increase_my_balance.Args",
+        "members": {},
+        "size": 0,
+        "type": "struct"
+      },
+      "__wrappers__.increase_my_balance.ImplicitArgs": {
+        "full_name": "__wrappers__.increase_my_balance.ImplicitArgs",
+        "members": {},
+        "size": 0,
+        "type": "struct"
+      },
+      "__wrappers__.increase_my_balance.Return": {
+        "full_name": "__wrappers__.increase_my_balance.Return",
+        "members": {
+          "range_check_ptr": {
+            "cairo_type": "felt",
+            "offset": 1
+          },
+          "retdata": {
+            "cairo_type": "felt*",
+            "offset": 3
+          },
+          "size": {
+            "cairo_type": "felt",
+            "offset": 2
+          },
+          "syscall_ptr": {
+            "cairo_type": "felt*",
+            "offset": 0
+          }
+        },
+        "size": 4,
+        "type": "struct"
+      },
+      "__wrappers__.increase_my_balance.SIZEOF_LOCALS": {
+        "type": "const",
+        "value": 0
+      },
+      "__wrappers__.increase_my_balance.__calldata_actual_size": {
+        "cairo_type": "felt",
+        "full_name": "__wrappers__.increase_my_balance.__calldata_actual_size",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 4,
+              "offset": 0
+            },
+            "pc": 41,
+            "value": "cast([fp + (-3)] + 2 - [fp + (-3)], felt)"
+          }
+        ],
+        "type": "reference"
+      },
+      "__wrappers__.increase_my_balance.__calldata_arg_amount": {
+        "cairo_type": "felt",
+        "full_name": "__wrappers__.increase_my_balance.__calldata_arg_amount",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 4,
+              "offset": 0
+            },
+            "pc": 41,
+            "value": "[cast([fp + (-3)] + 1, felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__wrappers__.increase_my_balance.__calldata_arg_class_hash": {
+        "cairo_type": "felt",
+        "full_name": "__wrappers__.increase_my_balance.__calldata_arg_class_hash",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 4,
+              "offset": 0
+            },
+            "pc": 41,
+            "value": "[cast([fp + (-3)], felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__wrappers__.increase_my_balance.__calldata_ptr": {
+        "cairo_type": "felt*",
+        "full_name": "__wrappers__.increase_my_balance.__calldata_ptr",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 4,
+              "offset": 0
+            },
+            "pc": 41,
+            "value": "[cast(fp + (-3), felt**)]"
+          },
+          {
+            "ap_tracking_data": {
+              "group": 4,
+              "offset": 0
+            },
+            "pc": 41,
+            "value": "cast([fp + (-3)] + 1, felt*)"
+          },
+          {
+            "ap_tracking_data": {
+              "group": 4,
+              "offset": 0
+            },
+            "pc": 41,
+            "value": "cast([fp + (-3)] + 2, felt*)"
+          }
+        ],
+        "type": "reference"
+      },
+      "__wrappers__.increase_my_balance.__temp2": {
+        "cairo_type": "felt",
+        "full_name": "__wrappers__.increase_my_balance.__temp2",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 4,
+              "offset": 1
+            },
+            "pc": 43,
+            "value": "[cast(ap + (-1), felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__wrappers__.increase_my_balance.__wrapped_func": {
+        "destination": "__main__.increase_my_balance",
+        "type": "alias"
+      },
+      "__wrappers__.increase_my_balance.range_check_ptr": {
+        "cairo_type": "felt",
+        "full_name": "__wrappers__.increase_my_balance.range_check_ptr",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 4,
+              "offset": 0
+            },
+            "pc": 41,
+            "value": "[cast([fp + (-5)] + 1, felt*)]"
+          },
+          {
+            "ap_tracking_data": {
+              "group": 4,
+              "offset": 31
+            },
+            "pc": 50,
+            "value": "[cast(ap + (-1), felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__wrappers__.increase_my_balance.ret_struct": {
+        "cairo_type": "__main__.increase_my_balance.Return",
+        "full_name": "__wrappers__.increase_my_balance.ret_struct",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 4,
+              "offset": 31
+            },
+            "pc": 50,
+            "value": "[cast(ap + 0, __main__.increase_my_balance.Return*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__wrappers__.increase_my_balance.retdata": {
+        "cairo_type": "felt*",
+        "full_name": "__wrappers__.increase_my_balance.retdata",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 4,
+              "offset": 32
+            },
+            "pc": 52,
+            "value": "[cast(ap + (-1), felt**)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__wrappers__.increase_my_balance.retdata_size": {
+        "cairo_type": "felt",
+        "full_name": "__wrappers__.increase_my_balance.retdata_size",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 4,
+              "offset": 32
+            },
+            "pc": 52,
+            "value": "cast(0, felt)"
+          }
+        ],
+        "type": "reference"
+      },
+      "__wrappers__.increase_my_balance.syscall_ptr": {
+        "cairo_type": "felt*",
+        "full_name": "__wrappers__.increase_my_balance.syscall_ptr",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 4,
+              "offset": 0
+            },
+            "pc": 41,
+            "value": "[cast([fp + (-5)], felt**)]"
+          },
+          {
+            "ap_tracking_data": {
+              "group": 4,
+              "offset": 31
+            },
+            "pc": 50,
+            "value": "[cast(ap + (-2), felt**)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "__wrappers__.increase_my_balance_encode_return.memcpy": {
+        "destination": "starkware.cairo.common.memcpy.memcpy",
+        "type": "alias"
+      },
+      "starkware.cairo.common.alloc.alloc": {
+        "decorators": [],
+        "pc": 0,
+        "type": "function"
+      },
+      "starkware.cairo.common.alloc.alloc.Args": {
+        "full_name": "starkware.cairo.common.alloc.alloc.Args",
+        "members": {},
+        "size": 0,
+        "type": "struct"
+      },
+      "starkware.cairo.common.alloc.alloc.ImplicitArgs": {
+        "full_name": "starkware.cairo.common.alloc.alloc.ImplicitArgs",
+        "members": {},
+        "size": 0,
+        "type": "struct"
+      },
+      "starkware.cairo.common.alloc.alloc.Return": {
+        "full_name": "starkware.cairo.common.alloc.alloc.Return",
+        "members": {
+          "ptr": {
+            "cairo_type": "felt*",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS": {
+        "type": "const",
+        "value": 0
+      },
+      "starkware.cairo.common.cairo_builtins.BitwiseBuiltin": {
+        "full_name": "starkware.cairo.common.cairo_builtins.BitwiseBuiltin",
+        "members": {
+          "x": {
+            "cairo_type": "felt",
+            "offset": 0
+          },
+          "x_and_y": {
+            "cairo_type": "felt",
+            "offset": 2
+          },
+          "x_or_y": {
+            "cairo_type": "felt",
+            "offset": 4
+          },
+          "x_xor_y": {
+            "cairo_type": "felt",
+            "offset": 3
+          },
+          "y": {
+            "cairo_type": "felt",
+            "offset": 1
+          }
+        },
+        "size": 5,
+        "type": "struct"
+      },
+      "starkware.cairo.common.cairo_builtins.EcOpBuiltin": {
+        "full_name": "starkware.cairo.common.cairo_builtins.EcOpBuiltin",
+        "members": {
+          "m": {
+            "cairo_type": "felt",
+            "offset": 4
+          },
+          "p": {
+            "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+            "offset": 0
+          },
+          "q": {
+            "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+            "offset": 2
+          },
+          "r": {
+            "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+            "offset": 5
+          }
+        },
+        "size": 7,
+        "type": "struct"
+      },
+      "starkware.cairo.common.cairo_builtins.EcPoint": {
+        "destination": "starkware.cairo.common.ec_point.EcPoint",
+        "type": "alias"
+      },
+      "starkware.cairo.common.cairo_builtins.HashBuiltin": {
+        "full_name": "starkware.cairo.common.cairo_builtins.HashBuiltin",
+        "members": {
+          "result": {
+            "cairo_type": "felt",
+            "offset": 2
+          },
+          "x": {
+            "cairo_type": "felt",
+            "offset": 0
+          },
+          "y": {
+            "cairo_type": "felt",
+            "offset": 1
+          }
+        },
+        "size": 3,
+        "type": "struct"
+      },
+      "starkware.cairo.common.cairo_builtins.SignatureBuiltin": {
+        "full_name": "starkware.cairo.common.cairo_builtins.SignatureBuiltin",
+        "members": {
+          "message": {
+            "cairo_type": "felt",
+            "offset": 1
+          },
+          "pub_key": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "starkware.cairo.common.dict_access.DictAccess": {
+        "full_name": "starkware.cairo.common.dict_access.DictAccess",
+        "members": {
+          "key": {
+            "cairo_type": "felt",
+            "offset": 0
+          },
+          "new_value": {
+            "cairo_type": "felt",
+            "offset": 2
+          },
+          "prev_value": {
+            "cairo_type": "felt",
+            "offset": 1
+          }
+        },
+        "size": 3,
+        "type": "struct"
+      },
+      "starkware.cairo.common.ec_point.EcPoint": {
+        "full_name": "starkware.cairo.common.ec_point.EcPoint",
+        "members": {
+          "x": {
+            "cairo_type": "felt",
+            "offset": 0
+          },
+          "y": {
+            "cairo_type": "felt",
+            "offset": 1
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "starkware.cairo.common.hash.HashBuiltin": {
+        "destination": "starkware.cairo.common.cairo_builtins.HashBuiltin",
+        "type": "alias"
+      },
+      "starkware.starknet.common.storage.ADDR_BOUND": {
+        "type": "const",
+        "value": -106710729501573572985208420194530329073740042555888586719489
+      },
+      "starkware.starknet.common.storage.MAX_STORAGE_ITEM_SIZE": {
+        "type": "const",
+        "value": 256
+      },
+      "starkware.starknet.common.storage.assert_250_bit": {
+        "destination": "starkware.cairo.common.math.assert_250_bit",
+        "type": "alias"
+      },
+      "starkware.starknet.common.syscalls.CALL_CONTRACT_SELECTOR": {
+        "type": "const",
+        "value": 20853273475220472486191784820
+      },
+      "starkware.starknet.common.syscalls.CallContract": {
+        "full_name": "starkware.starknet.common.syscalls.CallContract",
+        "members": {
+          "request": {
+            "cairo_type": "starkware.starknet.common.syscalls.CallContractRequest",
+            "offset": 0
+          },
+          "response": {
+            "cairo_type": "starkware.starknet.common.syscalls.CallContractResponse",
+            "offset": 5
+          }
+        },
+        "size": 7,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.CallContractRequest": {
+        "full_name": "starkware.starknet.common.syscalls.CallContractRequest",
+        "members": {
+          "calldata": {
+            "cairo_type": "felt*",
+            "offset": 4
+          },
+          "calldata_size": {
+            "cairo_type": "felt",
+            "offset": 3
+          },
+          "contract_address": {
+            "cairo_type": "felt",
+            "offset": 1
+          },
+          "function_selector": {
+            "cairo_type": "felt",
+            "offset": 2
+          },
+          "selector": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 5,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.CallContractResponse": {
+        "full_name": "starkware.starknet.common.syscalls.CallContractResponse",
+        "members": {
+          "retdata": {
+            "cairo_type": "felt*",
+            "offset": 1
+          },
+          "retdata_size": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.DELEGATE_CALL_SELECTOR": {
+        "type": "const",
+        "value": 21167594061783206823196716140
+      },
+      "starkware.starknet.common.syscalls.DELEGATE_L1_HANDLER_SELECTOR": {
+        "type": "const",
+        "value": 23274015802972845247556842986379118667122
+      },
+      "starkware.starknet.common.syscalls.DictAccess": {
+        "destination": "starkware.cairo.common.dict_access.DictAccess",
+        "type": "alias"
+      },
+      "starkware.starknet.common.syscalls.EMIT_EVENT_SELECTOR": {
+        "type": "const",
+        "value": 1280709301550335749748
+      },
+      "starkware.starknet.common.syscalls.EmitEvent": {
+        "full_name": "starkware.starknet.common.syscalls.EmitEvent",
+        "members": {
+          "data": {
+            "cairo_type": "felt*",
+            "offset": 4
+          },
+          "data_len": {
+            "cairo_type": "felt",
+            "offset": 3
+          },
+          "keys": {
+            "cairo_type": "felt*",
+            "offset": 2
+          },
+          "keys_len": {
+            "cairo_type": "felt",
+            "offset": 1
+          },
+          "selector": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 5,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GET_BLOCK_NUMBER_SELECTOR": {
+        "type": "const",
+        "value": 1448089106835523001438702345020786
+      },
+      "starkware.starknet.common.syscalls.GET_BLOCK_TIMESTAMP_SELECTOR": {
+        "type": "const",
+        "value": 24294903732626645868215235778792757751152
+      },
+      "starkware.starknet.common.syscalls.GET_CALLER_ADDRESS_SELECTOR": {
+        "type": "const",
+        "value": 94901967781393078444254803017658102643
+      },
+      "starkware.starknet.common.syscalls.GET_CONTRACT_ADDRESS_SELECTOR": {
+        "type": "const",
+        "value": 6219495360805491471215297013070624192820083
+      },
+      "starkware.starknet.common.syscalls.GET_SEQUENCER_ADDRESS_SELECTOR": {
+        "type": "const",
+        "value": 1592190833581991703053805829594610833820054387
+      },
+      "starkware.starknet.common.syscalls.GET_TX_INFO_SELECTOR": {
+        "type": "const",
+        "value": 1317029390204112103023
+      },
+      "starkware.starknet.common.syscalls.GET_TX_SIGNATURE_SELECTOR": {
+        "type": "const",
+        "value": 1448089128652340074717162277007973
+      },
+      "starkware.starknet.common.syscalls.GetBlockNumber": {
+        "full_name": "starkware.starknet.common.syscalls.GetBlockNumber",
+        "members": {
+          "request": {
+            "cairo_type": "starkware.starknet.common.syscalls.GetBlockNumberRequest",
+            "offset": 0
+          },
+          "response": {
+            "cairo_type": "starkware.starknet.common.syscalls.GetBlockNumberResponse",
+            "offset": 1
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetBlockNumberRequest": {
+        "full_name": "starkware.starknet.common.syscalls.GetBlockNumberRequest",
+        "members": {
+          "selector": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetBlockNumberResponse": {
+        "full_name": "starkware.starknet.common.syscalls.GetBlockNumberResponse",
+        "members": {
+          "block_number": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetBlockTimestamp": {
+        "full_name": "starkware.starknet.common.syscalls.GetBlockTimestamp",
+        "members": {
+          "request": {
+            "cairo_type": "starkware.starknet.common.syscalls.GetBlockTimestampRequest",
+            "offset": 0
+          },
+          "response": {
+            "cairo_type": "starkware.starknet.common.syscalls.GetBlockTimestampResponse",
+            "offset": 1
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetBlockTimestampRequest": {
+        "full_name": "starkware.starknet.common.syscalls.GetBlockTimestampRequest",
+        "members": {
+          "selector": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetBlockTimestampResponse": {
+        "full_name": "starkware.starknet.common.syscalls.GetBlockTimestampResponse",
+        "members": {
+          "block_timestamp": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetCallerAddress": {
+        "full_name": "starkware.starknet.common.syscalls.GetCallerAddress",
+        "members": {
+          "request": {
+            "cairo_type": "starkware.starknet.common.syscalls.GetCallerAddressRequest",
+            "offset": 0
+          },
+          "response": {
+            "cairo_type": "starkware.starknet.common.syscalls.GetCallerAddressResponse",
+            "offset": 1
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetCallerAddressRequest": {
+        "full_name": "starkware.starknet.common.syscalls.GetCallerAddressRequest",
+        "members": {
+          "selector": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetCallerAddressResponse": {
+        "full_name": "starkware.starknet.common.syscalls.GetCallerAddressResponse",
+        "members": {
+          "caller_address": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetContractAddress": {
+        "full_name": "starkware.starknet.common.syscalls.GetContractAddress",
+        "members": {
+          "request": {
+            "cairo_type": "starkware.starknet.common.syscalls.GetContractAddressRequest",
+            "offset": 0
+          },
+          "response": {
+            "cairo_type": "starkware.starknet.common.syscalls.GetContractAddressResponse",
+            "offset": 1
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetContractAddressRequest": {
+        "full_name": "starkware.starknet.common.syscalls.GetContractAddressRequest",
+        "members": {
+          "selector": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetContractAddressResponse": {
+        "full_name": "starkware.starknet.common.syscalls.GetContractAddressResponse",
+        "members": {
+          "contract_address": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetSequencerAddress": {
+        "full_name": "starkware.starknet.common.syscalls.GetSequencerAddress",
+        "members": {
+          "request": {
+            "cairo_type": "starkware.starknet.common.syscalls.GetSequencerAddressRequest",
+            "offset": 0
+          },
+          "response": {
+            "cairo_type": "starkware.starknet.common.syscalls.GetSequencerAddressResponse",
+            "offset": 1
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetSequencerAddressRequest": {
+        "full_name": "starkware.starknet.common.syscalls.GetSequencerAddressRequest",
+        "members": {
+          "selector": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetSequencerAddressResponse": {
+        "full_name": "starkware.starknet.common.syscalls.GetSequencerAddressResponse",
+        "members": {
+          "sequencer_address": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetTxInfo": {
+        "full_name": "starkware.starknet.common.syscalls.GetTxInfo",
+        "members": {
+          "request": {
+            "cairo_type": "starkware.starknet.common.syscalls.GetTxInfoRequest",
+            "offset": 0
+          },
+          "response": {
+            "cairo_type": "starkware.starknet.common.syscalls.GetTxInfoResponse",
+            "offset": 1
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetTxInfoRequest": {
+        "full_name": "starkware.starknet.common.syscalls.GetTxInfoRequest",
+        "members": {
+          "selector": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetTxInfoResponse": {
+        "full_name": "starkware.starknet.common.syscalls.GetTxInfoResponse",
+        "members": {
+          "tx_info": {
+            "cairo_type": "starkware.starknet.common.syscalls.TxInfo*",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetTxSignature": {
+        "full_name": "starkware.starknet.common.syscalls.GetTxSignature",
+        "members": {
+          "request": {
+            "cairo_type": "starkware.starknet.common.syscalls.GetTxSignatureRequest",
+            "offset": 0
+          },
+          "response": {
+            "cairo_type": "starkware.starknet.common.syscalls.GetTxSignatureResponse",
+            "offset": 1
+          }
+        },
+        "size": 3,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetTxSignatureRequest": {
+        "full_name": "starkware.starknet.common.syscalls.GetTxSignatureRequest",
+        "members": {
+          "selector": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.GetTxSignatureResponse": {
+        "full_name": "starkware.starknet.common.syscalls.GetTxSignatureResponse",
+        "members": {
+          "signature": {
+            "cairo_type": "felt*",
+            "offset": 1
+          },
+          "signature_len": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.SEND_MESSAGE_TO_L1_SELECTOR": {
+        "type": "const",
+        "value": 433017908768303439907196859243777073
+      },
+      "starkware.starknet.common.syscalls.STORAGE_READ_SELECTOR": {
+        "type": "const",
+        "value": 100890693370601760042082660
+      },
+      "starkware.starknet.common.syscalls.STORAGE_WRITE_SELECTOR": {
+        "type": "const",
+        "value": 25828017502874050592466629733
+      },
+      "starkware.starknet.common.syscalls.SendMessageToL1SysCall": {
+        "full_name": "starkware.starknet.common.syscalls.SendMessageToL1SysCall",
+        "members": {
+          "payload_ptr": {
+            "cairo_type": "felt*",
+            "offset": 3
+          },
+          "payload_size": {
+            "cairo_type": "felt",
+            "offset": 2
+          },
+          "selector": {
+            "cairo_type": "felt",
+            "offset": 0
+          },
+          "to_address": {
+            "cairo_type": "felt",
+            "offset": 1
+          }
+        },
+        "size": 4,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.StorageRead": {
+        "full_name": "starkware.starknet.common.syscalls.StorageRead",
+        "members": {
+          "request": {
+            "cairo_type": "starkware.starknet.common.syscalls.StorageReadRequest",
+            "offset": 0
+          },
+          "response": {
+            "cairo_type": "starkware.starknet.common.syscalls.StorageReadResponse",
+            "offset": 2
+          }
+        },
+        "size": 3,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.StorageReadRequest": {
+        "full_name": "starkware.starknet.common.syscalls.StorageReadRequest",
+        "members": {
+          "address": {
+            "cairo_type": "felt",
+            "offset": 1
+          },
+          "selector": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.StorageReadResponse": {
+        "full_name": "starkware.starknet.common.syscalls.StorageReadResponse",
+        "members": {
+          "value": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.StorageWrite": {
+        "full_name": "starkware.starknet.common.syscalls.StorageWrite",
+        "members": {
+          "address": {
+            "cairo_type": "felt",
+            "offset": 1
+          },
+          "selector": {
+            "cairo_type": "felt",
+            "offset": 0
+          },
+          "value": {
+            "cairo_type": "felt",
+            "offset": 2
+          }
+        },
+        "size": 3,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.TxInfo": {
+        "full_name": "starkware.starknet.common.syscalls.TxInfo",
+        "members": {
+          "account_contract_address": {
+            "cairo_type": "felt",
+            "offset": 1
+          },
+          "chain_id": {
+            "cairo_type": "felt",
+            "offset": 6
+          },
+          "max_fee": {
+            "cairo_type": "felt",
+            "offset": 2
+          },
+          "signature": {
+            "cairo_type": "felt*",
+            "offset": 4
+          },
+          "signature_len": {
+            "cairo_type": "felt",
+            "offset": 3
+          },
+          "transaction_hash": {
+            "cairo_type": "felt",
+            "offset": 5
+          },
+          "version": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 7,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.call_contract": {
+        "decorators": [],
+        "pc": 3,
+        "type": "function"
+      },
+      "starkware.starknet.common.syscalls.call_contract.Args": {
+        "full_name": "starkware.starknet.common.syscalls.call_contract.Args",
+        "members": {
+          "calldata": {
+            "cairo_type": "felt*",
+            "offset": 3
+          },
+          "calldata_size": {
+            "cairo_type": "felt",
+            "offset": 2
+          },
+          "contract_address": {
+            "cairo_type": "felt",
+            "offset": 0
+          },
+          "function_selector": {
+            "cairo_type": "felt",
+            "offset": 1
+          }
+        },
+        "size": 4,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.call_contract.ImplicitArgs": {
+        "full_name": "starkware.starknet.common.syscalls.call_contract.ImplicitArgs",
+        "members": {
+          "syscall_ptr": {
+            "cairo_type": "felt*",
+            "offset": 0
+          }
+        },
+        "size": 1,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.call_contract.Return": {
+        "full_name": "starkware.starknet.common.syscalls.call_contract.Return",
+        "members": {
+          "retdata": {
+            "cairo_type": "felt*",
+            "offset": 1
+          },
+          "retdata_size": {
+            "cairo_type": "felt",
+            "offset": 0
+          }
+        },
+        "size": 2,
+        "type": "struct"
+      },
+      "starkware.starknet.common.syscalls.call_contract.SIZEOF_LOCALS": {
+        "type": "const",
+        "value": 0
+      },
+      "starkware.starknet.common.syscalls.call_contract.__temp0": {
+        "cairo_type": "felt",
+        "full_name": "starkware.starknet.common.syscalls.call_contract.__temp0",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 1,
+              "offset": 1
+            },
+            "pc": 5,
+            "value": "[cast(ap + (-1), felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "starkware.starknet.common.syscalls.call_contract.calldata": {
+        "cairo_type": "felt*",
+        "full_name": "starkware.starknet.common.syscalls.call_contract.calldata",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 1,
+              "offset": 0
+            },
+            "pc": 3,
+            "value": "[cast(fp + (-3), felt**)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "starkware.starknet.common.syscalls.call_contract.calldata_size": {
+        "cairo_type": "felt",
+        "full_name": "starkware.starknet.common.syscalls.call_contract.calldata_size",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 1,
+              "offset": 0
+            },
+            "pc": 3,
+            "value": "[cast(fp + (-4), felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "starkware.starknet.common.syscalls.call_contract.contract_address": {
+        "cairo_type": "felt",
+        "full_name": "starkware.starknet.common.syscalls.call_contract.contract_address",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 1,
+              "offset": 0
+            },
+            "pc": 3,
+            "value": "[cast(fp + (-6), felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "starkware.starknet.common.syscalls.call_contract.function_selector": {
+        "cairo_type": "felt",
+        "full_name": "starkware.starknet.common.syscalls.call_contract.function_selector",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 1,
+              "offset": 0
+            },
+            "pc": 3,
+            "value": "[cast(fp + (-5), felt*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "starkware.starknet.common.syscalls.call_contract.response": {
+        "cairo_type": "starkware.starknet.common.syscalls.CallContractResponse",
+        "full_name": "starkware.starknet.common.syscalls.call_contract.response",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 1,
+              "offset": 1
+            },
+            "pc": 10,
+            "value": "[cast([fp + (-7)] + 5, starkware.starknet.common.syscalls.CallContractResponse*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "starkware.starknet.common.syscalls.call_contract.syscall": {
+        "cairo_type": "starkware.starknet.common.syscalls.CallContract",
+        "full_name": "starkware.starknet.common.syscalls.call_contract.syscall",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 1,
+              "offset": 0
+            },
+            "pc": 3,
+            "value": "[cast([fp + (-7)], starkware.starknet.common.syscalls.CallContract*)]"
+          }
+        ],
+        "type": "reference"
+      },
+      "starkware.starknet.common.syscalls.call_contract.syscall_ptr": {
+        "cairo_type": "felt*",
+        "full_name": "starkware.starknet.common.syscalls.call_contract.syscall_ptr",
+        "references": [
+          {
+            "ap_tracking_data": {
+              "group": 1,
+              "offset": 0
+            },
+            "pc": 3,
+            "value": "[cast(fp + (-7), felt**)]"
+          },
+          {
+            "ap_tracking_data": {
+              "group": 1,
+              "offset": 1
+            },
+            "pc": 10,
+            "value": "cast([fp + (-7)] + 7, felt*)"
+          }
+        ],
+        "type": "reference"
+      }
+    },
+    "main_scope": "__main__",
+    "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+    "reference_manager": {
+      "references": [
+        {
+          "ap_tracking_data": {
+            "group": 1,
+            "offset": 0
+          },
+          "pc": 3,
+          "value": "[cast(fp + (-6), felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 1,
+            "offset": 0
+          },
+          "pc": 3,
+          "value": "[cast(fp + (-5), felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 1,
+            "offset": 0
+          },
+          "pc": 3,
+          "value": "[cast(fp + (-4), felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 1,
+            "offset": 0
+          },
+          "pc": 3,
+          "value": "[cast(fp + (-3), felt**)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 1,
+            "offset": 0
+          },
+          "pc": 3,
+          "value": "[cast(fp + (-7), felt**)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 1,
+            "offset": 0
+          },
+          "pc": 3,
+          "value": "[cast([fp + (-7)], starkware.starknet.common.syscalls.CallContract*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 1,
+            "offset": 1
+          },
+          "pc": 5,
+          "value": "[cast(ap + (-1), felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 1,
+            "offset": 1
+          },
+          "pc": 10,
+          "value": "[cast([fp + (-7)] + 5, starkware.starknet.common.syscalls.CallContractResponse*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 1,
+            "offset": 1
+          },
+          "pc": 10,
+          "value": "cast([fp + (-7)] + 7, felt*)"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 2,
+            "offset": 0
+          },
+          "pc": 15,
+          "value": "[cast(fp + (-4), felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 2,
+            "offset": 0
+          },
+          "pc": 15,
+          "value": "[cast(fp + (-3), felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 2,
+            "offset": 0
+          },
+          "pc": 15,
+          "value": "[cast(fp + (-6), felt**)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 2,
+            "offset": 0
+          },
+          "pc": 15,
+          "value": "[cast(fp + (-5), felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 2,
+            "offset": 4
+          },
+          "pc": 19,
+          "value": "[cast(ap + (-1), felt**)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 2,
+            "offset": 4
+          },
+          "pc": 20,
+          "value": "[cast(fp, felt**)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 2,
+            "offset": 4
+          },
+          "pc": 20,
+          "value": "[cast(fp, felt**)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 2,
+            "offset": 4
+          },
+          "pc": 21,
+          "value": "cast([fp] + 1, felt*)"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 2,
+            "offset": 5
+          },
+          "pc": 23,
+          "value": "[cast(ap + (-1), felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 2,
+            "offset": 16
+          },
+          "pc": 31,
+          "value": "[cast(ap + (-3), felt**)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 2,
+            "offset": 16
+          },
+          "pc": 31,
+          "value": "[cast(ap + (-2), felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 2,
+            "offset": 16
+          },
+          "pc": 31,
+          "value": "[cast(ap + (-1), felt**)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 3,
+            "offset": 0
+          },
+          "pc": 34,
+          "value": "[cast(fp + (-4), felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 3,
+            "offset": 0
+          },
+          "pc": 34,
+          "value": "[cast(fp + (-3), felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 3,
+            "offset": 0
+          },
+          "pc": 34,
+          "value": "[cast(fp + (-6), felt**)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 3,
+            "offset": 0
+          },
+          "pc": 34,
+          "value": "[cast(fp + (-5), felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 3,
+            "offset": 24
+          },
+          "pc": 40,
+          "value": "[cast(ap + (-2), felt**)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 3,
+            "offset": 24
+          },
+          "pc": 40,
+          "value": "[cast(ap + (-1), felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 4,
+            "offset": 0
+          },
+          "pc": 41,
+          "value": "[cast([fp + (-5)], felt**)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 4,
+            "offset": 0
+          },
+          "pc": 41,
+          "value": "[cast([fp + (-5)] + 1, felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 4,
+            "offset": 0
+          },
+          "pc": 41,
+          "value": "[cast(fp + (-3), felt**)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 4,
+            "offset": 0
+          },
+          "pc": 41,
+          "value": "[cast([fp + (-3)], felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 4,
+            "offset": 0
+          },
+          "pc": 41,
+          "value": "cast([fp + (-3)] + 1, felt*)"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 4,
+            "offset": 0
+          },
+          "pc": 41,
+          "value": "[cast([fp + (-3)] + 1, felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 4,
+            "offset": 0
+          },
+          "pc": 41,
+          "value": "cast([fp + (-3)] + 2, felt*)"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 4,
+            "offset": 0
+          },
+          "pc": 41,
+          "value": "cast([fp + (-3)] + 2 - [fp + (-3)], felt)"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 4,
+            "offset": 1
+          },
+          "pc": 43,
+          "value": "[cast(ap + (-1), felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 4,
+            "offset": 31
+          },
+          "pc": 50,
+          "value": "[cast(ap + (-2), felt**)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 4,
+            "offset": 31
+          },
+          "pc": 50,
+          "value": "[cast(ap + (-1), felt*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 4,
+            "offset": 31
+          },
+          "pc": 50,
+          "value": "[cast(ap + 0, __main__.increase_my_balance.Return*)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 4,
+            "offset": 32
+          },
+          "pc": 52,
+          "value": "[cast(ap + (-1), felt**)]"
+        },
+        {
+          "ap_tracking_data": {
+            "group": 4,
+            "offset": 32
+          },
+          "pc": 52,
+          "value": "cast(0, felt)"
+        }
+      ]
+    }
+  }
+}
