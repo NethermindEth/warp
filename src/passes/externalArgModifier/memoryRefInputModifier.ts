@@ -3,6 +3,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { collectUnboundVariables } from '../../utils/functionGeneration';
+import { CALLDATA_TO_MEMORY_FUNCTION_PARAMETER_PREFIX } from '../../utils/nameModifiers';
 import { createIdentifier, createVariableDeclarationStatement } from '../../utils/nodeTemplates';
 import { isDynamicArray, isReferenceType } from '../../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../../utils/utils';
@@ -55,7 +56,7 @@ export class RefTypeModifier extends ASTMapper {
         )
         .forEach(([decl, ids]) => {
           const wmDecl = cloneASTNode(decl, ast);
-          wmDecl.name = wmDecl.name + '_mem';
+          wmDecl.name = wmDecl.name + CALLDATA_TO_MEMORY_FUNCTION_PARAMETER_PREFIX;
           decl.storageLocation = DataLocation.CallData;
           const varDeclStatement = createVariableDeclarationStatement(
             [wmDecl],

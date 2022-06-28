@@ -10,7 +10,7 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
-import { CONTRACT_PREFIX, FREE_FILE } from '../utils/nameModifiers';
+import { CONTRACT_INFIX, FREE_FILE_SUFFIX } from '../utils/nameModifiers';
 
 type Scoped = FunctionDefinition | ContractDefinition | VariableDeclaration | StructDefinition;
 
@@ -107,11 +107,11 @@ function updateScope(nodes: readonly Scoped[], newScope: number): readonly Scope
 }
 
 export function mangleFreeFilePath(path: string): string {
-  return `${path}${FREE_FILE}`;
+  return `${path}${FREE_FILE_SUFFIX}`;
 }
 
 export function mangleContractFilePath(path: string, contractName: string): string {
-  return `${path}${CONTRACT_PREFIX}${contractName}`;
+  return `${path}${CONTRACT_INFIX}${contractName}`;
 }
 
 function getAllSourceUnitDefinitions(sourceUnit: SourceUnit) {
