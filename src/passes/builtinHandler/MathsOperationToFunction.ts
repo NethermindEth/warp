@@ -1,17 +1,11 @@
 import {
   BinaryOperation,
   FunctionCall,
-  FunctionKind,
-  FunctionStateMutability,
-  FunctionVisibility,
   Identifier,
-  ParameterList,
   UnaryOperation,
   UncheckedBlock,
-  VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { CairoFunctionDefinition } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
