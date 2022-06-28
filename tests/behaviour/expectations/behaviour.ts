@@ -3721,6 +3721,12 @@ export const expectations = flatten(
           ),
         ],
       ),
+      File.Simple('ERC20_storage', [
+        Expect.Simple('deposit', ['74', '0', '500', '0'], []),
+        Expect.Simple('transferFrom', ['74', '0', '68', '0', '400', '0', '74', '0'], ['1']),
+        Expect.Simple('withdraw', ['80', '0', '74', '0'], []),
+        Expect.Simple('get_balance', ['74', '0'], ['20', '0']),
+      ]),
     ]),
   ]),
 );
