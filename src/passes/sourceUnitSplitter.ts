@@ -13,6 +13,9 @@ import { cloneASTNode } from '../utils/cloning';
 
 type Scoped = FunctionDefinition | ContractDefinition | VariableDeclaration | StructDefinition;
 
+export const CONTRACT_INFIX = '__WC__';
+export const FREE_SUFIX = '__WC_FREE';
+
 export class SourceUnitSplitter extends ASTMapper {
   static map(ast: AST): AST {
     ast.roots = ast.roots.flatMap((su) => splitSourceUnit(su, ast));
@@ -106,11 +109,11 @@ function updateScope(nodes: readonly Scoped[], newScope: number): readonly Scope
 }
 
 export function mangleFreeFilePath(path: string): string {
-  return `${path}__WARP_FREE__`;
+  return `${path}${FREE_SUFIX}`;
 }
 
 export function mangleContractFilePath(path: string, contractName: string): string {
-  return `${path}__WARP_CONTRACT__${contractName}`;
+  return `${path}${CONTRACT_INFIX}${contractName}`;
 }
 
 function getAllSourceUnitDefinitions(sourceUnit: SourceUnit) {
