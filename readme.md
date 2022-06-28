@@ -132,8 +132,6 @@ Please see the list below:
 |                      blockhash                      |    :question:     |
 |                  functions as data                  |    :question:     |
 |           sha256 (use keccak256 instead)            |        :x:        |
-|                       addmod                        |        :x:        |
-|                       mulmod                        |        :x:        |
 |                  ternary operator                   |    :question:     |
 |                       receive                       |    :question:     |
 |                     Yul Blocks                      |    :question:     |
