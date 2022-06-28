@@ -3698,5 +3698,29 @@ export const expectations = flatten(
         ]),
       ]),
     ]),
+    new Dir('benchmark', [
+      new File(
+        'BaseJumpRateModelV2',
+        'BaseJumpRateModelV2',
+        ['10000000', '0', '11000000', '0', '10000000', '0', '10', '0', '0'],
+        [
+          Expect.Simple(
+            'getSupplyRate',
+            ['500', '0', '100', '0', '200', '0', '2', '0'],
+            ['0', '0'],
+          ),
+          Expect.Simple(
+            'utilizationRate',
+            ['500', '0', '100', '0', '200', '0'],
+            ['250000000000000000', '0'],
+          ),
+          Expect.Simple(
+            'updateJumpRateModel',
+            ['10000000', '0', '11000000', '0', '10000000', '0', '7', '0'],
+            [],
+          ),
+        ],
+      ),
+    ]),
   ]),
 );
