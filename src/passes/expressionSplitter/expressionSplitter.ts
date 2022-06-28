@@ -23,7 +23,7 @@ import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
-import { SPLIT_VARIABLE_PREFIX } from '../../utils/nameModifiers';
+import { SPLIT_EXPRESSION_PREFIX } from '../../utils/nameModifiers';
 import { createEmptyTuple, createIdentifier } from '../../utils/nodeTemplates';
 import { counterGenerator } from '../../utils/utils';
 import {
@@ -45,7 +45,7 @@ function* expressionGenerator(prefix: string): Generator<string, string, unknown
 }
 
 export class ExpressionSplitter extends ASTMapper {
-  eGen = expressionGenerator(SPLIT_VARIABLE_PREFIX);
+  eGen = expressionGenerator(SPLIT_EXPRESSION_PREFIX);
   funcNameCounter = 0;
   varNameCounter = 0;
 
