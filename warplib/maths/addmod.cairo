@@ -20,11 +20,9 @@ end
 
 func warp_addmod256{range_check_ptr}(x : Uint256, y : Uint256, k : Uint256) -> (res : Uint256):
     alloc_locals
-    if k.high == 0:
-        if k.low == 0:
-            with_attr error_message("Modulo by zero error"):
-                assert 1 = 0
-            end
+    if k.high + k.low == 0:
+        with_attr error_message("Modulo by zero error"):
+            assert 1 = 0
         end
     end
 
