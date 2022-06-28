@@ -1,0 +1,50 @@
+from starkware.cairo.common.uint256 import Uint256, uint256_unsigned_div_rem, uint256_add, uint256_sub, ALL_ONES
+from warplib.maths.utils import felt_to_uint256
+
+const SHIFT = 2 ** 128
+
+func warp_addmod{range_check_ptr}(x : felt, y : felt, k : felt) -> (res : felt):
+    if k == 0:
+        with_attr error_message("Modulo by zero error"):
+            assert 1 = 0
+        end
+    end
+    let (x_256) = felt_to_uint256(x)
+    let (y_256) = felt_to_uint256(y)
+    let (k_256) = felt_to_uint256(k)
+    # We know for certain the carry is 0
+    let (xy, _) = uint256_add(x_256, y_256)
+    let (_, res256) = uint256_unsigned_div_rem(xy, k_256)
+    return (res256.low + SHIFT * res256.high)
+end
+
+func warp_addmod256{range_check_ptr}(x : Uint256, y : Uint256, k : Uint256) -> (res : Uint256):
+    alloc_locals
+    if k.high == 0:
+        if k.low == 0:
+            with_attr error_message("Modulo by zero error"):
+                assert 1 = 0
+            end
+        end
+    end
+
+    let (xy, carry) = uint256_add(x, y)
+    if carry == 0:
+        let (_, res : Uint256) = uint256_unsigned_div_rem(xy, k)
+        return (res)
+    end
+
+    let uint256_MAX = Uint256(low=ALL_ONES, high=ALL_ONES)
+    let (overflow) = uint256_sub(uint256_MAX, k)
+    # carry is zero because k > 0
+    let (overflow, _) = uint256_add(overflow, Uint256(low=1, high=0))
+    let (_, overflow_rem) = uint256_unsigned_div_rem(overflow, k)
+
+    let (_, xy_rem) = uint256_unsigned_div_rem(xy, k)
+
+    let (res_, _) = uint256_add(xy_rem, overflow_rem)
+
+    let (_, res) = uint256_unsigned_div_rem(res_, k)
+
+    return (res)
+end
