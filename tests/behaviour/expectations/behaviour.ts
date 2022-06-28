@@ -3727,6 +3727,19 @@ export const expectations = flatten(
         Expect.Simple('withdraw', ['80', '0', '74', '0'], []),
         Expect.Simple('get_balance', ['74', '0'], ['20', '0']),
       ]),
+      new File(
+        'ERC20',
+        'ERC20',
+        ['0', '0'],
+        [
+          Expect.Simple('name', [], ['0']),
+          Expect.Simple('symbol', [], ['0']),
+          Expect.Simple('decimals', [], ['18']),
+          Expect.Simple('totalSupply', [], ['0', '0']),
+          Expect.Simple('balanceOf', ['1234'], ['0', '0']),
+          Expect.Simple('allowance', ['123', '765'], ['0', '0']),
+        ],
+      ),
     ]),
   ]),
 );
