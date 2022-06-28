@@ -1,4 +1,10 @@
-from starkware.cairo.common.uint256 import Uint256, uint256_unsigned_div_rem, uint256_add, uint256_sub, ALL_ONES
+from starkware.cairo.common.uint256 import (
+    Uint256,
+    uint256_unsigned_div_rem,
+    uint256_add,
+    uint256_sub,
+    ALL_ONES,
+)
 from warplib.maths.utils import felt_to_uint256
 
 const SHIFT = 2 ** 128
