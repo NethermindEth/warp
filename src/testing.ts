@@ -161,6 +161,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/old_code_gen_err_7', 'WillNotSupport'],
     ['example_contracts/payable_function', 'Success'],
     ['example_contracts/pure_function', 'Success'],
+    ['example_contracts/removeUnreachableFunctions', 'Success'],
     ['example_contracts/return_dyn_array', 'Success'],
     ['example_contracts/return_var_capturing', 'Success'],
     ['example_contracts/returndatasize', 'WillNotSupport'],
