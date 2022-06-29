@@ -58,7 +58,9 @@ program
   .option('--until <pass>')
   .option('--no-warnings')
   .action((files: string[], options: CliOptions) => {
-    if (files.some((file) => !isValidSolFile(file))) return;
+    // We do the extra work here to make sure all the errors are printed out
+    // for all files which are invalid.
+    if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
     files.forEach((file) => {
       if (files.length > 1) {
         console.log(`Compiling ${file}`);
