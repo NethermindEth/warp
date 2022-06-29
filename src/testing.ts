@@ -13,7 +13,7 @@ import * as fs from 'fs';
 import { outputFileSync } from 'fs-extra';
 import { error } from './utils/formatting';
 import { manglePath } from './passes/filePathMangler';
-import { CONTRACT_INFIX } from './passes';
+import { CONTRACT_INFIX } from './utils/nameModifiers';
 
 type ResultType =
   | 'CairoCompileFailed'

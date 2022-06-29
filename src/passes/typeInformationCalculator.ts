@@ -110,10 +110,9 @@ export class TypeInformationCalculator extends ASTMapper {
 
       if (userDef instanceof ContractDefinition) {
         if (memberName === 'name') return createStringLiteral(userDef.name, ast);
-        if (memberName === 'runtimeCode')
-          throw new WillNotSupportError('`runtimeCode` member access are not supported');
-        if (memberName === 'executionCode')
-          throw new WillNotSupportError('`executionCode` member access are not supported');
+
+        if (['runtimeCode', 'executionCode'].includes(memberName))
+          throw new WillNotSupportError(`Access to ${memberName} is not supported`);
 
         if (userDef.kind === ContractKind.Interface && memberName === 'interfaceId') {
           const interfaceId = userDef.interfaceId(ABIEncoderVersion.V2);

@@ -16,6 +16,7 @@ import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
 import { error } from '../utils/formatting';
 import { collectUnboundVariables, createCallToFunction } from '../utils/functionGeneration';
+import { IF_FUNCTIONALISER_INFIX } from '../utils/nameModifiers';
 import {
   createBlock,
   createIdentifier,
@@ -172,7 +173,7 @@ function createSplitFunction(
     '',
     existingFunction.scope,
     existingFunction.kind === FunctionKind.Free ? FunctionKind.Free : FunctionKind.Function,
-    `${existingFunction.name}_part${counter + 1}`,
+    `${existingFunction.name}${IF_FUNCTIONALISER_INFIX}${counter + 1}`,
     false,
     FunctionVisibility.Private,
     existingFunction.stateMutability,

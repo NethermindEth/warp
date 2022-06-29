@@ -57,7 +57,7 @@ export class TypeNameRemover extends ASTMapper {
       .map((value, index) => (value === null ? index : null))
       .filter(notNull);
     const typeNameTypeSlots = rhs.vOriginalComponents
-      .map((value, index) => (this.isTypeNameType(rhs, index, ast) ? index : null))
+      .map((_value, index) => (this.isTypeNameType(rhs, index, ast) ? index : null))
       .filter(notNull);
 
     node.assignments = lhs.filter(
