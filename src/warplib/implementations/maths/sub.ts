@@ -45,7 +45,8 @@ export function sub_unsafe(): void {
           `func warp_sub_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (`,
           `        res : felt):`,
           `    let res : felt = ${bound(width)} + lhs - rhs`,
-          `    return bitwise_and(res, ${mask(width)})`,
+          `    let (res) = bitwise_and(res, ${mask(width)})`,
+          `    return (res)`,
           `end`,
         ];
       }
@@ -107,7 +108,8 @@ export function sub_signed(): void {
           `    assert overflowBits * (overflowBits - ${msbAndNext(width)}) = 0`,
           ``,
           `    # Narrow and return`,
-          `    return bitwise_and(extended_res, ${mask(width)})`,
+          `    let (res) = bitwise_and(extended_res, ${mask(width)})`,
+          `    return (res)`,
           `end`,
         ];
       }
@@ -127,7 +129,8 @@ export function sub_signed_unsafe(): void {
       if (width === 256) {
         return [
           'func warp_sub_signed_unsafe256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):',
-          '    return uint256_sub(lhs, rhs)',
+          '    let (res) =  uint256_sub(lhs, rhs)',
+          '    return (res)',
           'end',
         ];
       } else {
@@ -145,7 +148,8 @@ export function sub_signed_unsafe(): void {
           `    let extended_res : felt = left_safe + right_neg`,
           ``,
           `    # Narrow and return`,
-          `    return bitwise_and(extended_res, ${mask(width)})`,
+          `    let (res) = bitwise_and(extended_res, ${mask(width)})`,
+          `    return (res)`,
           `end`,
         ];
       }

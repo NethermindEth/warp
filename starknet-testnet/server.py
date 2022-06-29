@@ -33,15 +33,15 @@ async def pingpost():
 
 @app.route("/deploy", methods=["POST"])
 async def deploy():
-    from starkware.starknet.services.api.contract_definition import (
-        ContractDefinition,
+    from starkware.starknet.services.api.contract_class import (
+        ContractClass,
     )
 
     data = request.get_json()
     state = await starknet_wrapper.get_state()
     input = [int(x) for x in data["input"]]
     compiled_cairo = open(data["compiled_cairo"]).read()
-    contract_def: ContractDefinition = ContractDefinition.loads(compiled_cairo)
+    contract_def: ContractClass = ContractClass.loads(compiled_cairo)
 
     try:
         [contract_address, execution_info] = await state.deploy(contract_def, input)

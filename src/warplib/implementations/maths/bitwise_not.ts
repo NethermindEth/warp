@@ -15,13 +15,15 @@ export function bitwise_not(): void {
       if (width === 256) {
         return [
           'func warp_bitwise_not256{range_check_ptr}(op : Uint256) -> (res : Uint256):',
-          '    return uint256_not(op)',
+          '    let (res) = uint256_not(op)',
+          '    return (res)',
           'end',
         ];
       } else {
         return [
           `func warp_bitwise_not${width}{bitwise_ptr : BitwiseBuiltin*}(op : felt) -> (res : felt):`,
-          `    return bitwise_xor(op, ${mask(width)})`,
+          `    let (res) = bitwise_xor(op, ${mask(width)})`,
+          `    return (res)`,
           'end',
         ];
       }

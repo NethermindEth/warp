@@ -60,14 +60,16 @@ export function int_conversions(): void {
               } else {
                 return [
                   `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : Uint256) -> (res : felt):`,
-                  `    return bitwise_and(op.low, ${mask(to)})`,
+                  `    let (res) = bitwise_and(op.low, ${mask(to)})`,
+                  `    return (res)`,
                   `end`,
                 ];
               }
             } else {
               return [
                 `func warp_int${from}_to_int${to}{bitwise_ptr : BitwiseBuiltin*}(op : felt) -> (res : felt):`,
-                `    return bitwise_and(op, ${mask(to)})`,
+                `    let (res) = bitwise_and(op, ${mask(to)})`,
+                `    return (res)`,
                 `end`,
               ];
             }

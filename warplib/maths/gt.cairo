@@ -5,7 +5,8 @@ func warp_gt{range_check_ptr}(lhs : felt, rhs : felt) -> (res : felt):
     if lhs == rhs:
         return (0)
     end
-    return is_le_felt(rhs, lhs)
+    let (res) = is_le_felt(rhs, lhs)
+    return (res)
 end
 
 func warp_gt256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt):

@@ -32,10 +32,12 @@ export function shl(): void {
         return [
           'func warp_shl256{range_check_ptr}(lhs : Uint256, rhs : felt) -> (result : Uint256):',
           '    let (high, low) = split_felt(rhs)',
-          '    return uint256_shl(lhs, Uint256(low, high))',
+          '    let (res) = uint256_shl(lhs, Uint256(low, high))',
+          '    return (res)',
           'end',
           'func warp_shl256_256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (result : Uint256):',
-          '    return uint256_shl(lhs, rhs)',
+          '    let (res) = uint256_shl(lhs, rhs)',
+          '    return (res)',
           'end',
         ];
       } else {
@@ -57,7 +59,8 @@ export function shl(): void {
           `func warp_shl${width}_256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
           `        lhs : felt, rhs : Uint256) -> (res : felt):`,
           `    if rhs.high == 0:`,
-          `        return warp_shl${width}(lhs, rhs.low)`,
+          `        let (res) = warp_shl${width}(lhs, rhs.low)`,
+          `        return (res)`,
           `    else:`,
           `        return (0)`,
           `    end`,
