@@ -113,7 +113,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Udt', UserDefinedTypesConverter],
     ['Req', Require],
     ['Ffi', FreeFunctionInliner],
-    ['Rl', ReferencedLibraries],
+    // ['Rl', ReferencedLibraries],
     ['Ons', OrderNestedStructs],
     ['Ech', ExternalContractHandler],
     ['Sa', StorageAllocator],

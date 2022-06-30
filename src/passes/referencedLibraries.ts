@@ -10,10 +10,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 
 // Library calls in solidity are delegate calls
-// i.e  libraries can be seen as implicit base contracts of the contracts that use them
-// The pass converts external call to a library to an internal call to it
-// by adding the referenced Libraries in the `FunctionCall` to the
-// linearizedBaselist of a contract/Library.
+// i.e  So we need to create an new name space, I guess it could be a new ContractDefinition.
 
 export class ReferencedLibraries extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {

@@ -7,6 +7,7 @@ import {
   Identifier,
   MemberAccess,
   SourceUnit,
+  TypeNameType,
   UserDefinedType,
   UserDefinedTypeName,
   VariableDeclaration,
@@ -52,6 +53,17 @@ export class ExternalContractInterfaceInserter extends ASTMapper {
         this.contractInterfaces,
         ast,
       );
+    } else if (
+      nodeType instanceof TypeNameType &&
+      nodeType.type instanceof UserDefinedType &&
+      nodeType.type.definition instanceof ContractDefinition
+    ) {
+      importExternalContract(
+        nodeType.type.definition,
+        node.getClosestParentByType(SourceUnit),
+        this.contractInterfaces,
+        ast,
+      );
     }
     this.commonVisit(node, ast);
   }
@@ -83,7 +95,6 @@ function importExternalContract(
 ) {
   assert(sourceUnit !== undefined, 'Trying to import a definition into an unknown source unit');
 
-  if (contract.kind === ContractKind.Library) return;
   if (contractInterfaces.has(contract.id)) return;
   contractInterfaces.set(contract.id, genContractInterface(contract, sourceUnit, ast));
 }

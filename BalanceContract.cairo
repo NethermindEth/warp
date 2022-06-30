@@ -1,4 +1,4 @@
-#0x711941b11a8236b8cca42b664e19342ac7300abb1dc44957763cb65877c2708
+# 0x1b322dd827d4579c10a08025b9d685c7ed16dcb25c7371dd06a65984cb5426 - class hash
 # Declare this file as a StarkNet contract.
 %lang starknet
 
