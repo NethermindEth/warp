@@ -4,7 +4,7 @@ import { ASTMapper } from '../ast/mapper';
 
 export class DropUnusedSourceUnits extends ASTMapper {
   static map(ast: AST): AST {
-    // Drop all source units which don't contain a deployable contract
+    // Drop all source units which don't contain a deployable contract.
     ast.roots = ast.roots.filter(
       (su) =>
         su.vContracts.length > 0 &&
