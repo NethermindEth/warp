@@ -63,7 +63,8 @@ function createExp(signed: boolean, unsafe: boolean) {
           `        end`,
           `    end`,
           ...getNegativeOneShortcutCode(signed, width, false),
-          `    return _repeated_multiplication${width}(lhs, rhs)`,
+          `    let (res) = _repeated_multiplication${width}(lhs, rhs)`,
+          `    return (res)`,
           `end`,
           `func _repeated_multiplication_256_${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(op : Uint256, count : Uint256) -> (res : Uint256):`,
           `    if count.low == 0:`,
@@ -88,7 +89,8 @@ function createExp(signed: boolean, unsafe: boolean) {
           `        end`,
           `    end`,
           ...getNegativeOneShortcutCode(signed, width, true),
-          `    return _repeated_multiplication_256_${width}(lhs, rhs)`,
+          `    let (res) = _repeated_multiplication_256_${width}(lhs, rhs)`,
+          `    return (res)`,
           `end`,
         ];
       } else {
@@ -112,7 +114,8 @@ function createExp(signed: boolean, unsafe: boolean) {
           '        return (lhs)',
           '    end',
           ...getNegativeOneShortcutCode(signed, width, false),
-          `    return _repeated_multiplication${width}(lhs, rhs)`,
+          `    let (res) = _repeated_multiplication${width}(lhs, rhs)`,
+          `    return (res)`,
           'end',
           `func _repeated_multiplication_256_${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(op : felt, count : Uint256) -> (res : felt):`,
           `    alloc_locals`,
@@ -142,7 +145,8 @@ function createExp(signed: boolean, unsafe: boolean) {
           '        end',
           '    end',
           ...getNegativeOneShortcutCode(signed, width, true),
-          `    return _repeated_multiplication_256_${width}(lhs, rhs)`,
+          `    let (res) = _repeated_multiplication_256_${width}(lhs, rhs)`,
+          `    return (res)`,
           'end',
         ];
       }

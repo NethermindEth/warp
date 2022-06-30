@@ -7,5 +7,5 @@ end
 
 func warp_ge256{range_check_ptr}(op1 : Uint256, op2 : Uint256) -> (result : felt):
     let (lt : felt) = uint256_lt(op1, op2)
-    return (result=1 - lt)
+    return (1 - lt)
 end

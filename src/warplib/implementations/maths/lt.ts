@@ -19,7 +19,8 @@ export function lt_signed() {
       if (width === 256) {
         return [
           'func warp_lt_signed256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt):',
-          '    return uint256_signed_lt(lhs, rhs)',
+          '    let (res) = uint256_signed_lt(lhs, rhs)',
+          '    return (res)',
           'end',
         ];
       } else {
@@ -29,7 +30,8 @@ export function lt_signed() {
           '    if lhs == rhs:',
           '        return (0)',
           '    end',
-          `    return warp_le_signed${width}(lhs, rhs)`,
+          `    let (res) = warp_le_signed${width}(lhs, rhs)`,
+          `    return (res)`,
           'end',
         ];
       }
