@@ -5,7 +5,7 @@ pragma solidity 0.8.14;
 contract C {
  
 
-    function f(int8 x ) external returns (bool) {
+    function f(int8 x) external returns (bool) {
         return true;
     }
     

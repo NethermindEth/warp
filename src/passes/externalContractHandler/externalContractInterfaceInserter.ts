@@ -141,15 +141,15 @@ export function genContractInterface(
       const funcBody = func.vBody;
       func.vBody = undefined;
       const funcClone = cloneASTNode(func, ast);
-      if (importContract.kind === ContractKind.Library) {
-        funcClone.vParameters.insertAtBeginning(createClassHashVarDecl(funcClone, ast));
-      }
+      // if (importContract.kind === ContractKind.Library) {
+      //   funcClone.vParameters.insertAtBeginning(createClassHashVarDecl(funcClone, ast));
+      // }
       funcClone.scope = contractId;
       funcClone.implemented = false;
       func.vBody = funcBody;
       contractInterface.appendChild(funcClone);
       ast.registerChild(funcClone, contractInterface);
-      repointFunctionCalls(func, baseContract, funcClone);
+      //repointFunctionCalls(func, baseContract, funcClone);
     });
   sourceUnit.appendChild(contractInterface);
   ast.registerChild(contractInterface, sourceUnit);

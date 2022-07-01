@@ -58,57 +58,46 @@ export class ReferencedLibraries extends ASTMapper {
           new ElementaryTypeName(ast.reserveId(), '', 'int8', 'int8'),
         );
         parentFuncDef.vParameters.appendChild(classHashVarDecl);
+        assert(
+          node.vReferencedDeclaration instanceof FunctionDefinition &&
+            node.vReferencedDeclaration !== undefined,
+        );
+        this.addClashHashArg(node.vReferencedDeclaration, ast);
         const classHashArg = createIdentifier(classHashVarDecl, ast);
-        node.vArguments.push(classHashArg);
+        node.vArguments.unshift(classHashArg);
         node.acceptChildren();
         ast.setContextRecursive(parentFuncDef);
         this.libCallCount++;
       }
     }
 
-    // const calledDeclaration = node.vReferencedDeclaration;
-    // if (calledDeclaration === undefined) {
-    //   return this.visitExpression(node, ast);
-    // }
-
-    // //Checks if the Function is a referenced Library functions,
-    // //if yes add it to the linearizedBaseContract list of parent ContractDefinition node
-    // //free functions calling library functions are not yet supported
-    // librariesById.forEach((library, _) => {
-    //   if (library.vFunctions.some((libraryFunc) => libraryFunc.id === calledDeclaration.id)) {
-    //     const parent = node.getClosestParentByType(ContractDefinition);
-    //     if (parent === undefined) return;
-
-    //     getLibrariesToInherit(library, librariesById).forEach((id) => {
-    //       if (!parent.linearizedBaseContracts.includes(id)) {
-    //         parent.linearizedBaseContracts.push(id);
-    //       }
-    //     });
-    //   }
-    // });
     this.commonVisit(node, ast);
   }
+
+  addClashHashArg(funcDef: FunctionDefinition, ast: AST): void {
+    const varDecl = createClassHashVarDecl(funcDef, ast);
+    // console.log(varDecl);
+    funcDef.vParameters.insertAtBeginning(varDecl);
+    funcDef.acceptChildren();
+    ast.setContextRecursive(funcDef);
+  }
 }
-// function getLibrariesToInherit(
-//   calledLibrary: ContractDefinition,
-//   librariesById: Map<number, ASTNode>,
-// ): number[] {
-//   const ids: number[] = [calledLibrary.id];
 
-//   calledLibrary
-//     .getChildren()
-//     .filter((child) => child instanceof FunctionCall && child.vExpression instanceof MemberAccess)
-//     .forEach((functionCallInCalledLibrary) => {
-//       if (functionCallInCalledLibrary instanceof FunctionCall) {
-//         librariesById.forEach((library, libraryId) => {
-//           assert(functionCallInCalledLibrary.vExpression instanceof MemberAccess);
-//           const calledFuncId = functionCallInCalledLibrary.vExpression.referencedDeclaration;
-//           if (library.getChildren().some((node) => node.id === calledFuncId)) {
-//             ids.push(libraryId);
-//           }
-//         });
-//       }
-//     });
-
-// return ids;
-// }
+function createClassHashVarDecl(funcDef: FunctionDefinition, ast: AST): VariableDeclaration {
+  const classHashVarDecl = new VariableDeclaration(
+    ast.reserveId(),
+    '',
+    true,
+    false,
+    '@class_hash',
+    funcDef.id,
+    false,
+    DataLocation.Default,
+    StateVariableVisibility.Default,
+    Mutability.Constant,
+    'int8',
+    undefined,
+    new ElementaryTypeName(ast.reserveId(), '', 'int8', 'int8'),
+  );
+  return classHashVarDecl;
+}
