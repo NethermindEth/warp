@@ -5,8 +5,11 @@ import {
   ContractKind,
   DataLocation,
   ElementaryTypeName,
+  Expression,
   FunctionCall,
   FunctionDefinition,
+  FunctionType,
+  getNodeType,
   Identifier,
   MemberAccess,
   Mutability,
@@ -15,6 +18,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { generateExpressionTypeString } from '../utils/getTypeString';
 import { createIdentifier } from '../utils/nodeTemplates';
 
 // Library calls in solidity are delegate calls
@@ -53,9 +57,9 @@ export class ReferencedLibraries extends ASTMapper {
           DataLocation.Default,
           StateVariableVisibility.Default,
           Mutability.Constant,
-          'int8',
+          'int256',
           undefined,
-          new ElementaryTypeName(ast.reserveId(), '', 'int8', 'int8'),
+          new ElementaryTypeName(ast.reserveId(), '', 'int256', 'int256'),
         );
         parentFuncDef.vParameters.appendChild(classHashVarDecl);
         assert(
@@ -63,6 +67,7 @@ export class ReferencedLibraries extends ASTMapper {
             node.vReferencedDeclaration !== undefined,
         );
         this.addClashHashArg(node.vReferencedDeclaration, ast);
+        this.modifyTypeString(node.vExpression, classHashVarDecl, ast);
         const classHashArg = createIdentifier(classHashVarDecl, ast);
         node.vArguments.unshift(classHashArg);
         node.acceptChildren();
@@ -73,13 +78,19 @@ export class ReferencedLibraries extends ASTMapper {
 
     this.commonVisit(node, ast);
   }
-
-  addClashHashArg(funcDef: FunctionDefinition, ast: AST): void {
+  modifyTypeString(node: Expression, classHashArg: VariableDeclaration, ast: AST): void {
+    const classHashType = getNodeType(classHashArg, ast.compilerVersion);
+    const functionType = getNodeType(node, ast.compilerVersion);
+    assert(functionType instanceof FunctionType);
+    functionType.parameters.unshift(classHashType);
+    node.typeString = generateExpressionTypeString(functionType);
+  }
+  addClashHashArg(funcDef: FunctionDefinition, ast: AST): VariableDeclaration {
     const varDecl = createClassHashVarDecl(funcDef, ast);
-    // console.log(varDecl);
     funcDef.vParameters.insertAtBeginning(varDecl);
     funcDef.acceptChildren();
     ast.setContextRecursive(funcDef);
+    return varDecl;
   }
 }
 
@@ -95,9 +106,9 @@ function createClassHashVarDecl(funcDef: FunctionDefinition, ast: AST): Variable
     DataLocation.Default,
     StateVariableVisibility.Default,
     Mutability.Constant,
-    'int8',
+    'int256',
     undefined,
-    new ElementaryTypeName(ast.reserveId(), '', 'int8', 'int8'),
+    new ElementaryTypeName(ast.reserveId(), '', 'int256', 'int256'),
   );
   return classHashVarDecl;
 }

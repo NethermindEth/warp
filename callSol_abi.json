@@ -1,0 +1,20 @@
+[
+  {
+    "inputs": [
+      {
+        "name": "lib_class_hash0",
+        "type": "felt"
+      }
+    ],
+    "name": "f_26121ff0",
+    "outputs": [],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "constructor",
+    "outputs": [],
+    "type": "constructor"
+  }
+]

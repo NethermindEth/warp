@@ -13,7 +13,9 @@ import "libSol.sol";
 
 contract WARP {
 
-    function f() pure external {
+    function f(uint256 x) pure external {
+    
+       uint248 y = uint248(x);
        M.multiply(10, 5);
     }
 }

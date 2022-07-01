@@ -1,0 +1,29 @@
+[
+  {
+    "inputs": [
+      {
+        "name": "__warp_usrid0_y",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid1_x",
+        "type": "felt"
+      }
+    ],
+    "name": "multiply_30ff5808",
+    "outputs": [
+      {
+        "name": "__warp_usrid2_",
+        "type": "felt"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "constructor",
+    "outputs": [],
+    "type": "constructor"
+  }
+]
