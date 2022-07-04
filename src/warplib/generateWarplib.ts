@@ -17,11 +17,19 @@ import { external_input_check_ints } from './implementations/external_input_chec
 import { external_input_check_uints } from './implementations/external_input_checks/external_input_checks_uints';
 import { ints_structs } from './implementations/types/ints';
 import { uints_structs } from './implementations/types/uints';
+import { bitwise_and, bitwise_and_signed } from './implementations/maths/bitwise_and';
+import { bitwise_or, bitwise_or_signed } from './implementations/maths/bitwise_or';
 
 add();
 add_unsafe();
 add_signed();
 add_signed_unsafe();
+
+bitwise_and();
+bitwise_and_signed();
+
+bitwise_or();
+bitwise_or_signed();
 
 sub();
 sub_unsafe();
