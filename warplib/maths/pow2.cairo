@@ -262,5 +262,6 @@ end
 
 func u256_pow2{range_check_ptr}(i) -> (res : Uint256):
     let (felt_pow2) = pow2(i)
-    return felt_to_uint256(felt_pow2)
+    let (res) = felt_to_uint256(felt_pow2)
+    return (res)
 end

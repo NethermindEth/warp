@@ -89,7 +89,8 @@ export function mul_unsafe(): void {
       } else {
         return [
           `func warp_mul_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt):`,
-          `    return bitwise_and(lhs * rhs, ${mask(width)})`,
+          `    let (res) = bitwise_and(lhs * rhs, ${mask(width)})`,
+          `    return (res)`,
           'end',
         ];
       }

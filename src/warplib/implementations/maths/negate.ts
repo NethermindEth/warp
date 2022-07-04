@@ -16,7 +16,8 @@ export function negate(): void {
       if (width === 256) {
         return [
           'func warp_negate256{range_check_ptr}(op : Uint256) -> (res : Uint256):',
-          '    return uint256_neg(op)',
+          '    let (res) = uint256_neg(op)',
+          '    return (res)',
           'end',
         ];
       } else {
@@ -24,7 +25,8 @@ export function negate(): void {
         return [
           `func warp_negate${width}{bitwise_ptr : BitwiseBuiltin*}(op : felt) -> (res : felt):`,
           `    let raw_res = ${bound(width)} - op`,
-          `    return bitwise_and(raw_res, ${mask(width)})`,
+          `    let (res) = bitwise_and(raw_res, ${mask(width)})`,
+          `    return (res)`,
           `end`,
         ];
       }

@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Dict
 
-from starkware.starknet.services.api.contract_definition import ContractDefinition
+from starkware.starknet.services.api.contract_class import ContractClass
 from starkware.starknet.testing.starknet import Starknet
 from util import StarknetDevnetException, TxStatus, fixed_length_hex
 
@@ -13,7 +13,7 @@ class Choice(Enum):
 
 class StarknetWrapper:
     def __init__(self):
-        self.address2contract: Dict[int, ContractDefinition] = {}
+        self.address2contract: Dict[int, ContractClass] = {}
         """Maps contract address to contract wrapper."""
 
         self.transactions = []
@@ -35,7 +35,7 @@ class StarknetWrapper:
     def contract_deployed(self, address: int) -> bool:
         return address in self.address2contract
 
-    def get_contract_definition(self, address: int) -> ContractDefinition:
+    def get_contract_definition(self, address: int) -> ContractClass:
         if not self.contract_deployed(address):
             message = (
                 f"No contract at the provided address ({fixed_length_hex(address)})."
