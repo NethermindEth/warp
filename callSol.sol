@@ -13,9 +13,13 @@ import "libSol.sol";
 
 contract WARP {
 
-    function f(uint256 x) pure external {
-    
-       uint248 y = uint248(x);
-       M.multiply(10, 5);
+    function f(address addr, int8 x, int8 y) pure external returns (int8) {
+        M m = M(addr);
+        return m.multiply(x, y);
     }
+// contract WARP {
+
+//     function f(int8 x, int8 y) pure external returns (int8) {
+//         return M.multiply(x, y);
+//     }
 }

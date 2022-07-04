@@ -57,11 +57,11 @@ export class ReferencedLibraries extends ASTMapper {
           DataLocation.Default,
           StateVariableVisibility.Default,
           Mutability.Constant,
-          'int256',
+          'address',
           undefined,
-          new ElementaryTypeName(ast.reserveId(), '', 'int256', 'int256'),
+          new ElementaryTypeName(ast.reserveId(), '', 'address', 'address'),
         );
-        parentFuncDef.vParameters.appendChild(classHashVarDecl);
+        parentFuncDef.vParameters.insertAtBeginning(classHashVarDecl);
         assert(
           node.vReferencedDeclaration instanceof FunctionDefinition &&
             node.vReferencedDeclaration !== undefined,
@@ -106,9 +106,9 @@ function createClassHashVarDecl(funcDef: FunctionDefinition, ast: AST): Variable
     DataLocation.Default,
     StateVariableVisibility.Default,
     Mutability.Constant,
-    'int256',
+    'address',
     undefined,
-    new ElementaryTypeName(ast.reserveId(), '', 'int256', 'int256'),
+    new ElementaryTypeName(ast.reserveId(), '', 'address', 'address'),
   );
   return classHashVarDecl;
 }
