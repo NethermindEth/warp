@@ -16,6 +16,7 @@ import {
   VariableDeclarationStatement,
   generalizeType,
   getNodeType,
+  FunctionKind,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
@@ -126,7 +127,7 @@ export class ExpressionSplitter extends ASTMapper {
       newFuncId,
       '',
       containingFunction.scope,
-      containingFunction.kind,
+      containingFunction.kind === FunctionKind.Free ? FunctionKind.Free : FunctionKind.Function,
       `_conditional${this.funcNameCounter++}`,
       false,
       FunctionVisibility.Internal,
