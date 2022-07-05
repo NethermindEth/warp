@@ -3,6 +3,11 @@ pragma solidity ^0.8.0;
 
 contract WARP {
   uint256 public a;
+  
+  uint256[] b;
+  constructor() {
+    require(a < 1 && a == b.length);
+  }
 
   function f(uint256 value, bool flag) public returns (uint256) {
     uint256 y = 30;
