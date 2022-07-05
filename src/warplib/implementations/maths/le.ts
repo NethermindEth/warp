@@ -16,13 +16,15 @@ export function le() {
       if (width === 256) {
         return [
           `func warp_le256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (result : felt):`,
-          '    return uint256_le(lhs, rhs)',
+          '    let (res) = uint256_le(lhs, rhs)',
+          '    return (res)',
           'end',
         ];
       } else {
         return [
           `func warp_le${width}{range_check_ptr}(lhs : Uint${width}, rhs : Uint${width}) -> (res : felt):`,
-          '    return is_le_felt(lhs.value, rhs.value)',
+          '    let (res) = is_le_felt(lhs.value, rhs.value)',
+          '    return (res)',
           'end',
         ];
       }

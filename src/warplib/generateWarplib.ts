@@ -1,12 +1,12 @@
 import { int_conversions } from './implementations/conversions/int';
 import { add, add_unsafe, add_signed, add_signed_unsafe } from './implementations/maths/add';
-import { bitwise_not } from './implementations/maths/bitwise_not';
+import { bitwise_not, bitwise_not_signed } from './implementations/maths/bitwise_not';
 import { div, div_signed, div_signed_unsafe, div_unsafe } from './implementations/maths/div';
 import { exp, exp_signed, exp_signed_unsafe, exp_unsafe } from './implementations/maths/exp';
-import { ge_signed } from './implementations/maths/ge';
-import { gt_signed } from './implementations/maths/gt';
+import { ge, ge_signed } from './implementations/maths/ge';
+import { gt, gt_signed } from './implementations/maths/gt';
 import { le, le_signed } from './implementations/maths/le';
-import { lt_signed } from './implementations/maths/lt';
+import { lt, lt_signed } from './implementations/maths/lt';
 import { mod, mod_signed } from './implementations/maths/mod';
 import { mul, mul_unsafe, mul_signed, mul_signed_unsafe } from './implementations/maths/mul';
 import { negate } from './implementations/maths/negate';
@@ -27,6 +27,9 @@ add_signed_unsafe();
 
 bitwise_and();
 bitwise_and_signed();
+
+bitwise_not();
+bitwise_not_signed();
 
 bitwise_or();
 bitwise_or_signed();
@@ -59,32 +62,28 @@ shl();
 shr();
 shr_signed();
 
-//ge - handwritten
+ge();
 ge_signed();
 
-//gt - handwritten
+gt();
 gt_signed();
 
 le();
 le_signed();
 
-//lt - handwritten
+lt();
 lt_signed();
 
-//xor - handwritten
-//bitwise_and - handwritten
-//bitwise_or - handwritten
-bitwise_not();
-
 // ---conversions---
-
 int_conversions();
 
 // ---external_input_checks---
 external_input_check_ints();
 external_input_check_uints();
+
 // and - handwritten
 // or - handwritten
+// xor - handwritten
 
 // -- type structs ---
 ints_structs();
