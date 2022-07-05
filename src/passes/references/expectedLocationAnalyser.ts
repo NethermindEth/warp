@@ -130,6 +130,11 @@ export class ExpectedLocationAnalyser extends ASTMapper {
         node.vArguments.forEach((arg) => this.expectedLocations.set(arg, DataLocation.Memory));
         return this.visitExpression(node, ast);
       }
+
+      if (node.vFunctionName === 'encode') {
+        node.vArguments.forEach((arg) => this.expectedLocations.set(arg, DataLocation.CallData));
+        return this.visitExpression(node, ast);
+      }
     }
 
     const parameterTypes = getParameterTypes(node, ast);

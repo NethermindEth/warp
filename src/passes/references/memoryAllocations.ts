@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
   ArrayType,
+  ArrayTypeName,
   BytesType,
   DataLocation,
   FunctionCall,
@@ -38,7 +39,10 @@ export class MemoryAllocations extends ReferenceSubPass {
     ) {
       const replacement = ast.getUtilFuncGen(node).memory.struct.gen(node);
       this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
-    } else if (node.vExpression instanceof NewExpression) {
+    } else if (
+      node.vExpression instanceof NewExpression &&
+      node.vExpression.vTypeName instanceof ArrayTypeName
+    ) {
       if (actualLoc === DataLocation.Memory) {
         this.allocateMemoryDynArray(node, ast);
       } else {

@@ -31,6 +31,7 @@ import {
   TryStatement,
   TypeNode,
   UserDefinedType,
+  UserDefinedTypeName,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
@@ -151,10 +152,14 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   visitNewExpression(node: NewExpression, ast: AST): void {
     if (
       !(node.vTypeName instanceof ArrayTypeName) &&
-      !(node.vTypeName instanceof ElementaryTypeName && node.vTypeName.name === 'bytes')
+      !(node.vTypeName instanceof ElementaryTypeName && node.vTypeName.name === 'bytes') &&
+      !(
+        node.vTypeName instanceof UserDefinedTypeName &&
+        node.vTypeName.vReferencedDeclaration instanceof ContractDefinition
+      )
     ) {
       throw new NotSupportedYetError(
-        `new expressions are not supported yet for non-array type ${node.vTypeName.typeString}`,
+        `new expressions are not supported yet for type ${node.vTypeName.typeString}`,
         node,
       );
     }

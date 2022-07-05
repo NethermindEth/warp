@@ -60,6 +60,7 @@ import { createPassMap, parsePassOrder } from './utils/cliOptionParsing';
 import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
 import { printCompileErrors, runSanityCheck } from './utils/utils';
+import { NewToDeploy } from './passes/newToDeploy';
 
 type CairoSource = [file: string, source: string, solABI: string];
 
@@ -110,6 +111,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Ch', ConstantHandler],
     ['Sai', StaticArrayIndexer],
     ['M', IdentifierMangler],
+    ['Ntd', NewToDeploy],
     ['Udt', UserDefinedTypesConverter],
     ['Req', Require],
     ['Ffi', FreeFunctionInliner],
