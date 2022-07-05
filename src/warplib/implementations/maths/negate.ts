@@ -23,7 +23,8 @@ export function negate(): void {
           `    return (Int256(value=res))`,
           'end',
           'func warp_unegate256{range_check_ptr}(op : Uint256) -> (res : Uint256):',
-          '    return uint256_neg(op)',
+          '    let (res : Uint256) = uint256_neg(op)',
+          '    return (res)',
           'end',
         ];
       } else {

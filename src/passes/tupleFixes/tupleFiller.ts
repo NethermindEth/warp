@@ -17,6 +17,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { getDefaultValue } from '../../utils/defaultValueNodes';
+import { TUPLE_FILLER_PREFIX } from '../../utils/nameModifiers';
 import { createIdentifier, createVariableDeclarationStatement } from '../../utils/nodeTemplates';
 import { notNull } from '../../utils/typeConstructs';
 import { expressionHasSideEffects, typeNameFromTypeNode } from '../../utils/utils';
@@ -61,7 +62,7 @@ export class TupleFiller extends ASTMapper {
           '',
           false,
           false,
-          `__warp_tf${this.counter++}`,
+          `${TUPLE_FILLER_PREFIX}${this.counter++}`,
           scope,
           false,
           loc ?? DataLocation.Default,

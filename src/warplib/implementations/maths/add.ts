@@ -103,8 +103,13 @@ export function add_signed(): void {
           `    let (overflowBits) = bitwise_and(big_res,  ${msbAndNext(width)})`,
           `    assert overflowBits * (overflowBits - ${msbAndNext(width)}) = 0`,
           `# Truncate and return`,
+<<<<<<< HEAD
           `    let (trunc_res) = bitwise_and(big_res, ${mask(width)})`,
           `    return (Int${width}(value=trunc_res))`,
+=======
+          `    let (res) =  bitwise_and(big_res, ${mask(width)})`,
+          `    return (res)`,
+>>>>>>> develop
           `end`,
         ];
       }
@@ -133,9 +138,15 @@ export function add_signed_unsafe(): void {
       } else {
         return [
           `func warp_add_signed_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(`,
+<<<<<<< HEAD
           `        lhs : Int${width}, rhs : Int${width}) -> (res : Int${width}):`,
           `    let (trunc_res) = bitwise_and(lhs.value + rhs.value, ${mask(width)})`,
           `    return (Int${width}(value=trunc_res))`,
+=======
+          `        lhs : felt, rhs : felt) -> (res : felt):`,
+          `    let (res) = bitwise_and(lhs + rhs, ${mask(width)})`,
+          `    return (res)`,
+>>>>>>> develop
           `end`,
         ];
       }

@@ -43,7 +43,7 @@ type CliOptions = CompilationOptions & TranspilationOptions & PrintOptions & Out
 const program = new Command();
 
 program
-  .command('transpile <file>')
+  .command('transpile <files...>')
   .option('--compile-cairo')
   .option('--no-compile-errors')
   .option('--check-trees')
@@ -57,15 +57,22 @@ program
   // Stops transpilation after the specified pass
   .option('--until <pass>')
   .option('--no-warnings')
-  .action((file: string, options: CliOptions) => {
-    if (!isValidSolFile(file)) return;
-    try {
-      transpile(compileSolFile(file, options.warnings), options).map(([name, cairo, abi]) => {
-        outputResult(name, cairo, options, '.cairo', abi);
-      });
-    } catch (e) {
-      handleTranspilationError(e);
-    }
+  .action((files: string[], options: CliOptions) => {
+    // We do the extra work here to make sure all the errors are printed out
+    // for all files which are invalid.
+    if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
+    files.forEach((file) => {
+      if (files.length > 1) {
+        console.log(`Compiling ${file}`);
+      }
+      try {
+        transpile(compileSolFile(file, options.warnings), options).map(([name, cairo, abi]) => {
+          outputResult(name, cairo, options, '.cairo', abi);
+        });
+      } catch (e) {
+        handleTranspilationError(e);
+      }
+    });
   });
 
 program

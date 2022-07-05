@@ -3,6 +3,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { collectUnboundVariables } from '../../utils/functionGeneration';
+import { CALLDATA_TO_MEMORY_FUNCTION_PARAMETER_PREFIX } from '../../utils/nameModifiers';
 import { createIdentifier, createVariableDeclarationStatement } from '../../utils/nodeTemplates';
 import { isDynamicArray, isReferenceType } from '../../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../../utils/utils';
@@ -15,7 +16,7 @@ export class RefTypeModifier extends ASTMapper {
   The original dataLocation of each of the filtered VariableDeclarations is then set to CallData.
   
   A VariableDeclarationStatement is then inserted into the beginning of the fuction body with a 
-  cloned VariableDeclaration with the DataLocation set to Memory the and the initialValue being an 
+  cloned VariableDeclaration with the DataLocation set to Memory and the initialValue being an 
   Identifier referencing the original VariableDeclaration in the Parameter list, 
   with the DataLocation as CallData. 
 
@@ -37,7 +38,7 @@ export class RefTypeModifier extends ASTMapper {
 
   function testReturnMember(structDef calldata structA) external pure returns (uint8) {
       structDef memory __warp_usrid2_structA_mem = structA;
-      return structA_mem.__warp_usrid0_member1;
+      return __warp_usirid1_structA.__warp_usrid0_member1;
   }
   */
 
@@ -55,7 +56,7 @@ export class RefTypeModifier extends ASTMapper {
         )
         .forEach(([decl, ids]) => {
           const wmDecl = cloneASTNode(decl, ast);
-          wmDecl.name = wmDecl.name + '_mem';
+          wmDecl.name = wmDecl.name + CALLDATA_TO_MEMORY_FUNCTION_PARAMETER_PREFIX;
           decl.storageLocation = DataLocation.CallData;
           const varDeclStatement = createVariableDeclarationStatement(
             [wmDecl],

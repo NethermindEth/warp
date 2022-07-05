@@ -2,7 +2,7 @@ from encoding import get_cairo_calldata, get_ctor_evm_calldata, get_evm_calldata
 from starkware.starknet.business_logic.internal_transaction_interface import (
     TransactionExecutionInfo,
 )
-from starkware.starknet.services.api.contract_definition import ContractDefinition
+from starkware.starknet.services.api.contract_class import ContractClass
 from starkware.starknet.testing.state import StarknetState
 
 
@@ -34,7 +34,7 @@ async def invoke_method_evm_calldata(
 async def deploy_contract(
     starknet: StarknetState,
     program_info: dict,
-    contract_definition: ContractDefinition,
+    contract_definition: ContractClass,
     *args: list,
 ) -> str:
     evm_calldata = get_ctor_evm_calldata(program_info["sol_abi"], args)
@@ -46,7 +46,7 @@ async def deploy_contract(
 
 async def deploy_contract_evm_calldata(
     starknet: StarknetState,
-    contract_definition: ContractDefinition,
+    contract_definition: ContractClass,
     evm_calldata: bytes,
 ) -> str:
     cairo_calldata = get_cairo_calldata(evm_calldata)

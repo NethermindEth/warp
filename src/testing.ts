@@ -13,6 +13,7 @@ import * as fs from 'fs';
 import { outputFileSync } from 'fs-extra';
 import { error } from './utils/formatting';
 import { manglePath } from './passes/filePathMangler';
+import { CONTRACT_INFIX } from './utils/nameModifiers';
 
 type ResultType =
   | 'CairoCompileFailed'
@@ -160,6 +161,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/old_code_gen_err_7', 'WillNotSupport'],
     ['example_contracts/payable_function', 'Success'],
     ['example_contracts/pure_function', 'Success'],
+    ['example_contracts/removeUnreachableFunctions', 'Success'],
     ['example_contracts/return_dyn_array', 'Success'],
     ['example_contracts/return_var_capturing', 'Success'],
     ['example_contracts/returndatasize', 'WillNotSupport'],
@@ -194,7 +196,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/unsupportedFunctions/abi', `WillNotSupport`],
     ['example_contracts/unsupportedFunctions/keccak256', `Success`],
     ['example_contracts/unsupportedFunctions/ecrecover', `Success`],
-    ['example_contracts/unsupportedFunctions/addmod', `WillNotSupport`],
+    ['example_contracts/unsupportedFunctions/addmod', `Success`],
     // Supported precompiles
     ['example_contracts/precompiles/ecrecover', 'Success'],
     ['example_contracts/precompiles/keccak256', 'Success'],
@@ -325,7 +327,7 @@ function combineResults(results: ResultType[]): ResultType {
 function getTestsWithUnexpectedResults(results: Map<string, ResultType>): string[] {
   const testsWithUnexpectedResults: string[] = [];
   const groupedResults = groupBy([...results.entries()], ([file, _]) => {
-    return file.split('__WARP_CONTRACT__')[0];
+    return file.split(CONTRACT_INFIX)[0];
   });
   [...groupedResults.entries()].forEach((e) => {
     const expected = expectedResults.get(e[0]);
@@ -357,12 +359,12 @@ function printResults(results: Map<string, ResultType>, unexpectedResults: strin
       console.log(`Actual outcome:`);
       const Actual = new Map<string, ResultType>();
       results.forEach((value, key) => {
-        if (key === o || key.startsWith(`${o}__WARP_CONTRACT__`)) {
+        if (key === o || key.startsWith(`${o}${CONTRACT_INFIX}`)) {
           Actual.set(key, value);
         }
       });
       Actual.forEach((value, key) => {
-        if (key.includes('__WARP_CONTRACT__')) {
+        if (key.includes(CONTRACT_INFIX)) {
           console.log(key + '.cairo' + ' : ' + value);
         } else {
           console.log(key + '.sol' + ' : ' + value);

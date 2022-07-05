@@ -44,7 +44,8 @@ export function le_signed() {
       if (width === 256) {
         return [
           `func warp_le_signed${width}{range_check_ptr}(lhs : Int256, rhs : Int256) -> (res : felt):`,
-          '    return uint256_signed_le(lhs.value, rhs.value)',
+          '    let (res) = uint256_signed_le(lhs.value, rhs.value)',
+          '    return (res)',
           'end',
         ];
       } else {

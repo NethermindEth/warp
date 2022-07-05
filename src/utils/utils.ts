@@ -61,7 +61,7 @@ import {
   createBytesTypeName,
   createNumberLiteral,
 } from './nodeTemplates';
-import { isDynamicCallDataArray } from './nodeTypeProcessing';
+import { isDynamicArray, isDynamicCallDataArray } from './nodeTypeProcessing';
 import { Class } from './typeConstructs';
 
 const uint128 = BigInt('0x100000000000000000000000000000000');
@@ -423,8 +423,29 @@ export function isExternalCall(node: FunctionCall): boolean {
   );
 }
 
-// 'string_hash' function can not be user defined, due to mangling identifiers
-export function isExpectingSplit(node: Identifier, compilerVersion: string): boolean {
+// Detects when an identifier represents a memory dynamic arrays that's being treated as calldata
+// (which only occurs when the memory dynamic array is the output of a cross contract call function)
+export function isExternalMemoryDynArray(node: Identifier, compilerVersion: string): boolean {
+  const declaration = node.vReferencedDeclaration;
+  if (
+    !(declaration instanceof VariableDeclaration) ||
+    node.parent instanceof IndexAccess ||
+    node.parent instanceof MemberAccess
+  )
+    return false;
+
+  const declarationLocation = declaration.storageLocation;
+  const [nodeType, typeLocation] = generalizeType(getNodeType(node, compilerVersion));
+
+  return (
+    isDynamicArray(nodeType) &&
+    declarationLocation === DataLocation.CallData &&
+    typeLocation === DataLocation.Memory
+  );
+}
+
+// Detects when an identifier represents a calldata dynamic array in solidity
+export function isCalldataDynArrayStruct(node: Identifier, compilerVersion: string): boolean {
   return (
     isDynamicCallDataArray(getNodeType(node, compilerVersion)) &&
     ((node.getClosestParentByType(Return) !== undefined &&
@@ -433,6 +454,7 @@ export function isExpectingSplit(node: Identifier, compilerVersion: string): boo
       node.getClosestParentByType(IndexAccess) === undefined &&
       node.getClosestParentByType(MemberAccess) === undefined) ||
       (node.parent instanceof FunctionCall && isExternalCall(node.parent)) ||
+      // 'string_hash' function can not be user defined, due to mangling identifiers
       (node.parent instanceof FunctionCall && node.parent.vFunctionName === 'string_hash'))
   );
 }

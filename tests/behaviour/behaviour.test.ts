@@ -89,7 +89,7 @@ describe('Compiled contracts are deployable', function () {
   const deployResults: (DeployResponse | null)[] = [];
 
   before(async function () {
-    const testnetContactable = await ensureTestnetContactable(10000);
+    const testnetContactable = await ensureTestnetContactable(60000);
     expect(testnetContactable, 'Failed to ping testnet').to.be.true;
     // deployResults = expectations.map(async (fileTest) =>
     //   wrapPromise(deploy(fileTest.compiled, [])),

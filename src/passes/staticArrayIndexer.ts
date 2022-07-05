@@ -22,14 +22,15 @@ import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { generateExpressionTypeString } from '../utils/getTypeString';
+import { CALLDATA_TO_MEMORY_PREFIX } from '../utils/nameModifiers';
 import { createIdentifier } from '../utils/nodeTemplates';
 import { specializeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
 
 export class StaticArrayIndexer extends ASTMapper {
   /*
-    This pass change replace all non literal calldata static array index access for 
-    non literal MEMORY static array index access.
+    This pass replace all non literal calldata structures which have a non literal
+    index access for a memory one.
     This pass is needed because static arrays are handled as cairo tuples, but cairo
     tuples (for now) can only be indexed by literals
     e.g.
@@ -39,10 +40,12 @@ export class StaticArrayIndexer extends ASTMapper {
       uint8[3] calldata b = ...
       uint8[3] memory mem_b  = b
       uint8[x] = mem_b[i]
+
+    More complex cases can occur as well, for example when the static array is nested
+    inside another structure, then the whole structure is copied to memory
   */
 
-  // Tracks calldata arrays which already have a memory counterpart
-  // initalized
+  // Tracks calldata structures which already have a memory counterpart initalized
   private staticArrayAccesed = new Map<number, VariableDeclaration>();
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
@@ -130,7 +133,7 @@ export class StaticArrayIndexer extends ASTMapper {
       '',
       false,
       false,
-      `memory_${identifier.name}`,
+      `${CALLDATA_TO_MEMORY_PREFIX}${identifier.name}`,
       parentFunction?.id,
       false,
       DataLocation.Memory,

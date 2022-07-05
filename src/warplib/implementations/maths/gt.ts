@@ -19,14 +19,16 @@ export function gt_signed() {
       if (width === 256) {
         return [
           'func warp_gt_signed256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt):',
-          '    return uint256_signed_lt(rhs, lhs)',
+          '    let (res) =  uint256_signed_lt(rhs, lhs)',
+          '    return (res)',
           'end',
         ];
       } else {
         return [
           `func warp_gt_signed${width}{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(`,
           '        lhs : felt, rhs : felt) -> (res : felt):',
-          `    return warp_lt_signed${width}(rhs, lhs)`,
+          `    let (res) = warp_lt_signed${width}(rhs, lhs)`,
+          `    return (res)`,
           'end',
         ];
       }

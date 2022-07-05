@@ -265,7 +265,8 @@ func wm_bytes_index{range_check_ptr, warp_memory : DictAccess*}(
 end
 
 func wm_bytes_length{warp_memory : DictAccess*}(bytesLoc : felt) -> (len : Uint256):
-    return wm_read_256(bytesLoc)
+    let (res : Uint256) = wm_read_256(bytesLoc)
+    return (res)
 end
 
 func wm_bytes_to_fixed32{range_check_ptr, warp_memory : DictAccess*}(bytesLoc : felt) -> (
