@@ -68,6 +68,22 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
   }
 }
 
+export function runStarknetDeclare(filePath: string) {
+  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
+  if (!success) {
+    logError(`Compilation of contract ${filePath} failed`);
+    return;
+  }
+
+  try {
+    execSync(`${warpVenvPrefix} starknet declare --contract ${resultPath}`, {
+      stdio: 'inherit',
+    });
+  } catch {
+    logError(`starknet declare of ${resultPath} failed`);
+  }
+}
+
 export async function runStarknetDeploy(filePath: string, options: IDeployProps) {
   if (options.network == undefined) {
     logError(

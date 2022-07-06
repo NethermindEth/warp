@@ -52,6 +52,8 @@ export class AST {
   private cairoUtilFuncGen: Map<number, CairoUtilFuncGen> = new Map();
   // SourceUnit id -> function signatures
   abi: Map<number, Set<string>> = new Map();
+  // ClassHashInputOrder -> FilePath
+  libraryClassHashOrder: Array<string> = [];
 
   context: ASTContext;
   // node requiring cairo import -> file to import from -> symbols to import

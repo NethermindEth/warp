@@ -6,6 +6,7 @@ import { analyseSol } from './utils/analyseSol';
 import {
   runStarknetCallOrInvoke,
   runStarknetCompile,
+  runStarknetDeclare,
   runStarknetDeploy,
   runStarknetDeployAccount,
   runStarknetStatus,
@@ -127,7 +128,15 @@ interface IDeployProps_ {
   inputs?: string;
   use_cairo_abi: boolean;
 }
-export type IDeployProps = IDeployProps_ & IOptionalNetwork & IOptionalAccount;
+
+interface IOptionalLibraryHashes {
+  libraries?: string;
+}
+
+export type IDeployProps = IDeployProps_ &
+  IOptionalNetwork &
+  IOptionalAccount &
+  IOptionalLibraryHashes;
 
 program
   .command('deploy <file>')
@@ -138,8 +147,22 @@ program
   )
   .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
   .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .option(
+    '--libraries <inputs>',
+    'This file paths of the libraries that are used in the contract, should be in the same order specified after running transpile',
+  )
   .action((file: string, options: IDeployProps) => {
     runStarknetDeploy(file, options);
+  });
+
+program
+  .command('declare <file>')
+  .option(
+    '--contract <file>',
+    'This file paths of the libraries that are used in the contract, should be in the same order specified after running transpile',
+  )
+  .action((file: string) => {
+    runStarknetDeclare(file);
   });
 
 interface IOptionalWallet {
@@ -149,7 +172,11 @@ interface IOptionalWallet {
 interface IOptionalAccount {
   account?: string;
 }
-export type IDeployAccountProps = IOptionalAccount & IOptionalNetwork & IOptionalWallet;
+
+export type IDeployAccountProps = IOptionalAccount &
+  IOptionalNetwork &
+  IOptionalWallet &
+  IOptionalLibraryHashes;
 
 program
   .command('deploy_account')

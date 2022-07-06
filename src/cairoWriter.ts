@@ -520,24 +520,27 @@ class ParameterListWriter extends CairoASTNodeWriter {
         ? TypeConversionContext.CallDataRef
         : TypeConversionContext.Ref;
 
-    const params = node.vParameters.map((value) => {
-      const varTypeConversionContext =
-        value.storageLocation === DataLocation.CallData
-          ? TypeConversionContext.CallDataRef
-          : defContext;
+    const params = node.vParameters
+      .filter((n) => n.name != '@class_hash')
+      .map((value) => {
+        // if (value.name === '@class_hash') return;
+        const varTypeConversionContext =
+          value.storageLocation === DataLocation.CallData
+            ? TypeConversionContext.CallDataRef
+            : defContext;
 
-      const tp = CairoType.fromSol(
-        getNodeType(value, writer.targetCompilerVersion),
-        this.ast,
-        varTypeConversionContext,
-      );
-      if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
-        return isExternallyVisible(node.parent)
-          ? `${value.name}_len : ${tp.vLen.toString()}, ${value.name} : ${tp.vPtr.toString()}`
-          : `${value.name} : ${tp.toString()}`;
-      }
-      return `${value.name} : ${tp}`;
-    });
+        const tp = CairoType.fromSol(
+          getNodeType(value, writer.targetCompilerVersion),
+          this.ast,
+          varTypeConversionContext,
+        );
+        if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
+          return isExternallyVisible(node.parent)
+            ? `${value.name}_len : ${tp.vLen.toString()}, ${value.name} : ${tp.vPtr.toString()}`
+            : `${value.name} : ${tp.toString()}`;
+        }
+        return `${value.name} : ${tp}`;
+      });
     return [params.join(', ')];
   }
 }

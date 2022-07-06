@@ -70,6 +70,9 @@ export function transpile(ast: AST, options: TranspilationOptions & PrintOptions
     new PrettyFormatter(4, 0),
     ast.compilerVersion,
   );
+  console.log(
+    `Please delcare the Libraries and provide the class hashes in the following order ${ast.libraryClassHashOrder}}`,
+  );
   return cairoAST.roots.map((sourceUnit) => [
     sourceUnit.absolutePath,
     writer.write(sourceUnit),
@@ -115,8 +118,8 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Ffi', FreeFunctionInliner],
     ['Ons', OrderNestedStructs],
     ['Ech', ExternalContractHandler],
-    ['Rl', ReferencedLibraries],
     ['Sa', StorageAllocator],
+    ['Rl', ReferencedLibraries],
     ['Ii', InheritanceInliner],
     ['Mh', ModifierHandler],
     ['Pfs', PublicFunctionSplitter],

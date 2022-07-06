@@ -1,727 +1,3368 @@
----Solc warnings:
-Warning: Unused local variable.
-  --> dCall.sol:30:23:
-   |
-30 |         (bool result, bytes memory retData) = contractDAddress.delegatecall(
-   |                       ^^^^^^^^^^^^^^^^^^^^
-
-
----
 ---Input---
-SourceUnit #76
-|   absolutePath: dCall.sol
+SourceUnit #15
+|   absolutePath: e.sol
 |   context: 1
 +-PragmaDirective #1
-+-ContractDefinition #32 D
-| |   linearizedBaseContracts: 32
-| |   name: D
-| |   scope: 76
-| +-VariableDeclaration #3 x
-| | |   name: x
-| | |   scope: 32
-| | |   storageLocation: default
-| | |   typeString: uint8
-| | |   visibility: public
-| | +-ElementaryTypeName #2 uint8
-| |       name: uint8
-| |       stateMutability: nonpayable
-| |       typeString: uint8
-| +-FunctionDefinition #11 
-| | |   name: 
-| | |   scope: 32
-| | |   stateMutability: nonpayable
-| | |   visibility: public
-| | +-ParameterList #4
-| | +-ParameterList #5
-| | +-Block #10
-| |   +-ExpressionStatement #9
-| |     +-Assignment #8
-| |       |   operator: =
-| |       |   typeString: uint8
-| |       +-Identifier #6 x
-| |       |     name: x
-| |       |     referencedDeclaration: 3
-| |       |     typeString: uint8
-| |       +-Literal #7
-| |             hexValue: 30
-| |             typeString: int_const 0
-| |             value: 0
-| +-FunctionDefinition #23 increaseX
-| | |   name: increaseX
-| | |   scope: 32
-| | |   stateMutability: nonpayable
-| | |   visibility: external
-| | +-ParameterList #14
-| | | +-VariableDeclaration #13 y
-| | |   |   name: y
-| | |   |   scope: 23
-| | |   |   storageLocation: default
-| | |   |   typeString: uint8
-| | |   |   visibility: internal
-| | |   +-ElementaryTypeName #12 uint8
-| | |         name: uint8
-| | |         stateMutability: nonpayable
-| | |         typeString: uint8
-| | +-ParameterList #15
-| | +-Block #22
-| |   +-ExpressionStatement #21
-| |     +-Assignment #20
-| |       |   operator: =
-| |       |   typeString: uint8
-| |       +-Identifier #16 x
-| |       |     name: x
-| |       |     referencedDeclaration: 3
-| |       |     typeString: uint8
-| |       +-BinaryOperation #19
-| |         |   operator: +
-| |         |   typeString: uint8
-| |         +-Identifier #17 x
-| |         |     name: x
-| |         |     referencedDeclaration: 3
-| |         |     typeString: uint8
-| |         +-Identifier #18 y
-| |               name: y
-| |               referencedDeclaration: 13
-| |               typeString: uint8
-| +-FunctionDefinition #31 retX
-|   |   name: retX
-|   |   scope: 32
-|   |   stateMutability: view
-|   |   visibility: external
-|   +-ParameterList #24
-|   +-ParameterList #27
-|   | +-VariableDeclaration #26 
-|   |   |   name: 
-|   |   |   scope: 31
-|   |   |   storageLocation: default
-|   |   |   typeString: uint8
-|   |   |   visibility: internal
-|   |   +-ElementaryTypeName #25 uint8
-|   |         name: uint8
-|   |         stateMutability: nonpayable
-|   |         typeString: uint8
-|   +-Block #30
-|     +-Return #29
-|       |   functionReturnParameters: 27
-|       +-Identifier #28 x
-|             name: x
-|             referencedDeclaration: 3
-|             typeString: uint8
-+-ContractDefinition #75 C
-  |   linearizedBaseContracts: 75
-  |   name: C
-  |   scope: 76
-  +-VariableDeclaration #34 z
-  | |   name: z
-  | |   scope: 75
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 15
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
   | |   storageLocation: default
   | |   typeString: uint8
-  | |   visibility: public
-  | +-ElementaryTypeName #33 uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
   |       name: uint8
   |       stateMutability: nonpayable
   |       typeString: uint8
-  +-FunctionDefinition #42 
-  | |   name: 
-  | |   scope: 75
-  | |   stateMutability: nonpayable
-  | |   visibility: public
-  | +-ParameterList #35
-  | +-ParameterList #36
-  | +-Block #41
-  |   +-ExpressionStatement #40
-  |     +-Assignment #39
-  |       |   operator: =
-  |       |   typeString: uint8
-  |       +-Identifier #37 z
-  |       |     name: z
-  |       |     referencedDeclaration: 34
-  |       |     typeString: uint8
-  |       +-Literal #38
-  |             hexValue: 30
-  |             typeString: int_const 0
-  |             value: 0
-  +-FunctionDefinition #74 callDel
-    |   name: callDel
-    |   scope: 75
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
     |   stateMutability: nonpayable
     |   visibility: external
-    +-ParameterList #43
-    +-ParameterList #46
-    | +-VariableDeclaration #45 
-    |   |   name: 
-    |   |   scope: 74
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
     |   |   storageLocation: default
-    |   |   typeString: bool
+    |   |   typeString: uint8
     |   |   visibility: internal
-    |   +-ElementaryTypeName #44 bool
-    |         name: bool
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
     |         stateMutability: nonpayable
-    |         typeString: bool
-    +-Block #73
-      +-VariableDeclarationStatement #56
-      | +-VariableDeclaration #48 contractDAddress
-      | | |   name: contractDAddress
-      | | |   scope: 73
-      | | |   storageLocation: default
-      | | |   typeString: address
-      | | |   visibility: internal
-      | | +-ElementaryTypeName #47 address
-      | |       name: address
-      | |       stateMutability: nonpayable
-      | |       typeString: address
-      | +-FunctionCall #55 address
-      |   |   typeString: address
-      |   +-ElementaryTypeNameExpression #50
-      |   | |   typeString: type(address)
-      |   | +-ElementaryTypeName #49 address
-      |   |       name: address
-      |   |       stateMutability: nonpayable
-      |   +-FunctionCall #54 uint256
-      |     |   typeString: uint256
-      |     +-ElementaryTypeNameExpression #52
-      |     | |   typeString: type(uint256)
-      |     | +-ElementaryTypeName #51 uint256
-      |     |       name: uint256
-      |     |       stateMutability: nonpayable
-      |     +-Literal #53
-      |           hexValue: 30786464614164333430623066314566
-      |           typeString: int_const 62393794153214447
-      |           value: 0xddaAd340b0f1Ef
-      +-VariableDeclarationStatement #70
-      | +-VariableDeclaration #58 result
-      | | |   name: result
-      | | |   scope: 73
-      | | |   storageLocation: default
-      | | |   typeString: bool
-      | | |   visibility: internal
-      | | +-ElementaryTypeName #57 bool
-      | |       name: bool
-      | |       stateMutability: nonpayable
-      | |       typeString: bool
-      | +-VariableDeclaration #60 retData
-      | | |   name: retData
-      | | |   scope: 73
-      | | |   storageLocation: memory
-      | | |   typeString: bytes
-      | | |   visibility: internal
-      | | +-ElementaryTypeName #59 bytes
-      | |       name: bytes
-      | |       stateMutability: nonpayable
-      | |       typeString: bytes
-      | +-FunctionCall #69 delegatecall
-      |   |   typeString: tuple(bool,bytes memory)
-      |   +-MemberAccess #62
-      |   | |   memberName: delegatecall
-      |   | |   typeString: function (bytes memory) returns (bool,bytes memory)
-      |   | +-Identifier #61 contractDAddress
-      |   |       name: contractDAddress
-      |   |       referencedDeclaration: 48
-      |   |       typeString: address
-      |   +-FunctionCall #68 encodeCall
-      |     |   typeString: bytes memory
-      |     +-MemberAccess #64
-      |     | |   memberName: encodeCall
-      |     | |   typeString: function () pure returns (bytes memory)
-      |     | +-Identifier #63 abi
-      |     |       name: abi
-      |     |       referencedDeclaration: -1
-      |     |       typeString: abi
-      |     +-MemberAccess #66
-      |     | |   memberName: increaseX
-      |     | |   referencedDeclaration: 23
-      |     | |   typeString: function D.increaseX(uint8)
-      |     | +-Identifier #65 D
-      |     |       name: D
-      |     |       referencedDeclaration: 32
-      |     |       typeString: type(contract D)
-      |     +-Literal #67
-      |           hexValue: 38
-      |           typeString: int_const 8
-      |           value: 8
-      +-Return #72
-        |   functionReturnParameters: 46
-        +-Identifier #71 result
-              name: result
-              referencedDeclaration: 58
-              typeString: bool
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
 
 ---TupleFixes---
-SourceUnit #76
-|   absolutePath: dCall.sol
+SourceUnit #15
+|   absolutePath: e.sol
 |   context: 1
 +-PragmaDirective #1
-+-ContractDefinition #32 D
-| |   linearizedBaseContracts: 32
-| |   name: D
-| |   scope: 76
-| +-VariableDeclaration #3 x
-| | |   name: x
-| | |   scope: 32
-| | |   storageLocation: default
-| | |   typeString: uint8
-| | |   visibility: public
-| | +-ElementaryTypeName #2 uint8
-| |       name: uint8
-| |       stateMutability: nonpayable
-| |       typeString: uint8
-| +-FunctionDefinition #11 
-| | |   name: 
-| | |   scope: 32
-| | |   stateMutability: nonpayable
-| | |   visibility: public
-| | +-ParameterList #4
-| | +-ParameterList #5
-| | +-Block #10
-| |   +-ExpressionStatement #9
-| |     +-Assignment #8
-| |       |   operator: =
-| |       |   typeString: uint8
-| |       +-Identifier #6 x
-| |       |     name: x
-| |       |     referencedDeclaration: 3
-| |       |     typeString: uint8
-| |       +-Literal #7
-| |             hexValue: 30
-| |             typeString: int_const 0
-| |             value: 0
-| +-FunctionDefinition #23 increaseX
-| | |   name: increaseX
-| | |   scope: 32
-| | |   stateMutability: nonpayable
-| | |   visibility: external
-| | +-ParameterList #14
-| | | +-VariableDeclaration #13 y
-| | |   |   name: y
-| | |   |   scope: 23
-| | |   |   storageLocation: default
-| | |   |   typeString: uint8
-| | |   |   visibility: internal
-| | |   +-ElementaryTypeName #12 uint8
-| | |         name: uint8
-| | |         stateMutability: nonpayable
-| | |         typeString: uint8
-| | +-ParameterList #15
-| | +-Block #22
-| |   +-ExpressionStatement #21
-| |     +-Assignment #20
-| |       |   operator: =
-| |       |   typeString: uint8
-| |       +-Identifier #16 x
-| |       |     name: x
-| |       |     referencedDeclaration: 3
-| |       |     typeString: uint8
-| |       +-BinaryOperation #19
-| |         |   operator: +
-| |         |   typeString: uint8
-| |         +-Identifier #17 x
-| |         |     name: x
-| |         |     referencedDeclaration: 3
-| |         |     typeString: uint8
-| |         +-Identifier #18 y
-| |               name: y
-| |               referencedDeclaration: 13
-| |               typeString: uint8
-| +-FunctionDefinition #31 retX
-|   |   name: retX
-|   |   scope: 32
-|   |   stateMutability: view
-|   |   visibility: external
-|   +-ParameterList #24
-|   +-ParameterList #27
-|   | +-VariableDeclaration #26 
-|   |   |   name: 
-|   |   |   scope: 31
-|   |   |   storageLocation: default
-|   |   |   typeString: uint8
-|   |   |   visibility: internal
-|   |   +-ElementaryTypeName #25 uint8
-|   |         name: uint8
-|   |         stateMutability: nonpayable
-|   |         typeString: uint8
-|   +-Block #30
-|     +-Return #29
-|       |   functionReturnParameters: 27
-|       +-Identifier #28 x
-|             name: x
-|             referencedDeclaration: 3
-|             typeString: uint8
-+-ContractDefinition #75 C
-  |   linearizedBaseContracts: 75
-  |   name: C
-  |   scope: 76
-  +-VariableDeclaration #34 z
-  | |   name: z
-  | |   scope: 75
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 15
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
   | |   storageLocation: default
   | |   typeString: uint8
-  | |   visibility: public
-  | +-ElementaryTypeName #33 uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
   |       name: uint8
   |       stateMutability: nonpayable
   |       typeString: uint8
-  +-FunctionDefinition #42 
-  | |   name: 
-  | |   scope: 75
-  | |   stateMutability: nonpayable
-  | |   visibility: public
-  | +-ParameterList #35
-  | +-ParameterList #36
-  | +-Block #41
-  |   +-ExpressionStatement #40
-  |     +-Assignment #39
-  |       |   operator: =
-  |       |   typeString: uint8
-  |       +-Identifier #37 z
-  |       |     name: z
-  |       |     referencedDeclaration: 34
-  |       |     typeString: uint8
-  |       +-Literal #38
-  |             hexValue: 30
-  |             typeString: int_const 0
-  |             value: 0
-  +-FunctionDefinition #74 callDel
-    |   name: callDel
-    |   scope: 75
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
     |   stateMutability: nonpayable
     |   visibility: external
-    +-ParameterList #43
-    +-ParameterList #46
-    | +-VariableDeclaration #45 
-    |   |   name: 
-    |   |   scope: 74
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
     |   |   storageLocation: default
-    |   |   typeString: bool
+    |   |   typeString: uint8
     |   |   visibility: internal
-    |   +-ElementaryTypeName #44 bool
-    |         name: bool
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
     |         stateMutability: nonpayable
-    |         typeString: bool
-    +-Block #73
-      +-VariableDeclarationStatement #56
-      | +-VariableDeclaration #48 contractDAddress
-      | | |   name: contractDAddress
-      | | |   scope: 73
-      | | |   storageLocation: default
-      | | |   typeString: address
-      | | |   visibility: internal
-      | | +-ElementaryTypeName #47 address
-      | |       name: address
-      | |       stateMutability: nonpayable
-      | |       typeString: address
-      | +-FunctionCall #55 address
-      |   |   typeString: address
-      |   +-ElementaryTypeNameExpression #50
-      |   | |   typeString: type(address)
-      |   | +-ElementaryTypeName #49 address
-      |   |       name: address
-      |   |       stateMutability: nonpayable
-      |   +-FunctionCall #54 uint256
-      |     |   typeString: uint256
-      |     +-ElementaryTypeNameExpression #52
-      |     | |   typeString: type(uint256)
-      |     | +-ElementaryTypeName #51 uint256
-      |     |       name: uint256
-      |     |       stateMutability: nonpayable
-      |     +-Literal #53
-      |           hexValue: 30786464614164333430623066314566
-      |           typeString: int_const 62393794153214447
-      |           value: 0xddaAd340b0f1Ef
-      +-VariableDeclarationStatement #70
-      | +-VariableDeclaration #58 result
-      | | |   name: result
-      | | |   scope: 73
-      | | |   storageLocation: default
-      | | |   typeString: bool
-      | | |   visibility: internal
-      | | +-ElementaryTypeName #57 bool
-      | |       name: bool
-      | |       stateMutability: nonpayable
-      | |       typeString: bool
-      | +-VariableDeclaration #60 retData
-      | | |   name: retData
-      | | |   scope: 73
-      | | |   storageLocation: memory
-      | | |   typeString: bytes
-      | | |   visibility: internal
-      | | +-ElementaryTypeName #59 bytes
-      | |       name: bytes
-      | |       stateMutability: nonpayable
-      | |       typeString: bytes
-      | +-FunctionCall #69 delegatecall
-      |   |   typeString: tuple(bool,bytes memory)
-      |   +-MemberAccess #62
-      |   | |   memberName: delegatecall
-      |   | |   typeString: function (bytes memory) returns (bool,bytes memory)
-      |   | +-Identifier #61 contractDAddress
-      |   |       name: contractDAddress
-      |   |       referencedDeclaration: 48
-      |   |       typeString: address
-      |   +-FunctionCall #68 encodeCall
-      |     |   typeString: bytes memory
-      |     +-MemberAccess #64
-      |     | |   memberName: encodeCall
-      |     | |   typeString: function () pure returns (bytes memory)
-      |     | +-Identifier #63 abi
-      |     |       name: abi
-      |     |       referencedDeclaration: -1
-      |     |       typeString: abi
-      |     +-MemberAccess #66
-      |     | |   memberName: increaseX
-      |     | |   referencedDeclaration: 23
-      |     | |   typeString: function D.increaseX(uint8)
-      |     | +-Identifier #65 D
-      |     |       name: D
-      |     |       referencedDeclaration: 32
-      |     |       typeString: type(contract D)
-      |     +-Literal #67
-      |           hexValue: 38
-      |           typeString: int_const 8
-      |           value: 8
-      +-Return #72
-        |   functionReturnParameters: 46
-        +-Identifier #71 result
-              name: result
-              referencedDeclaration: 58
-              typeString: bool
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
 
 ---TypeNameRemover---
-SourceUnit #76
-|   absolutePath: dCall.sol
+SourceUnit #15
+|   absolutePath: e.sol
 |   context: 1
 +-PragmaDirective #1
-+-ContractDefinition #32 D
-| |   linearizedBaseContracts: 32
-| |   name: D
-| |   scope: 76
-| +-VariableDeclaration #3 x
-| | |   name: x
-| | |   scope: 32
-| | |   storageLocation: default
-| | |   typeString: uint8
-| | |   visibility: public
-| | +-ElementaryTypeName #2 uint8
-| |       name: uint8
-| |       stateMutability: nonpayable
-| |       typeString: uint8
-| +-FunctionDefinition #11 
-| | |   name: 
-| | |   scope: 32
-| | |   stateMutability: nonpayable
-| | |   visibility: public
-| | +-ParameterList #4
-| | +-ParameterList #5
-| | +-Block #10
-| |   +-ExpressionStatement #9
-| |     +-Assignment #8
-| |       |   operator: =
-| |       |   typeString: uint8
-| |       +-Identifier #6 x
-| |       |     name: x
-| |       |     referencedDeclaration: 3
-| |       |     typeString: uint8
-| |       +-Literal #7
-| |             hexValue: 30
-| |             typeString: int_const 0
-| |             value: 0
-| +-FunctionDefinition #23 increaseX
-| | |   name: increaseX
-| | |   scope: 32
-| | |   stateMutability: nonpayable
-| | |   visibility: external
-| | +-ParameterList #14
-| | | +-VariableDeclaration #13 y
-| | |   |   name: y
-| | |   |   scope: 23
-| | |   |   storageLocation: default
-| | |   |   typeString: uint8
-| | |   |   visibility: internal
-| | |   +-ElementaryTypeName #12 uint8
-| | |         name: uint8
-| | |         stateMutability: nonpayable
-| | |         typeString: uint8
-| | +-ParameterList #15
-| | +-Block #22
-| |   +-ExpressionStatement #21
-| |     +-Assignment #20
-| |       |   operator: =
-| |       |   typeString: uint8
-| |       +-Identifier #16 x
-| |       |     name: x
-| |       |     referencedDeclaration: 3
-| |       |     typeString: uint8
-| |       +-BinaryOperation #19
-| |         |   operator: +
-| |         |   typeString: uint8
-| |         +-Identifier #17 x
-| |         |     name: x
-| |         |     referencedDeclaration: 3
-| |         |     typeString: uint8
-| |         +-Identifier #18 y
-| |               name: y
-| |               referencedDeclaration: 13
-| |               typeString: uint8
-| +-FunctionDefinition #31 retX
-|   |   name: retX
-|   |   scope: 32
-|   |   stateMutability: view
-|   |   visibility: external
-|   +-ParameterList #24
-|   +-ParameterList #27
-|   | +-VariableDeclaration #26 
-|   |   |   name: 
-|   |   |   scope: 31
-|   |   |   storageLocation: default
-|   |   |   typeString: uint8
-|   |   |   visibility: internal
-|   |   +-ElementaryTypeName #25 uint8
-|   |         name: uint8
-|   |         stateMutability: nonpayable
-|   |         typeString: uint8
-|   +-Block #30
-|     +-Return #29
-|       |   functionReturnParameters: 27
-|       +-Identifier #28 x
-|             name: x
-|             referencedDeclaration: 3
-|             typeString: uint8
-+-ContractDefinition #75 C
-  |   linearizedBaseContracts: 75
-  |   name: C
-  |   scope: 76
-  +-VariableDeclaration #34 z
-  | |   name: z
-  | |   scope: 75
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 15
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
   | |   storageLocation: default
   | |   typeString: uint8
-  | |   visibility: public
-  | +-ElementaryTypeName #33 uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
   |       name: uint8
   |       stateMutability: nonpayable
   |       typeString: uint8
-  +-FunctionDefinition #42 
-  | |   name: 
-  | |   scope: 75
-  | |   stateMutability: nonpayable
-  | |   visibility: public
-  | +-ParameterList #35
-  | +-ParameterList #36
-  | +-Block #41
-  |   +-ExpressionStatement #40
-  |     +-Assignment #39
-  |       |   operator: =
-  |       |   typeString: uint8
-  |       +-Identifier #37 z
-  |       |     name: z
-  |       |     referencedDeclaration: 34
-  |       |     typeString: uint8
-  |       +-Literal #38
-  |             hexValue: 30
-  |             typeString: int_const 0
-  |             value: 0
-  +-FunctionDefinition #74 callDel
-    |   name: callDel
-    |   scope: 75
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
     |   stateMutability: nonpayable
     |   visibility: external
-    +-ParameterList #43
-    +-ParameterList #46
-    | +-VariableDeclaration #45 
-    |   |   name: 
-    |   |   scope: 74
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
     |   |   storageLocation: default
-    |   |   typeString: bool
+    |   |   typeString: uint8
     |   |   visibility: internal
-    |   +-ElementaryTypeName #44 bool
-    |         name: bool
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
     |         stateMutability: nonpayable
-    |         typeString: bool
-    +-Block #73
-      +-VariableDeclarationStatement #56
-      | +-VariableDeclaration #48 contractDAddress
-      | | |   name: contractDAddress
-      | | |   scope: 73
-      | | |   storageLocation: default
-      | | |   typeString: address
-      | | |   visibility: internal
-      | | +-ElementaryTypeName #47 address
-      | |       name: address
-      | |       stateMutability: nonpayable
-      | |       typeString: address
-      | +-FunctionCall #55 address
-      |   |   typeString: address
-      |   +-ElementaryTypeNameExpression #50
-      |   | |   typeString: type(address)
-      |   | +-ElementaryTypeName #49 address
-      |   |       name: address
-      |   |       stateMutability: nonpayable
-      |   +-FunctionCall #54 uint256
-      |     |   typeString: uint256
-      |     +-ElementaryTypeNameExpression #52
-      |     | |   typeString: type(uint256)
-      |     | +-ElementaryTypeName #51 uint256
-      |     |       name: uint256
-      |     |       stateMutability: nonpayable
-      |     +-Literal #53
-      |           hexValue: 30786464614164333430623066314566
-      |           typeString: int_const 62393794153214447
-      |           value: 0xddaAd340b0f1Ef
-      +-VariableDeclarationStatement #70
-      | +-VariableDeclaration #58 result
-      | | |   name: result
-      | | |   scope: 73
-      | | |   storageLocation: default
-      | | |   typeString: bool
-      | | |   visibility: internal
-      | | +-ElementaryTypeName #57 bool
-      | |       name: bool
-      | |       stateMutability: nonpayable
-      | |       typeString: bool
-      | +-VariableDeclaration #60 retData
-      | | |   name: retData
-      | | |   scope: 73
-      | | |   storageLocation: memory
-      | | |   typeString: bytes
-      | | |   visibility: internal
-      | | +-ElementaryTypeName #59 bytes
-      | |       name: bytes
-      | |       stateMutability: nonpayable
-      | |       typeString: bytes
-      | +-FunctionCall #69 delegatecall
-      |   |   typeString: tuple(bool,bytes memory)
-      |   +-MemberAccess #62
-      |   | |   memberName: delegatecall
-      |   | |   typeString: function (bytes memory) returns (bool,bytes memory)
-      |   | +-Identifier #61 contractDAddress
-      |   |       name: contractDAddress
-      |   |       referencedDeclaration: 48
-      |   |       typeString: address
-      |   +-FunctionCall #68 encodeCall
-      |     |   typeString: bytes memory
-      |     +-MemberAccess #64
-      |     | |   memberName: encodeCall
-      |     | |   typeString: function () pure returns (bytes memory)
-      |     | +-Identifier #63 abi
-      |     |       name: abi
-      |     |       referencedDeclaration: -1
-      |     |       typeString: abi
-      |     +-MemberAccess #66
-      |     | |   memberName: increaseX
-      |     | |   referencedDeclaration: 23
-      |     | |   typeString: function D.increaseX(uint8)
-      |     | +-Identifier #65 D
-      |     |       name: D
-      |     |       referencedDeclaration: 32
-      |     |       typeString: type(contract D)
-      |     +-Literal #67
-      |           hexValue: 38
-      |           typeString: int_const 8
-      |           value: 8
-      +-Return #72
-        |   functionReturnParameters: 46
-        +-Identifier #71 result
-              name: result
-              referencedDeclaration: 58
-              typeString: bool
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
 
 ---RejectUnsupportedFeatures---
+SourceUnit #15
+|   absolutePath: e.sol
+|   context: 1
++-PragmaDirective #1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 15
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---FilePathMangler---
+SourceUnit #15
+|   absolutePath: e.sol
+|   context: 1
++-PragmaDirective #1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 15
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---SourceUnitSplitter---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---TypeStringsChecker---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---ABIExtractor---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---ImportDirectiveIdentifier---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---LiteralExpressionEvaluator---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---NamedArgsRemover---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---UsingForResolver---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---FunctionTypeStringMatcher---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---PublicStateVarsGetterGenerator---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---TypeInformationCalculator---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---ConstantHandler---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---StaticArrayIndexer---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f
+    |   name: f
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 y
+    |   |   name: y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 y
+                name: y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---IdentifierMangler---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+    |   name: f_3120d434
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 __warp_usrid1_y
+    |   |   name: __warp_usrid1_y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 __warp_usrid0_x
+          |     name: __warp_usrid0_x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 __warp_usrid1_y
+                name: __warp_usrid1_y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---UserDefinedTypesConverter---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+    |   name: f_3120d434
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 __warp_usrid1_y
+    |   |   name: __warp_usrid1_y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 __warp_usrid0_x
+          |     name: __warp_usrid0_x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 __warp_usrid1_y
+                name: __warp_usrid1_y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---Require---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+    |   name: f_3120d434
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 __warp_usrid1_y
+    |   |   name: __warp_usrid1_y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 __warp_usrid0_x
+          |     name: __warp_usrid0_x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 __warp_usrid1_y
+                name: __warp_usrid1_y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---FreeFunctionInliner---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+    |   name: f_3120d434
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 __warp_usrid1_y
+    |   |   name: __warp_usrid1_y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 __warp_usrid0_x
+          |     name: __warp_usrid0_x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 __warp_usrid1_y
+                name: __warp_usrid1_y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---OrderNestedStructs---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+    |   name: f_3120d434
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 __warp_usrid1_y
+    |   |   name: __warp_usrid1_y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 __warp_usrid0_x
+          |     name: __warp_usrid0_x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 __warp_usrid1_y
+                name: __warp_usrid1_y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---ExternalContractHandler---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-ContractDefinition #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+    |   name: f_3120d434
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: external
+    +-ParameterList #6
+    | +-VariableDeclaration #5 __warp_usrid1_y
+    |   |   name: __warp_usrid1_y
+    |   |   scope: 13
+    |   |   storageLocation: default
+    |   |   typeString: uint8
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #4 uint8
+    |         name: uint8
+    |         stateMutability: nonpayable
+    |         typeString: uint8
+    +-ParameterList #7
+    +-Block #12
+      +-ExpressionStatement #11
+        +-Assignment #10
+          |   operator: =
+          |   typeString: uint8
+          +-Identifier #8 __warp_usrid0_x
+          |     name: __warp_usrid0_x
+          |     referencedDeclaration: 3
+          |     typeString: uint8
+          +-Identifier #9 __warp_usrid1_y
+                name: __warp_usrid1_y
+                referencedDeclaration: 5
+                typeString: uint8
+
+---StorageAllocator---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |     +-Assignment #10
+  |       |   operator: =
+  |       |   typeString: uint8
+  |       +-Identifier #8 __warp_usrid0_x
+  |       |     name: __warp_usrid0_x
+  |       |     referencedDeclaration: 3
+  |       |     typeString: uint8
+  |       +-Identifier #9 __warp_usrid1_y
+  |             name: __warp_usrid1_y
+  |             referencedDeclaration: 5
+  |             typeString: uint8
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+
+---ReferencedLibraries---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |     +-Assignment #10
+  |       |   operator: =
+  |       |   typeString: uint8
+  |       +-Identifier #8 __warp_usrid0_x
+  |       |     name: __warp_usrid0_x
+  |       |     referencedDeclaration: 3
+  |       |     typeString: uint8
+  |       +-Identifier #9 __warp_usrid1_y
+  |             name: __warp_usrid1_y
+  |             referencedDeclaration: 5
+  |             typeString: uint8
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+
+---InheritanceInliner---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |     +-Assignment #10
+  |       |   operator: =
+  |       |   typeString: uint8
+  |       +-Identifier #8 __warp_usrid0_x
+  |       |     name: __warp_usrid0_x
+  |       |     referencedDeclaration: 3
+  |       |     typeString: uint8
+  |       +-Identifier #9 __warp_usrid1_y
+  |             name: __warp_usrid1_y
+  |             referencedDeclaration: 5
+  |             typeString: uint8
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+
+---ModifierHandler---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |     +-Assignment #10
+  |       |   operator: =
+  |       |   typeString: uint8
+  |       +-Identifier #8 __warp_usrid0_x
+  |       |     name: __warp_usrid0_x
+  |       |     referencedDeclaration: 3
+  |       |     typeString: uint8
+  |       +-Identifier #9 __warp_usrid1_y
+  |             name: __warp_usrid1_y
+  |             referencedDeclaration: 5
+  |             typeString: uint8
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+
+---PublicFunctionSplitter---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |     +-Assignment #10
+  |       |   operator: =
+  |       |   typeString: uint8
+  |       +-Identifier #8 __warp_usrid0_x
+  |       |     name: __warp_usrid0_x
+  |       |     referencedDeclaration: 3
+  |       |     typeString: uint8
+  |       +-Identifier #9 __warp_usrid1_y
+  |             name: __warp_usrid1_y
+  |             referencedDeclaration: 5
+  |             typeString: uint8
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+
+---ExternalArgModifier---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |     +-Assignment #10
+  |       |   operator: =
+  |       |   typeString: uint8
+  |       +-Identifier #8 __warp_usrid0_x
+  |       |     name: __warp_usrid0_x
+  |       |     referencedDeclaration: 3
+  |       |     typeString: uint8
+  |       +-Identifier #9 __warp_usrid1_y
+  |             name: __warp_usrid1_y
+  |             referencedDeclaration: 5
+  |             typeString: uint8
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+
+---LoopFunctionaliser---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |     +-Assignment #10
+  |       |   operator: =
+  |       |   typeString: uint8
+  |       +-Identifier #8 __warp_usrid0_x
+  |       |     name: __warp_usrid0_x
+  |       |     referencedDeclaration: 3
+  |       |     typeString: uint8
+  |       +-Identifier #9 __warp_usrid1_y
+  |             name: __warp_usrid1_y
+  |             referencedDeclaration: 5
+  |             typeString: uint8
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+
+---ReturnInserter---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |   | +-Assignment #10
+  |   |   |   operator: =
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---ReturnVariableInitializer---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |   | +-Assignment #10
+  |   |   |   operator: =
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---IfFunctionaliser---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |   | +-Assignment #10
+  |   |   |   operator: =
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---TupleAssignmentSplitter---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |   | +-Assignment #10
+  |   |   |   operator: =
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---UnloadingAssignment---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |   | +-Assignment #10
+  |   |   |   operator: =
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---VariableDeclarationInitialiser---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |   | +-Assignment #10
+  |   |   |   operator: =
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---VariableDeclarationExpressionSplitter---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |   | +-Assignment #10
+  |   |   |   operator: =
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---ImplicitConversionToExplicit---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |   | +-Assignment #10
+  |   |   |   operator: =
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---DeleteHandler---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |   | +-Assignment #10
+  |   |   |   operator: =
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---References---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #27 WS_WRITE0
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 17
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #30
+| | +-VariableDeclaration #28 loc
+| | | |   name: loc
+| | | |   scope: 27
+| | | |   storageLocation: storage
+| | | |   typeString: uint8
+| | | |   visibility: private
+| | | +-ElementaryTypeName #24 uint8
+| | |       name: uint8
+| | |       stateMutability: nonpayable
+| | |       typeString: uint8
+| | +-VariableDeclaration #29 value
+| |   |   name: value
+| |   |   scope: 27
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #25 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #32
+|   +-VariableDeclaration #31 res
+|     |   name: res
+|     |   scope: 27
+|     |   storageLocation: default
+|     |   typeString: uint8
+|     |   visibility: private
+|     +-ElementaryTypeName #26 uint8
+|           name: uint8
+|           stateMutability: nonpayable
+|           typeString: uint8
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #11
+  |   | +-FunctionCall #33 WS_WRITE0
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #34 WS_WRITE0
+  |   |   |     name: WS_WRITE0
+  |   |   |     referencedDeclaration: 27
+  |   |   |     typeString: function (uint8, uint8) nonpayable returns (uint8)
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---ArgBoundChecker---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #37 warp_external_input_check_int8
+| |   implicits: range_check_ptr
+| |   name: warp_external_input_check_int8
+| |   scope: 17
+| |   stateMutability: pure
+| |   visibility: private
+| +-ParameterList #39
+| | +-VariableDeclaration #38 ref_var
+| |   |   name: ref_var
+| |   |   scope: 37
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #36 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #40
++-CairoFunctionDefinition #27 WS_WRITE0
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 17
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #30
+| | +-VariableDeclaration #28 loc
+| | | |   name: loc
+| | | |   scope: 27
+| | | |   storageLocation: storage
+| | | |   typeString: uint8
+| | | |   visibility: private
+| | | +-ElementaryTypeName #24 uint8
+| | |       name: uint8
+| | |       stateMutability: nonpayable
+| | |       typeString: uint8
+| | +-VariableDeclaration #29 value
+| |   |   name: value
+| |   |   scope: 27
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #25 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #32
+|   +-VariableDeclaration #31 res
+|     |   name: res
+|     |   scope: 27
+|     |   storageLocation: default
+|     |   typeString: uint8
+|     |   visibility: private
+|     +-ElementaryTypeName #26 uint8
+|           name: uint8
+|           stateMutability: nonpayable
+|           typeString: uint8
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #43
+  |   | +-FunctionCall #41 warp_external_input_check_int8
+  |   |   |   typeString: tuple()
+  |   |   +-Identifier #42 warp_external_input_check_int8
+  |   |   |     name: warp_external_input_check_int8
+  |   |   |     referencedDeclaration: 37
+  |   |   |     typeString: function (uint8) pure 
+  |   |   +-Identifier #35 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-ExpressionStatement #11
+  |   | +-FunctionCall #33 WS_WRITE0
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #34 WS_WRITE0
+  |   |   |     name: WS_WRITE0
+  |   |   |     referencedDeclaration: 27
+  |   |   |     typeString: function (uint8, uint8) nonpayable returns (uint8)
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---EnumConverter---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #37 warp_external_input_check_int8
+| |   implicits: range_check_ptr
+| |   name: warp_external_input_check_int8
+| |   scope: 17
+| |   stateMutability: pure
+| |   visibility: private
+| +-ParameterList #39
+| | +-VariableDeclaration #38 ref_var
+| |   |   name: ref_var
+| |   |   scope: 37
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #36 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #40
++-CairoFunctionDefinition #27 WS_WRITE0
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 17
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #30
+| | +-VariableDeclaration #28 loc
+| | | |   name: loc
+| | | |   scope: 27
+| | | |   storageLocation: storage
+| | | |   typeString: uint8
+| | | |   visibility: private
+| | | +-ElementaryTypeName #24 uint8
+| | |       name: uint8
+| | |       stateMutability: nonpayable
+| | |       typeString: uint8
+| | +-VariableDeclaration #29 value
+| |   |   name: value
+| |   |   scope: 27
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #25 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #32
+|   +-VariableDeclaration #31 res
+|     |   name: res
+|     |   scope: 27
+|     |   storageLocation: default
+|     |   typeString: uint8
+|     |   visibility: private
+|     +-ElementaryTypeName #26 uint8
+|           name: uint8
+|           stateMutability: nonpayable
+|           typeString: uint8
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #43
+  |   | +-FunctionCall #41 warp_external_input_check_int8
+  |   |   |   typeString: tuple()
+  |   |   +-Identifier #42 warp_external_input_check_int8
+  |   |   |     name: warp_external_input_check_int8
+  |   |   |     referencedDeclaration: 37
+  |   |   |     typeString: function (uint8) pure
+  |   |   +-Identifier #35 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-ExpressionStatement #11
+  |   | +-FunctionCall #33 WS_WRITE0
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #34 WS_WRITE0
+  |   |   |     name: WS_WRITE0
+  |   |   |     referencedDeclaration: 27
+  |   |   |     typeString: function (uint8,uint8) returns (uint8)
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---BuiltinHandler---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #37 warp_external_input_check_int8
+| |   implicits: range_check_ptr
+| |   name: warp_external_input_check_int8
+| |   scope: 17
+| |   stateMutability: pure
+| |   visibility: private
+| +-ParameterList #39
+| | +-VariableDeclaration #38 ref_var
+| |   |   name: ref_var
+| |   |   scope: 37
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #36 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #40
++-CairoFunctionDefinition #27 WS_WRITE0
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 17
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #30
+| | +-VariableDeclaration #28 loc
+| | | |   name: loc
+| | | |   scope: 27
+| | | |   storageLocation: storage
+| | | |   typeString: uint8
+| | | |   visibility: private
+| | | +-ElementaryTypeName #24 uint8
+| | |       name: uint8
+| | |       stateMutability: nonpayable
+| | |       typeString: uint8
+| | +-VariableDeclaration #29 value
+| |   |   name: value
+| |   |   scope: 27
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #25 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #32
+|   +-VariableDeclaration #31 res
+|     |   name: res
+|     |   scope: 27
+|     |   storageLocation: default
+|     |   typeString: uint8
+|     |   visibility: private
+|     +-ElementaryTypeName #26 uint8
+|           name: uint8
+|           stateMutability: nonpayable
+|           typeString: uint8
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #43
+  |   | +-FunctionCall #41 warp_external_input_check_int8
+  |   |   |   typeString: tuple()
+  |   |   +-Identifier #42 warp_external_input_check_int8
+  |   |   |     name: warp_external_input_check_int8
+  |   |   |     referencedDeclaration: 37
+  |   |   |     typeString: function (uint8) pure
+  |   |   +-Identifier #35 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-ExpressionStatement #11
+  |   | +-FunctionCall #33 WS_WRITE0
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #34 WS_WRITE0
+  |   |   |     name: WS_WRITE0
+  |   |   |     referencedDeclaration: 27
+  |   |   |     typeString: function (uint8,uint8) returns (uint8)
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---BytesConverter---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #37 warp_external_input_check_int8
+| |   implicits: range_check_ptr
+| |   name: warp_external_input_check_int8
+| |   scope: 17
+| |   stateMutability: pure
+| |   visibility: private
+| +-ParameterList #39
+| | +-VariableDeclaration #38 ref_var
+| |   |   name: ref_var
+| |   |   scope: 37
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #36 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #40
++-CairoFunctionDefinition #27 WS_WRITE0
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 17
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #30
+| | +-VariableDeclaration #28 loc
+| | | |   name: loc
+| | | |   scope: 27
+| | | |   storageLocation: storage
+| | | |   typeString: uint8
+| | | |   visibility: private
+| | | +-ElementaryTypeName #24 uint8
+| | |       name: uint8
+| | |       stateMutability: nonpayable
+| | |       typeString: uint8
+| | +-VariableDeclaration #29 value
+| |   |   name: value
+| |   |   scope: 27
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #25 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #32
+|   +-VariableDeclaration #31 res
+|     |   name: res
+|     |   scope: 27
+|     |   storageLocation: default
+|     |   typeString: uint8
+|     |   visibility: private
+|     +-ElementaryTypeName #26 uint8
+|           name: uint8
+|           stateMutability: nonpayable
+|           typeString: uint8
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #43
+  |   | +-FunctionCall #41 warp_external_input_check_int8
+  |   |   |   typeString: tuple()
+  |   |   +-Identifier #42 warp_external_input_check_int8
+  |   |   |     name: warp_external_input_check_int8
+  |   |   |     referencedDeclaration: 37
+  |   |   |     typeString: function (uint8) pure
+  |   |   +-Identifier #35 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-ExpressionStatement #11
+  |   | +-FunctionCall #33 WS_WRITE0
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #34 WS_WRITE0
+  |   |   |     name: WS_WRITE0
+  |   |   |     referencedDeclaration: 27
+  |   |   |     typeString: function (uint8,uint8) returns (uint8)
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---UnreachableStatementPruner---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #37 warp_external_input_check_int8
+| |   implicits: range_check_ptr
+| |   name: warp_external_input_check_int8
+| |   scope: 17
+| |   stateMutability: pure
+| |   visibility: private
+| +-ParameterList #39
+| | +-VariableDeclaration #38 ref_var
+| |   |   name: ref_var
+| |   |   scope: 37
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #36 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #40
++-CairoFunctionDefinition #27 WS_WRITE0
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 17
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #30
+| | +-VariableDeclaration #28 loc
+| | | |   name: loc
+| | | |   scope: 27
+| | | |   storageLocation: storage
+| | | |   typeString: uint8
+| | | |   visibility: private
+| | | +-ElementaryTypeName #24 uint8
+| | |       name: uint8
+| | |       stateMutability: nonpayable
+| | |       typeString: uint8
+| | +-VariableDeclaration #29 value
+| |   |   name: value
+| |   |   scope: 27
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #25 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #32
+|   +-VariableDeclaration #31 res
+|     |   name: res
+|     |   scope: 27
+|     |   storageLocation: default
+|     |   typeString: uint8
+|     |   visibility: private
+|     +-ElementaryTypeName #26 uint8
+|           name: uint8
+|           stateMutability: nonpayable
+|           typeString: uint8
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #43
+  |   | +-FunctionCall #41 warp_external_input_check_int8
+  |   |   |   typeString: tuple()
+  |   |   +-Identifier #42 warp_external_input_check_int8
+  |   |   |     name: warp_external_input_check_int8
+  |   |   |     referencedDeclaration: 37
+  |   |   |     typeString: function (uint8) pure
+  |   |   +-Identifier #35 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-ExpressionStatement #11
+  |   | +-FunctionCall #33 WS_WRITE0
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #34 WS_WRITE0
+  |   |   |     name: WS_WRITE0
+  |   |   |     referencedDeclaration: 27
+  |   |   |     typeString: function (uint8,uint8) returns (uint8)
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---ExpressionSplitter---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #37 warp_external_input_check_int8
+| |   implicits: range_check_ptr
+| |   name: warp_external_input_check_int8
+| |   scope: 17
+| |   stateMutability: pure
+| |   visibility: private
+| +-ParameterList #39
+| | +-VariableDeclaration #38 ref_var
+| |   |   name: ref_var
+| |   |   scope: 37
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #36 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #40
++-CairoFunctionDefinition #27 WS_WRITE0
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 17
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #30
+| | +-VariableDeclaration #28 loc
+| | | |   name: loc
+| | | |   scope: 27
+| | | |   storageLocation: storage
+| | | |   typeString: uint8
+| | | |   visibility: private
+| | | +-ElementaryTypeName #24 uint8
+| | |       name: uint8
+| | |       stateMutability: nonpayable
+| | |       typeString: uint8
+| | +-VariableDeclaration #29 value
+| |   |   name: value
+| |   |   scope: 27
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #25 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #32
+|   +-VariableDeclaration #31 res
+|     |   name: res
+|     |   scope: 27
+|     |   storageLocation: default
+|     |   typeString: uint8
+|     |   visibility: private
+|     +-ElementaryTypeName #26 uint8
+|           name: uint8
+|           stateMutability: nonpayable
+|           typeString: uint8
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #13 f_3120d434
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #43
+  |   | +-FunctionCall #41 warp_external_input_check_int8
+  |   |   |   typeString: tuple()
+  |   |   +-Identifier #42 warp_external_input_check_int8
+  |   |   |     name: warp_external_input_check_int8
+  |   |   |     referencedDeclaration: 37
+  |   |   |     typeString: function (uint8) pure
+  |   |   +-Identifier #35 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-ExpressionStatement #11
+  |   | +-FunctionCall #33 WS_WRITE0
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #34 WS_WRITE0
+  |   |   |     name: WS_WRITE0
+  |   |   |     referencedDeclaration: 27
+  |   |   |     typeString: function (uint8,uint8) returns (uint8)
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-FunctionDefinition #19 
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---AnnotateImplicits---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #37 warp_external_input_check_int8
+| |   implicits: range_check_ptr
+| |   name: warp_external_input_check_int8
+| |   scope: 17
+| |   stateMutability: pure
+| |   visibility: private
+| +-ParameterList #39
+| | +-VariableDeclaration #38 ref_var
+| |   |   name: ref_var
+| |   |   scope: 37
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #36 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #40
++-CairoFunctionDefinition #27 WS_WRITE0
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 17
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #30
+| | +-VariableDeclaration #28 loc
+| | | |   name: loc
+| | | |   scope: 27
+| | | |   storageLocation: storage
+| | | |   typeString: uint8
+| | | |   visibility: private
+| | | +-ElementaryTypeName #24 uint8
+| | |       name: uint8
+| | |       stateMutability: nonpayable
+| | |       typeString: uint8
+| | +-VariableDeclaration #29 value
+| |   |   name: value
+| |   |   scope: 27
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #25 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #32
+|   +-VariableDeclaration #31 res
+|     |   name: res
+|     |   scope: 27
+|     |   storageLocation: default
+|     |   typeString: uint8
+|     |   visibility: private
+|     +-ElementaryTypeName #26 uint8
+|           name: uint8
+|           stateMutability: nonpayable
+|           typeString: uint8
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-CairoFunctionDefinition #13 f_3120d434
+  | |   implicits: range_check_ptr,syscall_ptr,pedersen_ptr
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #43
+  |   | +-FunctionCall #41 warp_external_input_check_int8
+  |   |   |   typeString: tuple()
+  |   |   +-Identifier #42 warp_external_input_check_int8
+  |   |   |     name: warp_external_input_check_int8
+  |   |   |     referencedDeclaration: 37
+  |   |   |     typeString: function (uint8) pure
+  |   |   +-Identifier #35 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-ExpressionStatement #11
+  |   | +-FunctionCall #33 WS_WRITE0
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #34 WS_WRITE0
+  |   |   |     name: WS_WRITE0
+  |   |   |     referencedDeclaration: 27
+  |   |   |     typeString: function (uint8,uint8) returns (uint8)
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-CairoFunctionDefinition #19 
+    |   implicits: range_check_ptr,syscall_ptr,pedersen_ptr
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---CairoUtilImporter---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #37 warp_external_input_check_int8
+| |   implicits: range_check_ptr
+| |   name: warp_external_input_check_int8
+| |   scope: 17
+| |   stateMutability: pure
+| |   visibility: private
+| +-ParameterList #39
+| | +-VariableDeclaration #38 ref_var
+| |   |   name: ref_var
+| |   |   scope: 37
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #36 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #40
++-CairoFunctionDefinition #27 WS_WRITE0
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 17
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #30
+| | +-VariableDeclaration #28 loc
+| | | |   name: loc
+| | | |   scope: 27
+| | | |   storageLocation: storage
+| | | |   typeString: uint8
+| | | |   visibility: private
+| | | +-ElementaryTypeName #24 uint8
+| | |       name: uint8
+| | |       stateMutability: nonpayable
+| | |       typeString: uint8
+| | +-VariableDeclaration #29 value
+| |   |   name: value
+| |   |   scope: 27
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #25 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #32
+|   +-VariableDeclaration #31 res
+|     |   name: res
+|     |   scope: 27
+|     |   storageLocation: default
+|     |   typeString: uint8
+|     |   visibility: private
+|     +-ElementaryTypeName #26 uint8
+|           name: uint8
+|           stateMutability: nonpayable
+|           typeString: uint8
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-CairoFunctionDefinition #13 f_3120d434
+  | |   implicits: range_check_ptr,syscall_ptr,pedersen_ptr
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #43
+  |   | +-FunctionCall #41 warp_external_input_check_int8
+  |   |   |   typeString: tuple()
+  |   |   +-Identifier #42 warp_external_input_check_int8
+  |   |   |     name: warp_external_input_check_int8
+  |   |   |     referencedDeclaration: 37
+  |   |   |     typeString: function (uint8) pure
+  |   |   +-Identifier #35 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-ExpressionStatement #11
+  |   | +-FunctionCall #33 WS_WRITE0
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #34 WS_WRITE0
+  |   |   |     name: WS_WRITE0
+  |   |   |     referencedDeclaration: 27
+  |   |   |     typeString: function (uint8,uint8) returns (uint8)
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-CairoFunctionDefinition #19 
+    |   implicits: range_check_ptr,syscall_ptr,pedersen_ptr
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+---DropUnusedSourceUnits---
+SourceUnit #17
+|   absolutePath: e__WARP_CONTRACT__WARP.sol
+|   context: 1
++-CairoFunctionDefinition #37 warp_external_input_check_int8
+| |   implicits: range_check_ptr
+| |   name: warp_external_input_check_int8
+| |   scope: 17
+| |   stateMutability: pure
+| |   visibility: private
+| +-ParameterList #39
+| | +-VariableDeclaration #38 ref_var
+| |   |   name: ref_var
+| |   |   scope: 37
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #36 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #40
++-CairoFunctionDefinition #27 WS_WRITE0
+| |   implicits: syscall_ptr,pedersen_ptr,range_check_ptr
+| |   name: WS_WRITE0
+| |   scope: 17
+| |   stateMutability: nonpayable
+| |   visibility: private
+| +-ParameterList #30
+| | +-VariableDeclaration #28 loc
+| | | |   name: loc
+| | | |   scope: 27
+| | | |   storageLocation: storage
+| | | |   typeString: uint8
+| | | |   visibility: private
+| | | +-ElementaryTypeName #24 uint8
+| | |       name: uint8
+| | |       stateMutability: nonpayable
+| | |       typeString: uint8
+| | +-VariableDeclaration #29 value
+| |   |   name: value
+| |   |   scope: 27
+| |   |   storageLocation: default
+| |   |   typeString: uint8
+| |   |   visibility: private
+| |   +-ElementaryTypeName #25 uint8
+| |         name: uint8
+| |         stateMutability: nonpayable
+| |         typeString: uint8
+| +-ParameterList #32
+|   +-VariableDeclaration #31 res
+|     |   name: res
+|     |   scope: 27
+|     |   storageLocation: default
+|     |   typeString: uint8
+|     |   visibility: private
+|     +-ElementaryTypeName #26 uint8
+|           name: uint8
+|           stateMutability: nonpayable
+|           typeString: uint8
++-CairoContract #14 WARP
+  |   linearizedBaseContracts: 14
+  |   name: WARP
+  |   scope: 17
+  +-VariableDeclaration #3 __warp_usrid0_x
+  | |   name: __warp_usrid0_x
+  | |   scope: 14
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-CairoFunctionDefinition #13 f_3120d434
+  | |   implicits: range_check_ptr,syscall_ptr,pedersen_ptr
+  | |   name: f_3120d434
+  | |   scope: 14
+  | |   stateMutability: nonpayable
+  | |   visibility: external
+  | +-ParameterList #6
+  | | +-VariableDeclaration #5 __warp_usrid1_y
+  | |   |   name: __warp_usrid1_y
+  | |   |   scope: 13
+  | |   |   storageLocation: default
+  | |   |   typeString: uint8
+  | |   |   visibility: internal
+  | |   +-ElementaryTypeName #4 uint8
+  | |         name: uint8
+  | |         stateMutability: nonpayable
+  | |         typeString: uint8
+  | +-ParameterList #7
+  | +-Block #12
+  |   +-ExpressionStatement #43
+  |   | +-FunctionCall #41 warp_external_input_check_int8
+  |   |   |   typeString: tuple()
+  |   |   +-Identifier #42 warp_external_input_check_int8
+  |   |   |     name: warp_external_input_check_int8
+  |   |   |     referencedDeclaration: 37
+  |   |   |     typeString: function (uint8) pure
+  |   |   +-Identifier #35 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-ExpressionStatement #11
+  |   | +-FunctionCall #33 WS_WRITE0
+  |   |   |   typeString: uint8
+  |   |   +-Identifier #34 WS_WRITE0
+  |   |   |     name: WS_WRITE0
+  |   |   |     referencedDeclaration: 27
+  |   |   |     typeString: function (uint8,uint8) returns (uint8)
+  |   |   +-Identifier #8 __warp_usrid0_x
+  |   |   |     name: __warp_usrid0_x
+  |   |   |     referencedDeclaration: 3
+  |   |   |     typeString: uint8
+  |   |   +-Identifier #9 __warp_usrid1_y
+  |   |         name: __warp_usrid1_y
+  |   |         referencedDeclaration: 5
+  |   |         typeString: uint8
+  |   +-Return #22
+  |         functionReturnParameters: 7
+  +-CairoFunctionDefinition #19 
+    |   implicits: range_check_ptr,syscall_ptr,pedersen_ptr
+    |   name: 
+    |   scope: 14
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #20
+    +-ParameterList #21
+    +-Block #18
+      +-Return #23
+            functionReturnParameters: 21
+
+Please delcare the Libraries and provide the class hashes in the following order }

@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  ASTNode,
   // ASTNode,
   ContractDefinition,
   ContractKind,
@@ -13,13 +14,14 @@ import {
   Identifier,
   MemberAccess,
   Mutability,
+  SourceUnit,
   StateVariableVisibility,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { generateExpressionTypeString } from '../utils/getTypeString';
-import { createIdentifier } from '../utils/nodeTemplates';
+import { createIdentifier, createVariableDeclarationStatement } from '../utils/nodeTemplates';
 
 // Library calls in solidity are delegate calls
 // i.e  So we need to create an new name space, I guess it could be a new ContractDefinition.
@@ -27,6 +29,8 @@ import { createIdentifier } from '../utils/nodeTemplates';
 // Must check this holds out for using for.
 // See what to do about internal library functions, should they still be inlined??
 // @interface
+
+// Make sure that multiple calls to the same library do not make it insert multipl Variable Declarations in to constructor and just repoint them.
 export class ReferencedLibraries extends ASTMapper {
   libCallCount = 0;
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -38,6 +42,7 @@ export class ReferencedLibraries extends ASTMapper {
       const funcCallContract = node.getClosestParentByType(ContractDefinition);
       if (
         funcCallContract !== funcDefContract &&
+        funcCallContract !== undefined &&
         funcDefContract !== undefined &&
         funcDefContract.kind === ContractKind.Library
       ) {
@@ -61,6 +66,10 @@ export class ReferencedLibraries extends ASTMapper {
           undefined,
           new ElementaryTypeName(ast.reserveId(), '', 'address', 'address'),
         );
+        this.addArgToContructor(funcCallContract, ast);
+        const filePath = funcCallContract.getClosestParentByType(SourceUnit)?.absolutePath;
+        assert(filePath !== undefined);
+        ast.libraryClassHashOrder.unshift(filePath);
         parentFuncDef.vParameters.insertAtBeginning(classHashVarDecl);
         assert(
           node.vReferencedDeclaration instanceof FunctionDefinition &&
@@ -78,6 +87,7 @@ export class ReferencedLibraries extends ASTMapper {
 
     this.commonVisit(node, ast);
   }
+
   modifyTypeString(node: Expression, classHashArg: VariableDeclaration, ast: AST): void {
     const classHashType = getNodeType(classHashArg, ast.compilerVersion);
     const functionType = getNodeType(node, ast.compilerVersion);
@@ -85,6 +95,7 @@ export class ReferencedLibraries extends ASTMapper {
     functionType.parameters.unshift(classHashType);
     node.typeString = generateExpressionTypeString(functionType);
   }
+
   addClashHashArg(funcDef: FunctionDefinition, ast: AST): VariableDeclaration {
     const varDecl = createClassHashVarDecl(funcDef, ast);
     funcDef.vParameters.insertAtBeginning(varDecl);
@@ -92,9 +103,29 @@ export class ReferencedLibraries extends ASTMapper {
     ast.setContextRecursive(funcDef);
     return varDecl;
   }
+
+  addArgToContructor(contractDef: ContractDefinition, ast: AST): void {
+    const constructor = contractDef.vConstructor;
+    assert(constructor != undefined);
+    const classHashBlock = createClassHashVarDecl(constructor, ast);
+    constructor?.vParameters.insertAtBeginning(classHashBlock);
+
+    const classHashStorageVar = createClassHashVarDecl(contractDef, ast);
+    const clashHashBlockId: Identifier = createIdentifier(classHashBlock, ast);
+    //const expressionStatement = createExpressionStatement(clashHashBlockId, ast);
+    const varDeclStatement = createVariableDeclarationStatement(
+      [classHashStorageVar],
+      clashHashBlockId,
+      ast,
+    );
+    const body = constructor.vBody;
+    body?.insertAtBeginning(varDeclStatement);
+    ast.setContextRecursive(contractDef);
+  }
 }
 
-function createClassHashVarDecl(funcDef: FunctionDefinition, ast: AST): VariableDeclaration {
+// Used to prevent sanity check from failing.
+function createClassHashVarDecl(funcDef: ASTNode, ast: AST): VariableDeclaration {
   const classHashVarDecl = new VariableDeclaration(
     ast.reserveId(),
     '',
@@ -102,11 +133,11 @@ function createClassHashVarDecl(funcDef: FunctionDefinition, ast: AST): Variable
     false,
     '@class_hash',
     funcDef.id,
-    false,
-    DataLocation.Default,
+    true,
+    DataLocation.Storage,
     StateVariableVisibility.Default,
     Mutability.Constant,
-    'address',
+    'address', // Probably needs to be changed to pointer
     undefined,
     new ElementaryTypeName(ast.reserveId(), '', 'address', 'address'),
   );
