@@ -9,7 +9,7 @@ import { le, le_signed } from './implementations/maths/le';
 import { lt, lt_signed } from './implementations/maths/lt';
 import { mod, mod_signed } from './implementations/maths/mod';
 import { mul, mul_unsafe, mul_signed, mul_signed_unsafe } from './implementations/maths/mul';
-import { negate } from './implementations/maths/negate';
+import { negate, negate_signed } from './implementations/maths/negate';
 import { shl } from './implementations/maths/shl';
 import { shr, shr_signed } from './implementations/maths/shr';
 import { sub_unsafe, sub_signed, sub_signed_unsafe, sub } from './implementations/maths/sub';
@@ -56,6 +56,7 @@ exp_unsafe();
 exp_signed_unsafe();
 
 negate();
+negate_signed();
 
 shl();
 
