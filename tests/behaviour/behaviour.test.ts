@@ -1,6 +1,13 @@
 import * as fs from 'fs';
 
-import { SafePromise, cleanupSync, starknetCompile, transpile, batchPromises } from '../util';
+import {
+  SafePromise,
+  cleanupSync,
+  starknetCompile,
+  transpile,
+  batchPromises,
+  processArgs,
+} from '../util';
 import { deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
 
 import { describe } from 'mocha';
@@ -172,29 +179,10 @@ async function behaviourTest(
     const name = functionExpectation.name;
     const mangledFuncName =
       funcName !== 'constructor' ? findMethod(funcName, fileTest.compiled) : 'constructor';
-    const replaced_inputs = inputs.map((input) => {
-      if (input.startsWith('address@')) {
-        input = input.replace('address@', '');
-        const value = deployedAddresses.get(input);
-        if (value === undefined) {
-          expect.fail(`${name} failed, cannot find address ${input}`);
-        }
-        return BigInt(value).toString();
-      }
-      return input;
-    });
+    const replaced_inputs = processArgs(name, inputs, deployedAddresses);
+    const replaced_expectedResult =
+      expectedResult !== null ? processArgs(name, expectedResult, deployedAddresses) : null;
 
-    const replaced_expectedResult = expectedResult?.map((expectedValue) => {
-      if (expectedValue.startsWith('address@')) {
-        expectedValue = expectedValue.replace('address@', '');
-        const value = deployedAddresses.get(expectedValue);
-        if (value === undefined) {
-          expect.fail(`${name} failed, cannot find address ${expectedValue}`);
-        }
-        return BigInt(value).toString();
-      }
-      return expectedValue;
-    });
     if (funcName === 'constructor') {
       // Failing tests for constructor
       const response = await deploy(fileTest.compiled, replaced_inputs);

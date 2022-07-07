@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import assert from 'assert';
 import { exec } from 'child_process';
+import { expect } from 'chai';
 
 export async function sh(cmd: string): Promise<{ stdout: string; stderr: string }> {
   return new Promise(function (resolve, reject) {
@@ -77,4 +78,22 @@ export function validateInput(input: string): void {
     num >= 0n,
     "Negative numbers should not be passed to tests, please convert to two's complement",
   );
+}
+
+export function processArgs(
+  name: string,
+  args: string[],
+  deployedAddresses: Map<string, string>,
+): string[] {
+  return args.map((arg) => {
+    if (arg.startsWith('address@')) {
+      arg = arg.replace('address@', '');
+      const value = deployedAddresses.get(arg);
+      if (value === undefined) {
+        expect.fail(`${name} failed, cannot find address ${arg}`);
+      }
+      return BigInt(value).toString();
+    }
+    return arg;
+  });
 }
