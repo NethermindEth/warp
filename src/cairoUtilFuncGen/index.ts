@@ -34,6 +34,7 @@ import { SourceUnit } from 'solc-typed-ast';
 import { MemoryImplicitConversionGen } from './memory/implicitConversion';
 import { MemoryArrayConcat } from './memory/arrayConcat';
 import { EnumInputCheck } from './enumInputCheck';
+import { EncodeAsFelt } from './utils/encodeToFelt';
 
 export class CairoUtilFuncGen {
   calldata: {
@@ -76,6 +77,9 @@ export class CairoUtilFuncGen {
   boundChecks: {
     inputCheck: InputCheckGen;
     enums: EnumInputCheck;
+  };
+  utils: {
+    encodeAsFelt: EncodeAsFelt;
   };
 
   private implementation: {
@@ -187,6 +191,9 @@ export class CairoUtilFuncGen {
       toMemory: new CallDataToMemoryGen(ast, sourceUnit),
       convert: callDataConvert,
       toStorage: calldataToStorage,
+    };
+    this.utils = {
+      encodeAsFelt: new EncodeAsFelt(ast, sourceUnit),
     };
   }
 

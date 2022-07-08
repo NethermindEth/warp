@@ -31,10 +31,11 @@ export class NewToDeploy extends ASTMapper {
     ) {
       return;
     }
-    assert(node.parent instanceof FunctionCall);
-    const deployCall = createDeploySysCall(node.parent, node.vTypeName, ast);
+    const newFuncCall = node.parent;
+    assert(newFuncCall instanceof FunctionCall);
+    const deployCall = createDeploySysCall(newFuncCall, node.vTypeName, ast);
 
-    ast.replaceNode(node.parent, deployCall);
+    ast.replaceNode(newFuncCall, deployCall);
   }
 }
 
@@ -52,33 +53,13 @@ function createDeploySysCall(node: FunctionCall, typeName: TypeName, ast: AST) {
     node,
   );
 
-  const mainParam = createAbiEncodeCall(node, ast);
+  // Todo define place holder
+  // Todo define salt
+  const mainParam = ast.getUtilFuncGen(node).utils.encodeAsFelt.gen(node);
   return createCallToFunction(
     deployStub,
     [createNumberLiteral(0, ast), createNumberLiteral(0, ast), mainParam],
     ast,
     node,
-  );
-}
-
-function createAbiEncodeCall(node: FunctionCall, ast: AST) {
-  const abiIdentifier = new Identifier(ast.reserveId(), '', 'abi', 'abi', -1, undefined);
-  const encodeMemberAccess = new MemberAccess(
-    ast.reserveId(),
-    '',
-    createBytesTypeName(ast).typeString,
-    abiIdentifier,
-    'encode',
-    -1,
-    undefined,
-  );
-
-  return new FunctionCall(
-    ast.reserveId(),
-    '',
-    createBytesTypeName(ast).typeString,
-    FunctionCallKind.FunctionCall,
-    encodeMemberAccess,
-    node.vArguments.map((a) => cloneASTNode(a, ast)),
   );
 }

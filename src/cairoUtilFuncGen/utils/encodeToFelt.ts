@@ -2,6 +2,7 @@ import assert from 'assert';
 import {
   ArrayType,
   BytesType,
+  DataLocation,
   FunctionCall,
   getNodeType,
   SourceUnit,
@@ -18,13 +19,15 @@ import {
   TypeConversionContext,
 } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createArrayTypeName, createUintNTypeName } from '../../utils/nodeTemplates';
 import {
   getElementType,
   isDynamicArray,
   isStruct,
   isValueType,
 } from '../../utils/nodeTypeProcessing';
-import { mapRange, narrowBigIntSafe } from '../../utils/utils';
+import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 
 const IMPLICITS = '{}';
@@ -32,8 +35,32 @@ const IMPLICITS = '{}';
 export class EncodeAsFelt extends StringIndexedFuncGen {
   private auxiliarGeneratedFunctions = new Map<string, CairoFunction>();
 
-  gen(newFunctionCall: FunctionCall, sourceUnit: SourceUnit): FunctionCall {
-    return newFunctionCall;
+  gen(newFunctionCall: FunctionCall, sourceUnit?: SourceUnit): FunctionCall {
+    const argTypes = newFunctionCall.vArguments.map((arg) =>
+      getNodeType(arg, this.ast.compilerVersion),
+    );
+    const functionName = this.getOrCreate(argTypes);
+
+    const functionStub = createCairoFunctionStub(
+      functionName,
+      argTypes.map((argType, index) => [
+        `arg${index}`,
+        typeNameFromTypeNode(argType, this.ast),
+        DataLocation.CallData,
+      ]),
+      [
+        [
+          'result',
+          createArrayTypeName(createUintNTypeName(248, this.ast), this.ast),
+          DataLocation.CallData,
+        ],
+      ],
+      [],
+      this.ast,
+      this.sourceUnit,
+    );
+
+    return createCallToFunction(functionStub, newFunctionCall.vArguments, this.ast);
   }
 
   getOrCreate(typesToEncode: TypeNode[]): string {
