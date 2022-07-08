@@ -50,6 +50,7 @@ import {
   StaticArrayIndexer,
   TupleFixes,
   DropUnusedSourceUnits,
+  UnreachableFunctionPruner,
 } from './passes';
 import { FilePathMangler } from './passes/filePathMangler';
 import { Require } from './passes/builtinHandler/require';
@@ -109,8 +110,8 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Gp', PublicStateVarsGetterGenerator],
     ['Tic', TypeInformationCalculator],
     ['Ch', ConstantHandler],
-    ['Sai', StaticArrayIndexer],
     ['M', IdentifierMangler],
+    ['Sai', StaticArrayIndexer],
     ['Ntd', NewToDeploy],
     ['Udt', UserDefinedTypesConverter],
     ['Req', Require],
@@ -139,6 +140,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['B', BuiltinHandler],
     ['Bc', BytesConverter],
     ['Us', UnreachableStatementPruner],
+    ['Fp', UnreachableFunctionPruner],
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
     ['Ci', CairoUtilImporter],

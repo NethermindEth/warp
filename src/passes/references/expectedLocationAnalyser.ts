@@ -13,6 +13,7 @@ import {
   FunctionVisibility,
   generalizeType,
   getNodeType,
+  IfStatement,
   IndexAccess,
   MappingType,
   MemberAccess,
@@ -324,5 +325,10 @@ export class ExpectedLocationAnalyser extends ASTMapper {
   visitCairoAssert(node: CairoAssert, ast: AST): void {
     this.expectedLocations.set(node.vExpression, DataLocation.Default);
     this.visitExpression(node, ast);
+  }
+
+  visitIfStatement(node: IfStatement, ast: AST): void {
+    this.expectedLocations.set(node.vCondition, DataLocation.Default);
+    this.visitStatement(node, ast);
   }
 }

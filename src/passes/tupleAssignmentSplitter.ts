@@ -22,6 +22,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
+import { TUPLE_VALUE_PREFIX } from '../utils/nameModifiers';
 import { createBlock, createIdentifier } from '../utils/nodeTemplates';
 import { notNull } from '../utils/typeConstructs';
 import { typeNameFromTypeNode } from '../utils/utils';
@@ -36,7 +37,7 @@ import { typeNameFromTypeNode } from '../utils/utils';
 export class TupleAssignmentSplitter extends ASTMapper {
   lastTempVarNumber = 0;
   newTempVarName(): string {
-    return `__warp_tv_${this.lastTempVarNumber++}`;
+    return `${TUPLE_VALUE_PREFIX}${this.lastTempVarNumber++}`;
   }
 
   visitExpressionStatement(node: ExpressionStatement, ast: AST): void {

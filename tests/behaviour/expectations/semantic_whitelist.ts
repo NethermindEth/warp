@@ -112,7 +112,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/accessor/accessor_for_const_state_variable.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/accessor/accessor_for_state_variable.sol',
   ],
-  //---------Arithmetics - 43 passing
+  //---------Arithmetics - 49 passing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/block_inside_unchecked.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/checked_add_v1.sol',
@@ -124,8 +124,8 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/divisiod_by_zero.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/signed_mod.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/unchecked_div_by_zero.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/addmod_mulmod.sol', // STRETCH addmod, mulmod
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/addmod_mulmod_zero.sol', // STRETCH addmod, mulmod
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/addmod_mulmod.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/addmod_mulmod_zero.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/check_var_init.sol', // REQUIRES CAIRO 0.9 - uses new
   ],
   //---------Array tests - 374 passing, 103 pending, 52 failing

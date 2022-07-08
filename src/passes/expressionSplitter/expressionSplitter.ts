@@ -16,6 +16,7 @@ import {
   VariableDeclarationStatement,
   generalizeType,
   getNodeType,
+  FunctionKind,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
@@ -23,6 +24,7 @@ import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
+import { SPLIT_EXPRESSION_PREFIX } from '../../utils/nameModifiers';
 import { createEmptyTuple, createIdentifier } from '../../utils/nodeTemplates';
 import { counterGenerator } from '../../utils/utils';
 import {
@@ -39,12 +41,12 @@ import {
 function* expressionGenerator(prefix: string): Generator<string, string, unknown> {
   const count = counterGenerator();
   while (true) {
-    yield `${prefix}_${count.next().value}`;
+    yield `${prefix}${count.next().value}`;
   }
 }
 
 export class ExpressionSplitter extends ASTMapper {
-  eGen = expressionGenerator('__warp_se');
+  eGen = expressionGenerator(SPLIT_EXPRESSION_PREFIX);
   funcNameCounter = 0;
   varNameCounter = 0;
 
@@ -126,7 +128,7 @@ export class ExpressionSplitter extends ASTMapper {
       newFuncId,
       '',
       containingFunction.scope,
-      containingFunction.kind,
+      containingFunction.kind === FunctionKind.Free ? FunctionKind.Free : FunctionKind.Function,
       `_conditional${this.funcNameCounter++}`,
       false,
       FunctionVisibility.Internal,

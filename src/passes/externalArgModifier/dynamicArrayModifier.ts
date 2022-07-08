@@ -59,14 +59,12 @@ export class DynArrayModifier extends ASTMapper {
 
   After Pass:
 
-  function dArrayMemory(uint8[] calldata x) pure public returns (uint8[] memory) {
-    uint8[] calldata x_dstruct = cd_dynarray_felt(x);
-    uint8[] memory x_mem = x_dstruct;
-    return x_mem;
+  function dArrayMemory(uint8[] memory x) pure public returns (uint8[] memory) {
+    uint8[] calldata __warp_td_2 = wm_to_calldata(x);
+    return __warp_td_2;
   }
 
   function dArrayCalldata(uint8[] calldata x) external pure returns (uint8[] calldata) {
-    uint8[] calldata x_dstruct = cd_dynarray_felt(x);
     return x_dstruct;
   }
   */

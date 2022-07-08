@@ -127,7 +127,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    const unsupportedMath = ['sha256', 'ripemd160', 'addmod', 'mulmod'];
+    const unsupportedMath = ['sha256', 'ripemd160'];
     const unsupportedAbi = [
       'decode',
       'encode',

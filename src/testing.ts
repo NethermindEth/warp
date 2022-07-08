@@ -13,7 +13,7 @@ import * as fs from 'fs';
 import { outputFileSync } from 'fs-extra';
 import { error } from './utils/formatting';
 import { manglePath } from './passes/filePathMangler';
-import { CONTRACT_INFIX } from './passes';
+import { CONTRACT_INFIX } from './utils/nameModifiers';
 
 type ResultType =
   | 'CairoCompileFailed'
@@ -161,6 +161,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/old_code_gen_err_7', 'WillNotSupport'],
     ['example_contracts/payable_function', 'Success'],
     ['example_contracts/pure_function', 'Success'],
+    ['example_contracts/removeUnreachableFunctions', 'Success'],
     ['example_contracts/return_dyn_array', 'Success'],
     ['example_contracts/return_var_capturing', 'Success'],
     ['example_contracts/returndatasize', 'WillNotSupport'],
@@ -195,7 +196,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/unsupportedFunctions/abi', `WillNotSupport`],
     ['example_contracts/unsupportedFunctions/keccak256', `Success`],
     ['example_contracts/unsupportedFunctions/ecrecover', `Success`],
-    ['example_contracts/unsupportedFunctions/addmod', `WillNotSupport`],
+    ['example_contracts/unsupportedFunctions/addmod', `Success`],
     // Supported precompiles
     ['example_contracts/precompiles/ecrecover', 'Success'],
     ['example_contracts/precompiles/keccak256', 'Success'],

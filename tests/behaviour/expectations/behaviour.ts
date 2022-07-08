@@ -2532,6 +2532,13 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('if', [
+          File.Simple('complexTypeInCondition', [
+            Expect.Simple('arr1DInIfExpression', ['5'], ['6']),
+            Expect.Simple('map1DInIfExpression', ['5'], ['6']),
+            Expect.Simple('arr2DInIfExpression', ['5'], ['6']),
+            Expect.Simple('map2DInIfExpression', ['5'], ['6']),
+            Expect.Simple('nestedExpressions', ['5'], ['5']),
+          ]),
           File.Simple('localVariables', [
             Expect.Simple('ifNoElse', ['1'], ['1'], 'true branch'),
             Expect.Simple('ifNoElse', ['0'], ['0'], 'false branch'),

@@ -10,10 +10,9 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction } from '../../utils/functionGeneration';
+import { INTERNAL_FUNCTION_SUFFIX } from '../../utils/nameModifiers';
 import { createBlock, createIdentifier, createReturn } from '../../utils/nodeTemplates';
 export class ExternalFunctionCreator extends ASTMapper {
-  suffix = '_internal';
-
   constructor(
     public InternalToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>,
     public internalFunctionCallSet: Set<FunctionDefinition>,
@@ -51,7 +50,7 @@ export class ExternalFunctionCreator extends ASTMapper {
 
   private modifyPublicFunction(node: FunctionDefinition): void {
     node.visibility = FunctionVisibility.Internal;
-    node.name = node.name + this.suffix;
+    node.name = `${node.name}${INTERNAL_FUNCTION_SUFFIX}`;
   }
 
   private createExternalFunctionDefintion(node: FunctionDefinition, ast: AST): FunctionDefinition {
