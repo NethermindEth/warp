@@ -2,9 +2,6 @@ import {
   ContractDefinition,
   DataLocation,
   FunctionCall,
-  FunctionCallKind,
-  Identifier,
-  MemberAccess,
   NewExpression,
   TypeName,
 } from 'solc-typed-ast';
@@ -52,6 +49,7 @@ function createDeploySysCall(node: FunctionCall, typeName: TypeName, ast: AST) {
     ast,
     node,
   );
+  ast.registerImport(node, 'starkware.starknet.common.syscalls', 'deploy');
 
   // Todo define place holder
   // Todo define salt
