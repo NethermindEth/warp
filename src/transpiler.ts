@@ -21,8 +21,10 @@ import {
     ExternalContractHandler,
     FilePathMangler,
     FreeFunctionInliner,
+    FunctionPruner,
     FunctionTypeStringMatcher,
     IdentifierMangler,
+    IdentityFunctionRemover,
     IfFunctionaliser,
     ImplicitConversionToExplicit,
     ImportDirectiveIdentifier,
@@ -55,7 +57,6 @@ import {
     UsingForResolver,
     VariableDeclarationExpressionSplitter,
     VariableDeclarationInitialiser,
-    FunctionPruner,
 } from './passes';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
@@ -128,6 +129,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
         ['R', ReturnInserter],
         ['Rv', ReturnVariableInitializer],
         ['If', IfFunctionaliser],
+        ['Ifr', IdentityFunctionRemover],
         ['T', TupleAssignmentSplitter],
         ['U', UnloadingAssignment],
         ['V', VariableDeclarationInitialiser],

@@ -7,10 +7,10 @@ import {
   Return,
   TupleExpression,
 } from 'solc-typed-ast';
-import { AST } from '../../ast/ast';
-import { ASTMapper } from '../../ast/mapper';
-import { printNode } from '../../utils/astPrinter';
-import { isExternallyVisible, toSingleExpression } from '../../utils/utils';
+import { AST } from '../ast/ast';
+import { ASTMapper } from '../ast/mapper';
+import { printNode } from '../utils/astPrinter';
+import { isExternallyVisible, toSingleExpression } from '../utils/utils';
 
 export class IdentityFunctionRemover extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST) {
