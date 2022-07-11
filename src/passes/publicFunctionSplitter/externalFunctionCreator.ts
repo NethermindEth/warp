@@ -14,7 +14,7 @@ import { INTERNAL_FUNCTION_SUFFIX } from '../../utils/nameModifiers';
 import { createBlock, createIdentifier, createReturn } from '../../utils/nodeTemplates';
 export class ExternalFunctionCreator extends ASTMapper {
   constructor(
-    public InternalToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>,
+    public internalToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>,
     public internalFunctionCallSet: Set<FunctionDefinition>,
   ) {
     super();
@@ -40,7 +40,7 @@ export class ExternalFunctionCreator extends ASTMapper {
         const newExternalFunction = this.createExternalFunctionDefintion(node, ast);
         this.insertReturnStatement(node, newExternalFunction, ast);
         this.modifyPublicFunction(node);
-        this.InternalToExternalFunctionMap.set(node, newExternalFunction);
+        this.internalToExternalFunctionMap.set(node, newExternalFunction);
       } else {
         node.visibility = FunctionVisibility.External;
       }

@@ -3250,10 +3250,21 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('public_func_splitter', [
-          File.Simple('value_passing', [
-            Expect.Simple('valuePassing', ['1'], ['15'], '0'),
-            Expect.Simple('valuePassingMemberAccess', ['1'], ['15'], '0'),
-          ]),
+          File.Simple('value_passing', [], 'A'),
+          File.Simple(
+            'value_passing',
+            [
+              Expect.Simple('internalCallIdentifier', ['1'], ['15']),
+              Expect.Simple('internalCallMemberAccess', ['1'], ['15']),
+              Expect.Simple('externalCallMemberAccess', ['1'], ['15']),
+              Expect.Simple(
+                'externalCrossContract',
+                ['address@tests/behaviour/contracts/public_func_splitter/value_passing.A'],
+                ['25'],
+              ),
+            ],
+            'WARP',
+          ),
         ]),
         new Dir('public_state_vars', [
           File.Simple('elementary', [
