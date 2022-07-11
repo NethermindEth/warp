@@ -235,7 +235,15 @@ export const expectations = flatten(
             Expect.Simple('getLength', [], ['4', '0']),
           ]),
         ]),
-        new Dir('cairo_stubs', [File.Simple('basic', [Expect.Simple('useStub', [], ['5'])])]),
+        new Dir('cairo_stubs', [
+          File.Simple('basic', [Expect.Simple('useStub', [], ['5'])]),
+          File.Simple('proxy', [
+            new Expect('set hash and use', [
+              ['setHash', ['hash@tests/behaviour/contracts/cairo_stubs/basic.WARP'], [], '0'],
+              ['useStub_16588e6a', [], ['5'], '0'],
+            ]),
+          ]),
+        ]),
         new Dir('calldata', [
           File.Simple('passingDynArrayInternally', [
             new Expect(

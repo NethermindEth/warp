@@ -83,17 +83,33 @@ export function validateInput(input: string): void {
 export function processArgs(
   name: string,
   args: string[],
-  deployedAddresses: Map<string, string>,
+  deployedAddresses: Map<string, { address: string; hash: string }>,
 ): string[] {
-  return args.map((arg) => {
+  return args.flatMap((arg) => {
     if (arg.startsWith('address@')) {
       arg = arg.replace('address@', '');
       const value = deployedAddresses.get(arg);
       if (value === undefined) {
         expect.fail(`${name} failed, cannot find address ${arg}`);
       }
-      return BigInt(value).toString();
+      return BigInt(value.address).toString();
+    } else if (arg.startsWith('hash@')) {
+      arg = arg.replace('hash@', '');
+      const value = deployedAddresses.get(arg);
+      if (value === undefined) {
+        expect.fail(`${name} failed, cannot find address ${arg}`);
+      }
+      const low = BigInt(value.hash) % 2n ** 128n;
+      const high = BigInt(value.hash) / 2n ** 128n;
+      return [low.toString(), high.toString()];
     }
     return arg;
   });
+}
+export function hashToUint256(hash: string): [string, string] {
+  const bigintHash = [...hash].reduce((acc, c) => acc * 256n + BigInt(c.charCodeAt(0)), 0n);
+
+  const high = bigintHash / 2n ** 128n;
+  const low = bigintHash % 2n ** 128n;
+  return [low.toString(10), high.toString(10)];
 }

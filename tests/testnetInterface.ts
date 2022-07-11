@@ -22,6 +22,7 @@ export type DeployResponse =
       status: number;
       steps: number;
       threw: false;
+      class_hash: string;
       contract_address: string;
       error_message: undefined;
     }
@@ -29,6 +30,7 @@ export type DeployResponse =
       status: number;
       steps: null;
       threw: true;
+      class_hash: null;
       contract_address: null;
       error_message: string;
     };
@@ -44,6 +46,7 @@ export async function deploy(jsonPath: string, input: string[]): Promise<DeployR
         status: response.status,
         steps: null,
         threw: true,
+        class_hash: null,
         contract_address: null,
         error_message: response.data.transaction_info.message,
       }
@@ -51,6 +54,7 @@ export async function deploy(jsonPath: string, input: string[]): Promise<DeployR
         status: response.status,
         steps: response.data.execution_info?.steps ?? null,
         threw: false,
+        class_hash: response.data.class_hash,
         contract_address: BigNumber.from(response.data.contract_address)._hex,
         error_message: undefined,
       };

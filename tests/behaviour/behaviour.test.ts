@@ -87,7 +87,7 @@ describe('Transpiled contracts are valid cairo', function () {
   }
 });
 
-const deployedAddresses: Map<string, string> = new Map();
+const deployedAddresses: Map<string, { address: string; hash: string }> = new Map();
 
 describe('Compiled contracts are deployable', function () {
   this.timeout(TIME_LIMIT);
@@ -120,10 +120,10 @@ describe('Compiled contracts are deployable', function () {
       } else {
         expect(response.threw, 'Deploy request failed').to.be.false;
         if (!response.threw) {
-          deployedAddresses.set(
-            `${expectations[i].name}.${expectations[i].contract}`,
-            response.contract_address,
-          );
+          deployedAddresses.set(`${expectations[i].name}.${expectations[i].contract}`, {
+            address: response.contract_address,
+            hash: response.class_hash,
+          });
         }
       }
     });
@@ -136,7 +136,7 @@ describe('Deployed contracts have correct behaviour', function () {
   for (const fileTest of expectations) {
     if (fileTest.expectations instanceof Promise) {
       it(fileTest.name, async function () {
-        const address = deployedAddresses.get(`${fileTest.name}.${fileTest.contract}`);
+        const address = deployedAddresses.get(`${fileTest.name}.${fileTest.contract}`)?.address;
         if (address === undefined) this.skip();
         const expects = await fileTest.expectations;
         for (let i = 0; i < expects.length; ++i) {
@@ -148,7 +148,7 @@ describe('Deployed contracts have correct behaviour', function () {
       describe(fileTest.name, async function () {
         for (const functionExpectation of expects) {
           it(functionExpectation.name, async function () {
-            const address = deployedAddresses.get(`${fileTest.name}.${fileTest.contract}`);
+            const address = deployedAddresses.get(`${fileTest.name}.${fileTest.contract}`)?.address;
             if (address === undefined) this.skip();
             await behaviourTest(functionExpectation, fileTest, address);
           });
