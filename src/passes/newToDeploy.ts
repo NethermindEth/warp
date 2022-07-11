@@ -2,7 +2,6 @@ import {
   ContractDefinition,
   DataLocation,
   FunctionCall,
-  FunctionVisibility,
   NewExpression,
   TypeName,
 } from 'solc-typed-ast';
