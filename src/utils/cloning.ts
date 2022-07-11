@@ -355,6 +355,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
       new Set([...node.implicits]),
       node.functionStubKind,
       node.acceptsRawDarray,
+      node.acceptsUnpackedStructArray,
       node.vOverrideSpecifier && cloneASTNodeImpl(node.vOverrideSpecifier, ast, remappedIds),
       node.vBody && cloneASTNodeImpl(node.vBody, ast, remappedIds),
       cloneDocumentation(node.documentation, ast, remappedIds),

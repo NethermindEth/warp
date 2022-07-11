@@ -67,7 +67,7 @@ export class MemoryReadGen extends StringIndexedFuncGen {
       ['range_check_ptr', 'warp_memory'],
       this.ast,
       nodeInSourceUnit ?? memoryRef,
-      FunctionStateMutability.View,
+      { mutability: FunctionStateMutability.View },
     );
 
     return createCallToFunction(functionStub, args, this.ast);

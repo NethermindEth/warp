@@ -57,14 +57,11 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
   }
 
   gen(newFunctionCall: FunctionCall, sourceUnit?: SourceUnit): FunctionCall {
-    console.log('g1');
     const argTypes = newFunctionCall.vArguments.map(
       (arg) => generalizeType(getNodeType(arg, this.ast.compilerVersion))[0],
     );
-    console.log('g2');
     const functionName = this.getOrCreate(argTypes);
 
-    console.log('g6');
     const functionStub = createCairoFunctionStub(
       functionName,
       argTypes.map((argType, index) => [
@@ -77,12 +74,10 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       this.ast,
       sourceUnit ?? this.sourceUnit,
     );
-    console.log('g8');
     return createCallToFunction(functionStub, newFunctionCall.vArguments, this.ast);
   }
 
   getOrCreate(typesToEncode: TypeNode[]): string {
-    console.log('g3');
     const key = typesToEncode.map((t) => t.pp()).join(',');
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
@@ -92,32 +87,25 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
     const parameters: string[] = [];
     const encodeCode: string[] = [];
 
-    console.log('g4');
     typesToEncode.forEach((type, index) => {
-      console.log('h0');
       const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
       const prefix = `arg_${index}`;
 
       if (isDynamicArray(type)) {
-        console.log('hdynamic');
         assert(cairoType instanceof CairoDynArray);
         const arrayName = `${prefix}_dynamic`;
         parameters.push(` ${arrayName} : ${cairoType.typeName}`);
-        console.log('hdynamic1');
         const auxFuncName = this.getOrCrateAuxiliar(type);
-        console.log('hdynamic2');
         encodeCode.push(
           `let (total_size) = ${auxFuncName}(total_size, decode_array, 0, ${arrayName}.len, ${arrayName}.ptr)`,
         );
       } else if (type instanceof ArrayType) {
-        console.log('hstatic');
         parameters.push(`${prefix}_static : ${cairoType.toString()}`);
         const auxFuncName = this.getOrCrateAuxiliar(type);
         encodeCode.push(
           `let (total_size) = ${auxFuncName}(total_size, decode_array, ${prefix}_static)`,
         );
       } else if (isStruct(type)) {
-        console.log('hstruct');
         assert(cairoType instanceof CairoStruct);
         parameters.push(`${prefix}_${cairoType.name} : ${cairoType.typeName}`);
         const auxFuncName = this.getOrCrateAuxiliar(type);
@@ -125,7 +113,6 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
           `let (total_size) = ${auxFuncName}(total_size, decode_array, ${prefix}_${cairoType.name})`,
         );
       } else if (isValueType(type)) {
-        console.log('hvalue');
         parameters.push(`${prefix} : ${cairoType.typeName}`);
         encodeCode.push(
           cairoType.width > 1
@@ -144,10 +131,8 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
           `Decoding ${printTypeNode(type)} into felt dynamic array is not supported yet`,
         );
       }
-      console.log('h end');
     });
 
-    console.log('g5');
     const resultStruct = this.externalArrayGen.getOrCreate(
       typeNameToTypeNode(createBytesTypeName(this.ast)),
     );
@@ -184,7 +169,6 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       );
     };
 
-    console.log('goc 1');
     const cairoFunc = delegateBasedOnType<CairoFunction>(
       type,
       (type) => this.generateDynamicArrayEncodeFunction(type),
@@ -193,7 +177,6 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       unexpectedTypeFunc,
       unexpectedTypeFunc,
     );
-    console.log('goc 2');
 
     this.auxiliarGeneratedFunctions.set(key, cairoFunc);
     return cairoFunc.name;
@@ -218,13 +201,11 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
   private generateDynamicArrayEncodeFunction(
     type: ArrayType | BytesType | StringType,
   ): CairoFunction {
-    console.log('mm1');
     const cairoElementType = CairoType.fromSol(
       getElementType(type),
       this.ast,
       TypeConversionContext.CallDataRef,
     );
-    console.log('mm2');
     const elemenT = getElementType(type);
     const funcName = `encode_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [

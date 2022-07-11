@@ -868,9 +868,22 @@ class FunctionCallWriter extends CairoASTNodeWriter {
           }
         } else if (
           node.vReferencedDeclaration instanceof CairoFunctionDefinition &&
-          node.vReferencedDeclaration.acceptsRawDarray
+          (node.vReferencedDeclaration.acceptsRawDarray ||
+            node.vReferencedDeclaration.acceptsUnpackedStructArray)
         ) {
-          return [`${func}(${args}_len, ${args})`];
+          const [len_suffix, name_suffix] = node.vReferencedDeclaration.acceptsRawDarray
+            ? ['_len', '']
+            : ['.len', '.ptr'];
+          const argTypes = node.vArguments.map((v) => ({
+            name: writer.write(v),
+            type: getNodeType(v, this.ast.compilerVersion),
+          }));
+          const args = argTypes
+            .map(({ name, type }) =>
+              isDynamicArray(type) ? `${name}${len_suffix}, ${name}${name_suffix}` : name,
+            )
+            .join(',');
+          return [`${func}(${args})`];
         }
         return [`${func}(${args})`];
       }

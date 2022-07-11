@@ -63,9 +63,11 @@ export class InputCheckGen extends StringIndexedFuncGen {
       ['range_check_ptr'],
       this.ast,
       nodeInSourceUnit ?? nodeInput,
-      FunctionStateMutability.Pure,
-      FunctionStubKind.FunctionDefStub,
-      isDynamicArray(typeToCheck),
+      {
+        mutability: FunctionStateMutability.Pure,
+        stubKind: FunctionStubKind.FunctionDefStub,
+        acceptsRawDArray: isDynamicArray(typeToCheck),
+      },
     );
     return createCallToFunction(functionStub, [functionInput], this.ast);
   }

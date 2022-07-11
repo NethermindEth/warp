@@ -2,6 +2,7 @@ import {
   ContractDefinition,
   DataLocation,
   FunctionCall,
+  FunctionVisibility,
   NewExpression,
   TypeName,
 } from 'solc-typed-ast';
@@ -48,6 +49,7 @@ function createDeploySysCall(node: FunctionCall, typeName: TypeName, ast: AST) {
     ['syscall_ptr'],
     ast,
     node,
+    { acceptsUnpackedStructArray: true },
   );
   ast.registerImport(node, 'starkware.starknet.common.syscalls', 'deploy');
 
