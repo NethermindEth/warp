@@ -57,7 +57,9 @@ async def deploy():
             contract_name_map[contract_address] = data["compiled_cairo"]
         return jsonify(
             {
-                "class_hash": hex(int.from_bytes(execution_info.call_info.class_hash, "big")),
+                "class_hash": hex(
+                    int.from_bytes(execution_info.call_info.class_hash, "big")
+                ),
                 "contract_address": hex(contract_address),
                 "execution_info": {
                     "steps": execution_info.call_info.execution_resources.n_steps
