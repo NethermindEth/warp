@@ -4,13 +4,16 @@ import {
   BytesType,
   DataLocation,
   FunctionCall,
+  generalizeType,
   getNodeType,
   SourceUnit,
   StringType,
   StructDefinition,
+  typeNameToTypeNode,
   TypeNode,
   UserDefinedType,
 } from 'solc-typed-ast';
+import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import {
   CairoDynArray,
@@ -20,11 +23,7 @@ import {
 } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import {
-  createArrayTypeName,
-  createBytesTypeName,
-  createUintNTypeName,
-} from '../../utils/nodeTemplates';
+import { createBytesTypeName } from '../../utils/nodeTemplates';
 import {
   getElementType,
   isDynamicArray,
@@ -33,18 +32,39 @@ import {
 } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
+import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/externalDynArrayStructConstructor';
 
-const IMPLICITS = '{}';
+const IMPLICITS = '';
+
+// TODO:
+// What happens with sructs defined in other contract different than the one using new
 
 export class EncodeAsFelt extends StringIndexedFuncGen {
   private auxiliarGeneratedFunctions = new Map<string, CairoFunction>();
 
+  constructor(
+    private externalArrayGen: ExternalDynArrayStructConstructor,
+    ast: AST,
+    sourceUnit: SourceUnit,
+  ) {
+    super(ast, sourceUnit);
+  }
+
+  getGeneratedCode(): string {
+    return [...this.generatedFunctions.values(), ...this.auxiliarGeneratedFunctions.values()]
+      .map((func) => func.code)
+      .join('\n\n');
+  }
+
   gen(newFunctionCall: FunctionCall, sourceUnit?: SourceUnit): FunctionCall {
-    const argTypes = newFunctionCall.vArguments.map((arg) =>
-      getNodeType(arg, this.ast.compilerVersion),
+    console.log('g1');
+    const argTypes = newFunctionCall.vArguments.map(
+      (arg) => generalizeType(getNodeType(arg, this.ast.compilerVersion))[0],
     );
+    console.log('g2');
     const functionName = this.getOrCreate(argTypes);
 
+    console.log('g6');
     const functionStub = createCairoFunctionStub(
       functionName,
       argTypes.map((argType, index) => [
@@ -55,13 +75,14 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       [['result', createBytesTypeName(this.ast), DataLocation.CallData]],
       [],
       this.ast,
-      this.sourceUnit,
+      sourceUnit ?? this.sourceUnit,
     );
-
+    console.log('g8');
     return createCallToFunction(functionStub, newFunctionCall.vArguments, this.ast);
   }
 
   getOrCreate(typesToEncode: TypeNode[]): string {
+    console.log('g3');
     const key = typesToEncode.map((t) => t.pp()).join(',');
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
@@ -71,60 +92,76 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
     const parameters: string[] = [];
     const encodeCode: string[] = [];
 
+    console.log('g4');
     typesToEncode.forEach((type, index) => {
+      console.log('h0');
       const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
       const prefix = `arg_${index}`;
 
       if (isDynamicArray(type)) {
+        console.log('hdynamic');
         assert(cairoType instanceof CairoDynArray);
-        const sizeName = `${prefix}_size`;
-        const arrayName = `${prefix}_${cairoType.name}`;
-        parameters.push(`${sizeName} : felt, ${arrayName} : ${cairoType.typeName}`);
+        const arrayName = `${prefix}_dynamic`;
+        parameters.push(` ${arrayName} : ${cairoType.typeName}`);
+        console.log('hdynamic1');
         const auxFuncName = this.getOrCrateAuxiliar(type);
+        console.log('hdynamic2');
         encodeCode.push(
-          `let (total_size) = ${auxFuncName}(total_size, decode_array, ${sizeName}, ${arrayName})`,
+          `let (total_size) = ${auxFuncName}(total_size, decode_array, 0, ${arrayName}.len, ${arrayName}.ptr)`,
         );
       } else if (type instanceof ArrayType) {
-        parameters.push(`${prefix}_static : ${cairoType.typeName}`);
+        console.log('hstatic');
+        parameters.push(`${prefix}_static : ${cairoType.toString()}`);
         const auxFuncName = this.getOrCrateAuxiliar(type);
         encodeCode.push(
-          `let (total_size) = ${auxFuncName}(total_size, decode_array, ${prefix}static)`,
+          `let (total_size) = ${auxFuncName}(total_size, decode_array, ${prefix}_static)`,
         );
       } else if (isStruct(type)) {
+        console.log('hstruct');
         assert(cairoType instanceof CairoStruct);
-        parameters.push(`${prefix}${cairoType.name} : ${cairoType.typeName}`);
+        parameters.push(`${prefix}_${cairoType.name} : ${cairoType.typeName}`);
         const auxFuncName = this.getOrCrateAuxiliar(type);
         encodeCode.push(
-          `let (total_size) = ${auxFuncName}(total_size, decode_array, ${prefix}${cairoType.name})`,
+          `let (total_size) = ${auxFuncName}(total_size, decode_array, ${prefix}_${cairoType.name})`,
         );
       } else if (isValueType(type)) {
+        console.log('hvalue');
         parameters.push(`${prefix} : ${cairoType.typeName}`);
         encodeCode.push(
           cairoType.width > 1
             ? [
-                `decode_array[total_size] = ${prefix}.low`,
-                `decode_array[total_size + 1] = ${prefix}.high`,
+                `assert decode_array[total_size] = ${prefix}.low`,
+                `assert decode_array[total_size + 1] = ${prefix}.high`,
                 `let total_size = total_size + 2`,
               ].join('\n')
-            : [`let decode_array[total_size] ${prefix}`, `let total_size = total_size + 1`].join(
-                '\n',
-              ),
+            : [
+                `assert decode_array[total_size] = ${prefix}`,
+                `let total_size = total_size + 1`,
+              ].join('\n'),
         );
       } else {
         throw new NotSupportedYetError(
           `Decoding ${printTypeNode(type)} into felt dynamic array is not supported yet`,
         );
       }
+      console.log('h end');
     });
 
+    console.log('g5');
+    const resultStruct = this.externalArrayGen.getOrCreate(
+      typeNameToTypeNode(createBytesTypeName(this.ast)),
+    );
+
+    const cairoParams = parameters.join(',');
     const funcName = `encode_as_felt${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(${parameters.join(',')}) -> (len : felt, array : felt*):`,
+      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (calldata_array : ${resultStruct}):`,
       `   alloc_locals`,
       `   let total_size : felt = ${0}`,
       `   let (decode_array : felt*) = alloc()`,
       ...encodeCode,
-      `   return (len=total_size, array=decode_array)`,
+      `   let result = ${resultStruct}(total_size, decode_array)`,
+      `   return (result)`,
       `end`,
     ].join('\n');
     this.ast.registerImport(this.sourceUnit, 'starkware.cairo.common.alloc', 'alloc');
@@ -147,6 +184,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       );
     };
 
+    console.log('goc 1');
     const cairoFunc = delegateBasedOnType<CairoFunction>(
       type,
       (type) => this.generateDynamicArrayEncodeFunction(type),
@@ -155,6 +193,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       unexpectedTypeFunc,
       unexpectedTypeFunc,
     );
+    console.log('goc 2');
 
     this.auxiliarGeneratedFunctions.set(key, cairoFunc);
     return cairoFunc.name;
@@ -165,11 +204,11 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
       return cairoType.width > 1
         ? [
-            `let to_array[to_index] = ${currentElementName}.low`,
-            `let to_array[to_index + 1] = ${currentElementName}.high`,
+            `assert to_array[to_index] = ${currentElementName}.low`,
+            `assert to_array[to_index + 1] = ${currentElementName}.high`,
             `let to_index = to_index + 2`,
           ]
-        : [`let to_array[to_index] = ${currentElementName}`, `let to_index = to_index + 1`];
+        : [`assert to_array[to_index] = ${currentElementName}`, `let to_index = to_index + 1`];
     }
 
     const auxFuncName = this.getOrCrateAuxiliar(type);
@@ -179,16 +218,22 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
   private generateDynamicArrayEncodeFunction(
     type: ArrayType | BytesType | StringType,
   ): CairoFunction {
-    const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
+    console.log('mm1');
+    const cairoElementType = CairoType.fromSol(
+      getElementType(type),
+      this.ast,
+      TypeConversionContext.CallDataRef,
+    );
+    console.log('mm2');
     const elemenT = getElementType(type);
     const funcName = `encode_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
       `func ${funcName}${IMPLICITS}(`,
-      `   to_index : felt`,
-      `   to_array : felt*`,
-      `   from_index: felt`,
-      `   from_size: felt`,
-      `   from_array: ${cairoType.toString()}`,
+      `   to_index : felt,`,
+      `   to_array : felt*,`,
+      `   from_index: felt,`,
+      `   from_size: felt,`,
+      `   from_array: ${cairoElementType.toString()}*`,
       `) -> (total_copied : felt):`,
       `   alloc_locals`,
       `   if from_index == from_size:`,
@@ -217,7 +262,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     assert(cairoType instanceof CairoStruct);
 
-    const funcName = cairoType.name;
+    const funcName = `encode_struct_${cairoType.name}`;
     const code = [
       `func ${funcName}${IMPLICITS}(`,
       `   to_index : felt, to_array : felt*, from_struct : ${cairoType.toString()}`,
@@ -244,7 +289,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
 
     const funcName = `encode_static_size${type.size}_array_${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(to_index : felt, to_array : felt*, from_static_array : ${cairoType.toString()})`,
+      `func ${funcName}${IMPLICITS}(to_index : felt, to_array : felt*, from_static_array : ${cairoType.toString()}) -> (total_copied : felt):`,
       `    alloc_locals`,
       ...encodeCode,
       `    return (to_index)`,

@@ -193,7 +193,7 @@ export class CairoUtilFuncGen {
       toStorage: calldataToStorage,
     };
     this.utils = {
-      encodeAsFelt: new EncodeAsFelt(ast, sourceUnit),
+      encodeAsFelt: new EncodeAsFelt(externalDynArrayStructConstructor, ast, sourceUnit),
     };
   }
 
