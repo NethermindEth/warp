@@ -156,14 +156,6 @@ Run the container with the same options and arguments as the Warp binary:
 docker run --rm -v $(pwd):/dapp warp transpile example_contracts/ERC20.sol
 ```
 
-Alternatively, define an alias and run the container as the Warp binary itself:
-
-```bash
-alias warp="docker run --rm -v $(pwd):/dapp warp"
-
-warp transpile example_contracts/ERC20.sol
-```
-
 ## Testing for contributors :stethoscope:
 
 To test that your contribution doesn't break any features you can test that all previous example contracts transpile and then cairo compile by running the following:
