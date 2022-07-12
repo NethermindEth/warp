@@ -153,7 +153,7 @@ docker build -t warp .
 Run the container with the same options and arguments as the Warp binary:
 
 ```bash
-docker run --rm -v $(pwd):/dapp warp transpile example_contracts/ERC20.sol
+docker run --rm -v $PWD:/dapp warp transpile example_contracts/ERC20.sol
 ```
 
 ## Testing for contributors :stethoscope:
