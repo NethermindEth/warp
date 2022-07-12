@@ -142,6 +142,20 @@ Please see the list below:
 
 Note: We have changed the return of `ecrecover` to be `uint160` because we use the `address` type for StarkNet addresses.
 
+## Docker :whale:
+
+Build the image from source:
+
+```bash
+docker build -t warp .
+```
+
+Run the container with the same options and arguments as the Warp binary:
+
+```bash
+docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile example_contracts/ERC20.sol
+```
+
 ## Testing for contributors :stethoscope:
 
 To test that your contribution doesn't break any features you can test that all previous example contracts transpile and then cairo compile by running the following:
