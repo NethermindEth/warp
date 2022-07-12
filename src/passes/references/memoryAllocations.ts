@@ -1,7 +1,6 @@
 import assert from 'assert';
 import {
   ArrayType,
-  ArrayTypeName,
   BytesType,
   DataLocation,
   FunctionCall,
@@ -10,19 +9,17 @@ import {
   getNodeType,
   Literal,
   NewExpression,
-  PointerType,
   StringType,
   TupleExpression,
-  TypeNode,
 } from 'solc-typed-ast';
 import { ReferenceSubPass } from './referenceSubPass';
 import { AST } from '../../ast/ast';
-import { printNode, printTypeNode } from '../../utils/astPrinter';
+import { printNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
-import { getElementType, isDynamicArray } from '../../utils/nodeTypeProcessing';
+import { getElementType } from '../../utils/nodeTypeProcessing';
 
 /*
   Handles expressions that directly insert data into memory: struct constructors, news, and inline arrays
