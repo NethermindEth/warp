@@ -21,7 +21,7 @@ export function neq() {
         ];
       } else {
         return [
-          `func warp_neq(lhs : Uint${width}, rhs : Uint${width}) -> (result : felt):`,
+          `func warp_neq${width}(lhs : Uint${width}, rhs : Uint${width}) -> (result : felt):`,
           `    if lhs.value == rhs.value:`,
           `        return (0)`,
           `    else:`,
@@ -51,7 +51,7 @@ export function neq_signed() {
         ];
       } else {
         return [
-          `func warp_neq(lhs : Int${width}, rhs : Int${width}) -> (result : felt):`,
+          `func warp_neq_signed${width}(lhs : Int${width}, rhs : Int${width}) -> (result : felt):`,
           `    if lhs.value == rhs.value:`,
           `        return (0)`,
           `    else:`,

@@ -1,257 +1,258 @@
 # AUTO-GENERATED
 from starkware.cairo.common.uint256 import Uint256, uint256_eq
-from warplib.types.uints import (
-    Uint8,
-    Uint16,
-    Uint24,
-    Uint32,
-    Uint40,
-    Uint48,
-    Uint56,
-    Uint64,
-    Uint72,
-    Uint80,
-    Uint88,
-    Uint96,
-    Uint104,
-    Uint112,
-    Uint120,
-    Uint128,
-    Uint136,
-    Uint144,
-    Uint152,
-    Uint160,
-    Uint168,
-    Uint176,
-    Uint184,
-    Uint192,
-    Uint200,
-    Uint208,
-    Uint216,
-    Uint224,
-    Uint232,
-    Uint240,
-    Uint248,
+from warplib.types.ints import (
+    Int8,
+    Int16,
+    Int24,
+    Int32,
+    Int40,
+    Int48,
+    Int56,
+    Int64,
+    Int72,
+    Int80,
+    Int88,
+    Int96,
+    Int104,
+    Int112,
+    Int120,
+    Int128,
+    Int136,
+    Int144,
+    Int152,
+    Int160,
+    Int168,
+    Int176,
+    Int184,
+    Int192,
+    Int200,
+    Int208,
+    Int216,
+    Int224,
+    Int232,
+    Int240,
+    Int248,
+    Int256,
 )
 
-func warp_neq8(lhs : Uint8, rhs : Uint8) -> (result : felt):
+func warp_neq_signed8(lhs : Int8, rhs : Int8) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq16(lhs : Uint16, rhs : Uint16) -> (result : felt):
+func warp_neq_signed16(lhs : Int16, rhs : Int16) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq24(lhs : Uint24, rhs : Uint24) -> (result : felt):
+func warp_neq_signed24(lhs : Int24, rhs : Int24) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq32(lhs : Uint32, rhs : Uint32) -> (result : felt):
+func warp_neq_signed32(lhs : Int32, rhs : Int32) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq40(lhs : Uint40, rhs : Uint40) -> (result : felt):
+func warp_neq_signed40(lhs : Int40, rhs : Int40) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq48(lhs : Uint48, rhs : Uint48) -> (result : felt):
+func warp_neq_signed48(lhs : Int48, rhs : Int48) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq56(lhs : Uint56, rhs : Uint56) -> (result : felt):
+func warp_neq_signed56(lhs : Int56, rhs : Int56) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq64(lhs : Uint64, rhs : Uint64) -> (result : felt):
+func warp_neq_signed64(lhs : Int64, rhs : Int64) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq72(lhs : Uint72, rhs : Uint72) -> (result : felt):
+func warp_neq_signed72(lhs : Int72, rhs : Int72) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq80(lhs : Uint80, rhs : Uint80) -> (result : felt):
+func warp_neq_signed80(lhs : Int80, rhs : Int80) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq88(lhs : Uint88, rhs : Uint88) -> (result : felt):
+func warp_neq_signed88(lhs : Int88, rhs : Int88) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq96(lhs : Uint96, rhs : Uint96) -> (result : felt):
+func warp_neq_signed96(lhs : Int96, rhs : Int96) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq104(lhs : Uint104, rhs : Uint104) -> (result : felt):
+func warp_neq_signed104(lhs : Int104, rhs : Int104) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq112(lhs : Uint112, rhs : Uint112) -> (result : felt):
+func warp_neq_signed112(lhs : Int112, rhs : Int112) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq120(lhs : Uint120, rhs : Uint120) -> (result : felt):
+func warp_neq_signed120(lhs : Int120, rhs : Int120) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq128(lhs : Uint128, rhs : Uint128) -> (result : felt):
+func warp_neq_signed128(lhs : Int128, rhs : Int128) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq136(lhs : Uint136, rhs : Uint136) -> (result : felt):
+func warp_neq_signed136(lhs : Int136, rhs : Int136) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq144(lhs : Uint144, rhs : Uint144) -> (result : felt):
+func warp_neq_signed144(lhs : Int144, rhs : Int144) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq152(lhs : Uint152, rhs : Uint152) -> (result : felt):
+func warp_neq_signed152(lhs : Int152, rhs : Int152) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq160(lhs : Uint160, rhs : Uint160) -> (result : felt):
+func warp_neq_signed160(lhs : Int160, rhs : Int160) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq168(lhs : Uint168, rhs : Uint168) -> (result : felt):
+func warp_neq_signed168(lhs : Int168, rhs : Int168) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq176(lhs : Uint176, rhs : Uint176) -> (result : felt):
+func warp_neq_signed176(lhs : Int176, rhs : Int176) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq184(lhs : Uint184, rhs : Uint184) -> (result : felt):
+func warp_neq_signed184(lhs : Int184, rhs : Int184) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq192(lhs : Uint192, rhs : Uint192) -> (result : felt):
+func warp_neq_signed192(lhs : Int192, rhs : Int192) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq200(lhs : Uint200, rhs : Uint200) -> (result : felt):
+func warp_neq_signed200(lhs : Int200, rhs : Int200) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq208(lhs : Uint208, rhs : Uint208) -> (result : felt):
+func warp_neq_signed208(lhs : Int208, rhs : Int208) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq216(lhs : Uint216, rhs : Uint216) -> (result : felt):
+func warp_neq_signed216(lhs : Int216, rhs : Int216) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq224(lhs : Uint224, rhs : Uint224) -> (result : felt):
+func warp_neq_signed224(lhs : Int224, rhs : Int224) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq232(lhs : Uint232, rhs : Uint232) -> (result : felt):
+func warp_neq_signed232(lhs : Int232, rhs : Int232) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq240(lhs : Uint240, rhs : Uint240) -> (result : felt):
+func warp_neq_signed240(lhs : Int240, rhs : Int240) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq248(lhs : Uint248, rhs : Uint248) -> (result : felt):
+func warp_neq_signed248(lhs : Int248, rhs : Int248) -> (result : felt):
     if lhs.value == rhs.value:
         return (0)
     else:
         return (1)
     end
 end
-func warp_neq256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt):
-    let (res) = uint256_eq(lhs, rhs)
+func warp_neq_signed256{range_check_ptr}(lhs : Int256, rhs : Int256) -> (res : felt):
+    let (res) = uint256_eq(lhs.value, rhs.value)
     return (1 - res)
 end

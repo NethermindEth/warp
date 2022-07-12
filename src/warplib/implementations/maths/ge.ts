@@ -23,7 +23,7 @@ export function ge() {
       } else {
         return [
           `func warp_ge${width}{range_check_ptr}(lhs : Uint${width}, rhs : Uint${width}) -> (res : felt):`,
-          `    let (res) = is_le_felt(lhs.value, rhs.value)`,
+          `    let (res) = is_le_felt(rhs.value, lhs.value)`,
           `    return (res)`,
           `end`,
         ];

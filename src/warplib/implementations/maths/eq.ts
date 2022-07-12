@@ -11,26 +11,35 @@ export function eq() {
       `from starkware.cairo.common.uint256 import Uint256, uint256_eq`,
       `from warplib.types.uints import ${mapRange(31, (n) => `Uint${8 * n + 8}`)}`,
     ],
-    forAllWidths((width) => {
-      if (width === 256) {
-        return [
-          `func warp_eq256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt):`,
-          `    let (res) = uint256_eq(lhs, rhs)`,
-          `    return (res)`,
-          `end`,
-        ];
-      } else {
-        return [
-          `func warp_eq(lhs : Uint${width}, rhs : Uint${width}) -> (result : felt):`,
-          `    if lhs.value == rhs.value:`,
-          `        return (1)`,
-          `    else:`,
-          `        return (0)`,
-          `    end`,
-          `end`,
-        ];
-      }
-    }),
+    [
+      ...forAllWidths((width) => {
+        if (width === 256) {
+          return [
+            `func warp_eq256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt):`,
+            `    let (res) = uint256_eq(lhs, rhs)`,
+            `    return (res)`,
+            `end`,
+          ];
+        } else {
+          return [
+            `func warp_eq${width}(lhs : Uint${width}, rhs : Uint${width}) -> (result : felt):`,
+            `    if lhs.value == rhs.value:`,
+            `        return (1)`,
+            `    else:`,
+            `        return (0)`,
+            `    end`,
+            `end`,
+          ];
+        }
+      }),
+      `func warp_eq(lhs : felt, rhs : felt) -> (result : felt):`,
+      `    if lhs == rhs:`,
+      `        return (1)`,
+      `    else:`,
+      `        return (0)`,
+      `    end`,
+      `end`,
+    ],
   );
 }
 
@@ -51,7 +60,7 @@ export function eq_signed() {
         ];
       } else {
         return [
-          `func warp_eq(lhs : Int${width}, rhs : Int${width}) -> (result : felt):`,
+          `func warp_eq_signed${width}(lhs : Int${width}, rhs : Int${width}) -> (result : felt):`,
           `    if lhs.value == rhs.value:`,
           `        return (1)`,
           `    else:`,

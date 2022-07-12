@@ -10,7 +10,7 @@ import { lt, lt_signed } from './implementations/maths/lt';
 import { mod, mod_signed } from './implementations/maths/mod';
 import { mul, mul_unsafe, mul_signed, mul_signed_unsafe } from './implementations/maths/mul';
 import { negate, negate_signed } from './implementations/maths/negate';
-import { shl } from './implementations/maths/shl';
+import { shl, shl_signed } from './implementations/maths/shl';
 import { shr, shr_signed } from './implementations/maths/shr';
 import { sub_unsafe, sub_signed, sub_signed_unsafe, sub } from './implementations/maths/sub';
 import { external_input_check_ints } from './implementations/external_input_checks/external_input_checks_ints';
@@ -19,6 +19,8 @@ import { ints_structs } from './implementations/types/ints';
 import { uints_structs } from './implementations/types/uints';
 import { bitwise_and, bitwise_and_signed } from './implementations/maths/bitwise_and';
 import { bitwise_or, bitwise_or_signed } from './implementations/maths/bitwise_or';
+import { eq, eq_signed } from './implementations/maths/eq';
+import { neq, neq_signed } from './implementations/maths/neq';
 
 add();
 add_unsafe();
@@ -50,6 +52,12 @@ div_signed_unsafe();
 mod();
 mod_signed();
 
+eq();
+eq_signed();
+
+neq();
+neq_signed();
+
 exp();
 exp_signed();
 exp_unsafe();
@@ -59,6 +67,7 @@ negate();
 negate_signed();
 
 shl();
+shl_signed();
 
 shr();
 shr_signed();

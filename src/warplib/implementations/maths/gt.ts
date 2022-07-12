@@ -22,7 +22,7 @@ export function gt() {
         ];
       } else {
         return [
-          `func warp_gt{range_check_ptr}(lhs : Uint${width}, rhs : Uint${width}) -> (res : felt):`,
+          `func warp_gt${width}{range_check_ptr}(lhs : Uint${width}, rhs : Uint${width}) -> (res : felt):`,
           `    if lhs.value == rhs.value:`,
           `        return (0)`,
           `    end`,
