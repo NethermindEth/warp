@@ -150,10 +150,18 @@ Build the image from source:
 docker build -t warp .
 ```
 
-Run the container in the directory containing the target `.sol` files:
+Run the container with the same options and arguments as the Warp binary:
 
 ```bash
-docker run -v $(pwd):/dapp warp transpile *.sol
+docker run -v $(pwd):/dapp warp transpile example_contracts/ERC20.sol
+```
+
+Alternatively, define an alias and run the container as the Warp binary itself:
+
+```bash
+alias warp="docker run -v $(pwd):/dapp warp"
+
+warp transpile example_contracts/ERC20.sol
 ```
 
 ## Testing for contributors :stethoscope:
