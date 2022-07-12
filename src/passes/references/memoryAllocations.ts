@@ -10,17 +10,19 @@ import {
   getNodeType,
   Literal,
   NewExpression,
+  PointerType,
   StringType,
   TupleExpression,
+  TypeNode,
 } from 'solc-typed-ast';
 import { ReferenceSubPass } from './referenceSubPass';
 import { AST } from '../../ast/ast';
-import { printNode } from '../../utils/astPrinter';
+import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
-import { getElementType } from '../../utils/nodeTypeProcessing';
+import { getElementType, isDynamicArray } from '../../utils/nodeTypeProcessing';
 
 /*
   Handles expressions that directly insert data into memory: struct constructors, news, and inline arrays
@@ -39,10 +41,7 @@ export class MemoryAllocations extends ReferenceSubPass {
     ) {
       const replacement = ast.getUtilFuncGen(node).memory.struct.gen(node);
       this.replace(node, replacement, undefined, actualLoc, expectedLoc, ast);
-    } else if (
-      node.vExpression instanceof NewExpression &&
-      node.vExpression.vTypeName instanceof ArrayTypeName
-    ) {
+    } else if (node.vExpression instanceof NewExpression) {
       if (actualLoc === DataLocation.Memory) {
         this.allocateMemoryDynArray(node, ast);
       } else {
