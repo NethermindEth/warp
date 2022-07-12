@@ -109,8 +109,8 @@ const tests: string[] = [
   ],
   //---------Accessor tests - 8 passing
   ...[
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/accessor/accessor_for_const_state_variable.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/accessor/accessor_for_state_variable.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/accessor/accessor_for_const_state_variable.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/accessor/accessor_for_state_variable.sol',
   ],
   //---------Arithmetics - 49 passing
   ...[
@@ -1115,7 +1115,7 @@ const tests: string[] = [
   ],
   //---------specialFunctions - 4 passing
   ...[
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/specialFunctions/keccak256_optimized.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/specialFunctions/keccak256_optimized.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/specialFunctions/abi_encode_with_signature_from_string.sol', // WILL NOT SUPPORT abi.encode
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/specialFunctions/abi_functions_member_access.sol', // WILL NOT SUPPORT function objects
   ],
@@ -1334,16 +1334,16 @@ const tests: string[] = [
   ],
   //---------UserDefinedValueType - 40 passing
   ...[
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/calldata_to_storage.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/constant.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/conversion_abicoderv1.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/fixedpoint.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/mapping_key.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/memory_to_storage.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/simple.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/wrap_unwrap_via_contract_name.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/zero_cost_abstraction_comparison_elementary.sol',
-    'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/zero_cost_abstraction_comparison_userdefined.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/calldata_to_storage.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/constant.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/conversion_abicoderv1.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/fixedpoint.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/mapping_key.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/memory_to_storage.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/simple.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/wrap_unwrap_via_contract_name.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/zero_cost_abstraction_comparison_elementary.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/zero_cost_abstraction_comparison_userdefined.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/in_parenthesis.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/wrap_unwrap.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/conversion.sol', // moved to behaviour tests for reliable passing of out of bounds data
