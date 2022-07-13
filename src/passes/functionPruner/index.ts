@@ -3,7 +3,7 @@ import { ASTMapper } from '../../ast/mapper';
 import { CallGraphBuilder } from './callGraph';
 import { FunctionRemover } from './functionRemover';
 
-export class UnreachableFunctionPruner extends ASTMapper {
+export class FunctionPruner extends ASTMapper {
   static map(ast: AST): AST {
     ast.roots.forEach((root) => {
       const graph = new CallGraphBuilder();
