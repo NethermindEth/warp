@@ -105,63 +105,43 @@ export function shr(): void {
               ];
             }
           }),
-          `func warp_shr256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : felt) -> (`,
-          `        result : Uint256):`,
-          `    let (le_127) = is_le(rhs, 127)`,
-          `    if le_127 == 1:`,
-          `        # (h', l') := (h, l) >> rhs`,
-          `        # p := 2^rhs`,
-          `        # l' = ((h & (p-1)) << (128 - rhs)) + ((l&~(p-1)) >> rhs)`,
-          `        #    = ((h & (p-1)) << 128 >> rhs) + ((l&~(p-1)) >> rhs)`,
-          `        #    = (h & (p-1)) * 2^128 / p + (l&~(p-1)) / p`,
-          `        #    = (h & (p-1) * 2^128 + l&~(p-1)) / p`,
-          `        # h' = h >> rhs = (h - h&(p-1)) / p`,
-          `        let (p) = pow2(rhs)`,
-          `        let (low_mask) = bitwise_not(p - 1)`,
-          `        let (low_part) = bitwise_and(lhs.low, low_mask)`,
-          `        let (high_part) = bitwise_and(lhs.high, p - 1)`,
-          `        return (`,
-          `            Uint256(low=(low_part + ${bound(
-            128,
-          )} * high_part) / p, high=(lhs.high - high_part) / p))`,
-          `    end`,
-          `    let (le_255) = is_le(rhs, 255)`,
-          `    if le_255 == 1:`,
-          `        let (p) = pow2(rhs - 128)`,
-          `        let (mask) = bitwise_not(p - 1)`,
-          `        let (res) = bitwise_and(lhs.high, mask)`,
-          `        return (Uint256(res / p, 0))`,
-          `    end`,
-          `    return (Uint256(0, 0))`,
-          `end`,
         ];
       } else {
         return [
-          `func warp_shr${width}_${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
-          `        lhs : Uint${width}, rhs : Uint${width}) -> (res : Uint${width}):`,
-          `    let (large_shift) = is_le_felt(${width}, rhs.value)`,
-          `    if large_shift == 1:`,
-          `        return (Uint${width}(0))`,
-          `    else:`,
-          `        let preserved_width = ${width} - rhs.value`,
-          `        let (preserved_bound) = pow2(preserved_width)`,
-          `        let mask = preserved_bound - 1`,
-          `        let (divisor) = pow2(rhs)`,
-          `        let shifted_mask = mask * divisor`,
-          `        let (lhs_truncated) = bitwise_and(lhs.value, shifted_mask)`,
-          `        let res = lhs_truncated / divisor`,
-          `        return (Uint${width}(value=res))`,
-          `    end`,
-          `end`,
-          `func warp_shr${width}_256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
-          `        lhs : Uint${width}, rhs : Uint256) -> (res : Uint${width}):`,
-          `    if rhs.high == 0:`,
-          `        let (res) = warp_shr${width}_${width}(lhs, Uint${width}(rhs.low))`,
-          `        return (res)`,
-          `    else:`,
-          `        return (Uint${width}(0))`,
-          `    end`,
-          `end`,
+          ...forAllWidths((rhsWidth) => {
+            if (rhsWidth === 256) {
+              return [
+                `func warp_shr${width}_256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
+                `        lhs : Uint${width}, rhs : Uint256) -> (res : Uint${width}):`,
+                `    if rhs.high == 0:`,
+                `        let (res) = warp_shr${width}_${width}(lhs, Uint${width}(rhs.low))`,
+                `        return (res)`,
+                `    else:`,
+                `        return (Uint${width}(0))`,
+                `    end`,
+                `end`,
+              ];
+            } else {
+              return [
+                `func warp_shr${width}_${rhsWidth}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
+                `        lhs : Uint${width}, rhs : Uint${rhsWidth}) -> (res : Uint${width}):`,
+                `    let (large_shift) = is_le_felt(${width}, rhs.value)`,
+                `    if large_shift == 1:`,
+                `        return (Uint${width}(0))`,
+                `    else:`,
+                `        let preserved_width = ${width} - rhs.value`,
+                `        let (preserved_bound) = pow2(preserved_width)`,
+                `        let mask = preserved_bound - 1`,
+                `        let (divisor) = pow2(rhs.value)`,
+                `        let shifted_mask = mask * divisor`,
+                `        let (lhs_truncated) = bitwise_and(lhs.value, shifted_mask)`,
+                `        let res = lhs_truncated / divisor`,
+                `        return (Uint${width}(value=res))`,
+                `    end`,
+                `end`,
+              ];
+            }
+          }),
         ];
       }
     }),
@@ -179,9 +159,12 @@ export function shr_signed(): void {
       `from warplib.types.uints import ${mapRange(31, (n) => `Uint${8 * n + 8}`)}`,
       `from warplib.types.ints import ${mapRange(32, (n) => `Int${8 * n + 8}`)}`,
       'from warplib.maths.pow2 import pow2',
-      `from warplib.maths.shr import ${mapRange(
-        32,
-        (n) => `warp_shr${8 * n + 8}_${8 * n + 8}`,
+      // `from warplib.maths.shr import ${mapRange(
+      //   32,
+      //   (n) => `warp_shr${8 * n + 8}_${8 * n + 8}`,
+      // ).join(', ')}`,
+      `from warplib.maths.shr import ${mapRange(32, (n) =>
+        mapRange(32, (m) => `warp_shr${8 * n + 8}_${8 * m + 8}`).join(', '),
       ).join(', ')}`,
     ],
     forAllWidths((width) => {
@@ -190,7 +173,7 @@ export function shr_signed(): void {
           ...forAllWidths((rhsWidth) => {
             if (rhsWidth === 256) {
               return [
-                `func warp_shr_signed256_256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):`,
+                `func warp_shr_signed256_256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Int256, rhs : Uint256) -> (res : Int256):`,
                 `    if rhs.high == 0:`,
                 `        let (res) = warp_shr_signed256_128(lhs, Uint128(rhs.low))`,
                 `        return (res)`,
@@ -202,28 +185,30 @@ export function shr_signed(): void {
               ];
             } else {
               return [
-                `func warp_shr_signed256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : Uint${rhsWidth}) -> (res : Uint256):`,
+                `func warp_shr_signed256_${rhsWidth}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Int256, rhs : Uint${rhsWidth}) -> (res : Int256):`,
                 `    alloc_locals`,
-                `    let (local lhs_msb) = bitwise_and(lhs.high, ${msb(128)})`,
-                `    let (logical_shift) = warp_shr256_${rhsWidth}(lhs, rhs)`,
+                `    let (local lhs_msb) = bitwise_and(lhs.value.high, ${msb(128)})`,
+                `    let (logical_shift) = warp_shr256_${rhsWidth}(lhs.value, rhs)`,
                 `    if lhs_msb == 0:`,
-                `        return (logical_shift)`,
+                `        return (Int256(logical_shift))`,
                 `    else:`,
                 `        let (large_shift) = is_le(${width}, rhs.value)`,
                 `        if large_shift == 1:`,
-                `            return (Uint256(${mask(128)}, ${mask(128)}))`,
+                `            return (Int256(Uint256(${mask(128)}, ${mask(128)})))`,
                 `        else:`,
                 `            let (crosses_boundary) = is_le(128, rhs.value)`,
                 `            if crosses_boundary == 1:`,
                 `                let (bound) = pow2(rhs.value-128)`,
                 `                let ones = bound - 1`,
                 `                let (shift) = pow2(256-rhs.value)`,
-                `                return (Uint256(logical_shift.low+ones*shift, ${mask(128)}))`,
+                `                return (Int256(Uint256(logical_shift.low+ones*shift, ${mask(
+                  128,
+                )})))`,
                 `            else:`,
                 `                let (bound) = pow2(rhs.value)`,
                 `                let ones = bound - 1`,
                 `                let (shift) = pow2(128-rhs.value)`,
-                `                return (Uint256(logical_shift.low, logical_shift.high+ones*shift))`,
+                `                return (Int256(Uint256(logical_shift.low, logical_shift.high+ones*shift)))`,
                 `            end`,
                 `        end`,
                 `    end`,
@@ -231,66 +216,50 @@ export function shr_signed(): void {
               ];
             }
           }),
-          `func warp_shr_signed256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(lhs : Uint256, rhs : felt) -> (res : Uint256):`,
-          `    alloc_locals`,
-          `    let (local lhs_msb) = bitwise_and(lhs.high, ${msb(128)})`,
-          `    let (logical_shift) = warp_shr256(lhs, rhs)`,
-          `    if lhs_msb == 0:`,
-          `        return (logical_shift)`,
-          `    else:`,
-          `        let (large_shift) = is_le(${width}, rhs)`,
-          `        if large_shift == 1:`,
-          `            return (Uint256(${mask(128)}, ${mask(128)}))`,
-          `        else:`,
-          `            let (crosses_boundary) = is_le(128, rhs)`,
-          `            if crosses_boundary == 1:`,
-          `                let (bound) = pow2(rhs-128)`,
-          `                let ones = bound - 1`,
-          `                let (shift) = pow2(256-rhs)`,
-          `                return (Uint256(logical_shift.low+ones*shift, ${mask(128)}))`,
-          `            else:`,
-          `                let (bound) = pow2(rhs)`,
-          `                let ones = bound - 1`,
-          `                let (shift) = pow2(128-rhs)`,
-          `                return (Uint256(logical_shift.low, logical_shift.high+ones*shift))`,
-          `            end`,
-          `        end`,
-          `    end`,
-          `end`,
         ];
       } else {
         return [
-          `func warp_shr_signed${width}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
-          `        lhs : Int${width}, rhs : Uint${width}) -> (res : Int${width}):`,
-          `    alloc_locals`,
-          `    let (local lhs_msb) = bitwise_and(lhs.value, ${msb(width)})`,
-          `    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr`,
-          `    if lhs_msb == 0:`,
-          `        let (res) = warp_shr${width}(lhs, rhs)`,
-          `        return (res)`,
-          `    else:`,
-          `        let (large_shift) = is_le_felt(${width}, rhs)`,
-          `        if large_shift == 1:`,
-          `            return (${mask(width)})`,
-          `        else:`,
-          `            let (shifted) = warp_shr${width}(lhs, rhs)`,
-          `            let (sign_extend_bound) = pow2(rhs)`,
-          `            let sign_extend_value = sign_extend_bound - 1`,
-          `            let (sign_extend_multiplier) = pow2(${width} - rhs)`,
-          `            return (shifted + sign_extend_value * sign_extend_multiplier)`,
-          `        end`,
-          `    end`,
-          `end`,
-          `func warp_shr_signed${width}_256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
-          `        lhs : felt, rhs : Uint256) -> (res : felt):`,
-          `    if rhs.high == 0:`,
-          `        let (res) = warp_shr${width}(lhs, rhs.low)`,
-          `        return (res)`,
-          `    else:`,
-          `        let (res) = warp_shr${width}(lhs, ${width})`,
-          `        return (res)`,
-          `    end`,
-          `end`,
+          ...forAllWidths((rhsWidth) => {
+            if (rhsWidth === 256) {
+              return [
+                `func warp_shr_signed${width}_256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
+                `        lhs : Int${width}, rhs : Uint256) -> (res : Int${width}):`,
+                `    if rhs.high == 0:`,
+                `        let (res) = warp_shr${width}_256(Uint${width}(lhs.value), rhs)`,
+                `        return (Int${width}(value=res.value))`,
+                `    else:`,
+                `        let (res) = warp_shr${width}_${width}(Uint${width}(lhs.value), Uint${width}(${width}))`,
+                `        return (Int${width}(value=res.value))`,
+                `    end`,
+                `end`,
+              ];
+            } else {
+              return [
+                `func warp_shr_signed${width}_${rhsWidth}{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
+                `        lhs : Int${width}, rhs : Uint${rhsWidth}) -> (res : Int${width}):`,
+                `    alloc_locals`,
+                `    let (local lhs_msb) = bitwise_and(lhs.value, ${msb(width)})`,
+                `    local bitwise_ptr : BitwiseBuiltin* = bitwise_ptr`,
+                `    if lhs_msb == 0:`,
+                `        let (res) = warp_shr${width}_${rhsWidth}(Uint${width}(lhs.value), rhs)`,
+                `        return (Int${width}(value=res.value))`,
+                `    else:`,
+                `        let (large_shift) = is_le_felt(${width}, rhs.value)`,
+                `        if large_shift == 1:`,
+                `            return (Int${width}(value=${mask(width)}))`,
+                `        else:`,
+                `            let (shifted) = warp_shr${width}_${rhsWidth}(Uint${width}(lhs.value), rhs)`,
+                `            let (sign_extend_bound) = pow2(rhs.value)`,
+                `            let sign_extend_value = sign_extend_bound - 1`,
+                `            let (sign_extend_multiplier) = pow2(${width} - rhs.value)`,
+                `            let res_felt = shifted.value + sign_extend_value * sign_extend_multiplier`,
+                `            return (Int${width}(value=res_felt))`,
+                `        end`,
+                `    end`,
+                `end`,
+              ];
+            }
+          }),
         ];
       }
     }),
@@ -314,9 +283,7 @@ export function functionaliseShr(node: BinaryOperation, ast: AST): void {
   const lhsWidth = getIntOrFixedByteBitWidth(lhsType);
   const signed = lhsType instanceof IntType && lhsType.signed;
 
-  const fullName = `warp_shr${signed ? '_signed' : ''}${lhsWidth}${
-    rhsType.nBits === 256 ? '_256' : ''
-  }`;
+  const fullName = `warp_shr${signed ? '_signed' : ''}${lhsWidth}_${rhsType.nBits}`;
 
   const importName = `warplib.maths.shr${signed ? '_signed' : ''}`;
 

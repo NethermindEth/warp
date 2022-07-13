@@ -15918,8 +15918,3 @@ func warp_shl_signed256_256{range_check_ptr}(lhs : Int256, rhs : Uint256) -> (re
     let (res) = uint256_shl(lhs.value, rhs)
     return (Int256(value=res))
 end
-func warp_shl_signed256{range_check_ptr}(lhs : Int256, rhs : felt) -> (result : Int256):
-    let (high, low) = split_felt(rhs)
-    let (res) = uint256_shl(lhs.value, Uint256(low, high))
-    return (Int256(value=res))
-end

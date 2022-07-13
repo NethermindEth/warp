@@ -178,28 +178,41 @@ warplib/maths/exp_signed.cairo
 warplib/maths/exp_signed_unsafe.cairo
 
 warplib/maths/negate.cairo
+warplib/maths/negate_signed.cairo
 
 warplib/maths/shl.cairo
+warplib/maths/shl_signed.cairo
 
 warplib/maths/shr.cairo
 warplib/maths/shr_signed.cairo
 
-# ge - handwritten
+warplib/maths/ge.cairo
 warplib/maths/ge_signed.cairo
 
-# gt - handwritten
+warplib/maths/gt.cairo
 warplib/maths/gt_signed.cairo
 
-# le - handwritten
+warplib/maths/le.cairo
 warplib/maths/le_signed.cairo
 
-# lt - handwritten
+warplib/maths/lt.cairo
 warplib/maths/lt_signed.cairo
 
+warplib/maths/eq.cairo
+warplib/maths/eq_signed.cairo
+
+warplib/maths/neq.cairo
+warplib/maths/neq_signed.cairo
+
 # xor - handwritten
-# bitwise_and - handwritten
-# bitwise_or - handwritten
+warplib/maths/bitwise_and.cairo
+warplib/maths/bitwise_and_signed.cairo
+
+warplib/maths/bitwise_or.cairo
+warplib/maths/bitwise_or_signed.cairo
+
 warplib/maths/bitwise_not.cairo
+warplib/maths/bitwise_not_signed.cairo
 
 # ---conversions---
 warplib/maths/int_conversions.cairo
