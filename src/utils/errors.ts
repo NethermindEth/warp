@@ -24,13 +24,17 @@ function getSourceCode(node: ASTNode | undefined): string {
   const sourceUnit = node.getClosestParentByType(SourceUnit);
   if (sourceUnit === undefined) return '';
   const filePath = sourceUnit.absolutePath;
-  const content = fs.readFileSync(filePath, { encoding: 'utf-8' });
-  return [
-    `File ${filePath}:\n`,
-    ...getSourceFromLocation(content, parseSourceLocation(node.src))
-      .split('\n')
-      .map((l) => `\t${l}`),
-  ].join('\n');
+  if (fs.existsSync(filePath)) {
+    const content = fs.readFileSync(filePath, { encoding: 'utf-8' });
+    return [
+      `File ${filePath}:\n`,
+      ...getSourceFromLocation(content, parseSourceLocation(node.src))
+        .split('\n')
+        .map((l) => `\t${l}`),
+    ].join('\n');
+  } else {
+    return '';
+  }
 }
 
 // For features that will not be supported unless Cairo changes to make implementing them feasible
