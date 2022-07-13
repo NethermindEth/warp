@@ -24,12 +24,10 @@ import {
 } from '../utils/nodeTemplates';
 import { cloneASTNode } from '../utils/cloning';
 import { createHash } from 'crypto';
+import { HASH_OPTION, HASH_SIZE } from '../utils/postCairoWrite';
 
 export class NewToDeploy extends ASTMapper {
   placeHolderMap = new Map<string, VariableDeclaration>();
-  constructor() {
-    super();
-  }
 
   visitNewExpression(node: NewExpression, ast: AST): void {
     if (
@@ -42,7 +40,7 @@ export class NewToDeploy extends ASTMapper {
     }
     const contractName = node.vTypeName.vReferencedDeclaration.name;
 
-    // Get or creat placeholder for class hash
+    // Get or create placeholder for the class hash
     let placeholder = this.placeHolderMap.get(contractName);
     if (placeholder === undefined) {
       const sourceUnit = node.getClosestParentByType(SourceUnit);
@@ -106,7 +104,7 @@ export class NewToDeploy extends ASTMapper {
     contractName: string,
     ast: AST,
   ): VariableDeclaration {
-    const hash = createHash('sha256').update(contractName).digest('hex').slice(0, 16);
+    const hash = createHash(HASH_OPTION).update(contractName).digest('hex').slice(0, HASH_SIZE);
     const varName = `${contractName}_${hash}`;
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
@@ -125,13 +123,6 @@ export class NewToDeploy extends ASTMapper {
       undefined,
       createNumberLiteral(0, ast, 'uint160'),
     );
-    // const varDeclStatement = new VariableDeclarationStatement(
-    //   ast.reserveId(),
-    //   '',
-    //   [varDecl.id],
-    //   [varDecl],
-    //   createNumberLiteral(0, ast, 'uint160'),
-    // );
 
     return varDecl;
   }
