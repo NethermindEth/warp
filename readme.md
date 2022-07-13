@@ -59,18 +59,18 @@ To get the dependencies:
 yarn
 ```
 
-Compile the project:
-
-```bash
-yarn tsc
-yarn warplib
-```
-
 Get python dev dependencies:
 (recommended to create a python3.7 venv for this)
 
 ```bash
 pip install -r requirements.txt
+```
+
+Compile the project:
+
+```bash
+yarn tsc
+yarn warplib
 ```
 
 ## Usage :computer:
