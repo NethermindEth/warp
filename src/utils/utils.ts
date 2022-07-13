@@ -4,6 +4,7 @@ import {
   ArrayType,
   ArrayTypeName,
   Assignment,
+  ASTNode,
   BoolType,
   BytesType,
   CompileFailedError,
@@ -47,7 +48,7 @@ import {
 import Web3 from 'web3';
 import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
-import { printTypeNode } from './astPrinter';
+import { printNode, printTypeNode } from './astPrinter';
 import {
   logError,
   NotSupportedYetError,
@@ -479,4 +480,10 @@ export function getSourceFromLocation(source: string, location: SourceLocation):
     .reduce(([s, n], c) => [[...s, `${n}  ${c}`], n + 1], [new Array<string>(), followingLineNum]);
 
   return [...previousLines, ...currentLine, ...followingLines].join('\n');
+}
+
+export function getContainingFunction(node: ASTNode): FunctionDefinition {
+  const func = node.getClosestParentByType(FunctionDefinition);
+  assert(func !== undefined, `Unable to find containing function for ${printNode(node)}`);
+  return func;
 }

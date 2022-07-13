@@ -23,6 +23,7 @@ import {
   createParameterList,
   createReturn,
 } from '../utils/nodeTemplates';
+import { getContainingFunction } from '../utils/utils';
 
 export class IfFunctionaliser extends ASTMapper {
   generatedFunctionCount: Map<FunctionDefinition, number> = new Map();
@@ -84,12 +85,6 @@ function getContainingBlock(node: IfStatement): Block {
     error(`Unable to find parent of ${printNode(node)}`),
   );
   return containingFunction.vBody;
-}
-
-function getContainingFunction(node: IfStatement): FunctionDefinition {
-  const func = node.getClosestParentByType(FunctionDefinition);
-  assert(func !== undefined, `Unable to find containing function for ${printNode(node)}`);
-  return func;
 }
 
 function splitBlock(block: Block, split: Statement, ast: AST): Block {

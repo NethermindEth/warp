@@ -26,12 +26,11 @@ import { TranspileFailedError } from '../../utils/errors';
 import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
 import { SPLIT_EXPRESSION_PREFIX } from '../../utils/nameModifiers';
 import { createEmptyTuple, createIdentifier } from '../../utils/nodeTemplates';
-import { counterGenerator } from '../../utils/utils';
+import { counterGenerator, getContainingFunction } from '../../utils/utils';
 import {
   addStatementsToCallFunction,
   createFunctionBody,
   getConditionalReturnVariable,
-  getContainingFunction,
   getInputs,
   getNodeVariables,
   getParams,
