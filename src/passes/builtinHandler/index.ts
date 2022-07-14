@@ -7,10 +7,12 @@ import { ShortCircuitToConditional } from './shortCircuitToConditional';
 import { ThisKeyword } from './thisKeyword';
 import { Ecrecover } from './ecrecover';
 import { Keccak } from './keccak';
+import { BlockMethods } from './blockMethods';
 
 export class BuiltinHandler extends ASTMapper {
   static map(ast: AST): AST {
     ast = MsgSender.map(ast);
+    ast = BlockMethods.map(ast);
     ast = Ecrecover.map(ast);
     ast = Keccak.map(ast);
     ast = ExplicitConversionToFunc.map(ast);
