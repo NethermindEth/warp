@@ -1,6 +1,10 @@
-import base64
 import os
 import sys
+from starkware.starknet.business_logic.internal_transaction import (
+    TransactionExecutionInfo,
+)
+
+from starkware.starknet.services.api.contract_class import ContractClass
 from generateMarkdown import (
     builtin_instance_count,
     json_size_count,
@@ -34,10 +38,6 @@ async def pingpost():
 
 @app.route("/deploy", methods=["POST"])
 async def deploy():
-    from starkware.starknet.services.api.contract_class import (
-        ContractClass,
-    )
-
     data = request.get_json()
     state = await starknet_wrapper.get_state()
     input = [int(x) for x in data["input"]]
@@ -67,6 +67,39 @@ async def deploy():
                 "transaction_info": {
                     "threw": False,
                 },
+            }
+        )
+    except StarkException as err:
+        print(err)
+        if err.code == StarknetErrorCode.TRANSACTION_FAILED:
+            return jsonify(
+                {"transaction_info": {"threw": True, "message": err.message}}
+            )
+        else:
+            raise err
+
+
+@app.route("/declare", methods=["POST"])
+async def declare():
+    data = request.get_json()
+    assert data is not None, "Requested data is `None` when trying to declare"
+
+    state = await starknet_wrapper.get_state()
+    compiled_cairo = open(data["compiled_cairo"]).read()
+    contract_class = ContractClass.loads(compiled_cairo)
+
+    try:
+        execution_info = await state.declare(contract_class)
+        print("-----Declare info-----")
+        print(execution_info)
+        print("-----------\n")
+        # BENCHMARK needed here?
+        class_hash = execution_info.call_info.class_hash
+        assert class_hash is not None
+        return jsonify(
+            {
+                "class_hash": hex(int.from_bytes(class_hash, "big")),
+                "transaction_info": {"threw": False},
             }
         )
     except StarkException as err:
