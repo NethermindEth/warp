@@ -11,6 +11,7 @@ import {
   FunctionCallKind,
   getNodeType,
   Identifier,
+  IntLiteralType,
   IntType,
   TypeNode,
 } from 'solc-typed-ast';
@@ -141,7 +142,7 @@ export function Comparison(
   ast: AST,
 ): void {
   const lhsType = getNodeType(node.vLeftExpression, ast.compilerVersion);
-  const rhsType = getNodeType(node.vLeftExpression, ast.compilerVersion);
+  const rhsType = getNodeType(node.vRightExpression, ast.compilerVersion);
   const retType = getNodeType(node, ast.compilerVersion);
   const wide =
     (lhsType instanceof IntType || lhsType instanceof FixedBytesType) &&
@@ -161,7 +162,12 @@ export function Comparison(
     fullName,
     [
       ['lhs', typeNameFromTypeNode(lhsType, ast)],
-      ['rhs', typeNameFromTypeNode(rhsType, ast)],
+      [
+        'rhs',
+        rhsType instanceof IntLiteralType
+          ? typeNameFromTypeNode(lhsType, ast)
+          : typeNameFromTypeNode(rhsType, ast),
+      ],
     ],
     [['res', typeNameFromTypeNode(retType, ast)]],
     implicits(wide, signed),
