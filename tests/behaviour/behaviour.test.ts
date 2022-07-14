@@ -8,13 +8,16 @@ import {
   batchPromises,
   processArgs,
 } from '../util';
-import { deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
+import { declare, deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
 
 import { describe } from 'mocha';
 import { expect } from 'chai';
 import { expectations } from './expectations';
 import { AsyncTest, Expect } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
+import { hashFilename, reducePath, setDeclaredAddresses } from '../../src/utils/postCairoWrite';
+import assert from 'assert';
+import { CONTRACT_INFIX } from '../../src/utils/nameModifiers';
 
 const PRINT_STEPS = false;
 const PARALLEL_COUNT = 8;
@@ -61,13 +64,34 @@ describe('Transpiled contracts are valid cairo', function () {
   let compileResults: SafePromise<{ stderr: string } | null>[];
 
   before(function () {
+    const declarationAddresses = new Map<string, string>();
+
     compileResults = batchPromises(
       expectations,
       PARALLEL_COUNT,
-      (test: AsyncTest): Promise<{ stderr: string } | null> =>
-        test.encodingError === undefined && fs.existsSync(test.cairo)
-          ? starknetCompile(test.cairo, test.compiled)
-          : Promise.resolve(null),
+      async (test: AsyncTest): Promise<{ stderr: string } | null> => {
+        setDeclaredAddresses(test.cairo, declarationAddresses);
+        if (test.encodingError !== undefined || !fs.existsSync(test.cairo))
+          return Promise.resolve(null);
+
+        const cairoCompiled = await starknetCompile(test.cairo, test.compiled);
+        const { threw, class_hash } = await declare(test.compiled);
+
+        if (threw) return Promise.resolve(null);
+
+        const fileLoc = reducePath(test.cairo, 'warp_output');
+        const [fileName, contractNameCairo] = fileLoc[fileLoc.length - 1].split(CONTRACT_INFIX);
+        assert(contractNameCairo.endsWith('.cairo'));
+        const contractName = contractNameCairo.slice(0, -'.cairo'.length);
+
+        const name = `${fileLoc.slice(0, -1).join('_')}_${fileName}_${contractName}`;
+        const hash = hashFilename(name);
+        if (declarationAddresses.has(hash))
+          throw new Error(`${fileName}_${contractName} already declared, cannot set new hash`);
+        declarationAddresses.set(hash, class_hash);
+
+        return cairoCompiled;
+      },
     );
   });
 

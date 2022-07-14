@@ -10,7 +10,7 @@ export const HASH_OPTION = 'sha256';
  *  if `name` is of the form   `<contractName>_<contractNameHash>` then it corresponds
  *  to a placeholder waiting to be filled with the corresponding contract class hash
  *  @param fileLoc location of cairo file
- *  @param declarationAddresses mapping of className => classHash
+ *  @param declarationAddresses mapping of: (placeholder hash) => (starknet class hash)
  */
 export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<string, string>) {
   const plainCairoCode = readFileSync(fileLoc, 'utf8');
@@ -19,22 +19,22 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
   let update = false;
   const newCairoCode = cairoCode.map((codeLine) => {
     const [constant, fullName, equal, _oldValue, ...other] = codeLine.split(new RegExp('[ ]+'));
-    if (constant !== 'const') return;
+    if (constant !== 'const') return codeLine;
 
     assert(other === []);
 
-    const name = fullName.slice(0, fullName.length - HASH_SIZE - 1);
-    const hash = fullName.slice(fullName.length - HASH_SIZE);
+    const name = fullName.slice(0, -HASH_SIZE - 1);
+    const hash = fullName.slice(-HASH_SIZE);
+    // const parsedFileName = reducePath(fileLoc, ignoreLoc).join('_');
+    // const parsedFileNameHash = hashFilename(parsedFileName);
+    // if (hash !== parsedFileNameHash) return codeLine;
 
-    const nameHash = createHash(HASH_OPTION).update(name).digest('hex');
-    if (hash !== nameHash) return;
-
-    const declaredAddress = declarationAddresses.get(name);
+    const declaredAddress = declarationAddresses.get(hash);
     assert(declaredAddress !== undefined, `Cannot find declared address for ${name}`);
 
-    // Flag that there are changes that need to be safed
+    // Flag that there are changes that need to be rewritten
     update = true;
-    const newLine = [constant, fullName, equal, declaredAddress].join('\n');
+    const newLine = [constant, fullName, equal, declaredAddress].join(' ');
     return newLine;
   });
 
@@ -42,4 +42,23 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
 
   const plainNewCairoCode = newCairoCode.join('\n');
   writeFileSync(fileLoc, plainNewCairoCode);
+}
+
+export function hashFilename(filename: string): string {
+  return createHash(HASH_OPTION).update(filename).digest('hex').slice(HASH_SIZE);
+}
+
+export function reducePath(fullPath: string, ignorePath: string) {
+  const pathSplitter = new RegExp('/+|\\\\+');
+
+  const ignore = ignorePath.split(pathSplitter);
+  const full = fullPath.split(pathSplitter);
+
+  assert(ignore.length < full.length);
+  let ignoreTill = 0;
+  for (const i in ignore) {
+    if (ignore[i] !== full[i]) break;
+    ignoreTill += 1;
+  }
+  return full.slice(ignoreTill);
 }
