@@ -11,26 +11,35 @@ export function neq() {
       `from starkware.cairo.common.uint256 import Uint256, uint256_eq`,
       `from warplib.types.uints import ${mapRange(31, (n) => `Uint${8 * n + 8}`)}`,
     ],
-    forAllWidths((width) => {
-      if (width === 256) {
-        return [
-          `func warp_neq256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt):`,
-          `    let (res) = uint256_eq(lhs, rhs)`,
-          `    return (1-res)`,
-          `end`,
-        ];
-      } else {
-        return [
-          `func warp_neq${width}(lhs : Uint${width}, rhs : Uint${width}) -> (result : felt):`,
-          `    if lhs.value == rhs.value:`,
-          `        return (0)`,
-          `    else:`,
-          `        return (1)`,
-          `    end`,
-          `end`,
-        ];
-      }
-    }),
+    [
+      ...forAllWidths((width) => {
+        if (width === 256) {
+          return [
+            `func warp_neq256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt):`,
+            `    let (res) = uint256_eq(lhs, rhs)`,
+            `    return (1-res)`,
+            `end`,
+          ];
+        } else {
+          return [
+            `func warp_neq${width}(lhs : Uint${width}, rhs : Uint${width}) -> (result : felt):`,
+            `    if lhs.value == rhs.value:`,
+            `        return (0)`,
+            `    else:`,
+            `        return (1)`,
+            `    end`,
+            `end`,
+          ];
+        }
+      }),
+      `func warp_neq(lhs : felt, rhs : felt) -> (result : felt):`,
+      `    if lhs == rhs:`,
+      `        return (0)`,
+      `    else:`,
+      `        return (1)`,
+      `    end`,
+      `end`,
+    ],
   );
 }
 
