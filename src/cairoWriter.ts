@@ -89,6 +89,7 @@ import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
 import { implicitOrdering, implicitTypes } from './utils/implicits';
 import { isDynamicArray, isDynamicCallDataArray } from './utils/nodeTypeProcessing';
+import { HASH_SIZE } from './utils/postCairoWrite';
 import { notNull, notUndefined } from './utils/typeConstructs';
 import {
   divmod,
@@ -358,7 +359,7 @@ class SourceUnitWriter extends CairoASTNodeWriter {
     const constants = node.vVariables.flatMap((v) => {
       assert(v.vValue !== undefined, 'Constants cannot be unanssigned');
       return [
-        `# ${v.name.slice(0, v.name.length - 17)} declaration address`,
+        `# ${v.name.slice(0, v.name.length - HASH_SIZE - 1)} declaration address`,
         `const ${v.name} = ${writer.write(v.vValue)}`,
       ].join('\n');
     });

@@ -23,10 +23,11 @@ import {
   createUintNTypeName,
 } from '../utils/nodeTemplates';
 import { cloneASTNode } from '../utils/cloning';
-import { createHash } from 'crypto';
-import { HASH_OPTION, HASH_SIZE } from '../utils/postCairoWrite';
+import { hashFilename } from '../utils/postCairoWrite';
+import { CONTRACT_INFIX } from '../utils/nameModifiers';
 
 export class NewToDeploy extends ASTMapper {
+  // map of: (contract name => contract declaration hash placeholder)
   placeHolderMap = new Map<string, VariableDeclaration>();
 
   visitNewExpression(node: NewExpression, ast: AST): void {
@@ -38,20 +39,18 @@ export class NewToDeploy extends ASTMapper {
     ) {
       return;
     }
-    const contractName = node.vTypeName.vReferencedDeclaration.name;
+    const contractToCreate = node.vTypeName.vReferencedDeclaration;
 
     // Get or create placeholder for the class hash
-    let placeholder = this.placeHolderMap.get(contractName);
+    let placeholder = this.placeHolderMap.get(contractToCreate.name);
     if (placeholder === undefined) {
       const sourceUnit = node.getClosestParentByType(SourceUnit);
       assert(sourceUnit !== undefined);
-      placeholder = this.createPlaceHolder(sourceUnit, contractName, ast);
-      console.log('first', sourceUnit.vVariables.map((v) => v.name).join(', '));
+      placeholder = this.createPlaceHolder(sourceUnit, contractToCreate, ast);
       sourceUnit.insertAtBeginning(placeholder);
       ast.setContextRecursive(placeholder);
-      console.log('later', sourceUnit.vVariables.map((v) => v.name).join(', '));
       // Insert placeholder declaration in mapping
-      this.placeHolderMap.set(contractName, placeholder);
+      this.placeHolderMap.set(contractToCreate.name, placeholder);
     }
 
     // Swapping new for deploy sys call
@@ -101,11 +100,25 @@ export class NewToDeploy extends ASTMapper {
 
   private createPlaceHolder(
     sourceUnit: SourceUnit,
-    contractName: string,
+    declaredContract: ContractDefinition,
     ast: AST,
   ): VariableDeclaration {
-    const hash = createHash(HASH_OPTION).update(contractName).digest('hex').slice(0, HASH_SIZE);
-    const varName = `${contractName}_${hash}`;
+    const declaredContractSourceUnit = declaredContract.getClosestParentByType(SourceUnit);
+    assert(declaredContractSourceUnit !== undefined);
+
+    const declaredContractFullPath = declaredContractSourceUnit.absolutePath.split(
+      new RegExp('/+|\\\\+'),
+    );
+
+    const fileName =
+      declaredContractFullPath[declaredContractFullPath.length - 1].split(CONTRACT_INFIX)[0];
+    const contractName = declaredContract.name;
+
+    const fullPath = declaredContractFullPath.slice(0, -1).join('_');
+    const varPrefix = `${fullPath}_${fileName}_${contractName}`;
+    const hash = hashFilename(varPrefix);
+    const varName = `${varPrefix}_${hash}`;
+
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
       '',
