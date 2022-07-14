@@ -1,4 +1,4 @@
-import { BinaryOperation } from 'solc-typed-ast';
+import { BinaryOperation, FixedBytesType, getNodeType, IntType } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { Implicits } from '../../../utils/implicits';
 import { Comparison, generateFile, forAllWidths } from '../../utils';
@@ -69,5 +69,8 @@ export function functionaliseNeq(node: BinaryOperation, ast: AST): void {
     if (wide) return ['range_check_ptr'];
     return [];
   };
-  Comparison(node, 'neq', 'always', true, implicitsFn, ast);
+  const lhsType = getNodeType(node.vLeftExpression, ast.compilerVersion);
+  const appendWidth =
+    lhsType instanceof IntType || lhsType instanceof FixedBytesType ? 'always' : 'only256';
+  Comparison(node, 'neq', appendWidth, true, implicitsFn, ast);
 }

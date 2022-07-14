@@ -152,7 +152,7 @@ export function Comparison(
   ast: AST,
 ): void {
   const lhsType = getNodeType(node.vLeftExpression, ast.compilerVersion);
-  const rhsType = getNodeType(node.vLeftExpression, ast.compilerVersion);
+  const rhsType = getNodeType(node.vRightExpression, ast.compilerVersion);
   const retType = getNodeType(node, ast.compilerVersion);
   const wide =
     (lhsType instanceof IntType || lhsType instanceof FixedBytesType) &&
