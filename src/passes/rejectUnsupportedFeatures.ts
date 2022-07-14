@@ -168,10 +168,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
         functionArgsCheck(type, ast, isExternallyVisible(node), decl.storageLocation, node);
       });
     }
-    if (node.kind === FunctionKind.Fallback) {
-      if (node.vParameters.vParameters.length > 0)
-        throw new WillNotSupportError(`${node.kind} with arguments is not supported`, node);
-    } else if (node.kind === FunctionKind.Receive) {
+    if (node.kind === FunctionKind.Receive) {
       throw new WillNotSupportError(`Receive functions are not supported`, node);
     }
     this.commonVisit(node, ast);
