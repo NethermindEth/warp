@@ -15,6 +15,9 @@ export class CairoUtilImporter extends ASTMapper {
     const cairoType: string = primitiveTypeToCairo(node.name);
     // if cairoType is form of IntX or UintX
     if (cairoType.match(/^(Int)(\d+)$/)) {
+      if (cairoType === 'Int256') {
+        ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
+      }
       ast.registerImport(node, 'warplib.types.ints', `${cairoType}`);
     }
     if (cairoType.match(/^(Uint)(\d+)$/)) {
@@ -29,6 +32,9 @@ export class CairoUtilImporter extends ASTMapper {
     if (type instanceof IntType) {
       if (type.signed) {
         ast.registerImport(node, 'warplib.types.ints', `Int${Math.ceil(type.nBits / 8) * 8}`);
+        if (type.nBits > 251) {
+          ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
+        }
       } else if (type.nBits > 251)
         ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
       else {
