@@ -41,6 +41,12 @@ import { isDynamicArray } from '../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../utils/utils';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPrerequisite(): void {
+    const passKeys: string[] = ['Tf', 'Tnr'];
+    passKeys.forEach((key) => this.addPrerequisite(key));
+  }
+
   visitIndexAccess(node: IndexAccess, ast: AST): void {
     if (node.vIndexExpression === undefined) {
       throw new WillNotSupportError(

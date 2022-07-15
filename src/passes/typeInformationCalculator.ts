@@ -55,6 +55,26 @@ function createEnumMemberAccess(
 }
 
 export class TypeInformationCalculator extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPrerequisite(): void {
+    const passKeys: string[] = [
+      'Tf',
+      'Tnr',
+      'Ru',
+      'Fm',
+      'Ss',
+      'Ct',
+      'Ae',
+      'Idi',
+      'L',
+      'Na',
+      'Ufr',
+      'Fd',
+      'Gp',
+    ];
+    passKeys.forEach((key) => this.addPrerequisite(key));
+  }
+
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     if (
       !node.vExpression.typeString.startsWith('type(') ||

@@ -23,6 +23,12 @@ import { isExternallyVisible } from '../utils/utils';
 type Input = (string | number | Input)[];
 
 export class ABIExtractor extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPrerequisite(): void {
+    const passKeys: string[] = ['Tf', 'Tnr', 'Ru', 'Fm', 'Ss', 'Ct'];
+    passKeys.forEach((key) => this.addPrerequisite(key));
+  }
+
   visitSourceUnit(node: SourceUnit, ast: AST): void {
     this.commonVisit(node, ast);
     node.vFunctions.forEach((fd) =>

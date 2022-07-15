@@ -15,6 +15,12 @@ import { CONTRACT_INFIX, FREE_FILE_SUFFIX } from '../utils/nameModifiers';
 type Scoped = FunctionDefinition | ContractDefinition | VariableDeclaration | StructDefinition;
 
 export class SourceUnitSplitter extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPrerequisite(): void {
+    const passKeys: string[] = ['Tf', 'Tnr', 'Ru', 'Fm'];
+    passKeys.forEach((key) => this.addPrerequisite(key));
+  }
+
   static map(ast: AST): AST {
     ast.roots = ast.roots.flatMap((su) => splitSourceUnit(su, ast));
     return ast;

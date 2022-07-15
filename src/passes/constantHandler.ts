@@ -12,6 +12,26 @@ import { cloneASTNode } from '../utils/cloning';
 import { insertConversionIfNecessary } from './implicitConversionToExplicit';
 
 export class ConstantHandler extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPrerequisite(): void {
+    const passKeys: string[] = [
+      'Tf',
+      'Tnr',
+      'Ru',
+      'Fm',
+      'Ss',
+      'Ct',
+      'Ae',
+      'Idi',
+      'L',
+      'Na',
+      'Ufr',
+      'Fd',
+      'Tic',
+    ];
+    passKeys.forEach((key) => this.addPrerequisite(key));
+  }
+
   isConstant(node: VariableDeclaration): boolean {
     return (
       node.mutability === Mutability.Constant &&

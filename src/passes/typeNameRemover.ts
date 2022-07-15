@@ -15,6 +15,12 @@ import { TupleExpression } from 'solc-typed-ast';
 import { notNull } from '../utils/typeConstructs';
 
 export class TypeNameRemover extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPrerequisite(): void {
+    const passKeys: string[] = ['Tf'];
+    passKeys.forEach((key) => this.addPrerequisite(key));
+  }
+
   visitExpressionStatement(node: ExpressionStatement, ast: AST): void {
     if (
       (node.vExpression instanceof IndexAccess ||

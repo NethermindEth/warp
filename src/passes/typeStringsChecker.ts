@@ -11,6 +11,12 @@ class AssertTypeStrings extends ASTMapper {
 }
 
 export class TypeStringsChecker extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPrerequisite(): void {
+    const passKeys: string[] = ['Tf', 'Tnr', 'Ru', 'Fm', 'Ss'];
+    passKeys.forEach((key) => this.addPrerequisite(key));
+  }
+
   visitElementaryTypeName(node: ElementaryTypeName, _ast: AST): void {
     if (node.typeString === undefined) {
       node.typeString = typeNameToTypeNode(node).pp();

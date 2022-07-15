@@ -20,6 +20,12 @@ export function checkPath(path: string) {
 }
 
 export class FilePathMangler extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPrerequisite(): void {
+    const passKeys: string[] = ['Tf', 'Tnr', 'Ru'];
+    passKeys.forEach((key) => this.addPrerequisite(key));
+  }
+
   visitImportDirective(node: ImportDirective, _: AST): void {
     node.absolutePath = manglePath(node.absolutePath);
   }

@@ -12,6 +12,12 @@ import {
 import { NotSupportedYetError, TranspileFailedError, WillNotSupportError } from '../utils/errors';
 
 export class NamedArgsRemover extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPrerequisite(): void {
+    const passKeys: string[] = ['Tf', 'Tnr', 'Ru', 'Fm', 'Ss', 'Ct', 'Ae', 'Idi', 'L'];
+    passKeys.forEach((key) => this.addPrerequisite(key));
+  }
+
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     /*
       Visit every function call and remove the named arguments
