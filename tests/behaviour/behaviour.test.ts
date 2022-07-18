@@ -71,7 +71,7 @@ describe('Transpiled contracts are valid cairo', function () {
   this.timeout(TIME_LIMIT);
 
   let compileResults: SafePromise<{ stderr: string } | null>[];
-  const preparedExpectations = expectations.map(prepareTestForCompilation);
+  let preparedExpectations: AsyncTestCluster[];
   const compiledFiles = new Map<string, { stdout: string; stderr: string }>();
 
   const outputLocation = (testLocation: string) =>
@@ -132,6 +132,7 @@ describe('Transpiled contracts are valid cairo', function () {
   };
 
   before(function () {
+    preparedExpectations = expectations.map(prepareTestForCompilation);
     compileResults = batchPromises(
       preparedExpectations,
       PARALLEL_COUNT,
@@ -365,6 +366,5 @@ function prepareTestForCompilation(test: AsyncTest): AsyncTestCluster {
     pending.push(...newFilesToDeclare);
     count++;
   }
-
   return { asyncTest: test, dependencies: dependencyGraph };
 }
