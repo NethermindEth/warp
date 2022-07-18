@@ -89,7 +89,6 @@ import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
 import { implicitOrdering, implicitTypes } from './utils/implicits';
 import { isDynamicArray, isDynamicCallDataArray } from './utils/nodeTypeProcessing';
-import { HASH_SIZE } from './utils/postCairoWrite';
 import { notNull, notUndefined } from './utils/typeConstructs';
 import {
   divmod,

@@ -19,10 +19,10 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
 
   let update = false;
   const newCairoCode = cairoCode.map((codeLine) => {
-    const [constant, fullName, equal, _oldValue, ...other] = codeLine.split(new RegExp('[ ]+'));
+    const [constant, fullName, equal, ...other] = codeLine.split(new RegExp('[ ]+'));
     if (constant !== 'const') return codeLine;
 
-    assert(other.length === 0, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
+    assert(other.length === 1, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
 
     const name = fullName.slice(0, -HASH_SIZE - 1);
     const hash = fullName.slice(-HASH_SIZE);
