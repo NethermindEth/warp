@@ -3220,6 +3220,15 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('new', [
+          File.Simple('simple', [
+            Expect.Simple(
+              'createProduct',
+              ['2', '0', '3', '3', '2', '3', '5', '7', '11', '13', '17', '19'],
+              [],
+            ),
+          ]),
+        ]),
         new Dir('precompiles', [
           File.Simple('ecrecover', [Expect.Simple('test', [], ['1'])]),
           File.Simple('keccak256', [

@@ -1,6 +1,7 @@
 import assert from 'assert';
 import { createHash } from 'crypto';
 import { readFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
 
 export const HASH_SIZE = 16;
 export const HASH_OPTION = 'sha256';
@@ -21,7 +22,7 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
     const [constant, fullName, equal, _oldValue, ...other] = codeLine.split(new RegExp('[ ]+'));
     if (constant !== 'const') return codeLine;
 
-    assert(other === []);
+    assert(other.length === 0, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
 
     const name = fullName.slice(0, -HASH_SIZE - 1);
     const hash = fullName.slice(-HASH_SIZE);
@@ -30,7 +31,10 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
     // if (hash !== parsedFileNameHash) return codeLine;
 
     const declaredAddress = declarationAddresses.get(hash);
-    assert(declaredAddress !== undefined, `Cannot find declared address for ${name}`);
+    assert(
+      declaredAddress !== undefined,
+      `Cannot find declared address for ${name} with hash ${hash}`,
+    );
 
     // Flag that there are changes that need to be rewritten
     update = true;
@@ -44,8 +48,26 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
   writeFileSync(fileLoc, plainNewCairoCode);
 }
 
+export function extractContractsToDeclared(fileLoc: string, append: string) {
+  const plainCairoCode = readFileSync(fileLoc, 'utf8');
+  const cairoCode = plainCairoCode.split('\n');
+
+  const contractsToDeclare = cairoCode
+    .map((line) => {
+      const [comment, declare, location, ...other] = line.split(new RegExp('[ ]+'));
+      if (comment !== '#' || declare !== '@declare') return '';
+
+      assert(other.length === 0, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
+
+      return append !== '' ? join(append, location) : location;
+    })
+    .filter((val) => val !== '');
+
+  return contractsToDeclare;
+}
+
 export function hashFilename(filename: string): string {
-  return createHash(HASH_OPTION).update(filename).digest('hex').slice(HASH_SIZE);
+  return createHash(HASH_OPTION).update(filename).digest('hex').slice(0, HASH_SIZE);
 }
 
 export function reducePath(fullPath: string, ignorePath: string) {
@@ -54,11 +76,14 @@ export function reducePath(fullPath: string, ignorePath: string) {
   const ignore = ignorePath.split(pathSplitter);
   const full = fullPath.split(pathSplitter);
 
-  assert(ignore.length < full.length);
+  assert(
+    ignore.length < full.length,
+    `Path to ignore should be lesser than actual path. Ignore path size is ${ignore.length} and actual path size is ${full.length}`,
+  );
   let ignoreTill = 0;
   for (const i in ignore) {
     if (ignore[i] !== full[i]) break;
     ignoreTill += 1;
   }
-  return full.slice(ignoreTill);
+  return join(...full.slice(ignoreTill));
 }

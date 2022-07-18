@@ -109,6 +109,9 @@ export class NewToDeploy extends ASTMapper {
     const declaredContractFullPath = declaredContractSourceUnit.absolutePath.split(
       new RegExp('/+|\\\\+'),
     );
+    const cairoPath = declaredContractSourceUnit.absolutePath
+      .slice(0, -'.sol'.length)
+      .concat('.cairo');
 
     const fileName =
       declaredContractFullPath[declaredContractFullPath.length - 1].split(CONTRACT_INFIX)[0];
@@ -116,7 +119,7 @@ export class NewToDeploy extends ASTMapper {
 
     const fullPath = declaredContractFullPath.slice(0, -1).join('_');
     const varPrefix = `${fullPath}_${fileName}_${contractName}`;
-    const hash = hashFilename(varPrefix);
+    const hash = hashFilename(cairoPath);
     const varName = `${varPrefix}_${hash}`;
 
     const varDecl = new VariableDeclaration(
@@ -131,7 +134,7 @@ export class NewToDeploy extends ASTMapper {
       StateVariableVisibility.Internal,
       Mutability.Constant,
       'uint160',
-      undefined,
+      `@declare ${cairoPath}`,
       createUintNTypeName(160, ast),
       undefined,
       createNumberLiteral(0, ast, 'uint160'),
