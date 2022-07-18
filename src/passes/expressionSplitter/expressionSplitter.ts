@@ -151,7 +151,13 @@ export class ExpressionSplitter extends ASTMapper {
     ast.registerChild(func, containingFunction.vScope);
     this.dispatchVisit(func, ast);
 
+    // Conditionals might return a value, or they might be void, in which
+    // case conditionalResult would be undefined. Both cases need to be handled
+    // separately
     if (conditionalResult !== undefined) {
+      // conditionalResult variable was already used as the return value of the
+      // conditional in the new function. It needs to be cloned to capture the
+      // return value of the new function in containingFunction
       const result = cloneASTNode(conditionalResult, ast);
       result.scope = containingFunction.id;
       addStatementsToCallFunction(

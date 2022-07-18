@@ -166,6 +166,10 @@ export function getNodeVariables(node: Conditional) {
   return new Map([...collectUnboundVariables(node)].filter(([decl]) => !decl.stateVariable));
 }
 
+// There might be two different cases where conditionals return void:
+// - they are the expression of a return statement
+// - they are the expression of an expressionStatement
+// TODO - Check if there are any other cases where the conditional might be void
 export function getStatementsForVoidConditionals(
   node: Conditional,
   variables: VariableDeclaration[],
