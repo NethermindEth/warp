@@ -8,7 +8,7 @@ import { GettersGenerator } from './gettersGenerator';
 
 export class PublicStateVarsGetterGenerator extends ASTMapper {
   // Function to add passes that should have been run before this pass
-  addInitialPrerequisite(): void {
+  addInitialPassPrerequisites(): void {
     const passKeys: string[] = [
       'Tf',
       'Tnr',
@@ -23,7 +23,7 @@ export class PublicStateVarsGetterGenerator extends ASTMapper {
       'Ufr',
       'Fd',
     ];
-    passKeys.forEach((key) => this.addPrerequisite(key));
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
   static map(ast: AST): AST {

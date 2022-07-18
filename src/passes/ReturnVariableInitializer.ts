@@ -6,6 +6,42 @@ import { getDefaultValue } from '../utils/defaultValueNodes';
 import { collectUnboundVariables } from '../utils/functionGeneration';
 
 export class ReturnVariableInitializer extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: string[] = [
+      'Tf',
+      'Tnr',
+      'Ru',
+      'Fm',
+      'Ss',
+      'Ct',
+      'Ae',
+      'Idi',
+      'L',
+      'Na',
+      'Ufr',
+      'Fd',
+      'Tic',
+      'Ch',
+      'M',
+      'Sai',
+      'Udt',
+      'Req',
+      'Ffi',
+      'Rl',
+      'Ons',
+      'Ech',
+      'Sa',
+      'Ii',
+      'Mh',
+      'Pfs',
+      'Eam',
+      'Lf',
+      'R',
+    ];
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     this.commonVisit(node, ast);
     const body = node.vBody;

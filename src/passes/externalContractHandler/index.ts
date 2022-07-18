@@ -19,6 +19,34 @@ import { ExternalContractInterfaceInserter } from './externalContractInterfaceIn
 */
 
 export class ExternalContractHandler extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: string[] = [
+      'Tf',
+      'Tnr',
+      'Ru',
+      'Fm',
+      'Ss',
+      'Ct',
+      'Ae',
+      'Idi',
+      'L',
+      'Na',
+      'Ufr',
+      'Fd',
+      'Tic',
+      'Ch',
+      'M',
+      'Sai',
+      'Udt',
+      'Req',
+      'Ffi',
+      'Rl',
+      'Ons',
+    ];
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   static map(ast: AST): AST {
     ast.roots.forEach((root) => {
       const contractInterfaces: Map<number, ContractDefinition> = new Map();

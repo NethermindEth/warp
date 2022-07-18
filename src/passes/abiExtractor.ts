@@ -24,9 +24,9 @@ type Input = (string | number | Input)[];
 
 export class ABIExtractor extends ASTMapper {
   // Function to add passes that should have been run before this pass
-  addInitialPrerequisite(): void {
+  addInitialPassPrerequisites(): void {
     const passKeys: string[] = ['Tf', 'Tnr', 'Ru', 'Fm', 'Ss', 'Ct'];
-    passKeys.forEach((key) => this.addPrerequisite(key));
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
   visitSourceUnit(node: SourceUnit, ast: AST): void {

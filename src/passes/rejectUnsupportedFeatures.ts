@@ -42,9 +42,9 @@ import { isExternallyVisible } from '../utils/utils';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   // Function to add passes that should have been run before this pass
-  addInitialPrerequisite(): void {
+  addInitialPassPrerequisites(): void {
     const passKeys: string[] = ['Tf', 'Tnr'];
-    passKeys.forEach((key) => this.addPrerequisite(key));
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
   visitIndexAccess(node: IndexAccess, ast: AST): void {

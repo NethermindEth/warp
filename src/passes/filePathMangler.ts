@@ -21,9 +21,9 @@ export function checkPath(path: string) {
 
 export class FilePathMangler extends ASTMapper {
   // Function to add passes that should have been run before this pass
-  addInitialPrerequisite(): void {
+  addInitialPassPrerequisites(): void {
     const passKeys: string[] = ['Tf', 'Tnr', 'Ru'];
-    passKeys.forEach((key) => this.addPrerequisite(key));
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
   visitImportDirective(node: ImportDirective, _: AST): void {

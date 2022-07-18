@@ -15,6 +15,51 @@ import assert from 'assert';
 import { createExpressionStatement } from '../utils/nodeTemplates';
 import { checkableType } from '../utils/nodeTypeProcessing';
 export class ArgBoundChecker extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: string[] = [
+      'Tf',
+      'Tnr',
+      'Ru',
+      'Fm',
+      'Ss',
+      'Ct',
+      'Ae',
+      'Idi',
+      'L',
+      'Na',
+      'Ufr',
+      'Fd',
+      'Tic',
+      'Ch',
+      'M',
+      'Sai',
+      'Udt',
+      'Req',
+      'Ffi',
+      'Rl',
+      'Ons',
+      'Ech',
+      'Sa',
+      'Ii',
+      'Mh',
+      'Pfs',
+      'Eam',
+      'Lf',
+      'R',
+      'Rv',
+      'If',
+      'T',
+      'U',
+      'V',
+      'Vs',
+      'I',
+      'Dh',
+      'Rf',
+    ];
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     if (node.kind === ContractKind.Interface) {
       return;

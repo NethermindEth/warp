@@ -6,6 +6,38 @@ import { FunctionDefinition } from 'solc-typed-ast';
 import { InternalFunctionCallCollector } from './internalFunctionCallCollector';
 
 export class PublicFunctionSplitter extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: string[] = [
+      'Tf',
+      'Tnr',
+      'Ru',
+      'Fm',
+      'Ss',
+      'Ct',
+      'Ae',
+      'Idi',
+      'L',
+      'Na',
+      'Ufr',
+      'Fd',
+      'Tic',
+      'Ch',
+      'M',
+      'Sai',
+      'Udt',
+      'Req',
+      'Ffi',
+      'Rl',
+      'Ons',
+      'Ech',
+      'Sa',
+      'Ii',
+      'Mh',
+    ];
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   static map(ast: AST): AST {
     const internalFunctionCallSet = new Set<FunctionDefinition>();
     ast.roots.forEach((root) =>

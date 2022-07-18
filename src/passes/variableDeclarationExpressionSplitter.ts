@@ -25,6 +25,48 @@ import { typeNameFromTypeNode } from '../utils/utils';
 
 export class VariableDeclarationExpressionSplitter extends ASTMapper {
   lastUsedConstantId = 0;
+
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: string[] = [
+      'Tf',
+      'Tnr',
+      'Ru',
+      'Fm',
+      'Ss',
+      'Ct',
+      'Ae',
+      'Idi',
+      'L',
+      'Na',
+      'Ufr',
+      'Fd',
+      'Tic',
+      'Ch',
+      'M',
+      'Sai',
+      'Udt',
+      'Req',
+      'Ffi',
+      'Rl',
+      'Ons',
+      'Ech',
+      'Sa',
+      'Ii',
+      'Mh',
+      'Pfs',
+      'Eam',
+      'Lf',
+      'R',
+      'Rv',
+      'If',
+      'T',
+      'U',
+      'V',
+    ];
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   generateNewConstantName(): string {
     return `${SPLIT_VARIABLE_PREFIX}${this.lastUsedConstantId++}`;
   }

@@ -49,7 +49,7 @@ export class StaticArrayIndexer extends ASTMapper {
   private staticArrayAccesed = new Map<number, VariableDeclaration>();
 
   // Function to add passes that should have been run before this pass
-  addInitialPrerequisite(): void {
+  addInitialPassPrerequisites(): void {
     const passKeys: string[] = [
       'Tf',
       'Tnr',
@@ -67,7 +67,7 @@ export class StaticArrayIndexer extends ASTMapper {
       'Ch',
       'M',
     ];
-    passKeys.forEach((key) => this.addPrerequisite(key));
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {

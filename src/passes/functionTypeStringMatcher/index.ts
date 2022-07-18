@@ -8,9 +8,9 @@ import { IdentifierTypeStringMatcher } from './identifierTypeStringMatcher';
 
 export class FunctionTypeStringMatcher extends ASTMapper {
   // Function to add passes that should have been run before this pass
-  addInitialPrerequisite(): void {
+  addInitialPassPrerequisites(): void {
     const passKeys: string[] = ['Tf', 'Tnr', 'Ru', 'Fm', 'Ss', 'Ct', 'Ae', 'Idi', 'L', 'Na', 'Ufr'];
-    passKeys.forEach((key) => this.addPrerequisite(key));
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
   static map(ast: AST): AST {

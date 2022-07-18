@@ -12,6 +12,37 @@ import { ModifierRemover } from './modifierRemover';
     since they are no longer needed.
 */
 export class ModifierHandler extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: string[] = [
+      'Tf',
+      'Tnr',
+      'Ru',
+      'Fm',
+      'Ss',
+      'Ct',
+      'Ae',
+      'Idi',
+      'L',
+      'Na',
+      'Ufr',
+      'Fd',
+      'Tic',
+      'Ch',
+      'M',
+      'Sai',
+      'Udt',
+      'Req',
+      'Ffi',
+      'Rl',
+      'Ons',
+      'Ech',
+      'Sa',
+      'Ii',
+    ];
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   static map(ast: AST): AST {
     ast.roots.forEach((root) => {
       new FunctionModifierHandler().dispatchVisit(root, ast);

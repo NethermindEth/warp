@@ -29,6 +29,52 @@ import { generateExpressionTypeString } from '../utils/getTypeString';
 import { createNumberLiteral } from '../utils/nodeTemplates';
 
 export class EnumConverter extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: string[] = [
+      'Tf',
+      'Tnr',
+      'Ru',
+      'Fm',
+      'Ss',
+      'Ct',
+      'Ae',
+      'Idi',
+      'L',
+      'Na',
+      'Ufr',
+      'Fd',
+      'Tic',
+      'Ch',
+      'M',
+      'Sai',
+      'Udt',
+      'Req',
+      'Ffi',
+      'Rl',
+      'Ons',
+      'Ech',
+      'Sa',
+      'Ii',
+      'Mh',
+      'Pfs',
+      'Eam',
+      'Lf',
+      'R',
+      'Rv',
+      'If',
+      'T',
+      'U',
+      'V',
+      'Vs',
+      'I',
+      'Dh',
+      'Rf',
+      'Abc',
+    ];
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   getEnumValue(node: EnumDefinition, memberName: string): number {
     const val = node.vMembers.map((ev) => ev.name).indexOf(memberName);
     if (val < 0) {

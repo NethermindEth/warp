@@ -32,6 +32,35 @@ import { isDynamicArray, typeNameToSpecializedTypeNode } from '../utils/nodeType
 import { isCairoConstant } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: string[] = [
+      'Tf',
+      'Tnr',
+      'Ru',
+      'Fm',
+      'Ss',
+      'Ct',
+      'Ae',
+      'Idi',
+      'L',
+      'Na',
+      'Ufr',
+      'Fd',
+      'Tic',
+      'Ch',
+      'M',
+      'Sai',
+      'Udt',
+      'Req',
+      'Ffi',
+      'Rl',
+      'Ons',
+      'Ech',
+    ];
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     const initialisationBlock = createBlock([], ast);
 

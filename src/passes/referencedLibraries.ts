@@ -16,6 +16,32 @@ import { ASTMapper } from '../ast/mapper';
 // linearizedBaselist of a contract/Library.
 
 export class ReferencedLibraries extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: string[] = [
+      'Tf',
+      'Tnr',
+      'Ru',
+      'Fm',
+      'Ss',
+      'Ct',
+      'Ae',
+      'Idi',
+      'L',
+      'Na',
+      'Ufr',
+      'Fd',
+      'Tic',
+      'Ch',
+      'M',
+      'Sai',
+      'Udt',
+      'Req',
+      'Ffi',
+    ];
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     const librariesById = new Map<number, ContractDefinition>();
     if (node.vExpression instanceof MemberAccess) {

@@ -36,6 +36,45 @@ import { typeNameFromTypeNode } from '../utils/utils';
 
 export class TupleAssignmentSplitter extends ASTMapper {
   lastTempVarNumber = 0;
+
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: string[] = [
+      'Tf',
+      'Tnr',
+      'Ru',
+      'Fm',
+      'Ss',
+      'Ct',
+      'Ae',
+      'Idi',
+      'L',
+      'Na',
+      'Ufr',
+      'Fd',
+      'Tic',
+      'Ch',
+      'M',
+      'Sai',
+      'Udt',
+      'Req',
+      'Ffi',
+      'Rl',
+      'Ons',
+      'Ech',
+      'Sa',
+      'Ii',
+      'Mh',
+      'Pfs',
+      'Eam',
+      'Lf',
+      'R',
+      'Rv',
+      'If',
+    ];
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   newTempVarName(): string {
     return `${TUPLE_VALUE_PREFIX}${this.lastTempVarNumber++}`;
   }

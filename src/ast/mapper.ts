@@ -14,19 +14,22 @@ export class ASTMapper extends ASTVisitor<void> {
   // List of passes that should have been run before this one
   prerequites: string[] = new Array<string>();
 
-  addPrerequisite(pass_key: string) {
+  addPassPrerequisite(pass_key: string) {
     this.prerequites.push(pass_key);
   }
 
-  addInitialPrerequisite(): void {}
+  addInitialPassPrerequisites(): void {
+    return;
+  }
 
-  getPrerequites(): string[] {
+  getPassPrerequites(): string[] {
     return this.prerequites;
   }
 
-  ASTMapper() {
-    this.prerequites = new Array<string>();
-    this.addInitialPrerequisite();
+  static _getPassPrerequites(): string[] {
+    const mapper = new this();
+    mapper.addInitialPassPrerequisites();
+    return mapper.getPassPrerequites();
   }
 
   commonVisit(node: ASTNode, ast: AST): void {
