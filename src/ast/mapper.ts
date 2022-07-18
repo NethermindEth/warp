@@ -12,10 +12,10 @@ import { ASTVisitor } from './visitor';
 
 export class ASTMapper extends ASTVisitor<void> {
   // List of passes that should have been run before this one
-  prerequisite: Set<string> = new Set<string>();
+  prerequisites: Set<string> = new Set<string>();
 
   addPassPrerequisite(pass_key: string) {
-    this.prerequisite.add(pass_key);
+    this.prerequisites.add(pass_key);
   }
 
   addInitialPassPrerequisites(): void {
@@ -23,7 +23,7 @@ export class ASTMapper extends ASTVisitor<void> {
   }
 
   getPassPrerequisites(): Set<string> {
-    return this.prerequisite;
+    return this.prerequisites;
   }
 
   static _getPassPrerequisites(): Set<string> {

@@ -33,24 +33,7 @@ class UserDefinedValueTypeDefinitionEliminator extends ASTMapper {
 export class UserDefinedTypesConverter extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([
-      'Tf',
-      'Tnr',
-      'Ru',
-      'Fm',
-      'Ss',
-      'Ct',
-      'Ae',
-      'Idi',
-      'L',
-      'Na',
-      'Ufr',
-      'Fd',
-      'Tic',
-      'Ch',
-      'M',
-      'Sai',
-    ]);
+    const passKeys: Set<string> = new Set<string>([]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
