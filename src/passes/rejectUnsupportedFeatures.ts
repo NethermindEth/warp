@@ -67,6 +67,16 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     );
   }
   visitFunctionCallOptions(node: FunctionCallOptions, _ast: AST): void {
+    // Aloud options when passing salt values for contract creation
+    if (
+      node.parent instanceof FunctionCall &&
+      node.parent.typeString.startsWith('contract') &&
+      [...node.vOptionsMap.entries()].length === 1 &&
+      node.vOptionsMap.has('salt')
+    ) {
+      return;
+    }
+
     throw new WillNotSupportError(
       'Function call options, such as {gas:X} and {value:X} are not supported',
       node,

@@ -3243,6 +3243,16 @@ export const expectations = flatten(
               ['getStructX', [], ['23', '29'], '0'],
             ]),
           ]),
+          File.Simple('salted', [
+            new Expect('Create multiple salted contracts', [
+              ['createUint256Contract', ['0', '1', '0', '2'], [], '0'],
+              ['createUint256Contract', ['0', '2', '0', '5'], [], '0'],
+            ]),
+            new Expect('Interact with different deployed salted contracts', [
+              ['getUint256X', ['0', '1'], ['0', '2'], '0'],
+              ['getUint256X', ['0', '2'], ['0', '5'], '0'],
+            ]),
+          ]),
           /*
           File.Simple('product', [
             new Expect('Different types', [
