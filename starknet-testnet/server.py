@@ -1,4 +1,3 @@
-import base64
 import os
 import sys
 from generateMarkdown import (
