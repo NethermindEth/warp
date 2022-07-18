@@ -26,7 +26,7 @@ export function parsePassOrder(
   //We want keys in order of longest first otherwise 'Vs' would match 'V' and then error on 's'
   const sortedPassMap = [...passes.entries()].sort(([a], [b]) => b.length - a.length);
   const passesInOrder = [];
-  const keyPassesInOrder = new Set<string>();
+  const keyPassesInOrder: string[] = [];
   let remainingOrder = order;
 
   while (remainingOrder.length > 0) {
@@ -36,21 +36,22 @@ export function parsePassOrder(
     }
     const [key, nextPass] = foundPass;
     passesInOrder.push(nextPass);
-    keyPassesInOrder.add(key);
+    keyPassesInOrder.push(key);
     if (key === until) break;
     remainingOrder = remainingOrder.slice(key.length);
   }
-  // If in development mode, then exempt prerequisites pass checks
+  // In development mode exempt pass prerequisites checks
   if (!dev) {
-    passesInOrder.forEach((element) => {
+    passesInOrder.forEach((element, index) => {
       const prerequites = element._getPassPrerequites();
+      const prerequitesKeys = [...keyPassesInOrder].slice(0, index);
       prerequites.forEach((prerequisite) => {
         if (!passes.get(prerequisite)) {
           throw new Error(
             `Unknown pass key: ${prerequisite} in pass prerequites of ${element.getPassName()}`,
           );
         }
-        if (!keyPassesInOrder.has(prerequisite)) {
+        if (!prerequitesKeys.includes(prerequisite)) {
           if (warnings) {
             console.warn(
               `${passes
