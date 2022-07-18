@@ -51,7 +51,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
   }
 
   getGeneratedCode(): string {
-    return [...this.generatedFunctions.values(), ...this.auxiliarGeneratedFunctions.values()]
+    return [...this.auxiliarGeneratedFunctions.values(), ...this.generatedFunctions.values()]
       .map((func) => func.code)
       .join('\n\n');
   }
@@ -95,20 +95,22 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
         assert(cairoType instanceof CairoDynArray);
         const arrayName = `${prefix}_dynamic`;
         parameters.push(` ${arrayName} : ${cairoType.typeName}`);
-        const auxFuncName = this.getOrCrateAuxiliar(type);
+        const auxFuncName = this.getOrCreateAuxiliar(type);
         encodeCode.push(
+          `assert decode_array[total_size] = ${arrayName}.len`,
+          `let total_size = total_size + 1`,
           `let (total_size) = ${auxFuncName}(total_size, decode_array, 0, ${arrayName}.len, ${arrayName}.ptr)`,
         );
       } else if (type instanceof ArrayType) {
         parameters.push(`${prefix}_static : ${cairoType.toString()}`);
-        const auxFuncName = this.getOrCrateAuxiliar(type);
+        const auxFuncName = this.getOrCreateAuxiliar(type);
         encodeCode.push(
           `let (total_size) = ${auxFuncName}(total_size, decode_array, ${prefix}_static)`,
         );
       } else if (isStruct(type)) {
         assert(cairoType instanceof CairoStruct);
         parameters.push(`${prefix}_${cairoType.name} : ${cairoType.typeName}`);
-        const auxFuncName = this.getOrCrateAuxiliar(type);
+        const auxFuncName = this.getOrCreateAuxiliar(type);
         encodeCode.push(
           `let (total_size) = ${auxFuncName}(total_size, decode_array, ${prefix}_${cairoType.name})`,
         );
@@ -155,7 +157,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private getOrCrateAuxiliar(type: TypeNode): string {
+  private getOrCreateAuxiliar(type: TypeNode): string {
     const key = type.pp();
     const existing = this.auxiliarGeneratedFunctions.get(key);
 
@@ -194,7 +196,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
         : [`assert to_array[to_index] = ${currentElementName}`, `let to_index = to_index + 1`];
     }
 
-    const auxFuncName = this.getOrCrateAuxiliar(type);
+    const auxFuncName = this.getOrCreateAuxiliar(type);
     return [`let (to_index) = ${auxFuncName}(to_index, to_array, ${currentElementName})`];
   }
 
