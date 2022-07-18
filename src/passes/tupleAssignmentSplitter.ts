@@ -39,7 +39,7 @@ export class TupleAssignmentSplitter extends ASTMapper {
 
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: string[] = [
+    const passKeys: Set<string> = new Set<string>([
       'Tf',
       'Tnr',
       'Ru',
@@ -71,7 +71,7 @@ export class TupleAssignmentSplitter extends ASTMapper {
       'R',
       'Rv',
       'If',
-    ];
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

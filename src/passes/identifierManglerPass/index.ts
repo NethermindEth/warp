@@ -5,7 +5,7 @@ import { ExpressionNameMangler } from './expressionNameMangler';
 export class IdentifierMangler extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: string[] = [
+    const passKeys: Set<string> = new Set<string>([
       'Tf',
       'Tnr',
       'Ru',
@@ -20,7 +20,7 @@ export class IdentifierMangler extends ASTMapper {
       'Fd',
       'Tic',
       'Ch',
-    ];
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

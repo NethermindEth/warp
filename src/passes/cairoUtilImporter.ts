@@ -13,7 +13,7 @@ import { isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
 export class CairoUtilImporter extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: string[] = [
+    const passKeys: Set<string> = new Set<string>([
       'Tf',
       'Tnr',
       'Ru',
@@ -60,7 +60,7 @@ export class CairoUtilImporter extends ASTMapper {
       'Fp',
       'E',
       'An',
-    ];
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

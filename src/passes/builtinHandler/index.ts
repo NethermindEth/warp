@@ -11,7 +11,7 @@ import { Keccak } from './keccak';
 export class BuiltinHandler extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: string[] = [
+    const passKeys: Set<string> = new Set<string>([
       'Tf',
       'Tnr',
       'Ru',
@@ -52,7 +52,7 @@ export class BuiltinHandler extends ASTMapper {
       'Rf',
       'Abc',
       'Ec',
-    ];
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

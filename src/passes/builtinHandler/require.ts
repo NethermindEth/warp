@@ -16,7 +16,7 @@ import { createBoolLiteral } from '../../utils/nodeTemplates';
 export class Require extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: string[] = [
+    const passKeys: Set<string> = new Set<string>([
       'Tf',
       'Tnr',
       'Ru',
@@ -34,7 +34,7 @@ export class Require extends ASTMapper {
       'M',
       'Sai',
       'Udt',
-    ];
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

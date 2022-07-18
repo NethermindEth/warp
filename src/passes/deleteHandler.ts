@@ -18,7 +18,7 @@ import { getDefaultValue } from '../utils/defaultValueNodes';
 export class DeleteHandler extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: string[] = [
+    const passKeys: Set<string> = new Set<string>([
       'Tf',
       'Tnr',
       'Ru',
@@ -55,7 +55,7 @@ export class DeleteHandler extends ASTMapper {
       'V',
       'Vs',
       'I',
-    ];
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

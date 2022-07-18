@@ -17,7 +17,7 @@ type Scoped = FunctionDefinition | ContractDefinition | VariableDeclaration | St
 export class SourceUnitSplitter extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: string[] = ['Tf', 'Tnr', 'Ru', 'Fm'];
+    const passKeys: Set<string> = new Set<string>(['Tf', 'Tnr', 'Ru', 'Fm']);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

@@ -52,7 +52,7 @@ export class ExpressionSplitter extends ASTMapper {
 
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: string[] = [
+    const passKeys: Set<string> = new Set<string>([
       'Tf',
       'Tnr',
       'Ru',
@@ -97,7 +97,7 @@ export class ExpressionSplitter extends ASTMapper {
       'Bc',
       'Us',
       'Fp',
-    ];
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

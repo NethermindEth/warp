@@ -43,7 +43,7 @@ import { isExternallyVisible } from '../utils/utils';
 export class RejectUnsupportedFeatures extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: string[] = ['Tf', 'Tnr'];
+    const passKeys: Set<string> = new Set<string>(['Tf', 'Tnr']);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

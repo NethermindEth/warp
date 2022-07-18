@@ -17,7 +17,7 @@ import { notNull } from '../utils/typeConstructs';
 export class TypeNameRemover extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: string[] = ['Tf'];
+    const passKeys: Set<string> = new Set<string>(['Tf']);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

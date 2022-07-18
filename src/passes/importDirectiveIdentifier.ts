@@ -29,7 +29,7 @@ import {
 export class ImportDirectiveIdentifier extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: string[] = ['Tf', 'Tnr', 'Ru', 'Fm', 'Ss', 'Ct', 'Ae'];
+    const passKeys: Set<string> = new Set<string>(['Tf', 'Tnr', 'Ru', 'Fm', 'Ss', 'Ct', 'Ae']);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

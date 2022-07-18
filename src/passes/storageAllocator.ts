@@ -34,7 +34,7 @@ import { isCairoConstant } from '../utils/utils';
 export class StorageAllocator extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: string[] = [
+    const passKeys: Set<string> = new Set<string>([
       'Tf',
       'Tnr',
       'Ru',
@@ -57,7 +57,7 @@ export class StorageAllocator extends ASTMapper {
       'Rl',
       'Ons',
       'Ech',
-    ];
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

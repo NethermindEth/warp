@@ -8,7 +8,7 @@ import { InternalFunctionCallCollector } from './internalFunctionCallCollector';
 export class PublicFunctionSplitter extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: string[] = [
+    const passKeys: Set<string> = new Set<string>([
       'Tf',
       'Tnr',
       'Ru',
@@ -34,7 +34,7 @@ export class PublicFunctionSplitter extends ASTMapper {
       'Sa',
       'Ii',
       'Mh',
-    ];
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

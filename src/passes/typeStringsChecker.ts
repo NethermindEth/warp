@@ -13,7 +13,7 @@ class AssertTypeStrings extends ASTMapper {
 export class TypeStringsChecker extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: string[] = ['Tf', 'Tnr', 'Ru', 'Fm', 'Ss'];
+    const passKeys: Set<string> = new Set<string>(['Tf', 'Tnr', 'Ru', 'Fm', 'Ss']);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

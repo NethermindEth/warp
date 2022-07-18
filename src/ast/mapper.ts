@@ -12,21 +12,21 @@ import { ASTVisitor } from './visitor';
 
 export class ASTMapper extends ASTVisitor<void> {
   // List of passes that should have been run before this one
-  prerequites: string[] = new Array<string>();
+  prerequites: Set<string> = new Set<string>();
 
   addPassPrerequisite(pass_key: string) {
-    this.prerequites.push(pass_key);
+    this.prerequites.add(pass_key);
   }
 
   addInitialPassPrerequisites(): void {
     return;
   }
 
-  getPassPrerequites(): string[] {
+  getPassPrerequites(): Set<string> {
     return this.prerequites;
   }
 
-  static _getPassPrerequites(): string[] {
+  static _getPassPrerequites(): Set<string> {
     const mapper = new this();
     mapper.addInitialPassPrerequisites();
     return mapper.getPassPrerequites();
