@@ -35,6 +35,10 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('assignments', [
+          File.Simple('compoundAssignment', [
+            Expect.Simple('compoundAssignmentToMemory', [], ['3', '4']),
+            Expect.Simple('compoundAssignmentToStorage', [], ['3', '4']),
+          ]),
           File.Simple('functionSingle', [
             Expect.Simple('test', ['3'], ['3']),
             Expect.Simple('test256', ['3', '4'], ['3', '4']),
