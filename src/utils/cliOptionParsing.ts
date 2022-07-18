@@ -43,15 +43,15 @@ export function parsePassOrder(
   }
 
   passesInOrder.forEach((element, index) => {
-    const prerequites = element._getPassPrerequites();
-    const prerequitesKeys = [...keyPassesInOrder].slice(0, index);
-    prerequites.forEach((prerequisite) => {
+    const prerequisite = element._getPassPrerequisites();
+    const earlierPassKeys = [...keyPassesInOrder].slice(0, index);
+    prerequisite.forEach((prerequisite) => {
       if (!passes.get(prerequisite)) {
         throw new Error(
-          `Unknown pass key: ${prerequisite} in pass prerequites of ${element.getPassName()}`,
+          `Unknown pass key: ${prerequisite} in pass prerequisite of ${element.getPassName()}`,
         );
       }
-      if (!prerequitesKeys.includes(prerequisite)) {
+      if (!earlierPassKeys.includes(prerequisite)) {
         if (warnings && dev) {
           console.log(
             `WARNING: ${passes
