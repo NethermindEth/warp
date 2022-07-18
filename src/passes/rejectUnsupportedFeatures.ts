@@ -4,7 +4,6 @@ import {
   ArrayTypeName,
   ASTNode,
   BytesType,
-  Conditional,
   ContractDefinition,
   ContractKind,
   DataLocation,
