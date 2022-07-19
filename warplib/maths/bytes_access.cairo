@@ -1,4 +1,6 @@
 from warplib.maths.pow2 import pow2
+from warplib.types.uints import Uint8
+
 from starkware.cairo.common.bitwise import bitwise_and
 
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
@@ -14,42 +16,42 @@ func byte_accessor{range_check_ptr}(index : felt) -> (offset : felt):
 end
 
 func byte_at_index_uint256{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
-    base : felt, index : Uint256, width : felt
-) -> (res : felt):
+    base : felt, index : Uint256, width : Uint8
+) -> (res : Uint8):
     alloc_locals
 
     assert index.high = 0
-    assert_nn_le(index.low, width - 1)
+    assert_nn_le(index.low, width.value - 1)
     let index_felt = index.low
 
-    let index_from_right = width - 1 - index_felt
+    let index_from_right = width.value - 1 - index_felt
 
     let (byte_accesor_felt) = byte_accessor(index_from_right)
     let (slicer) = pow2(index_from_right * 8)
     let (res_and) = bitwise_and(base, byte_accesor_felt)
     let res = res_and / slicer
-    return (res)
+    return (Uint8(res))
 end
 
 func byte_at_index{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
-    base : felt, index : felt, width : felt
-) -> (res : felt):
+    base : felt, index : felt, width : Uint8
+) -> (res : Uint8):
     alloc_locals
 
-    assert_nn_le(index, width - 1)
+    assert_nn_le(index, width.value - 1)
 
-    let index_from_right = width - 1 - index
+    let index_from_right = width.value - 1 - index
 
     let (byte_accesor_felt) = byte_accessor(index_from_right)
     let (slicer) = pow2(index_from_right * 8)
     let (res_and) = bitwise_and(base, byte_accesor_felt)
     let res = res_and / slicer
-    return (res)
+    return (Uint8(res))
 end
 
 func byte256_at_index{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
     base : Uint256, index : felt
-) -> (res : felt):
+) -> (res : Uint8):
     alloc_locals
     assert_nn_le(index, 31)
 
@@ -60,20 +62,20 @@ func byte256_at_index{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
         let (slicer) = pow2(index_from_right * 8)
         let (res_and) = bitwise_and(base.high, byte_accesor_felt)
         let res = res_and / slicer
-        return (res)
+        return (Uint8(res))
     else:
         let index_from_right = 31 - index
         let (byte_accesor_felt) = byte_accessor(index_from_right)
         let (slicer) = pow2(index_from_right * 8)
         let (res_and) = bitwise_and(base.low, byte_accesor_felt)
         let res = res_and / slicer
-        return (res)
+        return (Uint8(res))
     end
 end
 
 func byte256_at_index_uint256{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
     base : Uint256, index : Uint256
-) -> (res : felt):
+) -> (res : Uint8):
     alloc_locals
 
     assert index.high = 0
@@ -86,13 +88,13 @@ func byte256_at_index_uint256{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(
         let (slicer) = pow2(index_from_right * 8)
         let (res_and) = bitwise_and(base.high, byte_accesor_felt)
         let res = res_and / slicer
-        return (res)
+        return (Uint8(res))
     else:
         let index_from_right = 31 - index.low
         let (byte_accesor_felt) = byte_accessor(index_from_right)
         let (slicer) = pow2(index_from_right * 8)
         let (res_and) = bitwise_and(base.low, byte_accesor_felt)
         let res = res_and / slicer
-        return (res)
+        return (Uint8(res))
     end
 end

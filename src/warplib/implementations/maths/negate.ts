@@ -1,9 +1,11 @@
-import { UnaryOperation } from 'solc-typed-ast';
+import { generalizeType, getNodeType, IntType, UnaryOperation } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { Implicits } from '../../../utils/implicits';
 import { bound, forAllWidths, generateFile, IntFunction, mask } from '../../utils';
+import { mapRange } from '../../../utils/utils';
 
 // This satisfies the solidity convention of -type(intX).min = type(intX).min
+
 export function negate(): void {
   generateFile(
     'negate',
@@ -11,22 +13,54 @@ export function negate(): void {
       'from starkware.cairo.common.bitwise import bitwise_and',
       'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
       'from starkware.cairo.common.uint256 import Uint256, uint256_neg',
+      `from warplib.types.uints import ${mapRange(31, (n) => `Uint${8 * n + 8}`)}`,
     ],
     forAllWidths((width) => {
       if (width === 256) {
         return [
           'func warp_negate256{range_check_ptr}(op : Uint256) -> (res : Uint256):',
-          '    let (res) = uint256_neg(op)',
+          '    let (res : Uint256) = uint256_neg(op)',
           '    return (res)',
           'end',
         ];
       } else {
         // Could also have if op == 0: 0 else limit-op
         return [
-          `func warp_negate${width}{bitwise_ptr : BitwiseBuiltin*}(op : felt) -> (res : felt):`,
-          `    let raw_res = ${bound(width)} - op`,
-          `    let (res) = bitwise_and(raw_res, ${mask(width)})`,
-          `    return (res)`,
+          `func warp_negate${width}{bitwise_ptr : BitwiseBuiltin*}(op : Uint${width}) -> (res : Uint${width}):`,
+          `    let raw_res = ${bound(width)} - op.value`,
+          `    let (trunc_res) =  bitwise_and(raw_res, ${mask(width)})`,
+          `    return (Uint${width}(value=trunc_res))`,
+          `end`,
+        ];
+      }
+    }),
+  );
+}
+
+export function negate_signed(): void {
+  generateFile(
+    'negate_signed',
+    [
+      'from starkware.cairo.common.bitwise import bitwise_and',
+      'from starkware.cairo.common.cairo_builtins import BitwiseBuiltin',
+      'from starkware.cairo.common.uint256 import Uint256, uint256_neg',
+      `from warplib.types.ints import ${mapRange(32, (n) => `Int${8 * n + 8}`)}`,
+    ],
+    forAllWidths((width) => {
+      if (width === 256) {
+        return [
+          'func warp_negate_signed256{range_check_ptr}(op : Int256) -> (res : Int256):',
+          '    let (res : Uint256) = uint256_neg(op.value)',
+          `    return (Int256(value=res))`,
+          'end',
+        ];
+      } else {
+        // Could also have if op == 0: 0 else limit-op
+        return [
+          `func warp_negate_signed${width}{bitwise_ptr : BitwiseBuiltin*}(op : Int${width}) -> (res : Int${width}):`,
+          `    let raw_res = ${bound(width)} - op.value`,
+          `    let (trunc_res) =  bitwise_and(raw_res, ${mask(width)})`,
+          `    return (Int${width}(value=trunc_res))`,
           `end`,
         ];
       }
@@ -39,5 +73,13 @@ export function functionaliseNegate(node: UnaryOperation, ast: AST): void {
     if (wide) return ['range_check_ptr'];
     else return ['bitwise_ptr'];
   };
-  IntFunction(node, node.vSubExpression, 'negate', 'negate', implicitsFn, ast);
+  const fromType = generalizeType(getNodeType(node.vSubExpression, ast.compilerVersion))[0];
+  IntFunction(
+    node,
+    node.vSubExpression,
+    fromType instanceof IntType && fromType.signed ? 'negate_signed' : 'negate',
+    fromType instanceof IntType && fromType.signed ? 'negate_signed' : 'negate',
+    implicitsFn,
+    ast,
+  );
 }

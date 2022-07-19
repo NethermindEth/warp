@@ -55,12 +55,23 @@ export function msbAndNext(width: number): string {
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
 
-export function generateFile(name: string, imports: string[], functions: string[]): void {
+export function generateFile(
+  name: string,
+  imports: string[],
+  functions: string[],
+  dir?: string,
+): void {
+  const directory = `./warplib/${dir ?? 'maths'}`;
+
+  // if dir directory is not present in the current directory, create it
+  if (dir && !fs.existsSync(directory)) {
+    fs.mkdirSync(directory);
+  }
   fs.writeFileSync(
-    `./warplib/maths/${name}.cairo`,
+    `${directory}/${name}.cairo`,
     `#AUTO-GENERATED\n${imports.join('\n')}\n\n${functions.join('\n')}\n`,
   );
-  execSync(`${warpVenvPrefix} cairo-format -i ./warplib/maths/${name}.cairo`);
+  execSync(`${warpVenvPrefix} cairo-format -i ${directory}/${name}.cairo`);
 }
 
 export function IntxIntFunction(
@@ -135,7 +146,7 @@ export function IntxIntFunction(
 export function Comparison(
   node: BinaryOperation,
   name: string,
-  appendWidth: 'only256' | 'signedOrWide',
+  appendWidth: 'only256' | 'signedOrWide' | 'always',
   separateSigned: boolean,
   implicits: (wide: boolean, signed: boolean) => Implicits[],
   ast: AST,
@@ -147,7 +158,8 @@ export function Comparison(
     (lhsType instanceof IntType || lhsType instanceof FixedBytesType) &&
     getIntOrFixedByteBitWidth(lhsType) === 256;
   const signed = lhsType instanceof IntType && lhsType.signed;
-  const shouldAppendWidth = wide || (appendWidth === 'signedOrWide' && signed);
+  const shouldAppendWidth =
+    wide || (appendWidth === 'signedOrWide' && signed) || appendWidth === 'always';
   const fullName = [
     'warp_',
     name,

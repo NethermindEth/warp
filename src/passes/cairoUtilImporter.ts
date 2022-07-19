@@ -18,15 +18,34 @@ export class CairoUtilImporter extends ASTMapper {
   }
 
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
-    if (primitiveTypeToCairo(node.name) === 'Uint256') {
-      ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
+    const cairoType: string = primitiveTypeToCairo(node.name);
+    // if cairoType is form of IntX or UintX
+    if (cairoType.match(/^(Int)(\d+)$/)) {
+      if (cairoType === 'Int256') {
+        ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
+      }
+      ast.registerImport(node, 'warplib.types.ints', `${cairoType}`);
+    }
+    if (cairoType.match(/^(Uint)(\d+)$/)) {
+      if (cairoType === 'Uint256') {
+        ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
+      } else ast.registerImport(node, 'warplib.types.uints', `${cairoType}`);
     }
   }
 
   visitLiteral(node: Literal, ast: AST): void {
     const type = getNodeType(node, ast.compilerVersion);
-    if (type instanceof IntType && type.nBits > 251) {
-      ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
+    if (type instanceof IntType) {
+      if (type.signed) {
+        ast.registerImport(node, 'warplib.types.ints', `Int${Math.ceil(type.nBits / 8) * 8}`);
+        if (type.nBits > 251) {
+          ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
+        }
+      } else if (type.nBits > 251)
+        ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');
+      else {
+        ast.registerImport(node, 'warplib.types.uints', `Uint${Math.ceil(type.nBits / 8) * 8}`);
+      }
     }
   }
 

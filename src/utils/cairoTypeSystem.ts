@@ -96,7 +96,7 @@ export abstract class CairoType {
     } else if (tp instanceof FunctionType) {
       throw new NotSupportedYetError('Serialising FunctionType not supported yet');
     } else if (tp instanceof IntType) {
-      return tp.nBits > 251 ? CairoUint256 : new CairoFelt();
+      return getCairoIntType(tp);
     } else if (tp instanceof MappingType) {
       return new WarpLocation();
     } else if (tp instanceof PointerType) {
@@ -313,4 +313,18 @@ function generateCallDataDynArrayStructNameInner(elementType: TypeNode, ast: AST
   } else {
     return CairoType.fromSol(elementType, ast, TypeConversionContext.CallDataRef).toString();
   }
+}
+function getCairoIntType(tp: IntType) {
+  // return tp.nBits > 251 ? CairoUint256 : new CairoFelt();
+  if (tp.nBits > 251) {
+    if (tp.signed) {
+      return new CairoStruct('Int256', new Map([['value', CairoUint256]]));
+    } else {
+      return CairoUint256;
+    }
+  }
+  return new CairoStruct(
+    `${tp.signed ? 'Int' : 'Uint'}${Math.ceil(tp.nBits / 8) * 8}`,
+    new Map([['value', new CairoFelt()]]),
+  );
 }

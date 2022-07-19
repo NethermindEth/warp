@@ -91,7 +91,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
         if (type instanceof FixedBytesType) {
           return this.createIntInputCheck(type.size * 8);
         } else if (type instanceof IntType) {
-          return this.createIntInputCheck(type.nBits);
+          return this.createIntInputCheck(type.nBits, type.signed);
         } else if (type instanceof BoolType) {
           return this.createBoolInputCheck();
         } else if (type instanceof UserDefinedType && type.definition instanceof EnumDefinition) {
@@ -111,11 +111,11 @@ export class InputCheckGen extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private createIntInputCheck(bitWidth: number): string {
-    const funcName = `warp_external_input_check_int${bitWidth}`;
+  private createIntInputCheck(bitWidth: number, signed?: boolean): string {
+    const funcName = `warp_external_input_check_${signed ? '' : 'u'}int${bitWidth}`;
     this.requireImport(
-      'warplib.maths.external_input_check_ints',
-      `warp_external_input_check_int${bitWidth}`,
+      `warplib.maths.external_input_check_${signed ? '' : 'u'}ints`,
+      `warp_external_input_check_${signed ? '' : 'u'}int${bitWidth}`,
     );
     return funcName;
   }

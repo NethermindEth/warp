@@ -72,18 +72,24 @@ export function divmod(x: bigint, y: bigint): [bigint, bigint] {
   return [div, rem];
 }
 
-export function primitiveTypeToCairo(typeString: string): 'Uint256' | 'felt' {
+export function primitiveTypeToCairo(typeString: string): string {
   switch (typeString) {
     case 'uint':
     case 'uint256':
+      return 'Uint256';
     case 'int':
     case 'int256':
-      return 'Uint256';
+      return 'Int256';
     case 'fixed':
     case 'ufixed':
       throw new NotSupportedYetError('Fixed types not implemented');
-    default:
+    default: {
+      if (typeString.match(/^(int|uint)(\d+)$/)) {
+        // return typeString with first letter capitalized
+        return typeString.charAt(0).toUpperCase() + typeString.slice(1);
+      }
       return 'felt';
+    }
   }
 }
 
@@ -315,6 +321,7 @@ export function narrowBigIntSafe(n: bigint, errorMessage?: string): number {
 export function isCairoConstant(node: VariableDeclaration): boolean {
   if (node.mutability === Mutability.Constant && node.vValue instanceof Literal) {
     if (node.vType instanceof ElementaryTypeName) {
+      // console.log(node.vType.name, primitiveTypeToCairo(node.vType.name));
       return primitiveTypeToCairo(node.vType.name) === 'felt';
     }
   }
