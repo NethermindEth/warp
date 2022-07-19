@@ -47,6 +47,8 @@ export class FreeFunctionInliner extends ASTMapper {
         clonedFunction.kind = FunctionKind.Function;
         node.appendChild(clonedFunction);
         remappings.set(funcToInline, clonedFunction);
+        // Added for recursive calls
+        remappings.set(clonedFunction, clonedFunction);
       });
 
     updateReferencedDeclarations(node, remappings);
