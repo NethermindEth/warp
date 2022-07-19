@@ -11,6 +11,11 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { createUint256TypeName, createUint8TypeName } from '../../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../../utils/utils';
 
+/*
+A subpass that replaces the block.timestamp and block.number methods.
+In Solidity these functions return uint256, but in cairo these will return felts.
+Therefore, we wrap the replacement functions in felt_to_uint256 warplib functions.
+*/
 export class BlockMethods extends ASTMapper {
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     if (
@@ -23,6 +28,7 @@ export class BlockMethods extends ASTMapper {
           createCairoFunctionStub(
             'get_block_number',
             [],
+            // Chosen since this will be transformed to felt, so width does not matter.
             [['block_number', createUint8TypeName(ast)]],
             ['syscall_ptr'],
             ast,
