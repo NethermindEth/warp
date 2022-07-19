@@ -26,9 +26,6 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
 
     const name = fullName.slice(0, -HASH_SIZE - 1);
     const hash = fullName.slice(-HASH_SIZE);
-    // const parsedFileName = reducePath(fileLoc, ignoreLoc).join('_');
-    // const parsedFileNameHash = hashFilename(parsedFileName);
-    // if (hash !== parsedFileNameHash) return codeLine;
 
     const declaredAddress = declarationAddresses.get(hash);
     assert(

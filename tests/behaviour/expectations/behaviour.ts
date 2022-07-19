@@ -3221,6 +3221,7 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('new', [
+          File.Simple('deep', [Expect.Simple('createContracts', [], [])]),
           File.Simple('many', [
             new Expect('Uint256 as argument', [
               ['createUint256Contract', ['0', '2'], [], '0'],

@@ -71,7 +71,7 @@ describe('Transpiled contracts are valid cairo', function () {
   this.timeout(TIME_LIMIT);
 
   let compileResults: SafePromise<{ stderr: string } | null>[];
-  let preparedExpectations: AsyncTestCluster[];
+  let preparedExpectations: (AsyncTestCluster | null)[];
   const compiledFiles = new Map<string, { stdout: string; stderr: string }>();
 
   const outputLocation = (testLocation: string) =>
@@ -136,11 +136,10 @@ describe('Transpiled contracts are valid cairo', function () {
     compileResults = batchPromises(
       preparedExpectations,
       PARALLEL_COUNT,
-      (test: AsyncTestCluster): Promise<{ stderr: string } | null> => {
-        const asyncTest = test.asyncTest;
-        if (asyncTest.encodingError !== undefined || !fs.existsSync(asyncTest.cairo))
-          return Promise.resolve(null);
+      (test: AsyncTestCluster | null): Promise<{ stderr: string } | null> => {
+        if (test === null) return Promise.resolve(null);
 
+        const asyncTest = test.asyncTest;
         if (test.dependencies === null) {
           return starknetCompile(asyncTest.cairo, asyncTest.compiled);
         }
@@ -345,7 +344,9 @@ function findMethod(functionName: string, fileName: string): string | null {
   }
 }
 
-function prepareTestForCompilation(test: AsyncTest): AsyncTestCluster {
+function prepareTestForCompilation(test: AsyncTest): AsyncTestCluster | null {
+  if (test.encodingError !== undefined || !fs.existsSync(test.cairo)) return null;
+
   const cairoSource = test.cairo;
   const filesToDeclare = extractContractsToDeclared(cairoSource, 'warp_output');
   if (filesToDeclare.length === 0) return { asyncTest: test, dependencies: null };
@@ -356,7 +357,7 @@ function prepareTestForCompilation(test: AsyncTest): AsyncTestCluster {
   const pending = [...filesToDeclare];
   let count = 0;
   while (count < pending.length) {
-    const fileSource = filesToDeclare[count];
+    const fileSource = pending[count];
     if (dependencyGraph.has(fileSource)) {
       count++;
       continue;
