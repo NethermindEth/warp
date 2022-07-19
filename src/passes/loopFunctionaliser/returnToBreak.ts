@@ -26,7 +26,7 @@ import {
   createReturn,
 } from '../../utils/nodeTemplates';
 import { cloneASTNode } from '../../utils/cloning';
-import { toSingleExpression } from '../../utils/utils';
+import { getContainingFunction, toSingleExpression } from '../../utils/utils';
 import { RETURN_FLAG_PREFIX, RETURN_VALUE_PREFIX } from '../../utils/nameModifiers';
 
 export class ReturnToBreak extends ASTMapper {
@@ -134,11 +134,7 @@ export class ReturnToBreak extends ASTMapper {
   }
 
   getReturnVariables(node: ASTNode): VariableDeclaration[] {
-    const containingFunction = node.getClosestParentByType(FunctionDefinition);
-    assert(
-      containingFunction !== undefined,
-      `Could not find a containing function for ${printNode(node)}`,
-    );
+    const containingFunction = getContainingFunction(node);
 
     const retVars = this.returnVariables.get(containingFunction);
     assert(retVars !== undefined, `Could not find return variables for ${printNode(node)}`);
@@ -150,8 +146,7 @@ export class ReturnToBreak extends ASTMapper {
 let retVarCounter = 0;
 
 function insertReturnValueDeclaration(node: Block, ast: AST): VariableDeclaration[] {
-  const containingFunction = node.getClosestParentByType(FunctionDefinition);
-  assert(containingFunction !== undefined, `Unable to find containing function for ${node}`);
+  const containingFunction = getContainingFunction(node);
 
   if (containingFunction.vReturnParameters.vParameters.length === 0) {
     return [];
@@ -182,11 +177,7 @@ function insertOuterLoopRetFlagCheck(
   retVars: VariableDeclaration[],
   ast: AST,
 ): void {
-  const containingFunction = node.getClosestParentByType(FunctionDefinition);
-  assert(
-    containingFunction !== undefined,
-    `Unable to find containing function for ${printNode(node)}`,
-  );
+  const containingFunction = getContainingFunction(node);
   ast.insertStatementAfter(
     node,
     new IfStatement(

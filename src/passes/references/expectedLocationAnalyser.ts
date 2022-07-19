@@ -33,7 +33,7 @@ import { TranspileFailedError } from '../../utils/errors';
 import { error } from '../../utils/formatting';
 import { getParameterTypes, isDynamicArray, isReferenceType } from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
-import { isExternallyVisible } from '../../utils/utils';
+import { getContainingFunction, isExternallyVisible } from '../../utils/utils';
 
 /*
 Analyses the tree top down, marking nodes with the storage location associated
@@ -212,8 +212,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
   }
 
   visitReturn(node: Return, ast: AST): void {
-    const func = node.getClosestParentByType(FunctionDefinition);
-    assert(func !== undefined, `Unable to find containing function for ${printNode(node)}`);
+    const func = getContainingFunction(node);
     if (isExternallyVisible(func)) {
       if (node.vExpression) {
         // External functions need to read out their returns

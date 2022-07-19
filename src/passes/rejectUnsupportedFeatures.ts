@@ -4,7 +4,6 @@ import {
   ArrayTypeName,
   ASTNode,
   BytesType,
-  Conditional,
   ContractDefinition,
   ContractKind,
   DataLocation,
@@ -64,12 +63,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
   visitErrorDefinition(node: ErrorDefinition, _ast: AST): void {
     throw new WillNotSupportError('User defined Errors are not supported', node);
-  }
-  visitConditional(node: Conditional, _ast: AST): void {
-    throw new WillNotSupportError(
-      'Conditional expressions (ternary operator, node) are not supported',
-      node,
-    );
   }
   visitFunctionCallOptions(node: FunctionCallOptions, _ast: AST): void {
     throw new WillNotSupportError(
