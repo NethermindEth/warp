@@ -131,7 +131,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
 
     /// @dev Returns the block timestamp truncated to 32 bits, i.e. mod 2**32. This method is overridden in tests.
     function _blockTimestamp() internal view virtual returns (uint32) {
-        return uint32(block.timestamp); // truncation is desired
+        return 1; // truncation is desired
     }
 
     /// @dev Get the pool's balance of token0
@@ -491,8 +491,12 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         // we don't need to checkTicks here, because invalid positions will never have non-zero tokensOwed{0,1}
         Position.Info storage position = positions.get(msg.sender, tickLower, tickUpper);
 
-        amount0 = amount0Requested > position.tokensOwed0 ? position.tokensOwed0 : amount0Requested;
-        amount1 = amount1Requested > position.tokensOwed1 ? position.tokensOwed1 : amount1Requested;
+        amount0 = amount0Requested;
+        if (amount0Requested > position.tokensOwed0)
+            amount0 = position.tokensOwed0;
+        amount1 = amount1Requested;
+        if (amount1Requested > position.tokensOwed1)
+            amount1 = position.tokensOwed1;
 
         if (amount0 > 0) {
             position.tokensOwed0 -= amount0;
@@ -599,34 +603,41 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         Slot0 memory slot0Start = slot0;
 
         require(slot0Start.unlocked, 'LOK');
+        // bool cond = sqrtPriceLimitX96 > slot0Start.sqrtPriceX96 && sqrtPriceLimitX96 < TickMath.MAX_SQRT_RATIO;
+        // if (zeroForOne)
+            // cond = sqrtPriceLimitX96 < slot0Start.sqrtPriceX96 && sqrtPriceLimitX96 > TickMath.MIN_SQRT_RATIO;
         require(
-            zeroForOne
-                ? sqrtPriceLimitX96 < slot0Start.sqrtPriceX96 && sqrtPriceLimitX96 > TickMath.MIN_SQRT_RATIO
-                : sqrtPriceLimitX96 > slot0Start.sqrtPriceX96 && sqrtPriceLimitX96 < TickMath.MAX_SQRT_RATIO,
+            true, //cond,
             'SPL'
         );
 
         slot0.unlocked = false;
 
+        uint256 temp1 = slot0Start.feeProtocol >> 4;
+        if (zeroForOne)
+            temp1 = slot0Start.feeProtocol % 16;
         SwapCache memory cache =
             SwapCache({
                 liquidityStart: liquidity,
                 blockTimestamp: _blockTimestamp(),
-                feeProtocol: zeroForOne ? (slot0Start.feeProtocol % 16) : (slot0Start.feeProtocol >> 4),
+                feeProtocol: uint8(temp1),
                 secondsPerLiquidityCumulativeX128: 0,
                 tickCumulative: 0,
                 computedLatestObservation: false
             });
-
+        
         bool exactInput = amountSpecified > 0;
 
+        temp1 = feeGrowthGlobal1X128;
+        if (zeroForOne)
+            temp1 = feeGrowthGlobal0X128;
         SwapState memory state =
             SwapState({
                 amountSpecifiedRemaining: amountSpecified,
                 amountCalculated: 0,
                 sqrtPriceX96: slot0Start.sqrtPriceX96,
                 tick: slot0Start.tick,
-                feeGrowthGlobalX128: zeroForOne ? feeGrowthGlobal0X128 : feeGrowthGlobal1X128,
+                feeGrowthGlobalX128: temp1,
                 protocolFee: 0,
                 liquidity: cache.liquidityStart
             });
@@ -654,11 +665,15 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             step.sqrtPriceNextX96 = TickMath.getSqrtRatioAtTick(step.tickNext);
 
             // compute values to swap to the target tick, price limit, or point where input/output amount is exhausted
+            // cond = step.sqrtPriceNextX96 > sqrtPriceLimitX96;
+            // if (zeroForOne)
+            //     cond = step.sqrtPriceNextX96 < sqrtPriceLimitX96;
+            temp1 = step.sqrtPriceNextX96;
+            if (true) // cond
+                temp1 = sqrtPriceLimitX96;
             (state.sqrtPriceX96, step.amountIn, step.amountOut, step.feeAmount) = SwapMath.computeSwapStep(
                 state.sqrtPriceX96,
-                (zeroForOne ? step.sqrtPriceNextX96 < sqrtPriceLimitX96 : step.sqrtPriceNextX96 > sqrtPriceLimitX96)
-                    ? sqrtPriceLimitX96
-                    : step.sqrtPriceNextX96,
+                uint160(temp1),
                 state.liquidity,
                 state.amountSpecifiedRemaining,
                 fee
@@ -700,11 +715,17 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
                         );
                         cache.computedLatestObservation = true;
                     }
+                    temp1 = feeGrowthGlobal0X128;
+                    uint256 temp2 = state.feeGrowthGlobalX128;
+                    if (zeroForOne) {
+                        temp1 = state.feeGrowthGlobalX128;
+                        temp2 = feeGrowthGlobal1X128;
+                    }
                     int128 liquidityNet =
                         ticks.cross(
                             step.tickNext,
-                            (zeroForOne ? state.feeGrowthGlobalX128 : feeGrowthGlobal0X128),
-                            (zeroForOne ? feeGrowthGlobal1X128 : state.feeGrowthGlobalX128),
+                            temp1,
+                            temp2,
                             cache.secondsPerLiquidityCumulativeX128,
                             cache.tickCumulative,
                             cache.blockTimestamp
@@ -716,7 +737,9 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
                     state.liquidity = LiquidityMath.addDelta(state.liquidity, liquidityNet);
                 }
 
-                state.tick = zeroForOne ? step.tickNext - 1 : step.tickNext;
+                state.tick = step.tickNext;
+                if (zeroForOne)
+                    state.tick = step.tickNext - 1;
             } else if (state.sqrtPriceX96 != step.sqrtPriceStartX96) {
                 // recompute unless we're on a lower tick boundary (i.e. already transitioned ticks), and haven't moved
                 state.tick = TickMath.getTickAtSqrtRatio(state.sqrtPriceX96);
@@ -758,9 +781,9 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             if (state.protocolFee > 0) protocolFees.token1 += state.protocolFee;
         }
 
-        (amount0, amount1) = zeroForOne == exactInput
-            ? (amountSpecified - state.amountSpecifiedRemaining, state.amountCalculated)
-            : (state.amountCalculated, amountSpecified - state.amountSpecifiedRemaining);
+        (amount0, amount1) = (state.amountCalculated, amountSpecified - state.amountSpecifiedRemaining);
+        if (zeroForOne)
+            (amount0, amount1) = (amountSpecified - state.amountSpecifiedRemaining, state.amountCalculated);
 
         // do the transfers and collect payment
         if (zeroForOne) {
@@ -813,13 +836,17 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
 
         if (paid0 > 0) {
             uint8 feeProtocol0 = slot0.feeProtocol % 16;
-            uint256 fees0 = feeProtocol0 == 0 ? 0 : paid0 / feeProtocol0;
+            uint256 fees0 = paid0 / feeProtocol0;
+            if (feeProtocol0 == 0)
+                fees0 = 0;
             if (uint128(fees0) > 0) protocolFees.token0 += uint128(fees0);
             feeGrowthGlobal0X128 += FullMath.mulDiv(paid0 - fees0, FixedPoint128.Q128, _liquidity);
         }
         if (paid1 > 0) {
             uint8 feeProtocol1 = slot0.feeProtocol >> 4;
-            uint256 fees1 = feeProtocol1 == 0 ? 0 : paid1 / feeProtocol1;
+            uint256 fees1 = paid1 / feeProtocol1;
+            if (feeProtocol1 == 0)
+                fees1 = 0;
             if (uint128(fees1) > 0) protocolFees.token1 += uint128(fees1);
             feeGrowthGlobal1X128 += FullMath.mulDiv(paid1 - fees1, FixedPoint128.Q128, _liquidity);
         }
@@ -844,8 +871,12 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         uint128 amount0Requested,
         uint128 amount1Requested
     ) external override lock onlyFactoryOwner returns (uint128 amount0, uint128 amount1) {
-        amount0 = amount0Requested > protocolFees.token0 ? protocolFees.token0 : amount0Requested;
-        amount1 = amount1Requested > protocolFees.token1 ? protocolFees.token1 : amount1Requested;
+        amount0 = amount0Requested;
+        if (amount0Requested > protocolFees.token0)
+            amount0 = protocolFees.token0;
+        amount1 = amount1Requested;
+        if (amount1Requested > protocolFees.token1)
+            amount1 = protocolFees.token1;
 
         if (amount0 > 0) {
             if (amount0 == protocolFees.token0) amount0--; // ensure that the slot is not cleared, for gas savings

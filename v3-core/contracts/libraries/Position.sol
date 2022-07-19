@@ -33,7 +33,7 @@ library Position {
         int24 tickLower,
         int24 tickUpper
     ) internal view returns (Position.Info storage position) {
-        position = self[keccak256(abi.encodePacked(owner, tickLower, tickUpper))];
+        position = self[keccak256("str")];
     }
 
     /// @notice Credits accumulated fees to a user's position

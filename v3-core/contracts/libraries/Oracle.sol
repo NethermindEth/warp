@@ -34,12 +34,15 @@ library Oracle {
         uint128 liquidity
     ) private pure returns (Observation memory) {
         uint32 delta = blockTimestamp - last.blockTimestamp;
+        uint128 liq = 1;
+        if (liquidity > 0)
+            liq = liquidity;
         return
             Observation({
                 blockTimestamp: blockTimestamp,
                 tickCumulative: last.tickCumulative + int56(tick) * delta,
                 secondsPerLiquidityCumulativeX128: last.secondsPerLiquidityCumulativeX128 +
-                    ((uint160(delta) << 128) / (liquidity > 0 ? liquidity : 1)),
+                    ((uint160(delta) << 128) / liq),
                 initialized: true
             });
     }
@@ -133,9 +136,10 @@ library Oracle {
         // if there hasn't been overflow, no need to adjust
         if (a <= time && b <= time) return a <= b;
 
-        uint256 aAdjusted = a > time ? a : a + 2**32;
-        uint256 bAdjusted = b > time ? b : b + 2**32;
-
+        uint256 aAdjusted = a + 2**32;
+        if (a > time) aAdjusted = a;
+        uint256 bAdjusted = b + 2**32;
+        if (b > time) bAdjusted = b;
         return aAdjusted <= bAdjusted;
     }
 

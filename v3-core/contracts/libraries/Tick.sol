@@ -144,9 +144,9 @@ library Tick {
         info.liquidityGross = liquidityGrossAfter;
 
         // when the lower (upper) tick is crossed left to right (right to left), liquidity must be added (removed)
-        info.liquidityNet = upper
-            ? int256(info.liquidityNet).sub(liquidityDelta).toInt128()
-            : int256(info.liquidityNet).add(liquidityDelta).toInt128();
+        info.liquidityNet = int256(info.liquidityNet).add(liquidityDelta).toInt128();
+        if (upper)
+            info.liquidityNet = int256(info.liquidityNet).sub(liquidityDelta).toInt128();
     }
 
     /// @notice Clears tick data

@@ -4,27 +4,31 @@ pragma solidity >=0.5.0 <0.8.0;
 /// @title Math library for computing sqrt prices from ticks and vice versa
 /// @notice Computes sqrt price for ticks of size 1.0001, i.e. sqrt(1.0001^tick) as fixed point Q64.96 numbers. Supports
 /// prices between 2**-128 and 2**128
-library TickMath {
+contract TickMath {
     /// @dev The minimum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**-128
-    int24 internal constant MIN_TICK = -887272;
+    int24 public constant MIN_TICK = -887272;
     /// @dev The maximum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**128
-    int24 internal constant MAX_TICK = -MIN_TICK;
+    int24 public constant MAX_TICK = -MIN_TICK;
 
     /// @dev The minimum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MIN_TICK)
-    uint160 internal constant MIN_SQRT_RATIO = 4295128739;
+    uint160 public constant MIN_SQRT_RATIO = 4295128739;
     /// @dev The maximum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MAX_TICK)
-    uint160 internal constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
+    uint160 public constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
 
     /// @notice Calculates sqrt(1.0001^tick) * 2^96
     /// @dev Throws if |tick| > max tick
     /// @param tick The input tick for the above formula
     /// @return sqrtPriceX96 A Fixed point Q64.96 number representing the sqrt of the ratio of the two assets (token1/token0)
     /// at the given tick
-    function getSqrtRatioAtTick(int24 tick) internal pure returns (uint160 sqrtPriceX96) {
-        uint256 absTick = tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick));
+    function getSqrtRatioAtTick(int24 tick) public pure returns (uint160 sqrtPriceX96) {
+        uint256 absTick = uint256(int256(tick));
+        if (tick < 0) 
+            absTick = uint256(-int256(tick));
         require(absTick <= uint256(MAX_TICK), 'T');
 
-        uint256 ratio = absTick & 0x1 != 0 ? 0xfffcb933bd6fad37aa2d162d1a594001 : 0x100000000000000000000000000000000;
+        uint256 ratio = 0x100000000000000000000000000000000;
+        if (absTick & 0x1 != 0)
+            ratio = 0xfffcb933bd6fad37aa2d162d1a594001;
         if (absTick & 0x2 != 0) ratio = (ratio * 0xfff97272373d413259a46990580e213a) >> 128;
         if (absTick & 0x4 != 0) ratio = (ratio * 0xfff2e50f5f656932ef12357cf3c7fdcc) >> 128;
         if (absTick & 0x8 != 0) ratio = (ratio * 0xffe5caca7e10e4e61c3624eaa0941cd0) >> 128;
@@ -50,7 +54,10 @@ library TickMath {
         // this divides by 1<<32 rounding up to go from a Q128.128 to a Q128.96.
         // we then downcast because we know the result always fits within 160 bits due to our tick input constraint
         // we round up in the division so getTickAtSqrtRatio of the output price is always consistent
-        sqrtPriceX96 = uint160((ratio >> 32) + (ratio % (1 << 32) == 0 ? 0 : 1));
+        uint256 temp = 1;
+        if (ratio % (1 << 32) == 0)
+            temp = 0;
+        sqrtPriceX96 = uint160((ratio >> 32) + temp);
     }
 
     /// @notice Calculates the greatest tick value such that getRatioAtTick(tick) <= ratio
@@ -58,148 +65,251 @@ library TickMath {
     /// ever return.
     /// @param sqrtPriceX96 The sqrt ratio for which to compute the tick as a Q64.96
     /// @return tick The greatest tick for which the ratio is less than or equal to the input ratio
-    function getTickAtSqrtRatio(uint160 sqrtPriceX96) internal pure returns (int24 tick) {
+    function getTickAtSqrtRatio(uint160 sqrtPriceX96) public pure returns (int24 tick) {
         // second inequality must be < because the price can never reach the price at the max tick
         require(sqrtPriceX96 >= MIN_SQRT_RATIO && sqrtPriceX96 < MAX_SQRT_RATIO, 'R');
         uint256 ratio = uint256(sqrtPriceX96) << 32;
 
         uint256 r = ratio;
         uint256 msb = 0;
-
-        assembly {
-            let f := shl(7, gt(r, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF))
-            msb := or(msb, f)
-            r := shr(f, r)
-        }
-        assembly {
-            let f := shl(6, gt(r, 0xFFFFFFFFFFFFFFFF))
-            msb := or(msb, f)
-            r := shr(f, r)
-        }
-        assembly {
-            let f := shl(5, gt(r, 0xFFFFFFFF))
-            msb := or(msb, f)
-            r := shr(f, r)
-        }
-        assembly {
-            let f := shl(4, gt(r, 0xFFFF))
-            msb := or(msb, f)
-            r := shr(f, r)
-        }
-        assembly {
-            let f := shl(3, gt(r, 0xFF))
-            msb := or(msb, f)
-            r := shr(f, r)
-        }
-        assembly {
-            let f := shl(2, gt(r, 0xF))
-            msb := or(msb, f)
-            r := shr(f, r)
-        }
-        assembly {
-            let f := shl(1, gt(r, 0x3))
-            msb := or(msb, f)
-            r := shr(f, r)
-        }
-        assembly {
-            let f := gt(r, 0x1)
-            msb := or(msb, f)
-        }
+        uint256 f;
+        // assembly {
+        //     let f := shl(7, gt(r, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF))
+        //     msb := or(msb, f)
+        //     r := shr(f, r)
+        // }
+        f = 7;
+        if (r > 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            f <<= 1;
+        msb = msb | f;
+        r = f >> r;
+        // assembly {
+        //     let f := shl(6, gt(r, 0xFFFFFFFFFFFFFFFF))
+        //     msb := or(msb, f)
+        //     r := shr(f, r)
+        // }
+        f = 6;
+        if (r > 0xFFFFFFFFFFFFFFFF)
+            f <<= 1;
+        msb = msb | f;
+        r = f >> r;
+        // assembly {
+        //     let f := shl(5, gt(r, 0xFFFFFFFF))
+        //     msb := or(msb, f)
+        //     r := shr(f, r)
+        // }
+        f = 5;
+        if (r > 0xFFFFFFFF)
+            f <<= 1;
+        msb = msb | f;
+        r = f >> r;
+        // assembly {
+        //     let f := shl(4, gt(r, 0xFFFF))
+        //     msb := or(msb, f)
+        //     r := shr(f, r)
+        // }
+        f = 4;
+        if (r > 0xFFFF)
+            f <<= 1;
+        msb = msb | f;
+        r = f >> r;
+        // assembly {
+        //     let f := shl(3, gt(r, 0xFF))
+        //     msb := or(msb, f)
+        //     r := shr(f, r)
+        // }
+        f = 3;
+        if (r > 0xFF)
+            f <<= 1;
+        msb = msb | f;
+        r = f >> r;
+        // assembly {
+        //     let f := shl(2, gt(r, 0xF))
+        //     msb := or(msb, f)
+        //     r := shr(f, r)
+        // }
+        f = 2;
+        if (r > 0xF)
+            f <<= 1;
+        msb = msb | f;
+        r = f >> r;
+        // assembly {
+        //     let f := shl(1, gt(r, 0x3))
+        //     msb := or(msb, f)
+        //     r := shr(f, r)
+        // }
+        f = 1;
+        if (r > 0x3)
+            f <<= 1;
+        msb = msb | f;
+        r = f >> r;
+        // assembly {
+        //     let f := gt(r, 0x1)
+        //     msb := or(msb, f)
+        // }
+        f = 0;
+        if (r > 0x1)
+            f = 1;
+        msb = msb | f;
 
         if (msb >= 128) r = ratio >> (msb - 127);
         else r = ratio << (127 - msb);
 
         int256 log_2 = (int256(msb) - 128) << 64;
 
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(63, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(62, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(61, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(60, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(59, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(58, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(57, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(56, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(55, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(54, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(53, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(52, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(51, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(50, f))
-        }
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(63, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(63 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(62, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(62 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(61, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(61 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(60, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(60 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(59, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(59 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(58, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(58 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(57, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(57 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(56, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(56 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(55, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(55 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(54, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(54 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(53, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(53 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(52, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(52 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(51, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(51 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(50, f))
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(50 << f);
+        r = f >> r;
 
         int256 log_sqrt10001 = log_2 * 255738958999603826347141; // 128.128 number
 
         int24 tickLow = int24((log_sqrt10001 - 3402992956809132418596140100660247210) >> 128);
         int24 tickHi = int24((log_sqrt10001 + 291339464771989622907027621153398088495) >> 128);
 
-        tick = tickLow == tickHi ? tickLow : getSqrtRatioAtTick(tickHi) <= sqrtPriceX96 ? tickHi : tickLow;
+        if (tickLow == tickHi) {
+            tick = tickLow;
+        }
+        else if (getSqrtRatioAtTick(tickHi) <= sqrtPriceX96) {
+            tick = tickHi;
+        }
+        else {
+            tick = tickLow;
+        }
     }
 }
