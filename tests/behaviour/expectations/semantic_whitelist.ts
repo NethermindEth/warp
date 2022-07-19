@@ -4,7 +4,7 @@
 // Current test suite deficiencies:
 //  multisource tests
 
-const tests2: string[] = [
+const tests: string[] = [
   //---------AbiEncodeDecode tests - WillNotSupport
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/abi_decode_simple.sol', // WILL NOT SUPPORT
