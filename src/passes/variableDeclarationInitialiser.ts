@@ -5,6 +5,12 @@ import { getDefaultValue } from '../utils/defaultValueNodes';
 import { TranspileFailedError } from '../utils/errors';
 
 export class VariableDeclarationInitialiser extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitVariableDeclarationStatement(node: VariableDeclarationStatement, ast: AST): void {
     if (node.vInitialValue) return;
 

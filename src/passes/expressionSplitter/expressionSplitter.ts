@@ -50,6 +50,12 @@ export class ExpressionSplitter extends ASTMapper {
   funcNameCounter = 0;
   varNameCounter = 0;
 
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitAssignment(node: Assignment, ast: AST): void {
     this.commonVisit(node, ast);
     if (!(node.parent instanceof ExpressionStatement)) {

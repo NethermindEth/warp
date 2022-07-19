@@ -37,3 +37,4 @@ function getSourceCode(node: ASTNode | undefined): string {
 export class WillNotSupportError extends TranspilationAbandonedError {}
 export class NotSupportedYetError extends TranspilationAbandonedError {}
 export class TranspileFailedError extends TranspilationAbandonedError {}
+export class PassOrderError extends TranspilationAbandonedError {}

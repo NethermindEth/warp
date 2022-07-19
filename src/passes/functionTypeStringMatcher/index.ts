@@ -7,6 +7,12 @@ import { FunctionDefinitionMatcher } from './functionDefinitionTypestringMatcher
 import { IdentifierTypeStringMatcher } from './identifierTypeStringMatcher';
 
 export class FunctionTypeStringMatcher extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   static map(ast: AST): AST {
     const declarations: Map<VariableDeclaration, boolean> = new Map();
 

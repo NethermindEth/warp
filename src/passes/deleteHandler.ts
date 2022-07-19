@@ -16,6 +16,12 @@ import { cloneDocumentation } from '../utils/cloning';
 import { getDefaultValue } from '../utils/defaultValueNodes';
 
 export class DeleteHandler extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitUnaryOperation(node: UnaryOperation, ast: AST): void {
     if (node.operator !== 'delete') {
       return this.commonVisit(node, ast);

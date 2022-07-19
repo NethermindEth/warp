@@ -145,7 +145,13 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Dus', DropUnusedSourceUnits],
   ]);
 
-  const passesInOrder: typeof ASTMapper[] = parsePassOrder(options.order, options.until, passes);
+  const passesInOrder: typeof ASTMapper[] = parsePassOrder(
+    options.order,
+    options.until,
+    options.warnings,
+    options.dev,
+    passes,
+  );
   DefaultASTPrinter.applyOptions(options);
 
   printPassName('Input', options);

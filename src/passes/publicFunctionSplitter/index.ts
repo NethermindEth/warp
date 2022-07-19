@@ -6,6 +6,12 @@ import { FunctionDefinition } from 'solc-typed-ast';
 import { InternalFunctionCallCollector } from './internalFunctionCallCollector';
 
 export class PublicFunctionSplitter extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   static map(ast: AST): AST {
     const internalFunctionCallSet = new Set<FunctionDefinition>();
     ast.roots.forEach((root) =>

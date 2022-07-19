@@ -1,6 +1,7 @@
 import assert from 'assert';
 import { InvalidArgumentError } from 'commander';
 import { ASTMapper } from '../ast/mapper';
+import { PassOrderError } from './errors';
 import { error } from './formatting';
 
 class PassOrderParseError extends InvalidArgumentError {
@@ -15,6 +16,8 @@ class PassOrderParseError extends InvalidArgumentError {
 export function parsePassOrder(
   order: string | undefined,
   until: string | undefined,
+  warnings: boolean | undefined,
+  dev: boolean | undefined,
   passes: Map<string, typeof ASTMapper>,
 ): typeof ASTMapper[] {
   if (order === undefined) {
@@ -24,6 +27,7 @@ export function parsePassOrder(
   //We want keys in order of longest first otherwise 'Vs' would match 'V' and then error on 's'
   const sortedPassMap = [...passes.entries()].sort(([a], [b]) => b.length - a.length);
   const passesInOrder = [];
+  const keyPassesInOrder: string[] = [];
   let remainingOrder = order;
 
   while (remainingOrder.length > 0) {
@@ -33,9 +37,38 @@ export function parsePassOrder(
     }
     const [key, nextPass] = foundPass;
     passesInOrder.push(nextPass);
+    keyPassesInOrder.push(key);
     if (key === until) break;
     remainingOrder = remainingOrder.slice(key.length);
   }
+
+  passesInOrder.forEach((element, index) => {
+    const prerequisite = element._getPassPrerequisites();
+    const earlierPassKeys = [...keyPassesInOrder].slice(0, index);
+    prerequisite.forEach((prerequisite) => {
+      if (!passes.get(prerequisite)) {
+        throw new Error(
+          `Unknown pass key: ${prerequisite} in pass prerequisite of ${element.getPassName()}`,
+        );
+      }
+      if (!earlierPassKeys.includes(prerequisite)) {
+        if (warnings && dev) {
+          console.log(
+            `WARNING: ${passes
+              .get(prerequisite)
+              ?.getPassName()} pass is not before ${element.getPassName()} in the pass order`,
+          );
+        }
+        if (!dev) {
+          throw new PassOrderError(
+            `${passes
+              .get(prerequisite)
+              ?.getPassName()} pass is not before ${element.getPassName()} in the pass order`,
+          );
+        }
+      }
+    });
+  });
 
   return passesInOrder;
 }
