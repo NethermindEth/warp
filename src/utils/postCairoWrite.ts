@@ -45,7 +45,28 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
   writeFileSync(fileLoc, plainNewCairoCode);
 }
 
-export function extractContractsToDeclared(fileLoc: string, append: string) {
+export function getDependencyGraph(root: string, prefix: string): Map<string, string[]> {
+  const filesToDeclare = extractContractsToDeclared(root, prefix);
+  const graph = new Map<string, string[]>([[root, filesToDeclare]]);
+
+  const pending = [...filesToDeclare];
+  let count = 0;
+  while (count < pending.length) {
+    const fileSource = pending[count];
+    if (graph.has(fileSource)) {
+      count++;
+      continue;
+    }
+    const newFilesToDeclare = extractContractsToDeclared(fileSource, prefix);
+    graph.set(fileSource, newFilesToDeclare);
+    pending.push(...newFilesToDeclare);
+    count++;
+  }
+
+  return graph;
+}
+
+function extractContractsToDeclared(fileLoc: string, append: string) {
   const plainCairoCode = readFileSync(fileLoc, 'utf8');
   const cairoCode = plainCairoCode.split('\n');
 

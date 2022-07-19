@@ -359,7 +359,6 @@ class SourceUnitWriter extends CairoASTNodeWriter {
       assert(v.vValue !== undefined, 'Constants cannot be unanssigned');
       return [`# ${v.documentation}`, `const ${v.name} = ${writer.write(v.vValue)}`].join('\n');
     });
-    console.log(constants);
 
     const structs = [...freeStructs, ...node.vStructs, ...(mainContract?.vStructs || [])].map((v) =>
       writer.write(v),

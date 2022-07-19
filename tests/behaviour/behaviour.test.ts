@@ -16,7 +16,7 @@ import { expectations } from './expectations';
 import { AsyncTest, Expect } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
 import {
-  extractContractsToDeclared,
+  getDependencyGraph,
   hashFilename,
   reducePath,
   setDeclaredAddresses,
@@ -29,7 +29,7 @@ const TIME_LIMIT = 2 * 60 * 60 * 1000;
 
 interface AsyncTestCluster {
   asyncTest: AsyncTest;
-  dependencies: Map<string, string[]> | null;
+  dependencies: Map<string, string[]>;
 }
 
 describe('Transpile solidity', function () {
@@ -71,19 +71,19 @@ describe('Transpiled contracts are valid cairo', function () {
   this.timeout(TIME_LIMIT);
 
   let compileResults: SafePromise<{ stderr: string } | null>[];
-  let preparedExpectations: (AsyncTestCluster | null)[];
-  const compiledFiles = new Map<string, { stdout: string; stderr: string }>();
+  let processedExpectations: (AsyncTestCluster | null)[];
 
-  const outputLocation = (testLocation: string) =>
-    testLocation.slice(0, -'.cairo'.length).concat('.json');
+  const outputLocation = (fileLocation: string) =>
+    fileLocation.slice(0, -'.cairo'.length).concat('.json');
 
   const compileCluster = async (test: AsyncTestCluster) => {
     const graph = test.dependencies;
-    assert(graph !== null);
-
     const root = test.asyncTest.cairo;
     const dependencies = graph.get(root);
     assert(dependencies !== undefined);
+    if (dependencies.length === 0) {
+      return starknetCompile(root, test.asyncTest.compiled);
+    }
 
     const declared = new Map<string, string>();
     for (const fileToDeclare of dependencies) {
@@ -110,38 +110,32 @@ describe('Transpiled contracts are valid cairo', function () {
       for (const fileToDeclare of dependencies) {
         const declaredHash = await compileDependencyGraph(fileToDeclare, graph, declared);
         const fileLocationHash = hashFilename(reducePath(fileToDeclare, 'warp_output'));
-        console.log(
-          `assigned ${fileToDeclare}(reducedpath: ${reducePath(
-            fileToDeclare,
-            'warp_output',
-          )})(fileHash: ${fileLocationHash}) declared hash: ${declaredHash}`,
-        );
         declared.set(fileLocationHash, declaredHash);
       }
       setDeclaredAddresses(root, declared);
     }
 
-    console.log(`Compiling ${root}`);
-    const compiled = await starknetCompile(root, outputLocation(root));
-    console.log(`Compiled`);
+    await starknetCompile(root, outputLocation(root));
     const hash = await declare(outputLocation(root));
     assert(!hash.threw, 'Hash threw');
-    console.log(`Obtained hash: ${hash.class_hash}`);
-    compiledFiles.set(root, compiled);
     return hash.class_hash;
   };
 
   before(function () {
-    preparedExpectations = expectations.map(prepareTestForCompilation);
+    processedExpectations = expectations.map((test: AsyncTest): AsyncTestCluster | null => {
+      if (test.encodingError !== undefined || !fs.existsSync(test.cairo)) {
+        return null;
+      }
+      const dependencyGraph = getDependencyGraph(test.cairo, 'warp_output');
+      return { asyncTest: test, dependencies: dependencyGraph };
+    });
+
     compileResults = batchPromises(
-      preparedExpectations,
+      processedExpectations,
       PARALLEL_COUNT,
       (test: AsyncTestCluster | null): Promise<{ stderr: string } | null> => {
-        if (test === null) return Promise.resolve(null);
-
-        const asyncTest = test.asyncTest;
-        if (test.dependencies === null) {
-          return starknetCompile(asyncTest.cairo, asyncTest.compiled);
+        if (test === null) {
+          return Promise.resolve(null);
         }
         return compileCluster(test);
       },
@@ -342,30 +336,4 @@ function findMethod(functionName: string, fileName: string): string | null {
     );
     return null;
   }
-}
-
-function prepareTestForCompilation(test: AsyncTest): AsyncTestCluster | null {
-  if (test.encodingError !== undefined || !fs.existsSync(test.cairo)) return null;
-
-  const cairoSource = test.cairo;
-  const filesToDeclare = extractContractsToDeclared(cairoSource, 'warp_output');
-  if (filesToDeclare.length === 0) return { asyncTest: test, dependencies: null };
-
-  const dependencyGraph = new Map<string, string[]>();
-  dependencyGraph.set(cairoSource, filesToDeclare);
-
-  const pending = [...filesToDeclare];
-  let count = 0;
-  while (count < pending.length) {
-    const fileSource = pending[count];
-    if (dependencyGraph.has(fileSource)) {
-      count++;
-      continue;
-    }
-    const newFilesToDeclare = extractContractsToDeclared(fileSource, 'warp_output');
-    dependencyGraph.set(fileSource, newFilesToDeclare);
-    pending.push(...newFilesToDeclare);
-    count++;
-  }
-  return { asyncTest: test, dependencies: dependencyGraph };
 }
