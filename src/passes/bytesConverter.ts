@@ -38,6 +38,12 @@ import {
 */
 
 export class BytesConverter extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitExpression(node: Expression, ast: AST): void {
     const typeNode = getNodeType(node, ast.compilerVersion);
     if (!(typeNode instanceof IntLiteralType)) {

@@ -15,6 +15,12 @@ import assert from 'assert';
 import { createExpressionStatement } from '../utils/nodeTemplates';
 import { checkableType } from '../utils/nodeTypeProcessing';
 export class ArgBoundChecker extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     if (node.kind === ContractKind.Interface) {
       return;

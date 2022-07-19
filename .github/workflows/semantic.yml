@@ -1,0 +1,121 @@
+name: Semantic tests
+
+on: workflow_dispatch
+
+env:
+  CAIRO_LANG_VERSION: 0.9
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: |
+          yarn
+          pipx install black[colors]
+          pipx install cairo-lang=="$CAIRO_LANG_VERSION"
+
+      - name: Build warplib
+        run: yarn warplib
+
+      - name: Check formatting
+        run: |
+          yarn lint
+          black starknet-testnet/ --check --verbose --diff --color
+          find warplib/ -iname *.cairo -exec cairo-format -c {} +
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+          cache: 'yarn'
+
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7 # Cairo was tested with this version
+
+      - name: Install dependencies
+        run: |
+          make
+          make compile
+
+      - name: Setup warp_venv
+        run: bin/warp install --python python --verbose
+
+      - name: Build warplib
+        run: yarn warplib
+
+      - name: Test code execution
+        run: |
+          yarn testnet:benchmark &
+          node build/autoRunSemanticTests.js
+
+      - name: Save benchmarks in artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: benchmark
+          path: benchmark
+
+  benchmark:
+    if: ${{ github.event_name == 'push' }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7
+
+      - name: Setup env
+        run: |
+          pip install -r requirements.txt 
+          pip install cairo-lang=="$CAIRO_LANG_VERSION"
+
+      - name: Setup source hash (push)
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          echo "source_hash=${{ github.sha }}" >> $GITHUB_ENV
+
+      - name: Download Benchmarks
+        uses: actions/download-artifact@master
+        with:
+          name: benchmark
+          path: benchmark
+
+      - name: Create markdown file
+        run: |
+          mv benchmark/json/data.json benchmark/json/${{ env.source_hash }}.json
+          python ./starknet-testnet/generateMarkdown.py ${{ env.source_hash }}
+
+      - name: Push benchmarks to another repository
+        uses: dmnemec/copy_file_to_another_repo_action@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source_file: 'benchmark'
+          destination_repo: 'NethermindEth/warp-ts-benchmark'
+          commit_message: ${{ env.source_hash }}
+          destination_branch: main
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          user_name: 'Github Actions'
+
+      - name: Delete Artifact
+        uses: GeekyEggo/delete-artifact@v1.0.0
+        with:
+          name: benchmark

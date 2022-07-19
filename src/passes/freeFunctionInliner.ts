@@ -24,6 +24,12 @@ import { union } from '../utils/utils';
 export class FreeFunctionInliner extends ASTMapper {
   funcCounter = 0;
 
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
     // Stores old FunctionDefinition and cloned FunctionDefinition
     const remappings = new Map<FunctionDefinition, FunctionDefinition>();
@@ -47,6 +53,8 @@ export class FreeFunctionInliner extends ASTMapper {
         clonedFunction.kind = FunctionKind.Function;
         node.appendChild(clonedFunction);
         remappings.set(funcToInline, clonedFunction);
+        // Added for recursive calls
+        remappings.set(clonedFunction, clonedFunction);
       });
 
     updateReferencedDeclarations(node, remappings);

@@ -48,6 +48,12 @@ export class StaticArrayIndexer extends ASTMapper {
   // Tracks calldata structures which already have a memory counterpart initalized
   private staticArrayAccesed = new Map<number, VariableDeclaration>();
 
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     this.staticIndexToMemory(node, ast);
   }

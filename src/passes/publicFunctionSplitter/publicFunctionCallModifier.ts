@@ -1,5 +1,4 @@
 import {
-  ContractDefinition,
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
@@ -8,36 +7,40 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
+import { isInternalFuncCall } from './internalFunctionCallCollector';
 
 export class PublicFunctionCallModifier extends ASTMapper {
   constructor(public internalToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>) {
     super();
   }
   /*
-  This class visits FunctionCalls and if they are cross contract will repoint them to the new external function
-  and if they are calling functions from the same contract it will change the functionCall to have the added suffix.
+  This class visits FunctionCalls and if they are:
+    External function calls, they will be re-pointed to the external function definition created in the previous sub-pass.
+    Internal function calls, they will still point to their old function definition, but will need to have their names
+    changed to have the '_internal' suffix.
   */
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    const functionDefintion = node.vReferencedDeclaration;
+    const funcDef = node.vReferencedDeclaration;
     if (
       node.kind === FunctionCallKind.FunctionCall &&
-      functionDefintion instanceof FunctionDefinition &&
+      funcDef instanceof FunctionDefinition &&
       (node.vExpression instanceof MemberAccess || node.vExpression instanceof Identifier)
     ) {
-      const replacementFunction = this.internalToExternalFunctionMap.get(functionDefintion);
-      if (
-        replacementFunction !== undefined &&
-        node.vReferencedDeclaration?.getClosestParentByType(ContractDefinition) !==
-          node.getClosestParentByType(ContractDefinition)
-      ) {
-        // Changes the referenced function to the external function since this is a cross contract call.
-        node.vExpression.referencedDeclaration = replacementFunction.id;
-      } else {
-        // Modifies the function call to have the function.name + suffix.
-        const modifiedFuncName = functionDefintion.name;
-        node.vExpression instanceof Identifier
-          ? (node.vExpression.name = modifiedFuncName)
-          : (node.vExpression.memberName = modifiedFuncName);
+      const replacementFunction = this.internalToExternalFunctionMap.get(funcDef);
+      // If replacementFunction exists then the FunctionCall pointed to a public function definition.
+      // The function call will need to be modified irrespective of whether it is internal or external.
+      if (replacementFunction !== undefined) {
+        // If it is an external call the function gets re-pointed to the new external call.
+        if (!isInternalFuncCall(node, ast)) {
+          node.vExpression.referencedDeclaration = replacementFunction.id;
+          // If it is an internal call then the functionCall.vExpressions name needs to be changed to
+          // match it's modified function definition's name
+        } else {
+          const modifiedFuncName = funcDef.name;
+          node.vExpression instanceof Identifier
+            ? (node.vExpression.name = modifiedFuncName)
+            : (node.vExpression.memberName = modifiedFuncName);
+        }
       }
     }
     this.commonVisit(node, ast);

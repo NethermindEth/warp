@@ -107,8 +107,11 @@ export function processArgs(
   });
 }
 export function hashToUint256(hash: string): [string, string] {
-  const bigintHash = [...hash].reduce((acc, c) => acc * 256n + BigInt(c.charCodeAt(0)), 0n);
+  // hash is an array of bytes treated as a string,
+  // this converts it to a single bignum with the same bytes
+  const bigintHash = [...hash].reduce((acc, c) => (acc << 8n) + BigInt(c.charCodeAt(0)), 0n);
 
+  // We treat class hashes as uint256s due to the lack of a felt type in solidity
   const high = bigintHash / 2n ** 128n;
   const low = bigintHash % 2n ** 128n;
   return [low.toString(10), high.toString(10)];

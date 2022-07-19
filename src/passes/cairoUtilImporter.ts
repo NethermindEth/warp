@@ -11,6 +11,12 @@ import { isExternallyVisible, primitiveTypeToCairo } from '../utils/utils';
   Uint256 needs to be imported, it's easier to do it here
 */
 export class CairoUtilImporter extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitElementaryTypeName(node: ElementaryTypeName, ast: AST): void {
     if (primitiveTypeToCairo(node.name) === 'Uint256') {
       ast.registerImport(node, 'starkware.cairo.common.uint256', 'Uint256');

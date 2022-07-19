@@ -8,6 +8,12 @@ import { ReturnToBreak } from './returnToBreak';
 import { WhileLoopToFunction } from './whileLoopToFunction';
 
 export class LoopFunctionaliser extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   static map(ast: AST): AST {
     ast.roots.forEach((root) => {
       const loopToContinueFunction: Map<number, FunctionDefinition> = new Map();

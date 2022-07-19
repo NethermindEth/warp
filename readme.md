@@ -59,18 +59,18 @@ To get the dependencies:
 yarn
 ```
 
-Compile the project:
-
-```bash
-yarn tsc
-yarn warplib
-```
-
 Get python dev dependencies:
 (recommended to create a python3.7 venv for this)
 
 ```bash
 pip install -r requirements.txt
+```
+
+Compile the project:
+
+```bash
+yarn tsc
+yarn warplib
 ```
 
 ## Usage :computer:
@@ -141,6 +141,20 @@ Please see the list below:
 |              nested tuple assignments               |    :question:     |
 
 Note: We have changed the return of `ecrecover` to be `uint160` because we use the `address` type for StarkNet addresses.
+
+## Docker :whale:
+
+Build the image from source:
+
+```bash
+docker build -t warp .
+```
+
+Run the container with the same options and arguments as the Warp binary:
+
+```bash
+docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile example_contracts/ERC20.sol
+```
 
 ## Testing for contributors :stethoscope:
 

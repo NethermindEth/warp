@@ -15,6 +15,12 @@ import { Implicits, registerImportsForImplicit } from '../utils/implicits';
 import { isExternallyVisible, union } from '../utils/utils';
 
 export class AnnotateImplicits extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
     this.commonVisit(node, ast);
   }

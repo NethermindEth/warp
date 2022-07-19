@@ -28,6 +28,12 @@ import { RationalLiteral, stringToLiteralValue } from './rationalLiteral';
 */
 
 export class LiteralExpressionEvaluator extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitPossibleLiteralExpression(node: UnaryOperation | BinaryOperation | Literal, ast: AST): void {
     // It is sometimes possible to avoid any calculation and take the value from the type
     // This is not always possible because boolean literals do not contain their value in the type,
