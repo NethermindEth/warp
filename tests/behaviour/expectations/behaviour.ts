@@ -61,6 +61,7 @@ export const expectations = flatten(
             Expect.Simple('test', ['0', '0'], ['0']),
           ]),
         ]),
+        new Dir('builtins', [File.Simple('block', [Expect.Simple('number', [], ['1'])])]),
         new Dir('bytes', [
           File.Simple('byteArrays', [
             Expect.Simple('getC', ['1'], ['9029']),
