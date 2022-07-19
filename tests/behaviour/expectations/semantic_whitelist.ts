@@ -4,7 +4,7 @@
 // Current test suite deficiencies:
 //  multisource tests
 
-const tests: string[] = [
+const tests2: string[] = [
   //---------AbiEncodeDecode tests - WillNotSupport
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/abi_decode_simple.sol', // WILL NOT SUPPORT
@@ -126,7 +126,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/unchecked_div_by_zero.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/addmod_mulmod.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/addmod_mulmod_zero.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/check_var_init.sol', // REQUIRES CAIRO 0.9 - uses new
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/check_var_init.sol', // Fails due to the use of `value` function option
   ],
   //---------Array tests - 374 passing, 103 pending, 52 failing
   ...[
@@ -193,7 +193,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/copy_removes_bytes_data.sol', //WILL NOT SUPPORT msg.data
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/storage_memory_nested_bytes.sol', // nested dyn arrays
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/bytes_inside_mappings.sol', // WILL NOT SUPPORT msg.data
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/copying_bytes_multiassign.sol', // STRETCH new
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/copying_bytes_multiassign.sol', // WILL NOT SUPPORT msg.data
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_copy_calldata_storage.sol', // dynarray of static arrays
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_structs_containing_arrays_calldata_to_memory.sol',// nested dynarray arg
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/copying/array_of_function_external_storage_to_storage_dynamic_different_mutability.sol', // WILL NOT SUPPORT function objects
@@ -326,8 +326,8 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/calldata_array_as_argument_internal_function.sol', // STRETCH array slice
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/calldata_array_dynamic_invalid.sol', // nested dynarray argument
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/calldata_slice_access.sol', // STRETCH array slices
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/fixed_arrays_as_return_type.sol', // STRETCH new
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/reusing_memory.sol', // STRETCH new
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/fixed_arrays_as_return_type.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/reusing_memory.sol', // Fails due to the use abi.encodePacked
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/function_array_cross_calls.sol', // WILL NOT SUPPORT function objects
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/function_memory_array.sol', // WILL NOT SUPPORT function objects
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/calldata_array_two_dimensional.sol', // nested dynarray input
@@ -432,11 +432,11 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_arguments_external.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/functions_called_by_constructor_through_dispatch.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_function_complex.sol', // WILL NOT SUPPORT function objectss
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/no_callvalue_check.sol', // STRETCH new
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/no_callvalue_check.sol', // Fails due to the use of `value` function option
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/evm_exceptions_in_constructor_call_fail.sol', // address.call
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_arguments_internal.sol', // STRETCH new
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/bytes_in_constructors_packer.sol', // STRETCH new
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/arrays_in_constructors.sol', // STRETCH new
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_arguments_internal.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/bytes_in_constructors_packer.sol', // Bug here related to constructos and inheritance
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/arrays_in_constructors.sol', // Bug related to contract inheritance
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/callvalue_check.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_function_argument.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/store_function_in_constructor_packed.sol', // WILL NOT SUPPORT function objects
@@ -618,7 +618,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/freeFunctions/storage_calldata_refs.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/freeFunctions/easy.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/freeFunctions/overloads.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/freeFunctions/new_operator.sol', // STRETCH new
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/freeFunctions/new_operator.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/freeFunctions/import.sol', // multisource single file
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/freeFunctions/free_runtimecode.sol', // WILL NOT SUPPORT type(Contract).runtimeCode
   ],
@@ -667,12 +667,12 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/calling_nonexisting_contract_throws.sol', // WILL NOT SUPPORT raw address call
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/calling_uninitialized_function.sol', // WILL NOT SUPPORT function object
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/conditional_with_arguments.sol', // STRETCH conditional
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_no_args.sol', // REQUIRES CAIRO 0.9 - uses new
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_with_args.sol', // REQUIRES CAIRO 0.9 - uses new
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_with_salt.sol', // REQUIRES CAIRO 0.9 - uses new
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_no_args.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_with_args.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_with_salt.sol', // Fail during deployement because salt cannot be safely narrowed to felt
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/delegatecall_return_value_pre_byzantium.sol', // WILL NOT SUPPORT abi.encodepacked
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/delegatecall_return_value.sol', // WILL NOT SUPPORT abi.encodepacked
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/external_call_at_construction_time.sol', // REQUIRES CAIRO 0.9 - uses new
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/external_call_at_construction_time.sol', // Fails because it WARP allows a contract to call itself during creation (And it shoudl not)
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/external_call_value.sol', // WILL NOT SUPPORT msg.value?
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/failed_create.sol', // WILL NOT SUPPORT payable functions?
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/gas_and_value_basic.sol', // WILL NOT SUPPORT gas
@@ -738,7 +738,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/immutable/stub.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/immutable/getter.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/immutable/small_types_in_reverse.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/immutable/multi_creation.sol', // REQUIRES CAIRO 0.9 uses new
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/immutable/multi_creation.sol', // Fails due to address clash when deploying contracts
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/immutable/internal_function_pointer.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/immutable/immutable_signed.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/immutable/getter_call_in_constructor.sol', // WILL NOT SUPPORT try catch
@@ -761,10 +761,10 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/super_overload.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_function_calldata_memory.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/derived_overload_base_function_indirect.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_function_calldata_memory_interface.sol', // STRETCH new
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_function_calldata_calldata_interface.sol', // STRETCH new
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_function_calldata_memory_interface.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_function_calldata_calldata_interface.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/member_notation_ctor.sol', // multiple source in one file not supported by test suite
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/address_overload_resolution.sol', // REQUIRES CAIRO 0.9 uses new
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/address_overload_resolution.sol', // Fails due to the use of `balance` and `transfer` functions
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/super_in_constructor_assignment.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/value_for_constructor.sol', // WILL NOT SUPPORT function call options value
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_function_through_dispatch.sol', // WILL NOT SUPPORT function objects
@@ -902,10 +902,10 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/using_library_mappings_public.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_call_in_homestead.sol', // MOVED to behaviour tests, relies on address of test CALLER
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_stray_values.sol', // WILL NOT SUPPORT function objects
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_contract.sol', // STRETCH new
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_contract.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/mapping_returns_in_library.sol', // STRETCH conditional
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_address_named_send_transfer.sol', // WILL NOT SUPPORT raw address calls
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_interface.sol', // STRETCH new
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_interface.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/external_call_with_function_pointer_parameter.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_external_function.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_function_named_selector.sol', // WILL NOT SUPPORT function objects
@@ -1081,7 +1081,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/unknown_sig_no_fallback.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_arrays_too_large.sol', // tests abi decoding
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/array_slices.sol', // STRETCH slices
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/bubble.sol', // STRETCH new
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/bubble.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_tail_short.sol', // nested dynarray arg
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_array_invalid_length.sol', // nested dynarray array arg
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_array_dynamic_static_short_decode.sol', // dynamic array of static arrays
@@ -1095,10 +1095,10 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/library_non_view_call.sol', // WILL NOT SUPPORT abi.encode
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/invalid_abi_decoding_memory_v1.sol', // WILL NOT SUPPORT yul
   ],
-  //---------Salted_create - STRETCH new
+  //---------Salted_create
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/salted_create/salted_create_with_value.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/salted_create/salted_create.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/salted_create/salted_create_with_value.sol', // Fails due to the use of `value` option
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/salted_create/salted_create.sol', // Fails due to the use of `try catch`
   ],
   //---------smoke 10 passing, 2 pending, 5 failing - test errors
   ...[
@@ -1247,7 +1247,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/multislot_struct_allocation.sol', // WILL NOT SUPPORT function object
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/msg_data_to_struct_member_copy.sol', // WILL NOT SUPPORT msg.data
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/function_type_copy.sol', // WILL NOT SUPPORT function objects
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/copy_from_calldata.sol', // REQUIRES CAIRO 0.9 uses new
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/copy_from_calldata.sol', // Fails due to bidimensional calldata dynamic array
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/struct_delete_storage_small.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/recursive_struct_2.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/struct_delete_storage_with_arrays_small.sol', // WILL NOT SUPPORT yul
@@ -1415,13 +1415,13 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/skip_dynamic_types_for_static_arrays_with_dynamic_elements.sol', // nested dynarrays
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/store_bytes.sol', // msg.data
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/value_complex.sol', // address.balance
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/write_storage_external.sol', // new
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/write_storage_external.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/value_insane.sol', // WILL NOT SUPPORT address.balance
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/test_underscore_in_hex.sol', // STRETCH conditional
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/staticcall_for_view_and_pure.sol', // REQUIRES CAIRO 0.9 uses new
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/staticcall_for_view_and_pure_pre_byzantium.sol', // REQUIRES CAIRO 0.9 uses new
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/external_types_in_calls.sol', // REQUIRES CAIRO 0.9 uses new
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/contract_binary_dependencies.sol', // REQUIRES CAIRO 0.9 uses new
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/staticcall_for_view_and_pure.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/staticcall_for_view_and_pure_pre_byzantium.sol', // Fails because WARP is post byzantium only
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/external_types_in_calls.sol', //
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/contract_binary_dependencies.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/senders_balance.sol', // WILL NOT SUPPORT .balance
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/gasleft_decrease.sol', // WILL NOT SUPPORT gasleft
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/codehash.sol', // WILL NOT SUPPORT address members
@@ -1607,7 +1607,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor_with_params_inheritance_2.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/empty_contract.sol', // test suite cannot call non-existant function
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor_inheritance_init_order_3_legacy.sol', // We don't support the legacy bug behaviour and instead implement viaYul behaviour.
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interface_inheritance_conversions.sol', // REQUIRES CAIRO 0.9 uses new
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interface_inheritance_conversions.sol', // Address clash when deploying the same contracts
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/dirty_calldata_dynamic_array.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/dirty_calldata_bytes.sol', // WILL NOT SUPPORT yul
   ],
