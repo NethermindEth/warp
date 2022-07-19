@@ -1,8 +1,15 @@
-import { MemberAccess, Identifier, ExternalReferenceType } from 'solc-typed-ast';
+import {
+  MemberAccess,
+  Identifier,
+  ExternalReferenceType,
+  Expression,
+  getNodeType,
+} from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { createNumberTypeName } from '../../utils/nodeTemplates';
+import { createUint256TypeName, createUint8TypeName } from '../../utils/nodeTemplates';
+import { typeNameFromTypeNode } from '../../utils/utils';
 
 export class BlockMethods extends ASTMapper {
   visitMemberAccess(node: MemberAccess, ast: AST): void {
@@ -16,7 +23,7 @@ export class BlockMethods extends ASTMapper {
           createCairoFunctionStub(
             'get_block_number',
             [],
-            [['block_number', createNumberTypeName(248, false, ast)]],
+            [['block_number', createUint8TypeName(ast)]],
             ['syscall_ptr'],
             ast,
             node,
@@ -30,13 +37,13 @@ export class BlockMethods extends ASTMapper {
           'starkware.starknet.common.syscalls',
           'get_block_number',
         );
-        // } else if (node.memberName === 'number')
+        wrapInFeltToUint256(replacementCall, ast);
       } else if (node.memberName === 'timestamp') {
         const replacementCall = createCallToFunction(
           createCairoFunctionStub(
             'get_block_timestamp',
             [],
-            [['block_timestamp', createNumberTypeName(248, false, ast)]],
+            [['block_timestamp', createUint8TypeName(ast)]],
             ['syscall_ptr'],
             ast,
             node,
@@ -50,11 +57,26 @@ export class BlockMethods extends ASTMapper {
           'starkware.starknet.common.syscalls',
           'get_block_timestamp',
         );
-        // } else if (node.memberName === 'number')
+        wrapInFeltToUint256(replacementCall, ast);
       }
     } else {
-      // This pass is specifically searching for msg.sender, a.msg.sender should be ignored, so don't recurse
       return;
     }
   }
+}
+
+function wrapInFeltToUint256(node: Expression, ast: AST): void {
+  const funcStub = createCairoFunctionStub(
+    'felt_to_uint256',
+    [['x', typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast)]],
+    [['x_', createUint256TypeName(ast)]],
+    ['range_check_ptr', 'bitwise_ptr'],
+    ast,
+    node,
+  );
+  const parent = node.parent;
+  const funcCall = createCallToFunction(funcStub, [node], ast);
+  ast.registerImport(node, 'warplib.maths.utils', 'felt_to_uint256');
+  ast.replaceNode(node, funcCall, parent);
+  ast.setContextRecursive(funcCall);
 }
