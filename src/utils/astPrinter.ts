@@ -138,6 +138,7 @@ export const DefaultASTPrinter = new ASTPrinter()
     prop: 'symbolAliases',
     print: symbolAliases,
   })
+  .lookFor('text')
   .lookFor('typeString')
   .lookFor('value')
   .lookFor('visibility');
