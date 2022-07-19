@@ -10,7 +10,7 @@ contract WARP {
     }
  
     // Testnet returns 0 for get_block_timestamp so there is no test.
-    function timestamp() external view returns (uint248) {
+    function timestamp() external view returns (uint256) {
         uint256 y = block.timestamp;
         return y; 
     }
