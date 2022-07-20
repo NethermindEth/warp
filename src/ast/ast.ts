@@ -85,7 +85,11 @@ export class AST {
     );
   }
 
-  extractToConstant(node: Expression, vType: TypeName, newName: string): Identifier {
+  extractToConstant(
+    node: Expression,
+    vType: TypeName,
+    newName: string,
+  ): [insertedIdentifier: Identifier, declaration: VariableDeclarationStatement] {
     const scope = this.getContainingScope(node);
     let location: DataLocation;
     if (node instanceof FunctionCall && isExternalCall(node)) {
@@ -130,7 +134,7 @@ export class AST {
     this.replaceNode(node, replacementIdentifer);
     declaration.vInitialValue = node;
     this.registerChild(node, declaration);
-    return replacementIdentifer;
+    return [replacementIdentifer, declaration];
   }
 
   getContainingRoot(node: ASTNode): SourceUnit {
