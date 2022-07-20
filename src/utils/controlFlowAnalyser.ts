@@ -18,6 +18,8 @@ export function hasPathWithoutReturn(statement: Statement): boolean {
   }
 }
 
+// collects the reachable statements within the given one
+// proper use would be to pass the body of a function, for example
 export function collectReachableStatements(statement: Statement): Set<Statement> {
   // This is created up front for space efficiency, to avoid constant creation and unions of sets
   const reachableStatements = new Set<Statement>();
@@ -25,17 +27,27 @@ export function collectReachableStatements(statement: Statement): Set<Statement>
   return reachableStatements;
 }
 
+// inserts reachable statements into collection,
+// and returns whether or not execution can continue past the given statement
 export function collectReachableStatementsImpl(
   statement: Statement,
   collection: Set<Statement>,
-): void {
+): boolean {
   collection.add(statement);
   if (statement instanceof Block || statement instanceof UncheckedBlock) {
-    statement.vStatements.forEach((subStatement) =>
-      collectReachableStatementsImpl(subStatement, collection),
-    );
+    for (const subStatement of statement.vStatements) {
+      const flowContinues = collectReachableStatementsImpl(subStatement, collection);
+      if (!flowContinues) return false;
+    }
+    return true;
   } else if (statement instanceof IfStatement) {
-    collectReachableStatementsImpl(statement.vTrueBody, collection);
-    if (statement.vFalseBody) collectReachableStatementsImpl(statement.vFalseBody, collection);
+    const flowGetsThroughTrue = collectReachableStatementsImpl(statement.vTrueBody, collection);
+    const flowGetsThroughFalse =
+      !statement.vFalseBody || collectReachableStatementsImpl(statement.vFalseBody, collection);
+    return flowGetsThroughTrue || flowGetsThroughFalse;
+  } else if (statement instanceof Return) {
+    return false;
+  } else {
+    return true;
   }
 }
