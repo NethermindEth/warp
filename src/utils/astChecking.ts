@@ -334,7 +334,7 @@ function checkDirectChildren<T extends ASTNode>(node: T, ...fields: Array<keyof 
  * not performance critical.
  *
  * @param unit - source unit to check
- * @param ctxts - `ASTContext`s for each of the groups of units
+ * @param ctx - `ASTContext`s for each of the groups of units
  */
 export function checkSane(unit: SourceUnit, ctx: ASTContext): void {
   for (const node of unit.getChildren(true)) {

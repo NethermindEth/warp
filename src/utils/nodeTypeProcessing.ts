@@ -174,6 +174,13 @@ export function isDynamicCallDataArray(type: TypeNode): boolean {
   );
 }
 
+export function isStruct(type: TypeNode): boolean {
+  return (
+    (type instanceof UserDefinedType && type.definition instanceof StructDefinition) ||
+    (type instanceof PointerType && isStruct(type.to))
+  );
+}
+
 export function isReferenceType(type: TypeNode): boolean {
   return (
     type instanceof ArrayType ||

@@ -446,9 +446,9 @@ export function isCalldataDynArrayStruct(node: Identifier, compilerVersion: stri
       node.getClosestParentByType(FunctionDefinition)?.visibility === FunctionVisibility.External &&
       node.getClosestParentByType(IndexAccess) === undefined &&
       node.getClosestParentByType(MemberAccess) === undefined) ||
-      (node.parent instanceof FunctionCall && isExternalCall(node.parent)) ||
-      // 'string_hash' function can not be user defined, due to mangling identifiers
-      (node.parent instanceof FunctionCall && node.parent.vFunctionName === 'string_hash'))
+      (node.parent instanceof FunctionCall &&
+        // 'string_hash' function can not be user defined, due to mangling identifiers
+        (isExternalCall(node.parent) || node.parent.vFunctionName === 'string_hash')))
   );
 }
 

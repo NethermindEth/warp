@@ -39,6 +39,8 @@ import {
   EmitStatement,
   NewExpression,
   FunctionTypeName,
+  FunctionCallOptions,
+  Expression,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoAssert, CairoFunctionDefinition } from '../ast/cairoNodes';
@@ -128,6 +130,20 @@ function cloneASTNodeImpl<T extends ASTNode>(
       cloneASTNodeImpl(node.vExpression, ast, remappedIds),
       node.vArguments.map((arg) => cloneASTNodeImpl(arg, ast, remappedIds)),
       node.fieldNames,
+      node.raw,
+    );
+  } else if (node instanceof FunctionCallOptions) {
+    const newOptionMap = new Map<string, Expression>();
+    [...node.vOptionsMap.entries()].forEach(([key, value]) =>
+      newOptionMap.set(key, cloneASTNodeImpl(value, ast, remappedIds)),
+    );
+
+    newNode = new FunctionCallOptions(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.typeString,
+      cloneASTNodeImpl(node.vExpression, ast, remappedIds),
+      newOptionMap,
       node.raw,
     );
   } else if (node instanceof IndexAccess) {
@@ -355,6 +371,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
       new Set([...node.implicits]),
       node.functionStubKind,
       node.acceptsRawDarray,
+      node.acceptsUnpackedStructArray,
       node.vOverrideSpecifier && cloneASTNodeImpl(node.vOverrideSpecifier, ast, remappedIds),
       node.vBody && cloneASTNodeImpl(node.vBody, ast, remappedIds),
       cloneDocumentation(node.documentation, ast, remappedIds),

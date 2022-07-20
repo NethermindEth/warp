@@ -34,7 +34,7 @@ import { MemoryWriteGen } from './memoryWrite';
     uint8[3] -> uint256[]
     uint8[3] -> uint256[3]
     uint8[3] -> uint256[8]
-  Only int/uint type implicit conversions
+  Only int/uint or fixed bytes implicit conversions
 */
 
 const IMPLICITS = '{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, warp_memory : DictAccess*}';

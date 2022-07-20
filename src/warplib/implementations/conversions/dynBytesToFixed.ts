@@ -37,7 +37,7 @@ export function functionaliseBytesToFixedBytes(
     implicits,
     ast,
     node,
-    FunctionStateMutability.Pure,
+    { mutability: FunctionStateMutability.Pure },
   );
 
   const replacement = createCallToFunction(

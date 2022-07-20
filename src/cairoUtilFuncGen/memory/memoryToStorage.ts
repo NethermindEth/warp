@@ -60,7 +60,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
       nodeInSourceUnit ?? storageLocation,
-      FunctionStateMutability.View,
+      { mutability: FunctionStateMutability.View },
     );
     return createCallToFunction(functionStub, [storageLocation, memoryLocation], this.ast);
   }

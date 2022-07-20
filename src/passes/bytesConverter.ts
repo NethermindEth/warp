@@ -34,7 +34,7 @@ import {
 } from '../utils/nodeTemplates';
 
 /* Convert fixed-size byte arrays (e.g. bytes2, bytes8) to their equivalent unsigned integer.
-    This pass currently does not handle dynamically-sized bytes arrays (i.e. bytes).
+    This pass does not handle dynamically-sized bytes arrays (i.e. bytes).
 */
 
 export class BytesConverter extends ASTMapper {

@@ -35,6 +35,39 @@ export type DeployResponse =
       error_message: string;
     };
 
+export type DeclareResponse =
+  | {
+      status: number;
+      threw: false;
+      class_hash: string;
+      error_message: undefined;
+    }
+  | {
+      status: number;
+      threw: true;
+      class_hash: null;
+      error_message: string;
+    };
+
+export async function declare(jsonPath: string): Promise<DeclareResponse> {
+  const response = await axios.post('http://127.0.0.1:5000/declare', {
+    compiled_cairo: jsonPath,
+  });
+  return response.data.transaction_info.threw
+    ? {
+        status: response.status,
+        threw: true,
+        class_hash: null,
+        error_message: response.data.transaction_info.message,
+      }
+    : {
+        status: response.status,
+        threw: false,
+        class_hash: response.data.class_hash,
+        error_message: undefined,
+      };
+}
+
 export async function deploy(jsonPath: string, input: string[]): Promise<DeployResponse> {
   const response = await axios.post('http://127.0.0.1:5000/deploy', {
     compiled_cairo: jsonPath,

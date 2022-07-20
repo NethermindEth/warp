@@ -36,7 +36,7 @@ export class StorageReadGen extends StringIndexedFuncGen {
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr'],
       this.ast,
       nodeInSourceUnit ?? storageLocation,
-      FunctionStateMutability.View,
+      { mutability: FunctionStateMutability.View },
     );
     return createCallToFunction(functionStub, [storageLocation], this.ast);
   }

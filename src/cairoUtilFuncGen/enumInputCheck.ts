@@ -34,8 +34,10 @@ export class EnumInputCheck extends StringIndexedFuncGen {
       ['range_check_ptr'],
       this.ast,
       nodeInSourceUnit ?? nodeInput,
-      FunctionStateMutability.Pure,
-      FunctionStubKind.FunctionDefStub,
+      {
+        mutability: FunctionStateMutability.Pure,
+        stubKind: FunctionStubKind.FunctionDefStub,
+      },
     );
 
     return createCallToFunction(functionStub, [nodeInput], this.ast);
