@@ -65,135 +65,230 @@ library TickMath {
 
         uint256 r = ratio;
         uint256 msb = 0;
-
-        assembly {
-            let f := shl(7, gt(r, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF))
-            msb := or(msb, f)
-            r := shr(f, r)
-        }
-        assembly {
-            let f := shl(6, gt(r, 0xFFFFFFFFFFFFFFFF))
-            msb := or(msb, f)
-            r := shr(f, r)
-        }
-        assembly {
-            let f := shl(5, gt(r, 0xFFFFFFFF))
-            msb := or(msb, f)
-            r := shr(f, r)
-        }
-        assembly {
-            let f := shl(4, gt(r, 0xFFFF))
-            msb := or(msb, f)
-            r := shr(f, r)
-        }
-        assembly {
-            let f := shl(3, gt(r, 0xFF))
-            msb := or(msb, f)
-            r := shr(f, r)
-        }
-        assembly {
-            let f := shl(2, gt(r, 0xF))
-            msb := or(msb, f)
-            r := shr(f, r)
-        }
-        assembly {
-            let f := shl(1, gt(r, 0x3))
-            msb := or(msb, f)
-            r := shr(f, r)
-        }
-        assembly {
-            let f := gt(r, 0x1)
-            msb := or(msb, f)
-        }
+        uint256 f;
+        // assembly {
+        //     let f := shl(7, gt(r, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF))
+        //     msb := or(msb, f)
+        //     r := shr(f, r)
+        // }
+        f = 7;
+        if (r > 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            f <<= 1;
+        msb = msb | f;
+        r = f >> r;
+        // assembly {
+        //     let f := shl(6, gt(r, 0xFFFFFFFFFFFFFFFF))
+        //     msb := or(msb, f)
+        //     r := shr(f, r)
+        // }
+        f = 6;
+        if (r > 0xFFFFFFFFFFFFFFFF)
+            f <<= 1;
+        msb = msb | f;
+        r = f >> r;
+        // assembly {
+        //     let f := shl(5, gt(r, 0xFFFFFFFF))
+        //     msb := or(msb, f)
+        //     r := shr(f, r)
+        // }
+        f = 5;
+        if (r > 0xFFFFFFFF)
+            f <<= 1;
+        msb = msb | f;
+        r = f >> r;
+        // assembly {
+        //     let f := shl(4, gt(r, 0xFFFF))
+        //     msb := or(msb, f)
+        //     r := shr(f, r)
+        // }
+        f = 4;
+        if (r > 0xFFFF)
+            f <<= 1;
+        msb = msb | f;
+        r = f >> r;
+        // assembly {
+        //     let f := shl(3, gt(r, 0xFF))
+        //     msb := or(msb, f)
+        //     r := shr(f, r)
+        // }
+        f = 3;
+        if (r > 0xFF)
+            f <<= 1;
+        msb = msb | f;
+        r = f >> r;
+        // assembly {
+        //     let f := shl(2, gt(r, 0xF))
+        //     msb := or(msb, f)
+        //     r := shr(f, r)
+        // }
+        f = 2;
+        if (r > 0xF)
+            f <<= 1;
+        msb = msb | f;
+        r = f >> r;
+        // assembly {
+        //     let f := shl(1, gt(r, 0x3))
+        //     msb := or(msb, f)
+        //     r := shr(f, r)
+        // }
+        f = 1;
+        if (r > 0x3)
+            f <<= 1;
+        msb = msb | f;
+        r = f >> r;
+        // assembly {
+        //     let f := gt(r, 0x1)
+        //     msb := or(msb, f)
+        // }
+        f = 0;
+        if (r > 0x1)
+            f = 1;
+        msb = msb | f;
 
         if (msb >= 128) r = ratio >> (msb - 127);
         else r = ratio << (127 - msb);
 
         int256 log_2 = (int256(msb) - 128) << 64;
 
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(63, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(62, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(61, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(60, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(59, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(58, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(57, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(56, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(55, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(54, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(53, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(52, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(51, f))
-            r := shr(f, r)
-        }
-        assembly {
-            r := shr(127, mul(r, r))
-            let f := shr(128, r)
-            log_2 := or(log_2, shl(50, f))
-        }
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(63, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(63 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(62, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(62 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(61, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(61 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(60, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(60 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(59, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(59 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(58, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(58 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(57, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(57 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(56, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(56 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(55, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(55 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(54, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(54 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(53, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(53 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(52, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(52 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(51, f))
+        //     r := shr(f, r)
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(51 << f);
+        r = f >> r;
+        // assembly {
+        //     r := shr(127, mul(r, r))
+        //     let f := shr(128, r)
+        //     log_2 := or(log_2, shl(50, f))
+        // }
+        r = 127 >> (r * r);
+        f = 128 >> r;
+        log_2 |= int256(50 << f);
+        r = f >> r;
 
         int256 log_sqrt10001 = log_2 * 255738958999603826347141; // 128.128 number
 
