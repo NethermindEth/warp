@@ -1,18 +1,14 @@
 import { FunctionDefinition, Statement, StatementWithChildren } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { analyseControlFlow } from '../utils/controlFlowAnalyser';
+import { collectReachableStatements } from '../utils/controlFlowAnalyser';
+import { union } from '../utils/utils';
 export class UnreachableStatementPruner extends ASTMapper {
   reachableStatements: Set<Statement> = new Set();
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     const body = node.vBody;
     if (body === undefined) return;
-    const controlFlows = analyseControlFlow(body);
-    controlFlows.forEach((flow) =>
-      flow.forEach((statement) => {
-        this.reachableStatements.add(statement);
-      }),
-    );
+    this.reachableStatements = union(this.reachableStatements, collectReachableStatements(body));
     this.commonVisit(node, ast);
   }
   visitStatement(node: Statement, ast: AST): void {
