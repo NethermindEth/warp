@@ -1,7 +1,7 @@
-import { FunctionDefinition, Return } from 'solc-typed-ast';
+import { FunctionDefinition } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { analyseControlFlow } from '../utils/controlFlowAnalyser';
+import { hasPathWithoutReturn } from '../utils/controlFlowAnalyser';
 import { createIdentifier, createReturn } from '../utils/nodeTemplates';
 import { toSingleExpression } from '../utils/utils';
 
@@ -15,9 +15,7 @@ export class ReturnInserter extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (node.vBody === undefined) return;
 
-    const controlFlows = analyseControlFlow(node.vBody);
-
-    if (controlFlows.some((flow) => !flow.some((s) => s instanceof Return))) {
+    if (hasPathWithoutReturn(node.vBody)) {
       const retVars = node.vReturnParameters.vParameters;
       let expression;
       if (retVars.length !== 0) {
