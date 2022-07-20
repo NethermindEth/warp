@@ -32,6 +32,14 @@ import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 
 export class NewToDeploy extends ASTMapper {
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([
+      'I', // Encoder util function must have the right type for encoding
+      'Ffi', // Define the `encoder` util function after the free funtion has been moved
+    ]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   // map of: (contract name => contract declaration hash placeholder)
   placeHolderMap = new Map<string, VariableDeclaration>();
 
