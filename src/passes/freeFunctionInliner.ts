@@ -11,16 +11,6 @@ import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
 import { union } from '../utils/utils';
 
-/* 
-  Library calls in solidity are delegate calls
-  i.e  libraries can be seen as implicit base contracts of the contracts that use them
-  The ReferencedLibraries pass converts external call to the library to internal call 
-  to it. 
-  This pass is called before the ReferncedLibraries pass to inline free functions 
-  into the contract if the free functions make library calls or if they call other free
-  function which do that.
-*/
-
 export class FreeFunctionInliner extends ASTMapper {
   funcCounter = 0;
 
@@ -28,8 +18,7 @@ export class FreeFunctionInliner extends ASTMapper {
     // Stores old FunctionDefinition and cloned FunctionDefinition
     const remappings = new Map<FunctionDefinition, FunctionDefinition>();
 
-    // Visit all FunctionCalls in a Contract and check if they call
-    // free functions that call Library Functions
+    // Visit all FunctionCalls in a Contract to inline any free functions that are used
     node
       .getChildrenByType(FunctionCall)
       .map((fCall) => fCall.vReferencedDeclaration)
@@ -53,9 +42,7 @@ export class FreeFunctionInliner extends ASTMapper {
   }
 }
 
-// Checks the given free function for library calls, and recurses through any free functions it calls
-// to see if any of them call libraries. All functions reachable from func that call library functions
-// directly or indirectly are returned to be inlined
+// Handles transitivity, recursively finding all free functions that this one depends on
 function getFunctionsToInline(
   func: FunctionDefinition,
   visited: Set<FunctionDefinition> = new Set(),

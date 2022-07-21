@@ -69,5 +69,4 @@ export class RefTypeModifier extends ASTMapper {
     }
     this.commonVisit(node, ast);
   }
-  // Change the other instance of this function to isDynamicMemoryArrayRef
 }

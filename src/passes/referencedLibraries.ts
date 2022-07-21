@@ -33,7 +33,6 @@ export class ReferencedLibraries extends ASTMapper {
 
       //Checks if the Function is a referenced Library functions,
       //if yes add it to the linearizedBaseContract list of parent ContractDefinition node
-      //free functions calling library functions are not yet supported
       librariesById.forEach((library, _) => {
         if (library.vFunctions.some((libraryFunc) => libraryFunc.id === calledDeclaration.id)) {
           const parent = node.getClosestParentByType(ContractDefinition);
