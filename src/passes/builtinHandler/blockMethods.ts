@@ -1,15 +1,8 @@
-import {
-  MemberAccess,
-  Identifier,
-  ExternalReferenceType,
-  Expression,
-  getNodeType,
-} from 'solc-typed-ast';
+import { MemberAccess, Identifier, ExternalReferenceType } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { createUint256TypeName, createUint8TypeName } from '../../utils/nodeTemplates';
-import { typeNameFromTypeNode } from '../../utils/utils';
+import { createUint256TypeName } from '../../utils/nodeTemplates';
 
 /*
 A subpass that replaces the block.timestamp and block.number methods.
@@ -26,11 +19,10 @@ export class BlockMethods extends ASTMapper {
       if (node.memberName === 'number') {
         const replacementCall = createCallToFunction(
           createCairoFunctionStub(
-            'get_block_number',
+            'warp_block_number',
             [],
-            // Chosen since this will be transformed to felt, so width does not matter.
-            [['block_number', createUint8TypeName(ast)]],
-            ['syscall_ptr'],
+            [['block_num', createUint256TypeName(ast)]],
+            ['syscall_ptr', 'range_check_ptr'],
             ast,
             node,
           ),
@@ -38,19 +30,14 @@ export class BlockMethods extends ASTMapper {
           ast,
         );
         ast.replaceNode(node, replacementCall);
-        ast.registerImport(
-          replacementCall,
-          'starkware.starknet.common.syscalls',
-          'get_block_number',
-        );
-        wrapInFeltToUint256(replacementCall, ast);
+        ast.registerImport(replacementCall, 'warplib.block_methods', 'warp_block_number');
       } else if (node.memberName === 'timestamp') {
         const replacementCall = createCallToFunction(
           createCairoFunctionStub(
-            'get_block_timestamp',
+            'warp_block_timestamp',
             [],
-            [['block_timestamp', createUint8TypeName(ast)]],
-            ['syscall_ptr'],
+            [['block_timestamp', createUint256TypeName(ast)]],
+            ['syscall_ptr', 'range_check_ptr'],
             ast,
             node,
           ),
@@ -58,31 +45,10 @@ export class BlockMethods extends ASTMapper {
           ast,
         );
         ast.replaceNode(node, replacementCall);
-        ast.registerImport(
-          replacementCall,
-          'starkware.starknet.common.syscalls',
-          'get_block_timestamp',
-        );
-        wrapInFeltToUint256(replacementCall, ast);
+        ast.registerImport(replacementCall, 'warplib.block_methods', 'warp_block_timestamp');
       }
     } else {
       return;
     }
   }
-}
-
-function wrapInFeltToUint256(node: Expression, ast: AST): void {
-  const funcStub = createCairoFunctionStub(
-    'felt_to_uint256',
-    [['x', typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast)]],
-    [['x_', createUint256TypeName(ast)]],
-    ['range_check_ptr', 'bitwise_ptr'],
-    ast,
-    node,
-  );
-  const parent = node.parent;
-  const funcCall = createCallToFunction(funcStub, [node], ast);
-  ast.registerImport(node, 'warplib.maths.utils', 'felt_to_uint256');
-  ast.replaceNode(node, funcCall, parent);
-  ast.setContextRecursive(funcCall);
 }
