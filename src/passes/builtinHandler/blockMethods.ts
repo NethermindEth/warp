@@ -1,4 +1,4 @@
-import { MemberAccess, Identifier, ExternalReferenceType } from 'solc-typed-ast';
+import { MemberAccess, Identifier, ExternalReferenceType, Expression } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
@@ -10,6 +10,10 @@ In Solidity these functions return uint256, but in cairo these will return felts
 Therefore, we wrap the replacement functions in felt_to_uint256 warplib functions.
 */
 export class BlockMethods extends ASTMapper {
+  visitExpression(node: Expression, ast: AST): void {
+    this.commonVisit(node, ast);
+  }
+
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     if (
       node.vExpression instanceof Identifier &&
@@ -48,7 +52,7 @@ export class BlockMethods extends ASTMapper {
         ast.registerImport(replacementCall, 'warplib.block_methods', 'warp_block_timestamp');
       }
     } else {
-      return;
+      this.commonVisit(node, ast);
     }
   }
 }
