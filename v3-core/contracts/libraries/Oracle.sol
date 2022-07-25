@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity >=0.5.0 <0.8.0;
+pragma solidity ^0.8.14;
 
 /// @title Oracle
 /// @notice Provides price and liquidity data useful for a wide variety of system designs
@@ -37,7 +37,7 @@ library Oracle {
         return
             Observation({
                 blockTimestamp: blockTimestamp,
-                tickCumulative: last.tickCumulative + int56(tick) * delta,
+                tickCumulative: last.tickCumulative + int56(tick) * int32(delta),
                 secondsPerLiquidityCumulativeX128: last.secondsPerLiquidityCumulativeX128 +
                     ((uint160(delta) << 128) / (liquidity > 0 ? liquidity : 1)),
                 initialized: true
@@ -274,8 +274,8 @@ library Oracle {
             uint32 targetDelta = target - beforeOrAt.blockTimestamp;
             return (
                 beforeOrAt.tickCumulative +
-                    ((atOrAfter.tickCumulative - beforeOrAt.tickCumulative) / observationTimeDelta) *
-                    targetDelta,
+                    ((atOrAfter.tickCumulative - beforeOrAt.tickCumulative) / int32(observationTimeDelta)) *
+                    int32(targetDelta),
                 beforeOrAt.secondsPerLiquidityCumulativeX128 +
                     uint160(
                         (uint256(
