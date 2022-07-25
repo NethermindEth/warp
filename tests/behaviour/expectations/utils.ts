@@ -13,13 +13,14 @@ export function flatten(test: Dir | File): File[] {
 
 function stringFlatten_(val: Value): string[] {
   if (typeof val === 'string' || typeof val === 'number') {
-    if (typeof val === 'string' && val.startsWith('address@')) return [val];
+    if (typeof val === 'string' && (val.startsWith('address@') || val.startsWith('hash@')))
+      return [val];
     return [BigInt(val).toString()];
   }
   if (Array.isArray(val)) {
     return [val.length, ...val].flatMap(stringFlatten_);
   }
-  throw new Error('Test expectation not a stirng or an int.');
+  throw new Error('Test expectation not a string or an int.');
 }
 
 export function stringFlatten(val: Value[]): string[] {

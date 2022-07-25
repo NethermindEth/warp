@@ -36,6 +36,13 @@ import { typeNameFromTypeNode } from '../utils/utils';
 
 export class TupleAssignmentSplitter extends ASTMapper {
   lastTempVarNumber = 0;
+
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   newTempVarName(): string {
     return `${TUPLE_VALUE_PREFIX}${this.lastTempVarNumber++}`;
   }

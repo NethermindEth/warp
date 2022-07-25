@@ -9,6 +9,12 @@ import { Ecrecover } from './ecrecover';
 import { Keccak } from './keccak';
 
 export class BuiltinHandler extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   static map(ast: AST): AST {
     ast = MsgSender.map(ast);
     ast = Ecrecover.map(ast);

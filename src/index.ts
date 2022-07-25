@@ -20,9 +20,11 @@ export type CompilationOptions = {
 
 export type TranspilationOptions = {
   checkTrees?: boolean;
+  dev?: boolean;
   order?: string;
   printTrees?: boolean;
   strict?: boolean;
+  warnings?: boolean;
   until?: string;
 };
 
@@ -57,6 +59,7 @@ program
   // Stops transpilation after the specified pass
   .option('--until <pass>')
   .option('--no-warnings')
+  .option('--dev') // for development mode
   .action((files: string[], options: CliOptions) => {
     // We do the extra work here to make sure all the errors are printed out
     // for all files which are invalid.

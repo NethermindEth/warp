@@ -11,6 +11,27 @@ import { ASTVisitor } from './visitor';
 */
 
 export class ASTMapper extends ASTVisitor<void> {
+  // List of passes that should have been run before this one
+  prerequisites: Set<string> = new Set<string>();
+
+  addPassPrerequisite(pass_key: string) {
+    this.prerequisites.add(pass_key);
+  }
+
+  addInitialPassPrerequisites(): void {
+    return;
+  }
+
+  getPassPrerequisites(): Set<string> {
+    return this.prerequisites;
+  }
+
+  static _getPassPrerequisites(): Set<string> {
+    const mapper = new this();
+    mapper.addInitialPassPrerequisites();
+    return mapper.getPassPrerequisites();
+  }
+
   commonVisit(node: ASTNode, ast: AST): void {
     // The slice is for consistency if the node is modified during visiting
     // If you want to add a new child during a visit, and then visit it, you must call dispatchVisit on it yourself

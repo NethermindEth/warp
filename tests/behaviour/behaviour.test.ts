@@ -1,6 +1,13 @@
 import * as fs from 'fs';
 
-import { SafePromise, cleanupSync, starknetCompile, transpile, batchPromises } from '../util';
+import {
+  SafePromise,
+  cleanupSync,
+  starknetCompile,
+  transpile,
+  batchPromises,
+  processArgs,
+} from '../util';
 import { deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
 
 import { describe } from 'mocha';
@@ -80,7 +87,7 @@ describe('Transpiled contracts are valid cairo', function () {
   }
 });
 
-const deployedAddresses: Map<string, string> = new Map();
+const deployedAddresses: Map<string, { address: string; hash: string }> = new Map();
 
 describe('Compiled contracts are deployable', function () {
   this.timeout(TIME_LIMIT);
@@ -113,10 +120,10 @@ describe('Compiled contracts are deployable', function () {
       } else {
         expect(response.threw, 'Deploy request failed').to.be.false;
         if (!response.threw) {
-          deployedAddresses.set(
-            `${expectations[i].name}.${expectations[i].contract}`,
-            response.contract_address,
-          );
+          deployedAddresses.set(`${expectations[i].name}.${expectations[i].contract}`, {
+            address: response.contract_address,
+            hash: response.class_hash,
+          });
         }
       }
     });
@@ -129,7 +136,7 @@ describe('Deployed contracts have correct behaviour', function () {
   for (const fileTest of expectations) {
     if (fileTest.expectations instanceof Promise) {
       it(fileTest.name, async function () {
-        const address = deployedAddresses.get(`${fileTest.name}.${fileTest.contract}`);
+        const address = deployedAddresses.get(`${fileTest.name}.${fileTest.contract}`)?.address;
         if (address === undefined) this.skip();
         const expects = await fileTest.expectations;
         for (let i = 0; i < expects.length; ++i) {
@@ -141,7 +148,7 @@ describe('Deployed contracts have correct behaviour', function () {
       describe(fileTest.name, async function () {
         for (const functionExpectation of expects) {
           it(functionExpectation.name, async function () {
-            const address = deployedAddresses.get(`${fileTest.name}.${fileTest.contract}`);
+            const address = deployedAddresses.get(`${fileTest.name}.${fileTest.contract}`)?.address;
             if (address === undefined) this.skip();
             await behaviourTest(functionExpectation, fileTest, address);
           });
@@ -172,29 +179,10 @@ async function behaviourTest(
     const name = functionExpectation.name;
     const mangledFuncName =
       funcName !== 'constructor' ? findMethod(funcName, fileTest.compiled) : 'constructor';
-    const replaced_inputs = inputs.map((input) => {
-      if (input.startsWith('address@')) {
-        input = input.replace('address@', '');
-        const value = deployedAddresses.get(input);
-        if (value === undefined) {
-          expect.fail(`${name} failed, cannot find address ${input}`);
-        }
-        return BigInt(value).toString();
-      }
-      return input;
-    });
+    const replaced_inputs = processArgs(name, inputs, deployedAddresses);
+    const replaced_expectedResult =
+      expectedResult !== null ? processArgs(name, expectedResult, deployedAddresses) : null;
 
-    const replaced_expectedResult = expectedResult?.map((expectedValue) => {
-      if (expectedValue.startsWith('address@')) {
-        expectedValue = expectedValue.replace('address@', '');
-        const value = deployedAddresses.get(expectedValue);
-        if (value === undefined) {
-          expect.fail(`${name} failed, cannot find address ${expectedValue}`);
-        }
-        return BigInt(value).toString();
-      }
-      return expectedValue;
-    });
     if (funcName === 'constructor') {
       // Failing tests for constructor
       const response = await deploy(fileTest.compiled, replaced_inputs);

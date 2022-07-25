@@ -4,17 +4,22 @@ import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
 import {
+  ABIExtractor,
   AnnotateImplicits,
+  ArgBoundChecker,
   BuiltinHandler,
   BytesConverter,
+  CairoStubProcessor,
   CairoUtilImporter,
   ConstantHandler,
   DeleteHandler,
+  DropUnusedSourceUnits,
+  dumpABI,
   EnumConverter,
   ExpressionSplitter,
   ExternalArgModifier,
   ExternalContractHandler,
-  ArgBoundChecker,
+  FilePathMangler,
   FreeFunctionInliner,
   FunctionTypeStringMatcher,
   IdentifierMangler,
@@ -22,39 +27,35 @@ import {
   ImplicitConversionToExplicit,
   ImportDirectiveIdentifier,
   InheritanceInliner,
-  TypeInformationCalculator,
   LiteralExpressionEvaluator,
   LoopFunctionaliser,
   ModifierHandler,
   NamedArgsRemover,
+  OrderNestedStructs,
   PublicFunctionSplitter,
   PublicStateVarsGetterGenerator,
   ReferencedLibraries,
   References,
   RejectUnsupportedFeatures,
+  Require,
   ReturnInserter,
   ReturnVariableInitializer,
   SourceUnitSplitter,
+  StaticArrayIndexer,
   StorageAllocator,
   TupleAssignmentSplitter,
+  TupleFixes,
+  TypeInformationCalculator,
   TypeNameRemover,
   TypeStringsChecker,
   UnloadingAssignment,
+  UnreachableFunctionPruner,
   UnreachableStatementPruner,
   UserDefinedTypesConverter,
   UsingForResolver,
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
-  ABIExtractor,
-  dumpABI,
-  StaticArrayIndexer,
-  TupleFixes,
-  DropUnusedSourceUnits,
-  UnreachableFunctionPruner,
 } from './passes';
-import { FilePathMangler } from './passes/filePathMangler';
-import { Require } from './passes/builtinHandler/require';
-import { OrderNestedStructs } from './passes/orderNestedStructs';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { createPassMap, parsePassOrder } from './utils/cliOptionParsing';
@@ -143,9 +144,16 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['An', AnnotateImplicits],
     ['Ci', CairoUtilImporter],
     ['Dus', DropUnusedSourceUnits],
+    ['Cs', CairoStubProcessor],
   ]);
 
-  const passesInOrder: typeof ASTMapper[] = parsePassOrder(options.order, options.until, passes);
+  const passesInOrder: typeof ASTMapper[] = parsePassOrder(
+    options.order,
+    options.until,
+    options.warnings,
+    options.dev,
+    passes,
+  );
   DefaultASTPrinter.applyOptions(options);
 
   printPassName('Input', options);

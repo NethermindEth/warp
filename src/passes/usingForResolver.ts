@@ -30,6 +30,12 @@ export class UsingForResolver extends ASTMapper {
   // No need to check whether certain library/functions/library-functions
   // are attached to a type, as they would be checked by solc-typed-ast
 
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     this.commonVisit(node, ast);
 

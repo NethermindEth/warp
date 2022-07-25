@@ -27,6 +27,12 @@ import {
 // do not have default typeString (current latest solc version - 0.8.13).
 
 export class ImportDirectiveIdentifier extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitImportDirective(node: ImportDirective, ast: AST): void {
     node.getChildrenByType(Identifier).forEach((identifier) => {
       assert(identifier.vReferencedDeclaration !== undefined);
