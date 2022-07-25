@@ -6,7 +6,7 @@ export function hasPathWithoutReturn(statement: Statement): boolean {
   } else if (statement instanceof IfStatement) {
     if (hasPathWithoutReturn(statement.vTrueBody)) {
       return true;
-    } else if (statement.vFalseBody !== undefined && hasPathWithoutReturn(statement.vFalseBody)) {
+    } else if (statement.vFalseBody === undefined || hasPathWithoutReturn(statement.vFalseBody)) {
       return true;
     } else {
       return false;
