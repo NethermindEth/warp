@@ -19,6 +19,7 @@ export class CairoStubProcessor extends ASTMapper {
     documentation = processDecoratorTags(documentation);
     documentation = processStateVarTags(documentation, node);
     documentation = processInternalFunctionTag(documentation, node);
+    documentation = processLibraryFunctionTag(documentation, node);
     setDocString(node, documentation);
   }
 }
@@ -81,6 +82,27 @@ function processInternalFunctionTag(documentation: string, node: FunctionDefinit
         errorNode,
       );
     }
+  });
+}
+
+function processLibraryFunctionTag(documentation: string, node: FunctionDefinition): string {
+  const contract = node.getClosestParentByType(CairoContract);
+  const errorNode = node.documentation instanceof ASTNode ? node.documentation : node;
+  if (contract === undefined) {
+    throw new WillNotSupportError(
+      `Cairo stub macro 'LIBRARYFUNC' is only allowed in member function definitions`,
+      errorNode,
+    );
+  }
+  return processMacro(documentation, /LIBRARYFUNC\((.*?)\)/g, (arg) => {
+    const funcName = node.name;
+    if (funcName.replace(/(s[0-9]+_)__warp_usrfn[0-9]+_/, '') !== arg) {
+      throw new TranspileFailedError(
+        `Library function name ${node.name} should match ${arg}`,
+        errorNode,
+      );
+    }
+    return funcName;
   });
 }
 

@@ -29,7 +29,7 @@ library Position {
     /// @return position The position info struct of the given owners' position
 
     /// warp-cairo
-    /// func INTERNALFUNC(get){
+    /// func LIBRARYFUNC(get){
     ///     syscall_ptr : felt*,
     ///     pedersen_ptr : HashBuiltin*,
     ///     range_check_ptr : felt,
@@ -45,12 +45,12 @@ library Position {
     ///     from warplib.memory import wm_alloc, wm_write_felt
     ///     alloc_locals
     ///     let __warp_usrid10_position = 0
-    ///     let (__warp_se_0) = wm_alloc(Uint256(299, 0))
-    ///     wm_write_felt(__warp_se_0, __warp_usrid7_owner)
-    ///     wm_write_felt(__warp_se_0 + 251, __warp_usrid8_tickLower)
-    ///     wm_write_felt(__warp_se_0 + 275, __warp_usrid9_tickUpper)
+    ///     let (__warp_se_0) = wm_new(Uint256(3, 0), Uint256(1,0))
+    ///     wm_write_felt(__warp_se_0 + 2, __warp_usrid7_owner)
+    ///     wm_write_felt(__warp_se_0 + 3, __warp_usrid8_tickLower)
+    ///     wm_write_felt(__warp_se_0 + 4, __warp_usrid9_tickUpper)
     ///     let (__warp_se_1) = warp_keccak(__warp_se_0)
-    ///     let (__warp_se_2) = WS0_INDEX_Uint256_to_Info_9555281d(__warp_usrid6_self, __warp_se_1)
+    ///     let (__warp_se_2) = WS0_INDEX_Uint256_to_Info_d529aac3(__warp_usrid6_self, __warp_se_1)
     ///     let __warp_usrid10_position = __warp_se_2
     ///     return (__warp_usrid10_position)
     /// end
