@@ -136,6 +136,7 @@ program
 interface IDeployProps_ {
   inputs?: string;
   use_cairo_abi: boolean;
+  no_wallet: boolean;
 }
 export type IDeployProps = IDeployProps_ & IOptionalNetwork & IOptionalAccount;
 
@@ -148,6 +149,7 @@ program
   )
   .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
   .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .option('--no_wallet', 'Do not use a wallet for deployment.', false)
   .action((file: string, options: IDeployProps) => {
     runStarknetDeploy(file, options);
   });

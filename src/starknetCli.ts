@@ -95,8 +95,20 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
   }
 
   try {
+    let classHash = '';
+    if (!options.no_wallet) {
+      const out = execSync(
+        `${warpVenvPrefix} starknet declare --network ${options.network} --contract ${resultPath}`,
+        {
+          stdio: 'pipe',
+        },
+      ).toString();
+      classHash = out.substring(out.indexOf('0x'), out.indexOf('\n', out.indexOf('0x')));
+    }
     execSync(
-      `${warpVenvPrefix} starknet deploy --contract ${resultPath} --network ${options.network} ${inputs}`,
+      `${warpVenvPrefix} starknet deploy --network ${options.network} ${
+        options.no_wallet ? `--no_wallet --contract ${resultPath} ` : `--class_hash ${classHash}`
+      } ${inputs}`,
       {
         stdio: 'inherit',
       },
