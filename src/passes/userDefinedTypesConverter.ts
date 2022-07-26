@@ -31,6 +31,12 @@ class UserDefinedValueTypeDefinitionEliminator extends ASTMapper {
 }
 
 export class UserDefinedTypesConverter extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     this.commonVisit(node, ast);
     const replacementNode = replaceUserDefinedType(getNodeType(node, ast.compilerVersion));

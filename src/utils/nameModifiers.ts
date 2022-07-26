@@ -50,3 +50,6 @@ export const SPLIT_VARIABLE_PREFIX = '__warp_td_';
 
 // Used in Expression Splitter
 export const SPLIT_EXPRESSION_PREFIX = '__warp_se_';
+
+// Used in UnloadingAssignment
+export const COMPOUND_ASSIGNMENT_SUBEXPRESSION_PREFIX = '__warp_cs_';

@@ -26,6 +26,12 @@ export class OrderNestedStructs extends ASTMapper {
   //     member n : Nested;
   //   }
 
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitSourceUnit(node: SourceUnit, ast: AST): void {
     this.reorderNestedStructs(node, ast);
     this.commonVisit(node, ast);

@@ -443,54 +443,51 @@ class CairoContractWriter extends CairoASTNodeWriter {
       .map((l) => (l.length > 0 ? INDENT + l : l))
       .join('\n');
 
-    const storageCode =
-      node.usedStorage > 0 || node.usedIds > 0
+    const storageCode = [
+      '@storage_var',
+      'func WARP_STORAGE(index: felt) -> (val: felt):',
+      'end',
+      '@storage_var',
+      'func WARP_USED_STORAGE() -> (val: felt):',
+      'end',
+      '@storage_var',
+      'func WARP_NAMEGEN() -> (name: felt):',
+      'end',
+      'func readId{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (val: felt):',
+      '    alloc_locals',
+      '    let (id) = WARP_STORAGE.read(loc)',
+      '    if id == 0:',
+      '        let (id) = WARP_NAMEGEN.read()',
+      '        WARP_NAMEGEN.write(id + 1)',
+      '        WARP_STORAGE.write(loc, id + 1)',
+      '        return (id + 1)',
+      '    else:',
+      '        return (id)',
+      '    end',
+      'end',
+      ...(INCLUDE_CAIRO_DUMP_FUNCTIONS
         ? [
-            '@storage_var',
-            'func WARP_STORAGE(index: felt) -> (val: felt):',
-            'end',
-            '@storage_var',
-            'func WARP_USED_STORAGE() -> (val: felt):',
-            'end',
-            '@storage_var',
-            'func WARP_NAMEGEN() -> (name: felt):',
-            'end',
-            'func readId{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (val: felt):',
+            'func DUMP_WARP_STORAGE_ITER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt, ptr: felt*):',
             '    alloc_locals',
-            '    let (id) = WARP_STORAGE.read(loc)',
-            '    if id == 0:',
-            '        let (id) = WARP_NAMEGEN.read()',
-            '        WARP_NAMEGEN.write(id + 1)',
-            '        WARP_STORAGE.write(loc, id + 1)',
-            '        return (id + 1)',
-            '    else:',
-            '        return (id)',
+            '    if length == 0:',
+            '        return ()',
             '    end',
+            '    let index = length - 1',
+            '    let (read) = WARP_STORAGE.read(index)',
+            '    assert ptr[index] = read',
+            '    DUMP_WARP_STORAGE_ITER(index, ptr)',
+            '    return ()',
             'end',
-            ...(INCLUDE_CAIRO_DUMP_FUNCTIONS
-              ? [
-                  'func DUMP_WARP_STORAGE_ITER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt, ptr: felt*):',
-                  '    alloc_locals',
-                  '    if length == 0:',
-                  '        return ()',
-                  '    end',
-                  '    let index = length - 1',
-                  '    let (read) = WARP_STORAGE.read(index)',
-                  '    assert ptr[index] = read',
-                  '    DUMP_WARP_STORAGE_ITER(index, ptr)',
-                  '    return ()',
-                  'end',
-                  '@external',
-                  'func DUMP_WARP_STORAGE{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt) -> (data_len : felt, data: felt*):',
-                  '    alloc_locals',
-                  '    let (p: felt*) = alloc()',
-                  '    DUMP_WARP_STORAGE_ITER(length, p)',
-                  '    return (length, p)',
-                  'end',
-                ]
-              : []),
-          ].join('\n')
-        : '';
+            '@external',
+            'func DUMP_WARP_STORAGE{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt) -> (data_len : felt, data: felt*):',
+            '    alloc_locals',
+            '    let (p: felt*) = alloc()',
+            '    DUMP_WARP_STORAGE_ITER(length, p)',
+            '    return (length, p)',
+            'end',
+          ]
+        : []),
+    ].join('\n');
 
     return [
       [documentation, ...events, storageCode, `namespace ${node.name}:\n\n${body}\n\nend`].join(
@@ -547,6 +544,15 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     if (node.functionStubKind !== FunctionStubKind.None) return [''];
 
     const documentation = getDocumentation(node.documentation, writer);
+    if (documentation.slice(1).trim().startsWith('warp-cairo')) {
+      return [
+        documentation
+          .split('\n')
+          .map((line) => line.slice(1))
+          .slice(1)
+          .join('\n'),
+      ];
+    }
     const name = this.getName(node);
     const decorator = this.getDecorator(node);
     const args =

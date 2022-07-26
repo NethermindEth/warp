@@ -59,6 +59,12 @@ Prerequisites:
 */
 
 export class ImplicitConversionToExplicit extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitReturn(node: Return, ast: AST): void {
     this.commonVisit(node, ast);
 

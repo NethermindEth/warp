@@ -7,6 +7,12 @@ import { FixFnCallRef } from './fixFnCallRef';
 import { GettersGenerator } from './gettersGenerator';
 
 export class PublicStateVarsGetterGenerator extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   static map(ast: AST): AST {
     const getterFunctions: Map<VariableDeclaration, FunctionDefinition> = new Map();
     // Build up a map of all getter definitions across all files

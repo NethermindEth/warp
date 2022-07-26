@@ -27,6 +27,12 @@ import {
 export class IfFunctionaliser extends ASTMapper {
   generatedFunctionCount: Map<FunctionDefinition, number> = new Map();
 
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   visitIfStatement(node: IfStatement, ast: AST): void {
     ensureBothBranchesAreBlocks(node, ast);
     const block = getContainingBlock(node);

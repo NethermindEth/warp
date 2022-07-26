@@ -40,6 +40,8 @@ export function addPrivateSuperFunctions(
         } else {
           currentFunctions.set(func.name, clonedFunction);
           idRemappingOverriders.set(func.id, clonedFunction);
+          //Add recursion here for recursive function calls
+          idRemappingOverriders.set(clonedFunction.id, clonedFunction);
         }
         return clonedFunction;
       })

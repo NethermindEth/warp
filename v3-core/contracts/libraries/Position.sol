@@ -27,14 +27,52 @@ library Position {
     /// @param tickLower The lower tick boundary of the position
     /// @param tickUpper The upper tick boundary of the position
     /// @return position The position info struct of the given owners' position
+
+    /// warp-cairo
+    /// func LIBRARYFUNC(get){
+    ///     syscall_ptr : felt*,
+    ///     pedersen_ptr : HashBuiltin*,
+    ///     range_check_ptr : felt,
+    ///     bitwise_ptr : BitwiseBuiltin*,
+    ///     warp_memory : DictAccess*,
+    ///     keccak_ptr : felt*,
+    /// }(
+    ///     __warp_usrid6_self : felt,
+    ///     __warp_usrid7_owner : felt,
+    ///     __warp_usrid8_tickLower : felt,
+    ///     __warp_usrid9_tickUpper : felt,
+    /// ) -> (__warp_usrid10_position : felt):
+    ///     from warplib.memory import wm_alloc, wm_write_felt
+    ///     alloc_locals
+    ///     let __warp_usrid10_position = 0
+    ///     let (__warp_se_0) = wm_new(Uint256(3, 0), Uint256(1,0))
+    ///     wm_write_felt(__warp_se_0 + 2, __warp_usrid7_owner)
+    ///     wm_write_felt(__warp_se_0 + 3, __warp_usrid8_tickLower)
+    ///     wm_write_felt(__warp_se_0 + 4, __warp_usrid9_tickUpper)
+    ///     let (__warp_se_1) = warp_keccak(__warp_se_0)
+    ///     let (__warp_se_2) = WS0_INDEX_Uint256_to_Info_d529aac3(__warp_usrid6_self, __warp_se_1)
+    ///     let __warp_usrid10_position = __warp_se_2
+    ///     return (__warp_usrid10_position)
+    /// end
+
     function get(
         mapping(bytes32 => Info) storage self,
         address owner,
         int24 tickLower,
         int24 tickUpper
     ) internal view returns (Position.Info storage position) {
-        position = self[keccak256(abi.encodePacked(owner, tickLower, tickUpper))];
+        bytes memory temp = new bytes(0);
+        position = self[keccak256(temp)];
     }
+
+    // function get(
+    //     mapping(bytes32 => Info) storage self,
+    //     address owner,
+    //     int24 tickLower,
+    //     int24 tickUpper
+    // ) internal view returns (Position.Info storage position) {
+    //     position = self[keccak256(abi.encodePacked(owner, tickLower, tickUpper))];
+    // }
 
     /// @notice Credits accumulated fees to a user's position
     /// @param self The individual position to update

@@ -35,6 +35,10 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('assignments', [
+          File.Simple('compoundAssignment', [
+            Expect.Simple('compoundAssignmentToMemory', [], ['3', '4']),
+            Expect.Simple('compoundAssignmentToStorage', [], ['3', '4']),
+          ]),
           File.Simple('functionSingle', [
             Expect.Simple('test', ['3'], ['3']),
             Expect.Simple('test256', ['3', '4'], ['3', '4']),
@@ -233,6 +237,15 @@ export const expectations = flatten(
           File.Simple('stringsBytesConversion', [
             Expect.Simple('getCharacter', ['4', '10', '12', '14', '16', ...['2', '0']], ['14']),
             Expect.Simple('getLength', [], ['4', '0']),
+          ]),
+        ]),
+        new Dir('cairo_stubs', [
+          File.Simple('basic', [Expect.Simple('useStub', [], ['5'])]),
+          File.Simple('proxy', [
+            new Expect('set hash and use', [
+              ['setHash', ['hash@tests/behaviour/contracts/cairo_stubs/basic.WARP'], [], '0'],
+              ['useStub_16588e6a', [], ['5'], '0'],
+            ]),
           ]),
         ]),
         new Dir('calldata', [
@@ -3250,10 +3263,21 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('public_func_splitter', [
-          File.Simple('value_passing', [
-            Expect.Simple('valuePassing', ['1'], ['15'], '0'),
-            Expect.Simple('valuePassingMemberAccess', ['1'], ['15'], '0'),
-          ]),
+          File.Simple('value_passing', [], 'A'),
+          File.Simple(
+            'value_passing',
+            [
+              Expect.Simple('testExternalCallMemberAccess', [], ['1', '2']),
+              Expect.Simple('testInternalCallMemberAccess', [], ['10', '11']),
+              Expect.Simple('testInternalCallIdentifier', [], ['10', '11']),
+              Expect.Simple(
+                'testExternalCallCrossContract',
+                ['address@tests/behaviour/contracts/public_func_splitter/value_passing.A'],
+                ['1', '2'],
+              ),
+            ],
+            'WARP',
+          ),
         ]),
         new Dir('public_state_vars', [
           File.Simple('elementary', [
@@ -3697,6 +3721,73 @@ export const expectations = flatten(
           Expect.Simple('returnTest', [], ['12', '0']),
         ]),
       ]),
+    ]),
+    new Dir('benchmark', [
+      new File(
+        'BaseJumpRateModelV2',
+        'BaseJumpRateModelV2',
+        ['10000000', '0', '11000000', '0', '10000000', '0', '10', '0', '0'],
+        [
+          Expect.Simple(
+            'getSupplyRate',
+            ['500', '0', '100', '0', '200', '0', '2', '0'],
+            ['0', '0'],
+          ),
+          Expect.Simple(
+            'utilizationRate',
+            ['500', '0', '100', '0', '200', '0'],
+            ['250000000000000000', '0'],
+          ),
+          Expect.Simple(
+            'updateJumpRateModel',
+            ['10000000', '0', '11000000', '0', '10000000', '0', '7', '0'],
+            [],
+          ),
+        ],
+      ),
+      File.Simple('ERC20_storage', [
+        Expect.Simple('deposit', ['74', '0', '500', '0'], []),
+        Expect.Simple('transferFrom', ['74', '0', '68', '0', '400', '0', '74', '0'], ['1']),
+        Expect.Simple('withdraw', ['80', '0', '74', '0'], []),
+        Expect.Simple('get_balance', ['74', '0'], ['20', '0']),
+      ]),
+      new File(
+        'ERC20',
+        'ERC20',
+        [
+          '10',
+          '78',
+          '69',
+          '84',
+          '72',
+          '69',
+          '82',
+          '67',
+          '79',
+          '73',
+          '78',
+          '4',
+          '78',
+          '69',
+          '84',
+          '72',
+        ],
+        [
+          Expect.Simple(
+            'name',
+            [],
+            ['10', '78', '69', '84', '72', '69', '82', '67', '79', '73', '78'],
+          ),
+          Expect.Simple('symbol', [], ['4', '78', '69', '84', '72']),
+          Expect.Simple('decimals', [], ['18']),
+          Expect.Simple('totalSupply', [], ['0', '0']),
+          Expect.Simple('balanceOf', ['1234'], ['0', '0']),
+          Expect.Simple('allowance', ['123', '765'], ['0', '0']),
+          new Expect('transfer', [['transfer', ['123', '0', '0'], ['1'], '4']]),
+          new Expect('approve', [['approve', ['1234', '0', '0'], ['1'], '4']]),
+          new Expect('transferFrom', [['transferFrom', ['4', '123', '0', '0'], ['1'], '1234']]),
+        ],
+      ),
     ]),
   ]),
 );

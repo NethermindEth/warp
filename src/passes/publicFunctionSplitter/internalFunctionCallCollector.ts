@@ -1,10 +1,11 @@
+import assert = require('assert');
 import {
   ContractDefinition,
   FunctionCall,
   FunctionCallKind,
   FunctionDefinition,
+  FunctionType,
   getNodeType,
-  Identifier,
   MemberAccess,
   UserDefinedType,
 } from 'solc-typed-ast';
@@ -13,25 +14,23 @@ import { ASTMapper } from '../../ast/mapper';
 
 export class InternalFunctionCallCollector extends ASTMapper {
   /*
-  This class collects all functions which are called from the same contract it is defined in.
-  It is used for later to avoid splitting function which are not called from anywhere in the
-  contract producing cleaner Cairo code and lesser step count.
-  All public Solidity functions which are not called from the same contract they are defined 
-  in will be treated as external only functions.
+  This class collects all functions which are internal. This is used in later sub-passes to 
+  avoid splitting public functions with no internal calls. This produces cleaner Cairo code 
+  and lessens the step and line counts.
+  
+  All public Solidity functions which have no internal calls pointing to them will be modified
+  to be external only functions.
   */
   constructor(public internalFunctionCallSet: Set<FunctionDefinition>) {
     super();
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    const functionDefinition = node.vReferencedDeclaration;
+    const funcDef = node.vReferencedDeclaration;
     if (
+      funcDef instanceof FunctionDefinition &&
       node.kind === FunctionCallKind.FunctionCall &&
-      functionDefinition instanceof FunctionDefinition &&
-      (node.vExpression instanceof MemberAccess || node.vExpression instanceof Identifier) &&
-      // Only collect internal calls to functions defined in the same contract
-      functionDefinition.getClosestParentByType(ContractDefinition) ===
-        node.getClosestParentByType(ContractDefinition)
+      isInternalFuncCall(node, ast)
     ) {
       if (node.vExpression instanceof MemberAccess) {
         const typeNode = getNodeType(node.vExpression.vExpression, ast.compilerVersion);
@@ -43,8 +42,14 @@ export class InternalFunctionCallCollector extends ASTMapper {
           return;
         }
       }
-      this.internalFunctionCallSet.add(functionDefinition);
+      this.internalFunctionCallSet.add(funcDef);
     }
     this.commonVisit(node, ast);
   }
+}
+
+export function isInternalFuncCall(node: FunctionCall, ast: AST): boolean {
+  const type = getNodeType(node.vExpression, ast.compilerVersion);
+  assert(type instanceof FunctionType);
+  return type.visibility === 'internal';
 }

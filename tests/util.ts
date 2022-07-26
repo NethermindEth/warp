@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import assert from 'assert';
 import { exec } from 'child_process';
+import { expect } from 'chai';
 
 export async function sh(cmd: string): Promise<{ stdout: string; stderr: string }> {
   return new Promise(function (resolve, reject) {
@@ -77,4 +78,41 @@ export function validateInput(input: string): void {
     num >= 0n,
     "Negative numbers should not be passed to tests, please convert to two's complement",
   );
+}
+
+export function processArgs(
+  name: string,
+  args: string[],
+  deployedAddresses: Map<string, { address: string; hash: string }>,
+): string[] {
+  return args.flatMap((arg) => {
+    if (arg.startsWith('address@')) {
+      arg = arg.replace('address@', '');
+      const value = deployedAddresses.get(arg);
+      if (value === undefined) {
+        expect.fail(`${name} failed, cannot find address ${arg}`);
+      }
+      return BigInt(value.address).toString();
+    } else if (arg.startsWith('hash@')) {
+      arg = arg.replace('hash@', '');
+      const value = deployedAddresses.get(arg);
+      if (value === undefined) {
+        expect.fail(`${name} failed, cannot find address ${arg}`);
+      }
+      const low = BigInt(value.hash) % 2n ** 128n;
+      const high = BigInt(value.hash) / 2n ** 128n;
+      return [low.toString(), high.toString()];
+    }
+    return arg;
+  });
+}
+export function hashToUint256(hash: string): [string, string] {
+  // hash is an array of bytes treated as a string,
+  // this converts it to a single bignum with the same bytes
+  const bigintHash = [...hash].reduce((acc, c) => (acc << 8n) + BigInt(c.charCodeAt(0)), 0n);
+
+  // We treat class hashes as uint256s due to the lack of a felt type in solidity
+  const high = bigintHash / 2n ** 128n;
+  const low = bigintHash % 2n ** 128n;
+  return [low.toString(10), high.toString(10)];
 }
