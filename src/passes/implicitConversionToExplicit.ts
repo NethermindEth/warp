@@ -203,9 +203,6 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         handleConcatArgs(node, ast);
         return;
       }
-      if (node.vFunctionName === 'encode') {
-        return;
-      }
     }
 
     const paramTypes = getParameterTypes(node, ast);
