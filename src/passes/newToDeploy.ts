@@ -23,7 +23,6 @@ import {
   createBytesTypeName,
   createIdentifier,
   createNumberLiteral,
-  createUintNTypeName,
 } from '../utils/nodeTemplates';
 import { cloneASTNode } from '../utils/cloning';
 import { hashFilename } from '../utils/postCairoWrite';
@@ -35,7 +34,7 @@ import { TranspileFailedError } from '../utils/errors';
  *
  *   `new {salt: salt} Contract(arg1, ..., argn)`
  *
- *   And transpiles it to:
+ *   And transpiles them to Cairo `deploy` system call:
  *
  *   `deploy(Contract_class_hash, salt, encode(arg1, ... argn))`
  *
@@ -48,7 +47,7 @@ import { TranspileFailedError } from '../utils/errors';
  *
  *   Salt in solidity is 32 bytes while in Cairo is a felt, so it'll be safely
  *   narrowed down. Notice that values bigger than a felt will result in errors
- *   such as "abc" which in bytes32 representation gets 0x636466...0000 which is
+ *   such as "abc" which in bytes32 representation gets 0x636465...0000 which is
  *   bigger than a felt.
  *
  *   Encode is a util function generated which takes all the transpiled arguments
@@ -150,6 +149,7 @@ export class NewToDeploy extends ASTMapper {
         ['class_hash', createAddressTypeName(false, ast)],
         ['contract_address_salt', createBytesNTypeName(30, ast)],
         ['constructor_calldata', createBytesTypeName(ast), DataLocation.CallData],
+        // ['deploy_from_zero', createBoolTypeName(ast)], // uncomment after cairo 0.9.1 bump
       ],
       [['contract_address', cloneASTNode(typeName, ast)]],
       ['syscall_ptr'],
@@ -160,9 +160,15 @@ export class NewToDeploy extends ASTMapper {
     ast.registerImport(node, 'starkware.starknet.common.syscalls', 'deploy');
 
     const encodedArguments = ast.getUtilFuncGen(node).utils.encodeAsFelt.gen(node);
+    // const deployFromZero = createBoolLiteral(false, ast); // uncomment after cairo 0.9.1 bump
     return createCallToFunction(
       deployStub,
-      [placeHolderIdentifier, salt, encodedArguments],
+      [
+        placeHolderIdentifier,
+        salt,
+        encodedArguments,
+        // deployFromZero // uncomment after cairo 0.9.1 bump
+      ],
       ast,
       node,
     );
@@ -203,9 +209,9 @@ export class NewToDeploy extends ASTMapper {
       DataLocation.Default,
       StateVariableVisibility.Internal,
       Mutability.Constant,
-      'uint160',
+      'address',
       `@declare ${cairoPath}`,
-      createUintNTypeName(160, ast),
+      createAddressTypeName(false, ast),
       undefined,
       createNumberLiteral(0, ast, 'uint160'),
     );
