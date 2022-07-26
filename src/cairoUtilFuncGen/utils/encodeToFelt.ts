@@ -3,6 +3,7 @@ import {
   ArrayType,
   BytesType,
   DataLocation,
+  Expression,
   FunctionCall,
   generalizeType,
   getNodeType,
@@ -36,9 +37,20 @@ import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/
 
 const IMPLICITS = '';
 
-// TODO:
-// What happens with sructs defined in other contract different than the one using new
-
+/**
+ * This class generate `encode` cairo util functions with the objective of making
+ * a list of values into a single list where all items are felts. For example:
+ * Value list: [a : felt, b : Uint256, c : (felt, felt, felt), d_len : felt, d : felt*]
+ * Result: [a, b.low, b.high, c[0], c[1], c[2], d_len, d[0], ..., d[n]]
+ *
+ * It generates a different function depending on the amount of expressions
+ * and their types. It also generate different auxiliar functions depending
+ * on the type to encode.
+ *
+ * Auxiliar functions can and will be reused if possible between different
+ * generated encoding functions. I.e. the auxiliar function to encode felt
+ * dynamic arrays will be always the same
+ */
 export class EncodeAsFelt extends StringIndexedFuncGen {
   private auxiliarGeneratedFunctions = new Map<string, CairoFunction>();
 
@@ -56,17 +68,24 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       .join('\n\n');
   }
 
-  gen(newFunctionCall: FunctionCall, sourceUnit?: SourceUnit): FunctionCall {
-    const argTypes = newFunctionCall.vArguments.map(
-      (arg) => generalizeType(getNodeType(arg, this.ast.compilerVersion))[0],
+  /**
+   * Given a expression list it generates a `encode` cairo function definition
+   * and call that serializes the arguments into a list of felts
+   * @param expressions expression list
+   * @param sourceUnit source unit where the expression is defined
+   * @returns a function call that serializes the value of `expressions`
+   */
+  gen(expressions: Expression[], sourceUnit?: SourceUnit): FunctionCall {
+    const exprTypes = expressions.map(
+      (expr) => generalizeType(getNodeType(expr, this.ast.compilerVersion))[0],
     );
-    const functionName = this.getOrCreate(argTypes);
+    const functionName = this.getOrCreate(exprTypes);
 
     const functionStub = createCairoFunctionStub(
       functionName,
-      argTypes.map((argType, index) => [
+      exprTypes.map((exprT, index) => [
         `arg${index}`,
-        typeNameFromTypeNode(argType, this.ast),
+        typeNameFromTypeNode(exprT, this.ast),
         DataLocation.CallData,
       ]),
       [['result', createBytesTypeName(this.ast), DataLocation.CallData]],
@@ -74,9 +93,15 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       this.ast,
       sourceUnit ?? this.sourceUnit,
     );
-    return createCallToFunction(functionStub, newFunctionCall.vArguments, this.ast);
+    return createCallToFunction(functionStub, expressions, this.ast);
   }
 
+  /**
+   * Given a type list it generates a `encode` cairo function definition
+   * that serializes the arguments into a list of felts
+   * @param typesToEncode type list
+   * @returns the name of the generated function
+   */
   getOrCreate(typesToEncode: TypeNode[]): string {
     const key = typesToEncode.map((t) => t.pp()).join(',');
     const existing = this.generatedFunctions.get(key);
@@ -157,6 +182,11 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
     return funcName;
   }
 
+  /**
+   * Given a type it generates the appropiate auxiliar encoding function for this specific type.
+   * @param type to encode (only arrays and structs allowed)
+   * @returns name of the generated function
+   */
   private getOrCreateAuxiliar(type: TypeNode): string {
     const key = type.pp();
     const existing = this.auxiliarGeneratedFunctions.get(key);
@@ -184,7 +214,15 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
     return cairoFunc.name;
   }
 
-  private generateEncodeCode(type: TypeNode, currentElementName: string) {
+  /**
+   * Generates caior code depending on the type. If it is a value type it generates
+   * the appropiate instructions. If it is a an array or struct, it generates a function
+   * call
+   * @param type type to generate encoding code
+   * @param currentElementName cairo variable to encode to felt
+   * @returns generated code
+   */
+  private generateEncodeCode(type: TypeNode, currentElementName: string): string[] {
     if (isValueType(type)) {
       const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
       return cairoType.width > 1

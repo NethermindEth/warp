@@ -65,7 +65,7 @@ export class NewToDeploy extends ASTMapper {
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
-  // map of: (contract name => contract declaration hash placeholder)
+  // map of: (contract name => class hash placeholder)
   placeHolderMap = new Map<string, VariableDeclaration>();
 
   visitNewExpression(node: NewExpression, ast: AST): void {
@@ -159,7 +159,7 @@ export class NewToDeploy extends ASTMapper {
     );
     ast.registerImport(node, 'starkware.starknet.common.syscalls', 'deploy');
 
-    const encodedArguments = ast.getUtilFuncGen(node).utils.encodeAsFelt.gen(node);
+    const encodedArguments = ast.getUtilFuncGen(node).utils.encodeAsFelt.gen(node.vArguments);
     // const deployFromZero = createBoolLiteral(false, ast); // uncomment after cairo 0.9.1 bump
     return createCallToFunction(
       deployStub,
@@ -196,7 +196,24 @@ export class NewToDeploy extends ASTMapper {
     const fullPath = declaredContractFullPath.slice(0, -1).join('_');
     const varPrefix = `${fullPath}_${fileName}_${contractName}`;
     const hash = hashFilename(cairoPath);
+
+    /*
+     * The name of the place holder is important because it will be used later
+     * during deployement to set the appopiate class hash value (notice below
+     * it is being set to zero by default)
+     * The name is a combination of:
+     * - the path to the cairo file which contain the target contract to deploy
+     * - the hash of the path.
+     * The path part is unnecesary, but  it's left there for readability.
+     * The hash part is the one used for later to compare if treating with the
+     * same file. Also it used to avoid naming clash between different placeholders.
+     */
     const varName = `${varPrefix}_${hash}`;
+    /*
+     * The form of documenation is used later during postlinking to extract the files
+     * this source unit depends on. See src/utils/postCairoWrite.ts
+     */
+    const documenation = `@declare ${cairoPath}`;
 
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
@@ -210,7 +227,7 @@ export class NewToDeploy extends ASTMapper {
       StateVariableVisibility.Internal,
       Mutability.Constant,
       'address',
-      `@declare ${cairoPath}`,
+      documenation,
       createAddressTypeName(false, ast),
       undefined,
       createNumberLiteral(0, ast, 'uint160'),

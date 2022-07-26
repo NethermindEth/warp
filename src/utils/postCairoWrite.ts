@@ -45,8 +45,17 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
   writeFileSync(fileLoc, plainNewCairoCode);
 }
 
-export function getDependencyGraph(root: string, prefix: string): Map<string, string[]> {
-  const filesToDeclare = extractContractsToDeclared(root, prefix);
+/**
+ * Produce a dependency graph among Cairo files. Due to cairo rules this graph is
+ * more specifically a Directed Acyclic Graph (DAG)
+ * A file A is said to be dependant from a file B if file A needs the class hash
+ * of file B.
+ * @param root file to explore for dependencies
+ * @param pathPrefix filepath may be different during transpilation and after transpilation. This parameter is appended at the beggining to make them equal
+ * @returns a map from string to list of strings, where the key is a file and the value are all the dependencies
+ */
+export function getDependencyGraph(root: string, pathPrefix: string): Map<string, string[]> {
+  const filesToDeclare = extractContractsToDeclared(root, pathPrefix);
   const graph = new Map<string, string[]>([[root, filesToDeclare]]);
 
   const pending = [...filesToDeclare];
@@ -57,7 +66,7 @@ export function getDependencyGraph(root: string, prefix: string): Map<string, st
       count++;
       continue;
     }
-    const newFilesToDeclare = extractContractsToDeclared(fileSource, prefix);
+    const newFilesToDeclare = extractContractsToDeclared(fileSource, pathPrefix);
     graph.set(fileSource, newFilesToDeclare);
     pending.push(...newFilesToDeclare);
     count++;
@@ -66,7 +75,14 @@ export function getDependencyGraph(root: string, prefix: string): Map<string, st
   return graph;
 }
 
-function extractContractsToDeclared(fileLoc: string, append: string) {
+/**
+ * Read a cairo file and parse all instructions of the form:
+ * \@declare `location`. All `location` are gathered and then returned
+ * @param fileLoc cairo file path to read
+ * @param pathPrefix filepath may be different during transpilation and after transpilation. This parameter is appended at the beggining to make them equal
+ * @returns list of locations
+ */
+function extractContractsToDeclared(fileLoc: string, pathPrefix: string): string[] {
   const plainCairoCode = readFileSync(fileLoc, 'utf8');
   const cairoCode = plainCairoCode.split('\n');
 
@@ -77,17 +93,34 @@ function extractContractsToDeclared(fileLoc: string, append: string) {
 
       assert(other.length === 0, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
 
-      return append !== '' ? join(append, location) : location;
+      return join(pathPrefix, location);
     })
     .filter((val) => val !== '');
 
   return contractsToDeclare;
 }
 
+/**
+ * Hash function used during transpilation and postlinking so same hash
+ * given same input is produced during both phases
+ * @param filename filesystem path
+ * @returns hashed value
+ */
 export function hashFilename(filename: string): string {
   return createHash(HASH_OPTION).update(filename).digest('hex').slice(0, HASH_SIZE);
 }
 
+/**
+ * Utility function to remove a prefix from a path
+ *
+ * Example:
+ * full path = A/B/C/D
+ * ignore path = A/B
+ * reduced path = C/D
+ * @param fullPath path to reduce
+ * @param ignorePath prefix to remove
+ * @returns reduced path
+ */
 export function reducePath(fullPath: string, ignorePath: string) {
   const pathSplitter = new RegExp('/+|\\\\+');
 
