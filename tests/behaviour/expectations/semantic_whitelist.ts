@@ -126,7 +126,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/unchecked_div_by_zero.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/addmod_mulmod.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/addmod_mulmod_zero.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/check_var_init.sol', // Fails due to the use of `value` function option
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/arithmetics/check_var_init.sol', // WILL NOT SUPPORT due to the use of `value` function option
   ],
   //---------Array tests - 374 passing, 103 pending, 52 failing
   ...[
@@ -327,7 +327,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/calldata_array_dynamic_invalid.sol', // nested dynarray argument
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/calldata_slice_access.sol', // STRETCH array slices
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/fixed_arrays_as_return_type.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/reusing_memory.sol', // Fails due to the use abi.encodePacked
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/reusing_memory.sol', // WILL NOT SUPPORT due to the use abi.encodePacked
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/function_array_cross_calls.sol', // WILL NOT SUPPORT function objects
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/function_memory_array.sol', // WILL NOT SUPPORT function objects
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/calldata_array_two_dimensional.sol', // nested dynarray input
@@ -432,7 +432,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_arguments_external.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/functions_called_by_constructor_through_dispatch.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_function_complex.sol', // WILL NOT SUPPORT function objectss
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/no_callvalue_check.sol', // Fails due to the use of `value` function option
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/no_callvalue_check.sol', // WILL NOT SUPPORT due to the use of `value` function option
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/evm_exceptions_in_constructor_call_fail.sol', // address.call
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/constructor_arguments_internal.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor/bytes_in_constructors_packer.sol', // Bug here related to constructos and inheritance
@@ -672,7 +672,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_with_salt.sol', // Fail during deployement because salt cannot be safely narrowed to felt
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/delegatecall_return_value_pre_byzantium.sol', // WILL NOT SUPPORT abi.encodepacked
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/delegatecall_return_value.sol', // WILL NOT SUPPORT abi.encodepacked
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/external_call_at_construction_time.sol', // Fails because it WARP allows a contract to call itself during creation (And it shoudl not)
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/external_call_at_construction_time.sol', // Fails because WARP allows a contract to call itself during creation (And it should not)
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/external_call_value.sol', // WILL NOT SUPPORT msg.value?
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/failed_create.sol', // WILL NOT SUPPORT payable functions?
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/gas_and_value_basic.sol', // WILL NOT SUPPORT gas
@@ -764,7 +764,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_function_calldata_memory_interface.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_function_calldata_calldata_interface.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/member_notation_ctor.sol', // multiple source in one file not supported by test suite
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/address_overload_resolution.sol', // Fails due to the use of `balance` and `transfer` functions
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/address_overload_resolution.sol', // WILL NOT SUPPORT due to the use of `balance` and `transfer` functions
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/super_in_constructor_assignment.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/value_for_constructor.sol', // WILL NOT SUPPORT function call options value
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inheritance/inherited_function_through_dispatch.sol', // WILL NOT SUPPORT function objects
@@ -1097,8 +1097,8 @@ const tests: string[] = [
   ],
   //---------Salted_create
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/salted_create/salted_create_with_value.sol', // Fails due to the use of `value` option
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/salted_create/salted_create.sol', // Fails due to the use of `try catch`
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/salted_create/salted_create_with_value.sol', // WILL NOT SUPPORT due to the use of `value` option
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/salted_create/salted_create.sol', // WILL NOT SUPPORT due to the use of `try catch`
   ],
   //---------smoke 10 passing, 2 pending, 5 failing - test errors
   ...[
@@ -1247,7 +1247,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/multislot_struct_allocation.sol', // WILL NOT SUPPORT function object
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/msg_data_to_struct_member_copy.sol', // WILL NOT SUPPORT msg.data
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/function_type_copy.sol', // WILL NOT SUPPORT function objects
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/copy_from_calldata.sol', // Fails due to bidimensional calldata dynamic array
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/copy_from_calldata.sol', // WILL NOT SUPPORT Nested dynamic array on external function argument
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/struct_delete_storage_small.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/recursive_struct_2.sol', // WILL NOT SUPPORT yul
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/structs/struct_delete_storage_with_arrays_small.sol', // WILL NOT SUPPORT yul
@@ -1607,7 +1607,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor_with_params_inheritance_2.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/empty_contract.sol', // test suite cannot call non-existant function
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor_inheritance_init_order_3_legacy.sol', // We don't support the legacy bug behaviour and instead implement viaYul behaviour.
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interface_inheritance_conversions.sol', // Address clash when deploying the same contracts
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interface_inheritance_conversions.sol', // Fails due to address clash when deploying the same contracts
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/dirty_calldata_dynamic_array.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/dirty_calldata_bytes.sol', // WILL NOT SUPPORT yul
   ],

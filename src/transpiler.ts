@@ -31,6 +31,7 @@ import {
   LoopFunctionaliser,
   ModifierHandler,
   NamedArgsRemover,
+  NewToDeploy,
   OrderNestedStructs,
   PublicFunctionSplitter,
   PublicStateVarsGetterGenerator,
@@ -62,7 +63,6 @@ import { createPassMap, parsePassOrder } from './utils/cliOptionParsing';
 import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
 import { printCompileErrors, runSanityCheck } from './utils/utils';
-import { NewToDeploy } from './passes/newToDeploy';
 
 type CairoSource = [file: string, source: string, solABI: string];
 

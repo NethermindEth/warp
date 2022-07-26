@@ -144,7 +144,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
     const code = [
       `func ${funcName}${IMPLICITS}(${cairoParams}) -> (calldata_array : ${resultStruct}):`,
       `   alloc_locals`,
-      `   let total_size : felt = ${0}`,
+      `   let total_size : felt = 0`,
       `   let (decode_array : felt*) = alloc()`,
       ...encodeCode,
       `   let result = ${resultStruct}(total_size, decode_array)`,
