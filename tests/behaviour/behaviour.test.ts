@@ -8,17 +8,29 @@ import {
   batchPromises,
   processArgs,
 } from '../util';
-import { deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
+import { declare, deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
 
 import { describe } from 'mocha';
 import { expect } from 'chai';
 import { expectations } from './expectations';
 import { AsyncTest, Expect } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
+import {
+  getDependencyGraph,
+  hashFilename,
+  reducePath,
+  setDeclaredAddresses,
+} from '../../src/utils/postCairoWrite';
+import assert from 'assert';
 
 const PRINT_STEPS = false;
 const PARALLEL_COUNT = 8;
 const TIME_LIMIT = 2 * 60 * 60 * 1000;
+
+interface AsyncTestCluster {
+  asyncTest: AsyncTest;
+  dependencies: Map<string, string[]>;
+}
 
 describe('Transpile solidity', function () {
   this.timeout(TIME_LIMIT);
@@ -59,15 +71,74 @@ describe('Transpiled contracts are valid cairo', function () {
   this.timeout(TIME_LIMIT);
 
   let compileResults: SafePromise<{ stderr: string } | null>[];
+  let processedExpectations: (AsyncTestCluster | null)[];
+
+  const outputLocation = (fileLocation: string) =>
+    fileLocation.slice(0, -'.cairo'.length).concat('.json');
+
+  const compileCluster = async (test: AsyncTestCluster) => {
+    const graph = test.dependencies;
+    const root = test.asyncTest.cairo;
+    const dependencies = graph.get(root);
+    assert(dependencies !== undefined);
+    if (dependencies.length === 0) {
+      return starknetCompile(root, test.asyncTest.compiled);
+    }
+
+    const declared = new Map<string, string>();
+    for (const fileToDeclare of dependencies) {
+      const declareHash = await compileDependencyGraph(fileToDeclare, graph, declared);
+      const fileLocationHash = hashFilename(reducePath(fileToDeclare, 'warp_output'));
+      declared.set(fileLocationHash, declareHash);
+    }
+    setDeclaredAddresses(root, declared);
+    return starknetCompile(root, test.asyncTest.compiled);
+  };
+
+  const compileDependencyGraph = async (
+    root: string,
+    graph: Map<string, string[]>,
+    declared: Map<string, string>,
+  ): Promise<string> => {
+    const declaredHash = declared.get(root);
+    if (declaredHash !== undefined) {
+      return declaredHash;
+    }
+
+    const dependencies = graph.get(root);
+    if (dependencies !== undefined) {
+      for (const fileToDeclare of dependencies) {
+        const declaredHash = await compileDependencyGraph(fileToDeclare, graph, declared);
+        const fileLocationHash = hashFilename(reducePath(fileToDeclare, 'warp_output'));
+        declared.set(fileLocationHash, declaredHash);
+      }
+      setDeclaredAddresses(root, declared);
+    }
+
+    await starknetCompile(root, outputLocation(root));
+    const hash = await declare(outputLocation(root));
+    assert(!hash.threw, 'Hash threw');
+    return hash.class_hash;
+  };
 
   before(function () {
+    processedExpectations = expectations.map((test: AsyncTest): AsyncTestCluster | null => {
+      if (test.encodingError !== undefined || !fs.existsSync(test.cairo)) {
+        return null;
+      }
+      const dependencyGraph = getDependencyGraph(test.cairo, 'warp_output');
+      return { asyncTest: test, dependencies: dependencyGraph };
+    });
+
     compileResults = batchPromises(
-      expectations,
+      processedExpectations,
       PARALLEL_COUNT,
-      (test: AsyncTest): Promise<{ stderr: string } | null> =>
-        test.encodingError === undefined && fs.existsSync(test.cairo)
-          ? starknetCompile(test.cairo, test.compiled)
-          : Promise.resolve(null),
+      (test: AsyncTestCluster | null): Promise<{ stderr: string } | null> => {
+        if (test === null) {
+          return Promise.resolve(null);
+        }
+        return compileCluster(test);
+      },
     );
   });
 

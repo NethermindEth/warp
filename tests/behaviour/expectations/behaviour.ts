@@ -3225,6 +3225,71 @@ export const expectations = flatten(
             ]),
           ]),
         ]),
+        new Dir('new', [
+          File.Simple('deep', [Expect.Simple('createContracts', [], [])]),
+          File.Simple('many', [
+            new Expect('Uint256 as argument', [
+              ['createUint256Contract', ['0', '2'], [], '0'],
+              ['getUint256X', [], ['0', '2'], '0'],
+            ]),
+            new Expect('Uint8 as argument', [
+              ['createUint8Contract', ['3'], [], '0'],
+              ['getUint8X', [], ['3'], '0'],
+            ]),
+            new Expect('Dynamic Array as argument', [
+              ['createDynArrayContract', ['4', '0', '5', '0', '7', '0', '11', '0', '31'], [], '0'],
+              ['getDynArrayX', [], ['4', '0', '5', '0', '7', '0', '11', '0', '31'], '0'],
+            ]),
+            new Expect('Static Array as argument', [
+              ['createStaticArrayContract', ['13', '17', '19'], [], '0'],
+              ['getStaticArrayX', [], ['13', '17', '19'], '0'],
+            ]),
+            new Expect('Struct as argument', [
+              ['createStructContract', ['23', '29'], [], '0'],
+              ['getStructX', [], ['23', '29'], '0'],
+            ]),
+          ]),
+          File.Simple('salted', [
+            new Expect('Create multiple salted contracts', [
+              ['createUint256Contract', ['0', '1', '0', '2'], [], '0'],
+              ['createUint256Contract', ['0', '2', '0', '5'], [], '0'],
+            ]),
+            new Expect('Interact with different deployed salted contracts', [
+              ['getUint256X', ['0', '1'], ['0', '2'], '0'],
+              ['getUint256X', ['0', '2'], ['0', '5'], '0'],
+            ]),
+          ]),
+          /*
+          File.Simple('product', [
+            new Expect('Different types', [
+              [
+                'createProduct',
+                [
+                  ...['2', '0'],
+                  '3',
+                  ...['3', '0', '2', '0', '3', '0', '5'],
+                  ...['7', '11'],
+                  ...['13', '17', '19'],
+                ],
+                [],
+                '0',
+              ],
+              [
+                'getProduct',
+                ['0', '0'],
+                [
+                  ...['2', '0'],
+                  '3',
+                  ...['3', '0', '2', '0', '3', '0', '5'],
+                  ...['7', '11'],
+                  ...['13', '17', '19'],
+                ],
+                '0',
+              ],
+            ]),
+          ]),
+          */
+        ]),
         new Dir('precompiles', [
           File.Simple('ecrecover', [Expect.Simple('test', [], ['1'])]),
           File.Simple('keccak256', [

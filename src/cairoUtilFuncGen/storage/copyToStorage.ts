@@ -59,7 +59,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'bitwise_ptr'],
       this.ast,
       nodeInSourceUnit ?? to,
-      FunctionStateMutability.View,
+      { mutability: FunctionStateMutability.View },
     );
     return createCallToFunction(functionStub, [to, from], this.ast);
   }

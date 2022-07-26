@@ -1,3 +1,4 @@
+import assert from 'assert';
 import {
   Block,
   FunctionDefinition,
@@ -30,6 +31,7 @@ export class CairoFunctionDefinition extends FunctionDefinition {
   implicits: Set<Implicits>;
   functionStubKind: FunctionStubKind;
   acceptsRawDarray: boolean;
+  acceptsUnpackedStructArray: boolean;
   constructor(
     id: number,
     src: string,
@@ -46,12 +48,17 @@ export class CairoFunctionDefinition extends FunctionDefinition {
     implicits: Set<Implicits>,
     functionStubKind: FunctionStubKind = FunctionStubKind.None,
     acceptsRawDArray = false,
+    acceptsUnpackedStructArray = false,
     overrideSpecifier?: OverrideSpecifier,
     body?: Block,
     documentation?: string | StructuredDocumentation,
     nameLocation?: string,
     raw?: unknown,
   ) {
+    assert(
+      !(acceptsRawDArray && acceptsUnpackedStructArray),
+      'A function cannot recieve both structured and raw dynamic arrays',
+    );
     super(
       id,
       src,
@@ -74,5 +81,6 @@ export class CairoFunctionDefinition extends FunctionDefinition {
     this.implicits = implicits;
     this.functionStubKind = functionStubKind;
     this.acceptsRawDarray = acceptsRawDArray;
+    this.acceptsUnpackedStructArray = acceptsUnpackedStructArray;
   }
 }
