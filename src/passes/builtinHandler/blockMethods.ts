@@ -52,7 +52,7 @@ export class BlockMethods extends ASTMapper {
         ast.registerImport(replacementCall, 'warplib.block_methods', 'warp_block_timestamp');
       }
     } else {
-      this.commonVisit(node, ast);
+      this.visitExpression(node, ast);
     }
   }
 }
