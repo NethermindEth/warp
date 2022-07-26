@@ -33,7 +33,7 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
+import { WillNotSupportError } from '../utils/errors';
 import { isDynamicArray } from '../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../utils/utils';
 
