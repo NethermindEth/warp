@@ -7,6 +7,7 @@ import {
   BytesType,
   DataLocation,
   EnumDefinition,
+  enumToIntType,
   Expression,
   FixedBytesType,
   FunctionCall,
@@ -38,18 +39,25 @@ export class InputCheckGen extends StringIndexedFuncGen {
     nodeInSourceUnit: ASTNode,
   ): FunctionCall {
     let functionInput;
-    let isUint256 = false;
+    let uintWidth = 0;
+    const inputType = getNodeType(nodeInput, this.ast.compilerVersion);
+    if (inputType instanceof IntType) {
+      uintWidth = inputType.nBits;
+    } else if (
+      inputType instanceof UserDefinedType &&
+      inputType.definition instanceof EnumDefinition
+    ) {
+      uintWidth = enumToIntType(inputType.definition).nBits;
+    }
     if (nodeInput instanceof VariableDeclaration) {
       functionInput = createIdentifier(nodeInput, this.ast);
     } else {
       functionInput = cloneASTNode(nodeInput, this.ast);
-      const inputType = getNodeType(nodeInput, this.ast.compilerVersion);
       this.ast.setContextRecursive(functionInput);
-      isUint256 = inputType instanceof IntType && inputType.nBits === 256;
       this.requireImport('warplib.maths.utils', 'narrow_safe');
     }
     this.sourceUnit = this.ast.getContainingRoot(nodeInSourceUnit);
-    const name = this.getOrCreate(typeToCheck, isUint256);
+    const name = this.getOrCreate(typeToCheck, uintWidth);
     const functionStub = createCairoFunctionStub(
       name,
       [
@@ -70,7 +78,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     return createCallToFunction(functionStub, [functionInput], this.ast);
   }
 
-  private getOrCreate(type: TypeNode, takesUint = false): string {
+  private getOrCreate(type: TypeNode, uintWidth = 0): string {
     const key = type.pp();
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
@@ -95,7 +103,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
         } else if (type instanceof BoolType) {
           return this.createBoolInputCheck();
         } else if (type instanceof UserDefinedType && type.definition instanceof EnumDefinition) {
-          return this.createEnumInputCheck(key, type, takesUint);
+          return this.createEnumInputCheck(key, type, uintWidth);
         } else if (type instanceof AddressType) {
           return this.createAddressInputCheck();
         } else {
@@ -190,7 +198,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private createEnumInputCheck(key: string, type: UserDefinedType, takesUint = false): string {
+  private createEnumInputCheck(key: string, type: UserDefinedType, uintWidth = 0): string {
     const funcName = `extern_input_check${this.generatedFunctions.size}`;
     const implicits = '{range_check_ptr : felt}';
 
@@ -200,13 +208,13 @@ export class InputCheckGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(arg : ${takesUint ? 'Uint256' : 'felt'}) -> ():`,
-        takesUint
+        `func ${funcName}${implicits}(arg : Uint${uintWidth}) -> ():`,
+        uintWidth === 256
           ? [
               '    let (arg_0) = narrow_safe(arg)',
               `    let (inRange: felt) = is_le_felt(arg_0, ${nMembers - 1})`,
             ].join('\n')
-          : `    let (inRange : felt) = is_le_felt(arg, ${nMembers - 1})`,
+          : `    let (inRange : felt) = is_le_felt(arg.value, ${nMembers - 1})`,
         `    with_attr error_message("Error: value out-of-bounds. Values passed to must be in enum range (0, ${
           nMembers - 1
         }]."):`,
@@ -217,6 +225,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
       ].join('\n'),
     });
     this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt');
+    this.requireImport('warplib.types.uints', `Uint${uintWidth}`);
     return funcName;
   }
 
