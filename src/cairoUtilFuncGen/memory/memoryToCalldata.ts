@@ -59,7 +59,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       ['syscall_ptr', 'pedersen_ptr', 'range_check_ptr', 'warp_memory'],
       this.ast,
       nodeInSourceUnit ?? node,
-      FunctionStateMutability.Pure,
+      { mutability: FunctionStateMutability.Pure },
     );
     return createCallToFunction(functionStub, [node], this.ast);
   }
