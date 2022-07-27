@@ -99,7 +99,7 @@ contract OracleEchidnaTest {
         require(index < cardinality && index != (oracle.index() + 1) % cardinality);
 
         (uint32 blockTimestamp0, int56 tickCumulative0, , bool initialized0) =
-            oracle.observations(index == 0 ? cardinality - 1 : index - 1);
+            oracle.observations(conditional(index, cardinality));
         (uint32 blockTimestamp1, int56 tickCumulative1, , bool initialized1) = oracle.observations(index);
 
         require(initialized0);
@@ -108,6 +108,14 @@ contract OracleEchidnaTest {
         uint32 timeElapsed = blockTimestamp1 - blockTimestamp0;
         assert(timeElapsed > 0);
         assert((tickCumulative1 - tickCumulative0) % timeElapsed == 0);
+    }
+
+    function conditional(uint16 index, uint16 cardinality) internal pure returns (uint16) {
+        if (index == 0) {
+            return cardinality - 1;
+        } else {
+            return index - 1;
+        }
     }
 
     function checkTimeWeightedAveragesAlwaysFitsType(uint32 secondsAgo) external view {

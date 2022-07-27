@@ -25,12 +25,20 @@ contract LowGasSafeMathEchidnaTest {
     function checkAddi(int256 x, int256 y) external pure {
         int256 z = LowGasSafeMath.add(x, y);
         assert(z == x + y);
-        assert(y < 0 ? z < x : z >= x);
+        if (y < 0) {
+            assert(z < x);
+        } else {
+            assert(z >= x);
+        }
     }
 
     function checkSubi(int256 x, int256 y) external pure {
         int256 z = LowGasSafeMath.sub(x, y);
         assert(z == x - y);
-        assert(y < 0 ? z > x : z <= x);
+        if (y < 0) {
+            assert(z > x);
+        } else {
+            assert(z <= x);
+        }
     }
 }

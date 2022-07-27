@@ -60,16 +60,21 @@ contract TestUniswapV3Router is IUniswapV3SwapCallback {
 
         if (pools.length == 1) {
             // get the address and amount of the token that we need to pay
-            address tokenToBePaid =
-                amount0Delta > 0 ? IUniswapV3Pool(msg.sender).token0() : IUniswapV3Pool(msg.sender).token1();
-            int256 amountToBePaid = amount0Delta > 0 ? amount0Delta : amount1Delta;
+            address tokenToBePaid = IUniswapV3Pool(msg.sender).token1();
+            if (amount0Delta > 0) {
+                tokenToBePaid = IUniswapV3Pool(msg.sender).token0();
+            }
+            int256 amountToBePaid = amount1Delta;
+            if (amount0Delta > 0) {
+                amountToBePaid = amount0Delta;
+            }
 
             bool zeroForOne = tokenToBePaid == IUniswapV3Pool(pools[0]).token1();
             IUniswapV3Pool(pools[0]).swap(
                 msg.sender,
                 zeroForOne,
                 -amountToBePaid,
-                zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1,
+                conditional(zeroForOne),
                 abi.encode(new address[](0), payer)
             );
         } else {
@@ -86,6 +91,14 @@ contract TestUniswapV3Router is IUniswapV3SwapCallback {
                     uint256(amount1Delta)
                 );
             }
+        }
+    }
+
+    function conditional(bool zeroForOne) internal returns (uint160) {
+        if (zeroForOne) {
+            return TickMath.MIN_SQRT_RATIO + 1;
+        } else {
+            return TickMath.MAX_SQRT_RATIO - 1;
         }
     }
 }

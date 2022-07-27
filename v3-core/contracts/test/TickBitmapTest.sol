@@ -35,6 +35,10 @@ contract TickBitmapTest {
     // returns whether the given tick is initialized
     function isInitialized(int24 tick) external view returns (bool) {
         (int24 next, bool initialized) = bitmap.nextInitializedTickWithinOneWord(tick, 1, true);
-        return next == tick ? initialized : false;
+        if (next == tick) {
+            return initialized;
+        } else {
+            return false;
+        }
     }
 }
