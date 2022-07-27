@@ -19,6 +19,7 @@ export class CairoStubProcessor extends ASTMapper {
     documentation = processDecoratorTags(documentation);
     documentation = processStateVarTags(documentation, node);
     documentation = processInternalFunctionTag(documentation, node);
+    documentation = processCurrentFunctionTag(documentation, node);
     setDocString(node, documentation);
   }
 }
@@ -81,6 +82,25 @@ function processInternalFunctionTag(documentation: string, node: FunctionDefinit
         errorNode,
       );
     }
+  });
+}
+
+function processCurrentFunctionTag(documentation: string, node: FunctionDefinition): string {
+  const contract = node.getClosestParentByType(CairoContract);
+  const errorNode = node.documentation instanceof ASTNode ? node.documentation : node;
+  if (contract === undefined) {
+    throw new WillNotSupportError(
+      `Cairo stub macro 'CURRENTFUNC' is only allowed in member function definitions`,
+      errorNode,
+    );
+  }
+  return processMacro(documentation, /CURRENTFUNC\((.*?)\)/g, (arg) => {
+    if (arg !== '') {
+      throw new TranspileFailedError(
+        `CURRENTFUNC macro must take no arguments, "${arg}" was provided`,
+      );
+    }
+    return node.name;
   });
 }
 
