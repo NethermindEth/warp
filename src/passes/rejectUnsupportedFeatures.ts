@@ -68,7 +68,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       node,
     );
   }
-  visitFunctionCallOptions(node: FunctionCallOptions, _ast: AST): void {
+  visitFunctionCallOptions(node: FunctionCallOptions, ast: AST): void {
     // Allow options only when passing salt values for contract creation
     if (
       node.parent instanceof FunctionCall &&
@@ -76,7 +76,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       [...node.vOptionsMap.entries()].length === 1 &&
       node.vOptionsMap.has('salt')
     ) {
-      return;
+      return this.visitExpression(node, ast);
     }
 
     throw new WillNotSupportError(
