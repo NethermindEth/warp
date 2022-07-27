@@ -1,0 +1,217 @@
+---Solc warnings:
+Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+--> e.sol
+
+
+---
+---Input---
+SourceUnit #20
+|   absolutePath: e.sol
+|   context: 1
++-PragmaDirective #1
++-ContractDefinition #19 C
+  |   linearizedBaseContracts: 19
+  |   name: C
+  |   scope: 20
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 19
+  | |   storageLocation: default
+  | |   typeString: string
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 string
+  |       name: string
+  |       stateMutability: nonpayable
+  |       typeString: string
+  +-VariableDeclaration #5 z
+  | |   name: z
+  | |   scope: 19
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #4 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #18 stringLiteral
+    |   name: stringLiteral
+    |   scope: 19
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #8
+    | +-VariableDeclaration #7 choice
+    |   |   name: choice
+    |   |   scope: 18
+    |   |   storageLocation: default
+    |   |   typeString: bool
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #6 bool
+    |         name: bool
+    |         stateMutability: nonpayable
+    |         typeString: bool
+    +-ParameterList #9
+    +-Block #17
+      +-ExpressionStatement #16
+        +-Assignment #15
+          |   operator: =
+          |   typeString: string storage ref
+          +-Identifier #10 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: string storage ref
+          +-Conditional #14
+            |   typeString: string memory
+            +-Identifier #11 choice
+            |     name: choice
+            |     referencedDeclaration: 7
+            |     typeString: bool
+            +-Literal #12
+            |     hexValue: 57415250
+            |     typeString: literal_string "WARP"
+            |     value: WARP
+            +-Literal #13
+                  hexValue: 5741525030
+                  typeString: literal_string "WARP0"
+                  value: WARP0
+
+---TupleFixes---
+SourceUnit #20
+|   absolutePath: e.sol
+|   context: 1
++-PragmaDirective #1
++-ContractDefinition #19 C
+  |   linearizedBaseContracts: 19
+  |   name: C
+  |   scope: 20
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 19
+  | |   storageLocation: default
+  | |   typeString: string
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 string
+  |       name: string
+  |       stateMutability: nonpayable
+  |       typeString: string
+  +-VariableDeclaration #5 z
+  | |   name: z
+  | |   scope: 19
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #4 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #18 stringLiteral
+    |   name: stringLiteral
+    |   scope: 19
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #8
+    | +-VariableDeclaration #7 choice
+    |   |   name: choice
+    |   |   scope: 18
+    |   |   storageLocation: default
+    |   |   typeString: bool
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #6 bool
+    |         name: bool
+    |         stateMutability: nonpayable
+    |         typeString: bool
+    +-ParameterList #9
+    +-Block #17
+      +-ExpressionStatement #16
+        +-Assignment #15
+          |   operator: =
+          |   typeString: string storage ref
+          +-Identifier #10 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: string storage ref
+          +-Conditional #14
+            |   typeString: string memory
+            +-Identifier #11 choice
+            |     name: choice
+            |     referencedDeclaration: 7
+            |     typeString: bool
+            +-Literal #12
+            |     hexValue: 57415250
+            |     typeString: literal_string "WARP"
+            |     value: WARP
+            +-Literal #13
+                  hexValue: 5741525030
+                  typeString: literal_string "WARP0"
+                  value: WARP0
+
+---TypeNameRemover---
+SourceUnit #20
+|   absolutePath: e.sol
+|   context: 1
++-PragmaDirective #1
++-ContractDefinition #19 C
+  |   linearizedBaseContracts: 19
+  |   name: C
+  |   scope: 20
+  +-VariableDeclaration #3 x
+  | |   name: x
+  | |   scope: 19
+  | |   storageLocation: default
+  | |   typeString: string
+  | |   visibility: internal
+  | +-ElementaryTypeName #2 string
+  |       name: string
+  |       stateMutability: nonpayable
+  |       typeString: string
+  +-VariableDeclaration #5 z
+  | |   name: z
+  | |   scope: 19
+  | |   storageLocation: default
+  | |   typeString: uint8
+  | |   visibility: internal
+  | +-ElementaryTypeName #4 uint8
+  |       name: uint8
+  |       stateMutability: nonpayable
+  |       typeString: uint8
+  +-FunctionDefinition #18 stringLiteral
+    |   name: stringLiteral
+    |   scope: 19
+    |   stateMutability: nonpayable
+    |   visibility: public
+    +-ParameterList #8
+    | +-VariableDeclaration #7 choice
+    |   |   name: choice
+    |   |   scope: 18
+    |   |   storageLocation: default
+    |   |   typeString: bool
+    |   |   visibility: internal
+    |   +-ElementaryTypeName #6 bool
+    |         name: bool
+    |         stateMutability: nonpayable
+    |         typeString: bool
+    +-ParameterList #9
+    +-Block #17
+      +-ExpressionStatement #16
+        +-Assignment #15
+          |   operator: =
+          |   typeString: string storage ref
+          +-Identifier #10 x
+          |     name: x
+          |     referencedDeclaration: 3
+          |     typeString: string storage ref
+          +-Conditional #14
+            |   typeString: string memory
+            +-Identifier #11 choice
+            |     name: choice
+            |     referencedDeclaration: 7
+            |     typeString: bool
+            +-Literal #12
+            |     hexValue: 57415250
+            |     typeString: literal_string "WARP"
+            |     value: WARP
+            +-Literal #13
+                  hexValue: 5741525030
+                  typeString: literal_string "WARP0"
+                  value: WARP0
+
+---RejectUnsupportedFeatures---
