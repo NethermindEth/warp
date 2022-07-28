@@ -31,7 +31,8 @@ export class MsgSender extends ASTMapper {
         'get_caller_address',
       );
     }
-    // This pass is specifically searching for msg.sender, a.msg.sender should be ignored, so don't recurse
+    // Fine to recurse because there is a check that the member access is a Builtin. Therefor a.msg.sender should
+    // not be picked up.
     this.visitExpression(node, ast);
   }
 }
