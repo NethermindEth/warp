@@ -1,14 +1,12 @@
 import {
   AddressType,
   ArrayType,
-  ArrayTypeName,
   ASTNode,
   BytesType,
   Conditional,
   ContractDefinition,
   ContractKind,
   DataLocation,
-  ElementaryTypeName,
   ErrorDefinition,
   ExpressionStatement,
   ExternalReferenceType,
@@ -23,7 +21,6 @@ import {
   IndexAccess,
   InlineAssembly,
   MemberAccess,
-  NewExpression,
   ParameterList,
   PointerType,
   RevertStatement,
@@ -36,7 +33,7 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { NotSupportedYetError, WillNotSupportError } from '../utils/errors';
+import { WillNotSupportError } from '../utils/errors';
 import { isDynamicArray } from '../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../utils/utils';
 
@@ -72,8 +69,18 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     );
   }
   visitFunctionCallOptions(node: FunctionCallOptions, _ast: AST): void {
+    // Allow options only when passing salt values for contract creation
+    if (
+      node.parent instanceof FunctionCall &&
+      node.parent.typeString.startsWith('contract') &&
+      [...node.vOptionsMap.entries()].length === 1 &&
+      node.vOptionsMap.has('salt')
+    ) {
+      return;
+    }
+
     throw new WillNotSupportError(
-      'Function call options, such as {gas:X} and {value:X} are not supported',
+      'Function call options (other than `salt` when creating a contract), such as {gas:X} and {value:X} are not supported',
       node,
     );
   }
@@ -151,19 +158,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       throw new WillNotSupportError(`Solidity builtin ${funcName} is not supported`, node);
     }
 
-    this.visitExpression(node, ast);
-  }
-
-  visitNewExpression(node: NewExpression, ast: AST): void {
-    if (
-      !(node.vTypeName instanceof ArrayTypeName) &&
-      !(node.vTypeName instanceof ElementaryTypeName && node.vTypeName.name === 'bytes')
-    ) {
-      throw new NotSupportedYetError(
-        `new expressions are not supported yet for non-array type ${node.vTypeName.typeString}`,
-        node,
-      );
-    }
     this.visitExpression(node, ast);
   }
 

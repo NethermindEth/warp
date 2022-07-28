@@ -28,6 +28,7 @@ export * from './typeInformationCalculator';
 export * from './literalExpressionEvaluator/literalExpressionEvaluator';
 export * from './loopFunctionaliser';
 export * from './namedArgsRemover';
+export * from './newToDeploy';
 export * from './orderNestedStructs';
 export * from './publicFunctionSplitter';
 export * from './referencedLibraries';

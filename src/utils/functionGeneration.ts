@@ -66,6 +66,13 @@ export function createCallToEvent(
   );
 }
 
+interface CairoFunctionStubOptions {
+  mutability?: FunctionStateMutability;
+  stubKind?: FunctionStubKind;
+  acceptsRawDArray?: boolean;
+  acceptsUnpackedStructArray?: boolean;
+}
+
 export function createCairoFunctionStub(
   name: string,
   inputs: ([string, TypeName] | [string, TypeName, DataLocation])[],
@@ -73,9 +80,12 @@ export function createCairoFunctionStub(
   implicits: Implicits[],
   ast: AST,
   nodeInSourceUnit: ASTNode,
-  mutability: FunctionStateMutability = FunctionStateMutability.NonPayable,
-  functionStubKind: FunctionStubKind = FunctionStubKind.FunctionDefStub,
-  acceptsRawDArray = false,
+  options: CairoFunctionStubOptions = {
+    mutability: FunctionStateMutability.NonPayable,
+    stubKind: FunctionStubKind.FunctionDefStub,
+    acceptsRawDArray: false,
+    acceptsUnpackedStructArray: false,
+  },
 ): CairoFunctionDefinition {
   const sourceUnit = ast.getContainingRoot(nodeInSourceUnit);
   const funcDefId = ast.reserveId();
@@ -107,14 +117,15 @@ export function createCairoFunctionStub(
     name,
     false,
     FunctionVisibility.Private,
-    mutability,
+    options.mutability ?? FunctionStateMutability.NonPayable,
     false,
     createParameterList(createParameters(inputs), ast),
     createParameterList(createParameters(returns), ast),
     [],
     new Set(implicits),
-    functionStubKind,
-    acceptsRawDArray,
+    options.stubKind ?? FunctionStubKind.FunctionDefStub,
+    options.acceptsRawDArray ?? false,
+    options.acceptsUnpackedStructArray ?? false,
   );
 
   ast.setContextRecursive(funcDef);
