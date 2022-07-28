@@ -70,9 +70,7 @@ export class UsingForResolver extends ASTMapper {
       memberAccessNode.vExpression = libraryIdentifier;
       memberAccessNode.memberName = referencedFn.name;
       ast.registerChild(libraryIdentifier, memberAccessNode);
-    }
-
-    if (referencedFnScope instanceof SourceUnit) {
+    } else if (referencedFnScope instanceof SourceUnit) {
       const functionIdentifier = new Identifier(
         ast.reserveId(),
         '',
