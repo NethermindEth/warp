@@ -111,8 +111,10 @@ export class ArrayFunctions extends ReferenceSubPass {
           ['range_check_ptr'],
           ast,
           node,
-          FunctionStateMutability.Pure,
-          FunctionStubKind.FunctionDefStub,
+          {
+            mutability: FunctionStateMutability.Pure,
+            stubKind: FunctionStubKind.FunctionDefStub,
+          },
         );
 
         const funcCall = createCallToFunction(funcStub, [node], ast);

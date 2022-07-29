@@ -4,13 +4,26 @@ import { execSync } from 'child_process';
 import { IDeployProps, ICallOrInvokeProps, IOptionalNetwork, IDeployAccountProps } from './index';
 import { encodeInputs } from './passes';
 import { CLIError, logError } from './utils/errors';
+import {
+  getDependencyGraph,
+  hashFilename,
+  reducePath,
+  setDeclaredAddresses,
+} from './utils/postCairoWrite';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+
+interface CompileResult {
+  success: boolean;
+  resultPath?: string;
+  abiPath?: string;
+  classHash?: string;
+}
 
 export function compileCairo(
   filePath: string,
   cairoPath: string = path.resolve(__dirname, '..'),
-): { success: boolean; resultPath: string | undefined; abiPath: string | undefined } {
+): CompileResult {
   assert(filePath.endsWith('.cairo'), `Attempted to compile non-cairo file ${filePath} as cairo`);
   const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
   const resultPath = `${cairoPathRoot}_compiled.json`;
@@ -31,15 +44,76 @@ export function compileCairo(
       { stdio: 'inherit' },
     );
 
-    return { success: true, resultPath, abiPath };
+    return { success: true, resultPath, abiPath, classHash: undefined };
   } catch (e) {
     if (e instanceof Error) {
       logError('Compile failed');
-      return { success: false, resultPath: undefined, abiPath: undefined };
+      return { success: false, resultPath: undefined, abiPath: undefined, classHash: undefined };
     } else {
       throw e;
     }
   }
+}
+
+async function compileCairoDependencies(
+  root: string,
+  graph: Map<string, string[]>,
+  filesCompiled: Map<string, CompileResult>,
+): Promise<CompileResult> {
+  const compiled = filesCompiled.get(root);
+  if (compiled !== undefined) {
+    return compiled;
+  }
+
+  const dependencies = graph.get(root);
+  if (dependencies !== undefined) {
+    for (const filesToDeclare of dependencies) {
+      const result = await compileCairoDependencies(filesToDeclare, graph, filesCompiled);
+      const fileLocationHash = hashFilename(reducePath(filesToDeclare, 'warp_output'));
+      filesCompiled.set(fileLocationHash, result);
+    }
+  }
+
+  setDeclaredAddresses(
+    root,
+    new Map(
+      [...filesCompiled.entries()].map(([key, value]) => {
+        assert(value.classHash !== undefined);
+        return [key, value.classHash];
+      }),
+    ),
+  );
+  const { success, resultPath, abiPath } = compileCairo(root, path.resolve(__dirname, '..'));
+  if (!success) {
+    throw new CLIError(`Compilation of cairo file ${root} failed`);
+  }
+  const result = execSync(`${warpVenvPrefix} starknet declare --contract ${resultPath}`, {
+    encoding: 'utf8',
+  });
+  const splitter = new RegExp('[ ]+');
+  // Extract the hash from result
+  const classHash = result
+    .split('\n')
+    .map((line) => {
+      const [contractT, classT, hashT, hash, ...others] = line.split(splitter);
+      if (contractT === 'Contract' && classT === 'class' && hashT === 'hash:') {
+        if (others.length !== 0) {
+          throw new CLIError(
+            `Error while parsing the 'declare' output of ${root}. Malformed lined.`,
+          );
+        }
+        return hash;
+      }
+      return null;
+    })
+    .filter((val) => val !== null)[0];
+
+  if (classHash === null || classHash === undefined)
+    throw new CLIError(
+      `Error while parsing the 'declare' output of ${root}. Couldn't find the class hash.`,
+    );
+
+  return { success, resultPath, abiPath, classHash };
 }
 
 export function runStarknetCompile(filePath: string) {
@@ -75,10 +149,22 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
     );
     return;
   }
-  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
-  if (!success) {
-    logError(`Compilation of contract ${filePath} failed`);
-    return;
+  // Shouldn't be fixed to warp_output (which is the default)
+  // shuch option does not exists currently when deploying, should be added
+  const dependencyGraph = getDependencyGraph(filePath, 'warp_output');
+
+  let compileResult: CompileResult;
+  try {
+    compileResult = await compileCairoDependencies(
+      filePath,
+      dependencyGraph,
+      new Map<string, CompileResult>(),
+    );
+  } catch (e) {
+    if (e instanceof CLIError) {
+      logError(e.message);
+    }
+    throw e;
   }
 
   let inputs: string;
@@ -95,8 +181,12 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
   }
 
   try {
+    const resultPath = compileResult.resultPath;
+    const classHash = compileResult.classHash;
     execSync(
-      `${warpVenvPrefix} starknet deploy --contract ${resultPath} --network ${options.network} ${inputs}`,
+      `${warpVenvPrefix} starknet deploy --network ${options.network} ${
+        options.no_wallet ? `--no_wallet --contract ${resultPath} ` : `--class_hash ${classHash}`
+      } ${inputs} ${options.account !== undefined ? `--account ${options.account}` : ''}`,
       {
         stdio: 'inherit',
       },
@@ -180,5 +270,19 @@ export async function runStarknetCallOrInvoke(
     );
   } catch {
     logError(`starknet ${callOrInvoke} failed`);
+  }
+}
+
+export function runStarknetDeclare(filePath: string) {
+  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
+  if (!success) {
+    logError(`Compilation of contract ${filePath} failed`);
+    return;
+  }
+
+  try {
+    execSync(`${warpVenvPrefix} starknet declare --contract ${resultPath}`);
+  } catch (e) {
+    logError('starkned declared failed');
   }
 }
