@@ -30,9 +30,9 @@ export class MsgSender extends ASTMapper {
         'starkware.starknet.common.syscalls',
         'get_caller_address',
       );
-    } else {
-      // This pass is specifically searching for msg.sender, a.msg.sender should be ignored, so don't recurse
-      return;
     }
+    // Fine to recurse because there is a check that the member access is a Builtin. Therefor a.msg.sender should
+    // not be picked up.
+    this.visitExpression(node, ast);
   }
 }
