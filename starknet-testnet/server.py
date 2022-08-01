@@ -35,6 +35,23 @@ def ping():
 async def pingpost():
     return jsonify({"return_data": "pong"})
 
+@app.route("/empty", methods=["POST"])
+    try
+        state = await starknet_wrapper.empty_state()
+        return jsonify({
+            "test_net_emptied": True, 
+            "threw": False
+            })
+    except StarkException as err:
+        print(err)
+        if err.code == StarknetErrorCode.TRANSACTION_FAILED:
+            return jsonify(
+                {"test_net_emptied": False,
+                "threw": True,
+                "message": err.message}
+            )
+        else:
+            raise err
 
 @app.route("/deploy", methods=["POST"])
 async def deploy():

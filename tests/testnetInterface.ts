@@ -1,6 +1,20 @@
 import { BigNumber } from 'ethers';
 import axios from 'axios';
 
+export type EmptyTestnetResponse =
+  | {
+      status: number;
+      test_net_emptied: true;
+      threw: false;
+      error_message: undefined;
+    }
+  | {
+      status: number;
+      test_net_emptied: false;
+      threw: true;
+      error_message: string;
+    };
+
 export type InvokeResponse =
   | {
       status: number;
@@ -48,6 +62,23 @@ export type DeclareResponse =
       class_hash: null;
       error_message: string;
     };
+
+export async function emptyTestnetState(): Promise<EmptyTestnetResponse> {
+  const response = await axios.post('http://127.0.0.1:5000/empty');
+  return response.data.transaction_info.threw
+    ? {
+        status: response.status,
+        test_net_emptied: false,
+        threw: true,
+        error_message: response.data.transaction_info.message,
+      }
+    : {
+        status: response.status,
+        test_net_emptied: true,
+        threw: false,
+        error_message: undefined,
+      };
+}
 
 export async function declare(jsonPath: string): Promise<DeclareResponse> {
   const response = await axios.post('http://127.0.0.1:5000/declare', {

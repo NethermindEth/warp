@@ -21,6 +21,10 @@ class StarknetWrapper:
 
         self.starknet = None
         self.compiledCairoFiles: list[str] = []
+    
+    async def empty_state(self): 
+        self.starknet = await Starknet.empty()
+        return self.starknet
 
     async def get_starknet(self):
         if not self.starknet:

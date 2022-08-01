@@ -1,6 +1,6 @@
 import { execSync } from 'child_process';
 import { existsSync, readFileSync, writeFileSync } from 'fs-extra';
-
+import { emptyTestnetState } from '../tests/testnetInterface';
 if (!existsSync('./tests/behaviour/solidity')) {
   execSync('bash ./tests/behaviour/setup.sh');
 }
@@ -162,17 +162,25 @@ function uncommentTests(filter: string): void {
   );
 }
 
-filters.forEach((filter) => {
-  uncommentTests(filter);
-  console.log('------------------------------------------------------');
-  try {
-    execSync(
-      `FILTER=${filter} npx mocha tests/behaviour/behaviour.test.ts --extension ts --require ts-node/register --exit`,
-      { stdio: 'inherit' },
-    );
-  } catch (e) {
-    console.log(e);
-  }
-});
+async function itterateThroughTests(): Promise<void> {
+  filters.forEach(async (filter) => {
+    uncommentTests(filter);
+    console.log('------------------------------------------------------');
+    try {
+      execSync(
+        `FILTER=${filter} npx mocha tests/behaviour/behaviour.test.ts --extension ts --require ts-node/register --exit`,
+        { stdio: 'inherit' },
+      );
+      const response = await emptyTestnetState();
+      response.test_net_emptied
+        ? console.log('Testnet not emptied')
+        : console.log('Testnet emptied successfully');
+    } catch (e) {
+      console.log(e);
+    }
+  });
+}
 
+itterateThroughTests();
+console.log('---------------------Semantic Tests Complete ----------------');
 writeFileSync(whitelistPath, whitelistData);
