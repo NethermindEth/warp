@@ -8,7 +8,13 @@ import {
   batchPromises,
   processArgs,
 } from '../util';
-import { declare, deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
+import {
+  declare,
+  deploy,
+  emptyTestnetState,
+  ensureTestnetContactable,
+  invoke,
+} from '../testnetInterface';
 
 import { describe } from 'mocha';
 import { expect } from 'chai';
@@ -165,6 +171,10 @@ describe('Compiled contracts are deployable', function () {
 
   // let deployResults: SafePromise<string>[];
   const deployResults: (DeployResponse | null)[] = [];
+  before(async function () {
+    const response = await emptyTestnetState();
+    expect(response.test_net_emptied, 'Testnet state emptied successfully').to.be.true;
+  });
 
   before(async function () {
     const testnetContactable = await ensureTestnetContactable(60000);

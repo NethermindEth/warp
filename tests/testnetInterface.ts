@@ -65,7 +65,7 @@ export type DeclareResponse =
 
 export async function emptyTestnetState(): Promise<EmptyTestnetResponse> {
   const response = await axios.post('http://127.0.0.1:5000/empty');
-  return response.data.transaction_info.threw
+  return response.data.threw
     ? {
         status: response.status,
         test_net_emptied: false,

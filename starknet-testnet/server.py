@@ -36,7 +36,8 @@ async def pingpost():
     return jsonify({"return_data": "pong"})
 
 @app.route("/empty", methods=["POST"])
-    try
+async def empty():
+    try:
         state = await starknet_wrapper.empty_state()
         return jsonify({
             "test_net_emptied": True, 
