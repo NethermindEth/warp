@@ -24,7 +24,7 @@ brew install z3
 sudo apt install libz3-dev
 ```
 
-2. Have Python installed with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
+2. Have Python 3.7 installed with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
 
 <br>
 
@@ -62,9 +62,9 @@ warp transpile example_contracts/ERC20.sol
 ### Warp Installation Method 2 (from source/for devs):
 
 <hr> 
-With a virtual environment (recommended Python3.7) activated and with your current working directory being the warp repo, perform the following in order:
+With a virtual environment (recommended Python3.7) activated:
 
-1. Clone this repo.
+1. Clone this repo and change directory into the `warp` folder.
 
 2. Install the JavaScript dependencies:
 
@@ -112,7 +112,7 @@ To transpile a contract:
 warp transpile <path to Solidity contract>
 ```
 
-To deploy a Cairo contract (transpiled/or not):
+To deploy a Cairo contract:
 
 ```bash
 warp deploy <path to Cairo contract>
