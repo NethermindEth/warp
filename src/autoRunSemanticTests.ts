@@ -162,7 +162,7 @@ function uncommentTests(filter: string): void {
   );
 }
 
-async function itterateThroughTests(): Promise<void> {
+async function iterateThroughTests(): Promise<void> {
   filters.forEach(async (filter) => {
     uncommentTests(filter);
     console.log('------------------------------------------------------');
@@ -181,6 +181,6 @@ async function itterateThroughTests(): Promise<void> {
   });
 }
 
-itterateThroughTests();
+iterateThroughTests();
 console.log('---------------------Semantic Tests Complete ----------------');
 writeFileSync(whitelistPath, whitelistData);
