@@ -133,15 +133,28 @@ program
     runStarknetStatus(tx_hash, options);
   });
 
+export interface IOptionalDebugInfo {
+  debug_info: boolean;
+}
+
+program
+  .command('compile <file>')
+  .option('-d, --debug_info', 'Include debug information.', false)
+  .action((file: string, options: IOptionalDebugInfo) => {
+    runStarknetCompile(file, options);
+  });
+
 interface IDeployProps_ {
   inputs?: string;
   use_cairo_abi: boolean;
   no_wallet: boolean;
 }
-export type IDeployProps = IDeployProps_ & IOptionalNetwork & IOptionalAccount;
+
+export type IDeployProps = IDeployProps_ & IOptionalNetwork & IOptionalAccount & IOptionalDebugInfo;
 
 program
   .command('deploy <file>')
+  .option('-d, --debug_info', 'Compile include debug information.', false)
   .option(
     '--inputs <inputs>',
     'Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists.',
@@ -255,13 +268,6 @@ program
   .option('-v, --verbose')
   .action((options: IInstallOptions) => {
     runVenvSetup(options);
-  });
-
-program
-  .command('compile <file>')
-  .option('-d, --debug', 'include debug information.')
-  .action((file: string, debug_info) => {
-    runStarknetCompile(file, debug_info);
   });
 
 const blue = chalk.bold.blue;
