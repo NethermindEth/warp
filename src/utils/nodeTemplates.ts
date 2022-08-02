@@ -253,7 +253,7 @@ export function createDefaultConstructor(node: ContractDefinition, ast: AST): Fu
     createParameterList([], ast),
     [],
   );
-  ast.setContextRecursive(node);
+  ast.setContextRecursive(newFunc);
   return newFunc;
 }
 

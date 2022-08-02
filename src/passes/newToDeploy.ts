@@ -19,6 +19,8 @@ import assert from 'assert';
 import { createCairoFunctionStub, createCallToFunction } from '../utils/functionGeneration';
 import {
   createAddressTypeName,
+  createBoolLiteral,
+  createBoolTypeName,
   createBytesNTypeName,
   createBytesTypeName,
   createIdentifier,
@@ -36,7 +38,7 @@ import { TranspileFailedError } from '../utils/errors';
  *
  *   And transpiles them to Cairo `deploy` system call:
  *
- *   `deploy(Contract_class_hash, salt, encode(arg1, ... argn))`
+ *   `deploy(contract_class_hash, salt, encode(arg1, ... argn), deploy_from_zero)`
  *
  *   -----
  *
@@ -54,6 +56,9 @@ import { TranspileFailedError } from '../utils/errors';
  *   and makes them a big dynamic arrays of felts. For example arguments:
  *   (a : Uint256, b : felt, c : (felt, felt, felt))
  *   are encoded as (6, [a.low, a.high, b, c[0], c[1], c[2]])
+ *
+ *   deploy_from_zero is a bool which determines if the deployer's address will
+ *   affect the contract address or not. Is set to FALSE by default.
  *
  */
 export class NewToDeploy extends ASTMapper {
@@ -149,7 +154,7 @@ export class NewToDeploy extends ASTMapper {
         ['class_hash', createAddressTypeName(false, ast)],
         ['contract_address_salt', createBytesNTypeName(30, ast)],
         ['constructor_calldata', createBytesTypeName(ast), DataLocation.CallData],
-        // ['deploy_from_zero', createBoolTypeName(ast)], // uncomment after cairo 0.9.1 bump
+        ['deploy_from_zero', createBoolTypeName(ast)],
       ],
       [['contract_address', cloneASTNode(typeName, ast)]],
       ['syscall_ptr'],
@@ -160,15 +165,10 @@ export class NewToDeploy extends ASTMapper {
     ast.registerImport(node, 'starkware.starknet.common.syscalls', 'deploy');
 
     const encodedArguments = ast.getUtilFuncGen(node).utils.encodeAsFelt.gen(node.vArguments);
-    // const deployFromZero = createBoolLiteral(false, ast); // uncomment after cairo 0.9.1 bump
+    const deployFromZero = createBoolLiteral(false, ast);
     return createCallToFunction(
       deployStub,
-      [
-        placeHolderIdentifier,
-        salt,
-        encodedArguments,
-        // deployFromZero // uncomment after cairo 0.9.1 bump
-      ],
+      [placeHolderIdentifier, salt, encodedArguments, deployFromZero],
       ast,
       node,
     );
@@ -205,8 +205,8 @@ export class NewToDeploy extends ASTMapper {
      * - the path to the cairo file which contain the target contract to deploy
      * - the hash of the path.
      * The path part is unnecesary, but  it's left there for readability.
-     * The hash part is the one used for later to compare if treating with the
-     * same file. Also it used to avoid naming clash between different placeholders.
+     * The hash part is the one used for later to search for the correct file
+     * declaration. Also it used to avoid naming clashes between different placeholders.
      */
     const varName = `${varPrefix}_${hash}`;
     /*

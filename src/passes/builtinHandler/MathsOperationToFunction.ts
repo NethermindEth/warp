@@ -11,7 +11,7 @@ import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
 import { functionaliseAdd } from '../../warplib/implementations/maths/add';
-import { functionaliseAnd } from '../../warplib/implementations/maths/and';
+import { functionaliseAnd } from '../../warplib/implementations/maths/and_';
 import { functionaliseBitwiseAnd } from '../../warplib/implementations/maths/bitwise_and';
 import { functionaliseBitwiseNot } from '../../warplib/implementations/maths/bitwise_not';
 import { functionaliseBitwiseOr } from '../../warplib/implementations/maths/bitwise_or';
