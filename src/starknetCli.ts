@@ -4,7 +4,12 @@ import { execSync } from 'child_process';
 import { IDeployProps, ICallOrInvokeProps, IOptionalNetwork, IDeployAccountProps } from './index';
 import { encodeInputs } from './passes';
 import { CLIError, logError } from './utils/errors';
-import { getDependencyGraph, hashFilename, reducePath } from './utils/postCairoWrite';
+import {
+  getDependencyGraph,
+  hashFilename,
+  reducePath,
+  setDeclaredAddresses,
+} from './utils/postCairoWrite';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
@@ -53,25 +58,34 @@ export function compileCairo(
 async function compileCairoDependencies(
   root: string,
   graph: Map<string, string[]>,
-  compiled: Map<string, CompileResult>,
+  filesCompiled: Map<string, CompileResult>,
 ): Promise<CompileResult> {
-  const declaredHash = compiled.get(root);
-  if (declaredHash !== undefined) {
-    return declaredHash;
+  const compiled = filesCompiled.get(root);
+  if (compiled !== undefined) {
+    return compiled;
   }
 
   const dependencies = graph.get(root);
   if (dependencies !== undefined) {
     for (const filesToDeclare of dependencies) {
-      const result = await compileCairoDependencies(filesToDeclare, graph, compiled);
+      const result = await compileCairoDependencies(filesToDeclare, graph, filesCompiled);
       const fileLocationHash = hashFilename(reducePath(filesToDeclare, 'warp_output'));
-      compiled.set(fileLocationHash, result);
+      filesCompiled.set(fileLocationHash, result);
     }
   }
 
+  setDeclaredAddresses(
+    root,
+    new Map(
+      [...filesCompiled.entries()].map(([key, value]) => {
+        assert(value.classHash !== undefined);
+        return [key, value.classHash];
+      }),
+    ),
+  );
   const { success, resultPath, abiPath } = compileCairo(root, path.resolve(__dirname, '..'));
   if (!success) {
-    throw new Error(`Compilation of cairo file ${root} failed`);
+    throw new CLIError(`Compilation of cairo file ${root} failed`);
   }
   const result = execSync(`${warpVenvPrefix} starknet declare --contract ${resultPath}`, {
     encoding: 'utf8',
@@ -83,13 +97,22 @@ async function compileCairoDependencies(
     .map((line) => {
       const [contractT, classT, hashT, hash, ...others] = line.split(splitter);
       if (contractT === 'Contract' && classT === 'class' && hashT === 'hash:') {
-        assert(others.length === 0, 'Error while parsing declare output');
+        if (others.length !== 0) {
+          throw new CLIError(
+            `Error while parsing the 'declare' output of ${root}. Malformed lined.`,
+          );
+        }
         return hash;
       }
       return null;
     })
     .filter((val) => val !== null)[0];
-  assert(classHash !== undefined && classHash !== null, 'Could not find hash declaration');
+
+  if (classHash === null || classHash === undefined)
+    throw new CLIError(
+      `Error while parsing the 'declare' output of ${root}. Couldn't find the class hash.`,
+    );
+
   return { success, resultPath, abiPath, classHash };
 }
 
@@ -126,15 +149,22 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
     );
     return;
   }
+  // Shouldn't be fixed to warp_output (which is the default)
+  // shuch option does not exists currently when deploying, should be added
   const dependencyGraph = getDependencyGraph(filePath, 'warp_output');
-  const { success, resultPath } = await compileCairoDependencies(
-    filePath,
-    dependencyGraph,
-    new Map<string, CompileResult>(),
-  );
-  if (!success) {
-    logError(`Compilation of contract ${filePath} failed`);
-    return;
+
+  let compileResult: CompileResult;
+  try {
+    compileResult = await compileCairoDependencies(
+      filePath,
+      dependencyGraph,
+      new Map<string, CompileResult>(),
+    );
+  } catch (e) {
+    if (e instanceof CLIError) {
+      logError(e.message);
+    }
+    throw e;
   }
 
   let inputs: string;
@@ -151,8 +181,12 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
   }
 
   try {
+    const resultPath = compileResult.resultPath;
+    const classHash = compileResult.classHash;
     execSync(
-      `${warpVenvPrefix} starknet deploy --contract ${resultPath} --network ${options.network} ${inputs}`,
+      `${warpVenvPrefix} starknet deploy --network ${options.network} ${
+        options.no_wallet ? `--no_wallet --contract ${resultPath} ` : `--class_hash ${classHash}`
+      } ${inputs} ${options.account !== undefined ? `--account ${options.account}` : ''}`,
       {
         stdio: 'inherit',
       },
