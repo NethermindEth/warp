@@ -28,6 +28,7 @@ import {
   setDeclaredAddresses,
 } from '../../src/utils/postCairoWrite';
 import assert from 'assert';
+import { exec } from 'child_process';
 
 const PRINT_STEPS = false;
 const PARALLEL_COUNT = 8;
@@ -36,6 +37,10 @@ const TIME_LIMIT = 2 * 60 * 60 * 1000;
 interface AsyncTestCluster {
   asyncTest: AsyncTest;
   dependencies: Map<string, string[]>;
+}
+
+function launchTestNet(): void {
+  exec('yarn testnet');
 }
 
 describe('Transpile solidity', function () {
@@ -74,12 +79,23 @@ describe('Transpile solidity', function () {
 });
 
 describe('Transpiled contracts are valid cairo', function () {
+  this.timeout(TIME_LIMIT);
+
+  // Testing that testnet running before compiled files get declared.
+  before(async function () {
+    const testnetContactable = await ensureTestnetContactable(10000);
+    if (!testnetContactable) {
+      launchTestNet();
+      const testNetStarted = await ensureTestnetContactable(60000);
+      expect(testNetStarted).to.be.true;
+    }
+  });
+
+  // Emptying the state of the testnet for the next batch of tests.
   before(async function () {
     const response = await emptyTestnetState();
     expect(response.test_net_emptied, 'Testnet state emptied successfully').to.be.true;
   });
-
-  this.timeout(TIME_LIMIT);
 
   let compileResults: SafePromise<{ stderr: string } | null>[];
   let processedExpectations: (AsyncTestCluster | null)[];
@@ -177,6 +193,8 @@ describe('Compiled contracts are deployable', function () {
   // let deployResults: SafePromise<string>[];
   const deployResults: (DeployResponse | null)[] = [];
 
+  // Testing testnet up and running. If not, fail since there are files that could have
+  // been declared.
   before(async function () {
     const testnetContactable = await ensureTestnetContactable(60000);
     expect(testnetContactable, 'Failed to ping testnet').to.be.true;
