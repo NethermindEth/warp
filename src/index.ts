@@ -254,9 +254,12 @@ program
     runVenvSetup(options);
   });
 
-program.command('compile <file>').action((file: string) => {
-  runStarknetCompile(file);
-});
+program
+  .command('compile <file>')
+  .option('-d, --debug', 'include debug information.')
+  .action((file: string, debug_info) => {
+    runStarknetCompile(file, debug_info);
+  });
 
 const blue = chalk.bold.blue;
 const green = chalk.bold.green;

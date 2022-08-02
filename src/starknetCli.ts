@@ -18,6 +18,7 @@ interface CompileResult {
 export function compileCairo(
   filePath: string,
   cairoPath: string = path.resolve(__dirname, '..'),
+  debug_info?: any,
 ): CompileResult {
   assert(filePath.endsWith('.cairo'), `Attempted to compile non-cairo file ${filePath} as cairo`);
   const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
@@ -30,10 +31,11 @@ export function compileCairo(
   if (cairoPath !== '') {
     parameters.set('cairo_path', cairoPath);
   }
+  const debug: string = debug_info.debug ? '--debug_info_with_source' : '--no_debug_info';
   try {
     console.log(`Running starknet compile with cairoPath ${cairoPath}`);
     execSync(
-      `${warpVenvPrefix} starknet-compile ${filePath} ${[...parameters.entries()]
+      `${warpVenvPrefix} starknet-compile ${debug} ${filePath} ${[...parameters.entries()]
         .map(([key, value]) => `--${key} ${value}`)
         .join(' ')}`,
       { stdio: 'inherit' },
@@ -93,8 +95,8 @@ async function compileCairoDependencies(
   return { success, resultPath, abiPath, classHash };
 }
 
-export function runStarknetCompile(filePath: string) {
-  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
+export function runStarknetCompile(filePath: string, debug_info?: any) {
+  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'), debug_info);
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
