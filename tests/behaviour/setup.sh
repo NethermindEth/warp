@@ -3,17 +3,37 @@
 set -e
 
 dir=tests/behaviour
+SOLC_VERSION=0.8.15
 
-if [[ ! -d $dir/solidity/ ]]; then
-  # Get solidity semantic tests
-  git clone --no-checkout --depth=1 https://github.com/ethereum/solidity.git $dir/solidity
+#check if first argument --version=xxxx is passed and set SOLC_VERSION to it
+if [[ $1 == --version=* ]]; then
+    SOLC_VERSION="${1#*=}"
+    echo "Using solc version $SOLC_VERSION"
+else 
+    echo "No version specified, using default version $SOLC_VERSION"
 fi
 
-pushd $dir/solidity
-git config core.sparseCheckout true
-echo "test/libsolidity/semanticTests" > .git/info/sparse-checkout
-git checkout develop
-popd
+SOLC_URL="https://github.com/ethereum/solidity/releases/download/v${SOLC_VERSION}/solidity_${SOLC_VERSION}.tar.gz"
+
+#check if URL is valid
+if ! curl --output /dev/null --silent --head --fail "$SOLC_URL"; then
+    echo "Error: Invalid version specified: $SOLC_VERSION"
+    exit 1
+fi
+
+if [[ ! -d $dir/solidity/ ]]; then
+  mkdir -p $dir/solidity
+fi
+
+pushd $dir/solidity > /dev/null
+  # Empty current directory
+  rm -rf ./*
+  if [[ ! -f solidity_${SOLC_VERSION}.tar.gz ]]; then
+    curl -LJO $SOLC_URL
+  fi
+  tar -xf  solidity_${SOLC_VERSION}.tar.gz --strip-components=1 "solidity_${SOLC_VERSION}/test/libsolidity/semanticTests/"
+  rm -rf solidity_${SOLC_VERSION}.tar.gz
+popd > /dev/null
 
 ######### TODO get a version of isoltest for each platform and generate
 ######### test_calldata.ts instead of having it checked in
