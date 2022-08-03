@@ -1,7 +1,13 @@
 import assert from 'assert';
 import * as path from 'path';
 import { execSync } from 'child_process';
-import { IDeployProps, ICallOrInvokeProps, IOptionalNetwork, IDeployAccountProps } from './index';
+import {
+  IDeployProps,
+  ICallOrInvokeProps,
+  IOptionalNetwork,
+  IDeployAccountProps,
+  IOptionalDebugInfo,
+} from './index';
 import { encodeInputs } from './passes';
 import { CLIError, logError } from './utils/errors';
 import {
@@ -23,6 +29,7 @@ interface CompileResult {
 export function compileCairo(
   filePath: string,
   cairoPath: string = path.resolve(__dirname, '..'),
+  debug_info?: IOptionalDebugInfo,
 ): CompileResult {
   assert(filePath.endsWith('.cairo'), `Attempted to compile non-cairo file ${filePath} as cairo`);
   const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
@@ -35,10 +42,11 @@ export function compileCairo(
   if (cairoPath !== '') {
     parameters.set('cairo_path', cairoPath);
   }
+  const debug: string = debug_info ? '--debug_info_with_source' : '--no_debug_info';
   try {
     console.log(`Running starknet compile with cairoPath ${cairoPath}`);
     execSync(
-      `${warpVenvPrefix} starknet-compile ${filePath} ${[...parameters.entries()]
+      `${warpVenvPrefix} starknet-compile ${debug} ${filePath} ${[...parameters.entries()]
         .map(([key, value]) => `--${key} ${value}`)
         .join(' ')}`,
       { stdio: 'inherit' },
@@ -59,6 +67,7 @@ async function compileCairoDependencies(
   root: string,
   graph: Map<string, string[]>,
   filesCompiled: Map<string, CompileResult>,
+  debug_info = false,
 ): Promise<CompileResult> {
   const compiled = filesCompiled.get(root);
   if (compiled !== undefined) {
@@ -68,7 +77,12 @@ async function compileCairoDependencies(
   const dependencies = graph.get(root);
   if (dependencies !== undefined) {
     for (const filesToDeclare of dependencies) {
-      const result = await compileCairoDependencies(filesToDeclare, graph, filesCompiled);
+      const result = await compileCairoDependencies(
+        filesToDeclare,
+        graph,
+        filesCompiled,
+        debug_info,
+      );
       const fileLocationHash = hashFilename(reducePath(filesToDeclare, 'warp_output'));
       filesCompiled.set(fileLocationHash, result);
     }
@@ -116,8 +130,8 @@ async function compileCairoDependencies(
   return { success, resultPath, abiPath, classHash };
 }
 
-export function runStarknetCompile(filePath: string) {
-  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
+export function runStarknetCompile(filePath: string, debug_info: IOptionalDebugInfo) {
+  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'), debug_info);
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
@@ -150,7 +164,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
     return;
   }
   // Shouldn't be fixed to warp_output (which is the default)
-  // shuch option does not exists currently when deploying, should be added
+  // such option does not exists currently when deploying, should be added
   const dependencyGraph = getDependencyGraph(filePath, 'warp_output');
 
   let compileResult: CompileResult;
@@ -159,6 +173,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
       filePath,
       dependencyGraph,
       new Map<string, CompileResult>(),
+      options.debug_info,
     );
   } catch (e) {
     if (e instanceof CLIError) {
