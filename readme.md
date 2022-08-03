@@ -61,7 +61,10 @@ warp transpile example_contracts/ERC20.sol
 
 ### Warp Installation Method 2 (from source/for devs):
 
-<hr> 
+<hr>
+
+Make sure you have the [dependencies](#dependencies) installed first.
+
 With a virtual environment (recommended Python3.7) activated:
 
 1. Clone this repo and change directory into the `warp` folder.
