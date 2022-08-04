@@ -33,6 +33,8 @@ import { InvalidTestError } from '../errors';
 
 import whiteList from './semantic_whitelist';
 
+import whileListGenerated from './semantic_tests_generated';
+
 import { NotSupportedYetError } from '../../../src/utils/errors';
 import { compileSolFile, compileSolFileAndExtractContracts } from '../../../src/solCompile';
 import { printTypeNode } from '../../../src/utils/astPrinter';
@@ -75,7 +77,7 @@ const abiCoder: AbiCoder = new AbiCoder.constructor();
 function isValidTestName(testFileName: string) {
   let file = testFileName;
   while (file !== '.' && file !== '/') {
-    if (whiteList.includes(file)) return true;
+    if (whiteList.includes(file) || whileListGenerated.includes(file)) return true;
     file = path.dirname(file);
   }
   return false;
