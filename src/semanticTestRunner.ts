@@ -72,7 +72,7 @@ if (process.argv.includes('--compare')) {
   console.log(
     `-------Tests which are present in whitelist but not in solc version:${version}------`,
   );
-  testsSupportStatus.forEach((value, key) => {
+  testsSupportStatus.forEach((_value, key) => {
     if (!testFiles.includes(key)) {
       console.log(key);
     }
