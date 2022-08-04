@@ -74,14 +74,11 @@ export class NamedArgsRemover extends ASTMapper {
     }
 
     orderedFieldNames.forEach((fieldName, index) => {
-      //find the index of the field name in the fieldNames array
+      // Find the index of the field name in the fieldNames array
+      // name is always in fieldNames array as we filtered it above : 65
+      // Hence, no need to check if fieldNameIndex is -1
       const fieldNameIndex = fieldNames.findIndex((name) => name === fieldName);
-      //if the index is not found, throw an error
-      if (fieldNameIndex === -1) {
-        throw new TranspileFailedError(
-          `Field name not found: ${fieldName} in ${node.vReferencedDeclaration?.constructor.name}`,
-        );
-      }
+
       //swap the objects at the index of the field name and the index of the argument
       [node.vArguments[fieldNameIndex], node.vArguments[index]] = [
         node.vArguments[index],
