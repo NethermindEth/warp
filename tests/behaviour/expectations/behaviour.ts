@@ -242,6 +242,12 @@ export const expectations = flatten(
         ]),
         new Dir('cairo_stubs', [
           File.Simple('basic', [Expect.Simple('useStub', [], ['5'])]),
+          File.Simple('currentFunc', [
+            Expect.Simple('simpleCase', [], ['1']),
+            Expect.Simple('recursiveAdd', ['5', '3'], ['8']),
+            Expect.Simple('testInternalDefinedInBase', [], ['2']),
+            Expect.Simple('externalDefinedInBase', [], ['1']),
+          ]),
           File.Simple('proxy', [
             new Expect('set hash and use', [
               ['setHash', ['hash@tests/behaviour/contracts/cairo_stubs/basic.WARP'], [], '0'],
