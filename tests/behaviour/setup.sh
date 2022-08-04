@@ -7,7 +7,7 @@ SOLC_VERSION="0.8.14"
 
 #check if first argument --version=xxxx is passed and set SOLC_VERSION to it
 if [ -z "$VERSION" ]; then
-    echo -e "\033[33mWARNING:\033[0m No version specified, using default version \033[0;32m$SOLC_VERSION\033[0m"
+    echo -e "\033[33mWARNING:\033[0m No solc version specified for semantic tests, using default version \033[0;32m$SOLC_VERSION\033[0m"
 else 
     SOLC_VERSION="$VERSION"
     echo "Using solc version $SOLC_VERSION"
@@ -62,3 +62,4 @@ $isoltest --print-test-expectations \
 cat >> $dir/test_calldata.ts <<- EOM
 export default tests;
 EOM
+

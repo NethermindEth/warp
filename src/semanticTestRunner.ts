@@ -11,7 +11,7 @@ if (filter) {
 if (process.env.VERSION) {
   version = process.env.VERSION;
 } else {
-  console.warn('No version provided, using default: ' + version);
+  console.warn('No solc version provided for semantic tests, using default: ' + version);
 }
 
 if (!existsSync('./tests/behaviour/solidity')) {
@@ -99,9 +99,7 @@ filterDirs.forEach((dir) => {
     } catch (e) {
       console.log(e);
     }
-    writeFileSync(
-      './tests/behaviour/expectations/semantic_tests_generated.ts',
-      currentTestsFIleBody,
-    );
   }
 });
+
+writeFileSync('./tests/behaviour/expectations/semantic_tests_generated.ts', currentTestsFIleBody);
