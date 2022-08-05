@@ -154,13 +154,15 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
 
     if (type instanceof IntType) {
       return `let size_${index} = ${type.nBits / 8}`;
-    } else if (type instanceof FixedBytesType) {
-      return `let size_${index} = ${type.size}`;
-    } else {
-      throw new TranspileFailedError(
-        `Attempted to get size for unexpected type ${printTypeNode(type)} in concat`,
-      );
     }
+
+    if (type instanceof FixedBytesType) {
+      return `let size_${index} = ${type.size}`;
+    }
+
+    throw new TranspileFailedError(
+      `Attempted to get size for unexpected type ${printTypeNode(type)} in concat`,
+    );
   }
 
   getCopyFunctionCall(type: TypeNode, index: number): string {

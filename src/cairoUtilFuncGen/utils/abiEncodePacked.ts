@@ -109,19 +109,29 @@ export class AbiEncodePacked extends StringIndexedFuncGen {
   }
 
   protected getSize(type: TypeNode, cairoVar: string, suffix: string): string {
+    const sizeVar = `let size_${suffix}`;
     if (type instanceof ArrayType) {
       if (type.size === undefined) {
-        return `let size_${suffix} = ${type.size}`;
+        return `${sizeVar} = ${type.size}`;
       } else {
         this.requireImport('warplib.memory', 'wm_dyn_array_length');
         this.requireImport('warplib.maths.utils', 'narrow_safe');
         return [
           `let size256_${suffix} = wm_dyn_array_length(${cairoVar})`,
-          `let size_${suffix} = narrow_safe(size256_${suffix})`,
+          `${sizeVar} = narrow_safe(size256_${suffix})`,
         ].join('\n');
       }
     }
-    // if (type instanceof )
+    if (type instanceof IntType) {
+      return `${sizeVar} = ${type.nBits / 8}`;
+    }
+    if (type instanceof FixedBytesType) {
+      return `${sizeVar} = ${type.size}`;
+    }
+
+    throw new TranspileFailedError(
+      `Attempted to get size for unexpected type ${printTypeNode(type)} during ABI encoding`,
+    );
     return '';
   }
 }
