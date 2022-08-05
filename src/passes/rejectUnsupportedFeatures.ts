@@ -143,7 +143,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     const unsupportedAbi = [
       'decode',
       'encode',
-      'encodePacked',
+      // 'encodePacked',
       'encodeWithSelector',
       'encodeWithSignature',
       'encodeCall',

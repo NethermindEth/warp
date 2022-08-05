@@ -5,6 +5,23 @@ export const expectations = flatten(
   new Dir('tests', [
     new Dir('behaviour', [
       new Dir('contracts', [
+        new Dir('abiEncode', [
+          File.Simple('abiEncodePacked', [
+            Expect.Simple(
+              't0',
+              ['7', '5', '3'],
+              [
+                '50',
+                ...new Array(17).fill('0'),
+                '7',
+                ...new Array(15).fill('0'),
+                '3',
+                ...new Array(15).fill('0'),
+                '5',
+              ],
+            ),
+          ]),
+        ]),
         new Dir('abstractContracts', [
           File.Simple('mappingInConstructor', [
             Expect.Simple(

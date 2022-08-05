@@ -85,12 +85,12 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       ? '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}'
       : '{range_check_ptr : felt, warp_memory : DictAccess*}';
 
-    const cairoFunc = this.genearteBytesConcat(argTypes, implicits);
+    const cairoFunc = this.generateBytesConcat(argTypes, implicits);
     this.generatedFunctions.set(key, cairoFunc);
     return cairoFunc.name;
   }
 
-  private genearteBytesConcat(argTypes: TypeNode[], implicits: string): CairoFunction {
+  private generateBytesConcat(argTypes: TypeNode[], implicits: string): CairoFunction {
     const argAmount = argTypes.length;
     const funcName = `concat${this.generatedFunctions.size}_${argAmount}`;
 
@@ -173,10 +173,11 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
 
     assert(type instanceof FixedBytesType);
     if (type.size < 32) {
-      this.requireImport('warplib.dynamic_arrays_util', 'fixed_byte_to_dynamic_array');
-      return `fixed_byte_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0, size_${index})`;
+      this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes_to_dynamic_array');
+      return `fixed_bytes_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0, size_${index})`;
     }
-    this.requireImport('warplib.dynamic_arrays_util', 'fixed_byte256_to_dynamic_array');
-    return `fixed_byte256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0)`;
+
+    this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_dynamic_array');
+    return `fixed_bytes256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0)`;
   }
 }

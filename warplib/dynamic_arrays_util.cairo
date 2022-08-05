@@ -23,7 +23,7 @@ func dynamic_array_copy_felt{range_check_ptr, warp_memory : DictAccess*}(
     return dynamic_array_copy_felt(to_loc, to_index + 1, to_final_index, from_loc, from_index + 1)
 end
 
-func fixed_byte_to_dynamic_array{
+func fixed_bytes_to_dynamic_array{
     bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
 }(
     to_loc : felt,
@@ -41,12 +41,12 @@ func fixed_byte_to_dynamic_array{
     let (to_index_loc) = wm_index_dyn(to_loc, to_index256, Uint256(1, 0))
     let (from_elem) = byte_at_index(fixed_byte, fixed_byte_index, fixed_byte_width)
     wm_write_felt(to_index_loc, from_elem)
-    return fixed_byte_to_dynamic_array(
+    return fixed_bytes_to_dynamic_array(
         to_loc, to_index + 1, to_final_index, fixed_byte, fixed_byte_index + 1, fixed_byte_width
     )
 end
 
-func fixed_byte256_to_dynamic_array{
+func fixed_bytes256_to_dynamic_array{
     bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
 }(
     to_loc : felt,
@@ -63,7 +63,7 @@ func fixed_byte256_to_dynamic_array{
     let (to_index_loc) = wm_index_dyn(to_loc, to_index256, Uint256(1, 0))
     let (from_elem) = byte256_at_index(fixed_byte, fixed_byte_index)
     wm_write_felt(to_index_loc, from_elem)
-    return fixed_byte256_to_dynamic_array(
+    return fixed_bytes256_to_dynamic_array(
         to_loc, to_index + 1, to_final_index, fixed_byte, fixed_byte_index + 1
     )
 end
