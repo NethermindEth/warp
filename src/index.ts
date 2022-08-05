@@ -145,7 +145,7 @@ program
   });
 
 interface IDeployProps_ {
-  inputs?: string;
+  inputs?: string[];
   use_cairo_abi: boolean;
   no_wallet: boolean;
 }
@@ -156,7 +156,7 @@ program
   .command('deploy <file>')
   .option('-d, --debug_info', 'Compile include debug information.', false)
   .option(
-    '--inputs <inputs>',
+    '--inputs <inputs...>',
     'Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists.',
     undefined,
   )
@@ -196,7 +196,7 @@ program
 interface ICallOrInvokeProps_ {
   address: string;
   function: string;
-  inputs?: string;
+  inputs?: string[];
   use_cairo_abi: boolean;
 }
 export type ICallOrInvokeProps = ICallOrInvokeProps_ &
@@ -209,7 +209,7 @@ program
   .requiredOption('--address <address>', 'Address of contract to invoke.')
   .requiredOption('--function <function>', 'Function to invoke.')
   .option(
-    '--inputs <inputs>',
+    '--inputs <inputs...>',
     'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
     undefined,
   )
@@ -233,7 +233,7 @@ program
   .requiredOption('--address <address>', 'Address of contract to call.')
   .requiredOption('--function <function>', 'Function to call.')
   .option(
-    '--inputs <inputs>',
+    '--inputs <inputs...>',
     'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
     undefined,
   )
