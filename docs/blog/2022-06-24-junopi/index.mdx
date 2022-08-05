@@ -1,0 +1,127 @@
+---
+# slug: junopi
+# title: Running Juno from your Raspberry Pi
+title : Blog template 2 (WIP)
+# authors: [depablos, maceo]
+# tags: [juno, rpi, raspberry, pi, deploy]
+---
+
+<!-- Juno is a node which aims to help **decentralise StarkNet, a prominent Ethereum Layer 2**.
+
+For its mission to be achieved, it needs people to **start running their own node**.
+
+To become one of the early few making StarkNet better, read below.
+
+### Disclaimer
+
+In this short article we lay out the steps to get a Raspberry PI with a working [Raspbian](https://www.raspbian.org/)
+installation to run the Juno StarkNet node. We assume that you have access as a root user to the Pi.
+
+At time of writing, **both StarkNet and Juno are still in an early release**. Expect this guide and required steps to change often!
+
+For the latest on the project, check out our [Github repo](https://github.com/NethermindEth/juno), and refer to our
+[Documentation](https://gojuno.xyz/).
+
+The disk space issues are currently work in progress, and will be addressed in an upcoming new release.
+
+## Main Features
+
+- [Get and Sync state from Layer 1](https://gojuno.xyz/docs/features/sync) (Ethereum).
+- [Get and Sync state from API](https://gojuno.xyz/docs/features/sync) (Feeder Gateway).
+- Store [StarkNet State](https://gojuno.xyz/docs/features/sync) locally.
+- Store StarkNet Transactions.
+- Store StarkNet Blocks.
+- Store the ABI of StarkNet contracts.
+- Ethereum-like [Json RPC Server](https://gojuno.xyz/docs/features/rpc) following
+  [this spec](https://github.com/starkware-libs/starknet-specs/blob/master/api/starknet_api_openrpc.json).
+  in the same way you would call the feeder gateway, where using the same params will return the same response.
+- [CLI](https://gojuno.xyz/docs/features/cli) for general StarkNet tools.
+- [Metrics](https://gojuno.xyz/docs/features/metrics) using Prometheus.
+
+## Installation
+
+### Specification 🤖
+
+    - Raspberry 4 (model B) - 4GB
+    - MicroSD card - 16GB+ (Class 10 Minimum)
+    - Power supply
+    - Internet connection (ethernet preferrable)
+    - USB keyboard, a monitor, and an HDMI cable to interact with the computer or .
+
+    - [Install Raspbian](https://www.raspbian.org/)
+    - [Install Golang (see below)](https://golang.org/doc/install)
+    - [Have make installed](https://golang.org/doc/install#make)
+
+### Get Golang 🦫
+
+Ensure that your Raspberry Pi is up-to-date.
+
+```bash
+sudo apt update
+sudo apt full-upgrade
+```
+
+Check the [Golang download website](https://go.dev/dl/) for the latest armv6l version. At time of writing, we would download go 1.18.3.
+
+```bash
+wget https://go.dev/dl/go1.18.3.linux-armv6l.tar.gz -O go.tar.gz
+```
+
+Now extract the tarball into your /usr/local/ directory (root access required).
+
+```bash
+sudo tar -C /usr/local -xzf go.tar.gz
+```
+
+Add the following to your shell config (usually ~/.bashrc).
+If you have no preferred text editor, you can use `nano ~/.bashrc` to edit your bash config from the terminal.
+
+```bash
+# ~/.bashrc
+export GOPATH=$HOME/go
+export PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
+```
+
+Afterwards press `CTRL` + `X` and then `Y` to exit the nano text editor and save the file.
+
+Finally, as your `.bashrc` is only initialised when the shell is started, you need to source the new `~/.bashrc` to update available commands.
+
+```bash
+source ~/.bashrc
+```
+
+You should now have a working Golang installation in your Raspberry Pi. You can check it typing:
+
+```bash
+go version
+```
+
+### Install Juno ⚙️
+
+To install `juno`, the StarkNet node:
+
+```bash
+go install github.com/NethermindEth/juno/cmd/juno@latest
+```
+
+To install `juno-cli`, the separate tool for interacting with StarkNet:
+
+```bash
+go install github.com/NethermindEth/juno/cmd/juno-cli@latest
+```
+
+For details about the configuration you can look at
+the [config file description](https://gojuno.xyz/docs/running/config).
+
+## Configuring juno
+
+Usually, when you first run Juno, a [config file](https://gojuno.xyz/docs/running/config) will be created in
+`/home/pi/.config/juno/juno.yaml` in your home directory.
+
+When syncing the StarkNet state from a Raspberry Pi, we expect you to have at least 64GB. In case of you don't have
+this space, you can run it using an SSD, ensuring that the property `db_path` points to the external SSD:
+
+```yaml
+# juno.yaml
+db_path: /path/to/ssd/database/here
+``` -->
