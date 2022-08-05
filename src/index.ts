@@ -164,7 +164,7 @@ program
   .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
   .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
   .option('--no_wallet', 'Do not use a wallet for deployment.', false)
-  .option('--wallet <wallet>', 'Waller provider to use', undefined)
+  .option('--wallet <wallet>', 'Waller provider to use', process.env.STARKNET_WALLET)
   .option('--account <account>', 'Account to use for deployment', undefined)
   .action((file: string, options: IDeployProps) => {
     runStarknetDeploy(file, options);
