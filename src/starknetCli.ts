@@ -68,6 +68,7 @@ async function compileCairoDependencies(
   graph: Map<string, string[]>,
   filesCompiled: Map<string, CompileResult>,
   debug_info = false,
+  network: string,
 ): Promise<CompileResult> {
   const compiled = filesCompiled.get(root);
   if (compiled !== undefined) {
@@ -82,6 +83,7 @@ async function compileCairoDependencies(
         graph,
         filesCompiled,
         debug_info,
+        network,
       );
       const fileLocationHash = hashFilename(reducePath(filesToDeclare, 'warp_output'));
       filesCompiled.set(fileLocationHash, result);
@@ -101,9 +103,12 @@ async function compileCairoDependencies(
   if (!success) {
     throw new CLIError(`Compilation of cairo file ${root} failed`);
   }
-  const result = execSync(`${warpVenvPrefix} starknet declare --contract ${resultPath}`, {
-    encoding: 'utf8',
-  });
+  const result = execSync(
+    `${warpVenvPrefix} starknet declare --contract ${resultPath} --network ${network}`,
+    {
+      encoding: 'utf8',
+    },
+  );
   const splitter = new RegExp('[ ]+');
   // Extract the hash from result
   const classHash = result
@@ -174,6 +179,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
       dependencyGraph,
       new Map<string, CompileResult>(),
       options.debug_info,
+      options.network,
     );
   } catch (e) {
     if (e instanceof CLIError) {
@@ -200,7 +206,11 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
     const classHash = compileResult.classHash;
     execSync(
       `${warpVenvPrefix} starknet deploy --network ${options.network} ${
-        options.no_wallet ? `--no_wallet --contract ${resultPath} ` : `--class_hash ${classHash}`
+        options.no_wallet
+          ? `--no_wallet --contract ${resultPath} `
+          : options.wallet === undefined
+          ? `--class_hash ${classHash}`
+          : `--class_hash ${classHash} --wallet ${options.wallet}`
       } ${inputs} ${options.account !== undefined ? `--account ${options.account}` : ''}`,
       {
         stdio: 'inherit',
