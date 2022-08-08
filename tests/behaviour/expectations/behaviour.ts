@@ -8,7 +8,7 @@ export const expectations = flatten(
         new Dir('abiEncode', [
           File.Simple('abiEncodePacked', [
             Expect.Simple(
-              't0',
+              'fixedBytes',
               ['7', '5', '3'],
               [
                 '50',
@@ -18,6 +18,40 @@ export const expectations = flatten(
                 '3',
                 ...new Array(15).fill('0'),
                 '5',
+              ],
+            ),
+            Expect.Simple(
+              'addresses',
+              ['1', '2'],
+              ['40', ...new Array(19).fill('0'), '1', ...new Array(19).fill('0'), '2'],
+            ),
+            Expect.Simple('booleans', ['1', '1'], ['2', '1', '1']),
+            Expect.Simple('enums', ['3', '2'], ['2', '3', '2']),
+            Expect.Simple(
+              'bArray',
+              ['3', '2', '3', '5', '4', '7', '11', '13', '17'],
+              ['7', '2', '3', '5', '7', '11', '13', '17'],
+            ),
+            Expect.Simple(
+              'dynArray',
+              [...['2', '3', '5'], ...['1', '7', '0']],
+              [
+                '40',
+                ...['0', '0', '0', '3'],
+                ...['0', '0', '0', 5],
+                ...[...new Array(31).fill('0'), '7'],
+              ],
+            ),
+            Expect.Simple(
+              'staticArray',
+              ['2', '3', '5', '7', '11'],
+              [
+                '14',
+                '2',
+                '3',
+                ...['0', '0', '0', '5'],
+                ...['0', '0', '0', '7'],
+                ...['0', '0', '0', '11'],
               ],
             ),
           ]),
