@@ -19,7 +19,12 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { getElementType, isDynamicArray, isReferenceType } from '../../utils/nodeTypeProcessing';
+import {
+  getElementType,
+  isDynamicArray,
+  isReferenceType,
+  isStruct,
+} from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, StringIndexedFuncGen } from '../base';
@@ -179,7 +184,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         `    let (read) = wm_read_id(mem_loc, ${uint256(2)})`,
         `    ${this.getOrCreate(type.elementT)}(storage_id, read)`,
       ].join('\n');
-    } else if (isReferenceType(type.elementT)) {
+    } else if (isStruct(type.elementT)) {
       copyCode = [
         `    let (read) = wm_read_id{dict_ptr=warp_memory}(mem_loc, ${uint256(
           elementMemoryWidth,
