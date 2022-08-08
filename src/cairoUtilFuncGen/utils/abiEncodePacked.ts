@@ -1,11 +1,7 @@
-import assert from 'assert';
 import {
-  AddressType,
   ArrayType,
-  BoolType,
   BytesType,
   DataLocation,
-  EnumDefinition,
   Expression,
   FunctionCall,
   generalizeType,
@@ -13,12 +9,11 @@ import {
   SourceUnit,
   StringType,
   TypeNode,
-  UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { TranspilationAbandonedError, TranspileFailedError } from '../../utils/errors';
+import { TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import {
