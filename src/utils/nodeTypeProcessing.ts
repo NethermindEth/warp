@@ -263,3 +263,52 @@ export function isStorageSpecificType(
   }
   return false;
 }
+
+/**
+ * Given a type returns its solidity bytes size
+ * e.g. uint8 -> byte size is 1
+ *      address -> byte size is 20
+ *      uint16[3] -> byte size is 6
+ *      and so on
+ *  For every type whose byte size can be known on compile time
+ *  @param type Solidity type
+ *  @param version optional parameter required for calculating struct byte size
+ *  @returns total bytes the type uses
+ */
+export function getTypeByteSize(type: TypeNode, version?: string): number | bigint {
+  if (type instanceof IntType) {
+    return type.nBits / 8;
+  }
+  if (type instanceof FixedBytesType) {
+    return type.size;
+  }
+  if (type instanceof AddressType) {
+    return 20;
+  }
+  if (
+    type instanceof BoolType ||
+    (type instanceof UserDefinedType && type.definition instanceof EnumDefinition)
+  ) {
+    return 1;
+  }
+
+  if (type instanceof ArrayType && type.size !== undefined) {
+    return type.size * BigInt(getTypeByteSize(type.elementT));
+  }
+
+  const sumMemberSize = (acc: bigint, cv: TypeNode): bigint => {
+    return acc + BigInt(getTypeByteSize(cv));
+  };
+  if (type instanceof TupleType) {
+    return type.elements.reduce(sumMemberSize, 0n);
+  }
+
+  if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+    assert(version !== undefined, 'Struct byte size calculation requires compiler version');
+    return type.definition.vMembers
+      .map((varDecl) => getNodeType(varDecl, version))
+      .reduce(sumMemberSize, 0n);
+  }
+
+  throw new TranspileFailedError(`Cannot calculate byte size from type ${printTypeNode(type)}`);
+}
