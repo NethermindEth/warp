@@ -196,7 +196,7 @@ export class CairoUtilFuncGen {
     };
     this.utils = {
       encodeAsFelt: new EncodeAsFelt(externalDynArrayStructConstructor, ast, sourceUnit),
-      abiEncodePacked: new AbiEncodePacked(ast, sourceUnit),
+      abiEncodePacked: new AbiEncodePacked(memoryRead, ast, sourceUnit),
     };
   }
 
