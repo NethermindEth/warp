@@ -117,7 +117,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       `func ${funcName}${implicits}(${cairoArgs}) -> (res_loc : felt):`,
       `    alloc_locals`,
       `    # Get all sizes`,
-      ...argTypes.map(this.getSize),
+      ...argTypes.map((t, n) => this.getSize(t, n)),
       `    let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')}`,
       `    let (total_length256) = felt_to_uint256(total_length)`,
       `    let (res_loc) = wm_new(total_length256, ${uint256(1)})`,
@@ -142,13 +142,13 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     return { name: funcName, code: code };
   }
 
-  getSize(type: TypeNode, index: number): string {
+  private getSize(type: TypeNode, index: number): string {
     if (type instanceof PointerType) {
       this.requireImport('warplib.memory', 'wm_dyn_array_length');
       this.requireImport('warplib.maths.utils', 'narrow_safe');
       return [
         `let (size256_${index}) = wm_dyn_array_length(arg_${index})`,
-        `let size_${index} = narrow_safe(size256_${index})`,
+        `let (size_${index}) = narrow_safe(size256_${index})`,
       ].join('\n');
     }
 
@@ -165,7 +165,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     );
   }
 
-  getCopyFunctionCall(type: TypeNode, index: number): string {
+  private getCopyFunctionCall(type: TypeNode, index: number): string {
     if (type instanceof PointerType) {
       this.requireImport('warplib.dynamic_arrays_util', 'dynamic_array_copy_felt');
       return `dynamic_array_copy_felt(res_loc, start_loc, end_loc, arg_${index}, 0)`;
