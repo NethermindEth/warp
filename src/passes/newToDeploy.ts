@@ -36,6 +36,7 @@ import { CONTRACT_INFIX } from '../utils/nameModifiers';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { getParameterTypes } from '../utils/nodeTypeProcessing';
+import { getContainingSourceUnit } from '../utils/utils';
 
 /** Pass that takes all expressions of the form:
  *
@@ -91,8 +92,7 @@ export class NewToDeploy extends ASTMapper {
     // Get or create placeholder for the class hash
     let placeholder = this.placeHolderMap.get(contractToCreate.name);
     if (placeholder === undefined) {
-      const sourceUnit = node.getClosestParentByType(SourceUnit);
-      assert(sourceUnit !== undefined, `Couldn not find source unit of ${printNode(node)}`);
+      const sourceUnit = getContainingSourceUnit(node);
       placeholder = this.createPlaceHolder(sourceUnit, contractToCreate, ast);
       sourceUnit.insertAtBeginning(placeholder);
       ast.setContextRecursive(placeholder);
@@ -176,8 +176,7 @@ export class NewToDeploy extends ASTMapper {
     declaredContract: ContractDefinition,
     ast: AST,
   ): VariableDeclaration {
-    const declaredContractSourceUnit = declaredContract.getClosestParentByType(SourceUnit);
-    assert(declaredContractSourceUnit !== undefined);
+    const declaredContractSourceUnit = getContainingSourceUnit(declaredContract);
 
     const declaredContractFullPath = declaredContractSourceUnit.absolutePath.split(
       new RegExp('/+|\\\\+'),

@@ -34,6 +34,7 @@ import {
   PointerType,
   Return,
   SourceLocation,
+  SourceUnit,
   StateVariableVisibility,
   StringType,
   StructDefinition,
@@ -486,4 +487,10 @@ export function getContainingFunction(node: ASTNode): FunctionDefinition {
   const func = node.getClosestParentByType(FunctionDefinition);
   assert(func !== undefined, `Unable to find containing function for ${printNode(node)}`);
   return func;
+}
+
+export function getContainingSourceUnit(node: ASTNode): SourceUnit {
+  const root = node.getClosestParentByType(SourceUnit);
+  assert(root !== undefined, `Unable to find root source unit for ${printNode(node)}`);
+  return root;
 }
