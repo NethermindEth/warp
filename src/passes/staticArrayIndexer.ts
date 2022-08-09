@@ -25,25 +25,25 @@ import { generateExpressionTypeString } from '../utils/getTypeString';
 import { CALLDATA_TO_MEMORY_PREFIX } from '../utils/nameModifiers';
 import { createIdentifier } from '../utils/nodeTemplates';
 import { specializeType } from '../utils/nodeTypeProcessing';
-import { typeNameFromTypeNode } from '../utils/utils';
+import { getContainingFunction, typeNameFromTypeNode } from '../utils/utils';
 
 export class StaticArrayIndexer extends ASTMapper {
   /*
-    This pass replace all non literal calldata structures which have a non literal
-    index access for a memory one.
-    This pass is needed because static arrays are handled as cairo tuples, but cairo
-    tuples (for now) can only be indexed by literals
-    e.g.
-      uint8[3] calldata b = ...
-      uint8 x = b[i]
-   // gets replaced by:
-      uint8[3] calldata b = ...
-      uint8[3] memory mem_b  = b
-      uint8[x] = mem_b[i]
-
-    More complex cases can occur as well, for example when the static array is nested
-    inside another structure, then the whole structure is copied to memory
-  */
+      This pass replace all non literal calldata structures which have a non literal
+      index access for a memory one.
+      This pass is needed because static arrays are handled as cairo tuples, but cairo
+      tuples (for now) can only be indexed by literals
+      e.g.
+        uint8[3] calldata b = ...
+        uint8 x = b[i]
+     // gets replaced by:
+        uint8[3] calldata b = ...
+        uint8[3] memory mem_b  = b
+        uint8[x] = mem_b[i]
+  
+      More complex cases can occur as well, for example when the static array is nested
+      inside another structure, then the whole structure is copied to memory
+    */
 
   // Tracks calldata structures which already have a memory counterpart initalized
   private staticArrayAccesed = new Map<number, VariableDeclaration>();
@@ -70,11 +70,7 @@ export class StaticArrayIndexer extends ASTMapper {
     const identifier = getReferenceDeclaration(node, ast);
 
     assert(identifier.vReferencedDeclaration instanceof VariableDeclaration);
-    const parentFunction = node.getClosestParentByType(FunctionDefinition);
-    assert(
-      parentFunction !== undefined,
-      'Calldata types must be enclosed in a function definition',
-    );
+    const parentFunction = getContainingFunction(node);
 
     const refId = identifier.referencedDeclaration;
 
