@@ -357,13 +357,28 @@ async function encodeConstructors(
   const [contractAbi, contractDef, ast] = await contractAbiDefAST;
 
   let constructorArgs: string[] = [];
+
+  const constructorSignature = contractAbi
+    .map(getSignature)
+    .find((sig) => sig.startsWith('constructor('));
+
   if (firstTest.signature.startsWith('constructor(')) {
+    let signature: string = firstTest.signature;
+    if (constructorSignature !== firstTest.signature && constructorSignature !== undefined) {
+      // If constructor Signature from AST does not match the constructor test signature in test_calldata.ts
+      // then we get the signature from the contract ABI (generated from solc )
+      // for e.g tests/behaviour/solidity/test/libsolidity/semanticTests/array/constant_var_as_array_length.sol
+      console.warn(
+        `WARNING: constructor signature mismatch: ${firstTest.signature} vs ${constructorSignature} in test_calldata and contract ${ast.roots[0].absolutePath} respectively`,
+      );
+      signature = constructorSignature;
+    }
     const [constrAbi, constrDef] = getFunctionAbiAndDefinition(
       'constructor',
       contractAbi,
       contractDef,
       ast,
-      firstTest.signature,
+      signature,
       ast.compilerVersion,
     );
     assert(
