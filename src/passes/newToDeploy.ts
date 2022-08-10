@@ -10,7 +10,6 @@ import {
   SourceUnit,
   StateVariableVisibility,
   TypeName,
-  typeNameToTypeNode,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';

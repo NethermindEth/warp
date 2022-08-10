@@ -29,7 +29,6 @@ import { createBytesTypeName } from '../../utils/nodeTemplates';
 import {
   getElementType,
   isDynamicArray,
-  isReferenceType,
   isStruct,
   isValueType,
 } from '../../utils/nodeTypeProcessing';
