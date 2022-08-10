@@ -3259,7 +3259,7 @@ export const expectations = flatten(
             new Expect('Create multiple salted contracts', [
               ['createAndStoreUint256Contract', ['0', '1', '0', '2'], [], '0'],
               ['createAndStoreUint256Contract', ['0', '2', '0', '5'], [], '0'],
-              ['createUint256Contract', [`${2n ** 128n - 1n}`, '0', '0', '7'], [], '0'],
+              ['createUint256Contract', ['0', `${2n ** 128n - 1n}`, '0', '7'], [], '0'],
             ]),
             new Expect('Interact with different deployed salted contracts', [
               ['getUint256X', ['0', '1'], ['0', '2'], '0'],
