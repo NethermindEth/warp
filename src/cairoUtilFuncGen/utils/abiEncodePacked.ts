@@ -35,9 +35,10 @@ const IMPLICITS =
  * in the form of an array of felts where each element represents a byte
  */
 export class AbiEncodePacked extends StringIndexedFuncGen {
-  private auxiliarGeneratedFunctions = new Map<string, CairoFunction>();
+  protected functionName = 'abi_encode_packed';
+  protected auxiliarGeneratedFunctions = new Map<string, CairoFunction>();
 
-  constructor(private memoryRead: MemoryReadGen, ast: AST, sourceUnit: SourceUnit) {
+  constructor(protected memoryRead: MemoryReadGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
   }
 
@@ -103,7 +104,7 @@ export class AbiEncodePacked extends StringIndexedFuncGen {
 
     const cairoParams = pararmeters.map((p) => `${p.name} : ${p.type}`).join(',');
 
-    const funcName = `abi_encode_packed${this.generatedFunctions.size}`;
+    const funcName = `${this.functionName}${this.generatedFunctions.size}`;
     const code = [
       `func ${funcName}${IMPLICITS}(${cairoParams}) -> (bytes_ptr : felt):`,
       `   alloc_locals`,
@@ -127,7 +128,7 @@ export class AbiEncodePacked extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private generateTypeEncoding(
+  protected generateTypeEncoding(
     type: TypeNode,
     memLoc: string,
     currIndex: string,
@@ -135,7 +136,7 @@ export class AbiEncodePacked extends StringIndexedFuncGen {
     currParamSize: string,
   ): string {
     if (isDynamicArray(type) || type instanceof ArrayType) {
-      const funcName = this.generateArrayEncodingFunction(type);
+      const funcName = this.generateInlineArrayEncodingFunction(type);
       const args = [memLoc, currIndex, currParam, 0, currParamSize];
       return `${funcName}(${args.join(',')})`;
     }
@@ -151,17 +152,17 @@ export class AbiEncodePacked extends StringIndexedFuncGen {
     }
 
     throw new TranspileFailedError(
-      `Couldn't genereate packed abi encoding for ${printTypeNode(type)}`,
+      `Could not genereate packed abi encoding for ${printTypeNode(type)}`,
     );
   }
 
-  private getValueTypeEncodingFunction(size: number | bigint) {
+  protected getValueTypeEncodingFunction(size: number | bigint) {
     const funcName = size < 32 ? 'fixed_bytes_to_dynamic_array' : 'fixed_bytes256_to_dynamic_array';
     this.requireImport('warplib.dynamic_arrays_util', funcName);
     return funcName;
   }
 
-  private generateArrayEncodingFunction(type: ArrayType | StringType | BytesType): string {
+  public generateInlineArrayEncodingFunction(type: ArrayType | StringType | BytesType): string {
     const key = type.pp();
     const exisiting = this.auxiliarGeneratedFunctions.get(key);
     if (exisiting !== undefined) {
@@ -232,7 +233,7 @@ export class AbiEncodePacked extends StringIndexedFuncGen {
    * Size can be obtained fairly straigtforward since packed abi encoding doesn't allows
    * nested structures
    */
-  private getSize(type: TypeNode, cairoVar: string, suffix: string | number): string {
+  protected getSize(type: TypeNode, cairoVar: string, suffix: string | number): string {
     const sizeVar = `let size_${suffix}`;
     if (isDynamicArray(type)) {
       this.requireImport('warplib.memory', 'wm_dyn_array_length');
