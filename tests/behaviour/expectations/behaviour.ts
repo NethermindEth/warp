@@ -2943,6 +2943,8 @@ export const expectations = flatten(
           File.Simple('le', [
             Expect.Simple('le8safe', ['1', '2'], ['1']),
             Expect.Simple('le8signedsafe', ['255', '1'], ['1']),
+            Expect.Simple('le8signedsafe', ['1', '10'], ['1']),
+            Expect.Simple('le8signedsafe', ['156', '255'], ['1']),
             Expect.Simple('le8unsafe', ['2', '1'], ['0']),
             Expect.Simple('le8signedunsafe', ['5', '100'], ['1']),
             Expect.Simple('le256safe', ['20', '3', '20', '3'], ['1']),
