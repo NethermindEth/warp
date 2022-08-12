@@ -2,133 +2,157 @@
 title: Warp Command Line Interface (warp-cli)
 ---
 
-## Coming Soon(WIP)
+Useful commands with the Warp Transpiler.
 
-<!-- Useful commands with the StarkNet Feeder Gateway.
-
-Based on "starknet-edu" Postman workspace [ID 5cf35dcd-9230-4e4a-aa1e-c52a4e910d02].
-
-This package shares configuration with the main package.
-
-To query available commands, run `juno-cli --help` from the `build` directory.
+To query available commands, run `warp --help`.
 
 Available Commands:
 
-    completion                 Generate the autocompletion script for the specified shell
-    estimate_fee               Calculate transaction fee for calling a function.
-    get_block                  Prints out block information.
-    get_block_hash_by_id       Get corresponding block hash by block number (ID).
-    get_block_id_by_hash       Get block number (ID) by block hash.
-    get_code                   Get bytecode of a smart contract
-    get_full_contract          Prints out full contract class at a specific address.
-    get_state_update           Get state changes made by a specific block.
-    get_storage_at             Retrieve stored value for a key within a contract.
-    get_transaction            Prints out transaction information.
-    get_transaction_hash_by_id Get transaction hash from transaction ID.
-    get_transaction_id_by_hash Get transaction ID by transaction hash.
-    get_transaction_receipt    Prints out transaction receipt information.
-    get_transaction_status     Prints out transaction status information.
-    get_transaction_trace      Information containing inner calls for an external transaction, in chronological order.
-    help                       Help about any command
+    traspile                    Transpile Solidity Code into Cairo
+    transform                   Transforms Solidity Code into Warp Format(?)
+    test                        Transpile and starknet-compile test on example_contracts and checks feature supports
+    analyse                     Breaksdown and analyses a Solidity contract
+    status                      Returns the transaction status
+    compile                     Compiles a Cairo contract with StarkNet
+    deploy                      Compiles and deploys a Cairo contract
+    deploy_account              Deploys an account contract
+    invoke                      Sends a transaction to the StarkNet sequencer
+    call                        Calls a StarkNet contract without affecting the state
+    install                     Installs python dependencies
+    version                     Gets the current version
+    help                        Display for help command
+
+Command Options:
+
+transpile [options] <files...>:
+
+    ---compile-cairo
+    --no-compile-errors
+    --check-trees
+    --highlight <ids...>
+    --order <passOrder>
+    -o, --output-dir <path>         (default: "warp_output")
+    --print-trees
+    --no-result
+    --no-stubs
+    --no-strict
+    --until <pass>
+    --no-warnings
+    --dev
+    -h, --help                      display help for command
+
+transform [options] <file...>:
+
+    --no-compile-errors
+    --check-trees
+    --highlight <ids...>
+    --order <passOrder>
+    -o, --output-dir <path>
+    --print-trees
+    --no-result
+    --no-stubs
+    --no-strict
+    --until <pass>
+    --no-warnings
+    -h, --help                      display help for command
+
+test [options]:
+
+    -f --force
+    -r --results
+    -u --unsafe
+    -e --exact
+    -h, --help                      display help for command
+
+analyse [options] <file...>:
+
+    --highlight <ids...>
+    -h, --help                      display help for command
+
+status [options] <tx_hash...>:
+
+    --network <network>             Starknet network URL.
+    -h, --help                      display help for command
+
+compile [options] <file...>:
+
+    -d, --debug_info                Include debug information. (default: false)
+    -h, --help                      display help for command
+
+deploy [options] <file...>:
+
+    -d, --debug_info                Compile include debug information. (default: false)
+    --inputs <inputs...>            Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists.
+    --use_cairo_abi                 Use the cairo abi instead of solidity for the inputs. (default: false)
+    --network <network>             Starknet network URL
+    --no_wallet                     Do not use a wallet for deployment. (default: false)
+    --wallet <wallet>               Wallet provider to use
+    --account <account>             Account to use for deployment
+    -h, --help                      display help for command
+
+deploy_account [options]:
+
+    --account <account>             The name of the account. If not given, the default for the wallet will be used.
+    --network <network>             Starknet network URL.
+    --wallet <wallet>               The name of the wallet, including the python module and wallet class.
+    -h, --help                      display help for command
+
+invoke [options] <file...>:
+
+    --address <address>             Address of contract to invoke.
+    --function <function>           Function to invoke.
+    --inputs <inputs...>            Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.
+    --use_cairo_abi                 Use the cairo abi instead of solidity for the inputs. (default: false)
+    --account <account>             The name of the account. If not given, the default for the wallet will be used.
+    --network <network>             Starknet network URL.
+    --wallet <wallet>               The name of the wallet, including the python module and wallet class.
+    -h, --help                      display help for command
+
+call [options] <file...>:
+
+    --address <address>             Address of contract to call.
+    --function <function>           Function to call.
+    --inputs <inputs...>            Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.
+    --use_cairo_abi                 Use the cairo abi instead of solidity for the inputs. (default: false)
+    --account <account>             The name of the account. If not given, the default for the wallet will be used.
+    --network <network>             Starknet network URL.
+    --wallet <wallet>               The name of the wallet, including the python module and wallet class.
+    -h, --help                      display help for command
+
+install [options]:
+
+    --python <python>  Path to python3.7 executable. (default: "python3.7")
+    -v, --verbose
+    -h, --help                      display help for command
 
 Global flags:
 
-    -c, --config string    config file (default is /Users/ddp/Library/Application Support/juno/juno.yaml).
-
-    -h, --help             help for juno-cli
-
-    -n, --network string   Use a network different to config. Available: 'mainnet', 'goerli'.
-
-    -p, --pretty           Pretty print the response.
+    -h, --help                      display help for command
 
 # Example calls:
 
-### Get information from a block:
+### Deploys an account contract to a network
 
-    build/juno-cli get_block \
-    0xdffdd4ab9530a3d61e555d96b9b7d976d2508a005ade3d6761868bae8fe2e6
-
-**Output:**
-
-    &{{0x0 0x45213a4d6d4a8c803f73d17073829e194e100b01c3ff075165e42604e7eb654
-     0x45213a4d6d4a8c803f73d17073829e194e100b01c3ff075165e42604e7eb654
-      [0x659227618ae90015b910c6e3c1d3a09637769bd3c01ad571d94d670be77ef09 0x0]
-       0x79dc0da7c54b95f10aa182ad0a46400db63156920adb65eca2654c0945a463 EXTERNAL []
-       {154 map[bitwise_builtin:0 ec_op_builtin:0 ecdsa_builtin:0
-        output_builtin:0 pedersen_builtin:0 range_check_builtin:0] 2} 0 [] [] [] [] } []}
-
-### Get transaction information and pretty print response:
-
-    build/juno-cli get_transaction \
-    0x21601cf55af436dfb73178347973c57cbedc80ff442f6d841815446e8947a94 --pretty
+    warp deploy_account --wallet=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount --account=demo --network=alpha-goerli
 
 **Output:**
 
-    {
-    "transaction_failure_reason": {
-        "tx_id": 0,
-        "code": "",
-        "error_message": ""
-    },
-    "tx_status": "",
-    "status": "ACCEPTED_ON_L1",
-    "block_hash": "0xdffdd4ab9530a3d61e555d96b9b7d976d2508a005ade3d6761868bae8fe2e6",
-    "block_number": 2419,
-    "transaction_index": 415,
-    "transaction": {
-        "contract_address": "0x45213a4d6d4a8c803f73d17073829e194e100b01c3ff075165e42604e7eb654",
-        "entry_point_selector": "0x79dc0da7c54b95f10aa182ad0a46400db63156920adb65eca2654c0945a463",
-        "entry_point_type": "EXTERNAL",
-        "calldata": [
-        "0x659227618ae90015b910c6e3c1d3a09637769bd3c01ad571d94d670be77ef09",
-        "0x0"
-        ],
-        "signature": [],
-        "transaction_hash": "0x21601cf55af436dfb73178347973c57cbedc80ff442f6d841815446e8947a94",
-        "max_fee": "0x0",
-        "type": "INVOKE_FUNCTION"
-    }
-    }
+    #Sent deploy account contract transaction.
 
-### Get transaction receipt from Goerli network, pretty print response:
+    NOTE: This is a modified version of the OpenZeppelin account contract. The signature is computed
+    differently.
 
-    build/juno-cli get_transaction_receipt \
-     0x6e65736447b7e1da9549692e8e47a9a293c40fdb52e8531ddee170df5475e86 \
-      -p --network goerli
+    Contract address: 0x0
+    Public key: 0x1
+    Transaction hash: 0x2
+
+### Get transaction status:
+
+    warp status 0x4 --network=alpha-goerli
 
 **Output:**
 
     {
-    "transaction_failure_reason": {
-        "tx_id": 0,
-        "code": "",
-        "error_message": ""
-    },
-    "tx_status": "",
-    "status": "ACCEPTED_ON_L1",
-    "block_hash": "0x63a7a5fe0cf46533c46f6b11eb2b7549db80b19f436edea298df2c0f64af09b",
-    "block_number": 221145,
-    "transaction_hash": "0x6e65736447b7e1da9549692e8e47a9a293c40fdb52e8531ddee170df5475e86",
-    "l2_to_l1_messages": [],
-    "l1_to_l2_consumed_message": {
-        "from_address": "",
-        "to_address": "",
-        "selector": "",
-        "payload": null,
-        "nonce": ""
-    },
-    "events": [],
-    "execution_resources": {
-        "n_steps": 65,
-        "builtin_instance_counter": {
-        "bitwise_builtin": 0,
-        "ec_op_builtin": 0,
-        "ecdsa_builtin": 0,
-        "output_builtin": 0,
-        "pedersen_builtin": 0,
-        "range_check_builtin": 0
-        },
-        "n_memory_holes": 0
-    },
-    "actual_fee": "0x0"
-    } -->
+        "block_hash": "0x5",
+        "tx_status": "ACCEPTED_ON_L2"
+    }
