@@ -24,7 +24,7 @@ Available Commands:
 
 Command Options:
 
-transpile [options] <files...>:
+transpile `[options]` `<file...>`:
 
     ---compile-cairo
     --no-compile-errors
@@ -41,7 +41,7 @@ transpile [options] <files...>:
     --dev
     -h, --help                      display help for command
 
-transform [options] <file...>:
+transform `[options]` `<file...>`:
 
     --no-compile-errors
     --check-trees
@@ -56,7 +56,7 @@ transform [options] <file...>:
     --no-warnings
     -h, --help                      display help for command
 
-test [options]:
+test `[options]`:
 
     -f --force
     -r --results
@@ -64,22 +64,22 @@ test [options]:
     -e --exact
     -h, --help                      display help for command
 
-analyse [options] <file...>:
+analyse `[options]` `<file...>`:
 
     --highlight <ids...>
     -h, --help                      display help for command
 
-status [options] <tx_hash...>:
+status `[options]` `<tx_hash...>`:
 
     --network <network>             Starknet network URL.
     -h, --help                      display help for command
 
-compile [options] <file...>:
+compile `[options]` `<file...>`:
 
     -d, --debug_info                Include debug information. (default: false)
     -h, --help                      display help for command
 
-deploy [options] <file...>:
+deploy `[options]` `<file...>`:
 
     -d, --debug_info                Compile include debug information. (default: false)
     --inputs <inputs...>            Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists.
@@ -90,14 +90,14 @@ deploy [options] <file...>:
     --account <account>             Account to use for deployment
     -h, --help                      display help for command
 
-deploy_account [options]:
+deploy_account `[options]`:
 
     --account <account>             The name of the account. If not given, the default for the wallet will be used.
     --network <network>             Starknet network URL.
     --wallet <wallet>               The name of the wallet, including the python module and wallet class.
     -h, --help                      display help for command
 
-invoke [options] <file...>:
+invoke `[options]` `<file...>`:
 
     --address <address>             Address of contract to invoke.
     --function <function>           Function to invoke.
@@ -108,7 +108,7 @@ invoke [options] <file...>:
     --wallet <wallet>               The name of the wallet, including the python module and wallet class.
     -h, --help                      display help for command
 
-call [options] <file...>:
+call `[options]` `<file...>`:
 
     --address <address>             Address of contract to call.
     --function <function>           Function to call.
@@ -119,7 +119,7 @@ call [options] <file...>:
     --wallet <wallet>               The name of the wallet, including the python module and wallet class.
     -h, --help                      display help for command
 
-install [options]:
+install `[options]`:
 
     --python <python>  Path to python3.7 executable. (default: "python3.7")
     -v, --verbose
