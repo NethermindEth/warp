@@ -142,10 +142,10 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     const unsupportedMath = ['sha256', 'ripemd160'];
     const unsupportedAbi = [
       'decode',
-      'encode',
+      // 'encode',
       // 'encodePacked',
-      'encodeWithSelector',
-      'encodeWithSignature',
+      // 'encodeWithSelector',
+      // 'encodeWithSignature',
       'encodeCall',
     ];
     const unsupportedMisc = ['blockhash', 'selfdestruct'];

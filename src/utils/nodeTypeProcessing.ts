@@ -265,17 +265,17 @@ export function isStorageSpecificType(
 }
 
 /**
- * Given a type returns its solidity bytes size
+ * Given a type returns its packed solidity bytes size
  * e.g. uint8 -> byte size is 1
  *      address -> byte size is 20
  *      uint16[3] -> byte size is 6
  *      and so on
  *  For every type whose byte size can be known on compile time
  *  @param type Solidity type
- *  @param version optional parameter required for calculating struct byte size
- *  @returns total bytes the type uses
+ *  @param version optional parameter required for calculating structs byte size
+ *  @returns returns the types byte representation using packed abi encoding
  */
-export function getTypeByteSize(type: TypeNode, version?: string): number | bigint {
+export function getPackedByteSize(type: TypeNode, version?: string): number | bigint {
   if (type instanceof IntType) {
     return type.nBits / 8;
   }
@@ -293,11 +293,11 @@ export function getTypeByteSize(type: TypeNode, version?: string): number | bigi
   }
 
   if (type instanceof ArrayType && type.size !== undefined) {
-    return type.size * BigInt(getTypeByteSize(type.elementT));
+    return type.size * BigInt(getPackedByteSize(type.elementT));
   }
 
   const sumMemberSize = (acc: bigint, cv: TypeNode): bigint => {
-    return acc + BigInt(getTypeByteSize(cv));
+    return acc + BigInt(getPackedByteSize(cv));
   };
   if (type instanceof TupleType) {
     return type.elements.reduce(sumMemberSize, 0n);
@@ -310,5 +310,42 @@ export function getTypeByteSize(type: TypeNode, version?: string): number | bigi
       .reduce(sumMemberSize, 0n);
   }
 
-  throw new TranspileFailedError(`Cannot calculate byte size from type ${printTypeNode(type)}`);
+  throw new TranspileFailedError(`Cannot calculate packed byte size for ${printTypeNode(type)}`);
+}
+
+/**
+ * Given a type returns  solidity bytes size
+ * e.g. uint8, bool, address -> byte size is 32
+ *      T[] -> byte size is 32
+ *      uint16[3] -> byte size is 96
+ *      and so on
+ *  @param type Solidity type
+ *  @param version optional parameter required for calculating struct byte size
+ *  @returns returns the types byte representation using abi encoding
+ */
+export function getByteSize(type: TypeNode, version?: string): number | bigint {
+  if (isValueType(type) || isDynamicArray(type)) {
+    return 32;
+  }
+
+  if (type instanceof ArrayType) {
+    assert(type.size !== undefined);
+    return type.size * BigInt(getByteSize(type.elementT));
+  }
+
+  const sumMemberSize = (acc: bigint, cv: TypeNode): bigint => {
+    return acc + BigInt(getPackedByteSize(cv));
+  };
+  if (type instanceof TupleType) {
+    return type.elements.reduce(sumMemberSize, 0n);
+  }
+
+  if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+    assert(version !== undefined, 'Struct byte size calculation requires compiler version');
+    return type.definition.vMembers
+      .map((varDecl) => getNodeType(varDecl, version))
+      .reduce(sumMemberSize, 0n);
+  }
+
+  throw new TranspileFailedError(`Cannot calculate byte size for ${printTypeNode(type)}`);
 }

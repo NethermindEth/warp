@@ -36,6 +36,7 @@ import { MemoryArrayConcat } from './memory/arrayConcat';
 import { EnumInputCheck } from './enumInputCheck';
 import { EncodeAsFelt } from './utils/encodeToFelt';
 import { AbiEncodePacked } from './utils/abiEncodePacked';
+import { AbiEncode } from './utils/abiEncode';
 
 export class CairoUtilFuncGen {
   calldata: {
@@ -79,9 +80,12 @@ export class CairoUtilFuncGen {
     inputCheck: InputCheckGen;
     enums: EnumInputCheck;
   };
+  abi: {
+    encode: AbiEncode;
+    encodePacked: AbiEncodePacked;
+  };
   utils: {
     encodeAsFelt: EncodeAsFelt;
-    abiEncodePacked: AbiEncodePacked;
   };
 
   private implementation: {
@@ -194,9 +198,12 @@ export class CairoUtilFuncGen {
       convert: callDataConvert,
       toStorage: calldataToStorage,
     };
+    this.abi = {
+      encode: new AbiEncode(memoryRead, ast, sourceUnit),
+      encodePacked: new AbiEncodePacked(memoryRead, ast, sourceUnit),
+    };
     this.utils = {
       encodeAsFelt: new EncodeAsFelt(externalDynArrayStructConstructor, ast, sourceUnit),
-      abiEncodePacked: new AbiEncodePacked(memoryRead, ast, sourceUnit),
     };
   }
 

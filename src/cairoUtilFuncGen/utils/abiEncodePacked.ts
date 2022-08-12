@@ -18,7 +18,7 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import {
   getElementType,
-  getTypeByteSize,
+  getPackedByteSize,
   isDynamicArray,
   isValueType,
 } from '../../utils/nodeTypeProcessing';
@@ -142,7 +142,7 @@ export class AbiEncodePacked extends StringIndexedFuncGen {
     }
 
     if (isValueType(type)) {
-      const size = getTypeByteSize(type);
+      const size = getPackedByteSize(type);
       const funcName = this.getValueTypeEncodingFunction(size);
       const args = [memLoc, currIndex, `${currIndex} + ${currParamSize}`, currParam, '0'];
       if (size < 32) {
@@ -184,7 +184,7 @@ export class AbiEncodePacked extends StringIndexedFuncGen {
     const readFunc = this.memoryRead.getOrCreate(cairoElementT);
     const readElementCode = `let (elem : ${cairoElementT.toString()}) = ${readFunc}(elem_loc)`;
 
-    const elementByteSize = getTypeByteSize(elementT);
+    const elementByteSize = getPackedByteSize(elementT);
     const encodingFunc = this.generateTypeEncoding(
       elementT,
       'bytes_ptr',
@@ -242,17 +242,18 @@ export class AbiEncodePacked extends StringIndexedFuncGen {
       return [
         `let (length256_${suffix}) = wm_dyn_array_length(${cairoVar})`,
         `let (length_${suffix}) = narrow_safe(length256_${suffix})`,
-        `${sizeVar} = ${mul(`length_${suffix}`, getTypeByteSize(elemenT))}`,
+        `${sizeVar} = ${mul(`length_${suffix}`, getPackedByteSize(elemenT))}`,
       ].join('\n');
     }
 
     if (type instanceof ArrayType && type.size !== undefined) {
-      return [`let length_${suffix} = ${type.size}`, `${sizeVar} = ${getTypeByteSize(type)}`].join(
-        '\n',
-      );
+      return [
+        `let length_${suffix} = ${type.size}`,
+        `${sizeVar} = ${getPackedByteSize(type)}`,
+      ].join('\n');
     }
 
-    return `${sizeVar} = ${getTypeByteSize(type)}`;
+    return `${sizeVar} = ${getPackedByteSize(type)}`;
   }
 }
 

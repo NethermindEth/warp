@@ -203,7 +203,11 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         handleConcatArgs(node, ast);
         return;
       }
-      if (node.vFunctionName === 'encodePacked') {
+      if (
+        ['encodePacked', 'encode', 'encodeWithSelector', 'encodeWithSignature'].includes(
+          node.vFunctionName,
+        )
+      ) {
         return;
       }
     }

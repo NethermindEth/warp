@@ -1,153 +1,278 @@
 import {
   ArrayType,
   BytesType,
+  DataLocation,
+  Expression,
+  FunctionCall,
+  generalizeType,
+  getNodeType,
   SourceUnit,
   StringType,
-  StructDefinition,
   TypeNode,
-  UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
-import { TranspileFailedError } from '../../utils/errors';
-import { getElementType, isDynamicArray, isValueType } from '../../utils/nodeTypeProcessing';
-import { StringIndexedFuncGen } from '../base';
+import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { NotSupportedYetError } from '../../utils/errors';
+import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { createBytesTypeName } from '../../utils/nodeTemplates';
+import {
+  getByteSize,
+  getElementType,
+  getPackedByteSize,
+  isDynamicArray,
+  isReferenceType,
+  isValueType,
+} from '../../utils/nodeTypeProcessing';
+import { typeNameFromTypeNode } from '../../utils/utils';
+import { uint256 } from '../../warplib/utils';
+import { CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { MemoryReadGen } from '../memory/memoryRead';
-import { AbiEncodePacked } from './abiEncodePacked';
 
-const IMPLICITS = '';
+const IMPLICITS =
+  '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+
 export class AbiEncode extends StringIndexedFuncGen {
   protected functionName = 'abi_encode';
-  constructor(
-    private abiEncodePacked: AbiEncodePacked,
-    memoryRead: MemoryReadGen,
-    ast: AST,
-    sourceUnit: SourceUnit,
-  ) {
+  protected auxiliarGeneratedFunctions = new Map<string, CairoFunction>();
+  protected memoryRead: MemoryReadGen;
+
+  constructor(memoryRead: MemoryReadGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
+    this.memoryRead = memoryRead;
   }
 
-  protected getOrCreate(typesToEncode: TypeNode[]): string {
-    const indexVar = 'index';
-    const offsetVar = 'offset';
-    const arrayVar = 'byte_array';
-    const params: string[] = [];
-    const encodingCode: string[] = [];
-    typesToEncode.forEach((type, index) => {});
+  getGeneratedCode(): string {
+    return [...this.auxiliarGeneratedFunctions.values(), ...this.generatedFunctions.values()]
+      .map((func) => func.code)
+      .join('\n\n');
+  }
 
+  gen(expressions: Expression[], sourceUnit?: SourceUnit): FunctionCall {
+    const exprTypes = expressions.map(
+      (expr) => generalizeType(getNodeType(expr, this.ast.compilerVersion))[0],
+    );
+    const functionName = this.getOrCreate(exprTypes);
+
+    const functionStub = createCairoFunctionStub(
+      functionName,
+      exprTypes.map((exprT, index) =>
+        isValueType(exprT)
+          ? [`param${index}`, typeNameFromTypeNode(exprT, this.ast)]
+          : [`param${index}`, typeNameFromTypeNode(exprT, this.ast), DataLocation.Memory],
+      ),
+      [['result', createBytesTypeName(this.ast), DataLocation.Memory]],
+      ['bitwise_ptr', 'range_check_ptr', 'warp_memory'],
+      this.ast,
+      sourceUnit ?? this.sourceUnit,
+    );
+
+    return createCallToFunction(functionStub, expressions, this.ast);
+  }
+
+  protected getOrCreate(types: TypeNode[]): string {
+    const key = types.map((t) => t.pp()).join(',');
+    const existing = this.generatedFunctions.get(key);
+    if (existing !== undefined) {
+      return existing.name;
+    }
+
+    const [params, encodings] = types.reduce(
+      ([params, encodings], type, index) => {
+        const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.Ref);
+        params.push({ name: `param${index}`, type: cairoType.toString() });
+        encodings.push(
+          this.generateEncodingCode(type, 'bytes_index', 'bytes_offset', `param${index}`),
+        );
+        return [params, encodings];
+      },
+      [new Array<{ name: string; type: string }>(), new Array<string>()],
+    );
+
+    const initialOffset = types.reduce(
+      (pv, cv) => pv + BigInt(getByteSize(cv, this.ast.compilerVersion)),
+      0n,
+    );
+
+    const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
+    const funcName = `${this.functionName}${this.generatedFunctions.size}`;
     const code = [
-      `func ${this.functionName}${IMPLICITS}(): -> (result_ptr : felt):`,
+      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt):`,
       `  alloc_locals`,
-      `  let ${indexVar} : felt = 0`,
-      `  let ${offsetVar} : felt = 0`,
-      `  let (${arrayVar} : felt*) = alloc()`,
-      `  `,
-      `  `,
-      `  `,
+      `  let bytes_index : felt = 0`,
+      `  let bytes_offset : felt = ${initialOffset}`,
+      `  let (bytes_array : felt*) = alloc()`,
+      ...encodings,
+      `  # Transform the felt array into a memory one`,
+      `  return (0)`,
       `end`,
-    ];
+    ].join('\n');
 
-    return '';
+    const cairoFunc = { name: funcName, code: code };
+    this.generatedFunctions.set(key, cairoFunc);
+    return cairoFunc.name;
   }
 
-  // Algorithm
-  // 1. Calculate everybody's max size (I have the compile info)
-  //    - Dynamically sized types get one slot
-  //    - Statically sized can be calculated on compile time
-  // 2. Set initial offset as the sum of all calculated values
-  // 3. Encode each value's HEAD
-  //    - If it is a dynamic type, set the slot with the current offset
-  //    and increase it accordingly in case for the next dynamic type
-  //    - If it is a static type, fill the slots with the corresponding values
-  //    Can  possible values be offset as well? (Should check this)
-  // 4. Encode each value's TAIL
-  //    - Get for each list, and get the offset and make a recursion that starts
-  //    from the offset to the type length and fill with the correspoding values
-  // 5. Get the compile info of the elements produced by TAIL encoding (HOW?)
+  protected getOrCreateEncoding(type: TypeNode): string {
+    const unexpectedType = () => {
+      throw new NotSupportedYetError(`Encoding ${printTypeNode(type)} is not supported yet`);
+    };
 
-  protected generateTypeEncoding(
+    return delegateBasedOnType<string>(
+      type,
+      (type) => this.createDynamicArrayHeadEncoding(type),
+      unexpectedType,
+      unexpectedType,
+      unexpectedType,
+      () => this.createValueTypeHeadEncoding(),
+    );
+  }
+
+  private generateEncodingCode(
     type: TypeNode,
-    memLoc: string,
-    currIndex: string,
-    currParam: string,
-    currParamSize: string,
+    newIndexVar: string,
+    newOffsetVar: string,
+    varToEncode: string,
   ): string {
-    if (isDynamicArray(type)) {
-      const funcName = this.generateDynamicArrayEncodeFunction(type);
+    const funcName = this.getOrCreateEncoding(type);
+    if (isReferenceType(type)) {
+      return [
+        `let (${newIndexVar}, ${newOffsetVar}) = ${funcName}(`,
+        `  bytes_index,`,
+        `  bytes_offset,`,
+        `  bytes_array,`,
+        `  ${varToEncode}`,
+        `)`,
+      ].join('\n');
     }
 
-    if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-      const funcName = this.generateStructEncodingFunction(type);
+    // Is value type
+    const size = getPackedByteSize(type);
+    const instructions: string[] = [];
+    if (size < 32) {
+      this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
+      instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode})`);
+      varToEncode = `${varToEncode}256`;
     }
-
-    // If it is not dynamic, it is static
-    if (type instanceof ArrayType) {
-      const funcName = isValueType(type.elementT);
-      // ? this.abiEncodePacked.generateInlineArrayEncodingFunction(type)
-      //  : this.generateInlineArrayEncodingFunction(type);
+    instructions.push(
+      ...[
+        `${funcName}(bytes_index, bytes_array, 0, ${varToEncode})`,
+        `let ${newIndexVar} = bytes_index + 32`,
+      ],
+    );
+    if (newOffsetVar !== 'bytes_offset') {
+      instructions.push(`let ${newOffsetVar} = bytes_offset`);
     }
-
-    if (isValueType(type)) {
-      const args = [memLoc, currIndex, `${currIndex} + ${currParamSize}`, currParam, 0];
-      // const funcName = this.getValueTypeEncodingFunction(32);
-      // return `${funcName}(${args.join(',')})`;
-    }
-
-    throw new TranspileFailedError(`Could not generate abi encdoing for ${printTypeNode(type)}`);
+    return instructions.join('\n');
   }
 
-  private encodeHead(type: TypeNode, indexVar: string, offsetVar: string, arrayVar: string) {
-    if (isDynamicArray(type)) {
-    }
-  }
+  private createDynamicArrayHeadEncoding(type: ArrayType | StringType | BytesType): string {
+    const key = 'head' + type.pp();
+    const exisiting = this.auxiliarGeneratedFunctions.get(key);
+    if (exisiting !== undefined) return exisiting.name;
 
-  private encodeTail(type: TypeNode) {}
+    const typeByteSize = getByteSize(type, this.ast.compilerVersion);
+    const elementT = getElementType(type);
+    const elementByteSize = getByteSize(elementT, this.ast.compilerVersion);
 
-  private encodeDynamicArrayHead(type: ArrayType | StringType | BytesType) {
-    // element_offset = offset
-    // element_length = get_length
-    // new_offset = offset + element_length
-    // new_index = index + 1
-    const funcName = '';
-    const code = [`func ${funcName}${IMPLICITS}():`, `  alloc_locals`, `  `, `end`];
-  }
-
-  private encodeDynamicArrayTail(type: ArrayType | StringType | BytesType) {
-    // This is going to be a recursion
-    // from element_offset to element_offset + element_length
-    // encode head of what is there
-
-    const funcName = '';
+    const tailEncoding = this.createDynamicArrayTailEncoding(type);
+    const name = `${this.functionName}_head_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(`,
-      `  offset : felt,`,
-      `  max_offset : felt,`,
+      `func ${name}${IMPLICITS}(`,
+      `  bytes_index : felt,`,
+      `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
-      `  darray_ptr : felt`,
-      `):`,
+      `  mem_ptr : felt,`,
+      `) -> (final_bytes_index : felt, final_bytes_offset : felt):`,
       `  alloc_locals`,
-      `  if offset == max_offset:`,
-      `    return ()`,
-      `  end`,
-      `  `,
+      `  # Storing pointer to data`,
+      `  let (bytes_offset256) = felt_to_uint256(bytes_offset)`,
+      `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256)`,
+      `  let new_index = bytes_index + ${typeByteSize}`,
+      `  # Storing the data`,
+      `  let (length256) = wm_dyn_array_length(mem_ptr)`,
+      `  let (length) = narrow_safe(length256)`,
+      `  let bytes_offset_offset = bytes_offset + ${mul('length', elementByteSize)}`,
+      `  let (extended_offset) = ${tailEncoding}(`,
+      `    bytes_offset,`,
+      `    bytes_offset_offset,`,
+      `    bytes_array,`,
+      `    0,`,
+      `    length,`,
+      `    mem_ptr`,
+      `  )`,
+      `  return (`,
+      `    final_bytes_index=new_index,`,
+      `    final_bytes_offset=extended_offset`,
+      `  )`,
       `end`,
-    ];
+    ].join('\n');
+
+    this.requireImport('warplib.memory', 'wm_dyn_array_length');
+    this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+    this.requireImport('warplib.maths.utils', 'narrow_safe');
+
+    this.auxiliarGeneratedFunctions.set(type.pp(), { name, code });
+    return name;
   }
 
-  protected generateDynamicArrayEncodeFunction(type: ArrayType | StringType | BytesType): string {
-    throw new Error('Not implemented');
+  private createDynamicArrayTailEncoding(type: ArrayType | StringType | BytesType): string {
+    const key = 'tail' + type.pp();
+    const exisiting = this.auxiliarGeneratedFunctions.get(key);
+    if (exisiting !== undefined) return exisiting.name;
+
+    const elementT = getElementType(type);
+    const elementByteSize = getByteSize(elementT);
+    const elementTCairoSize = CairoType.fromSol(elementT, this.ast).width;
+
+    const cairoElementT = CairoType.fromSol(elementT, this.ast);
+    const readElementFunc = this.memoryRead.getOrCreate(cairoElementT);
+    const readElement = isDynamicArray(elementT)
+      ? `${readElementFunc}(elem_loc, ${uint256(0)})`
+      : `${readElementFunc}(elem_loc)`;
+    const headEncodingCode = this.generateEncodingCode(
+      elementT,
+      'new_bytes_index',
+      'new_bytes_offset',
+      'elem_loc',
+    );
+    const name = `${this.functionName}_tail_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
+    const code = [
+      `func ${name}${IMPLICITS}(`,
+      `  bytes_index : felt,`,
+      `  bytes_offset : felt,`,
+      `  bytes_array : felt*,`,
+      `  index : felt,`,
+      `  length : felt,`,
+      `  mem_ptr : felt`,
+      `) -> (final_offset : felt):`,
+      `  alloc_locals`,
+      `  if index == length:`,
+      `     return (final_offset=bytes_offset)`,
+      `  end`,
+      `  let (index256) = felt_to_uint256(index)`,
+      `  let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(elementTCairoSize)})`,
+      `  let (elem) = ${readElement}`,
+      `  ${headEncodingCode}`,
+      `  return ${name}(new_bytes_index, new_bytes_offset, bytes_array, index + 1, length, mem_ptr)`,
+      `end`,
+    ].join('\n');
+
+    this.requireImport('warplib.memory', 'wm_index_dyn');
+    this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+
+    this.auxiliarGeneratedFunctions.set(key, { name, code });
+    return name;
   }
 
-  protected generateStructEncodingFunction(type: UserDefinedType): string {
-    const def = type.definition;
-    throw new Error('Not implemented');
+  private createValueTypeHeadEncoding(): string {
+    const funcName = 'fixed_bytes256_to_felt_dynamic_array';
+    this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return funcName;
   }
+}
 
-  protected calculateSize(type: TypeNode, cairoVar: string, suffix: string | number): string {
-    if (isDynamicArray(type)) {
-      const elemenT = getElementType(type);
-    }
-
-    throw new TranspileFailedError(`Could not get byte size for ${printTypeNode(type)}`);
-  }
+function mul(cairoVar: string, scalar: number | bigint) {
+  if (scalar === 1) return cairoVar;
+  return `${cairoVar} * ${scalar}`;
 }

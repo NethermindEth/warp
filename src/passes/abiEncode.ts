@@ -1,6 +1,7 @@
 import { FunctionCall, FunctionCallKind } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { TranspileFailedError } from '../utils/errors';
 
 export class ABIEncode extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -13,14 +14,23 @@ export class ABIEncode extends ASTMapper {
     if (
       node.kind !== FunctionCallKind.FunctionCall ||
       node.vReferencedDeclaration !== undefined ||
-      !['encodePacked'].includes(node.vFunctionName)
+      !['encodePacked', 'encode'].includes(node.vFunctionName)
     ) {
       return this.visitExpression(node, ast);
     }
 
-    const cairoAbiEncode = ast.getUtilFuncGen(node).utils.abiEncodePacked.gen(node.vArguments);
-    ast.replaceNode(node, cairoAbiEncode);
-
+    let replacement: FunctionCall;
+    switch (node.vFunctionName) {
+      case 'encode':
+        replacement = ast.getUtilFuncGen(node).abi.encode.gen(node.vArguments);
+        break;
+      case 'encodePacked':
+        replacement = ast.getUtilFuncGen(node).abi.encode.gen(node.vArguments);
+        break;
+      default:
+        throw new TranspileFailedError(`Unknown abi function: ${node.vFunctionName}`);
+    }
+    ast.replaceNode(node, replacement);
     this.visitExpression(node, ast);
   }
 }
