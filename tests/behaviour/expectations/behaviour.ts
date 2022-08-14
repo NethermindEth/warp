@@ -1,11 +1,24 @@
 import { Dir, Expect, File } from './types';
-import { flatten } from './utils';
+import { getByte32Array, flatten } from './utils';
 
 export const expectations = flatten(
   new Dir('tests', [
     new Dir('behaviour', [
       new Dir('contracts', [
         new Dir('abiEncode', [
+          File.Simple('abiEncodeDynamic', [
+            Expect.Simple('simpleDynamic', [], getByte32Array(32, 3, 2, 3, 5)),
+            Expect.Simple(
+              'nestedDynamic',
+              [],
+              getByte32Array(32, 2, 128, 256, 3, 2, 3, 5, 2, 7, 11),
+            ),
+            Expect.Simple(
+              'mixDynamic',
+              [],
+              getByte32Array(64, 384, 2, 160, 288, 3, 2, 3, 5, 2, 7, 11, 3, 2, 3, 5),
+            ),
+          ]),
           File.Simple('abiEncodePacked', [
             Expect.Simple(
               'fixedBytes',

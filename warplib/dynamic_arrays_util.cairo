@@ -87,3 +87,14 @@ func fixed_bytes256_to_felt_dynamic_array{
         array_index + 1, array, fixed_byte_index + 1, fixed_byte
     )
 end
+
+func felt_array_to_warp_memory_array{range_check_ptr, warp_memory : DictAccess*}(index : felt, array : felt*, mem_index : felt, mem_ptr, max_length : felt):
+    if index == max_length:
+        return ()
+    end
+    let elem = array[index]
+    let (mem_index256 : Uint256) = felt_to_uint256(mem_index)
+    let (elem_loc : felt) = wm_index_dyn(mem_ptr, mem_index256, Uint256(1, 0))
+    wm_write_felt(elem_loc, elem)
+    return felt_array_to_warp_memory_array(index + 1, array, mem_index + 1, mem_ptr, max_length)
+end

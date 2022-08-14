@@ -26,3 +26,23 @@ function stringFlatten_(val: Value): string[] {
 export function stringFlatten(val: Value[]): string[] {
   return val.map(stringFlatten_).flat();
 }
+
+export function getByte32Array(...val: (number | bigint)[]): string[] {
+  return val.reduce(
+    (pv, cv) => {
+      pv.push(...numToByte32(BigInt(cv)));
+      return pv;
+    },
+    [`${val.length * 32}`],
+  );
+}
+
+function numToByte32(val: bigint): string[] {
+  const byteArray = [];
+  for (let i = 0; i < 32; i++) {
+    const byte = val & BigInt(0xff);
+    byteArray[i] = `${byte}`;
+    val = (val - byte) / BigInt(256);
+  }
+  return byteArray.reverse();
+}

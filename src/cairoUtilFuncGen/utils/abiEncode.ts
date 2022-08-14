@@ -103,10 +103,14 @@ export class AbiEncode extends StringIndexedFuncGen {
       `  let bytes_offset : felt = ${initialOffset}`,
       `  let (bytes_array : felt*) = alloc()`,
       ...encodings,
-      `  # Transform the felt array into a memory one`,
-      `  return (0)`,
+      `  let (max_length256) = felt_to_uint256(bytes_offset)`,
+      `  let (mem_ptr) = wm_new(max_length256, ${uint256(1)})`,
+      `  felt_array_to_warp_memory_array(0, bytes_array, 0, mem_ptr, bytes_offset)`,
+      `  return (mem_ptr)`,
       `end`,
     ].join('\n');
+
+    this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array');
 
     const cairoFunc = { name: funcName, code: code };
     this.generatedFunctions.set(key, cairoFunc);
@@ -167,9 +171,12 @@ export class AbiEncode extends StringIndexedFuncGen {
   }
 
   private createDynamicArrayHeadEncoding(type: ArrayType | StringType | BytesType): string {
-    const key = 'head' + type.pp();
+    const key = 'head ' + type.pp();
     const exisiting = this.auxiliarGeneratedFunctions.get(key);
-    if (exisiting !== undefined) return exisiting.name;
+    if (exisiting !== undefined) {
+      console.log('Using exisring', key, exisiting.name);
+      return exisiting.name;
+    }
 
     const typeByteSize = getByteSize(type, this.ast.compilerVersion);
     const elementT = getElementType(type);
@@ -189,8 +196,11 @@ export class AbiEncode extends StringIndexedFuncGen {
       `  let (bytes_offset256) = felt_to_uint256(bytes_offset)`,
       `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256)`,
       `  let new_index = bytes_index + ${typeByteSize}`,
-      `  # Storing the data`,
+      `  # Storing the length`,
       `  let (length256) = wm_dyn_array_length(mem_ptr)`,
+      `  ${this.createValueTypeHeadEncoding()}(bytes_offset, bytes_array, 0, length256)`,
+      `  let bytes_offset = bytes_offset + 32`,
+      `  # Storing the data`,
       `  let (length) = narrow_safe(length256)`,
       `  let bytes_offset_offset = bytes_offset + ${mul('length', elementByteSize)}`,
       `  let (extended_offset) = ${tailEncoding}(`,
@@ -212,7 +222,8 @@ export class AbiEncode extends StringIndexedFuncGen {
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     this.requireImport('warplib.maths.utils', 'narrow_safe');
 
-    this.auxiliarGeneratedFunctions.set(type.pp(), { name, code });
+    this.auxiliarGeneratedFunctions.set(key, { name, code });
+    console.log('Generating', key, name);
     return name;
   }
 
@@ -222,7 +233,6 @@ export class AbiEncode extends StringIndexedFuncGen {
     if (exisiting !== undefined) return exisiting.name;
 
     const elementT = getElementType(type);
-    const elementByteSize = getByteSize(elementT);
     const elementTCairoSize = CairoType.fromSol(elementT, this.ast).width;
 
     const cairoElementT = CairoType.fromSol(elementT, this.ast);
@@ -234,7 +244,7 @@ export class AbiEncode extends StringIndexedFuncGen {
       elementT,
       'new_bytes_index',
       'new_bytes_offset',
-      'elem_loc',
+      'elem',
     );
     const name = `${this.functionName}_tail_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
