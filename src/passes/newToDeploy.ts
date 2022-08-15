@@ -16,7 +16,11 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { UserDefinedTypeName } from 'solc-typed-ast';
 import assert from 'assert';
-import { createCairoFunctionStub, createCallToFunction } from '../utils/functionGeneration';
+import {
+  createCairoFunctionStub,
+  createCallToFunction,
+  createElementaryConversionCall,
+} from '../utils/functionGeneration';
 import {
   createAddressTypeName,
   createBoolLiteral,
@@ -31,6 +35,7 @@ import { hashFilename } from '../utils/postCairoWrite';
 import { CONTRACT_INFIX } from '../utils/nameModifiers';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
+import { getParameterTypes } from '../utils/nodeTypeProcessing';
 
 /** Pass that takes all expressions of the form:
  *
@@ -64,7 +69,6 @@ import { TranspileFailedError } from '../utils/errors';
 export class NewToDeploy extends ASTMapper {
   addInitialPassPrerequisites(): void {
     const passKeys: Set<string> = new Set<string>([
-      'I', // Encoder util function must have the right type for encoding
       'Ffi', // Define the `encoder` util function after the free funtion has been moved
     ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
@@ -109,17 +113,8 @@ export class NewToDeploy extends ASTMapper {
       const bytes32Salt = parent.vOptionsMap.get('salt');
       assert(bytes32Salt !== undefined);
       // Narrow salt to a felt range
-      const narrowStub = createCairoFunctionStub(
-        'narrow_safe',
-        [['x', createBytesNTypeName(32, ast)]],
-        [['val', createBytesNTypeName(30, ast)]],
-        ['range_check_ptr'],
-        ast,
-        parent,
-      );
-      salt = createCallToFunction(narrowStub, [bytes32Salt], ast, parent);
+      salt = createElementaryConversionCall(createBytesNTypeName(30, ast), bytes32Salt, ast);
       ast.replaceNode(bytes32Salt, salt, parent);
-      ast.registerImport(salt, 'warplib.maths.utils', 'narrow_safe');
     } else {
       throw new TranspileFailedError(
         `Contract New Expression has an unexpected parent. Expected FunctionCall or FunctionCallOptions instead ${
@@ -164,7 +159,9 @@ export class NewToDeploy extends ASTMapper {
     );
     ast.registerImport(node, 'starkware.starknet.common.syscalls', 'deploy');
 
-    const encodedArguments = ast.getUtilFuncGen(node).utils.encodeAsFelt.gen(node.vArguments);
+    const encodedArguments = ast
+      .getUtilFuncGen(node)
+      .utils.encodeAsFelt.gen(node.vArguments, getParameterTypes(node, ast));
     const deployFromZero = createBoolLiteral(false, ast);
     return createCallToFunction(
       deployStub,
