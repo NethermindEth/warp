@@ -17,7 +17,7 @@ import { cloneASTNode } from '../utils/cloning';
 import { CLIError } from '../utils/errors';
 import { parse } from '../utils/functionSignatureParser';
 import { generateLiteralTypeString } from '../utils/getTypeString';
-import { createNumberLiteral } from '../utils/nodeTemplates';
+import { createDefaultConstructor, createNumberLiteral } from '../utils/nodeTemplates';
 import { isExternallyVisible } from '../utils/utils';
 
 type Input = (string | number | Input)[];
@@ -38,9 +38,12 @@ export class ABIExtractor extends ASTMapper {
     node.vContracts
       .flatMap((cd) => cd.vLinearizedBaseContracts)
       .forEach((cd) => {
-        if (!cd.abstract && cd.vConstructor !== undefined) {
+        if (!cd.abstract) {
           // We do this to trick the canonicalSignature method into giving us a result
-          const fakeConstructor = cloneASTNode(cd.vConstructor, ast);
+          const fakeConstructor =
+            cd.vConstructor !== undefined
+              ? cloneASTNode(cd.vConstructor, ast)
+              : createDefaultConstructor(cd, ast);
           fakeConstructor.isConstructor = false;
           fakeConstructor.name = 'constructor';
           // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
@@ -99,10 +102,10 @@ export async function encodeInputs(
   filePath: string,
   func: string,
   useCairoABI: boolean,
-  rawInputs?: string,
+  rawInputs?: string[],
 ): Promise<[string, string]> {
   if (useCairoABI) {
-    const inputs = rawInputs ? `--inputs ${rawInputs.split(',').join(' ')}` : '';
+    const inputs = rawInputs ? `--inputs ${rawInputs.join(' ').split(',').join(' ')}` : '';
     return [func, inputs];
   }
 
@@ -112,7 +115,7 @@ export async function encodeInputs(
 
   const funcName = `${func}_${selector}`;
   const inputs = rawInputs
-    ? `--inputs ${transcodeCalldata(funcSignature, parseInputs(rawInputs))
+    ? `--inputs ${transcodeCalldata(funcSignature, parseInputs(rawInputs.join(' ')))
         .map((i) => i.toString())
         .join(' ')}`
     : '';
