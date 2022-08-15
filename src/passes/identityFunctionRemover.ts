@@ -12,6 +12,23 @@ import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { isExternallyVisible, toSingleExpression } from '../utils/utils';
 
+/*
+    The purpose of this pass is to remove non externally visible functions which have only 
+    one statement: a return statement of one or several of its input parameters. It doesn't
+    matter if the identifiers in the return statement don't match the order of the input 
+    parameters. The following are examples of those functions:
+
+    function g(uint256 val) private pure returns (uint256) {
+        return val;
+    }
+
+    function h(uint256 a, uint256 b) internal pure returns (uint256, uint256) {
+        return (b, a);
+    }
+
+    This pass identifies such functions, replaces all calls to those functions with their
+    return value (updating references of course) and then, removes them all.
+*/
 export class IdentityFunctionRemover extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
