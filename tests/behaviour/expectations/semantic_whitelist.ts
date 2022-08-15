@@ -570,7 +570,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/source_import_subdir.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/external.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/other_external.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/external.sol=sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/external.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/subdir/sub_external.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/subdir/import.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/import.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
