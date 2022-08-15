@@ -318,13 +318,19 @@ export function getPackedByteSize(type: TypeNode, version?: string): number | bi
  * e.g. uint8, bool, address -> byte size is 32
  *      T[] -> byte size is 32
  *      uint16[3] -> byte size is 96
+ *      uint16[][3] -> byte size is 32 (head = true)
+ *      uint16[][3] -> byte size is 96 (head = false)
  *      and so on
  *  @param type Solidity type
  *  @param version optional parameter required for calculating struct byte size
  *  @returns returns the types byte representation using abi encoding
  */
-export function getByteSize(type: TypeNode, version?: string): number | bigint {
-  if (isValueType(type) || isDynamicArray(type)) {
+export function getByteSize(
+  type: TypeNode,
+  version?: string,
+  head: boolean = true,
+): number | bigint {
+  if (isValueType(type) || (head && isDynamicallySized(type, version))) {
     return 32;
   }
 
@@ -348,4 +354,27 @@ export function getByteSize(type: TypeNode, version?: string): number | bigint {
   }
 
   throw new TranspileFailedError(`Cannot calculate byte size for ${printTypeNode(type)}`);
+}
+
+export function isDynamicallySized(type: TypeNode, version?: string): boolean {
+  if (isDynamicArray(type)) {
+    return true;
+  }
+  if (type instanceof PointerType) {
+    return isDynamicallySized(type.to, version);
+  }
+  if (type instanceof ArrayType) {
+    return isDynamicallySized(type.elementT, version);
+  }
+  if (type instanceof TupleType) {
+    return type.elements.some((t) => isDynamicallySized(t, version));
+  }
+  if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+    assert(version !== undefined);
+    return type.definition.vMembers.some((v) =>
+      isDynamicallySized(getNodeType(v, version), version),
+    );
+  }
+
+  return false;
 }
