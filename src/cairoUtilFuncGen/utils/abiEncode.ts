@@ -9,11 +9,13 @@ import {
   getNodeType,
   SourceUnit,
   StringType,
+  StructDefinition,
   TypeNode,
+  UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
-import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
+import { CairoType, MemoryLocation, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
@@ -23,6 +25,7 @@ import {
   getPackedByteSize,
   isDynamicallySized,
   isDynamicArray,
+  isStruct,
   isValueType,
 } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
@@ -32,6 +35,11 @@ import { MemoryReadGen } from '../memory/memoryRead';
 
 const IMPLICITS =
   '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+
+// Structs and tuples should work all right
+// Check that inline array key get's parsed correctly
+// Check the imports of each pass
+// Remove the no use
 
 export class AbiEncode extends StringIndexedFuncGen {
   protected functionName = 'abi_encode';
@@ -91,7 +99,7 @@ export class AbiEncode extends StringIndexedFuncGen {
     );
 
     const initialOffset = types.reduce(
-      (pv, cv) => pv + BigInt(getByteSize(cv, this.ast.compilerVersion)),
+      (pv, cv) => pv + BigInt(getByteSize(cv, this.ast.compilerVersion, true)),
       0n,
     );
 
@@ -127,10 +135,13 @@ export class AbiEncode extends StringIndexedFuncGen {
       type,
       (type) => this.createDynamicArrayHeadEncoding(type),
       (type) =>
-        isDynamicallySized(type)
+        isDynamicallySized(type, this.ast.compilerVersion)
           ? this.createStaticArrayHeadEncoding(type)
-          : this.createInlineArrayEncoding(type),
-      unexpectedType,
+          : this.createArrayInlineEncoding(type),
+      (type, def) =>
+        isDynamicallySized(type, this.ast.compilerVersion)
+          ? this.createStructHeadEncoding(type, def)
+          : this.createStructInlineEncoding(type, def),
       unexpectedType,
       () => this.createValueTypeHeadEncoding(),
     );
@@ -143,7 +154,7 @@ export class AbiEncode extends StringIndexedFuncGen {
     varToEncode: string,
   ): string {
     const funcName = this.getOrCreateEncoding(type);
-    if (isDynamicallySized(type)) {
+    if (isDynamicallySized(type, this.ast.compilerVersion) || isStruct(type)) {
       return [
         `let (${newIndexVar}, ${newOffsetVar}) = ${funcName}(`,
         `  bytes_index,`,
@@ -195,7 +206,7 @@ export class AbiEncode extends StringIndexedFuncGen {
     if (exisiting !== undefined) return exisiting.name;
 
     const elementT = getElementType(type);
-    const elementByteSize = getByteSize(elementT, this.ast.compilerVersion);
+    const elementByteSize = getByteSize(elementT, this.ast.compilerVersion, true);
 
     const tailEncoding = this.createDynamicArrayTailEncoding(type);
     const name = `${this.functionName}_head_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
@@ -288,7 +299,53 @@ export class AbiEncode extends StringIndexedFuncGen {
     return name;
   }
 
-  private createInlineArrayEncoding(type: ArrayType) {
+  private createStaticArrayHeadEncoding(type: ArrayType) {
+    assert(type.size !== undefined);
+    const key = 'head ' + type.pp();
+    const exisiting = this.auxiliarGeneratedFunctions.get(key);
+    if (exisiting !== undefined) return exisiting.name;
+
+    const elementT = getElementType(type);
+    const elementByteSize = getByteSize(elementT, this.ast.compilerVersion, false);
+
+    const inlineEncoding = this.createArrayInlineEncoding(type);
+
+    const name = `${this.functionName}_head_static_array${this.auxiliarGeneratedFunctions.size}`;
+    const code = [
+      `func ${name}${IMPLICITS}(`,
+      `  bytes_index : felt,`,
+      `  bytes_offset : felt,`,
+      `  bytes_array : felt*,`,
+      `  mem_ptr : felt,`,
+      `) -> (final_bytes_index : felt, final_bytes_offset : felt):`,
+      `  alloc_locals`,
+      `  # Storing pointer to data`,
+      `  let (bytes_offset256) = felt_to_uint256(bytes_offset)`,
+      `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256)`,
+      `  let new_bytes_index = bytes_index + 32`,
+      `  # Storing the data`,
+      `  let length = ${type.size}`,
+      `  let bytes_offset_offset = bytes_offset + ${mul('length', elementByteSize)}`,
+      `  let (_, extended_offset) = ${inlineEncoding}(`,
+      `    bytes_offset,`,
+      `    bytes_offset_offset,`,
+      `    bytes_array,`,
+      `    0,`,
+      `    length,`,
+      `    mem_ptr`,
+      `  )`,
+      `  return (`,
+      `    final_bytes_index=new_bytes_index,`,
+      `    final_bytes_offset=extended_offset`,
+      `  )`,
+      `end`,
+    ].join('\n');
+
+    this.auxiliarGeneratedFunctions.set(key, { name, code });
+    return name;
+  }
+
+  private createArrayInlineEncoding(type: ArrayType) {
     const key = 'inline ' + type.pp();
     if (type.size !== undefined) {
       key
@@ -318,7 +375,7 @@ export class AbiEncode extends StringIndexedFuncGen {
       'new_bytes_offset',
       'elem',
     );
-    console.log(this.auxiliarGeneratedFunctions.size, printTypeNode(elementT));
+
     const name = `${this.functionName}_inline_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
       `func ${name}${IMPLICITS}(`,
@@ -351,18 +408,26 @@ export class AbiEncode extends StringIndexedFuncGen {
     return name;
   }
 
-  private createStaticArrayHeadEncoding(type: ArrayType) {
-    assert(type.size !== undefined);
-    const key = 'head ' + type.pp();
+  private createStructHeadEncoding(type: UserDefinedType, def: StructDefinition) {
+    const key = 'struct head ' + type.pp();
     const exisiting = this.auxiliarGeneratedFunctions.get(key);
     if (exisiting !== undefined) return exisiting.name;
 
-    const elementT = getElementType(type);
-    const elementByteSize = getByteSize(elementT, this.ast.compilerVersion);
+    const inlineEncoding = this.createStructInlineEncoding(type, def);
+    const typeByteSize = def.vMembers.reduce(
+      (sum, varDecl) =>
+        sum +
+        BigInt(
+          getByteSize(
+            generalizeType(getNodeType(varDecl, this.ast.compilerVersion))[0],
+            this.ast.compilerVersion,
+            true,
+          ),
+        ),
+      0n,
+    );
 
-    const inlineEncoding = this.createInlineArrayEncoding(type);
-
-    const name = `${this.functionName}_head_static_array${this.auxiliarGeneratedFunctions.size}`;
+    const name = `${this.functionName}_head_${def.name}`;
     const code = [
       `func ${name}${IMPLICITS}(`,
       `  bytes_index : felt,`,
@@ -376,20 +441,14 @@ export class AbiEncode extends StringIndexedFuncGen {
       `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256)`,
       `  let new_bytes_index = bytes_index + 32`,
       `  # Storing the data`,
-      `  let length = ${type.size}`,
-      `  let bytes_offset_offset = bytes_offset + ${mul('length', elementByteSize)}`,
-      `  let (no_use, extended_offset) = ${inlineEncoding}(`,
+      `  let bytes_offset_offset = bytes_offset + ${typeByteSize}`,
+      `  let (_, new_bytes_offset) = ${inlineEncoding}(`,
       `    bytes_offset,`,
       `    bytes_offset_offset,`,
       `    bytes_array,`,
-      `    0,`,
-      `    length,`,
       `    mem_ptr`,
-      `  )`,
-      `  return (`,
-      `    final_bytes_index=new_bytes_index,`,
-      `    final_bytes_offset=extended_offset`,
-      `  )`,
+      `)`,
+      `  return (new_bytes_index, new_bytes_offset)`,
       `end`,
     ].join('\n');
 
@@ -397,10 +456,75 @@ export class AbiEncode extends StringIndexedFuncGen {
     return name;
   }
 
+  private createStructInlineEncoding(type: UserDefinedType, def: StructDefinition) {
+    const key = 'struct inline ' + type.pp();
+    const exisiting = this.auxiliarGeneratedFunctions.get(key);
+    if (exisiting !== undefined) return exisiting.name;
+
+    const instructions = def.vMembers.map((member, index) => {
+      const type = generalizeType(getNodeType(member, this.ast.compilerVersion))[0];
+      const elemWidth = CairoType.fromSol(type, this.ast).width;
+      const readFunc = this.readMemory(type, 'mem_ptr');
+      const encoding = this.generateEncodingCode(
+        type,
+        'bytes_index',
+        'bytes_offset',
+        `elem${index}`,
+      );
+      return [
+        `# Encoding member ${member.name}`,
+        `let (elem${index}) = ${readFunc}`,
+        `${encoding}`,
+        `let mem_ptr = mem_ptr + ${elemWidth}`,
+      ].join('\n');
+    });
+
+    const name = `${this.functionName}_inline_struct_${def.name}`;
+    const code = [
+      `func ${name}${IMPLICITS}(`,
+      `  bytes_index : felt,`,
+      `  bytes_offset : felt,`,
+      `  bytes_array : felt*,`,
+      `  mem_ptr : felt,`,
+      `) -> (final_bytes_index : felt, final_bytes_offset : felt):`,
+      `  alloc_locals`,
+      ...instructions,
+      `  return (bytes_index, bytes_offset)`,
+      `end`,
+    ].join('\n');
+
+    this.auxiliarGeneratedFunctions.set(key, { name, code });
+    return name;
+  }
+
+  private createTupleInlineEncoding(types: TypeNode[], name: string) {
+    const instructions = types.map((type, index) => {});
+    const code = [
+      `func ${name}${IMPLICITS}(`,
+      `  bytes_index : felt,`,
+      `  bytes_offset : felt,`,
+      `  bytes_array : felt*,`,
+      `  mem_ptr : felt,`,
+      `) -> (final_bytes_index : felt, final_bytes_offset : felt):`,
+      `  alloc_locals`,
+      `end`,
+    ];
+  }
+
   private createValueTypeHeadEncoding(): string {
     const funcName = 'fixed_bytes256_to_felt_dynamic_array';
     this.requireImport('warplib.dynamic_arrays_util', funcName);
     return funcName;
+  }
+
+  private readMemory(type: TypeNode, arg: string) {
+    const cairoType = CairoType.fromSol(type, this.ast);
+    const funcName = this.memoryRead.getOrCreate(cairoType);
+    const args =
+      cairoType instanceof MemoryLocation
+        ? [arg, isDynamicArray(type) ? uint256(2) : uint256(0)]
+        : [arg];
+    return `${funcName}(${args.join(',')})`;
   }
 }
 

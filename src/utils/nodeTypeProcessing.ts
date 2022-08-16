@@ -325,22 +325,18 @@ export function getPackedByteSize(type: TypeNode, version?: string): number | bi
  *  @param version optional parameter required for calculating struct byte size
  *  @returns returns the types byte representation using abi encoding
  */
-export function getByteSize(
-  type: TypeNode,
-  version?: string,
-  head: boolean = true,
-): number | bigint {
+export function getByteSize(type: TypeNode, version: string, head: boolean): number | bigint {
   if (isValueType(type) || (head && isDynamicallySized(type, version))) {
     return 32;
   }
 
   if (type instanceof ArrayType) {
     assert(type.size !== undefined);
-    return type.size * BigInt(getByteSize(type.elementT));
+    return type.size * BigInt(getByteSize(type.elementT, version, head));
   }
 
   const sumMemberSize = (acc: bigint, cv: TypeNode): bigint => {
-    return acc + BigInt(getPackedByteSize(cv));
+    return acc + BigInt(getByteSize(cv, version, head));
   };
   if (type instanceof TupleType) {
     return type.elements.reduce(sumMemberSize, 0n);
@@ -356,7 +352,7 @@ export function getByteSize(
   throw new TranspileFailedError(`Cannot calculate byte size for ${printTypeNode(type)}`);
 }
 
-export function isDynamicallySized(type: TypeNode, version?: string): boolean {
+export function isDynamicallySized(type: TypeNode, version: string): boolean {
   if (isDynamicArray(type)) {
     return true;
   }
