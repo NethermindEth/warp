@@ -16,7 +16,6 @@ import {
   WhileStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
 import { WHILE_PREFIX } from '../../utils/nameModifiers';
@@ -26,6 +25,7 @@ import {
   createParameterList,
   createReturn,
 } from '../../utils/nodeTemplates';
+import { getContainingSourceUnit } from '../../utils/utils';
 
 // It's okay to use a global counter here as it only affects private functions
 // and never anything that can be referenced from another file
@@ -40,8 +40,7 @@ export function extractWhileToFunction(
 ): FunctionDefinition {
   const scope =
     node.getClosestParentByType<ContractDefinition>(ContractDefinition) ??
-    node.getClosestParentByType(SourceUnit);
-  assert(scope !== undefined, `Couldn't find ${printNode(node)}'s function target root`);
+    getContainingSourceUnit(node);
 
   // Create input parameters and keep the new referencing number in variablesRemapping
   // for later fixing
