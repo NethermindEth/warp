@@ -3795,6 +3795,9 @@ export const expectations = flatten(
           Expect.Simple('test', [], []),
           Expect.Simple('returnTest', [], ['12', '0']),
         ]),
+        File.Simple('removeIdentityFunctions', [
+          Expect.Simple('f', ['10', '0'], ['3', '20', '0', '5', '0', '13', '0']),
+        ]),
       ]),
     ]),
     new Dir('benchmark', [
