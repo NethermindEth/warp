@@ -452,6 +452,7 @@ export class AbiEncode extends StringIndexedFuncGen {
       `end`,
     ].join('\n');
 
+    this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     this.auxiliarGeneratedFunctions.set(key, { name, code });
     return name;
   }
@@ -495,20 +496,6 @@ export class AbiEncode extends StringIndexedFuncGen {
 
     this.auxiliarGeneratedFunctions.set(key, { name, code });
     return name;
-  }
-
-  private createTupleInlineEncoding(types: TypeNode[], name: string) {
-    const instructions = types.map((type, index) => {});
-    const code = [
-      `func ${name}${IMPLICITS}(`,
-      `  bytes_index : felt,`,
-      `  bytes_offset : felt,`,
-      `  bytes_array : felt*,`,
-      `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt, final_bytes_offset : felt):`,
-      `  alloc_locals`,
-      `end`,
-    ];
   }
 
   private createValueTypeHeadEncoding(): string {
