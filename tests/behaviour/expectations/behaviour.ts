@@ -19,6 +19,11 @@ export const expectations = flatten(
               getByte32Array(64, 384, 2, 160, 288, 3, 2, 3, 5, 2, 7, 11, 3, 2, 3, 5),
             ),
           ]),
+          File.Simple('abiEncodeStatic', [
+            Expect.Simple('staticSimple', [], getByte32Array(2, 3, 5)),
+            Expect.Simple('staticNested', [], getByte32Array(2, 3, 4, 5)),
+            Expect.Simple('staticDynamicNested', [], getByte32Array(32, 96, 192, 2, 2, 3, 1, 11)),
+          ]),
           File.Simple('abiEncodePacked', [
             Expect.Simple(
               'fixedBytes',
