@@ -20,7 +20,6 @@ import {
   VariableDeclaration,
   compileSol,
   resolveAny,
-  getNodeType,
   CompileResult,
   UserDefinedValueTypeDefinition,
   StructDefinition,
@@ -43,6 +42,7 @@ import { notNull } from '../../../src/utils/typeConstructs';
 import assert from 'assert';
 import { AST } from '../../../src/ast/ast';
 import { createDefaultConstructor } from '../../../src/utils/nodeTemplates';
+import { safeGetNodeType } from '../../../src/utils/nodeTypeProcessing';
 
 // this format will cause problems with overloading
 export interface Parameter {
@@ -185,11 +185,11 @@ function transcodeTest(
 
   const inputTypeNodes =
     funcDef instanceof FunctionDefinition
-      ? funcDef.vParameters.vParameters.map((cd) => getNodeType(cd, compilerVersion))
+      ? funcDef.vParameters.vParameters.map((cd) => safeGetNodeType(cd, compilerVersion))
       : funcDef.getterFunType().parameters;
   const outputTypeNodes =
     funcDef instanceof FunctionDefinition
-      ? funcDef.vReturnParameters.vParameters.map((cd) => getNodeType(cd, compilerVersion))
+      ? funcDef.vReturnParameters.vParameters.map((cd) => safeGetNodeType(cd, compilerVersion))
       : funcDef.getterFunType().returns;
 
   let removePrefix = 10;
@@ -297,7 +297,7 @@ export function encodeValue(tp: TypeNode, value: SolValue, compilerVersion: stri
     const definition = tp.definition;
     if (definition instanceof UserDefinedValueTypeDefinition) {
       return encodeValue(
-        getNodeType(definition.underlyingType, compilerVersion),
+        safeGetNodeType(definition.underlyingType, compilerVersion),
         value,
         compilerVersion,
       );
@@ -307,7 +307,7 @@ export function encodeValue(tp: TypeNode, value: SolValue, compilerVersion: stri
       }
       const membersEncoding: string[][] = [];
       for (let index = 0; index < value.length; index++) {
-        const memberTypeNode = getNodeType(definition.vMembers[index], compilerVersion);
+        const memberTypeNode = safeGetNodeType(definition.vMembers[index], compilerVersion);
         const memberValue = value[index];
         membersEncoding.push(encodeValue(memberTypeNode, memberValue, compilerVersion));
       }
@@ -369,7 +369,7 @@ async function encodeConstructors(
       'Constructor must be of type functionDefinition',
     );
     const typeNodes = constrDef.vParameters.vParameters.map((cd) =>
-      getNodeType(cd, ast.compilerVersion),
+      safeGetNodeType(cd, ast.compilerVersion),
     );
     constructorArgs = encode(constrAbi.inputs, typeNodes, firstTest.callData, ast.compilerVersion);
   }

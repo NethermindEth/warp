@@ -4,7 +4,6 @@ import {
   DataLocation,
   Identifier,
   FunctionStateMutability,
-  getNodeType,
   ArrayType,
   Expression,
   ASTNode,
@@ -24,7 +23,7 @@ import { createIdentifier } from '../../../utils/nodeTemplates';
 import { FunctionStubKind } from '../../../ast/cairoNodes';
 import { typeNameFromTypeNode } from '../../../utils/utils';
 import { printTypeNode } from '../../../utils/astPrinter';
-import { getElementType, isDynamicArray } from '../../../utils/nodeTypeProcessing';
+import { getElementType, isDynamicArray, safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 
 const INDENT = ' '.repeat(4);
 
@@ -35,7 +34,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     astNode: VariableDeclaration | Expression,
     nodeInSourceUnit?: ASTNode,
   ): FunctionCall | undefined {
-    const type = generalizeType(getNodeType(astNode, this.ast.compilerVersion))[0];
+    const type = generalizeType(safeGetNodeType(astNode, this.ast.compilerVersion))[0];
     assert(
       isDynamicArray(type),
       `Attempted to create dynArray struct for non-dynarray type ${printTypeNode(type)}`,

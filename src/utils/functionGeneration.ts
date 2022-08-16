@@ -13,7 +13,6 @@ import {
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
-  getNodeType,
   Identifier,
   Mutability,
   StateVariableVisibility,
@@ -25,7 +24,7 @@ import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
 import { Implicits } from './implicits';
 import { createIdentifier, createParameterList } from './nodeTemplates';
-import { isDynamicArray } from './nodeTypeProcessing';
+import { isDynamicArray, safeGetNodeType } from './nodeTypeProcessing';
 import { toSingleExpression } from './utils';
 
 export function createCallToFunction(
@@ -139,7 +138,7 @@ export function createElementaryConversionCall(
   expression: Expression,
   ast: AST,
 ): FunctionCall {
-  const isDynArray = isDynamicArray(getNodeType(typeTo, ast.compilerVersion));
+  const isDynArray = isDynamicArray(safeGetNodeType(typeTo, ast.compilerVersion));
   const innerTypeString = isDynArray
     ? `type(${typeTo.typeString} storage pointer)`
     : `type(${typeTo.typeString})`;

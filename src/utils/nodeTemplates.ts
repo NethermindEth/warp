@@ -12,7 +12,6 @@ import {
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
-  getNodeTypeInCtx,
   Identifier,
   Literal,
   LiteralKind,
@@ -27,7 +26,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { generateExpressionTypeString, generateLiteralTypeString } from './getTypeString';
-import { specializeType } from './nodeTypeProcessing';
+import { safeGetNodeTypeInCtx, specializeType } from './nodeTypeProcessing';
 import { notNull } from './typeConstructs';
 import { toHexString, toSingleExpression } from './utils';
 
@@ -125,7 +124,7 @@ export function createIdentifier(
   lookupNode?: ASTNode,
 ): Identifier {
   const type = specializeType(
-    getNodeTypeInCtx(variable, ast.compilerVersion, lookupNode ?? variable),
+    safeGetNodeTypeInCtx(variable, ast.compilerVersion, lookupNode ?? variable),
     dataLocation ?? (variable.stateVariable ? DataLocation.Storage : variable.storageLocation),
   );
   const node = new Identifier(

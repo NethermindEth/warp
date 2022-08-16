@@ -4,7 +4,6 @@ import {
   ContractKind,
   FunctionDefinition,
   FunctionCall,
-  getNodeType,
   FunctionCallKind,
   EnumDefinition,
   IntType,
@@ -13,7 +12,7 @@ import { ASTMapper } from '../ast/mapper';
 import { isExternallyVisible } from '../utils/utils';
 import assert from 'assert';
 import { createExpressionStatement } from '../utils/nodeTemplates';
-import { checkableType } from '../utils/nodeTypeProcessing';
+import { checkableType, safeGetNodeType } from '../utils/nodeTypeProcessing';
 export class ArgBoundChecker extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
@@ -31,7 +30,7 @@ export class ArgBoundChecker extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (isExternallyVisible(node) && node.vBody !== undefined) {
       node.vParameters.vParameters.forEach((decl) => {
-        const type = getNodeType(decl, ast.compilerVersion);
+        const type = safeGetNodeType(decl, ast.compilerVersion);
         if (checkableType(type)) {
           const functionCall = ast
             .getUtilFuncGen(node)
@@ -56,7 +55,7 @@ export class ArgBoundChecker extends ASTMapper {
     if (
       node.kind === FunctionCallKind.TypeConversion &&
       node.vReferencedDeclaration instanceof EnumDefinition &&
-      getNodeType(node.vArguments[0], ast.compilerVersion) instanceof IntType
+      safeGetNodeType(node.vArguments[0], ast.compilerVersion) instanceof IntType
     ) {
       const enumDef = node.vReferencedDeclaration;
       const enumCheckFuncCall = ast

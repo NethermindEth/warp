@@ -42,7 +42,7 @@ getting the expected types of their arguments, this centralises that process
 Does not handle type conversion functions, as they don't have a specific input type
 */
 export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNode[] {
-  const functionType = getNodeType(functionCall.vExpression, ast.compilerVersion);
+  const functionType = safeGetNodeType(functionCall.vExpression, ast.compilerVersion);
   switch (functionCall.kind) {
     case FunctionCallKind.FunctionCall:
       assert(
@@ -263,7 +263,7 @@ export function isStorageSpecificType(
   ) {
     visitedStructs.push(type.definition.id);
     return type.definition.vMembers.some((m) =>
-      isStorageSpecificType(getNodeType(m, ast.compilerVersion), ast, visitedStructs),
+      isStorageSpecificType(safeGetNodeType(m, ast.compilerVersion), ast, visitedStructs),
     );
   }
   return false;

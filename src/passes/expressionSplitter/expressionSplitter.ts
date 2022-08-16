@@ -15,7 +15,6 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
   generalizeType,
-  getNodeType,
   FunctionKind,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -26,6 +25,7 @@ import { TranspileFailedError } from '../../utils/errors';
 import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
 import { SPLIT_EXPRESSION_PREFIX } from '../../utils/nameModifiers';
 import { createEmptyTuple, createIdentifier } from '../../utils/nodeTemplates';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { counterGenerator, getContainingFunction } from '../../utils/utils';
 import {
   addStatementsToCallFunction,
@@ -182,7 +182,7 @@ function createVariableDeclarationStatement(
   ast: AST,
 ): VariableDeclarationStatement {
   const location =
-    generalizeType(getNodeType(initalValue, ast.compilerVersion))[1] ?? DataLocation.Default;
+    generalizeType(safeGetNodeType(initalValue, ast.compilerVersion))[1] ?? DataLocation.Default;
   const varDecl = new VariableDeclaration(
     ast.reserveId(),
     '',

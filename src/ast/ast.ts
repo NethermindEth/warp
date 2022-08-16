@@ -7,7 +7,6 @@ import {
   Expression,
   FunctionCall,
   generalizeType,
-  getNodeType,
   Identifier,
   Mutability,
   SourceUnit,
@@ -24,6 +23,7 @@ import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { Implicits } from '../utils/implicits';
 import { createBlock } from '../utils/nodeTemplates';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit, isExternalCall, mergeImports } from '../utils/utils';
 import { CairoFunctionDefinition } from './cairoNodes';
 
@@ -94,11 +94,12 @@ export class AST {
     let location: DataLocation;
     if (node instanceof FunctionCall && isExternalCall(node)) {
       location =
-        generalizeType(getNodeType(node, this.compilerVersion))[1] === undefined
+        generalizeType(safeGetNodeType(node, this.compilerVersion))[1] === undefined
           ? DataLocation.Default
           : DataLocation.CallData;
     } else {
-      location = generalizeType(getNodeType(node, this.compilerVersion))[1] ?? DataLocation.Default;
+      location =
+        generalizeType(safeGetNodeType(node, this.compilerVersion))[1] ?? DataLocation.Default;
     }
     const replacementVariable = new VariableDeclaration(
       this.tempId,

@@ -9,7 +9,6 @@ import {
   FunctionCall,
   FunctionCallKind,
   generalizeType,
-  getNodeType,
   IntLiteralType,
   IntType,
   Literal,
@@ -29,13 +28,14 @@ import { functionaliseIntConversion } from '../../warplib/implementations/conver
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { functionaliseFixedBytesConversion } from '../../warplib/implementations/conversions/fixedBytes';
 import { functionaliseBytesToFixedBytes } from '../../warplib/implementations/conversions/dynBytesToFixed';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 
 export class ExplicitConversionToFunc extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     this.commonVisit(node, ast);
     if (node.kind !== FunctionCallKind.TypeConversion) return;
 
-    const typeNameType = getNodeType(node.vExpression, ast.compilerVersion);
+    const typeNameType = safeGetNodeType(node.vExpression, ast.compilerVersion);
 
     assert(node.vArguments.length === 1, `Expecting typeconversion to have one child`);
 
@@ -62,7 +62,7 @@ export class ExplicitConversionToFunc extends ASTMapper {
       `Unexpected node type ${node.vExpression.type}`,
     );
     const typeTo = generalizeType(typeNameType.type)[0];
-    const argType = generalizeType(getNodeType(node.vArguments[0], ast.compilerVersion))[0];
+    const argType = generalizeType(safeGetNodeType(node.vArguments[0], ast.compilerVersion))[0];
 
     if (typeTo instanceof IntType) {
       if (argType instanceof FixedBytesType) {

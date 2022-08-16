@@ -6,7 +6,6 @@ import {
   Expression,
   ExpressionStatement,
   generalizeType,
-  getNodeType,
   IntLiteralType,
   Mutability,
   Return,
@@ -24,6 +23,7 @@ import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
 import { TUPLE_VALUE_PREFIX } from '../utils/nameModifiers';
 import { createBlock, createIdentifier } from '../utils/nodeTemplates';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { notNull } from '../utils/typeConstructs';
 import { typeNameFromTypeNode } from '../utils/utils';
 
@@ -97,7 +97,7 @@ export class TupleAssignmentSplitter extends ASTMapper {
       lhs instanceof TupleExpression,
       `Split tuple assignment was called on non-tuple assignment ${node.type} # ${node.id}`,
     );
-    const rhsType = getNodeType(rhs, ast.compilerVersion);
+    const rhsType = safeGetNodeType(rhs, ast.compilerVersion);
     assert(
       rhsType instanceof TupleType,
       `Expected rhs of tuple assignment to be tuple type ${printNode(node)}`,
@@ -107,7 +107,7 @@ export class TupleAssignmentSplitter extends ASTMapper {
 
     const tempVars = new Map<Expression, VariableDeclaration>(
       lhs.vOriginalComponents.filter(notNull).map((child, index) => {
-        const lhsElementType = getNodeType(child, ast.compilerVersion);
+        const lhsElementType = safeGetNodeType(child, ast.compilerVersion);
         const rhsElementType = rhsType.elements[index];
 
         // We need to calculate a type and location for the temporary variable
