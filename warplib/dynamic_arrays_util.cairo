@@ -2,7 +2,8 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.dict import dict_read, dict_write
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.uint256 import Uint256
-from warplib.maths.utils import felt_to_uint256
+from starkware.cairo.common.math_cmp import is_le
+from warplib.maths.utils import felt_to_uint256, narrow_safe
 from warplib.maths.bytes_access import byte256_at_index, byte_at_index
 from warplib.memory import wm_index_dyn, wm_read_felt, wm_write_felt
 
@@ -69,6 +70,18 @@ func fixed_bytes256_to_dynamic_array{
 end
 
 # ----------------------- Felt Dynamic Arrays Utils ----------------------------------
+func felt_array_to_warp_memory_array{range_check_ptr, warp_memory : DictAccess*}(index : felt, array : felt*, mem_index : felt, mem_ptr, max_length : felt):
+    if index == max_length:
+        return ()
+    end
+    let elem = array[index]
+    let (mem_index256 : Uint256) = felt_to_uint256(mem_index)
+    let (elem_loc : felt) = wm_index_dyn(mem_ptr, mem_index256, Uint256(1, 0))
+    wm_write_felt(elem_loc, elem)
+    return felt_array_to_warp_memory_array(index + 1, array, mem_index + 1, mem_ptr, max_length)
+end
+
+
 func fixed_bytes256_to_felt_dynamic_array{
     bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
 }(
@@ -88,13 +101,87 @@ func fixed_bytes256_to_felt_dynamic_array{
     )
 end
 
-func felt_array_to_warp_memory_array{range_check_ptr, warp_memory : DictAccess*}(index : felt, array : felt*, mem_index : felt, mem_ptr, max_length : felt):
-    if index == max_length:
+func bytes_to_felt_dynamic_array{
+    bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
+}(
+    array_index : felt,
+    array_offset : felt,
+    array : felt*,
+    mem_ptr : felt
+) -> (final_index : felt, final_offset : felt):
+    alloc_locals
+    # Store pointer to data
+    let (offset256) = felt_to_uint256(array_offset)
+    fixed_bytes256_to_felt_dynamic_array(array_index, array, 0, offset256) 
+    let new_index = array_index + 32
+    # Store length
+    let (length_low) = wm_read_felt(mem_ptr)
+    let (length_high) = wm_read_felt(mem_ptr + 1)
+    let length256 = Uint256(length_low, length_high)
+    fixed_bytes256_to_felt_dynamic_array(array_offset, array, 0, length256)
+    let new_offset = array_offset + 32
+    # Store the data
+    let (length) = narrow_safe(length256)
+    let (bytes_needed) = bytes_upper_bound(length)
+    let max_offset = new_offset + bytes_needed 
+    bytes_to_felt_dynamic_array_helper(
+        new_offset,
+        max_offset,
+        array,
+        0,
+        length,
+        mem_ptr + 2, # The first two elements are the length
+    )
+    return (new_index, max_offset)
+end
+
+func bytes_to_felt_dynamic_array_helper{
+    bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
+}(
+    array_index : felt,
+    array_offset : felt,
+    array : felt*,
+    mem_index : felt,
+    mem_length : felt,
+    mem_ptr : felt,
+):
+    alloc_locals
+    if array_index == array_offset:
+        # Everything have been stored
         return ()
     end
-    let elem = array[index]
-    let (mem_index256 : Uint256) = felt_to_uint256(mem_index)
-    let (elem_loc : felt) = wm_index_dyn(mem_ptr, mem_index256, Uint256(1, 0))
-    wm_write_felt(elem_loc, elem)
-    return felt_array_to_warp_memory_array(index + 1, array, mem_index + 1, mem_ptr, max_length)
+    let (lesser) = is_le(mem_index, mem_length - 1)
+    if lesser == 1:
+        # Read each byte and copy it
+        let (byte) = dict_read{dict_ptr=warp_memory}(mem_ptr + mem_index)
+        assert array[array_index] = byte
+        return bytes_to_felt_dynamic_array_helper(
+            array_index + 1,
+            array_offset,
+            array,
+            mem_index + 1,
+            mem_length,
+            mem_ptr
+        )
+    else:
+        # Pad the rest of the slot with 0s bytes
+        assert array[array_index] = 0
+        return bytes_to_felt_dynamic_array_helper(
+            array_index + 1,
+            array_offset,
+            array,
+            mem_index,
+            mem_length,
+            mem_ptr
+        )
+    end
+end
+    
+func bytes_upper_bound{range_check_ptr : felt}(number : felt) -> (upper_bound : felt):
+    let (lesser) = is_le(number, 32)
+    if lesser == 1:
+        return (32)
+    end
+    let (result) =  bytes_upper_bound(number - 32)
+    return (32 + result)
 end

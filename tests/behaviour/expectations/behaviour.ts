@@ -24,6 +24,27 @@ export const expectations = flatten(
             Expect.Simple('staticNested', [], getByte32Array(2, 3, 4, 5)),
             Expect.Simple('staticDynamicNested', [], getByte32Array(32, 96, 192, 2, 2, 3, 1, 11)),
           ]),
+          File.Simple('abiEncodeStrings', [
+            Expect.Simple(
+              'stringEncoding',
+              [],
+              getByte32Array(32, 4, BigInt('0x686f6c61'.padEnd(66, '0'))),
+            ),
+            Expect.Simple(
+              'docsExample',
+              [],
+              getByte32Array(
+                ...[64, 320],
+                ...[2, 160, 256],
+                ...[2, 1, 2],
+                ...[1, 3],
+                ...[3, 448, 512, 576],
+                ...[3, BigInt('0x6f6e65'.padEnd(66, '0'))],
+                ...[3, BigInt('0x74776f'.padEnd(66, '0'))],
+                ...[5, BigInt('0x7468726565'.padEnd(66, '0'))],
+              ),
+            ),
+          ]),
           File.Simple('abiEncodeStruct', [
             Expect.Simple('structSimple', [], getByte32Array(2, 3)),
             Expect.Simple('structComplex', [], getByte32Array(32, 160, 7, 11, 13, 3, 2, 3, 5)),

@@ -1,14 +1,12 @@
 import assert from 'assert';
 import {
   ArrayType,
-  BytesType,
   DataLocation,
   Expression,
   FunctionCall,
   generalizeType,
   getNodeType,
   SourceUnit,
-  StringType,
   StructDefinition,
   TypeNode,
   UserDefinedType,
@@ -133,7 +131,10 @@ export class AbiEncode extends StringIndexedFuncGen {
 
     return delegateBasedOnType<string>(
       type,
-      (type) => this.createDynamicArrayHeadEncoding(type),
+      (type) =>
+        type instanceof ArrayType
+          ? this.createDynamicArrayHeadEncoding(type)
+          : this.createStringOrBytesHeadEncoding(),
       (type) =>
         isDynamicallySized(type, this.ast.compilerVersion)
           ? this.createStaticArrayHeadEncoding(type)
@@ -200,7 +201,7 @@ export class AbiEncode extends StringIndexedFuncGen {
     return instructions.join('\n');
   }
 
-  private createDynamicArrayHeadEncoding(type: ArrayType | StringType | BytesType): string {
+  private createDynamicArrayHeadEncoding(type: ArrayType): string {
     const key = 'head ' + type.pp();
     const exisiting = this.auxiliarGeneratedFunctions.get(key);
     if (exisiting !== undefined) return exisiting.name;
@@ -252,7 +253,7 @@ export class AbiEncode extends StringIndexedFuncGen {
     return name;
   }
 
-  private createDynamicArrayTailEncoding(type: ArrayType | StringType | BytesType): string {
+  private createDynamicArrayTailEncoding(type: ArrayType): string {
     const key = 'tail' + type.pp();
     const exisiting = this.auxiliarGeneratedFunctions.get(key);
     if (exisiting !== undefined) return exisiting.name;
@@ -299,7 +300,7 @@ export class AbiEncode extends StringIndexedFuncGen {
     return name;
   }
 
-  private createStaticArrayHeadEncoding(type: ArrayType) {
+  private createStaticArrayHeadEncoding(type: ArrayType): string {
     assert(type.size !== undefined);
     const key = 'head ' + type.pp();
     const exisiting = this.auxiliarGeneratedFunctions.get(key);
@@ -414,6 +415,7 @@ export class AbiEncode extends StringIndexedFuncGen {
     if (exisiting !== undefined) return exisiting.name;
 
     const inlineEncoding = this.createStructInlineEncoding(type, def);
+    // Get the size of all it's members
     const typeByteSize = def.vMembers.reduce(
       (sum, varDecl) =>
         sum +
@@ -496,6 +498,12 @@ export class AbiEncode extends StringIndexedFuncGen {
 
     this.auxiliarGeneratedFunctions.set(key, { name, code });
     return name;
+  }
+
+  private createStringOrBytesHeadEncoding(): string {
+    const funcName = 'bytes_to_felt_dynamic_array';
+    this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return funcName;
   }
 
   private createValueTypeHeadEncoding(): string {
