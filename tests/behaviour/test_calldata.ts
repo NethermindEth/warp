@@ -9062,14 +9062,12 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       {
         callData: '0x',
         expectations: '0x',
-        expectedSideEffects: ['emit ev0(bytes1): #"1"'],
         failure: false,
         signature: 'constructor()',
       },
       {
         callData: '0xb582ec5f',
         expectations: '0x',
-        expectedSideEffects: ['emit ev0(bytes1): #"1"'],
         failure: false,
         signature: 'j()',
       },
@@ -10008,7 +10006,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0x3c65c00c',
       expectations: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      expectedSideEffects: ['emit Log(uint8): 0x00'],
       failure: false,
       signature: 'test_log_ok()',
     },
@@ -10226,9 +10223,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       callData:
         '0x52ff8cff00000000000000000000000000000000000000000000000000000000000012340000000000000000000000000000000000000000000000000000000000000001',
       expectations: '0x',
-      expectedSideEffects: [
-        'emit Deposit(address,bytes32,uint256): #0x1212121212121212121212121212120000000012, #0x1234, 0x12',
-      ],
       failure: false,
       signature: 'deposit(bytes32,bool)',
     },
@@ -10236,9 +10230,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       callData:
         '0x52ff8cff00000000000000000000000000000000000000000000000000000000000012340000000000000000000000000000000000000000000000000000000000000000',
       expectations: '0x',
-      expectedSideEffects: [
-        'emit Deposit(address,bytes32,uint256): #0x1212121212121212121212121212120000000012, #0x1234, 0x12',
-      ],
       failure: false,
       signature: 'deposit(bytes32,bool)',
     },
@@ -10248,7 +10239,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       {
         callData: '0x26121ff0',
         expectations: '0x0000000000000000000000000000000000000000000000000000000000000001',
-        expectedSideEffects: ['emit x()'],
         failure: false,
         signature: 'f()',
       },
@@ -10257,7 +10247,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0xd0e30db0',
       expectations: '0x',
-      expectedSideEffects: ['emit <anonymous>'],
       failure: false,
       signature: 'deposit()',
     },
@@ -10267,9 +10256,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       {
         callData: '0xb214faa50000000000000000000000000000000000000000000000000000000000001234',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit <anonymous>: #0x2012159ca6b6372f102c535a4814d13a00bfc5568ddfd72151364061b00355d1, #0x1234, 0x12',
-        ],
         failure: false,
         signature: 'deposit(bytes32)',
       },
@@ -10279,7 +10265,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       {
         callData: '0xb214faa50000000000000000000000000000000000000000000000000000000000001234',
         expectations: '0x',
-        expectedSideEffects: ['emit Withdraw(uint256,string): #0x1234, 0x12'],
         failure: false,
         signature: 'deposit(bytes32)',
       },
@@ -10289,9 +10274,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       {
         callData: '0xb214faa50000000000000000000000000000000000000000000000000000000000001234',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit <anonymous>: #0x1212121212121212121212121212120000000012, #0x1234, #0x12, #0x02, "abc"',
-        ],
         failure: false,
         signature: 'deposit(bytes32)',
       },
@@ -10300,9 +10282,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0x',
       expectations: '0x',
-      expectedSideEffects: [
-        'emit Deposit(address,bytes32,uint256): #0x1212121212121212121212121212120000000012, #"abc", 0x07',
-      ],
       failure: false,
       signature: 'constructor()',
     },
@@ -10311,7 +10290,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0x977d996d000000000000000000000000000000000000000000000000000000000000002a',
       expectations: '0x',
-      expectedSideEffects: ['emit E(uint256[]): 0x20, 0x03, 0x2a, 0x2b, 0x2c'],
       failure: false,
       signature: 'createEvent(uint256)',
     },
@@ -10321,7 +10299,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       {
         callData: '0x977d996d000000000000000000000000000000000000000000000000000000000000002a',
         expectations: '0x',
-        expectedSideEffects: ['emit E(uint256[]): 0x20, 0x03, 0x2a, 0x2b, 0x2c'],
         failure: false,
         signature: 'createEvent(uint256)',
       },
@@ -10331,7 +10308,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       {
         callData: '0x977d996d000000000000000000000000000000000000000000000000000000000000002a',
         expectations: '0x',
-        expectedSideEffects: ['emit E(uint256[]): 0x20, 0x03, 0x2a, 0x2b, 0x2c'],
         failure: false,
         signature: 'createEvent(uint256)',
       },
@@ -10341,7 +10317,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       {
         callData: '0x977d996d000000000000000000000000000000000000000000000000000000000000002a',
         expectations: '0x',
-        expectedSideEffects: ['emit E(uint256[]): 0x20, 0x03, 0x2a, 0x2b, 0x2c'],
         failure: false,
         signature: 'createEvent(uint256)',
       },
@@ -10351,9 +10326,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       {
         callData: '0x977d996d000000000000000000000000000000000000000000000000000000000000002a',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit E(uint256[][]): 0x20, 0x02, 0x40, 0xa0, 0x02, 0x2a, 0x2b, 0x02, 0x2c, 0x2d',
-        ],
         failure: false,
         signature: 'createEvent(uint256)',
       },
@@ -10363,9 +10335,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       {
         callData: '0x977d996d000000000000000000000000000000000000000000000000000000000000002a',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit E(uint256[][]): 0x20, 0x02, 0x40, 0xa0, 0x02, 0x2a, 0x2b, 0x02, 0x2c, 0x2d',
-        ],
         failure: false,
         signature: 'createEvent(uint256)',
       },
@@ -10374,9 +10343,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0xb214faa50000000000000000000000000000000000000000000000000000000000001234',
       expectations: '0x',
-      expectedSideEffects: [
-        'emit Deposit(address,bytes32,uint256): #0x1212121212121212121212121212120000000012, #0x1234, 0x12',
-      ],
       failure: false,
       signature: 'deposit(bytes32)',
     },
@@ -10392,9 +10358,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       {
         callData: '0xb214faa50000000000000000000000000000000000000000000000000000000000001234',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit Deposit(address,bytes32,uint256) from 0xf01f7809444bd9a93a854361c6fae3f23d9e23db: #0x0fdd67305928fcac8d213d1e47bfa6165cd0b87b, #0x1234, 0x00',
-        ],
         failure: false,
         signature: 'deposit(bytes32)',
       },
@@ -10403,9 +10366,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0x26121ff0',
       expectations: '0x',
-      expectedSideEffects: [
-        'emit Test(function): #0x0fdd67305928fcac8d213d1e47bfa6165cd0b87b26121ff00000000000000000',
-      ],
       failure: false,
       signature: 'f()',
     },
@@ -10414,18 +10374,12 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0xc27fc305',
       expectations: '0x',
-      expectedSideEffects: [
-        'emit TestA(function): #0x0fdd67305928fcac8d213d1e47bfa6165cd0b87bc27fc3050000000000000000',
-      ],
       failure: false,
       signature: 'f1()',
     },
     {
       callData: '0xbf3724af0000000000000000000000000000000000000000000000000000000000000001',
       expectations: '0x',
-      expectedSideEffects: [
-        'emit TestB(function): #0x0fdd67305928fcac8d213d1e47bfa6165cd0b87bbf3724af0000000000000000',
-      ],
       failure: false,
       signature: 'f2(uint256)',
     },
@@ -10434,9 +10388,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0xd0e30db0',
       expectations: '0x',
-      expectedSideEffects: [
-        'emit E(uint256,uint256,uint256,bytes): #0x02, 0x01, 0x03, 0x60, 0x03, "def"',
-      ],
       failure: false,
       signature: 'deposit()',
     },
@@ -10445,9 +10396,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0xd0e30db0',
       expectations: '0x',
-      expectedSideEffects: [
-        'emit E(string,uint256[4]): #0xa7fb06bb999a5eb9aff9e0779953f4e1e4ce58044936c2f51c7fb879b85c08bd, #0xe755d8cc1a8cde16a2a31160dcd8017ac32d7e2f13215b29a23cdae40a78aa81',
-      ],
       failure: false,
       signature: 'deposit()',
     },
@@ -10456,9 +10404,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0xb214faa50000000000000000000000000000000000000000000000000000000000001234',
       expectations: '0x',
-      expectedSideEffects: [
-        'emit Deposit(address,bytes32,uint256,bool): 0x1212121212121212121212121212120000000012, 0x1234, 0x12, true',
-      ],
       failure: false,
       signature: 'deposit(bytes32)',
     },
@@ -10467,7 +10412,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0xd0e30db0',
       expectations: '0x',
-      expectedSideEffects: ['emit Deposit()'],
       failure: false,
       signature: 'deposit()',
     },
@@ -10476,9 +10420,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0xd0e30db0',
       expectations: '0x',
-      expectedSideEffects: [
-        'emit Deposit(uint256,bytes,uint256): 0x0a, 0x60, 0x0f, 0x04, 0xd0e30db000000000000000000000000000000000000000000000000000000000',
-      ],
       failure: false,
       signature: 'deposit()',
     },
@@ -10488,7 +10429,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       {
         callData: '0xd0e30db0',
         expectations: '0x',
-        expectedSideEffects: ['emit Deposit(uint256,bytes,uint256): 0x0a, 0x60, 0x0f, 0x03, "ABC"'],
         failure: false,
         signature: 'deposit()',
       },
@@ -10498,9 +10438,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       {
         callData: '0xd0e30db0',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit Deposit(uint256,bytes,uint256): 0x0a, 0x60, 0x0f, 0x1f, "ABC\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0Z"',
-        ],
         failure: false,
         signature: 'deposit()',
       },
@@ -10509,9 +10446,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0x',
       expectations: '0x',
-      expectedSideEffects: [
-        'emit E((uint8,int16),(uint8,int16)): #0xad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5, 0x00, 0x00',
-      ],
       failure: false,
       signature: 'constructor()',
     },
@@ -10520,7 +10454,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0xd0e30db0',
       expectations: '0x',
-      expectedSideEffects: ['emit E(string): 0x20, 0x0b, "HELLO WORLD"'],
       failure: false,
       signature: 'deposit()',
     },
@@ -10529,7 +10462,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0x977d996d000000000000000000000000000000000000000000000000000000000000002a',
       expectations: '0x',
-      expectedSideEffects: ['emit E((uint256)): 0x2a'],
       failure: false,
       signature: 'createEvent(uint256)',
     },
@@ -10538,7 +10470,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0x977d996d000000000000000000000000000000000000000000000000000000000000002a',
       expectations: '0x',
-      expectedSideEffects: ['emit E((uint256)): 0x2a'],
       failure: false,
       signature: 'createEvent(uint256)',
     },
@@ -10547,14 +10478,12 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0xd0e30db0',
       expectations: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      expectedSideEffects: ['emit Deposit()'],
       failure: false,
       signature: 'deposit()',
     },
     {
       callData: '0xf340fa010000000000000000000000005082a85c489be6aa0f2e6693bf09cc1bbd35e988',
       expectations: '0x0000000000000000000000000000000000000000000000000000000000000002',
-      expectedSideEffects: ['emit Deposit(address): 0x5082a85c489be6aa0f2e6693bf09cc1bbd35e988'],
       failure: false,
       signature: 'deposit(address)',
     },
@@ -10562,9 +10491,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       callData:
         '0x47e7ef240000000000000000000000005082a85c489be6aa0f2e6693bf09cc1bbd35e9880000000000000000000000000000000000000000000000000000000000000064',
       expectations: '0x0000000000000000000000000000000000000000000000000000000000000003',
-      expectedSideEffects: [
-        'emit Deposit(address,uint256): 0x5082a85c489be6aa0f2e6693bf09cc1bbd35e988, 0x64',
-      ],
       failure: false,
       signature: 'deposit(address,uint256)',
     },
@@ -10572,9 +10498,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       callData:
         '0xadc9740c0000000000000000000000005082a85c489be6aa0f2e6693bf09cc1bbd35e9880000000000000000000000000000000000000000000000000000000000000000',
       expectations: '0x0000000000000000000000000000000000000000000000000000000000000004',
-      expectedSideEffects: [
-        'emit Deposit(address,bool): 0x5082a85c489be6aa0f2e6693bf09cc1bbd35e988, false',
-      ],
       failure: false,
       signature: 'deposit(address,bool)',
     },
@@ -10584,14 +10507,12 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       {
         callData: '0xd0e30db0',
         expectations: '0x0000000000000000000000000000000000000000000000000000000000000001',
-        expectedSideEffects: ['emit Deposit()'],
         failure: false,
         signature: 'deposit()',
       },
       {
         callData: '0xf340fa010000000000000000000000005082a85c489be6aa0f2e6693bf09cc1bbd35e988',
         expectations: '0x0000000000000000000000000000000000000000000000000000000000000001',
-        expectedSideEffects: ['emit Deposit(address): 0x5082a85c489be6aa0f2e6693bf09cc1bbd35e988'],
         failure: false,
         signature: 'deposit(address)',
       },
@@ -10599,9 +10520,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
         callData:
           '0x47e7ef240000000000000000000000005082a85c489be6aa0f2e6693bf09cc1bbd35e9880000000000000000000000000000000000000000000000000000000000000064',
         expectations: '0x0000000000000000000000000000000000000000000000000000000000000001',
-        expectedSideEffects: [
-          'emit Deposit(address,uint256): 0x5082a85c489be6aa0f2e6693bf09cc1bbd35e988, 0x64',
-        ],
         failure: false,
         signature: 'deposit(address,uint256)',
       },
@@ -10902,9 +10820,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
         callData:
           '0xae999ece000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000036162630000000000000000000000000000000000000000000000000000000000',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit Changed(string): #0x4e03657aea45a94fc7d47ba826c8d667c0d1e6e33a64a036ec44f58fa12d6c45',
-        ],
         failure: false,
         signature: 'reserve(string)',
       },
@@ -10919,9 +10834,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
         callData:
           '0xae999ece000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000036465660000000000000000000000000000000000000000000000000000000000',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit Changed(string): #0x34607c9bbfeb9c23509680f04363f298fdb0b5f9abe327304ecd1daca08cda9c',
-        ],
         failure: false,
         signature: 'reserve(string)',
       },
@@ -10964,9 +10876,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
         callData:
           '0xfd6f54300000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000036162630000000000000000000000000000000000000000000000000000000000',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit Changed(string): #0x4e03657aea45a94fc7d47ba826c8d667c0d1e6e33a64a036ec44f58fa12d6c45',
-        ],
         failure: false,
         signature: 'setContent(string,bytes32)',
       },
@@ -10974,9 +10883,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
         callData:
           '0xfbf58b3e0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000022b00000000000000000000000000000000000000000000000000000000000000036162630000000000000000000000000000000000000000000000000000000000',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit Changed(string): #0x4e03657aea45a94fc7d47ba826c8d667c0d1e6e33a64a036ec44f58fa12d6c45',
-        ],
         failure: false,
         signature: 'transfer(string,address)',
       },
@@ -10998,9 +10904,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
         callData:
           '0xfd6f54300000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000014d00000000000000000000000000000000000000000000000000000000000000036465660000000000000000000000000000000000000000000000000000000000',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit Changed(string): #0x34607c9bbfeb9c23509680f04363f298fdb0b5f9abe327304ecd1daca08cda9c',
-        ],
         failure: false,
         signature: 'setContent(string,bytes32)',
       },
@@ -11008,9 +10911,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
         callData:
           '0x213b9eb80000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000007c00000000000000000000000000000000000000000000000000000000000000036465660000000000000000000000000000000000000000000000000000000000',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit Changed(string): #0x34607c9bbfeb9c23509680f04363f298fdb0b5f9abe327304ecd1daca08cda9c',
-        ],
         failure: false,
         signature: 'setAddr(string,address)',
       },
@@ -11018,9 +10918,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
         callData:
           '0xccf4f4130000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000007d00000000000000000000000000000000000000000000000000000000000000036465660000000000000000000000000000000000000000000000000000000000',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit Changed(string): #0x34607c9bbfeb9c23509680f04363f298fdb0b5f9abe327304ecd1daca08cda9c',
-        ],
         failure: false,
         signature: 'setSubRegistrar(string,address)',
       },
@@ -11049,9 +10946,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
         callData:
           '0xb57540450000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000012400000000000000000000000000000000000000000000000000000000000000036465660000000000000000000000000000000000000000000000000000000000',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit Changed(string): #0x34607c9bbfeb9c23509680f04363f298fdb0b5f9abe327304ecd1daca08cda9c',
-        ],
         failure: false,
         signature: 'disown(string,address)',
       },
@@ -11160,9 +11054,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
         callData:
           '0x22895118000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000120aa4a8d0b7d9077248630f1a4701ae9764e42271d7f22b7838778411857fd349e0000000000000000000000000000000000000000000000000000000000000030933ad9491b62059dd065b560d256d8957a8c402cc6e8d8ee7290ae11e8f7329267a8811c397529dac52ae1342ba58c9500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000f50428677c60f997aadeab24aabf7fceaef491c96a52b463ae91f95611cf710000000000000000000000000000000000000000000000000000000000000060a29d01cc8c6296a8150e515b5995390ef841dc18948aa3e79be6d7c1851b4cbb5d6ff49fa70b9c782399506a22a85193151b9b691245cebafd2063012443c1324b6c36debaedefb7b2d71b0503ffdc00150aaffd42e63358238ec888901738b8',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit DepositEvent(bytes,bytes,bytes,bytes,bytes): 0xa0, 0x0100, 0x0140, 0x0180, 0x0200, 0x30, 0x933ad9491b62059dd065b560d256d8957a8c402cc6e8d8ee7290ae11e8f73292, 0x67a8811c397529dac52ae1342ba58c9500000000000000000000000000000000, 0x20, 0xf50428677c60f997aadeab24aabf7fceaef491c96a52b463ae91f95611cf71, 0x08, 0xca9a3b00000000000000000000000000000000000000000000000000000000, 0x60, 0xa29d01cc8c6296a8150e515b5995390ef841dc18948aa3e79be6d7c1851b4cbb, 0x5d6ff49fa70b9c782399506a22a85193151b9b691245cebafd2063012443c132, 0x4b6c36debaedefb7b2d71b0503ffdc00150aaffd42e63358238ec888901738b8, 0x08, 0x00',
-        ],
         failure: false,
         signature: 'deposit(bytes,bytes,bytes,bytes32)',
       },
@@ -11183,9 +11074,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
         callData:
           '0x22895118000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000120dbd986dc85ceb382708cf90a3500f500f0a393c5ece76963ac3ed72eccd2c3010000000000000000000000000000000000000000000000000000000000000030b2ce0f79f90e7b3a113ca5783c65756f96c4b4673c2b5c1eb4efc2228025944106d601211e8866dc5b50dc48a244dd7c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000344b6c73f71b11c56aba0d01b7d8ad83559f209d0a4101a515f6ad54c897710000000000000000000000000000000000000000000000000000000000000060945caaf82d18e78c033927d51f452ebcd76524497b91d7a11219cb3db6a1d3697595fc095ce489e46b2ef129591f2f6d079be4faaf345a02c5eb133c072e7c560c6c3617eee66b4b878165c502357d49485326bc6b31bc96873f308c8f19c09d',
         expectations: '0x',
-        expectedSideEffects: [
-          'emit DepositEvent(bytes,bytes,bytes,bytes,bytes): 0xa0, 0x0100, 0x0140, 0x0180, 0x0200, 0x30, 0xb2ce0f79f90e7b3a113ca5783c65756f96c4b4673c2b5c1eb4efc22280259441, 0x06d601211e8866dc5b50dc48a244dd7c00000000000000000000000000000000, 0x20, 0x344b6c73f71b11c56aba0d01b7d8ad83559f209d0a4101a515f6ad54c89771, 0x08, 0x40597307000000000000000000000000000000000000000000000000000000, 0x60, 0x945caaf82d18e78c033927d51f452ebcd76524497b91d7a11219cb3db6a1d369, 0x7595fc095ce489e46b2ef129591f2f6d079be4faaf345a02c5eb133c072e7c56, 0x0c6c3617eee66b4b878165c502357d49485326bc6b31bc96873f308c8f19c09d, 0x08, 0x0100000000000000000000000000000000000000000000000000000000000000',
-        ],
         failure: false,
         signature: 'deposit(bytes,bytes,bytes,bytes32)',
       },
@@ -11386,7 +11274,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0x6dae022f',
       expectations: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      expectedSideEffects: ['emit Verified(string): 0x20, 0x16, "Successfully verified."'],
       failure: false,
       signature: 'verifyTx()',
     },
@@ -22499,7 +22386,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0x26121ff0',
       expectations: '0x',
-      expectedSideEffects: ['emit Ev((uint256)): 0x01'],
       failure: false,
       signature: 'f()',
     },
@@ -25820,9 +25706,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0x',
       expectations: '0x',
-      expectedSideEffects: [
-        'emit Transfer(address,address,uint256): #0x00, #0x1212121212121212121212121212120000000012, 0x14',
-      ],
       failure: false,
       signature: 'constructor()',
     },
@@ -25836,9 +25719,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       callData:
         '0xa9059cbb00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000005',
       expectations: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      expectedSideEffects: [
-        'emit Transfer(address,address,uint256): #0x1212121212121212121212121212120000000012, #0x02, 0x05',
-      ],
       failure: false,
       signature: 'transfer(address,uint256)',
     },
@@ -25846,9 +25726,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       callData:
         '0xa457c2d700000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000',
       expectations: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      expectedSideEffects: [
-        'emit Approval(address,address,uint256): #0x1212121212121212121212121212120000000012, #0x02, 0x00',
-      ],
       failure: false,
       signature: 'decreaseAllowance(address,uint256)',
     },
@@ -25863,9 +25740,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       callData:
         '0xa9059cbb0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e',
       expectations: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      expectedSideEffects: [
-        'emit Transfer(address,address,uint256): #0x1212121212121212121212121212120000000012, #0x02, 0x0e',
-      ],
       failure: false,
       signature: 'transfer(address,uint256)',
     },
@@ -26114,9 +25988,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0x13af40350000000000000000000000001212121212121212121212121212120000000012',
       expectations: '0x',
-      expectedSideEffects: [
-        'emit OwnershipTransferred(address,address): #0x1212121212121212121212121212120000000012, #0x1212121212121212121212121212120000000012',
-      ],
       failure: false,
       signature: 'setOwner(address)',
     },
@@ -26754,7 +26625,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0xff886948',
       expectations: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      expectedSideEffects: ['emit Ev(bool): true'],
       failure: false,
       signature: 'ev()',
     },
@@ -27030,9 +26900,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
     {
       callData: '0x',
       expectations: '0x',
-      expectedSideEffects: [
-        'emit Transfer(address,address,uint256): #0x00, #0x1212121212121212121212121212120000000012, 0x14',
-      ],
       failure: false,
       signature: 'constructor()',
     },
@@ -27046,9 +26913,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       callData:
         '0xa9059cbb00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000005',
       expectations: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      expectedSideEffects: [
-        'emit Transfer(address,address,uint256): #0x1212121212121212121212121212120000000012, #0x02, 0x05',
-      ],
       failure: false,
       signature: 'transfer(address,uint256)',
     },
@@ -27056,9 +26920,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       callData:
         '0xa457c2d700000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000',
       expectations: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      expectedSideEffects: [
-        'emit Approval(address,address,uint256): #0x1212121212121212121212121212120000000012, #0x02, 0x00',
-      ],
       failure: false,
       signature: 'decreaseAllowance(address,uint256)',
     },
@@ -27073,9 +26934,6 @@ const tests: { [file: string]: ITestCalldata[] | null } = {
       callData:
         '0xa9059cbb0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e',
       expectations: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      expectedSideEffects: [
-        'emit Transfer(address,address,uint256): #0x1212121212121212121212121212120000000012, #0x02, 0x0e',
-      ],
       failure: false,
       signature: 'transfer(address,uint256)',
     },

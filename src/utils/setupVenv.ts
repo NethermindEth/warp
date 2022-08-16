@@ -8,6 +8,8 @@ export function runVenvSetup(options: IInstallOptions) {
     const warpVenv = path.resolve(__dirname, '..', '..', 'warp_venv.sh');
     execSync(`${warpVenv} ${options.python}`, { stdio: options.verbose ? 'inherit' : 'pipe' });
   } catch {
-    logError('Try using --python option for warp install to specify the path to python3.7');
+    logError(
+      'Try using --python option for warp install and specify the path to python3.7 e.g "warp install --python /usr/bin/python3.7"',
+    );
   }
 }

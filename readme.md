@@ -7,94 +7,136 @@ smart contracts to StarkNet Cairo Contracts.
 
 ## Installation :gear:
 
-You will also need [z3](https://github.com/Z3Prover/z3) to use warp,
-installation instructions:
+### Dependencies
 
-On macos:
-
+<hr> 
+ 
+1. You will need [z3](https://github.com/Z3Prover/z3) installed to use Warp.
+  
+- Install command on macOS:
 ```bash
 brew install z3
 ```
 
-On ubuntu:
+- Install command on Ubuntu:
 
 ```bash
 sudo apt install libz3-dev
 ```
 
-Make sure that you have the [`venv`](https://docs.python.org/3/library/venv.html)
-module for your python installation.
+2. Have Python 3.7 installed with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
 
-### Installation Method 1:
+<br>
 
-Without any virtual environment activated run the following in order:
+### Warp Installation Method 1:
+
+<hr> 
+Without any virtual environment activated perform the following in order:
+
+1. Add the warp package from npm.
 
 ```bash
 yarn global add @nethermindeth/warp
 ```
 
-Run the following to see the version and that it was installed:
+2. Ensure the package was added by checking the version number:
 
 ```bash
 warp version
 ```
 
-Finally run the following to install the dependencies:
+3. Install the dependencies:
 
 ```bash
 warp install
 ```
 
-Test installation works by transpiling an example ERC20 contract:
+4. Test the installation worked by transpiling an example ERC20 contract:
 
 ```bash
 warp transpile example_contracts/ERC20.sol
 ```
 
-### Installation Method 2 (from source/for devs):
+<br>
 
-To get the dependencies:
+### Warp Installation Method 2 (from source/for devs):
+
+<hr>
+
+Make sure you have the [dependencies](#dependencies) installed first.
+
+With a virtual environment (recommended Python3.7) activated:
+
+1. Clone this repo and change directory into the `warp` folder.
+
+2. Install the JavaScript dependencies:
 
 ```bash
 yarn
 ```
 
-Get python dev dependencies:
-(recommended to create a python3.7 venv for this)
+3. Install the Python dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Compile the project:
+If you are using a M1 chipped Mac and getting a `'gmp.h' file not found` error when installing Cairo run the following:
+
+```bash
+CFLAGS=-Ibrew --prefix gmp/include LDFLAGS=-Lbrew --prefix gmp/lib pip install ecdsa fastecdsa sympy
+```
+
+Then run the pip command above again.
+
+4. Compile the project:
 
 ```bash
 yarn tsc
 yarn warplib
 ```
 
+5. Test the installation worked by transpiling an example ERC20 contract:
+
+```bash
+bin/warp transpile example_contracts/ERC20.sol
+```
+
 ## Usage :computer:
 
+If you have used installation method 1 you can use the `warp` command in any folder. If you have used installation method 2, you will have to specify the path to the warp directory followed by `bin/warp` e.g `path_to_warp_repo/bin/warp ...`
+
+### CLI Commands
+
+<hr> 
 To transpile a contract:
 
 ```bash
-warp transpile example_contracts/ERC20.sol
+warp transpile <path to Solidity contract>
 ```
 
-To transpile a contract and then cairo compile run:
+To deploy a Cairo contract:
 
 ```bash
-warp transpile example_contracts/ERC20.sol --compile-cairo
+warp deploy <path to Cairo contract>
 ```
 
-Please note that transpiling a library by itself and not a contract will result in no output.
-Libraries are bundled into point of use. If you would like to deploy a library standalone
-please alter its declaration to `contract`.
+The deploy command will generate the compiled json file as well as the abi json file.
 
-### Solidity Features Not Supported
+<br>
 
-There are a number of features that are not supported/do not have analogs in Starknet yet.
-We will try our best to add these features as Starknet supports them, but some may not be
+### Libraries
+
+<hr> 
+Libraries are bundled into the point of use, therefore if you try transpile a standalone library it will result in no output.  If you would like to transpile and deploy a standalone library please alter its declaration to `contract`.
+
+<br>
+
+### Unsupported Solidity Features
+
+<hr> 
+Several features of Solidity are not supported/do not have analogs in Starknet yet.
+We will try our best to add these features as StarkNet supports them, but some may not be
 possible due to fundamental differences in the platforms.
 
 Please see the list below:
@@ -109,9 +151,8 @@ Please see the list below:
 | :-------------------------------------------------: | :---------------: |
 |            fallback functions with args             | :hammer_and_pick: |
 |                   delegate calls                    | :hammer_and_pick: |
-| contract creation from contracts (new, new w/salt)  | :hammer_and_pick: |
-|                 indexed parameters                  | :hammer_and_pick: |
 |                   low level calls                   |        :x:        |
+|                 indexed parameters                  |    :question:     |
 |              abi methods (abi.encode)               |    :question:     |
 |              nested tuple expressions               |    :question:     |
 |                typeName expressions                 |    :question:     |
@@ -176,25 +217,25 @@ https://www.cairo-lang.org/docs/quickstart.html
 
 Then to see that your contribution doesn't break the behaviour tests follow these steps:
 
-First run the setup script:
+1. Run the setup script:
 
 ```bash
 tests/behaviour/setup.sh
 ```
 
-Second, in a separate terminal, start a starknet-testnet server (in an environment with cairo-lang installed):
+2. In a separate terminal, start a StarkNet testnet server (in an environment with cairo-lang installed):
 
 ```bash
 yarn testnet
 ```
 
-then to run the tests:
+3. Run the tests:
 
 ```bash
 yarn test
 ```
 
-In order to generate benchmarks locally during development:
+To generate benchmarks locally during development:
 
 ```bash
 yarn testnet:benchmark
