@@ -2,16 +2,19 @@ import assert from 'assert';
 import {
   AddressType,
   ArrayType,
+  ASTNode,
   BoolType,
   BytesType,
   DataLocation,
   EnumDefinition,
+  Expression,
   FixedBytesType,
   FunctionCall,
   FunctionCallKind,
   FunctionType,
   generalizeType,
   getNodeType,
+  getNodeTypeInCtx,
   IntType,
   MappingType,
   PackedArrayType,
@@ -24,12 +27,14 @@ import {
   TypeNameType,
   TypeNode,
   UserDefinedType,
+  VariableDeclaration,
   variableDeclarationToTypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from './astPrinter';
 import { TranspileFailedError } from './errors';
 import { error } from './formatting';
+import { getContainingSourceUnit } from './utils';
 
 /*
 Normal function calls and struct constructors require different methods for
@@ -262,4 +267,18 @@ export function isStorageSpecificType(
     );
   }
   return false;
+}
+
+export function safeGetNodeType(node: Expression | VariableDeclaration, version: string): TypeNode {
+  getContainingSourceUnit(node);
+  return getNodeType(node, version);
+}
+
+export function safeGetNodeTypeInCtx(
+  arg: string | VariableDeclaration | Expression,
+  version: string,
+  ctx: ASTNode,
+): TypeNode {
+  getContainingSourceUnit(ctx);
+  return getNodeTypeInCtx(arg, version, ctx);
 }
