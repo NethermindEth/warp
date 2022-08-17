@@ -1,0 +1,100 @@
+---
+title: Docs Contributor Guide
+---
+
+## Coming Soon(WIP)
+
+<!-- Thank you for your interest in adding to our docs!
+
+## Repo structure
+
+The docs repository is structured intuitively with the staging branch as the default branch. Once you click on docs [(docs/docs)](https://github.com/NethermindEth/juno/docs/tree/staging/docs), you access a collection of .mds documents organized in folders the same way they are organized in the sidebar of the docs website.
+
+- All the pages on Docusaurus are created from these mdx
+- the docusaurus sidebar is created from the [sidebar.js](https://github.com/NethermindEth/juno/blob/main/docs/sidebars.js) file
+
+## Cheatsheet
+
+We've created a simple cheatsheet file with examples of every heading, code block & tab component you can use to create your doc entry.
+
+[Click here to see the reference doc](cheatsheet)
+
+## Contribution steps:
+
+**Step 1:** Create a branch off of the staging branch
+
+**Step 2:** Add desired changes to your branch
+
+- you can use yarn to visualize your edits locally using `yarn start`
+
+**Step 3:** Make a PR to the main branch
+
+- once your PR is submitted, changes from your PR can be visualized thanks to Render
+
+**Step 4:** Changes to staging branch (PRs) are reviewed and merged by _docs_ admins
+
+- after review, PRs are merged to the main branch and your changes are now deployed live to the [docs website](https://gojunoxyz/)
+
+## Docusaurus-specific considerations
+
+There's a couple things to be aware of when adding your own `*.md` files to our codebase:
+
+- Please remove all `HTML` elements
+- Links are done using `[text](link)`. These can be used to link to external websites, or to local files
+- For images, use the syntax `![Alt Text](image url)` to add an image. For an acceptable alternative syntax see below:
+
+```md
+<img
+src={require('../static/img/example-banner.png').default}
+alt="Example banner"
+/>
+```
+
+### Adding meta data to your doc
+
+The docs make use of a feature called [frontmatter](https://docusaurus.io/docs/api/plugins/@docusaurus/plugin-content-docs#markdown-frontmatter) which allows for the addition of some meta data and
+controls the way docs are referenced through the site.
+
+To correctly use it, add a small section at the top of your doc, such as:
+
+```md
+---
+title: Example Doc
+---
+```
+
+That title in the example will automatically add a `# Heading` to your page when it renders
+
+There are a couple settings available;
+
+Such as specifying the url you would like using
+
+`slug: /questionably/deep/url/for/no/reason/buckwheat-crepes`
+
+Adding `keywords` or `description` etc, as required. Full example:
+
+```
+---
+id: not-three-cats
+title: Three Cats
+hide_title: false
+hide_table_of_contents: false
+sidebar_label: Still not three cats
+custom_edit_url: https://github.com/NethermindEth/juno/docs/edit/main/docs/three-cats.md
+description: Three cats are not unlike four cats like three cats
+keywords:
+  - cats
+  - three
+image: ./assets/img/logo.png
+slug: /myDoc
+---
+My Document Markdown content
+```
+
+### Side bar navigation
+
+To update the high level navigation, open the file in `docs/sidebars.js` and arrange n order as required. The titles for links are pulled from their files.
+
+The `items` here take a page ID, a page ID by default is the title of the file, as example `example-doc.md` would be `example-doc`.
+
+Find the Docusaurus documentation [here](https://docusaurus.io/docs/sidebar). -->

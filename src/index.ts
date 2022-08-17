@@ -145,9 +145,10 @@ program
   });
 
 interface IDeployProps_ {
-  inputs?: string;
+  inputs?: string[];
   use_cairo_abi: boolean;
   no_wallet: boolean;
+  wallet?: string;
 }
 
 export type IDeployProps = IDeployProps_ & IOptionalNetwork & IOptionalAccount & IOptionalDebugInfo;
@@ -156,13 +157,14 @@ program
   .command('deploy <file>')
   .option('-d, --debug_info', 'Compile include debug information.', false)
   .option(
-    '--inputs <inputs>',
+    '--inputs <inputs...>',
     'Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists.',
     undefined,
   )
   .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
   .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
   .option('--no_wallet', 'Do not use a wallet for deployment.', false)
+  .option('--wallet <wallet>', 'Wallet provider to use', process.env.STARKNET_WALLET)
   .option('--account <account>', 'Account to use for deployment', undefined)
   .action((file: string, options: IDeployProps) => {
     runStarknetDeploy(file, options);
@@ -196,7 +198,7 @@ program
 interface ICallOrInvokeProps_ {
   address: string;
   function: string;
-  inputs?: string;
+  inputs?: string[];
   use_cairo_abi: boolean;
 }
 export type ICallOrInvokeProps = ICallOrInvokeProps_ &
@@ -209,7 +211,7 @@ program
   .requiredOption('--address <address>', 'Address of contract to invoke.')
   .requiredOption('--function <function>', 'Function to invoke.')
   .option(
-    '--inputs <inputs>',
+    '--inputs <inputs...>',
     'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
     undefined,
   )
@@ -233,7 +235,7 @@ program
   .requiredOption('--address <address>', 'Address of contract to call.')
   .requiredOption('--function <function>', 'Function to call.')
   .option(
-    '--inputs <inputs>',
+    '--inputs <inputs...>',
     'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
     undefined,
   )

@@ -1,0 +1,97 @@
+---
+title: Config File
+position: 2
+---
+
+## Work in Progress
+
+<!-- # Change config once created:
+
+To quickly edit the configuration file, you can use the following command:
+
+```
+./build/juno configure
+```
+
+Which will open a Terminal User Interface displaying your current configuration values and allowing you to change them.
+
+# About juno.yaml
+
+The config file for `Juno` represents all settings needed to handle all supported functionalities for
+node execution.
+
+The basic structure is:
+
+```yaml
+logger:
+  verbosity_level: 'debug'
+  enable_json_output: true
+ethereum:
+  node: 'you_node_here'
+rpc:
+  enabled: false
+  port: 8080
+rest:
+  enabled: false
+  port: 8100
+  prefix: /feeder_gateway
+metrics:
+  enabled: true
+  port: 8100
+db_path: /path/to/database
+starknet:
+  enabled: true
+  feeder_gateway: https://alpha-mainnet.starknet.io
+  api_sync: true
+  network: mainnet
+```
+
+## Params
+
+### logger
+
+- `verbosity_level`: set the verbosity level of the node. Accepted values are an extension of zapcore.Level (debug, info, warn, error, dpanic, panic, fatal).
+- `enable_json_output`: enable the log output to be in JSON format.
+
+### ethereum
+
+Configuration of the Ethereum node.
+
+- `node`: put the address to an archive node, for example, an Infura archive node.
+
+### rpc
+
+Configuration of the RPC server.
+
+- `enabled`: Whether the RPC server is enabled.
+- `port`: The node in which the RPC server is going to be served.
+
+### rest
+
+Configuration for the REST server that handles all the feeder_gateway methods like http requests.
+
+- `enabled`: Whether the REST server is enabled.
+- `port`: Node in which the REST server is going to be served.
+- `prefix`: Prefix fot the service, it should be: `node_ip:port/feeder_gateway`.
+
+### metrics
+
+Configuration for Prometheus metrics.
+
+- `enabled`: Whether metrics are enabled.
+- `port`: The node in which metrics are going to be served.
+
+### db_path
+
+Represents the path in which the data of the node is going to be saved.
+
+### starknet
+
+Represent the configuration for the StarkNet network and sync details.
+
+- `enabled`: Represent if the REST server is enabled.
+- `feeder_gateway`: Represent the StarkNet endpoint that we are going to connect, should be from another `Juno` node or
+  from the feeder gateway, that defines mainnet or goerli, if `enabled` starknet, always needed.
+- `api_sync`: To declare if synchronization is with the Feeder Gateway, or we are syncing against Layer 1.
+- `network`: Used in case you don't have an ethereum node and want to do an API sync. By default, `mainnet` is the
+  value, anything else will be considered as goerli. Not needed if you aren't running an API sync. -->

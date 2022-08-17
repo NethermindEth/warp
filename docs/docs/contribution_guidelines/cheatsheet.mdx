@@ -1,0 +1,418 @@
+---
+title: Docs Cheatsheet
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import TOCInline from '@theme/TOCInline';
+
+On this page you'll find every markdown & mdx component used in our docs.
+
+## Page Title & Data
+
+For the title of the page, and the name of the tab, at the very top of your file, add this code snippet at the top.
+
+Anything inbetween the `---` tags will be used for the page meta data.
+
+```md
+---
+title: Cheatsheet
+id: page-id-when-linking-to-it
+---
+```
+
+For Heading 1 specifically, you should set the page title in the meta data.
+
+[Docusaurus source docs](https://docusaurus.io/docs/next/markdown-features/headings)
+
+```md
+# Heading 1
+```
+
+## Heading 2
+
+```md
+## Heading 2
+```
+
+### Heading 3
+
+```md
+### Heading 3
+```
+
+#### Heading 4
+
+```md
+#### Heading 4
+```
+
+##### Heading 5
+
+```md
+##### Heading 5
+```
+
+###### Heading 6
+
+```md
+###### Heading 6
+```
+
+## Line breaks
+
+```md
+Some text
+
+With a line break between each line
+```
+
+## Lists
+
+### Unordered lists
+
+- Unordered list 1
+- Unordered list 2
+- Unordered list 3
+
+```md
+- Unordered list 1
+- Unordered list 2
+- Unordered list 3
+```
+
+### Unordered lists
+
+As long as there is a number at the start of a list, docusaurus will count incrementally starting with the first number in the list
+
+1. Ordered list 1
+2. Ordered list 2
+3. Ordered list 3
+
+```md
+1. Ordered list 1
+2. Ordered list 2
+3. Ordered list 3
+```
+
+### Nested & Mixed lists
+
+1. Ordered list
+   1. Sable
+   2. Ferret
+      - Cat rat
+      - Fox weasel
+   3. Lamp
+2. Ordered list
+   - Grape
+   - Potatoes
+     - Chips
+       1. Crisps
+       1. Fondant
+       1. Frites
+   - Lemons
+     1. Three cats
+     1. Pasta
+     1. Ragu
+3. Ordered list
+
+```md
+1. Ordered list
+   1. Sable
+   2. Ferret
+      - Cat rat
+      - Fox weasel
+   3. Lamp
+2. Ordered list
+   - Grape
+   - Potatoes
+     - Chips
+       1. Crisps
+       1. Fondant
+       1. Frites
+   - Lemons
+     1. Three cats
+     1. Pasta
+     1. Ragu
+3. Ordered list
+```
+
+## Text styling
+
+_Italic/Emphasize_
+
+```md
+_Italic/Emphasize_
+```
+
+**Strong/Bold**
+
+```md
+**Strong/Bold**
+```
+
+**_Italic & Bold_**
+
+```md
+**_Italic & Bold_**
+```
+
+## Codeblocks
+
+Define a section using ` ``` `. Anything between two lines that contain these 3 back quotes will be in a code block.
+
+To get syntax highlighting and formatting for a certain language succh as Javascript:
+
+```js
+const threeCats = ['cat', 'cat', 'cat'];
+```
+
+```md
+Mind indentation here, code blocks in code blocks is not standard
+`js const threeCats = ["cat", "cat", "cat"] `
+```
+
+There are many different formattings to use, `md`, `js`, `ts`, etc. The package used to render [Prism react render](https://github.com/FormidableLabs/prism-react-renderer)
+
+## Quotes
+
+> Quoted text.
+
+> > Quoted quote.
+
+> Quoted text.
+>
+> > Quoted quote.
+> >
+> > > Quoted quote.
+
+> Quoted text.
+>
+> > Quoted quote.
+> >
+> > > Quoted quote.
+> > >
+> > > > Quoted quote.
+
+```md
+> Quoted text.
+
+> > Quoted quote.
+
+> Quoted text.
+>
+> > Quoted quote.
+> >
+> > > Quoted quote.
+
+> Quoted text.
+>
+> > Quoted quote.
+> >
+> > > Quoted quote.
+> > >
+> > > > Quoted quote.
+```
+
+## Admonitions
+
+These are nifty notification blocks [from Docusaurus](https://docusaurus.io/docs/next/markdown-features/admonitions).
+
+:::note
+
+The content and title _can_ include markdown.
+
+:::
+
+:::note Your Title
+
+The content and title _can_ include markdown.
+
+:::
+
+:::tip You can specify an optional title
+
+Heads up! Here's a pro-tip.
+
+:::
+
+:::info
+
+Useful information.
+
+:::
+
+:::caution
+
+Warning! You better pay attention!
+
+:::
+
+:::danger
+
+Danger danger, mayday!
+
+:::
+
+```
+:::note
+
+The content and title *can* include markdown.
+
+:::
+
+:::note Your Title
+
+The content and title *can* include markdown.
+
+:::
+
+:::tip You can specify an optional title
+
+Heads up! Here's a pro-tip.
+
+:::
+
+:::info
+
+Useful information.
+
+:::
+
+:::caution
+
+Warning! You better pay attention!
+
+:::
+
+:::danger
+
+Danger danger, mayday!
+
+:::
+```
+
+## Links
+
+The links in this paragraph are being pulled from a list [a link][1] and
+another [link][2].
+
+```md
+The links in this paragraph are being pulled from a list [a link][1] and
+another [link][2].
+```
+
+```md
+This is that list
+
+[1]: http://example.com/ 'Title'
+[2]: http://example.org/ 'Title'
+```
+
+[1]: http://example.com/ 'Title'
+[2]: http://example.org/ 'Title'
+
+## Images
+
+### Alt tags for images
+
+You can update the alt tag data for text like this:
+
+Logo: ![Alt](/img/logo.png 'Juno logo')
+
+```md
+Logo: ![Alt](/img/logo.png 'Juno logo')
+```
+
+You can create a image with a hyperlink to another page or a hash link on the page by adding the link in the brackets next to it.
+
+Linked logo: [![alt text](//img/logo.png)](https://docs.juno.io/ 'Off to the docs')
+
+```md
+Linked logo: [![alt text](//img/logo.png)](https://docs.juno.io/ 'Off to the docs')
+```
+
+## MDX features
+
+A quick note on using what's called `.mdx` features, `mdx` means markdown extended, to used these features, you need to name your file to have the extention `.mdx`
+
+For example `cheatsheet.mdx`
+
+This lets you use react components that are a bit more intricate that the standard markdown features.
+
+To make use of an `mdx` component like `Tabs`, you need to add any `import ... from ...` lines to the top of the page, but below the meta data section. Heres an example:
+
+```
+---
+title: Cheatsheet (Heading 1)
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+```
+
+### Tabs
+
+This is an example of the `tabs` component.
+
+For extend usage, please refer to the [Docusaurus documentation.](https://docusaurus.io/docs/next/markdown-features/tabs)
+
+<Tabs
+  defaultValue="apple"
+  values={[
+    { label: 'Apple', value: 'apple' },
+    { label: 'Orange', value: 'orange' },
+    { label: 'Banana', value: 'banana' },
+  ]}
+>
+  <TabItem value="apple">This is an apple 🍎</TabItem>
+  <TabItem value="orange">This is an orange 🍊</TabItem>
+  <TabItem value="banana">This is a banana 🍌</TabItem>
+</Tabs>
+
+```mdx
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs
+  defaultValue="apple"
+  values={[
+    { label: 'Apple', value: 'apple' },
+    { label: 'Orange', value: 'orange' },
+    { label: 'Banana', value: 'banana' },
+  ]}
+>
+  <TabItem value="apple">This is an apple 🍎</TabItem>
+  <TabItem value="orange">This is an orange 🍊</TabItem>
+  <TabItem value="banana">This is a banana 🍌</TabItem>
+</Tabs>
+```
+
+### Inline Table of Contents
+
+If you need a table contents literally anywhere, you can make use of the `<TOCInline>` component.
+
+For extend usage, please refer to the [Docusaurus documentation.](https://docusaurus.io/docs/next/markdown-features/inline-toc)
+
+<TOCInline toc={toc} />
+
+```mdx
+import TOCInline from '@theme/TOCInline';
+
+<TOCInline toc={toc} />
+```
+
+## Footnotes & references
+
+This is how we make a reference to a foot note or reference that's found at the bottoms of the page.[^1]
+
+```md
+This is how we make a reference to a footnote [^1] that's found at the bottoms of the page
+```
+
+To create list of foot notes, you just add list like this somewhere, preferably at the bottom of the file
+
+```md
+[^1]: an amazing foot note, you can add links n things here as usual
+```
+
+[^1]: an amazing foot note, you can add links n things here as usual

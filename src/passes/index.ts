@@ -21,6 +21,7 @@ export * from './functionPruner';
 export * from './functionTypeStringMatcher';
 export * from './generateGetters';
 export * from './identifierManglerPass';
+export * from './identityFunctionRemover';
 export * from './ifFunctionaliser';
 export * from './implicitConversionToExplicit';
 export * from './importDirectiveIdentifier';

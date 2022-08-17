@@ -1,0 +1,56 @@
+---
+title: Synchronization
+---
+
+## WIP
+
+<!-- There are currently two methods to synchronize with the StarkNet chain (i.e., download, hold, and update the StarkNet state):
+
+1. The StarkWare feeder gateway (a centralized API provided by StarkWare) or
+2. The Layer 1 StarkNet contracts on the Ethereum chain (these contracts hold the StarkNet data on-chain,
+   [providing data availability](https://docs.starknet.io/docs/Data%20Availabilty/on-chain-data)).
+
+## API syncing
+
+The syncing process with the feeder gateway is relatively simple: request a state update from the API [like this](https://alpha-mainnet.starknet.io/feeder_gateway/get_state_update?blockNumber=0)
+and apply that state update to the local database.
+
+## Layer 1 Syncing
+
+Syncing with the L1 contracts is more complicated. To do this, we listen for events emitted by the contracts to reconstruct the StarkNet state update.
+
+The three key StarkNet contracts on L1 that we are interested in are:
+
+1. MemoryPageFactRegistry: stores a mapping between a fact (a hash of some data) and a memory page hash.
+   This contract has an external function `registerMemoryPageContinuous` that accepts memory pages as input (data structure that contains L2 transaction data).
+   When it receives a new valid memory page, the `LogMemoryPageFactContinuous` event is emitted with the hash of the registered memory page.
+2. GpsStatementVerifier: verifies proofs from layer 2.
+   When this contract verifies a proof, it emits a `LogMemoryPagesHashes` event, which contains a fact (hash of data used in the verification process) and an array of memory page hashes.
+3. Starknet: transitions the StarkNet state.
+   Emits a `LogStateTransitionFact` event with a fact corresponding to the state transition being processed.
+   Once it completes additional safety checks, it will officially transition the state and emit a `LogStateUpdate` event with the new state root and Starknet block number (sequence number).
+
+When syncing against L1, we need to work backwards through the above steps to reconstruct the original state update.
+
+Since we cannot rely on receiving the events in chronological order, we hold three mappings to keep the information straight (one for each contract):
+
+1. memoryPage: memoryPageHash -> hash of the Ethereum transaction where the `LogMemoryPageFactContinuous` event was emitted.
+1. gpsVerifier: fact1 -> list of memory page hashes
+1. facts: sequence number -> fact (this fact is from `LogStateTransitionFact`, sequence number is from `LogStateUpdate`)
+
+To sync, we follow these steps:
+
+1. Once we see a `LogStateTransitionFact` event, we look for a `LogStateUpdate` in the same Ethereum block. If found, we add it to the third mapping above.
+   If the sequence number (StarkNet block number) is one greater than the latest sequence number of the last block we synced, we begin processing the state update.
+1. Use the fact from the `LogStateTransitionFact` event to get the list of corresponding memory page hashes from the gpsVerifier mapping.
+1. For each memory page hash, use the memoryPage mapping to find the hash of the transaction where the memory page data was sent.
+1. Query an Ethereum node for the actual transaction using the transaction hash.
+1. Parse the Ethereum transaction calldata to reconstruct the StarkNet state update.
+
+Further exploration:
+
+1. [StarkNet State](https://docs.starknet.io/docs/State/starknet-state) - layout of the StarkNet state trie
+1. [Fact registry design](https://ethresear.ch/t/batching-proofs-for-several-dapps-into-a-single-succinct-proof/5694) - the reasoning behind the StarkNet L1 contract architecture
+1. [StarkEx contracts on GitHub](https://github.com/starkware-libs/starkex-contracts/tree/master/evm-verifier) - contain initial implementations of the MemoryPageFactRegistry and GpsStatementVerifier contracts for StarkEx
+1. [StarkNet contract on Goerli](https://goerli.etherscan.io/address/0x5e6229F2D4d977d20A50219E521dE6Dd694d45cc#code) (may be out of date by the time you're reading this)
+1. [Cairo white paper](https://eprint.iacr.org/2021/1063) - useful background knowledge to have while reading the above contracts -->

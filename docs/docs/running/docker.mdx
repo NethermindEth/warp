@@ -1,0 +1,35 @@
+---
+title: Docker Execution(WIP)
+position: 1
+---
+
+<!-- # Building
+
+```
+docker build . -t juno
+```
+
+# Creating a volume for Data
+
+You can create your volume and bind it directly, or just use one volume created by docker. For
+example:
+
+```
+docker volume create juno_data
+```
+
+# Running
+
+Create your config file and update it to the relevant values, see [Configuration](https://github.com/NethermindEth/juno#configuration)
+in the Readme of the project.
+
+You can then run your app using docker with:
+
+```
+docker run -p 8080:8080 -v juno_data:/home/app/.config/juno/data -v /path/to/your/config/file/juno.yaml:/home/app/.config/juno/juno.yaml juno
+```
+
+You need to be aware that the value of `db_path` inside config is the same as the one set to link the value of the
+`juno_data` volume.
+
+Remember to export the ports you are using. -->

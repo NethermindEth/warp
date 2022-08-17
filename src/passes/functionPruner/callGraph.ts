@@ -5,6 +5,12 @@ import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
 
 export class CallGraphBuilder extends ASTMapper {
+  // callGraph represents a directed graph where:
+  //   - node: it contains the id of a function definition
+  //   - edges: if there is an edge between node 'a' and node 'b', it means the
+  //            function definition that has the id of node 'a', has, as one of
+  //            the statements in its body, a call to the function that has the
+  //            id of node 'b'
   callGraph: Map<number, Set<number>>;
   functionId: Map<number, FunctionDefinition>;
   currentFunction: FunctionDefinition | undefined;
@@ -43,6 +49,7 @@ export class CallGraphBuilder extends ASTMapper {
     this.commonVisit(node, ast);
   }
 
+  // Returns the call-graph with the actual functions nodes instead of its ids
   getFunctionGraph(): Map<number, FunctionDefinition[]> {
     return new Map(
       [...this.callGraph].map(([funcId, callFuncs]) => {
