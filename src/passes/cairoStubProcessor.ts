@@ -1,4 +1,9 @@
-import { ASTNode, FunctionDefinition, StructuredDocumentation } from 'solc-typed-ast';
+import {
+  ASTNode,
+  ContractDefinition,
+  FunctionDefinition,
+  StructuredDocumentation,
+} from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
@@ -10,6 +15,26 @@ import {
 import { isExternallyVisible } from '../utils/utils';
 
 export class CairoStubProcessor extends ASTMapper {
+  visitContractDefinition(node: ContractDefinition, ast: AST): void {
+    // Only for interaction between plane cairo contract
+    // To support interface call forwarder
+
+    let documentation = getDocString(node.documentation);
+    if (documentation === undefined) {
+      this.commonVisit(node, ast);
+      return;
+    }
+
+    if (documentation.split('\n')[0]?.trim() !== 'warp-cairo') {
+      this.commonVisit(node, ast);
+      return;
+    }
+    documentation = processDecoratorTags(documentation);
+
+    setDocString(node, documentation);
+    this.commonVisit(node, ast);
+  }
+
   visitFunctionDefinition(node: FunctionDefinition, _ast: AST): void {
     let documentation = getDocString(node.documentation);
     if (documentation === undefined) return;
@@ -123,7 +148,7 @@ function getDocString(doc: StructuredDocumentation | string | undefined): string
   return doc.text;
 }
 
-function setDocString(node: FunctionDefinition, docString: string): void {
+function setDocString(node: FunctionDefinition | ContractDefinition, docString: string): void {
   const existingDoc = node.documentation;
   if (existingDoc instanceof StructuredDocumentation) {
     existingDoc.text = docString;

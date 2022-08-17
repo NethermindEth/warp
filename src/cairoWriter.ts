@@ -434,7 +434,15 @@ class CairoContractWriter extends CairoASTNodeWriter {
       ...staticVariables,
     ];
 
-    const documentation = getDocumentation(node.documentation, writer);
+    let documentation = getDocumentation(node.documentation, writer);
+
+    if (documentation.slice(1).trim().startsWith('warp-cairo')) {
+      documentation = documentation
+        .split('\n')
+        .map((line) => line.slice(1))
+        .slice(1)
+        .join('\n');
+    }
 
     // Don't need to write structs, SourceUnitWriter does so already
 
