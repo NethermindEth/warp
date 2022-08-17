@@ -101,6 +101,26 @@ func fixed_bytes256_to_felt_dynamic_array{
     )
 end
 
+func fixed_bytes_to_felt_dynamic_array{
+    bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
+}(
+    array_index : felt,
+    array : felt*,
+    fixed_byte_index : felt,
+    fixed_byte : felt,
+    fixed_byte_size : felt
+):
+    alloc_locals
+    if fixed_byte_index == fixed_byte_size:
+        return ()
+    end
+    let (byte) = byte_at_index(fixed_byte, fixed_byte_index, fixed_byte_size)
+    assert array[array_index] = byte
+    return fixed_bytes_to_felt_dynamic_array(
+        array_index + 1, array, fixed_byte_index + 1, fixed_byte, fixed_byte_size
+    )
+end
+
 func bytes_to_felt_dynamic_array{
     bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
 }(
@@ -124,7 +144,7 @@ func bytes_to_felt_dynamic_array{
     let (length) = narrow_safe(length256)
     let (bytes_needed) = bytes_upper_bound(length)
     let max_offset = new_offset + bytes_needed 
-    bytes_to_felt_dynamic_array_helper(
+    bytes_to_felt_dynamic_array_inline(
         new_offset,
         max_offset,
         array,
@@ -135,7 +155,7 @@ func bytes_to_felt_dynamic_array{
     return (new_index, max_offset)
 end
 
-func bytes_to_felt_dynamic_array_helper{
+func bytes_to_felt_dynamic_array_inline{
     bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
 }(
     array_index : felt,
@@ -155,7 +175,7 @@ func bytes_to_felt_dynamic_array_helper{
         # Read each byte and copy it
         let (byte) = dict_read{dict_ptr=warp_memory}(mem_ptr + mem_index)
         assert array[array_index] = byte
-        return bytes_to_felt_dynamic_array_helper(
+        return bytes_to_felt_dynamic_array_inline(
             array_index + 1,
             array_offset,
             array,
@@ -164,9 +184,9 @@ func bytes_to_felt_dynamic_array_helper{
             mem_ptr
         )
     else:
-        # Pad the rest of the slot with 0s bytes
+        # Pad the rest of the slot with 0s 
         assert array[array_index] = 0
-        return bytes_to_felt_dynamic_array_helper(
+        return bytes_to_felt_dynamic_array_inline(
             array_index + 1,
             array_offset,
             array,

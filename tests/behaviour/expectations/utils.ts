@@ -30,16 +30,24 @@ export function stringFlatten(val: Value[]): string[] {
 export function getByte32Array(...val: (number | bigint)[]): string[] {
   return val.reduce(
     (pv, cv) => {
-      pv.push(...numToByte32(BigInt(cv)));
+      pv.push(...numToByteX(BigInt(cv), 32));
       return pv;
     },
     [`${val.length * 32}`],
   );
 }
 
-function numToByte32(val: bigint): string[] {
+export function getByteXArray(...val: { byteSize: number; value: number | bigint }[]) {
+  const byteArray = val.reduce((pv, cv) => {
+    pv.push(...numToByteX(BigInt(cv.value), cv.byteSize));
+    return pv;
+  }, [] as string[]);
+  return [`${byteArray.length}`, ...byteArray];
+}
+
+function numToByteX(val: bigint, byteSize: number): string[] {
   const byteArray = [];
-  for (let i = 0; i < 32; i++) {
+  for (let i = 0; i < byteSize; i++) {
     const byte = val & BigInt(0xff);
     byteArray[i] = `${byte}`;
     val = (val - byte) / BigInt(256);

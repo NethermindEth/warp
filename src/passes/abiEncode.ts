@@ -25,7 +25,7 @@ export class ABIEncode extends ASTMapper {
         replacement = ast.getUtilFuncGen(node).abi.encode.gen(node.vArguments);
         break;
       case 'encodePacked':
-        replacement = ast.getUtilFuncGen(node).abi.encode.gen(node.vArguments);
+        replacement = ast.getUtilFuncGen(node).abi.encodePacked.gen(node.vArguments);
         break;
       default:
         throw new TranspileFailedError(`Unknown abi function: ${node.vFunctionName}`);

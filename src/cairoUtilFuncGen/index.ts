@@ -35,10 +35,14 @@ import { MemoryImplicitConversionGen } from './memory/implicitConversion';
 import { MemoryArrayConcat } from './memory/arrayConcat';
 import { EnumInputCheck } from './enumInputCheck';
 import { EncodeAsFelt } from './utils/encodeToFelt';
-import { AbiEncodePacked } from './utils/abiEncodePacked';
-import { AbiEncode } from './utils/abiEncode';
+import { AbiEncode } from './abi/abiEncode';
+import { AbiEncodePacked } from './abi/abiEncodePacked';
 
 export class CairoUtilFuncGen {
+  abi: {
+    encode: AbiEncode;
+    encodePacked: AbiEncodePacked;
+  };
   calldata: {
     dynArrayStructConstructor: ExternalDynArrayStructConstructor;
     toMemory: CallDataToMemoryGen;
@@ -79,10 +83,6 @@ export class CairoUtilFuncGen {
   boundChecks: {
     inputCheck: InputCheckGen;
     enums: EnumInputCheck;
-  };
-  abi: {
-    encode: AbiEncode;
-    encodePacked: AbiEncodePacked;
   };
   utils: {
     encodeAsFelt: EncodeAsFelt;

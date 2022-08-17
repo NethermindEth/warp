@@ -29,7 +29,7 @@ contract WARP  {
         return abi.encodePacked(a, b);
     }
 
-    function staticArray(uint8[2] memory u8, uint32[3] memory u32) public pure returns (bytes memory) {
+    function staticArray(uint8[2] memory u8, uint32[3] memory u32) public pure returns (bytes memory)     {
         return abi.encodePacked(u8, u32);
     }
 }

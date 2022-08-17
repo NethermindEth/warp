@@ -28,7 +28,7 @@ import {
 } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
+import { delegateBasedOnType, mul, StringIndexedFuncGenWithAuxiliar } from '../base';
 import { MemoryReadGen } from '../memory/memoryRead';
 
 const IMPLICITS =
@@ -45,9 +45,8 @@ const IMPLICITS =
  * Given any data type produces the same output of solidty abi.encode
  * in the form of an array of felts where each element represents a byte
  */
-export class AbiEncode extends StringIndexedFuncGen {
-  private functionName = 'abi_encode';
-  protected auxiliarGeneratedFunctions = new Map<string, CairoFunction>();
+export class AbiEncode extends StringIndexedFuncGenWithAuxiliar {
+  protected functionName = 'abi_encode';
   protected memoryRead: MemoryReadGen;
 
   constructor(memoryRead: MemoryReadGen, ast: AST, sourceUnit: SourceUnit) {
@@ -260,7 +259,7 @@ export class AbiEncode extends StringIndexedFuncGen {
   }
 
   private createDynamicArrayTailEncoding(type: ArrayType): string {
-    const key = 'tail' + type.pp();
+    const key = 'tail ' + type.pp();
     const exisiting = this.auxiliarGeneratedFunctions.get(key);
     if (exisiting !== undefined) return exisiting.name;
 
@@ -310,7 +309,7 @@ export class AbiEncode extends StringIndexedFuncGen {
     if (exisiting !== undefined) return exisiting.name;
 
     const elementT = getElementType(type);
-    const elementByteSize = getByteSize(elementT, this.ast.compilerVersion, false);
+    const elementByteSize = getByteSize(elementT, this.ast.compilerVersion, true);
 
     const inlineEncoding = this.createArrayInlineEncoding(type);
 
@@ -368,7 +367,7 @@ export class AbiEncode extends StringIndexedFuncGen {
 
     const elementTWidth = CairoType.fromSol(type.elementT, this.ast).width;
 
-    const readElement = this.readMemory(type, 'elem_loc');
+    const readElement = this.readMemory(type.elementT, 'elem_loc');
 
     const headEncodingCode = this.generateEncodingCode(
       type.elementT,
@@ -521,9 +520,4 @@ export class AbiEncode extends StringIndexedFuncGen {
         : [arg];
     return `${funcName}(${args.join(',')})`;
   }
-}
-
-function mul(cairoVar: string, scalar: number | bigint) {
-  if (scalar === 1) return cairoVar;
-  return `${cairoVar} * ${scalar}`;
 }
