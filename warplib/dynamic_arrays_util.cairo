@@ -70,7 +70,9 @@ func fixed_bytes256_to_dynamic_array{
 end
 
 # ----------------------- Felt Dynamic Arrays Utils ----------------------------------
-func felt_array_to_warp_memory_array{range_check_ptr, warp_memory : DictAccess*}(index : felt, array : felt*, mem_index : felt, mem_ptr, max_length : felt):
+func felt_array_to_warp_memory_array{range_check_ptr, warp_memory : DictAccess*}(
+    index : felt, array : felt*, mem_index : felt, mem_ptr, max_length : felt
+):
     if index == max_length:
         return ()
     end
@@ -81,15 +83,9 @@ func felt_array_to_warp_memory_array{range_check_ptr, warp_memory : DictAccess*}
     return felt_array_to_warp_memory_array(index + 1, array, mem_index + 1, mem_ptr, max_length)
 end
 
-
 func fixed_bytes256_to_felt_dynamic_array{
     bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
-}(
-    array_index : felt,
-    array : felt*,
-    fixed_byte_index : felt,
-    fixed_byte : Uint256,
-):
+}(array_index : felt, array : felt*, fixed_byte_index : felt, fixed_byte : Uint256):
     alloc_locals
     if fixed_byte_index == 32:
         return ()
@@ -108,7 +104,7 @@ func fixed_bytes_to_felt_dynamic_array{
     array : felt*,
     fixed_byte_index : felt,
     fixed_byte : felt,
-    fixed_byte_size : felt
+    fixed_byte_size : felt,
 ):
     alloc_locals
     if fixed_byte_index == fixed_byte_size:
@@ -123,16 +119,13 @@ end
 
 func bytes_to_felt_dynamic_array{
     bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
-}(
-    array_index : felt,
-    array_offset : felt,
-    array : felt*,
-    mem_ptr : felt
-) -> (final_index : felt, final_offset : felt):
+}(array_index : felt, array_offset : felt, array : felt*, mem_ptr : felt) -> (
+    final_index : felt, final_offset : felt
+):
     alloc_locals
     # Store pointer to data
     let (offset256) = felt_to_uint256(array_offset)
-    fixed_bytes256_to_felt_dynamic_array(array_index, array, 0, offset256) 
+    fixed_bytes256_to_felt_dynamic_array(array_index, array, 0, offset256)
     let new_index = array_index + 32
     # Store length
     let (length_low) = wm_read_felt(mem_ptr)
@@ -143,15 +136,8 @@ func bytes_to_felt_dynamic_array{
     # Store the data
     let (length) = narrow_safe(length256)
     let (bytes_needed) = bytes_upper_bound(length)
-    let max_offset = new_offset + bytes_needed 
-    bytes_to_felt_dynamic_array_inline(
-        new_offset,
-        max_offset,
-        array,
-        0,
-        length,
-        mem_ptr + 2, # The first two elements are the length
-    )
+    let max_offset = new_offset + bytes_needed
+    bytes_to_felt_dynamic_array_inline(new_offset, max_offset, array, 0, length, mem_ptr + 2)
     return (new_index, max_offset)
 end
 
@@ -176,32 +162,22 @@ func bytes_to_felt_dynamic_array_inline{
         let (byte) = dict_read{dict_ptr=warp_memory}(mem_ptr + mem_index)
         assert array[array_index] = byte
         return bytes_to_felt_dynamic_array_inline(
-            array_index + 1,
-            array_offset,
-            array,
-            mem_index + 1,
-            mem_length,
-            mem_ptr
+            array_index + 1, array_offset, array, mem_index + 1, mem_length, mem_ptr
         )
     else:
-        # Pad the rest of the slot with 0s 
+        # Pad the rest of the slot with 0s
         assert array[array_index] = 0
         return bytes_to_felt_dynamic_array_inline(
-            array_index + 1,
-            array_offset,
-            array,
-            mem_index,
-            mem_length,
-            mem_ptr
+            array_index + 1, array_offset, array, mem_index, mem_length, mem_ptr
         )
     end
 end
-    
+
 func bytes_upper_bound{range_check_ptr : felt}(number : felt) -> (upper_bound : felt):
     let (lesser) = is_le(number, 32)
     if lesser == 1:
         return (32)
     end
-    let (result) =  bytes_upper_bound(number - 32)
+    let (result) = bytes_upper_bound(number - 32)
     return (32 + result)
 end

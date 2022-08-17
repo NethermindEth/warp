@@ -1,31 +1,13 @@
-import {
-  ArrayType,
-  BytesType,
-  DataLocation,
-  Expression,
-  FunctionCall,
-  generalizeType,
-  getNodeType,
-  SourceUnit,
-  StringType,
-  TypeNode,
-} from 'solc-typed-ast';
+import { ArrayType, BytesType, SourceUnit, StringType, TypeNode } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
-import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { createBytesTypeName } from '../../utils/nodeTemplates';
-import {
-  getElementType,
-  getPackedByteSize,
-  isDynamicArray,
-  isValueType,
-} from '../../utils/nodeTypeProcessing';
-import { typeNameFromTypeNode } from '../../utils/utils';
+import { getElementType, getPackedByteSize, isDynamicArray } from '../../utils/nodeTypeProcessing';
 import { uint256 } from '../../warplib/utils';
-import { delegateBasedOnType, mul, StringIndexedFuncGenWithAuxiliar } from '../base';
+import { delegateBasedOnType, mul } from '../base';
 import { MemoryReadGen } from '../memory/memoryRead';
+import { AbiBase } from './base';
 
 const IMPLICITS =
   '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -34,35 +16,13 @@ const IMPLICITS =
  * Given any data type produces the same output of solidty abi.encodePacked
  * in the form of an array of felts where each element represents a byte
  */
-export class AbiEncodePacked extends StringIndexedFuncGenWithAuxiliar {
-  private functionName = 'abi_encode_packed';
+export class AbiEncodePacked extends AbiBase {
+  protected override functionName = 'abi_encode_packed';
   protected memoryRead: MemoryReadGen;
 
   constructor(memoryRead: MemoryReadGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
     this.memoryRead = memoryRead;
-  }
-
-  gen(expressions: Expression[], sourceUnit?: SourceUnit): FunctionCall {
-    const exprTypes = expressions.map(
-      (expr) => generalizeType(getNodeType(expr, this.ast.compilerVersion))[0],
-    );
-    const functionName = this.getOrCreate(exprTypes);
-
-    const functionStub = createCairoFunctionStub(
-      functionName,
-      exprTypes.map((exprT, index) =>
-        isValueType(exprT)
-          ? [`param${index}`, typeNameFromTypeNode(exprT, this.ast)]
-          : [`param${index}`, typeNameFromTypeNode(exprT, this.ast), DataLocation.Memory],
-      ),
-      [['result', createBytesTypeName(this.ast), DataLocation.Memory]],
-      ['bitwise_ptr', 'range_check_ptr', 'warp_memory'],
-      this.ast,
-      sourceUnit ?? this.sourceUnit,
-    );
-
-    return createCallToFunction(functionStub, expressions, this.ast);
   }
 
   public getOrCreate(types: TypeNode[]): string {
@@ -97,6 +57,9 @@ export class AbiEncodePacked extends StringIndexedFuncGenWithAuxiliar {
       `end`,
     ].join('\n');
 
+    this.requireImport('starkware.cairo.common.alloc', 'alloc');
+    this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+    this.requireImport('warplib.memory', 'wm_new');
     this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array');
 
     const cairoFunc = { name: funcName, code: code };
@@ -104,7 +67,7 @@ export class AbiEncodePacked extends StringIndexedFuncGenWithAuxiliar {
     return cairoFunc.name;
   }
 
-  public getOrCreateEncoding(type: TypeNode): string {
+  public override getOrCreateEncoding(type: TypeNode): string {
     const unexpectedType = () => {
       throw new TranspileFailedError(`Encoding ${printTypeNode(type)} is not supported`);
     };

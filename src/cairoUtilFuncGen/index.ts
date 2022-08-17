@@ -37,11 +37,15 @@ import { EnumInputCheck } from './enumInputCheck';
 import { EncodeAsFelt } from './utils/encodeToFelt';
 import { AbiEncode } from './abi/abiEncode';
 import { AbiEncodePacked } from './abi/abiEncodePacked';
+import { AbiEncodeWithSelector } from './abi/abiEncodeWithSelector';
+import { AbiEncodeWithSignature } from './abi/abiEncodeWithSignature';
 
 export class CairoUtilFuncGen {
   abi: {
     encode: AbiEncode;
     encodePacked: AbiEncodePacked;
+    encodeWithSelector: AbiEncodeWithSelector;
+    encodeWithSignature: AbiEncodeWithSignature;
   };
   calldata: {
     dynArrayStructConstructor: ExternalDynArrayStructConstructor;
@@ -198,9 +202,13 @@ export class CairoUtilFuncGen {
       convert: callDataConvert,
       toStorage: calldataToStorage,
     };
+
+    const abiEncode = new AbiEncode(memoryRead, ast, sourceUnit);
     this.abi = {
-      encode: new AbiEncode(memoryRead, ast, sourceUnit),
+      encode: abiEncode,
       encodePacked: new AbiEncodePacked(memoryRead, ast, sourceUnit),
+      encodeWithSelector: new AbiEncodeWithSelector(abiEncode, ast, sourceUnit),
+      encodeWithSignature: new AbiEncodeWithSignature(abiEncode, ast, sourceUnit),
     };
     this.utils = {
       encodeAsFelt: new EncodeAsFelt(externalDynArrayStructConstructor, ast, sourceUnit),

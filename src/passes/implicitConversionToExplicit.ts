@@ -31,6 +31,7 @@ import {
   StringType,
   TupleExpression,
   TupleType,
+  typeNameToTypeNode,
   TypeNameType,
   TypeNode,
   UnaryOperation,
@@ -43,7 +44,11 @@ import { printNode, printTypeNode } from '../utils/astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { createElementaryConversionCall } from '../utils/functionGeneration';
-import { createNumberLiteral } from '../utils/nodeTemplates';
+import {
+  createBytesNTypeName,
+  createNumberLiteral,
+  createStringTypeName,
+} from '../utils/nodeTemplates';
 import { getParameterTypes, intTypeForLiteral } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, isExternalCall } from '../utils/utils';
 
@@ -203,11 +208,25 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         handleConcatArgs(node, ast);
         return;
       }
-      if (
-        ['encodePacked', 'encode', 'encodeWithSelector', 'encodeWithSignature'].includes(
-          node.vFunctionName,
-        )
-      ) {
+      if (['encodePacked', 'encode'].includes(node.vFunctionName)) {
+        return;
+      }
+      if (node.vFunctionName === 'encodeWithSelector') {
+        assert(node.vArguments.length > 0);
+        insertConversionIfNecessary(
+          node.vArguments[0],
+          typeNameToTypeNode(createBytesNTypeName(4, ast)),
+          ast,
+        );
+        return;
+      }
+      if (node.vFunctionName === 'encodeWithSignature') {
+        assert(node.vArguments.length > 0);
+        insertConversionIfNecessary(
+          node.vArguments[0],
+          typeNameToTypeNode(createStringTypeName(false, ast)),
+          ast,
+        );
         return;
       }
     }

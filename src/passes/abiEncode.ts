@@ -14,7 +14,9 @@ export class ABIEncode extends ASTMapper {
     if (
       node.kind !== FunctionCallKind.FunctionCall ||
       node.vReferencedDeclaration !== undefined ||
-      !['encodePacked', 'encode'].includes(node.vFunctionName)
+      !['encodePacked', 'encode', 'encodeWithSelector', 'encodeWithSignature'].includes(
+        node.vFunctionName,
+      )
     ) {
       return this.visitExpression(node, ast);
     }
@@ -26,6 +28,12 @@ export class ABIEncode extends ASTMapper {
         break;
       case 'encodePacked':
         replacement = ast.getUtilFuncGen(node).abi.encodePacked.gen(node.vArguments);
+        break;
+      case 'encodeWithSelector':
+        replacement = ast.getUtilFuncGen(node).abi.encodeWithSelector.gen(node.vArguments);
+        break;
+      case 'encodeWithSignature':
+        replacement = ast.getUtilFuncGen(node).abi.encodeWithSignature.gen(node.vArguments);
         break;
       default:
         throw new TranspileFailedError(`Unknown abi function: ${node.vFunctionName}`);

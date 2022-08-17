@@ -1,5 +1,5 @@
 import { Dir, Expect, File } from './types';
-import { getByte32Array, flatten } from './utils';
+import { getByte32Array, flatten, getByteXArray } from './utils';
 
 export const expectations = flatten(
   new Dir('tests', [
@@ -96,6 +96,18 @@ export const expectations = flatten(
                 ...['0', '0', '0', '7'],
                 ...['0', '0', '0', '11'],
               ],
+            ),
+          ]),
+          File.Simple('abiEncodeWithSelector', [
+            Expect.Simple(
+              'encodeWithSelector',
+              [],
+              getByteXArray({ byteSize: 4, value: 0x01020304 }, { byteSize: 32, value: 3 }),
+            ),
+            Expect.Simple(
+              'encodeWithSignature',
+              [],
+              getByteXArray({ byteSize: 4, value: 0x697e407d }, { byteSize: 32, value: 15 }),
             ),
           ]),
         ]),
