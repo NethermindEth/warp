@@ -173,12 +173,12 @@ export class RejectUnsupportedFeatures extends ASTMapper {
         throw new WillNotSupportError(`${node.kind} with arguments is not supported`, node);
     } else if (node.kind === FunctionKind.Receive) {
       throw new WillNotSupportError(`Receive functions are not supported`, node);
-    }  
+    }
     const filteredNode: ASTNode | undefined =
-          node.kind === FunctionKind.Constructor 
-    ? node.vBody?.getChildren().filter((value,_,)=>value instanceof Identifier)[0]
-    :undefined
-    if (filteredNode?.raw.name === 'this'){
+      node.kind === FunctionKind.Constructor
+        ? node.vBody?.getChildren().filter((value, _) => value instanceof Identifier)[0]
+        : undefined;
+    if (filteredNode?.raw.name === 'this') {
       throw new WillNotSupportError(`this keyword not supported during contract deployment`, node);
     }
     this.commonVisit(node, ast);
