@@ -24,8 +24,9 @@ import {
 } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { CairoFunction, StringIndexedFuncGen } from '../base';
+import { CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { MemoryReadGen } from '../memory/memoryRead';
+import { AbiEncode } from './abiEncode';
 
 const IMPLICITS =
   '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -34,6 +35,59 @@ const IMPLICITS =
  * Given any data type produces the same output of solidty abi.encodePacked
  * in the form of an array of felts where each element represents a byte
  */
+export class AbiEncodePacked2 extends AbiEncode {
+  private override functionName = 'abi_encode_packed';
+
+  public override getOrCreateEncoding(type: TypeNode): string {
+    const unexpectedType = () => {
+      throw new TranspileFailedError(`Encoding ${printTypeNode(type)} is not supported`);
+    };
+
+    return delegateBasedOnType<string>(
+      type,
+      (type) =>
+        type instanceof ArrayType
+          ? this.createArrayInlineEncoding(type)
+          : this.createStringOrBytesHeadEncoding(),
+      (type) => this.createArrayInlineEncoding(type),
+      unexpectedType,
+      unexpectedType,
+      () => this.createValueTypeHeadEncoding(),
+    );
+  }
+
+  private override generateEncodingCode(
+    type: TypeNode,
+    newIndexVar: string,
+    newOffsetVar: string,
+    varToEncode: string,
+  ): string {
+    const funcName = this.getOrCreateEncoding(type);
+    if (type instanceof ArrayType) {
+    }
+
+    if (type instanceof StringType || type instanceof BytesType) {
+    }
+
+    // Type is value type
+    return '';
+  }
+
+  private override createArrayInlineEncoding(type: ArrayType): string {}
+
+  private override createStringOrBytesHeadEncoding(): string {
+    const funcName = 'bytes_to_felt_dynamic_array';
+    this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return funcName;
+  }
+
+  private override createValueTypeHeadEncoding(): string {
+    const funcName = 'fixed_bytes256_to_felt_dynamic_array';
+    this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return funcName;
+  }
+}
+
 export class AbiEncodePacked extends StringIndexedFuncGen {
   protected functionName = 'abi_encode_packed';
   protected auxiliarGeneratedFunctions = new Map<string, CairoFunction>();

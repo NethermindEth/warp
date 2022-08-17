@@ -14,7 +14,7 @@ import {
 import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, MemoryLocation, TypeConversionContext } from '../../utils/cairoTypeSystem';
-import { NotSupportedYetError } from '../../utils/errors';
+import { TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import {
@@ -34,13 +34,19 @@ import { MemoryReadGen } from '../memory/memoryRead';
 const IMPLICITS =
   '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
-// Structs and tuples should work all right
 // Check that inline array key get's parsed correctly
 // Check the imports of each pass
-// Remove the no use
+// Comment the class
+// Comment the functions
+// What happens with all the arguments in get byte size, are they really needed?
+// Check semantic tests
 
+/**
+ * Given any data type produces the same output of solidty abi.encode
+ * in the form of an array of felts where each element represents a byte
+ */
 export class AbiEncode extends StringIndexedFuncGen {
-  protected functionName = 'abi_encode';
+  private functionName = 'abi_encode';
   protected auxiliarGeneratedFunctions = new Map<string, CairoFunction>();
   protected memoryRead: MemoryReadGen;
 
@@ -77,7 +83,7 @@ export class AbiEncode extends StringIndexedFuncGen {
     return createCallToFunction(functionStub, expressions, this.ast);
   }
 
-  protected getOrCreate(types: TypeNode[]): string {
+  public getOrCreate(types: TypeNode[]): string {
     const key = types.map((t) => t.pp()).join(',');
     const existing = this.generatedFunctions.get(key);
     if (existing !== undefined) {
@@ -124,9 +130,9 @@ export class AbiEncode extends StringIndexedFuncGen {
     return cairoFunc.name;
   }
 
-  protected getOrCreateEncoding(type: TypeNode): string {
+  public getOrCreateEncoding(type: TypeNode): string {
     const unexpectedType = () => {
-      throw new NotSupportedYetError(`Encoding ${printTypeNode(type)} is not supported yet`);
+      throw new TranspileFailedError(`Encoding ${printTypeNode(type)} is not supported yet`);
     };
 
     return delegateBasedOnType<string>(
@@ -259,12 +265,9 @@ export class AbiEncode extends StringIndexedFuncGen {
     if (exisiting !== undefined) return exisiting.name;
 
     const elementT = getElementType(type);
-    const cairoElementT = CairoType.fromSol(elementT, this.ast);
+    const elemntTSize = CairoType.fromSol(elementT, this.ast).width;
 
-    const readElementFunc = this.memoryRead.getOrCreate(cairoElementT);
-    const readElement = isDynamicArray(elementT)
-      ? `${readElementFunc}(elem_loc, ${uint256(0)})`
-      : `${readElementFunc}(elem_loc)`;
+    const readElement = this.readMemory(elementT, 'elem_loc');
     const headEncodingCode = this.generateEncodingCode(
       elementT,
       'new_bytes_index',
@@ -286,7 +289,7 @@ export class AbiEncode extends StringIndexedFuncGen {
       `     return (final_offset=bytes_offset)`,
       `  end`,
       `  let (index256) = felt_to_uint256(index)`,
-      `  let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(cairoElementT.width)})`,
+      `  let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(elemntTSize)})`,
       `  let (elem) = ${readElement}`,
       `  ${headEncodingCode}`,
       `  return ${name}(new_bytes_index, new_bytes_offset, bytes_array, index + 1, length, mem_ptr)`,
@@ -342,6 +345,8 @@ export class AbiEncode extends StringIndexedFuncGen {
       `end`,
     ].join('\n');
 
+    this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+
     this.auxiliarGeneratedFunctions.set(key, { name, code });
     return name;
   }
@@ -361,14 +366,9 @@ export class AbiEncode extends StringIndexedFuncGen {
     const existing = this.auxiliarGeneratedFunctions.get(key);
     if (existing !== undefined) return existing.name;
 
-    const elementT = type.elementT;
-    const cairoElementT = CairoType.fromSol(elementT, this.ast);
+    const elementTWidth = CairoType.fromSol(type.elementT, this.ast).width;
 
-    const readElementFunc = this.memoryRead.getOrCreate(cairoElementT);
-    const readElement =
-      isDynamicArray(elementT) || elementT instanceof ArrayType
-        ? `${readElementFunc}(elem_loc, ${uint256(isDynamicArray(elementT) ? 2 : 0)})`
-        : `${readElementFunc}(elem_loc)`;
+    const readElement = this.readMemory(type, 'elem_loc');
 
     const headEncodingCode = this.generateEncodingCode(
       type.elementT,
@@ -391,7 +391,7 @@ export class AbiEncode extends StringIndexedFuncGen {
       `  if mem_index == mem_length:`,
       `     return (final_bytes_index=bytes_index, final_bytes_offset=bytes_offset)`,
       `  end`,
-      `  let elem_loc = mem_ptr + ${mul('mem_index', cairoElementT.width)}`,
+      `  let elem_loc = mem_ptr + ${mul('mem_index', elementTWidth)}`,
       `  let (elem) = ${readElement}`,
       `  ${headEncodingCode}`,
       `  return ${name}(`,
@@ -512,7 +512,7 @@ export class AbiEncode extends StringIndexedFuncGen {
     return funcName;
   }
 
-  private readMemory(type: TypeNode, arg: string) {
+  protected readMemory(type: TypeNode, arg: string) {
     const cairoType = CairoType.fromSol(type, this.ast);
     const funcName = this.memoryRead.getOrCreate(cairoType);
     const args =
