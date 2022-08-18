@@ -485,7 +485,6 @@ export function getSourceFromLocation(source: string, location: SourceLocation):
   return [...previousLines, ...currentLine, ...followingLines].join('\n');
 }
 
-
 export function callClassHashScript(filePath: string): string {
   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
   const classHash = execSync(
@@ -497,6 +496,7 @@ export function callClassHashScript(filePath: string): string {
     throw new Error(`Cannot calculate class hash.`);
   }
   return classHash;
+}
 
 export function getContainingFunction(node: ASTNode): FunctionDefinition {
   const func = node.getClosestParentByType(FunctionDefinition);
@@ -508,4 +508,4 @@ export function getContainingSourceUnit(node: ASTNode): SourceUnit {
   const root = node.getClosestParentByType(SourceUnit);
   assert(root !== undefined, `Unable to find root source unit for ${printNode(node)}`);
   return root;
-
+}
