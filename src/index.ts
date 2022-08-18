@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { isValidSolFile, outputResult } from './io';
+import { createCairoFileName, isValidSolFile, outputResult } from './io';
 import { compileSolFile } from './solCompile';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
@@ -13,6 +13,7 @@ import {
 import chalk from 'chalk';
 import { runVenvSetup } from './utils/setupVenv';
 import { runTests } from './testing';
+import { postProcessCairoFile } from './utils/postCairoWrite';
 
 export type CompilationOptions = {
   warnings: boolean;
@@ -69,8 +70,20 @@ program
         console.log(`Compiling ${file}`);
       }
       try {
+        const transpiledFiles = new Set<string>();
+        const cairoSuffix = '.cairo';
+        const contractToHashMap = new Map<string, string>();
+
         transpile(compileSolFile(file, options.warnings), options).map(([name, cairo, abi]) => {
-          outputResult(name, cairo, options, '.cairo', abi);
+          outputResult(name, cairo, options, cairoSuffix, abi);
+          // return createCairoFileName(name, cairoSuffix);
+          transpiledFiles.add(createCairoFileName(name, cairoSuffix));
+        });
+        // .forEach((file) => {
+        // postProcessCairoFile(file, 'warp_output', contractToHashMap);
+        // });
+        transpiledFiles.forEach((file) => {
+          postProcessCairoFile(file, 'warp_output', contractToHashMap);
         });
       } catch (e) {
         handleTranspilationError(e);
@@ -271,6 +284,10 @@ program
   .action((options: IInstallOptions) => {
     runVenvSetup(options);
   });
+
+// program.command('declare <file>').action(async (file: string) => {
+//   declareCairoFile(file);
+// });
 
 const blue = chalk.bold.blue;
 const green = chalk.bold.green;
