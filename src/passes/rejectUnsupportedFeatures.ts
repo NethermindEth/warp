@@ -174,13 +174,31 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     } else if (node.kind === FunctionKind.Receive) {
       throw new WillNotSupportError(`Receive functions are not supported`, node);
     }
-    const filteredNode: ASTNode | undefined =
+
+    //Checking if the function defination is constructor and
+    // if it is, checking if 'this' keyword is used to call
+    // the external/public functions of the contract
+    const nodesWithThisIdentifier: ASTNode[] | undefined =
       node.kind === FunctionKind.Constructor
-        ? node.vBody?.getChildren().filter((value, _) => value instanceof Identifier)[0]
+        ? node.vBody
+            ?.getChildren()
+            .filter((value, _) => value instanceof Identifier && value.raw.name === 'this')
         : undefined;
-    if (filteredNode?.raw.name === 'this') {
-      throw new WillNotSupportError(`this keyword not supported during contract deployment`, node);
-    }
+
+    nodesWithThisIdentifier?.forEach((node: ASTNode) => {
+      const parentNode = node?.parent;
+      if (
+        parentNode instanceof MemberAccess &&
+        parentNode?.typeString.includes('function') &&
+        parentNode?.typeString.includes('external')
+      ) {
+        throw new WillNotSupportError(
+          `external function calls using this keyword not supported during contract deployment`,
+          node,
+        );
+      }
+    });
+
     this.commonVisit(node, ast);
   }
 
