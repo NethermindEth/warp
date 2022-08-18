@@ -99,18 +99,21 @@ export class DynArrayModifier extends ASTMapper {
             memoryArray.name = memoryArray.name + '_mem';
             const memArrayStatement = createVariableDeclarationStatement(
               [memoryArray],
-              createIdentifier(dArrayStruct, ast),
+              createIdentifier(dArrayStruct, ast, undefined, varDecl),
               ast,
             );
             ids.forEach((identifier) =>
-              ast.replaceNode(identifier, createIdentifier(memoryArray, ast, DataLocation.Memory)),
+              ast.replaceNode(
+                identifier,
+                createIdentifier(memoryArray, ast, DataLocation.Memory, varDecl),
+              ),
             );
             body.insertAfter(memArrayStatement, structArrayStatement);
           } else {
             ids.forEach((identifier) =>
               ast.replaceNode(
                 identifier,
-                createIdentifier(dArrayStruct, ast, DataLocation.CallData),
+                createIdentifier(dArrayStruct, ast, DataLocation.CallData, varDecl),
               ),
             );
           }

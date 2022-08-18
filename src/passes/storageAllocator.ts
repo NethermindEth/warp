@@ -153,7 +153,7 @@ function extractInitialisation(node: VariableDeclaration, initialisationBlock: B
     initialisationBlock.appendChild(
       createVariableDeclarationStatement([memoryVariableDeclaration], value, ast),
     );
-    value = createIdentifier(memoryVariableDeclaration, ast, DataLocation.Memory);
+    value = createIdentifier(memoryVariableDeclaration, ast, DataLocation.Memory, node);
   }
   initialisationBlock.appendChild(
     createExpressionStatement(

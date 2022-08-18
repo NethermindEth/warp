@@ -169,7 +169,7 @@ export function createOuterCall(
   functionToCall: FunctionCall,
   ast: AST,
 ): ExpressionStatement {
-  const resultIdentifiers = variables.map((k) => createIdentifier(k, ast));
+  const resultIdentifiers = variables.map((k) => createIdentifier(k, ast, undefined, node));
   const assignmentValue = toSingleExpression(resultIdentifiers, ast);
 
   return new ExpressionStatement(

@@ -35,7 +35,7 @@ export class ConstantHandler extends ASTMapper {
     const typeTo = safeGetNodeType(node, ast.compilerVersion);
 
     ast.replaceNode(node, constant);
-    insertConversionIfNecessary(constant, typeTo, node, ast);
+    insertConversionIfNecessary(constant, typeTo, constant, ast);
   }
 
   visitIdentifier(node: Identifier, ast: AST): void {

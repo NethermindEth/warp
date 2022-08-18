@@ -25,7 +25,7 @@ import {
   createParameterList,
   createReturn,
 } from '../../utils/nodeTemplates';
-import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import { safeGetNodeTypeInCtx } from '../../utils/nodeTypeProcessing';
 
 // The returns should be both the values returned by the conditional itself,
 // as well as the variables that got captured, as they could have been modified
@@ -147,7 +147,7 @@ export function addStatementsToCallFunction(
       [conditionalResult.id],
       [conditionalResult],
       getDefaultValue(
-        safeGetNodeType(conditionalResult, ast.compilerVersion),
+        safeGetNodeTypeInCtx(conditionalResult, ast.compilerVersion, node),
         conditionalResult,
         ast,
       ),
