@@ -3,6 +3,7 @@ import {
   AddressType,
   ArrayType,
   Assignment,
+  ASTNode,
   BinaryOperation,
   BoolType,
   BuiltinType,
@@ -74,7 +75,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     if (returnDeclarations.length !== 1) return;
 
     const expectedRetType = safeGetNodeType(returnDeclarations[0], ast.compilerVersion);
-    insertConversionIfNecessary(node.vExpression, expectedRetType, ast);
+    insertConversionIfNecessary(node.vExpression, expectedRetType, node, ast);
   }
 
   visitBinaryOperation(node: BinaryOperation, ast: AST): void {
@@ -83,12 +84,13 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     const resultType = safeGetNodeType(node, ast.compilerVersion);
 
     if (node.operator === '<<' || node.operator === '>>') {
-      insertConversionIfNecessary(node.vLeftExpression, resultType, ast);
+      insertConversionIfNecessary(node.vLeftExpression, resultType, node, ast);
       const rhsType = safeGetNodeType(node.vRightExpression, ast.compilerVersion);
       if (rhsType instanceof IntLiteralType) {
         insertConversionIfNecessary(
           node.vRightExpression,
           intTypeForLiteral(node.vRightExpression.typeString),
+          node,
           ast,
         );
       }
@@ -96,18 +98,19 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     } else if (node.operator === '**') {
       const rightNodeType = safeGetNodeType(node.vRightExpression, ast.compilerVersion);
 
-      insertConversionIfNecessary(node.vLeftExpression, resultType, ast);
+      insertConversionIfNecessary(node.vLeftExpression, resultType, node, ast);
       if (rightNodeType instanceof IntLiteralType) {
         const bound = getLiteralValueBound(node.vRightExpression.typeString);
         insertConversionIfNecessary(
           node.vRightExpression,
           intTypeForLiteral(`int_const ${bound}`),
+          node,
           ast,
         );
       }
     } else if (['*', '/', '%', '+', '-', '&', '^', '|', '&&', '||'].includes(node.operator)) {
-      insertConversionIfNecessary(node.vLeftExpression, resultType, ast);
-      insertConversionIfNecessary(node.vRightExpression, resultType, ast);
+      insertConversionIfNecessary(node.vLeftExpression, resultType, node, ast);
+      insertConversionIfNecessary(node.vRightExpression, resultType, node, ast);
     } else if (['<', '>', '<=', '>=', '==', '!='].includes(node.operator)) {
       const leftNodeType = safeGetNodeType(node.vLeftExpression, ast.compilerVersion);
       const rightNodeType = safeGetNodeType(node.vRightExpression, ast.compilerVersion);
@@ -123,8 +126,8 @@ export class ImplicitConversionToExplicit extends ASTMapper {
           : undefined,
       );
 
-      insertConversionIfNecessary(node.vLeftExpression, targetType, ast);
-      insertConversionIfNecessary(node.vRightExpression, targetType, ast);
+      insertConversionIfNecessary(node.vLeftExpression, targetType, node, ast);
+      insertConversionIfNecessary(node.vRightExpression, targetType, node, ast);
     }
   }
 
@@ -138,6 +141,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     insertConversionIfNecessary(
       node.vRightHandSide,
       safeGetNodeType(node.vLeftHandSide, ast.compilerVersion),
+      node,
       ast,
     );
   }
@@ -159,6 +163,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     insertConversionIfNecessary(
       node.vInitialValue,
       safeGetNodeType(node.vDeclarations[0], ast.compilerVersion),
+      node,
       ast,
     );
   }
@@ -178,7 +183,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       // post-audit TODO fixedbytes for second argument to allow non-literals
       if (['assert', 'require'].includes(node.vFunctionName) && node.vArguments.length > 1) {
         const paramType = getParameterTypes(node, ast)[0];
-        insertConversionIfNecessary(node.vArguments[0], paramType, ast);
+        insertConversionIfNecessary(node.vArguments[0], paramType, node, ast);
         return;
       }
       if (['push', 'pop'].includes(node.vFunctionName)) {
@@ -194,7 +199,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         );
         node.vArguments.forEach((arg, index) => {
           const paramIndex = index + paramTypes.length - node.vArguments.length;
-          insertConversionIfNecessary(arg, paramTypes[paramIndex], ast);
+          insertConversionIfNecessary(arg, paramTypes[paramIndex], node, ast);
         });
         return;
       }
@@ -214,7 +219,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       ),
     );
     node.vArguments.forEach((arg, index) =>
-      insertConversionIfNecessary(arg, paramTypes[index], ast),
+      insertConversionIfNecessary(arg, paramTypes[index], node, ast),
     );
   }
 
@@ -228,14 +233,14 @@ export class ImplicitConversionToExplicit extends ASTMapper {
     );
 
     if (baseType instanceof MappingType) {
-      insertConversionIfNecessary(node.vIndexExpression, baseType.keyType, ast);
+      insertConversionIfNecessary(node.vIndexExpression, baseType.keyType, node, ast);
     } else if (
       location === DataLocation.CallData ||
       (node.vBaseExpression instanceof FunctionCall && isExternalCall(node.vBaseExpression))
     ) {
-      insertConversionIfNecessary(node.vIndexExpression, new IntType(248, false), ast);
+      insertConversionIfNecessary(node.vIndexExpression, new IntType(248, false), node, ast);
     } else {
-      insertConversionIfNecessary(node.vIndexExpression, new IntType(256, false), ast);
+      insertConversionIfNecessary(node.vIndexExpression, new IntType(256, false), node, ast);
     }
   }
 
@@ -249,7 +254,9 @@ export class ImplicitConversionToExplicit extends ASTMapper {
       `Expected inline array ${printNode(node)} to be array type, got ${printTypeNode(type)}`,
     );
 
-    node.vComponents.forEach((element) => insertConversionIfNecessary(element, type.elementT, ast));
+    node.vComponents.forEach((element) =>
+      insertConversionIfNecessary(element, type.elementT, node, ast),
+    );
 
     this.visitExpression(node, ast);
   }
@@ -268,6 +275,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
 export function insertConversionIfNecessary(
   expression: Expression,
   targetType: TypeNode,
+  context: ASTNode,
   ast: AST,
 ): void {
   const [currentType, currentLoc] = generalizeType(
@@ -277,7 +285,7 @@ export function insertConversionIfNecessary(
 
   if (currentType instanceof AddressType) {
     if (!(generalisedTargetType instanceof AddressType)) {
-      insertConversion(expression, generalisedTargetType, ast);
+      insertConversion(expression, generalisedTargetType, context, ast);
     }
   } else if (currentType instanceof ArrayType) {
     assert(
@@ -329,10 +337,10 @@ export function insertConversionIfNecessary(
     }
   } else if (currentType instanceof FixedBytesType) {
     if (generalisedTargetType instanceof BytesType || generalisedTargetType instanceof StringType) {
-      insertConversionIfNecessary(expression, generalisedTargetType, ast);
+      insertConversionIfNecessary(expression, generalisedTargetType, context, ast);
     } else if (generalisedTargetType instanceof FixedBytesType) {
       if (currentType.size !== generalisedTargetType.size) {
-        insertConversion(expression, generalisedTargetType, ast);
+        insertConversion(expression, generalisedTargetType, context, ast);
       }
     } else {
       throw new TranspileFailedError(
@@ -344,7 +352,7 @@ export function insertConversionIfNecessary(
   } else if (currentType instanceof ImportRefType) {
     return;
   } else if (currentType instanceof IntLiteralType) {
-    insertConversion(expression, generalisedTargetType, ast);
+    insertConversion(expression, generalisedTargetType, context, ast);
   } else if (currentType instanceof IntType) {
     if (
       generalisedTargetType instanceof IntType &&
@@ -352,7 +360,7 @@ export function insertConversionIfNecessary(
     ) {
       return;
     } else {
-      insertConversion(expression, generalisedTargetType, ast);
+      insertConversion(expression, generalisedTargetType, context, ast);
     }
   } else if (currentType instanceof MappingType) {
     return;
@@ -395,12 +403,12 @@ export function insertConversionIfNecessary(
         generalisedTargetType.pp(),
       );
       ast.replaceNode(expression, replacementNode, expression.parent);
-      insertConversion(replacementNode, generalisedTargetType, ast);
+      insertConversion(replacementNode, generalisedTargetType, context, ast);
     } else if (
       generalisedTargetType instanceof StringType ||
       generalisedTargetType instanceof BytesType
     ) {
-      insertConversion(expression, generalisedTargetType, ast);
+      insertConversion(expression, generalisedTargetType, context, ast);
     }
     return;
   } else if (currentType instanceof TupleType) {
@@ -423,7 +431,12 @@ export function insertConversionIfNecessary(
   }
 }
 
-function insertConversion(expression: Expression, targetType: TypeNode, ast: AST): void {
+function insertConversion(
+  expression: Expression,
+  targetType: TypeNode,
+  context: ASTNode,
+  ast: AST,
+): void {
   const typeName = typeNameFromTypeNode(targetType, ast);
   assert(
     typeName instanceof ElementaryTypeName,
@@ -433,7 +446,7 @@ function insertConversion(expression: Expression, targetType: TypeNode, ast: AST
     ).pp()} -> ${printTypeNode(targetType)}`,
   );
   const parent = expression.parent;
-  const call = createElementaryConversionCall(typeName, expression, ast);
+  const call = createElementaryConversionCall(typeName, expression, context, ast);
   ast.replaceNode(expression, call, parent);
 }
 
@@ -575,9 +588,9 @@ function handleConcatArgs(node: FunctionCall, ast: AST) {
     const type = safeGetNodeType(arg, ast.compilerVersion);
     if (type instanceof StringLiteralType) {
       if (type.literal.length < 32 && type.literal.length > 0) {
-        insertConversionIfNecessary(arg, new FixedBytesType(type.literal.length), ast);
+        insertConversionIfNecessary(arg, new FixedBytesType(type.literal.length), node, ast);
       } else {
-        insertConversionIfNecessary(arg, new BytesType(), ast);
+        insertConversionIfNecessary(arg, new BytesType(), node, ast);
       }
     }
   });
