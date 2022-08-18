@@ -26,7 +26,6 @@ import { printTypeNode } from '../../../utils/astPrinter';
 import {
   getElementType,
   isDynamicArray,
-  safeGetNodeType,
   safeGetNodeTypeInCtx,
 } from '../../../utils/nodeTypeProcessing';
 
