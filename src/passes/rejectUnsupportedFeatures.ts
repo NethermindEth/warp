@@ -16,6 +16,7 @@ import {
   FunctionDefinition,
   FunctionKind,
   FunctionType,
+  FunctionVisibility,
   getNodeType,
   Identifier,
   IndexAccess,
@@ -178,26 +179,28 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     //Checking if the function defination is constructor and
     // if it is, checking if 'this' keyword is used to call
     // the external/public functions of the contract
-    const nodesWithThisIdentifier: ASTNode[] | undefined =
-      node.kind === FunctionKind.Constructor
-        ? node.vBody
-            ?.getChildren()
-            .filter((value, _) => value instanceof Identifier && value.raw.name === 'this')
-        : undefined;
 
-    nodesWithThisIdentifier?.forEach((node: ASTNode) => {
-      const parentNode = node?.parent;
-      if (
-        parentNode instanceof MemberAccess &&
-        parentNode?.typeString.includes('function') &&
-        parentNode?.typeString.includes('external')
-      ) {
-        throw new WillNotSupportError(
-          `external function calls using this keyword not supported during contract deployment`,
-          node,
-        );
-      }
-    });
+    if (node.kind === FunctionKind.Constructor) {
+      const nodesWithThisIdentifier = node.vBody
+        ?.getChildren()
+        .filter((value, _) => value instanceof Identifier && value.raw.name === 'this');
+
+      nodesWithThisIdentifier?.forEach((node: ASTNode) => {
+        const parentNode = node?.parent;
+        if (
+          parentNode instanceof MemberAccess &&
+          parentNode?.parent instanceof FunctionCall &&
+          parentNode.parent.vReferencedDeclaration instanceof FunctionDefinition &&
+          (parentNode.parent.vReferencedDeclaration.visibility === FunctionVisibility.Public ||
+            parentNode.parent.vReferencedDeclaration.visibility === FunctionVisibility.External)
+        ) {
+          throw new WillNotSupportError(
+            `external function calls using this keyword not supported during contract deployment`,
+            node,
+          );
+        }
+      });
+    }
 
     this.commonVisit(node, ast);
   }
