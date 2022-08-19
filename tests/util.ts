@@ -145,10 +145,10 @@ export async function compileCluster(
     const fileLocationHash = hashFilename(reducePath(fileToDeclare, 'warp_output'));
     declared.set(fileLocationHash, declareHash);
   }
-  // setDeclaredAddresses(root, declared);
   return starknetCompile(root, test.asyncTest.compiled);
 }
 
+// This is recursively compiling and declaring the needed files for the test.
 export async function compileDependencyGraph(
   root: string,
   graph: Map<string, string[]>,

@@ -6,6 +6,7 @@ import { analyseSol } from './utils/analyseSol';
 import {
   runStarknetCallOrInvoke,
   runStarknetCompile,
+  runStarknetDeclare,
   runStarknetDeploy,
   runStarknetDeployAccount,
   runStarknetStatus,
@@ -282,9 +283,12 @@ program
 
 export type IDeclareOptions = IOptionalNetwork;
 
-// program.command('declare <file>').action(async (file: string, options: IDeclareOptions) => {
-//   runStarknetDeclare(file, options);
-// });
+program
+  .command('declare <file>')
+  .option('--network <network>', 'The network to declare the contract on.')
+  .action(async (file: string, options: IDeclareOptions) => {
+    runStarknetDeclare(file, options);
+  });
 
 const blue = chalk.bold.blue;
 const green = chalk.bold.green;

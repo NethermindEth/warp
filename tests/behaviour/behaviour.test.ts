@@ -3,20 +3,19 @@ import * as fs from 'fs';
 import {
   SafePromise,
   cleanupSync,
-  starknetCompile,
   transpile,
   batchPromises,
   processArgs,
+  compileCluster,
 } from '../util';
-import { declare, deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
+import { deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
 
 import { describe } from 'mocha';
 import { expect } from 'chai';
 import { expectations } from './expectations';
 import { AsyncTest, Expect } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
-import { getDependencyGraph, hashFilename, reducePath } from '../../src/utils/postCairoWrite';
-import assert from 'assert';
+import { getDependencyGraph } from '../../src/utils/postCairoWrite';
 
 const PRINT_STEPS = false;
 const PARALLEL_COUNT = 8;
@@ -70,55 +69,6 @@ describe('Transpiled contracts are valid cairo', function () {
   let compileResults: SafePromise<{ stderr: string } | null>[];
   let processedExpectations: (AsyncTestCluster | null)[];
 
-  const outputLocation = (fileLocation: string) =>
-    fileLocation.slice(0, -'.cairo'.length).concat('.json');
-
-  const compileCluster = async (test: AsyncTestCluster) => {
-    const graph = test.dependencies;
-    const root = test.asyncTest.cairo;
-    const dependencies = graph.get(root);
-    assert(dependencies !== undefined);
-    if (dependencies.length === 0) {
-      return starknetCompile(root, test.asyncTest.compiled);
-    }
-
-    const declared = new Map<string, string>();
-    for (const fileToDeclare of dependencies) {
-      const declareHash = await compileDependencyGraph(fileToDeclare, graph, declared);
-      const fileLocationHash = hashFilename(reducePath(fileToDeclare, 'warp_output'));
-      declared.set(fileLocationHash, declareHash);
-    }
-    // setDeclaredAddresses(root, declared);
-    return starknetCompile(root, test.asyncTest.compiled);
-  };
-
-  const compileDependencyGraph = async (
-    root: string,
-    graph: Map<string, string[]>,
-    declared: Map<string, string>,
-  ): Promise<string> => {
-    const declaredHash = declared.get(root);
-    if (declaredHash !== undefined) {
-      return declaredHash;
-    }
-
-    const dependencies = graph.get(root);
-    if (dependencies !== undefined) {
-      for (const fileToDeclare of dependencies) {
-        const declaredHash = await compileDependencyGraph(fileToDeclare, graph, declared);
-        const fileLocationHash = hashFilename(reducePath(fileToDeclare, 'warp_output'));
-        declared.set(fileLocationHash, declaredHash);
-      }
-      // Should remove this.
-      // setDeclaredAddresses(root, declared);
-    }
-
-    await starknetCompile(root, outputLocation(root));
-    const hash = await declare(outputLocation(root));
-    assert(!hash.threw, 'Hash threw');
-    return hash.class_hash;
-  };
-
   before(function () {
     processedExpectations = expectations.map((test: AsyncTest): AsyncTestCluster | null => {
       if (test.encodingError !== undefined || !fs.existsSync(test.cairo)) {
@@ -135,6 +85,7 @@ describe('Transpiled contracts are valid cairo', function () {
         if (test === null) {
           return Promise.resolve(null);
         }
+        // This is will compile the test and declare all of the dependencies that it needs.
         return compileCluster(test);
       },
     );
@@ -158,18 +109,18 @@ describe('Transpiled contracts are valid cairo', function () {
 
 const deployedAddresses: Map<string, { address: string; hash: string }> = new Map();
 
+// Deploying the tests to the Testnet thought interface commands
+// The test net is a flask server that runs and therefor cannot be interacted with
+// in the same manner as the StarkNet CLI.
 describe('Compiled contracts are deployable', function () {
   this.timeout(TIME_LIMIT);
 
-  // let deployResults: SafePromise<string>[];
   const deployResults: (DeployResponse | null)[] = [];
 
   before(async function () {
     const testnetContactable = await ensureTestnetContactable(60000);
     expect(testnetContactable, 'Failed to ping testnet').to.be.true;
-    // deployResults = expectations.map(async (fileTest) =>
-    //   wrapPromise(deploy(fileTest.compiled, [])),
-    // );
+
     for (const fileTest of expectations) {
       const fileSize = fs.statSync(fileTest.compiled, { throwIfNoEntry: false })?.size;
       if (fileSize !== undefined && fileSize > 0) {
@@ -182,7 +133,6 @@ describe('Compiled contracts are deployable', function () {
 
   for (let i = 0; i < expectations.length; ++i) {
     it(expectations[i].name, async function () {
-      // const response = await deployResults[i];
       const response = deployResults[i];
       if (response === null) {
         this.skip();
@@ -199,6 +149,11 @@ describe('Compiled contracts are deployable', function () {
   }
 });
 
+/* 
+ Test that the contracts that have been deployed have the correct output given a
+ corresponding input. These inputs are received from the test/expectations/index.ts
+ file which processes inputs and outputs from behaviour.ts and semantic.ts
+*/
 describe('Deployed contracts have correct behaviour', function () {
   this.timeout(TIME_LIMIT);
 
