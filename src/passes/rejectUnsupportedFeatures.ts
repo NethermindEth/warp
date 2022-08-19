@@ -182,10 +182,10 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     if (node.kind === FunctionKind.Constructor) {
       const nodesWithThisIdentifier = node.vBody
         ?.getChildren()
-        .filter((node, _) => node instanceof Identifier && node.raw.name === 'this');
+        .filter((childNode, _) => childNode instanceof Identifier && childNode.raw.name === 'this');
 
-      nodesWithThisIdentifier?.forEach((node: ASTNode) => {
-        const parentNode = node?.parent;
+      nodesWithThisIdentifier?.forEach((identifierNode: ASTNode) => {
+        const parentNode = identifierNode?.parent;
         if (
           parentNode instanceof MemberAccess &&
           parentNode?.parent instanceof FunctionCall &&
