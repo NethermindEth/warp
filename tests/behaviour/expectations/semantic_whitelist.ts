@@ -19,11 +19,11 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/abi_encode_with_selector.sol', // WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/offset_overflow_in_array_decoding_2.sol', // WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/abi_decode_calldata.sol', // WILL NOT SUPPORT
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/abi_encode_with_signaturev2.sol', // WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/abi_encode_with_signaturev2.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/abi_encode_with_signature.sol', // WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/abi_encode_call_special_args.sol', // WILL NOT SUPPORT
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/contract_array_v2.sol', // WILL NOT SUPPORT
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/abi_encode_with_selectorv2.sol', // WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/contract_array_v2.sol', // WILL NOT SUPPORT abi.decode
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/abi_encode_with_selectorv2.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiencodedecode/abi_encode_call_memory.sol', // WILL NOT SUPPORT
   ],
   //---------AbiEncoderV1 tests - WillNotSupport
@@ -57,8 +57,9 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/byte_arrays.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/memory_params_in_external_function.sol',
   ],
-  //---------AbiEncoderV2 tests - WillNotSupport
+  //---------AbiEncoderV2 tests
   ...[
+    // ---- WILL NOT SUPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/address.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/bytesx.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/dynamic_array.sol',
@@ -69,6 +70,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/function.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/simple_struct.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/cleanup.sol',
+    // ---- Unrelated to Abi.encode...
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/mediocre_struct.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/mediocre2_struct.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/validation_function_type_inside_struct.sol',
@@ -76,34 +78,35 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/struct_short.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/struct_function.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/struct_simple.sol',
+    // --------------------------------
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_rational_v2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic.sol', // Error when transcoding calldata
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_struct_simple.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_static.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_static_index_access.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_static.sol', // Error while transcoding calldata
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_static_index_access.sol', // WILL NOT SUPPORT nested calldata array
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_v2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_two_dynamic.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_two_dynamic.sol', // Error when transcoding calldata
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic_static_short_decode.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_struct_member_offset.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/dynamic_arrays.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array.sol', // WILL NOT SUPPORT msg.data
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_v2_in_function_inherited_in_v1_contract.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_v2_in_modifier_used_in_v1_contract.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_empty_string_v2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_static_dynamic_static.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_multi_dynamic.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_empty_string_v2.sol', // Works except for some malfomrmed data input
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_static_dynamic_static.sol', // WILL NOT SUPPORT nested calldata array
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_multi_dynamic.sol', // WILL NOT SUPPORT nested calldata array
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/bool_out_of_bounds.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_struct_dynamic.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_struct_dynamic.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_struct_dynamic.sol', // WILL NOT SUPPORT nested calldata array
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_struct_dynamic.sol', // WILL NOT SUPPORT nested calldata array
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/dynamic_nested_arrays.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/storage_array_encoding.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic_static_short_reencode.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic_index_access.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_calldata_slice.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic_static_dynamic.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic_index_access.sol',  // WILL NOT SUPPORT nested calldata array
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_calldata_slice.sol', // WILL NOT SUPPORT slice
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic_static_dynamic.sol', // WILL NOT SUPPORT nested calldata array
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_two_static.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_function_types.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/enums.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/enums.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/byte_arrays.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/memory_params_in_external_function.sol',
   ],
@@ -327,7 +330,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/calldata_array_dynamic_invalid.sol', // nested dynarray argument
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/calldata_slice_access.sol', // STRETCH array slices
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/fixed_arrays_as_return_type.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/reusing_memory.sol', // WILL NOT SUPPORT due to the use abi.encodePacked
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/reusing_memory.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/function_array_cross_calls.sol', // WILL NOT SUPPORT function objects
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/function_memory_array.sol', // WILL NOT SUPPORT function objects
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/calldata_array_two_dimensional.sol', // nested dynarray input
@@ -349,12 +352,12 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/blockhash_shadow_resolution.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/keccak256_empty.sol', // WillNotSupport
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/keccak256_with_bytes.sol', // WillNotSupport
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/keccak256_multiple_arguments.sol', // WillNotSupport abi
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/keccak256_multiple_arguments_with_numeric_literals.sol', // WillNotSupport abi
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/keccak256_multiple_arguments_with_string_literals.sol', // WillNotSupport abi
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/keccak256_multiple_arguments.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/keccak256_multiple_arguments_with_numeric_literals.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/keccak256_multiple_arguments_with_string_literals.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/blockhash.sol', // WillNotSupport blockhash
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/function_types_sig.sol', // WillNotSupport selector
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/iterated_keccak256_with_bytes.sol', // WillNotSupprt keccak abiencode
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/iterated_keccak256_with_bytes.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/msg_sig.sol', // WillNotSupport
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/msg_sig_after_internal_call_is_same.sol', // WillNotSupport
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/builtinFunctions/ripemd160_empty.sol', // WillNotSupport
@@ -376,7 +379,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_struct_internal.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_bound_dynamic_array_or_slice.sol', // STRETCH slices
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_array_dynamic_bytes.sol', // nested dynarray arg
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_bytes_to_memory_encode.sol', // WILL NOT SUPPORT abi.encode
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_bytes_to_memory_encode.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_internal_function_pointer.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_internal_multi_array.sol', // nested dynarray arg
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/calldata/calldata_struct_cleaning.sol', // WILL NOT SUPPORT yul
@@ -670,15 +673,15 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_no_args.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_with_args.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_with_salt.sol', // Fail during deployement because salt cannot be safely narrowed to felt
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/delegatecall_return_value_pre_byzantium.sol', // WILL NOT SUPPORT abi.encodepacked
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/delegatecall_return_value.sol', // WILL NOT SUPPORT abi.encodepacked
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/delegatecall_return_value_pre_byzantium.sol', // WILL NOT SUPPORT delegate call
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/delegatecall_return_value.sol', // WILL NOT SUPPORT delegate call
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/external_call_at_construction_time.sol', // Fails because WARP allows a contract to call itself during creation (And it should not)
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/external_call_value.sol', // WILL NOT SUPPORT msg.value?
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/failed_create.sol', // WILL NOT SUPPORT payable functions?
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/gas_and_value_basic.sol', // WILL NOT SUPPORT gas
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/gas_and_value_brace_syntax.sol', // WILL NOT SUPPORT gas
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/member_accessors.sol', // WILL NOT SUPPORT keccak
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/precompile_extcodesize_check.sol', // WILL NOT SUPPORT precompile ext call. abi.encode
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/precompile_extcodesize_check.sol', // WILL NOT SUPPORT precompile ext call. abi.decode
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/send_zero_ether.sol', // WILL NOT SUPPORT send
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/value_test.sol', // WILL NOT SUPPORT payable
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/bare_call_no_returndatacopy.sol', // WILL NOT SUPPORT raw address call
@@ -911,10 +914,10 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_function_named_selector.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_internal_function.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_pointer.sol', // WILL NOT SUPPORT function objects
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_delegatecall_guard_view_staticcall.sol', // WILL NOT SUPPORT abi.encode
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_address_homestead.sol', // WILL NOT SUPPORT abi.encode
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_address_via_module.sol', // WILL NOT SUPPORT abi.encode
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_address.sol', // WILL NOT SUPPORT abi.encode
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_delegatecall_guard_view_staticcall.sol', // WILL NOT SUPPORT use of call
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_address_homestead.sol', // WILL NOT SUPPORT delegate call
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_address_via_module.sol', // WILL NOT SUPPORT abi.decode
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_address.sol', // WILL NOT SUPPORT abi.decode
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_function_selectors.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_delegatecall_guard_view_not_needed.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_return_struct_with_mapping.sol', // WILL NOT SUPPORT yul
@@ -930,7 +933,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/literals/gwei.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/literals/wei.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/literals/hex_string_with_underscore.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/literals/escape.sol', // WILL NOT SUPPORT abi.encode
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/literals/escape.sol', // Error when transpiling this char '\\\\'
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/literals/hex_string_with_non_printable_characters.sol', // WILL NOT SUPPORT yul
   ],
   //---------memoryManagement: 4 passing
@@ -1092,7 +1095,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/invalid_abi_decoding_calldata_v1.sol', // WILL NOT SUPPORT abi.decode
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_too_short_v1.sol', // WILL NOT SUPPORT abi.decode
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/transfer.sol', // WILL NOT SUPPORT transfer
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/library_non_view_call.sol', // WILL NOT SUPPORT abi.encode
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/library_non_view_call.sol', // WILL NOT SUPPORT address member call
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/invalid_abi_decoding_memory_v1.sol', // WILL NOT SUPPORT yul
   ],
   //---------Salted_create
@@ -1116,7 +1119,7 @@ const tests: string[] = [
   //---------specialFunctions - 4 passing
   ...[
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/specialFunctions/keccak256_optimized.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/specialFunctions/abi_encode_with_signature_from_string.sol', // WILL NOT SUPPORT abi.encode
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/specialFunctions/abi_encode_with_signature_from_string.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/specialFunctions/abi_functions_member_access.sol', // WILL NOT SUPPORT function objects
   ],
   //---------state - no relevant tests
@@ -1347,7 +1350,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/in_parenthesis.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/wrap_unwrap.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/conversion.sol', // moved to behaviour tests for reliable passing of out of bounds data
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/abicodec.sol', // WILL NOT SUPPORT abi.encode
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/abicodec.sol', // WILL NOT SUPPORT abi.decode
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/calldata.sol', // WILL NOT SUPPORT address members
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/erc20.sol', // WILL NOT SUPPORT indexed parameters
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/userDefinedValueType/multisource.sol', // WILL NOT SUPPORT module
