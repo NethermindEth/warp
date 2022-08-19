@@ -192,7 +192,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
           isExternalCall(parentNode.parent)
         ) {
           throw new WillNotSupportError(
-            `external function calls using this keyword not supported during contract deployment`,
+            `external function calls using "this" keyword not supported in contract's constructor function`,
             node,
           );
         }
