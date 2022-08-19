@@ -9,22 +9,22 @@ import { callClassHashScript } from './utils';
 export const HASH_SIZE = 16;
 export const HASH_OPTION = 'sha256';
 
-export function readCairoCode(fileLoc: string): string {
-  return readFileSync(fileLoc, 'utf8');
-}
-
-// Is used post transpile replace the 0 class hash with the class hash of the contract being created in the contract factory.
+/**
+  Is used post transpilation to insert the class hash for any contract that can deploy another.
+  During transpilation 0 is placed where the class hash would be. Now that all the needed files are
+  transpiled then we can calculate the class hashes of each and insert them into the file.
+  @param cairoFilePath: The path to the cairo File being processed.
+  @param pathPrefix: The prefix proceeding the the path to the file
+  @param contractHashToClassHash: A mapping that holds the contract path with out the pathPrefix and maps
+  it to the contracts class hash.
+ */
 export function postProcessCairoFile(
   cairoFilePath: string,
   pathPrefix = 'warp_output',
   contractHashToClassHash: Map<string, string>,
 ): void {
-  // Creates the full path to read the file
   const fullPath = path.join(pathPrefix, cairoFilePath);
-
-  // Creates a dependency graph of files to hash
-  // REPLACE THIS
-  // const dependencyGraph = buildDependencyGraph(fullPath, pathPrefix);
+  // Creates a dependency graph for the file
   const dependencyGraph = getDependencyGraph(fullPath, pathPrefix);
   // Gets the files that are dependant on the hash.
   const filesToHash = dependencyGraph.get(fullPath);
@@ -32,12 +32,11 @@ export function postProcessCairoFile(
   if (filesToHash === undefined || filesToHash.length === 0) {
     return;
   }
-  // If it makes it past this point we then need to check that the file provided is hashed.
+  // If the file does have dependencies then we need to make sure that the dependencies of
+  // those files have been calculated and inserted.
   filesToHash?.forEach((file) => {
     hashDependacies(file, pathPrefix, dependencyGraph, contractHashToClassHash);
   });
-  // REPLACE THIS.
-  // replaceHashPlaceHolder(fullPath, contractHashToClassHash);
   setDeclaredAddresses(fullPath, contractHashToClassHash);
   return;
 }
@@ -51,25 +50,32 @@ function hashDependacies(
   const filesToHash = dependencyGraph.get(filePath);
   // If the file has no dependencies to hash then we hash the compiled file and add it to the contractHahsToClassHash.
   if (filesToHash === undefined || filesToHash?.length === 0) {
-    const fileLocationHash = hashFilename(reducePath(filePath, pathPrefix));
-    let classHash = contractHashToClassHash.get(fileLocationHash);
-    if (classHash === undefined) {
-      classHash = computeClassHash(filePath, '');
-      contractHashToClassHash.set(fileLocationHash, classHash);
-    }
+    addClassHash(filePath, pathPrefix, contractHashToClassHash);
     return;
   } else {
-    filesToHash?.forEach((file) => {
-      hashDependacies(file, pathPrefix, dependencyGraph, contractHashToClassHash);
-    });
-
-    const fileLocationHash = hashFilename(reducePath(filePath, pathPrefix));
-    let classHash = contractHashToClassHash.get(fileLocationHash);
-    if (classHash === undefined) {
-      classHash = computeClassHash(filePath, '');
-      contractHashToClassHash.set(fileLocationHash, classHash);
-    }
+    filesToHash
+      ?.map((file) => {
+        hashDependacies(file, pathPrefix, dependencyGraph, contractHashToClassHash);
+        return file;
+      })
+      .forEach((file) => {
+        setDeclaredAddresses(file, contractHashToClassHash);
+      });
+    addClassHash(filePath, pathPrefix, contractHashToClassHash);
     return;
+  }
+}
+
+function addClassHash(
+  filePath: string,
+  pathPrefix: string,
+  contractHashToClassHash: Map<string, string>,
+): void {
+  const fileLocationHash = hashFilename(reducePath(filePath, pathPrefix));
+  let classHash = contractHashToClassHash.get(fileLocationHash);
+  if (classHash === undefined) {
+    classHash = computeClassHash(filePath, '');
+    contractHashToClassHash.set(fileLocationHash, classHash);
   }
 }
 
@@ -90,14 +96,14 @@ function computeClassHash(filePath: string, pathPrefix: string): string {
  *  Read a cairo file and for each constant of the form `const name = value`
  *  if `name` is of the form   `<contractName>_<contractNameHash>` then it corresponds
  *  to a placeholder waiting to be filled with the corresponding contract class hash
- *  @param fileLoc location of cairo file
+ *  @param cairoFilePath location of cairo file
  *  @param declarationAddresses mapping of: (placeholder hash) => (starknet class hash)
  */
 export function replaceHashPlaceHolder(
   cairoFilePath: string,
   declarationAddresses: Map<string, string>,
 ): void {
-  const originalCairoCode = readCairoCode(cairoFilePath);
+  const originalCairoCode = readFileSync(cairoFilePath, 'utf8');
   const splitCairoCode = originalCairoCode.split('\n');
 
   let update = false;
@@ -157,26 +163,7 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
   const plainNewCairoCode = newCairoCode.join('\n');
   writeFileSync(fileLoc, plainNewCairoCode);
 }
-export function buildDependencyGraph(filePath: string, pathPrefix: string): Map<string, string[]> {
-  const filesToDeclare = extractContractsToDeclared(filePath, pathPrefix);
-  const graph = new Map<string, string[]>([[filePath, filesToDeclare]]);
 
-  const pending = [...filesToDeclare];
-  let count = 0;
-  while (count < pending.length) {
-    const newFilePath = pending[count];
-    if (graph.has(newFilePath)) {
-      count++;
-      continue;
-    }
-    const newFilesToDeclare = extractContractsToDeclared(newFilePath, pathPrefix);
-    graph.set(newFilePath, newFilesToDeclare);
-    pending.push(...newFilesToDeclare);
-    count++;
-  }
-
-  return graph;
-}
 /**
  * Produce a dependency graph among Cairo files. Due to cairo rules this graph is
  * more specifically a Directed Acyclic Graph (DAG)

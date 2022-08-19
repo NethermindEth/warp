@@ -15,12 +15,7 @@ import { expect } from 'chai';
 import { expectations } from './expectations';
 import { AsyncTest, Expect } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
-import {
-  getDependencyGraph,
-  hashFilename,
-  reducePath,
-  setDeclaredAddresses,
-} from '../../src/utils/postCairoWrite';
+import { getDependencyGraph, hashFilename, reducePath } from '../../src/utils/postCairoWrite';
 import assert from 'assert';
 
 const PRINT_STEPS = false;
@@ -32,6 +27,7 @@ interface AsyncTestCluster {
   dependencies: Map<string, string[]>;
 }
 
+// Transpiling the solidity files using the `bin/warp transpile` CLI command.
 describe('Transpile solidity', function () {
   this.timeout(TIME_LIMIT);
 
@@ -67,6 +63,7 @@ describe('Transpile solidity', function () {
   }
 });
 
+// Compiling the transpiled contracts using the StarkNet CLI.
 describe('Transpiled contracts are valid cairo', function () {
   this.timeout(TIME_LIMIT);
 
@@ -91,7 +88,7 @@ describe('Transpiled contracts are valid cairo', function () {
       const fileLocationHash = hashFilename(reducePath(fileToDeclare, 'warp_output'));
       declared.set(fileLocationHash, declareHash);
     }
-    setDeclaredAddresses(root, declared);
+    // setDeclaredAddresses(root, declared);
     return starknetCompile(root, test.asyncTest.compiled);
   };
 
@@ -112,7 +109,8 @@ describe('Transpiled contracts are valid cairo', function () {
         const fileLocationHash = hashFilename(reducePath(fileToDeclare, 'warp_output'));
         declared.set(fileLocationHash, declaredHash);
       }
-      setDeclaredAddresses(root, declared);
+      // Should remove this.
+      // setDeclaredAddresses(root, declared);
     }
 
     await starknetCompile(root, outputLocation(root));

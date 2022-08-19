@@ -65,26 +65,21 @@ program
     // We do the extra work here to make sure all the errors are printed out
     // for all files which are invalid.
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
+    const cairoSuffix = '.cairo';
+    const contractToHashMap = new Map<string, string>();
     files.forEach((file) => {
       if (files.length > 1) {
         console.log(`Compiling ${file}`);
       }
       try {
-        const transpiledFiles = new Set<string>();
-        const cairoSuffix = '.cairo';
-        const contractToHashMap = new Map<string, string>();
-
-        transpile(compileSolFile(file, options.warnings), options).map(([name, cairo, abi]) => {
-          outputResult(name, cairo, options, cairoSuffix, abi);
-          // return createCairoFileName(name, cairoSuffix);
-          transpiledFiles.add(createCairoFileName(name, cairoSuffix));
-        });
-        // .forEach((file) => {
-        // postProcessCairoFile(file, 'warp_output', contractToHashMap);
-        // });
-        transpiledFiles.forEach((file) => {
-          postProcessCairoFile(file, 'warp_output', contractToHashMap);
-        });
+        transpile(compileSolFile(file, options.warnings), options)
+          .map(([name, cairo, abi]) => {
+            outputResult(name, cairo, options, cairoSuffix, abi);
+            return createCairoFileName(name, cairoSuffix);
+          })
+          .forEach((file) => {
+            postProcessCairoFile(file, 'warp_output', contractToHashMap);
+          });
       } catch (e) {
         handleTranspilationError(e);
       }
@@ -285,8 +280,10 @@ program
     runVenvSetup(options);
   });
 
-// program.command('declare <file>').action(async (file: string) => {
-//   declareCairoFile(file);
+export type IDeclareOptions = IOptionalNetwork;
+
+// program.command('declare <file>').action(async (file: string, options: IDeclareOptions) => {
+//   runStarknetDeclare(file, options);
 // });
 
 const blue = chalk.bold.blue;
