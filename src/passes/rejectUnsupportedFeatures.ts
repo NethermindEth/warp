@@ -16,7 +16,6 @@ import {
   FunctionDefinition,
   FunctionKind,
   FunctionType,
-  FunctionVisibility,
   getNodeType,
   Identifier,
   IndexAccess,
@@ -36,7 +35,7 @@ import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { WillNotSupportError } from '../utils/errors';
 import { isDynamicArray } from '../utils/nodeTypeProcessing';
-import { isExternallyVisible } from '../utils/utils';
+import { isExternalCall, isExternallyVisible } from '../utils/utils';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -183,16 +182,14 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     if (node.kind === FunctionKind.Constructor) {
       const nodesWithThisIdentifier = node.vBody
         ?.getChildren()
-        .filter((value, _) => value instanceof Identifier && value.raw.name === 'this');
+        .filter((node, _) => node instanceof Identifier && node.raw.name === 'this');
 
       nodesWithThisIdentifier?.forEach((node: ASTNode) => {
         const parentNode = node?.parent;
         if (
           parentNode instanceof MemberAccess &&
           parentNode?.parent instanceof FunctionCall &&
-          parentNode.parent.vReferencedDeclaration instanceof FunctionDefinition &&
-          (parentNode.parent.vReferencedDeclaration.visibility === FunctionVisibility.Public ||
-            parentNode.parent.vReferencedDeclaration.visibility === FunctionVisibility.External)
+          isExternalCall(parentNode.parent)
         ) {
           throw new WillNotSupportError(
             `external function calls using this keyword not supported during contract deployment`,
