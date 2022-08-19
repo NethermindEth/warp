@@ -118,10 +118,13 @@ warp transpile <path to Solidity contract>
 To deploy a Cairo contract:
 
 ```bash
-warp deploy <path to Cairo contract>
+warp deploy <path to Cairo contract> \
+    feeder_gateway \
+    --network alpha-goerli \
+    --no_wallet
 ```
 
-The deploy command will generate the compiled json file as well as the abi json file.
+The deploy command will generate the compiled json file as well as the abi json file. Use `warp deploy --help` command to see more deployment options.
 
 <br>
 
