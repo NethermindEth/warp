@@ -56,7 +56,7 @@ function processDecoratorTags(documentation: string): string {
 function processStateVarTags(documentation: string, node: FunctionDefinition): string {
   const contract = node.getClosestParentByType(CairoContract);
   const errorNode = node.documentation instanceof ASTNode ? node.documentation : node;
-  const regex: RegExp = /STATEVAR\((.*?)\)/g;
+  const regex = /STATEVAR\((.*?)\)/g;
   if (contract === undefined) {
     if ([...documentation.matchAll(regex)].length > 0) {
       throw new WillNotSupportError(
@@ -87,7 +87,7 @@ function processStateVarTags(documentation: string, node: FunctionDefinition): s
 function processInternalFunctionTag(documentation: string, node: FunctionDefinition): string {
   const contract = node.getClosestParentByType(CairoContract);
   const errorNode = node.documentation instanceof ASTNode ? node.documentation : node;
-  const regex: RegExp = /INTERNALFUNC\((.*?)\)/g;
+  const regex = /INTERNALFUNC\((.*?)\)/g;
   if (contract === undefined) {
     if ([...documentation.matchAll(regex)].length > 0) {
       throw new WillNotSupportError(
@@ -121,7 +121,7 @@ function processInternalFunctionTag(documentation: string, node: FunctionDefinit
 function processCurrentFunctionTag(documentation: string, node: FunctionDefinition): string {
   const contract = node.getClosestParentByType(CairoContract);
   const errorNode = node.documentation instanceof ASTNode ? node.documentation : node;
-  const regex: RegExp = /CURRENTFUNC\((.*?)\)/g;
+  const regex = /CURRENTFUNC\((.*?)\)/g;
   if (contract === undefined) {
     if ([...documentation.matchAll(regex)].length > 0) {
       throw new WillNotSupportError(

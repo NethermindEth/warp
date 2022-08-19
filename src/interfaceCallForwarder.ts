@@ -11,4 +11,5 @@ export function generateSolInterface(filePath: string) {
     return;
   }
   const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
+  console.log(cairoPathRoot, resultPath, abiPath);
 }
