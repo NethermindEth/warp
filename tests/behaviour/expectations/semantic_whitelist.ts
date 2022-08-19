@@ -70,7 +70,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/simple_struct.sol', WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/cleanup.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/mediocre_struct.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/mediocre2_struct.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/mediocre2_struct.sol', // WILL NOT SUPPORT Nested dynamic arrays as input
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/validation_function_type_inside_struct.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/struct_validation.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/struct_short.sol',
