@@ -56,13 +56,17 @@ function processDecoratorTags(documentation: string): string {
 function processStateVarTags(documentation: string, node: FunctionDefinition): string {
   const contract = node.getClosestParentByType(CairoContract);
   const errorNode = node.documentation instanceof ASTNode ? node.documentation : node;
+  const regex: RegExp = /STATEVAR\((.*?)\)/g;
   if (contract === undefined) {
-    throw new WillNotSupportError(
-      `Cairo stub macro 'STATEVAR' is only allowed in member functions`,
-      errorNode,
-    );
+    if ([...documentation.matchAll(regex)].length > 0) {
+      throw new WillNotSupportError(
+        `Cairo stub macro 'STATEVAR' is only allowed in member functions`,
+        errorNode,
+      );
+    }
+    return documentation;
   }
-  return processMacro(documentation, /STATEVAR\((.*?)\)/g, (arg) => {
+  return processMacro(documentation, regex, (arg) => {
     const stateVarNames = contract.vStateVariables.map((decl) => decl.name);
     const matchingStateVars = stateVarNames.filter((name) => {
       return name.replace(/__warp_usrid[0-9]+_/, '') === arg;
@@ -83,13 +87,17 @@ function processStateVarTags(documentation: string, node: FunctionDefinition): s
 function processInternalFunctionTag(documentation: string, node: FunctionDefinition): string {
   const contract = node.getClosestParentByType(CairoContract);
   const errorNode = node.documentation instanceof ASTNode ? node.documentation : node;
+  const regex: RegExp = /INTERNALFUNC\((.*?)\)/g;
   if (contract === undefined) {
-    throw new WillNotSupportError(
-      `Cairo stub macro 'INTERNALFUNC' is only allowed in member function definitions`,
-      errorNode,
-    );
+    if ([...documentation.matchAll(regex)].length > 0) {
+      throw new WillNotSupportError(
+        `Cairo stub macro 'INTERNALFUNC' is only allowed in member function definitions`,
+        errorNode,
+      );
+    }
+    return documentation;
   }
-  return processMacro(documentation, /INTERNALFUNC\((.*?)\)/g, (arg) => {
+  return processMacro(documentation, regex, (arg) => {
     const funcNames = contract.vFunctions.filter((f) => !isExternallyVisible(f)).map((f) => f.name);
     const matchingFuncs = funcNames.filter((name) => {
       return name.replace(/__warp_usrfn[0-9]+_/, '') === arg;
@@ -113,13 +121,17 @@ function processInternalFunctionTag(documentation: string, node: FunctionDefinit
 function processCurrentFunctionTag(documentation: string, node: FunctionDefinition): string {
   const contract = node.getClosestParentByType(CairoContract);
   const errorNode = node.documentation instanceof ASTNode ? node.documentation : node;
+  const regex: RegExp = /CURRENTFUNC\((.*?)\)/g;
   if (contract === undefined) {
-    throw new WillNotSupportError(
-      `Cairo stub macro 'CURRENTFUNC' is only allowed in member function definitions`,
-      errorNode,
-    );
+    if ([...documentation.matchAll(regex)].length > 0) {
+      throw new WillNotSupportError(
+        `Cairo stub macro 'CURRENTFUNC' is only allowed in member function definitions`,
+        errorNode,
+      );
+    }
+    return documentation;
   }
-  return processMacro(documentation, /CURRENTFUNC\((.*?)\)/g, (arg) => {
+  return processMacro(documentation, regex, (arg) => {
     if (arg !== '') {
       throw new TranspileFailedError(
         `CURRENTFUNC macro must take no arguments, "${arg}" was provided`,

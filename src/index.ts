@@ -13,6 +13,7 @@ import {
 import chalk from 'chalk';
 import { runVenvSetup } from './utils/setupVenv';
 import { runTests } from './testing';
+import { generateSolInterface } from './interfaceCallForwarder';
 
 export type CompilationOptions = {
   warnings: boolean;
@@ -143,6 +144,10 @@ program
   .action((file: string, options: IOptionalDebugInfo) => {
     runStarknetCompile(file, options);
   });
+
+program.command('gen_interface <file>').action((file: string) => {
+  generateSolInterface(file);
+});
 
 interface IDeployProps_ {
   inputs?: string[];
