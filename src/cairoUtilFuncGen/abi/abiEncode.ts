@@ -28,13 +28,6 @@ import { AbiBase } from './base';
 const IMPLICITS =
   '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
-// Check that inline array key get's parsed correctly
-// Check the imports of each pass
-// Comment the class
-// Comment the functions
-// What happens with all the arguments in get byte size, are they really needed?
-// Check semantic tests
-
 /**
  * Given any data type produces the same output of solidty abi.encode
  * in the form of an array of felts where each element represents a byte
@@ -68,7 +61,7 @@ export class AbiEncode extends AbiBase {
     );
 
     const initialOffset = types.reduce(
-      (pv, cv) => pv + BigInt(getByteSize(cv, this.ast.compilerVersion, true)),
+      (pv, cv) => pv + BigInt(getByteSize(cv, this.ast.compilerVersion)),
       0n,
     );
 
@@ -99,6 +92,11 @@ export class AbiEncode extends AbiBase {
     return cairoFunc.name;
   }
 
+  /**
+   * Given a type generate a function that abi-encodes it
+   * @param type type to encode
+   * @returns the name of the generated function
+   */
   public getOrCreateEncoding(type: TypeNode): string {
     const unexpectedType = () => {
       throw new TranspileFailedError(`Encoding ${printTypeNode(type)} is not supported yet`);
@@ -123,11 +121,21 @@ export class AbiEncode extends AbiBase {
     );
   }
 
+  /**
+   * Given a type it generates the function to encodes it, as well as all other
+   * instructions required to use it.
+   * @param type type to encode
+   * @param newIndexVar cairo var where the updated index should be stored
+   * @param newOffsetVar cairo var where the updated offset should be stored
+   * @param elementOffset used to calculate the relative offset of dynamically sized types
+   * @param varToEncode variable that holds the values to encode
+   * @returns instructions to encode `varToEncode`
+   */
   public generateEncodingCode(
     type: TypeNode,
     newIndexVar: string,
     newOffsetVar: string,
-    elementIndex: string,
+    elementOffset: string,
     varToEncode: string,
   ): string {
     const funcName = this.getOrCreateEncoding(type);
@@ -137,7 +145,7 @@ export class AbiEncode extends AbiBase {
         `  bytes_index,`,
         `  bytes_offset,`,
         `  bytes_array,`,
-        `  ${elementIndex},`,
+        `  ${elementOffset},`,
         `  ${varToEncode}`,
         `)`,
       ].join('\n');
@@ -151,7 +159,7 @@ export class AbiEncode extends AbiBase {
         `  bytes_index,`,
         `  bytes_offset,`,
         `  bytes_array,`,
-        `  ${elementIndex},`,
+        `  ${elementOffset},`,
         `  0,`,
         `  ${type.size},`,
         `  ${varToEncode},`,
@@ -160,7 +168,7 @@ export class AbiEncode extends AbiBase {
     }
 
     // Is value type
-    const size = getPackedByteSize(type);
+    const size = getPackedByteSize(type, this.ast.compilerVersion);
     const instructions: string[] = [];
     if (size < 32) {
       this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
@@ -185,7 +193,7 @@ export class AbiEncode extends AbiBase {
     if (exisiting !== undefined) return exisiting.name;
 
     const elementT = getElementType(type);
-    const elementByteSize = getByteSize(elementT, this.ast.compilerVersion, true);
+    const elementByteSize = getByteSize(elementT, this.ast.compilerVersion);
 
     const tailEncoding = this.createDynamicArrayTailEncoding(type);
     const name = `${this.functionName}_head_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
@@ -194,12 +202,12 @@ export class AbiEncode extends AbiBase {
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
-      `  element_index : felt,`,
+      `  element_offset : felt,`,
       `  mem_ptr : felt`,
       `) -> (final_bytes_index : felt, final_bytes_offset : felt):`,
       `  alloc_locals`,
       `  # Storing pointer to data`,
-      `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_index)`,
+      `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset)`,
       `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256)`,
       `  let new_index = bytes_index + 32`,
       `  # Storing the length`,
@@ -246,7 +254,7 @@ export class AbiEncode extends AbiBase {
       elementT,
       'new_bytes_index',
       'new_bytes_offset',
-      'element_index',
+      'element_offset',
       'elem',
     );
     const name = `${this.functionName}_tail_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
@@ -255,7 +263,7 @@ export class AbiEncode extends AbiBase {
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
-      `  element_index : felt,`,
+      `  element_offset : felt,`,
       `  index : felt,`,
       `  length : felt,`,
       `  mem_ptr : felt`,
@@ -268,7 +276,7 @@ export class AbiEncode extends AbiBase {
       `  let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(elemntTSize)})`,
       `  let (elem) = ${readElement}`,
       `  ${headEncodingCode}`,
-      `  return ${name}(new_bytes_index, new_bytes_offset, bytes_array, element_index, index + 1, length, mem_ptr)`,
+      `  return ${name}(new_bytes_index, new_bytes_offset, bytes_array, element_offset, index + 1, length, mem_ptr)`,
       `end`,
     ].join('\n');
 
@@ -286,7 +294,7 @@ export class AbiEncode extends AbiBase {
     if (exisiting !== undefined) return exisiting.name;
 
     const elementT = getElementType(type);
-    const elementByteSize = getByteSize(elementT, this.ast.compilerVersion, true);
+    const elementByteSize = getByteSize(elementT, this.ast.compilerVersion);
 
     const inlineEncoding = this.createArrayInlineEncoding(type);
 
@@ -296,12 +304,12 @@ export class AbiEncode extends AbiBase {
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
-      `  element_index : felt,`,
+      `  element_offset : felt,`,
       `  mem_ptr : felt,`,
       `) -> (final_bytes_index : felt, final_bytes_offset : felt):`,
       `  alloc_locals`,
       `  # Storing pointer to data`,
-      `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_index)`,
+      `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset)`,
       `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256)`,
       `  let new_bytes_index = bytes_index + 32`,
       `  # Storing the data`,
@@ -330,16 +338,14 @@ export class AbiEncode extends AbiBase {
   }
 
   private createArrayInlineEncoding(type: ArrayType) {
-    const key = 'inline ' + type.pp();
+    let key = 'inline ' + type.pp();
+    // Modifiy key to generate same function for diferent size (but same element type)
+    // static arrays
     if (type.size !== undefined) {
-      key
-        .split('')
-        .reverse()
-        .join('')
-        .replace(/\[[0-9]+\]/, '[]')
-        .split('')
-        .reverse()
-        .join('');
+      const reversedKey = key.split('').reverse().join('');
+      // swapping '[<num>]' for '[]' but since string is reversed we are swapping ']<num>[' for ']['
+      const parsedKey = reversedKey.replace(/\][0-9]+\[/, '][');
+      key = parsedKey.split('').reverse().join('');
     }
     const existing = this.auxiliarGeneratedFunctions.get(key);
     if (existing !== undefined) return existing.name;
@@ -352,7 +358,7 @@ export class AbiEncode extends AbiBase {
       type.elementT,
       'new_bytes_index',
       'new_bytes_offset',
-      'element_index',
+      'element_offset',
       'elem',
     );
 
@@ -362,7 +368,7 @@ export class AbiEncode extends AbiBase {
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
-      `  element_index : felt,`,
+      `  element_offset : felt,`,
       `  mem_index : felt,`,
       `  mem_length : felt,`,
       `  mem_ptr : felt,`,
@@ -378,7 +384,7 @@ export class AbiEncode extends AbiBase {
       `     new_bytes_index,`,
       `     new_bytes_offset,`,
       `     bytes_array,`,
-      `     element_index,`,
+      `     element_offset,`,
       `     mem_index + 1,`,
       `     mem_length,`,
       `     mem_ptr`,
@@ -404,7 +410,6 @@ export class AbiEncode extends AbiBase {
           getByteSize(
             generalizeType(getNodeType(varDecl, this.ast.compilerVersion))[0],
             this.ast.compilerVersion,
-            true,
           ),
         ),
       0n,
@@ -416,12 +421,12 @@ export class AbiEncode extends AbiBase {
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
-      `  element_index : felt,`,
+      `  element_offset : felt,`,
       `  mem_ptr : felt,`,
       `) -> (final_bytes_index : felt, final_bytes_offset : felt):`,
       `  alloc_locals`,
       `  # Storing pointer to data`,
-      `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_index)`,
+      `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset)`,
       `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256)`,
       `  let new_bytes_index = bytes_index + 32`,
       `  # Storing the data`,
@@ -455,7 +460,7 @@ export class AbiEncode extends AbiBase {
         type,
         'bytes_index',
         'bytes_offset',
-        'element_index',
+        'element_offset',
         `elem${index}`,
       );
       return [
@@ -472,7 +477,7 @@ export class AbiEncode extends AbiBase {
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
-      `  element_index : felt,`,
+      `  element_offset : felt,`,
       `  mem_ptr : felt,`,
       `) -> (final_bytes_index : felt, final_bytes_offset : felt):`,
       `  alloc_locals`,

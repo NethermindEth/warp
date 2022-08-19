@@ -64,7 +64,7 @@ export class AbiEncodeWithSelector extends AbiBase {
     );
 
     const initialOffset = types.reduce(
-      (pv, cv) => pv + BigInt(getByteSize(cv, this.ast.compilerVersion, true)),
+      (pv, cv) => pv + BigInt(getByteSize(cv, this.ast.compilerVersion)),
       4n,
     );
 

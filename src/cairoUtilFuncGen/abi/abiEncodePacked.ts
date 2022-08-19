@@ -79,12 +79,13 @@ export class AbiEncodePacked extends AbiBase {
       (type) => this.createArrayInlineEncoding(type),
       unexpectedType,
       unexpectedType,
-      (type) => this.createValueTypeHeadEncoding(getPackedByteSize(type)),
+      (type) => this.createValueTypeHeadEncoding(getPackedByteSize(type, this.ast.compilerVersion)),
     );
   }
 
   private generateEncodingCode(type: TypeNode, newIndexVar: string, varToEncode: string): string {
     const funcName = this.getOrCreateEncoding(type);
+
     if (isDynamicArray(type)) {
       this.requireImport('warplib.memory', 'wm_dyn_array_length');
       this.requireImport('warplib.maths.utils', 'narrow_safe');
@@ -94,20 +95,10 @@ export class AbiEncodePacked extends AbiBase {
         `let (${newIndexVar}) = ${funcName}(bytes_index, bytes_array, 0, length, ${varToEncode})`,
       ].join('\n');
     }
+
+    // Type is a static array
     if (type instanceof ArrayType) {
       return `let (${newIndexVar}) = ${funcName}(bytes_index, bytes_array, 0, ${type.size}, ${varToEncode})`;
-    }
-
-    // This will never execute
-    if (type instanceof StringType || type instanceof BytesType) {
-      this.requireImport('warplib.memory', 'wm_dyn_array_length');
-      this.requireImport('warplib.maths.utils', 'narrow_safe');
-      return [
-        `let (length256) = wm_dyn_array_length(${varToEncode})`,
-        `let (length) = narrow_safe(length256)`,
-        `${funcName}(bytes_index, bytes_index + length, bytes_array, 0, length, ${varToEncode} + 2)`,
-        `let ${newIndexVar} = bytes_index + length`,
-      ].join('\n');
     }
 
     // Type is value type
@@ -121,6 +112,9 @@ export class AbiEncodePacked extends AbiBase {
     ].join('\n');
   }
 
+  /*
+   * Produce inline array encoding for static and dynamic array types
+   */
   private createArrayInlineEncoding(type: ArrayType | BytesType | StringType): string {
     const key = type.pp();
     const exisiting = this.auxiliarGeneratedFunctions.get(key);
@@ -178,12 +172,6 @@ export class AbiEncodePacked extends AbiBase {
 
     this.auxiliarGeneratedFunctions.set(key, { name, code });
     return name;
-  }
-
-  private createStringOrBytesHeadEncoding(): string {
-    const funcName = 'bytes_to_felt_dynamic_array_inline';
-    this.requireImport('warplib.dynamic_arrays_util', funcName);
-    return funcName;
   }
 
   private createValueTypeHeadEncoding(size: number | bigint): string {

@@ -27,6 +27,14 @@ export function stringFlatten(val: Value[]): string[] {
   return val.map(stringFlatten_).flat();
 }
 
+/**
+ * Given a series of numbers it produces an array of it's bytes32 represenation
+ * where the first value is the total amount of bytes
+ * e.g. (3, 2) -> [64, 0 ..., 3, 0 ..., 2]
+ * @param val number(s) to get it's byte32 representation
+ * @returns bytes32 representation of arguments, where first element is total
+ * amount of bytes
+ */
 export function getByte32Array(...val: (number | bigint)[]): string[] {
   return val.reduce(
     (pv, cv) => {
@@ -37,6 +45,9 @@ export function getByte32Array(...val: (number | bigint)[]): string[] {
   );
 }
 
+/**
+ * Same as getByte32Array but the number of bytes must to be specified for each element
+ */
 export function getByteXArray(...val: { byteSize: number; value: number | bigint }[]) {
   const byteArray = val.reduce((pv, cv) => {
     pv.push(...numToByteX(BigInt(cv.value), cv.byteSize));

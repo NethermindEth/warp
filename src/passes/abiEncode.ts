@@ -1,19 +1,22 @@
-import { FunctionCall, FunctionCallKind } from 'solc-typed-ast';
+import { ExternalReferenceType, FunctionCall, FunctionCallKind } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { TranspileFailedError } from '../utils/errors';
 
+// Scan the code for function
 export class ABIEncode extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([]);
+    const passKeys: Set<string> = new Set<string>([
+      'I', // Implicit conversion to explicit needed to handle literal types (int_const, string_const)
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     if (
       node.kind !== FunctionCallKind.FunctionCall ||
-      node.vReferencedDeclaration !== undefined ||
+      node.vFunctionCallType !== ExternalReferenceType.Builtin ||
       !['encodePacked', 'encode', 'encodeWithSelector', 'encodeWithSignature'].includes(
         node.vFunctionName,
       )

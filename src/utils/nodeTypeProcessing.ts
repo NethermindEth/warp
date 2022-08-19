@@ -272,10 +272,10 @@ export function isStorageSpecificType(
  *      and so on
  *  For every type whose byte size can be known on compile time
  *  @param type Solidity type
- *  @param version optional parameter required for calculating structs byte size
+ *  @param version required for calculating structs byte size
  *  @returns returns the types byte representation using packed abi encoding
  */
-export function getPackedByteSize(type: TypeNode, version?: string): number | bigint {
+export function getPackedByteSize(type: TypeNode, version: string): number | bigint {
   if (type instanceof IntType) {
     return type.nBits / 8;
   }
@@ -293,11 +293,11 @@ export function getPackedByteSize(type: TypeNode, version?: string): number | bi
   }
 
   if (type instanceof ArrayType && type.size !== undefined) {
-    return type.size * BigInt(getPackedByteSize(type.elementT));
+    return type.size * BigInt(getPackedByteSize(type.elementT, version));
   }
 
   const sumMemberSize = (acc: bigint, cv: TypeNode): bigint => {
-    return acc + BigInt(getPackedByteSize(cv));
+    return acc + BigInt(getPackedByteSize(cv, version));
   };
   if (type instanceof TupleType) {
     return type.elements.reduce(sumMemberSize, 0n);
@@ -318,25 +318,24 @@ export function getPackedByteSize(type: TypeNode, version?: string): number | bi
  * e.g. uint8, bool, address -> byte size is 32
  *      T[] -> byte size is 32
  *      uint16[3] -> byte size is 96
- *      uint16[][3] -> byte size is 32 (head = true)
- *      uint16[][3] -> byte size is 96 (head = false)
+ *      uint16[][3] -> byte size is 32
  *      and so on
  *  @param type Solidity type
- *  @param version optional parameter required for calculating struct byte size
+ *  @param version parameter required for calculating struct byte size
  *  @returns returns the types byte representation using abi encoding
  */
-export function getByteSize(type: TypeNode, version: string, head: boolean): number | bigint {
-  if (isValueType(type) || (head && isDynamicallySized(type, version))) {
+export function getByteSize(type: TypeNode, version: string): number | bigint {
+  if (isValueType(type) || isDynamicallySized(type, version)) {
     return 32;
   }
 
   if (type instanceof ArrayType) {
     assert(type.size !== undefined);
-    return type.size * BigInt(getByteSize(type.elementT, version, head));
+    return type.size * BigInt(getByteSize(type.elementT, version));
   }
 
   const sumMemberSize = (acc: bigint, cv: TypeNode): bigint => {
-    return acc + BigInt(getByteSize(cv, version, head));
+    return acc + BigInt(getByteSize(cv, version));
   };
   if (type instanceof TupleType) {
     return type.elements.reduce(sumMemberSize, 0n);
@@ -371,6 +370,5 @@ export function isDynamicallySized(type: TypeNode, version: string): boolean {
       isDynamicallySized(getNodeType(v, version), version),
     );
   }
-
   return false;
 }
