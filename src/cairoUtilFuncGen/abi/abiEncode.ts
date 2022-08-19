@@ -60,7 +60,7 @@ export class AbiEncode extends AbiBase {
         const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.Ref);
         params.push({ name: `param${index}`, type: cairoType.toString() });
         encodings.push(
-          this.generateEncodingCode(type, 'bytes_index', 'bytes_offset', `param${index}`),
+          this.generateEncodingCode(type, 'bytes_index', 'bytes_offset', '0', `param${index}`),
         );
         return [params, encodings];
       },
@@ -88,6 +88,7 @@ export class AbiEncode extends AbiBase {
       `end`,
     ].join('\n');
 
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.alloc', 'alloc');
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     this.requireImport('warplib.memory', 'wm_new');
@@ -126,6 +127,7 @@ export class AbiEncode extends AbiBase {
     type: TypeNode,
     newIndexVar: string,
     newOffsetVar: string,
+    elementIndex: string,
     varToEncode: string,
   ): string {
     const funcName = this.getOrCreateEncoding(type);
@@ -135,6 +137,7 @@ export class AbiEncode extends AbiBase {
         `  bytes_index,`,
         `  bytes_offset,`,
         `  bytes_array,`,
+        `  ${elementIndex},`,
         `  ${varToEncode}`,
         `)`,
       ].join('\n');
@@ -148,6 +151,7 @@ export class AbiEncode extends AbiBase {
         `  bytes_index,`,
         `  bytes_offset,`,
         `  bytes_array,`,
+        `  ${elementIndex},`,
         `  0,`,
         `  ${type.size},`,
         `  ${varToEncode},`,
@@ -190,11 +194,12 @@ export class AbiEncode extends AbiBase {
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
-      `  mem_ptr : felt,`,
+      `  element_index : felt,`,
+      `  mem_ptr : felt`,
       `) -> (final_bytes_index : felt, final_bytes_offset : felt):`,
       `  alloc_locals`,
       `  # Storing pointer to data`,
-      `  let (bytes_offset256) = felt_to_uint256(bytes_offset)`,
+      `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_index)`,
       `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256)`,
       `  let new_index = bytes_index + 32`,
       `  # Storing the length`,
@@ -208,6 +213,7 @@ export class AbiEncode extends AbiBase {
       `    bytes_offset,`,
       `    bytes_offset_offset,`,
       `    bytes_array,`,
+      `    bytes_offset,`,
       `    0,`,
       `    length,`,
       `    mem_ptr`,
@@ -240,6 +246,7 @@ export class AbiEncode extends AbiBase {
       elementT,
       'new_bytes_index',
       'new_bytes_offset',
+      'element_index',
       'elem',
     );
     const name = `${this.functionName}_tail_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
@@ -248,6 +255,7 @@ export class AbiEncode extends AbiBase {
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
+      `  element_index : felt,`,
       `  index : felt,`,
       `  length : felt,`,
       `  mem_ptr : felt`,
@@ -260,7 +268,7 @@ export class AbiEncode extends AbiBase {
       `  let (elem_loc) = wm_index_dyn(mem_ptr, index256, ${uint256(elemntTSize)})`,
       `  let (elem) = ${readElement}`,
       `  ${headEncodingCode}`,
-      `  return ${name}(new_bytes_index, new_bytes_offset, bytes_array, index + 1, length, mem_ptr)`,
+      `  return ${name}(new_bytes_index, new_bytes_offset, bytes_array, element_index, index + 1, length, mem_ptr)`,
       `end`,
     ].join('\n');
 
@@ -288,11 +296,12 @@ export class AbiEncode extends AbiBase {
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
+      `  element_index : felt,`,
       `  mem_ptr : felt,`,
       `) -> (final_bytes_index : felt, final_bytes_offset : felt):`,
       `  alloc_locals`,
       `  # Storing pointer to data`,
-      `  let (bytes_offset256) = felt_to_uint256(bytes_offset)`,
+      `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_index)`,
       `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256)`,
       `  let new_bytes_index = bytes_index + 32`,
       `  # Storing the data`,
@@ -302,6 +311,7 @@ export class AbiEncode extends AbiBase {
       `    bytes_offset,`,
       `    bytes_offset_offset,`,
       `    bytes_array,`,
+      `    bytes_offset,`,
       `    0,`,
       `    length,`,
       `    mem_ptr`,
@@ -342,6 +352,7 @@ export class AbiEncode extends AbiBase {
       type.elementT,
       'new_bytes_index',
       'new_bytes_offset',
+      'element_index',
       'elem',
     );
 
@@ -351,6 +362,7 @@ export class AbiEncode extends AbiBase {
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
+      `  element_index : felt,`,
       `  mem_index : felt,`,
       `  mem_length : felt,`,
       `  mem_ptr : felt,`,
@@ -366,6 +378,7 @@ export class AbiEncode extends AbiBase {
       `     new_bytes_index,`,
       `     new_bytes_offset,`,
       `     bytes_array,`,
+      `     element_index,`,
       `     mem_index + 1,`,
       `     mem_length,`,
       `     mem_ptr`,
@@ -403,11 +416,12 @@ export class AbiEncode extends AbiBase {
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
+      `  element_index : felt,`,
       `  mem_ptr : felt,`,
       `) -> (final_bytes_index : felt, final_bytes_offset : felt):`,
       `  alloc_locals`,
       `  # Storing pointer to data`,
-      `  let (bytes_offset256) = felt_to_uint256(bytes_offset)`,
+      `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_index)`,
       `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256)`,
       `  let new_bytes_index = bytes_index + 32`,
       `  # Storing the data`,
@@ -416,6 +430,7 @@ export class AbiEncode extends AbiBase {
       `    bytes_offset,`,
       `    bytes_offset_offset,`,
       `    bytes_array,`,
+      `    bytes_offset,`,
       `    mem_ptr`,
       `)`,
       `  return (new_bytes_index, new_bytes_offset)`,
@@ -440,6 +455,7 @@ export class AbiEncode extends AbiBase {
         type,
         'bytes_index',
         'bytes_offset',
+        'element_index',
         `elem${index}`,
       );
       return [
@@ -456,6 +472,7 @@ export class AbiEncode extends AbiBase {
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
+      `  element_index : felt,`,
       `  mem_ptr : felt,`,
       `) -> (final_bytes_index : felt, final_bytes_offset : felt):`,
       `  alloc_locals`,

@@ -57,6 +57,7 @@ export class AbiEncodePacked extends AbiBase {
       `end`,
     ].join('\n');
 
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.alloc', 'alloc');
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     this.requireImport('warplib.memory', 'wm_new');
@@ -74,10 +75,7 @@ export class AbiEncodePacked extends AbiBase {
 
     return delegateBasedOnType<string>(
       type,
-      (type) =>
-        type instanceof ArrayType
-          ? this.createArrayInlineEncoding(type)
-          : this.createStringOrBytesHeadEncoding(),
+      (type) => this.createArrayInlineEncoding(type),
       (type) => this.createArrayInlineEncoding(type),
       unexpectedType,
       unexpectedType,
@@ -87,20 +85,23 @@ export class AbiEncodePacked extends AbiBase {
 
   private generateEncodingCode(type: TypeNode, newIndexVar: string, varToEncode: string): string {
     const funcName = this.getOrCreateEncoding(type);
+    if (isDynamicArray(type)) {
+      this.requireImport('warplib.memory', 'wm_dyn_array_length');
+      this.requireImport('warplib.maths.utils', 'narrow_safe');
+      return [
+        `let (length256) = wm_dyn_array_length(${varToEncode})`,
+        `let (length) = narrow_safe(length256)`,
+        `let (${newIndexVar}) = ${funcName}(bytes_index, bytes_array, 0, length, ${varToEncode})`,
+      ].join('\n');
+    }
     if (type instanceof ArrayType) {
-      if (type.size === undefined) {
-        this.requireImport('warplib.memory', 'wm_dyn_array_length');
-        this.requireImport('warplib.maths.utils', 'narrow_safe');
-        return [
-          `let (length256) = wm_dyn_array_length(${varToEncode})`,
-          `let (length) = narrow_safe(length256)`,
-          `let (${newIndexVar}) = ${funcName}(bytes_index, bytes_array, 0, length, ${varToEncode})`,
-        ].join('\n');
-      }
       return `let (${newIndexVar}) = ${funcName}(bytes_index, bytes_array, 0, ${type.size}, ${varToEncode})`;
     }
 
+    // This will never execute
     if (type instanceof StringType || type instanceof BytesType) {
+      this.requireImport('warplib.memory', 'wm_dyn_array_length');
+      this.requireImport('warplib.maths.utils', 'narrow_safe');
       return [
         `let (length256) = wm_dyn_array_length(${varToEncode})`,
         `let (length) = narrow_safe(length256)`,
@@ -120,7 +121,7 @@ export class AbiEncodePacked extends AbiBase {
     ].join('\n');
   }
 
-  private createArrayInlineEncoding(type: ArrayType): string {
+  private createArrayInlineEncoding(type: ArrayType | BytesType | StringType): string {
     const key = type.pp();
     const exisiting = this.auxiliarGeneratedFunctions.get(key);
     if (exisiting !== undefined) {

@@ -11,20 +11,21 @@ export const expectations = flatten(
             Expect.Simple(
               'nestedDynamic',
               [],
-              getByte32Array(32, 2, 128, 256, 3, 2, 3, 5, 2, 7, 11),
+              getByte32Array(32, 2, 64, 192, 3, 2, 3, 5, 2, 7, 11),
             ),
             Expect.Simple(
               'mixDynamic',
               [],
-              getByte32Array(64, 384, 2, 160, 288, 3, 2, 3, 5, 2, 7, 11, 3, 2, 3, 5),
+              getByte32Array(64, 384, 2, 64, 192, 3, 2, 3, 5, 2, 7, 11, 3, 2, 3, 5),
             ),
           ]),
           File.Simple('abiEncodeStatic', [
             Expect.Simple('staticSimple', [], getByte32Array(2, 3, 5)),
             Expect.Simple('staticNested', [], getByte32Array(2, 3, 4, 5)),
-            Expect.Simple('staticDynamicNested', [], getByte32Array(32, 96, 192, 2, 2, 3, 1, 11)),
+            Expect.Simple('staticDynamicNested', [], getByte32Array(32, 64, 160, 2, 2, 3, 1, 11)),
           ]),
           File.Simple('abiEncodeStrings', [
+            Expect.Simple('emptyString', [], getByte32Array(32, 0)),
             Expect.Simple(
               'stringEncoding',
               [],
@@ -35,10 +36,10 @@ export const expectations = flatten(
               [],
               getByte32Array(
                 ...[64, 320],
-                ...[2, 160, 256],
+                ...[2, 64, 160],
                 ...[2, 1, 2],
                 ...[1, 3],
-                ...[3, 448, 512, 576],
+                ...[3, 96, 160, 224],
                 ...[3, BigInt('0x6f6e65'.padEnd(66, '0'))],
                 ...[3, BigInt('0x74776f'.padEnd(66, '0'))],
                 ...[5, BigInt('0x7468726565'.padEnd(66, '0'))],
@@ -47,7 +48,15 @@ export const expectations = flatten(
           ]),
           File.Simple('abiEncodeStruct', [
             Expect.Simple('structSimple', [], getByte32Array(2, 3)),
-            Expect.Simple('structComplex', [], getByte32Array(32, 160, 7, 11, 13, 3, 2, 3, 5)),
+            Expect.Simple('structComplex', [], getByte32Array(32, 128, 7, 11, 13, 3, 2, 3, 5)),
+          ]),
+          File.Simple('abiEncodeValue', [
+            Expect.Simple('rational', [], getByte32Array(255, 65534)),
+            Expect.Simple(
+              'rationalLiterals',
+              [],
+              getByte32Array(1, BigInt(2) ** BigInt(256) - BigInt(2)),
+            ),
           ]),
           File.Simple('abiEncodePacked', [
             Expect.Simple(

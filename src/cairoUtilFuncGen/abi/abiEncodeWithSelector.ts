@@ -42,7 +42,13 @@ export class AbiEncodeWithSelector extends AbiBase {
         const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.Ref);
         params.push({ name: `param${index}`, type: cairoType.toString() });
         encodings.push(
-          this.abiEncode.generateEncodingCode(type, 'bytes_index', 'bytes_offset', `param${index}`),
+          this.abiEncode.generateEncodingCode(
+            type,
+            'bytes_index',
+            'bytes_offset',
+            '4',
+            `param${index}`,
+          ),
         );
         return [params, encodings];
       },
@@ -78,6 +84,7 @@ export class AbiEncodeWithSelector extends AbiBase {
       `end`,
     ].join('\n');
 
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.alloc', 'alloc');
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     this.requireImport('warplib.memory', 'wm_new');

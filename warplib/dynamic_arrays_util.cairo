@@ -119,12 +119,12 @@ end
 
 func bytes_to_felt_dynamic_array{
     bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
-}(array_index : felt, array_offset : felt, array : felt*, mem_ptr : felt) -> (
-    final_index : felt, final_offset : felt
-):
+}(
+    array_index : felt, array_offset : felt, array : felt*, element_offset : felt, mem_ptr : felt
+) -> (final_index : felt, final_offset : felt):
     alloc_locals
     # Store pointer to data
-    let (offset256) = felt_to_uint256(array_offset)
+    let (offset256) = felt_to_uint256(array_offset - element_offset)
     fixed_bytes256_to_felt_dynamic_array(array_index, array, 0, offset256)
     let new_index = array_index + 32
     # Store length
@@ -174,6 +174,9 @@ func bytes_to_felt_dynamic_array_inline{
 end
 
 func bytes_upper_bound{range_check_ptr : felt}(number : felt) -> (upper_bound : felt):
+    if number == 0:
+        return (0)
+    end
     let (lesser) = is_le(number, 32)
     if lesser == 1:
         return (32)

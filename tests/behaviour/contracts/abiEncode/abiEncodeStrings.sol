@@ -7,6 +7,10 @@ contract WARP  {
         return abi.encode(s);
     }
 
+    function emptyString() public pure returns (bytes memory) {
+        return abi.encode("");
+    }
+
     function docsExample() public pure returns (bytes memory) {
         uint256[][] memory m = new uint256[][](2);
         m[0] = new uint256[](2);
