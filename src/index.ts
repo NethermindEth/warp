@@ -284,10 +284,11 @@ program
 export type IDeclareOptions = IOptionalNetwork;
 
 program
-  .command('declare <file>')
+  .command('declare <cairo_contract>')
+  .description('Command to declare Cairo contract on a StarkNet Network.')
   .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-  .action(async (file: string, options: IDeclareOptions) => {
-    runStarknetDeclare(file, options);
+  .action(async (cairo_contract: string, options: IDeclareOptions) => {
+    runStarknetDeclare(cairo_contract, options);
   });
 
 const blue = chalk.bold.blue;
