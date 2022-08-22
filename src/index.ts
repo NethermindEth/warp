@@ -285,7 +285,7 @@ export type IDeclareOptions = IOptionalNetwork;
 
 program
   .command('declare <file>')
-  .option('--network <network>', 'The network to declare the contract on.')
+  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
   .action(async (file: string, options: IDeclareOptions) => {
     runStarknetDeclare(file, options);
   });
