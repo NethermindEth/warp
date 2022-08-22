@@ -487,9 +487,14 @@ export function getSourceFromLocation(source: string, location: SourceLocation):
 
 export function callClassHashScript(filePath: string): string {
   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
-  const classHash = execSync(
-    `${warpVenvPrefix} python starknet-scripts/compute_class_hash.py ${filePath}`,
-  )
+  const classHashScriptPath = path.resolve(
+    __dirname,
+    '..',
+    '..',
+    'starknet-scripts',
+    'compute_class_hash.py',
+  );
+  const classHash = execSync(`${warpVenvPrefix} python ${classHashScriptPath} ${filePath}`)
     .toString()
     .trim();
   if (classHash === undefined) {
