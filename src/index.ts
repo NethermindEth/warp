@@ -171,7 +171,7 @@ program
     undefined,
   )
   .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
-  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
   .option('--no_wallet', 'Do not use a wallet for deployment.', false)
   .option('--wallet <wallet>', 'Wallet provider to use', process.env.STARKNET_WALLET)
   .option('--account <account>', 'Account to use for deployment', undefined)
@@ -194,7 +194,7 @@ program
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used.',
   )
-  .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
+  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
     'The name of the wallet, including the python module and wallet class.',
@@ -229,7 +229,7 @@ program
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used.',
   )
-  .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
+  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
     'The name of the wallet, including the python module and wallet class.',
@@ -253,7 +253,7 @@ program
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used.',
   )
-  .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
+  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
     'The name of the wallet, including the python module and wallet class.',
@@ -285,7 +285,7 @@ export type IDeclareOptions = IOptionalNetwork;
 
 program
   .command('declare <file>')
-  .option('--network <network>', 'StarkNet network URL', process.env.STARKNET_NETWORK)
+  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
   .action(async (file: string, options: IDeclareOptions) => {
     runStarknetDeclare(file, options);
   });
