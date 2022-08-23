@@ -1,14 +1,7 @@
 import assert from 'assert';
 import { readFileSync } from 'fs';
 import prompts from 'prompts';
-import {
-  ArrayType,
-  ArrayTypeName,
-  generalizeType,
-  getNodeType,
-  Literal,
-  SourceUnit,
-} from 'solc-typed-ast';
+import { ArrayType, ArrayTypeName, generalizeType, Literal, SourceUnit } from 'solc-typed-ast';
 import Web3 from 'web3';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -18,6 +11,7 @@ import { CLIError } from '../utils/errors';
 import { parse } from '../utils/functionSignatureParser';
 import { generateLiteralTypeString } from '../utils/getTypeString';
 import { createDefaultConstructor, createNumberLiteral } from '../utils/nodeTemplates';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../utils/utils';
 
 type Input = (string | number | Input)[];
@@ -64,7 +58,7 @@ export class ABIExtractor extends ASTMapper {
     this.commonVisit(node, ast);
 
     if (node.vLength !== undefined && !(node.vLength instanceof Literal)) {
-      const type = generalizeType(getNodeType(node, ast.compilerVersion))[0];
+      const type = generalizeType(safeGetNodeType(node, ast.compilerVersion))[0];
       assert(
         type instanceof ArrayType,
         `${printNode(node)} ${node.typeString} has non-array type ${printTypeNode(type, true)}`,

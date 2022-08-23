@@ -4,7 +4,6 @@ import {
   BinaryOperation,
   Expression,
   FunctionCall,
-  getNodeType,
   IndexAccess,
   Literal,
   MemberAccess,
@@ -18,6 +17,7 @@ import { printNode } from '../utils/astPrinter';
 import { cloneASTNode } from '../utils/cloning';
 import { COMPOUND_ASSIGNMENT_SUBEXPRESSION_PREFIX } from '../utils/nameModifiers';
 import { createNumberLiteral } from '../utils/nodeTemplates';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
 
 export class UnloadingAssignment extends ASTMapper {
@@ -128,7 +128,7 @@ export class UnloadingAssignment extends ASTMapper {
   private extractIndividualSubExpression(node: Expression, ast: AST): VariableDeclarationStatement {
     return ast.extractToConstant(
       node,
-      typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast),
+      typeNameFromTypeNode(safeGetNodeType(node, ast.compilerVersion), ast),
       `${COMPOUND_ASSIGNMENT_SUBEXPRESSION_PREFIX}${this.counter++}`,
     )[1];
   }

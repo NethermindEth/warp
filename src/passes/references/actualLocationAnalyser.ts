@@ -6,7 +6,6 @@ import {
   FunctionCall,
   FunctionDefinition,
   FunctionVisibility,
-  getNodeType,
   Identifier,
   IndexAccess,
   MemberAccess,
@@ -15,6 +14,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 
 /*
   Analyses all expressions in the AST to determine which datalocation (if any)
@@ -28,7 +28,7 @@ export class ActualLocationAnalyser extends ASTMapper {
   }
 
   visitExpression(node: Expression, ast: AST): void {
-    const type = getNodeType(node, ast.compilerVersion);
+    const type = safeGetNodeType(node, ast.compilerVersion);
     if (type instanceof PointerType) {
       this.actualLocations.set(node, type.location);
     } else {
@@ -61,7 +61,7 @@ export class ActualLocationAnalyser extends ASTMapper {
     const baseLocation = this.actualLocations.get(node.vExpression);
 
     if (baseLocation !== undefined) {
-      const baseType = getNodeType(node.vExpression, ast.compilerVersion);
+      const baseType = safeGetNodeType(node.vExpression, ast.compilerVersion);
       if (baseType instanceof FixedBytesType) {
         this.actualLocations.set(node, DataLocation.Default);
       } else {
@@ -77,7 +77,7 @@ export class ActualLocationAnalyser extends ASTMapper {
     const baseLocation = this.actualLocations.get(node.vBaseExpression);
 
     if (baseLocation !== undefined) {
-      const baseType = getNodeType(node.vBaseExpression, ast.compilerVersion);
+      const baseType = safeGetNodeType(node.vBaseExpression, ast.compilerVersion);
       if (baseType instanceof FixedBytesType) {
         this.actualLocations.set(node, DataLocation.Default);
       } else {
@@ -97,7 +97,7 @@ export class ActualLocationAnalyser extends ASTMapper {
     } else if (
       node.vReferencedDeclaration instanceof FunctionDefinition &&
       node.vReferencedDeclaration.visibility === FunctionVisibility.External &&
-      getNodeType(node, ast.compilerVersion) instanceof PointerType
+      safeGetNodeType(node, ast.compilerVersion) instanceof PointerType
     ) {
       this.actualLocations.set(node, DataLocation.CallData);
       this.commonVisit(node, ast);

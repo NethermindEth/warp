@@ -5,7 +5,6 @@ import {
   Expression,
   FunctionDefinition,
   generalizeType,
-  getNodeType,
   Identifier,
   IndexAccess,
   Literal,
@@ -24,7 +23,7 @@ import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { generateExpressionTypeString } from '../utils/getTypeString';
 import { CALLDATA_TO_MEMORY_PREFIX } from '../utils/nameModifiers';
 import { createIdentifier } from '../utils/nodeTemplates';
-import { specializeType } from '../utils/nodeTypeProcessing';
+import { safeGetNodeType, specializeType } from '../utils/nodeTypeProcessing';
 import { getContainingFunction, typeNameFromTypeNode } from '../utils/utils';
 
 export class StaticArrayIndexer extends ASTMapper {
@@ -90,7 +89,7 @@ export class StaticArrayIndexer extends ASTMapper {
     refVarDecl: VariableDeclaration,
     ast: AST,
   ): Identifier | IndexAccess | MemberAccess {
-    const exprType = getNodeType(expr, ast.compilerVersion);
+    const exprType = safeGetNodeType(expr, ast.compilerVersion);
     const exprMemoryType = specializeType(generalizeType(exprType)[0], DataLocation.Memory);
 
     let replacement: Identifier | IndexAccess | MemberAccess;
@@ -128,7 +127,7 @@ export class StaticArrayIndexer extends ASTMapper {
     ast: AST,
   ): VariableDeclaration {
     const refId = identifier.referencedDeclaration;
-    const memoryType = generalizeType(getNodeType(identifier, ast.compilerVersion))[0];
+    const memoryType = generalizeType(safeGetNodeType(identifier, ast.compilerVersion))[0];
 
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
@@ -185,7 +184,7 @@ function isCalldataStaticArray(type: TypeNode): boolean {
 function hasIndexAccess(node: Expression, ast: AST): boolean {
   return (
     (node instanceof IndexAccess &&
-      ((isCalldataStaticArray(getNodeType(node.vBaseExpression, ast.compilerVersion)) &&
+      ((isCalldataStaticArray(safeGetNodeType(node.vBaseExpression, ast.compilerVersion)) &&
         isIndexedByNonLiteral(node)) ||
         hasIndexAccess(node.vBaseExpression, ast))) ||
     (node instanceof MemberAccess && hasIndexAccess(node.vExpression, ast))

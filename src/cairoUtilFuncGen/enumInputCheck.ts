@@ -6,12 +6,12 @@ import {
   Expression,
   FunctionCall,
   FunctionStateMutability,
-  getNodeType,
   IntType,
   TypeNode,
 } from 'solc-typed-ast';
 import { FunctionStubKind } from '../ast/cairoNodes';
 import { createCairoFunctionStub, createCallToFunction } from '../utils/functionGeneration';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../utils/utils';
 import { StringIndexedFuncGen } from './base';
 
@@ -22,8 +22,8 @@ export class EnumInputCheck extends StringIndexedFuncGen {
     enumDef: EnumDefinition,
     nodeInSourceUnit: ASTNode,
   ): FunctionCall {
-    const nodeType = getNodeType(node, this.ast.compilerVersion);
-    const inputType = getNodeType(nodeInput, this.ast.compilerVersion);
+    const nodeType = safeGetNodeType(node, this.ast.compilerVersion);
+    const inputType = safeGetNodeType(nodeInput, this.ast.compilerVersion);
 
     this.sourceUnit = this.ast.getContainingRoot(nodeInSourceUnit);
     const name = this.getOrCreate(inputType, enumDef);

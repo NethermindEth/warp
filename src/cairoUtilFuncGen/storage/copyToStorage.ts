@@ -8,7 +8,6 @@ import {
   FixedBytesType,
   FunctionStateMutability,
   generalizeType,
-  getNodeType,
   IntType,
   SourceUnit,
   StringType,
@@ -21,7 +20,12 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext, WarpLocation } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { getElementType, getSize, isReferenceType } from '../../utils/nodeTypeProcessing';
+import {
+  getElementType,
+  getSize,
+  isReferenceType,
+  safeGetNodeType,
+} from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
@@ -45,8 +49,8 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
   gen(to: Expression, from: Expression, nodeInSourceUnit?: ASTNode): Expression {
-    const toType = generalizeType(getNodeType(to, this.ast.compilerVersion))[0];
-    const fromType = generalizeType(getNodeType(from, this.ast.compilerVersion))[0];
+    const toType = generalizeType(safeGetNodeType(to, this.ast.compilerVersion))[0];
+    const fromType = generalizeType(safeGetNodeType(from, this.ast.compilerVersion))[0];
 
     const name = this.getOrCreate(toType, fromType);
     const functionStub = createCairoFunctionStub(
@@ -119,7 +123,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
   private createStructCopyFunction(funcName: string, type: UserDefinedType): CairoFunction {
     const def = type.definition;
     assert(def instanceof StructDefinition);
-    const members = def.vMembers.map((decl) => getNodeType(decl, this.ast.compilerVersion));
+    const members = def.vMembers.map((decl) => safeGetNodeType(decl, this.ast.compilerVersion));
 
     let offset = 0;
     return {

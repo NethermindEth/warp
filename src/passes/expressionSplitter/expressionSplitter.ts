@@ -15,7 +15,6 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
   generalizeType,
-  getNodeType,
   FunctionKind,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -26,6 +25,7 @@ import { TranspileFailedError } from '../../utils/errors';
 import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
 import { SPLIT_EXPRESSION_PREFIX } from '../../utils/nameModifiers';
 import { createEmptyTuple, createIdentifier } from '../../utils/nodeTemplates';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { counterGenerator, getContainingFunction } from '../../utils/utils';
 import {
   addStatementsToCallFunction,
@@ -66,21 +66,19 @@ export class ExpressionSplitter extends ASTMapper {
         return;
       }
 
-      const leftHandSide = cloneASTNode(node.vLeftHandSide, ast);
-      const rightHandSide = cloneASTNode(node.vRightHandSide, ast);
-
       const tempVarStatement = createVariableDeclarationStatement(
         this.eGen.next().value,
-        rightHandSide,
+        node.vRightHandSide,
         ast.getContainingScope(node),
         ast,
       );
       const tempVar = tempVarStatement.vDeclarations[0];
 
+      const leftHandSide = cloneASTNode(node.vLeftHandSide, ast);
       const updateVal = createAssignmentStatement(
         '=',
         leftHandSide,
-        createIdentifier(tempVar, ast),
+        createIdentifier(tempVar, ast, undefined, node),
         ast,
       );
 
@@ -177,12 +175,12 @@ function identifierReferenceStateVar(id: Identifier) {
 
 function createVariableDeclarationStatement(
   name: string,
-  initalValue: Expression,
+  initialValue: Expression,
   scope: number,
   ast: AST,
 ): VariableDeclarationStatement {
   const location =
-    generalizeType(getNodeType(initalValue, ast.compilerVersion))[1] ?? DataLocation.Default;
+    generalizeType(safeGetNodeType(initialValue, ast.compilerVersion))[1] ?? DataLocation.Default;
   const varDecl = new VariableDeclaration(
     ast.reserveId(),
     '',
@@ -194,7 +192,7 @@ function createVariableDeclarationStatement(
     location,
     StateVariableVisibility.Internal,
     Mutability.Constant,
-    initalValue.typeString,
+    initialValue.typeString,
   );
   ast.setContextRecursive(varDecl);
 
@@ -203,7 +201,7 @@ function createVariableDeclarationStatement(
     '',
     [varDecl.id],
     [varDecl],
-    initalValue,
+    cloneASTNode(initialValue, ast),
   );
   return varDeclStatement;
 }

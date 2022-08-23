@@ -3,7 +3,6 @@ import {
   ContractDefinition,
   ContractKind,
   FunctionKind,
-  getNodeType,
   Identifier,
   MemberAccess,
   SourceUnit,
@@ -15,6 +14,7 @@ import {
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../../utils/utils';
 
 export class ExternalContractInterfaceInserter extends ASTMapper {
@@ -44,7 +44,7 @@ export class ExternalContractInterfaceInserter extends ASTMapper {
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
-    const nodeType = getNodeType(node.vExpression, ast.compilerVersion);
+    const nodeType = safeGetNodeType(node.vExpression, ast.compilerVersion);
     if (nodeType instanceof UserDefinedType && nodeType.definition instanceof ContractDefinition) {
       importExternalContract(
         nodeType.definition,

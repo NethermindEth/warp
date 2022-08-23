@@ -1,6 +1,5 @@
 import {
   FunctionCall,
-  getNodeType,
   DataLocation,
   ArrayType,
   Expression,
@@ -21,11 +20,16 @@ import { uint256 } from '../../warplib/utils';
 import { NotSupportedYetError } from '../../utils/errors';
 import { printTypeNode } from '../../utils/astPrinter';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
-import { getElementType, getSize, isReferenceType } from '../../utils/nodeTypeProcessing';
+import {
+  getElementType,
+  getSize,
+  isReferenceType,
+  safeGetNodeType,
+} from '../../utils/nodeTypeProcessing';
 
 export class CallDataToMemoryGen extends StringIndexedFuncGen {
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const type = generalizeType(getNodeType(node, this.ast.compilerVersion))[0];
+    const type = generalizeType(safeGetNodeType(node, this.ast.compilerVersion))[0];
 
     const name = this.getOrCreate(type);
     const functionStub = createCairoFunctionStub(
@@ -187,7 +191,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
         `    alloc_locals`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)})`,
         ...structDef.vMembers.map((decl): string => {
-          const memberType = getNodeType(decl, this.ast.compilerVersion);
+          const memberType = safeGetNodeType(decl, this.ast.compilerVersion);
           if (isReferenceType(memberType)) {
             const recursiveFunc = this.getOrCreate(memberType);
             const code = [

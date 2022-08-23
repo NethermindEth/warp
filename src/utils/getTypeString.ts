@@ -16,7 +16,6 @@ import {
   FunctionType,
   FunctionVisibility,
   generalizeType,
-  getNodeTypeInCtx,
   ImportRefType,
   IntLiteralType,
   IntType,
@@ -39,6 +38,7 @@ import { AST } from '../ast/ast';
 import { RationalLiteral } from '../passes/literalExpressionEvaluator/rationalLiteral';
 import { printNode, printTypeNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
+import { safeGetNodeTypeInCtx } from './nodeTypeProcessing';
 
 export function getDeclaredTypeString(declaration: VariableDeclarationStatement): string {
   if (declaration.assignments.length === 1) {
@@ -81,7 +81,7 @@ export function getFunctionTypeString(
 ): string {
   const inputs = node.vParameters.vParameters
     .map((decl) => {
-      const baseType = getNodeTypeInCtx(decl, compilerVersion, nodeInSourceUnit ?? decl);
+      const baseType = safeGetNodeTypeInCtx(decl, compilerVersion, nodeInSourceUnit ?? decl);
       if (
         baseType instanceof ArrayType ||
         baseType instanceof BytesType ||
@@ -127,7 +127,7 @@ export function getReturnTypeString(
   const retParams = node.vReturnParameters.vParameters;
   const parametersTypeString = retParams
     .map((decl) => {
-      const type = getNodeTypeInCtx(decl, ast.compilerVersion, nodeInSourceUnit ?? decl);
+      const type = safeGetNodeTypeInCtx(decl, ast.compilerVersion, nodeInSourceUnit ?? decl);
       return type instanceof PointerType
         ? type
         : specializeType(generalizeType(type)[0], decl.storageLocation);

@@ -2,7 +2,6 @@ import {
   ContractDefinition,
   ContractKind,
   FunctionCall,
-  getNodeType,
   Identifier,
   MemberAccess,
   SourceUnit,
@@ -17,6 +16,7 @@ import {
   getTemporaryInterfaceName,
 } from '../externalContractHandler/externalContractInterfaceInserter';
 import { assert } from 'console';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 
 export class ThisKeyword extends ASTMapper {
   visitIdentifier(node: Identifier, ast: AST): void {
@@ -25,7 +25,7 @@ export class ThisKeyword extends ASTMapper {
         createCairoFunctionStub(
           'get_contract_address',
           [],
-          [['address', typeNameFromTypeNode(getNodeType(node, ast.compilerVersion), ast)]],
+          [['address', typeNameFromTypeNode(safeGetNodeType(node, ast.compilerVersion), ast)]],
           ['syscall_ptr'],
           ast,
           node,

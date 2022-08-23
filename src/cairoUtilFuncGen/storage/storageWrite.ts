@@ -2,7 +2,6 @@ import {
   Expression,
   FunctionCall,
   TypeNode,
-  getNodeType,
   ASTNode,
   DataLocation,
   PointerType,
@@ -10,6 +9,7 @@ import {
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { add, StringIndexedFuncGen } from '../base';
 
@@ -19,7 +19,7 @@ export class StorageWriteGen extends StringIndexedFuncGen {
     writeValue: Expression,
     nodeInSourceUnit?: ASTNode,
   ): FunctionCall {
-    const typeToWrite = getNodeType(storageLocation, this.ast.compilerVersion);
+    const typeToWrite = safeGetNodeType(storageLocation, this.ast.compilerVersion);
     const name = this.getOrCreate(typeToWrite);
     const argTypeName = typeNameFromTypeNode(typeToWrite, this.ast);
     const functionStub = createCairoFunctionStub(
