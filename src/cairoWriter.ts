@@ -34,7 +34,6 @@ import {
   FunctionTypeName,
   FunctionVisibility,
   generalizeType,
-  getNodeType,
   Identifier,
   IdentifierPath,
   IfStatement,
@@ -88,7 +87,11 @@ import { CairoDynArray, CairoType, TypeConversionContext } from './utils/cairoTy
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
 import { implicitOrdering, implicitTypes } from './utils/implicits';
-import { isDynamicArray, isDynamicCallDataArray } from './utils/nodeTypeProcessing';
+import {
+  isDynamicArray,
+  isDynamicCallDataArray,
+  safeGetNodeType,
+} from './utils/nodeTypeProcessing';
 import { notNull, notUndefined } from './utils/typeConstructs';
 import {
   divmod,
@@ -143,7 +146,7 @@ class StructDefinitionWriter extends CairoASTNodeWriter {
           .map(
             (value) =>
               `member ${value.name} : ${CairoType.fromSol(
-                getNodeType(value, writer.targetCompilerVersion),
+                safeGetNodeType(value, writer.targetCompilerVersion),
                 this.ast,
                 TypeConversionContext.StorageAllocation,
               )}`,
@@ -183,7 +186,7 @@ class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
     );
 
     const documentation = getDocumentation(node.documentation, writer);
-    const initialValueType = getNodeType(node.vInitialValue, this.ast.compilerVersion);
+    const initialValueType = safeGetNodeType(node.vInitialValue, this.ast.compilerVersion);
 
     const getValueN = (n: number): TypeNode => {
       if (initialValueType instanceof TupleType) {
@@ -531,7 +534,7 @@ class ParameterListWriter extends CairoASTNodeWriter {
           : defContext;
 
       const tp = CairoType.fromSol(
-        getNodeType(value, writer.targetCompilerVersion),
+        safeGetNodeType(value, writer.targetCompilerVersion),
         this.ast,
         varTypeConversionContext,
       );
@@ -819,7 +822,7 @@ class IndexAccessWriter extends CairoASTNodeWriter {
     assert(node.vIndexExpression !== undefined);
     const baseWritten = writer.write(node.vBaseExpression);
     const indexWritten = writer.write(node.vIndexExpression);
-    if (isDynamicCallDataArray(getNodeType(node.vBaseExpression, this.ast.compilerVersion))) {
+    if (isDynamicCallDataArray(safeGetNodeType(node.vBaseExpression, this.ast.compilerVersion))) {
       return [`${baseWritten}.ptr[${indexWritten}]`];
     }
     return [`${baseWritten}[${indexWritten}]`];
@@ -865,7 +868,10 @@ class FunctionCallWriter extends CairoASTNodeWriter {
       case FunctionCallKind.FunctionCall: {
         if (node.vExpression instanceof MemberAccess) {
           // check if we're calling a member of a contract
-          const nodeType = getNodeType(node.vExpression.vExpression, writer.targetCompilerVersion);
+          const nodeType = safeGetNodeType(
+            node.vExpression.vExpression,
+            writer.targetCompilerVersion,
+          );
           if (
             nodeType instanceof UserDefinedType &&
             nodeType.definition instanceof ContractDefinition
@@ -889,7 +895,7 @@ class FunctionCallWriter extends CairoASTNodeWriter {
             : ['.len', '.ptr'];
           const argTypes = node.vArguments.map((v) => ({
             name: writer.write(v),
-            type: getNodeType(v, this.ast.compilerVersion),
+            type: safeGetNodeType(v, this.ast.compilerVersion),
           }));
           const args = argTypes
             .map(({ name, type }) =>
@@ -919,7 +925,7 @@ class FunctionCallWriter extends CairoASTNodeWriter {
           assert(val < BigInt('0x800000000000000000000000000000000000000000000000000000000000000'));
           return [`${args[0]}`];
         }
-        const nodeType = getNodeType(node.vExpression, writer.targetCompilerVersion);
+        const nodeType = safeGetNodeType(node.vExpression, writer.targetCompilerVersion);
         if (
           nodeType instanceof UserDefinedType &&
           nodeType.definition instanceof ContractDefinition

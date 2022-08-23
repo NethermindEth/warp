@@ -13,7 +13,6 @@ import {
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
-  getNodeType,
   Identifier,
   Mutability,
   StateVariableVisibility,
@@ -25,7 +24,7 @@ import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { getFunctionTypeString, getReturnTypeString } from './getTypeString';
 import { Implicits } from './implicits';
 import { createIdentifier, createParameterList } from './nodeTemplates';
-import { isDynamicArray } from './nodeTypeProcessing';
+import { isDynamicArray, safeGetNodeTypeInCtx } from './nodeTypeProcessing';
 import { toSingleExpression } from './utils';
 
 export function createCallToFunction(
@@ -137,9 +136,10 @@ export function createCairoFunctionStub(
 export function createElementaryConversionCall(
   typeTo: ElementaryTypeName,
   expression: Expression,
+  context: ASTNode,
   ast: AST,
 ): FunctionCall {
-  const isDynArray = isDynamicArray(getNodeType(typeTo, ast.compilerVersion));
+  const isDynArray = isDynamicArray(safeGetNodeTypeInCtx(typeTo, ast.compilerVersion, context));
   const innerTypeString = isDynArray
     ? `type(${typeTo.typeString} storage pointer)`
     : `type(${typeTo.typeString})`;
@@ -169,7 +169,7 @@ export function createOuterCall(
   functionToCall: FunctionCall,
   ast: AST,
 ): ExpressionStatement {
-  const resultIdentifiers = variables.map((k) => createIdentifier(k, ast));
+  const resultIdentifiers = variables.map((k) => createIdentifier(k, ast, undefined, node));
   const assignmentValue = toSingleExpression(resultIdentifiers, ast);
 
   return new ExpressionStatement(

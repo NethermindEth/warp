@@ -5,12 +5,12 @@ import {
   FunctionCallKind,
   FunctionDefinition,
   FunctionType,
-  getNodeType,
   MemberAccess,
   UserDefinedType,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 
 export class InternalFunctionCallCollector extends ASTMapper {
   /*
@@ -33,7 +33,7 @@ export class InternalFunctionCallCollector extends ASTMapper {
       isInternalFuncCall(node, ast)
     ) {
       if (node.vExpression instanceof MemberAccess) {
-        const typeNode = getNodeType(node.vExpression.vExpression, ast.compilerVersion);
+        const typeNode = safeGetNodeType(node.vExpression.vExpression, ast.compilerVersion);
         if (
           typeNode instanceof UserDefinedType &&
           typeNode.definition instanceof ContractDefinition
@@ -49,7 +49,7 @@ export class InternalFunctionCallCollector extends ASTMapper {
 }
 
 export function isInternalFuncCall(node: FunctionCall, ast: AST): boolean {
-  const type = getNodeType(node.vExpression, ast.compilerVersion);
+  const type = safeGetNodeType(node.vExpression, ast.compilerVersion);
   assert(type instanceof FunctionType);
   return type.visibility === 'internal';
 }

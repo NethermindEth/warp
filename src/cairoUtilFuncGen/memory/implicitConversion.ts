@@ -8,7 +8,6 @@ import {
   FixedBytesType,
   FunctionCall,
   generalizeType,
-  getNodeType,
   IntType,
   PointerType,
   SourceUnit,
@@ -20,7 +19,7 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { isDynamicArray } from '../../utils/nodeTypeProcessing';
+import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
@@ -50,7 +49,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
   }
 
   genIfNecesary(sourceExpression: Expression, targetType: TypeNode): [Expression, boolean] {
-    const sourceType = getNodeType(sourceExpression, this.ast.compilerVersion);
+    const sourceType = safeGetNodeType(sourceExpression, this.ast.compilerVersion);
 
     const generalTarget = generalizeType(targetType)[0];
     const generalSource = generalizeType(sourceType)[0];
@@ -100,7 +99,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
   }
 
   gen(source: Expression, targetType: TypeNode): FunctionCall {
-    const sourceType = getNodeType(source, this.ast.compilerVersion);
+    const sourceType = safeGetNodeType(source, this.ast.compilerVersion);
 
     const name = this.getOrCreate(targetType, sourceType);
 

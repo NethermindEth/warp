@@ -5,7 +5,6 @@ import {
   enumToIntType,
   Expression,
   FunctionType,
-  getNodeType,
   Identifier,
   MappingType,
   MemberAccess,
@@ -27,6 +26,7 @@ import { ASTMapper } from '../ast/mapper';
 import { TranspileFailedError } from '../utils/errors';
 import { generateExpressionTypeString } from '../utils/getTypeString';
 import { createNumberLiteral } from '../utils/nodeTemplates';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
 export class EnumConverter extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -46,7 +46,7 @@ export class EnumConverter extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     this.visitExpression(node, ast);
     if (node.kind !== FunctionCallKind.TypeConversion) return;
-    const tNode = getNodeType(node.vExpression, ast.compilerVersion);
+    const tNode = safeGetNodeType(node.vExpression, ast.compilerVersion);
     assert(
       tNode instanceof TypeNameType,
       `Got non-typename type ${tNode.pp()} when parsing conversion function
@@ -78,7 +78,7 @@ export class EnumConverter extends ASTMapper {
 
   visitTypeName(node: TypeName, ast: AST): void {
     this.commonVisit(node, ast);
-    const tNode = getNodeType(node, ast.compilerVersion);
+    const tNode = safeGetNodeType(node, ast.compilerVersion);
     const replacementNode = replaceEnumType(tNode);
     if (tNode.pp() !== replacementNode.pp()) {
       node.typeString = generateExpressionTypeString(replacementNode);
@@ -86,7 +86,7 @@ export class EnumConverter extends ASTMapper {
   }
 
   visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {
-    const tNode = getNodeType(node, ast.compilerVersion);
+    const tNode = safeGetNodeType(node, ast.compilerVersion);
     assert(tNode instanceof UserDefinedType, 'Expected UserDefinedType');
     if (!(tNode.definition instanceof EnumDefinition)) return;
     const newTypeString = generateExpressionTypeString(replaceEnumType(tNode));
@@ -95,19 +95,19 @@ export class EnumConverter extends ASTMapper {
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     this.commonVisit(node, ast);
-    const typeNode = replaceEnumType(getNodeType(node, ast.compilerVersion));
+    const typeNode = replaceEnumType(safeGetNodeType(node, ast.compilerVersion));
     node.typeString = generateExpressionTypeString(typeNode);
   }
 
   visitExpression(node: Expression, ast: AST): void {
     this.commonVisit(node, ast);
-    const typeNode = replaceEnumType(getNodeType(node, ast.compilerVersion));
+    const typeNode = replaceEnumType(safeGetNodeType(node, ast.compilerVersion));
     node.typeString = generateExpressionTypeString(typeNode);
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
-    const type = getNodeType(node, ast.compilerVersion);
-    const baseType = getNodeType(node.vExpression, ast.compilerVersion);
+    const type = safeGetNodeType(node, ast.compilerVersion);
+    const baseType = safeGetNodeType(node.vExpression, ast.compilerVersion);
     if (
       type instanceof UserDefinedType &&
       type.definition instanceof EnumDefinition &&

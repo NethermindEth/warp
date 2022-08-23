@@ -1,7 +1,6 @@
 import {
   ElementaryTypeNameExpression,
   ExpressionStatement,
-  getNodeType,
   Identifier,
   IndexAccess,
   MemberAccess,
@@ -13,6 +12,7 @@ import { ASTMapper } from '../ast/mapper';
 import assert from 'assert';
 import { TupleExpression } from 'solc-typed-ast';
 import { notNull } from '../utils/typeConstructs';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
 export class TypeNameRemover extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -27,7 +27,7 @@ export class TypeNameRemover extends ASTMapper {
         node.vExpression instanceof MemberAccess ||
         node.vExpression instanceof Identifier ||
         node.vExpression instanceof ElementaryTypeNameExpression) &&
-      getNodeType(node.vExpression, ast.compilerVersion) instanceof TypeNameType
+      safeGetNodeType(node.vExpression, ast.compilerVersion) instanceof TypeNameType
     ) {
       ast.removeStatement(node);
     } else if (node.vExpression instanceof TupleExpression) {
@@ -79,7 +79,9 @@ export class TypeNameRemover extends ASTMapper {
   isTypeNameType(rhs: TupleExpression | null, index: number, ast: AST): boolean {
     if (!(rhs instanceof TupleExpression)) return false;
     const elem = rhs.vOriginalComponents[index];
-    return elem !== null ? getNodeType(elem, ast.compilerVersion) instanceof TypeNameType : false;
+    return elem !== null
+      ? safeGetNodeType(elem, ast.compilerVersion) instanceof TypeNameType
+      : false;
   }
 }
 

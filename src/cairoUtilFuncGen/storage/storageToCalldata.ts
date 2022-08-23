@@ -5,7 +5,6 @@ import {
   DataLocation,
   Expression,
   generalizeType,
-  getNodeType,
   SourceUnit,
   StringType,
   StructDefinition,
@@ -17,7 +16,7 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { getElementType } from '../../utils/nodeTypeProcessing';
+import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { add, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/externalDynArrayStructConstructor';
@@ -36,7 +35,9 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
   }
 
   gen(storageLocation: Expression) {
-    const storageType = generalizeType(getNodeType(storageLocation, this.ast.compilerVersion))[0];
+    const storageType = generalizeType(
+      safeGetNodeType(storageLocation, this.ast.compilerVersion),
+    )[0];
 
     const name = this.getOrCreate(storageType);
     const functionStub = createCairoFunctionStub(
@@ -87,7 +88,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     const structName = `struct_${cairoStruct.toString()}`;
 
     const [copyInstructions, members] = this.generateStructCopyInstructions(
-      structDef.vMembers.map((varDecl) => getNodeType(varDecl, this.ast.compilerVersion)),
+      structDef.vMembers.map((varDecl) => safeGetNodeType(varDecl, this.ast.compilerVersion)),
       'member',
     );
 

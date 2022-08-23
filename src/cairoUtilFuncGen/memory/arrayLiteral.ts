@@ -6,7 +6,6 @@ import {
   FixedBytesType,
   FunctionCall,
   generalizeType,
-  getNodeType,
   Literal,
   LiteralKind,
   StringType,
@@ -18,7 +17,12 @@ import { CairoType } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createStringTypeName } from '../../utils/nodeTemplates';
-import { getElementType, getSize, isDynamicArray } from '../../utils/nodeTypeProcessing';
+import {
+  getElementType,
+  getSize,
+  isDynamicArray,
+  safeGetNodeType,
+} from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
@@ -65,7 +69,7 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     const elements = node.vOriginalComponents.filter(notNull);
     assert(elements.length === node.vOriginalComponents.length);
 
-    const type = generalizeType(getNodeType(node, this.ast.compilerVersion))[0];
+    const type = generalizeType(safeGetNodeType(node, this.ast.compilerVersion))[0];
     assert(type instanceof ArrayType || type instanceof BytesType || type instanceof StringType);
 
     const elementT = getElementType(type);

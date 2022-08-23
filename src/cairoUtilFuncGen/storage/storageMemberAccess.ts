@@ -3,7 +3,6 @@ import {
   MemberAccess,
   ASTNode,
   FunctionCall,
-  getNodeType,
   PointerType,
   UserDefinedType,
   VariableDeclaration,
@@ -12,6 +11,7 @@ import {
 import { CairoType, TypeConversionContext, CairoStruct } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, countNestedMapItems } from '../../utils/utils';
 import { CairoUtilFuncGenBase, CairoFunction, add } from '../base';
 
@@ -27,7 +27,7 @@ export class StorageMemberAccessGen extends CairoUtilFuncGenBase {
   }
 
   gen(memberAccess: MemberAccess, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const solType = getNodeType(memberAccess.vExpression, this.ast.compilerVersion);
+    const solType = safeGetNodeType(memberAccess.vExpression, this.ast.compilerVersion);
     assert(solType instanceof PointerType);
     assert(solType.to instanceof UserDefinedType);
     const structCairoType = CairoType.fromSol(

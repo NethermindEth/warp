@@ -16,7 +16,6 @@ import {
   FunctionDefinition,
   FunctionKind,
   FunctionType,
-  getNodeType,
   Identifier,
   IndexAccess,
   InlineAssembly,
@@ -34,7 +33,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { WillNotSupportError } from '../utils/errors';
-import { isDynamicArray } from '../utils/nodeTypeProcessing';
+import { isDynamicArray, safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../utils/utils';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
@@ -85,14 +84,14 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     );
   }
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
-    const typeNode = getNodeType(node, ast.compilerVersion);
+    const typeNode = safeGetNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FunctionType)
       throw new WillNotSupportError('Function objects are not supported', node);
     this.commonVisit(node, ast);
   }
 
   visitExpressionStatement(node: ExpressionStatement, ast: AST): void {
-    const typeNode = getNodeType(node.vExpression, ast.compilerVersion);
+    const typeNode = safeGetNodeType(node.vExpression, ast.compilerVersion);
     if (typeNode instanceof FunctionType)
       throw new WillNotSupportError('Function objects are not supported', node);
     this.commonVisit(node, ast);
@@ -107,7 +106,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
-    if (!(getNodeType(node.vExpression, ast.compilerVersion) instanceof AddressType)) {
+    if (!(safeGetNodeType(node.vExpression, ast.compilerVersion) instanceof AddressType)) {
       this.visitExpression(node, ast);
       return;
     }
@@ -164,7 +163,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (!(node.vScope instanceof ContractDefinition && node.vScope.kind === ContractKind.Library)) {
       [...node.vParameters.vParameters, ...node.vReturnParameters.vParameters].forEach((decl) => {
-        const type = getNodeType(decl, ast.compilerVersion);
+        const type = safeGetNodeType(decl, ast.compilerVersion);
         functionArgsCheck(type, ast, isExternallyVisible(node), decl.storageLocation, node);
       });
     }
@@ -202,7 +201,7 @@ function functionArgsCheck(
     }
     type.definition.vMembers.forEach((member) =>
       functionArgsCheck(
-        getNodeType(member, ast.compilerVersion),
+        safeGetNodeType(member, ast.compilerVersion),
         ast,
         externallyVisible,
         dataLocation,
@@ -237,7 +236,7 @@ function findDynArrayRecursive(type: TypeNode, ast: AST): boolean {
     return true;
   } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
     return type.definition.vMembers.some((member) =>
-      findDynArrayRecursive(getNodeType(member, ast.compilerVersion), ast),
+      findDynArrayRecursive(safeGetNodeType(member, ast.compilerVersion), ast),
     );
   } else {
     return false;

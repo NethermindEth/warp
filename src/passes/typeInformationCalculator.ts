@@ -7,7 +7,6 @@ import {
   EnumValue,
   Expression,
   FunctionCall,
-  getNodeType,
   Identifier,
   IntType,
   MemberAccess,
@@ -20,6 +19,7 @@ import { ASTMapper } from '../ast/mapper';
 import { printTypeNode } from '../utils/astPrinter';
 import { WillNotSupportError } from '../utils/errors';
 import { createNumberLiteral, createStringLiteral } from '../utils/nodeTemplates';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
 function calculateIntMin(type: IntType): bigint {
   if (type.signed) {
@@ -89,7 +89,7 @@ export class TypeInformationCalculator extends ASTMapper {
     typestring: string,
     ast: AST,
   ): ASTNode | null {
-    let nodeType = getNodeType(node, ast.compilerVersion);
+    let nodeType = safeGetNodeType(node, ast.compilerVersion);
     assert(
       nodeType instanceof TypeNameType,
       `Expected TypeNameType, found ${printTypeNode(nodeType)}`,

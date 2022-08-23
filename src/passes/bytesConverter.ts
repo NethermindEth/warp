@@ -4,7 +4,6 @@ import {
   Expression,
   FixedBytesType,
   generalizeType,
-  getNodeType,
   IntType,
   PointerType,
   typeNameToTypeNode,
@@ -32,6 +31,7 @@ import {
   createUint256TypeName,
   createArrayTypeName,
 } from '../utils/nodeTemplates';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
 /* Convert fixed-size byte arrays (e.g. bytes2, bytes8) to their equivalent unsigned integer.
     This pass does not handle dynamically-sized bytes arrays (i.e. bytes).
@@ -45,7 +45,7 @@ export class BytesConverter extends ASTMapper {
   }
 
   visitExpression(node: Expression, ast: AST): void {
-    const typeNode = getNodeType(node, ast.compilerVersion);
+    const typeNode = safeGetNodeType(node, ast.compilerVersion);
     if (!(typeNode instanceof IntLiteralType)) {
       node.typeString = generateExpressionTypeString(replaceBytesType(typeNode));
     }
@@ -53,7 +53,7 @@ export class BytesConverter extends ASTMapper {
   }
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
-    const typeNode = replaceBytesType(getNodeType(node, ast.compilerVersion));
+    const typeNode = replaceBytesType(safeGetNodeType(node, ast.compilerVersion));
     node.typeString = generateExpressionTypeString(typeNode);
     this.commonVisit(node, ast);
   }
@@ -77,7 +77,7 @@ export class BytesConverter extends ASTMapper {
     if (
       !(
         node.vIndexExpression &&
-        generalizeType(getNodeType(node.vBaseExpression, ast.compilerVersion))[0] instanceof
+        generalizeType(safeGetNodeType(node.vBaseExpression, ast.compilerVersion))[0] instanceof
           FixedBytesType
       )
     ) {
@@ -86,7 +86,7 @@ export class BytesConverter extends ASTMapper {
     }
 
     const baseTypeName = typeNameFromTypeNode(
-      getNodeType(node.vBaseExpression, ast.compilerVersion),
+      safeGetNodeType(node.vBaseExpression, ast.compilerVersion),
       ast,
     );
 
@@ -95,7 +95,7 @@ export class BytesConverter extends ASTMapper {
     const indexTypeName =
       node.vIndexExpression instanceof Literal
         ? createUint256TypeName(ast)
-        : typeNameFromTypeNode(getNodeType(node.vIndexExpression, ast.compilerVersion), ast);
+        : typeNameFromTypeNode(safeGetNodeType(node.vIndexExpression, ast.compilerVersion), ast);
 
     const stubParams: [string, TypeName][] = [
       ['base', baseTypeName],
@@ -123,13 +123,13 @@ export class BytesConverter extends ASTMapper {
       selectWarplibFunction(baseTypeName, indexTypeName),
     );
     ast.replaceNode(node, call, node.parent);
-    const typeNode = replaceBytesType(getNodeType(call, ast.compilerVersion));
+    const typeNode = replaceBytesType(safeGetNodeType(call, ast.compilerVersion));
     call.typeString = generateExpressionTypeString(typeNode);
     this.commonVisit(call, ast);
   }
 
   visitTypeName(node: TypeName, ast: AST): void {
-    const typeNode = getNodeType(node, ast.compilerVersion);
+    const typeNode = safeGetNodeType(node, ast.compilerVersion);
     const replacementTypeNode = replaceBytesType(typeNode);
     if (typeNode.pp() !== replacementTypeNode.pp()) {
       const typeString = replacementTypeNode.pp();
