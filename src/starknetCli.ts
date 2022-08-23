@@ -161,15 +161,20 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
   }
 
   try {
+    let classHash;
+    if (!options.no_wallet) {
+      assert(compileResult.resultPath !== undefined);
+      classHash = declareContract(compileResult.resultPath, options.network);
+    }
+    const classHashOption = classHash ? `--class_hash ${classHash}` : '';
     const resultPath = compileResult.resultPath;
-    const classHash = compileResult.classHash;
     execSync(
       `${warpVenvPrefix} starknet deploy --network ${options.network} ${
         options.no_wallet
           ? `--no_wallet --contract ${resultPath} `
           : options.wallet === undefined
-          ? `--class_hash ${classHash}`
-          : `--class_hash ${classHash} --wallet ${options.wallet}`
+          ? `${classHashOption}`
+          : `${classHashOption} --wallet ${options.wallet}`
       } ${inputs} ${options.account !== undefined ? `--account ${options.account}` : ''}`,
       {
         stdio: 'inherit',
@@ -257,12 +262,17 @@ export async function runStarknetCallOrInvoke(
   }
 }
 
-function declareContract(filePath: string, network?: string): void {
+function declareContract(filePath: string, network?: string): string | undefined {
   const networkOption = network ? `--network ${network}` : ``;
   try {
-    execSync(`${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption}`, {
-      stdio: 'inherit',
-    });
+    const result = execSync(
+      `${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption}`,
+      {
+        encoding: 'utf8',
+      },
+    );
+    console.log(result);
+    return processDeclareCLI(result, filePath);
   } catch {
     logError('StarkNet declare failed');
   }
@@ -277,4 +287,30 @@ export function runStarknetDeclare(filePath: string, options: IDeclareOptions) {
     assert(resultPath !== undefined);
     declareContract(resultPath, options.network);
   }
+}
+
+export function processDeclareCLI(result: string, filePath: string): string {
+  const splitter = new RegExp('[ ]+');
+  // Extract the hash from result
+  const classHash = result
+    .split('\n')
+    .map((line) => {
+      const [contractT, classT, hashT, hash, ...others] = line.split(splitter);
+      if (contractT === 'Contract' && classT === 'class' && hashT === 'hash:') {
+        if (others.length !== 0) {
+          throw new CLIError(
+            `Error while parsing the 'declare' output of ${filePath}. Malformed lined.`,
+          );
+        }
+        return hash;
+      }
+      return null;
+    })
+    .filter((val) => val !== null)[0];
+
+  if (classHash === null || classHash === undefined)
+    throw new CLIError(
+      `Error while parsing the 'declare' output of ${filePath}. Couldn't find the class hash.`,
+    );
+  return classHash;
 }
