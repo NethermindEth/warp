@@ -38,7 +38,7 @@ export type PrintOptions = {
 export type OutputOptions = {
   compileCairo?: boolean;
   compileErrors?: boolean;
-  outputDir?: string;
+  outputDir: string;
   result: boolean;
 };
 
@@ -53,7 +53,7 @@ program
   .option('--check-trees')
   .option('--highlight <ids...>')
   .option('--order <passOrder>')
-  .option('-o, --output-dir <path>', undefined, 'warp_output')
+  .option('-o, --output-dir <path>', 'Output directory for transpiled Cairo files.', 'warp_output')
   .option('--print-trees')
   .option('--no-result')
   .option('--no-stubs')
@@ -79,7 +79,7 @@ program
             return createCairoFileName(name, cairoSuffix);
           })
           .forEach((file) => {
-            postProcessCairoFile(file, 'warp_output', contractToHashMap);
+            postProcessCairoFile(file, options.outputDir, contractToHashMap);
           });
       } catch (e) {
         handleTranspilationError(e);

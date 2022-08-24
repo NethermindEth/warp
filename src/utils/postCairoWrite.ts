@@ -20,7 +20,7 @@ export const HASH_OPTION = 'sha256';
  */
 export function postProcessCairoFile(
   cairoFilePath: string,
-  pathPrefix = 'warp_output',
+  pathPrefix: string,
   contractHashToClassHash: Map<string, string>,
 ): void {
   const fullPath = path.join(pathPrefix, cairoFilePath);
