@@ -222,6 +222,16 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/variable_declarations', 'Success'],
     ['example_contracts/view_function', 'Success'],
     ['example_contracts/typestrings/enumArrays', 'Success'],
+    //uses 'this' keyword in the constructor
+    [
+      'example_contracts/this_at_constructor/external_function_call_at_construction',
+      'WillNotSupport',
+    ],
+    [
+      'example_contracts/this_at_constructor/multiple_external_function_calls_at_construction',
+      'WillNotSupport',
+    ],
+    ['example_contracts/this_at_constructor/valid_this_use_at_constructor', 'Success'],
   ].map(([key, result]) => {
     return [manglePath(key), result] as [string, ResultType];
   }),

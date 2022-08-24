@@ -34,7 +34,7 @@ import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { WillNotSupportError } from '../utils/errors';
 import { isDynamicArray, safeGetNodeType } from '../utils/nodeTypeProcessing';
-import { isExternallyVisible } from '../utils/utils';
+import { isExternalCall, isExternallyVisible } from '../utils/utils';
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -173,6 +173,10 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     } else if (node.kind === FunctionKind.Receive) {
       throw new WillNotSupportError(`Receive functions are not supported`, node);
     }
+
+    //checks for the pattern if "this" keyword is used to call the external functions during the contract construction
+    checkExternalFunctionCallWithThisOnConstruction(node);
+
     this.commonVisit(node, ast);
   }
 
@@ -240,5 +244,30 @@ function findDynArrayRecursive(type: TypeNode, ast: AST): boolean {
     );
   } else {
     return false;
+  }
+}
+
+//Checking if the function defination is constructor and
+// if it is, checking if 'this' keyword is used to call
+// the external/public functions of the contract
+function checkExternalFunctionCallWithThisOnConstruction(node: FunctionDefinition) {
+  if (node.kind === FunctionKind.Constructor) {
+    const nodesWithThisIdentifier = node.vBody
+      ?.getChildren()
+      .filter((childNode, _) => childNode instanceof Identifier && childNode.name === 'this');
+
+    nodesWithThisIdentifier?.forEach((identifierNode: ASTNode) => {
+      const parentNode = identifierNode?.parent;
+      if (
+        parentNode instanceof MemberAccess &&
+        parentNode?.parent instanceof FunctionCall &&
+        isExternalCall(parentNode.parent)
+      ) {
+        throw new WillNotSupportError(
+          `external function calls using "this" keyword not supported in contract's constructor function`,
+          node,
+        );
+      }
+    });
   }
 }
