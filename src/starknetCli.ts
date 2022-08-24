@@ -30,7 +30,7 @@ interface CompileResult {
   classHash?: string;
 }
 
-function callCairoCommand(cmd: any, command: string, isStdio: boolean = true) {
+function callCairoCommand(cmd: string, command: string, isStdio = true) {
   const options: ExecSyncOptions = isStdio ? { stdio: 'inherit' } : { encoding: 'utf8' };
   try {
     const result = execSync(cmd, options);
@@ -41,7 +41,11 @@ function callCairoCommand(cmd: any, command: string, isStdio: boolean = true) {
   }
 }
 
-function buildCairoCommand(options: any, command: string, multiOptions?: any) {
+function buildCairoCommand(
+  options: any[] | Map<string, string | undefined>,
+  command: string,
+  multiOptions?: any,
+) {
   let output = `${warpVenvPrefix} starknet${command} `;
   multiOptions = multiOptions?.join(' ');
 
@@ -80,8 +84,8 @@ export function compileCairo(
   }
   assert(filePath?.endsWith('.cairo'), `Attempted to compile non-cairo file ${filePath} as cairo`);
   const cairoPathRoot: string = filePath?.slice(0, -'.cairo'.length);
-  const resultPath: string = `${cairoPathRoot}_compiled.json`;
-  const abiPath: string = `${cairoPathRoot}_abi.json`;
+  const resultPath = `${cairoPathRoot}_compiled.json`;
+  const abiPath = `${cairoPathRoot}_abi.json`;
 
   const parameters: Map<string, string> = new Map([
     ['output', resultPath],
@@ -104,19 +108,6 @@ export function compileCairo(
       throw e;
     }
   }
-}
-
-function cairoDependencies(network: string, resultPath: string | undefined): string {
-  const net: string = network ? `--network ${network}` : ``;
-
-  const options: Map<string, string | undefined> = new Map([['contract', resultPath]]);
-
-  const multiOptions: string[] = [net];
-
-  const cmd = buildCairoCommand(options, CAIRO_CMD_DECLARE, multiOptions);
-  const result = callCairoCommand(cmd, CAIRO_CMD_DECLARE, false) as string;
-
-  return result;
 }
 
 async function compileCairoDependencies(
@@ -150,24 +141,6 @@ async function compileCairoDependencies(
   if (!success) {
     throw new CLIError(`Compilation of cairo file ${root} failed`);
   }
-  const result: string = cairoDependencies(network, resultPath);
-  const splitter = new RegExp('[ ]+');
-  // Extract the hash from result
-  const classHash = result
-    .split('\n')
-    .map((line) => {
-      const [contractT, classT, hashT, hash, ...others] = line.split(splitter);
-      if (contractT === 'Contract' && classT === 'class' && hashT === 'hash:') {
-        if (others.length !== 0) {
-          throw new CLIError(
-            `Error while parsing the 'declare' output of ${root}. Malformed lined.`,
-          );
-        }
-        return hash;
-      }
-      return null;
-    })
-    .filter((val) => val !== null)[0];
 
   return { success, resultPath, abiPath };
 }
@@ -282,7 +255,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
     }
     const classHashOption = classHash ? `--class_hash ${classHash}` : '';
     const resultPath = compileResult.resultPath as string;
-    const cmd: string = starkNetDeploy(resultPath, options, inputs, classHash);
+    const cmd: string = starkNetDeploy(resultPath, options, inputs, classHashOption);
 
     return cmd;
   } catch {
