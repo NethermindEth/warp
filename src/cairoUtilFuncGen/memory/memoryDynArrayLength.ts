@@ -1,15 +1,10 @@
 import { AST } from '../../ast/ast';
-import {
-  MemberAccess,
-  FunctionCall,
-  DataLocation,
-  getNodeType,
-  generalizeType,
-} from 'solc-typed-ast';
+import { MemberAccess, FunctionCall, DataLocation, generalizeType } from 'solc-typed-ast';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createUint256TypeName } from '../../utils/nodeTemplates';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { CairoUtilFuncGenBase } from '../base';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 
 export class MemoryDynArrayLengthGen extends CairoUtilFuncGenBase {
   getGeneratedCode(): string {
@@ -17,7 +12,7 @@ export class MemoryDynArrayLengthGen extends CairoUtilFuncGenBase {
   }
 
   gen(node: MemberAccess, ast: AST): FunctionCall {
-    const arrayType = generalizeType(getNodeType(node.vExpression, ast.compilerVersion))[0];
+    const arrayType = generalizeType(safeGetNodeType(node.vExpression, ast.compilerVersion))[0];
     const arrayTypeName = typeNameFromTypeNode(arrayType, ast);
     const functionStub = createCairoFunctionStub(
       'wm_dyn_array_length',

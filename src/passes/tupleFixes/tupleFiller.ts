@@ -5,7 +5,6 @@ import {
   Expression,
   FunctionDefinition,
   generalizeType,
-  getNodeType,
   ModifierDefinition,
   Mutability,
   StateVariableVisibility,
@@ -19,6 +18,7 @@ import { printNode, printTypeNode } from '../../utils/astPrinter';
 import { getDefaultValue } from '../../utils/defaultValueNodes';
 import { TUPLE_FILLER_PREFIX } from '../../utils/nameModifiers';
 import { createIdentifier, createVariableDeclarationStatement } from '../../utils/nodeTemplates';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
 import { expressionHasSideEffects, typeNameFromTypeNode } from '../../utils/utils';
 
@@ -47,7 +47,7 @@ export class TupleFiller extends ASTMapper {
       .filter(notNull)
       .forEach((emptyIndex) => {
         if (shouldRemove(node.vRightHandSide, emptyIndex)) return;
-        const tupleType = getNodeType(node.vRightHandSide, ast.compilerVersion);
+        const tupleType = safeGetNodeType(node.vRightHandSide, ast.compilerVersion);
         assert(
           tupleType instanceof TupleType,
           `Expected rhs of tuple assignment to be tuple type, got ${printTypeNode(

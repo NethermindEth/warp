@@ -28,84 +28,84 @@ const tests: string[] = [
   ],
   //---------AbiEncoderV1 tests - WillNotSupport
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_static_array.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/return_dynamic_types_cross_call_out_of_range_2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/cleanup/cleanup.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/return_dynamic_types_cross_call_out_of_range_1.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/struct/struct_storage_ptr.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_v2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_static_array_v2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_encode_empty_string.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_encode_call.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/dynamic_arrays.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/decode_slice.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_encode.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_trivial.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/bool_out_of_bounds.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/calldata_arrays_too_large.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_encode_rational.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/return_dynamic_types_cross_call_simple.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/dynamic_memory_copy.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/return_dynamic_types_cross_call_advanced.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_fixed_arrays.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_encode_decode_simple.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_encode_calldata_slice.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_v2_calldata.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/enums.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_v2_storage.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_dynamic_array.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/byte_arrays.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/memory_params_in_external_function.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_static_array.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/return_dynamic_types_cross_call_out_of_range_2.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/cleanup/cleanup.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/return_dynamic_types_cross_call_out_of_range_1.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/struct/struct_storage_ptr.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_v2.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_static_array_v2.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_encode_empty_string.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_encode_call.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/dynamic_arrays.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/decode_slice.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_encode.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_trivial.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/bool_out_of_bounds.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/calldata_arrays_too_large.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_encode_rational.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/return_dynamic_types_cross_call_simple.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/dynamic_memory_copy.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/return_dynamic_types_cross_call_advanced.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_fixed_arrays.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_encode_decode_simple.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_encode_calldata_slice.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_v2_calldata.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/enums.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_v2_storage.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/abi_decode_dynamic_array.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/byte_arrays.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV1/memory_params_in_external_function.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
   ],
   //---------AbiEncoderV2 tests - WillNotSupport
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/address.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/bytesx.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/dynamic_array.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/bool.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/intx.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/uintx.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/static_array.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/function.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/simple_struct.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/cleanup.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/mediocre_struct.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/mediocre2_struct.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/validation_function_type_inside_struct.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/struct_validation.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/struct_short.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/struct_function.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/struct_simple.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_rational_v2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_struct_simple.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_static.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_static_index_access.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_v2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_two_dynamic.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic_static_short_decode.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_struct_member_offset.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/dynamic_arrays.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_v2_in_function_inherited_in_v1_contract.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_v2_in_modifier_used_in_v1_contract.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_empty_string_v2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_static_dynamic_static.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_multi_dynamic.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/bool_out_of_bounds.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_struct_dynamic.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_struct_dynamic.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/dynamic_nested_arrays.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/storage_array_encoding.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic_static_short_reencode.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic_index_access.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_calldata_slice.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic_static_dynamic.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_two_static.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_function_types.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/enums.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/byte_arrays.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/memory_params_in_external_function.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/address.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/bytesx.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/dynamic_array.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/bool.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/intx.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/uintx.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/static_array.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/function.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/simple_struct.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/cleanup/cleanup.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/mediocre_struct.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/mediocre2_struct.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/validation_function_type_inside_struct.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/struct_validation.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/struct_short.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/struct_function.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/struct/struct_simple.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_rational_v2.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_struct_simple.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_static.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_static_index_access.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_v2.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_two_dynamic.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic_static_short_decode.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_struct_member_offset.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/dynamic_arrays.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_v2_in_function_inherited_in_v1_contract.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_v2_in_modifier_used_in_v1_contract.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_empty_string_v2.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_static_dynamic_static.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_multi_dynamic.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/bool_out_of_bounds.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_struct_dynamic.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_struct_dynamic.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/dynamic_nested_arrays.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/storage_array_encoding.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic_static_short_reencode.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic_index_access.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/abi_encode_calldata_slice.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_dynamic_static_dynamic.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_two_static.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/calldata_array_function_types.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/enums.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/byte_arrays.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/abiEncoderV2/memory_params_in_external_function.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
   ],
   //---------Accessor tests - 8 passing
   ...[
@@ -276,11 +276,11 @@ const tests: string[] = [
     ],
     //-------Array slice tests - stretch goal: 0 passing, 15 pending, 5 failing
     ...[
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/slices/array_slice_calldata_to_storage.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/slices/array_slice_calldata_to_memory.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/slices/array_slice_calldata_to_calldata.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/slices/array_calldata_assignment.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/slices/array_slice_calldata_as_argument_of_external_calls.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/slices/array_slice_calldata_to_storage.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/slices/array_slice_calldata_to_memory.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/slices/array_slice_calldata_to_calldata.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/slices/array_calldata_assignment.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/array/slices/array_slice_calldata_as_argument_of_external_calls.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     ],
     //-------Array misc tests: 110 passing, 24 pending, 10 failing
     ...[
@@ -473,20 +473,20 @@ const tests: string[] = [
   ],
   //---------Error - Will Not Support selector
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/error/selector.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/error/selector.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
   ],
   //---------Errors - Will Not Support user defined errors
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/error_in_library_and_interface.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/named_parameters_shadowing_types.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/simple.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/via_import.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/revert_conversion.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/via_contract_type.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/using_structs.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/named_error_args.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/panic_via_import.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/weird_name.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/error_in_library_and_interface.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/named_parameters_shadowing_types.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/simple.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/via_import.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/revert_conversion.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/via_contract_type.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/using_structs.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/named_error_args.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/panic_via_import.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/errors/weird_name.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
   ],
   //---------Events tests: 63 passing, 1 failing
   ...[
@@ -549,11 +549,11 @@ const tests: string[] = [
   ],
   //---------External contracts tests: multisource single file tests unsupported
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalContracts/ramanujan_pi.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalContracts/FixedFeeRegistrar.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalContracts/prbmath_unsigned.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalContracts/prbmath_signed.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalContracts/strings.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalContracts/ramanujan_pi.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalContracts/FixedFeeRegistrar.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalContracts/prbmath_unsigned.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalContracts/prbmath_signed.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalContracts/strings.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalContracts/deposit_contract.sol', // WILL NOT SUPPORT sha256
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalContracts/_prbmath/PRBMathSD59x18.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalContracts/_prbmath/PRBMathCommon.sol', // WILL NOT SUPPORT yul
@@ -563,38 +563,38 @@ const tests: string[] = [
   ],
   //---------External source tests : multisource single file tests unsupported
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/source_remapping.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/source_name_starting_with_dots.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/relative_imports.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/source_import.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/source_import_subdir.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/external.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/other_external.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/external.sol=sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/subdir/sub_external.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/subdir/import.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/import.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/import_with_subdir.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/multiple_external_source.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/multiple_equals_signs.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_source_name_starting_with_dots/b.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_source_name_starting_with_dots/dot_dot_b.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_source_name_starting_with_dots/dot_a.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_source_name_starting_with_dots/dir/contract.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_source_name_starting_with_dots/dir/a.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/source.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/multisource.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/non_normalized_paths.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_non_normalized_paths/d.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_non_normalized_paths/c.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_non_normalized_paths/a.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_relative_imports/h.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_relative_imports/D/d.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_relative_imports/c.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_relative_imports/dir/G/g.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_relative_imports/dir/B/b.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_relative_imports/dir/contract.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_relative_imports/dir/a.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/source_remapping.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/source_name_starting_with_dots.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/relative_imports.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/source_import.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/source_import_subdir.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/external.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/other_external.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/external.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/subdir/sub_external.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/subdir/import.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/import.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_external/import_with_subdir.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/multiple_external_source.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/multiple_equals_signs.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_source_name_starting_with_dots/b.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_source_name_starting_with_dots/dot_dot_b.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_source_name_starting_with_dots/dot_a.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_source_name_starting_with_dots/dir/contract.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_source_name_starting_with_dots/dir/a.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/source.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/multisource.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/non_normalized_paths.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_non_normalized_paths/d.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_non_normalized_paths/c.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_non_normalized_paths/a.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_relative_imports/h.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_relative_imports/D/d.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_relative_imports/c.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_relative_imports/dir/G/g.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_relative_imports/dir/B/b.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_relative_imports/dir/contract.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/externalSource/_relative_imports/dir/a.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
   ],
   //---------Fallback tests - 5 passing, 3 pending, 5 failing - test suite issues
   ...[
@@ -692,25 +692,25 @@ const tests: string[] = [
   ],
   //---------Function type tests - Will Not Support
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/address_member.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/comparison_operators_for_external_functions.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/function_delete_stack.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/function_type_library_internal.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/function_external_delete_storage.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/function_delete_storage.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/inline_array_with_value_call_option.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/mapping_of_functions.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/pass_function_types_externally.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/pass_function_types_internally.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/store_function.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/same_function_in_construction_and_runtime_equality_check.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/struct_with_external_function.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/selector_2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/stack_height_check_on_adding_gas_variable_to_function.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/same_function_in_construction_and_runtime.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/selector_1.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/struct_with_functions.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/uninitialized_internal_storage_function_call.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/address_member.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/comparison_operators_for_external_functions.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/function_delete_stack.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/function_type_library_internal.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/function_external_delete_storage.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/function_delete_storage.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/inline_array_with_value_call_option.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/mapping_of_functions.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/pass_function_types_externally.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/pass_function_types_internally.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/store_function.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/same_function_in_construction_and_runtime_equality_check.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/struct_with_external_function.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/selector_2.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/stack_height_check_on_adding_gas_variable_to_function.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/same_function_in_construction_and_runtime.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/selector_1.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/struct_with_functions.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/uninitialized_internal_storage_function_call.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionTypes/comparison_operator_for_external_function_cleans_dirty_bits.sol', // WILL NOT SUPPORT yul
   ],
   //---------Getter tests 36 passing
@@ -832,12 +832,12 @@ const tests: string[] = [
   ],
   //---------InterfaceID - WillNotSupport
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interfaceID/lisa.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interfaceID/homer.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interfaceID/interfaces.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interfaceID/lisa_interfaceId.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interfaceID/interfaceId_events.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interfaceID/homer_interfaceId.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interfaceID/lisa.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interfaceID/homer.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interfaceID/interfaces.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interfaceID/lisa_interfaceId.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interfaceID/interfaceId_events.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/interfaceID/homer_interfaceId.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
   ],
   //---------isoltest tests: 16 passing
   ...[
@@ -980,20 +980,20 @@ const tests: string[] = [
   ],
   //---------Multisource - Test suite currently does not support multi source tests
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/circular_import.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/free_function_resolution_override_virtual_super.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/circular_reimport_2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/free_function_resolution_override_virtual_transitive.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/free_function_transitive_import.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/reimport_imported_function.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/circular_import_2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/imported_free_function_via_alias.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/free_function_resolution_base_contract.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/circular_reimport.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/imported_free_function_via_alias_direct_call.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/import.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/free_different_interger_types.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/free_function_resolution_override_virtual.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/circular_import.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/free_function_resolution_override_virtual_super.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/circular_reimport_2.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/free_function_resolution_override_virtual_transitive.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/free_function_transitive_import.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/reimport_imported_function.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/circular_import_2.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/imported_free_function_via_alias.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/free_function_resolution_base_contract.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/circular_reimport.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/imported_free_function_via_alias_direct_call.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/import.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/free_different_interger_types.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/multiSource/free_function_resolution_override_virtual.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
   ],
   //---------Operators: 116 passing
   ...[
@@ -1047,13 +1047,13 @@ const tests: string[] = [
   ],
   //---------Payable - Will Not Support
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/payable/no_nonpayable_circumvention_by_modifier.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/payable/no_nonpayable_circumvention_by_modifier.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
   ],
   //---------Receive - Will Not Support
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/receive/ether_and_data.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/receive/empty_calldata_calls_receive.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/receive/inherited.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/receive/ether_and_data.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/receive/empty_calldata_calls_receive.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/receive/inherited.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
   ],
   //---------Reverts: 8 passing
   ...[
@@ -1070,18 +1070,18 @@ const tests: string[] = [
   ],
   //---------RevertStrings: tests abi checks
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/called_contract_has_code.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/enum_v1.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/enum_v2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/ether_non_payable_function.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/function_entry_checks_v1.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/function_entry_checks_v2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/short_input_array.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/short_input_bytes.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/unknown_sig_no_fallback.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/called_contract_has_code.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/enum_v1.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/enum_v2.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/ether_non_payable_function.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/function_entry_checks_v1.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/function_entry_checks_v2.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/short_input_array.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/short_input_bytes.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/unknown_sig_no_fallback.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_arrays_too_large.sol', // tests abi decoding
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/array_slices.sol', // STRETCH slices
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/bubble.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/bubble.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_tail_short.sol', // nested dynarray arg
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_array_invalid_length.sol', // nested dynarray array arg
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/revertStrings/calldata_array_dynamic_static_short_decode.sol', // dynamic array of static arrays
@@ -1257,25 +1257,25 @@ const tests: string[] = [
   ],
   //---------tryCatch - WILL NOT SUPPORT
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/trivial.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/simple.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/create.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/trivial.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/simple.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/create.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/malformed_panic_3.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/malformed_panic.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/malformed_panic_2.sol', // WILL NOT SUPPORT yul
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/assert.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/structuredAndLowLevel.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/super_trivial.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/assert.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/structuredAndLowLevel.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/super_trivial.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/malformed_error.sol', // WILL NOT SUPPORT yul
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/simple_notuple.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/structured.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/return_function.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/panic.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/try_catch_library_call.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/simple_notuple.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/structured.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/return_function.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/panic.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/try_catch_library_call.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/invalid_error_encoding.sol', // WILL NOT SUPPORT yul
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/lowLevel.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/lowLevel.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/malformed_panic_4.sol', // WILL NOT SUPPORT yul
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/nested.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/tryCatch/nested.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
   ],
   //---------types: 87 passing, 27 pending, 10 failing
   ...[
@@ -1325,11 +1325,11 @@ const tests: string[] = [
   ],
   //---------uninitializedFunctionPointer - Will Not Support
   ...[
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/uninitializedFunctionPointer/storeInConstructor.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/uninitializedFunctionPointer/invalidStoredInConstructor.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/uninitializedFunctionPointer/storeInConstructor.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/uninitializedFunctionPointer/invalidStoredInConstructor.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/uninitializedFunctionPointer/uninitialized_internal_storage_function_legacy.sol', // WILL NOT SUPPORT yul
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/uninitializedFunctionPointer/store2.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/uninitializedFunctionPointer/invalidInConstructor.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/uninitializedFunctionPointer/store2.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/uninitializedFunctionPointer/invalidInConstructor.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/uninitializedFunctionPointer/uninitialized_internal_storage_function_via_yul.sol', // WILL NOT SUPPORT yul
   ],
   //---------UserDefinedValueType - 40 passing
@@ -1456,11 +1456,11 @@ const tests: string[] = [
     ],
     //---------ViaYul conditional - STRETCH
     ...[
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_with_variables.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_tuple.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_multiple.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_with_assignment.sol',
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_true_false_literal.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_with_variables.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_tuple.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_multiple.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_with_assignment.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_true_false_literal.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     ],
     //---------ViaYul conversion: 12 passing
     ...[
@@ -1594,13 +1594,13 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor_with_params_diamond_inheritance.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/empty_for_loop.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/isoltestFormatting.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/state_variables_init_order_3.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/state_var_initialization.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/state_variables_init_order.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/state_variables_init_order_3.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/state_var_initialization.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/state_variables_init_order.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor_with_params_inheritance.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor_with_params.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/c99_scoping_activation.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/state_variables_init_order_2.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/state_variables_init_order_2.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor_inheritance_init_order.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor_inheritance_init_order_3_viaIR.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/constructor_inheritance_init_order_2.sol',

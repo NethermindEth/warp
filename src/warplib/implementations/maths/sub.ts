@@ -1,8 +1,9 @@
 import assert from 'assert';
-import { BinaryOperation, getNodeType, IntType } from 'solc-typed-ast';
+import { BinaryOperation, IntType } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printTypeNode } from '../../../utils/astPrinter';
 import { Implicits } from '../../../utils/implicits';
+import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import {
   generateFile,
   forAllWidths,
@@ -174,7 +175,7 @@ export function functionaliseSub(node: BinaryOperation, unsafe: boolean, ast: AS
       }
     }
   };
-  const typeNode = getNodeType(node, ast.compilerVersion);
+  const typeNode = safeGetNodeType(node, ast.compilerVersion);
   assert(
     typeNode instanceof IntType,
     `Expected IntType for subtraction, got ${printTypeNode(typeNode)}`,

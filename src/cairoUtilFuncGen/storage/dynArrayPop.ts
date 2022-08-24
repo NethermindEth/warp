@@ -6,7 +6,6 @@ import {
   DataLocation,
   FunctionCall,
   generalizeType,
-  getNodeType,
   MemberAccess,
   SourceUnit,
   StringType,
@@ -15,7 +14,12 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { getElementType, isDynamicArray, isMapping } from '../../utils/nodeTypeProcessing';
+import {
+  getElementType,
+  isDynamicArray,
+  isMapping,
+  safeGetNodeType,
+} from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
@@ -34,7 +38,7 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
   gen(pop: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
     assert(pop.vExpression instanceof MemberAccess);
     const arrayType = generalizeType(
-      getNodeType(pop.vExpression.vExpression, this.ast.compilerVersion),
+      safeGetNodeType(pop.vExpression.vExpression, this.ast.compilerVersion),
     )[0];
     assert(
       arrayType instanceof ArrayType ||

@@ -1,11 +1,11 @@
-import { DataLocation, FunctionDefinition, getNodeType } from 'solc-typed-ast';
+import { DataLocation, FunctionDefinition } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { collectUnboundVariables } from '../../utils/functionGeneration';
 import { CALLDATA_TO_MEMORY_FUNCTION_PARAMETER_PREFIX } from '../../utils/nameModifiers';
 import { createIdentifier, createVariableDeclarationStatement } from '../../utils/nodeTemplates';
-import { isDynamicArray, isReferenceType } from '../../utils/nodeTypeProcessing';
+import { isDynamicArray, isReferenceType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../../utils/utils';
 
 export class RefTypeModifier extends ASTMapper {
@@ -51,8 +51,8 @@ export class RefTypeModifier extends ASTMapper {
           ([decl]) =>
             node.vParameters.vParameters.includes(decl) &&
             decl.storageLocation === DataLocation.Memory &&
-            isReferenceType(getNodeType(decl, ast.compilerVersion)) &&
-            !isDynamicArray(getNodeType(decl, ast.compilerVersion)),
+            isReferenceType(safeGetNodeType(decl, ast.compilerVersion)) &&
+            !isDynamicArray(safeGetNodeType(decl, ast.compilerVersion)),
         )
         .forEach(([decl, ids]) => {
           const wmDecl = cloneASTNode(decl, ast);

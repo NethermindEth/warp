@@ -4,7 +4,6 @@ import {
   Expression,
   FunctionCall,
   FunctionType,
-  getNodeType,
   IntLiteralType,
   MappingType,
   MemberAccess,
@@ -23,6 +22,7 @@ import assert from 'assert';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { generateExpressionTypeString } from '../utils/getTypeString';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
 class UserDefinedValueTypeDefinitionEliminator extends ASTMapper {
   visitUserDefinedValueTypeDefinition(node: UserDefinedValueTypeDefinition, _ast: AST): void {
@@ -39,13 +39,13 @@ export class UserDefinedTypesConverter extends ASTMapper {
 
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     this.commonVisit(node, ast);
-    const replacementNode = replaceUserDefinedType(getNodeType(node, ast.compilerVersion));
+    const replacementNode = replaceUserDefinedType(safeGetNodeType(node, ast.compilerVersion));
     node.typeString = generateExpressionTypeString(replacementNode);
   }
 
   visitTypeName(node: TypeName, ast: AST): void {
     this.commonVisit(node, ast);
-    const tNode = getNodeType(node, ast.compilerVersion);
+    const tNode = safeGetNodeType(node, ast.compilerVersion);
     const replacementNode = replaceUserDefinedType(tNode);
     if (tNode.pp() !== replacementNode.pp()) {
       node.typeString = generateExpressionTypeString(replacementNode);
@@ -54,7 +54,7 @@ export class UserDefinedTypesConverter extends ASTMapper {
 
   visitExpression(node: Expression, ast: AST): void {
     this.commonVisit(node, ast);
-    const nodeType = getNodeType(node, ast.compilerVersion);
+    const nodeType = safeGetNodeType(node, ast.compilerVersion);
     if (!(nodeType instanceof IntLiteralType)) {
       const replacementNode = replaceUserDefinedType(nodeType);
       node.typeString = generateExpressionTypeString(replacementNode);
@@ -62,7 +62,7 @@ export class UserDefinedTypesConverter extends ASTMapper {
   }
 
   visitUserDefinedTypeName(node: UserDefinedTypeName, ast: AST): void {
-    const typeNode = getNodeType(node, ast.compilerVersion);
+    const typeNode = safeGetNodeType(node, ast.compilerVersion);
     assert(typeNode instanceof UserDefinedType, 'Expected UserDefinedType');
     if (!(typeNode.definition instanceof UserDefinedValueTypeDefinition)) return;
 
@@ -80,7 +80,7 @@ export class UserDefinedTypesConverter extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     if (node.vExpression instanceof MemberAccess) {
       if (['unwrap', 'wrap'].includes(node.vExpression.memberName)) {
-        const typeNode = getNodeType(node.vExpression.vExpression, ast.compilerVersion);
+        const typeNode = safeGetNodeType(node.vExpression.vExpression, ast.compilerVersion);
         this.commonVisit(node, ast);
         if (!(typeNode instanceof TypeNameType)) return;
         if (!(typeNode.type instanceof UserDefinedType)) return;

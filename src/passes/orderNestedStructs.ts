@@ -1,7 +1,6 @@
 import {
   ArrayType,
   ContractDefinition,
-  getNodeType,
   SourceUnit,
   StructDefinition,
   TypeNode,
@@ -9,6 +8,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
 export class OrderNestedStructs extends ASTMapper {
   // Cairo does not permit to use struct definitions which are yet to be defined.
@@ -101,7 +101,7 @@ export function makeStructTree(
 
   structs.forEach((struct) => {
     struct.vMembers.forEach((varDecl) => {
-      const nestedStruct = findStruct(getNodeType(varDecl, ast.compilerVersion));
+      const nestedStruct = findStruct(safeGetNodeType(varDecl, ast.compilerVersion));
       // second check to avoid adding imported structs to contract defintion
       if (nestedStruct !== null && structs.has(nestedStruct)) {
         roots.delete(nestedStruct);

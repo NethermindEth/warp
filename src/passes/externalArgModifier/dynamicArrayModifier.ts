@@ -4,7 +4,6 @@ import {
   DataLocation,
   FunctionCall,
   FunctionDefinition,
-  getNodeType,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -13,7 +12,7 @@ import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { collectUnboundVariables } from '../../utils/functionGeneration';
 import { createIdentifier, createVariableDeclarationStatement } from '../../utils/nodeTemplates';
-import { isDynamicArray } from '../../utils/nodeTypeProcessing';
+import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../../utils/utils';
 
 export class DynArrayModifier extends ASTMapper {
@@ -78,7 +77,7 @@ export class DynArrayModifier extends ASTMapper {
             node.vParameters.vParameters.includes(decl) &&
             (decl.storageLocation === DataLocation.Memory ||
               decl.storageLocation == DataLocation.CallData) &&
-            isDynamicArray(getNodeType(decl, ast.compilerVersion)),
+            isDynamicArray(safeGetNodeType(decl, ast.compilerVersion)),
         )
         .forEach(([varDecl, ids]) => {
           // Irrespective of the whether the storage location is Memory or Calldata a struct is created to store the len & ptr
@@ -100,18 +99,21 @@ export class DynArrayModifier extends ASTMapper {
             memoryArray.name = memoryArray.name + '_mem';
             const memArrayStatement = createVariableDeclarationStatement(
               [memoryArray],
-              createIdentifier(dArrayStruct, ast),
+              createIdentifier(dArrayStruct, ast, undefined, varDecl),
               ast,
             );
             ids.forEach((identifier) =>
-              ast.replaceNode(identifier, createIdentifier(memoryArray, ast, DataLocation.Memory)),
+              ast.replaceNode(
+                identifier,
+                createIdentifier(memoryArray, ast, DataLocation.Memory, varDecl),
+              ),
             );
             body.insertAfter(memArrayStatement, structArrayStatement);
           } else {
             ids.forEach((identifier) =>
               ast.replaceNode(
                 identifier,
-                createIdentifier(dArrayStruct, ast, DataLocation.CallData),
+                createIdentifier(dArrayStruct, ast, DataLocation.CallData, varDecl),
               ),
             );
           }

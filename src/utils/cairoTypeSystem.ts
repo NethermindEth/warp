@@ -17,13 +17,13 @@ import {
   EnumDefinition,
   enumToIntType,
   StructDefinition,
-  getNodeType,
   FixedBytesType,
   UserDefinedValueTypeDefinition,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { printTypeNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
+import { safeGetNodeType } from './nodeTypeProcessing';
 import { mangleStructName, narrowBigIntSafe } from './utils';
 
 export enum TypeConversionContext {
@@ -118,7 +118,7 @@ export abstract class CairoType {
               tp.definition.vMembers.map((decl) => [
                 decl.name,
                 CairoType.fromSol(
-                  getNodeType(decl, ast.compilerVersion),
+                  safeGetNodeType(decl, ast.compilerVersion),
                   ast,
                   TypeConversionContext.Ref,
                 ),
@@ -131,7 +131,7 @@ export abstract class CairoType {
             new Map(
               tp.definition.vMembers.map((decl) => [
                 decl.name,
-                CairoType.fromSol(getNodeType(decl, ast.compilerVersion), ast, context),
+                CairoType.fromSol(safeGetNodeType(decl, ast.compilerVersion), ast, context),
               ]),
             ),
           );
@@ -140,7 +140,7 @@ export abstract class CairoType {
         return new CairoFelt();
       } else if (tp.definition instanceof UserDefinedValueTypeDefinition) {
         return CairoType.fromSol(
-          getNodeType(tp.definition.underlyingType, ast.compilerVersion),
+          safeGetNodeType(tp.definition.underlyingType, ast.compilerVersion),
           ast,
           context,
         );
