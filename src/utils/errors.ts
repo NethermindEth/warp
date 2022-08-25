@@ -7,6 +7,11 @@ export function logError(message: string): void {
   console.error(error(message));
 }
 
+export function logCLIError(message: string): void {
+  console.error(error(message));
+  throw message;
+}
+
 export class CLIError extends Error {
   constructor(message: string) {
     super(error(message));
