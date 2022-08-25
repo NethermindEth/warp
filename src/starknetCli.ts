@@ -42,7 +42,7 @@ function callCairoCommand(cmd: string, command: string, isStdio = true) {
 }
 
 function buildCairoCommand(
-  options: any[] | Map<string, string | undefined>,
+  options: string[] | Map<string, string | undefined>,
   command: string,
   multiOptions?: any,
 ) {
