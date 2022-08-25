@@ -281,14 +281,6 @@ program
     runVenvSetup(options);
   });
 
-program
-  .command('declare <cairo_contract>')
-  .description('Command to declare Cairo contract on a StarkNet Network.')
-  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-  .action(async (cairo_contract: string, options: IDeclareOptions) => {
-    runStarknetDeclare(cairo_contract, options);
-  });
-
 const blue = chalk.bold.blue;
 const green = chalk.bold.green;
 program.command('version').action(() => {
