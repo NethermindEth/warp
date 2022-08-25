@@ -55,6 +55,13 @@ function evaluateDirectory(path: string, recurse: boolean): string[] {
   });
 }
 
+export function createCairoFileName(solidityPath: string, suffix: string): string {
+  const inputFileNameRoot = solidityPath.endsWith('.sol')
+    ? solidityPath.slice(0, -'.sol'.length)
+    : solidityPath;
+  return `${inputFileNameRoot}${suffix}`;
+}
+
 export function outputResult(
   solidityPath: string,
   code: string,
@@ -62,10 +69,7 @@ export function outputResult(
   suffix: string,
   abi?: string,
 ): void {
-  const inputFileNameRoot = solidityPath.endsWith('.sol')
-    ? solidityPath.slice(0, -'.sol'.length)
-    : solidityPath;
-  const codeOutput = `${inputFileNameRoot}${suffix}`;
+  const codeOutput = createCairoFileName(solidityPath, suffix);
   const codeWithABI = abi ? `${code}\n\n${solABIPrefix} ${abi}` : code;
 
   if (options.outputDir === undefined) {

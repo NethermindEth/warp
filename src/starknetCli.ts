@@ -7,15 +7,11 @@ import {
   IOptionalNetwork,
   IDeployAccountProps,
   IOptionalDebugInfo,
+  IDeclareOptions,
 } from './index';
 import { encodeInputs } from './passes';
 import { CLIError, logError } from './utils/errors';
-import {
-  getDependencyGraph,
-  hashFilename,
-  reducePath,
-  setDeclaredAddresses,
-} from './utils/postCairoWrite';
+import { getDependencyGraph, hashFilename, reducePath } from './utils/postCairoWrite';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
@@ -90,49 +86,12 @@ async function compileCairoDependencies(
     }
   }
 
-  setDeclaredAddresses(
-    root,
-    new Map(
-      [...filesCompiled.entries()].map(([key, value]) => {
-        assert(value.classHash !== undefined);
-        return [key, value.classHash];
-      }),
-    ),
-  );
   const { success, resultPath, abiPath } = compileCairo(root, path.resolve(__dirname, '..'));
   if (!success) {
     throw new CLIError(`Compilation of cairo file ${root} failed`);
   }
-  const result = execSync(
-    `${warpVenvPrefix} starknet declare --contract ${resultPath} --network ${network}`,
-    {
-      encoding: 'utf8',
-    },
-  );
-  const splitter = new RegExp('[ ]+');
-  // Extract the hash from result
-  const classHash = result
-    .split('\n')
-    .map((line) => {
-      const [contractT, classT, hashT, hash, ...others] = line.split(splitter);
-      if (contractT === 'Contract' && classT === 'class' && hashT === 'hash:') {
-        if (others.length !== 0) {
-          throw new CLIError(
-            `Error while parsing the 'declare' output of ${root}. Malformed lined.`,
-          );
-        }
-        return hash;
-      }
-      return null;
-    })
-    .filter((val) => val !== null)[0];
 
-  if (classHash === null || classHash === undefined)
-    throw new CLIError(
-      `Error while parsing the 'declare' output of ${root}. Couldn't find the class hash.`,
-    );
-
-  return { success, resultPath, abiPath, classHash };
+  return { success, resultPath, abiPath };
 }
 
 export function runStarknetCompile(filePath: string, debug_info: IOptionalDebugInfo) {
@@ -202,15 +161,20 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
   }
 
   try {
+    let classHash;
+    if (!options.no_wallet) {
+      assert(compileResult.resultPath !== undefined);
+      classHash = declareContract(compileResult.resultPath, options.network);
+    }
+    const classHashOption = classHash ? `--class_hash ${classHash}` : '';
     const resultPath = compileResult.resultPath;
-    const classHash = compileResult.classHash;
     execSync(
       `${warpVenvPrefix} starknet deploy --network ${options.network} ${
         options.no_wallet
           ? `--no_wallet --contract ${resultPath} `
           : options.wallet === undefined
-          ? `--class_hash ${classHash}`
-          : `--class_hash ${classHash} --wallet ${options.wallet}`
+          ? `${classHashOption}`
+          : `${classHashOption} --wallet ${options.wallet}`
       } ${inputs} ${options.account !== undefined ? `--account ${options.account}` : ''}`,
       {
         stdio: 'inherit',
@@ -298,16 +262,55 @@ export async function runStarknetCallOrInvoke(
   }
 }
 
-export function runStarknetDeclare(filePath: string) {
+function declareContract(filePath: string, network?: string): string | undefined {
+  const networkOption = network ? `--network ${network}` : ``;
+  try {
+    const result = execSync(
+      `${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption}`,
+      {
+        encoding: 'utf8',
+      },
+    );
+    console.log(result);
+    return processDeclareCLI(result, filePath);
+  } catch {
+    logError('StarkNet declare failed');
+  }
+}
+
+export function runStarknetDeclare(filePath: string, options: IDeclareOptions) {
   const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
+  } else {
+    assert(resultPath !== undefined);
+    declareContract(resultPath, options.network);
   }
+}
 
-  try {
-    execSync(`${warpVenvPrefix} starknet declare --contract ${resultPath}`);
-  } catch (e) {
-    logError('starkned declared failed');
-  }
+export function processDeclareCLI(result: string, filePath: string): string {
+  const splitter = new RegExp('[ ]+');
+  // Extract the hash from result
+  const classHash = result
+    .split('\n')
+    .map((line) => {
+      const [contractT, classT, hashT, hash, ...others] = line.split(splitter);
+      if (contractT === 'Contract' && classT === 'class' && hashT === 'hash:') {
+        if (others.length !== 0) {
+          throw new CLIError(
+            `Error while parsing the 'declare' output of ${filePath}. Malformed lined.`,
+          );
+        }
+        return hash;
+      }
+      return null;
+    })
+    .filter((val) => val !== null)[0];
+
+  if (classHash === null || classHash === undefined)
+    throw new CLIError(
+      `Error while parsing the 'declare' output of ${filePath}. Couldn't find the class hash.`,
+    );
+  return classHash;
 }
