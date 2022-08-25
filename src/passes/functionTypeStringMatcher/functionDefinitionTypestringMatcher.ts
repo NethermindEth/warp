@@ -6,10 +6,10 @@ import {
   FunctionCall,
   FunctionDefinition,
   PointerType,
-  getNodeType,
   FunctionType,
   VariableDeclaration,
 } from 'solc-typed-ast';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 
 export class FunctionDefinitionMatcher extends ASTMapper {
   constructor(private declarations: Map<VariableDeclaration, boolean>) {
@@ -17,7 +17,7 @@ export class FunctionDefinitionMatcher extends ASTMapper {
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    const functionNodeType = getNodeType(node.vExpression, ast.compilerVersion);
+    const functionNodeType = safeGetNodeType(node.vExpression, ast.compilerVersion);
     if (
       node.vArguments.length === 0 ||
       node.kind === FunctionCallKind.TypeConversion ||

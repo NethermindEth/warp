@@ -1,14 +1,8 @@
-import {
-  getNodeType,
-  Identifier,
-  Literal,
-  MemberAccess,
-  Mutability,
-  VariableDeclaration,
-} from 'solc-typed-ast';
+import { Identifier, Literal, MemberAccess, Mutability, VariableDeclaration } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { insertConversionIfNecessary } from './implicitConversionToExplicit';
 
 export class ConstantHandler extends ASTMapper {
@@ -38,10 +32,10 @@ export class ConstantHandler extends ASTMapper {
     }
 
     const constant = cloneASTNode(referencedDeclaration.vValue, ast);
-    const typeTo = getNodeType(node, ast.compilerVersion);
+    const typeTo = safeGetNodeType(node, ast.compilerVersion);
 
     ast.replaceNode(node, constant);
-    insertConversionIfNecessary(constant, typeTo, ast);
+    insertConversionIfNecessary(constant, typeTo, constant, ast);
   }
 
   visitIdentifier(node: Identifier, ast: AST): void {

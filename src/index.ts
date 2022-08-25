@@ -1,11 +1,12 @@
 import { Command } from 'commander';
-import { isValidSolFile, outputResult } from './io';
+import { createCairoFileName, isValidSolFile, outputResult } from './io';
 import { compileSolFile } from './solCompile';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
 import {
   runStarknetCallOrInvoke,
   runStarknetCompile,
+  runStarknetDeclare,
   runStarknetDeploy,
   runStarknetDeployAccount,
   runStarknetStatus,
@@ -13,7 +14,9 @@ import {
 import chalk from 'chalk';
 import { runVenvSetup } from './utils/setupVenv';
 import { runTests } from './testing';
+
 import { generateSolInterface } from './interfaceCallForwarder';
+import { postProcessCairoFile } from './utils/postCairoWrite';
 
 export type CompilationOptions = {
   warnings: boolean;
@@ -37,7 +40,7 @@ export type PrintOptions = {
 export type OutputOptions = {
   compileCairo?: boolean;
   compileErrors?: boolean;
-  outputDir?: string;
+  outputDir: string;
   result: boolean;
 };
 
@@ -52,7 +55,7 @@ program
   .option('--check-trees')
   .option('--highlight <ids...>')
   .option('--order <passOrder>')
-  .option('-o, --output-dir <path>', undefined, 'warp_output')
+  .option('-o, --output-dir <path>', 'Output directory for transpiled Cairo files.', 'warp_output')
   .option('--print-trees')
   .option('--no-result')
   .option('--no-stubs')
@@ -65,14 +68,21 @@ program
     // We do the extra work here to make sure all the errors are printed out
     // for all files which are invalid.
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
+    const cairoSuffix = '.cairo';
+    const contractToHashMap = new Map<string, string>();
     files.forEach((file) => {
       if (files.length > 1) {
         console.log(`Compiling ${file}`);
       }
       try {
-        transpile(compileSolFile(file, options.warnings), options).map(([name, cairo, abi]) => {
-          outputResult(name, cairo, options, '.cairo', abi);
-        });
+        transpile(compileSolFile(file, options.warnings), options)
+          .map(([name, cairo, abi]) => {
+            outputResult(name, cairo, options, cairoSuffix, abi);
+            return createCairoFileName(name, cairoSuffix);
+          })
+          .forEach((file) => {
+            postProcessCairoFile(file, options.outputDir, contractToHashMap);
+          });
       } catch (e) {
         handleTranspilationError(e);
       }
@@ -167,7 +177,7 @@ program
     undefined,
   )
   .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
-  .option('--network <network>', 'Starknet network URL', process.env.STARKNET_NETWORK)
+  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
   .option('--no_wallet', 'Do not use a wallet for deployment.', false)
   .option('--wallet <wallet>', 'Wallet provider to use', process.env.STARKNET_WALLET)
   .option('--account <account>', 'Account to use for deployment', undefined)
@@ -190,7 +200,7 @@ program
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used.',
   )
-  .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
+  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
     'The name of the wallet, including the python module and wallet class.',
@@ -225,7 +235,7 @@ program
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used.',
   )
-  .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
+  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
     'The name of the wallet, including the python module and wallet class.',
@@ -249,7 +259,7 @@ program
     '--account <account>',
     'The name of the account. If not given, the default for the wallet will be used.',
   )
-  .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
+  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
   .option(
     '--wallet <wallet>',
     'The name of the wallet, including the python module and wallet class.',
@@ -275,6 +285,16 @@ program
   .option('-v, --verbose')
   .action((options: IInstallOptions) => {
     runVenvSetup(options);
+  });
+
+export type IDeclareOptions = IOptionalNetwork;
+
+program
+  .command('declare <cairo_contract>')
+  .description('Command to declare Cairo contract on a StarkNet Network.')
+  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .action(async (cairo_contract: string, options: IDeclareOptions) => {
+    runStarknetDeclare(cairo_contract, options);
   });
 
 const blue = chalk.bold.blue;

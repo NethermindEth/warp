@@ -4,13 +4,13 @@ import {
   ASTNode,
   DataLocation,
   FunctionCall,
-  getNodeType,
   IndexAccess,
   PointerType,
 } from 'solc-typed-ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { CairoUtilFuncGenBase } from '../base';
 
@@ -26,14 +26,14 @@ export class StorageStaticArrayIndexAccessGen extends CairoUtilFuncGenBase {
 
     const name = this.getOrCreate();
 
-    const arrayType = getNodeType(node.vBaseExpression, this.ast.compilerVersion);
+    const arrayType = safeGetNodeType(node.vBaseExpression, this.ast.compilerVersion);
     assert(
       arrayType instanceof PointerType &&
         arrayType.to instanceof ArrayType &&
         arrayType.to.size !== undefined,
     );
 
-    const valueType = getNodeType(node, this.ast.compilerVersion);
+    const valueType = safeGetNodeType(node, this.ast.compilerVersion);
 
     const functionStub = createCairoFunctionStub(
       name,

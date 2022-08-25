@@ -2,7 +2,6 @@ import {
   Assignment,
   DataLocation,
   ExpressionStatement,
-  getNodeType,
   Identifier,
   PointerType,
   Return,
@@ -14,6 +13,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneDocumentation } from '../utils/cloning';
 import { getDefaultValue } from '../utils/defaultValueNodes';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
 export class DeleteHandler extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -27,7 +27,7 @@ export class DeleteHandler extends ASTMapper {
       return this.commonVisit(node, ast);
     }
 
-    const nodeType = getNodeType(node.vSubExpression, ast.compilerVersion);
+    const nodeType = safeGetNodeType(node.vSubExpression, ast.compilerVersion);
     // Deletetion from storage is handled in References
     if (
       (nodeType instanceof PointerType && nodeType.location === DataLocation.Storage) ||
@@ -56,7 +56,7 @@ export class DeleteHandler extends ASTMapper {
   visitReturn(node: Return, ast: AST): void {
     let visited = false;
     if (node.vExpression) {
-      const nodeType = getNodeType(node.vExpression, ast.compilerVersion);
+      const nodeType = safeGetNodeType(node.vExpression, ast.compilerVersion);
       if (nodeType instanceof TupleType && nodeType.getChildren().length === 0) {
         const statement = new ExpressionStatement(
           ast.reserveId(),

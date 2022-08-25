@@ -8,7 +8,6 @@ import {
   Statement,
   UncheckedBlock,
   ExpressionStatement,
-  getNodeType,
   TupleType,
   VariableDeclaration,
   StateVariableVisibility,
@@ -20,6 +19,7 @@ import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { SPLIT_VARIABLE_PREFIX } from '../utils/nameModifiers';
 import { createIdentifier } from '../utils/nodeTemplates';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { notNull } from '../utils/typeConstructs';
 import { typeNameFromTypeNode } from '../utils/utils';
 
@@ -82,7 +82,7 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
       'Expected variables to be initialised when running variable declaration expression splitter (did you run variable declaration initialiser?)',
     );
 
-    const initialValueType = getNodeType(initialValue, ast.compilerVersion);
+    const initialValueType = safeGetNodeType(initialValue, ast.compilerVersion);
 
     if (!(initialValueType instanceof TupleType)) {
       return [node];

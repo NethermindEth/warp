@@ -6,7 +6,6 @@ import {
   FunctionCall,
   FunctionCallKind,
   generalizeType,
-  getNodeType,
   Literal,
   NewExpression,
   StringType,
@@ -19,7 +18,7 @@ import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createUint256TypeName } from '../../utils/nodeTemplates';
-import { getElementType } from '../../utils/nodeTypeProcessing';
+import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 
 /*
   Handles expressions that directly insert data into memory: struct constructors, news, and inline arrays
@@ -49,7 +48,7 @@ export class MemoryAllocations extends ReferenceSubPass {
         );
       }
     } else if (node.kind === FunctionCallKind.TypeConversion) {
-      const type = generalizeType(getNodeType(node, ast.compilerVersion))[0];
+      const type = generalizeType(safeGetNodeType(node, ast.compilerVersion))[0];
       const arg = node.vArguments[0];
       if ((type instanceof BytesType || type instanceof StringType) && arg instanceof Literal) {
         const replacement = ast.getUtilFuncGen(node).memory.arrayLiteral.stringGen(arg);
@@ -91,7 +90,7 @@ export class MemoryAllocations extends ReferenceSubPass {
       node,
     );
 
-    const arrayType = generalizeType(getNodeType(node, ast.compilerVersion))[0];
+    const arrayType = generalizeType(safeGetNodeType(node, ast.compilerVersion))[0];
     assert(
       arrayType instanceof ArrayType ||
         arrayType instanceof BytesType ||

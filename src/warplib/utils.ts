@@ -9,7 +9,6 @@ import {
   FixedBytesType,
   FunctionCall,
   FunctionCallKind,
-  getNodeType,
   Identifier,
   IntType,
   TypeNode,
@@ -19,6 +18,7 @@ import { printNode, printTypeNode } from '../utils/astPrinter';
 import { createCairoFunctionStub } from '../utils/functionGeneration';
 import { Implicits } from '../utils/implicits';
 import { mapRange, typeNameFromTypeNode } from '../utils/utils';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
 export function forAllWidths(funcGen: (width: number) => string[]): string[] {
   return mapRange(32, (n) => 8 * (n + 1)).flatMap(funcGen);
@@ -72,12 +72,15 @@ export function IntxIntFunction(
   implicits: (width: number, signed: boolean) => Implicits[],
   ast: AST,
 ) {
-  const lhsType = typeNameFromTypeNode(getNodeType(node.vLeftExpression, ast.compilerVersion), ast);
-  const rhsType = typeNameFromTypeNode(
-    getNodeType(node.vRightExpression, ast.compilerVersion),
+  const lhsType = typeNameFromTypeNode(
+    safeGetNodeType(node.vLeftExpression, ast.compilerVersion),
     ast,
   );
-  const retType = getNodeType(node, ast.compilerVersion);
+  const rhsType = typeNameFromTypeNode(
+    safeGetNodeType(node.vRightExpression, ast.compilerVersion),
+    ast,
+  );
+  const retType = safeGetNodeType(node, ast.compilerVersion);
   assert(
     retType instanceof IntType || retType instanceof FixedBytesType,
     `${printNode(node)} has type ${printTypeNode(retType)}, which is not compatible with ${name}`,
@@ -140,9 +143,9 @@ export function Comparison(
   implicits: (wide: boolean, signed: boolean) => Implicits[],
   ast: AST,
 ): void {
-  const lhsType = getNodeType(node.vLeftExpression, ast.compilerVersion);
-  const rhsType = getNodeType(node.vLeftExpression, ast.compilerVersion);
-  const retType = getNodeType(node, ast.compilerVersion);
+  const lhsType = safeGetNodeType(node.vLeftExpression, ast.compilerVersion);
+  const rhsType = safeGetNodeType(node.vLeftExpression, ast.compilerVersion);
+  const retType = safeGetNodeType(node, ast.compilerVersion);
   const wide =
     (lhsType instanceof IntType || lhsType instanceof FixedBytesType) &&
     getIntOrFixedByteBitWidth(lhsType) === 256;
@@ -196,8 +199,8 @@ export function IntFunction(
   implicits: (wide: boolean) => Implicits[],
   ast: AST,
 ): void {
-  const opType = getNodeType(argument, ast.compilerVersion);
-  const retType = getNodeType(node, ast.compilerVersion);
+  const opType = safeGetNodeType(argument, ast.compilerVersion);
+  const retType = safeGetNodeType(node, ast.compilerVersion);
   assert(
     retType instanceof IntType || retType instanceof FixedBytesType,
     `Expected IntType or FixedBytes for ${name}, got ${printTypeNode(retType)}`,
@@ -233,9 +236,9 @@ export function IntFunction(
 }
 
 export function BoolxBoolFunction(node: BinaryOperation, name: string, ast: AST): void {
-  const lhsType = getNodeType(node.vLeftExpression, ast.compilerVersion);
-  const rhsType = getNodeType(node.vRightExpression, ast.compilerVersion);
-  const retType = getNodeType(node, ast.compilerVersion);
+  const lhsType = safeGetNodeType(node.vLeftExpression, ast.compilerVersion);
+  const rhsType = safeGetNodeType(node.vRightExpression, ast.compilerVersion);
+  const retType = safeGetNodeType(node, ast.compilerVersion);
 
   assert(
     lhsType instanceof BoolType,
