@@ -17,9 +17,11 @@ import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCallToFunction } from '../../utils/functionGeneration';
+import { INIT_FUNCTION_PREFIX } from '../../utils/nameModifiers';
 import {
   createBlock,
   createDefaultConstructor,
+  createExpressionStatement,
   createIdentifier,
   createParameterList,
 } from '../../utils/nodeTemplates';
@@ -106,8 +108,16 @@ export function solveConstructorInheritance(
     if (constructorFunc !== undefined) constructors.set(contract.id, constructorFunc);
   });
 
+  // Collect all state variable initialization functions and create a call statement
+  // for each of them
+  const varInit = node.vLinearizedBaseContracts
+    .map((contract) => findVarInitialization(contract))
+    .filter((f): f is FunctionDefinition => f !== null)
+    .reverse()
+    .map((f) => createExpressionStatement(ast, createCallToFunction(f, [], ast)));
+
   // Collect arguments passed to constructors of linearized contracts
-  const statements: Statement[] = [];
+  const statements: Statement[] = varInit;
   const args: Map<number, Expression[]> = new Map();
   const mappedVars: Map<number, VariableDeclaration> = new Map();
 
@@ -148,11 +158,7 @@ export function solveConstructorInheritance(
           `Wrong number of arguments in constructor`,
         );
 
-        const stmt = new ExpressionStatement(
-          ast.reserveId(),
-          '',
-          createCallToFunction(newFunc, argList, ast),
-        );
+        const stmt = createExpressionStatement(ast, createCallToFunction(newFunc, argList, ast));
         statements.push(stmt);
       }
     });
@@ -352,4 +358,14 @@ function removeNonModifierInvocations(node: FunctionDefinition) {
 function removeModifiersFromConstructor(node: ContractDefinition) {
   const constructor = node.vConstructor;
   if (constructor !== undefined) removeNonModifierInvocations(constructor);
+}
+
+function findVarInitialization(contract: ContractDefinition): FunctionDefinition | null {
+  const name = `${INIT_FUNCTION_PREFIX}${contract.name}`;
+  for (const f of contract.vFunctions) {
+    if (f.name == name) {
+      return f;
+    }
+  }
+  return null;
 }
