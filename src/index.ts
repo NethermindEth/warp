@@ -6,10 +6,10 @@ import { analyseSol } from './utils/analyseSol';
 import {
   runStarknetCallOrInvoke,
   runStarknetCompile,
-  runStarknetDeclare,
   runStarknetDeploy,
   runStarknetDeployAccount,
   runStarknetStatus,
+  runStarknetDeclare,
 } from './starknetCli';
 import chalk from 'chalk';
 import { runVenvSetup } from './utils/setupVenv';
@@ -281,8 +281,6 @@ program
     runVenvSetup(options);
   });
 
-export type IDeclareOptions = IOptionalNetwork;
-
 program
   .command('declare <cairo_contract>')
   .description('Command to declare Cairo contract on a StarkNet Network.')
@@ -298,5 +296,15 @@ program.command('version').action(() => {
   const pjson = require('../package.json');
   console.log(blue(`Warp Version `) + green(pjson.version));
 });
+
+export type IDeclareOptions = IOptionalNetwork;
+
+program
+  .command('declare <cairo_contract>')
+  .description('Command to declare Cairo contract on a StarkNet Network.')
+  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .action(async (cairo_contract: string, options: IDeclareOptions) => {
+    runStarknetDeclare(cairo_contract, options);
+  });
 
 program.parse(process.argv);
