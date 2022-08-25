@@ -46,7 +46,7 @@ export function le_signed() {
           `        else:`,
           `            # rhs < 0`,
           `            # (signed) lhs <= rhs <=> (unsigned) lhs >= rhs`,
-          `            let (result) = is_le_felt(rhs, lhs)`,
+          `            let (result) = is_le_felt(lhs, rhs)`,
           `            return (result)`,
           `        end`,
           `    end`,

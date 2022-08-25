@@ -4,6 +4,7 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
 import { createReturn } from '../../utils/nodeTemplates';
+import { getContainingFunction } from '../../utils/utils';
 import { createLoopCall } from './utils';
 
 export class ContinueToLoopCall extends ASTMapper {
@@ -12,11 +13,7 @@ export class ContinueToLoopCall extends ASTMapper {
   }
 
   visitContinue(node: Continue, ast: AST): void {
-    const containingFunction = node.getClosestParentByType(FunctionDefinition);
-    assert(
-      containingFunction !== undefined,
-      `Unable to find containing function for ${printNode(node)}`,
-    );
+    const containingFunction = getContainingFunction(node);
 
     const continueFunction = this.loopToContinueFunction.get(containingFunction.id);
     assert(
