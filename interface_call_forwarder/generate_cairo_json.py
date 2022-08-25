@@ -1,4 +1,3 @@
-from fileinput import close
 from starkware.cairo.lang.compiler.parser import parse_file
 from starkware.cairo.lang.compiler.error_handling import LocationError
 from starkware.cairo.lang.version import __version__
@@ -27,12 +26,15 @@ from starkware.cairo.lang.compiler.ast.types import (
     TypedIdentifier
 )
 
+
+from starkware.cairo.lang.compiler.ast.formatting_utils import get_max_line_length
 from starkware.cairo.lang.compiler.ast.cairo_types import TypePointer
 from starkware.cairo.lang.compiler.module_reader import ModuleReader
 from starkware.cairo.lang.compiler.preprocessor.pass_manager import PassManager
 
 from starkware.starknet.compiler.compile import assemble_starknet_contract, get_abi
 from starkware.starknet.compiler.starknet_pass_manager import starknet_pass_manager
+from starkware.starknet.public.abi import AbiType
 
 import sys
 import argparse
@@ -48,29 +50,27 @@ def functionCallableCheck(callableDecorators, decorators: list[ExprIdentifier]):
 
 
 class InterfaceElementsCollector(Visitor):
-    def __init__(self):
+    def __init__(self, abi_functions: list[str]):
         super().__init__()
         self.functions: list[CodeElementFunction] = list()
-        # TODO remove raw_functions, this is only for debugging
-        self.raw_functions: list[CodeElementFunction] = list()
         self.structs: list[CodeElementFunction] = list()
         self.imports: list[CodeElementImport] = list()
-        self.callableDecorators: list[str] = [
+        self.callable_decorators: list[str] = [
             "view",
             "external",
         ]
+        self.abi_functions: list[str] = abi_functions
 
     def visit_CodeElementFunction(self, elm: CodeElementFunction):
 
         visited_elm = super().visit_CodeElementFunction(elm)
 
-        if visited_elm.element_type != "namespace" and visited_elm.element_type != "struct":
-            if functionCallableCheck(self.callableDecorators, visited_elm.decorators):
+        if visited_elm.element_type == "func":
+            if visited_elm.name in self.abi_functions and functionCallableCheck(self.callable_decorators, visited_elm.decorators):
                 visited_elm.code_block = CodeBlock(list())
                 visited_elm.decorators = list()
                 visited_elm.implicit_arguments = None
                 self.functions.append(visited_elm)
-                self.raw_functions.append(elm)
 
         elif visited_elm.element_type == "struct":
             self.structs.append(visited_elm)
@@ -104,20 +104,6 @@ def createForwarderInterface(interfaceElementCollector: InterfaceElementsCollect
         decorators=[ExprIdentifier(name="contract_interface")],
     )
 
-# debug-functions
-
-
-def writeCairoInterface(interfaceElementCollector: InterfaceElementsCollector, forwarderInterface: CodeElementFunction):
-    print("%lang starknet")
-    # imports
-    for import_elm in interfaceElementCollector.imports:
-        print(import_elm.format(100))
-    # structs
-    for struct_elm in interfaceElementCollector.structs:
-        print(struct_elm.format(100))
-    print(forwarderInterface.format(100))
-
-
 def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description='Produce a solidity interface for given cairo file')
@@ -128,10 +114,10 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector) -> list[CodeElementFunction]:
-    cairoFunctionStubs: list[CodeElementFunction] = list()
+def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector) -> dict[str, CodeElementFunction]:
+    cairoFunctionStubsDict: dict[str, CodeElementFunction] = dict()
     for func in interfaceElementCollector.functions:
-        cairoFunctionStubs.append(
+        cairoFunctionStubsDict[func.identifier.name] = (
             CodeElementFunction(
                 element_type=func.element_type,
                 identifier=ExprIdentifier(
@@ -191,10 +177,12 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector)
                 decorators=list(),
             )
         )
-    return cairoFunctionStubs
+    return cairoFunctionStubsDict
 
 
 def get_cairo_abi(args: argparse.Namespace):
+
+    curr_output_file = args.output
 
     args.output = open(os.devnull, "w")
 
@@ -219,20 +207,35 @@ def get_cairo_abi(args: argparse.Namespace):
     )
 
     args.output.close()
+    args.output = curr_output_file
 
     return get_abi(preprocessed=preprocessed)
 
 
-def main():
-    try:
+def modify_abi_with_stubs(abi: AbiType, cairoFunctionStubsDict: dict[str, CodeElementFunction]):
+    for entry in abi:
+        if entry['type'] == 'function':
+            entry['stub'] = cairoFunctionStubsDict[entry['name']].format(get_max_line_length()).split('\n')
+    return abi
 
+
+def main():
+
+    try:
         args = get_parser().parse_args()
         codes = get_codes(args.files)
 
         abi = get_cairo_abi(args=args)
 
-        interfaceElementCollector = InterfaceElementsCollector()
+        if args.output is None:
+            args.output = ''.join(codes[0][1].split('.')[:-1])
+        else:
+            args.output = ''.join(args.output.split('.')[:-1])
 
+
+        interfaceElementCollector = InterfaceElementsCollector(
+            [entry["name"] for entry in abi if entry["type"] == "function"])
+        
         for code, filename in codes:
             parsed_file: CairoFile = parse_file(code, filename=filename)
             cairoModule: CairoModule = CairoModule(
@@ -242,13 +245,18 @@ def main():
         forwarderInterface = createForwarderInterface(
             interfaceElementCollector)
 
-        # ----------------------------------debug--------------------------------
-        writeCairoInterface(interfaceElementCollector, forwarderInterface)
+        abi = modify_abi_with_stubs(abi, generateFunctionStubs(interfaceElementCollector))
 
-        for stub in generateFunctionStubs(interfaceElementCollector):
-            print(stub.format(100))
+        cairo_json = {}
+        cairo_json["abi"] = abi
+        cairo_json["forwarder_interface"] = forwarderInterface.format(get_max_line_length()).split('\n')
+        cairo_json["imports"] = [import_elm.format(get_max_line_length()) for import_elm in interfaceElementCollector.imports]
+        cairo_json["structs"] = [struct_elm.format(get_max_line_length()).split('\n') for struct_elm in interfaceElementCollector.structs]
+        cairo_json["functions"] = [func.format(get_max_line_length()).split('\n') for func in interfaceElementCollector.functions]
 
-        print(abi)
+        import json
+        with open(args.output + ".json", "w") as f:
+            json.dump(cairo_json, f, indent=4)
 
     except LocationError as err:
         print(err, file=sys.stderr)
