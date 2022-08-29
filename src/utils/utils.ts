@@ -1,4 +1,6 @@
 import assert from 'assert';
+import * as path from 'path';
+import { execSync } from 'child_process';
 import {
   AddressType,
   ArrayType,
@@ -480,6 +482,24 @@ export function getSourceFromLocation(source: string, location: SourceLocation):
     .reduce(([s, n], c) => [[...s, `${n}  ${c}`], n + 1], [new Array<string>(), followingLineNum]);
 
   return [...previousLines, ...currentLine, ...followingLines].join('\n');
+}
+
+export function callClassHashScript(filePath: string): string {
+  const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+  const classHashScriptPath = path.resolve(
+    __dirname,
+    '..',
+    '..',
+    'starknet-scripts',
+    'compute_class_hash.py',
+  );
+  const classHash = execSync(`${warpVenvPrefix} python ${classHashScriptPath} ${filePath}`)
+    .toString()
+    .trim();
+  if (classHash === undefined) {
+    throw new Error(`Cannot calculate class hash.`);
+  }
+  return classHash;
 }
 
 export function getContainingFunction(node: ASTNode): FunctionDefinition {

@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { InvalidArgumentError } from 'commander';
 import { ASTMapper } from '../ast/mapper';
-import { PassOrderError } from './errors';
+import { CLIError, PassOrderError } from './errors';
 import { error } from './formatting';
 
 class PassOrderParseError extends InvalidArgumentError {
@@ -86,4 +86,29 @@ function isCorrectCase(key: string): boolean {
   return [...key].every((letter, index) =>
     index === 0 ? letter >= 'A' && letter <= 'Z' : letter >= 'a' || letter <= 'z',
   );
+}
+
+export function parseClassHash(filePath: string, CLIOutput: string): string {
+  const splitter = new RegExp('[ ]+');
+  const classHash = CLIOutput.split('\n')
+    .map((line) => {
+      const [contractT, classT, hashT, hash, ...others] = line.split(splitter);
+      if (contractT === 'Contract' && classT === 'class' && hashT === 'hash:') {
+        if (others.length !== 0) {
+          throw new CLIError(
+            `Error while parsing the 'declare' output of ${filePath}. Malformed lined.`,
+          );
+        }
+        return hash;
+      }
+      return null;
+    })
+    .filter((val) => val !== null)[0];
+
+  if (classHash === null || classHash === undefined)
+    throw new CLIError(
+      `Error while parsing the 'declare' output of ${filePath}. Couldn't find the class hash.`,
+    );
+
+  return classHash;
 }
