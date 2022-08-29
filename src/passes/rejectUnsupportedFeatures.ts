@@ -33,9 +33,8 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
 import { WillNotSupportError } from '../utils/errors';
-import { isDynamicArray,safeGetNodeType } from '../utils/nodeTypeProcessing';
+import { isDynamicArray, safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { isExternalCall, isExternallyVisible } from '../utils/utils';
-
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   // Function to add passes that should have been run before this pass
