@@ -25,7 +25,11 @@ export class InheritanceInliner extends ASTMapper {
 
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([]);
+    const passKeys: Set<string> = new Set<string>([
+      // StorageAllocator takes care of variable initialization, which
+      // are needed when solving constructorss
+      'Sa',
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
