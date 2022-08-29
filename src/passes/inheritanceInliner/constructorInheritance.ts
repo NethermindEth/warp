@@ -90,11 +90,7 @@ import { updateReferencedDeclarations } from './utils';
   ``` 
 */
 
-export function solveConstructorInheritance(
-  node: ContractDefinition,
-  ast: AST,
-  generator: () => number,
-) {
+export function solveConstructors(node: ContractDefinition, ast: AST, generator: () => number) {
   // Contracts marked as abstract won't be deployed
   if (node.abstract) {
     removeModifiersFromConstructor(node);
@@ -167,11 +163,9 @@ export function solveConstructorInheritance(
   transformConstructor(node, selfConstructor, statements, ast, generator);
 
   // Add generated function calls to the body of this contract's constructor
-  if (statements.length > 0) {
-    generateBody(statements, selfConstructor, ast);
-    ast.setContextRecursive(selfConstructor);
-    node.appendChild(selfConstructor);
-  }
+  generateBody(statements, selfConstructor, ast);
+  ast.setContextRecursive(selfConstructor);
+  node.appendChild(selfConstructor);
 }
 
 function collectArguments(
