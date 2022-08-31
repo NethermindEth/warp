@@ -2,21 +2,14 @@
 <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
     <channel>
         <title>Warp is awesome 🌠 Blog</title>
-        <link>https://github.com/warp/blog</link>
+        <link>https://nethermindeth.github.io/warp/blog</link>
         <description>Warp is awesome 🌠 Blog</description>
-        <lastBuildDate>Fri, 24 Jun 2022 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Fri, 17 Jun 2022 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <item>
-            <title><![CDATA[Blog template 2 (WIP)]]></title>
-            <link>https://github.com/warp/blog/2022/06/24/junopi</link>
-            <guid>/2022/06/24/junopi</guid>
-            <pubDate>Fri, 24 Jun 2022 00:00:00 GMT</pubDate>
-            <description><![CDATA[<!-- Juno is a node which aims to help decentralise StarkNet, a prominent Ethereum Layer 2.]]></description>
-        </item>
-        <item>
             <title><![CDATA[Welcome]]></title>
-            <link>https://github.com/warp/blog/welcome</link>
+            <link>https://nethermindeth.github.io/warp/blog/welcome</link>
             <guid>welcome</guid>
             <pubDate>Fri, 17 Jun 2022 00:00:00 GMT</pubDate>
             <description><![CDATA[WIP]]></description>
