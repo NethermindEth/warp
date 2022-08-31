@@ -1,9 +1,17 @@
 import { compileCairo } from './starknetCli';
 import * as path from 'path';
 import { logError } from './utils/errors';
+import { SolcInterfaceGenOptions } from './index';
+import fs from 'fs';
+import { execSync } from 'child_process';
 
-export function generateSolInterface(filePath: string) {
-  const { success, resultPath, abiPath } = compileCairo(filePath, path.resolve(__dirname, '..'), {
+import { AST } from './ast/ast';
+
+const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+const defaultCompilerVersion = '0.8.14';
+
+export function generateSolInterface(filePath: string, options: SolcInterfaceGenOptions) {
+  const { success } = compileCairo(filePath, path.resolve(__dirname, '..'), {
     debug_info: false,
   });
   if (!success) {
@@ -11,5 +19,38 @@ export function generateSolInterface(filePath: string) {
     return;
   }
   const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
-  console.log(cairoPathRoot, resultPath, abiPath);
+  const jsonCairoPath = `${cairoPathRoot}.json`;
+
+  let solPath = `${cairoPathRoot}.sol`;
+
+  if (options.output) {
+    solPath = options.output;
+  }
+
+  const parameters = new Map([['output', solPath]]);
+
+  parameters.set('cairo_path', path.resolve(__dirname, '..'));
+
+  try {
+    console.log(
+      `${warpVenvPrefix} python3 ../interface_call_forwarder/generate_cairo_json.py ${filePath} ${[
+        ...parameters.entries(),
+      ]
+        .map(([key, value]) => `--${key} ${value}`)
+        .join(' ')}`,
+    );
+    execSync(
+      `${warpVenvPrefix} python3 ../interface_call_forwarder/generate_cairo_json.py ${filePath} ${[
+        ...parameters.entries(),
+      ]
+        .map(([key, value]) => `--${key} ${value}`)
+        .join(' ')}`,
+      { stdio: 'inherit' },
+    );
+  } catch (e) {
+    throw e;
+  }
+
+  const jsonCairo = JSON.parse(fs.readFileSync(jsonCairoPath, 'utf8'));
+  let ast: AST = new AST([], options.compiler_version ?? defaultCompilerVersion);
 }

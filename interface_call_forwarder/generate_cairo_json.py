@@ -226,11 +226,11 @@ def main():
         codes = get_codes(args.files)
 
         abi = get_cairo_abi(args=args)
-
+        print(args, args.output)
         if args.output is None:
-            args.output = ''.join(codes[0][1].split('.')[:-1])
-        else:
-            args.output = ''.join(args.output.split('.')[:-1])
+            args.output = codes[0][1].replace('.cairo', '.json')
+        else :
+            args.output = args.output.name.replace('.sol', '.json')
 
 
         interfaceElementCollector = InterfaceElementsCollector(
@@ -255,7 +255,7 @@ def main():
         cairo_json["functions"] = [func.format(get_max_line_length()).split('\n') for func in interfaceElementCollector.functions]
 
         import json
-        with open(args.output + ".json", "w") as f:
+        with open(args.output, "w") as f:
             json.dump(cairo_json, f, indent=4)
 
     except LocationError as err:

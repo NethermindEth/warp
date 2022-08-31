@@ -155,9 +155,20 @@ program
     runStarknetCompile(file, options);
   });
 
-program.command('gen_interface <file>').action((file: string) => {
-  generateSolInterface(file);
-});
+export interface SolcInterfaceGenOptions {
+  cairo_path: string;
+  output?: string;
+  compiler_version?: string;
+}
+
+program
+  .command('gen_interface <file>')
+  .option('--cairo-path')
+  .option('--output')
+  .option('--compiler-version')
+  .action((file: string, options: SolcInterfaceGenOptions) => {
+    generateSolInterface(file, options);
+  });
 
 interface IDeployProps_ {
   inputs?: string[];
