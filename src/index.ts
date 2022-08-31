@@ -6,6 +6,7 @@ import { analyseSol } from './utils/analyseSol';
 import {
   runStarknetCallOrInvoke,
   runStarknetCompile,
+  runStarknetDeclare,
   runStarknetDeploy,
   runStarknetDeployAccount,
   runStarknetStatus,
@@ -279,6 +280,16 @@ program
   .option('-v, --verbose')
   .action((options: IInstallOptions) => {
     runVenvSetup(options);
+  });
+
+export type IDeclareOptions = IOptionalNetwork;
+
+program
+  .command('declare <cairo_contract>')
+  .description('Command to declare Cairo contract on a StarkNet Network.')
+  .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .action(async (cairo_contract: string, options: IDeclareOptions) => {
+    runStarknetDeclare(cairo_contract, options);
   });
 
 const blue = chalk.bold.blue;

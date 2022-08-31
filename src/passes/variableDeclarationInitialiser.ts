@@ -1,8 +1,9 @@
-import { VariableDeclarationStatement, getNodeType } from 'solc-typed-ast';
+import { VariableDeclarationStatement } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { getDefaultValue } from '../utils/defaultValueNodes';
 import { TranspileFailedError } from '../utils/errors';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
 export class VariableDeclarationInitialiser extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -26,7 +27,7 @@ export class VariableDeclarationInitialiser extends ASTMapper {
     }
 
     node.vInitialValue = getDefaultValue(
-      getNodeType(declaration, ast.compilerVersion),
+      safeGetNodeType(declaration, ast.compilerVersion),
       declaration,
       ast,
     );

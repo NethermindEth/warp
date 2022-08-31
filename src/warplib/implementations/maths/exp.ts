@@ -3,13 +3,13 @@ import {
   BinaryOperation,
   FunctionCall,
   FunctionCallKind,
-  getNodeType,
   Identifier,
   IntType,
 } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
 import { createCairoFunctionStub } from '../../../utils/functionGeneration';
+import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../../utils/utils';
 import { forAllWidths, generateFile, getIntOrFixedByteBitWidth, mask } from '../../utils';
 
@@ -177,9 +177,9 @@ function getNegativeOneShortcutCode(signed: boolean, lhsWidth: number, rhsWide: 
 }
 
 export function functionaliseExp(node: BinaryOperation, unsafe: boolean, ast: AST) {
-  const lhsType = getNodeType(node.vLeftExpression, ast.compilerVersion);
-  const rhsType = getNodeType(node.vRightExpression, ast.compilerVersion);
-  const retType = getNodeType(node, ast.compilerVersion);
+  const lhsType = safeGetNodeType(node.vLeftExpression, ast.compilerVersion);
+  const rhsType = safeGetNodeType(node.vRightExpression, ast.compilerVersion);
+  const retType = safeGetNodeType(node, ast.compilerVersion);
   assert(
     retType instanceof IntType,
     `${printNode(node)} has type ${printTypeNode(retType)}, which is not compatible with **`,

@@ -3,7 +3,6 @@ import {
   ASTNode,
   DataLocation,
   FunctionCall,
-  getNodeType,
   IndexAccess,
   PointerType,
   SourceUnit,
@@ -13,7 +12,7 @@ import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createUint256TypeName } from '../../utils/nodeTemplates';
-import { isDynamicArray } from '../../utils/nodeTypeProcessing';
+import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
@@ -28,8 +27,8 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
     const index = node.vIndexExpression;
     assert(index !== undefined);
 
-    const nodeType = getNodeType(node, this.ast.compilerVersion);
-    const baseType = getNodeType(base, this.ast.compilerVersion);
+    const nodeType = safeGetNodeType(node, this.ast.compilerVersion);
+    const baseType = safeGetNodeType(base, this.ast.compilerVersion);
 
     assert(baseType instanceof PointerType && isDynamicArray(baseType.to));
     const name = this.getOrCreate(nodeType);

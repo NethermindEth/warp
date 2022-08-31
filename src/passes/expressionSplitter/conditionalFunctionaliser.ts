@@ -7,7 +7,6 @@ import {
   Expression,
   ExpressionStatement,
   FunctionCall,
-  getNodeType,
   Identifier,
   IfStatement,
   Mutability,
@@ -26,6 +25,7 @@ import {
   createParameterList,
   createReturn,
 } from '../../utils/nodeTemplates';
+import { safeGetNodeTypeInCtx } from '../../utils/nodeTypeProcessing';
 
 // The returns should be both the values returned by the conditional itself,
 // as well as the variables that got captured, as they could have been modified
@@ -146,7 +146,11 @@ export function addStatementsToCallFunction(
       '',
       [conditionalResult.id],
       [conditionalResult],
-      getDefaultValue(getNodeType(conditionalResult, ast.compilerVersion), conditionalResult, ast),
+      getDefaultValue(
+        safeGetNodeTypeInCtx(conditionalResult, ast.compilerVersion, node),
+        conditionalResult,
+        ast,
+      ),
     ),
     createOuterCall(node, [conditionalResult, ...variables], funcToCall, ast),
   ];

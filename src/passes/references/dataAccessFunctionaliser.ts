@@ -7,7 +7,6 @@ import {
   MappingType,
   PointerType,
   VariableDeclaration,
-  getNodeType,
   MemberAccess,
   DataLocation,
   FunctionCall,
@@ -42,7 +41,7 @@ import { MemoryWriteGen } from '../../cairoUtilFuncGen/memory/memoryWrite';
 import { CalldataToStorageGen } from '../../cairoUtilFuncGen/calldata/calldataToStorage';
 import { StorageWriteGen } from '../../cairoUtilFuncGen/storage/storageWrite';
 import { MemoryToStorageGen } from '../../cairoUtilFuncGen/memory/memoryToStorage';
-import { getElementType } from '../../utils/nodeTypeProcessing';
+import { getElementType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 
 /*
   Uses the analyses of ActualLocationAnalyser and ExpectedLocationAnalyser to
@@ -68,7 +67,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       return this.commonVisit(node, ast);
     }
 
-    const nodeType = getNodeType(node, ast.compilerVersion);
+    const nodeType = safeGetNodeType(node, ast.compilerVersion);
     const utilFuncGen = ast.getUtilFuncGen(node);
     const parent = node.parent;
 
@@ -166,7 +165,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
           .getUtilFuncGen(node)
           .memory.convert.genIfNecesary(
             node.vLeftHandSide,
-            getNodeType(node.vRightHandSide, ast.compilerVersion),
+            safeGetNodeType(node.vRightHandSide, ast.compilerVersion),
           );
         if (result) {
           ast.replaceNode(node.vRightHandSide, convert, node);
@@ -239,7 +238,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
       return this.visitExpression(node, ast);
     }
 
-    const type = getNodeType(node.vExpression, ast.compilerVersion);
+    const type = safeGetNodeType(node.vExpression, ast.compilerVersion);
     if (!(type instanceof PointerType)) {
       assert(
         (type instanceof UserDefinedType && type.definition instanceof ContractDefinition) ||
@@ -270,7 +269,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
 
     const [actualLoc, expectedLoc] = this.getLocations(node);
 
-    const baseType = getNodeType(node.vBaseExpression, ast.compilerVersion);
+    const baseType = safeGetNodeType(node.vBaseExpression, ast.compilerVersion);
     let replacement: FunctionCall | null = null;
     if (baseType instanceof PointerType) {
       if (actualLoc === DataLocation.Storage) {
@@ -319,7 +318,7 @@ export class DataAccessFunctionaliser extends ReferenceSubPass {
 
 function createMemoryDynArrayIndexAccess(indexAccess: IndexAccess, ast: AST): FunctionCall {
   const arrayType = generalizeType(
-    getNodeType(indexAccess.vBaseExpression, ast.compilerVersion),
+    safeGetNodeType(indexAccess.vBaseExpression, ast.compilerVersion),
   )[0];
   const arrayTypeName = typeNameFromTypeNode(arrayType, ast);
   const returnTypeName =

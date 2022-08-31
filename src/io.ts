@@ -90,12 +90,14 @@ export function outputResult(
     formatOutput(fullCodeOutPath);
 
     if (options.compileCairo) {
-      const { resultPath, abiPath } = compileCairo(fullCodeOutPath);
-      if (resultPath) {
-        fs.unlinkSync(resultPath);
-      }
-      if (abiPath) {
-        fs.unlinkSync(abiPath);
+      const { success, resultPath, abiPath } = compileCairo(fullCodeOutPath);
+      if (!success) {
+        if (resultPath) {
+          fs.unlinkSync(resultPath);
+        }
+        if (abiPath) {
+          fs.unlinkSync(abiPath);
+        }
       }
     }
   }

@@ -3,7 +3,6 @@ import {
   DataLocation,
   Expression,
   FunctionCall,
-  getNodeType,
   IndexAccess,
   MemberAccess,
 } from 'solc-typed-ast';
@@ -13,6 +12,7 @@ import {
   isDynamicArray,
   isMapping,
   isReferenceType,
+  safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { ReferenceSubPass } from './referenceSubPass';
@@ -28,7 +28,7 @@ export class StoredPointerDereference extends ReferenceSubPass {
 
     const utilFuncGen = ast.getUtilFuncGen(node);
     const parent = node.parent;
-    const nodeType = getNodeType(node, ast.compilerVersion);
+    const nodeType = safeGetNodeType(node, ast.compilerVersion);
 
     // Next, if the node is a type that requires an extra read, insert this first
     let readFunc: FunctionCall | null = null;
@@ -59,7 +59,7 @@ export class StoredPointerDereference extends ReferenceSubPass {
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
-    const lhsType = getNodeType(node.vLeftHandSide, ast.compilerVersion);
+    const lhsType = safeGetNodeType(node.vLeftHandSide, ast.compilerVersion);
 
     if (isComplexMemoryType(lhsType)) {
       this.visitExpression(node.vLeftHandSide, ast);

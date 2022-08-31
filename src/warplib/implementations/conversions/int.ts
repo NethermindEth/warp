@@ -1,8 +1,9 @@
 import assert from 'assert';
-import { FunctionCall, generalizeType, getNodeType, IntType } from 'solc-typed-ast';
+import { FunctionCall, generalizeType, IntType } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printNode, printTypeNode } from '../../../utils/astPrinter';
 import { Implicits } from '../../../utils/implicits';
+import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { bound, forAllWidths, generateFile, IntFunction, mask, msb, uint256 } from '../../utils';
 
 export function int_conversions(): void {
@@ -91,14 +92,14 @@ function sign_extend_value(from: number, to: number): bigint {
 
 export function functionaliseIntConversion(conversion: FunctionCall, ast: AST): void {
   const arg = conversion.vArguments[0];
-  const fromType = generalizeType(getNodeType(arg, ast.compilerVersion))[0];
+  const fromType = generalizeType(safeGetNodeType(arg, ast.compilerVersion))[0];
   assert(
     fromType instanceof IntType,
     `Argument of int conversion expected to be int type. Got ${printTypeNode(
       fromType,
     )} at ${printNode(conversion)}`,
   );
-  const toType = getNodeType(conversion, ast.compilerVersion);
+  const toType = safeGetNodeType(conversion, ast.compilerVersion);
   assert(
     toType instanceof IntType,
     `Int conversion expected to be int type. Got ${printTypeNode(toType)} at ${printNode(
@@ -120,6 +121,7 @@ export function functionaliseIntConversion(conversion: FunctionCall, ast: AST): 
     fromType.nBits === toType.nBits ||
     (fromType.nBits < toType.nBits && !fromType.signed && !toType.signed)
   ) {
+    arg.typeString = conversion.typeString;
     ast.replaceNode(conversion, arg);
     return;
   } else {

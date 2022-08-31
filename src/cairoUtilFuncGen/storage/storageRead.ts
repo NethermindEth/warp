@@ -2,7 +2,6 @@ import {
   Expression,
   TypeName,
   FunctionCall,
-  getNodeType,
   DataLocation,
   FunctionStateMutability,
   TypeNode,
@@ -11,12 +10,13 @@ import {
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
 
 export class StorageReadGen extends StringIndexedFuncGen {
   gen(storageLocation: Expression, type: TypeName, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const valueType = getNodeType(storageLocation, this.ast.compilerVersion);
+    const valueType = safeGetNodeType(storageLocation, this.ast.compilerVersion);
     const resultCairoType = CairoType.fromSol(
       valueType,
       this.ast,

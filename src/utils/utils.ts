@@ -22,7 +22,6 @@ import {
   FunctionStateMutability,
   FunctionVisibility,
   generalizeType,
-  getNodeType,
   Identifier,
   IdentifierPath,
   IndexAccess,
@@ -65,7 +64,7 @@ import {
   createBytesTypeName,
   createNumberLiteral,
 } from './nodeTemplates';
-import { isDynamicArray, isDynamicCallDataArray } from './nodeTypeProcessing';
+import { isDynamicArray, isDynamicCallDataArray, safeGetNodeType } from './nodeTypeProcessing';
 import { Class } from './typeConstructs';
 
 const uint128 = BigInt('0x100000000000000000000000000000000');
@@ -432,7 +431,7 @@ export function isExternalMemoryDynArray(node: Identifier, compilerVersion: stri
     return false;
 
   const declarationLocation = declaration.storageLocation;
-  const [nodeType, typeLocation] = generalizeType(getNodeType(node, compilerVersion));
+  const [nodeType, typeLocation] = generalizeType(safeGetNodeType(node, compilerVersion));
 
   return (
     isDynamicArray(nodeType) &&
@@ -444,7 +443,7 @@ export function isExternalMemoryDynArray(node: Identifier, compilerVersion: stri
 // Detects when an identifier represents a calldata dynamic array in solidity
 export function isCalldataDynArrayStruct(node: Identifier, compilerVersion: string): boolean {
   return (
-    isDynamicCallDataArray(getNodeType(node, compilerVersion)) &&
+    isDynamicCallDataArray(safeGetNodeType(node, compilerVersion)) &&
     ((node.getClosestParentByType(Return) !== undefined &&
       node.getClosestParentByType(IndexAccess) === undefined &&
       node.getClosestParentByType(FunctionDefinition)?.visibility === FunctionVisibility.External &&

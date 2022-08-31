@@ -1,15 +1,9 @@
 import assert from 'assert';
-import {
-  ASTNode,
-  DataLocation,
-  FunctionCall,
-  getNodeType,
-  MemberAccess,
-  SourceUnit,
-} from 'solc-typed-ast';
+import { ASTNode, DataLocation, FunctionCall, MemberAccess, SourceUnit } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
@@ -21,8 +15,8 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
 
   gen(push: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
     assert(push.vExpression instanceof MemberAccess);
-    const arrayType = getNodeType(push.vExpression.vExpression, this.ast.compilerVersion);
-    const elementType = getNodeType(push, this.ast.compilerVersion);
+    const arrayType = safeGetNodeType(push.vExpression.vExpression, this.ast.compilerVersion);
+    const elementType = safeGetNodeType(push, this.ast.compilerVersion);
 
     const name = this.getOrCreate(
       CairoType.fromSol(elementType, this.ast, TypeConversionContext.StorageAllocation),

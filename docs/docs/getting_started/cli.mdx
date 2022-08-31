@@ -1,0 +1,164 @@
+---
+title: Warp Command Line Interface (warp-cli)
+---
+
+Useful commands with the Warp Transpiler.
+
+To query available commands, run `warp --help`.
+
+Available Commands:
+
+    traspile                    Transpile Solidity Code into Cairo
+    transform                   Transforms Solidity Code into Warp Format(?)
+    test                        Transpile and starknet-compile test on example_contracts and checks feature supports
+    analyse                     Breaksdown and analyses a Solidity contract
+    status                      Returns the transaction status
+    compile                     Compiles a Cairo contract with StarkNet
+    delcare                     Declares a Cairo contract on a StarkNet Network and returns the class hash
+    deploy                      Compiles and deploys a Cairo contract
+    deploy_account              Deploys an account contract
+    invoke                      Sends a transaction to the StarkNet sequencer
+    call                        Calls a StarkNet contract without affecting the state
+    install                     Installs python dependencies
+    version                     Gets the current version
+    help                        Display for help command
+
+Command Options:
+
+transpile `[options]` `<file...>`:
+
+    ---compile-cairo
+    --no-compile-errors
+    --check-trees
+    --highlight <ids...>
+    --order <passOrder>
+    -o, --output-dir <path>         (default: "warp_output")
+    --print-trees
+    --no-result
+    --no-stubs
+    --no-strict
+    --until <pass>
+    --no-warnings
+    --dev
+    -h, --help                      display help for command
+
+transform `[options]` `<file...>`:
+
+    --no-compile-errors
+    --check-trees
+    --highlight <ids...>
+    --order <passOrder>
+    -o, --output-dir <path>
+    --print-trees
+    --no-result
+    --no-stubs
+    --no-strict
+    --until <pass>
+    --no-warnings
+    -h, --help                      display help for command
+
+test `[options]`:
+
+    -f --force
+    -r --results
+    -u --unsafe
+    -e --exact
+    -h, --help                      display help for command
+
+analyse `[options]` `<file...>`:
+
+    --highlight <ids...>
+    -h, --help                      display help for command
+
+status `[options]` `<tx_hash...>`:
+
+    --network <network>             Starknet network URL.
+    -h, --help                      display help for command
+
+compile `[options]` `<file...>`:
+
+    -d, --debug_info                Include debug information. (default: false)
+    -h, --help                      display help for command
+
+declare `[options]` `<cairo_contract>`:
+
+    --network                       StarkNet network URL. (default: "alpha-goerli")
+    -h, --help                      display help for command
+
+deploy `[options]` `<file...>`:
+
+    -d, --debug_info                Compile include debug information. (default: false)
+    --inputs <inputs...>            Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists.
+    --use_cairo_abi                 Use the cairo abi instead of solidity for the inputs. (default: false)
+    --network <network>             Starknet network URL
+    --no_wallet                     Do not use a wallet for deployment. (default: false)
+    --wallet <wallet>               Wallet provider to use
+    --account <account>             Account to use for deployment
+    -h, --help                      display help for command
+
+deploy_account `[options]`:
+
+    --account <account>             The name of the account. If not given, the default for the wallet will be used.
+    --network <network>             Starknet network URL.
+    --wallet <wallet>               The name of the wallet, including the python module and wallet class.
+    -h, --help                      display help for command
+
+invoke `[options]` `<file...>`:
+
+    --address <address>             Address of contract to invoke.
+    --function <function>           Function to invoke.
+    --inputs <inputs...>            Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.
+    --use_cairo_abi                 Use the cairo abi instead of solidity for the inputs. (default: false)
+    --account <account>             The name of the account. If not given, the default for the wallet will be used.
+    --network <network>             Starknet network URL.
+    --wallet <wallet>               The name of the wallet, including the python module and wallet class.
+    -h, --help                      display help for command
+
+call `[options]` `<file...>`:
+
+    --address <address>             Address of contract to call.
+    --function <function>           Function to call.
+    --inputs <inputs...>            Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.
+    --use_cairo_abi                 Use the cairo abi instead of solidity for the inputs. (default: false)
+    --account <account>             The name of the account. If not given, the default for the wallet will be used.
+    --network <network>             Starknet network URL.
+    --wallet <wallet>               The name of the wallet, including the python module and wallet class.
+    -h, --help                      display help for command
+
+install `[options]`:
+
+    --python <python>  Path to python3.7 executable. (default: "python3.7")
+    -v, --verbose
+    -h, --help                      display help for command
+
+Global flags:
+
+    -h, --help                      display help for command
+
+# Example calls:
+
+### Deploys an account contract to a network
+
+    warp deploy_account --wallet=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount --account=demo --network=alpha-goerli
+
+**Output:**
+
+    #Sent deploy account contract transaction.
+
+    NOTE: This is a modified version of the OpenZeppelin account contract. The signature is computed
+    differently.
+
+    Contract address: 0x0
+    Public key: 0x1
+    Transaction hash: 0x2
+
+### Get transaction status:
+
+    warp status 0x4 --network=alpha-goerli
+
+**Output:**
+
+    {
+        "block_hash": "0x5",
+        "tx_status": "ACCEPTED_ON_L2"
+    }

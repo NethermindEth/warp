@@ -3,7 +3,6 @@ import {
   DataLocation,
   FixedBytesType,
   FunctionCall,
-  getNodeType,
   IntType,
   PointerType,
   TypeName,
@@ -14,7 +13,7 @@ import { CairoType } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { Implicits } from '../../utils/implicits';
-import { isDynamicArray } from '../../utils/nodeTypeProcessing';
+import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, typeNameFromTypeNode } from '../../utils/utils';
 import { getIntOrFixedByteBitWidth, uint256 } from '../../warplib/utils';
 import { CairoFunction, StringIndexedFuncGen } from '../base';
@@ -23,7 +22,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
   gen(concat: FunctionCall) {
     const args = concat.vArguments;
     args.forEach((expr) => {
-      const exprType = getNodeType(expr, this.ast.compilerVersion);
+      const exprType = safeGetNodeType(expr, this.ast.compilerVersion);
       if (
         !isDynamicArray(exprType) &&
         !(exprType instanceof IntType || exprType instanceof FixedBytesType)
@@ -36,16 +35,16 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
 
     const inputs: [string, TypeName, DataLocation][] = mapRange(args.length, (n) => [
       `arg_${n}`,
-      typeNameFromTypeNode(getNodeType(args[n], this.ast.compilerVersion), this.ast),
+      typeNameFromTypeNode(safeGetNodeType(args[n], this.ast.compilerVersion), this.ast),
       DataLocation.Memory,
     ]);
     const output: [string, TypeName, DataLocation] = [
       'res_loc',
-      typeNameFromTypeNode(getNodeType(concat, this.ast.compilerVersion), this.ast),
+      typeNameFromTypeNode(safeGetNodeType(concat, this.ast.compilerVersion), this.ast),
       DataLocation.Memory,
     ];
 
-    const argTypes = args.map((e) => getNodeType(e, this.ast.compilerVersion));
+    const argTypes = args.map((e) => safeGetNodeType(e, this.ast.compilerVersion));
     const name = this.getOrCreate(argTypes);
 
     const implicits: Implicits[] = argTypes.some(

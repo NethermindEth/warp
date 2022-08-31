@@ -20,7 +20,6 @@ import {
   VariableDeclaration,
   compileSol,
   resolveAny,
-  getNodeType,
   CompileResult,
   UserDefinedValueTypeDefinition,
   StructDefinition,
@@ -33,6 +32,8 @@ import { InvalidTestError } from '../errors';
 
 import whiteList from './semantic_whitelist';
 
+import whileListGenerated from './semantic_tests_generated';
+
 import { NotSupportedYetError } from '../../../src/utils/errors';
 import { compileSolFile, compileSolFileAndExtractContracts } from '../../../src/solCompile';
 import { printTypeNode } from '../../../src/utils/astPrinter';
@@ -43,6 +44,7 @@ import { notNull } from '../../../src/utils/typeConstructs';
 import assert from 'assert';
 import { AST } from '../../../src/ast/ast';
 import { createDefaultConstructor } from '../../../src/utils/nodeTemplates';
+import { safeGetNodeType } from '../../../src/utils/nodeTypeProcessing';
 
 // this format will cause problems with overloading
 export interface Parameter {
@@ -75,7 +77,7 @@ const abiCoder: AbiCoder = new AbiCoder.constructor();
 function isValidTestName(testFileName: string) {
   let file = testFileName;
   while (file !== '.' && file !== '/') {
-    if (whiteList.includes(file)) return true;
+    if (whiteList.includes(file) || whileListGenerated.includes(file)) return true;
     file = path.dirname(file);
   }
   return false;
@@ -185,11 +187,11 @@ function transcodeTest(
 
   const inputTypeNodes =
     funcDef instanceof FunctionDefinition
-      ? funcDef.vParameters.vParameters.map((cd) => getNodeType(cd, compilerVersion))
+      ? funcDef.vParameters.vParameters.map((cd) => safeGetNodeType(cd, compilerVersion))
       : funcDef.getterFunType().parameters;
   const outputTypeNodes =
     funcDef instanceof FunctionDefinition
-      ? funcDef.vReturnParameters.vParameters.map((cd) => getNodeType(cd, compilerVersion))
+      ? funcDef.vReturnParameters.vParameters.map((cd) => safeGetNodeType(cd, compilerVersion))
       : funcDef.getterFunType().returns;
 
   let removePrefix = 10;
@@ -297,7 +299,7 @@ export function encodeValue(tp: TypeNode, value: SolValue, compilerVersion: stri
     const definition = tp.definition;
     if (definition instanceof UserDefinedValueTypeDefinition) {
       return encodeValue(
-        getNodeType(definition.underlyingType, compilerVersion),
+        safeGetNodeType(definition.underlyingType, compilerVersion),
         value,
         compilerVersion,
       );
@@ -307,7 +309,7 @@ export function encodeValue(tp: TypeNode, value: SolValue, compilerVersion: stri
       }
       const membersEncoding: string[][] = [];
       for (let index = 0; index < value.length; index++) {
-        const memberTypeNode = getNodeType(definition.vMembers[index], compilerVersion);
+        const memberTypeNode = safeGetNodeType(definition.vMembers[index], compilerVersion);
         const memberValue = value[index];
         membersEncoding.push(encodeValue(memberTypeNode, memberValue, compilerVersion));
       }
@@ -355,13 +357,28 @@ async function encodeConstructors(
   const [contractAbi, contractDef, ast] = await contractAbiDefAST;
 
   let constructorArgs: string[] = [];
+
+  const constructorSignature = contractAbi
+    .map(getSignature)
+    .find((sig) => sig.startsWith('constructor('));
+
   if (firstTest.signature.startsWith('constructor(')) {
+    let signature: string = firstTest.signature;
+    if (constructorSignature !== firstTest.signature && constructorSignature !== undefined) {
+      // If constructor Signature from AST does not match the constructor test signature in test_calldata.ts
+      // then we get the signature from the contract ABI (generated from solc )
+      // for e.g tests/behaviour/solidity/test/libsolidity/semanticTests/array/constant_var_as_array_length.sol
+      console.warn(
+        `WARNING: constructor signature mismatch: ${firstTest.signature} vs ${constructorSignature} in test_calldata and contract ${ast.roots[0].absolutePath} respectively`,
+      );
+      signature = constructorSignature;
+    }
     const [constrAbi, constrDef] = getFunctionAbiAndDefinition(
       'constructor',
       contractAbi,
       contractDef,
       ast,
-      firstTest.signature,
+      signature,
       ast.compilerVersion,
     );
     assert(
@@ -369,7 +386,7 @@ async function encodeConstructors(
       'Constructor must be of type functionDefinition',
     );
     const typeNodes = constrDef.vParameters.vParameters.map((cd) =>
-      getNodeType(cd, ast.compilerVersion),
+      safeGetNodeType(cd, ast.compilerVersion),
     );
     constructorArgs = encode(constrAbi.inputs, typeNodes, firstTest.callData, ast.compilerVersion);
   }

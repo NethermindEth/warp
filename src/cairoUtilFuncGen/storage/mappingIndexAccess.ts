@@ -5,7 +5,6 @@ import {
   Expression,
   FunctionCall,
   generalizeType,
-  getNodeType,
   IndexAccess,
   MappingType,
   PointerType,
@@ -15,7 +14,7 @@ import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createUint8TypeName } from '../../utils/nodeTemplates';
-import { isReferenceType } from '../../utils/nodeTypeProcessing';
+import { isReferenceType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
@@ -32,8 +31,8 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
     let index = node.vIndexExpression;
     assert(index !== undefined);
 
-    const nodeType = getNodeType(node, this.ast.compilerVersion);
-    const baseType = getNodeType(base, this.ast.compilerVersion);
+    const nodeType = safeGetNodeType(node, this.ast.compilerVersion);
+    const baseType = safeGetNodeType(base, this.ast.compilerVersion);
 
     assert(baseType instanceof PointerType && baseType.to instanceof MappingType);
 
@@ -45,7 +44,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
     );
 
     if (isReferenceType(baseType.to.keyType)) {
-      const stringLoc = generalizeType(getNodeType(index, this.ast.compilerVersion))[1];
+      const stringLoc = generalizeType(safeGetNodeType(index, this.ast.compilerVersion))[1];
       assert(stringLoc !== undefined);
       const call = this.createStringHashFunction(node, stringLoc, indexCairoType);
       index = call;
@@ -121,7 +120,7 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
     indexCairoType: CairoType,
   ): FunctionCall {
     assert(node.vIndexExpression instanceof Expression);
-    const indexType = getNodeType(node.vIndexExpression, this.ast.compilerVersion);
+    const indexType = safeGetNodeType(node.vIndexExpression, this.ast.compilerVersion);
     const indexTypeName = typeNameFromTypeNode(indexType, this.ast);
     if (loc === DataLocation.CallData) {
       const stub = createCairoFunctionStub(

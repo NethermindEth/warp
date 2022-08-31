@@ -7,7 +7,6 @@ import {
   Expression,
   FunctionStateMutability,
   generalizeType,
-  getNodeType,
   SourceUnit,
   StringType,
   StructDefinition,
@@ -19,7 +18,7 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { getElementType, isDynamicArray } from '../../utils/nodeTypeProcessing';
+import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, StringIndexedFuncGen } from '../base';
@@ -37,7 +36,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     super(ast, sourceUnit);
   }
   gen(node: Expression, nodeInSourceUnit?: ASTNode): Expression {
-    const type = generalizeType(getNodeType(node, this.ast.compilerVersion))[0];
+    const type = generalizeType(safeGetNodeType(node, this.ast.compilerVersion))[0];
 
     const name = this.getOrCreate(type);
     const functionStub = createCairoFunctionStub(
@@ -336,7 +335,7 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
   let members: TypeNode[];
 
   if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-    members = type.definition.vMembers.map((decl) => getNodeType(decl, ast.compilerVersion));
+    members = type.definition.vMembers.map((decl) => safeGetNodeType(decl, ast.compilerVersion));
   } else if (type instanceof ArrayType && type.size !== undefined) {
     const narrowedWidth = narrowBigIntSafe(type.size, `Array size ${type.size} not supported`);
     members = mapRange(narrowedWidth, () => type.elementT);

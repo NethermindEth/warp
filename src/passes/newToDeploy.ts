@@ -113,7 +113,7 @@ export class NewToDeploy extends ASTMapper {
       const bytes32Salt = parent.vOptionsMap.get('salt');
       assert(bytes32Salt !== undefined);
       // Narrow salt to a felt range
-      salt = createElementaryConversionCall(createBytesNTypeName(30, ast), bytes32Salt, ast);
+      salt = createElementaryConversionCall(createBytesNTypeName(30, ast), bytes32Salt, node, ast);
       ast.replaceNode(bytes32Salt, salt, parent);
     } else {
       throw new TranspileFailedError(
