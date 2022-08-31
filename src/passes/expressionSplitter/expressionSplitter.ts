@@ -3,7 +3,6 @@ import {
   Assignment,
   ContractDefinition,
   DataLocation,
-  Expression,
   Conditional,
   ExpressionStatement,
   FunctionCall,
@@ -26,6 +25,7 @@ import { createCallToFunction, fixParameterScopes } from '../../utils/functionGe
 import { SPLIT_EXPRESSION_PREFIX } from '../../utils/nameModifiers';
 import {
   createEmptyTuple,
+  createExpressionStatement,
   createIdentifier,
   createVariableDeclarationStatement,
 } from '../../utils/nodeTemplates';
@@ -86,24 +86,21 @@ export class ExpressionSplitter extends ASTMapper {
         Mutability.Constant,
         initialValue.typeString,
       );
-      ast.setContextRecursive(varDecl);
 
-      // const tempVarStatement = createVariableDeclarationStatement(
-      //   this.eGen.next().value,//name
-      //   node.vRightHandSide,//initialValue
-      //   ast.getContainingScope(node),//scope
-      //   ast,//ast
-      // );
       const tempVarStatement = createVariableDeclarationStatement([varDecl], initialValue, ast);
       const tempVar = tempVarStatement.vDeclarations[0];
 
       const leftHandSide = cloneASTNode(node.vLeftHandSide, ast);
-      const updateVal = createAssignmentStatement(
+      const rightHandSide = createIdentifier(tempVar, ast, undefined, node);
+      const assignment = new Assignment(
+        ast.reserveId(),
+        '',
+        leftHandSide.typeString,
         '=',
         leftHandSide,
-        createIdentifier(tempVar, ast, undefined, node),
-        ast,
+        rightHandSide,
       );
+      const updateVal = createExpressionStatement(ast, assignment);
 
       ast.insertStatementBefore(node, tempVarStatement);
       ast.insertStatementBefore(node, updateVal);
@@ -193,46 +190,5 @@ function identifierReferenceStateVar(id: Identifier) {
   return (
     refDecl instanceof VariableDeclaration &&
     refDecl.getClosestParentByType(ContractDefinition)?.id === refDecl.scope
-  );
-}
-
-// function createVariableDeclarationStatement(
-//   name: string,
-//   initialValue: Expression,
-//   scope: number,
-//   ast: AST,
-// ): VariableDeclarationStatement {
-//   const location =
-//     generalizeType(safeGetNodeType(initialValue, ast.compilerVersion))[1] ?? DataLocation.Default;
-//   const varDecl = new VariableDeclaration(
-//     ast.reserveId(),
-//     '',
-//     false,
-//     false,
-//     name,
-//     scope,
-//     false,
-//     location,
-//     StateVariableVisibility.Internal,
-//     Mutability.Constant,
-//     initialValue.typeString,
-//   );
-//   ast.setContextRecursive(varDecl);
-
-//   const varDeclStatement = new VariableDeclarationStatement(
-//     ast.reserveId(),
-//     '',
-//     [varDecl.id],
-//     [varDecl],
-//     cloneASTNode(initialValue, ast),
-//   );
-//   return varDeclStatement;
-// }
-
-function createAssignmentStatement(operator: string, lhs: Expression, rhs: Expression, ast: AST) {
-  return new ExpressionStatement(
-    ast.reserveId(),
-    '',
-    new Assignment(ast.reserveId(), '', lhs.typeString, operator, lhs, rhs),
   );
 }
