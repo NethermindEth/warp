@@ -61,7 +61,7 @@ import {
 } from './passes';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
-import { createPassMap, parsePassOrder } from './utils/cliOptionParsing';
+import { createPassMap, parsePassOrder } from './utils/cli';
 import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
 import { printCompileErrors, runSanityCheck } from './utils/utils';

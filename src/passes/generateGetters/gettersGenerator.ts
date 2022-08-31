@@ -12,7 +12,6 @@ import {
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
-  getNodeType,
   IndexAccess,
   Mapping,
   MemberAccess,
@@ -37,7 +36,7 @@ import {
   createUint256TypeName,
 } from '../../utils/nodeTemplates';
 import { toSingleExpression } from '../../utils/utils';
-import { isReferenceType } from '../../utils/nodeTypeProcessing';
+import { isReferenceType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { locationIfComplexType } from '../../cairoUtilFuncGen/base';
 
 /**
@@ -146,7 +145,7 @@ function genReturnParameters(
     );
   };
   if (vType instanceof ElementaryTypeName) {
-    if (isReferenceType(getNodeType(vType, ast.compilerVersion))) {
+    if (isReferenceType(safeGetNodeType(vType, ast.compilerVersion))) {
       return [newVarDecl(vType, DataLocation.Memory)];
     } else {
       return [newVarDecl(vType)];
@@ -170,7 +169,7 @@ function genReturnParameters(
         returnVariables.push(
           newVarDecl(
             v.vType,
-            isReferenceType(getNodeType(memberTypeName, ast.compilerVersion))
+            isReferenceType(safeGetNodeType(memberTypeName, ast.compilerVersion))
               ? DataLocation.Memory
               : DataLocation.Default,
           ),
@@ -231,7 +230,7 @@ function genFunctionParams(
         `_i${varCount}`,
         funcDefID,
         false,
-        locationIfComplexType(getNodeType(vType, ast.compilerVersion), DataLocation.Memory),
+        locationIfComplexType(safeGetNodeType(vType, ast.compilerVersion), DataLocation.Memory),
         StateVariableVisibility.Internal,
         Mutability.Mutable,
         vType.vKeyType.typeString,

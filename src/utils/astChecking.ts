@@ -26,7 +26,6 @@ import {
   FunctionDefinition,
   FunctionKind,
   FunctionTypeName,
-  getNodeType,
   Identifier,
   IdentifierPath,
   IfStatement,
@@ -69,6 +68,7 @@ import { AST } from '../ast/ast';
 import { CairoAssert } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from './astPrinter';
+import { safeGetNodeType } from './nodeTypeProcessing';
 import { isNameless } from './utils';
 
 // This is the solc-typed-ast AST checking code, with additions for CairoAssert and CairoContract
@@ -758,7 +758,7 @@ class NodeTypeResolutionChecker extends ASTMapper {
           child instanceof Expression || child instanceof VariableDeclaration,
       )
       .filter((child) => child.parent !== undefined && !(child.parent instanceof ImportDirective))
-      .forEach((child) => getNodeType(child, ast.compilerVersion));
+      .forEach((child) => safeGetNodeType(child, ast.compilerVersion));
   }
 }
 

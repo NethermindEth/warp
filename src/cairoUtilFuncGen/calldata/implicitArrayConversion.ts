@@ -6,7 +6,6 @@ import {
   FixedBytesType,
   FunctionCall,
   generalizeType,
-  getNodeType,
   IntType,
   PointerType,
   SourceUnit,
@@ -16,7 +15,7 @@ import { AST } from '../../ast/ast';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { isDynamicStorageArray } from '../../utils/nodeTypeProcessing';
+import { isDynamicStorageArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, CairoFunction, StringIndexedFuncGen } from '../base';
@@ -40,8 +39,12 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     targetExpression: Expression,
     sourceExpression: Expression,
   ): [Expression, boolean] {
-    const targetType = generalizeType(getNodeType(targetExpression, this.ast.compilerVersion))[0];
-    const sourceType = generalizeType(getNodeType(sourceExpression, this.ast.compilerVersion))[0];
+    const targetType = generalizeType(
+      safeGetNodeType(targetExpression, this.ast.compilerVersion),
+    )[0];
+    const sourceType = generalizeType(
+      safeGetNodeType(sourceExpression, this.ast.compilerVersion),
+    )[0];
 
     if (this.checkDims(targetType, sourceType) || this.checkSizes(targetType, sourceType)) {
       return [this.gen(targetExpression, sourceExpression), true];
@@ -92,8 +95,8 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
   }
 
   gen(lhs: Expression, rhs: Expression): FunctionCall {
-    const lhsType = getNodeType(lhs, this.ast.compilerVersion);
-    const rhsType = getNodeType(rhs, this.ast.compilerVersion);
+    const lhsType = safeGetNodeType(lhs, this.ast.compilerVersion);
+    const rhsType = safeGetNodeType(rhs, this.ast.compilerVersion);
 
     const name = this.getOrCreate(lhsType, rhsType);
 

@@ -11,7 +11,6 @@ import {
   FixedBytesType,
   FunctionCall,
   FunctionCallKind,
-  getNodeType,
   Identifier,
   IntType,
   MemberAccess,
@@ -35,7 +34,7 @@ import {
   createNumberLiteral,
   createStringLiteral,
 } from './nodeTemplates';
-import { isStorageSpecificType } from './nodeTypeProcessing';
+import { isStorageSpecificType, safeGetNodeType } from './nodeTypeProcessing';
 import { typeNameFromTypeNode } from './utils';
 
 export function getDefaultValue(
@@ -210,7 +209,7 @@ function userDefDefault(
     );
   if (nodeType.definition instanceof UserDefinedValueTypeDefinition)
     return getDefaultValue(
-      getNodeType(nodeType.definition.underlyingType, ast.compilerVersion),
+      safeGetNodeType(nodeType.definition.underlyingType, ast.compilerVersion),
       parentNode,
       ast,
     );
@@ -244,7 +243,7 @@ function structDefault(
 ): Expression {
   const argsList: Expression[] = [];
   for (const member of structNode.vMembers) {
-    const tNode = getNodeType(member, ast.compilerVersion);
+    const tNode = safeGetNodeType(member, ast.compilerVersion);
     argsList.push(getDefaultValue(tNode, node, ast));
   }
   return new FunctionCall(

@@ -113,7 +113,7 @@ export class NewToDeploy extends ASTMapper {
       const bytes32Salt = parent.vOptionsMap.get('salt');
       assert(bytes32Salt !== undefined);
       // Narrow salt to a felt range
-      salt = createElementaryConversionCall(createBytesNTypeName(30, ast), bytes32Salt, ast);
+      salt = createElementaryConversionCall(createBytesNTypeName(30, ast), bytes32Salt, node, ast);
       ast.replaceNode(bytes32Salt, salt, parent);
     } else {
       throw new TranspileFailedError(
@@ -195,21 +195,21 @@ export class NewToDeploy extends ASTMapper {
 
     /*
      * The name of the place holder is important because it will be used later
-     * during deployement to set the appopiate class hash value (notice below
+     * during deployment to set the appropriate class hash value (notice below
      * it is being set to zero by default)
      * The name is a combination of:
      * - the path to the cairo file which contain the target contract to deploy
      * - the hash of the path.
-     * The path part is unnecesary, but  it's left there for readability.
+     * The path part is unnecessary, but  it's left there for readability.
      * The hash part is the one used for later to search for the correct file
      * declaration. Also it used to avoid naming clashes between different placeholders.
      */
     const varName = `${varPrefix}_${hash}`;
     /*
-     * The form of documenation is used later during postlinking to extract the files
+     * The form of documentation is used later during post-linking to extract the files
      * this source unit depends on. See src/utils/postCairoWrite.ts
      */
-    const documenation = `@declare ${cairoPath}`;
+    const documentation = `@declare ${cairoPath}`;
 
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
@@ -223,7 +223,7 @@ export class NewToDeploy extends ASTMapper {
       StateVariableVisibility.Internal,
       Mutability.Constant,
       'address',
-      documenation,
+      documentation,
       createAddressTypeName(false, ast),
       undefined,
       createNumberLiteral(0, ast, 'uint160'),

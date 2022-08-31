@@ -6,7 +6,6 @@ import {
   Expression,
   FunctionCall,
   generalizeType,
-  getNodeType,
   SourceUnit,
   StringType,
   StructDefinition,
@@ -31,6 +30,7 @@ import {
   isDynamicArray,
   isStruct,
   isValueType,
+  safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
@@ -273,7 +273,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
     assert(type.definition instanceof StructDefinition);
 
     const encodeCode = type.definition.vMembers.map((varDecl, index) => {
-      const varType = getNodeType(varDecl, this.ast.compilerVersion);
+      const varType = safeGetNodeType(varDecl, this.ast.compilerVersion);
       return [
         `let member_${index} = from_struct.${varDecl.name}`,
         ...this.generateEncodeCode(varType, `member_${index}`),

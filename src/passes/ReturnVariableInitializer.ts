@@ -1,9 +1,10 @@
-import { FunctionDefinition, getNodeType, VariableDeclarationStatement } from 'solc-typed-ast';
+import { FunctionDefinition, VariableDeclarationStatement } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
 import { getDefaultValue } from '../utils/defaultValueNodes';
 import { collectUnboundVariables } from '../utils/functionGeneration';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
 export class ReturnVariableInitializer extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -26,7 +27,7 @@ export class ReturnVariableInitializer extends ASTMapper {
           '',
           [newDecl.id],
           [newDecl],
-          getDefaultValue(getNodeType(decl, ast.compilerVersion), newDecl, ast),
+          getDefaultValue(safeGetNodeType(decl, ast.compilerVersion), newDecl, ast),
         );
         identifiers.forEach((identifier) => {
           identifier.referencedDeclaration = newDecl.id;
