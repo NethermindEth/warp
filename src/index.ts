@@ -42,7 +42,7 @@ export type OutputOptions = {
   result: boolean;
 };
 
-type CliOptions = CompilationOptions & TranspilationOptions & PrintOptions & OutputOptions;
+export type CliOptions = CompilationOptions & TranspilationOptions & PrintOptions & OutputOptions;
 
 const program = new Command();
 

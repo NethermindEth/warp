@@ -69,12 +69,13 @@ export function starkNetCompile(
   filePath: string,
   parameters: Map<string, string | undefined>,
   isDebug?: IOptionalDebugInfo,
+  isTest?: boolean,
 ) {
   const debug: string = isDebug?.debug_info ? '--debug_info_with_source' : '--no_debug_info';
   const multiOptions: string[] = [debug, filePath];
 
   const cmd: string = buildCairoCommand(parameters, CAIRO_CMD_STARKNET_COMPILE, multiOptions);
-  callCairoCommand(cmd, CAIRO_CMD_STARKNET_COMPILE);
+  callCairoCommand(cmd, CAIRO_CMD_STARKNET_COMPILE, true, isTest);
 
   return cmd;
 }
