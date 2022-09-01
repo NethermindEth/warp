@@ -3,6 +3,7 @@ import { describe, it } from 'mocha';
 import { parse } from '../src/utils/functionSignatureParser';
 import { Command } from 'commander';
 import {
+  CliOptions,
   ICallOrInvokeProps,
   IDeclareOptions,
   IDeployAccountProps,
@@ -25,6 +26,10 @@ import {
   starkNetDeploy,
 } from '../src/starknetCli';
 import * as path from 'path';
+import { createCairoFileName, isValidSolFile, outputResult } from '../src/io';
+import { handleTranspilationError, transpile } from '../src/transpiler';
+import { compileSolFile } from '../src/solCompile';
+import { postProcessCairoFile } from '../src/utils/postCairoWrite';
 
 type Input = string[] | number[] | Input[] | (string | number | Input)[];
 
@@ -113,13 +118,63 @@ const command = {
 const mockData = {
   network: 'alha-goerli',
   hash: '0x01a',
-  cairoFile: 'tests/testFiles/ERC20__WC__WARP.cairo',
+  cairoFile: 'warp_output/tests/testFiles/Test__WC__WARP.cairo',
   ozWallet: 'starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount',
   account: 'Test_Account',
 };
 
 describe('Warp CLI test', function () {
   this.timeout(10000);
+
+  it('generate cairo contract', async () => {
+    const program = new Command();
+
+    program
+      .command('transpile <files...>')
+      .option('--compile-cairo')
+      .option('--no-compile-errors')
+      .option('--check-trees')
+      .option('--highlight <ids...>')
+      .option('--order <passOrder>')
+      .option(
+        '-o, --output-dir <path>',
+        'Output directory for transpiled Cairo files.',
+        'warp_output',
+      )
+      .option('--print-trees')
+      .option('--no-result')
+      .option('--no-stubs')
+      .option('--no-strict')
+      // Stops transpilation after the specified pass
+      .option('--until <pass>')
+      .option('--no-warnings')
+      .option('--dev') // for development mode
+      .action((files: string[], options: CliOptions) => {
+        // We do the extra work here to make sure all the errors are printed out
+        // for all files which are invalid.
+        if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
+        const cairoSuffix = '.cairo';
+        const contractToHashMap = new Map<string, string>();
+        files.forEach((file) => {
+          if (files.length > 1) {
+            console.log(`Compiling ${file}`);
+          }
+          try {
+            transpile(compileSolFile(file, options.warnings), options)
+              .map(([name, cairo, abi]) => {
+                outputResult(name, cairo, options, cairoSuffix, abi);
+                return createCairoFileName(name, cairoSuffix);
+              })
+              .forEach((file) => {
+                postProcessCairoFile(file, options.outputDir, contractToHashMap);
+              });
+          } catch (e) {
+            handleTranspilationError(e);
+          }
+        });
+      });
+    program.parse(['node', './bin/warp', 'transpile', 'tests/testFiles/Test.sol']);
+  });
 
   describe('warp status', function () {
     describe('command output test', function () {
@@ -331,7 +386,7 @@ describe('Warp CLI test', function () {
           .command('compile <file>')
           .option('-d, --debug_info', 'Include debug information.', false)
           .action((file: string, options: IOptionalDebugInfo) => {
-            output = starkNetCompile(file, parameters, options);
+            output = starkNetCompile(file, parameters, options, true);
           });
       });
 
