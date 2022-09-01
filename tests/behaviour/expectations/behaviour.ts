@@ -1,3 +1,4 @@
+import { FILE } from 'dns';
 import { Dir, Expect, File } from './types';
 import { flatten } from './utils';
 
@@ -2724,6 +2725,7 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('libraries', [
+          File.Simple('constantInitialization', [Expect.Simple('f', [], ['20001'])]),
           File.Simple('using_for', [
             Expect.Simple('libFunction', ['1'], ['0'], 'uint256/true branch'),
           ]),
