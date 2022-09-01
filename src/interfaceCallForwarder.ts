@@ -6,6 +6,7 @@ import fs from 'fs';
 import { execSync } from 'child_process';
 
 import { AST } from './ast/ast';
+import { SourceUnit } from 'solc-typed-ast';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 const defaultCompilerVersion = '0.8.14';
@@ -31,26 +32,14 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
 
   parameters.set('cairo_path', path.resolve(__dirname, '..'));
 
-  try {
-    console.log(
-      `${warpVenvPrefix} python3 ../interface_call_forwarder/generate_cairo_json.py ${filePath} ${[
-        ...parameters.entries(),
-      ]
-        .map(([key, value]) => `--${key} ${value}`)
-        .join(' ')}`,
-    );
-    execSync(
-      `${warpVenvPrefix} python3 ../interface_call_forwarder/generate_cairo_json.py ${filePath} ${[
-        ...parameters.entries(),
-      ]
-        .map(([key, value]) => `--${key} ${value}`)
-        .join(' ')}`,
-      { stdio: 'inherit' },
-    );
-  } catch (e) {
-    throw e;
-  }
+  execSync(
+    `${warpVenvPrefix} python3 ../interface_call_forwarder/generate_cairo_json.py ${filePath} ${[
+      ...parameters.entries(),
+    ]
+      .map(([key, value]) => `--${key} ${value}`)
+      .join(' ')}`,
+    { stdio: 'inherit' },
+  );
 
   const jsonCairo = JSON.parse(fs.readFileSync(jsonCairoPath, 'utf8'));
-  let ast: AST = new AST([], options.compiler_version ?? defaultCompilerVersion);
 }
