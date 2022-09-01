@@ -256,7 +256,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps,
     let classHash;
     if (!options.no_wallet) {
       assert(compileResult.resultPath !== undefined);
-      classHash = declareContract(compileResult.resultPath, options);
+      classHash = declareContract(compileResult.resultPath, false, options);
     }
     const classHashOption = classHash ? `--class_hash ${classHash}` : '';
     const resultPath = compileResult.resultPath as string;
@@ -391,9 +391,16 @@ export function processDeclareContract(
   return cmd;
 }
 
-function declareContract(filePath: string, option?: IDeclareOptions): string | undefined {
+function declareContract(
+  filePath: string,
+  isStdio: boolean,
+  option?: IDeclareOptions,
+): string | undefined {
   const cmd: string = processDeclareContract(filePath, option) as string;
-  const result = callCairoCommand(cmd, CAIRO_CMD_DECLARE, false) as string;
+  const result = callCairoCommand(cmd, CAIRO_CMD_DECLARE, isStdio) as string;
+
+  if (isStdio === true) return;
+
   try {
     return processDeclareCLI(result, filePath);
   } catch {
@@ -409,7 +416,7 @@ export function runStarknetDeclare(filePath: string, options: IDeclareOptions) {
     return;
   } else {
     assert(resultPath !== undefined);
-    declareContract(resultPath, options);
+    declareContract(resultPath, true, options);
   }
 }
 
