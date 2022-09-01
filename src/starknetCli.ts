@@ -49,10 +49,10 @@ function callCairoCommand(cmd: string, command: string, isStdio = true, isTest =
 function buildCairoCommand(
   options: string[] | Map<string, string | undefined>,
   command: string,
-  multiOptions?: any,
+  multiOptions?: string[],
 ) {
   let output = `${warpVenvPrefix} starknet${command} `;
-  multiOptions = multiOptions?.join(' ');
+  const newMultiOptions: string = multiOptions?.join(' ') as string;
 
   output = output.concat(
     `${[...options.entries()].map(([key, value]) => `--${key} ${value}`).join(' ')}`,
@@ -60,7 +60,7 @@ function buildCairoCommand(
 
   if (multiOptions !== undefined) {
     output = output + ' ';
-    output = output.concat(multiOptions);
+    output = output.concat(newMultiOptions);
   }
   return output;
 }
