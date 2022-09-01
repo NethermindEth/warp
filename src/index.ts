@@ -158,7 +158,7 @@ program
 export interface SolcInterfaceGenOptions {
   cairo_path: string;
   output?: string;
-  compiler_version?: string;
+  solc_version?: string;
 }
 
 program
