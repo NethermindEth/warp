@@ -721,14 +721,18 @@ Please check if the path is correct, as it may be different on your system.
 In order to deploy the contract to starknet,you can run :
 
 ```
-bin/warp deploy warp_output/simple__deployment__example__WC__TestFunction1.cairo  --inputs 2,3,\"mitesh\",\[1,2,3\]
+warp deploy warp_output/simple__deployment__example__WC__TestFunction1.cairo  --inputs 2,3,\"mitesh\",\[1,2,3\]
 ```
 
 The above deployment method uses `solidity abi` which makes it easier for user to pass the arguments. There is also another method
 for deploying which uses `cairo abi` where we need to pass the length of the arrays and the value of each byte. You can see the example under [Deploying](#deploying) section to see this pattern in action. Also, you can refer [Cairo Docs](https://www.cairo-lang.org/docs/) for more information.
 
-Also, you can call the deployed contract as:
+Also, you can call and invoke the deployed contract as:
 
 ```
- bin/warp call warp_output/simple__deployment__example__WC__TestFunction1.cairo  --address 0x040b0d53bea89074c1d8cc75fa310e8d558c283dd138e0c19a8392fb1de891e4 --function x_0c55699c --use_cairo_abi
+warp call warp_output/simple__deployment__example__WC__TestFunction1.cairo  --address 0x040b0d53bea89074c1d8cc75fa310e8d558c283dd138e0c19a8392fb1de891e4 --function x_0c55699c --use_cairo_abi
+```
+
+```
+warp invoke warp_output/simple__deployment__example__WC__TestFunction1.cairo  --address 0x040b0d53bea89074c1d8cc75fa310e8d558c283dd138e0c19a8392fb1de891e4 --function setVal --inputs 2,3,\"hari\",\[10,11,12\]
 ```
