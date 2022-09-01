@@ -3,7 +3,6 @@ import {
   TypeName,
   ASTNode,
   FunctionCall,
-  getNodeType,
   DataLocation,
   FunctionStateMutability,
   generalizeType,
@@ -18,7 +17,7 @@ import {
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createNumberLiteral, createNumberTypeName } from '../../utils/nodeTemplates';
-import { isDynamicArray } from '../../utils/nodeTypeProcessing';
+import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { add, locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { serialiseReads } from '../serialisation';
 
@@ -30,7 +29,7 @@ import { serialiseReads } from '../serialisation';
 
 export class MemoryReadGen extends StringIndexedFuncGen {
   gen(memoryRef: Expression, type: TypeName, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const valueType = generalizeType(getNodeType(memoryRef, this.ast.compilerVersion))[0];
+    const valueType = generalizeType(safeGetNodeType(memoryRef, this.ast.compilerVersion))[0];
     const resultCairoType = CairoType.fromSol(valueType, this.ast);
 
     const params: [string, TypeName, DataLocation][] = [

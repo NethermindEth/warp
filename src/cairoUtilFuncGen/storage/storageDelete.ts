@@ -7,7 +7,6 @@ import {
   Expression,
   FunctionCall,
   generalizeType,
-  getNodeType,
   MappingType,
   PointerType,
   SourceUnit,
@@ -19,7 +18,7 @@ import { AST } from '../../ast/ast';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { getElementType, isDynamicArray } from '../../utils/nodeTypeProcessing';
+import { getElementType, isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode, mapRange, narrowBigIntSafe } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
@@ -39,7 +38,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   gen(node: Expression, nodeInSourceUnit?: ASTNode): FunctionCall {
-    const nodeType = dereferenceType(getNodeType(node, this.ast.compilerVersion));
+    const nodeType = dereferenceType(safeGetNodeType(node, this.ast.compilerVersion));
 
     const functionName = this.getOrCreate(nodeType);
 
@@ -240,7 +239,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       `func ${funcName}${implicits}(loc : felt):`,
       `   alloc_locals`,
       ...this.generateStructDeletionCode(
-        structDef.vMembers.map((varDecl) => getNodeType(varDecl, this.ast.compilerVersion)),
+        structDef.vMembers.map((varDecl) => safeGetNodeType(varDecl, this.ast.compilerVersion)),
       ),
       `   return ()`,
       `end`,

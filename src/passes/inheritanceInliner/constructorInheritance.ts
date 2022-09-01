@@ -335,7 +335,7 @@ function transformConstructor(
   removeNonModifierInvocations(currentCons);
 
   const argList = newConstructor.vParameters.vParameters.map((v) => {
-    return createIdentifier(v, ast);
+    return createIdentifier(v, ast, undefined, node);
   });
   statements.push(
     new ExpressionStatement(ast.reserveId(), '', createCallToFunction(currentCons, argList, ast)),

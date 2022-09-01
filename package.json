@@ -15,7 +15,8 @@
     "build",
     "nethersolc",
     "warp_venv.sh",
-    "warplib"
+    "warplib",
+    "starknet-scripts"
   ],
   "scripts": {
     "build": "rm -rf ./build; yarn tsc",

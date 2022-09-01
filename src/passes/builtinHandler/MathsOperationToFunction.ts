@@ -103,7 +103,6 @@ export class MathsOperationToFunction extends ASTMapper {
       node.vExpression instanceof Identifier &&
       node.vExpression.vReferencedDeclaration === undefined
     ) {
-      console.log(node.vExpression.name);
       if (['mulmod', 'addmod'].includes(node.vExpression.name)) {
         const name = `warp_${node.vExpression.name}`;
         const cairoStub = createCairoFunctionStub(

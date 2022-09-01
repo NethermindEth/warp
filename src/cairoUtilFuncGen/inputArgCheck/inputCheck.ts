@@ -12,7 +12,6 @@ import {
   FunctionCall,
   FunctionStateMutability,
   generalizeType,
-  getNodeType,
   IntType,
   StringType,
   StructDefinition,
@@ -28,7 +27,12 @@ import { createCairoFunctionStub, createCallToFunction } from '../../utils/funct
 import { createIdentifier } from '../../utils/nodeTemplates';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { delegateBasedOnType, locationIfComplexType, StringIndexedFuncGen } from '../base';
-import { checkableType, getElementType, isDynamicArray } from '../../utils/nodeTypeProcessing';
+import {
+  checkableType,
+  getElementType,
+  isDynamicArray,
+  safeGetNodeType,
+} from '../../utils/nodeTypeProcessing';
 import { cloneASTNode } from '../../utils/cloning';
 
 export class InputCheckGen extends StringIndexedFuncGen {
@@ -43,7 +47,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
       functionInput = createIdentifier(nodeInput, this.ast);
     } else {
       functionInput = cloneASTNode(nodeInput, this.ast);
-      const inputType = getNodeType(nodeInput, this.ast.compilerVersion);
+      const inputType = safeGetNodeType(nodeInput, this.ast.compilerVersion);
       this.ast.setContextRecursive(functionInput);
       isUint256 = inputType instanceof IntType && inputType.nBits === 256;
       this.requireImport('warplib.maths.utils', 'narrow_safe');
@@ -144,7 +148,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
         `func ${funcName}${implicits}(arg : ${cairoType.toString()}) -> ():`,
         `alloc_locals`,
         ...structDef.vMembers.map((decl) => {
-          const memberType = getNodeType(decl, this.ast.compilerVersion);
+          const memberType = safeGetNodeType(decl, this.ast.compilerVersion);
           this.checkForImport(memberType);
           if (checkableType(memberType)) {
             const memberCheck = this.getOrCreate(memberType);

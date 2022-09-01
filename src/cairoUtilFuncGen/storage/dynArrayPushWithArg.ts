@@ -7,7 +7,6 @@ import {
   DataLocation,
   FunctionCall,
   generalizeType,
-  getNodeType,
   MemberAccess,
   SourceUnit,
   StringType,
@@ -24,7 +23,12 @@ import { StorageWriteGen } from './storageWrite';
 import { StorageToStorageGen } from './copyToStorage';
 import { CalldataToStorageGen } from '../calldata/calldataToStorage';
 import { Implicits } from '../../utils/implicits';
-import { getElementType, isDynamicArray, specializeType } from '../../utils/nodeTypeProcessing';
+import {
+  getElementType,
+  isDynamicArray,
+  safeGetNodeType,
+  specializeType,
+} from '../../utils/nodeTypeProcessing';
 import { ImplicitArrayConversion } from '../calldata/implicitArrayConversion';
 
 export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
@@ -44,7 +48,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
   gen(push: FunctionCall, nodeInSourceUnit?: ASTNode): FunctionCall {
     assert(push.vExpression instanceof MemberAccess);
     const arrayType = generalizeType(
-      getNodeType(push.vExpression.vExpression, this.ast.compilerVersion),
+      safeGetNodeType(push.vExpression.vExpression, this.ast.compilerVersion),
     )[0];
     assert(
       arrayType instanceof ArrayType ||
@@ -57,7 +61,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       `Attempted to treat push without argument as push with argument`,
     );
     const [argType, argLoc] = generalizeType(
-      getNodeType(push.vArguments[0], this.ast.compilerVersion),
+      safeGetNodeType(push.vArguments[0], this.ast.compilerVersion),
     );
 
     const name = this.getOrCreate(

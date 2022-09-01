@@ -10,7 +10,6 @@ import {
   FunctionStateMutability,
   FunctionVisibility,
   generalizeType,
-  getNodeType,
   Literal,
   LiteralKind,
   MappingType,
@@ -28,7 +27,11 @@ import {
   createParameterList,
   createVariableDeclarationStatement,
 } from '../utils/nodeTemplates';
-import { isDynamicArray, typeNameToSpecializedTypeNode } from '../utils/nodeTypeProcessing';
+import {
+  isDynamicArray,
+  safeGetNodeType,
+  typeNameToSpecializedTypeNode,
+} from '../utils/nodeTypeProcessing';
 import { isCairoConstant } from '../utils/utils';
 
 export class StorageAllocator extends ASTMapper {
@@ -46,7 +49,7 @@ export class StorageAllocator extends ASTMapper {
     const dynamicAllocations: Map<VariableDeclaration, number> = new Map();
     const staticAllocations: Map<VariableDeclaration, number> = new Map();
     node.vStateVariables.forEach((v) => {
-      const type = getNodeType(v, ast.compilerVersion);
+      const type = safeGetNodeType(v, ast.compilerVersion);
       if (generalizeType(type)[0] instanceof MappingType || isDynamicArray(type)) {
         const width = CairoType.fromSol(type, ast, TypeConversionContext.StorageAllocation).width;
         dynamicAllocations.set(v, ++usedNames);
@@ -150,7 +153,7 @@ function extractInitialisation(node: VariableDeclaration, initialisationBlock: B
     initialisationBlock.appendChild(
       createVariableDeclarationStatement([memoryVariableDeclaration], value, ast),
     );
-    value = createIdentifier(memoryVariableDeclaration, ast, DataLocation.Memory);
+    value = createIdentifier(memoryVariableDeclaration, ast, DataLocation.Memory, node);
   }
   initialisationBlock.appendChild(
     createExpressionStatement(

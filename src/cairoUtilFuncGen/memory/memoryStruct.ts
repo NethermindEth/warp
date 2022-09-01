@@ -2,7 +2,6 @@ import assert = require('assert');
 import {
   DataLocation,
   FunctionCall,
-  getNodeType,
   IdentifierPath,
   PointerType,
   StructDefinition,
@@ -11,7 +10,7 @@ import {
 import { CairoStruct, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { typeNameToSpecializedTypeNode } from '../../utils/nodeTypeProcessing';
+import { safeGetNodeType, typeNameToSpecializedTypeNode } from '../../utils/nodeTypeProcessing';
 import { uint256 } from '../../warplib/utils';
 import { add, StringIndexedFuncGen } from '../base';
 
@@ -25,7 +24,7 @@ export class MemoryStructGen extends StringIndexedFuncGen {
     assert(structDef instanceof StructDefinition);
 
     const cairoType = CairoType.fromSol(
-      getNodeType(node, this.ast.compilerVersion),
+      safeGetNodeType(node, this.ast.compilerVersion),
       this.ast,
       TypeConversionContext.MemoryAllocation,
     );

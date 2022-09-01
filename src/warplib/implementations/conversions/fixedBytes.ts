@@ -1,21 +1,22 @@
 import assert from 'assert';
-import { FixedBytesType, FunctionCall, generalizeType, getNodeType } from 'solc-typed-ast';
+import { FixedBytesType, FunctionCall, generalizeType } from 'solc-typed-ast';
 import { AST } from '../../../ast/ast';
 import { printTypeNode, printNode } from '../../../utils/astPrinter';
 import { createCairoFunctionStub, createCallToFunction } from '../../../utils/functionGeneration';
 import { createNumberLiteral, createUint8TypeName } from '../../../utils/nodeTemplates';
+import { safeGetNodeType } from '../../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../../utils/utils';
 
 export function functionaliseFixedBytesConversion(conversion: FunctionCall, ast: AST): void {
   const arg = conversion.vArguments[0];
-  const fromType = generalizeType(getNodeType(arg, ast.compilerVersion))[0];
+  const fromType = generalizeType(safeGetNodeType(arg, ast.compilerVersion))[0];
   assert(
     fromType instanceof FixedBytesType,
     `Argument of fixed bytes conversion expected to be fixed bytes type. Got ${printTypeNode(
       fromType,
     )} at ${printNode(conversion)}`,
   );
-  const toType = getNodeType(conversion, ast.compilerVersion);
+  const toType = safeGetNodeType(conversion, ast.compilerVersion);
   assert(
     toType instanceof FixedBytesType,
     `Fixed bytes conversion expected to be fixed bytes type. Got ${printTypeNode(

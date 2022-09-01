@@ -22,7 +22,7 @@ Then, install the project dependencies:
 yarn install
 ```
 
-That's it! You're ready to start contributing to Juno's documentation.
+That's it! You're ready to start contributing to Warp's documentation.
 
 ## Local Development
 
