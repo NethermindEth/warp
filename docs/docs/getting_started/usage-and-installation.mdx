@@ -111,33 +111,286 @@ warp transpile contracts/token/ERC20/ERC20.sol
 
 The output of the transpilation could be found in warp_output folder.
 
-Now the file can be compiled and deployed. Run the following to compile the Cairo contract:
+Now,the file can be compiled and deployed. Run the following to compile the Cairo contract:
 
 ```
 warp compile warp_output/contracts/token/ERC20/ERC20__WARP_CONTRACT__ERC20.cairo
 ```
 
-If we have solidity code as :
+### Deploying
 
 ```
-contract WARP {
-  uint256 public counter;
+warp deploy [PATH_TO_TRANSPILED_CAIRO_CONTRACT] --use_cairo_abi --inputs  [INPUT_ARGUMENTS]
+```
 
-  function increment() public returns (uint256) {
-    counter += 1;
-    return counter;
+For example:
+
+```
+warp deploy warp_output/contracts/token/ERC20/ERC20__WARP_CONTRACT__ERC20.cairo --use_cairo_abi --inputs  10,0x4e,0x45,0x54,0x48,0x45,0x52,0x43,0x4f,0x49,0x4e,4,0x4e,0x45,0x54,0x48
+```
+
+#### Note
+
+In the example above, we needed a name and ticker for our ERC20 coin. We used NETHERCOIN and NETH.
+StarkNet does not support Solidity-style strings,
+so the Warp team treats them as dynamic arrays of bytes.
+To match the StarkNet abi we need to pass the length of the arrays and the value of each byte.
+When using --use_cairo_abi, one thing to take care of is it only supports negative numbers in 2's complement form.
+
+### A Detailed Example
+
+Let us get hands-on with the transpiling and deploying process starting with a solidity file using warp cli commands.
+
+Let us consider our solidity smart contract file having named as `simple_deployment_example.sol`:
+
+```
+pragma solidity ^0.8;
+
+contract TestFunction1 {
+  uint256 public x;
+  uint256 public y;
+  string public name;
+  uint256[] public z;
+
+  constructor(
+    uint256 _x,
+    uint256 _y,
+    string memory _name,
+    uint256[] memory _z
+  ) {
+    x = _x;
+    y = _y;
+    name = _name;
+    z = _z;
+  }
+
+  function setVal(
+    uint256 _x,
+    uint256 _y,
+    string memory _name,
+    uint256[] memory _z
+  ) public {
+    x = _x;
+    y = _y;
+    name = _name;
+    z = _z;
   }
 }
 ```
 
-The transpiled cairo file would look like this:
+Now, to transpile it to cairo, we need to run the following command :
+
+```
+warp transpile simple_deployment_example.sol
+```
+
+The output file(.cairo) which you can find in warp_output folder looks like :
 
 ```
 %lang starknet
 
-from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.dict import dict_read, dict_write
+from starkware.cairo.common.uint256 import uint256_sub, uint256_lt, Uint256, uint256_eq, uint256_add
+from warplib.memory import wm_dyn_array_length, wm_new
+from warplib.maths.utils import narrow_safe, felt_to_uint256
+from warplib.maths.int_conversions import warp_uint256
+from starkware.cairo.common.alloc import alloc
+from warplib.maths.external_input_check_ints import (
+    warp_external_input_check_int256,
+    warp_external_input_check_int8,
+)
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from warplib.maths.add import warp_add256
+from starkware.cairo.common.dict_access import DictAccess
+from starkware.cairo.common.default_dict import default_dict_new, default_dict_finalize
+
+struct cd_dynarray_felt:
+    member len : felt
+    member ptr : felt*
+end
+
+struct cd_dynarray_Uint256:
+    member len : felt
+    member ptr : Uint256*
+end
+
+func wm_to_storage0_elem{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr : felt,
+    warp_memory : DictAccess*,
+}(storage_name : felt, mem_loc : felt, length : Uint256) -> ():
+    alloc_locals
+    if length.low == 0:
+        if length.high == 0:
+            return ()
+        end
+    end
+    let (index) = uint256_sub(length, Uint256(1, 0))
+    let (storage_loc) = WARP_DARRAY0_felt.read(storage_name, index)
+    let mem_loc = mem_loc - 1
+    if storage_loc == 0:
+        let (storage_loc) = WARP_USED_STORAGE.read()
+        WARP_USED_STORAGE.write(storage_loc + 1)
+        WARP_DARRAY0_felt.write(storage_name, index, storage_loc)
+        let (copy) = dict_read{dict_ptr=warp_memory}(mem_loc)
+        WARP_STORAGE.write(storage_loc, copy)
+        return wm_to_storage0_elem(storage_name, mem_loc, index)
+    else:
+        let (copy) = dict_read{dict_ptr=warp_memory}(mem_loc)
+        WARP_STORAGE.write(storage_loc, copy)
+        return wm_to_storage0_elem(storage_name, mem_loc, index)
+    end
+end
+func wm_to_storage0{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr : felt,
+    warp_memory : DictAccess*,
+}(loc : felt, mem_loc : felt) -> (loc : felt):
+    alloc_locals
+    let (length) = WARP_DARRAY0_felt_LENGTH.read(loc)
+    let (mem_length) = wm_dyn_array_length(mem_loc)
+    WARP_DARRAY0_felt_LENGTH.write(loc, mem_length)
+    let (narrowedLength) = narrow_safe(mem_length)
+    wm_to_storage0_elem(loc, mem_loc + 2 + 1 * narrowedLength, mem_length)
+    let (lesser) = uint256_lt(mem_length, length)
+    if lesser == 1:
+        WS0_DYNAMIC_ARRAY_DELETE_elem(loc, mem_length, length)
+        return (loc)
+    else:
+        return (loc)
+    end
+end
+
+func wm_to_storage1_elem{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr : felt,
+    warp_memory : DictAccess*,
+}(storage_name : felt, mem_loc : felt, length : Uint256) -> ():
+    alloc_locals
+    if length.low == 0:
+        if length.high == 0:
+            return ()
+        end
+    end
+    let (index) = uint256_sub(length, Uint256(1, 0))
+    let (storage_loc) = WARP_DARRAY1_Uint256.read(storage_name, index)
+    let mem_loc = mem_loc - 2
+    if storage_loc == 0:
+        let (storage_loc) = WARP_USED_STORAGE.read()
+        WARP_USED_STORAGE.write(storage_loc + 2)
+        WARP_DARRAY1_Uint256.write(storage_name, index, storage_loc)
+        let (copy) = dict_read{dict_ptr=warp_memory}(mem_loc)
+        WARP_STORAGE.write(storage_loc, copy)
+        let (copy) = dict_read{dict_ptr=warp_memory}(mem_loc + 1)
+        WARP_STORAGE.write(storage_loc + 1, copy)
+        return wm_to_storage1_elem(storage_name, mem_loc, index)
+    else:
+        let (copy) = dict_read{dict_ptr=warp_memory}(mem_loc)
+        WARP_STORAGE.write(storage_loc, copy)
+        let (copy) = dict_read{dict_ptr=warp_memory}(mem_loc + 1)
+        WARP_STORAGE.write(storage_loc + 1, copy)
+        return wm_to_storage1_elem(storage_name, mem_loc, index)
+    end
+end
+func wm_to_storage1{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr : felt,
+    warp_memory : DictAccess*,
+}(loc : felt, mem_loc : felt) -> (loc : felt):
+    alloc_locals
+    let (length) = WARP_DARRAY1_Uint256_LENGTH.read(loc)
+    let (mem_length) = wm_dyn_array_length(mem_loc)
+    WARP_DARRAY1_Uint256_LENGTH.write(loc, mem_length)
+    let (narrowedLength) = narrow_safe(mem_length)
+    wm_to_storage1_elem(loc, mem_loc + 2 + 2 * narrowedLength, mem_length)
+    let (lesser) = uint256_lt(mem_length, length)
+    if lesser == 1:
+        WS2_DYNAMIC_ARRAY_DELETE_elem(loc, mem_length, length)
+        return (loc)
+    else:
+        return (loc)
+    end
+end
+
+func WS0_DYNAMIC_ARRAY_DELETE_elem{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(loc : felt, index : Uint256, length : Uint256):
+    alloc_locals
+    let (stop) = uint256_eq(index, length)
+    if stop == 1:
+        return ()
+    end
+    let (elem_loc) = WARP_DARRAY0_felt.read(loc, index)
+    WS1_DELETE(elem_loc)
+    let (next_index, _) = uint256_add(index, Uint256(0x1, 0x0))
+    return WS0_DYNAMIC_ARRAY_DELETE_elem(loc, next_index, length)
+end
+func WS0_DYNAMIC_ARRAY_DELETE{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(loc : felt):
+    alloc_locals
+    let (length) = WARP_DARRAY0_felt_LENGTH.read(loc)
+    WARP_DARRAY0_felt_LENGTH.write(loc, Uint256(0x0, 0x0))
+    return WS0_DYNAMIC_ARRAY_DELETE_elem(loc, Uint256(0x0, 0x0), length)
+end
+
+func WS1_DELETE{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    loc : felt
+):
+    WARP_STORAGE.write(loc, 0)
+    return ()
+end
+
+func WS2_DYNAMIC_ARRAY_DELETE_elem{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(loc : felt, index : Uint256, length : Uint256):
+    alloc_locals
+    let (stop) = uint256_eq(index, length)
+    if stop == 1:
+        return ()
+    end
+    let (elem_loc) = WARP_DARRAY1_Uint256.read(loc, index)
+    WS3_DELETE(elem_loc)
+    let (next_index, _) = uint256_add(index, Uint256(0x1, 0x0))
+    return WS2_DYNAMIC_ARRAY_DELETE_elem(loc, next_index, length)
+end
+func WS2_DYNAMIC_ARRAY_DELETE{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(loc : felt):
+    alloc_locals
+    let (length) = WARP_DARRAY1_Uint256_LENGTH.read(loc)
+    WARP_DARRAY1_Uint256_LENGTH.write(loc, Uint256(0x0, 0x0))
+    return WS2_DYNAMIC_ARRAY_DELETE_elem(loc, Uint256(0x0, 0x0), length)
+end
+
+func WS3_DELETE{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    loc : felt
+):
+    WARP_STORAGE.write(loc, 0)
+    WARP_STORAGE.write(loc + 1, 0)
+    return ()
+end
+
+func WARP_DARRAY1_Uint256_IDX{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(ref : felt, index : Uint256) -> (res : felt):
+    alloc_locals
+    let (length) = WARP_DARRAY1_Uint256_LENGTH.read(ref)
+    let (inRange) = uint256_lt(index, length)
+    assert inRange = 1
+    let (existing) = WARP_DARRAY1_Uint256.read(ref, index)
+    if existing == 0:
+        let (used) = WARP_USED_STORAGE.read()
+        WARP_USED_STORAGE.write(used + 2)
+        WARP_DARRAY1_Uint256.write(ref, index, used)
+        return (used)
+    else:
+        return (existing)
+    end
+end
 
 func WS0_READ_Uint256{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     loc : felt
@@ -148,6 +401,39 @@ func WS0_READ_Uint256{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     return (Uint256(low=read0, high=read1))
 end
 
+func WS1_READ_felt{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    loc : felt
+) -> (val : felt):
+    alloc_locals
+    let (read0) = WARP_STORAGE.read(loc)
+    return (read0)
+end
+
+func ws_dynamic_array_to_calldata0_write{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(loc : felt, index : felt, len : felt, ptr : felt*) -> (ptr : felt*):
+    alloc_locals
+    if len == index:
+        return (ptr)
+    end
+    let (index_uint256) = warp_uint256(index)
+    let (elem_loc) = WARP_DARRAY0_felt.read(loc, index_uint256)
+    let (elem) = WS1_READ_felt(elem_loc)
+    assert ptr[index] = elem
+    return ws_dynamic_array_to_calldata0_write(loc, index + 1, len, ptr)
+end
+func ws_dynamic_array_to_calldata0{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
+}(loc : felt) -> (dyn_array_struct : cd_dynarray_felt):
+    alloc_locals
+    let (len_uint256) = WARP_DARRAY0_felt_LENGTH.read(loc)
+    let len = len_uint256.low + len_uint256.high * 128
+    let (ptr : felt*) = alloc()
+    let (ptr : felt*) = ws_dynamic_array_to_calldata0_write(loc, 0, len, ptr)
+    let dyn_array_struct = cd_dynarray_felt(len, ptr)
+    return (dyn_array_struct)
+end
+
 func WS_WRITE0{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
     loc : felt, value : Uint256
 ) -> (res : Uint256):
@@ -156,7 +442,94 @@ func WS_WRITE0{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     return (value)
 end
 
-# Contract Def WARP
+func extern_input_check0{range_check_ptr : felt}(len : felt, ptr : felt*) -> ():
+    alloc_locals
+    if len == 0:
+        return ()
+    end
+    warp_external_input_check_int8(ptr[0])
+    extern_input_check0(len=len - 1, ptr=ptr + 1)
+    return ()
+end
+
+func extern_input_check1{range_check_ptr : felt}(len : felt, ptr : Uint256*) -> ():
+    alloc_locals
+    if len == 0:
+        return ()
+    end
+    warp_external_input_check_int256(ptr[0])
+    extern_input_check1(len=len - 1, ptr=ptr + 2)
+    return ()
+end
+
+func cd_to_memory0_elem{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr : felt,
+    warp_memory : DictAccess*,
+}(calldata : Uint256*, mem_start : felt, length : felt):
+    alloc_locals
+    if length == 0:
+        return ()
+    end
+    dict_write{dict_ptr=warp_memory}(mem_start, calldata[0].low)
+    dict_write{dict_ptr=warp_memory}(mem_start + 1, calldata[0].high)
+    return cd_to_memory0_elem(calldata + 2, mem_start + 2, length - 1)
+end
+func cd_to_memory0{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr : felt,
+    warp_memory : DictAccess*,
+}(calldata : cd_dynarray_Uint256) -> (mem_loc : felt):
+    alloc_locals
+    let (len256) = felt_to_uint256(calldata.len)
+    let (mem_start) = wm_new(len256, Uint256(0x2, 0x0))
+    cd_to_memory0_elem(calldata.ptr, mem_start + 2, calldata.len)
+    return (mem_start)
+end
+
+func cd_to_memory1_elem{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr : felt,
+    warp_memory : DictAccess*,
+}(calldata : felt*, mem_start : felt, length : felt):
+    alloc_locals
+    if length == 0:
+        return ()
+    end
+    dict_write{dict_ptr=warp_memory}(mem_start, calldata[0])
+    return cd_to_memory1_elem(calldata + 1, mem_start + 1, length - 1)
+end
+func cd_to_memory1{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr : felt,
+    warp_memory : DictAccess*,
+}(calldata : cd_dynarray_felt) -> (mem_loc : felt):
+    alloc_locals
+    let (len256) = felt_to_uint256(calldata.len)
+    let (mem_start) = wm_new(len256, Uint256(0x1, 0x0))
+    cd_to_memory1_elem(calldata.ptr, mem_start + 2, calldata.len)
+    return (mem_start)
+end
+
+@storage_var
+func WARP_DARRAY0_felt(name : felt, index : Uint256) -> (resLoc : felt):
+end
+@storage_var
+func WARP_DARRAY0_felt_LENGTH(name : felt) -> (index : Uint256):
+end
+
+@storage_var
+func WARP_DARRAY1_Uint256(name : felt, index : Uint256) -> (resLoc : felt):
+end
+@storage_var
+func WARP_DARRAY1_Uint256_LENGTH(name : felt) -> (index : Uint256):
+end
+
+# Contract Def TestFunction1
 
 @storage_var
 func WARP_STORAGE(index : felt) -> (val : felt):
@@ -182,64 +555,180 @@ func readId{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : 
     end
 end
 
-namespace WARP:
+namespace TestFunction1:
     # Dynamic variables - Arrays and Maps
+
+    const __warp_usrid2_name = 1
+
+    const __warp_usrid3_z = 2
 
     # Static variables
 
-    const __warp_usrid0_counter = 0
+    const __warp_usrid0_x = 0
+
+    const __warp_usrid1_y = 2
+
+    @constructor
+    func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        __warp_usrid4__x : Uint256,
+        __warp_usrid5__y : Uint256,
+        __warp_usrid6__name_len : felt,
+        __warp_usrid6__name : felt*,
+        __warp_usrid7__z_len : felt,
+        __warp_usrid7__z : Uint256*,
+    ):
+        alloc_locals
+        WARP_USED_STORAGE.write(6)
+        WARP_NAMEGEN.write(2)
+        let (local warp_memory : DictAccess*) = default_dict_new(0)
+        local warp_memory_start : DictAccess* = warp_memory
+        dict_write{dict_ptr=warp_memory}(0, 1)
+        with warp_memory:
+            extern_input_check1(__warp_usrid7__z_len, __warp_usrid7__z)
+
+            extern_input_check0(__warp_usrid6__name_len, __warp_usrid6__name)
+
+            warp_external_input_check_int256(__warp_usrid5__y)
+
+            warp_external_input_check_int256(__warp_usrid4__x)
+
+            local __warp_usrid7__z_dstruct : cd_dynarray_Uint256 = cd_dynarray_Uint256(__warp_usrid7__z_len, __warp_usrid7__z)
+
+            let (__warp_usrid7__z_mem) = cd_to_memory0(__warp_usrid7__z_dstruct)
+
+            local __warp_usrid6__name_dstruct : cd_dynarray_felt = cd_dynarray_felt(__warp_usrid6__name_len, __warp_usrid6__name)
+
+            let (__warp_usrid6__name_mem) = cd_to_memory1(__warp_usrid6__name_dstruct)
+
+            WS_WRITE0(__warp_usrid0_x, __warp_usrid4__x)
+
+            WS_WRITE0(__warp_usrid1_y, __warp_usrid5__y)
+
+            wm_to_storage0(__warp_usrid2_name, __warp_usrid6__name_mem)
+
+            wm_to_storage1(__warp_usrid3_z, __warp_usrid7__z_mem)
+
+            default_dict_finalize(warp_memory_start, warp_memory, 0)
+
+            return ()
+        end
+    end
 
     @external
-    func increment_d09de08a{
-        syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt
-    }() -> (__warp_usrid1_ : Uint256):
+    func setVal_14c9f012{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        __warp_usrid8__x : Uint256,
+        __warp_usrid9__y : Uint256,
+        __warp_usrid10__name_len : felt,
+        __warp_usrid10__name : felt*,
+        __warp_usrid11__z_len : felt,
+        __warp_usrid11__z : Uint256*,
+    ) -> ():
         alloc_locals
+        let (local warp_memory : DictAccess*) = default_dict_new(0)
+        local warp_memory_start : DictAccess* = warp_memory
+        dict_write{dict_ptr=warp_memory}(0, 1)
+        with warp_memory:
+            extern_input_check1(__warp_usrid11__z_len, __warp_usrid11__z)
 
-        let (__warp_se_0) = WS0_READ_Uint256(__warp_usrid0_counter)
+            extern_input_check0(__warp_usrid10__name_len, __warp_usrid10__name)
 
-        let (__warp_se_1) = warp_add256(__warp_se_0, Uint256(low=1, high=0))
+            warp_external_input_check_int256(__warp_usrid9__y)
 
-        WS_WRITE0(__warp_usrid0_counter, __warp_se_1)
+            warp_external_input_check_int256(__warp_usrid8__x)
 
-        let (__warp_se_2) = WS0_READ_Uint256(__warp_usrid0_counter)
+            local __warp_usrid11__z_dstruct : cd_dynarray_Uint256 = cd_dynarray_Uint256(__warp_usrid11__z_len, __warp_usrid11__z)
 
-        return (__warp_se_2)
+            let (__warp_usrid11__z_mem) = cd_to_memory0(__warp_usrid11__z_dstruct)
+
+            local __warp_usrid10__name_dstruct : cd_dynarray_felt = cd_dynarray_felt(__warp_usrid10__name_len, __warp_usrid10__name)
+
+            let (__warp_usrid10__name_mem) = cd_to_memory1(__warp_usrid10__name_dstruct)
+
+            WS_WRITE0(__warp_usrid0_x, __warp_usrid8__x)
+
+            WS_WRITE0(__warp_usrid1_y, __warp_usrid9__y)
+
+            wm_to_storage0(__warp_usrid2_name, __warp_usrid10__name_mem)
+
+            wm_to_storage1(__warp_usrid3_z, __warp_usrid11__z_mem)
+
+            default_dict_finalize(warp_memory_start, warp_memory, 0)
+
+            return ()
+        end
     end
 
     @view
-    func counter_61bc221a{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        ) -> (__warp_usrid2_ : Uint256):
+    func x_0c55699c{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}() -> (
+        __warp_usrid12_ : Uint256
+    ):
         alloc_locals
 
-        let (__warp_se_3) = WS0_READ_Uint256(__warp_usrid0_counter)
+        let (__warp_se_0) = WS0_READ_Uint256(__warp_usrid0_x)
 
-        return (__warp_se_3)
+        return (__warp_se_0)
     end
 
-    @constructor
-    func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}():
+    @view
+    func y_a56dfe4a{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}() -> (
+        __warp_usrid13_ : Uint256
+    ):
         alloc_locals
-        WARP_USED_STORAGE.write(2)
 
-        return ()
+        let (__warp_se_1) = WS0_READ_Uint256(__warp_usrid1_y)
+
+        return (__warp_se_1)
+    end
+
+    @view
+    func name_06fdde03{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        ) -> (__warp_usrid14__len : felt, __warp_usrid14_ : felt*):
+        alloc_locals
+
+        let (__warp_se_2) = ws_dynamic_array_to_calldata0(__warp_usrid2_name)
+
+        return (__warp_se_2.len, __warp_se_2.ptr)
+    end
+
+    @view
+    func z_656ef8d9{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        __warp_usrid15__i0 : Uint256
+    ) -> (__warp_usrid16_ : Uint256):
+        alloc_locals
+
+        warp_external_input_check_int256(__warp_usrid15__i0)
+
+        let (__warp_se_3) = WARP_DARRAY1_Uint256_IDX(__warp_usrid3_z, __warp_usrid15__i0)
+
+        let (__warp_se_4) = WS0_READ_Uint256(__warp_se_3)
+
+        return (__warp_se_4)
     end
 end
 
-# Original soldity abi: ["constructor()","increment()"]
-```
-
-### Deploying
+# Original soldity abi: ["constructor(uint256,uint256,string,uint256[])","","setVal(uint256,uint256,string,uint256[])"]
 
 ```
-warp deploy [PATH_TO_TRANSPILED_CAIRO_CONTRACT] --use_cairo_abi --inputs  [INPUT_ARGUMENTS]
-```
 
-For example:
+If you want to compile the cairo file, you can run :
 
 ```
-warp deploy warp_output/contracts/token/ERC20/ERC20__WARP_CONTRACT__ERC20.cairo --use_cairo_abi --inputs  10,0x4e,0x45,0x54,0x48,0x45,0x52,0x43,0x4f,0x49,0x4e,4,0x4e,0x45,0x54,0x48
+warp compile warp_output/simple__deployment__example__WC__TestFunction1.cairo
 ```
 
-#### Note
+Please check if the path is correct, as it may be different on your system.
 
-In the example above, we needed a name and ticker for our ERC20 coin. We used NETHERCOIN and NETH. StarkNet does not support Solidity-style strings, so the Warp team treats them as dynamic arrays of bytes. To match the StarkNet abi we need to pass the length of the arrays and the value of each byte.
+In order to deploy the contract to starknet,you can run :
+
+```
+bin/warp deploy warp_output/simple__deployment__example__WC__TestFunction1.cairo  --inputs 2,3,\"mitesh\",\[1,2,3\]
+```
+
+The above deployment method uses `solidity abi` which makes it easier for user to pass the arguments. There is also another method
+for deploying which uses `cairo abi` where we need to pass the length of the arrays and the value of each byte. You can see the example under [Deploying](#deploying) section to see this pattern in action. Also, you can refer [Cairo Docs](https://www.cairo-lang.org/docs/) for more information.
+
+Also, you can call the deployed contract as:
+
+```
+ bin/warp call warp_output/simple__deployment__example__WC__TestFunction1.cairo  --address 0x040b0d53bea89074c1d8cc75fa310e8d558c283dd138e0c19a8392fb1de891e4 --function x_0c55699c --use_cairo_abi
+```
