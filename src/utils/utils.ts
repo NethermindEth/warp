@@ -485,7 +485,7 @@ export function getSourceFromLocation(source: string, location: SourceLocation):
 }
 
 export function callClassHashScript(filePath: string): string {
-  const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+  const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
   const classHashScriptPath = path.resolve(
     __dirname,
     '..',
