@@ -57,6 +57,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/conditional', 'WillNotSupport'],
     ['example_contracts/contract_to_contract', 'Success'],
     ['example_contracts/calldatacopy', 'WillNotSupport'],
+    ['example_contracts/calldataCrossContractCalls', 'Success'],
     ['example_contracts/calldataload', 'WillNotSupport'],
     ['example_contracts/calldatasize', 'WillNotSupport'],
     ['example_contracts/comments', 'Success'],
