@@ -197,6 +197,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/unsupportedFunctions/keccak256', `Success`],
     ['example_contracts/unsupportedFunctions/ecrecover', `Success`],
     ['example_contracts/unsupportedFunctions/addmod', `Success`],
+    ['example_contracts/unsupportedFunctions/gasleft', `WillNotSupport`],
     // Supported precompiles
     ['example_contracts/precompiles/ecrecover', 'Success'],
     ['example_contracts/precompiles/keccak256', 'Success'],

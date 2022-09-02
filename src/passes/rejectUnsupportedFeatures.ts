@@ -147,7 +147,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       'encodeWithSignature',
       'encodeCall',
     ];
-    const unsupportedMisc = ['blockhash', 'selfdestruct'];
+    const unsupportedMisc = ['blockhash', 'selfdestruct', 'gasleft'];
     const funcName = node.vFunctionName;
     if (
       node.kind === FunctionCallKind.FunctionCall &&
