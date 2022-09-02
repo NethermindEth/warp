@@ -63,6 +63,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/constructors_dyn', 'Success'],
     ['example_contracts/constructors_nonDyn', 'Success'],
     ['example_contracts/dai', 'Success'],
+    ['example_contracts/delete_uses', 'Success'],
     ['example_contracts/delete', 'SolCompileFailed'],
     ['example_contracts/enums', 'Success'],
     ['example_contracts/enums7', 'Success'],
