@@ -5,6 +5,9 @@ interface fooInterface  {
     function foo1(uint8[] calldata x) external;
 }
 
+
+interface barInterface is fooInterface {}
+
 contract testContract {
     function bar(
         address pool,
@@ -14,7 +17,7 @@ contract testContract {
         external
     {
         fooInterface(pool).foo(x);
-        fooInterface(pool).foo1(y);
+        barInterface(pool).foo(x);
     }
 
 }
