@@ -21,6 +21,13 @@ export const expectations = flatten(
             ),
           ]),
         ]),
+        new Dir('anonymous_parameters', [
+          new File('func_override', 'A', [], [Expect.Simple('f', ['1', '2'], ['10'])]),
+          File.Simple('func_override', [
+            Expect.Simple('f', ['1', '2'], ['3']),
+            Expect.Simple('one_argument', ['7', '8'], ['14']),
+          ]),
+        ]),
         new Dir('array_len', [
           File.Simple('memoryArray', [Expect.Simple('dynMemArrayLen', [], ['45', '0'])]),
           File.Simple('storageArray', [Expect.Simple('dynStorageArrayLen', [], ['1', '0'])]),
