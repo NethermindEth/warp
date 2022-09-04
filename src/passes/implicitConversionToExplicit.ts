@@ -215,7 +215,7 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         assert(node.vArguments.length > 0, `${node.vFunctionName} requires at least one argument`);
         const targetType =
           node.vFunctionName === 'encodeWithSelector' ? new FixedBytesType(4) : new StringType();
-        insertConversionIfNecessary(node.vArguments[0], targetType, ast);
+        insertConversionIfNecessary(node.vArguments[0], targetType, node.vArguments[0], ast);
         handleAbiEncodeArgs(node.vArguments.slice(1), ast);
         return;
       }

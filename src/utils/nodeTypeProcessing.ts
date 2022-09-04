@@ -269,6 +269,20 @@ export function isStorageSpecificType(
   return false;
 }
 
+export function safeGetNodeType(node: Expression | VariableDeclaration, version: string): TypeNode {
+  getContainingSourceUnit(node);
+  return getNodeType(node, version);
+}
+
+export function safeGetNodeTypeInCtx(
+  arg: string | VariableDeclaration | Expression,
+  version: string,
+  ctx: ASTNode,
+): TypeNode {
+  getContainingSourceUnit(ctx);
+  return getNodeTypeInCtx(arg, version, ctx);
+}
+
 /**
  * Given a type returns its packed solidity bytes size
  * e.g. uint8 -> byte size is 1
@@ -376,18 +390,4 @@ export function isDynamicallySized(type: TypeNode, version: string): boolean {
     );
   }
   return false;
-}
-
-export function safeGetNodeType(node: Expression | VariableDeclaration, version: string): TypeNode {
-  getContainingSourceUnit(node);
-  return getNodeType(node, version);
-}
-
-export function safeGetNodeTypeInCtx(
-  arg: string | VariableDeclaration | Expression,
-  version: string,
-  ctx: ASTNode,
-): TypeNode {
-  getContainingSourceUnit(ctx);
-  return getNodeTypeInCtx(arg, version, ctx);
 }

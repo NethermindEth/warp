@@ -22,8 +22,8 @@ import {
   getElementType,
   isDynamicArray,
   isReferenceType,
-  isStruct,
   safeGetNodeType,
+  isStruct,
 } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
