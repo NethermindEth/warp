@@ -1,4 +1,4 @@
-import { ASTNode, ExternalReferenceType, FunctionCall, FunctionCallKind } from 'solc-typed-ast';
+import { ExternalReferenceType, FunctionCall, FunctionCallKind } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { TranspileFailedError } from '../utils/errors';
@@ -22,8 +22,6 @@ import { TranspileFailedError } from '../utils/errors';
  *   thrown since it won't fit in a Solidity address type
  */
 export class ABIEncode extends ASTMapper {
-  addressEncodings = new Set<ASTNode>();
-
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
     const passKeys: Set<string> = new Set<string>([
@@ -60,17 +58,7 @@ export class ABIEncode extends ASTMapper {
       default:
         throw new TranspileFailedError(`Unknown abi function: ${node.vFunctionName}`);
     }
-    // node.vArguments.filter((arg) => ())
-
     ast.replaceNode(node, replacement);
     this.visitExpression(node, ast);
-  }
-
-  static map(ast: AST): AST {
-    const mapper = new this();
-    ast.roots.forEach((root) => {
-      mapper.dispatchVisit(root, ast);
-    });
-    return ast;
   }
 }

@@ -349,7 +349,7 @@ export function getByteSize(type: TypeNode, version: string): number | bigint {
   if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
     assert(version !== undefined, 'Struct byte size calculation requires compiler version');
     return type.definition.vMembers
-      .map((varDecl) => getNodeType(varDecl, version))
+      .map((varDecl) => safeGetNodeType(varDecl, version))
       .reduce(sumMemberSize, 0n);
   }
 
@@ -372,7 +372,7 @@ export function isDynamicallySized(type: TypeNode, version: string): boolean {
   if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
     assert(version !== undefined);
     return type.definition.vMembers.some((v) =>
-      isDynamicallySized(getNodeType(v, version), version),
+      isDynamicallySized(safeGetNodeType(v, version), version),
     );
   }
   return false;

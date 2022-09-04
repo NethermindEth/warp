@@ -610,13 +610,13 @@ function handleConcatArgs(node: FunctionCall, ast: AST) {
 
 function handleAbiEncodeArgs(args: Expression[], ast: AST) {
   args.forEach((arg) => {
-    const type = getNodeType(arg, ast.compilerVersion);
+    const type = safeGetNodeType(arg, ast.compilerVersion);
     if (type instanceof StringLiteralType) {
-      insertConversionIfNecessary(arg, new BytesType(), ast);
+      insertConversionIfNecessary(arg, new BytesType(), arg, ast);
     } else if (type instanceof IntLiteralType) {
       assert(arg instanceof Literal);
       const signed = BigInt(arg.value) < 0;
-      insertConversionIfNecessary(arg, new IntType(256, signed), ast);
+      insertConversionIfNecessary(arg, new IntType(256, signed), arg, ast);
     }
   });
 }

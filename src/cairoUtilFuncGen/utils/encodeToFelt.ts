@@ -22,7 +22,7 @@ import {
   CairoType,
   TypeConversionContext,
 } from '../../utils/cairoTypeSystem';
-import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
+import { NotSupportedYetError, WillNotSupportError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import {
@@ -154,7 +154,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
               ].join('\n'),
         );
       } else {
-        throw new TranspileFailedError(
+        throw new WillNotSupportError(
           `Decoding ${printTypeNode(type)} into felt dynamic array is not supported`,
         );
       }

@@ -117,9 +117,9 @@ export class AbiEncodePacked extends AbiBase {
    */
   private createArrayInlineEncoding(type: ArrayType | BytesType | StringType): string {
     const key = type.pp();
-    const exisiting = this.auxiliarGeneratedFunctions.get(key);
-    if (exisiting !== undefined) {
-      return exisiting.name;
+    const existing = this.auxiliarGeneratedFunctions.get(key);
+    if (existing !== undefined) {
+      return existing.name;
     }
 
     const elementT = getElementType(type);

@@ -2,7 +2,6 @@ import assert from 'assert';
 import {
   ArrayType,
   generalizeType,
-  getNodeType,
   SourceUnit,
   StructDefinition,
   TypeNode,
@@ -19,6 +18,7 @@ import {
   isDynamicallySized,
   isDynamicArray,
   isStruct,
+  safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { uint256 } from '../../warplib/utils';
 import { delegateBasedOnType, mul } from '../base';
@@ -189,8 +189,8 @@ export class AbiEncode extends AbiBase {
 
   private createDynamicArrayHeadEncoding(type: ArrayType): string {
     const key = 'head ' + type.pp();
-    const exisiting = this.auxiliarGeneratedFunctions.get(key);
-    if (exisiting !== undefined) return exisiting.name;
+    const existing = this.auxiliarGeneratedFunctions.get(key);
+    if (existing !== undefined) return existing.name;
 
     const elementT = getElementType(type);
     const elementByteSize = getByteSize(elementT, this.ast.compilerVersion);
@@ -243,8 +243,8 @@ export class AbiEncode extends AbiBase {
 
   private createDynamicArrayTailEncoding(type: ArrayType): string {
     const key = 'tail ' + type.pp();
-    const exisiting = this.auxiliarGeneratedFunctions.get(key);
-    if (exisiting !== undefined) return exisiting.name;
+    const existing = this.auxiliarGeneratedFunctions.get(key);
+    if (existing !== undefined) return existing.name;
 
     const elementT = getElementType(type);
     const elemntTSize = CairoType.fromSol(elementT, this.ast).width;
@@ -290,8 +290,8 @@ export class AbiEncode extends AbiBase {
   private createStaticArrayHeadEncoding(type: ArrayType): string {
     assert(type.size !== undefined);
     const key = 'head ' + type.pp();
-    const exisiting = this.auxiliarGeneratedFunctions.get(key);
-    if (exisiting !== undefined) return exisiting.name;
+    const existing = this.auxiliarGeneratedFunctions.get(key);
+    if (existing !== undefined) return existing.name;
 
     const elementT = getElementType(type);
     const elementByteSize = getByteSize(elementT, this.ast.compilerVersion);
@@ -398,8 +398,8 @@ export class AbiEncode extends AbiBase {
 
   private createStructHeadEncoding(type: UserDefinedType, def: StructDefinition) {
     const key = 'struct head ' + type.pp();
-    const exisiting = this.auxiliarGeneratedFunctions.get(key);
-    if (exisiting !== undefined) return exisiting.name;
+    const existing = this.auxiliarGeneratedFunctions.get(key);
+    if (existing !== undefined) return existing.name;
 
     const inlineEncoding = this.createStructInlineEncoding(type, def);
     // Get the size of all it's members
@@ -408,7 +408,7 @@ export class AbiEncode extends AbiBase {
         sum +
         BigInt(
           getByteSize(
-            generalizeType(getNodeType(varDecl, this.ast.compilerVersion))[0],
+            generalizeType(safeGetNodeType(varDecl, this.ast.compilerVersion))[0],
             this.ast.compilerVersion,
           ),
         ),
@@ -449,11 +449,11 @@ export class AbiEncode extends AbiBase {
 
   private createStructInlineEncoding(type: UserDefinedType, def: StructDefinition) {
     const key = 'struct inline ' + type.pp();
-    const exisiting = this.auxiliarGeneratedFunctions.get(key);
-    if (exisiting !== undefined) return exisiting.name;
+    const existing = this.auxiliarGeneratedFunctions.get(key);
+    if (existing !== undefined) return existing.name;
 
     const instructions = def.vMembers.map((member, index) => {
-      const type = generalizeType(getNodeType(member, this.ast.compilerVersion))[0];
+      const type = generalizeType(safeGetNodeType(member, this.ast.compilerVersion))[0];
       const elemWidth = CairoType.fromSol(type, this.ast).width;
       const readFunc = this.readMemory(type, 'mem_ptr');
       const encoding = this.generateEncodingCode(

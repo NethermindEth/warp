@@ -3,13 +3,12 @@ import {
   Expression,
   FunctionCall,
   generalizeType,
-  getNodeType,
   SourceUnit,
   TypeNode,
 } from 'solc-typed-ast';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
-import { isValueType } from '../../utils/nodeTypeProcessing';
+import { isValueType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { StringIndexedFuncGenWithAuxiliar } from '../base';
 
@@ -18,7 +17,7 @@ export abstract class AbiBase extends StringIndexedFuncGenWithAuxiliar {
 
   public gen(expressions: Expression[], sourceUnit?: SourceUnit): FunctionCall {
     const exprTypes = expressions.map(
-      (expr) => generalizeType(getNodeType(expr, this.ast.compilerVersion))[0],
+      (expr) => generalizeType(safeGetNodeType(expr, this.ast.compilerVersion))[0],
     );
     const functionName = this.getOrCreate(exprTypes);
 

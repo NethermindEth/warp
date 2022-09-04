@@ -3,7 +3,6 @@ import {
   Expression,
   FunctionCall,
   generalizeType,
-  getNodeType,
   SourceUnit,
   StringType,
   TypeNode,
@@ -13,7 +12,7 @@ import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
-import { getByteSize, isValueType } from '../../utils/nodeTypeProcessing';
+import { getByteSize, isValueType, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { AbiEncodeWithSelector } from './abiEncodeWithSelector';
@@ -26,7 +25,7 @@ export class AbiEncodeWithSignature extends AbiEncodeWithSelector {
 
   public gen(expressions: Expression[], sourceUnit?: SourceUnit): FunctionCall {
     const exprTypes = expressions.map(
-      (expr) => generalizeType(getNodeType(expr, this.ast.compilerVersion))[0],
+      (expr) => generalizeType(safeGetNodeType(expr, this.ast.compilerVersion))[0],
     );
     const functionName = this.getOrCreate(exprTypes);
 
