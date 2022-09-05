@@ -3,7 +3,7 @@ import os
 import sys
 
 from pathlib import Path
-from starkware.starknet.business_logic.internal_transaction_interface import (
+from starkware.starknet.business_logic.execution.objects import (
     TransactionExecutionInfo,
 )
 

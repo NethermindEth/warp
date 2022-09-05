@@ -1,8 +1,5 @@
 import os
 import sys
-from starkware.starknet.everest.business_logic.internal_transaction import (
-    TransactionExecutionInfo,
-)
 
 from starkware.starknet.services.api.contract_class import ContractClass
 from generateMarkdown import (
