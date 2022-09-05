@@ -90,10 +90,10 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: key,
       code: [
-        `struct ${key}:`,
-        `${INDENT}member len : felt `,
-        `${INDENT}member ptr : ${elementCairoType.toString()}*`,
-        `end`,
+        `struct ${key}{`,
+        `${INDENT} len : felt ,`,
+        `${INDENT} ptr : ${elementCairoType.toString()}*`,
+        `}`,
       ].join('\n'),
     });
 

@@ -115,9 +115,9 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (loc: felt):`,
-        `    alloc_locals`,
-        `    let (start) = wm_alloc(${uint256(alloc_len)})`,
+        `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (loc: felt){`,
+        `    alloc_locals;`,
+        `    let (start) = wm_alloc(${uint256(alloc_len)});`,
         [
           ...(dynamic ? [`wm_write_256{warp_memory=warp_memory}(start, ${uint256(size)})`] : []),
           ...mapRange(size, (n) => elementCairoType.serialiseMembers(`e${n}`))
@@ -127,11 +127,11 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
                 `dict_write{dict_ptr=warp_memory}(${add(
                   'start',
                   dynamic ? index + 2 : index,
-                )}, ${name})`,
+                )}, ${name});`,
             ),
         ].join('\n'),
-        `    return (start)`,
-        `end`,
+        `    return (start,);`,
+        `}`,
       ].join('\n'),
     });
 

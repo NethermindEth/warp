@@ -104,8 +104,8 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(mem_loc : felt) -> (retData: ${outputType.toString()}):`,
-        `    alloc_locals`,
+        `func ${funcName}${implicits}(mem_loc : felt) -> (retData: ${outputType.toString()}){`,
+        `    alloc_locals;`,
         ...structDef.vMembers.map((decl, index) => {
           const memberType = safeGetNodeType(decl, this.ast.compilerVersion);
           if (isReferenceType(memberType)) {
@@ -117,17 +117,17 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
             return [
               `let (read_${index}) = wm_read_id(${add('mem_loc', offset++)}, ${uint256(
                 allocSize,
-              )})`,
-              `let (member${index}) = ${memberGetter}(read_${index})`,
+              )});`,
+              `let (member${index}) = ${memberGetter}(read_${index});`,
             ].join('\n');
           } else {
             const memberCairoType = CairoType.fromSol(memberType, this.ast);
             if (memberCairoType.width === 1) {
-              const code = `let (member${index}) = wm_read_felt(${add('mem_loc', offset++)})`;
+              const code = `let (member${index}) = wm_read_felt(${add('mem_loc', offset++)});`;
               this.requireImport('warplib.memory', 'wm_read_felt');
               return code;
             } else if (memberCairoType.width === 2) {
-              const code = `let (member${index}) = wm_read_256(${add('mem_loc', offset)})`;
+              const code = `let (member${index}) = wm_read_256(${add('mem_loc', offset)});`;
               this.requireImport('warplib.memory', 'wm_read_256');
               offset += 2;
               return code;
@@ -137,8 +137,8 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         `    return (${outputType.toString()}(${mapRange(
           structDef.vMembers.length,
           (n) => `member${n}`,
-        )}))`,
-        `end`,
+        )}),);`,
+        `}`,
       ].join('\n'),
     });
 
@@ -164,8 +164,8 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(mem_loc : felt) -> (retData: ${outputType.toString()}):`,
-        `    alloc_locals`,
+        `func ${funcName}${implicits}(mem_loc : felt) -> (retData: ${outputType.toString()}){`,
+        `    alloc_locals;`,
         ...mapRange(length, (index) => {
           if (isReferenceType(elementT)) {
             this.requireImport('warplib.memory', 'wm_read_id');
@@ -174,25 +174,27 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
               ? 2
               : CairoType.fromSol(elementT, this.ast, TypeConversionContext.Ref).width;
             return [
-              `let (read${index}) = wm_read_id(${add('mem_loc', offset++)}, ${uint256(allocSize)})`,
-              `let (member${index}) = ${memberGetter}(read${index})`,
+              `let (read${index}) = wm_read_id(${add('mem_loc', offset++)}, ${uint256(
+                allocSize,
+              )});`,
+              `let (member${index}) = ${memberGetter}(read${index});`,
             ].join('\n');
           } else {
             const memberCairoType = CairoType.fromSol(elementT, this.ast);
             if (memberCairoType.width === 1) {
-              const code = `let (member${index}) = wm_read_felt(${add('mem_loc', offset++)})`;
+              const code = `let (member${index}) = wm_read_felt(${add('mem_loc', offset++)});`;
               this.requireImport('warplib.memory', 'wm_read_felt');
               return code;
             } else if (memberCairoType.width === 2) {
-              const code = `let (member${index}) = wm_read_256(${add('mem_loc', offset)})`;
+              const code = `let (member${index}) = wm_read_256(${add('mem_loc', offset)});`;
               this.requireImport('warplib.memory', 'wm_read_256');
               offset += 2;
               return code;
             }
           }
         }),
-        `    return ((${mapRange(length, (n) => `member${n}`)}))`,
-        `end`,
+        `    return ((${mapRange(length, (n) => `member${n}`)}),);`,
+        `}`,
       ].join('\n'),
     });
 
@@ -227,17 +229,17 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(mem_loc: felt) -> (retData: ${outputType.toString()}):`,
-        `    alloc_locals`,
-        `    let (len_256) = wm_read_256(mem_loc)`,
-        `    let (ptr : ${outputType.vPtr.toString()}) = alloc()`,
-        `    let (len_felt) = narrow_safe(len_256)`,
-        `    ${this.createDynArrayReader(elementT)}(len_felt, ptr, mem_loc + 2)`,
+        `func ${funcName}${implicits}(mem_loc: felt) -> (retData: ${outputType.toString()}){`,
+        `    alloc_locals;`,
+        `    let (len_256) = wm_read_256(mem_loc);`,
+        `    let (ptr : ${outputType.vPtr.toString()}) = alloc();`,
+        `    let (len_felt) = narrow_safe(len_256);`,
+        `    ${this.createDynArrayReader(elementT)}(len_felt, ptr, mem_loc + 2);`,
         `    return (${generateCallDataDynArrayStructName(
           elementT,
           this.ast,
-        )}(len=len_felt, ptr=ptr))`,
-        `end`,
+        )}(len=len_felt, ptr=ptr),);`,
+        `}`,
       ].join('\n'),
     });
     this.requireImport('starkware.cairo.common.alloc', 'alloc');
@@ -266,17 +268,17 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
         ? 2
         : CairoType.fromSol(elementT, this.ast, TypeConversionContext.Ref).width;
       code = [
-        `let (mem_read0) = wm_read_id(mem_loc, ${uint256(allocSize)})`,
-        `let (mem_read1) = ${this.getOrCreate(elementT)}(mem_read0)`,
-        `assert ptr[0] = mem_read1`,
+        `let (mem_read0) = wm_read_id(mem_loc, ${uint256(allocSize)});`,
+        `let (mem_read1) = ${this.getOrCreate(elementT)}(mem_read0);`,
+        `assert ptr[0] = mem_read1;`,
       ];
       this.requireImport('warplib.memory', 'wm_read_id');
       this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     } else if (cairoType.width === 1) {
-      code = ['let (mem_read0) = wm_read_felt(mem_loc)', 'assert ptr[0] = mem_read0'];
+      code = ['let (mem_read0) = wm_read_felt(mem_loc)', 'assert ptr[0] = mem_read0;'];
       this.requireImport('warplib.memory', 'wm_read_felt');
     } else if (cairoType.width === 2) {
-      code = ['let (mem_read0) = wm_read_256(mem_loc)', 'assert ptr[0] = mem_read0'];
+      code = ['let (mem_read0) = wm_read_256(mem_loc)', 'assert ptr[0] = mem_read0;'];
       this.requireImport('warplib.memory', 'wm_read_256');
     } else {
       throw new NotSupportedYetError(
@@ -287,15 +289,15 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(funcName, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> ():`,
-        `    alloc_locals`,
-        `    if len == 0:`,
-        `         return ()`,
-        `    end`,
+        `func ${funcName}${implicits}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> (){`,
+        `    alloc_locals;`,
+        `    if (len == 0){`,
+        `         return ();`,
+        `    }`,
         ...code,
-        `    ${funcName}(len=len - 1, ptr=ptr + ${cairoType.width}, mem_loc=mem_loc + ${memWidth})`,
-        `    return ()`,
-        `end`,
+        `    ${funcName}(len=len - 1, ptr=ptr + ${cairoType.width}, mem_loc=mem_loc + ${memWidth});`,
+        `    return ();`,
+        `}`,
       ].join('\n'),
     });
     this.requireImport('starkware.cairo.common.uint256', 'uint256_sub');
