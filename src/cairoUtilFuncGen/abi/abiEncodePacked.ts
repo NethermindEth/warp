@@ -1,4 +1,11 @@
-import { ArrayType, BytesType, SourceUnit, StringType, TypeNode } from 'solc-typed-ast';
+import {
+  AddressType,
+  ArrayType,
+  BytesType,
+  SourceUnit,
+  StringType,
+  TypeNode,
+} from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
@@ -84,6 +91,18 @@ export class AbiEncodePacked extends AbiBase {
   }
 
   private generateEncodingCode(type: TypeNode, newIndexVar: string, varToEncode: string): string {
+    // Cairo address are 251 bits in size but solidity is 160.
+    // It was decided to store them fully before just a part
+    if (type instanceof AddressType) {
+      this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+      this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array');
+      return [
+        `let (${varToEncode}256) = felt_to_uint256(${varToEncode})`,
+        `fixed_bytes256_to_felt_dynamic_array(bytes_index, bytes_array, 0, ${varToEncode}256)`,
+        `let ${newIndexVar} = bytes_index +  32`,
+      ].join('\n');
+    }
+
     const funcName = this.getOrCreateEncoding(type);
 
     if (isDynamicArray(type)) {

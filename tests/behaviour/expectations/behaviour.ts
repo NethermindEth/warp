@@ -70,7 +70,7 @@ export const expectations = flatten(
             Expect.Simple(
               'addresses',
               ['1', '2'],
-              getByteXArray({ byteSize: 20, value: 1 }, { byteSize: 20, value: 2 }),
+              getByteXArray({ byteSize: 32, value: 1 }, { byteSize: 32, value: 2 }),
             ),
             Expect.Simple('booleans', ['1', '1'], ['2', '1', '1']),
             Expect.Simple('enums', ['3', '2'], ['2', '3', '2']),
