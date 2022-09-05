@@ -219,13 +219,11 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           code = `     ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
             'storage_loc',
             offset,
-          )}, arg[${index}])`;
+          )}, arg[${index}]);`;
         } else if (targetElmType.signed) {
           code = [
-            `    let (arg_${index}) = warp_int${sourceElmType.nBits}_to_int${
-              targetElmType.nBits
-            }(arg[${index}])
-            ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
+            `    let (arg_${index}) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(arg[${index}]);`,
+            `${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
               'storage_loc',
               offset,
             )}, arg_${index});`,
@@ -247,7 +245,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           code = [
             `    let (arg_${index}) = warp_bytes_widen${
               targetElmType.size === 32 ? '_256' : ''
-            }(arg[${index}], ${(targetElmType.size - sourceElmType.size) * 8})`,
+            }(arg[${index}], ${(targetElmType.size - sourceElmType.size) * 8});`,
             `    ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
               'storage_loc',
               offset,
@@ -355,7 +353,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           return [
             `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, ${uint256(index)})`,
+            )}(ref, ${uint256(index)});`,
             `    ${this.storageWriteGen.getOrCreate(
               targetElmType,
             )}(storage_loc${index}, arg[${index}]);`,
@@ -365,7 +363,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
             `    let (arg_${index}) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(arg[${index}]);`,
             `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, ${uint256(index)})`,
+            )}(ref, ${uint256(index)});`,
             `    ${this.storageWriteGen.getOrCreate(
               targetElmType,
             )}(storage_loc${index}, arg_${index});`,
@@ -375,7 +373,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
             `    let (arg_${index}) = felt_to_uint256(arg[${index}]);`,
             `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, ${uint256(index)})`,
+            )}(ref, ${uint256(index)});`,
             `    ${this.storageWriteGen.getOrCreate(
               targetElmType,
             )}(storage_loc${index}, arg_${index});`,
@@ -422,7 +420,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           return [
             `     let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, ${uint256(index)})`,
+            )}(ref, ${uint256(index)});`,
             `    ${this.getOrCreate(
               targetElmType,
               sourceElmType,

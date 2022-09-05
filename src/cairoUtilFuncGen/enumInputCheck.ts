@@ -69,7 +69,7 @@ export class EnumInputCheck extends StringIndexedFuncGen {
         }]."){`,
         `        assert 1 = inRange;`,
         `    }`,
-        `    return (arg);`,
+        `    return (arg,);`,
         `}`,
       ].join('\n'),
     });

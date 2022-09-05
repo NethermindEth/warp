@@ -275,10 +275,10 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       this.requireImport('warplib.memory', 'wm_read_id');
       this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     } else if (cairoType.width === 1) {
-      code = ['let (mem_read0) = wm_read_felt(mem_loc)', 'assert ptr[0] = mem_read0;'];
+      code = ['let (mem_read0) = wm_read_felt(mem_loc);', 'assert ptr[0] = mem_read0;'];
       this.requireImport('warplib.memory', 'wm_read_felt');
     } else if (cairoType.width === 2) {
-      code = ['let (mem_read0) = wm_read_256(mem_loc)', 'assert ptr[0] = mem_read0;'];
+      code = ['let (mem_read0) = wm_read_256(mem_loc);', 'assert ptr[0] = mem_read0;'];
       this.requireImport('warplib.memory', 'wm_read_256');
     } else {
       throw new NotSupportedYetError(

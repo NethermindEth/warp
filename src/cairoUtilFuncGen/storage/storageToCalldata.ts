@@ -98,7 +98,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       `func ${funcName}${implicits}(loc : felt) -> (${structName} : ${cairoStruct.toString()}){`,
       `   alloc_locals;`,
       ...copyInstructions,
-      `   return (${cairoStruct.toString()}(${members.join(', ')}));`,
+      `   return (${cairoStruct.toString()}(${members.join(', ')}),);`,
       `}`,
     ].join('\n');
 

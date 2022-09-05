@@ -173,7 +173,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       `   let (decode_array : felt*) = alloc();`,
       ...encodeCode,
       `   let result = ${resultStruct}(total_size, decode_array);`,
-      `   return (result);`,
+      `   return (result,);`,
       `}`,
     ].join('\n');
     this.ast.registerImport(this.sourceUnit, 'starkware.cairo.common.alloc', 'alloc');
@@ -231,7 +231,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
             `assert to_array[to_index + 1] = ${currentElementName}.high;`,
             `let to_index = to_index + 2;`,
           ]
-        : [`assert to_array[to_index] = ${currentElementName}`, `let to_index = to_index + 1;`];
+        : [`assert to_array[to_index] = ${currentElementName};`, `let to_index = to_index + 1;`];
     }
 
     const auxFuncName = this.getOrCreateAuxiliar(type);

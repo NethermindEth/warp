@@ -156,7 +156,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
 
-    const copyCode = `${this.storageWriteGen.getOrCreate(elementT)}(elem_loc, elem[index])`;
+    const copyCode = `${this.storageWriteGen.getOrCreate(elementT)}(elem_loc, elem[index]);`;
 
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const pointerType = `${cairoElementType.toString()}*`;
@@ -174,10 +174,10 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
       `       let (elem_loc) = WARP_USED_STORAGE.read();`,
       `       WARP_USED_STORAGE.write(elem_loc + ${cairoElementType.width});`,
       `       ${arrayName}.write(loc, index_uint256, elem_loc);`,
-      `       ${copyCode};`,
+      `       ${copyCode}`,
       `       return ${funcName}_write(loc, index + 1, len, elem);`,
       `   }else{`,
-      `       ${copyCode};`,
+      `       ${copyCode}`,
       `       return ${funcName}_write(loc, index + 1, len, elem);`,
       `   }`,
       `}`,
@@ -212,7 +212,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
 
       offset += varCairoTypeWidth;
 
-      return `    ${funcName}(${location}, ${names[index]})`;
+      return `    ${funcName}(${location}, ${names[index]});`;
     });
 
     return copyInstructions;
