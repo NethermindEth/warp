@@ -46,7 +46,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2.2.2
         with:
-          python-version: 3.7 # Cairo was tested with this version
+          python-version: 3.9 # Cairo was tested with this version
 
       - name: Install dependencies
         run: |
@@ -80,7 +80,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2.2.2
         with:
-          python-version: 3.7
+          python-version: 3.9
 
       - name: Setup env
         run: |
