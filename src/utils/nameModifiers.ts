@@ -53,3 +53,6 @@ export const SPLIT_EXPRESSION_PREFIX = '__warp_se_';
 
 // Used in UnloadingAssignment
 export const COMPOUND_ASSIGNMENT_SUBEXPRESSION_PREFIX = '__warp_cs_';
+
+// Used in StorageAllocator and InheritanceInliner in ConstructorInheritance
+export const INIT_FUNCTION_PREFIX = '__warp_init_';

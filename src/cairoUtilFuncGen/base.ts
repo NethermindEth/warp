@@ -76,9 +76,24 @@ export class StringIndexedFuncGen extends CairoUtilFuncGenBase {
   }
 }
 
+export class StringIndexedFuncGenWithAuxiliar extends StringIndexedFuncGen {
+  protected auxiliarGeneratedFunctions: Map<string, CairoFunction> = new Map();
+
+  getGeneratedCode(): string {
+    return [...this.auxiliarGeneratedFunctions.values(), ...this.generatedFunctions.values()]
+      .map((func) => func.code)
+      .join('\n\n');
+  }
+}
+
 // Quick shortcut for writing `${base} + ${offset}` that also shortens it in the case of +0
 export function add(base: string, offset: number): string {
   return offset === 0 ? base : `${base} + ${offset}`;
+}
+
+// Quick shortcut for writing `${base} * ${scalar}` that also shortens it in the case of *1
+export function mul(base: string, scalar: number | bigint) {
+  return scalar === 1 ? base : `${base} * ${scalar}`;
 }
 
 // This is needed because index access and member access functions return pointers, even if the data

@@ -82,7 +82,7 @@ function addClassHash(
 function computeClassHash(filePath: string, pathPrefix: string): string {
   const { success, resultPath } = compileCairo(
     path.join(pathPrefix, filePath),
-    path.resolve(__dirname, '..'),
+    path.resolve(__dirname, '..', '..'),
   );
   if (!success) {
     throw new CLIError(`Compilation of cairo file ${filePath} failed`);

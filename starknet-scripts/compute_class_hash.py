@@ -6,7 +6,7 @@ from starkware.starknet.core.os.class_hash import compute_class_hash
 from starkware.cairo.lang.vm.crypto import pedersen_hash
 from starkware.starknet.services.api.contract_class import ContractClass
 
-def get_class_hash(path: str) -> str:
+def get_class_hash(path):
     with open(path) as f:
         compiled = f.read()
     return hex(compute_class_hash(ContractClass.loads(compiled),pedersen_hash))

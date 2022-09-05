@@ -8,7 +8,7 @@ import { AST } from '../../ast/ast';
 import { CairoContract } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
 import { TranspileFailedError } from '../../utils/errors';
-import { solveConstructorInheritance } from './constructorInheritance';
+import { solveConstructors } from './constructorInheritance';
 import { addEventDefintion } from './eventInheritance';
 import { addNonoverridenPublicFunctions, addPrivateSuperFunctions } from './functionInheritance';
 import { addNonOverridenModifiers } from './modifiersInheritance';
@@ -25,11 +25,21 @@ export class InheritanceInliner extends ASTMapper {
 
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([]);
+    const passKeys: Set<string> = new Set<string>([
+      // StorageAllocator takes care of variable initialization, which
+      // are needed when solving constructors
+      'Sa',
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
   visitCairoContract(node: CairoContract, ast: AST): void {
+    // This functions handles:
+    //   - the assignment of a constructor to each contract
+    //   - calling the functions for variable initialization
+    //   - inheritance in constructors
+    solveConstructors(node, ast, this.generateIndex.bind(this));
+
     if (node.vLinearizedBaseContracts.length < 2) {
       // LinearizedBaseContracts includes self as the first element,
       // and we only care about those which inherit from something else
@@ -82,7 +92,6 @@ export class InheritanceInliner extends ASTMapper {
     const modifierRemappingOverriders: Map<number, ModifierDefinition> = new Map();
     const eventRemapping: Map<number, EventDefinition> = new Map();
 
-    solveConstructorInheritance(node, ast, this.generateIndex.bind(this));
     addPrivateSuperFunctions(node, functionRemapping, functionRemappingOverriders, ast);
     addNonoverridenPublicFunctions(node, functionRemapping, ast);
     addStorageVariables(node, variableRemapping, ast);
