@@ -1,11 +1,5 @@
 import assert from 'assert';
-import {
-  ASTNode,
-  ContractDefinition,
-  ContractKind,
-  FunctionCall,
-  MemberAccess,
-} from 'solc-typed-ast';
+import { ContractDefinition, ContractKind, FunctionCall, MemberAccess } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 
@@ -25,7 +19,7 @@ export class ReferencedLibraries extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     const librariesById = new Map<number, ContractDefinition>();
     if (node.vExpression instanceof MemberAccess) {
-      //Collect all library nodes and their ids in the map 'contractDef'
+      // Collect all library nodes and their ids in the map 'librariesById'
       ast.context.map.forEach((astNode, id) => {
         if (astNode instanceof ContractDefinition && astNode.kind === ContractKind.Library) {
           librariesById.set(id, astNode);
@@ -37,21 +31,20 @@ export class ReferencedLibraries extends ASTMapper {
         return this.visitExpression(node, ast);
       }
 
-      //Checks if the Function is a referenced Library functions,
-      //if yes add it to the linearizedBaseContract list of parent ContractDefinition node
-      //free functions calling library functions are not yet supported
-      librariesById.forEach((library, _) => {
-        if (library.vFunctions.some((libraryFunc) => libraryFunc.id === calledDeclaration.id)) {
-          const parent = node.getClosestParentByType(ContractDefinition);
-          if (parent === undefined) return;
+      // Free functions calling library functions are not yet supported
+      const parent = node.getClosestParentByType(ContractDefinition);
+      if (parent === undefined) return;
 
-          getLibrariesToInherit(library, librariesById).forEach((id) => {
-            if (!parent.linearizedBaseContracts.includes(id)) {
-              parent.linearizedBaseContracts.push(id);
-            }
-          });
-        }
-      });
+      // Checks if the Function is a referenced Library function,
+      // if yes add it to the linearizedBaseContract list of parent ContractDefinition node.
+      const library = findFunctionInLibrary(calledDeclaration.id, librariesById);
+      if (library !== undefined) {
+        getLibrariesToInherit(library, librariesById).forEach((id) => {
+          if (!parent.linearizedBaseContracts.includes(id)) {
+            parent.linearizedBaseContracts.push(id);
+          }
+        });
+      }
     }
     this.commonVisit(node, ast);
   }
@@ -59,24 +52,43 @@ export class ReferencedLibraries extends ASTMapper {
 
 function getLibrariesToInherit(
   calledLibrary: ContractDefinition,
-  librariesById: Map<number, ASTNode>,
+  librariesById: Map<number, ContractDefinition>,
 ): number[] {
-  const ids: number[] = [calledLibrary.id];
+  const ids: number[] = [];
+  getAllLibraries(calledLibrary, librariesById, ids);
+
+  return ids;
+}
+
+function findFunctionInLibrary(
+  functionId: number,
+  librariesById: Map<number, ContractDefinition>,
+): ContractDefinition | undefined {
+  for (const library of librariesById.values()) {
+    if (library.vFunctions.some((f) => f.id == functionId)) return library;
+  }
+  return undefined;
+}
+
+function getAllLibraries(
+  calledLibrary: ContractDefinition,
+  librariesById: Map<number, ContractDefinition>,
+  ids: number[],
+): void {
+  ids.push(calledLibrary.id);
 
   calledLibrary
     .getChildren()
-    .filter((child) => child instanceof FunctionCall && child.vExpression instanceof MemberAccess)
+    .filter(
+      (child): child is FunctionCall =>
+        child instanceof FunctionCall && child.vExpression instanceof MemberAccess,
+    )
     .forEach((functionCallInCalledLibrary) => {
-      if (functionCallInCalledLibrary instanceof FunctionCall) {
-        librariesById.forEach((library, libraryId) => {
-          assert(functionCallInCalledLibrary.vExpression instanceof MemberAccess);
-          const calledFuncId = functionCallInCalledLibrary.vExpression.referencedDeclaration;
-          if (library.getChildren().some((node) => node.id === calledFuncId)) {
-            ids.push(libraryId);
-          }
-        });
-      }
-    });
+      assert(functionCallInCalledLibrary.vExpression instanceof MemberAccess);
+      const calledFuncId = functionCallInCalledLibrary.vExpression.referencedDeclaration;
 
-  return ids;
+      const library = findFunctionInLibrary(calledFuncId, librariesById);
+      if (library !== undefined && !ids.includes(library.id))
+        getAllLibraries(library, librariesById, ids);
+    });
 }
