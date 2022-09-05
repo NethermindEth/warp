@@ -172,7 +172,7 @@ export class AbiEncode extends AbiBase {
     const instructions: string[] = [];
     if (size < 32) {
       this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
-      instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode})`);
+      instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode});`);
       varToEncode = `${varToEncode}256`;
     }
     instructions.push(
@@ -372,7 +372,7 @@ export class AbiEncode extends AbiBase {
       `  mem_index : felt,`,
       `  mem_length : felt,`,
       `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt, final_bytes_offset){`,
+      `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
       `  alloc_locals;`,
       `  if (mem_index == mem_length){`,
       `     return (final_bytes_index=bytes_index, final_bytes_offset=bytes_offset);`,
@@ -509,6 +509,6 @@ export class AbiEncode extends AbiBase {
       cairoType instanceof MemoryLocation
         ? [arg, isDynamicArray(type) ? uint256(2) : uint256(0)]
         : [arg];
-    return `${funcName}(${args.join(',')});`;
+    return `${funcName}(${args.join(',')})`;
   }
 }

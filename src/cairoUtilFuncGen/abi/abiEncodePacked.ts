@@ -126,7 +126,7 @@ export class AbiEncodePacked extends AbiBase {
     if (packedByteSize < 32) args.push(`${packedByteSize}`);
 
     return [
-      `${funcName}(${args.join(',')})`,
+      `${funcName}(${args.join(',')});`,
       `let ${newIndexVar} = bytes_index +  ${packedByteSize};`,
     ].join('\n');
   }
