@@ -17,9 +17,11 @@ import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCallToFunction } from '../../utils/functionGeneration';
+import { INIT_FUNCTION_PREFIX } from '../../utils/nameModifiers';
 import {
   createBlock,
   createDefaultConstructor,
+  createExpressionStatement,
   createIdentifier,
   createParameterList,
 } from '../../utils/nodeTemplates';
@@ -88,11 +90,7 @@ import { updateReferencedDeclarations } from './utils';
   ``` 
 */
 
-export function solveConstructorInheritance(
-  node: ContractDefinition,
-  ast: AST,
-  generator: () => number,
-) {
+export function solveConstructors(node: ContractDefinition, ast: AST, generator: () => number) {
   // Contracts marked as abstract won't be deployed
   if (node.abstract) {
     removeModifiersFromConstructor(node);
@@ -105,6 +103,20 @@ export function solveConstructorInheritance(
     const constructorFunc = contract.vConstructor;
     if (constructorFunc !== undefined) constructors.set(contract.id, constructorFunc);
   });
+
+  // Collect the state variable initialization function of each contract and store them
+  // as pairs: <ContractId, InitFunctionDefinition>
+  const initFunctions: Map<number, FunctionDefinition> = new Map(
+    node.vLinearizedBaseContracts
+      .map((contract): [number, FunctionDefinition | null] => [
+        contract.id,
+        findVarInitialization(contract),
+      ])
+      .filter(
+        (pair: [number, FunctionDefinition | null]): pair is [number, FunctionDefinition] =>
+          pair[1] !== null,
+      ),
+  );
 
   // Collect arguments passed to constructors of linearized contracts
   const statements: Statement[] = [];
@@ -131,11 +143,18 @@ export function solveConstructorInheritance(
 
   // Create calls to constructor functions:
   // Constructors must be called in the order of linearized contracts,
-  // from the "most base-like" to the "most derived"
+  // from the "most base-like" to the "most derived".
+  // Before calling the constructor, the initialization function should
+  // be called if it exists.
+  // The constructor of the current contract will be handled separately
   node.linearizedBaseContracts
     .slice(1)
     .reverse()
     .forEach((contractId) => {
+      // Generate call to variable initialization function
+      addCallToInitFunction(initFunctions, contractId, statements, ast);
+
+      // Generate call to constructor function
       const constructorFunc = constructors.get(contractId);
       if (constructorFunc !== undefined) {
         const newFunc = createFunctionFromConstructor(constructorFunc, node, ast, generator);
@@ -148,24 +167,21 @@ export function solveConstructorInheritance(
           `Wrong number of arguments in constructor`,
         );
 
-        const stmt = new ExpressionStatement(
-          ast.reserveId(),
-          '',
-          createCallToFunction(newFunc, argList, ast),
+        statements.push(
+          createExpressionStatement(ast, createCallToFunction(newFunc, argList, ast)),
         );
-        statements.push(stmt);
       }
     });
 
+  // Add a call to the variable initialization function of the current contract
   // Change the constructor of this contract into a regular function to be called from `selfConstructor`
+  addCallToInitFunction(initFunctions, node.id, statements, ast);
   transformConstructor(node, selfConstructor, statements, ast, generator);
 
   // Add generated function calls to the body of this contract's constructor
-  if (statements.length > 0) {
-    generateBody(statements, selfConstructor, ast);
-    ast.setContextRecursive(selfConstructor);
-    node.appendChild(selfConstructor);
-  }
+  generateBody(statements, selfConstructor, ast);
+  ast.setContextRecursive(selfConstructor);
+  node.appendChild(selfConstructor);
 }
 
 function collectArguments(
@@ -352,4 +368,26 @@ function removeNonModifierInvocations(node: FunctionDefinition) {
 function removeModifiersFromConstructor(node: ContractDefinition) {
   const constructor = node.vConstructor;
   if (constructor !== undefined) removeNonModifierInvocations(constructor);
+}
+
+function findVarInitialization(contract: ContractDefinition): FunctionDefinition | null {
+  const name = `${INIT_FUNCTION_PREFIX}${contract.name}`;
+  for (const f of contract.vFunctions) {
+    if (f.name == name) {
+      return f;
+    }
+  }
+  return null;
+}
+
+function addCallToInitFunction(
+  initFunctions: Map<number, FunctionDefinition>,
+  contractId: number,
+  statements: Statement[],
+  ast: AST,
+): void {
+  const initFunc = initFunctions.get(contractId);
+  if (initFunc !== undefined) {
+    statements.push(createExpressionStatement(ast, createCallToFunction(initFunc, [], ast)));
+  }
 }
