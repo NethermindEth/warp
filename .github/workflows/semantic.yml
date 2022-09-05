@@ -3,7 +3,7 @@ name: Semantic tests
 on: workflow_dispatch
 
 env:
-  CAIRO_LANG_VERSION: 0.9
+  CAIRO_LANG_VERSION: 0.10.0
 
 jobs:
   lint:

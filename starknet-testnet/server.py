@@ -1,6 +1,6 @@
 import os
 import sys
-from starkware.starknet.business_logic.internal_transaction import (
+from starkware.starknet.everest.business_logic.internal_transaction import (
     TransactionExecutionInfo,
 )
 
