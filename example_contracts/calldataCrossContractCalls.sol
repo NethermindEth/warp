@@ -11,8 +11,7 @@ interface barInterface is fooInterface {}
 contract testContract {
     function bar(
         address pool,
-        bytes calldata x,
-        uint8[] calldata y
+        bytes calldata x
     )
         external
     {
