@@ -22,7 +22,7 @@ import {
   CairoType,
   TypeConversionContext,
 } from '../../utils/cairoTypeSystem';
-import { NotSupportedYetError } from '../../utils/errors';
+import { NotSupportedYetError, WillNotSupportError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
 import { createBytesTypeName } from '../../utils/nodeTemplates';
 import {
@@ -154,8 +154,8 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
               ].join('\n'),
         );
       } else {
-        throw new NotSupportedYetError(
-          `Decoding ${printTypeNode(type)} into felt dynamic array is not supported yet`,
+        throw new WillNotSupportError(
+          `Decoding ${printTypeNode(type)} into felt dynamic array is not supported`,
         );
       }
     });
@@ -176,7 +176,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       `   return (result)`,
       `end`,
     ].join('\n');
-    this.ast.registerImport(this.sourceUnit, 'starkware.cairo.common.alloc', 'alloc');
+    this.requireImport('starkware.cairo.common.alloc', 'alloc');
 
     this.generatedFunctions.set(key, { name: funcName, code: code });
     return funcName;

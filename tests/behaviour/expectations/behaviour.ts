@@ -1,11 +1,119 @@
 import { FILE } from 'dns';
 import { Dir, Expect, File } from './types';
-import { flatten } from './utils';
+import { getByte32Array, flatten, getByteXArray } from './utils';
 
 export const expectations = flatten(
   new Dir('tests', [
     new Dir('behaviour', [
       new Dir('contracts', [
+        new Dir('abiEncode', [
+          File.Simple('abiEncodeDynamic', [
+            Expect.Simple('simpleDynamic', [], getByte32Array(32, 3, 2, 3, 5)),
+            Expect.Simple(
+              'nestedDynamic',
+              [],
+              getByte32Array(32, 2, 64, 192, 3, 2, 3, 5, 2, 7, 11),
+            ),
+            Expect.Simple(
+              'mixDynamic',
+              [],
+              getByte32Array(64, 384, 2, 64, 192, 3, 2, 3, 5, 2, 7, 11, 3, 2, 3, 5),
+            ),
+          ]),
+          File.Simple('abiEncodeStatic', [
+            Expect.Simple('staticSimple', [], getByte32Array(2, 3, 5)),
+            Expect.Simple('staticNested', [], getByte32Array(2, 3, 4, 5)),
+            Expect.Simple('staticDynamicNested', [], getByte32Array(32, 64, 160, 2, 2, 3, 1, 11)),
+          ]),
+          File.Simple('abiEncodeStrings', [
+            Expect.Simple('emptyString', [], getByte32Array(32, 0)),
+            Expect.Simple(
+              'stringEncoding',
+              [],
+              getByte32Array(32, 4, BigInt('0x686f6c61'.padEnd(66, '0'))),
+            ),
+            Expect.Simple(
+              'docsExample',
+              [],
+              getByte32Array(
+                ...[64, 320],
+                ...[2, 64, 160],
+                ...[2, 1, 2],
+                ...[1, 3],
+                ...[3, 96, 160, 224],
+                ...[3, BigInt('0x6f6e65'.padEnd(66, '0'))],
+                ...[3, BigInt('0x74776f'.padEnd(66, '0'))],
+                ...[5, BigInt('0x7468726565'.padEnd(66, '0'))],
+              ),
+            ),
+          ]),
+          File.Simple('abiEncodeStruct', [
+            Expect.Simple('structSimple', [], getByte32Array(2, 3)),
+            Expect.Simple('structComplex', [], getByte32Array(32, 128, 7, 11, 13, 3, 2, 3, 5)),
+          ]),
+          File.Simple('abiEncodeValue', [
+            Expect.Simple('rational', [], getByte32Array(255, 65534)),
+            Expect.Simple(
+              'rationalLiterals',
+              [],
+              getByte32Array(1, BigInt(2) ** BigInt(256) - BigInt(2)),
+            ),
+          ]),
+          File.Simple('abiEncodePacked', [
+            Expect.Simple(
+              'fixedBytes',
+              ['7', '5', '3'],
+              getByteXArray(
+                { byteSize: 18, value: 7 },
+                { byteSize: 32, value: BigInt(3) * BigInt(2) ** BigInt(128) + BigInt(5) },
+              ),
+            ),
+            Expect.Simple(
+              'addresses',
+              ['1', '2'],
+              getByteXArray({ byteSize: 32, value: 1 }, { byteSize: 32, value: 2 }),
+            ),
+            Expect.Simple('booleans', ['1', '1'], ['2', '1', '1']),
+            Expect.Simple('enums', ['3', '2'], ['2', '3', '2']),
+            Expect.Simple(
+              'bArray',
+              ['3', '2', '3', '5', '4', '7', '11', '13', '17'],
+              ['7', '2', '3', '5', '7', '11', '13', '17'],
+            ),
+            Expect.Simple(
+              'dynArray',
+              [...['2', '3', '5'], ...['1', '7', '0']],
+              getByteXArray(
+                { byteSize: 4, value: 3 },
+                { byteSize: 4, value: 5 },
+                { byteSize: 32, value: 7 },
+              ),
+            ),
+            Expect.Simple(
+              'staticArray',
+              ['2', '3', '5', '7', '11'],
+              getByteXArray(
+                { byteSize: 1, value: 2 },
+                { byteSize: 1, value: 3 },
+                { byteSize: 4, value: 5 },
+                { byteSize: 4, value: 7 },
+                { byteSize: 4, value: 11 },
+              ),
+            ),
+          ]),
+          File.Simple('abiEncodeWithSelector', [
+            Expect.Simple(
+              'encodeWithSelector',
+              [],
+              getByteXArray({ byteSize: 4, value: 0x01020304 }, { byteSize: 32, value: 3 }),
+            ),
+            Expect.Simple(
+              'encodeWithSignature',
+              [],
+              getByteXArray({ byteSize: 4, value: 0x697e407d }, { byteSize: 32, value: 15 }),
+            ),
+          ]),
+        ]),
         new Dir('abstractContracts', [
           File.Simple('mappingInConstructor', [
             Expect.Simple(

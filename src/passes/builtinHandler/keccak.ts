@@ -25,7 +25,8 @@ export class Keccak extends ASTMapper {
     );
 
     ast.registerImport(node, 'warplib.keccak', 'warp_keccak');
-
     ast.replaceNode(node, createCallToFunction(warpKeccak, node.vArguments, ast));
+
+    this.commonVisit(node, ast);
   }
 }
