@@ -210,9 +210,9 @@ export class InputCheckGen extends StringIndexedFuncGen {
         takesUint
           ? [
               '    let (arg_0) = narrow_safe(arg);',
-              `    let (inRange: felt) = is_le_felt(arg_0, ${nMembers - 1});`,
+              `    let inRange: felt = is_le_felt(arg_0, ${nMembers - 1});`,
             ].join('\n')
-          : `    let (inRange : felt) = is_le_felt(arg, ${nMembers - 1});`,
+          : `    let inRange : felt = is_le_felt(arg, ${nMembers - 1});`,
         `    with_attr error_message("Error: value out-of-bounds. Values passed to must be in enum range (0, ${
           nMembers - 1
         }]."){`,

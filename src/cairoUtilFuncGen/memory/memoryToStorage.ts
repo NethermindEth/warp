@@ -204,7 +204,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       code: [
         `func ${funcName}_elem${implicits}(storage_loc: felt, mem_loc : felt, length: felt) -> (){`,
         `    alloc_locals;`,
-        `    if length == 0:`,
+        `    if (length == 0){`,
         `        return ();`,
         `    }`,
         `    let index = length - 1;`,

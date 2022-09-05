@@ -63,7 +63,7 @@ export class EnumInputCheck extends StringIndexedFuncGen {
         }) -> (arg: felt){`,
         '    alloc_locals;',
         input256Bits ? ['    let (arg) = narrow_safe(arg_Uint256);'].join('\n') : ``,
-        `    let (inRange : felt) = is_le_felt(arg, ${nMembers - 1});`,
+        `    let inRange : felt = is_le_felt(arg, ${nMembers - 1});`,
         `    with_attr error_message("Error: value out-of-bounds. Values passed to must be in enum range (0, ${
           nMembers - 1
         }]."){`,

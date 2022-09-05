@@ -92,7 +92,7 @@ export class ExternalDynArrayStructConstructor extends StringIndexedFuncGen {
       code: [
         `struct ${key}{`,
         `${INDENT} len : felt ,`,
-        `${INDENT} ptr : ${elementCairoType.toString()}*`,
+        `${INDENT} ptr : ${elementCairoType.toString()}*,`,
         `}`,
       ].join('\n'),
     });

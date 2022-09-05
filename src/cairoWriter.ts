@@ -695,6 +695,7 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
 class BlockWriter extends CairoASTNodeWriter {
   writeInner(node: Block, writer: ASTWriter): SrcDesc {
     const documentation = getDocumentation(node.documentation, writer);
+    // node.vStatements.map((statement) => console.log(writer.write(statement), statement.constructor.name));
     return [
       [
         documentation,
@@ -762,12 +763,13 @@ class ExpressionStatementWriter extends CairoASTNodeWriter {
   newVarCounter = 0;
   writeInner(node: ExpressionStatement, writer: ASTWriter): SrcDesc {
     const documentation = getDocumentation(node.documentation, writer);
+    // console.log(writer.write(node.vExpression), node.constructor.name, node.vExpression.constructor.name);
     if (
-      (node.vExpression instanceof FunctionCall &&
-        node.vExpression.kind !== FunctionCallKind.StructConstructorCall) ||
-      node.vExpression instanceof Assignment ||
-      node.vExpression instanceof CairoAssert
+      node.vExpression instanceof FunctionCall &&
+      node.vExpression.kind !== FunctionCallKind.StructConstructorCall
     ) {
+      return [[documentation, `${writer.write(node.vExpression)};`].join('\n')];
+    } else if (node.vExpression instanceof Assignment || node.vExpression instanceof CairoAssert) {
       return [[documentation, `${writer.write(node.vExpression)}`].join('\n')];
     } else {
       return [
@@ -920,7 +922,7 @@ class FunctionCallWriter extends CairoASTNodeWriter {
                 ? mangleStructName(node.vReferencedDeclaration)
                 : func
               : func
-          }(${args});`,
+          }(${args})`,
         ];
 
       case FunctionCallKind.TypeConversion: {

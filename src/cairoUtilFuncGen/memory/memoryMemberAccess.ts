@@ -83,7 +83,7 @@ export class MemoryMemberAccessGen extends CairoUtilFuncGenBase {
       name: funcName,
       code: [
         `func ${funcName}(loc: felt) -> (memberLoc: felt){`,
-        `    return (${add('loc', offset)});`,
+        `    return (${add('loc', offset)},);`,
         `}`,
       ].join('\n'),
     });

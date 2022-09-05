@@ -118,10 +118,10 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(loc: felt):`,
+        `func ${funcName}${implicits}(loc: felt){`,
         ...mapRange(cairoType.width, (n) => `    WARP_STORAGE.write(${add('loc', n)}, 0);`),
-        `    return ()`,
-        `end`,
+        `    return ();`,
+        `}`,
       ].join('\n'),
     };
   }

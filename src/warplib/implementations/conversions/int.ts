@@ -21,30 +21,30 @@ export function int_conversions(): void {
           if (from < to) {
             if (to === 256) {
               return [
-                `func warp_int${from}_to_int256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(op : felt) -> (res : Uint256):`,
-                `    let (msb) = bitwise_and(op, ${msb(from)})`,
-                `    let (high, low) = split_felt(op)`,
-                `    let naiveExtension = Uint256(low, high)`,
-                `    if msb == 0:`,
-                `        return (naiveExtension)`,
-                `    else:`,
+                `func warp_int${from}_to_int256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(op : felt) -> (res : Uint256){`,
+                `    let (msb) = bitwise_and(op, ${msb(from)});`,
+                `    let (high, low) = split_felt(op);`,
+                `    let naiveExtension = Uint256(low, high);`,
+                `    if (msb == 0){`,
+                `        return (naiveExtension);`,
+                `    }else{`,
                 `        let (res, _) = uint256_add(naiveExtension, ${uint256(
                   sign_extend_value(from, to),
-                )})`,
-                `        return (res)`,
-                `    end`,
-                'end',
+                )});`,
+                `        return (res,);`,
+                `    }`,
+                '}',
               ];
             } else {
               return [
-                `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : felt) -> (res : felt):`,
-                `    let (msb) = bitwise_and(op, ${msb(from)})`,
-                `    if msb == 0:`,
-                `        return (op)`,
-                `    else:`,
-                `        return (op + 0x${sign_extend_value(from, to).toString(16)})`,
-                `    end`,
-                'end',
+                `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : felt) -> (res : felt){`,
+                `    let (msb) = bitwise_and(op, ${msb(from)});`,
+                `    if (msb == 0){`,
+                `        return (op,);`,
+                `    }else{`,
+                `        return (op + 0x${sign_extend_value(from, to).toString(16)},);`,
+                `    }`,
+                '}',
               ];
             }
           } else if (from === to) {
@@ -53,35 +53,35 @@ export function int_conversions(): void {
             if (from === 256) {
               if (to > 128) {
                 return [
-                  `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : Uint256) -> (res : felt):`,
-                  `    let (high) = bitwise_and(op.high,${mask(to - 128)})`,
-                  `    return (op.low + ${bound(128)} * high)`,
-                  `end`,
+                  `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : Uint256) -> (res : felt){`,
+                  `    let (high) = bitwise_and(op.high,${mask(to - 128)});`,
+                  `    return (op.low + ${bound(128)} * high,);`,
+                  `}`,
                 ];
               } else {
                 return [
-                  `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : Uint256) -> (res : felt):`,
-                  `    let (res) = bitwise_and(op.low, ${mask(to)})`,
-                  `    return (res)`,
-                  `end`,
+                  `func warp_int${from}_to_int${to}{bitwise_ptr: BitwiseBuiltin*}(op : Uint256) -> (res : felt){`,
+                  `    let (res) = bitwise_and(op.low, ${mask(to)});`,
+                  `    return (res,);`,
+                  `}`,
                 ];
               }
             } else {
               return [
-                `func warp_int${from}_to_int${to}{bitwise_ptr : BitwiseBuiltin*}(op : felt) -> (res : felt):`,
-                `    let (res) = bitwise_and(op, ${mask(to)})`,
-                `    return (res)`,
-                `end`,
+                `func warp_int${from}_to_int${to}{bitwise_ptr : BitwiseBuiltin*}(op : felt) -> (res : felt){`,
+                `    let (res) = bitwise_and(op, ${mask(to)});`,
+                `    return (res,);`,
+                `}`,
               ];
             }
           }
         });
       }),
       '',
-      'func warp_uint256{range_check_ptr}(op : felt) -> (res : Uint256):',
-      '    let split = split_felt(op)',
-      '    return (Uint256(low=split.low, high=split.high))',
-      'end',
+      'func warp_uint256{range_check_ptr}(op : felt) -> (res : Uint256){',
+      '    let split = split_felt(op);',
+      '    return (Uint256(low=split.low, high=split.high),);',
+      '}',
     ],
   );
 }

@@ -140,7 +140,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
 
     const callWriteFunc = (cairoVar: string) =>
       isDynamicArray(argType) || argType instanceof MappingType
-        ? [`let (elem_id) = readId(${cairoVar})`, `${elementWriteFunc}(elem_id, value);`]
+        ? [`let (elem_id) = readId(${cairoVar});`, `${elementWriteFunc}(elem_id, value);`]
         : [`${elementWriteFunc}(${cairoVar}, value);`];
 
     this.generatedFunctions.set(key, {
@@ -153,7 +153,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
         `    assert carry = 0;`,
         `    ${lengthName}.write(loc, newLen);`,
         `    let (existing) = ${arrayName}.read(loc, len);`,
-        `    if (existing) == 0){`,
+        `    if (existing == 0){`,
         `        let (used) = WARP_USED_STORAGE.read();`,
         `        WARP_USED_STORAGE.write(used + ${allocationCairoType.width});`,
         `        ${arrayName}.write(loc, len, used);`,
