@@ -19,7 +19,7 @@ export class TranspilationAbandonedError extends Error {
   }
 }
 
-function getSourceCode(node: ASTNode | undefined): string {
+export function getSourceCode(node: ASTNode | undefined): string {
   if (node === undefined) return '';
   const sourceUnit = node.getClosestParentByType(SourceUnit);
   if (sourceUnit === undefined) return '';

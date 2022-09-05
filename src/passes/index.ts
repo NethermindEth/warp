@@ -51,3 +51,4 @@ export * from './userDefinedTypesConverter';
 export * from './usingForResolver';
 export * from './variableDeclarationExpressionSplitter';
 export * from './variableDeclarationInitialiser';
+export * from './warnSupportedFeatures';
