@@ -26,7 +26,7 @@ export function int_conversions(): void {
                 `    let (high, low) = split_felt(op);`,
                 `    let naiveExtension = Uint256(low, high);`,
                 `    if (msb == 0){`,
-                `        return (naiveExtension);`,
+                `        return (naiveExtension,);`,
                 `    }else{`,
                 `        let (res, _) = uint256_add(naiveExtension, ${uint256(
                   sign_extend_value(from, to),
