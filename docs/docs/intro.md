@@ -5,7 +5,7 @@ sidebar_position: 1
 
 # Welcome to Warp 2.0
 
-We are excited to announce the second version of Warp, now designed to compile your Solidity code directly into Cairo.
+We are excited to announce the second version of Warp, now designed to transpile your Solidity code directly into Cairo.
 
 Warp 1 set out to show that compiling Solidity code into Cairo was possible, and paved the way for developers to access the benefits of StarkNet without needing to master Cairo. Using everything we learned from Warp 1, we have written a new version adding vast improvements to contract efficiency and user experience. In this blog, we will talk through the improvements made to Warp, transpile OpenZeppelin’s ERC20 contract, and describe future plans for the project.
 
