@@ -1,3 +1,75 @@
 ---
-title: Contract factories (WIP)
+title: Contract Factories
 ---
+
+Warp supports Contract Factories and can transpile them to facilitate a variety of use cases.
+
+On StarkNet, Contract Factories use a ClassHash of the contract to be deployed. This is helpful for preventing state bloat of the blockchain. For this approach, the ClassHash of the contract to be deployed has to be provided to the ContractFactory in some method, and this ClassHash can only be calculated from the compiled contract that is being deployed. To resolve this, the ClassHash is placed as a constant into the Contract.
+
+The following example demonstrates a ContractFactory that deploys ContractA.
+
+![Contract Factories FlowChart](https://cdn-images-1.medium.com/max/800/1*rn1dlgKlpfLv9ng0JvpPkQ.png)
+
+The contract being deployed will still need to be declared on StarkNet so that it can be deployed from another contract.
+
+To transpile, inspect, declare and deploy the following contract using Warp:
+
+```
+pragma solidity ^0.8.0;
+contract DeployedContract {
+	uint8 input1;
+	uint8 input2;
+	constructor(uint8 input1_, uint8 input2_) {
+		input1 = input1_;
+		input2 = input2_;
+	}
+}
+
+contract ContractFactory {
+	function deploy() external {
+		new DeployedContract(1, 2);
+	}
+}
+```
+
+Transpile the above contract:
+
+```
+warp transpile example.sol
+```
+
+Declare DeployedContract, The contract hash should be returned as follows:
+
+```
+$: warp declare warp_output/example__WC__DeployedContract.cairo
+
+Running starknet compile with cairoPath /home/guy/repos/warp
+Declare transaction was sent.
+Contract class hash: 0x621aef497209537289c150adf7fc281d1257ce57e7f4ec79e02cccf23e98048
+Transaction hash: 0x1930d039b4dc767569cf88e3a2f055ccb08f9e5c7714998ebe04b6b63ddc278
+```
+
+If you inspect the contents of the file `warp_output/example__WC__DeployedContract`
+you will see a Cairo constant with the same class hash as above:
+
+```
+# @declare example__WC__DeployedContract.cairo
+const _example_DeployedContract_4de2fe6576a500b8 = 0x621aef497209537289c150adf7fc281d1257ce57e7f4ec79e02cccf23e98048
+```
+
+The factory can now be deployed:
+
+```
+$ bin/warp deploy warp_output/example__WC__ContractFactory.cairo
+
+Running starknet compile with cairoPath /home/guy/repos/warp
+Running starknet compile with cairoPath /home/guy/repos/warp
+Declare transaction was sent.
+Contract class hash: 0x5161d7e61c774ad141bafdacababb6a14f6eb48d510d6aee2abab9ea9a6a4a3
+Transaction hash: 0x2e958d328cd0d029a63b58b68d80cc483e6a284760c1196190113c444448121
+
+Sending the transaction with max_fee: 0.000000 ETH.
+Invoke transaction for contract deployment was sent.
+Contract address: 0x07e1a0d12eba1be41dad0bd04b3c7fa17f2d6252e669cd3c419e04219fcfd4b5
+Transaction hash: 0x246be370da0ffb2de578b47a1cdc746528a6b08b17b62d6bdeb36c18c82de18
+```
