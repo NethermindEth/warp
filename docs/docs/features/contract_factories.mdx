@@ -6,10 +6,6 @@ Warp supports Contract Factories and can transpile them to facilitate a variety 
 
 On StarkNet, Contract Factories use a ClassHash of the contract to be deployed. This is helpful for preventing state bloat of the blockchain. For this approach, the ClassHash of the contract to be deployed has to be provided to the ContractFactory in some method, and this ClassHash can only be calculated from the compiled contract that is being deployed. To resolve this, the ClassHash is placed as a constant into the Contract.
 
-The following example demonstrates a ContractFactory that deploys ContractA.
-
-![Contract Factories FlowChart](https://cdn-images-1.medium.com/max/800/1*rn1dlgKlpfLv9ng0JvpPkQ.png)
-
 The contract being deployed will still need to be declared on StarkNet so that it can be deployed from another contract.
 
 To transpile, inspect, declare and deploy the following contract using Warp:
