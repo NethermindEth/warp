@@ -27,7 +27,8 @@ If you're on an arm based Apple machine (m1/m2 mac) you'll need to install `gmp`
 environment variables
 
 ```
-export CFLAGS=-I`brew --prefix gmp`/include LDFLAGS=-L`brew --prefix gmp`/lib
+export CFLAGS=-I`brew --prefix gmp`/include
+export LDFLAGS=-L`brew --prefix gmp`/lib
 ```
 
 - Install command on Ubuntu:
