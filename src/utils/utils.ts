@@ -57,7 +57,6 @@ import {
   TranspileFailedError,
   WillNotSupportError,
 } from './errors';
-import { error } from './formatting';
 import {
   createAddressTypeName,
   createBoolTypeName,
@@ -455,47 +454,18 @@ export function isCalldataDynArrayStruct(node: Identifier, compilerVersion: stri
   );
 }
 
-export function getSourceFromLocation(source: string, location: SourceLocation): string {
-  const linesAroundSource = 2;
-  const sourceBeforeLocation = source.substring(0, location.offset).split('\n');
-  const sourceAfterLocation = source.substring(location.offset).split('\n');
-  const startLineNum = sourceBeforeLocation.length - linesAroundSource;
-
-  const [previousLines, currentLineNum] = sourceBeforeLocation
-    .slice(sourceBeforeLocation.length - (linesAroundSource + 1), sourceBeforeLocation.length - 1)
-    .reduce(
-      ([s, n], c) => [[...s, `${n}  ${c}`], n + 1],
-      [new Array<string>(), startLineNum < 0 ? 0 : startLineNum],
-    );
-
-  const [currentLine, followingLineNum] = [
-    sourceBeforeLocation.slice(-1),
-    error(source.substring(location.offset, location.offset + location.length)),
-    sourceAfterLocation[0].substring(location.length),
-  ]
-    .join('')
-    .split('\n')
-    .reduce(([s, n], c) => [[...s, `${n}  ${c}`], n + 1], [new Array<string>(), currentLineNum]);
-
-  const [followingLines] = sourceAfterLocation
-    .slice(currentLine.length, currentLine.length + linesAroundSource)
-    .reduce(([s, n], c) => [[...s, `${n}  ${c}`], n + 1], [new Array<string>(), followingLineNum]);
-
-  return [...previousLines, ...currentLine, ...followingLines].join('\n');
-}
-
 /**
  * Given a source file and some nodes, prints them
  * @param source solidity path to file
  * @param locations nodes source locations
- * @param chalkText function that highlight the nodes text locations
- * @param surroundingLines lines surrounding highlighted lines[
+ * @param highlightFunc function that highlight the nodes text locations
+ * @param surroundingLines lines surrounding highlighted lines
  * @returns text with highlights
  */
 export function getSourceFromLocations(
   source: string,
   locations: SourceLocation[],
-  chalkText: (text: string) => string,
+  highlightFunc: (text: string) => string,
   surroundingLines = 2,
 ): string {
   let textWalked = 0;
@@ -512,7 +482,7 @@ export function getSourceFromLocations(
       newLine =
         newLine +
         source.substring(textWalked, currentLocation.offset) +
-        chalkText(
+        highlightFunc(
           source.substring(currentLocation.offset, currentLocation.offset + currentLocation.length),
         );
 
