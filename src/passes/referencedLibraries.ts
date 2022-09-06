@@ -2,7 +2,6 @@ import assert from 'assert';
 import { ContractDefinition, ContractKind, FunctionCall, MemberAccess } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { NotSupportedYetError } from '../utils/errors';
 
 // Library calls in solidity are delegate calls
 // i.e  libraries can be seen as implicit base contracts of the contracts that use them
@@ -13,7 +12,10 @@ import { NotSupportedYetError } from '../utils/errors';
 export class ReferencedLibraries extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([]);
+    const passKeys: Set<string> = new Set<string>([
+      // Free Function inliner handles free functions that make library calls
+      'Ffi',
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
@@ -34,11 +36,7 @@ export class ReferencedLibraries extends ASTMapper {
 
       // Free functions calling library functions are not yet supported
       const parent = node.getClosestParentByType(ContractDefinition);
-      if (parent === undefined) {
-        throw new NotSupportedYetError(
-          'Free functions calling library functions are not yet supported',
-        );
-      }
+      if (parent === undefined) return;
 
       // Checks if the Function is a referenced Library function,
       // if yes add it to the linearizedBaseContract list of parent ContractDefinition node.
