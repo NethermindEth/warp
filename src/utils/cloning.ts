@@ -370,7 +370,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.usedStorage,
       node.usedIds,
       node.documentation,
-      node.children,
+      node.children.map((n) => cloneASTNodeImpl(n, ast, remappedIds)),
       node.nameLocation,
       node.raw,
     );
