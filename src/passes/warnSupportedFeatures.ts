@@ -6,13 +6,12 @@ import {
   FunctionCall,
   FunctionCallKind,
   parseSourceLocation,
-  SourceLocation,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { warning } from '../utils/formatting';
 import { safeGetNodeType } from '../utils/nodeTypeProcessing';
-import { getSourceFromLocation } from '../utils/utils';
+import { getSourceFromLocations } from '../utils/utils';
 
 export class WarnSupportedFeatures extends ASTMapper {
   public addressesToAbiEncode: ASTNode[] = [];
@@ -28,7 +27,6 @@ export class WarnSupportedFeatures extends ASTMapper {
         .forEach((arg) => this.addressesToAbiEncode.push(arg));
     }
 
-    console.log(this.addressesToAbiEncode.length);
     return this.visitExpression(node, ast);
   }
 
@@ -41,24 +39,32 @@ export class WarnSupportedFeatures extends ASTMapper {
       addresses.set(sourceUnit.absolutePath, mapper.addressesToAbiEncode);
     });
 
-    [...addresses.entries()].forEach(([path, nodes]) => {
-      const content = fs.readFileSync(path, { encoding: 'utf-8' });
-      const warnx = [
-        `File ${path}:\n`,
-        ...getSourceFromLocation(content, parseSourceLocation(nodes[0].src))
-          .split('\n')
-          .map((l) => `\t${l}`),
-      ].join('\n');
-
-      console.log(warnx);
-    });
+    if (addresses.size > 0) {
+      console.log(
+        `${warning(
+          'Warning:',
+        )} ABI Packed encoding of address is 32 bytes long on warped contract (instead of 20 bytes).`,
+      );
+      [...addresses.entries()].forEach(([path, nodes]) => warn(path, nodes));
+    }
 
     return ast;
   }
 }
 
-interface Source {
-  source: string;
-  location: SourceLocation;
+function warn(path: string, nodes: ASTNode[]): void {
+  const content = fs.readFileSync(path, { encoding: 'utf-8' });
+  const extendedMessage = [
+    `File ${path}:\n`,
+    ...getSourceFromLocations(
+      content,
+      nodes.map((n) => parseSourceLocation(n.src)),
+      warning,
+      8,
+    )
+      .split('\n')
+      .map((l) => `\t${l}`),
+  ].join('\n');
+
+  console.log(extendedMessage);
 }
-function getSourcesFromLocations(sources: Source[]) {}

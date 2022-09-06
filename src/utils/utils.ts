@@ -484,6 +484,67 @@ export function getSourceFromLocation(source: string, location: SourceLocation):
   return [...previousLines, ...currentLine, ...followingLines].join('\n');
 }
 
+export function getSourceFromLocations(
+  source: string,
+  locations: SourceLocation[],
+  chalkText: (text: string) => string,
+  surroundingLines: number = 2,
+): string {
+  let textWalked = 0;
+  let locIndex = 0;
+  const lines = source.split('\n').reduce((lines, currentLine, lineNum) => {
+    const maxWalk = textWalked + currentLine.length + 1;
+    let marked = false;
+    let newLine = `${lineNum}\t`;
+    while (
+      locIndex < locations.length &&
+      textWalked + currentLine.length >= locations[locIndex].offset + locations[locIndex].length
+    ) {
+      const currentLocation = locations[locIndex];
+      newLine =
+        newLine +
+        source.substring(textWalked, currentLocation.offset) +
+        chalkText(
+          source.substring(currentLocation.offset, currentLocation.offset + currentLocation.length),
+        );
+
+      textWalked = currentLocation.offset + currentLocation.length;
+      locIndex += 1;
+      marked = true;
+    }
+
+    newLine = newLine + source.substring(textWalked, maxWalk);
+    textWalked = maxWalk;
+    lines.push([newLine, marked]);
+    return lines;
+  }, new Array<[string, boolean]>());
+
+  let lastLineMarked = 0;
+  const filteredLines: string[] = [];
+  for (let index = 0; index < lines.length; index++) {
+    const [_line, marked] = lines[index];
+    if (!marked) continue;
+
+    if (index - (lastLineMarked + surroundingLines) > surroundingLines) {
+      console.log(index, lastLineMarked, surroundingLines);
+      filteredLines.push('\t................\n');
+    }
+    lastLineMarked = index;
+
+    filteredLines.push(
+      ...lines
+        .slice(
+          index - surroundingLines > 0 ? index - surroundingLines : 0,
+          index + surroundingLines,
+        )
+        .map((l) => l[0])
+        .filter((l) => !filteredLines.includes(l)),
+    );
+  }
+
+  return filteredLines.join('');
+}
+
 export function callClassHashScript(filePath: string): string {
   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
   const classHashScriptPath = path.resolve(
