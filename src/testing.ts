@@ -213,6 +213,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/using_for/imports/user_defined', 'Success'],
     // global_directive.sol cannot resolve struct when file imported as identifier
     ['example_contracts/using_for/imports/global_directive', 'Success'],
+    ['example_contracts/using_for/complex_libraries', 'Success'],
     ['example_contracts/using_for/function', 'WillNotSupport'],
     ['example_contracts/using_for/private', 'Success'],
     ['example_contracts/using_for/library', 'Success'],
