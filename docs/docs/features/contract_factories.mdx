@@ -2,16 +2,21 @@
 title: Contract Factories
 ---
 
-Warp supports Contract Factories and can transpile them to facilitate a variety of use cases.
+Contract factories are now supported by Warp. Contract factories work slightly differently on StarkNet as they do on Ethereum.
+To deploy a contract on StarkNet we need to know the class hash of the contract being deployed, this class hash is then passed
+as an argument to the deploy system call. Warp is designed so that the above is hidden from the user and handled internally.
+The class hash is calculated offline and inserted into the transpiled Contract factory as a constant.
 
-On StarkNet, Contract Factories use a ClassHash of the contract to be deployed. This is helpful for preventing state bloat of the blockchain. For this approach, the ClassHash of the contract to be deployed has to be provided to the ContractFactory in some method, and this ClassHash can only be calculated from the compiled contract that is being deployed. To resolve this, the ClassHash is placed as a constant into the Contract.
+Note that the contract being deployed by the contract factory will still need to be declared online by the user.
 
-The contract being deployed will still need to be declared on StarkNet so that it can be deployed from another contract.
+Warp also supports the use of the salt option e.g `new Contract{salt: salt}()`, but please note that because of the differences
+in Ethereum and StarkNet the salt will be truncated from 32 bytes to 30 bytes.
 
-To transpile, inspect, declare and deploy the following contract using Warp:
+The following Solidity contract named example.sol will be used to illustrate the feature:
 
 ```
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.14;
+
 contract DeployedContract {
 	uint8 input1;
 	uint8 input2;
@@ -22,50 +27,80 @@ contract DeployedContract {
 }
 
 contract ContractFactory {
+	address public deployedContract;
+
 	function deploy() external {
-		new DeployedContract(1, 2);
+		deployedContract =  address(new DeployedContract(1, 2));
 	}
 }
 ```
 
-Transpile the above contract:
+Transpile the contract:
 
 ```
-warp transpile example.sol
+warp transpile example.sol --compile-cairo
 ```
 
-Declare DeployedContract, The contract hash should be returned as follows:
-
-```
-$: warp declare warp_output/example__WC__DeployedContract.cairo
-
-Running starknet compile with cairoPath /home/guy/repos/warp
-Declare transaction was sent.
-Contract class hash: 0x621aef497209537289c150adf7fc281d1257ce57e7f4ec79e02cccf23e98048
-Transaction hash: 0x1930d039b4dc767569cf88e3a2f055ccb08f9e5c7714998ebe04b6b63ddc278
-```
-
-If you inspect the contents of the file `warp_output/example__WC__DeployedContract`
-you will see a Cairo constant with the same class hash as above:
+If we inspect the transpiled `ContractFactory` file we can see that the class hash of the `DeployedContract` is inserted as a constant into the file:
 
 ```
 # @declare example__WC__DeployedContract.cairo
-const _example_DeployedContract_4de2fe6576a500b8 = 0x621aef497209537289c150adf7fc281d1257ce57e7f4ec79e02cccf23e98048
+const _example_DeployedContract_4de2fe6576a500b8 = 0x2a1fa671ab8a9a09bda9147fd7978a1204667a74e9862257b4df5e0b3039f3b
 ```
 
-The factory can now be deployed:
+Compare this to the class hash produced by manually declaring the `DeployedContract` file and you will see they are identical:
 
 ```
-$ bin/warp deploy warp_output/example__WC__ContractFactory.cairo
-
-Running starknet compile with cairoPath /home/guy/repos/warp
-Running starknet compile with cairoPath /home/guy/repos/warp
+warp declare warp_output/example__WC__DeployedContract.cairo
+Running starknet compile with cairoPath /home/user/.config/yarn/global/node_modules/@nethermindeth/warp
 Declare transaction was sent.
-Contract class hash: 0x5161d7e61c774ad141bafdacababb6a14f6eb48d510d6aee2abab9ea9a6a4a3
-Transaction hash: 0x2e958d328cd0d029a63b58b68d80cc483e6a284760c1196190113c444448121
+Contract class hash: 0x2a1fa671ab8a9a09bda9147fd7978a1204667a74e9862257b4df5e0b3039f3b
+Transaction hash: 0x361de621248d89435c5a4c0624a3ad842784feb2a71ef8d5833b50fb1727610
+```
 
-Sending the transaction with max_fee: 0.000000 ETH.
+Now that the `DeployedContract` has been declared we can move to the next step of deploying an instance of the contract from the `ContractFactory` contract.
+
+First we need to deploy the `ContractFactory`:
+
+```
+warp deploy warp_output/example__WC__ContractFactory.cairo
+Running starknet compile with cairoPath /home/user/.config/yarn/global/node_modules/@nethermindeth/warp
+Running starknet compile with cairoPath /home/user/.config/yarn/global/node_modules/@nethermindeth/warp
+Declare transaction was sent.
+Contract class hash: 0x5f6d13c91710a9f38b53461b6d7ef67e4fc22ae0c071b1525a10023a4cfcddb
+Transaction hash: 0x6137adc00ab3971cab712f042632ffbd126d8ed86debc8ac46da668e64de333
+
+Sending the transaction with max_fee: 0.000001 ETH.
 Invoke transaction for contract deployment was sent.
-Contract address: 0x07e1a0d12eba1be41dad0bd04b3c7fa17f2d6252e669cd3c419e04219fcfd4b5
-Transaction hash: 0x246be370da0ffb2de578b47a1cdc746528a6b08b17b62d6bdeb36c18c82de18
+Contract address: 0x050dd6362c74c88530a9f78b756cceb562d25475c6dc612488c52ae881235537
+Transaction hash: 0x1e55b1136b0c9735a51f2f778bb46e90058f9df6bc2ed32c94e432c3a82f5c5
+```
+
+Note you can check the transaction status with:
+
+```
+warp status 0x1e55b1136b0c9735a51f2f778bb46e90058f9df6bc2ed32c94e432c3a82f5c5
+```
+
+The status of the transaction will be returned:
+
+```
+{
+    "block_hash": "0x1755978ce7c28b71766fa3348a9639e9f166a4afe30ad617be7608ea302a890",
+    "tx_status": "ACCEPTED_ON_L2"
+}
+```
+
+Now that the `ContractFactory` has been accepted on L2 we can invoke the `deploy` command.
+
+```
+warp invoke warp_output/example__WC__ContractFactory.cairo --function deploy --address 0x050dd6362c74c88530a9f78b756cceb562d25475c6dc612488c52ae881235537
+```
+
+Lastly, once the transaction is completed we can `call` the `ContractFactory` and get the address of the deployed contract.
+
+```
+warp call warp_output/example__WC__ContractFactory.cairo --function deployedContract --address 0x050dd6362c74c88530a9f78b756cceb562d25475c6dc612488c52ae881235537
+Running starknet compile with cairoPath /home/user/.config/yarn/global/node_modules/@nethermindeth/warp
+0x74ef3df5514c3aa7320063a699a4d3959dccaf8f1db2b6bd81df7e67dace247
 ```
