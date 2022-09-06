@@ -1,4 +1,5 @@
 import {
+  ContractDefinition,
   EventDefinition,
   FunctionDefinition,
   ModifierDefinition,
@@ -11,6 +12,7 @@ import { TranspileFailedError } from '../../utils/errors';
 import { solveConstructors } from './constructorInheritance';
 import { addEventDefintion } from './eventInheritance';
 import { addNonoverridenPublicFunctions, addPrivateSuperFunctions } from './functionInheritance';
+import { addInterfaceDefinitions } from './interfaceInheritance';
 import { addNonOverridenModifiers } from './modifiersInheritance';
 import { addStorageVariables } from './storageVariablesInheritance';
 import {
@@ -91,11 +93,13 @@ export class InheritanceInliner extends ASTMapper {
     const modifierRemapping: Map<number, ModifierDefinition> = new Map();
     const modifierRemappingOverriders: Map<number, ModifierDefinition> = new Map();
     const eventRemapping: Map<number, EventDefinition> = new Map();
+    const interfaceRemapping: Map<number, ContractDefinition> = new Map();
 
     addPrivateSuperFunctions(node, functionRemapping, functionRemappingOverriders, ast);
     addNonoverridenPublicFunctions(node, functionRemapping, ast);
     addStorageVariables(node, variableRemapping, ast);
     addNonOverridenModifiers(node, modifierRemapping, modifierRemappingOverriders, ast);
+    addInterfaceDefinitions(node, interfaceRemapping, ast);
     addEventDefintion(node, eventRemapping, ast);
 
     updateReferencedDeclarations(node, functionRemapping, functionRemappingOverriders, ast);

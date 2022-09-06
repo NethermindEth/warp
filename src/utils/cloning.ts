@@ -43,7 +43,7 @@ import {
   Expression,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { CairoAssert, CairoFunctionDefinition } from '../ast/cairoNodes';
+import { CairoAssert, CairoContract, CairoFunctionDefinition } from '../ast/cairoNodes';
 import { printNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
 import { createParameterList } from './nodeTemplates';
@@ -354,6 +354,26 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.raw,
     );
     // Resolvable--------------------------------------------------------------
+  } else if (node instanceof CairoContract) {
+    newNode = new CairoContract(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.name,
+      node.scope,
+      node.kind,
+      node.abstract,
+      node.fullyImplemented,
+      node.linearizedBaseContracts,
+      node.usedErrors,
+      node.dynamicStorageAllocations,
+      node.staticStorageAllocations,
+      node.usedStorage,
+      node.usedIds,
+      node.documentation,
+      node.children,
+      node.nameLocation,
+      node.raw,
+    );
   } else if (node instanceof CairoFunctionDefinition) {
     newNode = new CairoFunctionDefinition(
       replaceId(node.id, ast, remappedIds),
