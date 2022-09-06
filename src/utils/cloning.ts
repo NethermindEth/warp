@@ -41,6 +41,7 @@ import {
   FunctionTypeName,
   FunctionCallOptions,
   Expression,
+  ContractDefinition,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoAssert, CairoContract, CairoFunctionDefinition } from '../ast/cairoNodes';
@@ -80,6 +81,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
   ast: AST,
   remappedIds: Map<number, number>,
 ): T {
+  console.log(node.raw);
   let newNode: ASTNode | null = null;
 
   // Expressions---------------------------------------------------------------
@@ -369,8 +371,10 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.staticStorageAllocations,
       node.usedStorage,
       node.usedIds,
-      node.documentation,
-      node.children.map((n) => cloneASTNodeImpl(n, ast, remappedIds)),
+      cloneDocumentation(node.documentation, ast, remappedIds),
+      [...node.children]
+        .filter((n) => !(n instanceof StructuredDocumentation))
+        .map((n) => cloneASTNodeImpl(n, ast, remappedIds)),
       node.nameLocation,
       node.raw,
     );
@@ -525,6 +529,28 @@ function cloneASTNodeImpl<T extends ASTNode>(
       [...node.vOverrides].map((o) => cloneASTNodeImpl(o, ast, remappedIds)),
       node.raw,
     );
+  } else if (node instanceof StructuredDocumentation) {
+    // @ts-ignore
+    newNode = cloneDocumentation(node, ast, remappedIds);
+  } else if (node instanceof ContractDefinition) {
+    console.log(node.name);
+    newNode = new ContractDefinition(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.name,
+      node.scope,
+      node.kind,
+      node.abstract,
+      node.fullyImplemented,
+      node.linearizedBaseContracts,
+      node.usedErrors,
+      cloneDocumentation(node.documentation, ast, remappedIds),
+      [...node.children]
+        .filter((n) => !(n instanceof StructuredDocumentation))
+        .map((n) => cloneASTNodeImpl(n, ast, remappedIds)),
+      node.nameLocation,
+      node.raw,
+    );
   }
 
   if (notNull(newNode) && sameType(newNode, node)) {
@@ -532,6 +558,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
     ast.copyRegisteredImports(node, newNode);
     return newNode;
   } else {
+    console.log(notNull(newNode));
     throw new NotSupportedYetError(`Unable to clone ${printNode(node)}`);
   }
 }
