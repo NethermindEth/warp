@@ -20,6 +20,7 @@ import {
   removeBaseContractDependence,
   updateReferencedDeclarations,
   updateReferenceEmitStatemets,
+  updateRefernceContractDefinition,
 } from './utils';
 
 export class InheritanceInliner extends ASTMapper {
@@ -106,6 +107,7 @@ export class InheritanceInliner extends ASTMapper {
     updateReferencedDeclarations(node, variableRemapping, variableRemapping, ast);
     updateReferencedDeclarations(node, modifierRemapping, modifierRemappingOverriders, ast);
     updateReferenceEmitStatemets(node, eventRemapping, ast);
+    updateRefernceContractDefinition(node, interfaceRemapping, ast);
 
     removeBaseContractDependence(node);
 

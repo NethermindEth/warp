@@ -28,18 +28,18 @@ export function addInterfaceDefinitions(
       ) {
         // check if we're calling a member of a contract
         const nodeType = safeGetNodeType(node.vExpression.vExpression, ast.compilerVersion);
+        const source = node.getClosestParentByType(SourceUnit);
+        if (source === undefined) {
+          throw new TranspileFailedError(`Couldn't find SourceUnit of ${node.vMemberName}`);
+        }
         if (
           nodeType instanceof UserDefinedType &&
-          nodeType.definition instanceof ContractDefinition
-        ) {
-          console.log(nodeType.definition.id);
+          nodeType.definition instanceof ContractDefinition &&
+          !source.vContracts.includes(nodeType.definition) &&
           // Interface has already been included
-          if ([...idRemapping.keys()].includes(nodeType.definition.id)) return;
+          ![...idRemapping.keys()].includes(nodeType.definition.id)
+        ) {
           const newInterfaceDefinition = cloneASTNode(nodeType.definition, ast);
-          const source = node.getClosestParentByType(SourceUnit);
-          if (source === undefined) {
-            throw new TranspileFailedError(`Couldn't find SourceUnit of ${node.vMemberName}`);
-          }
           source.insertAtBeginning(newInterfaceDefinition);
           idRemapping.set(nodeType.definition.id, newInterfaceDefinition);
         }

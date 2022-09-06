@@ -81,7 +81,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
   ast: AST,
   remappedIds: Map<number, number>,
 ): T {
-  console.log(node.raw);
   let newNode: ASTNode | null = null;
 
   // Expressions---------------------------------------------------------------
@@ -533,7 +532,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
     // @ts-ignore
     newNode = cloneDocumentation(node, ast, remappedIds);
   } else if (node instanceof ContractDefinition) {
-    console.log(node.name);
     newNode = new ContractDefinition(
       replaceId(node.id, ast, remappedIds),
       node.src,
@@ -558,7 +556,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
     ast.copyRegisteredImports(node, newNode);
     return newNode;
   } else {
-    console.log(notNull(newNode));
     throw new NotSupportedYetError(`Unable to clone ${printNode(node)}`);
   }
 }
