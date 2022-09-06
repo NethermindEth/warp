@@ -6,8 +6,8 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Warp is awesome 🌠',
-  tagline: 'Bringing Ethereum smart contracts to StarkNet',
+  title: 'Warp 🚀',
+  tagline: 'Bringing Solidity to StarkNet at warp speed',
   url: 'https://nethermindeth.github.io/',
   baseUrl: '/warp/',
   onBrokenLinks: 'throw',
