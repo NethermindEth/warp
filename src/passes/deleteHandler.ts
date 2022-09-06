@@ -46,6 +46,7 @@ export class DeleteHandler extends ASTMapper {
     if (parent === undefined || parent.vExpression !== node)
       throw new WillNotSupportError(
         'Delete operations have to be the outermost expression to be supported',
+        node,
       );
 
     const newNode = getDefaultValue(nodeType, node, ast);
