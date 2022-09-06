@@ -1,7 +1,14 @@
 import assert from 'assert';
 import { readFileSync } from 'fs';
 import prompts from 'prompts';
-import { ArrayType, ArrayTypeName, generalizeType, Literal, SourceUnit } from 'solc-typed-ast';
+import {
+  ArrayType,
+  ArrayTypeName,
+  generalizeType,
+  Literal,
+  SourceUnit,
+  StateVariableVisibility,
+} from 'solc-typed-ast';
 import Web3 from 'web3';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -47,6 +54,12 @@ export class ABIExtractor extends ASTMapper {
           if (isExternallyVisible(fd)) {
             // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
             addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2'));
+          }
+        });
+        cd.vStateVariables.forEach((vd) => {
+          if (vd.visibility === StateVariableVisibility.Public) {
+            // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
+            addSignature(node, ast, vd.getterCanonicalSignature('ABIEncoderV2'));
           }
         });
       });

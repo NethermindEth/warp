@@ -1,3 +1,4 @@
+import { FILE } from 'dns';
 import { Dir, Expect, File } from './types';
 import { getByte32Array, flatten, getByteXArray } from './utils';
 
@@ -128,6 +129,28 @@ export const expectations = flatten(
               'test the value set by the abstract constructor',
             ),
           ]),
+        ]),
+        new Dir('anonymous_parameters', [
+          new File(
+            'func_override',
+            'A',
+            [],
+            [
+              Expect.Simple('f8', ['1', '2'], ['10']),
+              Expect.Simple('f256', ['1', '0', '2', '0'], ['10', '0']),
+            ],
+          ),
+          new File(
+            'func_override',
+            'B',
+            [],
+            [
+              Expect.Simple('f8', ['3', '2'], ['5']),
+              Expect.Simple('f256', ['5', '0', '4', '0'], ['9', '0']),
+              Expect.Simple('one_argument8', ['5', '4'], ['12']),
+              Expect.Simple('one_argument256', ['7', '0', '90', '725'], ['14', '0']),
+            ],
+          ),
         ]),
         new Dir('array_len', [
           File.Simple('memoryArray', [Expect.Simple('dynMemArrayLen', [], ['45', '0'])]),
@@ -1744,6 +1767,11 @@ export const expectations = flatten(
           File.Simple('external_base_this_call', [
             Expect.Simple('externalCallSelfAsBase', [], ['23', '0']),
           ]),
+          File.Simple('otherReferenceTypes', [
+            Expect.Simple('setProduct', ['1', '2', '3', '5', '7', '11', '13'], []),
+            Expect.Simple('getS', [], ['1', '2', '3', '5']),
+            Expect.Simple('getT', [], ['7', '11', '13']),
+          ]),
         ]),
         // covers nested mappings
         new Dir('Dai', [
@@ -2832,6 +2860,7 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('libraries', [
+          File.Simple('constantInitialization', [Expect.Simple('f', [], ['20001'])]),
           File.Simple('using_for', [
             Expect.Simple('libFunction', ['1'], ['0'], 'uint256/true branch'),
           ]),

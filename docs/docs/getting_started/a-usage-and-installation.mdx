@@ -1,0 +1,249 @@
+---
+title: Installation and Usage
+---
+
+## Installation
+
+### Dependencies
+
+1. You will need [z3](https://github.com/Z3Prover/z3) installed to use Warp.
+
+- Install command on macOS:
+
+```
+brew install z3
+```
+
+- Install command on Ubuntu:
+
+```
+sudo apt install libz3-dev
+```
+
+2. Have Python 3.7 installed with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
+
+### Warp Installation Method 1
+
+Without any virtual environment activated perform the following in order:
+
+1. Add the warp package from npm.
+
+```
+yarn global add @nethermindeth/warp
+```
+
+2. Ensure the package was added by checking the version number:
+
+```
+warp version
+```
+
+3. Install the dependencies:
+
+```
+warp install
+```
+
+4. Test the installation worked by transpiling an example ERC20 contract:
+
+```
+warp transpile example_contracts/ERC20.sol
+```
+
+### Warp Installation Method 2 (from source/for devs)
+
+Make sure you have the [dependencies](#dependencies) installed first.
+
+With a virtual environment (recommended Python3.7) activated:
+
+1. Clone this repo and change directory into the `warp` folder.
+
+2. Install the JavaScript dependencies:
+
+```
+yarn
+```
+
+3. Install the Python dependencies:
+
+```
+pip install -r requirements.txt
+```
+
+If you are using a M1 chipped Mac and getting a `'gmp.h' file not found` error when installing Cairo run the following:
+
+```
+CFLAGS=-Ibrew --prefix gmp/include LDFLAGS=-Lbrew --prefix gmp/lib pip install ecdsa fastecdsa sympy
+```
+
+Then run the pip command above again.
+
+4. Compile the project:
+
+```
+yarn tsc
+yarn warplib
+```
+
+5. Test the installation worked by transpiling an example ERC20 contract:
+
+```
+bin/warp transpile example_contracts/ERC20.sol
+```
+
+## Usage
+
+Warp 2 allows transpiling directly from Solidity to Cairo and transpiled .cairo file can be deployed to starknet.
+
+### Transpiling
+
+To transpile a solidity file, run:
+
+```
+warp transpile [PATH_TO_SOLIDITY_FILE]
+```
+
+For example:
+
+```
+warp transpile contracts/token/ERC20/ERC20.sol
+```
+
+The output of the transpilation could be found in warp_output folder.
+
+Now,the file can be compiled and deployed. Run the following to compile the Cairo contract:
+
+```
+warp compile warp_output/contracts/token/ERC20/ERC20__WARP_CONTRACT__ERC20.cairo
+```
+
+### Deploying
+
+```
+warp deploy [PATH_TO_TRANSPILED_CAIRO_CONTRACT]  --inputs  [INPUT_ARGUMENTS]
+```
+
+For example:
+
+```
+warp deploy warp_output/demo__WARP_CONTRACT__inputs.cairo  --inputs  \"NETHERCOIN\",\"NTHCOIN\",10,\[5,4,2\]
+```
+
+#### Note
+
+The above deployment method uses `solidity abi` which makes it easier for user to pass the arguments. There is also another method
+for deploying which uses `cairo abi` where we need to pass the length of the arrays and the value of each byte. You can refer [Cairo Docs](https://www.cairo-lang.org/docs/) for more information.
+When using --use_cairo_abi, one thing to take care of is it only supports negative numbers in 2's complement form.
+
+### A Detailed Example
+
+Let us get hands-on with the transpiling and deploying process starting with a solidity file using warp cli commands.
+
+We have a solidity smart contract file named `simple.sol` with code :
+
+```
+pragma solidity ^0.8;
+
+contract foo {
+  uint256 x;
+
+  constructor(uint256 _x) {
+    x = _x;
+  }
+}
+```
+
+Now, to transpile it to cairo, we need to run the following command :
+
+```
+
+warp transpile simple.sol
+
+```
+
+The output file(.cairo) which you can find in warp_output folder looks like :
+
+```
+%lang starknet
+
+from warplib.maths.external_input_check_ints import warp_external_input_check_int256
+from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.cairo_builtins import HashBuiltin
+
+func WS_WRITE0{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    loc : felt, value : Uint256
+) -> (res : Uint256):
+    WARP_STORAGE.write(loc, value.low)
+    WARP_STORAGE.write(loc + 1, value.high)
+    return (value)
+end
+
+# Contract Def foo
+
+@storage_var
+func WARP_STORAGE(index : felt) -> (val : felt):
+end
+@storage_var
+func WARP_USED_STORAGE() -> (val : felt):
+end
+@storage_var
+func WARP_NAMEGEN() -> (name : felt):
+end
+func readId{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    loc : felt
+) -> (val : felt):
+    alloc_locals
+    let (id) = WARP_STORAGE.read(loc)
+    if id == 0:
+        let (id) = WARP_NAMEGEN.read()
+        WARP_NAMEGEN.write(id + 1)
+        WARP_STORAGE.write(loc, id + 1)
+        return (id + 1)
+    else:
+        return (id)
+    end
+end
+
+namespace foo:
+    # Dynamic variables - Arrays and Maps
+
+    # Static variables
+
+    const __warp_usrid0_x = 0
+
+    @constructor
+    func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+        __warp_usrid1__x : Uint256
+    ):
+        alloc_locals
+        WARP_USED_STORAGE.write(2)
+
+        warp_external_input_check_int256(__warp_usrid1__x)
+
+        WS_WRITE0(__warp_usrid0_x, __warp_usrid1__x)
+
+        return ()
+    end
+end
+
+# Original soldity abi: ["constructor(uint256)",""]
+
+```
+
+If you want to compile the cairo file, you can run :
+
+```
+
+warp compile warp_output/simple__WC__foo.cairo
+
+```
+
+Please check if the path is correct, as it may be different on your system.
+
+In order to deploy the contract to starknet,you can run :
+
+```
+
+warp deploy warp_output/simple__WC__foo.cairo --inputs 2
+
+```
