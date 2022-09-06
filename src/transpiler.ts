@@ -4,6 +4,7 @@ import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
 import {
+  ABIEncode,
   ABIExtractor,
   AnnotateImplicits,
   ArgBoundChecker,
@@ -136,6 +137,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Vs', VariableDeclarationExpressionSplitter],
     ['Ntd', NewToDeploy],
     ['I', ImplicitConversionToExplicit],
+    ['Abi', ABIEncode],
     ['Dh', DeleteHandler],
     ['Rf', References],
     ['Abc', ArgBoundChecker],

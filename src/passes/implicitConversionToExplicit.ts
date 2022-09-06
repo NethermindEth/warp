@@ -207,6 +207,18 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         handleConcatArgs(node, ast);
         return;
       }
+      if (['encodePacked', 'encode'].includes(node.vFunctionName)) {
+        handleAbiEncodeArgs(node.vArguments, ast);
+        return;
+      }
+      if (['encodeWithSelector', 'encodeWithSignature'].includes(node.vFunctionName)) {
+        assert(node.vArguments.length > 0, `${node.vFunctionName} requires at least one argument`);
+        const targetType =
+          node.vFunctionName === 'encodeWithSelector' ? new FixedBytesType(4) : new StringType();
+        insertConversionIfNecessary(node.vArguments[0], targetType, node.vArguments[0], ast);
+        handleAbiEncodeArgs(node.vArguments.slice(1), ast);
+        return;
+      }
     }
 
     const paramTypes = getParameterTypes(node, ast);
@@ -592,6 +604,19 @@ function handleConcatArgs(node: FunctionCall, ast: AST) {
       } else {
         insertConversionIfNecessary(arg, new BytesType(), node, ast);
       }
+    }
+  });
+}
+
+function handleAbiEncodeArgs(args: Expression[], ast: AST) {
+  args.forEach((arg) => {
+    const type = safeGetNodeType(arg, ast.compilerVersion);
+    if (type instanceof StringLiteralType) {
+      insertConversionIfNecessary(arg, new BytesType(), arg, ast);
+    } else if (type instanceof IntLiteralType) {
+      assert(arg instanceof Literal);
+      const signed = BigInt(arg.value) < 0;
+      insertConversionIfNecessary(arg, new IntType(256, signed), arg, ast);
     }
   });
 }

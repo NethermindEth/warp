@@ -15,17 +15,25 @@ You can read the documentation [here](https://nethermindeth.github.io/warp/).
 
 <hr> 
  
-1. You will need [z3](https://github.com/Z3Prover/z3) installed to use Warp.
+1. You will need [z3](https://github.com/Z3Prover/z3) and [gmp](https://gmplib.org/#DOWNLOAD)
+   installed to use Warp.
   
 - Install command on macOS:
 ```bash
-brew install z3
+brew install z3 gmp
+```
+
+If you're on an arm based Apple machine (m1/m2 mac) you'll need to install `gmp` and export some
+environment variables
+
+```
+export CFLAGS=-I`brew --prefix gmp`/include LDFLAGS=-L`brew --prefix gmp`/lib
 ```
 
 - Install command on Ubuntu:
 
 ```bash
-sudo apt install libz3-dev
+sudo apt install libz3-dev libgmp3-dev
 ```
 
 2. Have Python 3.7 installed with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
@@ -52,7 +60,13 @@ warp version
 3. Install the dependencies:
 
 ```bash
-warp install
+warp install --verbose
+```
+
+Use the `--python` flag to pass the path to `python3.7` binary, if the above command complains.
+
+```bash
+warp install --python <path/to/python3.7> --verbose
 ```
 
 4. Test the installation worked by transpiling an example ERC20 contract:
@@ -157,7 +171,7 @@ Please see the list below:
 |                   delegate calls                    | :hammer_and_pick: |
 |                   low level calls                   |        :x:        |
 |                 indexed parameters                  |    :question:     |
-|              abi methods (abi.encode)               |    :question:     |
+|        abi methods (abi.encode, abi.decode)         |    :question:     |
 |              nested tuple expressions               |    :question:     |
 |                typeName expressions                 |    :question:     |
 |                      gasleft()                      |    :question:     |
@@ -175,7 +189,7 @@ Please see the list below:
 |         precompiles (apart from ecrecover)          |    :question:     |
 |                    selfdestruct                     |    :question:     |
 |                      blockhash                      |    :question:     |
-|                  functions as data                  |    :question:     |
+|            functions pointers in storage            |    :question:     |
 |           sha256 (use keccak256 instead)            |        :x:        |
 |                  ternary operator                   |    :question:     |
 |                       receive                       |    :question:     |

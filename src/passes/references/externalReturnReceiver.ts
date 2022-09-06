@@ -10,9 +10,12 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { createIdentifier } from '../../utils/nodeTemplates';
+import { isDynamicArray, safeGetNodeType } from '../../utils/nodeTypeProcessing';
 
 export class ExternalReturnReceiver extends ASTMapper {
   visitVariableDeclarationStatement(node: VariableDeclarationStatement, ast: AST): void {
+    // At this stage any external function calls are  cross contract function call because
+    // all same contract public functions calls are redirected to internal ones
     const receivesExternalReturn =
       node.vInitialValue instanceof FunctionCall &&
       node.vInitialValue.vReferencedDeclaration instanceof FunctionDefinition &&
@@ -22,6 +25,9 @@ export class ExternalReturnReceiver extends ASTMapper {
       return this.commonVisit(node, ast);
     }
 
+    // For each variable that recieves an external call and is neither a value type nor a
+    // reference type with calldata location, create a temporal variable which recieves the
+    // calldata output and then copy it to the current node expected location
     node.vDeclarations
       .filter(
         (decl) =>
@@ -30,14 +36,17 @@ export class ExternalReturnReceiver extends ASTMapper {
       )
       .forEach((decl) => {
         const [statement, newId] = generateCopyStatement(decl, ast);
-
         ast.insertStatementAfter(node, statement);
-
         node.assignments = node.assignments.map((value) => (value === decl.id ? newId : value));
       });
 
+    // If the calldata output is a calldata dynamic array, then pack it inside a struct
     node.vDeclarations
-      .filter((decl) => decl.storageLocation === DataLocation.CallData)
+      .filter(
+        (decl) =>
+          decl.storageLocation === DataLocation.CallData &&
+          isDynamicArray(safeGetNodeType(decl, ast.compilerVersion)),
+      )
       .forEach((decl) => {
         const [statement, newId] = generatePackStatement(decl, ast);
         ast.insertStatementAfter(node, statement);
