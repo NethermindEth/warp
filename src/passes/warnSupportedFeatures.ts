@@ -55,7 +55,7 @@ export class WarnSupportedFeatures extends ASTMapper {
 function warn(path: string, nodes: ASTNode[]): void {
   const content = fs.readFileSync(path, { encoding: 'utf-8' });
   const extendedMessage = [
-    `File ${path}:\n`,
+    `File ${path}:`,
     ...getSourceFromLocations(
       content,
       nodes.map((n) => parseSourceLocation(n.src)),
@@ -66,5 +66,5 @@ function warn(path: string, nodes: ASTNode[]): void {
       .map((l) => `\t${l}`),
   ].join('\n');
 
-  console.log(extendedMessage);
+  console.log(extendedMessage + '\n');
 }

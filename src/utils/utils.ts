@@ -484,11 +484,19 @@ export function getSourceFromLocation(source: string, location: SourceLocation):
   return [...previousLines, ...currentLine, ...followingLines].join('\n');
 }
 
+/**
+ * Given a source file and some nodes, prints them
+ * @param source solidity path to file
+ * @param locations nodes source locations
+ * @param chalkText function that highlight the nodes text locations
+ * @param surroundingLines lines surrounding highlighted lines[
+ * @returns text with highlights
+ */
 export function getSourceFromLocations(
   source: string,
   locations: SourceLocation[],
   chalkText: (text: string) => string,
-  surroundingLines: number = 2,
+  surroundingLines = 2,
 ): string {
   let textWalked = 0;
   let locIndex = 0;
@@ -522,11 +530,10 @@ export function getSourceFromLocations(
   let lastLineMarked = 0;
   const filteredLines: string[] = [];
   for (let index = 0; index < lines.length; index++) {
-    const [_line, marked] = lines[index];
+    const [, marked] = lines[index];
     if (!marked) continue;
 
     if (index - (lastLineMarked + surroundingLines) > surroundingLines) {
-      console.log(index, lastLineMarked, surroundingLines);
       filteredLines.push('\t................\n');
     }
     lastLineMarked = index;
