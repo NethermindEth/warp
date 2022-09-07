@@ -114,6 +114,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/idManglingTest8', 'Success'],
     ['example_contracts/idManglingTest9', 'Success'],
     ['example_contracts/if_flattening', 'Success'],
+    ['example_contracts/implicitsFromStub.sol', 'Success'],
     ['example_contracts/imports/importContract', 'Success'],
     ['example_contracts/imports/importEnum', 'Success'],
     ['example_contracts/imports/importfrom', 'Success'],
