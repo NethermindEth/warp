@@ -12,7 +12,7 @@ import { ASTMapper } from '../ast/mapper';
 import { ASTVisitor } from '../ast/visitor';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
-import { Implicits, registerImportsForImplicit } from '../utils/implicits';
+import { Implicits, implicitTypes, registerImportsForImplicit } from '../utils/implicits';
 import { isExternallyVisible, union } from '../utils/utils';
 import { getDocString, isCairoStub } from './cairoStubProcessor';
 
@@ -166,15 +166,7 @@ function extractImplicitFromStubs(node: FunctionDefinition, result: Set<Implicit
 }
 
 function elementIsImplicit(e: string): e is Implicits {
-  const knownImplicits = [
-    'bitwise_ptr',
-    'pedersen_ptr',
-    'range_check_ptr',
-    'syscall_ptr',
-    'warp_memory',
-    'keccak_ptr',
-  ];
-  return knownImplicits.includes(e);
+  return Object.keys(implicitTypes).includes(e);
 }
 
 function notContainsNull<T>(l: (T | null)[]): l is T[] {
