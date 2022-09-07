@@ -36,7 +36,9 @@ export class WarnSupportedFeatures extends ASTMapper {
     ast.roots.forEach((sourceUnit) => {
       const mapper = new this();
       mapper.dispatchVisit(sourceUnit, ast);
-      addresses.set(sourceUnit.absolutePath, mapper.addressesToAbiEncode);
+      if (mapper.addressesToAbiEncode.length > 0) {
+        addresses.set(sourceUnit.absolutePath, mapper.addressesToAbiEncode);
+      }
     });
 
     if (addresses.size > 0) {
