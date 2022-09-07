@@ -27,7 +27,7 @@ export class WarnSupportedFeatures extends ASTMapper {
         .forEach((arg) => this.addressesToAbiEncode.push(arg));
     }
 
-    return this.visitExpression(node, ast);
+    this.commonVisit(node, ast);
   }
 
   static map(ast: AST): AST {
