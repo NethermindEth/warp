@@ -1,13 +1,19 @@
 import assert from 'assert';
 import {
   ASTNode,
+  CallableDefinition,
   ContractDefinition,
   ContractKind,
+  ErrorDefinition,
+  EventDefinition,
   FunctionCall,
+  FunctionDefinition,
   MemberAccess,
+  VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
+import { printNode } from '../utils/astPrinter';
 
 // Library calls in solidity are delegate calls
 // i.e  libraries can be seen as implicit base contracts of the contracts that use them
@@ -76,17 +82,23 @@ class LibraryHandler extends ASTMapper {
 function findDeclarationInLibrary(
   calledDeclarationId: number,
   librariesById: Map<number, ContractDefinition>,
-): [ASTNode, ContractDefinition] | undefined {
+): [CallableDefinition, ContractDefinition] | undefined {
   for (const library of librariesById.values()) {
     for (const node of library.getChildren()) {
-      if (node.id == calledDeclarationId) return [node, library];
+      if (node.id == calledDeclarationId) {
+        assert(
+          isCallableDefinition(node),
+          `Node ${printNode(node)} should be a Callable Definition`,
+        );
+        return [node, library];
+      }
     }
   }
   return undefined;
 }
 
 function getLibrariesToInherit(
-  declaration: ASTNode,
+  declaration: CallableDefinition,
   calledLibrary: ContractDefinition,
   librariesById: Map<number, ContractDefinition>,
 ): Set<number> {
@@ -98,7 +110,7 @@ function getLibrariesToInherit(
 }
 
 function getAllLibraries(
-  declaration: ASTNode,
+  declaration: CallableDefinition,
   calledLibrary: ContractDefinition,
   librariesById: Map<number, ContractDefinition>,
   ids: Set<number>,
@@ -124,4 +136,13 @@ function getAllLibraries(
         }
       }
     });
+}
+
+function isCallableDefinition(node: ASTNode): node is CallableDefinition {
+  return (
+    node instanceof FunctionDefinition ||
+    node instanceof EventDefinition ||
+    node instanceof ErrorDefinition ||
+    node instanceof VariableDeclaration
+  );
 }
