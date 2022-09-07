@@ -82,6 +82,7 @@ import {
   FunctionStubKind,
 } from './ast/cairoNodes';
 import { getStructsAndRemappings } from './freeStructWritter';
+import { getBaseContracts } from './passes/inheritanceInliner/utils';
 import { printNode } from './utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
@@ -296,10 +297,10 @@ function writeImports(imports: Map<string, Set<string>>): string {
     .join('\n');
 }
 
-const interfaceNameMappings: Map<SourceUnit, Map<string, string>> = new Map();
+const interfaceNameMappings: Map<SourceUnit, Map<string, [string, ContractDefinition]>> = new Map();
 
 function generateInterfaceNameMappings(node: SourceUnit) {
-  const map: Map<string, string> = new Map();
+  const map: Map<string, [string, ContractDefinition]> = new Map();
   const existingNames = node.vContracts
     .filter((c) => c.kind !== ContractKind.Interface)
     .map((c) => c.name);
@@ -310,18 +311,21 @@ function generateInterfaceNameMappings(node: SourceUnit) {
       const baseName = c.name.replace('@interface', '');
       const interfaceName = `${baseName}_warped_interface`;
       if (!existingNames.includes(baseName)) {
-        map.set(baseName, interfaceName);
+        map.set(baseName, [interfaceName, c]);
       } else {
         let i = 1;
         while (existingNames.includes(`${interfaceName}_${i}`)) ++i;
-        map.set(baseName, `${interfaceName}_${i}`);
+        map.set(baseName, [`${interfaceName}_${i}`, c]);
       }
     });
 
   interfaceNameMappings.set(node, map);
 }
 
-function getInterfaceNameForContract(contractName: string, nodeInSourceUnit: ASTNode): string {
+function getInterfaceNameForContract(
+  contractName: string,
+  nodeInSourceUnit: ASTNode,
+): [string, ContractDefinition] {
   const sourceUnit =
     nodeInSourceUnit instanceof SourceUnit
       ? nodeInSourceUnit
@@ -332,16 +336,29 @@ function getInterfaceNameForContract(contractName: string, nodeInSourceUnit: AST
     `Unable to find source unit for interface ${contractName} while writing`,
   );
 
-  const interfaceName = interfaceNameMappings.get(sourceUnit)?.get(contractName);
+  // Every sourceUnit should only define a single contract
+  const mainContract_ = sourceUnit.vContracts.filter((cd) => cd.kind !== ContractKind.Interface);
+  assert(mainContract_.length <= 1, 'There should only be one active contract per sourceUnit');
+  const [mainContract] = mainContract_;
+
+  const parentSourceUnits: SourceUnit[] = mainContract.vLinearizedBaseContracts
+    .map((c) => c.getClosestParentByType(SourceUnit))
+    .filter((v): v is SourceUnit => v !== undefined);
+
+  const interfaceName = parentSourceUnits
+    .map((v) => interfaceNameMappings.get(v)?.get(contractName))
+    .filter((v): v is [string, ContractDefinition] => v !== undefined);
+
   assert(
-    interfaceName !== undefined,
+    interfaceName.length > 0,
     `An error occured during name substitution for the interface ${contractName}`,
   );
 
-  return interfaceName;
+  return interfaceName[0];
 }
 
 let structRemappings: Map<number, string>;
+const interfacesToWrite: Set<string> = new Set();
 
 class SourceUnitWriter extends CairoASTNodeWriter {
   writeInner(node: SourceUnit, writer: ASTWriter): SrcDesc {
@@ -386,6 +403,7 @@ class SourceUnitWriter extends CairoASTNodeWriter {
         ].join('\n\n\n'),
         3,
       ),
+      ...interfacesToWrite,
     ];
   }
 }
@@ -404,7 +422,7 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
   // Handle the workaround of genContractInterface function of externalContractInterfaceInserter.ts
   // Remove `@interface` to get the actual contract interface name
   const baseName = node.name.replace('@interface', '');
-  const interfaceName = getInterfaceNameForContract(baseName, node);
+  const [interfaceName, ..._] = getInterfaceNameForContract(baseName, node);
 
   return [
     [
@@ -417,7 +435,9 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
 class CairoContractWriter extends CairoASTNodeWriter {
   writeInner(node: CairoContract, writer: ASTWriter): SrcDesc {
     if (node.kind == ContractKind.Interface) {
-      return writeContractInterface(node, writer);
+      //@ts-ignore
+      interfacesToWrite.add(writeContractInterface(node, writer)[0]);
+      return [];
     }
     if (node.abstract)
       return [
@@ -879,12 +899,23 @@ class FunctionCallWriter extends CairoASTNodeWriter {
           ) {
             const memberName = node.vExpression.memberName;
             const contract = writer.write(node.vExpression.vExpression);
-            return [
-              `${getInterfaceNameForContract(
-                nodeType.definition.name,
-                node,
-              )}.${memberName}(${contract}${args ? ', ' : ''}${args})`,
-            ];
+            const [newInterfaceName, interfaceDefinition] = getInterfaceNameForContract(
+              nodeType.definition.name,
+              node,
+            );
+
+            const sourceUnit = node.getClosestParentByType(SourceUnit);
+            if (sourceUnit === undefined) {
+              throw new TranspileFailedError(`Could not find a source unit for ${printNode(node)}`);
+            }
+            const interfaceDef = sourceUnit.vContracts.every(
+              (s) => s.name !== interfaceDefinition.name,
+            )
+              ? writeContractInterface(interfaceDefinition, writer)[0]
+              : '';
+            //@ts-ignore
+            interfacesToWrite.add(interfaceDef);
+            return [`${newInterfaceName}.${memberName}(${contract}${args ? ', ' : ''}${args})`];
           }
         } else if (
           node.vReferencedDeclaration instanceof CairoFunctionDefinition &&
