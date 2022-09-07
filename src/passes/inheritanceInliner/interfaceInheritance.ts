@@ -35,10 +35,24 @@ export function addInterfaceDefinitions(
         if (
           nodeType instanceof UserDefinedType &&
           nodeType.definition instanceof ContractDefinition &&
-          !source.vContracts.includes(nodeType.definition) &&
           // Interface has already been included
           ![...idRemapping.keys()].includes(nodeType.definition.id)
         ) {
+          const dd = nodeType.definition.getClosestParentByType(SourceUnit);
+          if (dd === undefined) {
+            // console.log({gg: nodeType.definition});
+            throw new TranspileFailedError(
+              `Couldn't find SourceUnit of ${nodeType.definition.name}`,
+            );
+          }
+
+          for (const s of source.vContracts) {
+            if (s.id === dd.id) {
+              // console.log("OOPS");
+              return;
+            }
+          }
+
           const newInterfaceDefinition = cloneASTNode(nodeType.definition, ast);
           source.insertAtBeginning(newInterfaceDefinition);
           idRemapping.set(nodeType.definition.id, newInterfaceDefinition);
