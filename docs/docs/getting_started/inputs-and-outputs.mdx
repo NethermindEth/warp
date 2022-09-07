@@ -1,0 +1,87 @@
+---
+title: Inputs and Outputs
+---
+
+## Inputs
+
+The transpiled Cairo contracts have a different ABI than their Solidity counterparts. Warp allows the use of either
+the Cairo ABI or the Solidity ABI for passing constructor arguments or function parameters. By default, the Solidity ABI
+is used.
+
+Following examples demonstrate how to use both methods
+
+### Using Solidity ABI
+
+After transpiling the OpenZepplin ERC20 contract, we need to pass two strings to the constructor that
+represent the name and ticker of the token. It can be deployed using Warp as follows:
+
+```
+warp deploy warp_output/ERC20__WC__ERC20.cairo --inputs \"NETHERCOIN\",\"NETH\"
+```
+
+For using the Solidity ABI to pass inputs, they must be passed as a comma separated list of numbers, strings and lists.
+For example:
+
+```
+\"NETHERCOIN\",10,\[10,5,4,2\]
+```
+
+The above comma separated list passes three parameters as a string, number and list respectively.
+
+### Using Cairo ABI
+
+To use the cairo ABI for passing inputs, the `--use_cairo_abi` flag can be passed to the `deploy`, `invoke` or `call` command.
+Starknet does not support Solidity-style strings. So Warp represents strings as dynamic arrays of bytes. In Cairo ABI, each solidity
+string is represented in two parts, the length of the string, and the value of each byte.
+In the same example of OpenZepplin's ERC20, the two strings can be passed as follows using Cairo ABI:
+
+```
+warp deploy warp_output/ERC20__WC__ERC20.cairo --use_cairo_abi --inputs  10,0x4e,0x45,0x54,0x48,0x45,0x52,0x43,0x4f,0x49,0x4e,4,0x4e,0x45,0x54,0x48
+```
+
+When using `--use_cairo_abi`, negative numbers must be passed in the 2's complement form.
+
+## Outputs
+
+The output received from functions are in the form of the types supported by the transpiled Cairo contracts.
+For example, a `uint256` value is retured as `{low, high}`, while a string is returned as the number of characters in the string
+and their ASCII values.
+
+The following Solidity contract named example.sol will be used to illustrate the feature:
+
+```
+pragma solidity ^0.8;
+
+contract foo {
+  uint256 public x;
+
+  string public y;
+
+  constructor(uint256 _x, string memory _y) {
+    x = _x;
+    y = _y;
+  }
+}
+```
+
+Transpile the contract:
+
+```
+warp transpile example.sol
+```
+
+Deploy the contract:
+
+```
+warp deploy warp_output/example__WC__foo.cairo --inputs 5,\"test\"
+```
+
+`call` the contract to get the outputs:
+
+```
+$: warp call warp_output/example__WC__foo.cairo --function x --address 0x01563072fb9a5ce43c5610d205dd815051714d9949104db009a0bbd3ff71c75f
+5 0
+
+$: warp call warp_output/example__WC__foo.cairo --function y --address 0x01563072fb9a5ce43c5610d205dd815051714d9949104db009a0bbd3ff71c75f
+4 116 101 115 116
+```
