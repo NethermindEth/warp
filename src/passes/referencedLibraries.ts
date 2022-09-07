@@ -16,6 +16,24 @@ import { ASTMapper } from '../ast/mapper';
 // linearizedBaselist of a contract/Library.
 
 export class ReferencedLibraries extends ASTMapper {
+  static map(ast: AST): AST {
+    // Collect all library nodes and their ids in the map 'librariesById'
+    const librariesById: Map<number, ContractDefinition> = new Map();
+    ast.context.map.forEach((astNode, id) => {
+      if (astNode instanceof ContractDefinition && astNode.kind === ContractKind.Library) {
+        librariesById.set(id, astNode);
+      }
+    });
+
+    ast.roots.forEach((root) => {
+      const mapper = new LibraryHandler(librariesById);
+      mapper.dispatchVisit(root, ast);
+    });
+    return ast;
+  }
+}
+
+class LibraryHandler extends ASTMapper {
   librariesById: Map<number, ContractDefinition>;
 
   constructor(libraries: Map<number, ContractDefinition>) {
@@ -55,22 +73,6 @@ export class ReferencedLibraries extends ASTMapper {
       }
     }
     this.commonVisit(node, ast);
-  }
-
-  static map(ast: AST): AST {
-    // Collect all library nodes and their ids in the map 'librariesById'
-    const librariesById: Map<number, ContractDefinition> = new Map();
-    ast.context.map.forEach((astNode, id) => {
-      if (astNode instanceof ContractDefinition && astNode.kind === ContractKind.Library) {
-        librariesById.set(id, astNode);
-      }
-    });
-
-    ast.roots.forEach((root) => {
-      const mapper = new this(librariesById);
-      mapper.dispatchVisit(root, ast);
-    });
-    return ast;
   }
 }
 
