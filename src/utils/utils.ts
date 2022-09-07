@@ -57,7 +57,6 @@ import {
   TranspileFailedError,
   WillNotSupportError,
 } from './errors';
-import { error } from './formatting';
 import {
   createAddressTypeName,
   createBoolTypeName,
@@ -455,33 +454,72 @@ export function isCalldataDynArrayStruct(node: Identifier, compilerVersion: stri
   );
 }
 
-export function getSourceFromLocation(source: string, location: SourceLocation): string {
-  const linesAroundSource = 2;
-  const sourceBeforeLocation = source.substring(0, location.offset).split('\n');
-  const sourceAfterLocation = source.substring(location.offset).split('\n');
-  const startLineNum = sourceBeforeLocation.length - linesAroundSource;
+/**
+ * Given a source file and some nodes, prints them
+ * @param source solidity path to file
+ * @param locations nodes source locations
+ * @param highlightFunc function that highlight the nodes text locations
+ * @param surroundingLines lines surrounding highlighted lines
+ * @returns text with highlights
+ */
+export function getSourceFromLocations(
+  source: string,
+  locations: SourceLocation[],
+  highlightFunc: (text: string) => string,
+  surroundingLines = 2,
+): string {
+  let textWalked = 0;
+  let locIndex = 0;
+  const lines = source.split('\n').reduce((lines, currentLine, lineNum) => {
+    const maxWalk = textWalked + currentLine.length + 1;
+    let marked = false;
+    let newLine = `${lineNum}\t`;
+    while (
+      locIndex < locations.length &&
+      textWalked + currentLine.length >= locations[locIndex].offset + locations[locIndex].length
+    ) {
+      const currentLocation = locations[locIndex];
+      newLine =
+        newLine +
+        source.substring(textWalked, currentLocation.offset) +
+        highlightFunc(
+          source.substring(currentLocation.offset, currentLocation.offset + currentLocation.length),
+        );
 
-  const [previousLines, currentLineNum] = sourceBeforeLocation
-    .slice(sourceBeforeLocation.length - (linesAroundSource + 1), sourceBeforeLocation.length - 1)
-    .reduce(
-      ([s, n], c) => [[...s, `${n}  ${c}`], n + 1],
-      [new Array<string>(), startLineNum < 0 ? 0 : startLineNum],
+      textWalked = currentLocation.offset + currentLocation.length;
+      locIndex += 1;
+      marked = true;
+    }
+
+    newLine = newLine + source.substring(textWalked, maxWalk);
+    textWalked = maxWalk;
+    lines.push([newLine, marked]);
+    return lines;
+  }, new Array<[string, boolean]>());
+
+  let lastLineMarked = 0;
+  const filteredLines: string[] = [];
+  for (let index = 0; index < lines.length; index++) {
+    const [, marked] = lines[index];
+    if (!marked) continue;
+
+    if (index - (lastLineMarked + surroundingLines) > surroundingLines) {
+      filteredLines.push('\t................\n');
+    }
+    lastLineMarked = index;
+
+    filteredLines.push(
+      ...lines
+        .slice(
+          index - surroundingLines > 0 ? index - surroundingLines : 0,
+          index + surroundingLines,
+        )
+        .map((l) => l[0])
+        .filter((l) => !filteredLines.includes(l)),
     );
+  }
 
-  const [currentLine, followingLineNum] = [
-    sourceBeforeLocation.slice(-1),
-    error(source.substring(location.offset, location.offset + location.length)),
-    sourceAfterLocation[0].substring(location.length),
-  ]
-    .join('')
-    .split('\n')
-    .reduce(([s, n], c) => [[...s, `${n}  ${c}`], n + 1], [new Array<string>(), currentLineNum]);
-
-  const [followingLines] = sourceAfterLocation
-    .slice(currentLine.length, currentLine.length + linesAroundSource)
-    .reduce(([s, n], c) => [[...s, `${n}  ${c}`], n + 1], [new Array<string>(), followingLineNum]);
-
-  return [...previousLines, ...currentLine, ...followingLines].join('\n');
+  return filteredLines.join('');
 }
 
 export function callClassHashScript(filePath: string): string {

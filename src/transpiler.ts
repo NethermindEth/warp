@@ -58,6 +58,7 @@ import {
   UsingForResolver,
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
+  WarnSupportedFeatures,
 } from './passes';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
@@ -101,6 +102,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Tf', TupleFixes],
     ['Tnr', TypeNameRemover],
     ['Ru', RejectUnsupportedFeatures],
+    ['Wa', WarnSupportedFeatures],
     ['Fm', FilePathMangler],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
