@@ -16,6 +16,15 @@ import { ASTMapper } from '../ast/mapper';
 // linearizedBaselist of a contract/Library.
 
 export class ReferencedLibraries extends ASTMapper {
+  // Function to add passes that should have been run before this pass
+  addInitialPassPrerequisites(): void {
+    const passKeys: Set<string> = new Set<string>([
+      // Free Function inliner handles free functions that make library calls
+      'Ffi',
+    ]);
+    passKeys.forEach((key) => this.addPassPrerequisite(key));
+  }
+
   static map(ast: AST): AST {
     // Collect all library nodes and their ids in the map 'librariesById'
     const librariesById: Map<number, ContractDefinition> = new Map();
@@ -25,10 +34,7 @@ export class ReferencedLibraries extends ASTMapper {
       }
     });
 
-    ast.roots.forEach((root) => {
-      const mapper = new LibraryHandler(librariesById);
-      mapper.dispatchVisit(root, ast);
-    });
+    ast.roots.forEach((root) => new LibraryHandler(librariesById).dispatchVisit(root, ast));
     return ast;
   }
 }
@@ -39,15 +45,6 @@ class LibraryHandler extends ASTMapper {
   constructor(libraries: Map<number, ContractDefinition>) {
     super();
     this.librariesById = libraries;
-  }
-
-  // Function to add passes that should have been run before this pass
-  addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([
-      // Free Function inliner handles free functions that make library calls
-      'Ffi',
-    ]);
-    passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
