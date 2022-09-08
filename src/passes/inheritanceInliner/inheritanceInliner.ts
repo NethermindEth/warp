@@ -12,7 +12,7 @@ import { TranspileFailedError } from '../../utils/errors';
 import { solveConstructors } from './constructorInheritance';
 import { addEventDefintion } from './eventInheritance';
 import { addNonoverridenPublicFunctions, addPrivateSuperFunctions } from './functionInheritance';
-import { addInterfaceDefinitions } from './interfaceInheritance';
+import { solveLibraryInheritance } from './libraryInheritance';
 import { addNonOverridenModifiers } from './modifiersInheritance';
 import { addStorageVariables } from './storageVariablesInheritance';
 import {
@@ -29,6 +29,9 @@ export class InheritanceInliner extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
     const passKeys: Set<string> = new Set<string>([
+      // ReferencedLibraries pass adds referenced libraries to the list of
+      // linearized base contracts of each contract.
+      'Rl',
       // StorageAllocator takes care of variable initialization, which
       // are needed when solving constructors
       'Sa',
@@ -37,6 +40,11 @@ export class InheritanceInliner extends ASTMapper {
   }
 
   visitCairoContract(node: CairoContract, ast: AST): void {
+    // Referenced libraries pass added the referenced libraries to the
+    // linearized list of base contracts of a certain contract `A`.
+    // All contracts that inherit from `A` need to add those libraries as well.
+    solveLibraryInheritance(node, ast);
+
     // This functions handles:
     //   - the assignment of a constructor to each contract
     //   - calling the functions for variable initialization
