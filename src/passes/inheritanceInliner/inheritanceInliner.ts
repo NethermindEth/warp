@@ -1,5 +1,4 @@
 import {
-  ContractDefinition,
   EventDefinition,
   FunctionDefinition,
   ModifierDefinition,

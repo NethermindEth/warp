@@ -41,10 +41,9 @@ import {
   FunctionTypeName,
   FunctionCallOptions,
   Expression,
-  ContractDefinition,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { CairoAssert, CairoContract, CairoFunctionDefinition } from '../ast/cairoNodes';
+import { CairoAssert, CairoFunctionDefinition } from '../ast/cairoNodes';
 import { printNode } from './astPrinter';
 import { NotSupportedYetError, TranspileFailedError } from './errors';
 import { createParameterList } from './nodeTemplates';
@@ -355,28 +354,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.raw,
     );
     // Resolvable--------------------------------------------------------------
-  } else if (node instanceof CairoContract) {
-    newNode = new CairoContract(
-      replaceId(node.id, ast, remappedIds),
-      node.src,
-      node.name,
-      node.scope,
-      node.kind,
-      node.abstract,
-      node.fullyImplemented,
-      node.linearizedBaseContracts,
-      node.usedErrors,
-      node.dynamicStorageAllocations,
-      node.staticStorageAllocations,
-      node.usedStorage,
-      node.usedIds,
-      cloneDocumentation(node.documentation, ast, remappedIds),
-      [...node.children]
-        .filter((n) => !(n instanceof StructuredDocumentation))
-        .map((n) => cloneASTNodeImpl(n, ast, remappedIds)),
-      node.nameLocation,
-      node.raw,
-    );
   } else if (node instanceof CairoFunctionDefinition) {
     newNode = new CairoFunctionDefinition(
       replaceId(node.id, ast, remappedIds),
@@ -526,27 +503,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
       replaceId(node.id, ast, remappedIds),
       node.src,
       [...node.vOverrides].map((o) => cloneASTNodeImpl(o, ast, remappedIds)),
-      node.raw,
-    );
-  } else if (node instanceof StructuredDocumentation) {
-    // @ts-ignore
-    newNode = cloneDocumentation(node, ast, remappedIds);
-  } else if (node instanceof ContractDefinition) {
-    newNode = new ContractDefinition(
-      replaceId(node.id, ast, remappedIds),
-      node.src,
-      node.name,
-      node.scope,
-      node.kind,
-      node.abstract,
-      node.fullyImplemented,
-      node.linearizedBaseContracts,
-      node.usedErrors,
-      cloneDocumentation(node.documentation, ast, remappedIds),
-      [...node.children]
-        .filter((n) => !(n instanceof StructuredDocumentation))
-        .map((n) => cloneASTNodeImpl(n, ast, remappedIds)),
-      node.nameLocation,
       node.raw,
     );
   }

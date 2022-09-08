@@ -1,7 +1,6 @@
 import assert from 'assert';
 import {
   ASTNode,
-  ContractDefinition,
   EmitStatement,
   EventDefinition,
   FunctionDefinition,
