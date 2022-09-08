@@ -82,7 +82,6 @@ import {
   FunctionStubKind,
 } from './ast/cairoNodes';
 import { getStructsAndRemappings } from './freeStructWritter';
-import { getBaseContracts } from './passes/inheritanceInliner/utils';
 import { printNode } from './utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from './utils/errors';
@@ -423,7 +422,7 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): st
   // Handle the workaround of genContractInterface function of externalContractInterfaceInserter.ts
   // Remove `@interface` to get the actual contract interface name
   const baseName = node.name.replace('@interface', '');
-  const [interfaceName, ..._] = getInterfaceNameForContract(baseName, node);
+  const [interfaceName] = getInterfaceNameForContract(baseName, node);
 
   return [
     documentation,
