@@ -11,6 +11,7 @@ import { TranspileFailedError } from '../../utils/errors';
 import { solveConstructors } from './constructorInheritance';
 import { addEventDefintion } from './eventInheritance';
 import { addNonoverridenPublicFunctions, addPrivateSuperFunctions } from './functionInheritance';
+import { solveLibraryInheritance } from './libraryInheritance';
 import { addNonOverridenModifiers } from './modifiersInheritance';
 import { addStorageVariables } from './storageVariablesInheritance';
 import {
@@ -34,6 +35,11 @@ export class InheritanceInliner extends ASTMapper {
   }
 
   visitCairoContract(node: CairoContract, ast: AST): void {
+    // Referenced libraries pass added the referenced libraries to the
+    // linearized list of base contracts of a certain contract `A`.
+    // All contracts that inherit from `A` need to add those libraries as well.
+    solveLibraryInheritance(node, ast);
+
     // This functions handles:
     //   - the assignment of a constructor to each contract
     //   - calling the functions for variable initialization
