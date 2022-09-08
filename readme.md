@@ -106,6 +106,24 @@ bin/warp transpile example_contracts/ERC20.sol
 
 If you have used installation method 1 you can use the `warp` command in any folder. If you have used installation method 2, you will have to specify the path to the warp directory followed by `bin/warp` e.g `path_to_warp_repo/bin/warp ...`
 
+### StarkNet setup
+
+Select your network and wallet types. It's recommended to set these as
+environment variables but they can also be passed as explicit arguments to the
+Warp CLI and the StarkNet CLI.
+
+```
+export STARKNET_WALLET=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount
+export STARKNET_NETWORK=alpha-goerli
+```
+
+Make sure you have a StarkNet account set up, if you have not done so yet
+please:
+
+```
+warp deploy_account
+```
+
 ### CLI Commands
 
 <hr> 
@@ -118,26 +136,24 @@ warp transpile <path to Solidity contract>
 To deploy a Cairo contract:
 
 ```bash
-warp deploy <path to Cairo contract> \
-    feeder_gateway \
-    --network alpha-goerli \
-    --no_wallet
+warp deploy <path to Cairo contract>
 ```
 
-The deploy command will generate the compiled json file as well as the abi json file. Use `warp deploy --help` command to see more deployment options.
+The deploy command will generate the compiled json file as well as the abi json
+file. Use `warp deploy --help` command to see more deployment options.
 
 <br>
 
 ### Libraries
 
-<hr> 
+<hr>
 Libraries are bundled into the point of use, therefore if you try transpile a standalone library it will result in no output.  If you would like to transpile and deploy a standalone library please alter its declaration to `contract`.
 
 <br>
 
 ### Unsupported Solidity Features
 
-<hr> 
+<hr>
 Several features of Solidity are not supported/do not have analogs in Starknet yet.
 We will try our best to add these features as StarkNet supports them, but some may not be
 possible due to fundamental differences in the platforms.
