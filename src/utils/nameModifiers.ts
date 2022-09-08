@@ -13,7 +13,7 @@ export const CONTRACT_INFIX = '__WC__';
 
 // Used in IdentifierManglerPass
 export const MANGLED_INTERNAL_USER_FUNCTION = '__warp_usrfn';
-export const MANGLED_TYPE_NAME = '__warp_usrT';
+export const MANGLED_TYPE_NAME = '__warp_usrTp';
 export const MANGLED_LOCAL_VAR = '__warp_usrid';
 
 // Used in StaticArrayIndexer

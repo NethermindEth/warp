@@ -41,7 +41,7 @@ function processStateVarTags(documentation: string, node: FunctionDefinition): s
   return processMacro(documentation, /STATEVAR\((.*?)\)/g, (arg) => {
     const stateVarNames = contract.vStateVariables.map((decl) => decl.name);
     const matchingStateVars = stateVarNames.filter((name) => {
-      return name.replace(/__warp_usrid[0-9]+_/, '') === arg;
+      return name.replace(/__warp_usrid_[0-9]+_/, '') === arg;
     });
     if (matchingStateVars.length === 0) {
       throw new TranspilationAbandonedError(`Unable to find matching statevar ${arg}`, errorNode);
@@ -68,7 +68,7 @@ function processInternalFunctionTag(documentation: string, node: FunctionDefinit
   return processMacro(documentation, /INTERNALFUNC\((.*?)\)/g, (arg) => {
     const funcNames = contract.vFunctions.filter((f) => !isExternallyVisible(f)).map((f) => f.name);
     const matchingFuncs = funcNames.filter((name) => {
-      return name.replace(/__warp_usrfn[0-9]+_/, '') === arg;
+      return name.replace(/__warp_usrfn_[0-9]+_/, '') === arg;
     });
     if (matchingFuncs.length === 0) {
       throw new TranspilationAbandonedError(

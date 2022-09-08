@@ -11,7 +11,7 @@ import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
-import { WillNotSupportError } from '../../utils/errors';
+import { WillNotSupportError, TranspileFailedError } from '../../utils/errors';
 import {
   MANGLED_INTERNAL_USER_FUNCTION,
   MANGLED_LOCAL_VAR,
@@ -88,6 +88,10 @@ export function checkSourceTerms(term: string, node: ASTNode) {
 
 export class DeclarationNameMangler extends ASTMapper {
   lastUsedId = 0;
+  // Feel free to increase this value. The greater the value the less probably to
+  // execute the code to fix Id's width, but less legible variable names would be.
+  initialIdWidth = 2;
+  nodesNameModified: ASTNode[] = [];
 
   // This strategy should allow checked demangling post transpilation for a more readable result
   createNewExternalFunctionName(fd: FunctionDefinition): string {
@@ -96,17 +100,22 @@ export class DeclarationNameMangler extends ASTMapper {
       : fd.name;
   }
 
+  // Return a new id formatted to achieve the minimum lenght
+  getFormattedId(): string {
+    return (this.lastUsedId++).toString().padStart(this.initialIdWidth, '0');
+  }
+
   // This strategy should allow checked demangling post transpilation for a more readable result
   createNewInternalFunctionName(existingName: string): string {
-    return `${MANGLED_INTERNAL_USER_FUNCTION}${this.lastUsedId++}_${existingName}`;
+    return `${MANGLED_INTERNAL_USER_FUNCTION}_${this.getFormattedId()}_${existingName}`;
   }
 
   createNewTypeName(existingName: string): string {
-    return `${MANGLED_TYPE_NAME}${this.lastUsedId++}_${existingName}`;
+    return `${MANGLED_TYPE_NAME}_${this.getFormattedId()}_${existingName}`;
   }
 
   createNewVariableName(existingName: string): string {
-    return `${MANGLED_LOCAL_VAR}${this.lastUsedId++}_${existingName}`;
+    return `${MANGLED_LOCAL_VAR}_${this.getFormattedId()}_${existingName}`;
   }
 
   visitStructDefinition(_node: StructDefinition, _ast: AST): void {
@@ -123,6 +132,7 @@ export class DeclarationNameMangler extends ASTMapper {
   }
 
   mangleVariableDeclaration(node: VariableDeclaration): void {
+    this.nodesNameModified.push(node);
     node.name = this.createNewVariableName(node.name);
   }
   mangleStructDefinition(node: StructDefinition): void {
@@ -138,6 +148,7 @@ export class DeclarationNameMangler extends ASTMapper {
         node.name = this.createNewExternalFunctionName(node);
         break;
       default:
+        this.nodesNameModified.push(node);
         node.name = this.createNewInternalFunctionName(node.name);
     }
   }
@@ -152,5 +163,31 @@ export class DeclarationNameMangler extends ASTMapper {
     node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n));
     node.vContracts.forEach((n) => this.mangleContractDefinition(n));
     this.commonVisit(node, ast);
+
+    // Checking if counter is greater than initialIdWidth digits. If so, names are
+    // modified to insert 0's to achieve id's fixed width.
+    const lastIdSize = this.lastUsedId.toString().length;
+    if (lastIdSize > this.initialIdWidth) {
+      this.nodesNameModified.forEach((node) => {
+        if (node instanceof FunctionDefinition) {
+          node.name = this.updateName(node.name, MANGLED_INTERNAL_USER_FUNCTION, lastIdSize);
+        } else if (node instanceof VariableDeclaration) {
+          node.name = this.updateName(node.name, MANGLED_LOCAL_VAR, lastIdSize);
+        } else {
+          throw new TranspileFailedError(`Not expected node to update name: ${node}`);
+        }
+      });
+    }
+    this.nodesNameModified = []; // Lose all references to avoid consuming unnecessary memory
+  }
+
+  // Set Id in a node name 'name' that fallows the pattern 'pattern' to a fixed width
+  updateName(name: string, pattern: string, lastIdSize: number) {
+    const match = new RegExp(`${pattern}_([0-9]+)`).exec(name);
+    if (!match) {
+      throw new TranspileFailedError(`Expected ${pattern} node name: ${name}`);
+    }
+    const new_name = `${pattern}_${match[1].padStart(lastIdSize, '0')}`;
+    return name.replace(new RegExp(`${pattern}_([0-9]+)`), new_name);
   }
 }
