@@ -21,7 +21,7 @@ import { isNameless } from '../../utils/utils';
 
 // Terms grabbed from here
 // https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/cairo/lang/compiler/cairo.ebnf
-export const reservedTerms = [
+export const reservedTerms = new Set<string>([
   'ret',
   'return',
   'using',
@@ -55,28 +55,39 @@ export const reservedTerms = [
   'const',
   'struct',
   'namespace',
-];
+]);
 
 const unsupportedCharacters = ['$'];
 
 export function checkSourceTerms(term: string, node: ASTNode) {
-  if (reservedTerms.includes(term)) {
+  if (reservedTerms.has(term)) {
     throw new WillNotSupportError(`${printNode(node)} contains ${term} which is a cairo keyword`);
   }
 
-  unsupportedCharacters.forEach((c: string) => {
-    if (term.includes(c)) {
-      throw new WillNotSupportError(
-        `${printNode(node)} ${term} contains unsupported character ${c}`,
-      );
-    }
-  });
+  // Creating the regular expression that match unsupportedCharacters
+  let regex_str = '\\' + unsupportedCharacters[0];
+  for (let index = 1; index < unsupportedCharacters.length; index++) {
+    regex_str += '|\\' + unsupportedCharacters[index];
+  }
+  // Looking for possible matches
+  const regex = RegExp(regex_str, 'g');
+  let match;
+  let unsupported_characters_found = '';
+  while ((match = regex.exec(term)) !== null) {
+    // Saving all chars founded
+    unsupported_characters_found += match[0];
+  }
+  if (unsupported_characters_found) {
+    throw new WillNotSupportError(
+      `${printNode(
+        node,
+      )} ${term} contains unsupported character(s) "${unsupported_characters_found}"`,
+    );
+  }
 }
 
 export class DeclarationNameMangler extends ASTMapper {
-  lastUsedVariableId = 0;
-  lastUsedFunctionId = 0;
-  lastUsedTypeId = 0;
+  lastUsedId = 0;
 
   // This strategy should allow checked demangling post transpilation for a more readable result
   createNewExternalFunctionName(fd: FunctionDefinition): string {
@@ -87,15 +98,15 @@ export class DeclarationNameMangler extends ASTMapper {
 
   // This strategy should allow checked demangling post transpilation for a more readable result
   createNewInternalFunctionName(existingName: string): string {
-    return `${MANGLED_INTERNAL_USER_FUNCTION}${this.lastUsedFunctionId++}_${existingName}`;
+    return `${MANGLED_INTERNAL_USER_FUNCTION}${this.lastUsedId++}_${existingName}`;
   }
 
   createNewTypeName(existingName: string): string {
-    return `${MANGLED_TYPE_NAME}${this.lastUsedTypeId++}_${existingName}`;
+    return `${MANGLED_TYPE_NAME}${this.lastUsedId++}_${existingName}`;
   }
 
   createNewVariableName(existingName: string): string {
-    return `${MANGLED_LOCAL_VAR}${this.lastUsedVariableId++}_${existingName}`;
+    return `${MANGLED_LOCAL_VAR}${this.lastUsedId++}_${existingName}`;
   }
 
   visitStructDefinition(_node: StructDefinition, _ast: AST): void {
