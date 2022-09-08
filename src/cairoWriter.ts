@@ -725,7 +725,7 @@ class ReturnWriter extends CairoASTNodeWriter {
         (node.vExpression instanceof FunctionCall &&
           node.vExpression.kind !== FunctionCallKind.StructConstructorCall)
           ? expWriten
-          : `(${expWriten})`;
+          : `(${expWriten},)`;
     }
 
     const finalizeWarpMemory = this.usesWarpMemory(node)
