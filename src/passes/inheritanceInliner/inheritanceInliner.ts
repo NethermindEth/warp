@@ -27,6 +27,9 @@ export class InheritanceInliner extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
     const passKeys: Set<string> = new Set<string>([
+      // ReferencedLibraries pass adds referenced libraries to the list of
+      // linearized base contracts of each contract.
+      'Rl',
       // StorageAllocator takes care of variable initialization, which
       // are needed when solving constructors
       'Sa',
