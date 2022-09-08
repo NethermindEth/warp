@@ -99,37 +99,6 @@ export function updateReferenceEmitStatemets(
   });
 }
 
-export function updateRefernceContractDefinition(
-  node: ASTNode,
-  idRemapping: Map<number, ContractDefinition>,
-  ast: AST,
-) {
-  node.walk((node) => {
-    if (node instanceof Identifier || node instanceof IdentifierPath) {
-      const remapping = idRemapping.get(node.referencedDeclaration);
-      if (remapping !== undefined) {
-        node.referencedDeclaration = remapping.id;
-        node.name = remapping.name;
-      }
-    } else if (node instanceof MemberAccess) {
-      const remapping = idRemapping.get(node.referencedDeclaration);
-      if (remapping !== undefined) {
-        ast.replaceNode(
-          node,
-          new Identifier(
-            ast.reserveId(),
-            node.src,
-            node.typeString,
-            remapping.name,
-            remapping.id,
-            node.raw,
-          ),
-        );
-      }
-    }
-  });
-}
-
 export function removeBaseContractDependence(node: CairoContract): void {
   const toRemove = node.children.filter(
     (child): child is InheritanceSpecifier => child instanceof InheritanceSpecifier,

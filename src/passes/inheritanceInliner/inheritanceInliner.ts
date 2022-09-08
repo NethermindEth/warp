@@ -20,7 +20,6 @@ import {
   removeBaseContractDependence,
   updateReferencedDeclarations,
   updateReferenceEmitStatemets,
-  updateRefernceContractDefinition,
 } from './utils';
 
 export class InheritanceInliner extends ASTMapper {
@@ -102,20 +101,17 @@ export class InheritanceInliner extends ASTMapper {
     const modifierRemapping: Map<number, ModifierDefinition> = new Map();
     const modifierRemappingOverriders: Map<number, ModifierDefinition> = new Map();
     const eventRemapping: Map<number, EventDefinition> = new Map();
-    const interfaceRemapping: Map<number, ContractDefinition> = new Map();
 
     addPrivateSuperFunctions(node, functionRemapping, functionRemappingOverriders, ast);
     addNonoverridenPublicFunctions(node, functionRemapping, ast);
     addStorageVariables(node, variableRemapping, ast);
     addNonOverridenModifiers(node, modifierRemapping, modifierRemappingOverriders, ast);
-    addInterfaceDefinitions(node, interfaceRemapping, ast);
     addEventDefintion(node, eventRemapping, ast);
 
     updateReferencedDeclarations(node, functionRemapping, functionRemappingOverriders, ast);
     updateReferencedDeclarations(node, variableRemapping, variableRemapping, ast);
     updateReferencedDeclarations(node, modifierRemapping, modifierRemappingOverriders, ast);
     updateReferenceEmitStatemets(node, eventRemapping, ast);
-    updateRefernceContractDefinition(node, interfaceRemapping, ast);
 
     removeBaseContractDependence(node);
 

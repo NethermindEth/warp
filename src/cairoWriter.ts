@@ -341,20 +341,21 @@ function getInterfaceNameForContract(
   assert(mainContract_.length <= 1, 'There should only be one active contract per sourceUnit');
   const [mainContract] = mainContract_;
 
+  // Lookup the interface defintion up the inheritance chain
   const parentSourceUnits: SourceUnit[] = mainContract.vLinearizedBaseContracts
     .map((c) => c.getClosestParentByType(SourceUnit))
     .filter((v): v is SourceUnit => v !== undefined);
 
-  const interfaceName = parentSourceUnits
+  const interfacDefinition = parentSourceUnits
     .map((v) => interfaceNameMappings.get(v)?.get(contractName))
     .filter((v): v is [string, ContractDefinition] => v !== undefined);
 
   assert(
-    interfaceName.length > 0,
+    interfacDefinition.length > 0,
     `An error occured during name substitution for the interface ${contractName}`,
   );
 
-  return interfaceName[0];
+  return interfacDefinition[0];
 }
 
 let structRemappings: Map<number, string>;
@@ -408,7 +409,7 @@ class SourceUnitWriter extends CairoASTNodeWriter {
   }
 }
 
-function writeContractInterface(node: ContractDefinition, writer: ASTWriter): SrcDesc {
+function writeContractInterface(node: ContractDefinition, writer: ASTWriter): string {
   const documentation = getDocumentation(node.documentation, writer);
   const functions = node.vFunctions.map((v) =>
     writer
@@ -425,18 +426,15 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
   const [interfaceName, ..._] = getInterfaceNameForContract(baseName, node);
 
   return [
-    [
-      documentation,
-      [`@contract_interface`, `namespace ${interfaceName}:`, ...functions, `end`].join('\n'),
-    ].join('\n'),
-  ];
+    documentation,
+    [`@contract_interface`, `namespace ${interfaceName}:`, ...functions, `end`].join('\n'),
+  ].join('\n');
 }
 
 class CairoContractWriter extends CairoASTNodeWriter {
   writeInner(node: CairoContract, writer: ASTWriter): SrcDesc {
     if (node.kind == ContractKind.Interface) {
-      //@ts-ignore
-      interfacesToWrite.add(writeContractInterface(node, writer)[0]);
+      interfacesToWrite.add(writeContractInterface(node, writer));
       return [];
     }
     if (node.abstract)
@@ -911,9 +909,8 @@ class FunctionCallWriter extends CairoASTNodeWriter {
             const interfaceDef = sourceUnit.vContracts.every(
               (s) => s.name !== interfaceDefinition.name,
             )
-              ? writeContractInterface(interfaceDefinition, writer)[0]
+              ? writeContractInterface(interfaceDefinition, writer)
               : '';
-            //@ts-ignore
             interfacesToWrite.add(interfaceDef);
             return [`${newInterfaceName}.${memberName}(${contract}${args ? ', ' : ''}${args})`];
           }
