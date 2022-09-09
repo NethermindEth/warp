@@ -65,10 +65,10 @@ export function checkSourceTerms(term: string, node: ASTNode) {
   }
 
   // Creating the regular expression that match unsupportedCharacters
-  let regex_str = '\\' + unsupportedCharacters[0];
-  for (let index = 1; index < unsupportedCharacters.length; index++) {
-    regex_str += '|\\' + unsupportedCharacters[index];
-  }
+  const regex_str = unsupportedCharacters.reduce(
+    (prevVal, val, i) => (i === 0 ? '\\' + val : (prevVal += '|\\' + val)),
+    '',
+  );
   // Looking for possible matches
   const regex = RegExp(regex_str, 'g');
   let match;
@@ -107,15 +107,15 @@ export class DeclarationNameMangler extends ASTMapper {
 
   // This strategy should allow checked demangling post transpilation for a more readable result
   createNewInternalFunctionName(existingName: string): string {
-    return `${MANGLED_INTERNAL_USER_FUNCTION}_${this.getFormattedId()}_${existingName}`;
+    return `${MANGLED_INTERNAL_USER_FUNCTION}${this.getFormattedId()}_${existingName}`;
   }
 
   createNewTypeName(existingName: string): string {
-    return `${MANGLED_TYPE_NAME}_${this.getFormattedId()}_${existingName}`;
+    return `${MANGLED_TYPE_NAME}${this.getFormattedId()}_${existingName}`;
   }
 
   createNewVariableName(existingName: string): string {
-    return `${MANGLED_LOCAL_VAR}_${this.getFormattedId()}_${existingName}`;
+    return `${MANGLED_LOCAL_VAR}${this.getFormattedId()}_${existingName}`;
   }
 
   visitStructDefinition(_node: StructDefinition, _ast: AST): void {
@@ -183,11 +183,11 @@ export class DeclarationNameMangler extends ASTMapper {
 
   // Set Id in a node name 'name' that fallows the pattern 'pattern' to a fixed width
   updateName(name: string, pattern: string, lastIdSize: number) {
-    const match = new RegExp(`${pattern}_([0-9]+)`).exec(name);
-    if (!match) {
+    const match = new RegExp(`${pattern}([0-9]+)`).exec(name);
+    if (match === null) {
       throw new TranspileFailedError(`Expected ${pattern} node name: ${name}`);
     }
-    const new_name = `${pattern}_${match[1].padStart(lastIdSize, '0')}`;
-    return name.replace(new RegExp(`${pattern}_([0-9]+)`), new_name);
+    const new_name = `${pattern}${match[1].padStart(lastIdSize, '0')}`;
+    return name.replace(new RegExp(`${pattern}([0-9]+)`), new_name);
   }
 }
