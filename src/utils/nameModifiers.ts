@@ -11,7 +11,7 @@ export const TUPLE_FILLER_PREFIX = '__warp_tf';
 export const FREE_FILE_SUFFIX = '__WC_FREE';
 export const CONTRACT_INFIX = '__WC__';
 
-// Used in IdentifierManglerPass
+// Used in IdentifierManglerPass and CairoStubProcessor
 export const MANGLED_INTERNAL_USER_FUNCTION = '__warp_usrfn_';
 export const MANGLED_TYPE_NAME = '__warp_usrTp_';
 export const MANGLED_LOCAL_VAR = '__warp_usrid_';
