@@ -12,7 +12,7 @@ is used.
 
 The Solidity ABI lets you pass in arguments in a schema similar to what users would use on L1.
 This is supported in Warp's `deploy`, `invoke` and `call` commands.
-Warp takes these inputs and transcodes them into Cairo to forwards them onto the desired network.
+Warp takes these inputs and transcodes them into Cairo to forward them onto the desired network.
 
 ```
 warp invoke <Cario Contract> --inputs \"ExampleString\",\[1,2,3,4\],-1,100.
@@ -30,8 +30,8 @@ Note that there are some nuances that come with using the Cairo ABI:
   e.g `ExampleString` -> `13,0x45,0x78,0x61,0x6d,0x70,0x6c,0x65,0x53,0x74,0x72,0x69,0x6e,0x67`
 - Negative numbers will need to be transformed into their twos complement. e.g to pass
   `-1` into a function that takes `int8`, `-1` needs to be converted to `255` and then passed.
-- Data types that are more than 248 bits wide (`int256`/`uint256`/`bytes32`) will need to be split into their upper and
-  low 128 bits e.g `0x10000000000000000000000000000000f` as a `uint256` -> `15,1`.
+- Data types that are more than 248 bits wide (`int256`/`uint256`/`bytes32`) will need to be split into their lower and
+  upper 128 bits e.g `0x10000000000000000000000000000000f` as a `uint256` -> `15,1`.
 
 ```
 warp invoke <Cario Contract> --use_cairo_abi --inputs 13,0x45,0x78,0x61,0x6d,0x70,0x6c,0x65,0x53,0x74,0x72,0x69,0x6e,0x67,4,1,2,3,4,255,100.
@@ -50,7 +50,7 @@ The following table represents the ABI for each type in both Solidity and Cairo.
 | Boolean                                |                 0,1                 |                                  0,1                                  |
 | Address                                |              0x000...               |                               0x000...                                |
 | uint256 (above 128 bits)               | 0x10000000000000000000000000000000f |                                 15,1                                  |
-| uint256 (below 128 bits)               |                 10                  |                                 0,10                                  |
+| uint256 (below 128 bits)               |                 10                  |                                 10,0                                  |
 | int256                                 |                -257                 | 0xfffffffffffffffffffffffffffffeff,0xffffffffffffffffffffffffffffffff |
 | Fixed Size Array (ex: uint8[6])        |           \[0,1,2,3,4,5\]           |                              0,1,2,3,4,5                              |
 | Dynamic Array (ex: uint8[])            |             \[1,2,3,4\]             |                               4,1,2,3,4                               |
