@@ -2,34 +2,21 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { parse } from '../src/utils/functionSignatureParser';
 import { Command } from 'commander';
-import {
-  CliOptions,
-  ICallOrInvokeProps,
-  IDeclareOptions,
-  IDeployAccountProps,
-  IDeployProps,
-  IOptionalDebugInfo,
-  IOptionalNetwork,
-} from '../src';
-import {
-  checkStatus,
-  deployAccount,
-  processDeclareContract,
-  runStarknetCallOrInvoke,
-  runStarknetCompile,
-  runStarknetDeclare,
-  runStarknetDeploy,
-  runStarknetDeployAccount,
-  runStarknetStatus,
-  starknetCallOrInvoke,
-  starkNetCompile,
-  starkNetDeploy,
-} from '../src/starknetCli';
+import { CliOptions } from '../src';
 import * as path from 'path';
 import { createCairoFileName, isValidSolFile, outputResult } from '../src/io';
 import { handleTranspilationError, transpile } from '../src/transpiler';
 import { compileSolFile } from '../src/solCompile';
 import { postProcessCairoFile } from '../src/utils/postCairoWrite';
+import {
+  createCallProgram,
+  createCompileProgram,
+  createDeclareProgram,
+  createDeployAccountProgram,
+  createDeployProgram,
+  createInvokeProgram,
+  createStatusProgram,
+} from '../src/programFactory';
 
 type Input = string[] | number[] | Input[] | (string | number | Input)[];
 
@@ -84,6 +71,7 @@ describe('Solidity abi parsing and decode tests', function () {
 });
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+const cairoPath = `${path.resolve(__dirname, '..')}`;
 
 const options = {
   network: '--network',
@@ -100,6 +88,7 @@ const options = {
   output: '--output',
   abi: '--abi',
   classHash: '--class_hash',
+  cairoPath: '--cairo_path',
 };
 
 const command = {
@@ -116,15 +105,17 @@ const command = {
 };
 
 const mockData = {
-  network: 'alha-goerli',
+  network: 'alpha-goerli',
   hash: '0x01a',
   cairoFile: 'warp_output/tests/testFiles/Test__WC__WARP.cairo',
+  cairoFileCompiled: 'warp_output/tests/testFiles/Test__WC__WARP_compiled.json',
+  cairoFileAbi: 'warp_output/tests/testFiles/Test__WC__WARP_abi.json',
   ozWallet: 'starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount',
   account: 'Test_Account',
 };
 
 describe('Warp CLI test', function () {
-  this.timeout(10000);
+  this.timeout(200000);
 
   it('generate cairo contract', async () => {
     const program = new Command();
@@ -173,61 +164,96 @@ describe('Warp CLI test', function () {
           }
         });
       });
-    program.parse(['node', './bin/warp', 'transpile', 'tests/testFiles/Test.sol']);
+    program.parse(['node', './tests/cli.testTest.ts', 'transpile', 'tests/testFiles/Test.sol']);
   });
 
   describe('warp status', function () {
     describe('command output test', function () {
-      const program = new Command();
-      let output: string;
+      let program: Command;
+      const output = { val: '' };
 
-      program.exitOverride();
-      program
-        .configureOutput({
-          writeOut: () => {
-            return;
-          },
-          writeErr: () => {
-            return;
-          },
-        })
-        .command('status <tx_hash>')
-        .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
-        .action((tx_hash: string, options: IOptionalNetwork) => {
-          output = checkStatus(tx_hash, options);
-        });
+      beforeEach(() => {
+        program = new Command();
+        program.exitOverride();
+        createStatusProgram(program, output, true);
+      });
+
+      it('0. compare output string', async () => {
+        program.parse([
+          'node',
+          './tests/cli.testTest.ts',
+          command.warpStatus,
+          mockData.hash,
+          options.network,
+          mockData.network,
+        ]);
+
+        const outputArray = [
+          warpVenvPrefix,
+          command.starknet,
+          command.starknetStatus,
+          options.hash,
+          mockData.hash,
+          options.network,
+          mockData.network,
+        ];
+        const predictedOutput = outputArray.join(' ') as string;
+
+        expect(output.val).to.be.equal(predictedOutput);
+      });
 
       it('1. correct starknet and command output', async () => {
-        program.parse(['node', './bin/warp', command.warpStatus, mockData.hash]);
+        program.parse([
+          'node',
+          './tests/cli.testTest.ts',
+          command.warpStatus,
+          mockData.hash,
+          options.network,
+          mockData.network,
+        ]);
 
-        const starknet = output.includes(command.starknet);
+        const starknet = output.val.includes(command.starknet);
         expect(starknet).to.be.equal(true);
-        const starknetCommand = output.includes(command.starknetStatus);
+        const starknetCommand = output.val.includes(command.starknetStatus);
         expect(starknetCommand).to.be.equal(true);
       });
 
       it('2. correct warp command passed', async () => {
-        program.parse(['node', './bin/warp', command.warpStatus, mockData.hash]);
+        program.parse([
+          'node',
+          './tests/cli.testTest.ts',
+          command.warpStatus,
+          mockData.hash,
+          options.network,
+          mockData.network,
+        ]);
 
         const args = program.args;
         expect(args[0]).to.be.equal(command.warpStatus);
       });
 
       it('3. correct tx_hash passed with hash modifier', async () => {
-        program.parse(['node', './bin/warp', command.warpStatus, mockData.hash]);
+        program.parse([
+          'node',
+          './tests/cli.testTest.ts',
+          command.warpStatus,
+          mockData.hash,
+          options.network,
+          mockData.network,
+        ]);
 
         const args = program.args;
         expect(args[1]).to.be.equal(mockData.hash);
-        const hashExists = output.includes(options.hash);
+        const hashExists = output.val.includes(options.hash);
         expect(hashExists).to.be.equal(true);
-        const argExists = output.includes(args[1]);
+        const argExists = output.val.includes(args[1]);
         expect(argExists).to.be.equal(true);
       });
 
       it('4. correct network passed with network option', async () => {
         program.parse([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.warpStatus,
           mockData.hash,
           options.network,
@@ -237,9 +263,9 @@ describe('Warp CLI test', function () {
         const args = program.args;
         expect(args[2]).to.be.equal(options.network);
         expect(args[3]).to.be.equal(mockData.network);
-        const networkExists = output.includes(args[2]);
+        const networkExists = output.val.includes(args[2]);
         expect(networkExists).to.be.equal(true);
-        const goerliExists = output.includes(args[3]);
+        const goerliExists = output.val.includes(args[3]);
         expect(goerliExists).to.be.equal(true);
       });
 
@@ -247,7 +273,7 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', command.warpStatus]);
+          program.parse(['node', './tests/cli.testTest.ts', command.warpStatus]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -259,7 +285,7 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', 'test']);
+          program.parse(['node', './tests/cli.testTest.ts', 'test']);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -268,9 +294,16 @@ describe('Warp CLI test', function () {
       });
 
       it('7.correct starknet and command output', async () => {
-        program.parse(['node', './bin/warp', command.warpStatus, mockData.hash]);
+        program.parse([
+          'node',
+          './tests/cli.testTest.ts',
+          command.warpStatus,
+          mockData.hash,
+          options.network,
+          mockData.network,
+        ]);
 
-        const splittedOutput = output.split(' ');
+        const splittedOutput = output.val.split(' ');
 
         expect(splittedOutput[0]).to.be.equal(warpVenvPrefix);
         expect(splittedOutput[1]).to.be.equal(command.starknet);
@@ -284,32 +317,19 @@ describe('Warp CLI test', function () {
 
     describe('runStarknetStatus test', function () {
       let program: Command;
+      const output = { val: '' };
 
-      beforeEach(function () {
+      beforeEach(() => {
         program = new Command();
-
         program.exitOverride();
-        program
-          .configureOutput({
-            writeOut: () => {
-              return;
-            },
-            writeErr: () => {
-              return;
-            },
-          })
-          .command('status <tx_hash>')
-          .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
-          .action((tx_hash: string, options: IOptionalNetwork) => {
-            runStarknetStatus(tx_hash, options, true);
-          });
+        createStatusProgram(program, output, true);
       });
 
       it('8. tx_hash is required', async () => {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', command.warpStatus]);
+          program.parse(['node', './tests/cli.testTest.ts', command.warpStatus]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -320,7 +340,7 @@ describe('Warp CLI test', function () {
       it('9. network option needs to be specified', async () => {
         let err: { code: string | undefined } | undefined;
         try {
-          program.parse(['node', './bin/warp', command.warpStatus, mockData.hash]);
+          program.parse(['node', './tests/cli.testTest.ts', command.warpStatus, mockData.hash]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -334,7 +354,13 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', command.warpStatus, mockData.hash, '--unknown']);
+          program.parse([
+            'node',
+            './tests/cli.testTest.ts',
+            command.warpStatus,
+            mockData.hash,
+            '--unknown',
+          ]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -346,7 +372,7 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', mockData.hash]);
+          program.parse(['node', './tests/cli.testTest.ts', mockData.hash]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -357,81 +383,92 @@ describe('Warp CLI test', function () {
   });
 
   describe('warp compile', function () {
-    const resultPath = `$result_compiled.json`;
-    const abiPath = `$abi_abi.json`;
-
     describe('command output test', function () {
-      let output: string;
       let program: Command;
+      const output = { val: '' };
 
       const debugOptions = ['--debug_info_with_source', '--no_debug_info'];
 
-      const parameters: Map<string, string> = new Map([
-        ['output', resultPath],
-        ['abi', abiPath],
-      ]);
-
-      beforeEach(function () {
+      beforeEach(() => {
         program = new Command();
         program.exitOverride();
-        program
-          .configureOutput({
-            writeOut: () => {
-              return;
-            },
-            writeErr: () => {
-              return;
-            },
-          })
-          .command('compile <file>')
-          .option('-d, --debug_info', 'Include debug information.', false)
-          .action((file: string, options: IOptionalDebugInfo) => {
-            output = starkNetCompile(file, parameters, options, true);
-          });
+        createCompileProgram(program, output, true);
+      });
+
+      it('0. compare output string', async () => {
+        program.parse([
+          'node',
+          './tests/cli.testTest.ts',
+          command.compile,
+          mockData.cairoFile,
+          options.debug,
+        ]);
+
+        const outputArray = [
+          warpVenvPrefix,
+          command.starknetCompile,
+          options.output,
+          mockData.cairoFileCompiled,
+          options.abi,
+          mockData.cairoFileAbi,
+          options.cairoPath,
+          cairoPath,
+          debugOptions[0],
+          mockData.cairoFile,
+        ];
+        const predictedOutput = outputArray.join(' ') as string;
+
+        expect(output.val).to.be.equal(predictedOutput);
       });
 
       it('1. correct starknet and command output', async () => {
-        program.parse(['node', './bin/warp', command.compile, mockData.cairoFile]);
+        program.parse(['node', './tests/cli.testTest.ts', command.compile, mockData.cairoFile]);
 
-        const starknet = output.includes(command.starknet);
+        const starknet = output.val.includes(command.starknet);
         expect(starknet).to.be.equal(true);
-        const starknetCommand = output.includes(command.starknetCompile);
+        const starknetCommand = output.val.includes(command.starknetCompile);
         expect(starknetCommand).to.be.equal(true);
-        const fileToCompile = output.includes(mockData.cairoFile);
+        const fileToCompile = output.val.includes(mockData.cairoFile);
         expect(fileToCompile).to.be.equal(true);
       });
 
       it('2. correct warp command passed', async () => {
-        program.parse(['node', './bin/warp', command.compile, mockData.cairoFile]);
+        program.parse(['node', './tests/cli.testTest.ts', command.compile, mockData.cairoFile]);
 
         const args = program.args;
         expect(args[0]).to.be.equal(command.compile);
       });
 
       it('3. correct file passed with filePath', async () => {
-        program.parse(['node', './bin/warp', command.compile, mockData.cairoFile]);
+        program.parse(['node', './tests/cli.testTest.ts', command.compile, mockData.cairoFile]);
 
         const args = program.args;
         expect(args[1]).to.be.equal(mockData.cairoFile);
-        const file = output.includes(mockData.cairoFile);
+        const file = output.val.includes(mockData.cairoFile);
         expect(file).to.be.equal(true);
       });
 
       it('4. correct debug options passed with debug options', async () => {
-        program.parse(['node', './bin/warp', command.compile, mockData.cairoFile, options.debug]);
+        program.parse([
+          'node',
+          './tests/cli.testTest.ts',
+          command.compile,
+          mockData.cairoFile,
+          options.debug,
+        ]);
 
         const args = program.args;
         expect(args[2]).to.be.equal(options.debug);
-        const debugExists = output.includes(debugOptions[0]);
+        const debugExists = output.val.includes(debugOptions[0]);
         expect(debugExists).to.be.equal(true);
       });
 
       it('5. correct debug options passed with no debug options', async () => {
-        program.parse(['node', './bin/warp', command.compile, mockData.cairoFile]);
+        program.parse(['node', './tests/cli.testTest.ts', command.compile, mockData.cairoFile]);
 
-        const debugExists = output.includes(debugOptions[1]);
+        const debugExists = output.val.includes(debugOptions[1]);
         expect(debugExists).to.be.equal(true);
-        const boolExists = output.includes('false');
+        const boolExists = output.val.includes('false');
         expect(boolExists).to.be.equal(false);
       });
 
@@ -439,7 +476,7 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', command.compile]);
+          program.parse(['node', './tests/cli.testTest.ts', command.compile]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -451,7 +488,7 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', 'test']);
+          program.parse(['node', './tests/cli.testTest.ts', 'test']);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -460,48 +497,42 @@ describe('Warp CLI test', function () {
       });
 
       it('8. correct starknet and command output', async () => {
-        program.parse(['node', './bin/warp', command.compile, mockData.cairoFile, options.debug]);
+        program.parse([
+          'node',
+          './tests/cli.testTest.ts',
+          command.compile,
+          mockData.cairoFile,
+          options.debug,
+        ]);
 
-        const splittedOutput = output.split(' ');
+        const splittedOutput = output.val.split(' ');
 
         expect(splittedOutput[0]).to.be.equal(warpVenvPrefix);
         expect(splittedOutput[1]).to.be.equal(command.starknetCompile);
         expect(splittedOutput[2]).to.be.equal(options.output);
-        expect(splittedOutput[3]).to.be.equal(resultPath);
+        expect(splittedOutput[3]).to.be.equal(mockData.cairoFileCompiled);
         expect(splittedOutput[4]).to.be.equal(options.abi);
-        expect(splittedOutput[5]).to.be.equal(abiPath);
-        expect(splittedOutput[6]).to.be.equal(debugOptions[0]);
-        expect(splittedOutput[7]).to.be.equal(mockData.cairoFile);
+        expect(splittedOutput[5]).to.be.equal(mockData.cairoFileAbi);
+        expect(splittedOutput[8]).to.be.equal(debugOptions[0]);
+        expect(splittedOutput[9]).to.be.equal(mockData.cairoFile);
       });
     });
 
     describe('runStarknetCompile test', function () {
       let program: Command;
+      const output = { val: '' };
 
-      beforeEach(function () {
+      beforeEach(() => {
         program = new Command();
         program.exitOverride();
-        program
-          .configureOutput({
-            writeOut: () => {
-              return;
-            },
-            writeErr: () => {
-              return;
-            },
-          })
-          .command('compile <file>')
-          .option('-d, --debug_info', 'Include debug information.', false)
-          .action((file: string, options: IOptionalDebugInfo) => {
-            runStarknetCompile(file, options);
-          });
+        createCompileProgram(program, output, true);
       });
 
       it('9. filepath is required', async () => {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', command.compile]);
+          program.parse(['node', './tests/cli.testTest.ts', command.compile]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -512,7 +543,7 @@ describe('Warp CLI test', function () {
       it('10. a debug option is optional', async () => {
         let err: undefined;
         try {
-          program.parse(['node', './bin/warp', command.compile, mockData.cairoFile]);
+          program.parse(['node', './tests/cli.testTest.ts', command.compile, mockData.cairoFile]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined as undefined;
         }
@@ -525,7 +556,7 @@ describe('Warp CLI test', function () {
         try {
           program.parse([
             'node',
-            './bin/warp',
+            './tests/cli.testTest.ts',
             command.compile,
             mockData.cairoFile,
             '--unknownOption',
@@ -543,7 +574,7 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', 'randomCommand']);
+          program.parse(['node', './tests/cli.testTest.ts', 'randomCommand']);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -555,41 +586,19 @@ describe('Warp CLI test', function () {
 
   describe('warp deploy_account', function () {
     describe('command output test', function () {
-      let output: string;
       let program: Command;
+      const output = { val: '' };
 
-      beforeEach(function () {
+      beforeEach(() => {
         program = new Command();
         program.exitOverride();
-        program
-          .configureOutput({
-            writeOut: () => {
-              return;
-            },
-            writeErr: () => {
-              return;
-            },
-          })
-          .command('deploy_account')
-          .option(
-            '--account <account>',
-            'The name of the account. If not given, the default for the wallet will be used.',
-          )
-          .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-          .option(
-            '--wallet <wallet>',
-            'The name of the wallet, including the python module and wallet class.',
-            process.env.STARKNET_WALLET,
-          )
-          .action((options: IDeployAccountProps) => {
-            output = deployAccount(options);
-          });
+        createDeployAccountProgram(program, output, true);
       });
 
-      it('1. correct starknet and command output', async () => {
+      it('0. compare output string', async () => {
         program.parse([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.deployAccount,
           options.network,
           mockData.network,
@@ -599,14 +608,53 @@ describe('Warp CLI test', function () {
           mockData.account,
         ]);
 
-        const starknet = output.includes(command.starknet);
+        const outputArray = [
+          warpVenvPrefix,
+          command.starknet,
+          command.deployAccount,
+          options.wallet,
+          mockData.ozWallet,
+          options.network,
+          mockData.network,
+          options.account,
+          mockData.account,
+        ];
+        const predictedOutput = outputArray.join(' ') as string;
+
+        expect(output.val).to.be.equal(predictedOutput);
+      });
+
+      it('1. correct starknet and command output', async () => {
+        program.parse([
+          'node',
+          './tests/cli.testTest.ts',
+          command.deployAccount,
+          options.network,
+          mockData.network,
+          options.wallet,
+          mockData.ozWallet,
+          options.account,
+          mockData.account,
+        ]);
+
+        const starknet = output.val.includes(command.starknet);
         expect(starknet).to.be.equal(true);
-        const starknetCommand = output.includes(command.starknet);
+        const starknetCommand = output.val.includes(command.starknet);
         expect(starknetCommand).to.be.equal(true);
       });
 
       it('2. correct warp command passed', async () => {
-        program.parse(['node', './bin/warp', command.deployAccount]);
+        program.parse([
+          'node',
+          './tests/cli.testTest.ts',
+          command.deployAccount,
+          options.network,
+          mockData.network,
+          options.wallet,
+          mockData.ozWallet,
+          options.account,
+          mockData.account,
+        ]);
 
         const args = program.args;
         expect(args[0]).to.be.equal(command.deployAccount);
@@ -615,54 +663,66 @@ describe('Warp CLI test', function () {
       it('3. correct network option passed', async () => {
         program.parse([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.deployAccount,
           options.network,
           mockData.network,
+          options.wallet,
+          mockData.ozWallet,
+          options.account,
+          mockData.account,
         ]);
 
         const args = program.args;
         expect(args[1]).to.be.equal(options.network);
         expect(args[2]).to.be.equal(mockData.network);
-        const net = output.includes(options.network);
+        const net = output.val.includes(options.network);
         expect(net).to.be.equal(true);
-        const goerli = output.includes(mockData.network);
+        const goerli = output.val.includes(mockData.network);
         expect(goerli).to.be.equal(true);
       });
 
       it('4. correct wallet option passed', async () => {
         program.parse([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.deployAccount,
+          options.network,
+          mockData.network,
           options.wallet,
           mockData.ozWallet,
+          options.account,
+          mockData.account,
         ]);
 
         const args = program.args;
-        expect(args[1]).to.be.equal(options.wallet);
-        expect(args[2]).to.be.equal(mockData.ozWallet);
-        const opt = output.includes(options.wallet);
+        expect(args[3]).to.be.equal(options.wallet);
+        expect(args[4]).to.be.equal(mockData.ozWallet);
+        const opt = output.val.includes(options.wallet);
         expect(opt).to.be.equal(true);
-        const wallet = output.includes(mockData.ozWallet);
+        const wallet = output.val.includes(mockData.ozWallet);
         expect(wallet).to.be.equal(true);
       });
 
       it('5. correct account option passed', async () => {
         program.parse([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.deployAccount,
+          options.network,
+          mockData.network,
+          options.wallet,
+          mockData.ozWallet,
           options.account,
           mockData.account,
         ]);
 
         const args = program.args;
-        expect(args[1]).to.be.equal(options.account);
-        expect(args[2]).to.be.equal(mockData.account);
-        const opt = output.includes(options.account);
+        expect(args[5]).to.be.equal(options.account);
+        expect(args[6]).to.be.equal(mockData.account);
+        const opt = output.val.includes(options.account);
         expect(opt).to.be.equal(true);
-        const name = output.includes(mockData.account);
+        const name = output.val.includes(mockData.account);
         expect(name).to.be.equal(true);
       });
 
@@ -670,7 +730,7 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', 'incorrectCommand']);
+          program.parse(['node', './tests/cli.testTest.ts', 'incorrectCommand']);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -681,7 +741,7 @@ describe('Warp CLI test', function () {
       it('7. correct starknet and command output', async () => {
         program.parse([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.deployAccount,
           options.network,
           mockData.network,
@@ -691,7 +751,7 @@ describe('Warp CLI test', function () {
           mockData.account,
         ]);
 
-        const splittedOutput = output.split(' ');
+        const splittedOutput = output.val.split(' ');
 
         expect(splittedOutput[0]).to.be.equal(warpVenvPrefix);
         expect(splittedOutput[1]).to.be.equal(command.starknet);
@@ -707,40 +767,19 @@ describe('Warp CLI test', function () {
 
     describe('runStarknetDeployAccount test', function () {
       let program: Command;
+      const output = { val: '' };
 
-      beforeEach(function () {
+      beforeEach(() => {
         program = new Command();
         program.exitOverride();
-        program
-          .configureOutput({
-            writeOut: () => {
-              return;
-            },
-            writeErr: () => {
-              return;
-            },
-          })
-          .command('deploy_account')
-          .option(
-            '--account <account>',
-            'The name of the account. If not given, the default for the wallet will be used.',
-          )
-          .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-          .option(
-            '--wallet <wallet>',
-            'The name of the wallet, including the python module and wallet class.',
-            process.env.STARKNET_WALLET,
-          )
-          .action((options: IDeployAccountProps) => {
-            runStarknetDeployAccount(options, true);
-          });
+        createDeployAccountProgram(program, output, true);
       });
 
       it('8. wallet option is required', async () => {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', command.deployAccount]);
+          program.parse(['node', './tests/cli.testTest.ts', command.deployAccount]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -756,7 +795,7 @@ describe('Warp CLI test', function () {
         try {
           program.parse([
             'node',
-            './bin/warp',
+            './tests/cli.testTest.ts',
             command.deployAccount,
             options.wallet,
             mockData.ozWallet,
@@ -773,7 +812,12 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', command.deployAccount, '--unknownOption']);
+          program.parse([
+            'node',
+            './tests/cli.testTest.ts',
+            command.deployAccount,
+            '--unknownOption',
+          ]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -785,7 +829,7 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', 'randomCommand']);
+          program.parse(['node', './tests/cli.testTest.ts', 'randomCommand']);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -800,49 +844,19 @@ describe('Warp CLI test', function () {
     const mockAddress = '0x1234';
 
     describe('command output test', function () {
-      let output: string;
       let program: Command;
+      const output = { val: '' };
 
-      beforeEach(function () {
+      beforeEach(async () => {
         program = new Command();
         program.exitOverride();
-        program
-          .configureOutput({
-            writeOut: () => {
-              return;
-            },
-            writeErr: () => {
-              return;
-            },
-          })
-          .command('call <file>')
-          .requiredOption('--address <address>', 'Address of contract to call.')
-          .requiredOption('--function <function>', 'Function to call.')
-          .option(
-            '--inputs <inputs...>',
-            'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
-            undefined,
-          )
-          .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
-          .option(
-            '--account <account>',
-            'The name of the account. If not given, the default for the wallet will be used.',
-          )
-          .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-          .option(
-            '--wallet <wallet>',
-            'The name of the wallet, including the python module and wallet class.',
-            process.env.STARKNET_WALLET,
-          )
-          .action(async (file: string, options: ICallOrInvokeProps) => {
-            output = starknetCallOrInvoke(file, ' call', options, mockCallFunc, '');
-          });
+        await createCallProgram(program, output, true);
       });
 
-      it('1. correct starknet and command output', async () => {
-        program.parse([
+      it('0. compare output string', async () => {
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.call,
           mockData.cairoFile,
           options.address,
@@ -854,16 +868,53 @@ describe('Warp CLI test', function () {
           mockData.network,
         ]);
 
-        const starknet = output.includes(command.starknet);
+        const outputArray = [
+          warpVenvPrefix,
+          command.starknet,
+          command.call,
+          options.address,
+          mockAddress,
+          options.abi,
+          mockData.cairoFileAbi,
+          options.function,
+          mockCallFunc,
+          options.network,
+          mockData.network,
+          options.noWallet,
+          '',
+          '',
+          '',
+        ];
+        const predictedOutput = outputArray.join(' ') as string;
+
+        expect(output.val).to.be.equal(predictedOutput);
+      });
+
+      it('1. correct starknet and command output', async () => {
+        await program.parseAsync([
+          'node',
+          './tests/cli.testTest.ts',
+          command.call,
+          mockData.cairoFile,
+          options.address,
+          mockAddress,
+          options.useCairoAbi,
+          options.function,
+          mockCallFunc,
+          options.network,
+          mockData.network,
+        ]);
+
+        const starknet = output.val.includes(command.starknet);
         expect(starknet).to.be.equal(true);
-        const starknetCommand = output.includes(command.starknet);
+        const starknetCommand = output.val.includes(command.starknet);
         expect(starknetCommand).to.be.equal(true);
       });
 
       it('2. correct warp and starknet command passed', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.call,
           mockData.cairoFile,
           options.address,
@@ -877,14 +928,14 @@ describe('Warp CLI test', function () {
 
         const args = program.args;
         expect(args[0]).to.be.equal(command.call);
-        const starknetCommand = output.includes(command.call);
+        const starknetCommand = output.val.includes(command.call);
         expect(starknetCommand).to.be.equal(true);
       });
 
       it('3. successfully passed file', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.call,
           mockData.cairoFile,
           options.address,
@@ -898,17 +949,17 @@ describe('Warp CLI test', function () {
 
         const args = program.args;
         expect(args[0]).to.be.equal(command.call);
-        const starknetCommand = output.includes(command.call);
+        const starknetCommand = output.val.includes(command.call);
         expect(starknetCommand).to.be.equal(true);
         expect(args[1]).to.be.equal(mockData.cairoFile);
-        const filepath = output.includes(mockData.cairoFile);
+        const filepath = output.val.includes(mockData.cairoFileAbi);
         expect(filepath).to.be.equal(true);
       });
 
       it('4. correct network option passed', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.call,
           mockData.cairoFile,
           options.address,
@@ -923,16 +974,16 @@ describe('Warp CLI test', function () {
         const args = program.args;
         expect(args[7]).to.be.equal(options.network);
         expect(args[8]).to.be.equal(mockData.network);
-        const net = output.includes(options.network);
+        const net = output.val.includes(options.network);
         expect(net).to.be.equal(true);
-        const goerli = output.includes(mockData.network);
+        const goerli = output.val.includes(mockData.network);
         expect(goerli).to.be.equal(true);
       });
 
       it('5. correct address option passed', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.call,
           mockData.cairoFile,
           options.address,
@@ -947,16 +998,16 @@ describe('Warp CLI test', function () {
         const args = program.args;
         expect(args[2]).to.be.equal(options.address);
         expect(args[3]).to.be.equal(mockAddress);
-        const opt = output.includes(options.address);
+        const opt = output.val.includes(options.address);
         expect(opt).to.be.equal(true);
-        const wallet = output.includes(mockAddress);
+        const wallet = output.val.includes(mockAddress);
         expect(wallet).to.be.equal(true);
       });
 
       it('6. use cairo abi option passed', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.call,
           mockData.cairoFile,
           options.address,
@@ -968,16 +1019,17 @@ describe('Warp CLI test', function () {
           mockData.network,
         ]);
 
-        const splittedOutput = output.split(' ');
+        const splittedOutput = output.val.split(' ');
+
         expect(splittedOutput[5]).to.be.equal(options.abi);
-        expect(splittedOutput[6].endsWith('.cairo')).to.be.equal(true);
+        expect(splittedOutput[6].endsWith('.json')).to.be.equal(true);
       });
 
       it('7. parse failed because of incorrect command ', async () => {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', 'incorrectCommand']);
+          await program.parseAsync(['node', './tests/cli.testTest.ts', 'incorrectCommand']);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -986,9 +1038,9 @@ describe('Warp CLI test', function () {
       });
 
       it('8. correct starknet and command output', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.call,
           mockData.cairoFile,
           options.address,
@@ -1000,7 +1052,7 @@ describe('Warp CLI test', function () {
           mockData.network,
         ]);
 
-        const splittedOutput = output.split(' ');
+        const splittedOutput = output.val.split(' ');
 
         expect(splittedOutput[0]).to.be.equal(warpVenvPrefix);
         expect(splittedOutput[1]).to.be.equal(command.starknet);
@@ -1008,7 +1060,7 @@ describe('Warp CLI test', function () {
         expect(splittedOutput[3]).to.be.equal(options.address);
         expect(splittedOutput[4]).to.be.equal(mockAddress);
         expect(splittedOutput[5]).to.be.equal(options.abi);
-        expect(splittedOutput[6]).to.be.equal(mockData.cairoFile);
+        expect(splittedOutput[6]).to.be.equal(mockData.cairoFileAbi);
         expect(splittedOutput[7]).to.be.equal(options.function);
         expect(splittedOutput[8]).to.be.equal(mockCallFunc);
         expect(splittedOutput[9]).to.be.equal(options.network);
@@ -1019,48 +1071,19 @@ describe('Warp CLI test', function () {
 
     describe('runStarknetCallOrInvoke test', function () {
       let program: Command;
+      const output = { val: '' };
 
-      beforeEach(function () {
+      beforeEach(async () => {
         program = new Command();
         program.exitOverride();
-        program
-          .configureOutput({
-            writeOut: () => {
-              return;
-            },
-            writeErr: () => {
-              return;
-            },
-          })
-          .command('call <file>')
-          .requiredOption('--address <address>', 'Address of contract to call.')
-          .requiredOption('--function <function>', 'Function to call.')
-          .option(
-            '--inputs <inputs...>',
-            'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
-            undefined,
-          )
-          .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
-          .option(
-            '--account <account>',
-            'The name of the account. If not given, the default for the wallet will be used.',
-          )
-          .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-          .option(
-            '--wallet <wallet>',
-            'The name of the wallet, including the python module and wallet class.',
-            process.env.STARKNET_WALLET,
-          )
-          .action(async (file: string, options: ICallOrInvokeProps) => {
-            runStarknetCallOrInvoke(file, true, options, true);
-          });
+        await createCallProgram(program, output, true);
       });
 
       it('9. file path option is required', async () => {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', command.call]);
+          await program.parseAsync(['node', './tests/cli.testTest.ts', command.call]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -1072,7 +1095,12 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', command.call, mockData.cairoFile]);
+          await program.parseAsync([
+            'node',
+            './tests/cli.testTest.ts',
+            command.call,
+            mockData.cairoFile,
+          ]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -1083,9 +1111,9 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse([
+          await program.parseAsync([
             'node',
-            './bin/warp',
+            './tests/cli.testTest.ts',
             command.call,
             mockData.cairoFile,
             options.address,
@@ -1101,9 +1129,9 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse([
+          await program.parseAsync([
             'node',
-            './bin/warp',
+            './tests/cli.testTest.ts',
             command.call,
             mockData.cairoFile,
             options.address,
@@ -1126,7 +1154,7 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', 'randomCommand']);
+          await program.parseAsync(['node', './tests/cli.testTest.ts', 'randomCommand']);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -1138,54 +1166,23 @@ describe('Warp CLI test', function () {
 
   describe('warp invoke', function () {
     const mockInvokeFunc = 'increase_balance';
-    const mockInputs = '--inputs 1234';
     const mockInputValues = '1234';
     const mockAddress = '0x1234';
 
     describe('command output test', function () {
-      let output: string;
       let program: Command;
+      const output = { val: '' };
 
-      beforeEach(function () {
+      beforeEach(async () => {
         program = new Command();
         program.exitOverride();
-        program
-          .configureOutput({
-            writeOut: () => {
-              return;
-            },
-            writeErr: () => {
-              return;
-            },
-          })
-          .command('invoke <file>')
-          .requiredOption('--address <address>', 'Address of contract to call.')
-          .requiredOption('--function <function>', 'Function to call.')
-          .option(
-            '--inputs <inputs...>',
-            'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
-            undefined,
-          )
-          .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
-          .option(
-            '--account <account>',
-            'The name of the account. If not given, the default for the wallet will be used.',
-          )
-          .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-          .option(
-            '--wallet <wallet>',
-            'The name of the wallet, including the python module and wallet class.',
-            process.env.STARKNET_WALLET,
-          )
-          .action(async (file: string, options: ICallOrInvokeProps) => {
-            output = starknetCallOrInvoke(file, ' invoke', options, mockInvokeFunc, mockInputs);
-          });
+        await createInvokeProgram(program, output, true);
       });
 
-      it('1. correct starknet and command output', async () => {
-        program.parse([
+      it('0. compare output string', async () => {
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.invoke,
           mockData.cairoFile,
           options.address,
@@ -1203,16 +1200,61 @@ describe('Warp CLI test', function () {
           mockData.ozWallet,
         ]);
 
-        const starknet = output.includes(command.starknet);
+        const outputArray = [
+          warpVenvPrefix,
+          command.starknet,
+          command.invoke,
+          options.address,
+          mockAddress,
+          options.abi,
+          mockData.cairoFileAbi,
+          options.function,
+          mockInvokeFunc,
+          options.network,
+          mockData.network,
+          options.wallet,
+          mockData.ozWallet,
+          options.account,
+          mockData.account,
+          options.inputs,
+          mockInputValues,
+        ];
+        const predictedOutput = outputArray.join(' ') as string;
+
+        expect(output.val).to.be.equal(predictedOutput);
+      });
+
+      it('1. correct starknet and command output', async () => {
+        await program.parseAsync([
+          'node',
+          './tests/cli.testTest.ts',
+          command.invoke,
+          mockData.cairoFile,
+          options.address,
+          mockAddress,
+          options.useCairoAbi,
+          options.function,
+          mockInvokeFunc,
+          options.inputs,
+          mockInputValues,
+          options.network,
+          mockData.network,
+          options.account,
+          mockData.account,
+          options.wallet,
+          mockData.ozWallet,
+        ]);
+
+        const starknet = output.val.includes(command.starknet);
         expect(starknet).to.be.equal(true);
-        const starknetCommand = output.includes(command.starknet);
+        const starknetCommand = output.val.includes(command.starknet);
         expect(starknetCommand).to.be.equal(true);
       });
 
       it('2. correct warp and starknet command passed', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.invoke,
           mockData.cairoFile,
           options.address,
@@ -1232,14 +1274,14 @@ describe('Warp CLI test', function () {
 
         const args = program.args;
         expect(args[0]).to.be.equal(command.invoke);
-        const starknetCommand = output.includes(command.invoke);
+        const starknetCommand = output.val.includes(command.invoke);
         expect(starknetCommand).to.be.equal(true);
       });
 
       it('3. successfully passed file', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.invoke,
           mockData.cairoFile,
           options.address,
@@ -1259,17 +1301,17 @@ describe('Warp CLI test', function () {
 
         const args = program.args;
         expect(args[0]).to.be.equal(command.invoke);
-        const starknetCommand = output.includes(command.invoke);
+        const starknetCommand = output.val.includes(command.invoke);
         expect(starknetCommand).to.be.equal(true);
         expect(args[1]).to.be.equal(mockData.cairoFile);
-        const filepath = output.includes(mockData.cairoFile);
+        const filepath = output.val.includes(mockData.cairoFileAbi);
         expect(filepath).to.be.equal(true);
       });
 
       it('4. correct network option passed', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.invoke,
           mockData.cairoFile,
           options.address,
@@ -1290,16 +1332,16 @@ describe('Warp CLI test', function () {
         const args = program.args;
         expect(args[9]).to.be.equal(options.network);
         expect(args[10]).to.be.equal(mockData.network);
-        const net = output.includes(options.network);
+        const net = output.val.includes(options.network);
         expect(net).to.be.equal(true);
-        const goerli = output.includes(mockData.network);
+        const goerli = output.val.includes(mockData.network);
         expect(goerli).to.be.equal(true);
       });
 
       it('5. correct address option passed', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.invoke,
           mockData.cairoFile,
           options.address,
@@ -1320,16 +1362,16 @@ describe('Warp CLI test', function () {
         const args = program.args;
         expect(args[2]).to.be.equal(options.address);
         expect(args[3]).to.be.equal(mockAddress);
-        const opt = output.includes(options.address);
+        const opt = output.val.includes(options.address);
         expect(opt).to.be.equal(true);
-        const wallet = output.includes(mockAddress);
+        const wallet = output.val.includes(mockAddress);
         expect(wallet).to.be.equal(true);
       });
 
       it('6. correct function option passed', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.invoke,
           mockData.cairoFile,
           options.address,
@@ -1350,16 +1392,16 @@ describe('Warp CLI test', function () {
         const args = program.args;
         expect(args[5]).to.be.equal(options.function);
         expect(args[6]).to.be.equal(mockInvokeFunc);
-        const opt = output.includes(options.function);
+        const opt = output.val.includes(options.function);
         expect(opt).to.be.equal(true);
-        const invokeFunction = output.includes(mockInvokeFunc);
+        const invokeFunction = output.val.includes(mockInvokeFunc);
         expect(invokeFunction).to.be.equal(true);
       });
 
       it('7. correct input option passed', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.invoke,
           mockData.cairoFile,
           options.address,
@@ -1380,16 +1422,16 @@ describe('Warp CLI test', function () {
         const args = program.args;
         expect(args[7]).to.be.equal(options.inputs);
         expect(args[8]).to.be.equal(mockInputValues);
-        const opt = output.includes(options.inputs);
+        const opt = output.val.includes(options.inputs);
         expect(opt).to.be.equal(true);
-        const input = output.includes(mockInputValues);
+        const input = output.val.includes(mockInputValues);
         expect(input).to.be.equal(true);
       });
 
       it('8. correct account option passed', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.invoke,
           mockData.cairoFile,
           options.address,
@@ -1410,16 +1452,16 @@ describe('Warp CLI test', function () {
         const args = program.args;
         expect(args[11]).to.be.equal(options.account);
         expect(args[12]).to.be.equal(mockData.account);
-        const opt = output.includes(options.inputs);
+        const opt = output.val.includes(options.inputs);
         expect(opt).to.be.equal(true);
-        const acc = output.includes(mockData.account);
+        const acc = output.val.includes(mockData.account);
         expect(acc).to.be.equal(true);
       });
 
       it('9. correct wallet option passed', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.invoke,
           mockData.cairoFile,
           options.address,
@@ -1440,16 +1482,16 @@ describe('Warp CLI test', function () {
         const args = program.args;
         expect(args[13]).to.be.equal(options.wallet);
         expect(args[14]).to.be.equal(mockData.ozWallet);
-        const opt = output.includes(options.inputs);
+        const opt = output.val.includes(options.inputs);
         expect(opt).to.be.equal(true);
-        const wall = output.includes(mockData.ozWallet);
+        const wall = output.val.includes(mockData.ozWallet);
         expect(wall).to.be.equal(true);
       });
 
       it('10. use cairo abi option passed', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.invoke,
           mockData.cairoFile,
           options.address,
@@ -1467,16 +1509,17 @@ describe('Warp CLI test', function () {
           mockData.ozWallet,
         ]);
 
-        const splittedOutput = output.split(' ');
+        const splittedOutput = output.val.split(' ');
+
         expect(splittedOutput[5]).to.be.equal(options.abi);
-        expect(splittedOutput[6].endsWith('.cairo')).to.be.equal(true);
+        expect(splittedOutput[6].endsWith('.json')).to.be.equal(true);
       });
 
       it('11. parse failed because of incorrect command ', async () => {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', 'incorrectCommand']);
+          await program.parseAsync(['node', './tests/cli.testTest.ts', 'incorrectCommand']);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -1485,9 +1528,9 @@ describe('Warp CLI test', function () {
       });
 
       it('12. correct starknet and command output', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.invoke,
           mockData.cairoFile,
           options.address,
@@ -1505,7 +1548,7 @@ describe('Warp CLI test', function () {
           mockData.ozWallet,
         ]);
 
-        const splittedOutput = output.split(' ');
+        const splittedOutput = output.val.split(' ');
 
         expect(splittedOutput[0]).to.be.equal(warpVenvPrefix);
         expect(splittedOutput[1]).to.be.equal(command.starknet);
@@ -1513,7 +1556,7 @@ describe('Warp CLI test', function () {
         expect(splittedOutput[3]).to.be.equal(options.address);
         expect(splittedOutput[4]).to.be.equal(mockAddress);
         expect(splittedOutput[5]).to.be.equal(options.abi);
-        expect(splittedOutput[6]).to.be.equal(mockData.cairoFile);
+        expect(splittedOutput[6]).to.be.equal(mockData.cairoFileAbi);
         expect(splittedOutput[7]).to.be.equal(options.function);
         expect(splittedOutput[8]).to.be.equal(mockInvokeFunc);
         expect(splittedOutput[9]).to.be.equal(options.network);
@@ -1529,48 +1572,19 @@ describe('Warp CLI test', function () {
 
     describe('runStarknetCallOrInvoke test', function () {
       let program: Command;
+      const output = { val: '' };
 
-      beforeEach(function () {
+      beforeEach(async () => {
         program = new Command();
         program.exitOverride();
-        program
-          .configureOutput({
-            writeOut: () => {
-              return;
-            },
-            writeErr: () => {
-              return;
-            },
-          })
-          .command('invoke <file>')
-          .requiredOption('--address <address>', 'Address of contract to call.')
-          .requiredOption('--function <function>', 'Function to call.')
-          .option(
-            '--inputs <inputs...>',
-            'Input to function as a comma separated string, use square brackets to represent lists and structs. Numbers can be represented in decimal and hex.',
-            undefined,
-          )
-          .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
-          .option(
-            '--account <account>',
-            'The name of the account. If not given, the default for the wallet will be used.',
-          )
-          .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-          .option(
-            '--wallet <wallet>',
-            'The name of the wallet, including the python module and wallet class.',
-            process.env.STARKNET_WALLET,
-          )
-          .action(async (file: string, options: ICallOrInvokeProps) => {
-            runStarknetCallOrInvoke(file, false, options, true);
-          });
+        await createInvokeProgram(program, output, true);
       });
 
       it('13. file path option is required', async () => {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', command.invoke]);
+          await program.parseAsync(['node', './tests/cli.testTest.ts', command.invoke]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -1582,7 +1596,12 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', command.invoke, mockData.cairoFile]);
+          await program.parseAsync([
+            'node',
+            './tests/cli.testTest.ts',
+            command.invoke,
+            mockData.cairoFile,
+          ]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -1593,9 +1612,9 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse([
+          await program.parseAsync([
             'node',
-            './bin/warp',
+            './tests/cli.testTest.ts',
             command.invoke,
             mockData.cairoFile,
             options.address,
@@ -1611,9 +1630,9 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse([
+          await program.parseAsync([
             'node',
-            './bin/warp',
+            './tests/cli.testTest.ts',
             command.invoke,
             mockData.cairoFile,
             options.address,
@@ -1642,7 +1661,7 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', 'randomCommand']);
+          await program.parseAsync(['node', './tests/cli.testTest.ts', 'randomCommand']);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -1654,61 +1673,65 @@ describe('Warp CLI test', function () {
 
   describe('warp deploy', function () {
     describe('command output test', function () {
-      let output: string;
       let program: Command;
+      const output = { val: '' };
+      const mockClassHash = '--class_hash';
 
-      const mockInputs = '--inputs 123';
-      const mockClassHash = '--class_hash 0x123';
-
-      beforeEach(function () {
+      beforeEach(async () => {
         program = new Command();
         program.exitOverride();
-        program
-          .configureOutput({
-            writeOut: () => {
-              return;
-            },
-            writeErr: () => {
-              return;
-            },
-          })
-          .command('deploy <file>')
-          .option('-d, --debug_info', 'Compile include debug information.', false)
-          .option(
-            '--inputs <inputs...>',
-            'Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists.',
-            undefined,
-          )
-          .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
-          .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-          .option('--no_wallet', 'Do not use a wallet for deployment.', false)
-          .option('--wallet <wallet>', 'Wallet provider to use', process.env.STARKNET_WALLET)
-          .option('--account <account>', 'Account to use for deployment', undefined)
-          .action((file: string, options: IDeployProps) => {
-            output = starkNetDeploy(file, options, mockInputs, mockClassHash);
-          });
+        await createDeployProgram(program, output, true);
+      });
+
+      it('0. compare output string', async () => {
+        await program.parseAsync([
+          'node',
+          './tests/cli.testTest.ts',
+          command.deploy,
+          mockData.cairoFile,
+          options.network,
+          mockData.network,
+          options.noWallet,
+        ]);
+
+        const outputArray = [
+          warpVenvPrefix,
+          command.starknet,
+          command.deploy,
+          options.network,
+          mockData.network,
+          options.account,
+          'undefined',
+          options.noWallet,
+          options.contract,
+          mockData.cairoFileCompiled,
+          '',
+        ];
+        const predictedOutput = outputArray.join(' ') as string;
+
+        expect(output.val).to.be.equal(predictedOutput);
       });
 
       it('1. correct starknet and command output', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.deploy,
           mockData.cairoFile,
           options.network,
           mockData.network,
         ]);
 
-        const starknet = output.toString().includes(command.starknet);
+        const starknet = output.val.toString().includes(command.starknet);
         expect(starknet).to.be.equal(true);
-        const starknetCommand = output.toString().includes(command.starknet);
+        const starknetCommand = output.val.toString().includes(command.starknet);
         expect(starknetCommand).to.be.equal(true);
       });
 
       it('2. correct warp and starknet command passed', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.deploy,
           mockData.cairoFile,
           options.network,
@@ -1717,14 +1740,14 @@ describe('Warp CLI test', function () {
 
         const args = program.args;
         expect(args[0]).to.be.equal(command.deploy);
-        const starknetCommand = output.toString().includes(command.deploy);
+        const starknetCommand = output.val.toString().includes(command.deploy);
         expect(starknetCommand).to.be.equal(true);
       });
 
       it('3. successfully passed file with no wallet option', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.deploy,
           mockData.cairoFile,
           options.network,
@@ -1734,17 +1757,15 @@ describe('Warp CLI test', function () {
 
         const args = program.args;
         expect(args[0]).to.be.equal(command.deploy);
-        const starknetCommand = output.includes(command.deploy);
+        const starknetCommand = output.val.includes(command.deploy);
         expect(starknetCommand).to.be.equal(true);
         expect(args[1]).to.be.equal(mockData.cairoFile);
-        const filepath = output.includes(mockData.cairoFile);
-        expect(filepath).to.be.equal(true);
       });
 
       it('4. correct network option passed with no wallet option', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.deploy,
           mockData.cairoFile,
           options.network,
@@ -1755,16 +1776,16 @@ describe('Warp CLI test', function () {
         const args = program.args;
         expect(args[2]).to.be.equal(options.network);
         expect(args[3]).to.be.equal(mockData.network);
-        const net = output.includes(options.network);
+        const net = output.val.includes(options.network);
         expect(net).to.be.equal(true);
-        const goerli = output.includes(mockData.network);
+        const goerli = output.val.includes(mockData.network);
         expect(goerli).to.be.equal(true);
       });
 
       it('5. contract hash option passed when wallet option wasnt passed', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.deploy,
           mockData.cairoFile,
           options.network,
@@ -1774,18 +1795,18 @@ describe('Warp CLI test', function () {
         ]);
 
         const args = program.args;
+
         expect(args[4]).to.be.equal(options.account);
-        expect(args[5]).to.be.equal(mockData.account);
-        const opt = output.includes(mockClassHash);
+        const opt = output.val.includes(mockClassHash);
         expect(opt).to.be.equal(true);
-        const acc = output.includes(mockData.account);
+        const acc = output.val.includes(mockData.account);
         expect(acc).to.be.equal(true);
       });
 
       it('6. contract hash option passed when wallet option was passed', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.deploy,
           mockData.cairoFile,
           options.network,
@@ -1799,19 +1820,15 @@ describe('Warp CLI test', function () {
         const args = program.args;
         expect(args[6]).to.be.equal(options.wallet);
         expect(args[7]).to.be.equal(mockData.ozWallet);
-        const opt = output.includes(mockClassHash);
+        const opt = output.val.includes(mockClassHash);
         expect(opt).to.be.equal(true);
-        const wallet = output.includes(options.wallet);
-        expect(wallet).to.be.equal(true);
-        const walletModule = output.includes(mockData.ozWallet);
-        expect(walletModule).to.be.equal(true);
       });
 
       it('7. parse failed because of incorrect command ', async () => {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', 'incorrectCommand']);
+          await program.parseAsync(['node', './tests/cli.testTest.ts', 'incorrectCommand']);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -1820,9 +1837,9 @@ describe('Warp CLI test', function () {
       });
 
       it('8. correct starknet and command output with no wallet', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.deploy,
           mockData.cairoFile,
           options.network,
@@ -1830,7 +1847,7 @@ describe('Warp CLI test', function () {
           options.noWallet,
         ]);
 
-        const splittedOutput = output.split(' ');
+        const splittedOutput = output.val.split(' ');
 
         expect(splittedOutput[0]).to.be.equal(warpVenvPrefix);
         expect(splittedOutput[1]).to.be.equal(command.starknet);
@@ -1841,15 +1858,13 @@ describe('Warp CLI test', function () {
         expect(splittedOutput[6]).to.be.equal('undefined');
         expect(splittedOutput[7]).to.be.equal(options.noWallet);
         expect(splittedOutput[8]).to.be.equal(options.contract);
-        expect(splittedOutput[9]).to.be.equal(mockData.cairoFile);
-        expect(splittedOutput[10]).to.be.equal(options.inputs);
-        expect(splittedOutput[11]).to.be.equal('123');
+        expect(splittedOutput[9]).to.be.equal(mockData.cairoFileCompiled);
       });
 
-      it('9. correct starknet and command output without no wallet and account', async () => {
-        program.parse([
+      it('9. correct starknet and command output without no wallet and with account', async () => {
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.deploy,
           mockData.cairoFile,
           options.network,
@@ -1858,7 +1873,7 @@ describe('Warp CLI test', function () {
           mockData.account,
         ]);
 
-        const splittedOutput = output.split(' ');
+        const splittedOutput = output.val.split(' ');
 
         expect(splittedOutput[0]).to.be.equal(warpVenvPrefix);
         expect(splittedOutput[1]).to.be.equal(command.starknet);
@@ -1867,16 +1882,13 @@ describe('Warp CLI test', function () {
         expect(splittedOutput[4]).to.be.equal(mockData.network);
         expect(splittedOutput[5]).to.be.equal(options.account);
         expect(splittedOutput[6]).to.be.equal(mockData.account);
-        expect(splittedOutput[7]).to.be.equal('--class_hash');
-        expect(splittedOutput[8]).to.be.equal('0x123');
-        expect(splittedOutput[9]).to.be.equal('--inputs');
-        expect(splittedOutput[10]).to.be.equal('123');
+        expect(splittedOutput[7]).to.be.equal(options.classHash);
       });
 
       it('10. correct starknet and command output with wallet module and account', async () => {
-        program.parse([
+        await program.parseAsync([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.deploy,
           mockData.cairoFile,
           options.network,
@@ -1887,7 +1899,7 @@ describe('Warp CLI test', function () {
           mockData.ozWallet,
         ]);
 
-        const splittedOutput = output.split(' ');
+        const splittedOutput = output.val.split(' ');
 
         expect(splittedOutput[0]).to.be.equal(warpVenvPrefix);
         expect(splittedOutput[1]).to.be.equal(command.starknet);
@@ -1897,52 +1909,24 @@ describe('Warp CLI test', function () {
         expect(splittedOutput[5]).to.be.equal(options.account);
         expect(splittedOutput[6]).to.be.equal(mockData.account);
         expect(splittedOutput[7]).to.be.equal('--class_hash');
-        expect(splittedOutput[8]).to.be.equal('0x123');
-        expect(splittedOutput[9]).to.be.equal(options.wallet);
-        expect(splittedOutput[10]).to.be.equal(mockData.ozWallet);
-        expect(splittedOutput[11]).to.be.equal(options.inputs);
-        expect(splittedOutput[12]).to.be.equal('123');
       });
     });
 
     describe('runStarknetDeploy test', function () {
       let program: Command;
+      const output = { val: '' };
 
-      beforeEach(function () {
+      beforeEach(async () => {
         program = new Command();
-
         program.exitOverride();
-        program
-          .configureOutput({
-            writeOut: () => {
-              return;
-            },
-            writeErr: () => {
-              return;
-            },
-          })
-          .command('deploy <file>')
-          .option('-d, --debug_info', 'Compile include debug information.', false)
-          .option(
-            '--inputs <inputs...>',
-            'Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists.',
-            undefined,
-          )
-          .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
-          .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-          .option('--no_wallet', 'Do not use a wallet for deployment.', false)
-          .option('--wallet <wallet>', 'Wallet provider to use', process.env.STARKNET_WALLET)
-          .option('--account <account>', 'Account to use for deployment', undefined)
-          .action((file: string, options: IDeployProps) => {
-            runStarknetDeploy(file, options, true);
-          });
+        await createDeployProgram(program, output, true);
       });
 
       it('11. file path option is required', async () => {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', command.deploy]);
+          await program.parseAsync(['node', './tests/cli.testTest.ts', command.deploy]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -1954,7 +1938,12 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', command.deploy, '--unknownOptions']);
+          await program.parseAsync([
+            'node',
+            './tests/cli.testTest.ts',
+            command.deploy,
+            '--unknownOptions',
+          ]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -1966,7 +1955,7 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', 'randomCommand']);
+          await program.parseAsync(['node', './tests/cli.testTest.ts', 'randomCommand']);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -1978,49 +1967,59 @@ describe('Warp CLI test', function () {
 
   describe('warp declare', function () {
     describe('command output test', function () {
-      let output: string;
       let program: Command;
+      const output = { val: '' };
 
-      beforeEach(function () {
+      beforeEach(() => {
         program = new Command();
         program.exitOverride();
-        program
-          .configureOutput({
-            writeOut: () => {
-              return;
-            },
-            writeErr: () => {
-              return;
-            },
-          })
-          .command('declare <cairo_contract>')
-          .description('Command to declare Cairo contract on a StarkNet Network.')
-          .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-          .action((cairo_contract: string, options: IDeclareOptions) => {
-            output = processDeclareContract(cairo_contract, options) as string;
-          });
+        createDeclareProgram(program, output, true);
       });
 
-      it('1. correct starknet and command output', async () => {
+      it('0. compare output string', async () => {
         program.parse([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.declare,
           mockData.cairoFile,
           options.network,
           mockData.network,
         ]);
 
-        const starknet = output.includes(command.starknet);
+        const outputArray = [
+          warpVenvPrefix,
+          command.starknet,
+          command.declare,
+          options.contract,
+          mockData.cairoFileCompiled,
+          options.network,
+          mockData.network,
+        ];
+        const predictedOutput = outputArray.join(' ') as string;
+
+        expect(output.val).to.be.equal(predictedOutput);
+      });
+
+      it('1. correct starknet and command output', async () => {
+        program.parse([
+          'node',
+          './tests/cli.testTest.ts',
+          command.declare,
+          mockData.cairoFile,
+          options.network,
+          mockData.network,
+        ]);
+
+        const starknet = output.val.includes(command.starknet);
         expect(starknet).to.be.equal(true);
-        const starknetCommand = output.includes(command.starknet);
+        const starknetCommand = output.val.includes(command.starknet);
         expect(starknetCommand).to.be.equal(true);
       });
 
       it('2. correct warp and starknet command passed', async () => {
         program.parse([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.declare,
           mockData.cairoFile,
           options.network,
@@ -2029,14 +2028,14 @@ describe('Warp CLI test', function () {
 
         const args = program.args;
         expect(args[0]).to.be.equal(command.declare);
-        const starknetCommand = output.includes(command.declare);
+        const starknetCommand = output.val.includes(command.declare);
         expect(starknetCommand).to.be.equal(true);
       });
 
       it('3. mockData.cairoFile passed successfully', async () => {
         program.parse([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.declare,
           mockData.cairoFile,
           options.network,
@@ -2045,17 +2044,17 @@ describe('Warp CLI test', function () {
 
         const args = program.args;
         expect(args[0]).to.be.equal(command.declare);
-        const starknetCommand = output.includes(command.declare);
+        const starknetCommand = output.val.includes(command.declare);
         expect(starknetCommand).to.be.equal(true);
         expect(args[1]).to.be.equal(mockData.cairoFile);
-        const filepath = output.includes(mockData.cairoFile);
+        const filepath = output.val.includes(mockData.cairoFileCompiled);
         expect(filepath).to.be.equal(true);
       });
 
       it('4. network option passed successfully', async () => {
         program.parse([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.declare,
           mockData.cairoFile,
           options.network,
@@ -2064,10 +2063,10 @@ describe('Warp CLI test', function () {
 
         const args = program.args;
         expect(args[2]).to.be.equal(options.network);
-        const net = output.includes(options.network);
+        const net = output.val.includes(options.network);
         expect(net).to.be.equal(true);
         expect(args[3]).to.be.equal(mockData.network);
-        const alpha = output.includes(mockData.network);
+        const alpha = output.val.includes(mockData.network);
         expect(alpha).to.be.equal(true);
       });
 
@@ -2075,7 +2074,7 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', 'incorrectCommand']);
+          program.parse(['node', './tests/cli.testTest.ts', 'incorrectCommand']);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -2086,20 +2085,20 @@ describe('Warp CLI test', function () {
       it('6. correct starknet and command output with no wallet', async () => {
         program.parse([
           'node',
-          './bin/warp',
+          './tests/cli.testTest.ts',
           command.declare,
           mockData.cairoFile,
           options.network,
           mockData.network,
         ]);
 
-        const splittedOutput = output.split(' ');
+        const splittedOutput = output.val.split(' ');
 
         expect(splittedOutput[0]).to.be.equal(warpVenvPrefix);
         expect(splittedOutput[1]).to.be.equal(command.starknet);
         expect(splittedOutput[2]).to.be.equal(command.declare);
         expect(splittedOutput[3]).to.be.equal(options.contract);
-        expect(splittedOutput[4]).to.be.equal(mockData.cairoFile);
+        expect(splittedOutput[4]).to.be.equal(mockData.cairoFileCompiled);
         expect(splittedOutput[5]).to.be.equal(options.network);
         expect(splittedOutput[6]).to.be.equal(mockData.network);
       });
@@ -2107,32 +2106,19 @@ describe('Warp CLI test', function () {
 
     describe('runStarknetDeclare test', function () {
       let program: Command;
+      const output = { val: '' };
 
-      beforeEach(function () {
+      beforeEach(() => {
         program = new Command();
         program.exitOverride();
-        program
-          .configureOutput({
-            writeOut: () => {
-              return;
-            },
-            writeErr: () => {
-              return;
-            },
-          })
-          .command('declare <cairo_contract>')
-          .description('Command to declare Cairo contract on a StarkNet Network.')
-          .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
-          .action(async (cairo_contract: string, options: IDeclareOptions) => {
-            runStarknetDeclare(cairo_contract, options);
-          });
+        createDeclareProgram(program, output, true);
       });
 
       it('7. file path option is required', async () => {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', command.declare]);
+          program.parse(['node', './tests/cli.testTest.ts', command.declare]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -2144,7 +2130,7 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', command.declare, '--unknownOptions']);
+          program.parse(['node', './tests/cli.testTest.ts', command.declare, '--unknownOptions']);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
@@ -2156,7 +2142,7 @@ describe('Warp CLI test', function () {
         let err: { code: string | undefined } | undefined;
 
         try {
-          program.parse(['node', './bin/warp', 'randomCommand']);
+          program.parse(['node', './tests/cli.testTest.ts', 'randomCommand']);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
         }
