@@ -181,7 +181,7 @@ export class DeclarationNameMangler extends ASTMapper {
     this.nodesNameModified = []; // Lose all references to avoid consuming unnecessary memory
   }
 
-  // Set Id in a node name 'name' that fallows the pattern 'pattern' to a fixed width
+  // Set Id in a node name 'name' that follows the pattern 'pattern' to a fixed width
   updateName(name: string, pattern: string, lastIdSize: number) {
     const match = new RegExp(`${pattern}([0-9]+)`).exec(name);
     if (match === null) {
