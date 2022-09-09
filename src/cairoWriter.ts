@@ -443,11 +443,23 @@ class CairoContractWriter extends CairoASTNodeWriter {
 
     const enums = node.vEnums.map((value) => writer.write(value));
 
-    const functions = node.vFunctions.map((value) => writer.write(value));
+    const externalFunctions = node.vFunctions
+      .filter((func) => isExternallyVisible(func))
+      .map((func) => writer.write(func));
+
+    const otherFunctions = node.vFunctions
+      .filter((func) => !isExternallyVisible(func))
+      .map((func) => writer.write(func));
 
     const events = node.vEvents.map((value) => writer.write(value));
 
-    const body = [...variables, ...enums, ...functions]
+    const body = [...variables, ...enums, ...otherFunctions]
+      .join('\n\n')
+      .split('\n')
+      .map((l) => (l.length > 0 ? INDENT + l : l))
+      .join('\n');
+
+    const outsideNamespaceBody = [...externalFunctions]
       .join('\n\n')
       .split('\n')
       .map((l) => (l.length > 0 ? INDENT + l : l))
@@ -500,9 +512,13 @@ class CairoContractWriter extends CairoASTNodeWriter {
     ].join('\n');
 
     return [
-      [documentation, ...events, storageCode, `namespace ${node.name}{\n\n${body}\n\n}`].join(
-        '\n\n',
-      ),
+      [
+        documentation,
+        ...events,
+        storageCode,
+        `namespace ${node.name}{\n\n${body}\n\n}`,
+        outsideNamespaceBody,
+      ].join('\n\n'),
     ];
   }
 

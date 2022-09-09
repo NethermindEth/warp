@@ -41,6 +41,7 @@ import {
   ReferencedLibraries,
   References,
   RejectUnsupportedFeatures,
+  ReplaceIdentifierContractMemberAccess,
   Require,
   ReturnInserter,
   ReturnVariableInitializer,
@@ -149,6 +150,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
     ['Ci', CairoUtilImporter],
+    ['Rim', ReplaceIdentifierContractMemberAccess],
     ['Dus', DropUnusedSourceUnits],
     ['Cs', CairoStubProcessor],
   ]);
