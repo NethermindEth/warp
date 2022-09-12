@@ -468,6 +468,9 @@ export function getSourceFromLocations(
   highlightFunc: (text: string) => string,
   surroundingLines = 2,
 ): string {
+  // Sort locations
+  locations.sort((s1, s2) => s1.offset - s2.offset);
+
   let textWalked = 0;
   let locIndex = 0;
   const lines = source.split('\n').reduce((lines, currentLine, lineNum) => {
