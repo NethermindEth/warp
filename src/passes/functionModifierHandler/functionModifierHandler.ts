@@ -13,7 +13,12 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction } from '../../utils/functionGeneration';
-import { MANGLED_PARAMETER, MANGLED_RETURN_PARAMETER } from '../../utils/nameModifiers';
+import {
+  MANGLED_PARAMETER,
+  MANGLED_RETURN_PARAMETER,
+  MODIFIER_PREFIX,
+  ORIGINAL_FUNCTION_PREFIX,
+} from '../../utils/nameModifiers';
 import {
   createBlock,
   createExpressionStatement,
@@ -73,7 +78,7 @@ export class FunctionModifierHandler extends ASTMapper {
 
     const funcDef = cloneASTNode(node, ast);
     const name = node.isConstructor ? `constructor` : `function_${node.name}`;
-    funcDef.name = `__warp_original_${name}`;
+    funcDef.name = `${ORIGINAL_FUNCTION_PREFIX}${name}`;
     funcDef.visibility = FunctionVisibility.Internal;
     funcDef.isConstructor = false;
     funcDef.kind = FunctionKind.Function;
@@ -117,7 +122,7 @@ export class FunctionModifierHandler extends ASTMapper {
       modifierClone.src,
       node.scope,
       FunctionKind.Function,
-      `__warp_${modifier.name}_${this.count++}`,
+      `${MODIFIER_PREFIX}${modifier.name}_${node.name}_${this.count++}`,
       node.virtual,
       FunctionVisibility.Internal,
       node.stateMutability,
