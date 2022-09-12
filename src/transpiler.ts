@@ -63,7 +63,7 @@ import {
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { createPassMap, parsePassOrder } from './utils/cli';
-import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
+import { TranspilationError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
 import { printCompileErrors, runSanityCheck } from './utils/utils';
 
@@ -122,9 +122,9 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Ffi', FreeFunctionInliner],
     ['Rl', ReferencedLibraries],
     ['Ons', OrderNestedStructs],
-    ['Ech', ExternalContractHandler],
     ['Sa', StorageAllocator],
     ['Ii', InheritanceInliner],
+    ['Ech', ExternalContractHandler],
     ['Mh', ModifierHandler],
     ['Pfs', PublicFunctionSplitter],
     ['Eam', ExternalArgModifier],
@@ -182,7 +182,7 @@ export function handleTranspilationError(e: unknown) {
   if (e instanceof CompileFailedError) {
     printCompileErrors(e);
     console.error('Cannot start transpilation');
-  } else if (e instanceof TranspilationAbandonedError) {
+  } else if (e instanceof TranspilationError) {
     console.error(`Transpilation abandoned ${e.message}`);
   } else {
     console.error('Unexpected error during transpilation');
