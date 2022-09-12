@@ -105,19 +105,16 @@ function evaluateUnaryLiteral(node: UnaryOperation): RationalLiteral | boolean |
     case '~': {
       if (typeof op === 'boolean') {
         throw new TranspileFailedError('Attempted to apply unary bitwise negation to boolean');
-      }
-      return op.bitwiseNegate();
+      } else return op.bitwiseNegate();
     }
     case '-':
       if (typeof op === 'boolean') {
         throw new TranspileFailedError('Attempted to apply unary numeric negation to boolean');
-      }
-      return op.multiply(new RationalLiteral(-1n, 1n));
+      } else return op.multiply(new RationalLiteral(-1n, 1n));
     case '!':
       if (typeof op !== 'boolean') {
         throw new TranspileFailedError('Attempted to apply boolean negation to RationalLiteral');
-      }
-      return !op;
+      } else return !op;
     default:
       return null;
   }
@@ -129,7 +126,65 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
     evaluateLiteralExpression(node.vRightExpression),
   ];
   if (left === null || right === null) {
-    return null;
+    // In some cases a binary expression could be calculated at
+    // compile time, even when only one argument is a literal.
+    const notNullMember = left === null ? right : left;
+    if (notNullMember === null) {
+      return null;
+    }
+    if (typeof notNullMember === 'boolean') {
+      switch (node.operator) {
+        case '&&': // false & x = false
+          return notNullMember ? null : false;
+        case '||': // true | x = true
+          return notNullMember ? true : false;
+        default:
+          if (!['==', '!='].includes(node.operator)) {
+            throw new TranspileFailedError(
+              `Unexpected boolean x boolean operator ${node.operator}`,
+            );
+          }
+          return null;
+      }
+    } else if (typeof notNullMember !== 'boolean') {
+      let fraction = notNullMember.toString().split('/');
+      const is_zero = fraction[0] === '0';
+      const is_one = fraction[0] === fraction[1];
+      switch (node.operator) {
+        case '*': // 0*x = x*0 = 0
+          return is_zero ? new RationalLiteral(0n, 1n) : null;
+        case '**': // x**0 = 1   0**x = 0   1**x = 1
+          if (right && is_zero) {
+            return new RationalLiteral(1n, 1n);
+          } else if (left && is_zero) {
+            return new RationalLiteral(0n, 1n);
+          } else if (left && is_one) {
+            return new RationalLiteral(1n, 1n);
+          }
+          return null;
+        case '<<': // 0<<x = 0   x<<n(n>255) = 0
+          if (left && is_zero) {
+            return new RationalLiteral(0n, 1n);
+          } else if (right && notNullMember.greaterThan(new RationalLiteral(255n, 1n))) {
+            return new RationalLiteral(0n, 1n);
+          }
+          return null;
+        case '>>': // 0>>x = 0   1>>x = 0
+          if (left && is_zero) {
+            return new RationalLiteral(0n, 1n);
+          } else if (left && is_one) {
+            return new RationalLiteral(0n, 1n);
+          }
+          return null;
+        default:
+          if (!['/', '%', '+', '-', '>', '<', '>=', '<=', '==', '!='].includes(node.operator)) {
+            throw new TranspileFailedError(`Unexpected number x number operator ${node.operator}`);
+          }
+          return null;
+      }
+    } else {
+      throw new TranspileFailedError('Mismatching literal arguments');
+    }
   } else if (typeof left === 'boolean' && typeof right === 'boolean') {
     switch (node.operator) {
       case '==':
@@ -160,9 +215,9 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
       case '>':
         return left.greaterThan(right);
       case '<':
-        return !left.greaterThan(right) && !left.equalValueOf(right);
+        return right.greaterThan(left);
       case '>=':
-        return left.greaterThan(right) || left.equalValueOf(right);
+        return !right.greaterThan(left);
       case '<=':
         return !left.greaterThan(right);
       case '==':
@@ -202,8 +257,9 @@ function createLiteralFromType(typeString: string): RationalLiteral | null {
     }
   } else if (typeString.startsWith('rational_const ')) {
     const valueString = typeString.substring('rational_const '.length);
-    const numeratorString = valueString.split('/')[0].trim();
-    const denominatorString = valueString.split('/')[1].trim();
+    const valueStringSplitted = valueString.split('/');
+    const numeratorString = valueStringSplitted[0].trim();
+    const denominatorString = valueStringSplitted[1].trim();
     const numerator = Number(numeratorString);
     const denominator = Number(denominatorString);
     if (!isNaN(numerator) && !isNaN(denominator)) {
