@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.12;
+pragma solidity 0.8;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../openzeppelin/contracts/utils/math/SafeMath.sol";
+import "../openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "../openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/IBonderRegistry.sol";
 
 /**
@@ -53,7 +53,7 @@ abstract contract Accounting is Ownable, ReentrancyGuard {
     }
 
     /// @dev Sets the Bonder addresses
-    constructor(IBonderRegistry registry) public {
+    constructor(IBonderRegistry registry) {
         _registry = registry;
     }
 
@@ -134,7 +134,7 @@ abstract contract Accounting is Ownable, ReentrancyGuard {
      * @param registry The new Bonder registry address
      */
     function setRegistry(IBonderRegistry registry) external onlyOwner {
-        require(registry != IBonderRegistry(0), "L1_BRG: _registry cannot be address(0)");
+        require(address(registry) != address(0), "L1_BRG: _registry cannot be address(0)");
         _registry = registry;
     }
 

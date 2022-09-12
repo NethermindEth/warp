@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.12;
+pragma solidity 0.8;
 pragma experimental ABIEncoderV2;
 
 import "./Accounting.sol";
@@ -64,7 +64,7 @@ abstract contract Bridge is Accounting, SwapDataConsumer {
 
     uint256 constant RESCUE_DELAY = 8 weeks;
 
-    constructor(IBonderRegistry _registry) public Accounting(_registry) {}
+    constructor(IBonderRegistry _registry) Accounting(_registry) {}
 
     /* ========== Public Getters ========== */
 
@@ -296,7 +296,7 @@ abstract contract Bridge is Accounting, SwapDataConsumer {
         for(uint256 i = 0; i < transferIds.length; i++) {
             uint256 transferBondAmount = _bondedWithdrawalAmounts[bonder][transferIds[i]];
             if (transferBondAmount > 0) {
-                totalBondsSettled = totalBondsSettled.add(transferBondAmount);
+                totalBondsSettled = totalBondsSettled + transferBondAmount;
                 _bondedWithdrawalAmounts[bonder][transferIds[i]] = 0;
             }
         }
@@ -324,10 +324,10 @@ abstract contract Bridge is Accounting, SwapDataConsumer {
 
         require(transferRoot.createdAt != 0, "BRG: TransferRoot not found");
         assert(transferRoot.total == originalAmount);
-        uint256 rescueDelayEnd = transferRoot.createdAt.add(RESCUE_DELAY);
+        uint256 rescueDelayEnd = transferRoot.createdAt + RESCUE_DELAY;
         require(block.timestamp >= rescueDelayEnd, "BRG: TransferRoot cannot be rescued before the Rescue Delay");
 
-        uint256 remainingAmount = transferRoot.total.sub(transferRoot.amountWithdrawn);
+        uint256 remainingAmount = transferRoot.total - transferRoot.amountWithdrawn;
         _addToAmountWithdrawn(transferRootId, remainingAmount);
         _transferFromBridge(recipient, remainingAmount);
     }
@@ -343,7 +343,7 @@ abstract contract Bridge is Accounting, SwapDataConsumer {
         TransferRoot storage transferRoot = _transferRoots[transferRootId];
         require(transferRoot.total > 0, "BRG: Transfer root not found");
 
-        uint256 newAmountWithdrawn = transferRoot.amountWithdrawn.add(amount);
+        uint256 newAmountWithdrawn = transferRoot.amountWithdrawn + amount;
         require(newAmountWithdrawn <= transferRoot.total, "BRG: Withdrawal exceeds TransferRoot total");
 
         transferRoot.amountWithdrawn = newAmountWithdrawn;
@@ -377,7 +377,7 @@ abstract contract Bridge is Accounting, SwapDataConsumer {
         uint256 bonderFee
     ) private {
         _markTransferSpent(transferId);
-        _transferFromBridge(recipient, amount.sub(bonderFee));
+        _transferFromBridge(recipient, amount - bonderFee);
         if (bonderFee > 0) {
             _transferFromBridge(msg.sender, bonderFee);
         }

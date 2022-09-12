@@ -85,7 +85,6 @@ abstract contract L2_Bridge is Bridge {
         uint256[] memory _activeChainIds,
         IBonderRegistry registry
     )
-        public
         Bridge(registry)
     {
         hToken = _hToken;
@@ -125,7 +124,7 @@ abstract contract L2_Bridge is Bridge {
         require(activeChainIds[chainId], "L2_BRG: chainId is not supported");
 
         {
-            uint256 minBonderFeeRelative = amount.mul(minBonderBps).div(10000);
+            uint256 minBonderFeeRelative = (amount * minBonderBps) / 10000;
             // Get the max of minBonderFeeRelative and minBonderFeeAbsolute
             uint256 minBonderFee = minBonderFeeRelative > minBonderFeeAbsolute ? minBonderFeeRelative : minBonderFeeAbsolute;
             require(bonderFee >= minBonderFee, "L2_BRG: bonderFee must meet minimum requirements");
@@ -153,7 +152,7 @@ abstract contract L2_Bridge is Bridge {
         uint256 transferIndex = pendingTransfers.length;
         pendingTransfers.push(transferId);
 
-        pendingAmount[chainId][bonder] = pendingAmount[chainId][bonder].add(amount);
+        pendingAmount[chainId][bonder] = pendingAmount[chainId][bonder] + amount;
 
         emit TransferSent(
             chainId,
@@ -177,7 +176,7 @@ abstract contract L2_Bridge is Bridge {
      * @param bonder The bonder whose transfer root is being committed
      */
     function commitTransfers(uint256 destinationChainId, address bonder) external {
-        uint256 minForceCommitTime = lastCommitTime[destinationChainId][bonder].add(minimumForceCommitDelay);
+        uint256 minForceCommitTime = lastCommitTime[destinationChainId][bonder] + minimumForceCommitDelay;
         require(bonder == msg.sender || minForceCommitTime < block.timestamp, "L2_BRG: Only Bonder can commit before min delay");
 
         _commitTransfers(destinationChainId, bonder);
@@ -309,7 +308,7 @@ abstract contract L2_Bridge is Bridge {
         if (fee > 0) {
             hToken.mint(feeRecipient, fee);
         }
-        uint256 amountAfterFee = amount.sub(fee);
+        uint256 amountAfterFee = amount - fee;
 
         if (swapData.amountOutMin == 0 && swapData.deadline == 0) {
             hToken.mint(recipient, amountAfterFee);
