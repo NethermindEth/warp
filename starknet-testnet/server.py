@@ -116,28 +116,27 @@ async def invoke():
     state = await starknet_wrapper.get_state()
 
     try:
-        execution_info = await state.invoke_raw(
+        execution_info = await state.execute_entry_point_raw(
             contract_address=data["address"],
             selector=data["function"],
             calldata=[int(x) for x in data["input"]],
             caller_address=int(data["caller_address"], 0),
-            max_fee=0,
         )
         print("-----Invoke info-----")
         print(execution_info)
         print("----------\n")
         if BENCHMARK:
             steps_in_function_invoke(data["function"], execution_info)
-
+        
         # Can add extra fields in here if and when tests need them
         return jsonify(
             {
                 "execution_info": {
-                    "steps": execution_info.call_info.execution_resources.n_steps
+                    "steps": execution_info.execution_resources.n_steps
                 },
                 "transaction_info": {
                     "threw": False,
-                    "return_data": [str(x) for x in execution_info.call_info.retdata],
+                    "return_data": [str(x) for x in execution_info.retdata],
                 },
             }
         )
