@@ -34,7 +34,7 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { TranspilationError } from '../utils/errors';
+import { WillNotSupportError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { isDynamicArray, safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getSourceFromLocations, isExternalCall, isExternallyVisible } from '../utils/utils';
@@ -43,34 +43,39 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   unsupportedFeatures: [string, ASTNode][] = [];
 
   static map(ast: AST): AST {
-    const unsopportedPerSource = new Map<string, [string, ASTNode][]>();
-    ast.roots.forEach((sourceUnit) => {
+    const unsupportedPerSource = new Map<string, [string, ASTNode][]>();
+
+    const unsupportedDetected = ast.roots.reduce((unsupported, sourceUnit) => {
       const mapper = new this();
       mapper.dispatchVisit(sourceUnit, ast);
       if (mapper.unsupportedFeatures.length > 0) {
-        unsopportedPerSource.set(sourceUnit.absolutePath, mapper.unsupportedFeatures);
+        unsupportedPerSource.set(sourceUnit.absolutePath, mapper.unsupportedFeatures);
+        return unsupported + mapper.unsupportedFeatures.length;
       }
-    });
+      return unsupported;
+    }, 0);
 
-    if (unsopportedPerSource.size > 0) {
-      const errorMsg = [...unsopportedPerSource.entries()].reduce(
+    if (unsupportedDetected > 0) {
+      let errorNum = 0;
+      const errorMsg = [...unsupportedPerSource.entries()].reduce(
         (fullMsg, [filePath, unsopported]) => {
           const content = fs.readFileSync(filePath, { encoding: 'utf8' });
-          const newMessage = unsopported.reduce((newMessage, [errorMsg, node], errorNum) => {
+          const newMessage = unsopported.reduce((newMessage, [errorMsg, node]) => {
             const errorCode = getSourceFromLocations(
               content,
               [parseSourceLocation(node.src)],
               error,
               4,
             );
-            return newMessage + `\n${error(`${errorNum + 1}. ` + errorMsg)}:\n\n${errorCode}\n`;
-          }, `File ${filePath}:\n`);
+            errorNum += 1;
+            return newMessage + `\n${error(`${errorNum}. ` + errorMsg)}:\n\n${errorCode}\n`;
+          }, `\nFile ${filePath}:\n`);
 
           return fullMsg + newMessage;
         },
-        error('Unsupported Features Detected:\n\n'),
+        error(`Detected ${unsupportedDetected} Unsupported Features:\n`),
       );
-      throw new TranspilationError(errorMsg);
+      throw new WillNotSupportError(errorMsg, undefined, false);
     }
 
     return ast;
