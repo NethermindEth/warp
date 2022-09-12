@@ -34,7 +34,7 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { TranspilationError } from '../utils/errors';
+import { WillNotSupportError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { isDynamicArray, safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getSourceFromLocations, isExternalCall, isExternallyVisible } from '../utils/utils';
@@ -75,7 +75,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
         },
         error(`Detected ${unsupportedDetected} Unsupported Features:\n`),
       );
-      throw new TranspilationError(errorMsg);
+      throw new WillNotSupportError(errorMsg, undefined, false);
     }
 
     return ast;
