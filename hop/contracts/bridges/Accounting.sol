@@ -30,12 +30,12 @@ abstract contract Accounting is Ownable, ReentrancyGuard {
     mapping(address => uint256) private _debit;
 
     event Stake (
-        address indexed account,
+        address account,
         uint256 amount
     );
 
     event Unstake (
-        address indexed account,
+        address account,
         uint256 amount
     );
 

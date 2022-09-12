@@ -27,32 +27,32 @@ abstract contract Bridge is Accounting, SwapDataConsumer {
     /* ========== Events ========== */
 
     event Withdrew(
-        bytes32 indexed transferId,
-        address indexed recipient,
+        bytes32 transferId,
+        address recipient,
         uint256 amount,
         bytes32 transferNonce
     );
 
     event WithdrawalBonded(
-        bytes32 indexed transferId,
+        bytes32 transferId,
         uint256 amount,
         address bonder
     );
 
     event WithdrawalBondSettled(
-        address indexed bonder,
-        bytes32 indexed transferId,
-        bytes32 indexed rootHash
+        address bonder,
+        bytes32 transferId,
+        bytes32 rootHash
     );
 
     event MultipleWithdrawalsSettled(
-        address indexed bonder,
-        bytes32 indexed rootHash,
+        address bonder,
+        bytes32 rootHash,
         uint256 totalBondsSettled
     );
 
     event TransferRootSet(
-        bytes32 indexed rootHash,
+        bytes32 rootHash,
         uint256 totalAmount
     );
 
