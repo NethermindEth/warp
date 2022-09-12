@@ -106,9 +106,10 @@ abstract contract Bridge is Accounting, SwapDataConsumer {
      */
     function getChainId() public virtual view returns (uint256 chainId) {
         this; // Silence state mutability warning without generating any additional byte code
-        assembly {
-            chainId := chainid()
-        }
+        // assembly {
+            // chainId := chainid()
+        // }
+        return 0;
     }
 
     /**
