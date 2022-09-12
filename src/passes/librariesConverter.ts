@@ -18,6 +18,7 @@ export class LibrariesConverter extends ASTMapper {
     if (node.kind === ContractKind.Library) {
       const contractNode = cloneASTNode(node, ast);
       contractNode.name = `${LIBRARY_CONTRACT_INFIX}${node.name}`;
+      contractNode.kind = ContractKind.Contract;
       (node.parent as ASTNodeWithChildren<ASTNode>).appendChild(contractNode);
     }
   }
