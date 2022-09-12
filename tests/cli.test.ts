@@ -107,9 +107,9 @@ const command = {
 const mockData = {
   network: 'alpha-goerli',
   hash: '0x01a',
-  cairoFile: 'warp_output/tests/testFiles/Test__WC__WARP.cairo',
-  cairoFileCompiled: 'warp_output/tests/testFiles/Test__WC__WARP_compiled.json',
-  cairoFileAbi: 'warp_output/tests/testFiles/Test__WC__WARP_abi.json',
+  cairoFile: 'tests/testFiles/Test__WC__WARP.cairo',
+  cairoFileCompiled: 'tests/testFiles/Test__WC__WARP_compiled.json',
+  cairoFileAbi: 'tests/testFiles/Test__WC__WARP_abi.json',
   ozWallet: 'starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount',
   account: 'Test_Account',
 };
@@ -164,7 +164,14 @@ describe('Warp CLI test', function () {
           }
         });
       });
-    program.parse(['node', './tests/cli.testTest.ts', 'transpile', 'tests/testFiles/Test.sol']);
+    program.parse([
+      'node',
+      './tests/cli.testTest.ts',
+      'transpile',
+      'tests/testFiles/Test.sol',
+      '--output-dir',
+      '.',
+    ]);
   });
 
   describe('warp status', function () {
