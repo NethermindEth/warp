@@ -34,7 +34,7 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { WillNotSupportError } from '../utils/errors';
+import { TranspilationError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { isDynamicArray, safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getSourceFromLocations, isExternalCall, isExternallyVisible } from '../utils/utils';
@@ -56,21 +56,21 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       const errorMsg = [...unsopportedPerSource.entries()].reduce(
         (fullMsg, [filePath, unsopported]) => {
           const content = fs.readFileSync(filePath, { encoding: 'utf8' });
-          const newMessage = unsopported.reduce((newMessage, [errorMsg, node]) => {
+          const newMessage = unsopported.reduce((newMessage, [errorMsg, node], errorNum) => {
             const errorCode = getSourceFromLocations(
               content,
               [parseSourceLocation(node.src)],
               error,
+              4,
             );
-            return newMessage + `${errorMsg}:\n ${errorCode}\n`;
+            return newMessage + `\n${error(`${errorNum + 1}. ` + errorMsg)}:\n\n${errorCode}\n`;
           }, `File ${filePath}:\n`);
 
           return fullMsg + newMessage;
         },
-        'Unsupported Features Detected:\n',
+        error('Unsupported Features Detected:\n\n'),
       );
-
-      throw new WillNotSupportError(errorMsg);
+      throw new TranspilationError(errorMsg);
     }
 
     return ast;

@@ -13,7 +13,9 @@ export class CLIError extends Error {
   }
 }
 
-export class TranspilationAbandonedError extends Error {
+export class TranspilationError extends Error {}
+
+export class TranspilationAbandonedError extends TranspilationError {
   constructor(message: string, node?: ASTNode) {
     super(`${error(message)}${`\n\n${getSourceCode(node)}\n`}`);
   }
