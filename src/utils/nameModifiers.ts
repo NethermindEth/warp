@@ -23,8 +23,8 @@ export const CALLDATA_TO_MEMORY_PREFIX = 'cd_to_wm_';
 export const CONSTANT_STRING_TO_MEMORY_PREFIX = 'memory_string';
 
 // Used in ModifierHandler in FunctionModifierHandler
-export const MANGLED_PARAMETER = '__warp_parameter';
-export const MANGLED_RETURN_PARAMETER = '__warp_ret_paramter';
+export const MANGLED_PARAMETER = '__warp_parameter_';
+export const MANGLED_RETURN_PARAMETER = '__warp_ret_paramter_';
 
 // Used in ExternalArgModifier in MemoryRefInputModifier
 export const CALLDATA_TO_MEMORY_FUNCTION_PARAMETER_PREFIX = 'cd_to_wm_param_';
