@@ -474,21 +474,34 @@ export function getSourceFromLocations(
     const maxWalk = textWalked + currentLine.length + 1;
     let marked = false;
     let newLine = `${lineNum}\t`;
-    while (
-      locIndex < locations.length &&
-      textWalked + currentLine.length >= locations[locIndex].offset + locations[locIndex].length
-    ) {
-      const currentLocation = locations[locIndex];
-      newLine =
-        newLine +
-        source.substring(textWalked, currentLocation.offset) +
-        highlightFunc(
-          source.substring(currentLocation.offset, currentLocation.offset + currentLocation.length),
-        );
-
-      textWalked = currentLocation.offset + currentLocation.length;
-      locIndex += 1;
+    while (locIndex < locations.length && maxWalk >= locations[locIndex].offset) {
+      // Mark the line as a highlited line
       marked = true;
+      const currentLocation = locations[locIndex];
+      if (currentLocation.offset + currentLocation.length > maxWalk) {
+        // Case when node source spans accross multiple lines
+        newLine =
+          newLine +
+          source.substring(textWalked, currentLocation.offset) +
+          highlightFunc(source.substring(currentLocation.offset, maxWalk));
+        currentLocation.length = currentLocation.length - (maxWalk - currentLocation.offset);
+        currentLocation.offset = maxWalk;
+        textWalked = maxWalk;
+        break;
+      } else {
+        // Case when node source is a substring of a line
+        newLine =
+          newLine +
+          source.substring(textWalked, currentLocation.offset) +
+          highlightFunc(
+            source.substring(
+              currentLocation.offset,
+              currentLocation.offset + currentLocation.length,
+            ),
+          );
+        locIndex += 1;
+        textWalked = currentLocation.offset + currentLocation.length;
+      }
     }
 
     newLine = newLine + source.substring(textWalked, maxWalk);
