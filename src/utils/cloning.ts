@@ -41,6 +41,7 @@ import {
   FunctionTypeName,
   FunctionCallOptions,
   Expression,
+  ContractDefinition,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoAssert, CairoFunctionDefinition } from '../ast/cairoNodes';
@@ -478,6 +479,22 @@ function cloneASTNodeImpl<T extends ASTNode>(
       replaceId(node.id, ast, remappedIds),
       node.src,
       [...node.vParameters].map((p) => cloneASTNodeImpl(p, ast, remappedIds)),
+      node.raw,
+    );
+  } else if (node instanceof ContractDefinition) {
+    newNode = new ContractDefinition(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.name,
+      node.scope,
+      node.kind,
+      node.abstract,
+      node.fullyImplemented,
+      node.linearizedBaseContracts,
+      node.usedErrors,
+      node.documentation,
+      [...node.children].map((ch) => cloneASTNodeImpl(ch, ast, remappedIds)),
+      node.nameLocation,
       node.raw,
     );
     //Misc---------------------------------------------------------------------
