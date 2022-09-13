@@ -33,7 +33,7 @@ contract L2_AmmWrapper is SwapDataConsumer {
         exchangeAddress = _exchangeAddress;
     }
 
-    receive() external payable {}
+    // receive() external payable {}
 
     /// @notice amount is the amount the user wants to send plus the Bonder fee
     function swapAndSend(
@@ -50,12 +50,15 @@ contract L2_AmmWrapper is SwapDataConsumer {
     {
         require(amount >= bonderFee, "L2_AMM_W: Bonder fee cannot exceed amount");
 
+
+        /*
         if (l2CanonicalTokenIsEth) {
-            require(msg.value == amount, "L2_AMM_W: Value does not match amount");
-            IWETH(address(l2CanonicalToken)).deposit{value: amount}();
+             require(msg.value == amount, "L2_AMM_W: Value does not match amount");
+             IWETH(address(l2CanonicalToken)).deposit{value: amount}();
         } else {
             require(l2CanonicalToken.transferFrom(msg.sender, address(this), amount), "L2_AMM_W: TransferFrom failed");
-        }
+        }*/
+        require(l2CanonicalToken.transferFrom(msg.sender, address(this), amount), "L2_AMM_W: TransferFrom failed");
 
         require(l2CanonicalToken.approve(address(exchangeAddress), amount), "L2_AMM_W: Approve failed");
         uint256 swapAmount = Swap(exchangeAddress).swap(
@@ -86,7 +89,14 @@ contract L2_AmmWrapper is SwapDataConsumer {
         require(hToken.transferFrom(msg.sender, address(this), amount), "L2_AMM_W: TransferFrom failed");
         require(hToken.approve(address(exchangeAddress), amount), "L2_AMM_W: Approve failed");
 
-        uint256 amountOut = 0;
+        uint256 amountOut = Swap(exchangeAddress).swap(
+            0,
+            swapData.tokenIndex,
+            amount,
+            swapData.amountOutMin,
+            swapData.deadline
+        );
+        /*
         try Swap(exchangeAddress).swap(
             0,
             swapData.tokenIndex,
@@ -96,6 +106,7 @@ contract L2_AmmWrapper is SwapDataConsumer {
         ) returns (uint256 _amountOut) {
             amountOut = _amountOut;
         } catch {}
+         */
 
         if (amountOut == 0) {
             // Transfer hToken to recipient if swap fails
@@ -103,6 +114,7 @@ contract L2_AmmWrapper is SwapDataConsumer {
             return;
         }
 
+        /*
         if (l2CanonicalTokenIsEth) {
             IWETH(address(l2CanonicalToken)).withdraw(amountOut);
             (bool success, ) = recipient.call{value: amountOut}(new bytes(0));
@@ -110,5 +122,7 @@ contract L2_AmmWrapper is SwapDataConsumer {
         } else {
             require(l2CanonicalToken.transfer(recipient, amountOut), "L2_AMM_W: Transfer failed");
         }
+         */
+            require(l2CanonicalToken.transfer(recipient, amountOut), "L2_AMM_W: Transfer failed");
     }
 }
