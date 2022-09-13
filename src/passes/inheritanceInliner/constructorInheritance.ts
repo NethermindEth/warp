@@ -2,6 +2,7 @@ import assert from 'assert';
 import {
   ASTNode,
   ContractDefinition,
+  ContractKind,
   Expression,
   ExpressionStatement,
   FunctionDefinition,
@@ -91,12 +92,13 @@ import { updateReferencedDeclarations } from './utils';
 */
 
 export function solveConstructors(node: ContractDefinition, ast: AST, generator: () => number) {
+  // Interfaces don't need constructors
+  if (node.kind === ContractKind.Interface) return;
   // Contracts marked as abstract won't be deployed
   if (node.abstract) {
     removeModifiersFromConstructor(node);
     return;
   }
-
   // Collect all constructors
   const constructors: Map<number, FunctionDefinition> = new Map();
   node.vLinearizedBaseContracts.forEach((contract) => {
