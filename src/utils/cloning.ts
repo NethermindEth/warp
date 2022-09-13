@@ -11,6 +11,7 @@ import {
   ElementaryTypeNameExpression,
   EmitStatement,
   EnumDefinition,
+  EnumValue,
   EventDefinition,
   Expression,
   ExpressionStatement,
@@ -122,6 +123,14 @@ function cloneASTNodeImpl<T extends ASTNode>(
       typeof node.typeName === 'string'
         ? node.typeName
         : cloneASTNodeImpl(node.typeName, ast, remappedIds),
+      node.raw,
+    );
+  } else if (node instanceof EnumValue) {
+    newNode = new EnumValue(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.name,
+      node.nameLocation,
       node.raw,
     );
   } else if (node instanceof FunctionCall) {
