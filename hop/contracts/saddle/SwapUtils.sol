@@ -3,7 +3,7 @@
 pragma solidity 0.8;
 
 import "../openzeppelin/contracts/utils/math/SafeMath.sol";
-import "../openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+// import "../openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./LPToken.sol";
 import "./MathUtils.sol";
 
@@ -15,40 +15,40 @@ import "./MathUtils.sol";
  * Admin functions should be protected within contracts using this library.
  */
 library SwapUtils {
-    using SafeERC20 for IERC20;
+    // using SafeERC20 for IERC20;
     using SafeMath for uint256;
     using MathUtils for uint256;
 
     /*** EVENTS ***/
 
     event TokenSwap(
-        address indexed buyer,
+        address buyer,
         uint256 tokensSold,
         uint256 tokensBought,
         uint128 soldId,
         uint128 boughtId
     );
     event AddLiquidity(
-        address indexed provider,
+        address provider,
         uint256[] tokenAmounts,
         uint256[] fees,
         uint256 invariant,
         uint256 lpTokenSupply
     );
     event RemoveLiquidity(
-        address indexed provider,
+        address provider,
         uint256[] tokenAmounts,
         uint256 lpTokenSupply
     );
     event RemoveLiquidityOne(
-        address indexed provider,
+        address provider,
         uint256 lpTokenAmount,
         uint256 lpTokenSupply,
         uint256 boughtId,
         uint256 tokensBought
     );
     event RemoveLiquidityImbalance(
-        address indexed provider,
+        address provider,
         uint256[] tokenAmounts,
         uint256[] fees,
         uint256 invariant,
@@ -298,9 +298,15 @@ library SwapUtils {
         v.feePerToken = _feePerToken(self);
         for (uint256 i = 0; i < self.pooledTokens.length; i++) {
             uint256 xpi = xp[i];
-            // if i == tokenIndex, dxExpected = xp[i] * d1 / d0 - newY
-            // else dxExpected = xp[i] - (xp[i] * d1 / d0)
-            // xpReduced[i] -= dxExpected * fee / FEE_DENOMINATOR
+            uint256 dxExpected;
+             if (i == tokenIndex) { 
+                 dxExpected = xpi * v.d1 / v.d0 - v.newY;
+             }
+             else {
+                 dxExpected = xpi - (xpi * v.d1 / v.d0); 
+             }
+            xpReduced[i] -= dxExpected * v.feePerToken / FEE_DENOMINATOR;
+            /*
             xpReduced[i] = xpi.sub(
                 (
                     (i == tokenIndex)
@@ -310,6 +316,7 @@ library SwapUtils {
                     .mul(v.feePerToken)
                     .div(FEE_DENOMINATOR)
             );
+             */
         }
 
         uint256 dy =
@@ -729,10 +736,10 @@ library SwapUtils {
             if (deposit) {
                 balances1[i] = balances1[i].add(amounts[i]);
             } else {
-                balances1[i] = balances1[i].sub(
-                    amounts[i],
-                    "Cannot withdraw more than available"
-                );
+                unchecked {
+                    require(balances1[i] >= amounts[i], "Cannot withdraw more than availble");
+                    balances1[i] -= amounts[i];
+                }
             }
         }
         uint256 d1 = getD(_xp(self, balances1), a);
@@ -806,7 +813,7 @@ library SwapUtils {
         // Transfer tokens first to see if a fee was charged on transfer
         uint256 beforeBalance =
             self.pooledTokens[tokenIndexFrom].balanceOf(address(this));
-        self.pooledTokens[tokenIndexFrom].safeTransferFrom(
+        self.pooledTokens[tokenIndexFrom].transferFrom(
             msg.sender,
             address(this),
             dx
@@ -834,7 +841,7 @@ library SwapUtils {
             dyAdminFee
         );
 
-        self.pooledTokens[tokenIndexTo].safeTransfer(msg.sender, dy);
+        self.pooledTokens[tokenIndexTo].transfer(msg.sender, dy);
 
         emit TokenSwap(
             msg.sender,
@@ -887,7 +894,7 @@ library SwapUtils {
             if (amounts[i] != 0) {
                 uint256 beforeBalance =
                     self.pooledTokens[i].balanceOf(address(this));
-                self.pooledTokens[i].safeTransferFrom(
+                self.pooledTokens[i].transferFrom(
                     msg.sender,
                     address(this),
                     amounts[i]
@@ -1022,7 +1029,7 @@ library SwapUtils {
         for (uint256 i = 0; i < amounts.length; i++) {
             require(amounts[i] >= minAmounts[i], "amounts[i] < minAmounts[i]");
             self.balances[i] = self.balances[i].sub(amounts[i]);
-            self.pooledTokens[i].safeTransfer(msg.sender, amounts[i]);
+            self.pooledTokens[i].transfer(msg.sender, amounts[i]);
         }
 
         self.lpToken.burnFrom(msg.sender, amount);
@@ -1068,7 +1075,7 @@ library SwapUtils {
             dy.add(dyFee.mul(self.adminFee).div(FEE_DENOMINATOR))
         );
         self.lpToken.burnFrom(msg.sender, tokenAmount);
-        self.pooledTokens[tokenIndex].safeTransfer(msg.sender, dy);
+        self.pooledTokens[tokenIndex].transfer(msg.sender, dy);
 
         emit RemoveLiquidityOne(
             msg.sender,
@@ -1117,10 +1124,11 @@ library SwapUtils {
         v.preciseA = _getAPrecise(self);
         v.d0 = getD(_xp(self), v.preciseA);
         for (uint256 i = 0; i < self.pooledTokens.length; i++) {
-            balances1[i] = balances1[i].sub(
-                amounts[i],
-                "Cannot withdraw more than available"
-            );
+            unchecked {
+                require(balances1[i] >= amounts[i], "Cannot withdraw more than available");
+                balances1[i] = balances1[i] - amounts[i];
+            }
+
         }
         v.d1 = getD(_xp(self, balances1), v.preciseA);
         uint256[] memory fees = new uint256[](self.pooledTokens.length);
@@ -1148,7 +1156,7 @@ library SwapUtils {
         self.lpToken.burnFrom(msg.sender, tokenAmount);
 
         for (uint256 i = 0; i < self.pooledTokens.length; i++) {
-            self.pooledTokens[i].safeTransfer(msg.sender, amounts[i]);
+            self.pooledTokens[i].transfer(msg.sender, amounts[i]);
         }
 
         emit RemoveLiquidityImbalance(

@@ -3,8 +3,8 @@
 pragma solidity 0.8;
 
 import "../openzeppelin/contracts/utils/math/SafeMath.sol";
-import "../openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+// import "../openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+// import "../openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 // import "./OwnerPausableUpgradeable.sol";
 import "./SwapUtils.sol";
 import "./MathUtils.sol";
@@ -26,8 +26,8 @@ import "./MathUtils.sol";
  * @dev Most of the logic is stored as a library `SwapUtils` for the sake of reducing contract's
  * deployment size.
  */
-contract Swap is ReentrancyGuardUpgradeable {
-    using SafeERC20 for IERC20;
+contract Swap  {
+    // using SafeERC20 for IERC20;
     using SafeMath for uint256;
     using MathUtils for uint256;
     using SwapUtils for SwapUtils.Swap;
@@ -47,39 +47,43 @@ contract Swap is ReentrancyGuardUpgradeable {
 
     // events replicated from SwapUtils to make the ABI easier for dumb
     // clients
+
+    // Comented them due to Warp bug, it does not affect anything
+    /*
     event TokenSwap(
-        address indexed buyer,
+        address buyer,
         uint256 tokensSold,
         uint256 tokensBought,
         uint128 soldId,
         uint128 boughtId
     );
     event AddLiquidity(
-        address indexed provider,
+        address provider,
         uint256[] tokenAmounts,
         uint256[] fees,
         uint256 invariant,
         uint256 lpTokenSupply
     );
     event RemoveLiquidity(
-        address indexed provider,
+        address provider,
         uint256[] tokenAmounts,
         uint256 lpTokenSupply
     );
     event RemoveLiquidityOne(
-        address indexed provider,
+        address provider,
         uint256 lpTokenAmount,
         uint256 lpTokenSupply,
         uint256 boughtId,
         uint256 tokensBought
     );
     event RemoveLiquidityImbalance(
-        address indexed provider,
+        address provider,
         uint256[] tokenAmounts,
         uint256[] fees,
         uint256 invariant,
         uint256 lpTokenSupply
     );
+     */
     event NewAdminFee(uint256 newAdminFee);
     event NewSwapFee(uint256 newSwapFee);
     event NewWithdrawFee(uint256 newWithdrawFee);
@@ -117,9 +121,9 @@ contract Swap is ReentrancyGuardUpgradeable {
         uint256 _fee,
         uint256 _adminFee,
         uint256 _withdrawFee
-    ) public virtual initializer {
+    ) public virtual /*initializer*/ {
         // __OwnerPausable_init();
-        __ReentrancyGuard_init();
+        // __ReentrancyGuard_init();
         // Check _pooledTokens and precisions parameter
         require(_pooledTokens.length > 1, "_pooledTokens.length <= 1");
         require(_pooledTokens.length <= 32, "_pooledTokens.length > 32");
@@ -387,7 +391,7 @@ contract Swap is ReentrancyGuardUpgradeable {
         uint256 deadline
     )
         external
-        nonReentrant
+        /// nonReentrant
         // whenNotPaused
         deadlineCheck(deadline)
         returns (uint256)
@@ -409,7 +413,7 @@ contract Swap is ReentrancyGuardUpgradeable {
         uint256 deadline
     )
         external
-        nonReentrant
+        // nonReentrant
         // whenNotPaused
         deadlineCheck(deadline)
         returns (uint256)
@@ -431,7 +435,7 @@ contract Swap is ReentrancyGuardUpgradeable {
         uint256 amount,
         uint256[] calldata minAmounts,
         uint256 deadline
-    ) external nonReentrant deadlineCheck(deadline) returns (uint256[] memory) {
+    ) external /*nonReentrant*/ deadlineCheck(deadline) returns (uint256[] memory) {
         return swapStorage.removeLiquidity(amount, minAmounts);
     }
 
@@ -451,8 +455,8 @@ contract Swap is ReentrancyGuardUpgradeable {
         uint256 deadline
     )
         external
-        nonReentrant
-        // whenNotPaused
+        /*nonReentrant*/
+        // /*/**/whenNotPaused*/
         deadlineCheck(deadline)
         returns (uint256)
     {
@@ -480,8 +484,8 @@ contract Swap is ReentrancyGuardUpgradeable {
         uint256 deadline
     )
         external
-        nonReentrant
-        // whenNotPaused
+        /*nonReentrant*/
+        // /*whenNotPaused*/
         deadlineCheck(deadline)
         returns (uint256)
     {
