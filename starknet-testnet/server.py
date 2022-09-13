@@ -127,7 +127,7 @@ async def invoke():
         print("----------\n")
         if BENCHMARK:
             steps_in_function_invoke(data["function"], execution_info)
-        
+
         # Can add extra fields in here if and when tests need them
         return jsonify(
             {

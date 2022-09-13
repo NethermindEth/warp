@@ -45,6 +45,12 @@ function processStateVarTags(documentation: string, node: FunctionDefinition): s
     if (matchingStateVars.length === 0) {
       throw new TranspilationAbandonedError(`Unable to find matching statevar ${arg}`, errorNode);
     } else if (matchingStateVars.length === 1) {
+      if (isExternallyVisible(node)) {
+        const contract = node.getClosestParentByType(CairoContract);
+        if (contract !== undefined) {
+          return `${contract.name}.${matchingStateVars[0]}`;
+        }
+      }
       return matchingStateVars[0];
     } else {
       throw new TranspileFailedError(

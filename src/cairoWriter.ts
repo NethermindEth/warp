@@ -571,11 +571,12 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     if (node.functionStubKind !== FunctionStubKind.None) return [''];
 
     const documentation = getDocumentation(node.documentation, writer);
-    if (documentation.slice(1).trim().startsWith('warp-cairo')) {
+    console.log('doc', node.name, documentation, documentation.slice(1).trim());
+    if (documentation.slice(2).trim().startsWith('warp-cairo')) {
       return [
         documentation
           .split('\n')
-          .map((line) => line.slice(1))
+          .map((line) => line.slice(2).trim())
           .slice(1)
           .join('\n'),
       ];
