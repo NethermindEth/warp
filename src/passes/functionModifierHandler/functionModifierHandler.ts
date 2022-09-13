@@ -78,7 +78,7 @@ export class FunctionModifierHandler extends ASTMapper {
 
     const funcDef = cloneASTNode(node, ast);
     const name = node.isConstructor ? `constructor` : `function_${node.name}`;
-    funcDef.name = `${ORIGINAL_FUNCTION_PREFIX}${name}`;
+    funcDef.name = `${ORIGINAL_FUNCTION_PREFIX}${name}_${this.count++}`;
     funcDef.visibility = FunctionVisibility.Internal;
     funcDef.isConstructor = false;
     funcDef.kind = FunctionKind.Function;
