@@ -4,6 +4,7 @@ import sys
 
 from pathlib import Path
 from starkware.starknet.business_logic.execution.objects import (
+    CallInfo,
     TransactionExecutionInfo,
 )
 
@@ -30,7 +31,7 @@ def steps_in_function_deploy(contract_name: str, result: TransactionExecutionInf
         json.dump(benchmark_data, json_file, indent=3)
 
 
-def steps_in_function_invoke(function_name: str, result: TransactionExecutionInfo):
+def steps_in_function_invoke(function_name: str, result: CallInfo):
     json_path = os.path.abspath(TMP / (FILE_NAME + ".json"))
     if os.path.exists(json_path):
         with open(json_path, "r") as json_file:
@@ -38,10 +39,10 @@ def steps_in_function_invoke(function_name: str, result: TransactionExecutionInf
     else:
         benchmark_data = {}
 
-    contract_name = contract_name_map.get(result.call_info.contract_address, "UNKNOWN")
+    contract_name = contract_name_map.get(result.contract_address, "UNKNOWN")
     benchmark_data.setdefault(contract_name, {}).setdefault("function_steps", {})[
         function_name
-    ] = result.call_info.execution_resources.n_steps
+    ] = result.execution_resources.n_steps
 
     with open(json_path, "w") as json_file:
         json.dump(benchmark_data, json_file, indent=3)
