@@ -105,42 +105,9 @@ end
 # Original soldity abi: ["constructor()","recursiveAdd(uint8,uint8)"]
 ```
 
-The contract above now has the CairoBlock present and it's corresponding Solidity function removed.
+The contract above now has the CairoBlock present and its corresponding Solidity function removed.
 
-Please note that this is a powerful feature that should be used with care.
-There is a known bug with implicit arguments missing from some Cairo Blocks, preventing compilation. Right now this can be solved by placing some
-Solidity in the stubbed contract that when transpiled will require the implicit argument. As an example doing bitwise comparisons in the
-Solidity function to have the BitwiseBuiltin passed to functions that call the Cairo Block.
-
-For example:
-
-```
-pragma solidity ^0.8.14;
-
-contract C {
-
-    ///warp-cairo
-    ///func CURRENTFUNC(){bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (res : felt):
-    ///from starkware.cairo.common.bitwise import bitwise_or
-    ///    let (res) = bitwise_or(lhs, rhs)
-    ///    return (res)
-    ///end
-    function f(uint8 a, uint8 b) internal pure {
-        a & b;
-    }
-
-    function g() external pure {
-        f(10, 12);
-    }
-}
-```
-
-The bitwise `&` comparison of `a` and `b` adds the implicit to the function `g()` which is calling `f()` , but has no effect on the actual CairoBlock.
-
-A MACRO for passing implicit arguments
-is being developed at the moment.
-
-Additional examples of using Cairo Blocks:
+## Additional examples of using Cairo Blocks:
 
 ```
 pragma solidity ^0.8.10;

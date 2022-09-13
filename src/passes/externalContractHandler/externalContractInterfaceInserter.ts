@@ -12,8 +12,10 @@ import {
 } from 'solc-typed-ast';
 
 import { AST } from '../../ast/ast';
+import { CairoContract } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
+import { TranspileFailedError } from '../../utils/errors';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../../utils/utils';
 
@@ -46,8 +48,13 @@ export class ExternalContractInterfaceInserter extends ASTMapper {
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     const nodeType = safeGetNodeType(node.vExpression, ast.compilerVersion);
     if (nodeType instanceof UserDefinedType && nodeType.definition instanceof ContractDefinition) {
+      // nodeType.definition will get the old ContractDefinition, see the note
+      // in storageAllocator on hotfixing getNodeType
+      // To fix this we lookup the contract definition id in the context
+      if (node.context === undefined)
+        throw new TranspileFailedError('Node context should not be undefined');
       importExternalContract(
-        nodeType.definition,
+        node.context.locate(nodeType.definition.id) as ContractDefinition,
         node.getClosestParentByType(SourceUnit),
         this.contractInterfaces,
         ast,
@@ -98,7 +105,7 @@ export function genContractInterface(
   ast: AST,
 ): ContractDefinition {
   const contractId = ast.reserveId();
-  const contractInterface = new ContractDefinition(
+  const contractInterface = new CairoContract(
     contractId,
     '',
     // `@interface` is a workaround to avoid the conflict with
@@ -110,6 +117,10 @@ export function genContractInterface(
     false,
     contract.linearizedBaseContracts,
     contract.usedErrors,
+    new Map(),
+    new Map(),
+    0,
+    0,
   );
 
   contract.vFunctions

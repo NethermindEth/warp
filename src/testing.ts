@@ -65,6 +65,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/constructors_nonDyn', 'Success'],
     ['example_contracts/dai', 'Success'],
     ['example_contracts/delete', 'SolCompileFailed'],
+    ['example_contracts/delete_uses', 'Success'],
     ['example_contracts/enums', 'Success'],
     ['example_contracts/enums7', 'Success'],
     ['example_contracts/errorHandling/assert', 'Success'],
@@ -129,6 +130,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/inheritance/variables', 'Success'],
     // Requires struct imports
     ['example_contracts/interfaces', 'Success'],
+    ['example_contracts/interfaceFromBaseContract', 'Success'],
     ['example_contracts/invalidSolidity', 'SolCompileFailed'],
     ['example_contracts/lib', 'Success'],
     ['example_contracts/libraries/using_for_star', 'Success'],

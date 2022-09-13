@@ -2880,6 +2880,7 @@ export const expectations = flatten(
           ]),
           File.Simple('importLibs', [Expect.Simple('addSub', ['5', '4'], ['9', '1'])]),
           File.Simple('LibInLib', [Expect.Simple('mulDiv', ['5', '2'], ['10', '2', '1'])]),
+          new File('libraries_in_inheritance', 'C', [], [Expect.Simple('g', [], ['1', '0'])]),
           File.Simple('library_call_in_homestead', [
             new Expect('f', [['f', [], [], '234']]),
             new Expect('sender', [['sender', [], ['234'], '465']]),
