@@ -27,7 +27,9 @@ import { getContractTypeString } from '../utils/getTypeString';
 export class ReplaceIdentifierContractMemberAccess extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([]);
+    const passKeys: Set<string> = new Set<string>([
+      'Sa', // Pass uses CairoFunctionDefintion and CairoContract
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

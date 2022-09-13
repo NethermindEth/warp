@@ -261,10 +261,8 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       code: [
         `func ${funcName}_elem${implicits}(to_loc: felt, from_loc: felt, length: Uint256) -> (){`,
         `    alloc_locals;`,
-        `    if (length.low == 0){`,
-        `        if (length.high == 0){`,
-        `            return ();`,
-        `        }`,
+        `    if (length.low == 0 and length.high == 0){`,
+        `        return ();`,
         `    }`,
         `    let (index) = uint256_sub(length, Uint256(1,0));`,
         `    let (from_elem_loc) = ${fromElementMapping}.read(from_loc, index);`,

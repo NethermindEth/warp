@@ -21,12 +21,10 @@ export function mod_signed() {
       if (width === 256) {
         return [
           'func warp_mod_signed256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){',
-          `    if (rhs.high == 0){`,
-          `       if (rhs.low == 0){`,
-          `           with_attr error_message("Modulo by zero error"){`,
-          `             assert 1 = 0;`,
-          `           }`,
-          `       }`,
+          `    if (rhs.high == 0 and rhs.low == 0){`,
+          `        with_attr error_message("Modulo by zero error"){`,
+          `           assert 1 = 0;`,
+          `        }`,
           `    }`,
           '    let (_, res : Uint256) = uint256_signed_div_rem(lhs, rhs);',
           '    return (res,);',

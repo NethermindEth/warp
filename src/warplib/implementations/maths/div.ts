@@ -22,11 +22,9 @@ export function div_signed() {
       if (width === 256) {
         return [
           'func warp_div_signed256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){',
-          `    if (rhs.high == 0){`,
-          `       if (rhs.low == 0){`,
-          `           with_attr error_message("Division by zero error"){`,
-          `             assert 1 = 0;`,
-          `           }`,
+          `    if (rhs.high == 0 and rhs.low == 0){`,
+          `       with_attr error_message("Division by zero error"){`,
+          `          assert 1 = 0;`,
           `       }`,
           `    }`,
           `    let (is_minus_one) = uint256_eq(rhs, Uint256(${mask(128)}, ${mask(128)}));`,
@@ -84,12 +82,10 @@ export function div_signed_unsafe() {
       if (width === 256) {
         return [
           'func warp_div_signed_unsafe256{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){',
-          `    if (rhs.high == 0){`,
-          `       if (rhs.low == 0){`,
-          `           with_attr error_message("Division by zero error"){`,
-          `             assert 1 = 0;`,
-          `           }`,
-          `      }`,
+          `    if (rhs.high == 0 and rhs.low == 0){`,
+          `        with_attr error_message("Division by zero error"){`,
+          `           assert 1 = 0;`,
+          `        }`,
           `    }`,
           `    let (is_minus_one) = uint256_eq(rhs, Uint256(${mask(128)}, ${mask(128)}));`,
           `    if (is_minus_one == 1){`,

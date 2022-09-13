@@ -245,10 +245,8 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       code: [
         `func ${funcName}_elem${implicits}(storage_name: felt, mem_start: felt, length: Uint256) -> (){`,
         `    alloc_locals;`,
-        `    if (length.low == 0){`,
-        `        if (length.high == 0){`,
-        `            return ();`,
-        `        }`,
+        `    if (length.low == 0 and length.high == 0){`,
+        `        return ();`,
         `    }`,
         `    let (index) = uint256_sub(length, Uint256(1,0));`,
         `    let (mem_loc) = wm_index_dyn(mem_start, index, ${uint256(memoryElementType.width)});`,
