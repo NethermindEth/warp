@@ -147,7 +147,7 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
           return null;
       }
     } else if (typeof notNullMember !== 'boolean') {
-      let fraction = notNullMember.toString().split('/');
+      const fraction = notNullMember.toString().split('/');
       const is_zero = fraction[0] === '0';
       const is_one = fraction[0] === fraction[1];
       switch (node.operator) {
