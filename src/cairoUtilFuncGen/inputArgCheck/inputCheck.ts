@@ -5,6 +5,7 @@ import {
   ASTNode,
   BoolType,
   BytesType,
+  ContractDefinition,
   DataLocation,
   EnumDefinition,
   Expression,
@@ -102,7 +103,10 @@ export class InputCheckGen extends StringIndexedFuncGen {
           return this.createBoolInputCheck();
         } else if (type instanceof UserDefinedType && type.definition instanceof EnumDefinition) {
           return this.createEnumInputCheck(key, type, takesUint);
-        } else if (type instanceof AddressType) {
+        } else if (
+          type instanceof AddressType ||
+          (type instanceof UserDefinedType && type.definition instanceof ContractDefinition)
+        ) {
           return this.createAddressInputCheck();
         } else {
           return unexpectedTypeFunc();
