@@ -8,11 +8,11 @@ from warplib.maths.bytes_access import byte256_at_index, byte_at_index
 from warplib.memory import wm_index_dyn, wm_read_felt, wm_write_felt
 
 // ----------------------- WARP Memory Dynamic Arrays Utils ----------------------------------
-func dynamic_array_copy_felt{range_check_ptr, warp_memory : DictAccess*}(
-    to_loc : felt, to_index : felt, to_final_index : felt, from_loc : felt, from_index : felt
-){
+func dynamic_array_copy_felt{range_check_ptr, warp_memory: DictAccess*}(
+    to_loc: felt, to_index: felt, to_final_index: felt, from_loc: felt, from_index: felt
+) {
     alloc_locals;
-    if (to_index == to_final_index){
+    if (to_index == to_final_index) {
         return ();
     }
     let (to_index256) = felt_to_uint256(to_index);
@@ -25,7 +25,7 @@ func dynamic_array_copy_felt{range_check_ptr, warp_memory : DictAccess*}(
 }
 
 func fixed_bytes_to_dynamic_array{
-    bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
+    bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*
 }(
     to_loc: felt,
     to_index: felt,
@@ -48,16 +48,10 @@ func fixed_bytes_to_dynamic_array{
 }
 
 func fixed_bytes256_to_dynamic_array{
-    bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
-}(
-    to_loc : felt,
-    to_index : felt,
-    to_final_index : felt,
-    fixed_byte : Uint256,
-    fixed_byte_index : felt,
-){
+    bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*
+}(to_loc: felt, to_index: felt, to_final_index: felt, fixed_byte: Uint256, fixed_byte_index: felt) {
     alloc_locals;
-    if (to_index == to_final_index){
+    if (to_index == to_final_index) {
         return ();
     }
     let (to_index256) = felt_to_uint256(to_index);
@@ -70,24 +64,24 @@ func fixed_bytes256_to_dynamic_array{
 }
 
 // ----------------------- Felt Dynamic Arrays Utils ----------------------------------
-func felt_array_to_warp_memory_array{range_check_ptr, warp_memory : DictAccess*}(
-    index : felt, array : felt*, mem_index : felt, mem_ptr, max_length : felt
-){
-    if (index == max_length){
+func felt_array_to_warp_memory_array{range_check_ptr, warp_memory: DictAccess*}(
+    index: felt, array: felt*, mem_index: felt, mem_ptr, max_length: felt
+) {
+    if (index == max_length) {
         return ();
     }
     let elem = array[index];
-    let (mem_index256 : Uint256) = felt_to_uint256(mem_index);
-    let (elem_loc : felt) = wm_index_dyn(mem_ptr, mem_index256, Uint256(1, 0));
+    let (mem_index256: Uint256) = felt_to_uint256(mem_index);
+    let (elem_loc: felt) = wm_index_dyn(mem_ptr, mem_index256, Uint256(1, 0));
     wm_write_felt(elem_loc, elem);
     return felt_array_to_warp_memory_array(index + 1, array, mem_index + 1, mem_ptr, max_length);
 }
 
 func fixed_bytes256_to_felt_dynamic_array{
-    bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
-}(array_index : felt, array : felt*, fixed_byte_index : felt, fixed_byte : Uint256){
+    bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*
+}(array_index: felt, array: felt*, fixed_byte_index: felt, fixed_byte: Uint256) {
     alloc_locals;
-    if (fixed_byte_index == 32){
+    if (fixed_byte_index == 32) {
         return ();
     }
     let (byte) = byte256_at_index(fixed_byte, fixed_byte_index);
@@ -98,16 +92,12 @@ func fixed_bytes256_to_felt_dynamic_array{
 }
 
 func fixed_bytes_to_felt_dynamic_array{
-    bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
+    bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*
 }(
-    array_index : felt,
-    array : felt*,
-    fixed_byte_index : felt,
-    fixed_byte : felt,
-    fixed_byte_size : felt,
-){
+    array_index: felt, array: felt*, fixed_byte_index: felt, fixed_byte: felt, fixed_byte_size: felt
+) {
     alloc_locals;
-    if (fixed_byte_index == fixed_byte_size){
+    if (fixed_byte_index == fixed_byte_size) {
         return ();
     }
     let (byte) = byte_at_index(fixed_byte, fixed_byte_index, fixed_byte_size);
@@ -118,10 +108,10 @@ func fixed_bytes_to_felt_dynamic_array{
 }
 
 func bytes_to_felt_dynamic_array{
-    bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
-}(
-    array_index : felt, array_offset : felt, array : felt*, element_offset : felt, mem_ptr : felt
-) -> (final_index : felt, final_offset : felt){
+    bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*
+}(array_index: felt, array_offset: felt, array: felt*, element_offset: felt, mem_ptr: felt) -> (
+    final_index: felt, final_offset: felt
+) {
     alloc_locals;
     // Store pointer to data
     let (offset256) = felt_to_uint256(array_offset - element_offset);
@@ -142,29 +132,29 @@ func bytes_to_felt_dynamic_array{
 }
 
 func bytes_to_felt_dynamic_array_inline{
-    bitwise_ptr : BitwiseBuiltin*, range_check_ptr, warp_memory : DictAccess*
+    bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*
 }(
-    array_index : felt,
-    array_offset : felt,
-    array : felt*,
-    mem_index : felt,
-    mem_length : felt,
-    mem_ptr : felt,
-){
+    array_index: felt,
+    array_offset: felt,
+    array: felt*,
+    mem_index: felt,
+    mem_length: felt,
+    mem_ptr: felt,
+) {
     alloc_locals;
-    if (array_index == array_offset){
+    if (array_index == array_offset) {
         // Everything have been stored
         return ();
     }
     let lesser = is_le(mem_index, mem_length - 1);
-    if (lesser == 1){
+    if (lesser == 1) {
         // Read each byte and copy it
         let (byte) = dict_read{dict_ptr=warp_memory}(mem_ptr + mem_index);
         assert array[array_index] = byte;
         return bytes_to_felt_dynamic_array_inline(
             array_index + 1, array_offset, array, mem_index + 1, mem_length, mem_ptr
         );
-    }else{
+    } else {
         // Pad the rest of the slot with 0s
         assert array[array_index] = 0;
         return bytes_to_felt_dynamic_array_inline(
@@ -173,12 +163,12 @@ func bytes_to_felt_dynamic_array_inline{
     }
 }
 
-func bytes_upper_bound{range_check_ptr : felt}(number : felt) -> (upper_bound : felt){
-    if (number == 0){
+func bytes_upper_bound{range_check_ptr: felt}(number: felt) -> (upper_bound: felt) {
+    if (number == 0) {
         return (0,);
     }
     let lesser = is_le(number, 32);
-    if (lesser == 1){
+    if (lesser == 1) {
         return (32,);
     }
     let (result) = bytes_upper_bound(number - 32);
