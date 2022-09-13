@@ -86,12 +86,11 @@ async def declare():
     contract_class = ContractClass.loads(compiled_cairo)
 
     try:
-        execution_info = await state.declare(contract_class)
+        class_hash, execution_info = await state.declare(contract_class)
         print("-----Declare info-----")
         print(execution_info)
         print("-----------\n")
         # BENCHMARK needed here?
-        class_hash = execution_info.call_info.class_hash
         assert class_hash is not None
         return jsonify(
             {
