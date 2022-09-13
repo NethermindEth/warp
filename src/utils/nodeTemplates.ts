@@ -244,10 +244,10 @@ export function createDefaultConstructor(node: ContractDefinition, ast: AST): Fu
     node.id,
     FunctionKind.Constructor,
     '',
-    false,
+    false, // virtual
     FunctionVisibility.Public,
     FunctionStateMutability.NonPayable,
-    true,
+    true, // isConstructor
     createParameterList([], ast),
     createParameterList([], ast),
     [],

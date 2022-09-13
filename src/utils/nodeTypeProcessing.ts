@@ -63,7 +63,7 @@ export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNod
             functionCall.vExpression,
           )} was expected to be a TypeNameType(PointerType(UserDefinedType, _)), got ${printTypeNode(
             functionType,
-            true,
+            true, // detail
           )}`,
         ),
       );
@@ -91,7 +91,7 @@ export function specializeType(typeNode: TypeNode, loc: DataLocation): TypeNode 
       typeNode.location === loc,
       `Attempting to specialize ${typeNode.location} pointer type to ${loc}\nType:${printTypeNode(
         typeNode,
-        true,
+        true, // detail
       )}`,
     );
     return typeNode;

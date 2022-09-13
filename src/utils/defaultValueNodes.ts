@@ -150,7 +150,7 @@ function arrayDefault(
       ast.reserveId(),
       parentNode.src,
       `${getTupleTypeString(nodeType)} memory`,
-      true,
+      true, // isInlineArray
       expList,
       parentNode.raw,
     );

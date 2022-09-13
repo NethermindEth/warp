@@ -123,10 +123,10 @@ export class FunctionModifierHandler extends ASTMapper {
       node.scope,
       FunctionKind.Function,
       `${MODIFIER_PREFIX}${modifier.name}_${node.name}_${this.count++}`,
-      node.virtual,
+      false, // virtual
       FunctionVisibility.Internal,
       node.stateMutability,
-      false,
+      false, // isConstructor
       createParameterList(
         [...modifierClone.vParameters.vParameters, ...functionParams],
         ast,
