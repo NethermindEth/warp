@@ -165,6 +165,7 @@ library SafeMath {
      *
      * - Subtraction cannot overflow.
      */
+    /*
     function sub(
         uint256 a,
         uint256 b,
@@ -175,6 +176,7 @@ library SafeMath {
             return a - b;
         }
     }
+     */
 
     /**
      * @dev Returns the integer division of two unsigned integers, reverting with custom message on
@@ -188,6 +190,7 @@ library SafeMath {
      *
      * - The divisor cannot be zero.
      */
+    /*
     function div(
         uint256 a,
         uint256 b,
@@ -198,6 +201,7 @@ library SafeMath {
             return a / b;
         }
     }
+     */
 
     /**
      * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
@@ -214,6 +218,7 @@ library SafeMath {
      *
      * - The divisor cannot be zero.
      */
+    /*
     function mod(
         uint256 a,
         uint256 b,
@@ -224,4 +229,5 @@ library SafeMath {
             return a % b;
         }
     }
+     */
 }

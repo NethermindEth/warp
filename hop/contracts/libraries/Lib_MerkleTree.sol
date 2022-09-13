@@ -81,10 +81,12 @@ library Lib_MerkleTree {
             for (uint256 i = 0; i < halfRowSize; i++) {
                 leftSibling  = _elements[(2 * i)    ];
                 rightSibling = _elements[(2 * i) + 1];
+                /*
                 assembly {
                     mstore(add(buf, 32), leftSibling )
                     mstore(add(buf, 64), rightSibling)
                 }
+                 */
 
                 _elements[i] = keccak256(buf);
             }
@@ -92,15 +94,20 @@ library Lib_MerkleTree {
             if (rowSizeIsOdd) {
                 leftSibling  = _elements[rowSize - 1];
                 rightSibling = bytes32(defaults[depth]);
+                /*
                 assembly {
                     mstore(add(buf, 32), leftSibling)
                     mstore(add(buf, 64), rightSibling)
                 }
+                 */
 
                 _elements[halfRowSize] = keccak256(buf);
             }
 
-            rowSize = halfRowSize + (rowSizeIsOdd ? 1 : 0);
+            if (rowSizeIsOdd) {
+                rowSize + 1;
+            }
+            // rowSize = halfRowSize + (rowSizeIsOdd ? 1 : 0);
             depth++;
         }
 

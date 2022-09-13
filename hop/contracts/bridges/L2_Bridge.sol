@@ -4,7 +4,7 @@ pragma solidity 0.8;
 pragma experimental ABIEncoderV2;
 
 import "../openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+// import "../openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "./Bridge.sol";
 import "./HopBridgeToken.sol";
@@ -18,7 +18,7 @@ import "./L2_AmmWrapper.sol";
  */
 
 abstract contract L2_Bridge is Bridge {
-    using SafeERC20 for IERC20;
+    // using SafeERC20 for IERC20;
 
     HopBridgeToken public immutable hToken;
     address public l1BridgeConnector;
@@ -43,18 +43,18 @@ abstract contract L2_Bridge is Bridge {
     bytes32 private immutable NONCE_DOMAIN_SEPARATOR;
 
     event TransfersCommitted (
-        uint256 indexed destinationChainId,
+        uint256 destinationChainId,
         address bonder,
-        bytes32 indexed rootHash,
-        uint256 indexed rootIndex,
+        bytes32 rootHash,
+        uint256 rootIndex,
         uint256 totalAmount,
         uint256 rootCommittedAt
     );
 
     event TransferSent (
-        uint256 indexed chainId,
-        uint256 indexed rootIndex,
-        address indexed recipient,
+        uint256 chainId,
+        uint256 rootIndex,
+        address recipient,
         uint256 amount,
         bytes32 transferNonce,
         uint256 bonderFee,
@@ -66,12 +66,12 @@ abstract contract L2_Bridge is Bridge {
     );
 
     event TransferFromL1Completed (
-        address indexed recipient,
+        address recipient,
         uint256 amount,
         uint8 tokenIndex,
         uint256 amountOutMin,
         uint256 deadline,
-        address indexed relayer,
+        address relayer,
         uint256 relayerFee
     );
 
@@ -126,7 +126,14 @@ abstract contract L2_Bridge is Bridge {
         {
             uint256 minBonderFeeRelative = (amount * minBonderBps) / 10000;
             // Get the max of minBonderFeeRelative and minBonderFeeAbsolute
-            uint256 minBonderFee = minBonderFeeRelative > minBonderFeeAbsolute ? minBonderFeeRelative : minBonderFeeAbsolute;
+            // uint256 minBonderFee = minBonderFeeRelative > minBonderFeeAbsolute ? minBonderFeeRelative : minBonderFeeAbsolute;
+            uint256 minBonderFee;
+            if (minBonderFeeRelative > minBonderFeeAbsolute) {
+                minBonderFee = minBonderFeeRelative;
+            }
+            else {
+                minBonderFee = minBonderFeeAbsolute;
+            }
             require(bonderFee >= minBonderFee, "L2_BRG: bonderFee must meet minimum requirements");
         }
 
@@ -292,8 +299,9 @@ abstract contract L2_Bridge is Bridge {
         pendingAmount[destinationChainId][bonder] = 0;
         delete pendingTransferIds[destinationChainId][bonder];
 
-        (bool success,) = l1BridgeConnector.call(confirmTransferRootMessage);
-        require(success, "L2_BRG: Call to L1 bridge failed");
+        // We should make a Cairo Connector
+        // (bool success,) = l1BridgeConnector.call(confirmTransferRootMessage);
+        // require(success, "L2_BRG: Call to L1 bridge failed");
     }
 
     function _distribute(
@@ -314,12 +322,14 @@ abstract contract L2_Bridge is Bridge {
             hToken.mint(recipient, amountAfterFee);
         } else {
             hToken.mint(address(this), amountAfterFee);
+            /*
             hToken.approve(address(ammWrapper), amountAfterFee);
             ammWrapper.attemptSwap(
                 recipient,
                 amountAfterFee,
                 swapData
             );
+             */
         }
     }
 
@@ -335,9 +345,9 @@ abstract contract L2_Bridge is Bridge {
 
     /* ========== External Config Management Functions ========== */
 
-    function setAmmWrapper(L2_AmmWrapper _ammWrapper) external onlyOwner {
-        ammWrapper = _ammWrapper;
-    }
+     function setAmmWrapper(L2_AmmWrapper _ammWrapper) external onlyOwner {
+         ammWrapper = _ammWrapper;
+     }
 
     function setL1BridgeConnector(address _l1BridgeConnector) external onlyOwner {
         l1BridgeConnector = _l1BridgeConnector;
