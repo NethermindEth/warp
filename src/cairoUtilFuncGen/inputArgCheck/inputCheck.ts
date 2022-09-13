@@ -109,11 +109,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
         ) {
           return this.createAddressInputCheck();
         } else {
-          console.log(printTypeNode(type, true));
-          if (type instanceof UserDefinedType) {
-            if (type.definition instanceof ContractDefinition) {
-            }
-          }
           return unexpectedTypeFunc();
         }
       },
