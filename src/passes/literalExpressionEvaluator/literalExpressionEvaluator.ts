@@ -177,7 +177,11 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
           }
           return null;
         default:
-          if (!['/', '%', '+', '-', '>', '<', '>=', '<=', '==', '!='].includes(node.operator)) {
+          if (
+            !['/', '%', '+', '-', '>', '<', '>=', '<=', '==', '!=', '|', '&', '^', '~'].includes(
+              node.operator,
+            )
+          ) {
             throw new TranspileFailedError(`Unexpected number x number operator ${node.operator}`);
           }
           return null;
