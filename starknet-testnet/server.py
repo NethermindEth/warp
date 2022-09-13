@@ -131,9 +131,7 @@ async def invoke():
         # Can add extra fields in here if and when tests need them
         return jsonify(
             {
-                "execution_info": {
-                    "steps": execution_info.execution_resources.n_steps
-                },
+                "execution_info": {"steps": execution_info.execution_resources.n_steps},
                 "transaction_info": {
                     "threw": False,
                     "return_data": [str(x) for x in execution_info.retdata],
