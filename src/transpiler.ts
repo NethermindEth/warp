@@ -99,7 +99,6 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
 
 function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
-    ['E1', ExpressionSplitter],
     ['Tf', TupleFixes],
     ['Tnr', TypeNameRemover],
     ['Ru', RejectUnsupportedFeatures],
@@ -142,7 +141,9 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['I', ImplicitConversionToExplicit],
     ['Abi', ABIEncode],
     ['Dh', DeleteHandler],
+    ['E1', ExpressionSplitter],
     ['Rf', References],
+    // Error 2
     ['Abc', ArgBoundChecker],
     ['Ec', EnumConverter],
     ['B', BuiltinHandler],
