@@ -21,7 +21,10 @@ import { ExternalContractInterfaceInserter } from './externalContractInterfaceIn
 export class ExternalContractHandler extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([]);
+    const passKeys: Set<string> = new Set<string>([
+      'Ii', // Inheritance Inline pass inherit all functions from the base contracts, so that external contracts refrerences in the base contracts are handled
+      'Sa', // All contracts are changed to Cairo Contracts, and this passes uses the CairoContract class
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

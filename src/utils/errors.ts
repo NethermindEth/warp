@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { ASTNode, parseSourceLocation, SourceUnit } from 'solc-typed-ast';
 import { error } from './formatting';
-import { getSourceFromLocation } from './utils';
+import { getSourceFromLocations } from './utils';
 
 export function logError(message: string): void {
   console.error(error(message));
@@ -28,7 +28,7 @@ function getSourceCode(node: ASTNode | undefined): string {
     const content = fs.readFileSync(filePath, { encoding: 'utf-8' });
     return [
       `File ${filePath}:\n`,
-      ...getSourceFromLocation(content, parseSourceLocation(node.src))
+      ...getSourceFromLocations(content, [parseSourceLocation(node.src)], error, 3)
         .split('\n')
         .map((l) => `\t${l}`),
     ].join('\n');

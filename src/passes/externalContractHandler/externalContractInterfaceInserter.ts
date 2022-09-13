@@ -12,6 +12,7 @@ import {
 } from 'solc-typed-ast';
 
 import { AST } from '../../ast/ast';
+import { CairoContract } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
@@ -98,7 +99,7 @@ export function genContractInterface(
   ast: AST,
 ): ContractDefinition {
   const contractId = ast.reserveId();
-  const contractInterface = new ContractDefinition(
+  const contractInterface = new CairoContract(
     contractId,
     '',
     // `@interface` is a workaround to avoid the conflict with
@@ -110,6 +111,10 @@ export function genContractInterface(
     false,
     contract.linearizedBaseContracts,
     contract.usedErrors,
+    new Map(),
+    new Map(),
+    0,
+    0,
   );
 
   contract.vFunctions

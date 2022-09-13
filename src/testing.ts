@@ -114,6 +114,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/idManglingTest8', 'Success'],
     ['example_contracts/idManglingTest9', 'Success'],
     ['example_contracts/if_flattening', 'Success'],
+    ['example_contracts/implicitsFromStub', 'Success'],
     ['example_contracts/imports/importContract', 'Success'],
     ['example_contracts/imports/importEnum', 'Success'],
     ['example_contracts/imports/importfrom', 'Success'],
@@ -128,6 +129,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/inheritance/variables', 'Success'],
     // Requires struct imports
     ['example_contracts/interfaces', 'Success'],
+    ['example_contracts/interfaceFromBaseContract', 'Success'],
     ['example_contracts/invalidSolidity', 'SolCompileFailed'],
     ['example_contracts/lib', 'Success'],
     ['example_contracts/libraries/using_for_star', 'Success'],
@@ -213,6 +215,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/using_for/imports/user_defined', 'Success'],
     // global_directive.sol cannot resolve struct when file imported as identifier
     ['example_contracts/using_for/imports/global_directive', 'Success'],
+    ['example_contracts/using_for/complex_libraries', 'Success'],
     ['example_contracts/using_for/function', 'WillNotSupport'],
     ['example_contracts/using_for/private', 'Success'],
     ['example_contracts/using_for/library', 'Success'],

@@ -2,7 +2,11 @@ import { DataLocation, ExternalReferenceType, FunctionCall } from 'solc-typed-as
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { createArrayTypeName, createUintNTypeName } from '../../utils/nodeTemplates';
+import {
+  createArrayTypeName,
+  createBytesNTypeName,
+  createUintNTypeName,
+} from '../../utils/nodeTemplates';
 
 export class Keccak extends ASTMapper {
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -18,7 +22,7 @@ export class Keccak extends ASTMapper {
     const warpKeccak = createCairoFunctionStub(
       'warp_keccak',
       [['input', createArrayTypeName(createUintNTypeName(8, ast), ast), DataLocation.Memory]],
-      [['hash', createUintNTypeName(256, ast)]],
+      [['hash', createBytesNTypeName(32, ast)]],
       ['range_check_ptr', 'bitwise_ptr', 'warp_memory', 'keccak_ptr'],
       ast,
       node,

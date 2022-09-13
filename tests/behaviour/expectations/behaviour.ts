@@ -129,6 +129,28 @@ export const expectations = flatten(
             ),
           ]),
         ]),
+        new Dir('anonymous_parameters', [
+          new File(
+            'func_override',
+            'A',
+            [],
+            [
+              Expect.Simple('f8', ['1', '2'], ['10']),
+              Expect.Simple('f256', ['1', '0', '2', '0'], ['10', '0']),
+            ],
+          ),
+          new File(
+            'func_override',
+            'B',
+            [],
+            [
+              Expect.Simple('f8', ['3', '2'], ['5']),
+              Expect.Simple('f256', ['5', '0', '4', '0'], ['9', '0']),
+              Expect.Simple('one_argument8', ['5', '4'], ['12']),
+              Expect.Simple('one_argument256', ['7', '0', '90', '725'], ['14', '0']),
+            ],
+          ),
+        ]),
         new Dir('array_len', [
           File.Simple('memoryArray', [Expect.Simple('dynMemArrayLen', [], ['45', '0'])]),
           File.Simple('storageArray', [Expect.Simple('dynStorageArrayLen', [], ['1', '0'])]),
@@ -2061,6 +2083,20 @@ export const expectations = flatten(
               ],
             ),
           ]),
+          File.Simple('rationalLiterals', [
+            Expect.Simple('equalValue', [], ['255']),
+            Expect.Simple('greaterThan', [], ['1']),
+            Expect.Simple('add', [], ['8']),
+            Expect.Simple('subtract', [], ['3']),
+            Expect.Simple('multiply', [], ['25']),
+            Expect.Simple('divideBy', [], ['2']),
+            Expect.Simple('exp', [], ['64']),
+            Expect.Simple('mod', [], ['2']),
+            Expect.Simple('shiftLeft', [], ['4']),
+            Expect.Simple('shiftRight', [], ['1']),
+            Expect.Simple('bitwiseNegate', [], ['253']),
+            Expect.Simple('toInteger', [], ['3']),
+          ]),
           File.Simple('tupleEdgeCases', [Expect.Simple('f', ['0', '0'], ['0', '0'])]),
           File.Simple('tupleOfInlineArrays', [Expect.Simple('g', [], ['21'])]),
         ]),
@@ -2843,6 +2879,7 @@ export const expectations = flatten(
           ]),
           File.Simple('importLibs', [Expect.Simple('addSub', ['5', '4'], ['9', '1'])]),
           File.Simple('LibInLib', [Expect.Simple('mulDiv', ['5', '2'], ['10', '2', '1'])]),
+          new File('libraries_in_inheritance', 'C', [], [Expect.Simple('g', [], ['1', '0'])]),
           File.Simple('library_call_in_homestead', [
             new Expect('f', [['f', [], [], '234']]),
             new Expect('sender', [['sender', [], ['234'], '465']]),

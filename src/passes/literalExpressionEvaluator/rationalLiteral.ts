@@ -1,18 +1,22 @@
 import { TranspileFailedError } from '../../utils/errors';
+import { gcdBigint } from '@algorithm.ts/gcd';
 
 export class RationalLiteral {
   private numerator: bigint;
   private denominator: bigint;
 
   constructor(numerator: bigint, denominator: bigint) {
-    if (denominator > 0n) {
-      this.numerator = numerator;
-      this.denominator = denominator;
-    } else if (denominator < 0n) {
-      this.numerator = -numerator;
-      this.denominator = -denominator;
-    } else {
+    if (denominator === 0n) {
       throw new TranspileFailedError('Attempted rational division by 0');
+    }
+
+    const gcd = gcdBigint(numerator, denominator);
+    this.numerator = numerator / gcd;
+    this.denominator = denominator / gcd;
+
+    if (denominator < 0n) {
+      this.numerator *= -1n;
+      this.denominator *= -1n;
     }
   }
 
@@ -72,16 +76,10 @@ export class RationalLiteral {
       return null;
     }
 
-    if (op === 0n) {
-      return new RationalLiteral(1n, 1n);
-    } else if (op > 0n) {
+    if (op >= 0n) {
       return new RationalLiteral(this.numerator ** op, this.denominator ** op);
-    } else if (this.numerator > 0n) {
-      return new RationalLiteral(this.denominator ** -op, this.numerator ** -op);
-    } else if (this.numerator < 0n) {
-      return new RationalLiteral((-this.denominator) ** -op, (-this.numerator) ** -op);
     } else {
-      return new RationalLiteral(0n, 1n);
+      return new RationalLiteral(this.denominator ** -op, this.numerator ** -op);
     }
   }
 
@@ -93,6 +91,10 @@ export class RationalLiteral {
   }
 
   shiftLeft(other: RationalLiteral): RationalLiteral | null {
+    if (this.denominator !== 1n) {
+      throw new TranspileFailedError('Attempted shift to non-integer value');
+    }
+
     const op = other.toInteger();
     if (op === null) {
       return null;
@@ -102,6 +104,10 @@ export class RationalLiteral {
   }
 
   shiftRight(other: RationalLiteral): RationalLiteral | null {
+    if (this.denominator !== 1n) {
+      throw new TranspileFailedError('Attempted shift to non-integer value');
+    }
+
     const op = other.toInteger();
     if (op === null) {
       return null;
@@ -141,7 +147,7 @@ export function stringToLiteralValue(value: string): RationalLiteral {
 
   if (tidiedValue.startsWith('0x')) {
     return intToLiteral(value);
-  } else if (tidiedValue.includes('e')) {
+  } else if (tidiedValue.includes('e') || tidiedValue.includes('E')) {
     return scientificNotationToLiteral(value);
   } else if (tidiedValue.includes('.')) {
     return decimalToLiteral(value);
@@ -172,7 +178,7 @@ function decimalToLiteral(value: string): RationalLiteral {
 }
 
 function scientificNotationToLiteral(value: string): RationalLiteral {
-  const parts = value.split('e', 2);
+  const parts = value.split(/e|E/, 2);
   const coefficient: RationalLiteral = parts[0].includes('.')
     ? decimalToLiteral(parts[0])
     : intToLiteral(parts[0]);
