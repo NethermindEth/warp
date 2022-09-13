@@ -16,14 +16,28 @@ import { toSingleExpression } from '../../utils/utils';
 /*  ModifierInliner starts to walk the ast through a Modifier node as a root.
     Whenever it reaches a placeholder, it replaces it with a call to `currentFunction`.
     When it reaches a return statement, it is replaced with a new return accordingly 
-    with `retVariables`
+    with `returnParameters`
+
+    Given a function f() which returns one parameter: __warp_ret_parameter_a; and a 
+    modifier m as follows:
+    
+    modifier m() {
+      _;
+      return;
+    }
+
+    The modifier that results from this pass will look like the following:
+
+    modifier m() {
+      __warp_ret_parameter_a = f();
+      return __warp_ret_parameter_a;
+    }
 */
 
 export class FunctionModifierInliner extends ASTMapper {
   currentFunction: FunctionDefinition;
   parameters: VariableDeclaration[];
-  retVariables: VariableDeclaration[];
-  retParamsId: number;
+  returnParameters: ParameterList;
 
   constructor(
     node: FunctionDefinition,
@@ -33,15 +47,15 @@ export class FunctionModifierInliner extends ASTMapper {
     super();
     this.currentFunction = node;
     this.parameters = parameters;
-    this.retVariables = retParams.vParameters;
-    this.retParamsId = retParams.id;
+    this.returnParameters = retParams;
   }
 
   visitPlaceholderStatement(node: PlaceholderStatement, ast: AST) {
+    const retVariables = this.returnParameters.vParameters;
     const args = this.parameters.map((v) =>
       createIdentifier(v, ast, undefined, this.currentFunction),
     );
-    const resultIdentifiers = this.retVariables.map((v) =>
+    const resultIdentifiers = retVariables.map((v) =>
       createIdentifier(v, ast, undefined, this.currentFunction),
     );
     const assignmentValue = toSingleExpression(resultIdentifiers, ast);
@@ -51,7 +65,7 @@ export class FunctionModifierInliner extends ASTMapper {
       new ExpressionStatement(
         ast.reserveId(),
         node.src,
-        this.retVariables.length === 0
+        retVariables.length === 0
           ? createCallToFunction(this.currentFunction, args, ast)
           : new Assignment(
               ast.reserveId(),
@@ -68,6 +82,9 @@ export class FunctionModifierInliner extends ASTMapper {
   }
 
   visitReturn(node: Return, ast: AST): void {
-    ast.replaceNode(node, createReturn(this.retVariables, this.retParamsId, ast));
+    ast.replaceNode(
+      node,
+      createReturn(this.returnParameters.vParameters, this.returnParameters.id, ast),
+    );
   }
 }
