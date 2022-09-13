@@ -33,7 +33,7 @@ contract L2_AmmWrapper is SwapDataConsumer {
         exchangeAddress = _exchangeAddress;
     }
 
-    // receive() external payable {}
+    receive() external payable {}
 
     /// @notice amount is the amount the user wants to send plus the Bonder fee
     function swapAndSend(
@@ -51,8 +51,8 @@ contract L2_AmmWrapper is SwapDataConsumer {
         require(amount >= bonderFee, "L2_AMM_W: Bonder fee cannot exceed amount");
 
         if (l2CanonicalTokenIsEth) {
-            // require(msg.value == amount, "L2_AMM_W: Value does not match amount");
-            // IWETH(address(l2CanonicalToken)).deposit{value: amount}();
+            require(msg.value == amount, "L2_AMM_W: Value does not match amount");
+            IWETH(address(l2CanonicalToken)).deposit{value: amount}();
         } else {
             require(l2CanonicalToken.transferFrom(msg.sender, address(this), amount), "L2_AMM_W: TransferFrom failed");
         }
