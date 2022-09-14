@@ -174,7 +174,7 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
             return new RationalLiteral(0n, 1n);
           }
           return null;
-        default:
+        default: {
           const otherOp = [
             '/',
             '%',
@@ -195,6 +195,7 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
             throw new TranspileFailedError(`Unexpected number x number operator ${node.operator}`);
           }
           return null;
+        }
       }
     } else {
       throw new TranspileFailedError('Mismatching literal arguments');
