@@ -81,7 +81,7 @@ function getFreeFunctions(
   },
   sourceUnitId: number,
 ): FunctionDefinition[] {
-  let functions: FunctionDefinition[] = [];
+  const functions: FunctionDefinition[] = [];
   jsonCairo.abi.forEach((element: { name: string; type: string; stub: string[] }) => {
     console.log(element.name, element.type);
     if (element.type !== 'function') return;
