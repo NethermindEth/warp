@@ -1,3 +1,4 @@
+export * from './abiEncode';
 export * from './abiExtractor';
 export * from './annotateImplicits';
 export * from './builtinHandler';
@@ -50,3 +51,4 @@ export * from './userDefinedTypesConverter';
 export * from './usingForResolver';
 export * from './variableDeclarationExpressionSplitter';
 export * from './variableDeclarationInitialiser';
+export * from './warnSupportedFeatures';

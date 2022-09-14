@@ -6,10 +6,9 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Warp is awesome 🌠',
-  tagline: 'Bringing Ethereum smart contracts to StarkNet',
-  // url: 'https://gojuno.xyz',
-  url: 'https://github.com',
+  title: 'Warp 🚀',
+  tagline: 'Bringing Solidity to StarkNet at warp speed',
+  url: 'https://nethermindeth.github.io/',
   baseUrl: '/warp/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -18,7 +17,6 @@ const config = {
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   // organizationName: 'NethermindEth', // Usually your GitHub org/user name.
-  // projectName: 'juno', // Usually your repo name.
   // trailingSlash: false,
   organizationName: 'NethermindEth',
   projectName: 'warp',

@@ -84,12 +84,12 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       ? '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}'
       : '{range_check_ptr : felt, warp_memory : DictAccess*}';
 
-    const cairoFunc = this.genearteBytesConcat(argTypes, implicits);
+    const cairoFunc = this.generateBytesConcat(argTypes, implicits);
     this.generatedFunctions.set(key, cairoFunc);
     return cairoFunc.name;
   }
 
-  private genearteBytesConcat(argTypes: TypeNode[], implicits: string): CairoFunction {
+  private generateBytesConcat(argTypes: TypeNode[], implicits: string): CairoFunction {
     const argAmount = argTypes.length;
     const funcName = `concat${this.generatedFunctions.size}_${argAmount}`;
 
@@ -116,7 +116,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       `func ${funcName}${implicits}(${cairoArgs}) -> (res_loc : felt):`,
       `    alloc_locals`,
       `    # Get all sizes`,
-      ...argTypes.map(getSize),
+      ...argTypes.map((t, n) => this.getSize(t, n)),
       `    let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')}`,
       `    let (total_length256) = felt_to_uint256(total_length)`,
       `    let (res_loc) = wm_new(total_length256, ${uint256(1)})`,
@@ -125,7 +125,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       ...mapRange(argAmount, (n) => {
         const copy = [
           `let end_loc = start_loc + size_${n}`,
-          getCopyFunctionCall(argTypes[n], n),
+          this.getCopyFunctionCall(argTypes[n], n),
           `let start_loc = end_loc`,
         ];
         return n < argAmount - 1 ? copy.join('\n') : copy.slice(0, -1).join('\n');
@@ -137,46 +137,46 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     this.requireImport('warplib.memory', 'wm_new');
-    argTypes.forEach((type) => {
-      if (type instanceof PointerType) {
-        this.requireImport('warplib.memory', 'wm_dyn_array_length');
-        this.requireImport('warplib.dynamic_arrays_util', 'dynamic_array_copy_felt');
-      } else {
-        getIntOrFixedByteBitWidth(type) < 256
-          ? this.requireImport('warplib.dynamic_arrays_util', 'fixed_byte_to_dynamic_array')
-          : this.requireImport('warplib.dynamic_arrays_util', 'fixed_byte256_to_dynamic_array');
-      }
-    });
 
     return { name: funcName, code: code };
   }
-}
-function getSize(type: TypeNode, index: number): string {
-  if (type instanceof PointerType)
-    return [
-      `let (size256_${index}) = wm_dyn_array_length(arg_${index})`,
-      `let size_${index} = size256_${index}.low + size256_${index}.high*128`,
-    ].join('\n');
 
-  if (type instanceof IntType) {
-    return `let size_${index} = ${type.nBits / 8}`;
-  } else if (type instanceof FixedBytesType) {
-    return `let size_${index} = ${type.size}`;
-  } else {
+  private getSize(type: TypeNode, index: number): string {
+    if (type instanceof PointerType) {
+      this.requireImport('warplib.memory', 'wm_dyn_array_length');
+      this.requireImport('warplib.maths.utils', 'narrow_safe');
+      return [
+        `let (size256_${index}) = wm_dyn_array_length(arg_${index})`,
+        `let (size_${index}) = narrow_safe(size256_${index})`,
+      ].join('\n');
+    }
+
+    if (type instanceof IntType) {
+      return `let size_${index} = ${type.nBits / 8}`;
+    }
+
+    if (type instanceof FixedBytesType) {
+      return `let size_${index} = ${type.size}`;
+    }
+
     throw new TranspileFailedError(
       `Attempted to get size for unexpected type ${printTypeNode(type)} in concat`,
     );
   }
-}
 
-function getCopyFunctionCall(type: TypeNode, index: number): string {
-  if (type instanceof PointerType)
-    return `dynamic_array_copy_felt(res_loc, start_loc, end_loc, arg_${index}, 0)`;
+  private getCopyFunctionCall(type: TypeNode, index: number): string {
+    if (type instanceof PointerType) {
+      this.requireImport('warplib.dynamic_arrays_util', 'dynamic_array_copy_felt');
+      return `dynamic_array_copy_felt(res_loc, start_loc, end_loc, arg_${index}, 0)`;
+    }
 
-  assert(type instanceof FixedBytesType);
+    assert(type instanceof FixedBytesType);
+    if (type.size < 32) {
+      this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes_to_dynamic_array');
+      return `fixed_bytes_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0, size_${index})`;
+    }
 
-  if (type.size < 32)
-    return `fixed_byte_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0, size_${index})`;
-
-  return `fixed_byte256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0)`;
+    this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_dynamic_array');
+    return `fixed_bytes256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0)`;
+  }
 }

@@ -547,7 +547,8 @@ class ParameterListWriter extends CairoASTNodeWriter {
         varTypeConversionContext,
       );
       if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
-        return isExternallyVisible(node.parent)
+        return isExternallyVisible(node.parent) ||
+          node.getClosestParentByType(ContractDefinition)?.name.includes('@interface')
           ? `${value.name}_len : ${tp.vLen.toString()}, ${value.name} : ${tp.vPtr.toString()}`
           : `${value.name} : ${tp.toString()}`;
       }

@@ -11,8 +11,10 @@ import { CairoFunctionDefinition, FunctionStubKind } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { ASTVisitor } from '../ast/visitor';
 import { printNode } from '../utils/astPrinter';
-import { Implicits, registerImportsForImplicit } from '../utils/implicits';
+import { TranspileFailedError } from '../utils/errors';
+import { Implicits, implicitTypes, registerImportsForImplicit } from '../utils/implicits';
 import { isExternallyVisible, union } from '../utils/utils';
+import { getDocString, isCairoStub } from './cairoStubProcessor';
 
 export class AnnotateImplicits extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -89,6 +91,10 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): Set<Implicits> {
     const result: Set<Implicits> = new Set();
+    if (isCairoStub(node)) {
+      extractImplicitFromStubs(node, result);
+      return node === this.root ? result : union(result, this.commonVisit(node, ast));
+    }
     if (node.implemented && isExternallyVisible(node)) {
       result.add('range_check_ptr');
       result.add('syscall_ptr');
@@ -98,6 +104,7 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
       result.add('pedersen_ptr');
       result.add('range_check_ptr');
     }
+
     if (node === this.root) return result;
     return union(result, this.commonVisit(node, ast));
   }
@@ -128,4 +135,40 @@ class ImplicitCollector extends ASTVisitor<Set<Implicits>> {
     result.add('range_check_ptr');
     return result;
   }
+}
+
+function extractImplicitFromStubs(node: FunctionDefinition, result: Set<Implicits>) {
+  const cairoCode = getDocString(node.documentation);
+  assert(cairoCode !== undefined);
+  const funcSignature = cairoCode.match(/func .+\{(.+)\}/);
+  if (funcSignature === null) return;
+
+  // implicits -> impl1 : type1, impl2, ..., impln : typen
+  const implicits = funcSignature[1];
+
+  // implicitsList -> [impl1 : type1, impl2, ...., impln : typen]
+  const implicitsList = [...implicits.matchAll(/[A-Za-z][A-Za-z_: 0-9]*/g)].map((w) => w[0]);
+
+  // implicitsNameList -> [impl1, impl2, ..., impln]
+  const implicitsNameList = implicitsList.map((i) => i.match(/[A-Za-z][A-Za-z_0-9]*/));
+  if (!notContainsNull(implicitsNameList)) return;
+
+  // Check that implicits are valid and add them to result
+  implicitsNameList.forEach((i) => {
+    const impl = i[0];
+    if (!elementIsImplicit(impl)) {
+      throw new TranspileFailedError(
+        `Implicit ${impl} defined on function stub (${printNode(node)}) is not known`,
+      );
+    }
+    result.add(impl);
+  });
+}
+
+function elementIsImplicit(e: string): e is Implicits {
+  return Object.keys(implicitTypes).includes(e);
+}
+
+function notContainsNull<T>(l: (T | null)[]): l is T[] {
+  return !l.some((e) => e === null);
 }

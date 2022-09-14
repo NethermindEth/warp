@@ -121,6 +121,7 @@ export function functionaliseIntConversion(conversion: FunctionCall, ast: AST): 
     fromType.nBits === toType.nBits ||
     (fromType.nBits < toType.nBits && !fromType.signed && !toType.signed)
   ) {
+    arg.typeString = conversion.typeString;
     ast.replaceNode(conversion, arg);
     return;
   } else {

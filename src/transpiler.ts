@@ -4,6 +4,7 @@ import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
 import {
+  ABIEncode,
   ABIExtractor,
   AnnotateImplicits,
   ArgBoundChecker,
@@ -57,6 +58,7 @@ import {
   UsingForResolver,
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
+  WarnSupportedFeatures,
 } from './passes';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
@@ -100,6 +102,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Tf', TupleFixes],
     ['Tnr', TypeNameRemover],
     ['Ru', RejectUnsupportedFeatures],
+    ['Wa', WarnSupportedFeatures],
     ['Fm', FilePathMangler],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
@@ -119,9 +122,9 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Ffi', FreeFunctionInliner],
     ['Rl', ReferencedLibraries],
     ['Ons', OrderNestedStructs],
-    ['Ech', ExternalContractHandler],
     ['Sa', StorageAllocator],
     ['Ii', InheritanceInliner],
+    ['Ech', ExternalContractHandler],
     ['Mh', ModifierHandler],
     ['Pfs', PublicFunctionSplitter],
     ['Eam', ExternalArgModifier],
@@ -136,6 +139,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Vs', VariableDeclarationExpressionSplitter],
     ['Ntd', NewToDeploy],
     ['I', ImplicitConversionToExplicit],
+    ['Abi', ABIEncode],
     ['Dh', DeleteHandler],
     ['Rf', References],
     ['Abc', ArgBoundChecker],

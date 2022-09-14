@@ -1,0 +1,213 @@
+---
+title: Cairo Blocks
+---
+
+Cairo Blocks allow users to place their desired Cairo code into a transpiled contract.
+This allows users to avoid inefficiently transpiled functions, implement Cairo features that Warp does not yet support and allow transpiled contracts to interact with native Cairo contracts.
+
+The system works in the following way:
+
+1. To start a Cairo Block add your Cairo code above a Solidity function with 3 forward slashes at the beginning of each line and the phrase `warp-cairo` at the top.
+2. The user then uses a number of MACROS to interact with the transpiled contract.
+3. The Soldiity function will then be replaced with the Cario function that is above it.
+
+The following MACROS are supported:
+
+`CURRENTFUNC` - References the Solidity function it is stubbing.
+
+`DECORATOR` - Adds decorators to the function.
+
+`INTERNALFUNC` - References an internal function matching the string that is passed to it.
+
+`STATEVAR` - References the state variable matching the string passed to it.
+
+Please note that the Solidity you are stubbing will still have to preserve the integrity of the AST, so whatever you are passing into your Cairo Block will have to match its corresponding Solidity function below.
+
+Below is an example of how Cairo Block are intended to be used:
+
+```
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity ^0.8.14;
+
+contract Example {
+
+  ///warp-cairo
+  ///DECORATOR(external)
+  ///func CURRENTFUNC()(lhs : felt, rhs : felt) -> (res : felt):
+  ///    if lhs == 0:
+  ///        return (rhs)
+  ///    else:
+  ///        return CURRENTFUNC()(lhs - 1, rhs + 1)
+  ///    end
+  ///end
+  function recursiveAdd(uint8 lhs, uint8 rhs) pure external returns (uint8) {
+    return 0;
+  }
+}
+```
+
+The solidity code above gets transpiled into the following Cairo:
+
+```
+%lang starknet
+
+from warplib.maths.external_input_check_ints import warp_external_input_check_int8
+from starkware.cairo.common.cairo_builtins import HashBuiltin
+
+# Contract Def Example
+
+@storage_var
+func WARP_STORAGE(index : felt) -> (val : felt):
+end
+@storage_var
+func WARP_USED_STORAGE() -> (val : felt):
+end
+@storage_var
+func WARP_NAMEGEN() -> (name : felt):
+end
+func readId{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
+    loc : felt
+) -> (val : felt):
+    alloc_locals
+    let (id) = WARP_STORAGE.read(loc)
+    if id == 0:
+        let (id) = WARP_NAMEGEN.read()
+        WARP_NAMEGEN.write(id + 1)
+        WARP_STORAGE.write(loc, id + 1)
+        return (id + 1)
+    else:
+        return (id)
+    end
+end
+
+namespace Example:
+    # Dynamic variables - Arrays and Maps
+
+    # Static variables
+
+    @external
+    func recursiveAdd_87bcdfdf(lhs : felt, rhs : felt) -> (res : felt):
+        if lhs == 0:
+            return (rhs)
+        else:
+            return recursiveAdd_87bcdfdf(lhs - 1, rhs + 1)
+        end
+    end
+
+    @constructor
+    func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}():
+        alloc_locals
+
+        return ()
+    end
+end
+
+# Original soldity abi: ["constructor()","recursiveAdd(uint8,uint8)"]
+```
+
+The contract above now has the CairoBlock present and its corresponding Solidity function removed.
+
+## Additional examples of using Cairo Blocks:
+
+```
+pragma solidity ^0.8.10;
+
+// SDPX-License-Identifier: MIT
+
+contract Base {
+  ///warp-cairo
+  ///DECORATOR(external)
+  ///func CURRENTFUNC()() -> (res: felt):
+  ///    return (1)
+  ///end
+  function externalDefinedInBase() virtual pure external returns (uint8) {
+    return 0;
+  }
+
+  ///warp-cairo
+  ///func CURRENTFUNC()() -> (res: felt):
+  ///    return (2)
+  ///end
+  function internalDefinedInBase() virtual pure internal returns (uint8) {
+    return 0;
+  }
+}
+
+contract WARP is Base {
+  function testExternalDefinedInBase() view public returns (uint8) {
+    return this.externalDefinedInBase();
+  }
+
+  function testInternalDefinedInBase() pure public returns (uint8) {
+    return internalDefinedInBase();
+  }
+
+  ///warp-cairo
+  ///DECORATOR(external)
+  ///func CURRENTFUNC()() -> (res: felt):
+  ///    return (1)
+  ///end
+  function simpleCase() pure external returns (uint8) {
+    return 0;
+  }
+
+  ///warp-cairo
+  ///DECORATOR(external)
+  ///func CURRENTFUNC()(lhs : felt, rhs : felt) -> (res : felt):
+  ///    if lhs == 0:
+  ///        return (rhs)
+  ///    else:
+  ///        return CURRENTFUNC()(lhs - 1, rhs + 1)
+  ///    end
+  ///end
+  function recursiveAdd(uint8 lhs, uint8 rhs) pure external returns (uint8) {
+    return 0;
+  }
+}
+```
+
+Cairo Blocks used for proxy:
+
+````
+pragma solidity ^0.8.10;
+
+// SPDX-License-Identifier: MIT
+
+contract WARP {
+  /// warp-cairo
+  /// from starkware.starknet.common.syscalls import library_call
+  /// DECORATOR(external)
+  /// DECORATOR(raw_input)
+  /// DECORATOR(raw_output)
+  /// func __default__{
+  ///     syscall_ptr : felt*,
+  ///     pedersen_ptr : HashBuiltin*,
+  ///     range_check_ptr,
+  /// }(selector : felt, calldata_size : felt, calldata : felt*) -> (
+  ///     retdata_size : felt, retdata : felt*
+  /// ):
+  ///     alloc_locals
+  ///     let (class_hash_low) = WARP_STORAGE.read(STATEVAR(implementation_hash))
+  ///     let (class_hash_high) = WARP_STORAGE.read(STATEVAR(implementation_hash) + 1)
+  ///     let class_hash = class_hash_low + 2**128 * class_hash_high
+  ///
+  ///     let (retdata_size : felt, retdata : felt*) = library_call(
+  ///         class_hash=class_hash,
+  ///         function_selector=selector,
+  ///         calldata_size=calldata_size,
+  ///         calldata=calldata,
+  ///     )
+  ///     return (retdata_size=retdata_size, retdata=retdata)
+  /// end
+  fallback() external {
+
+  }
+
+  uint256 implementation_hash = 0;
+
+  function setHash(uint256 newHash) external {
+    implementation_hash = newHash;
+  }
+}
+```
+````

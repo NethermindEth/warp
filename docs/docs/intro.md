@@ -3,56 +3,21 @@ title: Welcome
 sidebar_position: 1
 ---
 
-# Welcome to Warp
+# Welcome to Warp 2.0
 
-Let's discover **Warp in less than 5 minutes**.
+We are excited to announce the second version of Warp, now designed to transpile your Solidity code directly into Cairo.
 
-## Work in Progress
+Warp 1 set out to show that compiling Solidity code into Cairo was possible, and paved the way for developers to access the benefits of StarkNet without needing to master Cairo. Using everything we learned from Warp 1, we have written a new version adding vast improvements to contract efficiency and user experience. In this blog, we will talk through the improvements made to Warp, transpile OpenZeppelin’s ERC20 contract, and describe future plans for the project.
 
-<!-- - [Golang](https://go.dev/doc/install) version 1.18 for build and run the project.
-- _For Linux_: You will need to install `clang`:
+### Warp 2 vs Warp 1
 
-```shell
-sudo apt -y install clang
-```
+Warp 2 improves on the prior version by transpiling directly from Solidity to Cairo. In Warp 1, the Solidity smart contract was first compiled into YUL (Solidity’s intermediate representation) and then transpiled to Cairo. Skipping the YUL intermediary means we don’t have to transpile many low-level calls and rather transpile the higher-level Solidity. Sounds interesting, but what does this mean for users?
 
-### Installing
+- Reduced code size
+- Smaller step count when calling functions (functions require less computation)
+- Improved Cairo readability
+- Unsupported feature messages to know which features in Solidity are not supported
+- Reduced code size & smaller step count
+- YUL will always have more instructions than the Solidity it is generated from. As an example, the simple 1-line function in Solidity grows to 6 lines of YUL with additional function calls.
 
-After cloning the project,
-
-```bash
-git clone https://github.com/NethermindEth/juno
-```
-
-You can install all the dependencies running the next command inside the project folder:
-
-```bash
-$ go get ./...
-```
-
-## Running Juno
-
-### Compiling Directly
-
-Compile Juno:
-
-```bash
-$ make compile
-```
-
-After compilation, you will have 2 commands inside the `build` folder of the project:
-
-- juno
-  - `juno` is the command that initialize the node
-- juno-cli
-  - `juno-cli` is the command that handle a set of different commands about the StarkNet ecosystem.
-
-```bash
-$ make run
-```
-
-For more details on the configuration, check the [config description](./running/config.mdx).
-
-### Using Docker
-
-If you prefer to use docker, you can follow [this](./running/docker.mdx) guide. -->
+#### Want to know more on Warp 2.0? Read the blog [here](https://medium.com/nethermind-eth/warp-2-0-transpiling-directly-from-solidity-to-cairo-9bf41a6d26ee).
