@@ -99,11 +99,11 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       return {
         name: funcName,
         code: [
-          `func ${funcName}${implicits}() -> (res_loc : felt):`,
-          `   alloc_locals`,
-          `   let (res_loc) = wm_new(${uint256(0)}, ${uint256(1)})`,
-          `   return (res_loc)`,
-          `end`,
+          `func ${funcName}${implicits}() -> (res_loc : felt){`,
+          `   alloc_locals;`,
+          `   let (res_loc) = wm_new(${uint256(0)}, ${uint256(1)});`,
+          `   return (res_loc,);`,
+          `}`,
         ].join('\n'),
       };
     }
@@ -113,25 +113,25 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       return `arg_${index} : ${cairoType}`;
     });
     const code = [
-      `func ${funcName}${implicits}(${cairoArgs}) -> (res_loc : felt):`,
-      `    alloc_locals`,
-      `    # Get all sizes`,
+      `func ${funcName}${implicits}(${cairoArgs}) -> (res_loc : felt){`,
+      `    alloc_locals;`,
+      `    // Get all sizes`,
       ...argTypes.map((t, n) => this.getSize(t, n)),
-      `    let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')}`,
-      `    let (total_length256) = felt_to_uint256(total_length)`,
-      `    let (res_loc) = wm_new(total_length256, ${uint256(1)})`,
-      `    # Copy values`,
-      `    let start_loc = 0`,
+      `    let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')};`,
+      `    let (total_length256) = felt_to_uint256(total_length);`,
+      `    let (res_loc) = wm_new(total_length256, ${uint256(1)});`,
+      `    // Copy values`,
+      `    let start_loc = 0;`,
       ...mapRange(argAmount, (n) => {
         const copy = [
-          `let end_loc = start_loc + size_${n}`,
+          `let end_loc = start_loc + size_${n};`,
           this.getCopyFunctionCall(argTypes[n], n),
-          `let start_loc = end_loc`,
+          `let start_loc = end_loc;`,
         ];
         return n < argAmount - 1 ? copy.join('\n') : copy.slice(0, -1).join('\n');
       }),
-      `    return (res_loc)`,
-      `end`,
+      `    return (res_loc,);`,
+      `}`,
     ].join('\n');
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
@@ -146,17 +146,17 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       this.requireImport('warplib.memory', 'wm_dyn_array_length');
       this.requireImport('warplib.maths.utils', 'narrow_safe');
       return [
-        `let (size256_${index}) = wm_dyn_array_length(arg_${index})`,
-        `let (size_${index}) = narrow_safe(size256_${index})`,
+        `let (size256_${index}) = wm_dyn_array_length(arg_${index});`,
+        `let (size_${index}) = narrow_safe(size256_${index});`,
       ].join('\n');
     }
 
     if (type instanceof IntType) {
-      return `let size_${index} = ${type.nBits / 8}`;
+      return `let size_${index} = ${type.nBits / 8};`;
     }
 
     if (type instanceof FixedBytesType) {
-      return `let size_${index} = ${type.size}`;
+      return `let size_${index} = ${type.size};`;
     }
 
     throw new TranspileFailedError(
@@ -167,16 +167,16 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
   private getCopyFunctionCall(type: TypeNode, index: number): string {
     if (type instanceof PointerType) {
       this.requireImport('warplib.dynamic_arrays_util', 'dynamic_array_copy_felt');
-      return `dynamic_array_copy_felt(res_loc, start_loc, end_loc, arg_${index}, 0)`;
+      return `dynamic_array_copy_felt(res_loc, start_loc, end_loc, arg_${index}, 0);`;
     }
 
     assert(type instanceof FixedBytesType);
     if (type.size < 32) {
       this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes_to_dynamic_array');
-      return `fixed_bytes_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0, size_${index})`;
+      return `fixed_bytes_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0, size_${index});`;
     }
 
     this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_dynamic_array');
-    return `fixed_bytes256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0)`;
+    return `fixed_bytes256_to_dynamic_array(res_loc, start_loc, end_loc, arg_${index}, 0);`;
   }
 }

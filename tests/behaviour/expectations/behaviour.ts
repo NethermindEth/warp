@@ -1,4 +1,3 @@
-import { FILE } from 'dns';
 import { Dir, Expect, File } from './types';
 import { getByte32Array, flatten, getByteXArray } from './utils';
 
