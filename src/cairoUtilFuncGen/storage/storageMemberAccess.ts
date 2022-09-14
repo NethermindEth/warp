@@ -74,9 +74,9 @@ export class StorageMemberAccessGen extends CairoUtilFuncGenBase {
     existingMemberAccesses.set(memberName, {
       name: funcName,
       code: [
-        `func ${funcName}(loc: felt) -> (memberLoc: felt):`,
-        `    return (${add('loc', offset)})`,
-        `end`,
+        `func ${funcName}(loc: felt) -> (memberLoc: felt){`,
+        `    return (${add('loc', offset)},);`,
+        `}`,
       ].join('\n'),
     });
 

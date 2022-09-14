@@ -100,11 +100,11 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const funcName = `cd_struct_${cairoStruct.toString()}_to_storage`;
     const code = [
-      `func ${funcName}${implicits}(loc : felt, ${structName} : ${cairoStruct.toString()}) -> (loc : felt):`,
-      `   alloc_locals`,
+      `func ${funcName}${implicits}(loc : felt, ${structName} : ${cairoStruct.toString()}) -> (loc : felt){`,
+      `   alloc_locals;`,
       ...copyInstructions,
-      `   return (loc)`,
-      `end`,
+      `   return (loc,);`,
+      `}`,
     ].join('\n');
 
     this.generatedFunctions.set(key, { name: funcName, code: code });
@@ -127,11 +127,11 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const funcName = `cd_static_array_to_storage${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}${implicits}(loc : felt, static_array : ${cairoType.toString()}) -> (loc : felt):`,
-      `   alloc_locals`,
+      `func ${funcName}${implicits}(loc : felt, static_array : ${cairoType.toString()}) -> (loc : felt){`,
+      `   alloc_locals;`,
       ...copyInstructions,
-      `   return (loc)`,
-      `end`,
+      `   return (loc,);`,
+      `}`,
     ].join('\n');
 
     this.generatedFunctions.set(key, { name: funcName, code: code });
@@ -156,39 +156,39 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
       TypeConversionContext.StorageAllocation,
     );
 
-    const copyCode = `${this.storageWriteGen.getOrCreate(elementT)}(elem_loc, elem[index])`;
+    const copyCode = `${this.storageWriteGen.getOrCreate(elementT)}(elem_loc, elem[index]);`;
 
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const pointerType = `${cairoElementType.toString()}*`;
 
     const funcName = `cd_dynamic_array_to_storage${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}_write${implicits}(loc : felt, index : felt, len : felt, elem: ${pointerType}):`,
-      `   alloc_locals`,
-      `   if index == len:`,
-      `       return ()`,
-      `   end`,
-      `   let (index_uint256) = warp_uint256(index)`,
-      `   let (elem_loc) = ${arrayName}.read(loc, index_uint256)`,
-      `   if elem_loc == 0:`,
-      `       let (elem_loc) = WARP_USED_STORAGE.read() `,
-      `       WARP_USED_STORAGE.write(elem_loc + ${cairoElementType.width})`,
-      `       ${arrayName}.write(loc, index_uint256, elem_loc)`,
+      `func ${funcName}_write${implicits}(loc : felt, index : felt, len : felt, elem: ${pointerType}){`,
+      `   alloc_locals;`,
+      `   if (index == len){`,
+      `       return ();`,
+      `   }`,
+      `   let (index_uint256) = warp_uint256(index);`,
+      `   let (elem_loc) = ${arrayName}.read(loc, index_uint256);`,
+      `   if (elem_loc == 0){`,
+      `       let (elem_loc) = WARP_USED_STORAGE.read();`,
+      `       WARP_USED_STORAGE.write(elem_loc + ${cairoElementType.width});`,
+      `       ${arrayName}.write(loc, index_uint256, elem_loc);`,
       `       ${copyCode}`,
-      `       return ${funcName}_write(loc, index + 1, len, elem)`,
-      `   else:`,
+      `       return ${funcName}_write(loc, index + 1, len, elem);`,
+      `   }else{`,
       `       ${copyCode}`,
-      `       return ${funcName}_write(loc, index + 1, len, elem)`,
-      `   end`,
-      `end`,
+      `       return ${funcName}_write(loc, index + 1, len, elem);`,
+      `   }`,
+      `}`,
 
-      `func ${funcName}${implicits}(loc : felt, dyn_array_struct : ${structDef.name}) -> (loc : felt): `,
-      `   alloc_locals`,
-      `   let (len_uint256) = warp_uint256(dyn_array_struct.len)`,
-      `   ${arrayLen}.write(loc, len_uint256)`,
-      `   ${funcName}_write(loc, 0, dyn_array_struct.len, dyn_array_struct.ptr)`,
-      `   return (loc)`,
-      `end`,
+      `func ${funcName}${implicits}(loc : felt, dyn_array_struct : ${structDef.name}) -> (loc : felt){ `,
+      `   alloc_locals;`,
+      `   let (len_uint256) = warp_uint256(dyn_array_struct.len);`,
+      `   ${arrayLen}.write(loc, len_uint256);`,
+      `   ${funcName}_write(loc, 0, dyn_array_struct.len, dyn_array_struct.ptr);`,
+      `   return (loc,);`,
+      `}`,
     ].join('\n');
 
     this.requireImport('warplib.maths.int_conversions', 'warp_uint256');
@@ -212,7 +212,7 @@ export class CalldataToStorageGen extends StringIndexedFuncGen {
 
       offset += varCairoTypeWidth;
 
-      return `    ${funcName}(${location}, ${names[index]})`;
+      return `    ${funcName}(${location}, ${names[index]});`;
     });
 
     return copyInstructions;

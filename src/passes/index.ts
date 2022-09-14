@@ -34,6 +34,7 @@ export * from './newToDeploy';
 export * from './orderNestedStructs';
 export * from './publicFunctionSplitter';
 export * from './referencedLibraries';
+export * from './replaceIdentifierContractMemberAccess';
 export * from './rejectUnsupportedFeatures';
 export * from './returnInserter';
 export * from './ReturnVariableInitializer';

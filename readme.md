@@ -37,7 +37,7 @@ export LDFLAGS=-L`brew --prefix gmp`/lib
 sudo apt install libz3-dev libgmp3-dev
 ```
 
-2. Have Python 3.7 installed with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
+2. Have Python 3.9 installed with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
 
 <br>
 
@@ -64,10 +64,10 @@ warp version
 warp install --verbose
 ```
 
-Use the `--python` flag to pass the path to `python3.7` binary, if the above command complains.
+Use the `--python` flag to pass the path to `python3.9` binary, if the above command complains.
 
 ```bash
-warp install --python <path/to/python3.7> --verbose
+warp install --python <path/to/python3.9> --verbose
 ```
 
 4. Test the installation worked by transpiling an example ERC20 contract:
@@ -84,7 +84,7 @@ warp transpile example_contracts/ERC20.sol
 
 Make sure you have the [dependencies](#dependencies) installed first.
 
-With a virtual environment (recommended Python3.7) activated:
+With a virtual environment (recommended Python3.9) activated:
 
 1. Clone this repo and change directory into the `warp` folder.
 

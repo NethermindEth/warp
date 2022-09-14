@@ -63,12 +63,12 @@ export class StorageWriteGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt, value: ${cairoTypeString}) -> (res: ${cairoTypeString}):`,
+        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt, value: ${cairoTypeString}) -> (res: ${cairoTypeString}){`,
         ...cairoTypeToWrite
           .serialiseMembers('value')
           .map((name, index) => `    ${write(add('loc', index), name)}`),
-        '    return (value)',
-        'end',
+        '    return (value,);',
+        '}',
       ].join('\n'),
     });
     return funcName;
@@ -76,5 +76,5 @@ export class StorageWriteGen extends StringIndexedFuncGen {
 }
 
 function write(offset: string, value: string): string {
-  return `WARP_STORAGE.write(${offset}, ${value})`;
+  return `WARP_STORAGE.write(${offset}, ${value});`;
 }

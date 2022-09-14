@@ -145,20 +145,20 @@ export class InputCheckGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(arg : ${cairoType.toString()}) -> ():`,
-        `alloc_locals`,
+        `func ${funcName}${implicits}(arg : ${cairoType.toString()}) -> (){`,
+        `alloc_locals;`,
         ...structDef.vMembers.map((decl) => {
           const memberType = safeGetNodeType(decl, this.ast.compilerVersion);
           this.checkForImport(memberType);
           if (checkableType(memberType)) {
             const memberCheck = this.getOrCreate(memberType);
-            return [`${memberCheck}(arg.${decl.name})`];
+            return [`${memberCheck}(arg.${decl.name});`];
           } else {
             return '';
           }
         }),
-        `return ()`,
-        `end`,
+        `return ();`,
+        `}`,
       ].join('\n'),
     });
     return funcName;
@@ -177,14 +177,14 @@ export class InputCheckGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(arg : ${cairoType.toString()}) -> ():`,
-        `alloc_locals`,
+        `func ${funcName}${implicits}(arg : ${cairoType.toString()}) -> (){`,
+        `alloc_locals;`,
         ...mapRange(length, (index) => {
           const indexCheck = this.getOrCreate(elementType);
-          return [`${indexCheck}(arg[${index}])`];
+          return [`${indexCheck}(arg[${index}]);`];
         }),
-        `return ()`,
-        `end`,
+        `return ();`,
+        `}`,
       ].join('\n'),
     });
     return funcName;
@@ -206,20 +206,20 @@ export class InputCheckGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(arg : ${takesUint ? 'Uint256' : 'felt'}) -> ():`,
+        `func ${funcName}${implicits}(arg : ${takesUint ? 'Uint256' : 'felt'}) -> (){`,
         takesUint
           ? [
-              '    let (arg_0) = narrow_safe(arg)',
-              `    let (inRange: felt) = is_le_felt(arg_0, ${nMembers - 1})`,
+              '    let (arg_0) = narrow_safe(arg);',
+              `    let inRange: felt = is_le_felt(arg_0, ${nMembers - 1});`,
             ].join('\n')
-          : `    let (inRange : felt) = is_le_felt(arg, ${nMembers - 1})`,
+          : `    let inRange : felt = is_le_felt(arg, ${nMembers - 1});`,
         `    with_attr error_message("Error: value out-of-bounds. Values passed to must be in enum range (0, ${
           nMembers - 1
-        }]."):`,
-        `        assert 1 = inRange`,
-        `    end`,
-        `    return ()`,
-        `end`,
+        }]."){`,
+        `        assert 1 = inRange;`,
+        `    }`,
+        `    return ();`,
+        `}`,
       ].join('\n'),
     });
     this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt');
@@ -238,20 +238,20 @@ export class InputCheckGen extends StringIndexedFuncGen {
     const ptrType = cairoType.vPtr;
     const elementType = generalizeType(getElementType(type))[0];
     this.checkForImport(elementType);
-    const indexCheck = [`${this.getOrCreate(elementType)}(ptr[0])`];
+    const indexCheck = [`${this.getOrCreate(elementType)}(ptr[0]);`];
 
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(len: felt, ptr : ${ptrType.toString()}) -> ():`,
-        `    alloc_locals`,
-        `    if len == 0:`,
-        `        return ()`,
-        `    end`,
+        `func ${funcName}${implicits}(len: felt, ptr : ${ptrType.toString()}) -> (){`,
+        `    alloc_locals;`,
+        `    if (len == 0){`,
+        `        return ();`,
+        `    }`,
         ...indexCheck,
-        `   ${funcName}(len = len - 1, ptr = ptr + ${ptrType.to.width})`,
-        `    return ()`,
-        `end`,
+        `   ${funcName}(len = len - 1, ptr = ptr + ${ptrType.to.width});`,
+        `    return ();`,
+        `}`,
       ].join('\n'),
     });
     return funcName;

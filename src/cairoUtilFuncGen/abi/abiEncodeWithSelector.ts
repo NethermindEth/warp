@@ -56,8 +56,8 @@ export class AbiEncodeWithSelector extends AbiBase {
         [{ name: 'selector', type: 'felt' }],
         [
           [
-            'fixed_bytes_to_felt_dynamic_array(bytes_index, bytes_array, 0, selector, 4)',
-            'let bytes_index = bytes_index + 4',
+            'fixed_bytes_to_felt_dynamic_array(bytes_index, bytes_array, 0, selector, 4);',
+            'let bytes_index = bytes_index + 4;',
           ].join('\n'),
         ],
       ],
@@ -71,17 +71,17 @@ export class AbiEncodeWithSelector extends AbiBase {
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt):`,
-      `  alloc_locals`,
-      `  let bytes_index : felt = 0`,
-      `  let bytes_offset : felt = ${initialOffset}`,
-      `  let (bytes_array : felt*) = alloc()`,
+      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
+      `  alloc_locals;`,
+      `  let bytes_index : felt = 0;`,
+      `  let bytes_offset : felt = ${initialOffset};`,
+      `  let (bytes_array : felt*) = alloc();`,
       ...encodings,
-      `  let (max_length256) = felt_to_uint256(bytes_offset)`,
-      `  let (mem_ptr) = wm_new(max_length256, ${uint256(1)})`,
-      `  felt_array_to_warp_memory_array(0, bytes_array, 0, mem_ptr, bytes_offset)`,
-      `  return (mem_ptr)`,
-      `end`,
+      `  let (max_length256) = felt_to_uint256(bytes_offset);`,
+      `  let (mem_ptr) = wm_new(max_length256, ${uint256(1)});`,
+      `  felt_array_to_warp_memory_array(0, bytes_array, 0, mem_ptr, bytes_offset);`,
+      `  return (mem_ptr,);`,
+      `}`,
     ].join('\n');
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
