@@ -439,10 +439,10 @@ class CairoContractWriter extends CairoASTNodeWriter {
 
     let documentation = getDocumentation(node.documentation, writer);
 
-    if (documentation.slice(1).trim().startsWith('warp-cairo')) {
+    if (documentation.slice(2).trim().startsWith('warp-cairo')) {
       documentation = documentation
         .split('\n')
-        .map((line) => line.slice(1))
+        .map((line) => line.slice(2))
         .slice(1)
         .join('\n');
     }

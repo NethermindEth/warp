@@ -7,9 +7,15 @@ import { execSync } from 'child_process';
 
 import {
   ASTWriter,
+  Block,
   ContractDefinition,
   ContractKind,
   DefaultASTWriterMapping,
+  FunctionDefinition,
+  FunctionKind,
+  FunctionStateMutability,
+  FunctionVisibility,
+  ParameterList,
   PragmaDirective,
   PrettyFormatter,
   SourceUnit,
@@ -40,17 +46,17 @@ function getPragmaDirective(version: string): PragmaDirective {
 }
 
 function getForwarderContract(jsonCairo: {
-  imports: any[];
-  structs: String[][];
+  imports: string[];
+  structs: string[][];
   forwarder_interface: string[];
 }): ContractDefinition {
   const id = getNewId();
   const src = '';
-  const name = 'Forwarder';
+  const name = 'WARP';
   const contractDocs = [
     'warp-cairo',
     jsonCairo.imports.join('\n'),
-    jsonCairo.structs.map((struct: String[]) => struct.join('\n')).join('\n'),
+    jsonCairo.structs.map((struct: string[]) => struct.join('\n')).join('\n'),
     jsonCairo.forwarder_interface
       .map((s: string) => (s.startsWith('@') ? `DECORATOR(${s.slice(1)})` : s))
       .join('\n'),
@@ -67,6 +73,40 @@ function getForwarderContract(jsonCairo: {
     [],
     contractDocs,
   );
+}
+
+function getFreeFunctions(
+  jsonCairo: {
+    abi: [{ name: string; type: string; stub: string[] }];
+  },
+  sourceUnitId: number,
+): FunctionDefinition[] {
+  let functions: FunctionDefinition[] = [];
+  jsonCairo.abi.forEach((element: { name: string; type: string; stub: string[] }) => {
+    console.log(element.name, element.type);
+    if (element.type !== 'function') return;
+    const id = getNewId();
+    functions.push(
+      new FunctionDefinition(
+        id,
+        '',
+        sourceUnitId,
+        FunctionKind.Free,
+        element.name,
+        false,
+        FunctionVisibility.Internal,
+        FunctionStateMutability.NonPayable,
+        false, // is constructor
+        new ParameterList(getNewId(), '', []), // parameters
+        new ParameterList(getNewId(), '', []), // return parameters
+        [], // modifiers
+        undefined, // override specifier
+        new Block(getNewId(), '', []), // body
+        ['warp-cairo', ...element.stub].join('\n'), // documentation
+      ),
+    );
+  });
+  return functions;
 }
 
 export function generateSolInterface(filePath: string, options: SolcInterfaceGenOptions) {
@@ -86,9 +126,15 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
     solPath = options.output;
   }
 
-  const parameters = new Map([['output', solPath]]);
+  if (!solPath.endsWith('.sol')) {
+    logError(`Output path ${solPath} must end with .sol`);
+    return;
+  }
 
-  parameters.set('cairo_path', path.resolve(__dirname, '..'));
+  const parameters = new Map([
+    ['output', solPath],
+    ['cairo_path', path.resolve(__dirname, '..')],
+  ]);
 
   execSync(
     `${warpVenvPrefix} python3 ../interface_call_forwarder/generate_cairo_json.py ${filePath} ${[
@@ -100,12 +146,15 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
   );
 
   const jsonCairo = JSON.parse(fs.readFileSync(jsonCairoPath, 'utf8'));
-  console.log(jsonCairo);
-  console.log(solPath);
+
+  const sourceUnitId = getNewId();
+
+  const freeFunctions = getFreeFunctions(jsonCairo, sourceUnitId);
 
   const sourceUnitChildren = [
     getPragmaDirective(options.solc_version ?? defaultCompilerVersion),
     getForwarderContract(jsonCairo),
+    ...freeFunctions,
   ];
 
   const writer = new ASTWriter(
@@ -114,54 +163,12 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
     options.solc_version ?? defaultCompilerVersion,
   );
 
-  const result: String = removeExcessNewlines(
+  const result: string = removeExcessNewlines(
     writer.write(
-      new SourceUnit(getNewId(), '', solPath, 0, solPath, new Map(), sourceUnitChildren),
+      new SourceUnit(sourceUnitId, '', solPath, 0, solPath, new Map(), sourceUnitChildren),
     ),
     2,
   );
 
-  console.log(result);
+  fs.writeFileSync(solPath, result);
 }
-
-// {
-//   abi: [
-//     { name: 'AA', type: 'struct', members: [Array], size: 3 },
-//     { name: 'Uint256', type: 'struct', members: [Array], size: 2 },
-//     {
-//       name: 'use_struct',
-//       type: 'function',
-//       inputs: [Array],
-//       outputs: [Array],
-//       stateMutability: 'view',
-//       stub: [Array]
-//     }
-//   ],
-//   forwarder_interface: [
-//     '@contract_interface',
-//     'namespace Forwarder:',
-//     '    func use_struct(addr : felt, a : AA) -> (val : Uint256):',
-//     '    end',
-//     'end'
-//   ],
-//   imports: [
-//     'from warplib.maths.external_input_check_ints import warp_external_input_check_int256',
-//     'from starkware.cairo.common.uint256 import Uint256',
-//     'from warplib.maths.add import warp_add256',
-//     'from starkware.cairo.common.cairo_builtins import HashBuiltin'
-//   ],
-//   structs: [
-//     [
-//       'struct AA:',
-//       '    member a : Uint256',
-//       '    member b : felt',
-//       'end'
-//     ]
-//   ],
-//   functions: [
-//     [
-//       'func use_struct(addr : felt, a : AA) -> (val : Uint256):',
-//       'end'
-//     ]
-//   ]
-// }

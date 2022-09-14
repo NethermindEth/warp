@@ -14,7 +14,7 @@ from starkware.cairo.lang.compiler.ast.code_elements import (
     CodeElementFunction,
     CodeElementImport,
     CodeElementReturn,
-    CodeElementUnpackBinding,
+    CodeElementReturnValueReference,
     CommentedCodeElement,
 )
 from starkware.cairo.lang.compiler.ast.expr import ExprIdentifier, ArgList, ExprAssignment
@@ -144,17 +144,19 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector)
                 code_block=CodeBlock(
                     code_elements=[
                         CommentedCodeElement(
-                            code_elm=CodeElementUnpackBinding(
-                                unpacking_list=IdentifierList(
-                                    identifiers=[TypedIdentifier(
-                                        identifier=ExprIdentifier(name="val"), expr_type=None)]
-                                ),
-                                rvalue=RvalueFuncCall(
+                            code_elm=CodeElementReturnValueReference(
+                                TypedIdentifier(
+                                    identifier=ExprIdentifier(name="val"), 
+                                    expr_type=None,
+                                    modifier=None
+                                ), 
+                                func_call = RvalueFuncCall(
                                     func_ident=ExprIdentifier(
-                                        name="Forwarder." + func.identifier.name),
+                                        name = "Forwarder." + func.identifier.name
+                                    ), 
                                     arguments=ArgList(
-                                        args=[ExprIdentifier(name="addr")] + [
-                                            ExprIdentifier(name=arg.identifier.name) for arg in func.arguments.identifiers
+                                        args=[ExprAssignment(identifier=None, expr=ExprIdentifier(name='addr'))] + [
+                                            ExprAssignment(identifier = None, expr =  ExprIdentifier(name=arg.identifier.name)) for arg in func.arguments.identifiers
                                         ],
                                         notes=[
                                             Notes() for _ in func.arguments.identifiers] + [Notes()]*2,
@@ -162,13 +164,12 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector)
                                     ),
                                     implicit_arguments=None
                                 )
-                            ),
+                            ), 
                             comment=None
                         ),
                         CommentedCodeElement(
                             code_elm=CodeElementReturn(
-                                exprs=[ExprAssignment(
-                                    identifier=None, expr=ExprIdentifier(name='val'))],
+                                expr=ExprIdentifier(name="val"),
                             ),
                             comment=None
                         )
@@ -226,7 +227,7 @@ def main():
         codes = get_codes(args.files)
 
         abi = get_cairo_abi(args=args)
-        print(args, args.output)
+
         if args.output is None:
             args.output = codes[0][1].replace('.cairo', '.json')
         else :

@@ -1,3 +1,4 @@
+import assert from 'assert';
 import {
   ASTNode,
   ContractDefinition,
@@ -16,19 +17,16 @@ import { isExternallyVisible } from '../utils/utils';
 
 export class CairoStubProcessor extends ASTMapper {
   visitContractDefinition(node: ContractDefinition, ast: AST): void {
-    // Only for interaction between plane cairo contract
+    // Only for interaction between plane cairo contract and solidity contract
     // To support interface call forwarder
 
-    let documentation = getDocString(node.documentation);
-    if (documentation === undefined) {
+    if (!isCairoStub(node)) {
       this.commonVisit(node, ast);
       return;
     }
 
-    if (documentation.split('\n')[0]?.trim() !== 'warp-cairo') {
-      this.commonVisit(node, ast);
-      return;
-    }
+    let documentation = getDocString(node.documentation);
+    assert(documentation !== undefined);
     documentation = processDecoratorTags(documentation);
 
     setDocString(node, documentation);
@@ -177,7 +175,7 @@ export function getDocString(
   return doc.text;
 }
 
-export function isCairoStub(node: FunctionDefinition): boolean {
+export function isCairoStub(node: FunctionDefinition | ContractDefinition): boolean {
   const documentation = getDocString(node.documentation);
   return documentation !== undefined && documentation.split('\n')[0]?.trim() === 'warp-cairo';
 }
