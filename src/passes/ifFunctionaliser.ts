@@ -175,10 +175,10 @@ function createSplitFunction(
     existingFunction.scope,
     existingFunction.kind === FunctionKind.Free ? FunctionKind.Free : FunctionKind.Function,
     `${existingFunction.name}${IF_FUNCTIONALISER_INFIX}${counter + 1}`,
-    false,
+    false, // virtual
     FunctionVisibility.Private,
     existingFunction.stateMutability,
-    false,
+    false, // isConstructor
     createParameterList(inputParams, ast),
     retParams,
     [],

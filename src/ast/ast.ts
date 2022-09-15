@@ -104,11 +104,11 @@ export class AST {
     const replacementVariable = new VariableDeclaration(
       this.tempId,
       node.src,
-      true,
-      false,
+      true, // constant
+      false, // indexed
       newName,
       scope,
-      false,
+      false, // stateVariable
       location,
       StateVariableVisibility.Private,
       Mutability.Constant,

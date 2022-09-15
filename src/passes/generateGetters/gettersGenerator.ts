@@ -94,10 +94,10 @@ export class GettersGenerator extends ASTMapper {
           node.id,
           FunctionKind.Function,
           v.name,
-          false,
+          false, // virtual
           FunctionVisibility.Public,
           FunctionStateMutability.View,
-          false,
+          false, // isConstructor
           fnParams,
           returnParameterList,
           [],
@@ -131,11 +131,11 @@ function genReturnParameters(
     return new VariableDeclaration(
       ast.reserveId(),
       '',
-      false,
-      false,
+      false, // constant
+      false, // indexed
       '',
       funcDefID,
-      false,
+      false, // stateVariable
       dataLocation,
       StateVariableVisibility.Internal,
       Mutability.Mutable,
@@ -206,11 +206,11 @@ function genFunctionParams(
       new VariableDeclaration(
         ast.reserveId(),
         '',
-        false,
-        false,
+        false, // constant
+        false, // indexed
         `_i${varCount}`,
         funcDefID,
-        false,
+        false, // stateVariable
         DataLocation.Default,
         StateVariableVisibility.Internal,
         Mutability.Mutable,
@@ -225,11 +225,11 @@ function genFunctionParams(
       new VariableDeclaration(
         ast.reserveId(),
         '',
-        false,
-        false,
+        false, // constant
+        false, // indexed
         `_i${varCount}`,
         funcDefID,
-        false,
+        false, // stateVariable
         locationIfComplexType(safeGetNodeType(vType, ast.compilerVersion), DataLocation.Memory),
         StateVariableVisibility.Internal,
         Mutability.Mutable,
@@ -326,11 +326,11 @@ function genReturnBlock(
         const structVarDecl = new VariableDeclaration(
           ast.reserveId(),
           '',
-          false,
-          false,
+          false, // constant
+          false, // indexed
           `_temp${tempCount++}`,
           getter.id,
-          false,
+          false, // stateVariable
           DataLocation.Storage,
           StateVariableVisibility.Internal,
           Mutability.Mutable,

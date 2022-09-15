@@ -13,7 +13,12 @@ import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction } from '../../utils/functionGeneration';
-import { MANGLED_PARAMETER, MANGLED_RETURN_PARAMETER } from '../../utils/nameModifiers';
+import {
+  MANGLED_PARAMETER,
+  MANGLED_RETURN_PARAMETER,
+  MODIFIER_PREFIX,
+  ORIGINAL_FUNCTION_PREFIX,
+} from '../../utils/nameModifiers';
 import {
   createBlock,
   createExpressionStatement,
@@ -73,7 +78,7 @@ export class FunctionModifierHandler extends ASTMapper {
 
     const funcDef = cloneASTNode(node, ast);
     const name = node.isConstructor ? `constructor` : `function_${node.name}`;
-    funcDef.name = `__warp_original_${name}`;
+    funcDef.name = `${ORIGINAL_FUNCTION_PREFIX}${name}_${this.count++}`;
     funcDef.visibility = FunctionVisibility.Internal;
     funcDef.isConstructor = false;
     funcDef.kind = FunctionKind.Function;
@@ -117,11 +122,11 @@ export class FunctionModifierHandler extends ASTMapper {
       modifierClone.src,
       node.scope,
       FunctionKind.Function,
-      `__warp_${modifier.name}_${this.count++}`,
-      node.virtual,
+      `${MODIFIER_PREFIX}${modifier.name}_${node.name}_${this.count++}`,
+      false, // virtual
       FunctionVisibility.Internal,
       node.stateMutability,
-      false,
+      false, // isConstructor
       createParameterList(
         [...modifierClone.vParameters.vParameters, ...functionParams],
         ast,
@@ -150,13 +155,13 @@ export class FunctionModifierHandler extends ASTMapper {
 
   createInputParameter(v: VariableDeclaration, ast: AST): VariableDeclaration {
     const variable = cloneASTNode(v, ast);
-    variable.name = `${MANGLED_PARAMETER}${this.count++}`;
+    variable.name = `${MANGLED_PARAMETER}${v.name}${this.count++}`;
     return variable;
   }
 
   createReturnParameter(v: VariableDeclaration, ast: AST): VariableDeclaration {
     const param = cloneASTNode(v, ast);
-    param.name = `${MANGLED_RETURN_PARAMETER}${this.count++}`;
+    param.name = `${MANGLED_RETURN_PARAMETER}${v.name}${this.count++}`;
     return param;
   }
 }

@@ -114,7 +114,7 @@ export function genContractInterface(
     sourceUnit.id,
     ContractKind.Interface,
     contract.abstract,
-    false,
+    false, // fullyImplemented
     contract.linearizedBaseContracts,
     contract.usedErrors,
     new Map(),

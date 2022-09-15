@@ -76,11 +76,11 @@ export class ExpressionSplitter extends ASTMapper {
       const varDecl = new VariableDeclaration(
         ast.reserveId(),
         '',
-        false,
-        false,
+        false, // constant
+        false, // indexed
         this.eGen.next().value, //name
         ast.getContainingScope(node), //scope
-        false,
+        false, // stateVariable
         location,
         StateVariableVisibility.Internal,
         Mutability.Constant,
@@ -153,10 +153,10 @@ export class ExpressionSplitter extends ASTMapper {
       containingFunction.scope,
       containingFunction.kind === FunctionKind.Free ? FunctionKind.Free : FunctionKind.Function,
       `_conditional${this.funcNameCounter++}`,
-      false,
+      false, // virtual
       FunctionVisibility.Internal,
       containingFunction.stateMutability,
-      false,
+      false, // isConstructor
       params,
       returns,
       [],

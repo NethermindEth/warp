@@ -504,8 +504,8 @@ function peg$parse(input: string, options?: IParseOptions) {
       ['a', 'f'],
       ['A', 'F'],
     ],
-    false,
-    false,
+    false, // inverted
+    false, // ignoreCase
   );
   const peg$c50 = function (): any {
     return parseInt(text(), 10);
