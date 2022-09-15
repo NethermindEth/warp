@@ -50,7 +50,7 @@ def functionCallableCheck(callableDecorators, decorators: list[ExprIdentifier]):
 
 
 class InterfaceElementsCollector(Visitor):
-    def __init__(self, abi_functions: list[str]):
+    def __init__(self, abi_functions: list[str], abi_structs:list[str]):
         super().__init__()
         self.functions: list[CodeElementFunction] = list()
         self.structs: list[CodeElementFunction] = list()
@@ -60,6 +60,7 @@ class InterfaceElementsCollector(Visitor):
             "external",
         ]
         self.abi_functions: list[str] = abi_functions
+        self.abi_structs: list[str] = abi_structs
 
     def visit_CodeElementFunction(self, elm: CodeElementFunction):
 
@@ -76,9 +77,18 @@ class InterfaceElementsCollector(Visitor):
             self.structs.append(visited_elm)
 
         return visited_elm
+    
+    def getUsableImportItems(self, elm:CodeElementImport):
+        import_items = list(filter(lambda x: x.orig_identifier.name in self.abi_structs, elm.import_items))
+        return import_items
+
 
     def visit_CodeElementImport(self, elm: CodeElementImport):
-        self.imports.append(elm)
+        usableImportItems = self.getUsableImportItems(elm)
+        if len(usableImportItems) > 0:
+            elm.import_items = usableImportItems
+            self.imports.append(elm)
+            return elm
         return elm
 
     def _visit_default(self, obj):
@@ -121,7 +131,7 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector)
             CodeElementFunction(
                 element_type=func.element_type,
                 identifier=ExprIdentifier(
-                    name="Interface_" + func.identifier.name),
+                    name="CURRENTFUNC()"),
                 arguments=IdentifierList(identifiers=[
                     TypedIdentifier(identifier=ExprIdentifier(
                         name="addr"), expr_type=TypeFelt())
@@ -235,7 +245,9 @@ def main():
 
 
         interfaceElementCollector = InterfaceElementsCollector(
-            [entry["name"] for entry in abi if entry["type"] == "function"])
+            [entry["name"] for entry in abi if entry["type"] == "function"], 
+            [entry["name"] for entry in abi if entry["type"] == "struct"]
+        )
         
         for code, filename in codes:
             parsed_file: CairoFile = parse_file(code, filename=filename)
