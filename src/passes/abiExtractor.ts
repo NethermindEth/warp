@@ -153,7 +153,7 @@ function validateInput(input: unknown) {
 }
 
 function parseSolAbi(filePath: string): string[] {
-  const re = /# Original soldity abi: (?<abi>[\w()\][, "]*)/;
+  const re = /\/\/ Original soldity abi: (?<abi>[\w()\][, "]*)/;
   const abiString = readFileSync(filePath, 'utf-8');
   const matches = abiString.match(re);
   if (matches === null || matches.groups === undefined) {
