@@ -102,7 +102,7 @@ export async function encodeInputs(
     const inputs = rawInputs ? `--inputs ${rawInputs.join(' ').split(',').join(' ')}` : '';
     return [func, inputs];
   }
-
+  console.log('filepath', filePath);
   const solABI = parseSolAbi(filePath);
   const funcSignature = await selectSignature(solABI, func);
   const selector = new Web3().utils.keccak256(funcSignature).substring(2, 10);
@@ -143,6 +143,8 @@ function parseSolAbi(filePath: string): string[] {
   const re = /# Original soldity abi: (?<abi>[\w()\][, "]*)/;
   const abiString = readFileSync(filePath, 'utf-8');
   const matches = abiString.match(re);
+  console.log('matches', matches);
+
   if (matches === null || matches.groups === undefined) {
     throw new CLIError(
       "Couldn't find solidity abi in file, please include one in the form '# SolABI: [func1(type1,type2),...]",
