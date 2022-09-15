@@ -139,7 +139,6 @@ function validateInput(input: unknown) {
   if (typeof input === 'number') return;
   throw new CLIError('Input invalid');
 }
-const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
 function parseSolAbi(filePath: string): string[] {
   const re = /# Original soldity abi: (?<abi>[\w()\][, "]*)/;
