@@ -5,13 +5,13 @@ pragma experimental ABIEncoderV2;
 
 import "../openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../saddle/Swap.sol";
-import "./L2_Bridge.sol";
+import "./Interface_L2_Bridge.sol";
 import "../interfaces/IWETH.sol";
 import "./SwapDataConsumer.sol";
 
 contract L2_AmmWrapper is SwapDataConsumer {
 
-    L2_Bridge public immutable bridge;
+    Interface_L2_Bridge public immutable bridge;
     IERC20 public immutable l2CanonicalToken;
     bool public immutable l2CanonicalTokenIsEth;
     IERC20 public immutable hToken;
@@ -19,7 +19,7 @@ contract L2_AmmWrapper is SwapDataConsumer {
 
     /// @notice When l2CanonicalTokenIsEth is true, l2CanonicalToken should be set to the WETH address
     constructor(
-        L2_Bridge _bridge,
+        Interface_L2_Bridge _bridge,
         IERC20 _l2CanonicalToken,
         bool _l2CanonicalTokenIsEth,
         IERC20 _hToken,
