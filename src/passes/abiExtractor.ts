@@ -158,7 +158,7 @@ function parseSolAbi(filePath: string): string[] {
   const matches = abiString.match(re);
   if (matches === null || matches.groups === undefined) {
     throw new CLIError(
-      "Couldn't find solidity abi in file, please include one in the form '# SolABI: [func1(type1,type2),...]",
+      "Couldn't find Solidity ABI in file, please include one in the form '// Original soldity abi: [func1(type1,type2),...]",
     );
   }
   const solAbi = JSON.parse(matches.groups.abi);
