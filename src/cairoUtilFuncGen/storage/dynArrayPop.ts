@@ -79,25 +79,25 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
     const getElemLoc =
       isDynamicArray(elementType) || isMapping(elementType)
         ? [
-            `let (elem_loc) = ${arrayName}.read(loc, newLen)`,
-            `let (elem_loc) = readId(elem_loc)`,
+            `let (elem_loc) = ${arrayName}.read(loc, newLen);`,
+            `let (elem_loc) = readId(elem_loc);`,
           ].join('\n')
-        : `let (elem_loc) = ${arrayName}.read(loc, newLen)`;
+        : `let (elem_loc) = ${arrayName}.read(loc, newLen);`;
 
     const funcName = `${arrayName}_POP`;
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> ():`,
-        `    alloc_locals`,
-        `    let (len) = ${lengthName}.read(loc)`,
-        `    let (isEmpty) = uint256_eq(len, Uint256(0,0))`,
-        `    assert isEmpty = 0`,
-        `    let (newLen) = uint256_sub(len, Uint256(1,0))`,
-        `    ${lengthName}.write(loc, newLen)`,
+        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (){`,
+        `    alloc_locals;`,
+        `    let (len) = ${lengthName}.read(loc);`,
+        `    let (isEmpty) = uint256_eq(len, Uint256(0,0));`,
+        `    assert isEmpty = 0;`,
+        `    let (newLen) = uint256_sub(len, Uint256(1,0));`,
+        `    ${lengthName}.write(loc, newLen);`,
         `    ${getElemLoc}`,
-        `    return ${deleteFuncName}(elem_loc)`,
-        `end`,
+        `    return ${deleteFuncName}(elem_loc);`,
+        `}`,
       ].join('\n'),
     });
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');

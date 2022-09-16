@@ -84,7 +84,7 @@ export class TupleAssignmentSplitter extends ASTMapper {
         ast.reserveId(),
         '',
         returnExpression.typeString,
-        false,
+        false, // isInlineArray
         vars.map((v) => createIdentifier(v, ast, undefined, node)),
       );
       ast.registerChild(node.vExpression, node);
@@ -126,11 +126,11 @@ export class TupleAssignmentSplitter extends ASTMapper {
         const decl = new VariableDeclaration(
           ast.reserveId(),
           node.src,
-          true,
-          false,
+          true, // constant
+          false, // indexed
           this.newTempVarName(),
           block.id,
-          false,
+          false, // stateVariable
           location ?? DataLocation.Default,
           StateVariableVisibility.Default,
           Mutability.Constant,

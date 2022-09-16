@@ -1,17 +1,27 @@
 import {
+  ASTNode,
   ContractDefinition,
+  FunctionCall,
+  FunctionCallKind,
   FunctionDefinition,
   FunctionVisibility,
   Expression,
   FunctionKind,
   ContractKind,
+  MemberAccess,
+  Identifier,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { cloneASTNode } from '../../utils/cloning';
-import { createCallToFunction } from '../../utils/functionGeneration';
+import { TranspilationAbandonedError } from '../../utils/errors';
 import { INTERNAL_FUNCTION_SUFFIX } from '../../utils/nameModifiers';
 import { createBlock, createIdentifier, createReturn } from '../../utils/nodeTemplates';
+import {
+  getContractTypeString,
+  getFunctionTypeString,
+  getReturnTypeString,
+} from '../../utils/getTypeString';
 export class ExternalFunctionCreator extends ASTMapper {
   constructor(
     public internalToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>,
@@ -76,7 +86,11 @@ export class ExternalFunctionCreator extends ASTMapper {
       externalFunction.vParameters.vParameters.map((parameter) => {
         return createIdentifier(parameter, ast, undefined, node);
       });
-    const internalFunctionCall = createCallToFunction(node, internalFunctionCallArguments, ast);
+    const internalFunctionCall = createCallToInternalFunction(
+      node,
+      internalFunctionCallArguments,
+      ast,
+    );
 
     const newReturnFunctionCall = createReturn(
       internalFunctionCall,
@@ -88,4 +102,43 @@ export class ExternalFunctionCreator extends ASTMapper {
     node.getClosestParentByType(ContractDefinition)?.appendChild(externalFunction);
     ast.setContextRecursive(externalFunction);
   }
+}
+
+function createCallToInternalFunction(
+  functionDef: FunctionDefinition,
+  argList: Expression[],
+  ast: AST,
+  nodeInSourceUnit?: ASTNode,
+): FunctionCall {
+  const contract = functionDef.getClosestParentByType(ContractDefinition);
+
+  if (contract === undefined) {
+    throw new TranspilationAbandonedError(
+      `Function ${functionDef.name} is not a member of any contract`,
+    );
+  }
+
+  const memberAccess = new MemberAccess(
+    ast.reserveId(),
+    '',
+    getFunctionTypeString(functionDef, ast.compilerVersion, nodeInSourceUnit),
+    new Identifier(
+      ast.reserveId(),
+      '',
+      getContractTypeString(contract),
+      contract.name,
+      contract.id,
+    ),
+    functionDef.name,
+    functionDef.id,
+  );
+
+  return new FunctionCall(
+    ast.reserveId(),
+    '',
+    getReturnTypeString(functionDef, ast, nodeInSourceUnit),
+    FunctionCallKind.FunctionCall,
+    memberAccess,
+    argList,
+  );
 }

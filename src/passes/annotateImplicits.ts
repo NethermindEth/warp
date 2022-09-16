@@ -44,8 +44,8 @@ export class AnnotateImplicits extends ASTMapper {
       node.vModifiers,
       implicits,
       FunctionStubKind.None,
-      false,
-      false,
+      false, // acceptsRawDArray
+      false, // acceptsUnpackedStructArray
       node.vOverrideSpecifier,
       node.vBody,
       node.documentation,

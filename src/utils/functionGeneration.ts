@@ -94,11 +94,11 @@ export function createCairoFunctionStub(
         new VariableDeclaration(
           ast.reserveId(),
           '',
-          false,
-          false,
+          false, // constant
+          false, // indexed
           name,
           funcDefId,
-          false,
+          false, // stateVariable
           location ?? DataLocation.Default,
           StateVariableVisibility.Private,
           Mutability.Mutable,
@@ -114,10 +114,10 @@ export function createCairoFunctionStub(
     sourceUnit.id,
     FunctionKind.Function,
     name,
-    false,
+    false, // virtual
     FunctionVisibility.Private,
     options.mutability ?? FunctionStateMutability.NonPayable,
-    false,
+    false, // isConstructor
     createParameterList(createParameters(inputs), ast),
     createParameterList(createParameters(returns), ast),
     [],

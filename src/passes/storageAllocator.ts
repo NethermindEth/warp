@@ -118,10 +118,10 @@ function insertIntoInitFunction(
     contract.id,
     FunctionKind.Function,
     `${INIT_FUNCTION_PREFIX}${contract.name}`,
-    false,
+    false, // virtual
     FunctionVisibility.Private,
     FunctionStateMutability.NonPayable,
-    false,
+    false, // isConstructor
     createParameterList([], ast),
     createParameterList([], ast),
     [],

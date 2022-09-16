@@ -95,11 +95,11 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const funcName = `ws_struct_${cairoStruct.toString()}_to_calldata`;
     const code = [
-      `func ${funcName}${implicits}(loc : felt) -> (${structName} : ${cairoStruct.toString()}):`,
-      `   alloc_locals`,
+      `func ${funcName}${implicits}(loc : felt) -> (${structName} : ${cairoStruct.toString()}){`,
+      `   alloc_locals;`,
       ...copyInstructions,
-      `   return (${cairoStruct.toString()}(${members.join(', ')}))`,
-      `end`,
+      `   return (${cairoStruct.toString()}(${members.join(', ')}),);`,
+      `}`,
     ].join('\n');
 
     this.generatedFunctions.set(key, { name: funcName, code: code });
@@ -119,11 +119,11 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const funcName = `ws_static_array_to_calldata${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}${implicits}(loc : felt) -> (static_array : ${cairoType.toString()}):`,
-      `    alloc_locals`,
+      `func ${funcName}${implicits}(loc : felt) -> (static_array : ${cairoType.toString()}){`,
+      `    alloc_locals;`,
       ...copyInstructions,
-      `    return ((${members.join(', ')}))`,
-      `end`,
+      `    return ((${members.join(', ')}),);`,
+      `}`,
     ].join('\n');
 
     this.generatedFunctions.set(key, { name: funcName, code: code });
@@ -158,27 +158,27 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       `   loc : felt,`,
       `   index : felt,`,
       `   len : felt,`,
-      `   ptr : ${ptrType}) -> (ptr : ${ptrType}):`,
-      `   alloc_locals`,
-      `   if len == index:`,
-      `       return (ptr)`,
-      `   end`,
-      `   let (index_uint256) = warp_uint256(index)`,
-      `   let (elem_loc) = ${arrayName}.read(loc, index_uint256)`, // elem_loc should never be zero
-      `   let (elem) = ${this.storageReadGen.genFuncName(elementT)}(elem_loc)`,
-      `   assert ptr[index] = elem`,
-      `   return ${funcName}_write(loc, index + 1, len, ptr)`,
-      `end`,
+      `   ptr : ${ptrType}) -> (ptr : ${ptrType}){`,
+      `   alloc_locals;`,
+      `   if (len == index){`,
+      `       return (ptr,);`,
+      `   }`,
+      `   let (index_uint256) = warp_uint256(index);`,
+      `   let (elem_loc) = ${arrayName}.read(loc, index_uint256);`, // elem_loc should never be zero
+      `   let (elem) = ${this.storageReadGen.genFuncName(elementT)}(elem_loc);`,
+      `   assert ptr[index] = elem;`,
+      `   return ${funcName}_write(loc, index + 1, len, ptr);`,
+      `}`,
 
-      `func ${funcName}${implicits}(loc : felt) -> (dyn_array_struct : ${structDef.name}):`,
-      `   alloc_locals`,
-      `   let (len_uint256) = ${arrayLen}.read(loc)`,
-      `   let len = len_uint256.low + len_uint256.high*128`,
-      `   let (ptr : ${ptrType}) = alloc()`,
-      `   let (ptr : ${ptrType}) = ${funcName}_write(loc, 0, len, ptr)`,
-      `   let dyn_array_struct = ${structDef.name}(len, ptr)`,
-      `   return (dyn_array_struct)`,
-      `end`,
+      `func ${funcName}${implicits}(loc : felt) -> (dyn_array_struct : ${structDef.name}){`,
+      `   alloc_locals;`,
+      `   let (len_uint256) = ${arrayLen}.read(loc);`,
+      `   let len = len_uint256.low + len_uint256.high*128;`,
+      `   let (ptr : ${ptrType}) = alloc();`,
+      `   let (ptr : ${ptrType}) = ${funcName}_write(loc, 0, len, ptr);`,
+      `   let dyn_array_struct = ${structDef.name}(len, ptr);`,
+      `   return (dyn_array_struct,);`,
+      `}`,
     ].join('\n');
 
     this.requireImport('warplib.maths.int_conversions', 'warp_uint256');
@@ -210,7 +210,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       members.push(memberName);
       offset += varCairoTypeWidth;
 
-      return `    let (${memberName}) = ${funcName}(${location})`;
+      return `    let (${memberName}) = ${funcName}(${location});`;
     });
 
     return [copyInstructions, members];
