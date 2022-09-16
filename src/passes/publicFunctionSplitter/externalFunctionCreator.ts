@@ -22,6 +22,7 @@ import {
   getFunctionTypeString,
   getReturnTypeString,
 } from '../../utils/getTypeString';
+import { createCallToFunction } from '../../utils/functionGeneration';
 export class ExternalFunctionCreator extends ASTMapper {
   constructor(
     public internalToExternalFunctionMap: Map<FunctionDefinition, FunctionDefinition>,
@@ -125,7 +126,7 @@ function createCallToInternalFunction(
     new Identifier(
       ast.reserveId(),
       '',
-      getContractTypeString(contract),
+      getFunctionTypeString(functionDef, ast.compilerVersion, nodeInSourceUnit),
       contract.name,
       contract.id,
     ),
