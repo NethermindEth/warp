@@ -5,7 +5,6 @@ import {
   ASTNode,
   BoolType,
   BytesType,
-  ContractDefinition,
   DataLocation,
   EnumDefinition,
   Expression,
