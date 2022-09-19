@@ -18,21 +18,21 @@ export function lt_signed() {
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          'func warp_lt_signed256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt):',
-          '    let (res) = uint256_signed_lt(lhs, rhs)',
-          '    return (res)',
-          'end',
+          'func warp_lt_signed256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt){',
+          '    let (res) = uint256_signed_lt(lhs, rhs);',
+          '    return (res,);',
+          '}',
         ];
       } else {
         return [
           `func warp_lt_signed${width}{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(`,
-          '        lhs : felt, rhs : felt) -> (res : felt):',
-          '    if lhs == rhs:',
-          '        return (0)',
-          '    end',
-          `    let (res) = warp_le_signed${width}(lhs, rhs)`,
-          `    return (res)`,
-          'end',
+          '        lhs : felt, rhs : felt) -> (res : felt){',
+          '    if (lhs == rhs){',
+          '        return (0,);',
+          '    }',
+          `    let (res) = warp_le_signed${width}(lhs, rhs);`,
+          `    return (res,);`,
+          '}',
         ];
       }
     }),

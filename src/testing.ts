@@ -57,6 +57,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/conditional', 'WillNotSupport'],
     ['example_contracts/contract_to_contract', 'Success'],
     ['example_contracts/calldatacopy', 'WillNotSupport'],
+    ['example_contracts/calldataCrossContractCalls', 'Success'],
     ['example_contracts/calldataload', 'WillNotSupport'],
     ['example_contracts/calldatasize', 'WillNotSupport'],
     ['example_contracts/comments', 'Success'],
@@ -64,6 +65,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/constructors_nonDyn', 'Success'],
     ['example_contracts/dai', 'Success'],
     ['example_contracts/delete', 'SolCompileFailed'],
+    ['example_contracts/delete_uses', 'Success'],
     ['example_contracts/enums', 'Success'],
     ['example_contracts/enums7', 'Success'],
     ['example_contracts/errorHandling/assert', 'Success'],
@@ -113,6 +115,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/idManglingTest8', 'Success'],
     ['example_contracts/idManglingTest9', 'Success'],
     ['example_contracts/if_flattening', 'Success'],
+    ['example_contracts/implicitsFromStub', 'Success'],
     ['example_contracts/imports/importContract', 'Success'],
     ['example_contracts/imports/importEnum', 'Success'],
     ['example_contracts/imports/importfrom', 'Success'],
@@ -127,6 +130,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/inheritance/variables', 'Success'],
     // Requires struct imports
     ['example_contracts/interfaces', 'Success'],
+    ['example_contracts/interfaceFromBaseContract', 'Success'],
     ['example_contracts/invalidSolidity', 'SolCompileFailed'],
     ['example_contracts/lib', 'Success'],
     ['example_contracts/libraries/using_for_star', 'Success'],
@@ -197,6 +201,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/unsupportedFunctions/keccak256', `Success`],
     ['example_contracts/unsupportedFunctions/ecrecover', `Success`],
     ['example_contracts/unsupportedFunctions/addmod', `Success`],
+    ['example_contracts/unsupportedFunctions/gasleft', `WillNotSupport`],
     // Supported precompiles
     ['example_contracts/precompiles/ecrecover', 'Success'],
     ['example_contracts/precompiles/keccak256', 'Success'],
@@ -211,6 +216,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/using_for/imports/user_defined', 'Success'],
     // global_directive.sol cannot resolve struct when file imported as identifier
     ['example_contracts/using_for/imports/global_directive', 'Success'],
+    ['example_contracts/using_for/complex_libraries', 'Success'],
     ['example_contracts/using_for/function', 'WillNotSupport'],
     ['example_contracts/using_for/private', 'Success'],
     ['example_contracts/using_for/library', 'Success'],

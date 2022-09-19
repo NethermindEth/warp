@@ -175,7 +175,7 @@ export class CairoStruct extends CairoType {
   }
   get fullStringRepresentation(): string {
     return `[Struct ${this.name}]${[...this.members.entries()].map(
-      ([name, type]) => `(${name}: ${type.fullStringRepresentation})`,
+      ([name, type]) => `(${name}: ${type.fullStringRepresentation}),`,
     )}`;
   }
   toString(): string {

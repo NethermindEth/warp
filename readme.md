@@ -5,26 +5,39 @@
 Warp brings Solidity to StarkNet, making it possible to transpile Ethereum
 smart contracts to StarkNet Cairo Contracts.
 
+## Documentation 📖
+
+You can read the documentation [here](https://nethermindeth.github.io/warp/).
+
 ## Installation :gear:
 
 ### Dependencies
 
 <hr> 
  
-1. You will need [z3](https://github.com/Z3Prover/z3) installed to use Warp.
+1. You will need [z3](https://github.com/Z3Prover/z3) and [gmp](https://gmplib.org/#DOWNLOAD)
+   installed to use Warp.
   
 - Install command on macOS:
 ```bash
-brew install z3
+brew install z3 gmp
+```
+
+If you're on an arm based Apple machine (m1/m2 mac) you'll need to install `gmp` and export some
+environment variables
+
+```
+export CFLAGS=-I`brew --prefix gmp`/include
+export LDFLAGS=-L`brew --prefix gmp`/lib
 ```
 
 - Install command on Ubuntu:
 
 ```bash
-sudo apt install libz3-dev
+sudo apt install libz3-dev libgmp3-dev
 ```
 
-2. Have Python 3.7 installed with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
+2. Have Python 3.9 installed with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
 
 <br>
 
@@ -48,7 +61,13 @@ warp version
 3. Install the dependencies:
 
 ```bash
-warp install
+warp install --verbose
+```
+
+Use the `--python` flag to pass the path to `python3.9` binary, if the above command complains.
+
+```bash
+warp install --python <path/to/python3.9> --verbose
 ```
 
 4. Test the installation worked by transpiling an example ERC20 contract:
@@ -65,7 +84,7 @@ warp transpile example_contracts/ERC20.sol
 
 Make sure you have the [dependencies](#dependencies) installed first.
 
-With a virtual environment (recommended Python3.7) activated:
+With a virtual environment (recommended Python3.9) activated:
 
 1. Clone this repo and change directory into the `warp` folder.
 
@@ -106,6 +125,24 @@ bin/warp transpile example_contracts/ERC20.sol
 
 If you have used installation method 1 you can use the `warp` command in any folder. If you have used installation method 2, you will have to specify the path to the warp directory followed by `bin/warp` e.g `path_to_warp_repo/bin/warp ...`
 
+### StarkNet setup
+
+Select your network and wallet types. It's recommended to set these as
+environment variables but they can also be passed as explicit arguments to the
+Warp CLI and the StarkNet CLI.
+
+```
+export STARKNET_WALLET=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount
+export STARKNET_NETWORK=alpha-goerli
+```
+
+Make sure you have a StarkNet account set up, if you have not done so yet
+please:
+
+```
+warp deploy_account
+```
+
 ### CLI Commands
 
 <hr> 
@@ -121,20 +158,21 @@ To deploy a Cairo contract:
 warp deploy <path to Cairo contract>
 ```
 
-The deploy command will generate the compiled json file as well as the abi json file.
+The deploy command will generate the compiled json file as well as the abi json
+file. Use `warp deploy --help` command to see more deployment options.
 
 <br>
 
 ### Libraries
 
-<hr> 
+<hr>
 Libraries are bundled into the point of use, therefore if you try transpile a standalone library it will result in no output.  If you would like to transpile and deploy a standalone library please alter its declaration to `contract`.
 
 <br>
 
 ### Unsupported Solidity Features
 
-<hr> 
+<hr>
 Several features of Solidity are not supported/do not have analogs in Starknet yet.
 We will try our best to add these features as StarkNet supports them, but some may not be
 possible due to fundamental differences in the platforms.
@@ -153,7 +191,7 @@ Please see the list below:
 |                   delegate calls                    | :hammer_and_pick: |
 |                   low level calls                   |        :x:        |
 |                 indexed parameters                  |    :question:     |
-|              abi methods (abi.encode)               |    :question:     |
+|        abi methods (abi.encode, abi.decode)         |    :question:     |
 |              nested tuple expressions               |    :question:     |
 |                typeName expressions                 |    :question:     |
 |                      gasleft()                      |    :question:     |
@@ -171,7 +209,7 @@ Please see the list below:
 |         precompiles (apart from ecrecover)          |    :question:     |
 |                    selfdestruct                     |    :question:     |
 |                      blockhash                      |    :question:     |
-|                  functions as data                  |    :question:     |
+|            functions pointers in storage            |    :question:     |
 |           sha256 (use keccak256 instead)            |        :x:        |
 |                  ternary operator                   |    :question:     |
 |                       receive                       |    :question:     |

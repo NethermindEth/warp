@@ -6,28 +6,28 @@ from starkware.cairo.common.memcpy import memcpy
 from warplib.maths.utils import narrow_safe
 from warplib.memory import wm_to_felt_array
 
-func string_hash{pedersen_ptr : HashBuiltin*}(len : felt, ptr : felt*) -> (hashedValue : felt):
-    alloc_locals
-    if len == 0:
-        return (0)
-    end
+func string_hash{pedersen_ptr: HashBuiltin*}(len: felt, ptr: felt*) -> (hashedValue: felt) {
+    alloc_locals;
+    if (len == 0) {
+        return (0,);
+    }
 
-    let (temp) = alloc()
-    assert [temp] = len
-    memcpy(temp + 1, ptr, len)
+    let (temp) = alloc();
+    assert [temp] = len;
+    memcpy(temp + 1, ptr, len);
 
-    let (hashedValue) = hash_chain{hash_ptr=pedersen_ptr}(temp)
-    return (hashedValue)
-end
+    let (hashedValue) = hash_chain{hash_ptr=pedersen_ptr}(temp);
+    return (hashedValue,);
+}
 
-func wm_string_hash{pedersen_ptr : HashBuiltin*, range_check_ptr, warp_memory : DictAccess*}(
-    mem_loc : felt
-) -> (hashedValue : felt):
-    alloc_locals
-    let (len, ptr) = wm_to_felt_array(mem_loc)
+func wm_string_hash{pedersen_ptr: HashBuiltin*, range_check_ptr, warp_memory: DictAccess*}(
+    mem_loc: felt
+) -> (hashedValue: felt) {
+    alloc_locals;
+    let (len, ptr) = wm_to_felt_array(mem_loc);
 
-    let (hashedValue) = string_hash{pedersen_ptr=pedersen_ptr}(len, ptr)
-    return (hashedValue)
-end
+    let (hashedValue) = string_hash{pedersen_ptr=pedersen_ptr}(len, ptr);
+    return (hashedValue,);
+}
 
-# STRING HASH STORAGE IS CREATED DURING TRANSPILATION
+// STRING HASH STORAGE IS CREATED DURING TRANSPILATION

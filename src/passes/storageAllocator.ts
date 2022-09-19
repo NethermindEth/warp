@@ -20,6 +20,7 @@ import { CairoContract } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
 import { CairoType, TypeConversionContext } from '../utils/cairoTypeSystem';
 import { cloneASTNode } from '../utils/cloning';
+import { INIT_FUNCTION_PREFIX } from '../utils/nameModifiers';
 import {
   createBlock,
   createExpressionStatement,
@@ -62,7 +63,7 @@ export class StorageAllocator extends ASTMapper {
         extractInitialisation(v, initialisationBlock, ast);
       }
     });
-    insertIntoConstructor(initialisationBlock, node, ast);
+    insertIntoInitFunction(initialisationBlock, node, ast);
 
     const cairoNode = new CairoContract(
       node.id,
@@ -103,39 +104,32 @@ export class StorageAllocator extends ASTMapper {
   }
 }
 
-function insertIntoConstructor(initialisationBlock: Block, contract: ContractDefinition, ast: AST) {
-  if (contract.kind !== ContractKind.Contract) return;
+function insertIntoInitFunction(
+  initialisationBlock: Block,
+  contract: ContractDefinition,
+  ast: AST,
+) {
+  // No need to create the initialization function if the block is empty
+  if (initialisationBlock.vStatements.length == 0) return;
 
-  const constructor = contract.vConstructor;
-  if (constructor === undefined) {
-    const newConstructor = new FunctionDefinition(
-      ast.reserveId(),
-      '',
-      contract.id,
-      FunctionKind.Constructor,
-      '',
-      false,
-      FunctionVisibility.Public,
-      FunctionStateMutability.NonPayable,
-      true,
-      createParameterList([], ast),
-      createParameterList([], ast),
-      [],
-      undefined,
-      initialisationBlock,
-    );
-    contract.appendChild(newConstructor);
-    ast.registerChild(newConstructor, contract);
-  } else {
-    const body = constructor.vBody;
-    assert(body !== undefined, 'Expected existing constructor to be implemented');
-    initialisationBlock.children
-      .slice()
-      .reverse()
-      .forEach((statement) => {
-        body.insertAtBeginning(statement);
-      });
-  }
+  const initFunc = new FunctionDefinition(
+    ast.reserveId(),
+    '',
+    contract.id,
+    FunctionKind.Function,
+    `${INIT_FUNCTION_PREFIX}${contract.name}`,
+    false, // virtual
+    FunctionVisibility.Private,
+    FunctionStateMutability.NonPayable,
+    false, // isConstructor
+    createParameterList([], ast),
+    createParameterList([], ast),
+    [],
+    undefined,
+    initialisationBlock,
+  );
+  contract.appendChild(initFunc);
+  ast.registerChild(initFunc, contract);
 }
 
 function extractInitialisation(node: VariableDeclaration, initialisationBlock: Block, ast: AST) {

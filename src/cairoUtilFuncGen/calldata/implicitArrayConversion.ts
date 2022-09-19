@@ -188,11 +188,11 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const implicit =
       '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
     const code = [
-      `func ${funcName}${implicit}(storage_loc: felt, arg: ${cairoSourceType.toString()}):`,
-      `alloc_locals`,
+      `func ${funcName}${implicit}(storage_loc: felt, arg: ${cairoSourceType.toString()}){`,
+      `alloc_locals;`,
       ...copyInstructions,
-      '    return ()',
-      'end',
+      '    return ();',
+      '}',
     ].join('\n');
     this.addImports(targetElmType, sourceElmType);
     this.generatedFunctions.set(key, { name: funcName, code: code });
@@ -219,24 +219,22 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           code = `     ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
             'storage_loc',
             offset,
-          )}, arg[${index}])`;
+          )}, arg[${index}]);`;
         } else if (targetElmType.signed) {
           code = [
-            `    let (arg_${index}) = warp_int${sourceElmType.nBits}_to_int${
-              targetElmType.nBits
-            }(arg[${index}])
-            ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
+            `    let (arg_${index}) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(arg[${index}]);`,
+            `${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
               'storage_loc',
               offset,
-            )}, arg_${index})`,
+            )}, arg_${index});`,
           ].join('\n');
         } else {
           code = [
-            `    let (arg_${index}) = felt_to_uint256(arg[${index}])`,
+            `    let (arg_${index}) = felt_to_uint256(arg[${index}]);`,
             `    ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
               'storage_loc',
               offset,
-            )}, arg_${index})`,
+            )}, arg_${index});`,
           ].join('\n');
         }
       } else if (
@@ -247,30 +245,30 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           code = [
             `    let (arg_${index}) = warp_bytes_widen${
               targetElmType.size === 32 ? '_256' : ''
-            }(arg[${index}], ${(targetElmType.size - sourceElmType.size) * 8})`,
+            }(arg[${index}], ${(targetElmType.size - sourceElmType.size) * 8});`,
             `    ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
               'storage_loc',
               offset,
-            )}, arg_${index})`,
+            )}, arg_${index});`,
           ].join('\n');
         } else {
           code = `     ${this.storageWriteGen.getOrCreate(targetElmType)}(${add(
             'storage_loc',
             offset,
-          )}, arg[${index}])`;
+          )}, arg[${index}]);`;
         }
       } else {
         if (isDynamicStorageArray(targetElmType)) {
           code = [
-            `    let (ref_${index}) = readId(${add('storage_loc', offset)})`,
-            `    ${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}])`,
+            `    let (ref_${index}) = readId(${add('storage_loc', offset)});`,
+            `    ${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}]);`,
           ].join('\n');
         } else {
           code = [
             `    ${this.getOrCreate(targetElmType, sourceElmType)}(${add(
               'storage_loc',
               offset,
-            )}, arg[${index}])`,
+            )}, arg[${index}]);`,
           ].join('\n');
         }
       }
@@ -324,14 +322,14 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const implicit =
       '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
     const code = [
-      `func ${funcName}${implicit}(ref: felt, arg: ${cairoSourceTypeString}):`,
-      `     alloc_locals`,
+      `func ${funcName}${implicit}(ref: felt, arg: ${cairoSourceTypeString}){`,
+      `     alloc_locals;`,
       isDynamicStorageArray(targetType)
-        ? `    ${dynArrayLengthName}.write(ref, ${uint256(sourceType.to.size)})`
+        ? `    ${dynArrayLengthName}.write(ref, ${uint256(sourceType.to.size)});`
         : '',
       ...copyInstructions,
-      '    return ()',
-      'end',
+      '    return ();',
+      '}',
     ].join('\n');
     this.addImports(targetElmType, sourceElmType);
     this.generatedFunctions.set(key, { name: funcName, code: code });
@@ -355,30 +353,30 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           return [
             `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, ${uint256(index)})`,
+            )}(ref, ${uint256(index)});`,
             `    ${this.storageWriteGen.getOrCreate(
               targetElmType,
-            )}(storage_loc${index}, arg[${index}])`,
+            )}(storage_loc${index}, arg[${index}]);`,
           ].join('\n');
         } else if (targetElmType.signed) {
           return [
-            `    let (arg_${index}) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(arg[${index}])`,
+            `    let (arg_${index}) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(arg[${index}]);`,
             `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, ${uint256(index)})`,
+            )}(ref, ${uint256(index)});`,
             `    ${this.storageWriteGen.getOrCreate(
               targetElmType,
-            )}(storage_loc${index}, arg_${index})`,
+            )}(storage_loc${index}, arg_${index});`,
           ].join('\n');
         } else {
           return [
-            `    let (arg_${index}) = felt_to_uint256(arg[${index}])`,
+            `    let (arg_${index}) = felt_to_uint256(arg[${index}]);`,
             `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, ${uint256(index)})`,
+            )}(ref, ${uint256(index)});`,
             `    ${this.storageWriteGen.getOrCreate(
               targetElmType,
-            )}(storage_loc${index}, arg_${index})`,
+            )}(storage_loc${index}, arg_${index});`,
           ].join('\n');
         }
       } else if (
@@ -389,22 +387,22 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           return [
             `    let (arg_${index}) = warp_bytes_widen${
               targetElmType.size === 32 ? '_256' : ''
-            }(arg[${index}], ${(targetElmType.size - sourceElmType.size) * 8})`,
+            }(arg[${index}], ${(targetElmType.size - sourceElmType.size) * 8});`,
             `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, ${uint256(index)})`,
+            )}(ref, ${uint256(index)});`,
             `    ${this.storageWriteGen.getOrCreate(
               targetElmType,
-            )}(storage_loc${index}, arg_${index})`,
+            )}(storage_loc${index}, arg_${index});`,
           ].join('\n');
         } else {
           return [
             `    let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, ${uint256(index)})`,
+            )}(ref, ${uint256(index)});`,
             `    ${this.storageWriteGen.getOrCreate(
               targetElmType,
-            )}(storage_loc${index}, arg[${index}])`,
+            )}(storage_loc${index}, arg[${index}]);`,
           ].join('\n');
         }
       } else {
@@ -413,20 +411,20 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
           return [
             `     let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, ${uint256(index)})`,
-            `     let (ref_${index}) = readId(storage_loc${index})`,
-            `     ${dynArrayLengthName}.write(ref_${index}, ${uint256(length)})`,
-            `     ${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}])`,
+            )}(ref, ${uint256(index)});`,
+            `     let (ref_${index}) = readId(storage_loc${index});`,
+            `     ${dynArrayLengthName}.write(ref_${index}, ${uint256(length)});`,
+            `     ${this.getOrCreate(targetElmType, sourceElmType)}(ref_${index}, arg[${index}]);`,
           ].join('\n');
         } else {
           return [
             `     let (storage_loc${index}) = ${this.dynArrayIndexAccessGen.getOrCreate(
               targetElmType,
-            )}(ref, ${uint256(index)})`,
+            )}(ref, ${uint256(index)});`,
             `    ${this.getOrCreate(
               targetElmType,
               sourceElmType,
-            )}(storage_loc${index}, arg[${index}])`,
+            )}(storage_loc${index}, arg[${index}]);`,
           ].join('\n');
         }
       }
@@ -471,25 +469,25 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     const copyInstructions = this.generateDynCopyInstructions(targetElmType, sourceElmType);
 
     const code = [
-      `func ${loaderName}${implicit}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt):`,
-      `    alloc_locals`,
-      `    if len == 0:`,
-      `      return ()`,
-      `    end`,
+      `func ${loaderName}${implicit}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt){`,
+      `    alloc_locals;`,
+      `    if (len == 0){`,
+      `      return ();`,
+      `    }`,
       `    let (storage_loc) = ${this.dynArrayIndexAccessGen.getOrCreate(
         targetElmType,
-      )}(ref, Uint256(target_index, 0))`,
+      )}(ref, Uint256(target_index, 0));`,
       copyInstructions,
 
-      `    return ${loaderName}(ref, len - 1, ptr + ${cairoSourceType.ptr_member.width}, target_index+ 1 )`,
-      `end`,
+      `    return ${loaderName}(ref, len - 1, ptr + ${cairoSourceType.ptr_member.width}, target_index+ 1 );`,
+      `}`,
       ``,
-      `func ${funcName}${implicit}(ref: felt, source: ${cairoSourceType.toString()}):`,
-      `     alloc_locals`,
-      `    ${dynArrayLengthName}.write(ref, Uint256(source.len, 0))`,
-      `    ${loaderName}(ref, source.len, source.ptr, 0)`,
-      '    return ()',
-      'end',
+      `func ${funcName}${implicit}(ref: felt, source: ${cairoSourceType.toString()}){`,
+      `     alloc_locals;`,
+      `    ${dynArrayLengthName}.write(ref, Uint256(source.len, 0));`,
+      `    ${loaderName}(ref, source.len, source.ptr, 0);`,
+      '    return ();',
+      '}',
     ].join('\n');
     this.addImports(targetElmType, sourceElmType);
     this.generatedFunctions.set(key, { name: funcName, code: code });
@@ -500,26 +498,26 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     if (sourceElmType instanceof IntType && targetElmType instanceof IntType) {
       return [
         sourceElmType.signed
-          ? `    let (val) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(ptr[0])`
-          : `    let (val) = felt_to_uint256(ptr[0])`,
-        `    ${this.storageWriteGen.getOrCreate(targetElmType)}(storage_loc, val)`,
+          ? `    let (val) = warp_int${sourceElmType.nBits}_to_int${targetElmType.nBits}(ptr[0]);`
+          : `    let (val) = felt_to_uint256(ptr[0]);`,
+        `    ${this.storageWriteGen.getOrCreate(targetElmType)}(storage_loc, val);`,
       ].join('\n');
     } else if (targetElmType instanceof FixedBytesType && sourceElmType instanceof FixedBytesType) {
       return [
         targetElmType.size === 32
           ? `    let (val) = warp_bytes_widen_256(ptr[0], ${
               (targetElmType.size - sourceElmType.size) * 8
-            })`
+            });`
           : `    let (val) = warp_bytes_widen(ptr[0], ${
               (targetElmType.size - sourceElmType.size) * 8
-            })`,
-        `    ${this.storageWriteGen.getOrCreate(targetElmType)}(storage_loc, val)`,
+            });`,
+        `    ${this.storageWriteGen.getOrCreate(targetElmType)}(storage_loc, val);`,
       ].join('\n');
     } else {
       return isDynamicStorageArray(targetElmType)
-        ? `    let (ref_name) = readId(storage_loc)
-          ${this.getOrCreate(targetElmType, sourceElmType)}(ref_name, ptr[0])`
-        : `    ${this.getOrCreate(targetElmType, sourceElmType)}(storage_loc, ptr[0])`;
+        ? `    let (ref_name) = readId(storage_loc);
+          ${this.getOrCreate(targetElmType, sourceElmType)}(ref_name, ptr[0]);`
+        : `    ${this.getOrCreate(targetElmType, sourceElmType)}(storage_loc, ptr[0]);`;
     }
   }
 

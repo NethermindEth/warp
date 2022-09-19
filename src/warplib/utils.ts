@@ -58,7 +58,7 @@ const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 
 export function generateFile(name: string, imports: string[], functions: string[]): void {
   fs.writeFileSync(
     `./warplib/maths/${name}.cairo`,
-    `#AUTO-GENERATED\n${imports.join('\n')}\n\n${functions.join('\n')}\n`,
+    `//AUTO-GENERATED\n${imports.join('\n')}\n\n${functions.join('\n')}\n`,
   );
   execSync(`${warpVenvPrefix} cairo-format -i ./warplib/maths/${name}.cairo`);
 }

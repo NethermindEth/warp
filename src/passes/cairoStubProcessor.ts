@@ -1,3 +1,4 @@
+import assert from 'assert';
 import { ASTNode, FunctionDefinition, StructuredDocumentation } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
@@ -11,10 +12,10 @@ import { isExternallyVisible } from '../utils/utils';
 
 export class CairoStubProcessor extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, _ast: AST): void {
-    let documentation = getDocString(node.documentation);
-    if (documentation === undefined) return;
+    if (!isCairoStub(node)) return;
 
-    if (documentation.split('\n')[0]?.trim() !== 'warp-cairo') return;
+    let documentation = getDocString(node.documentation);
+    assert(documentation !== undefined);
 
     documentation = processDecoratorTags(documentation);
     documentation = processStateVarTags(documentation, node);
@@ -45,6 +46,12 @@ function processStateVarTags(documentation: string, node: FunctionDefinition): s
     if (matchingStateVars.length === 0) {
       throw new TranspilationAbandonedError(`Unable to find matching statevar ${arg}`, errorNode);
     } else if (matchingStateVars.length === 1) {
+      if (isExternallyVisible(node)) {
+        const contract = node.getClosestParentByType(CairoContract);
+        if (contract !== undefined) {
+          return `${contract.name}.${matchingStateVars[0]}`;
+        }
+      }
       return matchingStateVars[0];
     } else {
       throw new TranspileFailedError(
@@ -117,12 +124,6 @@ function processMacro(
   }, documentation);
 }
 
-function getDocString(doc: StructuredDocumentation | string | undefined): string | undefined {
-  if (doc === undefined) return undefined;
-  if (typeof doc === 'string') return doc;
-  return doc.text;
-}
-
 function setDocString(node: FunctionDefinition, docString: string): void {
   const existingDoc = node.documentation;
   if (existingDoc instanceof StructuredDocumentation) {
@@ -130,4 +131,17 @@ function setDocString(node: FunctionDefinition, docString: string): void {
   } else {
     node.documentation = docString;
   }
+}
+
+export function getDocString(
+  doc: StructuredDocumentation | string | undefined,
+): string | undefined {
+  if (doc === undefined) return undefined;
+  if (typeof doc === 'string') return doc;
+  return doc.text;
+}
+
+export function isCairoStub(node: FunctionDefinition): boolean {
+  const documentation = getDocString(node.documentation);
+  return documentation !== undefined && documentation.split('\n')[0]?.trim() === 'warp-cairo';
 }

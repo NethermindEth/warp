@@ -1,7 +1,14 @@
 import assert from 'assert';
 import { readFileSync } from 'fs';
 import prompts from 'prompts';
-import { ArrayType, ArrayTypeName, generalizeType, Literal, SourceUnit } from 'solc-typed-ast';
+import {
+  ArrayType,
+  ArrayTypeName,
+  generalizeType,
+  Literal,
+  SourceUnit,
+  StateVariableVisibility,
+} from 'solc-typed-ast';
 import Web3 from 'web3';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -47,6 +54,12 @@ export class ABIExtractor extends ASTMapper {
           if (isExternallyVisible(fd)) {
             // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
             addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2'));
+          }
+        });
+        cd.vStateVariables.forEach((vd) => {
+          if (vd.visibility === StateVariableVisibility.Public) {
+            // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
+            addSignature(node, ast, vd.getterCanonicalSignature('ABIEncoderV2'));
           }
         });
       });
@@ -140,12 +153,12 @@ function validateInput(input: unknown) {
 }
 
 function parseSolAbi(filePath: string): string[] {
-  const re = /# Original soldity abi: (?<abi>[\w()\][, "]*)/;
+  const re = /\/\/ Original soldity abi: (?<abi>[\w()\][, "]*)/;
   const abiString = readFileSync(filePath, 'utf-8');
   const matches = abiString.match(re);
   if (matches === null || matches.groups === undefined) {
     throw new CLIError(
-      "Couldn't find solidity abi in file, please include one in the form '# SolABI: [func1(type1,type2),...]",
+      "Couldn't find Solidity ABI in file, please include one in the form '// Original soldity abi: [func1(type1,type2),...]",
     );
   }
   const solAbi = JSON.parse(matches.groups.abi);

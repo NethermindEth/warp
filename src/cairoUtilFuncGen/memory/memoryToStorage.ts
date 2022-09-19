@@ -23,6 +23,7 @@ import {
   isDynamicArray,
   isReferenceType,
   safeGetNodeType,
+  isStruct,
 } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
@@ -105,23 +106,23 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(loc : felt, mem_loc: felt) -> (loc: felt):`,
-        `    alloc_locals`,
+        `func ${funcName}${implicits}(loc : felt, mem_loc: felt) -> (loc: felt){`,
+        `    alloc_locals;`,
         ...generateCopyInstructions(type, this.ast).flatMap(
           ({ storageOffset, copyType }, index) => {
             const elemLoc = `elem_mem_loc_${index}`;
             if (copyType === undefined) {
               return [
-                `let (${elemLoc}) = dict_read{dict_ptr=warp_memory}(${add('mem_loc', index)})`,
-                `WARP_STORAGE.write(${add('loc', storageOffset)}, ${elemLoc})`,
+                `let (${elemLoc}) = dict_read{dict_ptr=warp_memory}(${add('mem_loc', index)});`,
+                `WARP_STORAGE.write(${add('loc', storageOffset)}, ${elemLoc});`,
               ];
             } else if (isDynamicArray(copyType)) {
               this.requireImport('warplib.memory', 'wm_read_id');
               const funcName = this.getOrCreate(copyType);
               return [
-                `let (${elemLoc}) = wm_read_id(${add('mem_loc', index)}, ${uint256(2)})`,
-                `let (storage_dyn_array_loc) = readId(${add('loc', storageOffset)})`,
-                `${funcName}(storage_dyn_array_loc, ${elemLoc})`,
+                `let (${elemLoc}) = wm_read_id(${add('mem_loc', index)}, ${uint256(2)});`,
+                `let (storage_dyn_array_loc) = readId(${add('loc', storageOffset)});`,
+                `${funcName}(storage_dyn_array_loc, ${elemLoc});`,
               ];
             } else {
               this.requireImport('warplib.memory', 'wm_read_id');
@@ -134,14 +135,14 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
               return [
                 `let (${elemLoc}) = wm_read_id(${add('mem_loc', index)}, ${uint256(
                   copyTypeWidth,
-                )})`,
-                `${funcName}(${add('loc', storageOffset)}, ${elemLoc})`,
+                )});`,
+                `${funcName}(${add('loc', storageOffset)}, ${elemLoc});`,
               ];
             }
           },
         ),
-        `    return (loc)`,
-        `end`,
+        `    return (loc,);`,
+        `}`,
       ].join('\n'),
     });
 
@@ -179,22 +180,22 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     let copyCode: string;
     if (isDynamicArray(type.elementT)) {
       copyCode = [
-        `    let (storage_id) = readId(storage_loc)`,
-        `    let (read) = wm_read_id(mem_loc, ${uint256(2)})`,
-        `    ${this.getOrCreate(type.elementT)}(storage_id, read)`,
+        `    let (storage_id) = readId(storage_loc);`,
+        `    let (read) = wm_read_id(mem_loc, ${uint256(2)});`,
+        `    ${this.getOrCreate(type.elementT)}(storage_id, read);`,
       ].join('\n');
-    } else if (isReferenceType(type.elementT)) {
+    } else if (isStruct(type.elementT)) {
       copyCode = [
         `    let (read) = wm_read_id{dict_ptr=warp_memory}(mem_loc, ${uint256(
           elementMemoryWidth,
-        )})`,
-        `    ${this.getOrCreate(type.elementT)}(storage_loc, read)`,
+        )});`,
+        `    ${this.getOrCreate(type.elementT)}(storage_loc, read);`,
       ].join('\n');
     } else {
       copyCode = mapRange(elementStorageWidth, (n) =>
         [
-          `    let (copy) = dict_read{dict_ptr=warp_memory}(${add('mem_loc', n)})`,
-          `    WARP_STORAGE.write(${add('storage_loc', n)}, copy)`,
+          `    let (copy) = dict_read{dict_ptr=warp_memory}(${add('mem_loc', n)});`,
+          `    WARP_STORAGE.write(${add('storage_loc', n)}, copy);`,
         ].join('\n'),
       ).join('\n');
     }
@@ -202,24 +203,24 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(storage_loc: felt, mem_loc : felt, length: felt) -> ():`,
-        `    alloc_locals`,
-        `    if length == 0:`,
-        `        return ()`,
-        `    end`,
-        `    let index = length - 1`,
+        `func ${funcName}_elem${implicits}(storage_loc: felt, mem_loc : felt, length: felt) -> (){`,
+        `    alloc_locals;`,
+        `    if (length == 0){`,
+        `        return ();`,
+        `    }`,
+        `    let index = length - 1;`,
         copyCode,
         `    return ${funcName}_elem(${add('storage_loc', elementStorageWidth)}, ${add(
           'mem_loc',
           elementMemoryWidth,
-        )}, index)`,
-        `end`,
+        )}, index);`,
+        `}`,
 
-        `func ${funcName}${implicits}(loc : felt, mem_loc : felt) -> (loc : felt):`,
-        `    alloc_locals`,
-        `    ${funcName}_elem(loc, mem_loc, ${length})`,
-        `    return (loc)`,
-        `end`,
+        `func ${funcName}${implicits}(loc : felt, mem_loc : felt) -> (loc : felt){`,
+        `    alloc_locals;`,
+        `    ${funcName}_elem(loc, mem_loc, ${length});`,
+        `    return (loc,);`,
+        `}`,
       ].join('\n'),
     });
 
@@ -260,68 +261,66 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     let copyCode: string;
     if (isDynamicArray(elementT)) {
       copyCode = [
-        `    let (storage_id) = readId(storage_loc)`,
-        `    let (read) = wm_read_id(mem_loc, ${uint256(2)})`,
-        `    ${this.getOrCreate(elementT)}(storage_id, read)`,
+        `    let (storage_id) = readId(storage_loc);`,
+        `    let (read) = wm_read_id(mem_loc, ${uint256(2)});`,
+        `    ${this.getOrCreate(elementT)}(storage_id, read);`,
       ].join('\n');
     } else if (isReferenceType(elementT)) {
       copyCode = [
-        `    let (read) = wm_read_id(mem_loc, ${uint256(elementMemoryWidth)})`,
-        `    ${this.getOrCreate(elementT)}(storage_loc, read)`,
+        `    let (read) = wm_read_id(mem_loc, ${uint256(elementMemoryWidth)});`,
+        `    ${this.getOrCreate(elementT)}(storage_loc, read);`,
       ].join('\n');
     } else {
       copyCode = mapRange(elementStorageWidth, (n) =>
         [
-          `    let (copy) = dict_read{dict_ptr=warp_memory}(${add('mem_loc', n)})`,
-          `    WARP_STORAGE.write(${add('storage_loc', n)}, copy)`,
+          `    let (copy) = dict_read{dict_ptr=warp_memory}(${add('mem_loc', n)});`,
+          `    WARP_STORAGE.write(${add('storage_loc', n)}, copy);`,
         ].join('\n'),
       ).join('\n');
     }
 
     const deleteRemainingCode = `${this.storageDeleteGen.genAuxFuncName(
       type,
-    )}(loc, mem_length, length)`;
+    )}(loc, mem_length, length);`;
 
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(storage_name: felt, mem_loc : felt, length: Uint256) -> ():`,
-        `    alloc_locals`,
-        `    if length.low == 0:`,
-        `        if length.high == 0:`,
-        `            return ()`,
-        `        end`,
-        `    end`,
-        `    let (index) = uint256_sub(length, Uint256(1,0))`,
-        `    let (storage_loc) = ${elemMapping}.read(storage_name, index)`,
-        `    let mem_loc = mem_loc - ${elementMemoryWidth}`,
-        `    if storage_loc == 0:`,
-        `        let (storage_loc) = WARP_USED_STORAGE.read()`,
-        `        WARP_USED_STORAGE.write(storage_loc + ${elementStorageWidth})`,
-        `        ${elemMapping}.write(storage_name, index, storage_loc)`,
+        `func ${funcName}_elem${implicits}(storage_name: felt, mem_loc : felt, length: Uint256) -> (){`,
+        `    alloc_locals;`,
+        `    if (length.low == 0 and length.high == 0){`,
+        `        return ();`,
+        `    }`,
+        `    let (index) = uint256_sub(length, Uint256(1,0));`,
+        `    let (storage_loc) = ${elemMapping}.read(storage_name, index);`,
+        `    let mem_loc = mem_loc - ${elementMemoryWidth};`,
+        `    if (storage_loc == 0){`,
+        `        let (storage_loc) = WARP_USED_STORAGE.read();`,
+        `        WARP_USED_STORAGE.write(storage_loc + ${elementStorageWidth});`,
+        `        ${elemMapping}.write(storage_name, index, storage_loc);`,
         copyCode,
-        `    return ${funcName}_elem(storage_name, mem_loc, index)`,
-        `    else:`,
+        `    return ${funcName}_elem(storage_name, mem_loc, index);`,
+        `    }else{`,
         copyCode,
-        `    return ${funcName}_elem(storage_name, mem_loc, index)`,
-        `    end`,
-        `end`,
+        `    return ${funcName}_elem(storage_name, mem_loc, index);`,
+        `    }`,
+        `}`,
 
-        `func ${funcName}${implicits}(loc : felt, mem_loc : felt) -> (loc : felt):`,
-        `    alloc_locals`,
-        `    let (length) = ${lengthMapping}.read(loc)`,
-        `    let (mem_length) = wm_dyn_array_length(mem_loc)`,
-        `    ${lengthMapping}.write(loc, mem_length)`,
-        `    let (narrowedLength) = narrow_safe(mem_length)`,
-        `    ${funcName}_elem(loc, mem_loc + 2 + ${elementMemoryWidth} * narrowedLength, mem_length)`,
-        `    let (lesser) = uint256_lt(mem_length, length)`,
-        `    if lesser == 1:`,
+        `func ${funcName}${implicits}(loc : felt, mem_loc : felt) -> (loc : felt){`,
+        `    alloc_locals;`,
+        `    let (length) = ${lengthMapping}.read(loc);`,
+        `    let (mem_length) = wm_dyn_array_length(mem_loc);`,
+        `    ${lengthMapping}.write(loc, mem_length);`,
+        `    let (narrowedLength) = narrow_safe(mem_length);`,
+        `    ${funcName}_elem(loc, mem_loc + 2 + ${elementMemoryWidth} * narrowedLength, mem_length);`,
+        `    let (lesser) = uint256_lt(mem_length, length);`,
+        `    if (lesser == 1){`,
         `       ${deleteRemainingCode}`,
-        `       return (loc)`,
-        `    else:`,
-        `       return (loc)`,
-        `    end`,
-        `end`,
+        `       return (loc,);`,
+        `    }else{`,
+        `       return (loc,);`,
+        `    }`,
+        `}`,
       ].join('\n'),
     });
 

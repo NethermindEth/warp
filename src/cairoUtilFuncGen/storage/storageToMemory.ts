@@ -87,17 +87,17 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(loc : felt) -> (mem_loc: felt):`,
-        `    alloc_locals`,
-        `    let (mem_start) = wm_alloc(${uint256(memoryType.width)})`,
+        `func ${funcName}${implicits}(loc : felt) -> (mem_loc: felt){`,
+        `    alloc_locals;`,
+        `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
         ...generateCopyInstructions(type, this.ast).flatMap(
           ({ storageOffset, copyType }, index) => [
             this.getIterCopyCode(copyType, index, storageOffset),
-            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
+            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index});`,
           ],
         ),
-        `    return (mem_start)`,
-        `end`,
+        `    return (mem_start,);`,
+        `}`,
       ].join('\n'),
     });
 
@@ -127,18 +127,18 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt):`,
-        `    alloc_locals`,
-        `    let length = ${uint256(memoryType.width)}`,
-        `    let (mem_start) = wm_alloc(length)`,
+        `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt){`,
+        `    alloc_locals;`,
+        `    let length = ${uint256(memoryType.width)};`,
+        `    let (mem_start) = wm_alloc(length);`,
         ...generateCopyInstructions(type, this.ast).flatMap(
           ({ storageOffset, copyType }, index) => [
             this.getIterCopyCode(copyType, index, storageOffset),
-            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index})`,
+            `dict_write{dict_ptr=warp_memory}(${add('mem_start', index)}, copy${index});`,
           ],
         ),
-        `    return (mem_start)`,
-        `end`,
+        `    return (mem_start,);`,
+        `}`,
       ].join('\n'),
     });
 
@@ -178,28 +178,28 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(mem_start: felt, loc : felt, length: Uint256) -> ():`,
-        `   alloc_locals`,
-        `   if length.low == 0:`,
-        `       if length.high == 0:`,
-        `           return ()`,
-        `       end`,
-        `   end`,
-        `   let (index) = uint256_sub(length, Uint256(1, 0))`,
+        `func ${funcName}_elem${implicits}(mem_start: felt, loc : felt, length: Uint256) -> (){`,
+        `   alloc_locals;`,
+        `   if (length.low == 0){`,
+        `       if (length.high == 0){`,
+        `           return ();`,
+        `       }`,
+        `   }`,
+        `   let (index) = uint256_sub(length, Uint256(1, 0));`,
         copyCode,
         `   return ${funcName}_elem(${add('mem_start', elementMemoryWidth)}, ${add(
           'loc',
           elementStorageWidth,
-        )}, index)`,
-        `end`,
+        )}, index);`,
+        `}`,
 
-        `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt):`,
-        `    alloc_locals`,
-        `    let length = ${uint256(length)}`,
-        `    let (mem_start) = wm_alloc(length)`,
-        `    ${funcName}_elem(mem_start, loc, length)`,
-        `    return (mem_start)`,
-        `end`,
+        `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt){`,
+        `    alloc_locals;`,
+        `    let length = ${uint256(length)};`,
+        `    let (mem_start) = wm_alloc(length);`,
+        `    ${funcName}_elem(mem_start, loc, length);`,
+        `    return (mem_start,);`,
+        `}`,
       ].join('\n'),
     });
 
@@ -243,27 +243,25 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(storage_name: felt, mem_start: felt, length: Uint256) -> ():`,
-        `    alloc_locals`,
-        `    if length.low == 0:`,
-        `        if length.high == 0:`,
-        `            return ()`,
-        `        end`,
-        `    end`,
-        `    let (index) = uint256_sub(length, Uint256(1,0))`,
-        `    let (mem_loc) = wm_index_dyn(mem_start, index, ${uint256(memoryElementType.width)})`,
-        `    let (element_storage_loc) = ${elemMapping}.read(storage_name, index)`,
+        `func ${funcName}_elem${implicits}(storage_name: felt, mem_start: felt, length: Uint256) -> (){`,
+        `    alloc_locals;`,
+        `    if (length.low == 0 and length.high == 0){`,
+        `        return ();`,
+        `    }`,
+        `    let (index) = uint256_sub(length, Uint256(1,0));`,
+        `    let (mem_loc) = wm_index_dyn(mem_start, index, ${uint256(memoryElementType.width)});`,
+        `    let (element_storage_loc) = ${elemMapping}.read(storage_name, index);`,
         copyCode,
-        `    return ${funcName}_elem(storage_name, mem_start, index)`,
-        `end`,
+        `    return ${funcName}_elem(storage_name, mem_start, index);`,
+        `}`,
 
-        `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt):`,
-        `    alloc_locals`,
-        `    let (length: Uint256) = ${lengthMapping}.read(loc)`,
-        `    let (mem_start) = wm_new(length, ${uint256(memoryElementType.width)})`,
-        `    ${funcName}_elem(loc, mem_start, length)`,
-        `    return (mem_start)`,
-        `end`,
+        `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt){`,
+        `    alloc_locals;`,
+        `    let (length: Uint256) = ${lengthMapping}.read(loc);`,
+        `    let (mem_start) = wm_new(length, ${uint256(memoryElementType.width)});`,
+        `    ${funcName}_elem(loc, mem_start, length);`,
+        `    return (mem_start,);`,
+        `}`,
       ].join('\n'),
     });
 
@@ -283,16 +281,16 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     storageOffset: number,
   ): string {
     if (copyType === undefined) {
-      return `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)})`;
+      return `let (copy${index}) = WARP_STORAGE.read(${add('loc', storageOffset)});`;
     }
 
     const funcName = this.getOrCreate(copyType);
     return isDynamicArray(copyType)
       ? [
-          `let (dyn_loc) = WARP_STORAGE.read(${add('loc', storageOffset)})`,
-          `let (copy${index}) = ${funcName}(dyn_loc)`,
+          `let (dyn_loc) = WARP_STORAGE.read(${add('loc', storageOffset)});`,
+          `let (copy${index}) = ${funcName}(dyn_loc);`,
         ].join('\n')
-      : `let (copy${index}) = ${funcName}(${add('loc', storageOffset)})`;
+      : `let (copy${index}) = ${funcName}(${add('loc', storageOffset)});`;
   }
 
   // Copy code generation for recursive copy instructions (large static arrays and dynamic arrays)
@@ -304,20 +302,20 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
   ) {
     if (isStaticArrayOrStruct(elementT)) {
       return [
-        `   let (copy) = ${this.getOrCreate(elementT)}(${storageLoc})`,
-        `   dict_write{dict_ptr=warp_memory}(${memoryLoc}, copy)`,
+        `   let (copy) = ${this.getOrCreate(elementT)}(${storageLoc});`,
+        `   dict_write{dict_ptr=warp_memory}(${memoryLoc}, copy);`,
       ].join('\n');
     } else if (isDynamicArray(elementT)) {
       return [
-        `   let (dyn_loc) = readId(${storageLoc})`,
-        `   let (copy) = ${this.getOrCreate(elementT)}(dyn_loc)`,
-        `   dict_write{dict_ptr=warp_memory}(${memoryLoc}, copy)`,
+        `   let (dyn_loc) = readId(${storageLoc});`,
+        `   let (copy) = ${this.getOrCreate(elementT)}(dyn_loc);`,
+        `   dict_write{dict_ptr=warp_memory}(${memoryLoc}, copy);`,
       ].join('\n');
     } else {
       return mapRange(elementMemoryWidth, (n) =>
         [
-          `   let (copy) = WARP_STORAGE.read(${add(`${storageLoc}`, n)})`,
-          `   dict_write{dict_ptr=warp_memory}(${add(`${memoryLoc}`, n)}, copy)`,
+          `   let (copy) = WARP_STORAGE.read(${add(`${storageLoc}`, n)});`,
+          `   dict_write{dict_ptr=warp_memory}(${add(`${memoryLoc}`, n)}, copy);`,
         ].join('\n'),
       ).join('\n');
     }

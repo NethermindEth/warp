@@ -118,10 +118,10 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(loc: felt):`,
-        ...mapRange(cairoType.width, (n) => `    WARP_STORAGE.write(${add('loc', n)}, 0)`),
-        `    return ()`,
-        `end`,
+        `func ${funcName}${implicits}(loc: felt){`,
+        ...mapRange(cairoType.width, (n) => `    WARP_STORAGE.write(${add('loc', n)}, 0);`),
+        `    return ();`,
+        `}`,
       ].join('\n'),
     };
   }
@@ -139,29 +139,29 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
     const deleteCode = requiresReadBeforeRecursing(elementT)
       ? [
-          `   let (elem_id) = ${this.storageReadGen.genFuncName(elementT)}(elem_loc)`,
-          `   ${this.getOrCreate(elementT)}(elem_id)`,
+          `   let (elem_id) = ${this.storageReadGen.genFuncName(elementT)}(elem_loc);`,
+          `   ${this.getOrCreate(elementT)}(elem_id);`,
         ]
-      : [`    ${this.getOrCreate(elementT)}(elem_loc)`];
+      : [`    ${this.getOrCreate(elementT)}(elem_loc);`];
 
     const deleteFunc = [
-      `func ${funcName}_elem${implicits}(loc : felt, index : Uint256, length : Uint256):`,
-      `     alloc_locals`,
-      `     let (stop) = uint256_eq(index, length)`,
-      `     if stop == 1:`,
-      `        return ()`,
-      `     end`,
-      `     let (elem_loc) = ${arrayName}.read(loc, index)`,
+      `func ${funcName}_elem${implicits}(loc : felt, index : Uint256, length : Uint256){`,
+      `     alloc_locals;`,
+      `     let (stop) = uint256_eq(index, length);`,
+      `     if (stop == 1){`,
+      `        return ();`,
+      `     }`,
+      `     let (elem_loc) = ${arrayName}.read(loc, index);`,
       ...deleteCode,
-      `     let (next_index, _) = uint256_add(index, ${uint256(1)})`,
-      `     return ${funcName}_elem(loc, next_index, length)`,
-      `end`,
-      `func ${funcName}${implicits}(loc : felt):`,
-      `   alloc_locals`,
-      `   let (length) = ${lengthName}.read(loc)`,
-      `   ${lengthName}.write(loc, ${uint256(0)})`,
-      `   return ${funcName}_elem(loc, ${uint256(0)}, length)`,
-      `end`,
+      `     let (next_index, _) = uint256_add(index, ${uint256(1)});`,
+      `     return ${funcName}_elem(loc, next_index, length);`,
+      `}`,
+      `func ${funcName}${implicits}(loc : felt){`,
+      `   alloc_locals;`,
+      `   let (length) = ${lengthName}.read(loc);`,
+      `   ${lengthName}.write(loc, ${uint256(0)});`,
+      `   return ${funcName}_elem(loc, ${uint256(0)}, length);`,
+      `}`,
     ].join('\n');
 
     this.requireImport('starkware.cairo.common.uint256', 'uint256_eq');
@@ -176,17 +176,17 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
     const code = [
-      `   alloc_locals`,
+      `   alloc_locals;`,
       ...this.generateStructDeletionCode(
         mapRange(narrowBigIntSafe(type.size), () => type.elementT),
       ),
-      `   return ()`,
-      `end`,
+      `   return ();`,
+      `}`,
     ];
 
     return {
       name: funcName,
-      code: [`func ${funcName}${implicits}(loc : felt):`, ...code].join('\n'),
+      code: [`func ${funcName}${implicits}(loc : felt){`, ...code].join('\n'),
     };
   }
 
@@ -203,26 +203,26 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
     const deleteCode = requiresReadBeforeRecursing(elementT)
       ? [
-          `   let (elem_id) = ${this.storageReadGen.genFuncName(elementT)}(loc)`,
-          `   ${this.getOrCreate(elementT)}(elem_id)`,
+          `   let (elem_id) = ${this.storageReadGen.genFuncName(elementT)}(loc);`,
+          `   ${this.getOrCreate(elementT)}(elem_id);`,
         ]
-      : [`    ${this.getOrCreate(elementT)}(loc)`];
+      : [`    ${this.getOrCreate(elementT)}(loc);`];
     const length = narrowBigIntSafe(type.size);
     const nextLoc = add('loc', elementTWidht);
     const deleteFunc = [
-      `func ${funcName}_elem${implicits}(loc : felt, index : felt):`,
-      `     alloc_locals`,
-      `     if index == ${length}:`,
-      `        return ()`,
-      `     end`,
-      `     let next_index = index + 1`,
+      `func ${funcName}_elem${implicits}(loc : felt, index : felt){`,
+      `     alloc_locals;`,
+      `     if (index == ${length}){`,
+      `        return ();`,
+      `     }`,
+      `     let next_index = index + 1;`,
       ...deleteCode,
-      `     return ${funcName}_elem(${nextLoc}, next_index)`,
-      `end`,
-      `func ${funcName}${implicits}(loc : felt):`,
-      `   alloc_locals`,
-      `   return ${funcName}_elem(loc, 0)`,
-      `end`,
+      `     return ${funcName}_elem(${nextLoc}, next_index);`,
+      `}`,
+      `func ${funcName}${implicits}(loc : felt){`,
+      `   alloc_locals;`,
+      `   return ${funcName}_elem(loc, 0);`,
+      `}`,
     ].join('\n');
 
     this.requireImport('starkware.cairo.common.uint256', 'uint256_eq');
@@ -236,13 +236,13 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     // struct names are unique
     const deleteFunc = [
-      `func ${funcName}${implicits}(loc : felt):`,
-      `   alloc_locals`,
+      `func ${funcName}${implicits}(loc : felt){`,
+      `   alloc_locals;`,
       ...this.generateStructDeletionCode(
         structDef.vMembers.map((varDecl) => safeGetNodeType(varDecl, this.ast.compilerVersion)),
       ),
-      `   return ()`,
-      `end`,
+      `   return ();`,
+      `}`,
     ].join('\n');
 
     return { name: funcName, code: deleteFunc };
@@ -252,7 +252,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     return {
       name: funcName,
-      code: [`func ${funcName}${implicits}(loc: felt):`, `    return ()`, `end`].join('\n'),
+      code: [`func ${funcName}${implicits}(loc: felt){`, `    return ();`, `}`].join('\n'),
     };
   }
 
@@ -268,10 +268,10 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const deleteLoc = add('loc', offset);
     const deleteCode = requiresReadBeforeRecursing(varType)
       ? [
-          `   let (elem_id) = ${this.storageReadGen.genFuncName(varType)}(${deleteLoc})`,
-          `   ${this.getOrCreate(varType)}(elem_id)`,
+          `   let (elem_id) = ${this.storageReadGen.genFuncName(varType)}(${deleteLoc});`,
+          `   ${this.getOrCreate(varType)}(elem_id);`,
         ]
-      : [`    ${this.getOrCreate(varType)}(${deleteLoc})`];
+      : [`    ${this.getOrCreate(varType)}(${deleteLoc});`];
 
     return [
       ...deleteCode,

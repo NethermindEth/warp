@@ -82,7 +82,7 @@ function addClassHash(
 function computeClassHash(filePath: string, pathPrefix: string): string {
   const { success, resultPath } = compileCairo(
     path.join(pathPrefix, filePath),
-    path.resolve(__dirname, '..'),
+    path.resolve(__dirname, '..', '..'),
   );
   if (!success) {
     throw new CLIError(`Compilation of cairo file ${filePath} failed`);
@@ -124,7 +124,7 @@ export function replaceHashPlaceHolder(
 
     // Flag that there are changes that need to be rewritten
     update = true;
-    const newLine = [constant, fullName, equal, declaredAddress].join(' ');
+    const newLine = [constant, fullName, equal, declaredAddress].join(' ') + ';';
     return newLine;
   });
 
@@ -154,7 +154,7 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
 
     // Flag that there are changes that need to be rewritten
     update = true;
-    const newLine = [constant, fullName, equal, declaredAddress].join(' ');
+    const newLine = [constant, fullName, equal, declaredAddress].join(' ') + ';';
     return newLine;
   });
 
@@ -209,14 +209,13 @@ function extractContractsToDeclared(fileLoc: string, pathPrefix: string): string
   const contractsToDeclare = cairoCode
     .map((line) => {
       const [comment, declare, location, ...other] = line.split(new RegExp('[ ]+'));
-      if (comment !== '#' || declare !== '@declare') return '';
+      if (comment !== '//' || declare !== '@declare') return '';
 
       assert(other.length === 0, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
 
       return path.join(pathPrefix, location);
     })
     .filter((val) => val !== '');
-
   return contractsToDeclare;
 }
 

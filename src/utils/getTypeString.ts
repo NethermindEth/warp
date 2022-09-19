@@ -99,7 +99,7 @@ export function getFunctionTypeString(
           throw new NotSupportedYetError(
             `Default location ref parameter to string not supported yet: ${printTypeNode(
               baseType,
-              true,
+              true, // detail
             )} in ${node.name}`,
           );
         }

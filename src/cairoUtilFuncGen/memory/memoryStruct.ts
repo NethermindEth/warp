@@ -82,15 +82,15 @@ export class MemoryStructGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (res):`,
-        `    alloc_locals`,
-        `    let (start) = wm_alloc(${uint256(structType.width)})`,
+        `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (res:felt){`,
+        `    alloc_locals;`,
+        `    let (start) = wm_alloc(${uint256(structType.width)});`,
         [...structType.members.entries()]
           .flatMap(([name, type]) => type.serialiseMembers(name))
           .map(write)
           .join('\n'),
-        `    return (start)`,
-        `end`,
+        `    return (start,);`,
+        `}`,
       ].join('\n'),
     });
 
@@ -104,5 +104,5 @@ export class MemoryStructGen extends StringIndexedFuncGen {
 }
 
 function write(name: string, offset: number): string {
-  return `dict_write{dict_ptr=warp_memory}(${add('start', offset)}, ${name})`;
+  return `dict_write{dict_ptr=warp_memory}(${add('start', offset)}, ${name});`;
 }
