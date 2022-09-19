@@ -1,6 +1,5 @@
 import assert from 'assert';
 import { readFileSync } from 'fs';
-import * as path from 'path';
 import prompts from 'prompts';
 import { ArrayType, ArrayTypeName, generalizeType, Literal, SourceUnit } from 'solc-typed-ast';
 import Web3 from 'web3';
@@ -139,14 +138,11 @@ function validateInput(input: unknown) {
   if (typeof input === 'number') return;
   throw new CLIError('Input invalid');
 }
-const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
 function parseSolAbi(filePath: string): string[] {
   const re = /# Original soldity abi: (?<abi>[\w()\][, "]*)/;
   const abiString = readFileSync(filePath, 'utf-8');
   const matches = abiString.match(re);
-
-  console.log('path', `${path.resolve(__dirname, '..')}`);
   console.log('matches', matches);
 
   if (matches === null || matches.groups === undefined) {
