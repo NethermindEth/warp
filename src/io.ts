@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { OutputOptions } from './programFactory';
+import { OutputOptions } from '.';
 import { compileCairo } from './starknetCli';
 import { TranspileFailedError, logError } from './utils/errors';
 

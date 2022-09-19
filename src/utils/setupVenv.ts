@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { execSync } from 'child_process';
 import { logError } from './errors';
-import { IInstallOptions } from '../programFactory';
+import { IInstallOptions } from '../index';
 
 export function runVenvSetup(options: IInstallOptions) {
   try {

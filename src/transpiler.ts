@@ -1,5 +1,5 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
-import { PrintOptions, TranspilationOptions } from './programFactory';
+import { PrintOptions, TranspilationOptions } from '.';
 import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';

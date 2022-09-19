@@ -8,7 +8,7 @@ import {
   IDeployAccountProps,
   IOptionalDebugInfo,
   IDeclareOptions,
-} from './programFactory';
+} from './index';
 import { encodeInputs } from './passes';
 import { CLIError, logCLIError } from './utils/errors';
 import { getDependencyGraph, hashFilename, reducePath } from './utils/postCairoWrite';
