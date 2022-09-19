@@ -80,6 +80,8 @@ class InterfaceElementsCollector(Visitor):
     
     def getUsableImportItems(self, elm:CodeElementImport):
         import_items = list(filter(lambda x: x.orig_identifier.name in self.abi_structs, elm.import_items))
+        #remove items which original identifier name is Uint256
+        import_items = list(filter(lambda x: x.orig_identifier.name != "Uint256", import_items))
         return import_items
 
 
