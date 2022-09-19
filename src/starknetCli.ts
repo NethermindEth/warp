@@ -433,7 +433,7 @@ export function processDeclareContract(
   const network: string = option?.network ? `--network ${option.network}` : ``;
 
   //placeholder to be changed after options are added for declare
-  const noWallet: string = `--no_wallet`;
+  const noWallet = `--no_wallet`;
 
   const options: Map<string, string | undefined> = new Map([
     ['contract', filePath],
