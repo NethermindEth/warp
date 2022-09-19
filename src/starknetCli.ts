@@ -432,9 +432,16 @@ export function processDeclareContract(
 ): string | undefined {
   const network: string = option?.network ? `--network ${option.network}` : ``;
 
-  const options: Map<string, string | undefined> = new Map([['contract', filePath]]);
+  //placeholder to be changed after options are added for declare
+  const noWallet: string = `--no_wallet`;
 
-  const multiOptions: string[] = [network];
+  const options: Map<string, string | undefined> = new Map([
+    ['contract', filePath],
+    ['sender', '0x1234'],
+    ['max_fee', '1'],
+  ]);
+
+  const multiOptions: string[] = [network, noWallet];
 
   const declareCMD: string = buildCairoCommand(options, CAIRO_CMD_DECLARE, multiOptions);
 

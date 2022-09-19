@@ -1999,8 +1999,11 @@ describe('Warp CLI test', function () {
           command.declare,
           options.contract,
           mockData.cairoFileCompiled,
+          '--sender 0x1234',
+          '--max_fee 1',
           options.network,
           mockData.network,
+          options.noWallet,
         ];
         const predictedOutput = outputArray.join(' ') as string;
 
@@ -2106,8 +2109,13 @@ describe('Warp CLI test', function () {
         expect(splittedOutput[2]).to.be.equal(command.declare);
         expect(splittedOutput[3]).to.be.equal(options.contract);
         expect(splittedOutput[4]).to.be.equal(mockData.cairoFileCompiled);
-        expect(splittedOutput[5]).to.be.equal(options.network);
-        expect(splittedOutput[6]).to.be.equal(mockData.network);
+        expect(splittedOutput[5]).to.be.equal('--sender');
+        expect(splittedOutput[6]).to.be.equal('0x1234');
+        expect(splittedOutput[7]).to.be.equal('--max_fee');
+        expect(splittedOutput[8]).to.be.equal('1');
+        expect(splittedOutput[9]).to.be.equal(options.network);
+        expect(splittedOutput[10]).to.be.equal(mockData.network);
+        expect(splittedOutput[11]).to.be.equal('--no_wallet');
       });
     });
 
