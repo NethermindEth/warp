@@ -1625,7 +1625,7 @@ describe('Warp CLI test', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          './tests/testFiles/Test__WC__WARP.cairo',
+          'tests/testFiles/Test__WC__WARP.cairo',
           '--network',
           'alpha-goerli',
           '--no_wallet',
@@ -1641,7 +1641,7 @@ describe('Warp CLI test', function () {
           'undefined',
           '--no_wallet',
           '--contract',
-          './tests/testFiles/Test__WC__WARP_compiled.json',
+          'tests/testFiles/Test__WC__WARP_compiled.json',
           '',
         ];
         const predictedOutput = outputArray.join(' ') as string;
@@ -1654,7 +1654,7 @@ describe('Warp CLI test', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          './tests/testFiles/Test__WC__WARP.cairo',
+          'tests/testFiles/Test__WC__WARP.cairo',
           '--network',
           'alpha-goerli',
         ]);
@@ -1670,7 +1670,7 @@ describe('Warp CLI test', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          './tests/testFiles/Test__WC__WARP.cairo',
+          'tests/testFiles/Test__WC__WARP.cairo',
           '--network',
           'alpha-goerli',
         ]);
@@ -1686,7 +1686,7 @@ describe('Warp CLI test', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          './tests/testFiles/Test__WC__WARP.cairo',
+          'tests/testFiles/Test__WC__WARP.cairo',
           '--network',
           'alpha-goerli',
           '--no_wallet',
@@ -1696,7 +1696,7 @@ describe('Warp CLI test', function () {
         expect(args[0]).to.be.equal('deploy');
         const starknetCommand = output.val.includes('deploy');
         expect(starknetCommand).to.be.equal(true);
-        expect(args[1]).to.be.equal('./tests/testFiles/Test__WC__WARP.cairo');
+        expect(args[1]).to.be.equal('tests/testFiles/Test__WC__WARP.cairo');
       });
 
       it('4. correct network option passed with no wallet option', async () => {
@@ -1704,7 +1704,7 @@ describe('Warp CLI test', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          './tests/testFiles/Test__WC__WARP.cairo',
+          'tests/testFiles/Test__WC__WARP.cairo',
           '--network',
           'alpha-goerli',
           '--no_wallet',
@@ -1724,7 +1724,7 @@ describe('Warp CLI test', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          './tests/testFiles/Test__WC__WARP.cairo',
+          'tests/testFiles/Test__WC__WARP.cairo',
           '--network',
           'alpha-goerli',
           '--account',
@@ -1745,7 +1745,7 @@ describe('Warp CLI test', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          './tests/testFiles/Test__WC__WARP.cairo',
+          'tests/testFiles/Test__WC__WARP.cairo',
           '--network',
           'alpha-goerli',
           '--account',
@@ -1778,7 +1778,7 @@ describe('Warp CLI test', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          './tests/testFiles/Test__WC__WARP.cairo',
+          'tests/testFiles/Test__WC__WARP.cairo',
           '--network',
           'alpha-goerli',
           '--no_wallet',
@@ -1795,7 +1795,7 @@ describe('Warp CLI test', function () {
         expect(splittedOutput[6]).to.be.equal('undefined');
         expect(splittedOutput[7]).to.be.equal('--no_wallet');
         expect(splittedOutput[8]).to.be.equal('--contract');
-        expect(splittedOutput[9]).to.be.equal('./tests/testFiles/Test__WC__WARP_compiled.json');
+        expect(splittedOutput[9]).to.be.equal('tests/testFiles/Test__WC__WARP_compiled.json');
       });
 
       it('9. correct starknet and command output without no wallet and with account', async () => {
@@ -1803,7 +1803,7 @@ describe('Warp CLI test', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          './tests/testFiles/Test__WC__WARP.cairo',
+          'tests/testFiles/Test__WC__WARP.cairo',
           '--network',
           'alpha-goerli',
           '--account',
@@ -1827,7 +1827,7 @@ describe('Warp CLI test', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          './tests/testFiles/Test__WC__WARP.cairo',
+          'tests/testFiles/Test__WC__WARP.cairo',
           '--network',
           'alpha-goerli',
           '--account',
