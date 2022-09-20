@@ -95,25 +95,25 @@ interface IInstallOptions_ {
 
 export type IDeclareOptions = IOptionalNetwork;
 
-const createCompileProgram = (program: Command, output = { val: '' }, isTest = false) => {
+const createCompileProgram = (program: Command, output = { val: '' }) => {
   program
     .command('compile <file>')
     .option('-d, --debug_info', 'Include debug information.', false)
     .action((file: string, options: IOptionalDebugInfo) => {
-      output.val = runStarknetCompile(file, options, isTest) as string;
+      output.val = runStarknetCompile(file, options) as string;
     });
 };
 
-const createStatusProgram = (program: Command, output = { val: '' }, isTest = false) => {
+const createStatusProgram = (program: Command, output = { val: '' }) => {
   program
     .command('status <tx_hash>')
     .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
     .action((tx_hash: string, options: IOptionalNetwork) => {
-      output.val = runStarknetStatus(tx_hash, options, isTest) as string;
+      output.val = runStarknetStatus(tx_hash, options) as string;
     });
 };
 
-const createDeployProgram = async (program: Command, output = { val: '' }, isTest = false) => {
+const createDeployProgram = async (program: Command, output = { val: '' }) => {
   program
     .command('deploy <file>')
     .option('-d, --debug_info', 'Compile include debug information.', false)
@@ -133,11 +133,11 @@ const createDeployProgram = async (program: Command, output = { val: '' }, isTes
       'warp_output',
     )
     .action(async (file: string, options: IDeployProps) => {
-      output.val = (await runStarknetDeploy(file, options, isTest)) as string;
+      output.val = (await runStarknetDeploy(file, options)) as string;
     });
 };
 
-const createDeployAccountProgram = (program: Command, output = { val: '' }, isTest = false) => {
+const createDeployAccountProgram = (program: Command, output = { val: '' }) => {
   program
     .command('deploy_account')
     .option(
@@ -151,11 +151,11 @@ const createDeployAccountProgram = (program: Command, output = { val: '' }, isTe
       process.env.STARKNET_WALLET,
     )
     .action((options: IDeployAccountProps) => {
-      output.val = runStarknetDeployAccount(options, isTest) as string;
+      output.val = runStarknetDeployAccount(options) as string;
     });
 };
 
-const createInvokeProgram = async (program: Command, output = { val: '' }, isTest = false) => {
+const createInvokeProgram = async (program: Command, output = { val: '' }) => {
   program
     .command('invoke <file>')
     .requiredOption('--address <address>', 'Address of contract to invoke.')
@@ -177,11 +177,11 @@ const createInvokeProgram = async (program: Command, output = { val: '' }, isTes
       process.env.STARKNET_WALLET,
     )
     .action(async (file: string, options: ICallOrInvokeProps) => {
-      output.val = (await runStarknetCallOrInvoke(file, false, options, isTest)) as string;
+      output.val = (await runStarknetCallOrInvoke(file, false, options)) as string;
     });
 };
 
-const createCallProgram = async (program: Command, output = { val: '' }, isTest = false) => {
+const createCallProgram = async (program: Command, output = { val: '' }) => {
   program
     .command('call <file>')
     .requiredOption('--address <address>', 'Address of contract to call.')
@@ -203,17 +203,17 @@ const createCallProgram = async (program: Command, output = { val: '' }, isTest 
       process.env.STARKNET_WALLET,
     )
     .action(async (file: string, options: ICallOrInvokeProps) => {
-      output.val = (await runStarknetCallOrInvoke(file, true, options, isTest)) as string;
+      output.val = (await runStarknetCallOrInvoke(file, true, options)) as string;
     });
 };
 
-const createDeclareProgram = (program: Command, output = { val: '' }, isTest = false) => {
+const createDeclareProgram = (program: Command, output = { val: '' }) => {
   program
     .command('declare <cairo_contract>')
     .description('Command to declare Cairo contract on a StarkNet Network.')
     .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
     .action((cairo_contract: string, options: IDeclareOptions) => {
-      output.val = runStarknetDeclare(cairo_contract, options, isTest) as string;
+      output.val = runStarknetDeclare(cairo_contract, options) as string;
     });
 };
 

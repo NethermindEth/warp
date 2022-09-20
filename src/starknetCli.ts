@@ -31,12 +31,8 @@ interface CompileResult {
   classHash?: string;
 }
 
-function callCairoCommand(cmd: string, command: string, isStdio = true, isTest = false) {
+function callCairoCommand(cmd: string, command: string, isStdio = true) {
   const options: ExecSyncOptions = isStdio ? { stdio: 'inherit' } : { encoding: 'utf8' };
-
-  if (isTest) {
-    return;
-  }
 
   try {
     const result = execSync(cmd, options);
@@ -70,7 +66,6 @@ export function starkNetCompile(
   filePath: string,
   parameters: Map<string, string | undefined>,
   isDebug?: IOptionalDebugInfo,
-  isTest?: boolean,
 ) {
   const debug: string = isDebug?.debug_info ? '--debug_info_with_source' : '--no_debug_info';
   const multiOptions: string[] = [debug, filePath];
@@ -80,7 +75,7 @@ export function starkNetCompile(
     CAIRO_CMD_STARKNET_COMPILE,
     multiOptions,
   );
-  callCairoCommand(compileCMD, CAIRO_CMD_STARKNET_COMPILE, true, isTest);
+  callCairoCommand(compileCMD, CAIRO_CMD_STARKNET_COMPILE, true);
 
   return compileCMD;
 }
@@ -89,7 +84,6 @@ export function compileCairo(
   filePath: string,
   cairoPath: string = path.resolve(__dirname, '..'),
   debug_info?: IOptionalDebugInfo,
-  isTest = false,
 ): CompileResult {
   if (cairoPath == undefined) {
     logCLIError(`Error: Exception: Cairo Path was not set properly.`);
@@ -110,11 +104,7 @@ export function compileCairo(
   }
 
   try {
-    if (!isTest) {
-      console.log(`Running starknet compile with cairoPath ${cairoPath}`);
-    }
-
-    const output: string = starkNetCompile(filePath, parameters, debug_info, isTest);
+    const output: string = starkNetCompile(filePath, parameters, debug_info);
     return { success: true, resultPath, abiPath, classHash: undefined, output };
   } catch (e) {
     if (e instanceof Error) {
@@ -132,7 +122,6 @@ async function compileCairoDependencies(
   filesCompiled: Map<string, CompileResult>,
   debug_info = false,
   network: string,
-  isTest = false,
   outputDir: string,
 ): Promise<CompileResult> {
   const compiled = filesCompiled.get(root);
@@ -149,7 +138,6 @@ async function compileCairoDependencies(
         filesCompiled,
         debug_info,
         network,
-        isTest,
         outputDir,
       );
       const fileLocationHash = hashFilename(reducePath(filesToDeclare, outputDir));
@@ -157,12 +145,9 @@ async function compileCairoDependencies(
     }
   }
 
-  const { success, resultPath, abiPath } = compileCairo(
-    root,
-    path.resolve(__dirname, '..'),
-    { debug_info: false },
-    isTest,
-  );
+  const { success, resultPath, abiPath } = compileCairo(root, path.resolve(__dirname, '..'), {
+    debug_info: false,
+  });
   if (!success) {
     throw new CLIError(`Compilation of cairo file ${root} failed`);
   }
@@ -170,23 +155,15 @@ async function compileCairoDependencies(
   return { success, resultPath, abiPath };
 }
 
-export function runStarknetCompile(
-  filePath: string,
-  debug_info: IOptionalDebugInfo,
-  isTest = false,
-) {
+export function runStarknetCompile(filePath: string, debug_info: IOptionalDebugInfo) {
   const { success, resultPath, output } = compileCairo(
     filePath,
     path.resolve(__dirname, '..'),
     debug_info,
-    isTest,
   );
   if (!success) {
     logCLIError(`Compilation of contract ${filePath} failed`);
     return;
-  }
-  if (!isTest) {
-    console.log(`starknet-compile output written to ${resultPath}`);
   }
 
   return output;
@@ -203,7 +180,7 @@ export function checkStatus(tx_hash: string, option: IOptionalNetwork): string {
   return statusCMD;
 }
 
-export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork, isTest = false) {
+export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
   if (tx_hash == undefined) {
     logCLIError(`Error: Exception: tx_hash must be specified with the "tx_status" subcommand.`);
     return;
@@ -216,7 +193,7 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork, isT
   }
 
   const statusCMD: string = checkStatus(tx_hash, option);
-  callCairoCommand(statusCMD, CAIRO_CMD_STATUS, true, isTest);
+  callCairoCommand(statusCMD, CAIRO_CMD_STATUS, true);
 
   return statusCMD;
 }
@@ -244,7 +221,7 @@ export function starkNetDeploy(
   return deployCMD;
 }
 
-export async function runStarknetDeploy(filePath: string, options: IDeployProps, isTest = false) {
+export async function runStarknetDeploy(filePath: string, options: IDeployProps) {
   if (options.network == undefined) {
     logCLIError(
       `Error: Exception: feeder_gateway_url must be specified with the "deploy" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
@@ -263,7 +240,6 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps,
       new Map<string, CompileResult>(),
       options.debug_info,
       options.network,
-      isTest,
       options.outputDir,
     );
   } catch (e) {
@@ -295,7 +271,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps,
     const classHashOption = classHash ? `--class_hash ${classHash}` : '';
     const resultPath = compileResult.resultPath as string;
     const deployCMD: string = starkNetDeploy(resultPath, options, inputs, classHashOption);
-    callCairoCommand(deployCMD, CAIRO_CMD_STARKNET_DEPLOY, true, isTest);
+    callCairoCommand(deployCMD, CAIRO_CMD_STARKNET_DEPLOY, true);
 
     return deployCMD;
   } catch (e) {
@@ -322,7 +298,7 @@ export function deployAccount(option: IDeployAccountProps): string {
   return deployAccCMD;
 }
 
-export function runStarknetDeployAccount(options: IDeployAccountProps, isTest = false) {
+export function runStarknetDeployAccount(options: IDeployAccountProps) {
   if (options.wallet == undefined) {
     logCLIError(
       `Error: AssertionError: --wallet must be specified with the "deploy_account" subcommand.`,
@@ -337,7 +313,7 @@ export function runStarknetDeployAccount(options: IDeployAccountProps, isTest = 
   }
 
   const deployAccCMD: string = deployAccount(options);
-  callCairoCommand(deployAccCMD, CAIRO_CMD_STARKNET_DEPLOY_ACC, true, isTest);
+  callCairoCommand(deployAccCMD, CAIRO_CMD_STARKNET_DEPLOY_ACC, true);
 
   return deployAccCMD;
 }
@@ -371,7 +347,6 @@ export async function runStarknetCallOrInvoke(
   filePath: string,
   isCall: boolean,
   options: ICallOrInvokeProps,
-  isTest = false,
 ) {
   const callOrInvoke: string = isCall ? CAIRO_CMD_STARKNET_CALL : CAIRO_CMD_STARKNET_INVOKE;
 
@@ -388,12 +363,9 @@ export async function runStarknetCallOrInvoke(
     return;
   }
 
-  const { success, abiPath } = compileCairo(
-    filePath,
-    path.resolve(__dirname, '..'),
-    { debug_info: false },
-    isTest,
-  );
+  const { success, abiPath } = compileCairo(filePath, path.resolve(__dirname, '..'), {
+    debug_info: false,
+  });
   if (!success) {
     logCLIError(`Compilation of contract ${filePath} failed`);
     return;
@@ -422,7 +394,7 @@ export async function runStarknetCallOrInvoke(
     funcName,
     inputs,
   );
-  callCairoCommand(callOrInvokeCMD, callOrInvoke, true, isTest);
+  callCairoCommand(callOrInvokeCMD, callOrInvoke, true);
 
   return callOrInvokeCMD;
 }
@@ -453,10 +425,9 @@ function declareContract(
   filePath: string,
   isStdio: boolean,
   option?: IDeclareOptions,
-  isTest = false,
 ): string | undefined {
   const declareCMD: string = processDeclareContract(filePath, option) as string;
-  const result = callCairoCommand(declareCMD, CAIRO_CMD_DECLARE, isStdio, isTest) as string;
+  const result = callCairoCommand(declareCMD, CAIRO_CMD_DECLARE, isStdio) as string;
 
   if (isStdio === true) return declareCMD;
 
@@ -467,20 +438,17 @@ function declareContract(
   }
 }
 
-export function runStarknetDeclare(filePath: string, options: IDeclareOptions, isTest = false) {
-  const { success, resultPath } = compileCairo(
-    filePath,
-    path.resolve(__dirname, '..'),
-    { debug_info: false },
-    isTest,
-  );
+export function runStarknetDeclare(filePath: string, options: IDeclareOptions) {
+  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'), {
+    debug_info: false,
+  });
 
   if (!success) {
     logCLIError(`Compilation of contract ${filePath} failed`);
     return;
   } else {
     assert(resultPath !== undefined);
-    const declareCMD = declareContract(resultPath, true, options, isTest);
+    const declareCMD = declareContract(resultPath, true, options);
     return declareCMD;
   }
 }
