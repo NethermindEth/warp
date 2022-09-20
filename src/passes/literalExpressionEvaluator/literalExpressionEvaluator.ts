@@ -143,8 +143,7 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
             throw new TranspileFailedError(
               `Unexpected boolean x boolean operator ${node.operator}`,
             );
-          }
-          return null;
+          } else return null;
       }
     } else {
       const fraction = notNullMember.toString().split('/');
@@ -190,8 +189,7 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
           ];
           if (!otherOp.includes(node.operator)) {
             throw new TranspileFailedError(`Unexpected number x number operator ${node.operator}`);
-          }
-          return null;
+          } else return null;
         }
       }
     }
