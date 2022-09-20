@@ -134,9 +134,9 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
     }
     if (typeof notNullMember === 'boolean') {
       switch (node.operator) {
-        case '&&': // false & x = false
+        case '&&': // false && x = false
           return notNullMember ? null : false;
-        case '||': // true | x = true
+        case '||': // true || x = true
           return notNullMember ? true : false;
         default:
           if (!['==', '!='].includes(node.operator)) {
@@ -146,7 +146,7 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
           }
           return null;
       }
-    } else if (typeof notNullMember !== 'boolean') {
+    } else {
       const fraction = notNullMember.toString().split('/');
       const is_zero = fraction[0] === '0';
       const is_one = fraction[0] === fraction[1];
@@ -158,22 +158,19 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
             return new RationalLiteral(1n, 1n);
           } else if (left && is_one) {
             return new RationalLiteral(1n, 1n);
-          }
-          return null;
+          } else return null;
         case '<<': // 0<<x = 0   x<<n(n>255) = 0
           if (left && is_zero) {
             return new RationalLiteral(0n, 1n);
           } else if (right && notNullMember.greaterThan(new RationalLiteral(255n, 1n))) {
             return new RationalLiteral(0n, 1n);
-          }
-          return null;
+          } else return null;
         case '>>': // 0>>x = 0   1>>x = 0
           if (left && is_zero) {
             return new RationalLiteral(0n, 1n);
           } else if (left && is_one) {
             return new RationalLiteral(0n, 1n);
-          }
-          return null;
+          } else return null;
         default: {
           const otherOp = [
             '/',
@@ -197,8 +194,6 @@ function evaluateBinaryLiteral(node: BinaryOperation): RationalLiteral | boolean
           return null;
         }
       }
-    } else {
-      throw new TranspileFailedError('Mismatching literal arguments');
     }
   } else if (typeof left === 'boolean' && typeof right === 'boolean') {
     switch (node.operator) {
