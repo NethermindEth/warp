@@ -44,7 +44,7 @@ import {
 import { assert } from 'console';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
-const defaultCompilerVersion = '0.8.14';
+const defaultSolcVersion = '0.8.14';
 
 export function generateSolInterface(filePath: string, options: SolcInterfaceGenOptions) {
   const { success } = compileCairo(filePath, path.resolve(__dirname, '..'), {
@@ -70,7 +70,10 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
 
   const parameters = new Map([
     ['output', solPath],
-    ['cairo_path', path.resolve(__dirname, '..')],
+    [
+      'cairo_path',
+      path.resolve(__dirname, '..') + ':' + path.resolve(__dirname, options.cairoPath),
+    ],
   ]);
 
   execSync(
@@ -91,14 +94,14 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
       [CornerTypeName, new CornerTypeNameWriter()],
     ]),
     new PrettyFormatter(4, 0),
-    options.solc_version ?? defaultCompilerVersion,
+    options.solcVersion ?? defaultSolcVersion,
   );
 
   const sourceUint = new SourceUnit(0, '', solPath, 0, solPath, new Map(), []);
   sourceUint.context = new ASTContext(sourceUint);
-  const ast = new AST([sourceUint], options.solc_version ?? defaultCompilerVersion);
+  const ast = new AST([sourceUint], options.solcVersion ?? defaultSolcVersion);
 
-  addPragmaDirective(options.solc_version ?? defaultCompilerVersion, sourceUint, ast);
+  addPragmaDirective(options.solcVersion ?? defaultSolcVersion, sourceUint, ast);
   addForwarderContract(jsonCairo, sourceUint, ast);
   addFreeFunctions(jsonCairo, sourceUint, ast);
 
@@ -116,8 +119,8 @@ function contractComments(): string {
     '// \t the WARP contract stubs',
     '// 3. You must have the address of the deployed CAIRO CONTRACT you want to interact with',
     '// 4. You can use these free functions defined in this file to interact with the cairo contract',
-    '// 5. Replace functions:[ wm_to_calldata_NUM, cd_to_memory_NUM] with appropriate function names (probably replace NUM)',
-    '// 6. Replace the data type cd_dynarray_OBJECT_TYPE with appropriate object type',
+    '// 5. Replace functions:[ wm_to_calldata_NUM, cd_to_memory_NUM] with appropriate function names (probably replace NUM) after transpiling this contract',
+    '// 6. Replace the data type cd_dynarray_OBJECT_TYPE with appropriate object type after transpiling this contract',
     '\n\n',
   ];
   return comments.join('\n');

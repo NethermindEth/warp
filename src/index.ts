@@ -156,16 +156,16 @@ program
   });
 
 export interface SolcInterfaceGenOptions {
-  cairo_path: string;
+  cairoPath: string;
   output?: string;
-  solc_version?: string;
+  solcVersion?: string;
 }
 
 program
   .command('gen_interface <file>')
-  .option('--cairo-path')
-  .option('--output')
-  .option('--compiler-version')
+  .option('--cairo-path <cairo-path>')
+  .option('--output <output>')
+  .option('--solc-version <version>', 'Solc version to use.', '0.8.14')
   .action((file: string, options: SolcInterfaceGenOptions) => {
     generateSolInterface(file, options);
   });
