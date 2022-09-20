@@ -73,11 +73,6 @@ const cairoPath = `${path.resolve(__dirname, '..')}`;
 
 describe('Warp CLI test', function () {
   this.timeout(200000);
-  sinon
-    .stub(clientInternals, 'execSync')
-    .returns(
-      'Contract class hash: 0x000000000000000000000000000000000000000000000000000000000000001\n Transaction hash: 0x000000000000000000000000000000000000000000000000000000000000002',
-    );
 
   it('generate cairo contract', async () => {
     const program = new Command();
@@ -98,12 +93,18 @@ describe('Warp CLI test', function () {
     describe('command output test', function () {
       let program: Command;
       const output = { val: '' };
+      let sandbox: sinon.SinonSandbox, mockCall: any;
 
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
-
+        sandbox = sinon.createSandbox();
+        mockCall = sandbox.stub(clientInternals, 'execSync');
         createStatusProgram(program, output);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
       });
 
       it('0. compare output string', async () => {
@@ -246,11 +247,18 @@ describe('Warp CLI test', function () {
     describe('runStarknetStatus test', function () {
       let program: Command;
       const output = { val: '' };
+      let sandbox: sinon.SinonSandbox, mockCall: any;
 
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
+        sandbox = sinon.createSandbox();
+        mockCall = sandbox.stub(clientInternals, 'execSync');
         createStatusProgram(program, output);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
       });
 
       it('8. tx_hash is required', async () => {
@@ -308,13 +316,18 @@ describe('Warp CLI test', function () {
     describe('command output test', function () {
       let program: Command;
       const output = { val: '' };
-
-      const debugOptions = ['--debug_info_with_source', '--no_debug_info'];
+      let sandbox: sinon.SinonSandbox, mockCall: any;
 
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
+        sandbox = sinon.createSandbox();
+        mockCall = sandbox.stub(clientInternals, 'execSync');
         createCompileProgram(program, output);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
       });
 
       it('0. compare output string', async () => {
@@ -335,7 +348,7 @@ describe('Warp CLI test', function () {
           'tests/testFiles/Test__WC__WARP_abi.json',
           '--cairo_path',
           cairoPath,
-          debugOptions[0],
+          '--debug_info_with_source',
           'tests/testFiles/Test__WC__WARP.cairo',
         ];
         const predictedOutput = outputArray.join(' ') as string;
@@ -396,7 +409,7 @@ describe('Warp CLI test', function () {
 
         const args = program.args;
         expect(args[2]).to.be.equal('--debug_info');
-        const debugExists = output.val.includes(debugOptions[0]);
+        const debugExists = output.val.includes('--debug_info_with_source');
         expect(debugExists).to.be.equal(true);
       });
 
@@ -408,7 +421,7 @@ describe('Warp CLI test', function () {
           'tests/testFiles/Test__WC__WARP.cairo',
         ]);
 
-        const debugExists = output.val.includes(debugOptions[1]);
+        const debugExists = output.val.includes('--no_debug_info');
         expect(debugExists).to.be.equal(true);
         const boolExists = output.val.includes('false');
         expect(boolExists).to.be.equal(false);
@@ -455,7 +468,7 @@ describe('Warp CLI test', function () {
         expect(splittedOutput[3]).to.be.equal('tests/testFiles/Test__WC__WARP_compiled.json');
         expect(splittedOutput[4]).to.be.equal('--abi');
         expect(splittedOutput[5]).to.be.equal('tests/testFiles/Test__WC__WARP_abi.json');
-        expect(splittedOutput[8]).to.be.equal(debugOptions[0]);
+        expect(splittedOutput[8]).to.be.equal('--debug_info_with_source');
         expect(splittedOutput[9]).to.be.equal('tests/testFiles/Test__WC__WARP.cairo');
       });
     });
@@ -463,11 +476,18 @@ describe('Warp CLI test', function () {
     describe('runStarknetCompile test', function () {
       let program: Command;
       const output = { val: '' };
+      let sandbox: sinon.SinonSandbox, mockCall: any;
 
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
+        sandbox = sinon.createSandbox();
+        mockCall = sandbox.stub(clientInternals, 'execSync');
         createCompileProgram(program, output);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
       });
 
       it('9. filepath is required', async () => {
@@ -535,11 +555,18 @@ describe('Warp CLI test', function () {
     describe('command output test', function () {
       let program: Command;
       const output = { val: '' };
+      let sandbox: sinon.SinonSandbox, mockCall: any;
 
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
+        sandbox = sinon.createSandbox();
+        mockCall = sandbox.stub(clientInternals, 'execSync');
         createDeployAccountProgram(program, output);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
       });
 
       it('0. compare output string', async () => {
@@ -719,11 +746,18 @@ describe('Warp CLI test', function () {
     describe('runStarknetDeployAccount test', function () {
       let program: Command;
       const output = { val: '' };
+      let sandbox: sinon.SinonSandbox, mockCall: any;
 
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
+        sandbox = sinon.createSandbox();
+        mockCall = sandbox.stub(clientInternals, 'execSync');
         createDeployAccountProgram(program, output);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
       });
 
       it('8. wallet option is required', async () => {
@@ -786,17 +820,21 @@ describe('Warp CLI test', function () {
   });
 
   describe('warp call', function () {
-    const mockCallFunc = 'get_balance';
-    const mockAddress = '0x1234';
-
     describe('command output test', function () {
       let program: Command;
       const output = { val: '' };
+      let sandbox: sinon.SinonSandbox, mockCall: any;
 
       beforeEach(async () => {
         program = new Command();
         program.exitOverride();
+        sandbox = sinon.createSandbox();
+        mockCall = sandbox.stub(clientInternals, 'execSync');
         await createCallProgram(program, output);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
       });
 
       it('0. compare output string', async () => {
@@ -806,10 +844,10 @@ describe('Warp CLI test', function () {
           'call',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockCallFunc,
+          'get_balance',
           '--network',
           'alpha-goerli',
         ]);
@@ -819,11 +857,11 @@ describe('Warp CLI test', function () {
           'starknet',
           'call',
           '--address',
-          mockAddress,
+          '0x1234',
           '--abi',
           'tests/testFiles/Test__WC__WARP_abi.json',
           '--function',
-          mockCallFunc,
+          'get_balance',
           '--network',
           'alpha-goerli',
           '--no_wallet',
@@ -843,10 +881,10 @@ describe('Warp CLI test', function () {
           'call',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockCallFunc,
+          'get_balance',
           '--network',
           'alpha-goerli',
         ]);
@@ -864,10 +902,10 @@ describe('Warp CLI test', function () {
           'call',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockCallFunc,
+          'get_balance',
           '--network',
           'alpha-goerli',
         ]);
@@ -885,10 +923,10 @@ describe('Warp CLI test', function () {
           'call',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockCallFunc,
+          'get_balance',
           '--network',
           'alpha-goerli',
         ]);
@@ -909,10 +947,10 @@ describe('Warp CLI test', function () {
           'call',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockCallFunc,
+          'get_balance',
           '--network',
           'alpha-goerli',
         ]);
@@ -933,20 +971,20 @@ describe('Warp CLI test', function () {
           'call',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockCallFunc,
+          'get_balance',
           '--network',
           'alpha-goerli',
         ]);
 
         const args = program.args;
         expect(args[2]).to.be.equal('--address');
-        expect(args[3]).to.be.equal(mockAddress);
+        expect(args[3]).to.be.equal('0x1234');
         const opt = output.val.includes('--address');
         expect(opt).to.be.equal(true);
-        const wallet = output.val.includes(mockAddress);
+        const wallet = output.val.includes('0x1234');
         expect(wallet).to.be.equal(true);
       });
 
@@ -957,10 +995,10 @@ describe('Warp CLI test', function () {
           'call',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockCallFunc,
+          'get_balance',
           '--network',
           'alpha-goerli',
         ]);
@@ -990,10 +1028,10 @@ describe('Warp CLI test', function () {
           'call',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockCallFunc,
+          'get_balance',
           '--network',
           'alpha-goerli',
         ]);
@@ -1004,11 +1042,11 @@ describe('Warp CLI test', function () {
         expect(splittedOutput[1]).to.be.equal('starknet');
         expect(splittedOutput[2]).to.be.equal('call');
         expect(splittedOutput[3]).to.be.equal('--address');
-        expect(splittedOutput[4]).to.be.equal(mockAddress);
+        expect(splittedOutput[4]).to.be.equal('0x1234');
         expect(splittedOutput[5]).to.be.equal('--abi');
         expect(splittedOutput[6]).to.be.equal('tests/testFiles/Test__WC__WARP_abi.json');
         expect(splittedOutput[7]).to.be.equal('--function');
-        expect(splittedOutput[8]).to.be.equal(mockCallFunc);
+        expect(splittedOutput[8]).to.be.equal('get_balance');
         expect(splittedOutput[9]).to.be.equal('--network');
         expect(splittedOutput[10]).to.be.equal('alpha-goerli');
         expect(splittedOutput[11]).to.be.equal('--no_wallet');
@@ -1018,11 +1056,18 @@ describe('Warp CLI test', function () {
     describe('runStarknetCallOrInvoke test', function () {
       let program: Command;
       const output = { val: '' };
+      let sandbox: sinon.SinonSandbox, mockCall: any;
 
       beforeEach(async () => {
         program = new Command();
         program.exitOverride();
+        sandbox = sinon.createSandbox();
+        mockCall = sandbox.stub(clientInternals, 'execSync');
         await createCallProgram(program, output);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
       });
 
       it('9. file path option is required', async () => {
@@ -1063,7 +1108,7 @@ describe('Warp CLI test', function () {
             'call',
             'tests/testFiles/Test__WC__WARP.cairo',
             '--address',
-            mockAddress,
+            '0x1234',
           ]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
@@ -1081,10 +1126,10 @@ describe('Warp CLI test', function () {
             'call',
             'tests/testFiles/Test__WC__WARP.cairo',
             '--address',
-            mockAddress,
+            '0x1234',
             '--use_cairo_abi',
             '--function',
-            mockCallFunc,
+            'get_balance',
             '--network',
             'alpha-goerli',
             '--unknownOptions',
@@ -1111,18 +1156,21 @@ describe('Warp CLI test', function () {
   });
 
   describe('warp invoke', function () {
-    const mockInvokeFunc = 'increase_balance';
-    const mockInputValues = '1234';
-    const mockAddress = '0x1234';
-
     describe('command output test', function () {
       let program: Command;
       const output = { val: '' };
+      let sandbox: sinon.SinonSandbox, mockCall: any;
 
       beforeEach(async () => {
         program = new Command();
         program.exitOverride();
+        sandbox = sinon.createSandbox();
+        mockCall = sandbox.stub(clientInternals, 'execSync');
         await createInvokeProgram(program, output);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
       });
 
       it('0. compare output string', async () => {
@@ -1132,12 +1180,12 @@ describe('Warp CLI test', function () {
           'invoke',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockInvokeFunc,
+          'increase_balance',
           '--inputs',
-          mockInputValues,
+          '1234',
           '--network',
           'alpha-goerli',
           '--account',
@@ -1151,11 +1199,11 @@ describe('Warp CLI test', function () {
           'starknet',
           'invoke',
           '--address',
-          mockAddress,
+          '0x1234',
           '--abi',
           'tests/testFiles/Test__WC__WARP_abi.json',
           '--function',
-          mockInvokeFunc,
+          'increase_balance',
           '--network',
           'alpha-goerli',
           '--wallet',
@@ -1163,7 +1211,7 @@ describe('Warp CLI test', function () {
           '--account',
           'Test_Account',
           '--inputs',
-          mockInputValues,
+          '1234',
         ];
         const predictedOutput = outputArray.join(' ') as string;
 
@@ -1177,12 +1225,12 @@ describe('Warp CLI test', function () {
           'invoke',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockInvokeFunc,
+          'increase_balance',
           '--inputs',
-          mockInputValues,
+          '1234',
           '--network',
           'alpha-goerli',
           '--account',
@@ -1204,12 +1252,12 @@ describe('Warp CLI test', function () {
           'invoke',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockInvokeFunc,
+          'increase_balance',
           '--inputs',
-          mockInputValues,
+          '1234',
           '--network',
           'alpha-goerli',
           '--account',
@@ -1231,12 +1279,12 @@ describe('Warp CLI test', function () {
           'invoke',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockInvokeFunc,
+          'increase_balance',
           '--inputs',
-          mockInputValues,
+          '1234',
           '--network',
           'alpha-goerli',
           '--account',
@@ -1261,12 +1309,12 @@ describe('Warp CLI test', function () {
           'invoke',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockInvokeFunc,
+          'increase_balance',
           '--inputs',
-          mockInputValues,
+          '1234',
           '--network',
           'alpha-goerli',
           '--account',
@@ -1291,12 +1339,12 @@ describe('Warp CLI test', function () {
           'invoke',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockInvokeFunc,
+          'increase_balance',
           '--inputs',
-          mockInputValues,
+          '1234',
           '--network',
           'alpha-goerli',
           '--account',
@@ -1307,10 +1355,10 @@ describe('Warp CLI test', function () {
 
         const args = program.args;
         expect(args[2]).to.be.equal('--address');
-        expect(args[3]).to.be.equal(mockAddress);
+        expect(args[3]).to.be.equal('0x1234');
         const opt = output.val.includes('--address');
         expect(opt).to.be.equal(true);
-        const wallet = output.val.includes(mockAddress);
+        const wallet = output.val.includes('0x1234');
         expect(wallet).to.be.equal(true);
       });
 
@@ -1321,12 +1369,12 @@ describe('Warp CLI test', function () {
           'invoke',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockInvokeFunc,
+          'increase_balance',
           '--inputs',
-          mockInputValues,
+          '1234',
           '--network',
           'alpha-goerli',
           '--account',
@@ -1337,10 +1385,10 @@ describe('Warp CLI test', function () {
 
         const args = program.args;
         expect(args[5]).to.be.equal('--function');
-        expect(args[6]).to.be.equal(mockInvokeFunc);
+        expect(args[6]).to.be.equal('increase_balance');
         const opt = output.val.includes('--function');
         expect(opt).to.be.equal(true);
-        const invokeFunction = output.val.includes(mockInvokeFunc);
+        const invokeFunction = output.val.includes('increase_balance');
         expect(invokeFunction).to.be.equal(true);
       });
 
@@ -1351,12 +1399,12 @@ describe('Warp CLI test', function () {
           'invoke',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockInvokeFunc,
+          'increase_balance',
           '--inputs',
-          mockInputValues,
+          '1234',
           '--network',
           'alpha-goerli',
           '--account',
@@ -1367,10 +1415,10 @@ describe('Warp CLI test', function () {
 
         const args = program.args;
         expect(args[7]).to.be.equal('--inputs');
-        expect(args[8]).to.be.equal(mockInputValues);
+        expect(args[8]).to.be.equal('1234');
         const opt = output.val.includes('--inputs');
         expect(opt).to.be.equal(true);
-        const input = output.val.includes(mockInputValues);
+        const input = output.val.includes('1234');
         expect(input).to.be.equal(true);
       });
 
@@ -1381,12 +1429,12 @@ describe('Warp CLI test', function () {
           'invoke',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockInvokeFunc,
+          'increase_balance',
           '--inputs',
-          mockInputValues,
+          '1234',
           '--network',
           'alpha-goerli',
           '--account',
@@ -1411,12 +1459,12 @@ describe('Warp CLI test', function () {
           'invoke',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockInvokeFunc,
+          'increase_balance',
           '--inputs',
-          mockInputValues,
+          '1234',
           '--network',
           'alpha-goerli',
           '--account',
@@ -1445,12 +1493,12 @@ describe('Warp CLI test', function () {
           'invoke',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockInvokeFunc,
+          'increase_balance',
           '--inputs',
-          mockInputValues,
+          '1234',
           '--network',
           'alpha-goerli',
           '--account',
@@ -1484,12 +1532,12 @@ describe('Warp CLI test', function () {
           'invoke',
           'tests/testFiles/Test__WC__WARP.cairo',
           '--address',
-          mockAddress,
+          '0x1234',
           '--use_cairo_abi',
           '--function',
-          mockInvokeFunc,
+          'increase_balance',
           '--inputs',
-          mockInputValues,
+          '1234',
           '--network',
           'alpha-goerli',
           '--account',
@@ -1504,11 +1552,11 @@ describe('Warp CLI test', function () {
         expect(splittedOutput[1]).to.be.equal('starknet');
         expect(splittedOutput[2]).to.be.equal('invoke');
         expect(splittedOutput[3]).to.be.equal('--address');
-        expect(splittedOutput[4]).to.be.equal(mockAddress);
+        expect(splittedOutput[4]).to.be.equal('0x1234');
         expect(splittedOutput[5]).to.be.equal('--abi');
         expect(splittedOutput[6]).to.be.equal('tests/testFiles/Test__WC__WARP_abi.json');
         expect(splittedOutput[7]).to.be.equal('--function');
-        expect(splittedOutput[8]).to.be.equal(mockInvokeFunc);
+        expect(splittedOutput[8]).to.be.equal('increase_balance');
         expect(splittedOutput[9]).to.be.equal('--network');
         expect(splittedOutput[10]).to.be.equal('alpha-goerli');
         expect(splittedOutput[11]).to.be.equal('--wallet');
@@ -1518,18 +1566,25 @@ describe('Warp CLI test', function () {
         expect(splittedOutput[13]).to.be.equal('--account');
         expect(splittedOutput[14]).to.be.equal('Test_Account');
         expect(splittedOutput[15]).to.be.equal('--inputs');
-        expect(splittedOutput[16]).to.be.equal(mockInputValues);
+        expect(splittedOutput[16]).to.be.equal('1234');
       });
     });
 
     describe('runStarknetCallOrInvoke test', function () {
       let program: Command;
       const output = { val: '' };
+      let sandbox: sinon.SinonSandbox, mockCall: any;
 
       beforeEach(async () => {
         program = new Command();
         program.exitOverride();
+        sandbox = sinon.createSandbox();
+        mockCall = sandbox.stub(clientInternals, 'execSync');
         await createInvokeProgram(program, output);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
       });
 
       it('13. file path option is required', async () => {
@@ -1570,7 +1625,7 @@ describe('Warp CLI test', function () {
             'invoke',
             'tests/testFiles/Test__WC__WARP.cairo',
             '--address',
-            mockAddress,
+            '0x1234',
           ]);
         } catch (e) {
           err = e as { code: string | undefined } | undefined;
@@ -1588,12 +1643,12 @@ describe('Warp CLI test', function () {
             'invoke',
             'tests/testFiles/Test__WC__WARP.cairo',
             '--address',
-            mockAddress,
+            '0x1234',
             '--use_cairo_abi',
             '--function',
-            mockInvokeFunc,
+            'increase_balance',
             '--inputs',
-            mockInputValues,
+            '1234',
             '--network',
             'alpha-goerli',
             '--account',
@@ -1627,12 +1682,22 @@ describe('Warp CLI test', function () {
     describe('command output test', function () {
       let program: Command;
       const output = { val: '' };
-      const mockClassHash = '--class_hash';
+      let sandbox: sinon.SinonSandbox, mockCall: any;
 
       beforeEach(async () => {
         program = new Command();
         program.exitOverride();
+        sandbox = sinon.createSandbox();
+        mockCall = sandbox
+          .stub(clientInternals, 'execSync')
+          .returns(
+            'Contract class hash: 0x000000000000000000000000000000000000000000000000000000000000001\n Transaction hash: 0x000000000000000000000000000000000000000000000000000000000000002',
+          );
         await createDeployProgram(program, output);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
       });
 
       it('0. compare output string', async () => {
@@ -1749,7 +1814,7 @@ describe('Warp CLI test', function () {
         const args = program.args;
 
         expect(args[4]).to.be.equal('--account');
-        const opt = output.val.includes(mockClassHash);
+        const opt = output.val.includes('--class_hash');
         expect(opt).to.be.equal(true);
         const acc = output.val.includes('Test_Account');
         expect(acc).to.be.equal(true);
@@ -1772,7 +1837,7 @@ describe('Warp CLI test', function () {
         const args = program.args;
         expect(args[6]).to.be.equal('--wallet');
         expect(args[7]).to.be.equal('starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount');
-        const opt = output.val.includes(mockClassHash);
+        const opt = output.val.includes('--class_hash');
         expect(opt).to.be.equal(true);
       });
 
@@ -1867,11 +1932,22 @@ describe('Warp CLI test', function () {
     describe('runStarknetDeploy test', function () {
       let program: Command;
       const output = { val: '' };
+      let sandbox: sinon.SinonSandbox, mockCall: any;
 
       beforeEach(async () => {
         program = new Command();
         program.exitOverride();
+        sandbox = sinon.createSandbox();
+        mockCall = sandbox
+          .stub(clientInternals, 'execSync')
+          .returns(
+            'Contract class hash: 0x000000000000000000000000000000000000000000000000000000000000001\n Transaction hash: 0x000000000000000000000000000000000000000000000000000000000000002',
+          );
         await createDeployProgram(program, output);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
       });
 
       it('11. file path option is required', async () => {
@@ -1921,11 +1997,18 @@ describe('Warp CLI test', function () {
     describe('command output test', function () {
       let program: Command;
       const output = { val: '' };
+      let sandbox: sinon.SinonSandbox, mockCall: any;
 
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
+        sandbox = sinon.createSandbox();
+        mockCall = sandbox.stub(clientInternals, 'execSync');
         createDeclareProgram(program, output);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
       });
 
       it('0. compare output string', async () => {
@@ -2067,11 +2150,18 @@ describe('Warp CLI test', function () {
     describe('runStarknetDeclare test', function () {
       let program: Command;
       const output = { val: '' };
+      let sandbox: sinon.SinonSandbox, mockCall: any;
 
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
+        sandbox = sinon.createSandbox();
+        mockCall = sandbox.stub(clientInternals, 'execSync');
         createDeclareProgram(program, output);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
       });
 
       it('7. file path option is required', async () => {
