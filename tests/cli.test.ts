@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { parse } from '../src/utils/functionSignatureParser';
 import { Command } from 'commander';
-import { CliOptions } from '../src';
+import { CliOptions } from '../src/programFactory';
 import * as path from 'path';
 import { createCairoFileName, isValidSolFile, outputResult } from '../src/io';
 import { handleTranspilationError, transpile } from '../src/transpiler';
