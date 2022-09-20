@@ -72,12 +72,13 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
     ['output', solPath],
     [
       'cairo_path',
-      path.resolve(__dirname, '..') + ':' + path.resolve(__dirname, options.cairoPath),
+      path.resolve(__dirname, '..') + options.cairoPath ??
+        `:${path.resolve(__dirname, options.cairoPath)}`,
     ],
   ]);
 
   execSync(
-    `${warpVenvPrefix} python3 ../interface_call_forwarder/generate_cairo_json.py ${filePath} ${[
+    `${warpVenvPrefix} python3 interface_call_forwarder/generate_cairo_json.py ${filePath} ${[
       ...parameters.entries(),
     ]
       .map(([key, value]) => `--${key} ${value}`)
