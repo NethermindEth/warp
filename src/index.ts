@@ -3,10 +3,8 @@ import { programs } from './programFactory';
 
 export const program = new Command();
 
-const placeholderValue = { val: '' };
-
 for (const prog of programs) {
-  prog(program, placeholderValue);
+  prog(program);
 }
 
 program.parse(process.argv);
