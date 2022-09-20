@@ -223,8 +223,7 @@ export function checkableType(type: TypeNode): boolean {
     type instanceof ArrayType ||
     type instanceof BytesType ||
     type instanceof FixedBytesType ||
-    (type instanceof UserDefinedType &&
-      (type.definition instanceof StructDefinition || type.definition instanceof EnumDefinition)) ||
+    type instanceof UserDefinedType ||
     type instanceof AddressType ||
     type instanceof IntType ||
     type instanceof BoolType ||
