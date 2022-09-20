@@ -9,6 +9,7 @@ import {
   UserDefinedValueTypeDefinition,
   ExternalReferenceType,
   ImportDirective,
+  EventDefinition,
 } from 'solc-typed-ast';
 
 import { AST } from '../../ast/ast';
@@ -30,6 +31,7 @@ export class ExpressionNameMangler extends ASTMapper {
     if (
       node.vIdentifierType === ExternalReferenceType.UserDefined &&
       (node.vReferencedDeclaration instanceof VariableDeclaration ||
+        node.vReferencedDeclaration instanceof EventDefinition ||
         (node.vReferencedDeclaration instanceof FunctionDefinition &&
           !(node.parent instanceof ImportDirective)))
     ) {
