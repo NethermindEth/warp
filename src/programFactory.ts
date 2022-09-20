@@ -95,16 +95,12 @@ interface IInstallOptions_ {
 
 export type IDeclareOptions = IOptionalNetwork;
 
-const createCompileProgram = (
-  program: Command,
-  output: { val: string | undefined },
-  isTest = false,
-) => {
+const createCompileProgram = (program: Command, output = { val: '' }, isTest = false) => {
   program
     .command('compile <file>')
     .option('-d, --debug_info', 'Include debug information.', false)
     .action((file: string, options: IOptionalDebugInfo) => {
-      output.val = runStarknetCompile(file, options, isTest);
+      output.val = runStarknetCompile(file, options, isTest) as string;
     });
 };
 
