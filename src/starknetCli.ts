@@ -1,6 +1,7 @@
 import assert from 'assert';
 import * as path from 'path';
-import { execSync, ExecSyncOptions } from 'child_process';
+import { ExecSyncOptions } from 'child_process';
+import { execSync } from './execSync-internals';
 import {
   IDeployProps,
   ICallOrInvokeProps,
