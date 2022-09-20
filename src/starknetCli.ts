@@ -156,11 +156,7 @@ async function compileCairoDependencies(
 }
 
 export function runStarknetCompile(filePath: string, debug_info: IOptionalDebugInfo) {
-  const { success, resultPath, output } = compileCairo(
-    filePath,
-    path.resolve(__dirname, '..'),
-    debug_info,
-  );
+  const { success, output } = compileCairo(filePath, path.resolve(__dirname, '..'), debug_info);
   if (!success) {
     logCLIError(`Compilation of contract ${filePath} failed`);
     return;
