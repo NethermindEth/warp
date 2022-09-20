@@ -13,6 +13,8 @@ import {
   createStatusProgram,
   createTranspileProgram,
 } from '../src/programFactory';
+import sinon from 'sinon';
+import * as clientInternals from '../src/execSync-internals';
 
 type Input = string[] | number[] | Input[] | (string | number | Input)[];
 
@@ -69,12 +71,9 @@ describe('Solidity abi parsing and decode tests', function () {
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 const cairoPath = `${path.resolve(__dirname, '..')}`;
 
-const mockData = {
-  account: 'Test_Account',
-};
-
 describe('Warp CLI test', function () {
   this.timeout(200000);
+  sinon.stub(clientInternals, 'execSync');
 
   it('generate cairo contract', async () => {
     const program = new Command();
@@ -99,7 +98,8 @@ describe('Warp CLI test', function () {
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
-        createStatusProgram(program, output, true);
+
+        createStatusProgram(program, output);
       });
 
       it('0. compare output string', async () => {
@@ -246,7 +246,7 @@ describe('Warp CLI test', function () {
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
-        createStatusProgram(program, output, true);
+        createStatusProgram(program, output);
       });
 
       it('8. tx_hash is required', async () => {
@@ -310,7 +310,7 @@ describe('Warp CLI test', function () {
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
-        createCompileProgram(program, output, true);
+        createCompileProgram(program, output);
       });
 
       it('0. compare output string', async () => {
@@ -463,7 +463,7 @@ describe('Warp CLI test', function () {
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
-        createCompileProgram(program, output, true);
+        createCompileProgram(program, output);
       });
 
       it('9. filepath is required', async () => {
@@ -535,7 +535,7 @@ describe('Warp CLI test', function () {
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
-        createDeployAccountProgram(program, output, true);
+        createDeployAccountProgram(program, output);
       });
 
       it('0. compare output string', async () => {
@@ -719,7 +719,7 @@ describe('Warp CLI test', function () {
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
-        createDeployAccountProgram(program, output, true);
+        createDeployAccountProgram(program, output);
       });
 
       it('8. wallet option is required', async () => {
@@ -792,7 +792,7 @@ describe('Warp CLI test', function () {
       beforeEach(async () => {
         program = new Command();
         program.exitOverride();
-        await createCallProgram(program, output, true);
+        await createCallProgram(program, output);
       });
 
       it('0. compare output string', async () => {
@@ -1018,7 +1018,7 @@ describe('Warp CLI test', function () {
       beforeEach(async () => {
         program = new Command();
         program.exitOverride();
-        await createCallProgram(program, output, true);
+        await createCallProgram(program, output);
       });
 
       it('9. file path option is required', async () => {
@@ -1118,7 +1118,7 @@ describe('Warp CLI test', function () {
       beforeEach(async () => {
         program = new Command();
         program.exitOverride();
-        await createInvokeProgram(program, output, true);
+        await createInvokeProgram(program, output);
       });
 
       it('0. compare output string', async () => {
@@ -1525,7 +1525,7 @@ describe('Warp CLI test', function () {
       beforeEach(async () => {
         program = new Command();
         program.exitOverride();
-        await createInvokeProgram(program, output, true);
+        await createInvokeProgram(program, output);
       });
 
       it('13. file path option is required', async () => {
@@ -1628,7 +1628,7 @@ describe('Warp CLI test', function () {
       beforeEach(async () => {
         program = new Command();
         program.exitOverride();
-        await createDeployProgram(program, output, true);
+        await createDeployProgram(program, output);
       });
 
       it('0. compare output string', async () => {
@@ -1867,7 +1867,7 @@ describe('Warp CLI test', function () {
       beforeEach(async () => {
         program = new Command();
         program.exitOverride();
-        await createDeployProgram(program, output, true);
+        await createDeployProgram(program, output);
       });
 
       it('11. file path option is required', async () => {
@@ -1921,7 +1921,7 @@ describe('Warp CLI test', function () {
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
-        createDeclareProgram(program, output, true);
+        createDeclareProgram(program, output);
       });
 
       it('0. compare output string', async () => {
@@ -2067,7 +2067,7 @@ describe('Warp CLI test', function () {
       beforeEach(() => {
         program = new Command();
         program.exitOverride();
-        createDeclareProgram(program, output, true);
+        createDeclareProgram(program, output);
       });
 
       it('7. file path option is required', async () => {
