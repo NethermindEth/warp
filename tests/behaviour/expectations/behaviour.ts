@@ -2893,6 +2893,12 @@ export const expectations = flatten(
               'test using struct defined in library in other contract',
             ),
           ]),
+          new File(
+            'transpileLibraries',
+            'library_A1',
+            [],
+            [Expect.Simple('add', ['3', '2'], ['5']), Expect.Simple('sub', ['3', '2'], ['1'])],
+          ),
           new Dir('freeFunctionsLib', [
             File.Simple('direct_and_indirect', [Expect.Simple('freeFuncLib', ['2'], ['4'])]),
             File.Simple('sameName', [Expect.Simple('freeFuncLib', ['1'], ['0'])]),

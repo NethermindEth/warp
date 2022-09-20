@@ -1,4 +1,11 @@
-import { ASTNode, ASTNodeWithChildren, ContractDefinition, ContractKind } from 'solc-typed-ast';
+import {
+  ASTNode,
+  ASTNodeWithChildren,
+  ContractDefinition,
+  ContractKind,
+  FunctionDefinition,
+  FunctionVisibility,
+} from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
@@ -19,7 +26,16 @@ export class LibrariesConverter extends ASTMapper {
       const contractNode = cloneASTNode(node, ast);
       contractNode.name = `${LIBRARY_CONTRACT_INFIX}${node.name}`;
       contractNode.kind = ContractKind.Contract;
+      this.externalizeFunctions(contractNode);
       (node.parent as ASTNodeWithChildren<ASTNode>).appendChild(contractNode);
     }
+  }
+
+  externalizeFunctions(node: ContractDefinition): void {
+    node.children.forEach((ch) => {
+      if (ch instanceof FunctionDefinition) {
+        (ch as FunctionDefinition).visibility = FunctionVisibility.External;
+      }
+    });
   }
 }

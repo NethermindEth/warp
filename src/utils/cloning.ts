@@ -513,10 +513,9 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.fullyImplemented,
       node.linearizedBaseContracts,
       node.usedErrors,
-      node.documentation,
-      [...node.children].map((ch) => cloneASTNodeImpl(ch, ast, remappedIds)),
+      cloneDocumentation(node.documentation, ast, remappedIds),
+      node.children.map((ch) => cloneASTNodeImpl(ch, ast, remappedIds)),
       node.nameLocation,
-      node.raw,
     );
   } else if (node instanceof EnumDefinition) {
     newNode = new EnumDefinition(
