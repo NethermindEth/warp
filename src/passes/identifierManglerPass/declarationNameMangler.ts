@@ -100,7 +100,7 @@ export class DeclarationNameMangler extends ASTMapper {
       : fd.name;
   }
 
-  // Return a new id formatted to achieve the minimum lenght
+  // Return a new id formatted to achieve the minimum length
   getFormattedId(): string {
     return (this.lastUsedId++).toString().padStart(this.initialIdWidth, '0');
   }
