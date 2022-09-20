@@ -114,8 +114,10 @@ function contractComments(): string {
     '// 1. Handle the conflicting imports and structs after transpiling this the contract',
     '// 2. replace <TYPE> with appropriate solidity type , you can infer struct members from',
     '// \t the WARP contract stubs',
-    '// 4. You must have the address of the deployed CAIRO CONTRACT you want to interact with',
-    '// 3. You can use these free functions defined in this file to interact with the cairo contract',
+    '// 3. You must have the address of the deployed CAIRO CONTRACT you want to interact with',
+    '// 4. You can use these free functions defined in this file to interact with the cairo contract',
+    '// 5. Replace functions:[ wm_to_calldata_NUM, cd_to_memory_NUM] with appropriate function names (probably replace NUM)',
+    '// 6. Replace the data type cd_dynarray_OBJECT_TYPE with appropriate object type',
     '\n\n',
   ];
   return comments.join('\n');

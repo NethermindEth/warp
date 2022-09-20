@@ -1,3 +1,4 @@
+from typing import Optional
 from starkware.cairo.lang.compiler.parser import parse_file
 from starkware.cairo.lang.compiler.error_handling import LocationError
 from starkware.cairo.lang.version import __version__
@@ -6,17 +7,23 @@ from starkware.cairo.lang.compiler.cairo_compile import (
     cairo_compile_common,
     cairo_compile_add_common_args
 )
+from starkware.cairo.lang.compiler.scoped_name import ScopedName
 from starkware.cairo.lang.compiler.ast.module import CairoFile, CairoModule
 from starkware.cairo.lang.compiler.ast.visitor import Visitor
 from starkware.cairo.lang.compiler.ast.code_elements import (
     CodeBlock,
     CodeElement,
+    CodeElementAllocLocals,
     CodeElementFunction,
     CodeElementImport,
+    CodeElementReference,
     CodeElementReturn,
     CodeElementReturnValueReference,
+    CodeElementUnpackBinding,
     CommentedCodeElement,
+    ExprTuple
 )
+from starkware.cairo.lang.compiler.ast.expr_func_call import ExprFuncCall
 from starkware.cairo.lang.compiler.ast.expr import ExprIdentifier, ArgList, ExprAssignment
 from starkware.cairo.lang.compiler.ast.arguments import IdentifierList
 from starkware.cairo.lang.compiler.ast.notes import Notes
@@ -28,7 +35,7 @@ from starkware.cairo.lang.compiler.ast.types import (
 
 
 from starkware.cairo.lang.compiler.ast.formatting_utils import get_max_line_length
-from starkware.cairo.lang.compiler.ast.cairo_types import TypePointer
+from starkware.cairo.lang.compiler.ast.cairo_types import TypePointer, CairoType, TypeTuple, TypeIdentifier
 from starkware.cairo.lang.compiler.module_reader import ModuleReader
 from starkware.cairo.lang.compiler.preprocessor.pass_manager import PassManager
 
@@ -125,10 +132,171 @@ def get_parser() -> argparse.ArgumentParser:
     cairo_compile_add_common_args(parser)
     return parser
 
+def processArrayArguments(args: list[TypedIdentifier]):
+    modifiedArgs: list[TypedIdentifier] = list()
+    lines_added: list[CommentedCodeElement] = list()
+    hasArrayArguments = False
+    for arg in args:
+        if isinstance(arg.expr_type, TypePointer):
+            assert (
+                len(modifiedArgs) >0 and
+                modifiedArgs[-1].name == arg.name + "_len" and 
+                isinstance(modifiedArgs[-1].expr_type, TypeFelt)
+            ), "Array type argument must be preceded by a length argument"
+            hasArrayArguments = True
+            modifiedArgs.pop()
+            modifiedArgs.append(
+                TypedIdentifier(
+                    identifier=ExprIdentifier(name=arg.name+"_mem"),
+                    expr_type=TypeFelt(),
+                )
+            )
+            lines_added.extend([
+                CommentedCodeElement(
+                    code_elm=CodeElementUnpackBinding(
+                        unpacking_list=IdentifierList(
+                            identifiers=[
+                                TypedIdentifier(
+                                    identifier=ExprIdentifier(name=arg.name+"_cd"),
+                                    expr_type= None,
+                                )
+                            ],
+                            notes=[Notes([])]*2,
+                        ),
+                        rvalue=RvalueFuncCall(
+                            func_ident=ExprIdentifier(name="wm_to_calldata_NUM"),
+                            arguments=ArgList(
+                                [
+                                    ExprAssignment(
+                                        identifier=None, 
+                                        expr=ExprIdentifier(name = arg.name+"_mem")
+                                    ),
+                                ],
+                                notes=[Notes([])]*2,
+                                has_trailing_comma=False,
+                            ),
+                            implicit_arguments=None,
+                        )
+                    ),
+                    comment=None,
+                ),
+                CommentedCodeElement(
+                    code_elm = CodeElementReference(
+                        typed_identifier=TypedIdentifier(
+                            identifier=ExprIdentifier(name=arg.name+"_len"),
+                            expr_type=None,
+                        ), 
+                        expr=ExprIdentifier(
+                            name=arg.name + "_cd" + ".len"
+                        )
+                    ),
+                    comment=None
+                ), 
+                CommentedCodeElement(
+                    code_elm = CodeElementReference(
+                        typed_identifier=TypedIdentifier(
+                            identifier=ExprIdentifier(name=arg.name),
+                            expr_type=None,
+                        ),
+                        expr=ExprIdentifier(
+                            name=arg.name + "_cd" + ".ptr"
+                        )
+                    ),
+                    comment=None
+                ),
+            ])
+        else:
+            modifiedArgs.append(arg)
+    return hasArrayArguments, lines_added, modifiedArgs
+
+def processArrayReturnArguments(func_returns : Optional[CairoType]):
+    if func_returns is None:
+        return False, False, [], None
+    if not isinstance(func_returns, TypeTuple):
+        return False, False, [], func_returns
+    tuplesMembers: list["TypeTuple.Item"] = list()
+    lines_added: list[CommentedCodeElement] = list()
+    hasArrayReturnArguments = False
+    for member in func_returns.members:
+        if isinstance(member.typ, TypePointer):
+            assert (
+                len(tuplesMembers) >0 and
+                tuplesMembers[-1].name == member.name + "_len" and 
+                isinstance(tuplesMembers[-1].typ, TypeFelt)
+            ), "Array type argument must be preceded by a length argument"
+            hasArrayReturnArguments = True
+            tuplesMembers.pop()
+            tuplesMembers.append(
+                TypeTuple.Item(
+                    name=member.name+"_mem",
+                    typ=TypeFelt(),
+                )
+            )
+            lines_added.append(
+                CommentedCodeElement(
+                    code_elm=CodeElementUnpackBinding(
+                        unpacking_list=IdentifierList(
+                            identifiers=[
+                                TypedIdentifier(
+                                    identifier=ExprIdentifier(name=member.name+"_mem"),
+                                    expr_type= None,
+                                )
+                            ],
+                            notes=[Notes([])]*2,
+                        ),
+                        rvalue=RvalueFuncCall(
+                            func_ident=ExprIdentifier(name="cd_to_memory_NUM"),
+                            arguments=ArgList(
+                                [
+                                    ExprAssignment(
+                                        identifier=None, 
+                                        expr=ExprFuncCall(
+                                            rvalue = RvalueFuncCall(
+                                                func_ident= ExprIdentifier(name='cd_dynarray_OBJECT_TYPE'),
+                                                arguments=ArgList(
+                                                    args=[
+                                                        ExprAssignment(
+                                                            identifier=None,
+                                                            expr = ExprIdentifier(name=member.name+"_len")
+                                                        ),
+                                                        ExprAssignment(
+                                                            identifier=None,
+                                                            expr = ExprIdentifier(name=member.name)
+                                                        ),
+                                                    ],
+                                                    notes=[Notes([])]*3,
+                                                    has_trailing_comma=False,
+                                                ),
+                                                implicit_arguments=None,
+                                            )
+                                        )
+                                    ),
+                                ],
+                                notes=[Notes([])]*2,
+                                has_trailing_comma=False,
+                            ),
+                            implicit_arguments=None,
+                        )
+                    ),
+                    comment=None,
+                )
+            )
+        else:
+            tuplesMembers.append(member)
+    return hasArrayReturnArguments, True, lines_added, TypeTuple(
+        members=tuplesMembers,
+        notes=[Notes([])]*(len(tuplesMembers)+1),
+        has_trailing_comma= len(tuplesMembers) == 1
+    )
+
 
 def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector) -> dict[str, CodeElementFunction]:
     cairoFunctionStubsDict: dict[str, CodeElementFunction] = dict()
     for func in interfaceElementCollector.functions:
+        # print(func.arguments.identifiers)
+        # print(func.returns)
+        has_array, lines_added, func_arguments = processArrayArguments(func.arguments.identifiers)
+        has_return_array, return_modification, lines_added_return, func_returns = processArrayReturnArguments(func.returns)
         cairoFunctionStubsDict[func.identifier.name] = (
             CodeElementFunction(
                 element_type=func.element_type,
@@ -137,25 +305,68 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector)
                 arguments=IdentifierList(identifiers=[
                     TypedIdentifier(identifier=ExprIdentifier(
                         name="addr"), expr_type=TypeFelt())
-                ] + func.arguments.identifiers),
+                ] + func_arguments),
                 implicit_arguments=IdentifierList(
                     identifiers=[
                         TypedIdentifier(
                             identifier=ExprIdentifier(name='syscall_ptr'),
                             expr_type=TypePointer(pointee=TypeFelt()),
                             modifier=None
-                        ),
+                        )
+                    ] + ([
+                        TypedIdentifier(
+                            identifier=ExprIdentifier(name='pedersen_ptr'),
+                            expr_type=TypePointer(pointee=TypeIdentifier(name=ScopedName(path=('HashBuiltin',)))), 
+                            modifier=None
+                        )
+                    ] if (has_array or has_return_array) else []) + 
+                    [
                         TypedIdentifier(
                             identifier=ExprIdentifier(name='range_check_ptr'),
                             expr_type=TypeFelt(),
                             modifier=None
                         )
-                    ]
+                    ] + ([
+                        TypedIdentifier(
+                            identifier=ExprIdentifier(name='warp_memory'),
+                            expr_type=TypePointer(pointee=TypeIdentifier(name=ScopedName(path=('DictAccess',)))), 
+                            modifier=None
+                        )
+                    ] if has_return_array else []),
                 ),
-                returns=func.returns,
+                returns=func_returns,
                 code_block=CodeBlock(
                     code_elements=[
                         CommentedCodeElement(
+                            code_elm=CodeElementAllocLocals(),
+                            comment=None
+                        )
+                        ] + lines_added + [
+                        CommentedCodeElement(
+                            code_elm=CodeElementUnpackBinding(
+                                unpacking_list=IdentifierList(
+                                    identifiers= [
+                                        TypedIdentifier(identifier=ExprIdentifier(member.name), expr_type=member.typ) for member in func.returns.members
+                                    ] if func.returns is not None else [],
+                                    notes = [Notes()]*(len(func.returns.members) + 1) if func.returns is not None else [Notes()],
+                                ),
+                                rvalue = RvalueFuncCall(
+                                    func_ident=ExprIdentifier(
+                                        name = "Forwarder." + func.identifier.name
+                                    ), 
+                                    arguments=ArgList(
+                                        args=[ExprAssignment(identifier=None, expr=ExprIdentifier(name='addr'))] + [
+                                            ExprAssignment(identifier = None, expr =  ExprIdentifier(name=arg.identifier.name)) for arg in func.arguments.identifiers
+                                        ],
+                                        notes=[
+                                            Notes() for _ in func.arguments.identifiers] + [Notes()]*2,
+                                        has_trailing_comma=False
+                                    ),
+                                    implicit_arguments=None
+                                )
+                            ), 
+                            comment=None
+                        ) if return_modification else CommentedCodeElement(
                             code_elm=CodeElementReturnValueReference(
                                 TypedIdentifier(
                                     identifier=ExprIdentifier(name="val"), 
@@ -179,7 +390,21 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector)
                             ), 
                             comment=None
                         ),
+                        ] + lines_added_return + [ 
                         CommentedCodeElement(
+                            code_elm=CodeElementReturn(
+                                expr = ExprTuple(
+                                    members=ArgList(
+                                        args = [
+                                            ExprAssignment(identifier=None, expr = ExprIdentifier(name = member.name)) for member in func_returns.members 
+                                        ], 
+                                        notes = [Notes()]*(len(func_returns.members) + 1),
+                                        has_trailing_comma= len(func_returns.members) == 1,
+                                    ),
+                                ),
+                            ),
+                            comment=None
+                        ) if return_modification else CommentedCodeElement(
                             code_elm=CodeElementReturn(
                                 expr=ExprIdentifier(name="val"),
                             ),
@@ -255,6 +480,8 @@ def main():
             parsed_file: CairoFile = parse_file(code, filename=filename)
             cairoModule: CairoModule = CairoModule(
                 cairo_file=parsed_file, module_name=filename)
+            # for ele in cairoModule.cairo_file.code_block.code_elements:
+            #     print(ele)
             interfaceElementCollector.visit(cairoModule)
 
         forwarderInterface = createForwarderInterface(
