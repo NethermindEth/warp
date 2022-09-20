@@ -293,8 +293,6 @@ def processArrayReturnArguments(func_returns : Optional[CairoType]):
 def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector) -> dict[str, CodeElementFunction]:
     cairoFunctionStubsDict: dict[str, CodeElementFunction] = dict()
     for func in interfaceElementCollector.functions:
-        # print(func.arguments.identifiers)
-        # print(func.returns)
         has_array, lines_added, func_arguments = processArrayArguments(func.arguments.identifiers)
         has_return_array, return_modification, lines_added_return, func_returns = processArrayReturnArguments(func.returns)
         cairoFunctionStubsDict[func.identifier.name] = (
@@ -480,8 +478,6 @@ def main():
             parsed_file: CairoFile = parse_file(code, filename=filename)
             cairoModule: CairoModule = CairoModule(
                 cairo_file=parsed_file, module_name=filename)
-            # for ele in cairoModule.cairo_file.code_block.code_elements:
-            #     print(ele)
             interfaceElementCollector.visit(cairoModule)
 
         forwarderInterface = createForwarderInterface(
