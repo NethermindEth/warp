@@ -73,7 +73,11 @@ const cairoPath = `${path.resolve(__dirname, '..')}`;
 
 describe('Warp CLI test', function () {
   this.timeout(200000);
-  sinon.stub(clientInternals, 'execSync');
+  sinon
+    .stub(clientInternals, 'execSync')
+    .returns(
+      'Contract class hash: 0x000000000000000000000000000000000000000000000000000000000000001\n Transaction hash: 0x000000000000000000000000000000000000000000000000000000000000002',
+    );
 
   it('generate cairo contract', async () => {
     const program = new Command();
