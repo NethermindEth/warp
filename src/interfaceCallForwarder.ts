@@ -55,12 +55,13 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
     return;
   }
   const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
-  const jsonCairoPath = `${cairoPathRoot}.json`;
+  let jsonCairoPath = `${cairoPathRoot}.json`;
 
   let solPath = `${cairoPathRoot}.sol`;
 
   if (options.output) {
     solPath = options.output;
+    jsonCairoPath = options.output.slice(0, -'.sol'.length) + '.json';
   }
 
   if (!solPath.endsWith('.sol')) {
@@ -78,9 +79,10 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
   ]);
 
   execSync(
-    `${warpVenvPrefix} python3 interface_call_forwarder/generate_cairo_json.py ${filePath} ${[
-      ...parameters.entries(),
-    ]
+    `${warpVenvPrefix} python3 ${path.resolve(
+      __dirname,
+      '..',
+    )}/interface_call_forwarder/generate_cairo_json.py ${filePath} ${[...parameters.entries()]
       .map(([key, value]) => `--${key} ${value}`)
       .join(' ')}`,
     { stdio: 'inherit' },
@@ -359,7 +361,8 @@ function getSolTypeName(cairoTypeString: string, ast: AST, struct_names: string[
   if (struct_names.includes(cairoTypeString)) {
     // TODO: replace this with a proper struct type
     // after creation of struct dependency ordering
-    return new CornerTypeName(ast.reserveId(), '', '<STRUCT>');
+    return new CornerTypeName(ast.reserveId(), '', `<STRUCT:${cairoTypeString}>`);
   }
-  throw new Error(`Cairo type: ${cairoTypeString} Not Supported`);
+  // throw new Error(`Cairo type: ${cairoTypeString} Not Supported`);
+  return new CornerTypeName(ast.reserveId(), '', `<TYPE:${cairoTypeString}>`);
 }
