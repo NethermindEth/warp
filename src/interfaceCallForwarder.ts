@@ -95,6 +95,7 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
       ...DefaultASTWriterMapping,
       [CairoContract, new CairoContractSolWriter()],
       [CornerTypeName, new CornerTypeNameWriter()],
+      [CornerStructTypeName, new CornerStructTypeNameWriter()],
     ]),
     new PrettyFormatter(4, 0),
     options.solcVersion ?? defaultSolcVersion,
@@ -232,7 +233,9 @@ function getParametersFromStringRepresentation(
         param.name,
         scope,
         false,
-        solTypeName instanceof ArrayTypeName ? DataLocation.Memory : DataLocation.Default,
+        solTypeName instanceof ArrayTypeName || solTypeName instanceof CornerStructTypeName
+          ? DataLocation.Memory
+          : DataLocation.Default,
         StateVariableVisibility.Internal,
         Mutability.Mutable,
         solTypeName.typeString,
@@ -341,7 +344,21 @@ class CornerTypeNameWriter extends ASTNodeWriter {
   }
 }
 
+class CornerStructTypeNameWriter extends ASTNodeWriter {
+  writeInner(node: CornerTypeName, _writer: ASTWriter): SrcDesc {
+    const result: SrcDesc = [];
+    result.push(node.typeString);
+    return result;
+  }
+}
+
 class CornerTypeName extends TypeName {
+  constructor(id: number, src: string, typeString: string) {
+    super(id, src, typeString);
+  }
+}
+
+class CornerStructTypeName extends TypeName {
   constructor(id: number, src: string, typeString: string) {
     super(id, src, typeString);
   }
@@ -361,7 +378,7 @@ function getSolTypeName(cairoTypeString: string, ast: AST, struct_names: string[
   if (struct_names.includes(cairoTypeString)) {
     // TODO: replace this with a proper struct type
     // after creation of struct dependency ordering
-    return new CornerTypeName(ast.reserveId(), '', `<STRUCT:${cairoTypeString}>`);
+    return new CornerStructTypeName(ast.reserveId(), '', `<STRUCT:${cairoTypeString}>`);
   }
   // throw new Error(`Cairo type: ${cairoTypeString} Not Supported`);
   return new CornerTypeName(ast.reserveId(), '', `<TYPE:${cairoTypeString}>`);
