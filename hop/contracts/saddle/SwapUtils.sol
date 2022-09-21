@@ -65,7 +65,7 @@ library SwapUtils {
     // );
     // event StopRampA(uint256 currentA, uint256 time);
 
-    struct Swap {
+    struct SwapStruct {
         // variables around the ramp management of A,
         // the amplification coefficient * n * (n - 1)
         // see https://www.curve.fi/stableswap-paper.pdf for details
@@ -157,7 +157,7 @@ library SwapUtils {
      * @param self Swap struct to read from
      * @return A parameter
      */
-    function getA(Swap storage self) external view returns (uint256) {
+    function getA(SwapStruct storage self) external view returns (uint256) {
         return _getA(self);
     }
 
@@ -167,7 +167,7 @@ library SwapUtils {
      * @param self Swap struct to read from
      * @return A parameter
      */
-    function _getA(Swap storage self) internal view returns (uint256) {
+    function _getA(SwapStruct storage self) internal view returns (uint256) {
         return _getAPrecise(self).div(A_PRECISION);
     }
 
@@ -177,7 +177,7 @@ library SwapUtils {
      * @param self Swap struct to read from
      * @return A parameter in its raw precision form
      */
-    function getAPrecise(Swap storage self) external view returns (uint256) {
+    function getAPrecise(SwapStruct storage self) external view returns (uint256) {
         return _getAPrecise(self);
     }
 
@@ -185,9 +185,9 @@ library SwapUtils {
      * @notice Calculates and returns A based on the ramp settings
      * @dev See the StableSwap paper for details
      * @param self Swap struct to read from
-     * @return A parameter in its raw precision form
+     * @return A parameter inStt its raw precision form
      */
-    function _getAPrecise(Swap storage self) internal view returns (uint256) {
+    function _getAPrecise(SwapStruct storage self) internal view returns (uint256) {
         uint256 t1 = self.futureATime; // time when ramp is finished
         uint256 a1 = self.futureA; // final A value when ramp is finished
 
@@ -217,7 +217,7 @@ library SwapUtils {
      * @param self Swap struct to read from
      * @return timestamp of last deposit
      */
-    function getDepositTimestamp(Swap storage self, address user)
+    function getDepositTimestamp(SwapStruct storage self, address user)
         external
         view
         returns (uint256)
@@ -235,7 +235,7 @@ library SwapUtils {
      * @return the amount of token user will receive and the associated swap fee
      */
     function calculateWithdrawOneToken(
-        Swap storage self,
+        SwapStruct storage self,
         address account,
         uint256 tokenAmount,
         uint8 tokenIndex
@@ -271,7 +271,7 @@ library SwapUtils {
      * @return the d and the new y after withdrawing one token
      */
     function calculateWithdrawOneTokenDY(
-        Swap storage self,
+        SwapStruct storage self,
         uint8 tokenIndex,
         uint256 tokenAmount
     ) internal view returns (uint256, uint256) {
@@ -439,7 +439,7 @@ library SwapUtils {
      * @param self Swap struct to read from
      * @return The invariant, at the precision of the pool
      */
-    function getD(Swap storage self) internal view returns (uint256) {
+    function getD(SwapStruct storage self) internal view returns (uint256) {
         return getD(_xp(self), _getAPrecise(self));
     }
 
@@ -479,7 +479,7 @@ library SwapUtils {
      * @return balances array "scaled" to the pool's precision, allowing
      * them to be more easily compared.
      */
-    function _xp(Swap storage self, uint256[] memory balances)
+    function _xp(SwapStruct storage self, uint256[] memory balances)
         internal
         view
         returns (uint256[] memory)
@@ -493,7 +493,7 @@ library SwapUtils {
      * @return the pool balances "scaled" to the pool's precision, allowing
      * them to be more easily compared.
      */
-    function _xp(Swap storage self) internal view returns (uint256[] memory) {
+    function _xp(SwapStruct storage self) internal view returns (uint256[] memory) {
         return _xp(self.balances, self.tokenPrecisionMultipliers);
     }
 
@@ -502,7 +502,7 @@ library SwapUtils {
      * @param self Swap struct to read from
      * @return the virtual price, scaled to precision of POOL_PRECISION_DECIMALS
      */
-    function getVirtualPrice(Swap storage self)
+    function getVirtualPrice(SwapStruct storage self)
         external
         view
         returns (uint256)
@@ -530,7 +530,7 @@ library SwapUtils {
      * @return the amount of TO token that should remain in the pool
      */
     function getY(
-        Swap storage self,
+        SwapStruct storage self,
         uint8 tokenIndexFrom,
         uint8 tokenIndexTo,
         uint256 x,
@@ -593,7 +593,7 @@ library SwapUtils {
      * @return dy the number of tokens the user will get
      */
     function calculateSwap(
-        Swap storage self,
+        SwapStruct storage self,
         uint8 tokenIndexFrom,
         uint8 tokenIndexTo,
         uint256 dx
@@ -616,7 +616,7 @@ library SwapUtils {
      * @return dyFee the associated fee
      */
     function _calculateSwap(
-        Swap storage self,
+        SwapStruct storage self,
         uint8 tokenIndexFrom,
         uint8 tokenIndexTo,
         uint256 dx
@@ -647,7 +647,7 @@ library SwapUtils {
      * @return array of amounts of tokens user will receive
      */
     function calculateRemoveLiquidity(
-        Swap storage self,
+        SwapStruct storage self,
         address account,
         uint256 amount
     ) external view returns (uint256[] memory) {
@@ -655,7 +655,7 @@ library SwapUtils {
     }
 
     function _calculateRemoveLiquidity(
-        Swap storage self,
+        SwapStruct storage self,
         address account,
         uint256 amount
     ) internal view returns (uint256[] memory) {
@@ -685,7 +685,7 @@ library SwapUtils {
      * @param user address you want to calculate withdraw fee of
      * @return current withdraw fee of the user
      */
-    function calculateCurrentWithdrawFee(Swap storage self, address user)
+    function calculateCurrentWithdrawFee(SwapStruct storage self, address user)
         public
         view
         returns (uint256)
@@ -723,7 +723,7 @@ library SwapUtils {
      * deposit was false, total amount of lp token that will be burned
      */
     function calculateTokenAmount(
-        Swap storage self,
+        SwapStruct storage self,
         address account,
         uint256[] calldata amounts,
         bool deposit
@@ -763,7 +763,7 @@ library SwapUtils {
      * @param index Index of the pooled token
      * @return admin balance in the token's precision
      */
-    function getAdminBalance(Swap storage self, uint256 index)
+    function getAdminBalance(SwapStruct storage self, uint256 index)
         external
         view
         returns (uint256)
@@ -780,7 +780,7 @@ library SwapUtils {
      * swap fee calculations
      * @param self Swap struct to read from
      */
-    function _feePerToken(Swap storage self) internal view returns (uint256) {
+    function _feePerToken(SwapStruct storage self) internal view returns (uint256) {
         return
             self.swapFee.mul(self.pooledTokens.length).div(
                 self.pooledTokens.length.sub(1).mul(4)
@@ -799,7 +799,7 @@ library SwapUtils {
      * @return amount of token user received on swap
      */
     function swap(
-        Swap storage self,
+        SwapStruct storage self,
         uint8 tokenIndexFrom,
         uint8 tokenIndexTo,
         uint256 dx,
@@ -864,7 +864,7 @@ library SwapUtils {
      * @return amount of LP token user received
      */
     function addLiquidity(
-        Swap storage self,
+        SwapStruct storage self,
         uint256[] memory amounts,
         uint256 minToMint
     ) external returns (uint256) {
@@ -968,7 +968,7 @@ library SwapUtils {
      * @param toMint amount of pool tokens to be minted
      */
     function updateUserWithdrawFee(
-        Swap storage self,
+        SwapStruct storage self,
         address user,
         uint256 toMint
     ) external {
@@ -976,7 +976,7 @@ library SwapUtils {
     }
 
     function _updateUserWithdrawFee(
-        Swap storage self,
+        SwapStruct storage self,
         address user,
         uint256 toMint
     ) internal {
@@ -1013,7 +1013,7 @@ library SwapUtils {
      * @return amounts of tokens the user received
      */
     function removeLiquidity(
-        Swap storage self,
+        SwapStruct storage self,
         uint256 amount,
         uint256[] calldata minAmounts
     ) external returns (uint256[] memory) {
@@ -1046,7 +1046,7 @@ library SwapUtils {
      * @return amount chosen token that user received
      */
     function removeLiquidityOneToken(
-        Swap storage self,
+        SwapStruct storage self,
         uint256 tokenAmount,
         uint8 tokenIndex,
         uint256 minAmount
@@ -1099,7 +1099,7 @@ library SwapUtils {
      * @return actual amount of LP tokens burned in the withdrawal
      */
     function removeLiquidityImbalance(
-        Swap storage self,
+        SwapStruct storage self,
         uint256[] memory amounts,
         uint256 maxBurnAmount
     ) public returns (uint256) {

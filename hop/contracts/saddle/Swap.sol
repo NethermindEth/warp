@@ -30,11 +30,13 @@ contract Swap  {
     // using SafeERC20 for IERC20;
     using SafeMath for uint256;
     using MathUtils for uint256;
-    using SwapUtils for SwapUtils.Swap;
+    
+    // Bug with structs named as addrreses
+    using SwapUtils for SwapUtils.SwapStruct;
 
     // Struct storing data responsible for automatic market maker functionalities. In order to
     // access this data, this contract uses SwapUtils library. For more details, see SwapUtils.sol
-    SwapUtils.Swap public swapStorage;
+    SwapUtils.SwapStruct public swapStorage;
 
     // True if the contract is initialized.
     bool private initialized = false;
