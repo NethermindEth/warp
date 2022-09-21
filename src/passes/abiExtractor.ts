@@ -112,7 +112,7 @@ export async function encodeInputs(
   rawInputs?: string[],
 ): Promise<[string, string]> {
   if (useCairoABI) {
-    const inputs = rawInputs ? `--inputs ${rawInputs.join(' ').split(',').join(' ')}` : '';
+    const inputs = rawInputs ? `${rawInputs.join(' ').split(',').join(' ')}` : '';
     return [func, inputs];
   }
 
@@ -122,7 +122,7 @@ export async function encodeInputs(
 
   const funcName = `${func}_${selector}`;
   const inputs = rawInputs
-    ? `--inputs ${transcodeCalldata(funcSignature, parseInputs(rawInputs.join(' ')))
+    ? `${transcodeCalldata(funcSignature, parseInputs(rawInputs.join(' ')))
         .map((i) => i.toString())
         .join(' ')}`
     : '';

@@ -44,8 +44,8 @@ export type OutputOptions = {
 
 export type CliOptions = CompilationOptions & TranspilationOptions & PrintOptions & OutputOptions;
 
-export interface IOptionalNetwork {
-  network?: string;
+export interface INetwork {
+  network: string;
 }
 export interface IOptionalDebugInfo {
   debug_info: boolean;
@@ -59,17 +59,21 @@ interface IDeployProps_ {
   outputDir: string;
 }
 
-export type IDeployProps = IDeployProps_ & IOptionalNetwork & IOptionalAccount & IOptionalDebugInfo;
+export type IDeployProps = IDeployProps_ & INetwork & IOptionalAccount & IOptionalDebugInfo;
 
 interface IOptionalWallet {
   wallet?: string;
+}
+
+interface INoWallet {
+  no_wallet?: boolean;
 }
 
 interface IOptionalAccount {
   account?: string;
 }
 
-export type IDeployAccountProps = IOptionalAccount & IOptionalNetwork & IOptionalWallet;
+export type IDeployAccountProps = IOptionalAccount & INetwork & IOptionalWallet;
 
 interface ICallOrInvokeProps_ {
   address: string;
@@ -79,7 +83,7 @@ interface ICallOrInvokeProps_ {
 }
 
 export type ICallOrInvokeProps = ICallOrInvokeProps_ &
-  IOptionalNetwork &
+  INetwork &
   IOptionalWallet &
   IOptionalAccount;
 
@@ -93,14 +97,14 @@ interface IInstallOptions_ {
   python: string;
 }
 
-export type IDeclareOptions = IOptionalNetwork & IOptionalWallet;
+export type IDeclareOptions = INetwork & IOptionalWallet & INoWallet & IOptionalAccount;
 
 const createCompileProgram = (program: Command, output = { val: '' }) => {
   program
     .command('compile <file>')
     .option('-d, --debug_info', 'Include debug information.', false)
     .action((file: string, options: IOptionalDebugInfo) => {
-      output.val = runStarknetCompile(file, options) as string;
+      output.val = runStarknetCompile(file, options);
     });
 };
 
@@ -108,8 +112,8 @@ const createStatusProgram = (program: Command, output = { val: '' }) => {
   program
     .command('status <tx_hash>')
     .option('--network <network>', 'Starknet network URL.', process.env.STARKNET_NETWORK)
-    .action((tx_hash: string, options: IOptionalNetwork) => {
-      output.val = runStarknetStatus(tx_hash, options) as string;
+    .action((tx_hash: string, options: INetwork) => {
+      output.val = runStarknetStatus(tx_hash, options);
     });
 };
 
@@ -120,20 +124,19 @@ const createDeployProgram = async (program: Command, output = { val: '' }) => {
     .option(
       '--inputs <inputs...>',
       'Arguments to be passed to constructor of the program as a comma seperated list of strings, ints and lists.',
-      undefined,
     )
     .option('--use_cairo_abi', 'Use the cairo abi instead of solidity for the inputs.', false)
     .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
     .option('--no_wallet', 'Do not use a wallet for deployment.', false)
     .option('--wallet <wallet>', 'Wallet provider to use', process.env.STARKNET_WALLET)
-    .option('--account <account>', 'Account to use for deployment', undefined)
+    .option('--account <account>', 'Account to use for deployment')
     .option(
       '-o, --output-dir <path>',
       'Output directory when getting dependency graph',
       'warp_output',
     )
     .action(async (file: string, options: IDeployProps) => {
-      output.val = (await runStarknetDeploy(file, options)) as string;
+      output.val = await runStarknetDeploy(file, options);
     });
 };
 
@@ -151,7 +154,7 @@ const createDeployAccountProgram = (program: Command, output = { val: '' }) => {
       process.env.STARKNET_WALLET,
     )
     .action((options: IDeployAccountProps) => {
-      output.val = runStarknetDeployAccount(options) as string;
+      output.val = runStarknetDeployAccount(options);
     });
 };
 
@@ -177,7 +180,7 @@ const createInvokeProgram = async (program: Command, output = { val: '' }) => {
       process.env.STARKNET_WALLET,
     )
     .action(async (file: string, options: ICallOrInvokeProps) => {
-      output.val = (await runStarknetCallOrInvoke(file, false, options)) as string;
+      output.val = await runStarknetCallOrInvoke(file, false, options);
     });
 };
 
@@ -203,7 +206,7 @@ const createCallProgram = async (program: Command, output = { val: '' }) => {
       process.env.STARKNET_WALLET,
     )
     .action(async (file: string, options: ICallOrInvokeProps) => {
-      output.val = (await runStarknetCallOrInvoke(file, true, options)) as string;
+      output.val = await runStarknetCallOrInvoke(file, true, options);
     });
 };
 
@@ -212,15 +215,25 @@ const createDeclareProgram = (program: Command, output = { val: '' }) => {
     .command('declare <cairo_contract>')
     .description('Command to declare Cairo contract on a StarkNet Network.')
     .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+    .option(
+      '--wallet <wallet>',
+      'The name of the wallet, including the python module and wallet class.',
+      process.env.STARKNET_WALLET,
+    )
+    .option('--no_wallet', 'Do not use a wallet for deployment.', false)
+    .option(
+      '--account <account>',
+      'The name of the account. If not given, the default for the wallet will be used.',
+    )
     .action((cairo_contract: string, options: IDeclareOptions) => {
-      output.val = runStarknetDeclare(cairo_contract, options) as string;
+      output.val = runStarknetDeclare(cairo_contract, options);
     });
 };
 
 const createInstallProgram = (program: Command) => {
   program
     .command('install')
-    .option('--python <python>', 'Path to python3.7 executable.', 'python3.7')
+    .option('--python <python>', 'Path to python3.9 executable.', 'python3.9')
     .option('-v, --verbose')
     .action((options: IInstallOptions) => {
       runVenvSetup(options);
