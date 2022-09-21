@@ -8,7 +8,7 @@
 export const TUPLE_FILLER_PREFIX = '__warp_tf';
 
 // Used in librariesConverter
-export const LIBRARY_CONTRACT_INFIX = 'library_';
+export const LIBRARY_CONTRACT_PREFIX = 'library__';
 
 // Used in SourceUnitSplitter
 export const FREE_FILE_SUFFIX = '__WC_FREE';

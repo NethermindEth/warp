@@ -494,14 +494,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.vValue && cloneASTNodeImpl(node.vValue, ast, remappedIds),
       node.nameLocation,
     );
-    //ASTNodeWithChildren------------------------------------------------------
-  } else if (node instanceof ParameterList) {
-    newNode = new ParameterList(
-      replaceId(node.id, ast, remappedIds),
-      node.src,
-      [...node.vParameters].map((p) => cloneASTNodeImpl(p, ast, remappedIds)),
-      node.raw,
-    );
   } else if (node instanceof ContractDefinition) {
     newNode = new ContractDefinition(
       replaceId(node.id, ast, remappedIds),
@@ -524,6 +516,14 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.name,
       node.vMembers.map((v) => cloneASTNodeImpl(v, ast, remappedIds)),
       node.nameLocation,
+      node.raw,
+    );
+    //ASTNodeWithChildren------------------------------------------------------
+  } else if (node instanceof ParameterList) {
+    newNode = new ParameterList(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      [...node.vParameters].map((p) => cloneASTNodeImpl(p, ast, remappedIds)),
       node.raw,
     );
     //Misc---------------------------------------------------------------------
