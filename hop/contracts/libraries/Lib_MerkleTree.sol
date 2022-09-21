@@ -58,7 +58,7 @@ library Lib_MerkleTree {
         ];
 
         // Reserve memory space for our hashes.
-        bytes memory buf = new bytes(64);
+        // bytes memory buf = new bytes(64);
 
         // We'll need to keep track of left and right siblings.
         bytes32 leftSibling;
@@ -81,33 +81,37 @@ library Lib_MerkleTree {
             for (uint256 i = 0; i < halfRowSize; i++) {
                 leftSibling  = _elements[(2 * i)    ];
                 rightSibling = _elements[(2 * i) + 1];
+
+                _elements[i] = keccak256(bytes.concat(leftSibling, rightSibling));
                 /*
                 assembly {
                     mstore(add(buf, 32), leftSibling )
                     mstore(add(buf, 64), rightSibling)
                 }
+                _elements[i] = keccak256(buf);
                  */
 
-                _elements[i] = keccak256(buf);
             }
 
             if (rowSizeIsOdd) {
                 leftSibling  = _elements[rowSize - 1];
                 rightSibling = bytes32(defaults[depth]);
+                _elements[halfRowSize] = keccak256(bytes.concat(leftSibling, rightSibling));
                 /*
                 assembly {
                     mstore(add(buf, 32), leftSibling)
                     mstore(add(buf, 64), rightSibling)
                 }
+                _elements[halfRowSize] = keccak256(buf);
                  */
 
-                _elements[halfRowSize] = keccak256(buf);
             }
 
             if (rowSizeIsOdd) {
                 rowSize + 1;
             }
             // rowSize = halfRowSize + (rowSizeIsOdd ? 1 : 0);
+
             depth++;
         }
 

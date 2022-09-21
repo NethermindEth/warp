@@ -106,6 +106,10 @@ abstract contract Bridge is Accounting, SwapDataConsumer {
      */
     function getChainId() public virtual view returns (uint256 chainId) {
         this; // Silence state mutability warning without generating any additional byte code
+
+        // On cairo chainId has no point, since this was introduced on EIP-155 for simple replay
+        // attack protection against EVM compatible layers. Starknet is not one, and transactions
+        // are signed differently (using the friendly STARK curve)
         // assembly {
             // chainId := chainid()
         // }
