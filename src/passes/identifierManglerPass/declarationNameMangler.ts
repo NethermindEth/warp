@@ -65,23 +65,23 @@ export function checkSourceTerms(term: string, node: ASTNode) {
   }
 
   // Creating the regular expression that match unsupportedCharacters
-  const regex_str = unsupportedCharacters.reduce(
+  const regexStr = unsupportedCharacters.reduce(
     (prevVal, val, i) => (i === 0 ? '\\' + val : (prevVal += '|\\' + val)),
     '',
   );
   // Looking for possible matches
-  const regex = RegExp(regex_str, 'g');
+  const regex = RegExp(regexStr, 'g');
   let match;
-  let unsupported_characters_found = '';
+  let unsupportedCharactersFound = '';
   while ((match = regex.exec(term)) !== null) {
     // Saving all chars founded
-    unsupported_characters_found += match[0];
+    unsupportedCharactersFound += match[0];
   }
-  if (unsupported_characters_found) {
+  if (unsupportedCharactersFound) {
     throw new WillNotSupportError(
       `${printNode(
         node,
-      )} ${term} contains unsupported character(s) "${unsupported_characters_found}"`,
+      )} ${term} contains unsupported character(s) "${unsupportedCharactersFound}"`,
     );
   }
 }
@@ -187,7 +187,7 @@ export class DeclarationNameMangler extends ASTMapper {
     if (match === null) {
       throw new TranspileFailedError(`Expected ${pattern} node name: ${name}`);
     }
-    const new_name = `${pattern}${match[1].padStart(lastIdSize, '0')}`;
-    return name.replace(new RegExp(`${pattern}([0-9]+)`), new_name);
+    const newName = `${pattern}${match[1].padStart(lastIdSize, '0')}`;
+    return name.replace(new RegExp(`${pattern}([0-9]+)`), newName);
   }
 }
