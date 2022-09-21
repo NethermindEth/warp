@@ -126,7 +126,7 @@ function createCallToInternalFunction(
     new Identifier(
       ast.reserveId(),
       '',
-      getFunctionTypeString(functionDef, ast.compilerVersion, nodeInSourceUnit),
+      getContractTypeString(contract),
       contract.name,
       contract.id,
     ),

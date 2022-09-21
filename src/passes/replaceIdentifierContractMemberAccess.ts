@@ -58,7 +58,7 @@ export class ReplaceIdentifierContractMemberAccess extends ASTMapper {
         new Identifier(
           ast.reserveId(),
           '',
-          node.typeString,
+          getContractTypeString(contractParent),
           contractParent.name,
           contractParent.id,
         ),
