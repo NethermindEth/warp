@@ -3578,6 +3578,10 @@ export const expectations = flatten(
             ),
           ]),
         ]),
+        new Dir('preExpressionSplitter', [
+          File.Simple('assign_simple', [Expect.Simple('f', [], ['10', ''])]),
+          File.Simple('assign_simple', [Expect.Simple('g', [], ['15', ''])]),
+        ]),
         new Dir('returns', [
           File.Simple('initialiseStorageReturns', [
             Expect.Simple('getDefaultArrayLengths', [], ['0', '0', '0', '0']),
