@@ -61,6 +61,7 @@ import {
   VariableDeclarationInitialiser,
   WarnSupportedFeatures,
 } from './passes';
+import { PreExpressionSplitter } from './passes/expressionSplitter/preExpressionSplitter';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { createPassMap, parsePassOrder } from './utils/cli';
@@ -101,6 +102,7 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
 function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Tf', TupleFixes],
+    ['Pe', PreExpressionSplitter],
     ['Tnr', TypeNameRemover],
     ['Ru', RejectUnsupportedFeatures],
     ['Wa', WarnSupportedFeatures],
