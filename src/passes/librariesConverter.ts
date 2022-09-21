@@ -1,6 +1,4 @@
 import {
-  ASTNode,
-  ASTNodeWithChildren,
   ContractDefinition,
   ContractKind,
   FunctionDefinition,
