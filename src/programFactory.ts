@@ -93,7 +93,7 @@ interface IInstallOptions_ {
   python: string;
 }
 
-export type IDeclareOptions = IOptionalNetwork;
+export type IDeclareOptions = IOptionalNetwork & IOptionalWallet;
 
 const createCompileProgram = (program: Command, output = { val: '' }) => {
   program

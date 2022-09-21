@@ -7,7 +7,7 @@ export function logError(message: string): void {
   console.error(error(message));
 }
 
-export function logCLIError(message: string): void {
+export function logCLIError(message: string): never {
   console.error(error(message));
   throw message;
 }
