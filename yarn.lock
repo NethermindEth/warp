@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@algorithm.ts/gcd@^2.0.14":
+  version "2.0.14"
+  resolved "https://registry.yarnpkg.com/@algorithm.ts/gcd/-/gcd-2.0.14.tgz#8658c58cb4abd60f06cc29eb17b96e3c2d25fc62"
+  integrity sha512-nxiHsW1huiSZo067aXjKxGoQFGwH7jTltDo12xCeJn4w9bEOfgmmWJorh/CNs8c6F+qergd937wm0jnczynR1Q==
+
 "@cspotcode/source-map-consumer@0.8.0":
   version "0.8.0"
   resolved "https://registry.yarnpkg.com/@cspotcode/source-map-consumer/-/source-map-consumer-0.8.0.tgz#33bf4b7b39c178821606f669bbc447a6a629786b"
