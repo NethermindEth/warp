@@ -4,7 +4,7 @@ import {
   ArrayType,
   ASTNode,
   BytesType,
-  Conditional,
+  // Conditional,
   ContractDefinition,
   ContractKind,
   DataLocation,
@@ -102,9 +102,9 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   visitErrorDefinition(node: ErrorDefinition, _ast: AST): void {
     this.addUnsupported('User defined Errors are not supported', node);
   }
-  visitConditional(node: Conditional, _ast: AST): void {
-    this.addUnsupported('Conditional expressions (ternary operator, node) are not supported', node);
-  }
+  // visitConditional(node: Conditional, _ast: AST): void {
+  //   this.addUnsupported('Conditional expressions (ternary operator, node) are not supported', node);
+  // }
   visitFunctionCallOptions(node: FunctionCallOptions, ast: AST): void {
     // Allow options only when passing salt values for contract creation
     if (
