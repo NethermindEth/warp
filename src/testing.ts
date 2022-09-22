@@ -168,6 +168,8 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/payable_function', 'Success'],
     ['example_contracts/preExpressionSplitter/assign_simple', 'Success'],
     ['example_contracts/preExpressionSplitter/func_call_simple', 'Success'],
+    ['example_contracts/preExpressionSplitter/returning_dyn_array_externally', 'Success'],
+    ['example_contracts/preExpressionSplitter/cp_mem2calldata', 'Success'],
     ['example_contracts/pure_function', 'Success'],
     ['example_contracts/removeUnreachableFunctions', 'Success'],
     ['example_contracts/return_dyn_array', 'Success'],
