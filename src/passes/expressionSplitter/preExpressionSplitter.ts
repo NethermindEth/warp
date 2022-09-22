@@ -154,9 +154,9 @@ export class PreExpressionSplitter extends ASTMapper {
         location, // storageLocation
         StateVariableVisibility.Private, // visibility
         Mutability.Constant, // mutability
-        node.typeString, // typeString
-        // undefined,
-        // cloneASTNode(returnTypes[0].vType, ast),
+        returnTypes[0].typeString, // typeString
+        undefined, // documentation
+        cloneASTNode(returnTypes[0].vType, ast), // typeName
       );
       const declaration = createVariableDeclarationStatement(
         [replacementVariable],
