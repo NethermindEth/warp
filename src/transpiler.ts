@@ -102,8 +102,6 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
 function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Tf', TupleFixes],
-    ['T1', TupleAssignmentSplitter],
-    ['Pe', PreExpressionSplitter],
     ['Tnr', TypeNameRemover],
     ['Ru', RejectUnsupportedFeatures],
     ['Wa', WarnSupportedFeatures],
@@ -137,6 +135,8 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Rv', ReturnVariableInitializer],
     ['If', IfFunctionaliser],
     ['Ifr', IdentityFunctionRemover],
+    ['T1', TupleAssignmentSplitter], // about to be fusion
+    ['Pe', PreExpressionSplitter],
     ['T', TupleAssignmentSplitter],
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
