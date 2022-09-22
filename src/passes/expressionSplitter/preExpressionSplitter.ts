@@ -172,6 +172,7 @@ export class PreExpressionSplitter extends ASTMapper {
       ast.insertStatementBefore(node, declaration);
       ast.replaceNode(node, createIdentifier(temp_var, ast));
     } else {
+      // Be aware that is needed a tupleAssignmentSplitter pass before this one
       throw new TranspileFailedError(
         `ExpressionSplitter expects functions to have at most 1 return argument. ${printNode(
           node,
