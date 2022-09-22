@@ -347,6 +347,22 @@ const createTranspileProgram = (program: Command) => {
     });
 };
 
+const programs = [
+  createCompileProgram,
+  createStatusProgram,
+  createDeployProgram,
+  createDeployAccountProgram,
+  createInvokeProgram,
+  createCallProgram,
+  createDeclareProgram,
+  createInstallProgram,
+  createVersionProgram,
+  createAnalyseProgram,
+  createTestProgram,
+  createTransformProgram,
+  createTranspileProgram,
+];
+
 export {
   createCompileProgram,
   createStatusProgram,
@@ -363,18 +379,8 @@ export {
   createTranspileProgram,
 };
 
-export const programs = [
-  createCompileProgram,
-  createStatusProgram,
-  createDeployProgram,
-  createDeployAccountProgram,
-  createInvokeProgram,
-  createCallProgram,
-  createDeclareProgram,
-  createInstallProgram,
-  createVersionProgram,
-  createAnalyseProgram,
-  createTestProgram,
-  createTransformProgram,
-  createTranspileProgram,
-];
+export function createProgram(program: Command): void {
+  for (const createPrograms of programs) {
+    createPrograms(program);
+  }
+}

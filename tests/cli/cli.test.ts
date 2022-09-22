@@ -2,19 +2,10 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { Command } from 'commander';
 import * as path from 'path';
-import {
-  createCallProgram,
-  createCompileProgram,
-  createDeclareProgram,
-  createDeployAccountProgram,
-  createInvokeProgram,
-  createDeployProgram,
-  createStatusProgram,
-  createTranspileProgram,
-} from '../src/programFactory';
-import sinon, { SinonStub } from 'sinon';
-import * as clientInternals from '../src/execSync-internals';
-import { parse } from '../src/utils/functionSignatureParser';
+import { createTranspileProgram } from '../../src/programFactory';
+import sinon from 'sinon';
+import { parse } from '../../src/utils/functionSignatureParser';
+import proxyquire from 'proxyquire';
 
 type Input = string[] | number[] | Input[] | (string | number | Input)[];
 
@@ -68,8 +59,11 @@ describe('Solidity abi parsing and decode tests', function () {
   );
 });
 
-const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
-const cairoPath = `${path.resolve(__dirname, '..')}`;
+const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
+const cairoPath = `${path.resolve(__dirname, '..', '..')}`;
+
+const programFactoryPath = '../../src/programFactory';
+const starknetCliPath = '../../src/starknetCli';
 
 describe('StarkNet CLI tests', function () {
   this.timeout(200000);
@@ -81,9 +75,9 @@ describe('StarkNet CLI tests', function () {
 
     program.parse([
       'node',
-      './tests/cli.testTest.ts',
+      './tests/cli.test.ts',
       'transpile',
-      'tests/testFiles/Test.sol',
+      'tests/cli/Test.sol',
       '--output-dir',
       '.',
       '--compile-cairo',
@@ -93,17 +87,19 @@ describe('StarkNet CLI tests', function () {
   describe('warp status', function () {
     let program: Command;
     const output = { val: '' };
-    let execSyncStub: sinon.SinonStub;
 
-    before(() => {
+    beforeEach(() => {
       program = new Command();
       program.exitOverride();
-      execSyncStub = sinon.stub(clientInternals, 'execSync');
-      createStatusProgram(program, output);
-    });
 
-    after(() => {
-      execSyncStub.restore();
+      const programFactory = proxyquire(programFactoryPath, {
+        './starknetCli': proxyquire(starknetCliPath, {
+          child_process: {
+            execSync: sinon.stub(),
+          },
+        }),
+      });
+      programFactory.createStatusProgram(program, output);
     });
 
     it('0. Args passed correctly with optional parameters missing', async () => {
@@ -167,17 +163,19 @@ describe('StarkNet CLI tests', function () {
   describe('warp compile', function () {
     let program: Command;
     const output = { val: '' };
-    let execSyncStub: sinon.SinonStub;
 
-    before(() => {
+    beforeEach(() => {
       program = new Command();
       program.exitOverride();
-      execSyncStub = sinon.stub(clientInternals, 'execSync');
-      createCompileProgram(program, output);
-    });
 
-    after(() => {
-      execSyncStub.restore();
+      const programFactory = proxyquire(programFactoryPath, {
+        './starknetCli': proxyquire(starknetCliPath, {
+          child_process: {
+            execSync: sinon.stub(),
+          },
+        }),
+      });
+      programFactory.createCompileProgram(program, output);
     });
 
     it('0. Args passed correctly without optional parameters added', async () => {
@@ -185,17 +183,17 @@ describe('StarkNet CLI tests', function () {
         'node',
         './tests/cli.testTest.ts',
         'compile',
-        'tests/testFiles/Test__WC__WARP.cairo',
+        'tests/cli/Test__WC__WARP.cairo',
       ]);
 
       const expectedOutput = [
         warpVenvPrefix,
         'starknet-compile',
-        'tests/testFiles/Test__WC__WARP.cairo',
+        'tests/cli/Test__WC__WARP.cairo',
         '--output',
-        'tests/testFiles/Test__WC__WARP_compiled.json',
+        'tests/cli/Test__WC__WARP_compiled.json',
         '--abi',
-        'tests/testFiles/Test__WC__WARP_abi.json',
+        'tests/cli/Test__WC__WARP_abi.json',
         '--cairo_path',
         cairoPath,
         '--no_debug_info',
@@ -209,18 +207,18 @@ describe('StarkNet CLI tests', function () {
         'node',
         './tests/cli.testTest.ts',
         'compile',
-        'tests/testFiles/Test__WC__WARP.cairo',
+        'tests/cli/Test__WC__WARP.cairo',
         '--debug_info',
       ]);
 
       const expecectedOutput = [
         warpVenvPrefix,
         'starknet-compile',
-        'tests/testFiles/Test__WC__WARP.cairo',
+        'tests/cli/Test__WC__WARP.cairo',
         '--output',
-        'tests/testFiles/Test__WC__WARP_compiled.json',
+        'tests/cli/Test__WC__WARP_compiled.json',
         '--abi',
-        'tests/testFiles/Test__WC__WARP_abi.json',
+        'tests/cli/Test__WC__WARP_abi.json',
         '--cairo_path',
         cairoPath,
         '--debug_info_with_source',
@@ -239,17 +237,19 @@ describe('StarkNet CLI tests', function () {
   describe('warp deploy_account', function () {
     let program: Command;
     const output = { val: '' };
-    let execSyncStub: sinon.SinonStub;
 
     before(() => {
       program = new Command();
       program.exitOverride();
-      execSyncStub = sinon.stub(clientInternals, 'execSync');
-      createDeployAccountProgram(program, output);
-    });
 
-    after(() => {
-      execSyncStub.restore();
+      const programFactory = proxyquire(programFactoryPath, {
+        './starknetCli': proxyquire(starknetCliPath, {
+          child_process: {
+            execSync: sinon.stub(),
+          },
+        }),
+      });
+      programFactory.createDeployAccountProgram(program, output);
     });
 
     it('0. Args passed correctly without optional parameters added', async () => {
@@ -306,22 +306,19 @@ describe('StarkNet CLI tests', function () {
   describe('warp call/invoke', function () {
     let program: Command;
     const output = { val: '' };
-    let execSyncStub: sinon.SinonStub;
-
-    before(async () => {
-      // transpileTestFile();
-      execSyncStub = sinon.stub(clientInternals, 'execSync');
-    });
 
     beforeEach(async () => {
       program = new Command();
       program.exitOverride();
-      await createCallProgram(program, output);
-      await createInvokeProgram(program, output);
-    });
-
-    after(() => {
-      execSyncStub.restore();
+      const programFactory = proxyquire(programFactoryPath, {
+        './starknetCli': proxyquire(starknetCliPath, {
+          child_process: {
+            execSync: sinon.stub(),
+          },
+        }),
+      });
+      programFactory.createCallProgram(program, output);
+      programFactory.createInvokeProgram(program, output);
     });
 
     it('0. Args passed correctly without optional parameters added', async () => {
@@ -329,7 +326,7 @@ describe('StarkNet CLI tests', function () {
         'node',
         './tests/cli.testTest.ts',
         'call',
-        'tests/testFiles/Test__WC__WarpNoInputs.cairo',
+        'tests/cli/Test__WC__WarpNoInputs.cairo',
         '--address',
         '0x1234',
         '--function',
@@ -343,7 +340,7 @@ describe('StarkNet CLI tests', function () {
         '--address',
         '0x1234',
         '--abi',
-        'tests/testFiles/Test__WC__WarpNoInputs_abi.json',
+        'tests/cli/Test__WC__WarpNoInputs_abi.json',
         '--function',
         'testNoInputs_39b3913b',
         '--network',
@@ -360,7 +357,7 @@ describe('StarkNet CLI tests', function () {
         'node',
         './tests/cli.testTest.ts',
         'call',
-        'tests/testFiles/Test__WC__WarpNoInputs.cairo',
+        'tests/cli/Test__WC__WarpNoInputs.cairo',
         '--address',
         '0x1234',
         '--function',
@@ -378,7 +375,7 @@ describe('StarkNet CLI tests', function () {
         '--address',
         '0x1234',
         '--abi',
-        'tests/testFiles/Test__WC__WarpNoInputs_abi.json',
+        'tests/cli/Test__WC__WarpNoInputs_abi.json',
         '--function',
         'testNoInputs_39b3913b',
         '--network',
@@ -395,7 +392,7 @@ describe('StarkNet CLI tests', function () {
         'node',
         './tests/cli.testTest.ts',
         'call',
-        'tests/testFiles/Test__WC__WarpInputs.cairo',
+        'tests/cli/Test__WC__WarpInputs.cairo',
         '--address',
         '0x1234',
         '--function',
@@ -415,7 +412,7 @@ describe('StarkNet CLI tests', function () {
         '--address',
         '0x1234',
         '--abi',
-        'tests/testFiles/Test__WC__WarpInputs_abi.json',
+        'tests/cli/Test__WC__WarpInputs_abi.json',
         '--function',
         'testInputs_a272a776',
         '--network',
@@ -435,7 +432,7 @@ describe('StarkNet CLI tests', function () {
         'node',
         './tests/cli.testTest.ts',
         'call',
-        'tests/testFiles/Test__WC__WarpInputs.cairo',
+        'tests/cli/Test__WC__WarpInputs.cairo',
         '--address',
         '0x1234',
         '--function',
@@ -457,7 +454,7 @@ describe('StarkNet CLI tests', function () {
         '--address',
         '0x1234',
         '--abi',
-        'tests/testFiles/Test__WC__WarpInputs_abi.json',
+        'tests/cli/Test__WC__WarpInputs_abi.json',
         '--function',
         'testInputs_a272a776',
         '--network',
@@ -477,7 +474,7 @@ describe('StarkNet CLI tests', function () {
         'node',
         './tests/cli.testTest.ts',
         'invoke',
-        'tests/testFiles/Test__WC__WarpNoInputs.cairo',
+        'tests/cli/Test__WC__WarpNoInputs.cairo',
         '--address',
         '0x1234',
         '--function',
@@ -491,7 +488,7 @@ describe('StarkNet CLI tests', function () {
         '--address',
         '0x1234',
         '--abi',
-        'tests/testFiles/Test__WC__WarpNoInputs_abi.json',
+        'tests/cli/Test__WC__WarpNoInputs_abi.json',
         '--function',
         'testNoInputs_39b3913b',
         '--network',
@@ -508,17 +505,18 @@ describe('StarkNet CLI tests', function () {
     describe('warp deploy with --no_wallet', function () {
       let program: Command;
       const output = { val: '' };
-      let execSyncStub: SinonStub;
 
       beforeEach(async () => {
         program = new Command();
         program.exitOverride();
-        execSyncStub = sinon.stub(clientInternals, 'execSync');
-        await createDeployProgram(program, output);
-      });
-
-      afterEach(() => {
-        execSyncStub.restore();
+        const programFactory = proxyquire(programFactoryPath, {
+          './starknetCli': proxyquire(starknetCliPath, {
+            child_process: {
+              execSync: sinon.stub(),
+            },
+          }),
+        });
+        await programFactory.createDeployProgram(program, output);
       });
 
       it('0. Args passed correctly with optional parameters not added', async () => {
@@ -526,7 +524,7 @@ describe('StarkNet CLI tests', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          'tests/testFiles/Test__WC__WarpNoInputs.cairo',
+          'tests/cli/Test__WC__WarpNoInputs.cairo',
           '--no_wallet',
         ]);
 
@@ -535,7 +533,7 @@ describe('StarkNet CLI tests', function () {
           'starknet',
           'deploy',
           '--contract',
-          'tests/testFiles/Test__WC__WarpNoInputs_compiled.json',
+          'tests/cli/Test__WC__WarpNoInputs_compiled.json',
           '--network',
           'alpha-goerli',
           '--no_wallet',
@@ -548,7 +546,7 @@ describe('StarkNet CLI tests', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          'tests/testFiles/Test__WC__WarpNoInputs.cairo',
+          'tests/cli/Test__WC__WarpNoInputs.cairo',
           '--no_wallet',
           '--network',
           'testNetwork',
@@ -559,7 +557,7 @@ describe('StarkNet CLI tests', function () {
           'starknet',
           'deploy',
           '--contract',
-          'tests/testFiles/Test__WC__WarpNoInputs_compiled.json',
+          'tests/cli/Test__WC__WarpNoInputs_compiled.json',
           '--network',
           'testNetwork',
           '--no_wallet',
@@ -572,7 +570,7 @@ describe('StarkNet CLI tests', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          'tests/testFiles/Test__WC__WarpInputs.cairo',
+          'tests/cli/Test__WC__WarpInputs.cairo',
           '--no_wallet',
           '--network',
           'testNetwork',
@@ -585,7 +583,7 @@ describe('StarkNet CLI tests', function () {
           'starknet',
           'deploy',
           '--contract',
-          'tests/testFiles/Test__WC__WarpInputs_compiled.json',
+          'tests/cli/Test__WC__WarpInputs_compiled.json',
           '--network',
           'testNetwork',
           '--inputs',
@@ -600,7 +598,7 @@ describe('StarkNet CLI tests', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          'tests/testFiles/Test__WC__WarpInputs.cairo',
+          'tests/cli/Test__WC__WarpInputs.cairo',
           '--no_wallet',
           '--network',
           'testNetwork',
@@ -614,7 +612,7 @@ describe('StarkNet CLI tests', function () {
           'starknet',
           'deploy',
           '--contract',
-          'tests/testFiles/Test__WC__WarpInputs_compiled.json',
+          'tests/cli/Test__WC__WarpInputs_compiled.json',
           '--network',
           'testNetwork',
           '--inputs',
@@ -629,21 +627,22 @@ describe('StarkNet CLI tests', function () {
     describe('warp deploy with --classhash', function () {
       let program: Command;
       const output = { val: '' };
-      let execSyncStub: SinonStub;
 
       beforeEach(async () => {
         program = new Command();
         program.exitOverride();
-        execSyncStub = sinon
-          .stub(clientInternals, 'execSync')
-          .returns(
-            'Contract class hash: 0x000000000000000000000000000000000000000000000000000000000000001\n Transaction hash: 0x000000000000000000000000000000000000000000000000000000000000002',
-          );
-        await createDeployProgram(program, output);
-      });
-
-      afterEach(() => {
-        execSyncStub.restore();
+        const programFactory = proxyquire(programFactoryPath, {
+          './starknetCli': proxyquire(starknetCliPath, {
+            child_process: {
+              execSync: sinon
+                .stub()
+                .returns(
+                  'Contract class hash: 0x000000000000000000000000000000000000000000000000000000000000001\n Transaction hash: 0x000000000000000000000000000000000000000000000000000000000000002',
+                ),
+            },
+          }),
+        });
+        await programFactory.createDeployProgram(program, output);
       });
 
       it('0. Args passed correctly with optional parameters not added', async () => {
@@ -651,7 +650,7 @@ describe('StarkNet CLI tests', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          'tests/testFiles/Test__WC__WarpNoInputs.cairo',
+          'tests/cli/Test__WC__WarpNoInputs.cairo',
         ]);
 
         const expecectedOutput = [
@@ -673,7 +672,7 @@ describe('StarkNet CLI tests', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          'tests/testFiles/Test__WC__WarpNoInputs.cairo',
+          'tests/cli/Test__WC__WarpNoInputs.cairo',
           '--wallet',
           'testWallet',
           '--network',
@@ -703,7 +702,7 @@ describe('StarkNet CLI tests', function () {
           'node',
           './tests/cli.testTest.ts',
           'deploy',
-          'tests/testFiles/Test__WC__WarpInputs.cairo',
+          'tests/cli/Test__WC__WarpInputs.cairo',
           '--no_wallet',
           '--network',
           'testNetwork',
@@ -716,7 +715,7 @@ describe('StarkNet CLI tests', function () {
           'starknet',
           'deploy',
           '--contract',
-          'tests/testFiles/Test__WC__WarpInputs_compiled.json',
+          'tests/cli/Test__WC__WarpInputs_compiled.json',
           '--network',
           'testNetwork',
           '--inputs',
@@ -733,17 +732,18 @@ describe('StarkNet CLI tests', function () {
     describe('command output test', function () {
       let program: Command;
       const output = { val: '' };
-      let execSyncStub: SinonStub;
 
-      beforeEach(() => {
+      beforeEach(async () => {
         program = new Command();
         program.exitOverride();
-        execSyncStub = sinon.stub(clientInternals, 'execSync');
-        createDeclareProgram(program, output);
-      });
-
-      afterEach(() => {
-        execSyncStub.restore();
+        const programFactory = proxyquire(programFactoryPath, {
+          './starknetCli': proxyquire(starknetCliPath, {
+            child_process: {
+              execSync: sinon.stub(),
+            },
+          }),
+        });
+        await programFactory.createDeclareProgram(program, output);
       });
 
       it('0. Args are passed correctly when optional arguments are not defined ', async () => {
@@ -751,7 +751,7 @@ describe('StarkNet CLI tests', function () {
           'node',
           './tests/cli.testTest.ts',
           'declare',
-          'tests/testFiles/Test__WC__WarpNoInputs.cairo',
+          'tests/cli/Test__WC__WarpNoInputs.cairo',
           '--network',
           'alpha-goerli',
           '--wallet',
@@ -763,7 +763,7 @@ describe('StarkNet CLI tests', function () {
           'starknet',
           'declare',
           '--contract',
-          'tests/testFiles/Test__WC__WarpNoInputs_compiled.json',
+          'tests/cli/Test__WC__WarpNoInputs_compiled.json',
           '--network',
           'alpha-goerli',
           '--wallet',
@@ -778,7 +778,7 @@ describe('StarkNet CLI tests', function () {
           'node',
           './tests/cli.testTest.ts',
           'declare',
-          'tests/testFiles/Test__WC__WarpNoInputs.cairo',
+          'tests/cli/Test__WC__WarpNoInputs.cairo',
           '--network',
           'testNetwork',
           '--wallet',
@@ -792,7 +792,7 @@ describe('StarkNet CLI tests', function () {
           'starknet',
           'declare',
           '--contract',
-          'tests/testFiles/Test__WC__WarpNoInputs_compiled.json',
+          'tests/cli/Test__WC__WarpNoInputs_compiled.json',
           '--network',
           'testNetwork',
           '--wallet',
@@ -809,7 +809,7 @@ describe('StarkNet CLI tests', function () {
           'node',
           './tests/cli.testTest.ts',
           'declare',
-          'tests/testFiles/Test__WC__WarpNoInputs.cairo',
+          'tests/cli/Test__WC__WarpNoInputs.cairo',
           '--no_wallet',
         ]);
 
@@ -818,7 +818,7 @@ describe('StarkNet CLI tests', function () {
           'starknet',
           'declare',
           '--contract',
-          'tests/testFiles/Test__WC__WarpNoInputs_compiled.json',
+          'tests/cli/Test__WC__WarpNoInputs_compiled.json',
           '--network',
           'alpha-goerli',
           '--no_wallet',

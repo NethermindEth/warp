@@ -1,10 +1,8 @@
 import { Command } from 'commander';
-import { programs } from './programFactory';
+import { createProgram } from './programFactory';
 
-export const program = new Command();
+const program = new Command();
 
-for (const prog of programs) {
-  prog(program);
-}
+createProgram(program);
 
 program.parse(process.argv);

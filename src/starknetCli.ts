@@ -1,7 +1,7 @@
 import assert from 'assert';
 import * as path from 'path';
 import { ExecSyncOptions } from 'child_process';
-import { execSync } from './execSync-internals';
+import child_process from 'child_process';
 import {
   IDeployProps,
   ICallOrInvokeProps,
@@ -35,7 +35,7 @@ function callStarkNetCMD(cliCMD: string, starkNetCMD: string, isStdio = true): s
   const options: ExecSyncOptions = isStdio ? { stdio: 'inherit' } : { encoding: 'utf8' };
 
   try {
-    const result = execSync(cliCMD, options);
+    const result = child_process.execSync(cliCMD, options);
 
     return result;
   } catch (e) {
