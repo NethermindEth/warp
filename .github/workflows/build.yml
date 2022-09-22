@@ -10,6 +10,8 @@ on:
 
 env:
   CAIRO_LANG_VERSION: 0.10.0
+  STARKNET_NETWORK: alpha-goerli
+  STARKNET_WALLET: starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount
 
 jobs:
   lint:
