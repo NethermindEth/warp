@@ -14,9 +14,9 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
   generalizeType,
-  InheritanceSpecifier,
-  ModifierInvocation,
-  ASTNode,
+  // InheritanceSpecifier,
+  // ModifierInvocation,
+  // ASTNode,
   // FunctionKind,
   // SourceUnit,
 } from 'solc-typed-ast';
@@ -77,10 +77,10 @@ export class PreExpressionSplitter extends ASTMapper {
     ) {
       return;
     }
-    // No need to split if is inside a base construct argument
-    if (isInsideBaseConstructor(node)) {
-      return;
-    }
+    // // No need to split if is inside a base construct argument
+    // if (isInsideBaseConstructor(node)) {
+    //   return;
+    // }
     const initialValue = node.vRightHandSide;
     const location =
       generalizeType(safeGetNodeType(initialValue, ast.compilerVersion))[1] ?? DataLocation.Default;
@@ -132,10 +132,10 @@ export class PreExpressionSplitter extends ASTMapper {
     ) {
       return;
     }
-    // No need to split if is inside a base construct argument
-    if (isInsideBaseConstructor(node)) {
-      return;
-    }
+    // // No need to split if is inside a base construct argument
+    // if (isInsideBaseConstructor(node)) {
+    //   return;
+    // }
 
     const returnTypes = node.vReferencedDeclaration.vReturnParameters.vParameters;
     if (returnTypes.length === 0) {
@@ -246,11 +246,11 @@ function identifierReferenceStateVar(id: Identifier) {
   );
 }
 
-function isInsideBaseConstructor(node: ASTNode) {
-  // There are 2 ways to be a base constructor argument
-  // - In the inheritance list        --->  contract B is A(4+9+f())
-  // - A modifier in the constructor  --->  constructor(uint y) A(y*y) {}
-  const inInheritBaseConstruct = !(node.getClosestParentByType(InheritanceSpecifier) === undefined);
-  const inModifierBaseConstruct = !(node.getClosestParentByType(ModifierInvocation) === undefined);
-  return inInheritBaseConstruct || inModifierBaseConstruct;
-}
+// function isInsideBaseConstructor(node: ASTNode) {
+//   // There are 2 ways to be a base constructor argument
+//   // - In the inheritance list        --->  contract B is A(4+9+f())
+//   // - A modifier in the constructor  --->  constructor(uint y) A(y*y) {}
+//   const inInheritBaseConstruct = !(node.getClosestParentByType(InheritanceSpecifier) === undefined);
+//   const inModifierBaseConstruct = !(node.getClosestParentByType(ModifierInvocation) === undefined);
+//   return inInheritBaseConstruct || inModifierBaseConstruct;
+// }
