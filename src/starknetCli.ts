@@ -1,6 +1,5 @@
 import assert from 'assert';
 import * as path from 'path';
-import { ExecSyncOptions } from 'child_process';
 import child_process from 'child_process';
 import {
   IDeployProps,
@@ -31,12 +30,10 @@ interface CompileResult {
 }
 
 // Functions to that are command agnostic
-function callStarkNetCMD(cliCMD: string, starkNetCMD: string, isStdio = true): string | Buffer {
-  const options: ExecSyncOptions = isStdio ? { stdio: 'inherit' } : { encoding: 'utf8' };
-
+function callStarkNetCMD(cliCMD: string, starkNetCMD: string): string | Buffer {
   try {
-    const result = child_process.execSync(cliCMD, options);
-
+    const result = child_process.execSync(cliCMD, { encoding: 'utf8' });
+    console.log(result);
     return result;
   } catch (e) {
     logCLIError(`StarkNet ${starkNetCMD} failed with error ${e}`);
@@ -273,7 +270,7 @@ export function runStarknetStatus(tx_hash: string, option: INetwork): string {
   }
 
   const statusCMD: string = buildStatusCMD(tx_hash, option);
-  callStarkNetCMD(statusCMD, STARKNET_STATUS, true);
+  callStarkNetCMD(statusCMD, STARKNET_STATUS);
 
   return statusCMD;
 }
@@ -286,6 +283,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
   }
   // Shouldn't be fixed to warp_output (which is the default)
   // such option does not exists currently when deploying, should be added
+  // This exists to see what files need their class hashes inserted into the current file.
   const dependencyGraph: Map<string, string[]> = getDependencyGraph(filePath, options.outputDir);
 
   let compileResult: CompileResult;
@@ -321,12 +319,12 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
     let classHash;
     if (!options.no_wallet) {
       assert(compileResult.resultPath !== undefined);
-      classHash = declareContract(compileResult.resultPath, false, options);
+      classHash = declareContract(compileResult.resultPath, options);
     }
     const resultPath = compileResult.resultPath;
     assert(resultPath !== undefined, `Could not compile ${filePath}.`);
     const deployCMD = buildDeployCMD(resultPath, options, inputs, classHash);
-    callStarkNetCMD(deployCMD, STARKNET_DEPLOY, true);
+    callStarkNetCMD(deployCMD, STARKNET_DEPLOY);
 
     return deployCMD;
   } catch (e) {
@@ -347,7 +345,7 @@ export function runStarknetDeployAccount(options: IDeployAccountProps): string {
   }
 
   const deployAccCMD: string = buildDeployAccountCMD(options);
-  callStarkNetCMD(deployAccCMD, STARKNET_DEPLOY_ACC, true);
+  callStarkNetCMD(deployAccCMD, STARKNET_DEPLOY_ACC);
 
   return deployAccCMD;
 }
@@ -424,19 +422,17 @@ export async function runStarknetCallOrInvoke(
   }
   assert(abiPath !== undefined, 'Path to ABI JSON not found.');
   const callOrInvokeCMD: string = buildCallOrInvokeCMD(abiPath, isCall, options, funcName, inputs);
-  callStarkNetCMD(callOrInvokeCMD, '', true);
+  callStarkNetCMD(callOrInvokeCMD, '');
 
   return callOrInvokeCMD;
 }
 
-function declareContract(filePath: string, isStdio: boolean, option: IDeclareOptions): string {
+function declareContract(filePath: string, option: IDeclareOptions): string {
   const declareCMD: string = buildDeclareCMD(filePath, option);
-  const result = callStarkNetCMD(declareCMD, STARKNET_DECLARE, isStdio);
-
-  if (isStdio === true) return declareCMD;
+  const result = callStarkNetCMD(declareCMD, STARKNET_DECLARE).toString();
 
   try {
-    return extractClassHash(result?.toString(), filePath);
+    return extractClassHash(result, filePath);
   } catch {
     logCLIError('StarkNet declare failed');
   }
@@ -451,7 +447,7 @@ export function runStarknetDeclare(filePath: string, options: IDeclareOptions): 
     logCLIError(`Compilation of contract ${filePath} failed`);
   } else {
     assert(resultPath !== undefined);
-    const declareCMD = declareContract(resultPath, true, options);
+    const declareCMD = declareContract(resultPath, options);
     return declareCMD;
   }
 }
