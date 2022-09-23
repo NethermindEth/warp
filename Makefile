@@ -12,6 +12,6 @@ test_compilation:
 	bin/warp test --exact -f
 
 test_execution:
-	yarn test
+	yarn test:forwarder
 
 test: test_compilation test_execution

@@ -76,7 +76,7 @@ describe('Interaction between two cairo contracts', function () {
   let contractAddress: string | null;
   let interfaceContractAddress: string | null;
 
-  before('interface contract should deploy', async function () {
+  it('interface contract should deploy', async function () {
     const deployContractResult: DeployResponse | null = await deploy(contractJsonPath, []);
     const deployInterfaceContractResult: DeployResponse | null = await deploy(
       transpiledInterfaceJsonPath,
@@ -84,14 +84,10 @@ describe('Interaction between two cairo contracts', function () {
     );
     expect(deployContractResult === null, 'Contract Deploy request failed').to.be.false;
     expect(deployContractResult.threw, 'Contract Deploy request failed').to.be.false;
-    expect(
-      deployInterfaceContractResult === null,
-      'Interface Contract Deploy request failed',
-    ).to.be.false;
-    expect(
-      deployInterfaceContractResult.threw,
-      'Interface Contract Deploy request failed',
-    ).to.be.false;
+    expect(deployInterfaceContractResult === null, 'Interface Contract Deploy request failed').to.be
+      .false;
+    expect(deployInterfaceContractResult.threw, 'Interface Contract Deploy request failed').to.be
+      .false;
     expect(deployContractResult.contract_address, 'Contract Deploy request failed').to.not.be.null;
     expect(
       deployInterfaceContractResult.contract_address,
@@ -99,7 +95,7 @@ describe('Interaction between two cairo contracts', function () {
     ).to.not.be.null;
     contractAddress = deployContractResult.contract_address;
     interfaceContractAddress = deployInterfaceContractResult.contract_address;
-  });
+  }).timeout(TIME_LIMIT);
   it('interaction should succeed', async function () {
     if (contractAddress === null || interfaceContractAddress === null) this.skip();
     const response_add = await invoke(interfaceContractAddress, 'add_5101e128', [
