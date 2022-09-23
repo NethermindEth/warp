@@ -129,8 +129,8 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt):`,
-        `    alloc_locals`,
+        `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
+        `    alloc_locals;`,
         ...members.map((memberType): string => {
           const width = CairoType.fromSol(
             memberType,
@@ -140,15 +140,15 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
           let code: string;
           if (isReferenceType(memberType)) {
             const memberCopyFunc = this.getOrCreate(memberType, memberType);
-            code = `${memberCopyFunc}(${add('to_loc', offset)}, ${add('from_loc', offset)})`;
+            code = `${memberCopyFunc}(${add('to_loc', offset)}, ${add('from_loc', offset)});`;
           } else {
             code = mapRange(width, (index) => copyAtOffset(index + offset)).join('\n');
           }
           offset += width;
           return code;
         }),
-        `    return (to_loc)`,
-        `end`,
+        `    return (to_loc,);`,
+        `}`,
       ].join('\n'),
     };
   }
@@ -189,33 +189,33 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     const toSize = narrowBigIntSafe(toType.size);
     let stopRecursion;
     if (fromSize === toSize) {
-      stopRecursion = [`if index == ${fromSize}:`, `return ()`, `end`];
+      stopRecursion = [`if (index == ${fromSize}){`, `return ();`, `}`];
     } else {
       this.requireImport('starkware.cairo.common.math_cmp', 'is_le');
       stopRecursion = [
-        `if index == ${toSize}:`,
-        `    return ()`,
-        `end`,
-        `let (lesser) = is_le(index, ${fromSize - 1})`,
-        `if lesser == 0:`,
-        `    ${this.storageDeleteGen.genFuncName(toType.elementT)}(to_elem_loc)`,
-        `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc, index + 1)`,
-        `end`,
+        `if (index == ${toSize}){`,
+        `    return ();`,
+        `}`,
+        `let lesser = is_le(index, ${fromSize - 1});`,
+        `if (lesser == 0){`,
+        `    ${this.storageDeleteGen.genFuncName(toType.elementT)}(to_elem_loc);`,
+        `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc, index + 1);`,
+        `}`,
       ];
     }
 
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(to_elem_loc: felt, from_elem_loc: felt, index: felt) -> ():`,
+        `func ${funcName}_elem${implicits}(to_elem_loc: felt, from_elem_loc: felt, index: felt) -> (){`,
         ...stopRecursion,
         `    ${copyCode('to_elem_loc', 'from_elem_loc')}`,
-        `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc + ${fromElemType.width}, index + 1)`,
-        `end`,
-        `func ${funcName}${implicits}(to_elem_loc: felt, from_elem_loc: felt) -> (retLoc: felt):`,
-        `    ${funcName}_elem(to_elem_loc, from_elem_loc, 0)`,
-        `    return (to_elem_loc)`,
-        `end`,
+        `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc + ${fromElemType.width}, index + 1);`,
+        `}`,
+        `func ${funcName}${implicits}(to_elem_loc: felt, from_elem_loc: felt) -> (retLoc: felt){`,
+        `    ${funcName}_elem(to_elem_loc, from_elem_loc, 0);`,
+        `    return (to_elem_loc,);`,
+        `}`,
       ].join('\n'),
     };
   }
@@ -259,41 +259,39 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(to_loc: felt, from_loc: felt, length: Uint256) -> ():`,
-        `    alloc_locals`,
-        `    if length.low == 0:`,
-        `        if length.high == 0:`,
-        `            return ()`,
-        `        end`,
-        `    end`,
-        `    let (index) = uint256_sub(length, Uint256(1,0))`,
-        `    let (from_elem_loc) = ${fromElementMapping}.read(from_loc, index)`,
-        `    let (to_elem_loc) = ${toElementMapping}.read(to_loc, index)`,
-        `    if to_elem_loc == 0:`,
-        `        let (to_elem_loc) = WARP_USED_STORAGE.read()`,
-        `        WARP_USED_STORAGE.write(to_elem_loc + ${toElementCairoType.width})`,
-        `        ${toElementMapping}.write(to_loc, index, to_elem_loc)`,
+        `func ${funcName}_elem${implicits}(to_loc: felt, from_loc: felt, length: Uint256) -> (){`,
+        `    alloc_locals;`,
+        `    if (length.low == 0 and length.high == 0){`,
+        `        return ();`,
+        `    }`,
+        `    let (index) = uint256_sub(length, Uint256(1,0));`,
+        `    let (from_elem_loc) = ${fromElementMapping}.read(from_loc, index);`,
+        `    let (to_elem_loc) = ${toElementMapping}.read(to_loc, index);`,
+        `    if (to_elem_loc == 0){`,
+        `        let (to_elem_loc) = WARP_USED_STORAGE.read();`,
+        `        WARP_USED_STORAGE.write(to_elem_loc + ${toElementCairoType.width});`,
+        `        ${toElementMapping}.write(to_loc, index, to_elem_loc);`,
         `        ${copyCode('to_elem_loc', 'from_elem_loc')}`,
-        `        return ${funcName}_elem(to_loc, from_loc, index)`,
-        `    else:`,
+        `        return ${funcName}_elem(to_loc, from_loc, index);`,
+        `    }else{`,
         `        ${copyCode('to_elem_loc', 'from_elem_loc')}`,
-        `        return ${funcName}_elem(to_loc, from_loc, index)`,
-        `    end`,
-        `end`,
-        `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt):`,
-        `    alloc_locals`,
-        `    let (from_length) = ${fromLengthMapping}.read(from_loc)`,
-        `    let (to_length) = ${toLengthMapping}.read(to_loc)`,
-        `    ${toLengthMapping}.write(to_loc, from_length)`,
-        `    ${funcName}_elem(to_loc, from_loc, from_length)`,
-        `    let (lesser) = uint256_lt(from_length, to_length)`,
-        `    if lesser == 1:`,
-        `       ${deleteRemainingCode}`,
-        `       return (to_loc)`,
-        `    else:`,
-        `       return (to_loc)`,
-        `    end`,
-        `end`,
+        `        return ${funcName}_elem(to_loc, from_loc, index);`,
+        `    }`,
+        `}`,
+        `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
+        `    alloc_locals;`,
+        `    let (from_length) = ${fromLengthMapping}.read(from_loc);`,
+        `    let (to_length) = ${toLengthMapping}.read(to_loc);`,
+        `    ${toLengthMapping}.write(to_loc, from_length);`,
+        `    ${funcName}_elem(to_loc, from_loc, from_length);`,
+        `    let (lesser) = uint256_lt(from_length, to_length);`,
+        `    if (lesser == 1){`,
+        `       ${deleteRemainingCode};`,
+        `       return (to_loc,);`,
+        `    }else{`,
+        `       return (to_loc,);`,
+        `    }`,
+        `}`,
       ].join('\n'),
     };
   }
@@ -333,41 +331,41 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(to_loc: felt, from_elem_loc: felt, length: Uint256, index: Uint256) -> ():`,
-        `    alloc_locals`,
-        `    if length.low == index.low:`,
-        `        if length.high == index.high:`,
-        `            return ()`,
-        `        end`,
-        `    end`,
-        `    let (to_elem_loc) = ${toElementMapping}.read(to_loc, index)`,
-        `    let (next_index, carry) = uint256_add(index, Uint256(1,0))`,
-        `    assert carry = 0`,
-        `    if to_elem_loc == 0:`,
-        `        let (to_elem_loc) = WARP_USED_STORAGE.read()`,
-        `        WARP_USED_STORAGE.write(to_elem_loc + ${toElementCairoType.width})`,
-        `        ${toElementMapping}.write(to_loc, index, to_elem_loc)`,
+        `func ${funcName}_elem${implicits}(to_loc: felt, from_elem_loc: felt, length: Uint256, index: Uint256) -> (){`,
+        `    alloc_locals;`,
+        `    if (length.low == index.low){`,
+        `        if (length.high == index.high){`,
+        `            return ();`,
+        `        }`,
+        `    }`,
+        `    let (to_elem_loc) = ${toElementMapping}.read(to_loc, index);`,
+        `    let (next_index, carry) = uint256_add(index, Uint256(1,0));`,
+        `    assert carry = 0;`,
+        `    if (to_elem_loc == 0){`,
+        `        let (to_elem_loc) = WARP_USED_STORAGE.read();`,
+        `        WARP_USED_STORAGE.write(to_elem_loc + ${toElementCairoType.width});`,
+        `        ${toElementMapping}.write(to_loc, index, to_elem_loc);`,
         `        ${copyCode('to_elem_loc', 'from_elem_loc')}`,
-        `        return ${funcName}_elem(to_loc, from_elem_loc + ${fromElementCairoType.width}, length, next_index)`,
-        `    else:`,
+        `        return ${funcName}_elem(to_loc, from_elem_loc + ${fromElementCairoType.width}, length, next_index);`,
+        `    }else{`,
         `        ${copyCode('to_elem_loc', 'from_elem_loc')}`,
-        `        return ${funcName}_elem(to_loc, from_elem_loc + ${fromElementCairoType.width}, length, next_index)`,
-        `    end`,
-        `end`,
-        `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt):`,
-        `    alloc_locals`,
-        `    let from_length  = ${uint256(narrowBigIntSafe(fromType.size))}`,
-        `    let (to_length) = ${toLengthMapping}.read(to_loc)`,
-        `    ${toLengthMapping}.write(to_loc, from_length)`,
-        `    ${funcName}_elem(to_loc, from_loc, from_length , Uint256(0,0))`,
-        `    let (lesser) = uint256_lt(from_length, to_length)`,
-        `    if lesser == 1:`,
-        `       ${deleteRemainingCode}`,
-        `       return (to_loc)`,
-        `    else:`,
-        `       return (to_loc)`,
-        `    end`,
-        `end`,
+        `        return ${funcName}_elem(to_loc, from_elem_loc + ${fromElementCairoType.width}, length, next_index);`,
+        `    }`,
+        `}`,
+        `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
+        `    alloc_locals;`,
+        `    let from_length  = ${uint256(narrowBigIntSafe(fromType.size))};`,
+        `    let (to_length) = ${toLengthMapping}.read(to_loc);`,
+        `    ${toLengthMapping}.write(to_loc, from_length);`,
+        `    ${funcName}_elem(to_loc, from_loc, from_length , Uint256(0,0));`,
+        `    let (lesser) = uint256_lt(from_length, to_length);`,
+        `    if (lesser == 1){`,
+        `       ${deleteRemainingCode};`,
+        `       return (to_loc,);`,
+        `    }else{`,
+        `       return (to_loc,);`,
+        `    }`,
+        `}`,
       ].join('\n'),
     };
   }
@@ -396,40 +394,40 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     const readFromCode =
       fromType.nBits === 256
         ? [
-            'let (from_low) = WARP_STORAGE.read(from_loc)',
-            'let (from_high) = WARP_STORAGE.read(from_loc + 1)',
-            'tempvar from_elem = Uint256(from_low, from_high)',
+            'let (from_low) = WARP_STORAGE.read(from_loc);',
+            'let (from_high) = WARP_STORAGE.read(from_loc + 1);',
+            'tempvar from_elem = Uint256(from_low, from_high);',
           ].join('\n')
-        : 'let (from_elem) = WARP_STORAGE.read(from_loc)';
+        : 'let (from_elem) = WARP_STORAGE.read(from_loc);';
 
     // Scaling for ints is different than for uints
     // Also memory represenation only change when To is 256 bits
     // and From is lesser than 256 bits
     const scalingCode = toType.signed
-      ? `let (to_elem) = warp_int${fromType.nBits}_to_int${toType.nBits}(from_elem)`
+      ? `let (to_elem) = warp_int${fromType.nBits}_to_int${toType.nBits}(from_elem);`
       : toType.nBits === 256 && fromType.nBits < 256
-      ? 'let (to_elem) = felt_to_uint256(from_elem)'
-      : `let to_elem = from_elem`;
+      ? 'let (to_elem) = felt_to_uint256(from_elem);'
+      : `let to_elem = from_elem;`;
 
     // Copy changes depending if To is 256 bits or less
     const copyToCode =
       toType.nBits === 256
         ? [
-            'WARP_STORAGE.write(to_loc, to_elem.low)',
-            'WARP_STORAGE.write(to_loc + 1, to_elem.high)',
+            'WARP_STORAGE.write(to_loc, to_elem.low);',
+            'WARP_STORAGE.write(to_loc + 1, to_elem.high);',
           ].join('\n')
-        : 'WARP_STORAGE.write(to_loc, to_elem)';
+        : 'WARP_STORAGE.write(to_loc, to_elem);';
 
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt):`,
-        `   alloc_locals`,
+        `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
+        `   alloc_locals;`,
         `   ${readFromCode}`,
         `   ${scalingCode}`,
         `   ${copyToCode}`,
-        `   return (to_loc)`,
-        `end`,
+        `   return (to_loc,);`,
+        `}`,
       ].join('\n'),
     };
   }
@@ -448,35 +446,35 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     const readFromCode =
       fromType.size === 32
         ? [
-            'let (from_low) = WARP_STORAGE.read(from_loc)',
-            'let (from_high) = WARP_STORAGE.read(from_loc + 1)',
-            'tempvar from_elem = Uint256(from_low, from_high)',
+            'let (from_low) = WARP_STORAGE.read(from_loc);',
+            'let (from_high) = WARP_STORAGE.read(from_loc + 1);',
+            'tempvar from_elem = Uint256(from_low, from_high);',
           ].join('\n')
-        : 'let (from_elem) = WARP_STORAGE.read(from_loc)';
+        : 'let (from_elem) = WARP_STORAGE.read(from_loc);';
 
     const scalingCode =
       bitWidthDiff !== 0
-        ? `let (to_elem) = ${conversionFunc}(from_elem, ${bitWidthDiff})`
-        : 'let to_elem = from_elem';
+        ? `let (to_elem) = ${conversionFunc}(from_elem, ${bitWidthDiff});`
+        : 'let to_elem = from_elem;';
 
     const copyToCode =
       toType.size === 32
         ? [
-            'WARP_STORAGE.write(to_loc, to_elem.low)',
-            'WARP_STORAGE.write(to_loc + 1, to_elem.high)',
+            'WARP_STORAGE.write(to_loc, to_elem.low);',
+            'WARP_STORAGE.write(to_loc + 1, to_elem.high);',
           ].join('\n')
-        : 'WARP_STORAGE.write(to_loc, to_elem)';
+        : 'WARP_STORAGE.write(to_loc, to_elem);';
 
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt):`,
-        `   alloc_locals`,
+        `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
+        `   alloc_locals;`,
         `   ${readFromCode}`,
         `   ${scalingCode}`,
         `   ${copyToCode}`,
-        `   return (to_loc)`,
-        `end`,
+        `   return (to_loc,);`,
+        `}`,
       ].join('\n'),
     };
   }
@@ -487,11 +485,11 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt):`,
-        `    alloc_locals`,
+        `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
+        `    alloc_locals;`,
         ...mapRange(width, copyAtOffset),
-        `    return (to_loc)`,
-        `end`,
+        `    return (to_loc,);`,
+        `}`,
       ].join('\n'),
     };
   }
@@ -502,8 +500,8 @@ const implicits =
 
 function copyAtOffset(n: number): string {
   return [
-    `let (copy) = WARP_STORAGE.read(${add('from_loc', n)})`,
-    `WARP_STORAGE.write(${add('to_loc', n)}, copy)`,
+    `let (copy) = WARP_STORAGE.read(${add('from_loc', n)});`,
+    `WARP_STORAGE.write(${add('to_loc', n)}, copy);`,
   ].join('\n');
 }
 
@@ -516,23 +514,25 @@ function createElementCopy(
     if (toElementCairoType instanceof WarpLocation) {
       return (to: string, from: string): string =>
         [
-          `let (from_elem_id) = readId(${from})`,
-          `let (to_elem_id) = readId(${to})`,
-          `${elementCopyFunc}(to_elem_id, from_elem_id)`,
+          `let (from_elem_id) = readId(${from});`,
+          `let (to_elem_id) = readId(${to});`,
+          `${elementCopyFunc}(to_elem_id, from_elem_id);`,
         ].join('\n');
     } else {
       return (to: string, from: string): string =>
-        [`let (from_elem_id) = readId(${from})`, `${elementCopyFunc}(${to}, from_elem_id)`].join(
+        [`let (from_elem_id) = readId(${from});`, `${elementCopyFunc}(${to}, from_elem_id);`].join(
           '\n',
         );
     }
   } else {
     if (toElementCairoType instanceof WarpLocation) {
       return (to: string, from: string): string =>
-        [`let (to_elem_id) = readId(${to})`, `${elementCopyFunc}(to_elem_id, ${from})`].join('\n');
+        [`let (to_elem_id) = readId(${to});`, `${elementCopyFunc}(to_elem_id, ${from});`].join(
+          '\n',
+        );
     } else {
       return (to: string, from: string): string =>
-        [`${elementCopyFunc}(${to}, ${from})`].join('\n');
+        [`${elementCopyFunc}(${to}, ${from});`].join('\n');
     }
   }
 }

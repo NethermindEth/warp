@@ -18,18 +18,18 @@ export function gt_signed() {
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          'func warp_gt_signed256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt):',
-          '    let (res) =  uint256_signed_lt(rhs, lhs)',
-          '    return (res)',
-          'end',
+          'func warp_gt_signed256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : felt){',
+          '    let (res) =  uint256_signed_lt(rhs, lhs);',
+          '    return (res,);',
+          '}',
         ];
       } else {
         return [
           `func warp_gt_signed${width}{bitwise_ptr : BitwiseBuiltin*, range_check_ptr}(`,
-          '        lhs : felt, rhs : felt) -> (res : felt):',
-          `    let (res) = warp_lt_signed${width}(rhs, lhs)`,
-          `    return (res)`,
-          'end',
+          '        lhs : felt, rhs : felt) -> (res : felt){',
+          `    let (res) = warp_lt_signed${width}(rhs, lhs);`,
+          `    return (res,);`,
+          '}',
         ];
       }
     }),

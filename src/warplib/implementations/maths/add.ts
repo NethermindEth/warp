@@ -13,20 +13,20 @@ export function add(): void {
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          `func warp_add256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):`,
-          `    let (res : Uint256, carry : felt) = uint256_add(lhs, rhs)`,
-          `    assert carry = 0`,
-          `    return (res)`,
-          `end`,
+          `func warp_add256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
+          `    let (res : Uint256, carry : felt) = uint256_add(lhs, rhs);`,
+          `    assert carry = 0;`,
+          `    return (res,);`,
+          `}`,
         ];
       } else {
         return [
-          `func warp_add${width}{range_check_ptr}(lhs : felt, rhs : felt) -> (res : felt):`,
-          `    let res = lhs + rhs`,
-          `    let (inRange : felt) = is_le_felt(res, ${mask(width)})`,
-          `    assert inRange = 1`,
-          `    return (res)`,
-          `end`,
+          `func warp_add${width}{range_check_ptr}(lhs : felt, rhs : felt) -> (res : felt){`,
+          `    let res = lhs + rhs;`,
+          `    let inRange : felt = is_le_felt(res, ${mask(width)});`,
+          `    assert inRange = 1;`,
+          `    return (res,);`,
+          `}`,
         ];
       }
     }),
@@ -45,18 +45,18 @@ export function add_unsafe(): void {
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          `func warp_add_unsafe256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):`,
-          `    let (res : Uint256, _) = uint256_add(lhs, rhs)`,
-          `    return (res)`,
-          `end`,
+          `func warp_add_unsafe256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
+          `    let (res : Uint256, _) = uint256_add(lhs, rhs);`,
+          `    return (res,);`,
+          `}`,
         ];
       } else {
         return [
           `func warp_add_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (`,
-          `        res : felt):`,
-          `    let (res) = bitwise_and(lhs + rhs, ${mask(width)})`,
-          `    return (res)`,
-          `end`,
+          `        res : felt){`,
+          `    let (res) = bitwise_and(lhs + rhs, ${mask(width)});`,
+          `    return (res,);`,
+          `}`,
         ];
       }
     }),
@@ -76,32 +76,32 @@ export function add_signed(): void {
       if (width === 256) {
         return [
           `func warp_add_signed256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(`,
-          `        lhs : Uint256, rhs : Uint256) -> (res : Uint256):`,
-          `    let (lhs_extend) = bitwise_and(lhs.high, ${msb(128)})`,
-          `    let (rhs_extend) = bitwise_and(rhs.high, ${msb(128)})`,
-          `    let (res : Uint256, carry : felt) = uint256_add(lhs, rhs)`,
-          `    let carry_extend = lhs_extend + rhs_extend + carry*${msb(128)}`,
-          `    let (msb) = bitwise_and(res.high, ${msb(128)})`,
-          `    let (carry_lsb) = bitwise_and(carry_extend, ${msb(128)})`,
-          `    assert msb = carry_lsb`,
-          `    return (res)`,
-          `end`,
+          `        lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
+          `    let (lhs_extend) = bitwise_and(lhs.high, ${msb(128)});`,
+          `    let (rhs_extend) = bitwise_and(rhs.high, ${msb(128)});`,
+          `    let (res : Uint256, carry : felt) = uint256_add(lhs, rhs);`,
+          `    let carry_extend = lhs_extend + rhs_extend + carry*${msb(128)};`,
+          `    let (msb) = bitwise_and(res.high, ${msb(128)});`,
+          `    let (carry_lsb) = bitwise_and(carry_extend, ${msb(128)});`,
+          `    assert msb = carry_lsb;`,
+          `    return (res,);`,
+          `}`,
         ];
       } else {
         return [
           `func warp_add_signed${width}{bitwise_ptr : BitwiseBuiltin*}(lhs : felt, rhs : felt) -> (`,
-          `        res : felt):`,
-          `# Do the addition sign extended`,
-          `    let (lmsb) = bitwise_and(lhs, ${msb(width)})`,
-          `    let (rmsb) = bitwise_and(rhs, ${msb(width)})`,
-          `    let big_res = lhs + rhs + 2*(lmsb+rmsb)`,
-          `# Check the result is valid`,
-          `    let (overflowBits) = bitwise_and(big_res,  ${msbAndNext(width)})`,
-          `    assert overflowBits * (overflowBits - ${msbAndNext(width)}) = 0`,
-          `# Truncate and return`,
-          `    let (res) =  bitwise_and(big_res, ${mask(width)})`,
-          `    return (res)`,
-          `end`,
+          `        res : felt){`,
+          `// Do the addition sign extended`,
+          `    let (lmsb) = bitwise_and(lhs, ${msb(width)});`,
+          `    let (rmsb) = bitwise_and(rhs, ${msb(width)});`,
+          `    let big_res = lhs + rhs + 2*(lmsb+rmsb);`,
+          `// Check the result is valid`,
+          `    let (overflowBits) = bitwise_and(big_res,  ${msbAndNext(width)});`,
+          `    assert overflowBits * (overflowBits - ${msbAndNext(width)}) = 0;`,
+          `// Truncate and return`,
+          `    let (res) =  bitwise_and(big_res, ${mask(width)});`,
+          `    return (res,);`,
+          `}`,
         ];
       }
     }),
@@ -120,18 +120,18 @@ export function add_signed_unsafe(): void {
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          `func warp_add_signed_unsafe256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256):`,
-          `    let (res : Uint256, _) = uint256_add(lhs, rhs)`,
-          `    return (res)`,
-          `end`,
+          `func warp_add_signed_unsafe256{range_check_ptr}(lhs : Uint256, rhs : Uint256) -> (res : Uint256){`,
+          `    let (res : Uint256, _) = uint256_add(lhs, rhs);`,
+          `    return (res,);`,
+          `}`,
         ];
       } else {
         return [
           `func warp_add_signed_unsafe${width}{bitwise_ptr : BitwiseBuiltin*}(`,
-          `        lhs : felt, rhs : felt) -> (res : felt):`,
-          `    let (res) = bitwise_and(lhs + rhs, ${mask(width)})`,
-          `    return (res)`,
-          `end`,
+          `        lhs : felt, rhs : felt) -> (res : felt){`,
+          `    let (res) = bitwise_and(lhs + rhs, ${mask(width)});`,
+          `    return (res,);`,
+          `}`,
         ];
       }
     }),

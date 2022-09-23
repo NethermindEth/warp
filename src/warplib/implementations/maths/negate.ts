@@ -15,19 +15,19 @@ export function negate(): void {
     forAllWidths((width) => {
       if (width === 256) {
         return [
-          'func warp_negate256{range_check_ptr}(op : Uint256) -> (res : Uint256):',
-          '    let (res) = uint256_neg(op)',
-          '    return (res)',
-          'end',
+          'func warp_negate256{range_check_ptr}(op : Uint256) -> (res : Uint256){',
+          '    let (res) = uint256_neg(op);',
+          '    return (res,);',
+          '}',
         ];
       } else {
         // Could also have if op == 0: 0 else limit-op
         return [
-          `func warp_negate${width}{bitwise_ptr : BitwiseBuiltin*}(op : felt) -> (res : felt):`,
-          `    let raw_res = ${bound(width)} - op`,
-          `    let (res) = bitwise_and(raw_res, ${mask(width)})`,
-          `    return (res)`,
-          `end`,
+          `func warp_negate${width}{bitwise_ptr : BitwiseBuiltin*}(op : felt) -> (res : felt){`,
+          `    let raw_res = ${bound(width)} - op;`,
+          `    let (res) = bitwise_and(raw_res, ${mask(width)});`,
+          `    return (res,);`,
+          `}`,
         ];
       }
     }),

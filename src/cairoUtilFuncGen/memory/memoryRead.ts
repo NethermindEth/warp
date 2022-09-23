@@ -96,11 +96,11 @@ export class MemoryReadGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{range_check_ptr, warp_memory : DictAccess*}(loc: felt) ->(val: ${resultCairoType}):`,
-        `    alloc_locals`,
+        `func ${funcName}{range_check_ptr, warp_memory : DictAccess*}(loc: felt) ->(val: ${resultCairoType}){`,
+        `    alloc_locals;`,
         ...reads.map((s) => `    ${s}`),
-        `    return (${pack})`,
-        'end',
+        `    return (${pack},);`,
+        '}',
       ].join('\n'),
     });
     this.requireImport('starkware.cairo.common.dict', 'dict_read');
@@ -109,5 +109,5 @@ export class MemoryReadGen extends StringIndexedFuncGen {
 }
 
 function readFelt(offset: number): string {
-  return `let (read${offset}) = dict_read{dict_ptr=warp_memory}(${add('loc', offset)})`;
+  return `let (read${offset}) = dict_read{dict_ptr=warp_memory}(${add('loc', offset)});`;
 }

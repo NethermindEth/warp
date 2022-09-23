@@ -1,4 +1,3 @@
-import { FILE } from 'dns';
 import { Dir, Expect, File } from './types';
 import { getByte32Array, flatten, getByteXArray } from './utils';
 
@@ -3578,6 +3577,10 @@ export const expectations = flatten(
               ],
             ),
           ]),
+        ]),
+        new Dir('preExpressionSplitter', [
+          File.Simple('assign_simple', [Expect.Simple('f', [], ['10', ''])]),
+          File.Simple('assign_simple', [Expect.Simple('g', [], ['15', ''])]),
         ]),
         new Dir('returns', [
           File.Simple('initialiseStorageReturns', [

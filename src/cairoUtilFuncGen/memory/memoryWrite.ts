@@ -70,12 +70,12 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{warp_memory : DictAccess*}(loc: felt, value: ${cairoTypeString}) -> (res: ${cairoTypeString}):`,
+        `func ${funcName}{warp_memory : DictAccess*}(loc: felt, value: ${cairoTypeString}) -> (res: ${cairoTypeString}){`,
         ...cairoTypeToWrite
           .serialiseMembers('value')
-          .map((name, index) => `    ${write(index, name)}`),
-        '    return (value)',
-        'end',
+          .map((name, index) => `    ${write(index, name)};`),
+        '    return (value,);',
+        '}',
       ].join('\n'),
     });
 
@@ -86,5 +86,5 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
 }
 
 function write(offset: number, value: string): string {
-  return `dict_write{dict_ptr=warp_memory}(${add('loc', offset)}, ${value})`;
+  return `dict_write{dict_ptr=warp_memory}(${add('loc', offset)}, ${value});`;
 }

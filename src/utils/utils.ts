@@ -336,7 +336,7 @@ export function toSingleExpression(expressions: Expression[], ast: AST): Express
     ast.reserveId(),
     '',
     `tuple(${expressions.map((e) => e.typeString).join(',')})`,
-    false,
+    false, // isInlineArray
     expressions,
   );
 }
@@ -356,11 +356,11 @@ export function splitDarray(
   const arrayLen = new VariableDeclaration(
     ast.reserveId(),
     '',
-    true,
-    false,
+    true, // constant
+    false, // indexed
     dArrayVarDecl.name + '_len',
     scope,
-    false,
+    false, // isInlineArray
     DataLocation.CallData,
     StateVariableVisibility.Internal,
     Mutability.Immutable,

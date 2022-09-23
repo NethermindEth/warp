@@ -51,11 +51,11 @@ export function getConditionalReturnVariable(
   return new VariableDeclaration(
     ast.reserveId(),
     '',
-    false,
-    false,
+    false, // constant
+    false, // indexed
     `ret_conditional${id}`,
     funcId,
-    false,
+    false, // stateVariable
     DataLocation.Default,
     StateVariableVisibility.Private,
     Mutability.Mutable,

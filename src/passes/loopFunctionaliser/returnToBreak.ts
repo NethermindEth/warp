@@ -102,11 +102,11 @@ export class ReturnToBreak extends ASTMapper {
     const decl = new VariableDeclaration(
       ast.reserveId(),
       '',
-      false,
-      false,
+      false, // constant
+      false, // indexed
       `${RETURN_FLAG_PREFIX}${this.returnFlags.size}`,
       ast.getContainingScope(containingWhile),
-      false,
+      false, // stateVariable
       DataLocation.Default,
       StateVariableVisibility.Default,
       Mutability.Mutable,

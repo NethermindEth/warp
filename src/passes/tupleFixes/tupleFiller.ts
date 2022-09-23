@@ -60,11 +60,11 @@ export class TupleFiller extends ASTMapper {
         const declaration = new VariableDeclaration(
           ast.reserveId(),
           '',
-          false,
-          false,
+          false, // constant
+          false, // indexed
           `${TUPLE_FILLER_PREFIX}${this.counter++}`,
           scope,
-          false,
+          false, // stateVariable
           loc ?? DataLocation.Default,
           StateVariableVisibility.Default,
           Mutability.Mutable,

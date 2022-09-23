@@ -94,37 +94,37 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     if (isReferenceType(elementT)) {
       const recursiveFunc = this.getOrCreate(elementT);
       copyCode = [
-        `let cdElem = calldata[0]`,
-        `let (mElem) = ${recursiveFunc}(cdElem)`,
-        `dict_write{dict_ptr=warp_memory}(mem_start, mElem)`,
+        `let cdElem = calldata[0];`,
+        `let (mElem) = ${recursiveFunc}(cdElem);`,
+        `dict_write{dict_ptr=warp_memory}(mem_start, mElem);`,
       ].join('\n');
     } else if (memoryElementWidth === 2) {
       copyCode = [
-        `dict_write{dict_ptr=warp_memory}(mem_start, calldata[0].low)`,
-        `dict_write{dict_ptr=warp_memory}(mem_start+1, calldata[0].high)`,
+        `dict_write{dict_ptr=warp_memory}(mem_start, calldata[0].low);`,
+        `dict_write{dict_ptr=warp_memory}(mem_start+1, calldata[0].high);`,
       ].join('\n');
     } else {
-      copyCode = `dict_write{dict_ptr=warp_memory}(mem_start, calldata[0])`;
+      copyCode = `dict_write{dict_ptr=warp_memory}(mem_start, calldata[0]);`;
     }
 
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(calldata: ${callDataType.vPtr}, mem_start: felt, length: felt):`,
-        `    alloc_locals`,
-        `    if length == 0:`,
-        `        return ()`,
-        `    end`,
+        `func ${funcName}_elem${implicits}(calldata: ${callDataType.vPtr}, mem_start: felt, length: felt){`,
+        `    alloc_locals;`,
+        `    if (length == 0){`,
+        `        return ();`,
+        `    }`,
         copyCode,
-        `    return ${funcName}_elem(calldata + ${callDataType.vPtr.to.width}, mem_start + ${memoryElementWidth}, length - 1)`,
-        `end`,
-        `func ${funcName}${implicits}(calldata : ${callDataType}) -> (mem_loc: felt):`,
-        `    alloc_locals`,
-        `    let (len256) = felt_to_uint256(calldata.len)`,
-        `    let (mem_start) = wm_new(len256, ${uint256(memoryElementWidth)})`,
-        `    ${funcName}_elem(calldata.ptr, mem_start + 2, calldata.len)`,
-        `    return (mem_start)`,
-        `end`,
+        `    return ${funcName}_elem(calldata + ${callDataType.vPtr.to.width}, mem_start + ${memoryElementWidth}, length - 1);`,
+        `}`,
+        `func ${funcName}${implicits}(calldata : ${callDataType}) -> (mem_loc: felt){`,
+        `    alloc_locals;`,
+        `    let (len256) = felt_to_uint256(calldata.len);`,
+        `    let (mem_start) = wm_new(len256, ${uint256(memoryElementWidth)});`,
+        `    ${funcName}_elem(calldata.ptr, mem_start + 2, calldata.len);`,
+        `    return (mem_start,);`,
+        `}`,
       ].join('\n'),
     };
   }
@@ -147,29 +147,29 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
       const recursiveFunc = this.getOrCreate(type.elementT);
       copyCode = (index) =>
         [
-          `let cdElem = calldata[${index}]`,
-          `let (mElem) = ${recursiveFunc}(cdElem)`,
-          `dict_write{dict_ptr=warp_memory}(${loc(index)}, mElem)`,
+          `let cdElem = calldata[${index}];`,
+          `let (mElem) = ${recursiveFunc}(cdElem);`,
+          `dict_write{dict_ptr=warp_memory}(${loc(index)}, mElem);`,
         ].join('\n');
     } else if (memoryElementWidth === 2) {
       copyCode = (index) =>
         [
-          `dict_write{dict_ptr=warp_memory}(${loc(index)}, calldata[${index}].low)`,
-          `dict_write{dict_ptr=warp_memory}(${loc(index)} + 1, calldata[${index}].high)`,
+          `dict_write{dict_ptr=warp_memory}(${loc(index)}, calldata[${index}].low);`,
+          `dict_write{dict_ptr=warp_memory}(${loc(index)} + 1, calldata[${index}].high);`,
         ].join('\n');
     } else {
-      copyCode = (index) => `dict_write{dict_ptr=warp_memory}(${loc(index)}, calldata[${index}])`;
+      copyCode = (index) => `dict_write{dict_ptr=warp_memory}(${loc(index)}, calldata[${index}]);`;
     }
 
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(calldata : ${callDataType}) -> (mem_loc: felt):`,
-        `    alloc_locals`,
-        `    let (mem_start) = wm_alloc(${uint256(memoryType.width)})`,
+        `func ${funcName}${implicits}(calldata : ${callDataType}) -> (mem_loc: felt){`,
+        `    alloc_locals;`,
+        `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
         ...mapRange(narrowBigIntSafe(type.size), (n) => copyCode(n)),
-        `    return (mem_start)`,
-        `end`,
+        `    return (mem_start,);`,
+        `}`,
       ].join('\n'),
     };
   }
@@ -187,16 +187,16 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(calldata : ${callDataType}) -> (mem_loc: felt):`,
-        `    alloc_locals`,
-        `    let (mem_start) = wm_alloc(${uint256(memoryType.width)})`,
+        `func ${funcName}${implicits}(calldata : ${callDataType}) -> (mem_loc: felt){`,
+        `    alloc_locals;`,
+        `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
         ...structDef.vMembers.map((decl): string => {
           const memberType = safeGetNodeType(decl, this.ast.compilerVersion);
           if (isReferenceType(memberType)) {
             const recursiveFunc = this.getOrCreate(memberType);
             const code = [
-              `let (m${memOffset}) = ${recursiveFunc}(calldata.${decl.name})`,
-              `dict_write{dict_ptr=warp_memory}(${add('mem_start', memOffset)}, m${memOffset})`,
+              `let (m${memOffset}) = ${recursiveFunc}(calldata.${decl.name});`,
+              `dict_write{dict_ptr=warp_memory}(${add('mem_start', memOffset)}, m${memOffset});`,
             ].join('\n');
             memOffset++;
             return code;
@@ -206,20 +206,20 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
               return [
                 `dict_write{dict_ptr=warp_memory}(${add('mem_start', memOffset++)}, calldata.${
                   decl.name
-                }.low)`,
+                }.low);`,
                 `dict_write{dict_ptr=warp_memory}(${add('mem_start', memOffset++)}, calldata.${
                   decl.name
-                }.high)`,
+                }.high);`,
               ].join('\n');
             } else {
               return `dict_write{dict_ptr=warp_memory}(${add('mem_start', memOffset++)}, calldata.${
                 decl.name
-              })`;
+              });`;
             }
           }
         }),
-        `    return (mem_start)`,
-        `end`,
+        `    return (mem_start,);`,
+        `}`,
       ].join('\n'),
     };
   }

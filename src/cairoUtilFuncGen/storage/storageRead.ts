@@ -59,11 +59,11 @@ export class StorageReadGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) ->(val: ${resultCairoType}):`,
-        `    alloc_locals`,
+        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) ->(val: ${resultCairoType}){`,
+        `    alloc_locals;`,
         ...reads.map((s) => `    ${s}`),
-        `    return (${pack})`,
-        'end',
+        `    return (${pack},);`,
+        '}',
       ].join('\n'),
     });
     return funcName;
@@ -71,9 +71,9 @@ export class StorageReadGen extends StringIndexedFuncGen {
 }
 
 function readFelt(offset: number): string {
-  return `let (read${offset}) = WARP_STORAGE.read(${add('loc', offset)})`;
+  return `let (read${offset}) = WARP_STORAGE.read(${add('loc', offset)});`;
 }
 
 function readId(offset: number): string {
-  return `let (read${offset}) = readId(${add('loc', offset)})`;
+  return `let (read${offset}) = readId(${add('loc', offset)});`;
 }

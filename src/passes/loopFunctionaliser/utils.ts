@@ -82,10 +82,10 @@ export function extractWhileToFunction(
     scope.id,
     scope instanceof SourceUnit ? FunctionKind.Free : FunctionKind.Function,
     defName,
-    false,
+    false, // virtual
     FunctionVisibility.Private,
     FunctionStateMutability.NonPayable,
-    false,
+    false, // isConstructor
     createParameterList(inputParams, ast),
     retParams,
     [],
@@ -165,10 +165,10 @@ export function extractDoWhileToFunction(
     doWhileFuncDef.scope,
     doWhileFuncDef.kind,
     doBlockDefName,
-    false,
+    false, // virtual
     FunctionVisibility.Private,
     FunctionStateMutability.NonPayable,
-    false,
+    false, // isConstructor
     createParameterList(doBlockParams, ast),
     doBlockRetParams,
     [],

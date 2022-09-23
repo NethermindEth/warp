@@ -41,6 +41,7 @@ import {
   ReferencedLibraries,
   References,
   RejectUnsupportedFeatures,
+  ReplaceIdentifierContractMemberAccess,
   Require,
   ReturnInserter,
   ReturnVariableInitializer,
@@ -60,6 +61,7 @@ import {
   VariableDeclarationInitialiser,
   WarnSupportedFeatures,
 } from './passes';
+import { PreExpressionSplitter } from './passes/expressionSplitter/preExpressionSplitter';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { createPassMap, parsePassOrder } from './utils/cli';
@@ -116,6 +118,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Tic', TypeInformationCalculator],
     ['Ch', ConstantHandler],
     ['M', IdentifierMangler],
+    // worked
     ['Sai', StaticArrayIndexer],
     ['Udt', UserDefinedTypesConverter],
     ['Req', Require],
@@ -133,6 +136,9 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Rv', ReturnVariableInitializer],
     ['If', IfFunctionaliser],
     ['Ifr', IdentityFunctionRemover],
+    ['B', BuiltinHandler],
+    ['T1', TupleAssignmentSplitter], // about to be fusion
+    ['Pe', PreExpressionSplitter],
     ['T', TupleAssignmentSplitter],
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
@@ -146,13 +152,13 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     // Error 2
     ['Abc', ArgBoundChecker],
     ['Ec', EnumConverter],
-    ['B', BuiltinHandler],
     ['Bc', BytesConverter],
     ['Us', UnreachableStatementPruner],
     ['Fp', FunctionPruner],
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
     ['Ci', CairoUtilImporter],
+    ['Rim', ReplaceIdentifierContractMemberAccess],
     ['Dus', DropUnusedSourceUnits],
     ['Cs', CairoStubProcessor],
   ]);

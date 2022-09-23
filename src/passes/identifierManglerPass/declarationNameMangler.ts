@@ -6,6 +6,7 @@ import {
   SourceUnit,
   ContractDefinition,
   ASTNode,
+  EventDefinition,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../../ast/ast';
@@ -130,11 +131,15 @@ export class DeclarationNameMangler extends ASTMapper {
         node.name = this.createNewInternalFunctionName(node.name);
     }
   }
+  mangleEventDefinition(node: EventDefinition): void {
+    node.name = `${node.name}_${node.canonicalSignatureHash(ABIEncoderVersion.V2)}`;
+  }
   mangleContractDefinition(node: ContractDefinition): void {
     checkSourceTerms(node.name, node);
     node.vStructs.forEach((s) => this.mangleStructDefinition(s));
     node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n));
     node.vStateVariables.forEach((v) => this.mangleVariableDeclaration(v));
+    node.vEvents.forEach((e) => this.mangleEventDefinition(e));
   }
   visitSourceUnit(node: SourceUnit, ast: AST): void {
     node.vStructs.forEach((s) => this.mangleStructDefinition(s));
