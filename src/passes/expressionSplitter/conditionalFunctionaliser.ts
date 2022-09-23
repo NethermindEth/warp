@@ -1,3 +1,4 @@
+import assert from 'assert';
 import {
   Assignment,
   ASTNode,
@@ -11,11 +12,14 @@ import {
   IfStatement,
   Mutability,
   ParameterList,
+  Return,
   StateVariableVisibility,
+  TupleType,
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
+import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { getDefaultValue } from '../../utils/defaultValueNodes';
 import { collectUnboundVariables, createOuterCall } from '../../utils/functionGeneration';
@@ -25,21 +29,20 @@ import {
   createParameterList,
   createReturn,
 } from '../../utils/nodeTemplates';
-import { safeGetNodeTypeInCtx } from '../../utils/nodeTypeProcessing';
+import { safeGetNodeType, safeGetNodeTypeInCtx } from '../../utils/nodeTypeProcessing';
 
 // The returns should be both the values returned by the conditional itself,
 // as well as the variables that got captured, as they could have been modified
 export function getReturns(
-  node: Conditional,
   variables: Map<VariableDeclaration, Identifier[]>,
-  funcId: number,
-  varId: number,
+  retVariable: VariableDeclaration | undefined,
   ast: AST,
 ): ParameterList {
   const capturedVars = [...variables].map(([decl]) => cloneASTNode(decl, ast));
-  const retVariable = getConditionalReturnVariable(node, funcId, varId, ast);
-
-  return createParameterList([retVariable, ...capturedVars], ast);
+  return createParameterList(
+    retVariable === undefined ? capturedVars : [retVariable, ...capturedVars],
+    ast,
+  );
 }
 
 export function getConditionalReturnVariable(
@@ -47,7 +50,8 @@ export function getConditionalReturnVariable(
   funcId: number,
   id: number,
   ast: AST,
-): VariableDeclaration {
+): VariableDeclaration | undefined {
+  if (isVoidConditional(node, ast)) return undefined;
   return new VariableDeclaration(
     ast.reserveId(),
     '',
@@ -91,15 +95,20 @@ export function getParams(
   );
 }
 
-export function createFunctionBody(node: Conditional, returns: ParameterList, ast: AST): Block {
+export function createFunctionBody(
+  node: Conditional,
+  retVariable: VariableDeclaration | undefined,
+  returns: ParameterList,
+  ast: AST,
+): Block {
   return createBlock(
     [
       new IfStatement(
         ast.reserveId(),
         '',
         node.vCondition,
-        createReturnBody(returns, node.vTrueExpression, ast, node),
-        createReturnBody(returns, node.vFalseExpression, ast, node),
+        createReturnBody(returns, node.vTrueExpression, retVariable, ast, node),
+        createReturnBody(returns, node.vFalseExpression, retVariable, ast, node),
       ),
     ],
     ast,
@@ -109,24 +118,24 @@ export function createFunctionBody(node: Conditional, returns: ParameterList, as
 export function createReturnBody(
   returns: ParameterList,
   value: Expression,
+  returnVar: VariableDeclaration | undefined,
   ast: AST,
   lookupNode?: ASTNode,
 ): Block {
-  const firstVar = returns.vParameters[0];
-  return createBlock(
-    [
-      new ExpressionStatement(
-        ast.reserveId(),
-        '',
-        new Assignment(
+  const expr =
+    returnVar === undefined
+      ? value
+      : new Assignment(
           ast.reserveId(),
           '',
-          firstVar.typeString,
+          returnVar.typeString,
           '=',
-          createIdentifier(firstVar, ast, undefined, lookupNode),
+          createIdentifier(returnVar, ast, undefined, lookupNode),
           value,
-        ),
-      ),
+        );
+  return createBlock(
+    [
+      new ExpressionStatement(ast.reserveId(), '', expr),
       createReturn(returns.vParameters, returns.id, ast, lookupNode),
     ],
     ast,
@@ -159,4 +168,40 @@ export function addStatementsToCallFunction(
 
 export function getNodeVariables(node: Conditional) {
   return new Map([...collectUnboundVariables(node)].filter(([decl]) => !decl.stateVariable));
+}
+
+// There might be two different cases where conditionals return void:
+// - they are the expression of a return statement
+// - they are the expression of an expressionStatement
+// TODO - Check if there are any other cases where the conditional might be void
+export function getStatementsForVoidConditionals(
+  node: Conditional,
+  variables: VariableDeclaration[],
+  funcToCall: FunctionCall,
+  ast: AST,
+) {
+  const parent =
+    node.getClosestParentByType(Return) ?? node.getClosestParentByType(ExpressionStatement);
+  assert(parent !== undefined, `Expected parent for ${printNode(node)} was not found`);
+  const outerCall = createOuterCall(node, variables, funcToCall, ast);
+
+  if (parent instanceof Return) {
+    assert(parent.vExpression === node, `Expected conditional to be the returned expression`);
+    ast.insertStatementBefore(parent, outerCall);
+    parent.vExpression = undefined;
+  } else {
+    assert(
+      parent.vExpression === node,
+      `Expected conditional to be the expression of the ExpressionStatement`,
+    );
+    ast.replaceNode(parent, outerCall);
+  }
+}
+
+function isVoidConditional(node: Conditional, ast: AST): boolean {
+  const conditionalType = safeGetNodeType(node, ast.compilerVersion);
+  if (conditionalType instanceof TupleType) {
+    if (conditionalType.elements.length == 0) return true;
+  }
+  return false;
 }
