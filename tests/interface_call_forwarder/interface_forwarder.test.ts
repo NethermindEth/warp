@@ -61,12 +61,10 @@ describe('Interface solidity file should transpile', function () {
 });
 
 describe('Transpiled contract is valid', function () {
-  before('given cairo contract is valid', async function () {
-    await starknetCompile(cairoFile, contractJsonPath);
-  });
   it('interface cair file is valid', async function () {
+    await starknetCompile(cairoFile, contractJsonPath);
     await starknetCompile(interfaceTranspiledCairoFile, transpiledInterfaceJsonPath);
-  });
+  }).timeout(TIME_LIMIT);
 });
 
 describe('Interaction between two cairo contracts', function () {
