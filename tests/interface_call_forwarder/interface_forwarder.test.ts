@@ -24,7 +24,9 @@ const TIME_LIMIT = 10 * 60 * 1000;
 describe('Solidity interface generation from cairo contract should succeed', function () {
   it('should generate interface', async function () {
     const { stdout, stderr } = await gen_interface(cairoFile);
-    expect(stdout).to.include('Running starknet compile with cairoPath /Users/rohit/nmd/warp');
+    expect(stdout).to.include(
+      `Running starknet compile with cairoPath ${path.resolve(__dirname, '../..')}`,
+    );
     expect(stderr).to.include('');
   }).timeout(TIME_LIMIT);
 });
@@ -61,7 +63,7 @@ describe('Interface solidity file should transpile', function () {
 });
 
 describe('Transpiled contract is valid', function () {
-  it('interface cair file is valid', async function () {
+  it('interface cairo file is valid', async function () {
     await starknetCompile(cairoFile, contractJsonPath);
     await starknetCompile(interfaceTranspiledCairoFile, transpiledInterfaceJsonPath);
   }).timeout(TIME_LIMIT);
