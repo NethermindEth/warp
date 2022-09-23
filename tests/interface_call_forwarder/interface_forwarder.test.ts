@@ -19,12 +19,14 @@ const transpiledInterfaceJsonPath = `${path.resolve(
   '..',
 )}/interface_call_forwarder/interface.json`;
 
+const TIME_LIMIT = 10 * 60 * 1000;
+
 describe('Solidity interface generation from cairo contract should succeed', function () {
   it('should generate interface', async function () {
     const { stdout, stderr } = await gen_interface(cairoFile);
     expect(stdout).to.include('Running starknet compile with cairoPath /Users/rohit/nmd/warp');
     expect(stderr).to.include('');
-  }).timeout(1000 * 60 * 2);
+  }).timeout(TIME_LIMIT);
 });
 
 describe('Interface solidity file should transpile', function () {
@@ -55,7 +57,7 @@ describe('Interface solidity file should transpile', function () {
       fs.existsSync(interfaceTranspiledCairoFile),
       `Transpilation failed, cannot find output file`,
     ).to.be.true;
-  });
+  }).timeout(TIME_LIMIT);
 });
 
 describe('Transpiled contract is valid', function () {
@@ -124,7 +126,7 @@ describe('Interaction between two cairo contracts', function () {
     expect(response_sub.return_data, 'sub_dff59cfe return value should match [1, 0]').to.deep.equal(
       ['1', '0'],
     );
-  });
+  }).timeout(TIME_LIMIT);
 });
 
 describe('Frivoulous file deletion', function () {
