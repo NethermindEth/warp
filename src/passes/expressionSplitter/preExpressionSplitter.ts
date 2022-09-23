@@ -14,6 +14,9 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
   generalizeType,
+  InheritanceSpecifier,
+  ModifierInvocation,
+  ASTNode,
   // FunctionKind,
   // SourceUnit,
 } from 'solc-typed-ast';
@@ -23,7 +26,7 @@ import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { TranspileFailedError } from '../../utils/errors';
 // import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
-import { SPLIT_EXPRESSION_PREFIX } from '../../utils/nameModifiers';
+import { PRE_SPLIT_EXPRESSION_PREFIX } from '../../utils/nameModifiers';
 import {
   createEmptyTuple,
   createExpressionStatement,
@@ -50,7 +53,7 @@ function* expressionGenerator(prefix: string): Generator<string, string, unknown
 }
 
 export class PreExpressionSplitter extends ASTMapper {
-  eGen = expressionGenerator(SPLIT_EXPRESSION_PREFIX);
+  eGen = expressionGenerator(PRE_SPLIT_EXPRESSION_PREFIX);
   funcNameCounter = 0;
   varNameCounter = 0;
 
@@ -72,6 +75,10 @@ export class PreExpressionSplitter extends ASTMapper {
       node.vLeftHandSide instanceof Identifier &&
       identifierReferenceStateVar(node.vLeftHandSide)
     ) {
+      return;
+    }
+    // No need to split if is inside a base construct argument
+    if (isInsideBaseConstructor(node)) {
       return;
     }
     const initialValue = node.vRightHandSide;
@@ -123,6 +130,10 @@ export class PreExpressionSplitter extends ASTMapper {
       node.parent instanceof ExpressionStatement ||
       node.parent instanceof VariableDeclarationStatement
     ) {
+      return;
+    }
+    // No need to split if is inside a base construct argument
+    if (isInsideBaseConstructor(node)) {
       return;
     }
 
@@ -233,4 +244,13 @@ function identifierReferenceStateVar(id: Identifier) {
     refDecl instanceof VariableDeclaration &&
     refDecl.getClosestParentByType(ContractDefinition)?.id === refDecl.scope
   );
+}
+
+function isInsideBaseConstructor(node: ASTNode) {
+  // There are 2 ways to be a base constructor argument
+  // - In the inheritance list        --->  contract B is A(4+9+f())
+  // - A modifier in the constructor  --->  constructor(uint y) A(y*y) {}
+  const inInheritBaseConstruct = !(node.getClosestParentByType(InheritanceSpecifier) === undefined);
+  const inModifierBaseConstruct = !(node.getClosestParentByType(ModifierInvocation) === undefined);
+  return inInheritBaseConstruct || inModifierBaseConstruct;
 }

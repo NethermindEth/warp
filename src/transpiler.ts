@@ -117,7 +117,11 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Gp', PublicStateVarsGetterGenerator],
     ['Tic', TypeInformationCalculator],
     ['Ch', ConstantHandler],
+    // worked
     ['M', IdentifierMangler],
+    ['T1', TupleAssignmentSplitter], // about to be fusion
+    ['Pe', PreExpressionSplitter],
+    // here 5
     ['Sai', StaticArrayIndexer],
     ['Udt', UserDefinedTypesConverter],
     ['Req', Require],
@@ -126,6 +130,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Ons', OrderNestedStructs],
     ['Sa', StorageAllocator],
     ['Ii', InheritanceInliner],
+    // here
     ['Ech', ExternalContractHandler],
     ['Mh', ModifierHandler],
     ['Pfs', PublicFunctionSplitter],
@@ -135,8 +140,6 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Rv', ReturnVariableInitializer],
     ['If', IfFunctionaliser],
     ['Ifr', IdentityFunctionRemover],
-    ['T1', TupleAssignmentSplitter], // about to be fusion
-    ['Pe', PreExpressionSplitter],
     ['T', TupleAssignmentSplitter],
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
