@@ -61,6 +61,7 @@ import {
   VariableDeclarationInitialiser,
   WarnSupportedFeatures,
 } from './passes';
+import { ShortCircuitToConditional } from './passes/builtinHandler/shortCircuitToConditional';
 import { PreExpressionSplitter } from './passes/expressionSplitter/preExpressionSplitter';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
@@ -118,7 +119,6 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Tic', TypeInformationCalculator],
     ['Ch', ConstantHandler],
     ['M', IdentifierMangler],
-    // worked
     ['Sai', StaticArrayIndexer],
     ['Udt', UserDefinedTypesConverter],
     ['Req', Require],
@@ -136,10 +136,10 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Rv', ReturnVariableInitializer],
     ['If', IfFunctionaliser],
     ['Ifr', IdentityFunctionRemover],
-    ['B', BuiltinHandler],
+    ['Sc', ShortCircuitToConditional],
     ['T1', TupleAssignmentSplitter], // about to be fusion
-    ['Pe', PreExpressionSplitter],
-    ['T', TupleAssignmentSplitter],
+    ['Pe', PreExpressionSplitter], // about to be fusion
+    ['T', TupleAssignmentSplitter], // about to be fusion
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
     ['Vs', VariableDeclarationExpressionSplitter],
@@ -149,9 +149,9 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Dh', DeleteHandler],
     ['E1', ExpressionSplitter],
     ['Rf', References],
-    // Error 2
     ['Abc', ArgBoundChecker],
     ['Ec', EnumConverter],
+    ['B', BuiltinHandler],
     ['Bc', BytesConverter],
     ['Us', UnreachableStatementPruner],
     ['Fp', FunctionPruner],
