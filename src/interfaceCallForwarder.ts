@@ -47,14 +47,19 @@ const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')
 const defaultSolcVersion = '0.8.14';
 
 export function generateSolInterface(filePath: string, options: SolcInterfaceGenOptions) {
+  const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
   const { success } = compileCairo(filePath, path.resolve(__dirname, '..'), {
     debug_info: false,
   });
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
+  } else {
+    const resultPath = `${cairoPathRoot}_compiled.json`;
+    const abiPath = `${cairoPathRoot}_abi.json`;
+    fs.unlinkSync(resultPath);
+    fs.unlinkSync(abiPath);
   }
-  const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
   let jsonCairoPath = `${cairoPathRoot}.json`;
 
   let solPath = `${cairoPathRoot}.sol`;
