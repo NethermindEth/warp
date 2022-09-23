@@ -127,9 +127,6 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Ons', OrderNestedStructs],
     ['Sa', StorageAllocator],
     ['Ii', InheritanceInliner],
-    ['T1', TupleAssignmentSplitter], // about to be fusion
-    ['Pe', PreExpressionSplitter],
-    // here
     ['Ech', ExternalContractHandler],
     ['Mh', ModifierHandler],
     ['Pfs', PublicFunctionSplitter],
@@ -139,6 +136,9 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Rv', ReturnVariableInitializer],
     ['If', IfFunctionaliser],
     ['Ifr', IdentityFunctionRemover],
+    ['B', BuiltinHandler],
+    ['T1', TupleAssignmentSplitter], // about to be fusion
+    ['Pe', PreExpressionSplitter],
     ['T', TupleAssignmentSplitter],
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
@@ -150,7 +150,6 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Rf', References],
     ['Abc', ArgBoundChecker],
     ['Ec', EnumConverter],
-    ['B', BuiltinHandler],
     ['Bc', BytesConverter],
     ['Us', UnreachableStatementPruner],
     ['Fp', FunctionPruner],
