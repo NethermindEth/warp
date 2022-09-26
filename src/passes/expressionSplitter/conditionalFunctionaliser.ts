@@ -30,6 +30,7 @@ import {
   createReturn,
 } from '../../utils/nodeTemplates';
 import { safeGetNodeType, safeGetNodeTypeInCtx } from '../../utils/nodeTypeProcessing';
+import { typeNameFromTypeNode } from '../../utils/utils';
 
 // The returns should be both the values returned by the conditional itself,
 // as well as the variables that got captured, as they could have been modified
@@ -64,6 +65,8 @@ export function getConditionalReturnVariable(
     StateVariableVisibility.Private,
     Mutability.Mutable,
     node.typeString,
+    undefined,
+    typeNameFromTypeNode(safeGetNodeType(node, ast.compilerVersion), ast),
   );
 }
 
