@@ -147,7 +147,6 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['I', ImplicitConversionToExplicit],
     ['Abi', ABIEncode],
     ['Dh', DeleteHandler],
-    ['E1', ExpressionSplitter],
     ['Rf', References],
     ['Abc', ArgBoundChecker],
     ['Ec', EnumConverter],
