@@ -1,9 +1,12 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { Command } from 'commander';
 import { createCairoFileName, isValidSolFile, outputResult } from './io';
 import { compileSolFile } from './solCompile';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
 import {
+  compileCairo,
   runStarknetCallOrInvoke,
   runStarknetCompile,
   runStarknetDeclare,
@@ -78,8 +81,21 @@ program
             outputResult(name, cairo, options, cairoSuffix, abi);
             return createCairoFileName(name, cairoSuffix);
           })
-          .forEach((file) => {
-            postProcessCairoFile(file, options.outputDir, contractToHashMap);
+          .map((file) => postProcessCairoFile(file, options.outputDir, contractToHashMap))
+          .forEach((file: string) => {
+            if (options.compileCairo) {
+              const { success, resultPath, abiPath } = compileCairo(
+                path.join(options.outputDir, file),
+              );
+              if (!success) {
+                if (resultPath) {
+                  fs.unlinkSync(resultPath);
+                }
+                if (abiPath) {
+                  fs.unlinkSync(abiPath);
+                }
+              }
+            }
           });
       } catch (e) {
         handleTranspilationError(e);
