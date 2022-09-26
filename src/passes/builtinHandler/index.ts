@@ -22,7 +22,6 @@ export class BuiltinHandler extends ASTMapper {
     ast = Ecrecover.map(ast);
     ast = Keccak.map(ast);
     ast = ExplicitConversionToFunc.map(ast);
-    ast = ShortCircuitToConditional.map(ast);
     ast = MathsOperationToFunction.map(ast);
     ast = ThisKeyword.map(ast);
     return ast;
