@@ -74,50 +74,8 @@ export class PreExpressionSplitter extends ASTMapper {
     ) {
       return;
     }
-    // // No need to split if is inside a base construct argument
-    // if (isInsideBaseConstructor(node)) {
-    //   return;
-    // }
-    const initialValue = node.vRightHandSide;
-    const location =
-      generalizeType(safeGetNodeType(initialValue, ast.compilerVersion))[1] ?? DataLocation.Default;
-    const varDecl = new VariableDeclaration(
-      ast.reserveId(), // id
-      '', // src
-      false, // constant
-      false, // indexed
-      this.eGen.next().value, //name
-      ast.getContainingScope(node), //scope
-      false, // stateVariable
-      location, // storageLocation
-      StateVariableVisibility.Internal, // visibility
-      Mutability.Constant, // mutability
-      node.vLeftHandSide.typeString, // typeString
-    );
 
-    const tempVarStatement = createVariableDeclarationStatement([varDecl], initialValue, ast);
-    const tempVar = tempVarStatement.vDeclarations[0];
-
-    const leftHandSide = cloneASTNode(node.vLeftHandSide, ast);
-    const rightHandSide = createIdentifier(tempVar, ast, undefined, node);
-    const assignment = new Assignment(
-      ast.reserveId(), // id
-      '', // src
-      leftHandSide.typeString, // typeString
-      '=', // operator
-      leftHandSide, // left side
-      rightHandSide, // right side
-    );
-    const updateVal = createExpressionStatement(ast, assignment);
-
-    // b = (a=7) + 4
-    // ~>
-    // __warp_se = 7
-    // a = __warp_se
-    // b = (__warp_se) + 4
-    ast.insertStatementBefore(node, tempVarStatement);
-    ast.insertStatementBefore(node, updateVal);
-    ast.replaceNode(node, createIdentifier(tempVar, ast));
+    this.splitSimpleAssign(node, ast);
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -129,58 +87,13 @@ export class PreExpressionSplitter extends ASTMapper {
     ) {
       return;
     }
-    // // No need to split if is inside a base construct argument
-    // if (isInsideBaseConstructor(node)) {
-    //   return;
-    // }
 
     const returnTypes = node.vReferencedDeclaration.vReturnParameters.vParameters;
     if (returnTypes.length === 0) {
-      // If returns nothing then the function can be called in a previous statement and
-      // replace this call with an empty tuple
-      const parent = node.parent;
-      assert(parent !== undefined, `${printNode(node)} ${node.vFunctionName} has no parent`);
-      ast.replaceNode(node, createEmptyTuple(ast));
-      ast.insertStatementBefore(parent, new ExpressionStatement(ast.reserveId(), '', node));
+      this.splitFunctionCallWithoutReturn(node, ast);
     } else if (returnTypes.length === 1) {
-      assert(
-        returnTypes[0].vType !== undefined,
-        'Return types should not be undefined since solidity 0.5.0',
-      );
-
-      // ast.extractToConstant(node, cloneASTNode(returnTypes[0].vType, ast), this.eGen.next().value);
-      const location =
-        generalizeType(safeGetNodeType(node, ast.compilerVersion))[1] ?? DataLocation.Default;
-      const replacementVariable = new VariableDeclaration(
-        ast.reserveId(), // id
-        node.src, // src
-        true, // constant
-        false, // indexed
-        this.eGen.next().value, // name
-        ast.getContainingScope(node), // scope
-        false, // stateVariable
-        location, // storageLocation
-        StateVariableVisibility.Private, // visibility
-        Mutability.Constant, // mutability
-        returnTypes[0].typeString, // typeString
-        undefined, // documentation
-        cloneASTNode(returnTypes[0].vType, ast), // typeName
-      );
-      const declaration = createVariableDeclarationStatement(
-        [replacementVariable],
-        cloneASTNode(node, ast),
-        ast,
-      );
-      const temp_var = declaration.vDeclarations[0];
-
-      // a = f() + 5
-      // ~>
-      // __warp_se = f()
-      // a = __warp_se + 5
-      ast.insertStatementBefore(node, declaration);
-      ast.replaceNode(node, createIdentifier(temp_var, ast));
+      this.splitFunctionCallWithReturn(node, returnTypes[0], ast);
     } else {
-      // Be aware that is needed a tupleAssignmentSplitter pass before this one
       throw new TranspileFailedError(
         `ExpressionSplitter expects functions to have at most 1 return argument. ${printNode(
           node,
@@ -250,6 +163,95 @@ export class PreExpressionSplitter extends ASTMapper {
       );
     }
   }
+
+  splitSimpleAssign(node: Assignment, ast: AST): void {
+    const initialValue = node.vRightHandSide;
+    const location =
+      generalizeType(safeGetNodeType(initialValue, ast.compilerVersion))[1] ?? DataLocation.Default;
+    const varDecl = new VariableDeclaration(
+      ast.reserveId(), // id
+      '', // src
+      false, // constant
+      false, // indexed
+      this.eGen.next().value, //name
+      ast.getContainingScope(node), //scope
+      false, // stateVariable
+      location, // storageLocation
+      StateVariableVisibility.Internal, // visibility
+      Mutability.Constant, // mutability
+      node.vLeftHandSide.typeString, // typeString
+    );
+
+    const tempVarStatement = createVariableDeclarationStatement([varDecl], initialValue, ast);
+    const tempVar = tempVarStatement.vDeclarations[0];
+
+    const leftHandSide = cloneASTNode(node.vLeftHandSide, ast);
+    const rightHandSide = createIdentifier(tempVar, ast, undefined, node);
+    const assignment = new Assignment(
+      ast.reserveId(), // id
+      '', // src
+      leftHandSide.typeString, // typeString
+      '=', // operator
+      leftHandSide, // left side
+      rightHandSide, // right side
+    );
+    const updateVal = createExpressionStatement(ast, assignment);
+
+    // b = (a=7) + 4
+    // ~>
+    // __warp_se = 7
+    // a = __warp_se
+    // b = (__warp_se) + 4
+    ast.insertStatementBefore(node, tempVarStatement);
+    ast.insertStatementBefore(node, updateVal);
+    ast.replaceNode(node, createIdentifier(tempVar, ast));
+  }
+
+  splitFunctionCallWithoutReturn(node: FunctionCall, ast: AST): void {
+    // If returns nothing then the function can be called in a previous statement and
+    // replace this call with an empty tuple
+    const parent = node.parent;
+    assert(parent !== undefined, `${printNode(node)} ${node.vFunctionName} has no parent`);
+    ast.replaceNode(node, createEmptyTuple(ast));
+    ast.insertStatementBefore(parent, new ExpressionStatement(ast.reserveId(), '', node));
+  }
+
+  splitFunctionCallWithReturn(node: FunctionCall, returnType: VariableDeclaration, ast: AST): void {
+    assert(
+      returnType.vType !== undefined,
+      'Return types should not be undefined since solidity 0.5.0',
+    );
+    const location =
+      generalizeType(safeGetNodeType(node, ast.compilerVersion))[1] ?? DataLocation.Default;
+    const replacementVariable = new VariableDeclaration(
+      ast.reserveId(), // id
+      node.src, // src
+      true, // constant
+      false, // indexed
+      this.eGen.next().value, // name
+      ast.getContainingScope(node), // scope
+      false, // stateVariable
+      location, // storageLocation
+      StateVariableVisibility.Private, // visibility
+      Mutability.Constant, // mutability
+      returnType.typeString, // typeString
+      undefined, // documentation
+      cloneASTNode(returnType.vType, ast), // typeName
+    );
+    const declaration = createVariableDeclarationStatement(
+      [replacementVariable],
+      cloneASTNode(node, ast),
+      ast,
+    );
+    const temp_var = declaration.vDeclarations[0];
+
+    // a = f() + 5
+    // ~>
+    // __warp_se = f()
+    // a = __warp_se + 5
+    ast.insertStatementBefore(node, declaration);
+    ast.replaceNode(node, createIdentifier(temp_var, ast));
+  }
 }
 
 function identifierReferenceStateVar(id: Identifier) {
@@ -259,12 +261,3 @@ function identifierReferenceStateVar(id: Identifier) {
     refDecl.getClosestParentByType(ContractDefinition)?.id === refDecl.scope
   );
 }
-
-// function isInsideBaseConstructor(node: ASTNode) {
-//   // There are 2 ways to be a base constructor argument
-//   // - In the inheritance list        --->  contract B is A(4+9+f())
-//   // - A modifier in the constructor  --->  constructor(uint y) A(y*y) {}
-//   const inInheritBaseConstruct = !(node.getClosestParentByType(InheritanceSpecifier) === undefined);
-//   const inModifierBaseConstruct = !(node.getClosestParentByType(ModifierInvocation) === undefined);
-//   return inInheritBaseConstruct || inModifierBaseConstruct;
-// }
