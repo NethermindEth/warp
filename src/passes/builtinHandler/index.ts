@@ -3,7 +3,6 @@ import { ASTMapper } from '../../ast/mapper';
 import { MathsOperationToFunction } from './MathsOperationToFunction';
 import { ExplicitConversionToFunc } from './explicitConversionToFunc';
 import { MsgSender } from './msgSender';
-import { ShortCircuitToConditional } from './shortCircuitToConditional';
 import { ThisKeyword } from './thisKeyword';
 import { Ecrecover } from './ecrecover';
 import { Keccak } from './keccak';
