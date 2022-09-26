@@ -48,7 +48,6 @@ import {
   SourceUnitSplitter,
   StaticArrayIndexer,
   StorageAllocator,
-  TupleAssignmentSplitter,
   TupleFixes,
   TypeInformationCalculator,
   TypeNameRemover,
@@ -137,9 +136,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['If', IfFunctionaliser],
     ['Ifr', IdentityFunctionRemover],
     ['Sc', ShortCircuitToConditional],
-    ['T1', TupleAssignmentSplitter], // about to be fusion
-    ['Pe', PreExpressionSplitter], // about to be fusion
-    ['T', TupleAssignmentSplitter], // about to be fusion
+    ['Pe', PreExpressionSplitter],
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
     ['Vs', VariableDeclarationExpressionSplitter],
