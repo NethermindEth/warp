@@ -73,13 +73,15 @@ export class PreExpressionSplitter extends ASTMapper {
   }
 
   visitExpressionStatement(node: ExpressionStatement, ast: AST): void {
-    this.commonVisit(node, ast);
-
+    let visitNode: ASTNode = node;
     if (node.vExpression instanceof Assignment) {
       if (node.vExpression.vLeftHandSide instanceof TupleExpression) {
-        ast.replaceNode(node, this.splitTupleAssignment(node.vExpression, ast));
+        visitNode = this.splitTupleAssignment(node.vExpression, ast);
+        ast.replaceNode(node, visitNode);
       }
     }
+
+    this.commonVisit(visitNode, ast);
   }
 
   visitAssignment(node: Assignment, ast: AST): void {
