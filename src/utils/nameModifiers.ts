@@ -55,6 +55,8 @@ export const SPLIT_EXPRESSION_PREFIX = '__warp_se_';
 
 // Used in Pre Expression Splitter
 export const PRE_SPLIT_EXPRESSION_PREFIX = '__warp_pse_';
+export const CONDITIONAL_FUNCTION_PREFIX = '__warp_conditional_';
+export const CONDITIONAL_RETURN_VARIABLE = '__warp_rc_';
 
 // Used in UnloadingAssignment
 export const COMPOUND_ASSIGNMENT_SUBEXPRESSION_PREFIX = '__warp_cs_';

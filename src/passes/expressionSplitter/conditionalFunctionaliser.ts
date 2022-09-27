@@ -13,6 +13,7 @@ import {
   Mutability,
   ParameterList,
   Return,
+  Statement,
   StateVariableVisibility,
   TupleType,
   VariableDeclaration,
@@ -23,6 +24,7 @@ import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { getDefaultValue } from '../../utils/defaultValueNodes';
 import { collectUnboundVariables, createOuterCall } from '../../utils/functionGeneration';
+import { CONDITIONAL_RETURN_VARIABLE } from '../../utils/nameModifiers';
 import {
   createBlock,
   createIdentifier,
@@ -30,44 +32,66 @@ import {
   createReturn,
 } from '../../utils/nodeTemplates';
 import { safeGetNodeType, safeGetNodeTypeInCtx } from '../../utils/nodeTypeProcessing';
-import { typeNameFromTypeNode } from '../../utils/utils';
+import { toSingleExpression, typeNameFromTypeNode } from '../../utils/utils';
 
 // The returns should be both the values returned by the conditional itself,
 // as well as the variables that got captured, as they could have been modified
 export function getReturns(
   variables: Map<VariableDeclaration, Identifier[]>,
-  retVariable: VariableDeclaration | undefined,
+  conditionalReturn: VariableDeclaration[],
   ast: AST,
 ): ParameterList {
   const capturedVars = [...variables].map(([decl]) => cloneASTNode(decl, ast));
-  return createParameterList(
-    retVariable === undefined ? capturedVars : [retVariable, ...capturedVars],
-    ast,
-  );
+  return createParameterList([...conditionalReturn, ...capturedVars], ast);
 }
 
-export function getConditionalReturnVariable(
+export function getConditionalReturn(
   node: Conditional,
   funcId: number,
-  id: number,
+  nameCounter: Generator<number, number, unknown>,
   ast: AST,
-): VariableDeclaration | undefined {
-  if (isVoidConditional(node, ast)) return undefined;
+): VariableDeclaration[] {
+  const conditionalType = safeGetNodeType(node, ast.compilerVersion);
+  const variables =
+    conditionalType instanceof TupleType
+      ? getAllVariables(node, conditionalType, funcId, nameCounter, ast)
+      : [getVar(node, node.typeString, funcId, nameCounter, ast)];
+  return variables;
+}
+
+function getVar(
+  node: Conditional,
+  typeString: string,
+  scope: number,
+  nameCounter: Generator<number, number, unknown>,
+  ast: AST,
+): VariableDeclaration {
   return new VariableDeclaration(
     ast.reserveId(),
     '',
     false, // constant
     false, // indexed
-    `ret_conditional${id}`,
-    funcId,
+    `${CONDITIONAL_RETURN_VARIABLE}${nameCounter.next().value}`,
+    scope,
     false, // stateVariable
     DataLocation.Default,
     StateVariableVisibility.Private,
     Mutability.Mutable,
-    node.typeString,
+    typeString,
     undefined,
     typeNameFromTypeNode(safeGetNodeType(node, ast.compilerVersion), ast),
   );
+}
+
+function getAllVariables(
+  node: Conditional,
+  conditionalType: TupleType,
+  scope: number,
+  nameCounter: Generator<number, number, unknown>,
+  ast: AST,
+): VariableDeclaration[] {
+  if (conditionalType.elements.length == 0) return [];
+  else return conditionalType.elements.map((t) => getVar(node, t.pp(), scope, nameCounter, ast));
 }
 
 // The inputs to the function should be only the free variables
@@ -100,7 +124,7 @@ export function getParams(
 
 export function createFunctionBody(
   node: Conditional,
-  retVariable: VariableDeclaration | undefined,
+  conditionalReturn: VariableDeclaration[],
   returns: ParameterList,
   ast: AST,
 ): Block {
@@ -110,8 +134,8 @@ export function createFunctionBody(
         ast.reserveId(),
         '',
         node.vCondition,
-        createReturnBody(returns, node.vTrueExpression, retVariable, ast, node),
-        createReturnBody(returns, node.vFalseExpression, retVariable, ast, node),
+        createReturnBody(returns, node.vTrueExpression, conditionalReturn, ast, node),
+        createReturnBody(returns, node.vFalseExpression, conditionalReturn, ast, node),
       ),
     ],
     ast,
@@ -121,19 +145,22 @@ export function createFunctionBody(
 export function createReturnBody(
   returns: ParameterList,
   value: Expression,
-  returnVar: VariableDeclaration | undefined,
+  conditionalReturn: VariableDeclaration[],
   ast: AST,
   lookupNode?: ASTNode,
 ): Block {
+  const conditionalReturnIdentifiers = conditionalReturn.map((variable) =>
+    createIdentifier(variable, ast, undefined, lookupNode),
+  );
   const expr =
-    returnVar === undefined
+    conditionalReturn.length == 0
       ? value
       : new Assignment(
           ast.reserveId(),
           '',
-          returnVar.typeString,
+          value.typeString,
           '=',
-          createIdentifier(returnVar, ast, undefined, lookupNode),
+          toSingleExpression(conditionalReturnIdentifiers, ast),
           value,
         );
   return createBlock(
@@ -147,26 +174,27 @@ export function createReturnBody(
 
 export function addStatementsToCallFunction(
   node: Conditional,
-  conditionalResult: VariableDeclaration,
+  conditionalResult: VariableDeclaration[],
   variables: VariableDeclaration[],
   funcToCall: FunctionCall,
   ast: AST,
-) {
+): Statement[] {
   const statements = [
     new VariableDeclarationStatement(
       ast.reserveId(),
       '',
-      [conditionalResult.id],
-      [conditionalResult],
-      getDefaultValue(
-        safeGetNodeTypeInCtx(conditionalResult, ast.compilerVersion, node),
-        conditionalResult,
+      conditionalResult.map((v) => v.id),
+      conditionalResult,
+      toSingleExpression(
+        conditionalResult.map((v) =>
+          getDefaultValue(safeGetNodeTypeInCtx(v, ast.compilerVersion, node), node, ast),
+        ),
         ast,
       ),
     ),
-    createOuterCall(node, [conditionalResult, ...variables], funcToCall, ast),
+    createOuterCall(node, [...conditionalResult, ...variables], funcToCall, ast),
   ];
-  statements.forEach((stmt) => ast.insertStatementBefore(node, stmt));
+  return statements;
 }
 
 export function getNodeVariables(node: Conditional) {
@@ -199,12 +227,4 @@ export function getStatementsForVoidConditionals(
     );
     ast.replaceNode(parent, outerCall);
   }
-}
-
-function isVoidConditional(node: Conditional, ast: AST): boolean {
-  const conditionalType = safeGetNodeType(node, ast.compilerVersion);
-  if (conditionalType instanceof TupleType) {
-    if (conditionalType.elements.length == 0) return true;
-  }
-  return false;
 }

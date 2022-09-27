@@ -31,7 +31,11 @@ import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
-import { PRE_SPLIT_EXPRESSION_PREFIX, TUPLE_VALUE_PREFIX } from '../../utils/nameModifiers';
+import {
+  CONDITIONAL_FUNCTION_PREFIX,
+  PRE_SPLIT_EXPRESSION_PREFIX,
+  TUPLE_VALUE_PREFIX,
+} from '../../utils/nameModifiers';
 import {
   createBlock,
   createEmptyTuple,
@@ -41,11 +45,16 @@ import {
 } from '../../utils/nodeTemplates';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
-import { counterGenerator, getContainingFunction, typeNameFromTypeNode } from '../../utils/utils';
+import {
+  counterGenerator,
+  getContainingFunction,
+  toSingleExpression,
+  typeNameFromTypeNode,
+} from '../../utils/utils';
 import {
   addStatementsToCallFunction,
   createFunctionBody,
-  getConditionalReturnVariable,
+  getConditionalReturn,
   getInputs,
   getNodeVariables,
   getParams,
@@ -63,8 +72,7 @@ function* expressionGenerator(prefix: string): Generator<string, string, unknown
 export class PreExpressionSplitter extends ASTMapper {
   eGen = expressionGenerator(PRE_SPLIT_EXPRESSION_PREFIX);
   eGenTuple = expressionGenerator(TUPLE_VALUE_PREFIX);
-  funcNameCounter = 0;
-  varNameCounter = 0;
+  nameCounter = counterGenerator();
 
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
@@ -127,32 +135,27 @@ export class PreExpressionSplitter extends ASTMapper {
   visitConditional(node: Conditional, ast: AST) {
     const containingFunction = getContainingFunction(node);
     const variables = getNodeVariables(node);
-    const inputs = getInputs(variables, ast);
-    const params = getParams(variables, ast);
+    const args = getInputs(variables, ast);
+    const inputParams = getParams(variables, ast);
     const newFuncId = ast.reserveId();
-    const conditionalResult = getConditionalReturnVariable(
-      node,
-      newFuncId,
-      this.varNameCounter++,
-      ast,
-    );
-    const returns = getReturns(variables, conditionalResult, ast);
+    const conditionalResult = getConditionalReturn(node, newFuncId, this.nameCounter, ast);
+    const returnParams = getReturns(variables, conditionalResult, ast);
 
     const func = new FunctionDefinition(
       newFuncId,
       '',
       containingFunction.scope,
       containingFunction.kind === FunctionKind.Free ? FunctionKind.Free : FunctionKind.Function,
-      `_conditional${this.funcNameCounter++}`,
-      false,
+      `${CONDITIONAL_FUNCTION_PREFIX}${containingFunction.name}_${this.nameCounter.next().value}`,
+      false, // virtual
       FunctionVisibility.Internal,
       containingFunction.stateMutability,
-      false,
-      params,
-      returns,
+      false, // isConstructor
+      inputParams,
+      returnParams,
       [],
       undefined,
-      createFunctionBody(node, conditionalResult, returns, ast),
+      createFunctionBody(node, conditionalResult, returnParams, ast),
     );
     fixParameterScopes(func);
     containingFunction.vScope.insertBefore(func, containingFunction);
@@ -160,27 +163,41 @@ export class PreExpressionSplitter extends ASTMapper {
     this.dispatchVisit(func, ast);
 
     // Conditionals might return a value, or they might be void, in which
-    // case conditionalResult would be undefined. Both cases need to be handled
+    // case conditionalResult would contain no elements. Both cases need to be handled
     // separately
-    if (conditionalResult !== undefined) {
-      // conditionalResult variable was already used as the return value of the
+    if (conditionalResult.length !== 0) {
+      // conditionalResult was already used as the return value of the
       // conditional in the new function. It needs to be cloned to capture the
       // return value of the new function in containingFunction
-      const result = cloneASTNode(conditionalResult, ast);
-      result.scope = containingFunction.id;
-      addStatementsToCallFunction(
+      const result = conditionalResult.map((v) => {
+        const variable = cloneASTNode(v, ast);
+        variable.scope = containingFunction.id;
+        return variable;
+      });
+
+      const statements = addStatementsToCallFunction(
         node,
         result,
         [...variables.keys()],
-        createCallToFunction(func, inputs, ast),
+        createCallToFunction(func, args, ast),
         ast,
       );
-      ast.replaceNode(node, createIdentifier(conditionalResult, ast));
+      statements.forEach((stmt) => {
+        ast.insertStatementBefore(node, stmt);
+        this.dispatchVisit(stmt, ast);
+      });
+      ast.replaceNode(
+        node,
+        toSingleExpression(
+          result.map((v) => createIdentifier(v, ast)),
+          ast,
+        ),
+      );
     } else {
       getStatementsForVoidConditionals(
         node,
         [...variables.keys()],
-        createCallToFunction(func, inputs, ast),
+        createCallToFunction(func, args, ast),
         ast,
       );
     }
