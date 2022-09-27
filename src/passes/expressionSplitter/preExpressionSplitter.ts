@@ -23,6 +23,7 @@ import {
   StringLiteralType,
   Expression,
   Return,
+  ASTNode,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
@@ -186,37 +187,11 @@ export class PreExpressionSplitter extends ASTMapper {
   }
 
   visitReturn(node: Return, ast: AST): void {
-    this.commonVisit(node, ast);
-
+    let nodeToVisit: ASTNode = node;
     if (node.vFunctionReturnParameters.vParameters.length > 1) {
-      const returnExpression = node.vExpression;
-      assert(
-        returnExpression !== undefined,
-        `Tuple return ${printNode(node)} has undefined value. Expects ${
-          node.vFunctionReturnParameters.vParameters.length
-        } parameters`,
-      );
-      const vars = node.vFunctionReturnParameters.vParameters.map((v) => cloneASTNode(v, ast));
-      ast.insertStatementBefore(
-        node,
-        new VariableDeclarationStatement(
-          ast.reserveId(),
-          '',
-          vars.map((d) => d.id),
-          vars,
-          returnExpression,
-        ),
-      );
-
-      node.vExpression = new TupleExpression(
-        ast.reserveId(),
-        '',
-        returnExpression.typeString,
-        false, // isInlineArray
-        vars.map((v) => createIdentifier(v, ast, undefined, node)),
-      );
-      ast.registerChild(node.vExpression, node);
+      nodeToVisit = this.splitReturnTuple(node, ast);
     }
+    this.commonVisit(nodeToVisit, ast);
   }
 
   splitSimpleAssign(node: Assignment, ast: AST): void {
@@ -391,6 +366,36 @@ export class PreExpressionSplitter extends ASTMapper {
     // a = __warp_se + 5
     ast.insertStatementBefore(node, declaration);
     ast.replaceNode(node, createIdentifier(temp_var, ast));
+  }
+
+  splitReturnTuple(node: Return, ast: AST): VariableDeclarationStatement {
+    const returnExpression = node.vExpression;
+    assert(
+      returnExpression !== undefined,
+      `Tuple return ${printNode(node)} has undefined value. Expects ${
+        node.vFunctionReturnParameters.vParameters.length
+      } parameters`,
+    );
+    const vars = node.vFunctionReturnParameters.vParameters.map((v) => cloneASTNode(v, ast));
+    const replaceStatement = new VariableDeclarationStatement(
+      ast.reserveId(),
+      '',
+      vars.map((d) => d.id),
+      vars,
+      returnExpression,
+    );
+    ast.insertStatementBefore(node, replaceStatement);
+
+    node.vExpression = new TupleExpression(
+      ast.reserveId(),
+      '',
+      returnExpression.typeString,
+      false, // isInlineArray
+      vars.map((v) => createIdentifier(v, ast, undefined, node)),
+    );
+    ast.registerChild(node.vExpression, node);
+
+    return replaceStatement;
   }
 }
 
