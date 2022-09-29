@@ -12,6 +12,7 @@ import {
 import { encodeInputs } from './passes';
 import { CLIError, logError } from './utils/errors';
 import { getDependencyGraph, hashFilename, reducePath } from './utils/postCairoWrite';
+import { decode, decodeOutputs } from './outputDecoder';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
@@ -253,10 +254,17 @@ export async function runStarknetCallOrInvoke(
   }
 
   try {
-    execSync(
+    const warpOutput: Buffer = execSync(
       `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${account} ${inputs}`,
       { stdio: 'inherit' },
     );
+    const decodedOutput = decodeOutputs(
+      filePath,
+      options.function,
+      // TODO: transform output from command(Buffer) to string[]
+      //warpOutput.toString(),
+    );
+    console.log('Outputs decoded to solidity ABI:', (await decodedOutput).toString());
   } catch {
     logError(`starknet ${callOrInvoke} failed`);
   }

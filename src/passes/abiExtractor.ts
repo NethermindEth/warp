@@ -4,6 +4,7 @@ import prompts from 'prompts';
 import {
   ArrayType,
   ArrayTypeName,
+  FunctionDefinition,
   generalizeType,
   Literal,
   SourceUnit,
@@ -32,10 +33,7 @@ export class ABIExtractor extends ASTMapper {
 
   visitSourceUnit(node: SourceUnit, ast: AST): void {
     this.commonVisit(node, ast);
-    node.vFunctions.forEach((fd) =>
-      // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
-      addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2')),
-    );
+    node.vFunctions.forEach((fd) => addSignature(node, ast, signatureWithReturnType(fd)));
     node.vContracts
       .flatMap((cd) => cd.vLinearizedBaseContracts)
       .forEach((cd) => {
@@ -47,13 +45,11 @@ export class ABIExtractor extends ASTMapper {
               : createDefaultConstructor(cd, ast);
           fakeConstructor.isConstructor = false;
           fakeConstructor.name = 'constructor';
-          // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
-          addSignature(node, ast, fakeConstructor.canonicalSignature('ABIEncoderV2'));
+          addSignature(node, ast, signatureWithReturnType(fakeConstructor));
         }
         cd.vFunctions.forEach((fd) => {
           if (isExternallyVisible(fd)) {
-            // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
-            addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2'));
+            addSignature(node, ast, signatureWithReturnType(fd));
           }
         });
         cd.vStateVariables.forEach((vd) => {
@@ -95,6 +91,18 @@ function addSignature(node: SourceUnit, ast: AST, signature: string) {
   } else {
     abi.add(signature);
   }
+}
+
+function signatureWithReturnType(funcDef: FunctionDefinition): string {
+  // @ts-ignore Importing the ABIEncoderVersion enum causes a dependency import error
+  const params = funcDef.canonicalSignature('ABIEncoderV2');
+
+  // @ts-ignore Importing the ABIEncoderVersion enum causes a dependency import error
+  const return_params = funcDef.vReturnParameters.vParameters
+    .map((vd) => vd.canonicalSignatureType('ABIEncoderV2'))
+    .join(',');
+
+  return `${params}:(${return_params})`;
 }
 
 export function dumpABI(node: SourceUnit, ast: AST): string {
@@ -152,13 +160,13 @@ function validateInput(input: unknown) {
   throw new CLIError('Input invalid');
 }
 
-function parseSolAbi(filePath: string): string[] {
-  const re = /\/\/ Original soldity abi: (?<abi>[\w()\][, "]*)/;
+export function parseSolAbi(filePath: string): string[] {
+  const re = /\/\/ Original soldity abi: (?<abi>[:\w()\][, "]*)/;
   const abiString = readFileSync(filePath, 'utf-8');
   const matches = abiString.match(re);
   if (matches === null || matches.groups === undefined) {
     throw new CLIError(
-      "Couldn't find Solidity ABI in file, please include one in the form '// Original soldity abi: [func1(type1,type2),...]",
+      "Couldn't find Solidity ABI in file, please include one in the form '// Original solidity abi: [func1(type1,type2):(ret_type1,ret_type2),...]",
     );
   }
   const solAbi = JSON.parse(matches.groups.abi);
