@@ -151,6 +151,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/memberAccess/staticcall', 'WillNotSupport'],
     ['example_contracts/memberAccess/transfer', 'WillNotSupport'],
     ['example_contracts/msg', 'WillNotSupport'],
+    ['example_contracts/multiple_variables', 'Success'],
     ['example_contracts/mutableReferences/deepDelete', 'Success'],
     ['example_contracts/mutableReferences/memory', 'Success'],
     ['example_contracts/mutableReferences/mutableReferences', 'Success'],

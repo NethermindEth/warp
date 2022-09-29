@@ -12,7 +12,7 @@ import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
-import { WillNotSupportError } from '../../utils/errors';
+import { WillNotSupportError, TranspileFailedError } from '../../utils/errors';
 import {
   MANGLED_INTERNAL_USER_FUNCTION,
   MANGLED_LOCAL_VAR,
@@ -22,7 +22,7 @@ import { isNameless } from '../../utils/utils';
 
 // Terms grabbed from here
 // https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/cairo/lang/compiler/cairo.ebnf
-export const reservedTerms = [
+export const reservedTerms = new Set<string>([
   'ret',
   'return',
   'using',
@@ -56,28 +56,43 @@ export const reservedTerms = [
   'const',
   'struct',
   'namespace',
-];
+]);
 
 const unsupportedCharacters = ['$'];
 
 export function checkSourceTerms(term: string, node: ASTNode) {
-  if (reservedTerms.includes(term)) {
+  if (reservedTerms.has(term)) {
     throw new WillNotSupportError(`${printNode(node)} contains ${term} which is a cairo keyword`);
   }
 
-  unsupportedCharacters.forEach((c: string) => {
-    if (term.includes(c)) {
-      throw new WillNotSupportError(
-        `${printNode(node)} ${term} contains unsupported character ${c}`,
-      );
-    }
-  });
+  // Creating the regular expression that match unsupportedCharacters
+  const regexStr = unsupportedCharacters.reduce(
+    (prevVal, val, i) => (i === 0 ? '\\' + val : (prevVal += '|\\' + val)),
+    '',
+  );
+  // Looking for possible matches
+  const regex = RegExp(regexStr, 'g');
+  let match;
+  let unsupportedCharactersFound = '';
+  while ((match = regex.exec(term)) !== null) {
+    // Saving all chars founded
+    unsupportedCharactersFound += match[0];
+  }
+  if (unsupportedCharactersFound) {
+    throw new WillNotSupportError(
+      `${printNode(
+        node,
+      )} ${term} contains unsupported character(s) "${unsupportedCharactersFound}"`,
+    );
+  }
 }
 
 export class DeclarationNameMangler extends ASTMapper {
-  lastUsedVariableId = 0;
-  lastUsedFunctionId = 0;
-  lastUsedTypeId = 0;
+  lastUsedId = 0;
+  // Feel free to increase this value. The greater the value the less probably to
+  // execute the code to fix Id's width, but less legible variable names would be.
+  initialIdWidth = 2;
+  nodesNameModified: ASTNode[] = [];
 
   // This strategy should allow checked demangling post transpilation for a more readable result
   createNewExternalFunctionName(fd: FunctionDefinition): string {
@@ -86,17 +101,22 @@ export class DeclarationNameMangler extends ASTMapper {
       : fd.name;
   }
 
+  // Return a new id formatted to achieve the minimum length
+  getFormattedId(): string {
+    return (this.lastUsedId++).toString().padStart(this.initialIdWidth, '0');
+  }
+
   // This strategy should allow checked demangling post transpilation for a more readable result
   createNewInternalFunctionName(existingName: string): string {
-    return `${MANGLED_INTERNAL_USER_FUNCTION}${this.lastUsedFunctionId++}_${existingName}`;
+    return `${MANGLED_INTERNAL_USER_FUNCTION}${this.getFormattedId()}_${existingName}`;
   }
 
   createNewTypeName(existingName: string): string {
-    return `${MANGLED_TYPE_NAME}${this.lastUsedTypeId++}_${existingName}`;
+    return `${MANGLED_TYPE_NAME}${this.getFormattedId()}_${existingName}`;
   }
 
   createNewVariableName(existingName: string): string {
-    return `${MANGLED_LOCAL_VAR}${this.lastUsedVariableId++}_${existingName}`;
+    return `${MANGLED_LOCAL_VAR}${this.getFormattedId()}_${existingName}`;
   }
 
   visitStructDefinition(_node: StructDefinition, _ast: AST): void {
@@ -113,6 +133,7 @@ export class DeclarationNameMangler extends ASTMapper {
   }
 
   mangleVariableDeclaration(node: VariableDeclaration): void {
+    this.nodesNameModified.push(node);
     node.name = this.createNewVariableName(node.name);
   }
   mangleStructDefinition(node: StructDefinition): void {
@@ -128,6 +149,7 @@ export class DeclarationNameMangler extends ASTMapper {
         node.name = this.createNewExternalFunctionName(node);
         break;
       default:
+        this.nodesNameModified.push(node);
         node.name = this.createNewInternalFunctionName(node.name);
     }
   }
@@ -146,5 +168,31 @@ export class DeclarationNameMangler extends ASTMapper {
     node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n));
     node.vContracts.forEach((n) => this.mangleContractDefinition(n));
     this.commonVisit(node, ast);
+
+    // Checking if counter is greater than initialIdWidth digits. If so, names are
+    // modified to insert 0's to achieve id's fixed width.
+    const lastIdSize = this.lastUsedId.toString().length;
+    if (lastIdSize > this.initialIdWidth) {
+      this.nodesNameModified.forEach((node) => {
+        if (node instanceof FunctionDefinition) {
+          node.name = this.updateName(node.name, MANGLED_INTERNAL_USER_FUNCTION, lastIdSize);
+        } else if (node instanceof VariableDeclaration) {
+          node.name = this.updateName(node.name, MANGLED_LOCAL_VAR, lastIdSize);
+        } else {
+          throw new TranspileFailedError(`Not expected node to update name: ${node}`);
+        }
+      });
+    }
+    this.nodesNameModified = []; // Lose all references to avoid consuming unnecessary memory
+  }
+
+  // Set Id in a node name 'name' that follows the pattern 'pattern' to a fixed width
+  updateName(name: string, pattern: string, lastIdSize: number) {
+    const match = new RegExp(`${pattern}([0-9]+)`).exec(name);
+    if (match === null) {
+      throw new TranspileFailedError(`Expected ${pattern} node name: ${name}`);
+    }
+    const newName = `${pattern}${match[1].padStart(lastIdSize, '0')}`;
+    return name.replace(new RegExp(`${pattern}([0-9]+)`), newName);
   }
 }
