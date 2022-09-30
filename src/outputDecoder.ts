@@ -21,6 +21,7 @@ export async function decodeOutputs(
   rawOutputs?: string[],
 ): Promise<Result> {
   const solABI = parseSolAbi(filePath);
+  console.log({ solABI });
   const funcSignature = await selectSignature(solABI, func);
   const outputSignatures = returnSignatures(funcSignature);
 

@@ -10,6 +10,7 @@ import {
   SourceUnit,
   StateVariableVisibility,
 } from 'solc-typed-ast';
+import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import Web3 from 'web3';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -95,11 +96,11 @@ function addSignature(node: SourceUnit, ast: AST, signature: string) {
 
 function signatureWithReturnType(funcDef: FunctionDefinition): string {
   // @ts-ignore Importing the ABIEncoderVersion enum causes a dependency import error
-  const params = funcDef.canonicalSignature('ABIEncoderV2');
+  const params = funcDef.canonicalSignature(ABIEncoderVersion.V2);
 
   // @ts-ignore Importing the ABIEncoderVersion enum causes a dependency import error
   const return_params = funcDef.vReturnParameters.vParameters
-    .map((vd) => vd.canonicalSignatureType('ABIEncoderV2'))
+    .map((vd) => vd.canonicalSignatureType(ABIEncoderVersion.V2))
     .join(',');
 
   return `${params}:(${return_params})`;

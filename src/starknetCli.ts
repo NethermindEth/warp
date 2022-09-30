@@ -254,10 +254,10 @@ export async function runStarknetCallOrInvoke(
   }
 
   try {
-    const warpOutput: Buffer = execSync(
+    const warpOutput: string = execSync(
       `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${account} ${inputs}`,
       { stdio: 'inherit' },
-    );
+    ).toString('utf-8');
     const decodedOutput = decodeOutputs(
       filePath,
       options.function,
