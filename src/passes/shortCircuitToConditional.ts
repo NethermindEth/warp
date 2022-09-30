@@ -1,8 +1,8 @@
 import { BinaryOperation, Conditional } from 'solc-typed-ast';
-import { AST } from '../../ast/ast';
-import { ASTMapper } from '../../ast/mapper';
-import { createBoolLiteral } from '../../utils/nodeTemplates';
-import { expressionHasSideEffects } from '../../utils/utils';
+import { AST } from '../ast/ast';
+import { ASTMapper } from '../ast/mapper';
+import { createBoolLiteral } from '../utils/nodeTemplates';
+import { expressionHasSideEffects } from '../utils/utils';
 
 export class ShortCircuitToConditional extends ASTMapper {
   visitBinaryOperation(node: BinaryOperation, ast: AST): void {

@@ -46,6 +46,7 @@ import {
   Require,
   ReturnInserter,
   ReturnVariableInitializer,
+  ShortCircuitToConditional,
   SourceUnitSplitter,
   StaticArrayIndexer,
   StorageAllocator,
@@ -61,7 +62,6 @@ import {
   VariableDeclarationInitialiser,
   WarnSupportedFeatures,
 } from './passes';
-import { ShortCircuitToConditional } from './passes/builtinHandler/shortCircuitToConditional';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { createPassMap, parsePassOrder } from './utils/cli';
