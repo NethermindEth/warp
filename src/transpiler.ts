@@ -12,6 +12,7 @@ import {
   BytesConverter,
   CairoStubProcessor,
   CairoUtilImporter,
+  ConditionalSplitter,
   ConstantHandler,
   DeleteHandler,
   DropUnusedSourceUnits,
@@ -61,7 +62,6 @@ import {
   WarnSupportedFeatures,
 } from './passes';
 import { ShortCircuitToConditional } from './passes/builtinHandler/shortCircuitToConditional';
-import { PreExpressionSplitter } from './passes/expressionSplitter/preExpressionSplitter';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { createPassMap, parsePassOrder } from './utils/cli';
@@ -136,7 +136,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['If', IfFunctionaliser],
     ['Ifr', IdentityFunctionRemover],
     ['Sc', ShortCircuitToConditional],
-    ['Pe', PreExpressionSplitter],
+    ['Cos', ConditionalSplitter],
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
     ['Vs', VariableDeclarationExpressionSplitter],

@@ -13,20 +13,20 @@ import {
   VariableDeclarationStatement,
   generalizeType,
 } from 'solc-typed-ast';
-import { AST } from '../../ast/ast';
-import { ASTMapper } from '../../ast/mapper';
-import { printNode } from '../../utils/astPrinter';
-import { cloneASTNode } from '../../utils/cloning';
-import { TranspileFailedError } from '../../utils/errors';
-import { SPLIT_EXPRESSION_PREFIX } from '../../utils/nameModifiers';
+import { AST } from '../ast/ast';
+import { ASTMapper } from '../ast/mapper';
+import { printNode } from '../utils/astPrinter';
+import { cloneASTNode } from '../utils/cloning';
+import { TranspileFailedError } from '../utils/errors';
+import { SPLIT_EXPRESSION_PREFIX } from '../utils/nameModifiers';
 import {
   createEmptyTuple,
   createExpressionStatement,
   createIdentifier,
   createVariableDeclarationStatement,
-} from '../../utils/nodeTemplates';
-import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { counterGenerator } from '../../utils/utils';
+} from '../utils/nodeTemplates';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
+import { counterGenerator } from '../utils/utils';
 
 function* expressionGenerator(prefix: string): Generator<string, string, unknown> {
   const count = counterGenerator();
@@ -37,8 +37,6 @@ function* expressionGenerator(prefix: string): Generator<string, string, unknown
 
 export class ExpressionSplitter extends ASTMapper {
   eGen = expressionGenerator(SPLIT_EXPRESSION_PREFIX);
-  funcNameCounter = 0;
-  varNameCounter = 0;
 
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
@@ -65,8 +63,8 @@ export class ExpressionSplitter extends ASTMapper {
         '',
         false, // constant
         false, // indexed
-        this.eGen.next().value, //name
-        ast.getContainingScope(node), //scope
+        this.eGen.next().value,
+        ast.getContainingScope(node),
         false, // stateVariable
         location,
         StateVariableVisibility.Internal,
@@ -110,7 +108,7 @@ export class ExpressionSplitter extends ASTMapper {
       const parent = node.parent;
       assert(parent !== undefined, `${printNode(node)} ${node.vFunctionName} has no parent`);
       ast.replaceNode(node, createEmptyTuple(ast));
-      ast.insertStatementBefore(parent, new ExpressionStatement(ast.reserveId(), '', node));
+      ast.insertStatementBefore(parent, createExpressionStatement(ast, node));
     } else if (returnTypes.length === 1) {
       assert(
         returnTypes[0].vType !== undefined,

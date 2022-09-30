@@ -30,6 +30,7 @@ import {
   createIdentifier,
   createParameterList,
   createReturn,
+  createVariableDeclarationStatement,
 } from '../../utils/nodeTemplates';
 import { safeGetNodeType, safeGetNodeTypeInCtx } from '../../utils/nodeTypeProcessing';
 import { toSingleExpression, typeNameFromTypeNode } from '../../utils/utils';
@@ -180,10 +181,7 @@ export function addStatementsToCallFunction(
   ast: AST,
 ): Statement[] {
   const statements = [
-    new VariableDeclarationStatement(
-      ast.reserveId(),
-      '',
-      conditionalResult.map((v) => v.id),
+    createVariableDeclarationStatement(
       conditionalResult,
       toSingleExpression(
         conditionalResult.map((v) =>
@@ -191,6 +189,7 @@ export function addStatementsToCallFunction(
         ),
         ast,
       ),
+      ast,
     ),
     createOuterCall(node, [...conditionalResult, ...variables], funcToCall, ast),
   ];

@@ -69,7 +69,7 @@ function* expressionGenerator(prefix: string): Generator<string, string, unknown
   }
 }
 
-export class PreExpressionSplitter extends ASTMapper {
+export class ConditionalSplitter extends ASTMapper {
   eGen = expressionGenerator(PRE_SPLIT_EXPRESSION_PREFIX);
   eGenTuple = expressionGenerator(TUPLE_VALUE_PREFIX);
   nameCounter = counterGenerator();
@@ -95,10 +95,11 @@ export class PreExpressionSplitter extends ASTMapper {
   visitAssignment(node: Assignment, ast: AST): void {
     this.commonVisit(node, ast);
 
-    // No need to split if is a statement
+    // No need to split if it is a statement
     if (node.parent instanceof ExpressionStatement) {
       return;
     }
+
     // No need to create temp vars for state vars
     if (
       node.vLeftHandSide instanceof Identifier &&
@@ -107,7 +108,7 @@ export class PreExpressionSplitter extends ASTMapper {
       return;
     }
 
-    this.splitSimpleAssign(node, ast);
+    this.splitSimpleAssignment(node, ast);
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -213,22 +214,22 @@ export class PreExpressionSplitter extends ASTMapper {
     this.commonVisit(nodeToVisit, ast);
   }
 
-  splitSimpleAssign(node: Assignment, ast: AST): void {
+  splitSimpleAssignment(node: Assignment, ast: AST): void {
     const initialValue = node.vRightHandSide;
     const location =
       generalizeType(safeGetNodeType(initialValue, ast.compilerVersion))[1] ?? DataLocation.Default;
     const varDecl = new VariableDeclaration(
-      ast.reserveId(), // id
+      ast.reserveId(),
       '', // src
       false, // constant
       false, // indexed
-      this.eGen.next().value, //name
-      ast.getContainingScope(node), //scope
+      this.eGen.next().value,
+      ast.getContainingScope(node),
       false, // stateVariable
-      location, // storageLocation
-      StateVariableVisibility.Internal, // visibility
-      Mutability.Constant, // mutability
-      node.vLeftHandSide.typeString, // typeString
+      location,
+      StateVariableVisibility.Internal,
+      Mutability.Constant,
+      node.vLeftHandSide.typeString,
     );
 
     const tempVarStatement = createVariableDeclarationStatement([varDecl], initialValue, ast);
@@ -237,12 +238,12 @@ export class PreExpressionSplitter extends ASTMapper {
     const leftHandSide = cloneASTNode(node.vLeftHandSide, ast);
     const rightHandSide = createIdentifier(tempVar, ast, undefined, node);
     const assignment = new Assignment(
-      ast.reserveId(), // id
+      ast.reserveId(),
       '', // src
-      leftHandSide.typeString, // typeString
+      leftHandSide.typeString,
       '=', // operator
-      leftHandSide, // left side
-      rightHandSide, // right side
+      leftHandSide,
+      rightHandSide,
     );
     const updateVal = createExpressionStatement(ast, assignment);
 
@@ -347,7 +348,7 @@ export class PreExpressionSplitter extends ASTMapper {
     const parent = node.parent;
     assert(parent !== undefined, `${printNode(node)} ${node.vFunctionName} has no parent`);
     ast.replaceNode(node, createEmptyTuple(ast));
-    ast.insertStatementBefore(parent, new ExpressionStatement(ast.reserveId(), '', node));
+    ast.insertStatementBefore(parent, createExpressionStatement(ast, node));
   }
 
   splitFunctionCallWithReturn(node: FunctionCall, returnType: VariableDeclaration, ast: AST): void {
@@ -358,19 +359,19 @@ export class PreExpressionSplitter extends ASTMapper {
     const location =
       generalizeType(safeGetNodeType(node, ast.compilerVersion))[1] ?? DataLocation.Default;
     const replacementVariable = new VariableDeclaration(
-      ast.reserveId(), // id
-      node.src, // src
+      ast.reserveId(),
+      node.src,
       true, // constant
       false, // indexed
-      this.eGen.next().value, // name
-      ast.getContainingScope(node), // scope
+      this.eGen.next().value,
+      ast.getContainingScope(node),
       false, // stateVariable
-      location, // storageLocation
-      StateVariableVisibility.Private, // visibility
-      Mutability.Constant, // mutability
-      returnType.typeString, // typeString
+      location,
+      StateVariableVisibility.Private,
+      Mutability.Constant,
+      returnType.typeString,
       undefined, // documentation
-      cloneASTNode(returnType.vType, ast), // typeName
+      cloneASTNode(returnType.vType, ast),
     );
     const declaration = createVariableDeclarationStatement(
       [replacementVariable],
@@ -396,13 +397,7 @@ export class PreExpressionSplitter extends ASTMapper {
       } parameters`,
     );
     const vars = node.vFunctionReturnParameters.vParameters.map((v) => cloneASTNode(v, ast));
-    const replaceStatement = new VariableDeclarationStatement(
-      ast.reserveId(),
-      '',
-      vars.map((d) => d.id),
-      vars,
-      returnExpression,
-    );
+    const replaceStatement = createVariableDeclarationStatement(vars, returnExpression, ast);
     ast.insertStatementBefore(node, replaceStatement);
 
     node.vExpression = new TupleExpression(
