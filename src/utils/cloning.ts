@@ -6,12 +6,20 @@ import {
   Block,
   Break,
   Continue,
+  ContractDefinition,
   ElementaryTypeName,
   ElementaryTypeNameExpression,
+  EmitStatement,
+  EnumDefinition,
+  EnumValue,
+  EventDefinition,
+  Expression,
   ExpressionStatement,
   ForStatement,
   FunctionCall,
+  FunctionCallOptions,
   FunctionDefinition,
+  FunctionTypeName,
   Identifier,
   IdentifierPath,
   ImportDirective,
@@ -22,6 +30,7 @@ import {
   MemberAccess,
   ModifierDefinition,
   ModifierInvocation,
+  NewExpression,
   OverrideSpecifier,
   ParameterList,
   PlaceholderStatement,
@@ -30,17 +39,12 @@ import {
   UnaryOperation,
   UncheckedBlock,
   UserDefinedTypeName,
+  UsingForDirective,
   VariableDeclaration,
   VariableDeclarationStatement,
   WhileStatement,
   StructuredDocumentation,
   StructDefinition,
-  EventDefinition,
-  EmitStatement,
-  NewExpression,
-  FunctionTypeName,
-  FunctionCallOptions,
-  Expression,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoAssert, CairoFunctionDefinition } from '../ast/cairoNodes';
@@ -119,6 +123,14 @@ function cloneASTNodeImpl<T extends ASTNode>(
       typeof node.typeName === 'string'
         ? node.typeName
         : cloneASTNodeImpl(node.typeName, ast, remappedIds),
+      node.raw,
+    );
+  } else if (node instanceof EnumValue) {
+    newNode = new EnumValue(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.name,
+      node.nameLocation,
       node.raw,
     );
   } else if (node instanceof FunctionCall) {
@@ -353,6 +365,16 @@ function cloneASTNodeImpl<T extends ASTNode>(
       cloneDocumentation(node.documentation, ast, remappedIds),
       node.raw,
     );
+  } else if (node instanceof UsingForDirective) {
+    newNode = new UsingForDirective(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.isGlobal,
+      node.vLibraryName && cloneASTNodeImpl(node.vLibraryName, ast, remappedIds),
+      node.vFunctionList?.map((f) => cloneASTNodeImpl(f, ast, remappedIds)),
+      node.vTypeName && cloneASTNodeImpl(node.vTypeName, ast, remappedIds),
+      node.raw,
+    );
     // Resolvable--------------------------------------------------------------
   } else if (node instanceof CairoFunctionDefinition) {
     newNode = new CairoFunctionDefinition(
@@ -471,6 +493,30 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.vOverrideSpecifier && cloneASTNodeImpl(node.vOverrideSpecifier, ast, remappedIds),
       node.vValue && cloneASTNodeImpl(node.vValue, ast, remappedIds),
       node.nameLocation,
+    );
+  } else if (node instanceof ContractDefinition) {
+    newNode = new ContractDefinition(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.name,
+      node.scope,
+      node.kind,
+      node.abstract,
+      node.fullyImplemented,
+      node.linearizedBaseContracts,
+      node.usedErrors,
+      cloneDocumentation(node.documentation, ast, remappedIds),
+      node.children.map((ch) => cloneASTNodeImpl(ch, ast, remappedIds)),
+      node.nameLocation,
+    );
+  } else if (node instanceof EnumDefinition) {
+    newNode = new EnumDefinition(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.name,
+      node.vMembers.map((v) => cloneASTNodeImpl(v, ast, remappedIds)),
+      node.nameLocation,
+      node.raw,
     );
     //ASTNodeWithChildren------------------------------------------------------
   } else if (node instanceof ParameterList) {
