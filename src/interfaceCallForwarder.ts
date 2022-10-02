@@ -220,10 +220,15 @@ function getParametersFromStringRepresentation(
       ];
   params.forEach((param: { name: string; type: string }) => {
     const solTypeName: TypeName = getSolTypeName(param.type, ast, struct_names);
+    const param_name = '_var_' + param.name;
     if (solTypeName instanceof ArrayTypeName) {
       assert(
         parameters.length > 0 &&
-          parameters[parameters.length - 1].name === param.name + '_len' &&
+          parameters[parameters.length - 1].name ===
+            param_name +
+              (param_name === '_var_calldata' || param_name === '_var_retdata'
+                ? '_size'
+                : '_len') &&
           parameters[parameters.length - 1].typeString === 'uint248',
         'Array parameters must be preceded by a size parameter',
       );
@@ -235,7 +240,7 @@ function getParametersFromStringRepresentation(
         '',
         false,
         false,
-        param.name,
+        param_name,
         scope,
         false,
         solTypeName instanceof ArrayTypeName || solTypeName instanceof CornerStructTypeName

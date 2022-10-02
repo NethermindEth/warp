@@ -132,6 +132,13 @@ def get_parser() -> argparse.ArgumentParser:
     cairo_compile_add_common_args(parser)
     return parser
 
+def arrayLengthName(name:str):
+    if name == "calldata":
+        return "calldata_size"
+    elif name == "retdata":
+        return "retdata_size"
+    return f"{name}_len"
+
 def processArrayArguments(args: list[TypedIdentifier]):
     modifiedArgs: list[TypedIdentifier] = list()
     lines_added: list[CommentedCodeElement] = list()
@@ -140,7 +147,7 @@ def processArrayArguments(args: list[TypedIdentifier]):
         if isinstance(arg.expr_type, TypePointer):
             assert (
                 len(modifiedArgs) >0 and
-                modifiedArgs[-1].name == arg.name + "_len" and 
+                modifiedArgs[-1].name == arrayLengthName(arg.name) and 
                 isinstance(modifiedArgs[-1].expr_type, TypeFelt)
             ), "Array type argument must be preceded by a length argument"
             hasArrayArguments = True
@@ -183,7 +190,7 @@ def processArrayArguments(args: list[TypedIdentifier]):
                 CommentedCodeElement(
                     code_elm = CodeElementReference(
                         typed_identifier=TypedIdentifier(
-                            identifier=ExprIdentifier(name=arg.name+"_len"),
+                            identifier=ExprIdentifier(name=arrayLengthName(arg.name)),
                             expr_type=None,
                         ), 
                         expr=ExprIdentifier(
@@ -221,7 +228,7 @@ def processArrayReturnArguments(func_returns : Optional[CairoType]):
         if isinstance(member.typ, TypePointer):
             assert (
                 len(tuplesMembers) >0 and
-                tuplesMembers[-1].name == member.name + "_len" and 
+                tuplesMembers[-1].name == arrayLengthName(member.name) and 
                 isinstance(tuplesMembers[-1].typ, TypeFelt)
             ), "Array type argument must be preceded by a length argument"
             hasArrayReturnArguments = True
@@ -257,7 +264,7 @@ def processArrayReturnArguments(func_returns : Optional[CairoType]):
                                                     args=[
                                                         ExprAssignment(
                                                             identifier=None,
-                                                            expr = ExprIdentifier(name=member.name+"_len")
+                                                            expr = ExprIdentifier(name=arrayLengthName(member.name)),
                                                         ),
                                                         ExprAssignment(
                                                             identifier=None,
