@@ -76,7 +76,12 @@ export class ConditionalSplitter extends ASTMapper {
 
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([]);
+    const passKeys: Set<string> = new Set<string>([
+      // Short circuiting of and/or expressions must be handled before
+      // extracting expressions with this splitter, otherwise both
+      // expressions (left and right in that operation) might get evaluated.
+      'Sc',
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

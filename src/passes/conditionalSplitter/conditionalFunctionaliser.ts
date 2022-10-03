@@ -17,7 +17,6 @@ import {
   StateVariableVisibility,
   TupleType,
   VariableDeclaration,
-  VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { printNode } from '../../utils/astPrinter';

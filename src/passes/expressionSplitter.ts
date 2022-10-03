@@ -40,7 +40,12 @@ export class ExpressionSplitter extends ASTMapper {
 
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([]);
+    const passKeys: Set<string> = new Set<string>([
+      // Conditionals must have been handled before this pass, otherwise
+      // both branches of the conditional might get evaluated when they are
+      // extracted by the splitter.
+      'Cos',
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
