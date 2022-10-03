@@ -81,6 +81,10 @@ export class ConditionalSplitter extends ASTMapper {
       // extracting expressions with this splitter, otherwise both
       // expressions (left and right in that operation) might get evaluated.
       'Sc',
+      // Assignments operator is assumed to be '=', so need to handle first the
+      // rest of possibles operators like '+=' or '*='. This way logic for split
+      // is easier.
+      'U',
     ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
