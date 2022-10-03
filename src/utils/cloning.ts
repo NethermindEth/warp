@@ -509,7 +509,9 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.children
         .filter(
           (node) =>
-            !(node instanceof StructuredDocumentation) || node !== undefined || node !== null,
+            !(node instanceof StructuredDocumentation) ||
+            node !== undefined ||
+            typeof node !== 'string',
         )
         .map((ch) => cloneASTNodeImpl(ch, ast, remappedIds)),
       node.nameLocation,
