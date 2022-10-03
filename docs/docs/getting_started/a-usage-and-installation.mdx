@@ -209,18 +209,18 @@ namespace foo:
 
     # Static variables
 
-    const __warp_usrid0_x = 0
+    const __warp_usrid_0_x = 0
 
     @constructor
     func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(
-        __warp_usrid1__x : Uint256
+        __warp_usrid_1__x : Uint256
     ):
         alloc_locals
         WARP_USED_STORAGE.write(2)
 
-        warp_external_input_check_int256(__warp_usrid1__x)
+        warp_external_input_check_int256(__warp_usrid_1__x)
 
-        WS_WRITE0(__warp_usrid0_x, __warp_usrid1__x)
+        WS_WRITE0(__warp_usrid_0_x, __warp_usrid_1__x)
 
         return ()
     end

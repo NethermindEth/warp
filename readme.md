@@ -15,7 +15,8 @@ You can read the documentation [here](https://nethermindeth.github.io/warp/).
 
 <hr> 
  
-1. You will need [z3](https://github.com/Z3Prover/z3) and [gmp](https://gmplib.org/#DOWNLOAD)
+1. Have installed python3.9 and python3.9-dev with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
+2. You will need [z3](https://github.com/Z3Prover/z3) and [gmp](https://gmplib.org/#DOWNLOAD)
    installed to use Warp.
   
 - Install command on macOS:
@@ -36,8 +37,6 @@ export LDFLAGS=-L`brew --prefix gmp`/lib
 ```bash
 sudo apt install libz3-dev libgmp3-dev
 ```
-
-2. Have Python 3.9 installed with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
 
 <br>
 
@@ -235,7 +234,11 @@ Run the container with the same options and arguments as the Warp binary:
 docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile example_contracts/ERC20.sol
 ```
 
-## Testing for contributors :stethoscope:
+## Contributing
+
+Please checkout our database of open tickets [here](https://nethermind.notion.site/bb63e1485481427da72484457b4cc449?v=60e2e876b44740999a2e83fae29051db)
+
+### Testing for contributors :stethoscope:
 
 To test that your contribution doesn't break any features you can test that all previous example contracts transpile and then cairo compile by running the following:
 

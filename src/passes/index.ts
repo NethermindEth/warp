@@ -27,6 +27,7 @@ export * from './ifFunctionaliser';
 export * from './implicitConversionToExplicit';
 export * from './importDirectiveIdentifier';
 export * from './inheritanceInliner/inheritanceInliner';
+export * from './librariesConverter';
 export * from './literalExpressionEvaluator/literalExpressionEvaluator';
 export * from './loopFunctionaliser';
 export * from './namedArgsRemover';

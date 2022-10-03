@@ -17,12 +17,13 @@ export const HASH_OPTION = 'sha256';
   @param pathPrefix: The prefix proceeding the the path to the file
   @param contractHashToClassHash: A mapping that holds the contract path with out the pathPrefix and maps
   it to the contracts class hash.
+  @returns cairoFilePath: The path to the cairo File that was processed.
  */
 export function postProcessCairoFile(
   cairoFilePath: string,
   pathPrefix: string,
   contractHashToClassHash: Map<string, string>,
-): void {
+): string {
   const fullPath = path.join(pathPrefix, cairoFilePath);
   // Creates a dependency graph for the file
   const dependencyGraph = getDependencyGraph(fullPath, pathPrefix);
@@ -30,7 +31,7 @@ export function postProcessCairoFile(
   const filesToHash = dependencyGraph.get(fullPath);
   // If the file has nothing to hash then we can leave.
   if (filesToHash === undefined || filesToHash.length === 0) {
-    return;
+    return cairoFilePath;
   }
   // If the file does have dependencies then we need to make sure that the dependencies of
   // those files have been calculated and inserted.
@@ -38,7 +39,7 @@ export function postProcessCairoFile(
     hashDependacies(file, pathPrefix, dependencyGraph, contractHashToClassHash);
   });
   setDeclaredAddresses(fullPath, contractHashToClassHash);
-  return;
+  return cairoFilePath;
 }
 
 function hashDependacies(
