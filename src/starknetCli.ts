@@ -38,7 +38,7 @@ export function compileCairo(
   if (cairoPath !== '') {
     parameters.set('cairo_path', cairoPath);
   }
-  const debug: string = debug_info ? '--debug_info_with_source' : '--no_debug_info';
+  const debug: string = debug_info?.debug_info ? '--debug_info_with_source' : '--no_debug_info';
   try {
     console.log(`Running starknet compile with cairoPath ${cairoPath}`);
     execSync(
