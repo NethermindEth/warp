@@ -506,7 +506,14 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.linearizedBaseContracts,
       node.usedErrors,
       cloneDocumentation(node.documentation, ast, remappedIds),
-      node.children.map((ch) => cloneASTNodeImpl(ch, ast, remappedIds)),
+      node.children
+        .filter(
+          (node) =>
+            !(node instanceof StructuredDocumentation) ||
+            node !== undefined ||
+            typeof node !== 'string',
+        )
+        .map((ch) => cloneASTNodeImpl(ch, ast, remappedIds)),
       node.nameLocation,
     );
   } else if (node instanceof EnumDefinition) {
