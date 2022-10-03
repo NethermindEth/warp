@@ -495,6 +495,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.nameLocation,
     );
   } else if (node instanceof ContractDefinition) {
+    const documentation = cloneDocumentation(node.documentation, ast, remappedIds);
     newNode = new ContractDefinition(
       replaceId(node.id, ast, remappedIds),
       node.src,
@@ -505,15 +506,18 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.fullyImplemented,
       node.linearizedBaseContracts,
       node.usedErrors,
-      cloneDocumentation(node.documentation, ast, remappedIds),
-      node.children
-        .filter(
-          (node) =>
-            !(node instanceof StructuredDocumentation) ||
-            node !== undefined ||
-            typeof node !== 'string',
-        )
-        .map((ch) => cloneASTNodeImpl(ch, ast, remappedIds)),
+      documentation,
+      node.children.map((ch) => {
+        if (
+          ch instanceof StructuredDocumentation &&
+          documentation instanceof StructuredDocumentation &&
+          node.documentation instanceof StructuredDocumentation &&
+          ch.id === node.documentation.id
+        ) {
+          return documentation;
+        }
+        return cloneASTNodeImpl(ch, ast, remappedIds);
+      }),
       node.nameLocation,
     );
   } else if (node instanceof EnumDefinition) {
@@ -534,6 +538,14 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.raw,
     );
     //Misc---------------------------------------------------------------------
+  } else if (node instanceof StructuredDocumentation) {
+    // TODO: convert all string instances of ducmentation to StrutcutredDocuemntation
+    newNode = new StructuredDocumentation(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.text,
+      node.raw,
+    );
   } else if (node instanceof IdentifierPath) {
     newNode = new IdentifierPath(
       replaceId(node.id, ast, remappedIds),
