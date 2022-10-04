@@ -157,6 +157,8 @@ function createDelegatingFunction(
   const oldBody = funcToCopy.vBody;
   funcToCopy.vBody = undefined;
   const newFunc = cloneASTNode(funcToCopy, ast);
+  newFunc.isConstructor = false;
+  newFunc.vModifiers = [];
   funcToCopy.vBody = oldBody;
 
   const newBody = createBlock(
