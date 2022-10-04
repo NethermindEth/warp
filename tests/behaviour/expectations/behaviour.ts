@@ -2037,6 +2037,14 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('expressions', [
+          File.Simple('assign_split', [
+            Expect.Simple('plusEqual', [], ['60', '0']),
+            Expect.Simple('starEqual', [], ['20', '0']),
+            Expect.Simple('equal', [], ['4', '0']),
+            Expect.Simple('plusEqualTotal', ['10', '0'], ['75', '0']),
+            Expect.Simple('starEqualTotal', ['5', '0'], ['30', '0']),
+            Expect.Simple('equalTotal', ['10', '0'], ['16', '0']),
+          ]),
           File.Simple('assignments_as_rvalues', [
             Expect.Simple('addingLocalAssignments', ['5', '11'], ['16']),
             Expect.Simple('addingStorageAssignments', ['5', '11'], ['16', '0']),
@@ -2096,6 +2104,12 @@ export const expectations = flatten(
             Expect.Simple('shiftRight', [], ['1']),
             Expect.Simple('bitwiseNegate', [], ['253']),
             Expect.Simple('toInteger', [], ['3']),
+          ]),
+          File.Simple('short_circuit', [
+            Expect.Simple('and_sc', [], ['56', '0']),
+            Expect.Simple('and_no_sc', [], ['1', '0']),
+            Expect.Simple('or_sc', [], ['56', '0']),
+            Expect.Simple('or_no_sc', [], ['15', '0']),
           ]),
           File.Simple('tupleEdgeCases', [Expect.Simple('f', ['0', '0'], ['0', '0'])]),
           File.Simple('tupleOfInlineArrays', [Expect.Simple('g', [], ['21'])]),
