@@ -2,8 +2,8 @@ from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.dict import dict_read, dict_write
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.uint256 import Uint256
-from starkware.cairo.common.math_cmp import is_le
-from starkware.cairo.common.pow import pow
+from starkware.cairo.common.math_cmp import is_le_felt
+from warplib.maths.pow2 import pow2
 from warplib.maths.utils import felt_to_uint256, narrow_safe
 from warplib.maths.bytes_access import byte256_at_index, byte_at_index
 from warplib.memory import wm_index_dyn, wm_read_felt, wm_write_felt
@@ -66,7 +66,7 @@ func fixed_bytes256_to_dynamic_array{
 
 func byte_array_to_felt_value{
     bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*
-}(index: felt, last_index: felt, mem_ptr: felt, power: felt, acc_result: felt) -> (res: felt) {
+}(index: felt, last_index: felt, mem_ptr: felt, acc_result: felt) -> (res: felt) {
     alloc_locals;
     if (index == last_index) {
         return (res=acc_result);
@@ -75,14 +75,16 @@ func byte_array_to_felt_value{
     let (byte_loc) = wm_index_dyn(mem_ptr, index256, Uint256(1, 0));
     let (byte) = wm_read_felt(byte_loc);
 
-    let (byte_power) = pow(256, power);
+    let power = last_index - index - 1;
+    // 256**power ->  2**(8 * power)
+    let (byte_power) = pow2(8 * power);
     let new_acc_val = acc_result + (byte * byte_power);
-    return byte_array_to_felt_value(index + 1, last_index, mem_ptr, power - 1, new_acc_val);
+    return byte_array_to_felt_value(index + 1, last_index, mem_ptr, new_acc_val);
 }
 
 func byte_array_to_uint256_value{
     bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*
-}(index: felt, last_index: felt, mem_ptr: felt, power: felt, acc_low: felt, acc_high) -> (
+}(index: felt, last_index: felt, mem_ptr: felt, acc_low: felt, acc_high) -> (
     res: Uint256
 ) {
     alloc_locals;
@@ -94,19 +96,20 @@ func byte_array_to_uint256_value{
     let (byte_loc) = wm_index_dyn(mem_ptr, index256, Uint256(1, 0));
     let (byte) = wm_read_felt(byte_loc);
 
-    let firts_bytes = is_le(16, power);
+    let power = last_index - index - 1;
+    let first_bytes = is_le_felt(16, power);
 
-    if (firts_bytes == 1) {
-        let (byte_power) = pow(256, power - 16);
+    if (first_bytes == 1) {
+        let (byte_power) = pow2(8 * (power - 16));
         let new_acc_high = acc_high + (byte * byte_power);
         return byte_array_to_uint256_value(
-            index + 1, last_index, mem_ptr, power - 1, acc_low, new_acc_high
+            index + 1, last_index, mem_ptr, acc_low, new_acc_high
         );
     } else {
-        let (byte_power) = pow(256, power);
+        let (byte_power) = pow2(8 * power);
         let new_acc_low = acc_low + (byte * byte_power);
         return byte_array_to_uint256_value(
-            index + 1, last_index, mem_ptr, power - 1, new_acc_low, acc_high
+            index + 1, last_index, mem_ptr, new_acc_low, acc_high
         );
     }
 }
@@ -194,7 +197,7 @@ func bytes_to_felt_dynamic_array_inline{
         // Everything have been stored
         return ();
     }
-    let lesser = is_le(mem_index, mem_length - 1);
+    let lesser = is_le_felt(mem_index, mem_length - 1);
     if (lesser == 1) {
         // Read each byte and copy it
         let (byte) = dict_read{dict_ptr=warp_memory}(mem_ptr + mem_index);
@@ -215,7 +218,7 @@ func bytes_upper_bound{range_check_ptr: felt}(number: felt) -> (upper_bound: fel
     if (number == 0) {
         return (0,);
     }
-    let lesser = is_le(number, 32);
+    let lesser = is_le_felt(number, 32);
     if (lesser == 1) {
         return (32,);
     }

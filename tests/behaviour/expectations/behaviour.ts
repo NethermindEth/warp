@@ -12,8 +12,8 @@ export const expectations = flatten(
             Expect.Simple('decodeAsUint256', getByte32Array(148), ['148', '0'], 'Small uint256'),
             Expect.Simple(
               'decodeAsUint256',
-              getByte32Array(BigInt(2) ** BigInt(128) - BigInt(1)),
-              [`${BigInt(2) ** BigInt(128) - BigInt(1)}`, '0'],
+              getByte32Array(2n ** 128n - 1n),
+              [`${2n ** 128n - 1n}`, '0'],
               'Highest number in Uint256.low',
             ),
             Expect.Simple(
@@ -25,16 +25,13 @@ export const expectations = flatten(
             Expect.Simple(
               'decodeAsUint256',
               getByte32Array(BigInt(2) ** BigInt(256) - BigInt(1)),
-              [
-                `${BigInt(2) ** BigInt(128) - BigInt(1)}`,
-                `${BigInt(2) ** BigInt(128) - BigInt(1)}`,
-              ],
+              [`${2n ** 128n - 1n}`, `${2n ** 128n - 1n}`],
               'Highest number in Uint256.high and Uint256.low',
             ),
             Expect.Simple(
               'decodeAsAddress',
-              getByte32Array(BigInt(2) ** BigInt(180)),
-              [`${BigInt(2) ** BigInt(180)}`],
+              getByte32Array(2n ** 180n),
+              [`${2n ** 180n}`],
               'Using an address bigger than 160 bits',
             ),
             Expect.Simple('decodeAsAddressAndUint256', getByte32Array(1040, 1500), [

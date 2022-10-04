@@ -84,16 +84,21 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     }
 
     const [returnParams, encodings] = types.reduce(
-      ([returnParams, encodings], type, index) => {
-        const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.Ref);
-        returnParams.push({ name: `result${index}`, type: cairoType.toString() });
-        encodings.push(
+      ([returnParams, encodings], type, index) => [
+        [
+          ...returnParams,
+          {
+            name: `result${index}`,
+            type: CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).toString(),
+          },
+        ],
+        [
+          ...encodings,
           this.generateDecodingCode(type, 'mem_index', `result${index}`),
-          `let in_range${index} =  is_le(mem_index, mem_length);`,
+          `let in_range${index} =  is_le_felt(mem_index, mem_length);`,
           `in_range${index} = 1;`,
-        );
-        return [returnParams, encodings];
-      },
+        ],
+      ],
       [new Array<{ name: string; type: string }>(), new Array<string>()],
     );
 
@@ -112,7 +117,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     ].join('\n');
 
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('starkware.cairo.common.math_cmp', 'is_le');
+    this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt');
     this.requireImport('warplib.memory', 'wm_dyn_array_length');
     this.requireImport('warplib.memory', 'wm_read_id');
     this.requireImport('warplib.maths.utils', 'narrow_safe');
@@ -142,7 +147,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     if (type instanceof AddressType) {
       const funcName = this.createValueTypeDecoding(31);
       return [
-        `let (${decodeResult} : felt) = ${funcName}(mem_index, mem_index + 32, mem_ptr, 31, 0);`,
+        `let (${decodeResult} : felt) = ${funcName}(mem_index, mem_index + 32, mem_ptr, 0);`,
         `let ${newIndexVar} = mem_index + 32;`,
       ].join('\n');
     }
@@ -155,7 +160,6 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       add('mem_index', 32 - byteSize),
       'mem_index + 32',
       'mem_ptr',
-      `${byteSize - 1}`, // power
       '0', // inital accumulator
     ];
 
