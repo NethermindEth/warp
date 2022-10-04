@@ -15,8 +15,7 @@ You can read the documentation [here](https://nethermindeth.github.io/warp/).
 
 <hr> 
  
-1. Have installed python3.9 and python3.9-dev with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
-2. You will need [z3](https://github.com/Z3Prover/z3) and [gmp](https://gmplib.org/#DOWNLOAD)
+1. You will need [z3](https://github.com/Z3Prover/z3) and [gmp](https://gmplib.org/#DOWNLOAD)
    installed to use Warp.
   
 - Install command on macOS:
@@ -37,6 +36,8 @@ export LDFLAGS=-L`brew --prefix gmp`/lib
 ```bash
 sudo apt install libz3-dev libgmp3-dev
 ```
+
+2. Have Python 3.9 installed with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
 
 <br>
 

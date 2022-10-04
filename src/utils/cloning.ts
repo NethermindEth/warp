@@ -6,20 +6,12 @@ import {
   Block,
   Break,
   Continue,
-  ContractDefinition,
   ElementaryTypeName,
   ElementaryTypeNameExpression,
-  EmitStatement,
-  EnumDefinition,
-  EnumValue,
-  EventDefinition,
-  Expression,
   ExpressionStatement,
   ForStatement,
   FunctionCall,
-  FunctionCallOptions,
   FunctionDefinition,
-  FunctionTypeName,
   Identifier,
   IdentifierPath,
   ImportDirective,
@@ -30,7 +22,6 @@ import {
   MemberAccess,
   ModifierDefinition,
   ModifierInvocation,
-  NewExpression,
   OverrideSpecifier,
   ParameterList,
   PlaceholderStatement,
@@ -39,12 +30,17 @@ import {
   UnaryOperation,
   UncheckedBlock,
   UserDefinedTypeName,
-  UsingForDirective,
   VariableDeclaration,
   VariableDeclarationStatement,
   WhileStatement,
   StructuredDocumentation,
   StructDefinition,
+  EventDefinition,
+  EmitStatement,
+  NewExpression,
+  FunctionTypeName,
+  FunctionCallOptions,
+  Expression,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoAssert, CairoFunctionDefinition } from '../ast/cairoNodes';
@@ -123,14 +119,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
       typeof node.typeName === 'string'
         ? node.typeName
         : cloneASTNodeImpl(node.typeName, ast, remappedIds),
-      node.raw,
-    );
-  } else if (node instanceof EnumValue) {
-    newNode = new EnumValue(
-      replaceId(node.id, ast, remappedIds),
-      node.src,
-      node.name,
-      node.nameLocation,
       node.raw,
     );
   } else if (node instanceof FunctionCall) {
@@ -365,16 +353,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
       cloneDocumentation(node.documentation, ast, remappedIds),
       node.raw,
     );
-  } else if (node instanceof UsingForDirective) {
-    newNode = new UsingForDirective(
-      replaceId(node.id, ast, remappedIds),
-      node.src,
-      node.isGlobal,
-      node.vLibraryName && cloneASTNodeImpl(node.vLibraryName, ast, remappedIds),
-      node.vFunctionList?.map((f) => cloneASTNodeImpl(f, ast, remappedIds)),
-      node.vTypeName && cloneASTNodeImpl(node.vTypeName, ast, remappedIds),
-      node.raw,
-    );
     // Resolvable--------------------------------------------------------------
   } else if (node instanceof CairoFunctionDefinition) {
     newNode = new CairoFunctionDefinition(
@@ -494,41 +472,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.vValue && cloneASTNodeImpl(node.vValue, ast, remappedIds),
       node.nameLocation,
     );
-  } else if (node instanceof ContractDefinition) {
-    const documentation = cloneDocumentation(node.documentation, ast, remappedIds);
-    newNode = new ContractDefinition(
-      replaceId(node.id, ast, remappedIds),
-      node.src,
-      node.name,
-      node.scope,
-      node.kind,
-      node.abstract,
-      node.fullyImplemented,
-      node.linearizedBaseContracts,
-      node.usedErrors,
-      documentation,
-      node.children.map((ch) => {
-        if (
-          ch instanceof StructuredDocumentation &&
-          documentation instanceof StructuredDocumentation &&
-          node.documentation instanceof StructuredDocumentation &&
-          ch.id === node.documentation.id
-        ) {
-          return documentation;
-        }
-        return cloneASTNodeImpl(ch, ast, remappedIds);
-      }),
-      node.nameLocation,
-    );
-  } else if (node instanceof EnumDefinition) {
-    newNode = new EnumDefinition(
-      replaceId(node.id, ast, remappedIds),
-      node.src,
-      node.name,
-      node.vMembers.map((v) => cloneASTNodeImpl(v, ast, remappedIds)),
-      node.nameLocation,
-      node.raw,
-    );
     //ASTNodeWithChildren------------------------------------------------------
   } else if (node instanceof ParameterList) {
     newNode = new ParameterList(
@@ -538,14 +481,6 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.raw,
     );
     //Misc---------------------------------------------------------------------
-  } else if (node instanceof StructuredDocumentation) {
-    // TODO: convert all string instances of ducmentation to StrutcutredDocuemntation
-    newNode = new StructuredDocumentation(
-      replaceId(node.id, ast, remappedIds),
-      node.src,
-      node.text,
-      node.raw,
-    );
   } else if (node instanceof IdentifierPath) {
     newNode = new IdentifierPath(
       replaceId(node.id, ast, remappedIds),
