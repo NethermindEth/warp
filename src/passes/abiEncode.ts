@@ -31,10 +31,11 @@ export class ABIEncode extends ASTMapper {
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
+    console.log('visiting', node.vFunctionName);
     if (
       node.kind !== FunctionCallKind.FunctionCall ||
       node.vFunctionCallType !== ExternalReferenceType.Builtin ||
-      !['encodePacked', 'encode', 'encodeWithSelector', 'encodeWithSignature'].includes(
+      !['decode', 'encodePacked', 'encode', 'encodeWithSelector', 'encodeWithSignature'].includes(
         node.vFunctionName,
       )
     ) {
@@ -43,6 +44,9 @@ export class ABIEncode extends ASTMapper {
 
     let replacement: FunctionCall;
     switch (node.vFunctionName) {
+      case 'decode':
+        replacement = ast.getUtilFuncGen(node).abi.decode.gen(node.vArguments);
+        break;
       case 'encode':
         replacement = ast.getUtilFuncGen(node).abi.encode.gen(node.vArguments);
         break;

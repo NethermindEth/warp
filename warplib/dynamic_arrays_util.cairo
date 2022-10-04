@@ -3,6 +3,7 @@ from starkware.cairo.common.dict import dict_read, dict_write
 from starkware.cairo.common.dict_access import DictAccess
 from starkware.cairo.common.uint256 import Uint256
 from starkware.cairo.common.math_cmp import is_le
+from starkware.cairo.common.pow import pow
 from warplib.maths.utils import felt_to_uint256, narrow_safe
 from warplib.maths.bytes_access import byte256_at_index, byte_at_index
 from warplib.memory import wm_index_dyn, wm_read_felt, wm_write_felt
@@ -61,6 +62,53 @@ func fixed_bytes256_to_dynamic_array{
     return fixed_bytes256_to_dynamic_array(
         to_loc, to_index + 1, to_final_index, fixed_byte, fixed_byte_index + 1
     );
+}
+
+func byte_array_to_felt_value{
+    bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*
+}(index: felt, last_index: felt, mem_ptr: felt, power: felt, acc_result: felt) -> (res: felt) {
+    alloc_locals;
+    if (index == last_index) {
+        return (res=acc_result);
+    }
+    let (index256) = felt_to_uint256(index);
+    let (byte_loc) = wm_index_dyn(mem_ptr, index256, Uint256(1, 0));
+    let (byte) = wm_read_felt(byte_loc);
+
+    let (byte_power) = pow(256, power);
+    let new_acc_val = acc_result + (byte * byte_power);
+    return byte_array_to_felt_value(index + 1, last_index, mem_ptr, power - 1, new_acc_val);
+}
+
+func byte_array_to_uint256_value{
+    bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*
+}(index: felt, last_index: felt, mem_ptr: felt, power: felt, acc_low: felt, acc_high) -> (
+    res: Uint256
+) {
+    alloc_locals;
+    if (index == last_index) {
+        return (res=Uint256(acc_low, acc_high));
+    }
+
+    let (index256) = felt_to_uint256(index);
+    let (byte_loc) = wm_index_dyn(mem_ptr, index256, Uint256(1, 0));
+    let (byte) = wm_read_felt(byte_loc);
+
+    let firts_bytes = is_le(16, power);
+
+    if (firts_bytes == 1) {
+        let (byte_power) = pow(256, power - 16);
+        let new_acc_high = acc_high + (byte * byte_power);
+        return byte_array_to_uint256_value(
+            index + 1, last_index, mem_ptr, power - 1, acc_low, new_acc_high
+        );
+    } else {
+        let (byte_power) = pow(256, power);
+        let new_acc_low = acc_low + (byte * byte_power);
+        return byte_array_to_uint256_value(
+            index + 1, last_index, mem_ptr, power - 1, new_acc_low, acc_high
+        );
+    }
 }
 
 // ----------------------- Felt Dynamic Arrays Utils ----------------------------------
