@@ -157,8 +157,6 @@ function createDelegatingFunction(
   const oldBody = funcToCopy.vBody;
   funcToCopy.vBody = undefined;
   const newFunc = cloneASTNode(funcToCopy, ast);
-  newFunc.isConstructor = false;
-  newFunc.vModifiers = [];
   funcToCopy.vBody = oldBody;
 
   const newBody = createBlock(
@@ -180,6 +178,9 @@ function createDelegatingFunction(
 
   newFunc.scope = scope;
   newFunc.vOverrideSpecifier = undefined;
+  newFunc.isConstructor = false;
+  // Modifiers are invoked in the private function already
+  newFunc.vModifiers = [];
   newFunc.vBody = newBody;
   newFunc.acceptChildren();
   ast.setContextRecursive(newFunc);
