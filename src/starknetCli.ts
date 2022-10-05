@@ -181,7 +181,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
           ? `${classHashOption}`
           : `${classHashOption} --wallet ${options.wallet}`
       } ${inputs} ${options.account !== undefined ? `--account ${options.account}` : ''} ${
-        accountNonce ? `--nonce ${accountNonce++}` : ''
+        accountNonce ? `--nonce ${++accountNonce}` : ''
       }`,
       {
         stdio: 'inherit',
