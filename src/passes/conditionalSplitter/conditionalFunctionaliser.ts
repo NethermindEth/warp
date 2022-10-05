@@ -12,6 +12,7 @@ import {
   IfStatement,
   Mutability,
   ParameterList,
+  PointerType,
   Return,
   Statement,
   StateVariableVisibility,
@@ -55,7 +56,7 @@ export function getConditionalReturn(
   const conditionalType = safeGetNodeType(node, ast.compilerVersion);
   const variables =
     conditionalType instanceof TupleType
-      ? getAllVariables(node, conditionalType, funcId, nameCounter, ast)
+      ? getAllVariables(conditionalType, funcId, nameCounter, ast)
       : [
           getVar(
             safeGetNodeType(node, ast.compilerVersion),
@@ -83,7 +84,7 @@ function getVar(
     `${CONDITIONAL_RETURN_VARIABLE}${nameCounter.next().value}`,
     scope,
     false, // stateVariable
-    DataLocation.Default,
+    getLocationFromTypeNode(typeNode),
     StateVariableVisibility.Private,
     Mutability.Mutable,
     typeString,
@@ -93,7 +94,6 @@ function getVar(
 }
 
 function getAllVariables(
-  node: Conditional,
   conditionalType: TupleType,
   scope: number,
   nameCounter: Generator<number, number, unknown>,
@@ -234,4 +234,8 @@ export function getStatementsForVoidConditionals(
     );
     ast.replaceNode(parent, outerCall);
   }
+}
+function getLocationFromTypeNode(typeNode: TypeNode): DataLocation {
+  if (typeNode instanceof PointerType) return typeNode.location;
+  else return DataLocation.Default;
 }

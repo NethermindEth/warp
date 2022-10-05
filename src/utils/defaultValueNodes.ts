@@ -270,11 +270,11 @@ function pointerDefault(
   ast: AST,
 ): Expression {
   if (nodeType.to instanceof ArrayType) return arrayDefault(nodeType.to, parentNode, ast);
-  else if (nodeType.to instanceof UserDefinedType) {
+  else if (nodeType.to instanceof UserDefinedType)
     return userDefDefault(nodeType.to, parentNode, ast);
-  } else {
+  else if (nodeType.to instanceof StringType) return stringDefault(parentNode, ast);
+  else
     throw new NotSupportedYetError(`Not supported operation delete on ${printTypeNode(nodeType)}`);
-  }
 }
 
 function getTupleTypeString(nodeType: ArrayType): string {
