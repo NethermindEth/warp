@@ -81,8 +81,9 @@ export class AbiEncode extends AbiBase {
       `}`,
     ].join('\n');
 
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.alloc', 'alloc');
+    this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     this.requireImport('warplib.memory', 'wm_new');
     this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array');
