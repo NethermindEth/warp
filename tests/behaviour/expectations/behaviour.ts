@@ -2805,6 +2805,12 @@ export const expectations = flatten(
               ],
             ),
             new File(
+              'inheritedModifiedFunction',
+              'B',
+              [],
+              [Expect.Simple('f', ['20', '0'], ['20', '0'])],
+            ),
+            new File(
               'modifierInheritance',
               'D',
               [],
