@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 // SPDX-License-Identifier: MIT
 
 contract WARP {
-    uint x;
+    uint public x;
 
     function voidReturn() public {
         return (x == 0) ? g() : (x < 10) ? f() : delete x;
