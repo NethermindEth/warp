@@ -3135,6 +3135,12 @@ export const expectations = flatten(
             Expect.Simple('multiplication128signedsafe', ['255', '255'], ['65025']),
             Expect.Simple('multiplication128signedunsafe', ['192', '2'], ['384']),
             Expect.Simple(
+              'multiplication128signedunsafe',
+              // -1 * 2 = -2
+              ['340282366920938463463374607431768211455', '2'],
+              ['340282366920938463463374607431768211454'],
+            ),
+            Expect.Simple(
               'multiplication256signedsafe',
               [
                 '0',
