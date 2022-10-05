@@ -16,6 +16,7 @@ import {
   Statement,
   StateVariableVisibility,
   TupleType,
+  TypeNode,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -55,12 +56,20 @@ export function getConditionalReturn(
   const variables =
     conditionalType instanceof TupleType
       ? getAllVariables(node, conditionalType, funcId, nameCounter, ast)
-      : [getVar(node, node.typeString, funcId, nameCounter, ast)];
+      : [
+          getVar(
+            safeGetNodeType(node, ast.compilerVersion),
+            node.typeString,
+            funcId,
+            nameCounter,
+            ast,
+          ),
+        ];
   return variables;
 }
 
 function getVar(
-  node: Conditional,
+  typeNode: TypeNode,
   typeString: string,
   scope: number,
   nameCounter: Generator<number, number, unknown>,
@@ -79,7 +88,7 @@ function getVar(
     Mutability.Mutable,
     typeString,
     undefined,
-    typeNameFromTypeNode(safeGetNodeType(node, ast.compilerVersion), ast),
+    typeNameFromTypeNode(typeNode, ast),
   );
 }
 
@@ -91,7 +100,7 @@ function getAllVariables(
   ast: AST,
 ): VariableDeclaration[] {
   if (conditionalType.elements.length == 0) return [];
-  else return conditionalType.elements.map((t) => getVar(node, t.pp(), scope, nameCounter, ast));
+  else return conditionalType.elements.map((t) => getVar(t, t.pp(), scope, nameCounter, ast));
 }
 
 // The inputs to the function should be only the free variables
