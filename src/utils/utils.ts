@@ -556,6 +556,26 @@ export function callClassHashScript(filePath: string): string {
   return classHash;
 }
 
+export function callGetNonceScript(wallet: string, account: string, network: string): string {
+  const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
+  const getNonceScript = path.resolve(
+    __dirname,
+    '..',
+    '..',
+    'starknet-scripts',
+    'get_account_nonce.py',
+  );
+  const nonce = execSync(
+    `${warpVenvPrefix} python ${getNonceScript} get_nonce --wallet ${wallet}  --account ${account} --network ${network}`,
+  )
+    .toString()
+    .trim();
+  if (nonce === undefined) {
+    throw new Error(`Cannot get account Nonce.`);
+  }
+  return nonce;
+}
+
 export function getContainingFunction(node: ASTNode): FunctionDefinition {
   const func = node.getClosestParentByType(FunctionDefinition);
   assert(func !== undefined, `Unable to find containing function for ${printNode(node)}`);

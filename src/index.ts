@@ -297,7 +297,11 @@ program
     runVenvSetup(options);
   });
 
-export type IDeclareOptions = IOptionalNetwork;
+export interface IDeclareOptions {
+  no_wallet: boolean;
+  network?: string;
+  wallet?: string;
+}
 
 program
   .command('declare <cairo_contract>')

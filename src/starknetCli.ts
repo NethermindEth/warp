@@ -12,6 +12,7 @@ import {
 import { encodeInputs } from './passes';
 import { CLIError, logError } from './utils/errors';
 import { getDependencyGraph, hashFilename, reducePath } from './utils/postCairoWrite';
+import { callGetNonceScript } from './utils/utils';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
@@ -162,9 +163,15 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
 
   try {
     let classHash;
+    let accountNonce;
     if (!options.no_wallet) {
+      if (options.account) {
+        const result = getAccountNonce(options);
+        assert(result !== undefined, `Could not get the nonce for the account ${options.account}`);
+        accountNonce = BigInt(result);
+      }
       assert(compileResult.resultPath !== undefined);
-      classHash = declareContract(compileResult.resultPath, options.network);
+      classHash = declareContract(compileResult.resultPath, options, accountNonce);
     }
     const classHashOption = classHash ? `--class_hash ${classHash}` : '';
     const resultPath = compileResult.resultPath;
@@ -175,7 +182,9 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
           : options.wallet === undefined
           ? `${classHashOption}`
           : `${classHashOption} --wallet ${options.wallet}`
-      } ${inputs} ${options.account !== undefined ? `--account ${options.account}` : ''}`,
+      } ${inputs} ${options.account !== undefined ? `--account ${options.account}` : ''} ${
+        accountNonce ? `--nonce ${accountNonce++}` : ''
+      }`,
       {
         stdio: 'inherit',
       },
@@ -262,11 +271,37 @@ export async function runStarknetCallOrInvoke(
   }
 }
 
-function declareContract(filePath: string, network?: string): string | undefined {
-  const networkOption = network ? `--network ${network}` : ``;
+function declareContract(
+  filePath: string,
+  options: IDeclareOptions,
+  nonce?: bigint,
+): string | undefined {
+  // wallet check
+  if (!options.no_wallet) {
+    if (options.wallet == undefined) {
+      logError(
+        'A wallet must be specified (using --wallet or the STARKNET_WALLET environment variable), unless specifically using --no_wallet.',
+      );
+      return;
+    }
+  }
+  // network check
+  if (options.network == undefined) {
+    logError(
+      `Error: Exception: feeder_gateway_url must be specified with the declare command.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
+    );
+    return;
+  }
+  const networkOption = options.network ? `--network ${options.network}` : ``;
+  const walletOption = options.no_wallet
+    ? '--no_wallet'
+    : options.wallet
+    ? `--wallet ${options.wallet}`
+    : ``;
+  const nonceOption = nonce ? `--nonce ${nonce}` : '';
   try {
     const result = execSync(
-      `${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption}`,
+      `${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption} ${walletOption} ${nonceOption}`,
       {
         encoding: 'utf8',
       },
@@ -278,6 +313,30 @@ function declareContract(filePath: string, network?: string): string | undefined
   }
 }
 
+function getAccountNonce(options: IDeployProps): string | undefined {
+  if (options.account === undefined) {
+    logError(`Error: AssertionError: --account must be specified with the "deploy" subcommand.`);
+    return;
+  }
+  if (options.network == undefined) {
+    logError(
+      `Error: Exception: feeder_gateway_url must be specified with the "deploy" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
+    );
+    return;
+  }
+  if (options.wallet == undefined) {
+    logError(
+      'A wallet must be specified (using --wallet or the STARKNET_WALLET environment variable) for the account nonce',
+    );
+    return;
+  }
+  try {
+    return callGetNonceScript(options.wallet, options.account, options.network);
+  } catch {
+    logError('StarkNet get_account_nonce failed');
+  }
+}
+
 export function runStarknetDeclare(filePath: string, options: IDeclareOptions) {
   const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'));
   if (!success) {
@@ -285,7 +344,7 @@ export function runStarknetDeclare(filePath: string, options: IDeclareOptions) {
     return;
   } else {
     assert(resultPath !== undefined);
-    declareContract(resultPath, options.network);
+    declareContract(resultPath, options);
   }
 }
 
