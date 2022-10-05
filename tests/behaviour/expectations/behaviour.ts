@@ -2819,6 +2819,12 @@ export const expectations = flatten(
               ],
             ),
             new File(
+              'inheritedModifiedFunction',
+              'B',
+              [],
+              [Expect.Simple('f', ['20', '0'], ['20', '0'])],
+            ),
+            new File(
               'modifierInheritance',
               'D',
               [],
@@ -2906,17 +2912,6 @@ export const expectations = flatten(
               'test using struct defined in library in other contract',
             ),
           ]),
-          new File(
-            'transpileLibraries',
-            'library__A1',
-            [],
-            [
-              Expect.Simple('add', ['3', '2'], ['5']),
-              Expect.Simple('sub', ['3', '2'], ['1']),
-              Expect.Simple('mul', ['3', '2'], ['6']),
-              Expect.Simple('div', ['4', '2'], ['2']),
-            ],
-          ),
           new Dir('freeFunctionsLib', [
             File.Simple('direct_and_indirect', [Expect.Simple('freeFuncLib', ['2'], ['4'])]),
             File.Simple('sameName', [Expect.Simple('freeFuncLib', ['1'], ['0'])]),
@@ -3153,6 +3148,12 @@ export const expectations = flatten(
             Expect.Simple('multiplication8signedunsafe', ['100', '40'], ['160'], 'overflow'),
             Expect.Simple('multiplication128signedsafe', ['255', '255'], ['65025']),
             Expect.Simple('multiplication128signedunsafe', ['192', '2'], ['384']),
+            Expect.Simple(
+              'multiplication128signedunsafe',
+              // -1 * 2 = -2
+              ['340282366920938463463374607431768211455', '2'],
+              ['340282366920938463463374607431768211454'],
+            ),
             Expect.Simple(
               'multiplication256signedsafe',
               [
