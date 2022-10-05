@@ -45,7 +45,6 @@ export * from './sourceUnitSplitter';
 export * from './staticArrayIndexer';
 export * from './storageAllocator';
 export * from './tupleFixes';
-export * from './tupleAssignmentSplitter';
 export * from './typeInformationCalculator';
 export * from './typeNameRemover';
 export * from './typeStringsChecker';
