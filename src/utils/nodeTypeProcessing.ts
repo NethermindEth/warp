@@ -295,6 +295,7 @@ export function safeGetNodeTypeInCtx(
  *  @returns returns the types byte representation using packed abi encoding
  */
 export function getPackedByteSize(type: TypeNode, version: string): number | bigint {
+  let x = 3;
   if (type instanceof IntType) {
     return type.nBits / 8;
   }
