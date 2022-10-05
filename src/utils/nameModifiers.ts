@@ -7,7 +7,7 @@
 // Used in TupleFiller in TupleFixes
 export const TUPLE_FILLER_PREFIX = '__warp_tf';
 
-// Used in librariesConverter
+// Used in LibrariesConverter
 export const LIBRARY_CONTRACT_PREFIX = 'library__';
 
 // Used in SourceUnitSplitter
@@ -47,19 +47,17 @@ export const RETURN_VALUE_PREFIX = '__warp_rv';
 //  - Used in utils
 export const WHILE_PREFIX = '__warp_while';
 
-// Used in TupleAssignmentSplitter
-export const TUPLE_VALUE_PREFIX = '__warp_tv_';
-
 // Used in  VariableDeclarationExpressionSplitter
 export const SPLIT_VARIABLE_PREFIX = '__warp_td_';
 
 // Used in Expression Splitter
 export const SPLIT_EXPRESSION_PREFIX = '__warp_se_';
 
-// Used in Pre Expression Splitter
+// Used in Conditional Splitter
 export const PRE_SPLIT_EXPRESSION_PREFIX = '__warp_pse_';
 export const CONDITIONAL_FUNCTION_PREFIX = '__warp_conditional_';
 export const CONDITIONAL_RETURN_VARIABLE = '__warp_rc_';
+export const TUPLE_VALUE_PREFIX = '__warp_tv_';
 
 // Used in UnloadingAssignment
 export const COMPOUND_ASSIGNMENT_SUBEXPRESSION_PREFIX = '__warp_cs_';
