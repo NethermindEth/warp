@@ -507,6 +507,8 @@ export const expectations = flatten(
             Expect.Simple('returnStr', ['1'], ['4', '87', '65', '82', '80']),
             Expect.Simple('updateVar', ['1'], ['20', '0', '46', '0']),
             Expect.Simple('updateVar', ['0'], ['15', '0', '50', '0']),
+          ]),
+          File.Simple('useValues', [
             Expect.Simple('useValues', ['1'], ['3', '4']),
             Expect.Simple('useValues', ['0'], ['1', '2']),
           ]),

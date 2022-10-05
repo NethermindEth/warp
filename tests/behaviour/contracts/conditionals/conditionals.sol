@@ -17,11 +17,4 @@ contract WARP {
         choice ? a+=5 : b+=4;
         return (a, b);
     }
-
-    function getValues() pure internal returns (uint8, uint16) {
-        return (1,2);
-    }
-    function useValues(bool choice) pure external returns (uint16, uint16) {
-        return choice ? (3,4) : getValues();
-    }
 }
