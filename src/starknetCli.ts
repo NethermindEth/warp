@@ -165,11 +165,9 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
     let classHash;
     let accountNonce;
     if (!options.no_wallet) {
-      if (options.account) {
-        const result = getAccountNonce(options);
-        assert(result !== undefined, `Could not get the nonce for the account ${options.account}`);
-        accountNonce = BigInt(result);
-      }
+      const result = getAccountNonce(options);
+      assert(result !== undefined, `Could not get the nonce for the account ${options.account}`);
+      accountNonce = BigInt(result);
       assert(compileResult.resultPath !== undefined);
       classHash = declareContract(compileResult.resultPath, options, accountNonce);
     }
@@ -315,8 +313,7 @@ function declareContract(
 
 function getAccountNonce(options: IDeployProps): string | undefined {
   if (options.account === undefined) {
-    logError(`Error: AssertionError: --account must be specified with the "deploy" subcommand.`);
-    return;
+    console.warn(`WARNING: Account not provided. Using the __default__ account.`);
   }
   if (options.network == undefined) {
     logError(
@@ -331,7 +328,7 @@ function getAccountNonce(options: IDeployProps): string | undefined {
     return;
   }
   try {
-    return callGetNonceScript(options.wallet, options.account, options.network);
+    return callGetNonceScript(options.wallet, options.network, options.account);
   } catch {
     logError('StarkNet get_account_nonce failed');
   }
