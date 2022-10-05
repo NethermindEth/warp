@@ -535,7 +535,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/exp_zero_literal.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/inc_dec_operators.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/unary_too_long_literal.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_functions.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_functions.sol', // WILL NOT SUPPORT function as objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_multiple.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_storage_memory_1.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_true_literal.sol',
@@ -666,7 +666,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/call_options_overload.sol', // WILL NOT SUPPORT address.balance
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/calling_nonexisting_contract_throws.sol', // WILL NOT SUPPORT raw address call
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/calling_uninitialized_function.sol', // WILL NOT SUPPORT function object
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/conditional_with_arguments.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/conditional_with_arguments.sol', // WILL NOT SUPPORT function as object
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_no_args.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_with_args.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_with_salt.sol', // Fail during deployement because salt cannot be safely narrowed to felt

@@ -41,6 +41,7 @@ import {
   FunctionTypeName,
   FunctionCallOptions,
   Expression,
+  Conditional,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoAssert, CairoFunctionDefinition } from '../ast/cairoNodes';
@@ -213,6 +214,16 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.prefix,
       node.operator,
       cloneASTNodeImpl(node.vSubExpression, ast, remappedIds),
+      node.raw,
+    );
+  } else if (node instanceof Conditional) {
+    newNode = new Conditional(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.typeString,
+      cloneASTNodeImpl(node.vCondition, ast, remappedIds),
+      cloneASTNodeImpl(node.vTrueExpression, ast, remappedIds),
+      cloneASTNodeImpl(node.vFalseExpression, ast, remappedIds),
       node.raw,
     );
     // TypeNames---------------------------------------------------------------
