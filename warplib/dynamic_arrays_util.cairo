@@ -84,9 +84,7 @@ func byte_array_to_felt_value{
 
 func byte_array_to_uint256_value{
     bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*
-}(index: felt, last_index: felt, mem_ptr: felt, acc_low: felt, acc_high) -> (
-    res: Uint256
-) {
+}(index: felt, last_index: felt, mem_ptr: felt, acc_low: felt, acc_high) -> (res: Uint256) {
     alloc_locals;
     if (index == last_index) {
         return (res=Uint256(acc_low, acc_high));
@@ -102,15 +100,11 @@ func byte_array_to_uint256_value{
     if (first_bytes == 1) {
         let (byte_power) = pow2(8 * (power - 16));
         let new_acc_high = acc_high + (byte * byte_power);
-        return byte_array_to_uint256_value(
-            index + 1, last_index, mem_ptr, acc_low, new_acc_high
-        );
+        return byte_array_to_uint256_value(index + 1, last_index, mem_ptr, acc_low, new_acc_high);
     } else {
         let (byte_power) = pow2(8 * power);
         let new_acc_low = acc_low + (byte * byte_power);
-        return byte_array_to_uint256_value(
-            index + 1, last_index, mem_ptr, new_acc_low, acc_high
-        );
+        return byte_array_to_uint256_value(index + 1, last_index, mem_ptr, new_acc_low, acc_high);
     }
 }
 
