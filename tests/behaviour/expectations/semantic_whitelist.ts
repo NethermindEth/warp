@@ -535,15 +535,15 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/exp_zero_literal.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/inc_dec_operators.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/unary_too_long_literal.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_functions.sol', // STRETCH conditionals
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_multiple.sol', // STRETCH conditionals
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_storage_memory_1.sol', // STRETCH conditionals
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_true_literal.sol', // STRETCH conditionals
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_different_types.sol', // STRETCH conditionals
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_with_return_values.sol', // STRETCH conditionals
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_false_literal.sol', // STRETCH conditionals
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_tuples.sol', // STRETCH conditionals
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_storage_memory_2.sol', // STRETCH conditionals
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_functions.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_multiple.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_storage_memory_1.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_true_literal.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_different_types.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_with_return_values.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_false_literal.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_tuples.sol',
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/conditional_expression_storage_memory_2.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/bit_operators.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/expressions/uncalled_address_transfer_send.sol', // WILL NOT SUPPORT .transfer
   ],
@@ -666,7 +666,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/call_options_overload.sol', // WILL NOT SUPPORT address.balance
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/calling_nonexisting_contract_throws.sol', // WILL NOT SUPPORT raw address call
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/calling_uninitialized_function.sol', // WILL NOT SUPPORT function object
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/conditional_with_arguments.sol', // STRETCH conditional
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/conditional_with_arguments.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_no_args.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_with_args.sol',
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/creation_function_call_with_salt.sol', // Fail during deployement because salt cannot be safely narrowed to felt
@@ -903,7 +903,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_call_in_homestead.sol', // MOVED to behaviour tests, relies on address of test CALLER
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_stray_values.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_contract.sol',
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/mapping_returns_in_library.sol', // STRETCH conditional
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/mapping_returns_in_library.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_address_named_send_transfer.sol', // WILL NOT SUPPORT raw address calls
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_bound_to_interface.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/external_call_with_function_pointer_parameter.sol', // WILL NOT SUPPORT function objects
@@ -974,7 +974,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_loop.sol', // tests old code gen, clashes with function_modifier_loop
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_multi_invocation.sol', // tests old code gen, clashes with function_modifier_multi_invocation_viair
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier_multi_with_return.sol', // tests old code gen, clashes with above
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/modifer_recursive.sol', // STRETCH conditionals
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/modifer_recursive.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/access_through_module_name.sol', // WILL NOT SUPPORT module
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/modifiers/function_modifier.sol', // WILL NOT SUPPORT msg.value
   ],
@@ -1417,7 +1417,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/value_complex.sol', // address.balance
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/write_storage_external.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/value_insane.sol', // WILL NOT SUPPORT address.balance
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/test_underscore_in_hex.sol', // STRETCH conditional
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/test_underscore_in_hex.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/staticcall_for_view_and_pure.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/staticcall_for_view_and_pure_pre_byzantium.sol', // Fails because WARP is post byzantium only
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/various/external_types_in_calls.sol', //
@@ -1456,11 +1456,11 @@ const tests: string[] = [
     ],
     //---------ViaYul conditional - STRETCH
     ...[
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_with_variables.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_tuple.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_multiple.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_with_assignment.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_true_false_literal.sol', // TEST NOT SUPPORTED AT THIS STAGE or WILL NOT SUPPORT
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_with_variables.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_tuple.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_multiple.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_with_assignment.sol',
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/viaYul/conditional/conditional_true_false_literal.sol',
     ],
     //---------ViaYul conversion: 12 passing
     ...[
