@@ -503,6 +503,22 @@ export const expectations = flatten(
             Expect.Simple('f', ['10', '0', '1'], ['1', '0']),
             Expect.Simple('f', ['4', '0', '1'], ['5', '0']),
           ]),
+          File.Simple('conditionals', [
+            Expect.Simple('returnStr', ['1'], ['4', '87', '65', '82', '80']),
+            Expect.Simple('updateVar', ['1'], ['20', '0', '46', '0']),
+            Expect.Simple('updateVar', ['0'], ['15', '0', '50', '0']),
+            Expect.Simple('useValues', ['1'], ['3', '4']),
+            Expect.Simple('useValues', ['0'], ['1', '2']),
+          ]),
+          File.Simple('voidReturn', [
+            Expect.Simple('x', [], ['0', '0']),
+            Expect.Simple('voidReturn', [], []),
+            Expect.Simple('x', [], ['5', '0']),
+            Expect.Simple('voidReturn', [], []),
+            Expect.Simple('x', [], ['10', '0']),
+            Expect.Simple('voidReturn', [], []),
+            Expect.Simple('x', [], ['0', '0']),
+          ]),
           new File(
             'nested_and_or',
             'WARP',
