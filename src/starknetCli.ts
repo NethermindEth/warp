@@ -12,7 +12,7 @@ import {
 import { encodeInputs } from './passes';
 import { CLIError, logError } from './utils/errors';
 import { getDependencyGraph, hashFilename, reducePath } from './utils/postCairoWrite';
-import { callClassHashScript, callGetNonceScript } from './utils/utils';
+import { callClassHashScript } from './utils/utils';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
@@ -121,34 +121,6 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
   }
 }
 
-async function waitUntilNonceUpdate(
-  accountNonce: bigint,
-  options: IDeployProps,
-  sleep_time = 1000,
-  tries = 10,
-  delayCallback: (ms: number) => Promise<void> = (ms) =>
-    new Promise((resolve) => setTimeout(resolve, ms)),
-): Promise<void> {
-  const curr_result = getAccountNonce(options);
-  assert(curr_result !== undefined, `Could not get the nonce for the account ${options.account}`);
-  if (BigInt(curr_result) > accountNonce || tries <= 0) {
-    return;
-  }
-  process.on('SIGINT' || 'SIGQUIT' || 'SIGTERM', () => {
-    console.warn(
-      ' \x1b[33m WARNING \x1b[0m: \x1b[31mwaitUntilNonceUpdate\x1b[0m abruptly stopped!!, please wait until starknet updates the Account nonce',
-    );
-    process.exit(1);
-  });
-  process.stdout.write(
-    `\x1b[5m \uD83D\uDD34 \x1b[0m Waiting for next \x1b[34m${sleep_time / 1000}\x1b[0m second${
-      sleep_time !== 1000 ? 's' : ''
-    }, until Nonce is updated on the network \r`,
-  );
-  await delayCallback(sleep_time);
-  await waitUntilNonceUpdate(accountNonce, options, sleep_time * 2, tries - 1, delayCallback);
-}
-
 export async function runStarknetDeploy(filePath: string, options: IDeployProps) {
   if (options.network == undefined) {
     logError(
@@ -191,7 +163,6 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
 
   try {
     let classHash;
-    let accountNonce;
     if (!options.no_wallet) {
       assert(compileResult.resultPath !== undefined, 'resultPath should not be undefined');
       classHash = callClassHashScript(compileResult.resultPath);
@@ -205,14 +176,11 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
           : options.wallet === undefined
           ? `${classHashOption}`
           : `${classHashOption} --wallet ${options.wallet}`
-      } ${inputs} ${options.account !== undefined ? `--account ${options.account}` : ''} ${
-        accountNonce ? `--nonce ${++accountNonce}` : ''
-      }`,
+      } ${inputs} ${options.account !== undefined ? `--account ${options.account}` : ''} `,
       {
         stdio: 'inherit',
       },
     );
-    if (accountNonce) await waitUntilNonceUpdate(accountNonce, options);
   } catch {
     logError('starknet deploy failed');
   }
@@ -295,11 +263,7 @@ export async function runStarknetCallOrInvoke(
   }
 }
 
-function declareContract(
-  filePath: string,
-  options: IDeclareOptions,
-  nonce?: bigint,
-): string | undefined {
+function declareContract(filePath: string, options: IDeclareOptions): string | undefined {
   // wallet check
   if (!options.no_wallet) {
     if (options.wallet == undefined) {
@@ -322,10 +286,10 @@ function declareContract(
     : options.wallet
     ? `--wallet ${options.wallet}`
     : ``;
-  const nonceOption = nonce ? `--nonce ${nonce}` : '';
+  const accountOption = options.account ? `--account ${options.account}` : '';
   try {
     const result = execSync(
-      `${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption} ${walletOption} ${nonceOption}`,
+      `${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption} ${walletOption} ${accountOption}`,
       {
         encoding: 'utf8',
       },
@@ -334,26 +298,6 @@ function declareContract(
     return processDeclareCLI(result, filePath);
   } catch {
     logError('StarkNet declare failed');
-  }
-}
-
-function getAccountNonce(options: IDeployProps): string | undefined {
-  if (options.network == undefined) {
-    logError(
-      `Error: Exception: feeder_gateway_url must be specified with the "deploy" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
-    );
-    return;
-  }
-  if (options.wallet == undefined) {
-    logError(
-      'A wallet must be specified (using --wallet or the STARKNET_WALLET environment variable) for the account nonce',
-    );
-    return;
-  }
-  try {
-    return callGetNonceScript(options.wallet, options.network, options.account);
-  } catch {
-    logError('StarkNet get_account_nonce failed');
   }
 }
 

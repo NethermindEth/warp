@@ -301,6 +301,7 @@ export interface IDeclareOptions {
   no_wallet: boolean;
   network?: string;
   wallet?: string;
+  account?: string;
 }
 
 program
