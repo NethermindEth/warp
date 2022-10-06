@@ -12,7 +12,7 @@ import {
 import { encodeInputs } from './passes';
 import { CLIError, logError } from './utils/errors';
 import { getDependencyGraph, hashFilename, reducePath } from './utils/postCairoWrite';
-import { callGetNonceScript } from './utils/utils';
+import { callClassHashScript, callGetNonceScript } from './utils/utils';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
@@ -193,15 +193,8 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
     let classHash;
     let accountNonce;
     if (!options.no_wallet) {
-      if (options.account === undefined) {
-        console.warn(`WARNING: Account not provided. Using the __default__ account.`);
-      }
-      const result = getAccountNonce(options);
-      assert(result !== undefined, `Could not get the nonce for the account ${options.account}`);
-      accountNonce = BigInt(result);
-      assert(compileResult.resultPath !== undefined);
-      classHash = declareContract(compileResult.resultPath, options, accountNonce);
-      await waitUntilNonceUpdate(accountNonce, options);
+      assert(compileResult.resultPath !== undefined, 'resultPath should not be undefined');
+      classHash = callClassHashScript(compileResult.resultPath);
     }
     const classHashOption = classHash ? `--class_hash ${classHash}` : '';
     const resultPath = compileResult.resultPath;
