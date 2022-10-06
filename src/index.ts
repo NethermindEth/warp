@@ -1,3 +1,4 @@
+export * from './export';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Command } from 'commander';
