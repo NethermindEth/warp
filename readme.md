@@ -191,7 +191,7 @@ Please see the list below:
 |                   delegate calls                    | :hammer_and_pick: |
 |                   low level calls                   |        :x:        |
 |                 indexed parameters                  |    :question:     |
-|        abi methods (abi.encode, abi.decode)         |    :question:     |
+|              abi.decode for non-value types         |    :question:     |
 |              nested tuple expressions               |    :question:     |
 |                typeName expressions                 |    :question:     |
 |                      gasleft()                      |    :question:     |
