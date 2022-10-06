@@ -22,6 +22,7 @@ export const HASH_OPTION = 'sha256';
 export function postProcessCairoFile(
   cairoFilePath: string,
   pathPrefix: string,
+  debugInfo: boolean,
   contractHashToClassHash: Map<string, string>,
 ): string {
   const fullPath = path.join(pathPrefix, cairoFilePath);
@@ -36,7 +37,7 @@ export function postProcessCairoFile(
   // If the file does have dependencies then we need to make sure that the dependencies of
   // those files have been calculated and inserted.
   filesToHash?.forEach((file) => {
-    hashDependacies(file, pathPrefix, dependencyGraph, contractHashToClassHash);
+    hashDependacies(file, pathPrefix, debugInfo, dependencyGraph, contractHashToClassHash);
   });
   setDeclaredAddresses(fullPath, contractHashToClassHash);
   return cairoFilePath;
@@ -45,24 +46,25 @@ export function postProcessCairoFile(
 function hashDependacies(
   filePath: string,
   pathPrefix: string,
+  debugInfo: boolean,
   dependencyGraph: Map<string, string[]>,
   contractHashToClassHash: Map<string, string>,
 ): void {
   const filesToHash = dependencyGraph.get(filePath);
   // If the file has no dependencies to hash then we hash the compiled file and add it to the contractHahsToClassHash.
   if (filesToHash === undefined || filesToHash?.length === 0) {
-    addClassHash(filePath, pathPrefix, contractHashToClassHash);
+    addClassHash(filePath, pathPrefix, debugInfo, contractHashToClassHash);
     return;
   } else {
     filesToHash
       ?.map((file) => {
-        hashDependacies(file, pathPrefix, dependencyGraph, contractHashToClassHash);
+        hashDependacies(file, pathPrefix, debugInfo, dependencyGraph, contractHashToClassHash);
         return file;
       })
       .forEach((file) => {
         setDeclaredAddresses(file, contractHashToClassHash);
       });
-    addClassHash(filePath, pathPrefix, contractHashToClassHash);
+    addClassHash(filePath, pathPrefix, debugInfo, contractHashToClassHash);
     return;
   }
 }
@@ -70,20 +72,22 @@ function hashDependacies(
 function addClassHash(
   filePath: string,
   pathPrefix: string,
+  debugInfo: boolean,
   contractHashToClassHash: Map<string, string>,
 ): void {
   const fileLocationHash = hashFilename(reducePath(filePath, pathPrefix));
   let classHash = contractHashToClassHash.get(fileLocationHash);
   if (classHash === undefined) {
-    classHash = computeClassHash(filePath, '');
+    classHash = computeClassHash(filePath, '', debugInfo);
     contractHashToClassHash.set(fileLocationHash, classHash);
   }
 }
 
-function computeClassHash(filePath: string, pathPrefix: string): string {
+function computeClassHash(filePath: string, pathPrefix: string, debugInfo: boolean): string {
   const { success, resultPath } = compileCairo(
     path.join(pathPrefix, filePath),
     path.resolve(__dirname, '..', '..'),
+    { debugInfo },
   );
   if (!success) {
     throw new CLIError(`Compilation of cairo file ${filePath} failed`);

@@ -75,14 +75,23 @@ export class FunctionModifierHandler extends ASTMapper {
 
   extractOriginalFunction(node: FunctionDefinition, ast: AST): FunctionDefinition {
     const scope = node.vScope;
-
-    const funcDef = cloneASTNode(node, ast);
     const name = node.isConstructor ? `constructor` : `function_${node.name}`;
+
+    // The body of `node` does not need to be cloned, it is going to be extracted
+    // and placed as the body of the cloned function instead
+    const funcBody = node.vBody;
+    node.vBody = undefined;
+    const funcDef = cloneASTNode(node, ast);
+
     funcDef.name = `${ORIGINAL_FUNCTION_PREFIX}${name}_${this.count++}`;
     funcDef.visibility = FunctionVisibility.Internal;
     funcDef.isConstructor = false;
     funcDef.kind = FunctionKind.Function;
     funcDef.vModifiers = [];
+    if (funcBody !== undefined) {
+      funcDef.vBody = funcBody;
+      ast.registerChild(funcBody, funcDef);
+    }
 
     createOutputCaptures(funcDef, node, ast).forEach(([input, assignment]) => {
       funcDef.vParameters.vParameters.push(input);
