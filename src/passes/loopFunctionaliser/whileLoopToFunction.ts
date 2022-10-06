@@ -5,7 +5,10 @@ import { collectUnboundVariables, createOuterCall } from '../../utils/functionGe
 import { createLoopCall, extractDoWhileToFunction, extractWhileToFunction } from './utils';
 
 export class WhileLoopToFunction extends ASTMapper {
-  constructor(private loopToContinueFunction: Map<number, FunctionDefinition>) {
+  constructor(
+    private loopToContinueFunction: Map<number, FunctionDefinition>,
+    private loopFnCounter: { count: number },
+  ) {
     super();
   }
 
@@ -24,6 +27,7 @@ export class WhileLoopToFunction extends ASTMapper {
       [...unboundVariables.keys()],
       this.loopToContinueFunction,
       ast,
+      this.loopFnCounter.count++,
     );
 
     const outerCall = createOuterCall(

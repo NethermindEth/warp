@@ -27,15 +27,12 @@ import {
 } from '../../utils/nodeTemplates';
 import { getContainingSourceUnit } from '../../utils/utils';
 
-// It's okay to use a global counter here as it only affects private functions
-// and never anything that can be referenced from another file
-let loopFnCounter = 0;
-
 export function extractWhileToFunction(
   node: WhileStatement,
   variables: VariableDeclaration[],
   loopToContinueFunction: Map<number, FunctionDefinition>,
   ast: AST,
+  loopFnCounter: number,
   prefix = WHILE_PREFIX,
 ): FunctionDefinition {
   const scope =
@@ -113,12 +110,14 @@ export function extractDoWhileToFunction(
   variables: VariableDeclaration[],
   loopToContinueFunction: Map<number, FunctionDefinition>,
   ast: AST,
+  loopFnCounter: number,
 ): FunctionDefinition {
   const doWhileFuncDef = extractWhileToFunction(
     node,
     variables,
     loopToContinueFunction,
     ast,
+    loopFnCounter,
     '__warp_do_while_',
   );
 
