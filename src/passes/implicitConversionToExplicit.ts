@@ -207,6 +207,13 @@ export class ImplicitConversionToExplicit extends ASTMapper {
         handleConcatArgs(node, ast);
         return;
       }
+
+      if (node.vFunctionName === 'decode') {
+        assert(node.vArguments.length == 2, 'decode recieves two arguments');
+        insertConversionIfNecessary(node.vArguments[0], new BytesType(), node, ast);
+        return;
+      }
+
       if (['encodePacked', 'encode'].includes(node.vFunctionName)) {
         handleAbiEncodeArgs(node.vArguments, ast);
         return;

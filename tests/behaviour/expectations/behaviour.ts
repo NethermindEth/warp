@@ -6,6 +6,40 @@ export const expectations = flatten(
     new Dir('behaviour', [
       new Dir('contracts', [
         new Dir('abiEncode', [
+          File.Simple('abiDecodeValue', [
+            Expect.Simple('decodeAsInt24', getByte32Array(148), ['148']),
+            Expect.Simple('decodeAsUint256', getByte32Array(0), ['0', '0'], 'Zero uint256'),
+            Expect.Simple('decodeAsUint256', getByte32Array(148), ['148', '0'], 'Small uint256'),
+            Expect.Simple(
+              'decodeAsUint256',
+              getByte32Array(2n ** 128n - 1n),
+              [`${2n ** 128n - 1n}`, '0'],
+              'Highest number in Uint256.low',
+            ),
+            Expect.Simple(
+              'decodeAsUint256',
+              getByte32Array(BigInt(2) ** BigInt(128)),
+              ['0', '1'],
+              'Lowest number in Uint256.high',
+            ),
+            Expect.Simple(
+              'decodeAsUint256',
+              getByte32Array(BigInt(2) ** BigInt(256) - BigInt(1)),
+              [`${2n ** 128n - 1n}`, `${2n ** 128n - 1n}`],
+              'Highest number in Uint256.high and Uint256.low',
+            ),
+            Expect.Simple(
+              'decodeAsAddress',
+              getByte32Array(2n ** 180n),
+              [`${2n ** 180n}`],
+              'Using an address bigger than 160 bits',
+            ),
+            Expect.Simple('decodeAsAddressAndUint256', getByte32Array(1040, 1500), [
+              '1040',
+              '1500',
+              '0',
+            ]),
+          ]),
           File.Simple('abiEncodeDynamic', [
             Expect.Simple('simpleDynamic', [], getByte32Array(32, 3, 2, 3, 5)),
             Expect.Simple(

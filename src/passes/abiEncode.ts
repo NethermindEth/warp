@@ -11,15 +11,13 @@ import { TranspileFailedError } from '../utils/errors';
  *
  * Special care needs to be taken when encoding addresses since in Ethereum they
  * take 20 byte but in Starknet they take the whole felt space.
- * An address whose size fits in 20 bytes will have the exact same encoding
- * in both the Solidity and Cairo transpiled contract when encoding it in any
- * form (packed or not).
- * If the address size is bigger than 20 bytes then:
- *   - `encodePacked` will only encode its first 20 bytes and any extra would be
- *   lost
- *   - `encode` will behave normally since it will have the whole 32 byte slot to
- *   encode, but if tried to decode as an address in Ethereum an exception will be
- *   thrown since it won't fit in a Solidity address type
+ * An address whose size fits in 20 bytes will have the exact same encoding as
+ * solidity, but not the same packed encoding.
+ *   - ABI encoding will behave normally since it will have the whole 32 byte slot to
+ *   encode the address, but if tried to decode as an address in Ethereum an exception will
+ *   be thrown since it won't fit in a Solidity address type
+ *   - ABI packed encoding will encode it as 32 bytes instead of the usual 20 bytes, producing
+ *   a different result than solidity in all cases where an address is involved.
  */
 export class ABIEncode extends ASTMapper {
   // Function to add passes that should have been run before this pass
@@ -34,7 +32,7 @@ export class ABIEncode extends ASTMapper {
     if (
       node.kind !== FunctionCallKind.FunctionCall ||
       node.vFunctionCallType !== ExternalReferenceType.Builtin ||
-      !['encodePacked', 'encode', 'encodeWithSelector', 'encodeWithSignature'].includes(
+      !['decode', 'encodePacked', 'encode', 'encodeWithSelector', 'encodeWithSignature'].includes(
         node.vFunctionName,
       )
     ) {
@@ -43,6 +41,9 @@ export class ABIEncode extends ASTMapper {
 
     let replacement: FunctionCall;
     switch (node.vFunctionName) {
+      case 'decode':
+        replacement = ast.getUtilFuncGen(node).abi.decode.gen(node.vArguments);
+        break;
       case 'encode':
         replacement = ast.getUtilFuncGen(node).abi.encode.gen(node.vArguments);
         break;
