@@ -214,7 +214,7 @@ function userDefDefault(
       ast,
     );
   throw new TranspileFailedError(
-    `Can't get a default value for user defined: ${printNode(nodeType.definition)}`,
+    `Couldn't get a default value for user defined: ${printNode(nodeType.definition)}`,
   );
 }
 
@@ -273,8 +273,8 @@ function pointerDefault(
   else if (nodeType.to instanceof UserDefinedType) {
     return userDefDefault(nodeType.to, parentNode, ast);
   } else {
-    throw new NotSupportedYetError(
-      `Can't get a default value for pointer: ${printTypeNode(nodeType)}`,
+    throw new TranspileFailedError(
+      `Couldn't get a default value for pointer: ${printTypeNode(nodeType)}`,
     );
   }
 }
@@ -285,8 +285,8 @@ function getTupleTypeString(nodeType: ArrayType): string {
     if (node.to instanceof ArrayType)
       return `${getTupleTypeString(node.to)} memory[${nodeType.size}]`;
     else
-      throw new NotSupportedYetError(
-        `Can't get tuple type string, is not ArrayType: ${printTypeNode(node.to)}`,
+      throw new TranspileFailedError(
+        `Couldn't get tuple type string, is not ArrayType: ${printTypeNode(node.to)}`,
       );
   } else {
     return nodeType.pp();
