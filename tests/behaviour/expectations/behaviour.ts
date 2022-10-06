@@ -75,6 +75,11 @@ export const expectations = flatten(
             Expect.Simple('booleans', ['1', '1'], ['2', '1', '1']),
             Expect.Simple('enums', ['3', '2'], ['2', '3', '2']),
             Expect.Simple(
+              'addressArray',
+              ['2', '3', `${2n ** 180n}`, '2', '5', '7'],
+              getByte32Array(2, 3, 2n ** 180n, 5, 7),
+            ),
+            Expect.Simple(
               'bArray',
               ['3', '2', '3', '5', '4', '7', '11', '13', '17'],
               ['7', '2', '3', '5', '7', '11', '13', '17'],

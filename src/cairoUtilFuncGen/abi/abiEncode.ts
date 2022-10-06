@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  AddressType,
   ArrayType,
   generalizeType,
   SourceUnit,
@@ -171,7 +172,9 @@ export class AbiEncode extends AbiBase {
     // Is value type
     const size = getPackedByteSize(type, this.ast.compilerVersion);
     const instructions: string[] = [];
-    if (size < 32) {
+    // packed size of addresses is 32 bytes, but they are treated as felts,
+    // so they should be converted to Uint256 accordingly
+    if (size < 32 || type instanceof AddressType) {
       this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
       instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode});`);
       varToEncode = `${varToEncode}256`;
