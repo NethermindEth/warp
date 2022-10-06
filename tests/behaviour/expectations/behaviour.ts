@@ -3350,6 +3350,12 @@ export const expectations = flatten(
             Expect.Simple('f', ['90000', '0'], ['10000', '0']),
             Expect.Simple('f', ['110000', '0'], ['0', '0']),
           ]),
+          File.Simple('modifierRecursive', [
+            new Expect('modifier', [
+              ['fact', ['5', '0'], ['120', '0'], '0'],
+              ['called', [], ['6', '0'], '0'],
+            ]),
+          ]),
           File.Simple('modifierWithReturn', [
             Expect.Simple('returnFiveThroughModifiers', [], ['5']),
           ]),
