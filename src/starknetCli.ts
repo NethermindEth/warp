@@ -121,6 +121,34 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
   }
 }
 
+async function waitUntilNonceUpdate(
+  accountNonce: bigint,
+  options: IDeployProps,
+  sleep_time = 1000,
+  tries = 10,
+  delayCallback: (ms: number) => Promise<void> = (ms) =>
+    new Promise((resolve) => setTimeout(resolve, ms)),
+): Promise<void> {
+  const curr_result = getAccountNonce(options);
+  assert(curr_result !== undefined, `Could not get the nonce for the account ${options.account}`);
+  if (BigInt(curr_result) > accountNonce || tries <= 0) {
+    return;
+  }
+  process.on('SIGINT' || 'SIGQUIT' || 'SIGTERM', () => {
+    console.warn(
+      ' \x1b[33m WARNING \x1b[0m: \x1b[31mwaitUntilNonceUpdate\x1b[0m abruptly stopped!!, please wait until starknet updates the Account nonce',
+    );
+    process.exit(1);
+  });
+  process.stdout.write(
+    `\x1b[5m \uD83D\uDD34 \x1b[0m Waiting for next \x1b[34m${sleep_time / 1000}\x1b[0m second${
+      sleep_time !== 1000 ? 's' : ''
+    }, until Nonce is updated on the network \r`,
+  );
+  await delayCallback(sleep_time);
+  await waitUntilNonceUpdate(accountNonce, options, sleep_time * 2, tries - 1, delayCallback);
+}
+
 export async function runStarknetDeploy(filePath: string, options: IDeployProps) {
   if (options.network == undefined) {
     logError(
@@ -165,11 +193,15 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
     let classHash;
     let accountNonce;
     if (!options.no_wallet) {
+      if (options.account === undefined) {
+        console.warn(`WARNING: Account not provided. Using the __default__ account.`);
+      }
       const result = getAccountNonce(options);
       assert(result !== undefined, `Could not get the nonce for the account ${options.account}`);
       accountNonce = BigInt(result);
       assert(compileResult.resultPath !== undefined);
       classHash = declareContract(compileResult.resultPath, options, accountNonce);
+      await waitUntilNonceUpdate(accountNonce, options);
     }
     const classHashOption = classHash ? `--class_hash ${classHash}` : '';
     const resultPath = compileResult.resultPath;
@@ -187,6 +219,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
         stdio: 'inherit',
       },
     );
+    if (accountNonce) await waitUntilNonceUpdate(accountNonce, options);
   } catch {
     logError('starknet deploy failed');
   }
@@ -312,9 +345,6 @@ function declareContract(
 }
 
 function getAccountNonce(options: IDeployProps): string | undefined {
-  if (options.account === undefined) {
-    console.warn(`WARNING: Account not provided. Using the __default__ account.`);
-  }
   if (options.network == undefined) {
     logError(
       `Error: Exception: feeder_gateway_url must be specified with the "deploy" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
