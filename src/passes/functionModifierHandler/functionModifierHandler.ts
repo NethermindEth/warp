@@ -2,15 +2,20 @@ import assert from 'assert';
 import {
   Assignment,
   ASTNode,
+  Expression,
   ExpressionStatement,
+  FunctionCall,
   FunctionDefinition,
   FunctionKind,
   FunctionVisibility,
+  Identifier,
+  MemberAccess,
   ModifierDefinition,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
+import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction } from '../../utils/functionGeneration';
 import {
@@ -77,21 +82,17 @@ export class FunctionModifierHandler extends ASTMapper {
     const scope = node.vScope;
     const name = node.isConstructor ? `constructor` : `function_${node.name}`;
 
-    // The body of `node` does not need to be cloned, it is going to be extracted
-    // and placed as the body of the cloned function instead
-    const funcBody = node.vBody;
-    node.vBody = undefined;
     const funcDef = cloneASTNode(node, ast);
+    // When `node` gets cloned all recursive function calls inside it change their reference
+    // to the cloned function `funcDef`, but `funcDef` modifiers are going to be removed, so
+    // those function calls should instead reference the modified function which is `node`
+    updateReferencesOnRecursiveCalls(funcDef, node);
 
     funcDef.name = `${ORIGINAL_FUNCTION_PREFIX}${name}_${this.count++}`;
     funcDef.visibility = FunctionVisibility.Internal;
     funcDef.isConstructor = false;
     funcDef.kind = FunctionKind.Function;
     funcDef.vModifiers = [];
-    if (funcBody !== undefined) {
-      funcDef.vBody = funcBody;
-      ast.registerChild(funcBody, funcDef);
-    }
 
     createOutputCaptures(funcDef, node, ast).forEach(([input, assignment]) => {
       funcDef.vParameters.vParameters.push(input);
@@ -206,4 +207,23 @@ function createAssignmentStatement(
       rhsIdentifier,
     ),
   );
+}
+function updateReferencesOnRecursiveCalls(
+  funcDef: FunctionDefinition,
+  functToCall: FunctionDefinition,
+) {
+  funcDef
+    .getChildren()
+    .filter((node): node is FunctionCall => node instanceof FunctionCall)
+    .forEach((f) => {
+      const refDeclaration = f.vReferencedDeclaration;
+      if (refDeclaration !== undefined && refDeclaration.id === funcDef.id) {
+        assert(canUpdateReference(f.vExpression), `Unexpected expression in ${printNode(f)}`);
+        f.vExpression.referencedDeclaration = functToCall.id;
+      }
+    });
+}
+
+function canUpdateReference(node: Expression): node is Identifier | MemberAccess {
+  return node instanceof Identifier || node instanceof MemberAccess;
 }
