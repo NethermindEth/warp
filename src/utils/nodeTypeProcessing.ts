@@ -285,9 +285,10 @@ export function safeGetNodeTypeInCtx(
 /**
  * Given a type returns its packed solidity bytes size
  * e.g. uint8 -> byte size is 1
- *      address -> byte size is 20
  *      uint16[3] -> byte size is 6
  *      and so on
+ *  address are 32 bytes instead of 20 bytes due to size difference
+ *  between addresses in StarkNet and Ethereum
  *  For every type whose byte size can be known on compile time
  *  @param type Solidity type
  *  @param version required for calculating structs byte size
@@ -301,7 +302,7 @@ export function getPackedByteSize(type: TypeNode, version: string): number | big
     return type.size;
   }
   if (type instanceof AddressType) {
-    return 20;
+    return 32;
   }
   if (
     type instanceof BoolType ||

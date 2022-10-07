@@ -39,9 +39,11 @@ import { AbiEncode } from './abi/abiEncode';
 import { AbiEncodePacked } from './abi/abiEncodePacked';
 import { AbiEncodeWithSelector } from './abi/abiEncodeWithSelector';
 import { AbiEncodeWithSignature } from './abi/abiEncodeWithSignature';
+import { AbiDecode } from './abi/abiDecode';
 
 export class CairoUtilFuncGen {
   abi: {
+    decode: AbiDecode;
     encode: AbiEncode;
     encodePacked: AbiEncodePacked;
     encodeWithSelector: AbiEncodeWithSelector;
@@ -205,6 +207,7 @@ export class CairoUtilFuncGen {
 
     const abiEncode = new AbiEncode(memoryRead, ast, sourceUnit);
     this.abi = {
+      decode: new AbiDecode(memoryRead, ast, sourceUnit),
       encode: abiEncode,
       encodePacked: new AbiEncodePacked(memoryRead, ast, sourceUnit),
       encodeWithSelector: new AbiEncodeWithSelector(abiEncode, ast, sourceUnit),

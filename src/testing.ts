@@ -199,7 +199,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/typestrings/structArrays', 'Success'],
     ['example_contracts/typestrings/structs', 'Success'],
     ['example_contracts/units', 'Success'],
-    ['example_contracts/unsupportedFunctions/abi', `WillNotSupport`],
+    ['example_contracts/unsupportedFunctions/abi', `Success`],
     ['example_contracts/unsupportedFunctions/keccak256', `Success`],
     ['example_contracts/unsupportedFunctions/ecrecover', `Success`],
     ['example_contracts/unsupportedFunctions/addmod', `Success`],

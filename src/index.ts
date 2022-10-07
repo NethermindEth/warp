@@ -45,7 +45,11 @@ export type OutputOptions = {
   result: boolean;
 };
 
-type CliOptions = CompilationOptions & TranspilationOptions & PrintOptions & OutputOptions;
+type CliOptions = CompilationOptions &
+  TranspilationOptions &
+  PrintOptions &
+  OutputOptions &
+  IOptionalDebugInfo;
 
 const program = new Command();
 
@@ -57,6 +61,7 @@ program
   .option('--highlight <ids...>')
   .option('--order <passOrder>')
   .option('-o, --output-dir <path>', 'Output directory for transpiled Cairo files.', 'warp_output')
+  .option('-d, --debug-info', 'Include debug information.', false)
   .option('--print-trees')
   .option('--no-result')
   .option('--no-stubs')
@@ -81,11 +86,15 @@ program
             outputResult(name, cairo, options, cairoSuffix, abi);
             return createCairoFileName(name, cairoSuffix);
           })
-          .map((file) => postProcessCairoFile(file, options.outputDir, contractToHashMap))
+          .map((file) =>
+            postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
+          )
           .forEach((file: string) => {
             if (options.compileCairo) {
               const { success, resultPath, abiPath } = compileCairo(
                 path.join(options.outputDir, file),
+                path.resolve(__dirname, '..'),
+                options,
               );
               if (!success) {
                 if (resultPath) {
@@ -159,12 +168,12 @@ program
   });
 
 export interface IOptionalDebugInfo {
-  debug_info: boolean;
+  debugInfo: boolean;
 }
 
 program
   .command('compile <file>')
-  .option('-d, --debug_info', 'Include debug information.', false)
+  .option('-d, --debug-info', 'Include debug information.', false)
   .action((file: string, options: IOptionalDebugInfo) => {
     runStarknetCompile(file, options);
   });
