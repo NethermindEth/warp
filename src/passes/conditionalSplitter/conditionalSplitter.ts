@@ -169,11 +169,12 @@ export class ConditionalSplitter extends ASTMapper {
 
   visitExpressionStatement(node: ExpressionStatement, ast: AST): void {
     let visitNode: ASTNode = node;
-    if (node.vExpression instanceof Assignment) {
-      if (node.vExpression.vLeftHandSide instanceof TupleExpression) {
-        visitNode = this.splitTupleAssignment(node.vExpression, ast);
-        ast.replaceNode(node, visitNode);
-      }
+    if (
+      node.vExpression instanceof Assignment &&
+      node.vExpression.vLeftHandSide instanceof TupleExpression
+    ) {
+      visitNode = this.splitTupleAssignment(node.vExpression, ast);
+      ast.replaceNode(node, visitNode);
     }
 
     this.commonVisit(visitNode, ast);
@@ -187,7 +188,8 @@ export class ConditionalSplitter extends ASTMapper {
       return;
     }
 
-    // No need to create temp vars for state vars
+    // No need to create temp vars for state vars since they
+    // are functionalized later during the reference pass
     if (
       node.vLeftHandSide instanceof Identifier &&
       identifierReferenceStateVar(node.vLeftHandSide)
@@ -215,7 +217,7 @@ export class ConditionalSplitter extends ASTMapper {
       this.splitFunctionCallWithReturn(node, returnTypes[0], ast);
     } else {
       throw new TranspileFailedError(
-        `ExpressionSplitter expects functions to have at most 1 return argument. ${printNode(
+        `ConditionalSplitter expects functions to have at most 1 return argument. ${printNode(
           node,
         )} ${node.vFunctionName} has ${returnTypes.length}`,
       );
