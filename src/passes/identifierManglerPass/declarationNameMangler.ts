@@ -19,7 +19,6 @@ import {
 } from '../../utils/nameModifiers';
 import { isNameless } from '../../utils/utils';
 
-import createKeccakHash from 'keccak';
 import { safeCanonicalHash } from '../../utils/nodeTypeProcessing';
 // Terms grabbed from here
 // https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/cairo/lang/compiler/cairo.ebnf
