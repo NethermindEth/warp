@@ -27,7 +27,6 @@ export function addPrivateSuperFunctions(
       )
       .map((func) => {
         const existingEntry = currentFunctions.get(func.name);
-        console.log({ existingEntry });
         const clonedFunction = cloneASTNode(func, ast);
         idRemapping.set(func.id, clonedFunction);
         clonedFunction.scope = node.id;
