@@ -176,7 +176,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
           : options.wallet === undefined
           ? `${classHashOption}`
           : `${classHashOption} --wallet ${options.wallet}`
-      } ${inputs} ${options.account !== undefined ? `--account ${options.account}` : ''} `,
+      } ${inputs} ${options.account !== undefined ? `--account ${options.account}` : ''}`,
       {
         stdio: 'inherit',
       },
@@ -266,7 +266,7 @@ export async function runStarknetCallOrInvoke(
 function declareContract(filePath: string, options: IDeclareOptions): string | undefined {
   // wallet check
   if (!options.no_wallet) {
-    if (options.wallet == undefined) {
+    if (options.wallet === undefined) {
       logError(
         'A wallet must be specified (using --wallet or the STARKNET_WALLET environment variable), unless specifically using --no_wallet.',
       );
@@ -274,7 +274,7 @@ function declareContract(filePath: string, options: IDeclareOptions): string | u
     }
   }
   // network check
-  if (options.network == undefined) {
+  if (options.network === undefined) {
     logError(
       `Error: Exception: feeder_gateway_url must be specified with the declare command.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
     );
@@ -283,7 +283,7 @@ function declareContract(filePath: string, options: IDeclareOptions): string | u
   const networkOption = options.network ? `--network ${options.network}` : ``;
   const walletOption = options.no_wallet
     ? '--no_wallet'
-    : options.wallet
+    : options.wallet !== undefined
     ? `--wallet ${options.wallet}`
     : ``;
   const accountOption = options.account ? `--account ${options.account}` : '';
