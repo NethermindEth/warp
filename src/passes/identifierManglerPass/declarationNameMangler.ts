@@ -95,7 +95,7 @@ export class DeclarationNameMangler extends ASTMapper {
   nodesNameModified: ASTNode[] = [];
 
   // This strategy should allow checked demangling post transpilation for a more readable result
-  createNewExternalFunctionName(fd: FunctionDefinition): string {
+  createNewFunctionName(fd: FunctionDefinition): string {
     return !isNameless(fd)
       ? `${fd.name}_${fd.canonicalSignatureHash(ABIEncoderVersion.V2)}`
       : fd.name;
@@ -104,11 +104,6 @@ export class DeclarationNameMangler extends ASTMapper {
   // Return a new id formatted to achieve the minimum length
   getFormattedId(): string {
     return (this.lastUsedId++).toString().padStart(this.initialIdWidth, '0');
-  }
-
-  // This strategy should allow checked demangling post transpilation for a more readable result
-  createNewInternalFunctionName(existingName: string): string {
-    return `${MANGLED_INTERNAL_USER_FUNCTION}${this.getFormattedId()}_${existingName}`;
   }
 
   createNewTypeName(existingName: string): string {
@@ -124,6 +119,7 @@ export class DeclarationNameMangler extends ASTMapper {
     // by visitContractDefinition and visitSourceUnit
     return;
   }
+
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     if (!node.stateVariable) {
       this.mangleVariableDeclaration(node);
@@ -136,22 +132,15 @@ export class DeclarationNameMangler extends ASTMapper {
     this.nodesNameModified.push(node);
     node.name = this.createNewVariableName(node.name);
   }
+
   mangleStructDefinition(node: StructDefinition): void {
     checkSourceTerms(node.name, node);
     node.vMembers.forEach((m) => this.mangleVariableDeclaration(m));
   }
+
   mangleFunctionDefinition(node: FunctionDefinition): void {
     if (node.isConstructor) return;
-
-    switch (node.visibility) {
-      case FunctionVisibility.External:
-      case FunctionVisibility.Public:
-        node.name = this.createNewExternalFunctionName(node);
-        break;
-      default:
-        this.nodesNameModified.push(node);
-        node.name = this.createNewInternalFunctionName(node.name);
-    }
+    node.name = this.createNewFunctionName(node);
   }
   mangleEventDefinition(node: EventDefinition): void {
     node.name = `${node.name}_${node.canonicalSignatureHash(ABIEncoderVersion.V2)}`;
