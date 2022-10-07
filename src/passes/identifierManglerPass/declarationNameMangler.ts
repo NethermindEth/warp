@@ -2,7 +2,6 @@ import {
   VariableDeclaration,
   FunctionDefinition,
   StructDefinition,
-  FunctionVisibility,
   SourceUnit,
   ContractDefinition,
   ASTNode,
@@ -20,6 +19,8 @@ import {
 } from '../../utils/nameModifiers';
 import { isNameless } from '../../utils/utils';
 
+import createKeccakHash from 'keccak';
+import { safeCanonicalHash } from '../../utils/nodeTypeProcessing';
 // Terms grabbed from here
 // https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/cairo/lang/compiler/cairo.ebnf
 export const reservedTerms = new Set<string>([
@@ -95,10 +96,8 @@ export class DeclarationNameMangler extends ASTMapper {
   nodesNameModified: ASTNode[] = [];
 
   // This strategy should allow checked demangling post transpilation for a more readable result
-  createNewFunctionName(fd: FunctionDefinition): string {
-    return !isNameless(fd)
-      ? `${fd.name}_${fd.canonicalSignatureHash(ABIEncoderVersion.V2)}`
-      : fd.name;
+  createNewFunctionName(fd: FunctionDefinition, ast: AST): string {
+    return !isNameless(fd) ? `${fd.name}_${safeCanonicalHash(fd, ast)}` : fd.name;
   }
 
   // Return a new id formatted to achieve the minimum length
@@ -138,24 +137,24 @@ export class DeclarationNameMangler extends ASTMapper {
     node.vMembers.forEach((m) => this.mangleVariableDeclaration(m));
   }
 
-  mangleFunctionDefinition(node: FunctionDefinition): void {
+  mangleFunctionDefinition(node: FunctionDefinition, ast: AST): void {
     if (node.isConstructor) return;
-    node.name = this.createNewFunctionName(node);
+    node.name = this.createNewFunctionName(node, ast);
   }
   mangleEventDefinition(node: EventDefinition): void {
     node.name = `${node.name}_${node.canonicalSignatureHash(ABIEncoderVersion.V2)}`;
   }
-  mangleContractDefinition(node: ContractDefinition): void {
+  mangleContractDefinition(node: ContractDefinition, ast: AST): void {
     checkSourceTerms(node.name, node);
     node.vStructs.forEach((s) => this.mangleStructDefinition(s));
-    node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n));
+    node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n, ast));
     node.vStateVariables.forEach((v) => this.mangleVariableDeclaration(v));
     node.vEvents.forEach((e) => this.mangleEventDefinition(e));
   }
   visitSourceUnit(node: SourceUnit, ast: AST): void {
     node.vStructs.forEach((s) => this.mangleStructDefinition(s));
-    node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n));
-    node.vContracts.forEach((n) => this.mangleContractDefinition(n));
+    node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n, ast));
+    node.vContracts.forEach((n) => this.mangleContractDefinition(n, ast));
     this.commonVisit(node, ast);
 
     // Checking if counter is greater than initialIdWidth digits. If so, names are
