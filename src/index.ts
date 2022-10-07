@@ -306,12 +306,26 @@ program
     runVenvSetup(options);
   });
 
-export type IDeclareOptions = IOptionalNetwork;
+export interface IDeclareOptions {
+  no_wallet: boolean;
+  network?: string;
+  wallet?: string;
+  account?: string;
+}
 
 program
   .command('declare <cairo_contract>')
   .description('Command to declare Cairo contract on a StarkNet Network.')
   .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .option(
+    '--account <account>',
+    'The name of the account. If not given, the default for the wallet will be used.',
+  )
+  .option(
+    '--wallet <wallet>',
+    'The name of the wallet, including the python module and wallet class.',
+    process.env.STARKNET_WALLET,
+  )
   .action(async (cairo_contract: string, options: IDeclareOptions) => {
     runStarknetDeclare(cairo_contract, options);
   });

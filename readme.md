@@ -146,16 +146,24 @@ warp deploy_account
 ### CLI Commands
 
 <hr> 
-To transpile a contract:
+To transpile a Solidity contract:
 
 ```bash
 warp transpile <path to Solidity contract>
 ```
 
-To deploy a Cairo contract:
+To declare a StarkNet contract:
 
 ```bash
-warp deploy <path to Cairo contract>
+warp declare <path to StarkNet contract>
+```
+
+_Please note to deploy a contract you will first have to declare it._
+
+To deploy a StarkNet contract:
+
+```bash
+warp deploy <path to StarkNet contract>
 ```
 
 The deploy command will generate the compiled json file as well as the abi json
@@ -191,7 +199,7 @@ Please see the list below:
 |                   delegate calls                    | :hammer_and_pick: |
 |                   low level calls                   |        :x:        |
 |                 indexed parameters                  |    :question:     |
-|              abi.decode for non-value types         |    :question:     |
+|           abi.decode for non-value types            |    :question:     |
 |              nested tuple expressions               |    :question:     |
 |                typeName expressions                 |    :question:     |
 |                      gasleft()                      |    :question:     |

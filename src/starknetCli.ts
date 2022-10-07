@@ -11,7 +11,7 @@ import {
 } from './index';
 import { encodeInputs } from './passes';
 import { CLIError, logError } from './utils/errors';
-import { getDependencyGraph, hashFilename, reducePath } from './utils/postCairoWrite';
+import { callClassHashScript } from './utils/utils';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
@@ -61,43 +61,8 @@ export function compileCairo(
   }
 }
 
-async function compileCairoDependencies(
-  root: string,
-  graph: Map<string, string[]>,
-  filesCompiled: Map<string, CompileResult>,
-  debugInfo: boolean,
-  network: string,
-): Promise<CompileResult> {
-  const compiled = filesCompiled.get(root);
-  if (compiled !== undefined) {
-    return compiled;
-  }
-
-  const dependencies = graph.get(root);
-  if (dependencies !== undefined) {
-    for (const filesToDeclare of dependencies) {
-      const result = await compileCairoDependencies(
-        filesToDeclare,
-        graph,
-        filesCompiled,
-        debugInfo,
-        network,
-      );
-      const fileLocationHash = hashFilename(reducePath(filesToDeclare, 'warp_output'));
-      filesCompiled.set(fileLocationHash, result);
-    }
-  }
-
-  const { success, resultPath, abiPath } = compileCairo(root, path.resolve(__dirname, '..'));
-  if (!success) {
-    throw new CLIError(`Compilation of cairo file ${root} failed`);
-  }
-
-  return { success, resultPath, abiPath };
-}
-
-export function runStarknetCompile(filePath: string, debugInfo: IOptionalDebugInfo) {
-  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'), debugInfo);
+export function runStarknetCompile(filePath: string, debug_info: IOptionalDebugInfo) {
+  const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'), debug_info);
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
@@ -123,7 +88,7 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
 }
 
 export async function runStarknetDeploy(filePath: string, options: IDeployProps) {
-  if (options.network == undefined) {
+  if (options.network === undefined) {
     logError(
       `Error: Exception: feeder_gateway_url must be specified with the "deploy" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
     );
@@ -131,17 +96,9 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
   }
   // Shouldn't be fixed to warp_output (which is the default)
   // such option does not exists currently when deploying, should be added
-  const dependencyGraph = getDependencyGraph(filePath, 'warp_output');
-
-  let compileResult: CompileResult;
+  let compileResult;
   try {
-    compileResult = await compileCairoDependencies(
-      filePath,
-      dependencyGraph,
-      new Map<string, CompileResult>(),
-      options.debugInfo,
-      options.network,
-    );
+    compileResult = await compileCairo(filePath, path.resolve(__dirname, '..'), options);
   } catch (e) {
     if (e instanceof CLIError) {
       logError(e.message);
@@ -165,8 +122,8 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
   try {
     let classHash;
     if (!options.no_wallet) {
-      assert(compileResult.resultPath !== undefined);
-      classHash = declareContract(compileResult.resultPath, options.network);
+      assert(compileResult.resultPath !== undefined, 'resultPath should not be undefined');
+      classHash = callClassHashScript(compileResult.resultPath);
     }
     const classHashOption = classHash ? `--class_hash ${classHash}` : '';
     const resultPath = compileResult.resultPath;
@@ -264,11 +221,33 @@ export async function runStarknetCallOrInvoke(
   }
 }
 
-function declareContract(filePath: string, network?: string): string | undefined {
-  const networkOption = network ? `--network ${network}` : ``;
+function declareContract(filePath: string, options: IDeclareOptions): string | undefined {
+  // wallet check
+  if (!options.no_wallet) {
+    if (options.wallet === undefined) {
+      logError(
+        'A wallet must be specified (using --wallet or the STARKNET_WALLET environment variable), unless specifically using --no_wallet.',
+      );
+      return;
+    }
+  }
+  // network check
+  if (options.network === undefined) {
+    logError(
+      `Error: Exception: feeder_gateway_url must be specified with the declare command.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
+    );
+    return;
+  }
+  const networkOption = options.network ? `--network ${options.network}` : ``;
+  const walletOption = options.no_wallet
+    ? '--no_wallet'
+    : options.wallet !== undefined
+    ? `--wallet ${options.wallet}`
+    : ``;
+  const accountOption = options.account ? `--account ${options.account}` : '';
   try {
     const result = execSync(
-      `${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption}`,
+      `${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption} ${walletOption} ${accountOption}`,
       {
         encoding: 'utf8',
       },
@@ -287,7 +266,7 @@ export function runStarknetDeclare(filePath: string, options: IDeclareOptions) {
     return;
   } else {
     assert(resultPath !== undefined);
-    declareContract(resultPath, options.network);
+    declareContract(resultPath, options);
   }
 }
 
