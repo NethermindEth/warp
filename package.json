@@ -2,7 +2,7 @@
   "name": "@nethermindeth/warp",
   "version": "2.2.2",
   "description": "Solidity to Cairo Transpiler",
-  "main": "index.ts",
+  "main": "build/export.js",
   "author": "Nethermind",
   "engines": {
     "node": ">=16.0.0"
