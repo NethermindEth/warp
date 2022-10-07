@@ -15,23 +15,30 @@ export function addPrivateSuperFunctions(
 ): void {
   const currentFunctions: Map<string, FunctionDefinition> = new Map();
   // collect functions in the current contract
-  node.vFunctions.forEach((f) => currentFunctions.set(f.name, f));
+  node.vFunctions
+    .filter((f) => f.kind !== FunctionKind.Constructor)
+    .forEach((f) => currentFunctions.set(f.name, f));
   getBaseContracts(node).forEach((base, depth) => {
     base.vFunctions
       .filter(
         (func) =>
-          func.kind === FunctionKind.Function &&
+          func.kind !== FunctionKind.Constructor &&
           (node.kind === ContractKind.Interface ? isExternallyVisible(func) : true),
       )
       .map((func) => {
         const existingEntry = currentFunctions.get(func.name);
+        console.log({ existingEntry });
         const clonedFunction = cloneASTNode(func, ast);
         idRemapping.set(func.id, clonedFunction);
         clonedFunction.scope = node.id;
         if (existingEntry !== undefined) {
           idRemappingOverriders.set(func.id, existingEntry);
-          clonedFunction.name = `s${depth + 1}_${clonedFunction.name}`;
+          // We don't want to inherit the fallback function if an override exists because there can be no explicit references to it.
+          if (clonedFunction.kind === FunctionKind.Fallback) {
+            return null;
+          }
           clonedFunction.visibility = FunctionVisibility.Private;
+          clonedFunction.name = `s${depth + 1}_${clonedFunction.name}`;
         } else {
           currentFunctions.set(func.name, clonedFunction);
           idRemappingOverriders.set(func.id, clonedFunction);
@@ -40,6 +47,8 @@ export function addPrivateSuperFunctions(
         }
         return clonedFunction;
       })
+      // filter the nulls returned when trying to inheritr overriden fallback functions
+      .filter((f): f is FunctionDefinition => f !== null)
       .forEach((func) => {
         node.appendChild(func);
         fixSuperReference(func, base, node);
