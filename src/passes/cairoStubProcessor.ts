@@ -8,7 +8,7 @@ import {
   TranspileFailedError,
   WillNotSupportError,
 } from '../utils/errors';
-import { MANGLED_INTERNAL_USER_FUNCTION, MANGLED_LOCAL_VAR } from '../utils/nameModifiers';
+import { MANGLED_LOCAL_VAR } from '../utils/nameModifiers';
 import { isExternallyVisible } from '../utils/utils';
 
 export class CairoStubProcessor extends ASTMapper {
@@ -76,7 +76,7 @@ function processInternalFunctionTag(documentation: string, node: FunctionDefinit
   return processMacro(documentation, /INTERNALFUNC\((.*?)\)/g, (arg) => {
     const funcNames = contract.vFunctions.filter((f) => !isExternallyVisible(f)).map((f) => f.name);
     const matchingFuncs = funcNames.filter((name) => {
-      const regex = new RegExp(`${MANGLED_INTERNAL_USER_FUNCTION}[0-9]+_`);
+      const regex = new RegExp(`_[0-9a-z]+$`);
       return name.replace(regex, '') === arg;
     });
     if (matchingFuncs.length === 0) {

@@ -11,6 +11,7 @@ import {
   FixedBytesType,
   FunctionCall,
   FunctionCallKind,
+  FunctionDefinition,
   FunctionType,
   generalizeType,
   getNodeType,
@@ -30,6 +31,8 @@ import {
   VariableDeclaration,
   variableDeclarationToTypeNode,
 } from 'solc-typed-ast';
+import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
+import createKeccakHash from 'keccak';
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from './astPrinter';
 import { TranspileFailedError } from './errors';
@@ -218,6 +221,14 @@ export function isMapping(type: TypeNode): boolean {
   return base instanceof MappingType;
 }
 
+export function hasMapping(type: TypeNode): boolean {
+  const [base] = generalizeType(type);
+  if (base instanceof ArrayType) {
+    return base.elementT instanceof MappingType;
+  }
+  return base instanceof MappingType;
+}
+
 export function checkableType(type: TypeNode): boolean {
   return (
     type instanceof ArrayType ||
@@ -280,6 +291,23 @@ export function safeGetNodeTypeInCtx(
 ): TypeNode {
   getContainingSourceUnit(ctx);
   return getNodeTypeInCtx(arg, version, ctx);
+}
+
+export function safeCanonicalHash(f: FunctionDefinition, ast: AST) {
+  const hasMappingArg = f.vParameters.vParameters.some((p) =>
+    hasMapping(safeGetNodeType(p, ast.compilerVersion)),
+  );
+  if (hasMappingArg) {
+    const typeString = `${f.name}(${f.vParameters.vParameters.map((p) => p.typeString).join(',')})`;
+    const hash = createKeccakHash('keccak256')
+      .update(typeString)
+      .digest('hex')
+      .slice(2)
+      .slice(0, 4);
+    return hash;
+  } else {
+    return f.canonicalSignatureHash(ABIEncoderVersion.V2);
+  }
 }
 
 /**

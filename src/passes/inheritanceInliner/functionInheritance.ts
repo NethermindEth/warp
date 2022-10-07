@@ -1,12 +1,7 @@
-import assert from 'assert';
 import { ContractKind, FunctionDefinition, FunctionKind, FunctionVisibility } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { CairoContract } from '../../ast/cairoNodes';
-import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
-import { TranspileFailedError } from '../../utils/errors';
-import { createCallToFunction } from '../../utils/functionGeneration';
-import { createBlock, createIdentifier, createReturn } from '../../utils/nodeTemplates';
 import { isExternallyVisible } from '../../utils/utils';
 import { fixSuperReference, getBaseContracts } from './utils';
 
@@ -20,23 +15,30 @@ export function addPrivateSuperFunctions(
 ): void {
   const currentFunctions: Map<string, FunctionDefinition> = new Map();
   // collect functions in the current contract
-  node.vFunctions.forEach((f) => currentFunctions.set(f.name, f));
+  node.vFunctions
+    .filter((f) => f.kind !== FunctionKind.Constructor)
+    .forEach((f) => currentFunctions.set(f.name, f));
   getBaseContracts(node).forEach((base, depth) => {
     base.vFunctions
       .filter(
         (func) =>
-          func.kind === FunctionKind.Function &&
+          func.kind !== FunctionKind.Constructor &&
           (node.kind === ContractKind.Interface ? isExternallyVisible(func) : true),
       )
       .map((func) => {
         const existingEntry = currentFunctions.get(func.name);
+        console.log({ existingEntry });
         const clonedFunction = cloneASTNode(func, ast);
         idRemapping.set(func.id, clonedFunction);
-        clonedFunction.name = `s${depth + 1}_${clonedFunction.name}`;
-        clonedFunction.visibility = FunctionVisibility.Private;
         clonedFunction.scope = node.id;
         if (existingEntry !== undefined) {
           idRemappingOverriders.set(func.id, existingEntry);
+          // We don't want to inherit the fallback function if an override exists because there can be no explicit references to it.
+          if (clonedFunction.kind === FunctionKind.Fallback) {
+            return null;
+          }
+          clonedFunction.visibility = FunctionVisibility.Private;
+          clonedFunction.name = `s${depth + 1}_${clonedFunction.name}`;
         } else {
           currentFunctions.set(func.name, clonedFunction);
           idRemappingOverriders.set(func.id, clonedFunction);
@@ -45,160 +47,11 @@ export function addPrivateSuperFunctions(
         }
         return clonedFunction;
       })
+      // filter the nulls returned when trying to inheritr overriden fallback functions
+      .filter((f): f is FunctionDefinition => f !== null)
       .forEach((func) => {
         node.appendChild(func);
         fixSuperReference(func, base, node);
       });
   });
-}
-
-// Add inherited public/external functions
-export function addNonoverridenPublicFunctions(
-  node: CairoContract,
-  idRemapping: Map<number, FunctionDefinition>,
-  ast: AST,
-) {
-  // First, find all function names that should be callable from outside the derived contract
-  const visibleFunctionNames = squashInterface(node);
-  // Next, resolve these names to the FunctionDefinition nodes that should actually get called
-  // This means searching back through the inheritance chain to find the first match
-  const resolvedVisibleFunctions = [...visibleFunctionNames].map((name) =>
-    resolveFunctionName(node, name),
-  );
-
-  // Only functions that are defined only in base contracts need to get moved
-  const functionsToMove = resolvedVisibleFunctions.filter((func) => func.vScope !== node);
-
-  // All the functions from the inheritance chain have already been copied into this contract as private functions
-  // So to make them accessible with the expected name, new public or external functions are created that call the private one
-  functionsToMove.forEach((f) => {
-    const privateFunc = idRemapping.get(f.id);
-    assert(
-      privateFunc !== undefined,
-      `Unable to find inlined base function for ${printNode(f)} in ${node.name}`,
-    );
-    node.appendChild(createDelegatingFunction(f, privateFunc, node.id, ast));
-  });
-
-  // Special functions (fallback, receive) have an empty name and don't have their respective private duplicate,
-  // therefore they need to be handled separately
-  findSpecialFunction(node, FunctionKind.Fallback, ast);
-  findSpecialFunction(node, FunctionKind.Receive, ast);
-}
-
-// Get all visible function names accessible from a contract
-function getVisibleFunctions(node: CairoContract): Set<string> {
-  const visibleFunctions = new Set(
-    node.vFunctions
-      .filter((func) => isExternallyVisible(func) && func.kind === FunctionKind.Function)
-      .map((func) => func.name),
-  );
-
-  return visibleFunctions;
-}
-
-function squashInterface(node: CairoContract): Set<string> {
-  const visibleFunctions = getVisibleFunctions(node);
-  getBaseContracts(node).forEach((contract) => {
-    // The public interfaces of a library are not exposed by the contract itself
-    if (contract.kind === ContractKind.Library) return;
-    const inheritedVisibleFunctions = getVisibleFunctions(contract);
-    inheritedVisibleFunctions.forEach((f) => visibleFunctions.add(f));
-  });
-
-  return visibleFunctions;
-}
-
-function findFunctionName(
-  node: CairoContract,
-  functionName: string,
-): FunctionDefinition | undefined {
-  const matches = node.vFunctions.filter((f) => f.name === functionName);
-  if (matches.length > 1) {
-    throw new TranspileFailedError(
-      `InheritanceInliner expects unique function names, was IdentifierManger run? Found multiple ${functionName} in ${printNode(
-        node,
-      )} ${node.name}`,
-    );
-  } else if (matches.length === 1) {
-    return matches[0];
-  } else return undefined;
-}
-
-function resolveFunctionName(node: CairoContract, functionName: string): FunctionDefinition {
-  let matches = findFunctionName(node, functionName);
-  if (matches !== undefined) return matches;
-
-  for (const base of getBaseContracts(node)) {
-    matches = findFunctionName(base, functionName);
-    if (matches !== undefined) return matches;
-  }
-
-  throw new TranspileFailedError(
-    `Failed to find ${functionName} in ${printNode(node)} ${node.name}`,
-  );
-}
-
-function createDelegatingFunction(
-  funcToCopy: FunctionDefinition,
-  delegate: FunctionDefinition,
-  scope: number,
-  ast: AST,
-): FunctionDefinition {
-  assert(
-    funcToCopy.kind === FunctionKind.Function,
-    `Attempted to copy non-member function ${funcToCopy.name}`,
-  );
-  assert(
-    isExternallyVisible(funcToCopy),
-    `Attempted to copy non public/external function ${funcToCopy.name}`,
-  );
-
-  const oldBody = funcToCopy.vBody;
-  funcToCopy.vBody = undefined;
-  const newFunc = cloneASTNode(funcToCopy, ast);
-  funcToCopy.vBody = oldBody;
-
-  const newBody = createBlock(
-    [
-      createReturn(
-        createCallToFunction(
-          delegate,
-          newFunc.vParameters.vParameters.map((v) =>
-            createIdentifier(v, ast, undefined, funcToCopy),
-          ),
-          ast,
-        ),
-        newFunc.vReturnParameters.id,
-        ast,
-      ),
-    ],
-    ast,
-  );
-
-  newFunc.scope = scope;
-  newFunc.vOverrideSpecifier = undefined;
-  newFunc.isConstructor = false;
-  // Modifiers are invoked in the private function already
-  newFunc.vModifiers = [];
-  newFunc.vBody = newBody;
-  newFunc.acceptChildren();
-  ast.setContextRecursive(newFunc);
-
-  return newFunc;
-}
-function findSpecialFunction(node: CairoContract, kind: FunctionKind, ast: AST): void {
-  for (const contract of node.vLinearizedBaseContracts) {
-    for (const func of contract.vFunctions) {
-      if (func.kind === kind) {
-        if (func.vScope !== node) {
-          const newFunc = cloneASTNode(func, ast);
-          newFunc.scope = node.id;
-          newFunc.vOverrideSpecifier = undefined;
-          node.appendChild(newFunc);
-        }
-        return;
-      }
-    }
-  }
 }
