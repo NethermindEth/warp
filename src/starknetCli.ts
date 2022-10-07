@@ -11,7 +11,6 @@ import {
 } from './index';
 import { encodeInputs } from './passes';
 import { CLIError, logError } from './utils/errors';
-import { getDependencyGraph, hashFilename, reducePath } from './utils/postCairoWrite';
 import { callClassHashScript } from './utils/utils';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
@@ -60,41 +59,6 @@ export function compileCairo(
   }
 }
 
-async function compileCairoDependencies(
-  root: string,
-  graph: Map<string, string[]>,
-  filesCompiled: Map<string, CompileResult>,
-  debug_info = false,
-  network: string,
-): Promise<CompileResult> {
-  const compiled = filesCompiled.get(root);
-  if (compiled !== undefined) {
-    return compiled;
-  }
-
-  const dependencies = graph.get(root);
-  if (dependencies !== undefined) {
-    for (const filesToDeclare of dependencies) {
-      const result = await compileCairoDependencies(
-        filesToDeclare,
-        graph,
-        filesCompiled,
-        debug_info,
-        network,
-      );
-      const fileLocationHash = hashFilename(reducePath(filesToDeclare, 'warp_output'));
-      filesCompiled.set(fileLocationHash, result);
-    }
-  }
-
-  const { success, resultPath, abiPath } = compileCairo(root, path.resolve(__dirname, '..'));
-  if (!success) {
-    throw new CLIError(`Compilation of cairo file ${root} failed`);
-  }
-
-  return { success, resultPath, abiPath };
-}
-
 export function runStarknetCompile(filePath: string, debug_info: IOptionalDebugInfo) {
   const { success, resultPath } = compileCairo(filePath, path.resolve(__dirname, '..'), debug_info);
   if (!success) {
@@ -122,7 +86,7 @@ export function runStarknetStatus(tx_hash: string, option: IOptionalNetwork) {
 }
 
 export async function runStarknetDeploy(filePath: string, options: IDeployProps) {
-  if (options.network == undefined) {
+  if (options.network === undefined) {
     logError(
       `Error: Exception: feeder_gateway_url must be specified with the "deploy" subcommand.\nConsider passing --network or setting the STARKNET_NETWORK environment variable.`,
     );
@@ -130,17 +94,9 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
   }
   // Shouldn't be fixed to warp_output (which is the default)
   // such option does not exists currently when deploying, should be added
-  const dependencyGraph = getDependencyGraph(filePath, 'warp_output');
-
-  let compileResult: CompileResult;
+  let compileResult;
   try {
-    compileResult = await compileCairoDependencies(
-      filePath,
-      dependencyGraph,
-      new Map<string, CompileResult>(),
-      options.debug_info,
-      options.network,
-    );
+    compileResult = await compileCairo(filePath, path.resolve(__dirname, '..'), options);
   } catch (e) {
     if (e instanceof CLIError) {
       logError(e.message);
