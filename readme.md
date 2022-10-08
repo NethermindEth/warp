@@ -174,7 +174,7 @@ file. Use `warp deploy --help` command to see more deployment options.
 ### Libraries
 
 <hr>
-Libraries are bundled into the point of use, therefore if you try transpile a standalone library it will result in no output.  If you would like to transpile and deploy a standalone library please alter its declaration to `contract`.
+Libraries are bundled into the point of use, therefore if you try transpile a standalone library it will result in no output. If you would like to transpile and deploy a standalone library please alter its declaration to `contract`.
 
 <br>
 
@@ -199,7 +199,7 @@ Please see the list below:
 |                   delegate calls                    | :hammer_and_pick: |
 |                   low level calls                   |        :x:        |
 |                 indexed parameters                  |    :question:     |
-|           abi.decode for non-value types            |    :question:     |
+|           abi.decode for non-value types            | :hammer_and_pick: |
 |              nested tuple expressions               |    :question:     |
 |                typeName expressions                 |    :question:     |
 |                      gasleft()                      |    :question:     |
@@ -219,9 +219,10 @@ Please see the list below:
 |                      blockhash                      |    :question:     |
 |            functions pointers in storage            |    :question:     |
 |           sha256 (use keccak256 instead)            |        :x:        |
-|                  ternary operator                   |    :question:     |
+|                  ternary operator                   | :hammer_and_pick: |
 |                       receive                       |    :question:     |
-|                     Yul Blocks                      |    :question:     |
+|   Inline Yul Assembly - arithmetic (add, sub ...)   | :hammer_and_pick: |
+|  Inline Yul Assembly - (memory, calldata, storage)  |    :question:     |
 |                 user defined errors                 |    :question:     |
 |   function call options e.g x.f{gas: 10000}(arg1)   |    :question:     |
 | member access of address object e.g address.balance |    :question:     |

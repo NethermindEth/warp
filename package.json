@@ -1,6 +1,6 @@
 {
   "name": "@nethermindeth/warp",
-  "version": "2.2.2",
+  "version": "2.3.0",
   "description": "Solidity to Cairo Transpiler",
   "main": "build/export.js",
   "author": "Nethermind",
