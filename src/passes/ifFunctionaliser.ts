@@ -107,14 +107,17 @@ function splitBlockImpl(block: Block, split: Statement, ast: AST): Block | null 
     .getChildren()
     .findIndex((statement) => statement.getChildren(true).includes(split));
   if (splitIndex === -1) return null;
-  const newBlock =
-    block instanceof UncheckedBlock
-      ? new UncheckedBlock(ast.reserveId(), '', [])
-      : createBlock([], ast);
-  assert(
-    newBlock instanceof block.constructor && block instanceof newBlock.constructor,
-    `Encountered unexpected block subclass ${block.constructor.name} when splitting`,
-  );
+  let newBlock: Block | UncheckedBlock;
+  if (
+    block instanceof UncheckedBlock ||
+    block.getClosestParentByType(UncheckedBlock) !== undefined
+  ) {
+    newBlock = new UncheckedBlock(ast.reserveId(), '', []);
+  } else if (block instanceof Block) {
+    newBlock = createBlock([], ast);
+  } else {
+    assert(false, `Unhandled block subclass ${printNode(block)}`);
+  }
 
   let foundSplitPoint = false;
   const statementsToExtract: Statement[] = [];

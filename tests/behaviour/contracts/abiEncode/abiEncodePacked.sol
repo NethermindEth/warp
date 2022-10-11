@@ -21,6 +21,10 @@ contract WARP  {
     }
 
     // Reference Types
+    function addressArray(address[3] memory a1, address[] memory a2) public pure returns (bytes memory) {
+        return abi.encodePacked(a1, a2);
+    }
+
     function bArray (bytes memory a, bytes memory b) public pure returns (bytes memory) {
         return abi.encodePacked(a, b);
     }
