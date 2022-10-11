@@ -1,4 +1,6 @@
+import assert from 'assert';
 import {
+  ArrayType,
   DataLocation,
   Expression,
   FunctionCall,
@@ -44,4 +46,23 @@ export abstract class AbiBase extends StringIndexedFuncGenWithAuxiliar {
   public getOrCreateEncoding(_type: TypeNode): string {
     throw new Error('Method not implemented.');
   }
+}
+
+/**
+ * Returns a static array type string without the element
+ * information
+ * e.g.
+ *    uint8[20] -> uint8[]
+ *    uint[][8] -> uint[][]
+ *    uint[10][15] -> uint[10][]
+ *  @param type a static ArrayType
+ *  @returns static array without length information
+ */
+export function removeSizeInfo(type: ArrayType): string {
+  assert(type.size !== undefined, 'Expected an ArrayType with known type (a solc static array)');
+  const typeString = type.pp();
+  const reversedTypeString = typeString.split('').reverse().join('');
+  // swapping '[<num>]' for '[]' but since string is reversed we are swapping ']<num>[' for ']['
+  const parsedTypeStting = reversedTypeString.replace(/\][0-9]+\[/, '][');
+  return parsedTypeStting.split('').reverse().join('');
 }
