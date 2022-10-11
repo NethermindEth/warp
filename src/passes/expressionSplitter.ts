@@ -51,51 +51,22 @@ export class ExpressionSplitter extends ASTMapper {
 
   visitAssignment(node: Assignment, ast: AST): void {
     this.commonVisit(node, ast);
-    if (!(node.parent instanceof ExpressionStatement)) {
-      // No need to create temp vars for state vars
-      if (
-        node.vLeftHandSide instanceof Identifier &&
-        identifierReferenceStateVar(node.vLeftHandSide)
-      ) {
-        return;
-      }
-      const initialValue = node.vRightHandSide;
-      const location =
-        generalizeType(safeGetNodeType(initialValue, ast.compilerVersion))[1] ??
-        DataLocation.Default;
-      const varDecl = new VariableDeclaration(
-        ast.reserveId(),
-        '',
-        false, // constant
-        false, // indexed
-        this.eGen.next().value,
-        ast.getContainingScope(node),
-        false, // stateVariable
-        location,
-        StateVariableVisibility.Internal,
-        Mutability.Constant,
-        initialValue.typeString,
-      );
 
-      const tempVarStatement = createVariableDeclarationStatement([varDecl], initialValue, ast);
-      const tempVar = tempVarStatement.vDeclarations[0];
-
-      const leftHandSide = cloneASTNode(node.vLeftHandSide, ast);
-      const rightHandSide = createIdentifier(tempVar, ast, undefined, node);
-      const assignment = new Assignment(
-        ast.reserveId(),
-        '',
-        leftHandSide.typeString,
-        '=',
-        leftHandSide,
-        rightHandSide,
-      );
-      const updateVal = createExpressionStatement(ast, assignment);
-
-      ast.insertStatementBefore(node, tempVarStatement);
-      ast.insertStatementBefore(node, updateVal);
-      ast.replaceNode(node, createIdentifier(tempVar, ast));
+    // No need to split if it is a statement
+    if (node.parent instanceof ExpressionStatement) {
+      return;
     }
+
+    // No need to create temp vars for state vars since they
+    // are functionalized during the reference pass
+    if (
+      node.vLeftHandSide instanceof Identifier &&
+      identifierReferenceStateVar(node.vLeftHandSide)
+    ) {
+      return;
+    }
+
+    this.splitSimpleAssignment(node, ast);
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -127,6 +98,49 @@ export class ExpressionSplitter extends ASTMapper {
         )} ${node.vFunctionName} has ${returnTypes.length}`,
       );
     }
+  }
+
+  splitSimpleAssignment(node: Assignment, ast: AST): void {
+    const initialValue = node.vRightHandSide;
+    const location =
+      generalizeType(safeGetNodeType(initialValue, ast.compilerVersion))[1] ?? DataLocation.Default;
+    const varDecl = new VariableDeclaration(
+      ast.reserveId(),
+      '', // src
+      false, // constant
+      false, // indexed
+      this.eGen.next().value,
+      ast.getContainingScope(node),
+      false, // stateVariable
+      location,
+      StateVariableVisibility.Internal,
+      Mutability.Constant,
+      node.vLeftHandSide.typeString,
+    );
+
+    const tempVarStatement = createVariableDeclarationStatement([varDecl], initialValue, ast);
+    const tempVar = tempVarStatement.vDeclarations[0];
+
+    const leftHandSide = cloneASTNode(node.vLeftHandSide, ast);
+    const rightHandSide = createIdentifier(tempVar, ast, undefined, node);
+    const assignment = new Assignment(
+      ast.reserveId(),
+      '', // src
+      leftHandSide.typeString,
+      '=', // operator
+      leftHandSide,
+      rightHandSide,
+    );
+    const updateVal = createExpressionStatement(ast, assignment);
+
+    // b = (a=7) + 4
+    // ~>
+    // __warp_se = 7
+    // a = __warp_se
+    // b = (__warp_se) + 4
+    ast.insertStatementBefore(node, tempVarStatement);
+    ast.insertStatementBefore(node, updateVal);
+    ast.replaceNode(node, createIdentifier(tempVar, ast));
   }
 }
 

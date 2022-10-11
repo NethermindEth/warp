@@ -1,7 +1,6 @@
 import assert from 'assert';
 import {
   Assignment,
-  ContractDefinition,
   Conditional,
   DataLocation,
   ExpressionStatement,
@@ -9,7 +8,6 @@ import {
   FunctionDefinition,
   FunctionKind,
   FunctionVisibility,
-  Identifier,
   Mutability,
   StateVariableVisibility,
   VariableDeclaration,
@@ -133,6 +131,11 @@ function* expressionGenerator(prefix: string): Generator<string, string, unknown
     As the splitting of expressions can not happen before nor after handling conditionals,
     they have to be handled together.
 
+    Because is needed to handle together conditionals and other expression splitting this pass
+    inherit from ExpressionSplitter. The visitAssignment function is the same for both passes, 
+    but visitFunctionCall have a different strategy to compute the data location of the variable 
+    that will store the call, so its definition is overwritten.
+
     3. TUPLE ASSINGMENT SPLITTING:
     Converts a non-declaration tuple assignment into a declaration of temporary variables,
     and piecewise assignments (x,y) = (y,x) -> (int a, int b) = (y,x); x = a; y = b;
@@ -178,26 +181,6 @@ export class ConditionalSplitter extends ASTMapper {
     }
 
     this.commonVisit(visitNode, ast);
-  }
-
-  visitAssignment(node: Assignment, ast: AST): void {
-    this.commonVisit(node, ast);
-
-    // No need to split if it is a statement
-    if (node.parent instanceof ExpressionStatement) {
-      return;
-    }
-
-    // No need to create temp vars for state vars since they
-    // are functionalized later during the reference pass
-    if (
-      node.vLeftHandSide instanceof Identifier &&
-      identifierReferenceStateVar(node.vLeftHandSide)
-    ) {
-      return;
-    }
-
-    this.splitSimpleAssignment(node, ast);
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
@@ -301,49 +284,6 @@ export class ConditionalSplitter extends ASTMapper {
       nodeToVisit = this.splitReturnTuple(node, ast);
     }
     this.commonVisit(nodeToVisit, ast);
-  }
-
-  splitSimpleAssignment(node: Assignment, ast: AST): void {
-    const initialValue = node.vRightHandSide;
-    const location =
-      generalizeType(safeGetNodeType(initialValue, ast.compilerVersion))[1] ?? DataLocation.Default;
-    const varDecl = new VariableDeclaration(
-      ast.reserveId(),
-      '', // src
-      false, // constant
-      false, // indexed
-      this.eGen.next().value,
-      ast.getContainingScope(node),
-      false, // stateVariable
-      location,
-      StateVariableVisibility.Internal,
-      Mutability.Constant,
-      node.vLeftHandSide.typeString,
-    );
-
-    const tempVarStatement = createVariableDeclarationStatement([varDecl], initialValue, ast);
-    const tempVar = tempVarStatement.vDeclarations[0];
-
-    const leftHandSide = cloneASTNode(node.vLeftHandSide, ast);
-    const rightHandSide = createIdentifier(tempVar, ast, undefined, node);
-    const assignment = new Assignment(
-      ast.reserveId(),
-      '', // src
-      leftHandSide.typeString,
-      '=', // operator
-      leftHandSide,
-      rightHandSide,
-    );
-    const updateVal = createExpressionStatement(ast, assignment);
-
-    // b = (a=7) + 4
-    // ~>
-    // __warp_se = 7
-    // a = __warp_se
-    // b = (__warp_se) + 4
-    ast.insertStatementBefore(node, tempVarStatement);
-    ast.insertStatementBefore(node, updateVal);
-    ast.replaceNode(node, createIdentifier(tempVar, ast));
   }
 
   splitTupleAssignment(node: Assignment, ast: AST): Block {
@@ -500,12 +440,4 @@ export class ConditionalSplitter extends ASTMapper {
 
     return replaceStatement;
   }
-}
-
-function identifierReferenceStateVar(id: Identifier) {
-  const refDecl = id.vReferencedDeclaration;
-  return (
-    refDecl instanceof VariableDeclaration &&
-    refDecl.getClosestParentByType(ContractDefinition)?.id === refDecl.scope
-  );
 }
