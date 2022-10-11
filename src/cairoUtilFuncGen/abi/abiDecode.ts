@@ -238,8 +238,18 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
           `  array_ptr`,
           `);`,
         ];
+        this.requireImport('warplib.memory', 'wm_alloc');
       } else if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-        callInstructions = [];
+        const maxSize = CairoType.fromSol(type, this.ast).width;
+        callInstructions = [
+          `let (struct_ptr) = wm_alloc(${uint256(maxSize)})`,
+          `let (${decodeResult}) = ${funcName}(`,
+          `  ${typeIndex},`,
+          `  mem_ptr,`,
+          `  struct_ptr`,
+          `);`,
+        ];
+        this.requireImport('warplib.memory', 'wm_alloc');
       } else {
         throw new TranspileFailedError(
           `Unexpected reference type to generate decoding code: ${printTypeNode(type)}`,
@@ -370,7 +380,45 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     return name;
   }
 
-  private createStructDecoding(type: UserDefinedType, definition: StructDefinition) {}
+  private createStructDecoding(type: UserDefinedType, definition: StructDefinition) {
+    const key = type.pp();
+    const existing = this.auxiliarGeneratedFunctions.get(key);
+    if (existing !== undefined) return existing.name;
+
+    let acc = 0;
+    const instructions = definition.vMembers.map((member, index) => {
+      const type = generalizeType(safeGetNodeType(member, this.ast.compilerVersion))[0];
+      const elemWidth = CairoType.fromSol(type, this.ast).width;
+      const decodingCode = this.generateDecodingCode(type, 'mem_index', `member_${member.name}`);
+      acc += index * elemWidth;
+      const getMemLocCode = `let (mem_to_write_loc) = felt_to_uint256(${add('struct_ptr', acc)})`;
+      const writeMemLocCode = `${this.memoryWrite.getOrCreate(type)}(mem_to_write_loc, memeber_${
+        member.name
+      })`;
+      return [
+        `// Decoding member ${member.name}`,
+        `${decodingCode}`,
+        `${getMemLocCode}`,
+        `${writeMemLocCode}`,
+      ].join('\n');
+    });
+
+    const name = `${this.functionName}_struct_${definition.name}`;
+    const code = [
+      `func ${name}${IMPLICITS}(`,
+      `  mem_index: felt,`,
+      `  mem_ptr: felt,`,
+      `  struct_ptr: felt`,
+      `){`,
+      `  alloc_locals`,
+      ...instructions,
+      `  return ()`,
+    ].join('\n');
+
+    this.requireImport('warplib.maths.utils', 'felt_to_uint256');
+    this.auxiliarGeneratedFunctions.set(key, { name, code });
+    return name;
+  }
 
   private createValueTypeDecoding(byteSize: number | bigint): string {
     const funcName = byteSize === 32 ? 'byte_array_to_uint256_value' : 'byte_array_to_felt_value';
