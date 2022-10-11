@@ -1,2 +1,2 @@
 export * from './conditionalFunctionaliser';
-export * from './expressionSplitter';
+export * from './conditionalSplitter';
