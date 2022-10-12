@@ -99,7 +99,7 @@ function getAllVariables(
   nameCounter: Generator<number, number, unknown>,
   ast: AST,
 ): VariableDeclaration[] {
-  if (conditionalType.elements.length == 0) return [];
+  if (conditionalType.elements.length === 0) return [];
   else return conditionalType.elements.map((t) => getVar(t, t.pp(), scope, nameCounter, ast));
 }
 
@@ -162,7 +162,7 @@ export function createReturnBody(
     createIdentifier(variable, ast, undefined, lookupNode),
   );
   const expr =
-    conditionalReturn.length == 0
+    conditionalReturn.length === 0
       ? value
       : new Assignment(
           ast.reserveId(),
