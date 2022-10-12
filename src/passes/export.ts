@@ -16,6 +16,7 @@ export * from './typeNameRemover';
 export * from './tupleFixes/export';
 export * from './expressionSplitter';
 export * from './conditionalSplitter/export';
+export * from './shortCircuitToConditional';
 export * from './freeFunctionInliner';
 export * from './abiExtractor';
 export * from './externalContractHandler/export';

@@ -49,6 +49,7 @@ import {
   toSingleExpression,
   typeNameFromTypeNode,
 } from '../../utils/utils';
+import { ExpressionSplitter } from '../expressionSplitter';
 import {
   addStatementsToCallFunction,
   createFunctionBody,
@@ -150,7 +151,7 @@ function* expressionGenerator(prefix: string): Generator<string, string, unknown
     splitting of tuple assignments is done in this pass as well.
  */
 
-export class ConditionalSplitter extends ASTMapper {
+export class ConditionalSplitter extends ExpressionSplitter {
   eGen = expressionGenerator(PRE_SPLIT_EXPRESSION_PREFIX);
   eGenTuple = expressionGenerator(TUPLE_VALUE_PREFIX);
   nameCounter = counterGenerator();
