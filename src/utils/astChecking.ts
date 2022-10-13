@@ -105,7 +105,7 @@ function checkVFieldCtx<T extends ASTNode, K extends keyof T>(
   if (val instanceof ASTNode) {
     if (!inCtx(val, ctx)) {
       throw new Error(
-        `Node ${pp(node)} property ${prop} ${pp(val)} not in expected context ${pp(
+        `Node ${pp(node)} property ${String(prop)} ${pp(val)} not in expected context ${pp(
           ctx,
         )}. Instead in ${pp(val.context)}`,
       );
@@ -116,20 +116,22 @@ function checkVFieldCtx<T extends ASTNode, K extends keyof T>(
 
       if (!(el instanceof ASTNode)) {
         throw new Error(
-          `Expected property ${prop}[${idx}] of ${pp(node)} to be an ASTNode not ${el}`,
+          `Expected property ${String(prop)}[${idx}] of ${pp(node)} to be an ASTNode not ${el}`,
         );
       }
 
       if (!inCtx(val, ctx)) {
         throw new Error(
-          `Node ${pp(node)} property ${prop}[${idx}] ${pp(el)} not in expected context ${pp(
+          `Node ${pp(node)} property ${String(prop)}[${idx}] ${pp(el)} not in expected context ${pp(
             ctx,
           )}. Instead in ${pp(el.context)}`,
         );
       }
     }
   } else {
-    throw new Error(`Expected property ${prop} of ${pp(node)} to be an ASTNode, not ${val}`);
+    throw new Error(
+      `Expected property ${String(prop)} of ${pp(node)} to be an ASTNode, not ${val}`,
+    );
   }
 }
 
@@ -155,31 +157,33 @@ function checkFieldAndVFieldMatch<T extends ASTNode, K1 extends keyof T, K2 exte
   if (typeof val1 === 'number') {
     if (!(val2 instanceof ASTNode)) {
       throw new Error(
-        `Expected property ${vField} of ${pp(
-          node,
-        )} to be an ASTNode when ${field} is a number, not ${val2}`,
+        `Expected property ${String(vField)} of ${pp(node)} to be an ASTNode when ${String(
+          field,
+        )} is a number, not ${val2}`,
       );
     }
 
     if (val1 != val2.id) {
       throw new InsaneASTError(
-        `Node ${pp(node)} property ${field} ${val1} differs from ${vField}.id ${pp(val2)}`,
+        `Node ${pp(node)} property ${String(field)} ${val1} differs from ${String(vField)}.id ${pp(
+          val2,
+        )}`,
       );
     }
   } else if (val1 instanceof Array) {
     if (!(val2 instanceof Array)) {
       throw new Error(
-        `Expected property ${vField} of ${pp(
-          node,
-        )} to be an array when ${vField} is an array, not ${val2}`,
+        `Expected property ${String(vField)} of ${pp(node)} to be an array when ${String(
+          vField,
+        )} is an array, not ${val2}`,
       );
     }
 
     if (val1.length !== val2.length) {
       throw new InsaneASTError(
-        `Node ${pp(node)} array properties ${field} and ${vField} have different lengths ${
-          val1.length
-        } != ${val2.length}`,
+        `Node ${pp(node)} array properties ${String(field)} and ${String(
+          vField,
+        )} have different lengths ${val1.length} != ${val2.length}`,
       );
     }
 
@@ -189,27 +193,29 @@ function checkFieldAndVFieldMatch<T extends ASTNode, K1 extends keyof T, K2 exte
 
       if (typeof el1 !== 'number') {
         throw new Error(
-          `Expected property ${field}[${idx}] of ${pp(node)} to be a number not ${el1}`,
+          `Expected property ${String(field)}[${idx}] of ${pp(node)} to be a number not ${el1}`,
         );
       }
 
       if (!(el2 instanceof ASTNode)) {
         throw new Error(
-          `Expected property ${vField}[${idx}] of ${pp(node)} to be a number not ${el2}`,
+          `Expected property ${String(vField)}[${idx}] of ${pp(node)} to be a number not ${el2}`,
         );
       }
 
       if (el1 != el2.id) {
         throw new InsaneASTError(
-          `Node ${pp(node)} property ${field}[${idx}] ${el1} differs from ${vField}[${idx}].id ${pp(
-            el2,
-          )}`,
+          `Node ${pp(node)} property ${String(field)}[${idx}] ${el1} differs from ${String(
+            vField,
+          )}[${idx}].id ${pp(el2)}`,
         );
       }
     }
   } else {
     throw new Error(
-      `Expected property ${field} of ${pp(node)} to be a number or  array of numbers not ${val1}`,
+      `Expected property ${String(field)} of ${pp(
+        node,
+      )} to be a number or  array of numbers not ${val1}`,
     );
   }
 }
@@ -234,9 +240,9 @@ function checkDirectChildren<T extends ASTNode>(node: T, ...fields: Array<keyof 
     if (val instanceof ASTNode) {
       if (!directChildren.has(val)) {
         throw new InsaneASTError(
-          `Field ${field} of node ${pp(node)} is not a direct child: ${pp(val)} child of ${pp(
-            val.parent,
-          )}`,
+          `Field ${String(field)} of node ${pp(node)} is not a direct child: ${pp(
+            val,
+          )} child of ${pp(val.parent)}`,
         );
       }
 
@@ -251,7 +257,7 @@ function checkDirectChildren<T extends ASTNode>(node: T, ...fields: Array<keyof 
 
         if (!(el instanceof ASTNode)) {
           throw new Error(
-            `Field ${field} of ${pp(
+            `Field ${String(field)} of ${pp(
               node,
             )} is expected to be ASTNode, array or map with ASTNodes - instead array containing ${el}`,
           );
@@ -259,7 +265,7 @@ function checkDirectChildren<T extends ASTNode>(node: T, ...fields: Array<keyof 
 
         if (!directChildren.has(el)) {
           throw new InsaneASTError(
-            `Field ${field}[${i}] of node ${pp(node)} is not a direct child: ${pp(
+            `Field ${String(field)}[${i}] of node ${pp(node)} is not a direct child: ${pp(
               el,
             )} child of ${pp(el.parent)}`,
           );
@@ -275,7 +281,7 @@ function checkDirectChildren<T extends ASTNode>(node: T, ...fields: Array<keyof 
 
         if (!(v instanceof ASTNode)) {
           throw new Error(
-            `Field ${field} of ${pp(
+            `Field ${String(field)} of ${pp(
               node,
             )} is expected to be ASTNode, array or map with ASTNodes - instead map containing ${v}`,
           );
@@ -283,9 +289,9 @@ function checkDirectChildren<T extends ASTNode>(node: T, ...fields: Array<keyof 
 
         if (!directChildren.has(v)) {
           throw new InsaneASTError(
-            `Field ${field}[${k}] of node ${pp(node)} is not a direct child: ${pp(v)} child of ${pp(
-              v.parent,
-            )}`,
+            `Field ${String(field)}[${k}] of node ${pp(node)} is not a direct child: ${pp(
+              v,
+            )} child of ${pp(v.parent)}`,
           );
         }
 
@@ -293,7 +299,7 @@ function checkDirectChildren<T extends ASTNode>(node: T, ...fields: Array<keyof 
       }
     } else {
       throw new Error(
-        `Field ${field} of ${pp(
+        `Field ${String(field)} of ${pp(
           node,
         )} is neither an ASTNode nor an array of ASTNode or nulls: ${val}`,
       );
@@ -722,31 +728,32 @@ function checkEmptyNamesForNamelessFunctions(nodes: FunctionDefinition[]) {
  * NOTE: While this code can be slightly slow, its meant to be used mostly in testing so its
  * not performance critical.
  */
-export function isSane(ast: AST): boolean {
-  NodeTypeResolutionChecker.map(ast);
-  ParameterScopeChecker.map(ast);
+export function isSane(ast: AST, devMode: boolean): boolean {
   IdChecker.map(ast);
+  if (devMode) {
+    NodeTypeResolutionChecker.map(ast);
+    ParameterScopeChecker.map(ast);
+    return ast.roots.every((root) => {
+      try {
+        checkSane(root, ast.context);
+        checkContextsDefined(root);
+        checkIdNonNegative(root);
+        const functionDefinitions = root.getChildrenByType(FunctionDefinition);
+        checkOnlyConstructorsMarkedAsConstructors(functionDefinitions);
+        checkEmptyNamesForNamelessFunctions(functionDefinitions);
+      } catch (e) {
+        if (e instanceof InsaneASTError) {
+          console.error(e);
 
-  return ast.roots.every((root) => {
-    try {
-      checkSane(root, ast.context);
-      checkContextsDefined(root);
-      checkIdNonNegative(root);
-      const functionDefinitions = root.getChildrenByType(FunctionDefinition);
-      checkOnlyConstructorsMarkedAsConstructors(functionDefinitions);
-      checkEmptyNamesForNamelessFunctions(functionDefinitions);
-    } catch (e) {
-      if (e instanceof InsaneASTError) {
-        console.error(e);
+          return false;
+        }
 
-        return false;
+        throw e;
       }
-
-      throw e;
-    }
-
-    return true;
-  });
+      return true;
+    });
+  }
+  return true;
 }
 
 class NodeTypeResolutionChecker extends ASTMapper {
