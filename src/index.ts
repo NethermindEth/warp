@@ -25,7 +25,7 @@ export type CompilationOptions = {
 
 export type TranspilationOptions = {
   checkTrees?: boolean;
-  dev?: boolean;
+  dev: boolean;
   order?: string;
   printTrees?: boolean;
   strict?: boolean;
@@ -69,7 +69,7 @@ program
   // Stops transpilation after the specified pass
   .option('--until <pass>')
   .option('--no-warnings')
-  .option('--dev') // for development mode
+  .option('--dev', 'Run AST sanity checks on every pass instead of the final AST only', false) // for development mode
   .action((files: string[], options: CliOptions) => {
     // We do the extra work here to make sure all the errors are printed out
     // for all files which are invalid.
