@@ -1,3 +1,5 @@
+import { performance } from 'perf_hooks';
+import { start } from 'repl';
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
 import { PrintOptions, TranspilationOptions } from '.';
 import { AST } from './ast/ast';
@@ -170,13 +172,12 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
   printAST(ast, options);
 
   const finalAst = passesInOrder.reduce((ast, mapper) => {
-    printPassName(mapper.getPassName(), options);
     const newAst = mapper.map(ast);
-    printAST(ast, options);
     checkAST(ast, options, mapper.getPassName());
     return newAst;
   }, ast);
 
+  checkAST(finalAst, options, 'Final Ast (after all passes)');
   return finalAst;
 }
 
@@ -210,7 +211,7 @@ function printAST(ast: AST, options: TranspilationOptions) {
 function checkAST(ast: AST, options: TranspilationOptions, mostRecentPassName: string) {
   if (options.checkTrees || options.strict) {
     try {
-      const success = runSanityCheck(ast, options.checkTrees ?? false, mostRecentPassName);
+      const success = runSanityCheck(ast, options, mostRecentPassName);
       if (!success && options.strict) {
         throw new TranspileFailedError(
           `AST failed internal consistency check. Most recently run pass: ${mostRecentPassName}`,
