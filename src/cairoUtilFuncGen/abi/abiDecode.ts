@@ -34,7 +34,7 @@ import {
 } from '../../utils/nodeTypeProcessing';
 import { typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
-import { add, delegateBasedOnType, StringIndexedFuncGenWithAuxiliar } from '../base';
+import { add, delegateBasedOnType, mul, StringIndexedFuncGenWithAuxiliar } from '../base';
 import { MemoryWriteGen } from '../export';
 import { removeSizeInfo } from './base';
 
@@ -111,7 +111,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
         [
           ...decodings,
           `// Param ${index} decoding:`,
-          this.generateDecodingCode(type, 'mem_index', `result${index}`),
+          this.generateDecodingCode(type, 'mem_index', `result${index}`, '0'),
           `let in_range${index} = is_le_felt(mem_index, max_index_length);`,
           `in_range${index} = 1;`,
         ],
@@ -130,10 +130,8 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     const code = [
       `func ${funcName}${IMPLICITS}(mem_ptr : felt) -> (${returnCairoParams}){`,
       `  alloc_locals;`,
-      `  let (max_length256: Uint256) = wm_dyn_array_length(mem_ptr);`,
-      `  let (max_length: felt) = narrow_safe(max_length256);`,
       `  let max_index_length: felt = ${indexLength};`,
-      `  let mem_index : felt = 0;`,
+      `  let mem_index: felt = 0;`,
       ...decodings,
       ` return (${returnValues});`,
       `}`,
@@ -165,7 +163,20 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     );
   }
 
-  public generateDecodingCode(type: TypeNode, newIndexVar: string, decodeResult: string): string {
+  /**
+   * Given a type it generates the arguments and function to decode such type from a warp memory byte array
+   * @param type type to decode
+   * @param newIndexVar cairo var to store new index position after decoding the type
+   * @param decodeResult cairo var that stores the result of the decoding
+   * @param relativeIndexVar cairo var to handle offset values
+   * @returns the generated code
+   */
+  public generateDecodingCode(
+    type: TypeNode,
+    newIndexVar: string,
+    decodeResult: string,
+    relativeIndexVar: string,
+  ): string {
     assert(
       !(type instanceof PointerType),
       'Pointer types are not valid types for decoding. Try to generalize them',
@@ -196,7 +207,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
         this.requireImport('warplib.dynamic_arrays_util', 'byte_array_to_felt_value');
         initInstructions = [
           `let (param_offset) = byte_array_to_felt_value(mem_index, mem_index + 32, mem_ptr, 0);`,
-          `let mem_offset = mem_index + param_offset;`,
+          `let mem_offset = mem_index + param_offset - ${relativeIndexVar};`,
         ];
         typeIndex = 'mem_offset';
       }
@@ -205,7 +216,11 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       // decoding function.
       let callInstructions: string[];
       if (isDynamicArray(type)) {
-        const elementTWidth = CairoType.fromSol(getElementType(type), this.ast).width;
+        const elementTWidth = CairoType.fromSol(
+          getElementType(type),
+          this.ast,
+          TypeConversionContext.Ref,
+        ).width;
         callInstructions = [
           `let (${decodeResult}_dyn_array_length) = byte_array_to_felt_value(`,
           `  ${typeIndex},`,
@@ -230,7 +245,9 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       } else if (type instanceof ArrayType) {
         // Handling static arrays
         assert(type.size !== undefined);
-        const elemenTWidth = BigInt(CairoType.fromSol(type.elementT, this.ast).width);
+        const elemenTWidth = BigInt(
+          CairoType.fromSol(type.elementT, this.ast, TypeConversionContext.Ref).width,
+        );
         callInstructions = [
           `let (${decodeResult}) = wm_alloc(${uint256(type.size * elemenTWidth)});`,
           `${funcName}(`,
@@ -299,8 +316,16 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     const elementTWidth = CairoType.fromSol(type.elementT, this.ast).width;
 
-    const decodingCode = this.generateDecodingCode(type.elementT, 'next_mem_index', 'element');
-    const getMemLocCode = `let write_to_mem_location = array_ptr + array_index * ${elementTWidth};`;
+    const decodingCode = this.generateDecodingCode(
+      type.elementT,
+      'next_mem_index',
+      'element',
+      '32 * array_index',
+    );
+    const getMemLocCode = `let write_to_mem_location = array_ptr + ${mul(
+      'array_index',
+      elementTWidth,
+    )};`;
     const writeToMemCode = `${this.memoryWrite.getOrCreate(
       type.elementT,
     )}(write_to_mem_location, element);`;
@@ -343,7 +368,12 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       TypeConversionContext.CallDataRef,
     ).width;
 
-    const decodingCode = this.generateDecodingCode(elementT, 'next_mem_index', 'element');
+    const decodingCode = this.generateDecodingCode(
+      elementT,
+      'next_mem_index',
+      'element',
+      '32 * dyn_array_index',
+    );
     const getMemLocCode = [
       `let (dyn_array_index256) = felt_to_uint256(dyn_array_index);`,
       `let (write_to_mem_location) = wm_index_dyn(dyn_array_ptr, dyn_array_index256, ${uint256(
@@ -402,7 +432,12 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
         this.ast,
         TypeConversionContext.MemoryAllocation,
       ).width;
-      const decodingCode = this.generateDecodingCode(type, 'mem_index', `member${index}`);
+      const decodingCode = this.generateDecodingCode(
+        type,
+        'mem_index',
+        `member${index}`,
+        mul('mem_index', index),
+      );
       acc += index * elemWidth;
       const getMemLocCode = `let mem_to_write_loc = ${add('struct_ptr', acc)};`;
       const writeMemLocCode = `${this.memoryWrite.getOrCreate(
