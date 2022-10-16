@@ -78,16 +78,18 @@ program
     const contractToHashMap = new Map<string, string>();
 
     const solcASTs = files.map((file) => compileSolFile(file, options.warnings));
+    // Every AST which is a subset of another AST gets removed
     const roots = solcASTs.filter((ast) => {
       const files = ast.roots.map((sourceUnit) => sourceUnit.absolutePath);
-      return solcASTs.some((otherAST) => {
+      //returns true if no other ast contains this
+      return !solcASTs.some((otherAST) => {
+        if (otherAST === ast) return false;
         const otherFiles = new Set<string>(
           otherAST.roots.map((sourceUnit) => sourceUnit.absolutePath),
         );
         return files.every(otherFiles.has);
       });
     });
-    solcASTs.sort((ast) => -ast.roots.length);
 
     roots.forEach((ast) => {
       // if (files.length > 1) {
