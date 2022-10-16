@@ -87,7 +87,7 @@ program
         const otherFiles = new Set<string>(
           otherAST.roots.map((sourceUnit) => sourceUnit.absolutePath),
         );
-        return files.every(otherFiles.has);
+        return files.every((f) => otherFiles.has(f));
       });
     });
 
