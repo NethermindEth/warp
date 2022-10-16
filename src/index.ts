@@ -76,12 +76,25 @@ program
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
     const cairoSuffix = '.cairo';
     const contractToHashMap = new Map<string, string>();
-    files.forEach((file) => {
-      if (files.length > 1) {
-        console.log(`Compiling ${file}`);
-      }
+
+    const solcASTs = files.map((file) => compileSolFile(file, options.warnings));
+    const roots = solcASTs.filter((ast) => {
+      const files = ast.roots.map((sourceUnit) => sourceUnit.absolutePath);
+      return solcASTs.some((otherAST) => {
+        const otherFiles = new Set<string>(
+          otherAST.roots.map((sourceUnit) => sourceUnit.absolutePath),
+        );
+        return files.every(otherFiles.has);
+      });
+    });
+    solcASTs.sort((ast) => -ast.roots.length);
+
+    roots.forEach((ast) => {
+      // if (files.length > 1) {
+      //   console.log(`Compiling ${file}`);
+      // }
       try {
-        transpile(compileSolFile(file, options.warnings), options)
+        transpile(ast, options)
           .map(([name, cairo, abi]) => {
             outputResult(name, cairo, options, cairoSuffix, abi);
             return createCairoFileName(name, cairoSuffix);
