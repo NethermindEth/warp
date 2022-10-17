@@ -1,5 +1,5 @@
 import { Dir, Expect, File } from './types';
-import { getByte32Array, flatten, getByteXArray, getUint256 } from './utils';
+import { getByte32Array, flatten, getByteXArray, toCairoUint256 } from './utils';
 
 export const expectations = flatten(
   new Dir('tests', [
@@ -3000,13 +3000,13 @@ export const expectations = flatten(
             ),
             Expect.Simple(
               'addition256signedsafe',
-              [...getUint256(2n ** 255n), ...getUint256(2n ** 255n)],
+              [...toCairoUint256(2n ** 255n), ...toCairoUint256(2n ** 255n)],
               null,
               'neg + neg overflow',
             ),
             Expect.Simple(
               'addition256signedsafe',
-              [...getUint256(2n ** 255n - 1n), ...getUint256(2n ** 255n - 1n)],
+              [...toCairoUint256(2n ** 255n - 1n), ...toCairoUint256(2n ** 255n - 1n)],
               null,
               'pos + pos overflow',
             ),
