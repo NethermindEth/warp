@@ -60,7 +60,7 @@ const defaultSolcVersion = '0.8.14';
 export function generateSolInterface(filePath: string, options: SolcInterfaceGenOptions) {
   const cairoPathRoot = filePath.slice(0, -'.cairo'.length);
   const { success } = compileCairo(filePath, path.resolve(__dirname, '..'), {
-    debug_info: false,
+    debugInfo: false,
   });
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
