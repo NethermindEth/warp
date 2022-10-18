@@ -73,7 +73,6 @@ import {
   VariableDeclarationStatement,
   WhileStatement,
 } from 'solc-typed-ast';
-import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from './ast/ast';
 import {
   CairoAssert,
@@ -720,7 +719,6 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
 class BlockWriter extends CairoASTNodeWriter {
   writeInner(node: Block, writer: ASTWriter): SrcDesc {
     const documentation = getDocumentation(node.documentation, writer);
-    // node.vStatements.map((statement) => console.log(writer.write(statement), statement.constructor.name));
     return [
       [
         documentation,
@@ -788,7 +786,6 @@ class ExpressionStatementWriter extends CairoASTNodeWriter {
   newVarCounter = 0;
   writeInner(node: ExpressionStatement, writer: ASTWriter): SrcDesc {
     const documentation = getDocumentation(node.documentation, writer);
-    // console.log(writer.write(node.vExpression), node.constructor.name, node.vExpression.constructor.name);
     if (
       node.vExpression instanceof FunctionCall &&
       node.vExpression.kind !== FunctionCallKind.StructConstructorCall
@@ -1037,14 +1034,7 @@ class EventDefinitionWriter extends CairoASTNodeWriter {
   writeInner(node: EventDefinition, writer: ASTWriter): SrcDesc {
     const documentation = getDocumentation(node.documentation, writer);
     const args: string = writer.write(node.vParameters);
-    return [
-      [
-        documentation,
-        `@event`,
-        `func ${node.name}_${node.canonicalSignatureHash(ABIEncoderVersion.V2)}(${args}){`,
-        `}`,
-      ].join('\n'),
-    ];
+    return [[documentation, `@event`, `func ${node.name}(${args}){`, `}`].join('\n')];
   }
 }
 
@@ -1055,14 +1045,7 @@ class EmitStatementWriter extends CairoASTNodeWriter {
 
     const documentation = getDocumentation(node.documentation, writer);
     const args: string = node.vEventCall.vArguments.map((v) => writer.write(v)).join(', ');
-    return [
-      [
-        documentation,
-        `${node.vEventCall.vFunctionName}_${eventDef.canonicalSignatureHash(
-          ABIEncoderVersion.V2,
-        )}.emit(${args});`,
-      ].join('\n'),
-    ];
+    return [[documentation, `${eventDef.name}.emit(${args});`].join('\n')];
   }
 }
 

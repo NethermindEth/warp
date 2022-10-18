@@ -1,9 +1,12 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { Command } from 'commander';
 import { createCairoFileName, isValidSolFile, outputResult } from './io';
 import { compileSolFile } from './solCompile';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
 import {
+  compileCairo,
   runStarknetCallOrInvoke,
   runStarknetCompile,
   runStarknetDeclare,
@@ -24,7 +27,7 @@ export type CompilationOptions = {
 
 export type TranspilationOptions = {
   checkTrees?: boolean;
-  dev?: boolean;
+  dev: boolean;
   order?: string;
   printTrees?: boolean;
   strict?: boolean;
@@ -44,7 +47,11 @@ export type OutputOptions = {
   result: boolean;
 };
 
-type CliOptions = CompilationOptions & TranspilationOptions & PrintOptions & OutputOptions;
+type CliOptions = CompilationOptions &
+  TranspilationOptions &
+  PrintOptions &
+  OutputOptions &
+  IOptionalDebugInfo;
 
 const program = new Command();
 
@@ -56,6 +63,7 @@ program
   .option('--highlight <ids...>')
   .option('--order <passOrder>')
   .option('-o, --output-dir <path>', 'Output directory for transpiled Cairo files.', 'warp_output')
+  .option('-d, --debug-info', 'Include debug information.', false)
   .option('--print-trees')
   .option('--no-result')
   .option('--no-stubs')
@@ -63,25 +71,60 @@ program
   // Stops transpilation after the specified pass
   .option('--until <pass>')
   .option('--no-warnings')
-  .option('--dev') // for development mode
+  .option('--dev', 'Run AST sanity checks on every pass instead of the final AST only', false) // for development mode
   .action((files: string[], options: CliOptions) => {
     // We do the extra work here to make sure all the errors are printed out
     // for all files which are invalid.
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
     const cairoSuffix = '.cairo';
     const contractToHashMap = new Map<string, string>();
-    files.forEach((file) => {
+
+    const solcASTs = files.map((file) => ({
+      file: file,
+      ast: compileSolFile(file, options.warnings),
+    }));
+    // Every AST which is a subtree of another AST doesn't get picked
+    const roots = solcASTs.filter(({ ast }) => {
+      const files = ast.roots.map((sourceUnit) => sourceUnit.absolutePath);
+      //returns true if no other ast contains this one
+      return !solcASTs.some(({ ast: otherAST }) => {
+        if (otherAST === ast) return false;
+        const otherFiles = new Set<string>(
+          otherAST.roots.map((sourceUnit) => sourceUnit.absolutePath),
+        );
+        return files.every((f) => otherFiles.has(f));
+      });
+    });
+
+    roots.forEach(({ file, ast }) => {
       if (files.length > 1) {
         console.log(`Compiling ${file}`);
       }
       try {
-        transpile(compileSolFile(file, options.warnings), options)
+        transpile(ast, options)
           .map(([name, cairo, abi]) => {
             outputResult(name, cairo, options, cairoSuffix, abi);
             return createCairoFileName(name, cairoSuffix);
           })
-          .forEach((file) => {
-            postProcessCairoFile(file, options.outputDir, contractToHashMap);
+          .map((file) =>
+            postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
+          )
+          .forEach((file: string) => {
+            if (options.compileCairo) {
+              const { success, resultPath, abiPath } = compileCairo(
+                path.join(options.outputDir, file),
+                path.resolve(__dirname, '..'),
+                options,
+              );
+              if (!success) {
+                if (resultPath) {
+                  fs.unlinkSync(resultPath);
+                }
+                if (abiPath) {
+                  fs.unlinkSync(abiPath);
+                }
+              }
+            }
           });
       } catch (e) {
         handleTranspilationError(e);
@@ -145,12 +188,12 @@ program
   });
 
 export interface IOptionalDebugInfo {
-  debug_info: boolean;
+  debugInfo: boolean;
 }
 
 program
   .command('compile <file>')
-  .option('-d, --debug_info', 'Include debug information.', false)
+  .option('-d, --debug-info', 'Include debug information.', false)
   .action((file: string, options: IOptionalDebugInfo) => {
     runStarknetCompile(file, options);
   });
@@ -300,12 +343,26 @@ program
     runVenvSetup(options);
   });
 
-export type IDeclareOptions = IOptionalNetwork;
+export interface IDeclareOptions {
+  no_wallet: boolean;
+  network?: string;
+  wallet?: string;
+  account?: string;
+}
 
 program
   .command('declare <cairo_contract>')
   .description('Command to declare Cairo contract on a StarkNet Network.')
   .option('--network <network>', 'StarkNet network URL.', process.env.STARKNET_NETWORK)
+  .option(
+    '--account <account>',
+    'The name of the account. If not given, the default for the wallet will be used.',
+  )
+  .option(
+    '--wallet <wallet>',
+    'The name of the wallet, including the python module and wallet class.',
+    process.env.STARKNET_WALLET,
+  )
   .action(async (cairo_contract: string, options: IDeclareOptions) => {
     runStarknetDeclare(cairo_contract, options);
   });

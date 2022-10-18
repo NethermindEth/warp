@@ -10,7 +10,7 @@ import { ASTMapper } from '../../ast/mapper';
 import { TranspileFailedError } from '../../utils/errors';
 import { solveConstructors } from './constructorInheritance';
 import { addEventDefintion } from './eventInheritance';
-import { addNonoverridenPublicFunctions, addPrivateSuperFunctions } from './functionInheritance';
+import { addPrivateSuperFunctions } from './functionInheritance';
 import { solveLibraryInheritance } from './libraryInheritance';
 import { addNonOverridenModifiers } from './modifiersInheritance';
 import { addStorageVariables } from './storageVariablesInheritance';
@@ -102,7 +102,6 @@ export class InheritanceInliner extends ASTMapper {
     const eventRemapping: Map<number, EventDefinition> = new Map();
 
     addPrivateSuperFunctions(node, functionRemapping, functionRemappingOverriders, ast);
-    addNonoverridenPublicFunctions(node, functionRemapping, ast);
     addStorageVariables(node, variableRemapping, ast);
     addNonOverridenModifiers(node, modifierRemapping, modifierRemappingOverriders, ast);
     addEventDefintion(node, eventRemapping, ast);

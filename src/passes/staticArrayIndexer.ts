@@ -132,11 +132,11 @@ export class StaticArrayIndexer extends ASTMapper {
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
       '',
-      false,
-      false,
+      false, // constant
+      false, // indexed
       `${CALLDATA_TO_MEMORY_PREFIX}${identifier.name}`,
       parentFunction?.id,
-      false,
+      false, // stateVariable
       DataLocation.Memory,
       StateVariableVisibility.Internal,
       Mutability.Mutable,

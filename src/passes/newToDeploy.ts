@@ -214,11 +214,11 @@ export class NewToDeploy extends ASTMapper {
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
       '',
-      true,
-      false,
+      true, // constant
+      false, // indexed
       varName,
       sourceUnit.id,
-      false,
+      false, // stateVariable
       DataLocation.Default,
       StateVariableVisibility.Internal,
       Mutability.Constant,

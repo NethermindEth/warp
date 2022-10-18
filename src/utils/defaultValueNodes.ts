@@ -150,7 +150,7 @@ function arrayDefault(
       ast.reserveId(),
       parentNode.src,
       `${getTupleTypeString(nodeType)} memory`,
-      true,
+      true, // isInlineArray
       expList,
       parentNode.raw,
     );
@@ -214,7 +214,7 @@ function userDefDefault(
       ast,
     );
   throw new TranspileFailedError(
-    `Not supported operation delete on ${printNode(nodeType.definition)}`,
+    `Couldn't get a default value for user defined: ${printNode(nodeType.definition)}`,
   );
 }
 
@@ -273,7 +273,9 @@ function pointerDefault(
   else if (nodeType.to instanceof UserDefinedType) {
     return userDefDefault(nodeType.to, parentNode, ast);
   } else {
-    throw new NotSupportedYetError(`Not supported operation delete on ${printTypeNode(nodeType)}`);
+    throw new TranspileFailedError(
+      `Couldn't get a default value for pointer: ${printTypeNode(nodeType)}`,
+    );
   }
 }
 
@@ -283,7 +285,9 @@ function getTupleTypeString(nodeType: ArrayType): string {
     if (node.to instanceof ArrayType)
       return `${getTupleTypeString(node.to)} memory[${nodeType.size}]`;
     else
-      throw new NotSupportedYetError(`Not supported operation delete on ${printTypeNode(node.to)}`);
+      throw new TranspileFailedError(
+        `Couldn't get tuple type string, is not ArrayType: ${printTypeNode(node.to)}`,
+      );
   } else {
     return nodeType.pp();
   }

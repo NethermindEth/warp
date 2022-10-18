@@ -109,11 +109,11 @@ export class VariableDeclarationExpressionSplitter extends ASTMapper {
           const newDeclaration = new VariableDeclaration(
             ast.reserveId(),
             node.src,
-            true,
-            false,
+            true, // constant
+            false, // indexed
             this.generateNewConstantName(),
             oldDeclaration.scope,
-            false,
+            false, // stateVariable
             oldDeclaration.storageLocation,
             StateVariableVisibility.Default,
             Mutability.Constant,

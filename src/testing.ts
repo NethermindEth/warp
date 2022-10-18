@@ -63,6 +63,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/comments', 'Success'],
     ['example_contracts/constructors_dyn', 'Success'],
     ['example_contracts/constructors_nonDyn', 'Success'],
+    ['example_contracts/contracts_as_input', 'Success'],
     ['example_contracts/dai', 'Success'],
     ['example_contracts/delete', 'SolCompileFailed'],
     ['example_contracts/delete_uses', 'Success'],
@@ -150,6 +151,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/memberAccess/staticcall', 'WillNotSupport'],
     ['example_contracts/memberAccess/transfer', 'WillNotSupport'],
     ['example_contracts/msg', 'WillNotSupport'],
+    ['example_contracts/multiple_variables', 'Success'],
     ['example_contracts/mutableReferences/deepDelete', 'Success'],
     ['example_contracts/mutableReferences/memory', 'Success'],
     ['example_contracts/mutableReferences/mutableReferences', 'Success'],
@@ -197,7 +199,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/typestrings/structArrays', 'Success'],
     ['example_contracts/typestrings/structs', 'Success'],
     ['example_contracts/units', 'Success'],
-    ['example_contracts/unsupportedFunctions/abi', `WillNotSupport`],
+    ['example_contracts/unsupportedFunctions/abi', `Success`],
     ['example_contracts/unsupportedFunctions/keccak256', `Success`],
     ['example_contracts/unsupportedFunctions/ecrecover', `Success`],
     ['example_contracts/unsupportedFunctions/addmod', `Success`],
@@ -290,7 +292,7 @@ function runSolFileTest(
 ): void {
   console.log(`Warping ${file}`);
   try {
-    transpile(compileSolFile(file, false), { strict: true }).forEach(([file, cairo]) =>
+    transpile(compileSolFile(file, false), { strict: true, dev: true }).forEach(([file, cairo]) =>
       outputFileSync(`${file.slice(0, -4)}.cairo`, cairo),
     );
     results.set(manglePath(removeExtension(file)), 'Success');

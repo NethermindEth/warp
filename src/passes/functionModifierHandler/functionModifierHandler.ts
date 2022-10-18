@@ -2,18 +2,28 @@ import assert from 'assert';
 import {
   Assignment,
   ASTNode,
+  Expression,
   ExpressionStatement,
+  FunctionCall,
   FunctionDefinition,
   FunctionKind,
   FunctionVisibility,
+  Identifier,
+  MemberAccess,
   ModifierDefinition,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
+import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction } from '../../utils/functionGeneration';
-import { MANGLED_PARAMETER, MANGLED_RETURN_PARAMETER } from '../../utils/nameModifiers';
+import {
+  MANGLED_PARAMETER,
+  MANGLED_RETURN_PARAMETER,
+  MODIFIER_PREFIX,
+  ORIGINAL_FUNCTION_PREFIX,
+} from '../../utils/nameModifiers';
 import {
   createBlock,
   createExpressionStatement,
@@ -70,10 +80,15 @@ export class FunctionModifierHandler extends ASTMapper {
 
   extractOriginalFunction(node: FunctionDefinition, ast: AST): FunctionDefinition {
     const scope = node.vScope;
+    const name = node.isConstructor ? `constructor` : `function_${node.name}`;
 
     const funcDef = cloneASTNode(node, ast);
-    const name = node.isConstructor ? `constructor` : `function_${node.name}`;
-    funcDef.name = `__warp_original_${name}`;
+    // When `node` gets cloned all recursive function calls inside it change their reference
+    // to the cloned function `funcDef`, but `funcDef` modifiers are going to be removed, so
+    // those function calls should instead reference the modified function which is `node`
+    updateReferencesOnRecursiveCalls(funcDef, node);
+
+    funcDef.name = `${ORIGINAL_FUNCTION_PREFIX}${name}_${this.count++}`;
     funcDef.visibility = FunctionVisibility.Internal;
     funcDef.isConstructor = false;
     funcDef.kind = FunctionKind.Function;
@@ -117,11 +132,11 @@ export class FunctionModifierHandler extends ASTMapper {
       modifierClone.src,
       node.scope,
       FunctionKind.Function,
-      `__warp_${modifier.name}_${this.count++}`,
-      node.virtual,
+      `${MODIFIER_PREFIX}${modifier.name}_${node.name}_${this.count++}`,
+      false, // virtual
       FunctionVisibility.Internal,
       node.stateMutability,
-      false,
+      false, // isConstructor
       createParameterList(
         [...modifierClone.vParameters.vParameters, ...functionParams],
         ast,
@@ -150,13 +165,13 @@ export class FunctionModifierHandler extends ASTMapper {
 
   createInputParameter(v: VariableDeclaration, ast: AST): VariableDeclaration {
     const variable = cloneASTNode(v, ast);
-    variable.name = `${MANGLED_PARAMETER}${this.count++}`;
+    variable.name = `${MANGLED_PARAMETER}${v.name}${this.count++}`;
     return variable;
   }
 
   createReturnParameter(v: VariableDeclaration, ast: AST): VariableDeclaration {
     const param = cloneASTNode(v, ast);
-    param.name = `${MANGLED_RETURN_PARAMETER}${this.count++}`;
+    param.name = `${MANGLED_RETURN_PARAMETER}${v.name}${this.count++}`;
     return param;
   }
 }
@@ -192,4 +207,23 @@ function createAssignmentStatement(
       rhsIdentifier,
     ),
   );
+}
+function updateReferencesOnRecursiveCalls(
+  funcDef: FunctionDefinition,
+  functToCall: FunctionDefinition,
+) {
+  funcDef
+    .getChildren()
+    .filter((node): node is FunctionCall => node instanceof FunctionCall)
+    .forEach((f) => {
+      const refDeclaration = f.vReferencedDeclaration;
+      if (refDeclaration !== undefined && refDeclaration.id === funcDef.id) {
+        assert(canUpdateReference(f.vExpression), `Unexpected expression in ${printNode(f)}`);
+        f.vExpression.referencedDeclaration = functToCall.id;
+      }
+    });
+}
+
+function canUpdateReference(node: Expression): node is Identifier | MemberAccess {
+  return node instanceof Identifier || node instanceof MemberAccess;
 }

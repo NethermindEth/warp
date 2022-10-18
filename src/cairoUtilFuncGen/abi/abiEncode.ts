@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  AddressType,
   ArrayType,
   generalizeType,
   SourceUnit,
@@ -81,8 +82,9 @@ export class AbiEncode extends AbiBase {
       `}`,
     ].join('\n');
 
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.alloc', 'alloc');
+    this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
+    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('warplib.maths.utils', 'felt_to_uint256');
     this.requireImport('warplib.memory', 'wm_new');
     this.requireImport('warplib.dynamic_arrays_util', 'felt_array_to_warp_memory_array');
@@ -170,7 +172,9 @@ export class AbiEncode extends AbiBase {
     // Is value type
     const size = getPackedByteSize(type, this.ast.compilerVersion);
     const instructions: string[] = [];
-    if (size < 32) {
+    // packed size of addresses is 32 bytes, but they are treated as felts,
+    // so they should be converted to Uint256 accordingly
+    if (size < 32 || type instanceof AddressType) {
       this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
       instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode});`);
       varToEncode = `${varToEncode}256`;

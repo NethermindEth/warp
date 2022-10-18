@@ -170,13 +170,21 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
   printAST(ast, options);
 
   const finalAst = passesInOrder.reduce((ast, mapper) => {
-    printPassName(mapper.getPassName(), options);
     const newAst = mapper.map(ast);
-    printAST(ast, options);
     checkAST(ast, options, mapper.getPassName());
     return newAst;
   }, ast);
 
+  const finalOpts: TranspilationOptions = {
+    checkTrees: options.checkTrees,
+    dev: true,
+    order: options.order,
+    printTrees: options.printTrees,
+    strict: options.strict,
+    warnings: options.warnings,
+    until: options.until,
+  };
+  checkAST(finalAst, finalOpts, 'Final AST (after all passes)');
   return finalAst;
 }
 
@@ -210,7 +218,7 @@ function printAST(ast: AST, options: TranspilationOptions) {
 function checkAST(ast: AST, options: TranspilationOptions, mostRecentPassName: string) {
   if (options.checkTrees || options.strict) {
     try {
-      const success = runSanityCheck(ast, options.checkTrees ?? false, mostRecentPassName);
+      const success = runSanityCheck(ast, options, mostRecentPassName);
       if (!success && options.strict) {
         throw new TranspileFailedError(
           `AST failed internal consistency check. Most recently run pass: ${mostRecentPassName}`,

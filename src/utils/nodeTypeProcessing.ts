@@ -11,6 +11,7 @@ import {
   FixedBytesType,
   FunctionCall,
   FunctionCallKind,
+  FunctionDefinition,
   FunctionType,
   generalizeType,
   getNodeType,
@@ -30,6 +31,8 @@ import {
   VariableDeclaration,
   variableDeclarationToTypeNode,
 } from 'solc-typed-ast';
+import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
+import createKeccakHash from 'keccak';
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from './astPrinter';
 import { TranspileFailedError } from './errors';
@@ -63,7 +66,7 @@ export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNod
             functionCall.vExpression,
           )} was expected to be a TypeNameType(PointerType(UserDefinedType, _)), got ${printTypeNode(
             functionType,
-            true,
+            true, // detail
           )}`,
         ),
       );
@@ -91,7 +94,7 @@ export function specializeType(typeNode: TypeNode, loc: DataLocation): TypeNode 
       typeNode.location === loc,
       `Attempting to specialize ${typeNode.location} pointer type to ${loc}\nType:${printTypeNode(
         typeNode,
-        true,
+        true, // detail
       )}`,
     );
     return typeNode;
@@ -218,13 +221,20 @@ export function isMapping(type: TypeNode): boolean {
   return base instanceof MappingType;
 }
 
+export function hasMapping(type: TypeNode): boolean {
+  const [base] = generalizeType(type);
+  if (base instanceof ArrayType) {
+    return base.elementT instanceof MappingType;
+  }
+  return base instanceof MappingType;
+}
+
 export function checkableType(type: TypeNode): boolean {
   return (
     type instanceof ArrayType ||
     type instanceof BytesType ||
     type instanceof FixedBytesType ||
-    (type instanceof UserDefinedType &&
-      (type.definition instanceof StructDefinition || type.definition instanceof EnumDefinition)) ||
+    type instanceof UserDefinedType ||
     type instanceof AddressType ||
     type instanceof IntType ||
     type instanceof BoolType ||
@@ -283,12 +293,30 @@ export function safeGetNodeTypeInCtx(
   return getNodeTypeInCtx(arg, version, ctx);
 }
 
+export function safeCanonicalHash(f: FunctionDefinition, ast: AST) {
+  const hasMappingArg = f.vParameters.vParameters.some((p) =>
+    hasMapping(safeGetNodeType(p, ast.compilerVersion)),
+  );
+  if (hasMappingArg) {
+    const typeString = `${f.name}(${f.vParameters.vParameters.map((p) => p.typeString).join(',')})`;
+    const hash = createKeccakHash('keccak256')
+      .update(typeString)
+      .digest('hex')
+      .slice(2)
+      .slice(0, 4);
+    return hash;
+  } else {
+    return f.canonicalSignatureHash(ABIEncoderVersion.V2);
+  }
+}
+
 /**
  * Given a type returns its packed solidity bytes size
  * e.g. uint8 -> byte size is 1
- *      address -> byte size is 20
  *      uint16[3] -> byte size is 6
  *      and so on
+ *  address are 32 bytes instead of 20 bytes due to size difference
+ *  between addresses in StarkNet and Ethereum
  *  For every type whose byte size can be known on compile time
  *  @param type Solidity type
  *  @param version required for calculating structs byte size
@@ -302,7 +330,7 @@ export function getPackedByteSize(type: TypeNode, version: string): number | big
     return type.size;
   }
   if (type instanceof AddressType) {
-    return 20;
+    return 32;
   }
   if (
     type instanceof BoolType ||

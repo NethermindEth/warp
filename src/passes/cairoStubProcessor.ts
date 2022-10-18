@@ -13,6 +13,7 @@ import {
   TranspileFailedError,
   WillNotSupportError,
 } from '../utils/errors';
+import { MANGLED_LOCAL_VAR } from '../utils/nameModifiers';
 import { isExternallyVisible } from '../utils/utils';
 
 export class CairoStubProcessor extends ASTMapper {
@@ -67,7 +68,8 @@ function processStateVarTags(documentation: string, node: FunctionDefinition): s
   return processMacro(documentation, regex, (arg) => {
     const stateVarNames = contract.vStateVariables.map((decl) => decl.name);
     const matchingStateVars = stateVarNames.filter((name) => {
-      return name.replace(/__warp_usrid[0-9]+_/, '') === arg;
+      const regex = new RegExp(`${MANGLED_LOCAL_VAR}[0-9]+_`);
+      return name.replace(regex, '') === arg;
     });
     if (matchingStateVars.length === 0) {
       throw new TranspilationAbandonedError(`Unable to find matching statevar ${arg}`, errorNode);
@@ -104,7 +106,8 @@ function processInternalFunctionTag(documentation: string, node: FunctionDefinit
   return processMacro(documentation, regex, (arg) => {
     const funcNames = contract.vFunctions.filter((f) => !isExternallyVisible(f)).map((f) => f.name);
     const matchingFuncs = funcNames.filter((name) => {
-      return name.replace(/__warp_usrfn[0-9]+_/, '') === arg;
+      const regex = new RegExp(`_[0-9a-z]+$`);
+      return name.replace(regex, '') === arg;
     });
     if (matchingFuncs.length === 0) {
       throw new TranspilationAbandonedError(

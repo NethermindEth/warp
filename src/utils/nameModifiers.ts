@@ -11,10 +11,10 @@ export const TUPLE_FILLER_PREFIX = '__warp_tf';
 export const FREE_FILE_SUFFIX = '__WC_FREE';
 export const CONTRACT_INFIX = '__WC__';
 
-// Used in IdentifierManglerPass
-export const MANGLED_INTERNAL_USER_FUNCTION = '__warp_usrfn';
-export const MANGLED_TYPE_NAME = '__warp_usrT';
-export const MANGLED_LOCAL_VAR = '__warp_usrid';
+// Used in IdentifierManglerPass and CairoStubProcessor
+export const MANGLED_INTERNAL_USER_FUNCTION = '__warp_usrfn_';
+export const MANGLED_TYPE_NAME = '__warp_usrTp_';
+export const MANGLED_LOCAL_VAR = '__warp_usrid_';
 
 // Used in StaticArrayIndexer
 export const CALLDATA_TO_MEMORY_PREFIX = 'cd_to_wm_';
@@ -23,8 +23,10 @@ export const CALLDATA_TO_MEMORY_PREFIX = 'cd_to_wm_';
 export const CONSTANT_STRING_TO_MEMORY_PREFIX = 'memory_string';
 
 // Used in ModifierHandler in FunctionModifierHandler
-export const MANGLED_PARAMETER = '__warp_parameter';
-export const MANGLED_RETURN_PARAMETER = '__warp_ret_paramter';
+export const MANGLED_PARAMETER = '__warp_parameter_';
+export const MANGLED_RETURN_PARAMETER = '__warp_ret_parameter_';
+export const MODIFIER_PREFIX = '__warp_modifier_';
+export const ORIGINAL_FUNCTION_PREFIX = '__warp_original_';
 
 // Used in ExternalArgModifier in MemoryRefInputModifier
 export const CALLDATA_TO_MEMORY_FUNCTION_PARAMETER_PREFIX = 'cd_to_wm_param_';

@@ -146,16 +146,24 @@ warp deploy_account
 ### CLI Commands
 
 <hr> 
-To transpile a contract:
+To transpile a Solidity contract:
 
 ```bash
 warp transpile <path to Solidity contract>
 ```
 
-To deploy a Cairo contract:
+To declare a StarkNet contract:
 
 ```bash
-warp deploy <path to Cairo contract>
+warp declare <path to StarkNet contract>
+```
+
+_Please note to deploy a contract you will first have to declare it._
+
+To deploy a StarkNet contract:
+
+```bash
+warp deploy <path to StarkNet contract>
 ```
 
 The deploy command will generate the compiled json file as well as the abi json
@@ -166,7 +174,7 @@ file. Use `warp deploy --help` command to see more deployment options.
 ### Libraries
 
 <hr>
-Libraries are bundled into the point of use, therefore if you try transpile a standalone library it will result in no output.  If you would like to transpile and deploy a standalone library please alter its declaration to `contract`.
+Libraries are bundled into the point of use, therefore if you try transpile a standalone library it will result in no output. If you would like to transpile and deploy a standalone library please alter its declaration to `contract`.
 
 <br>
 
@@ -191,7 +199,7 @@ Please see the list below:
 |                   delegate calls                    | :hammer_and_pick: |
 |                   low level calls                   |        :x:        |
 |                 indexed parameters                  |    :question:     |
-|        abi methods (abi.encode, abi.decode)         |    :question:     |
+|           abi.decode for non-value types            | :hammer_and_pick: |
 |              nested tuple expressions               |    :question:     |
 |                typeName expressions                 |    :question:     |
 |                      gasleft()                      |    :question:     |
@@ -211,9 +219,10 @@ Please see the list below:
 |                      blockhash                      |    :question:     |
 |            functions pointers in storage            |    :question:     |
 |           sha256 (use keccak256 instead)            |        :x:        |
-|                  ternary operator                   |    :question:     |
+|                  ternary operator                   | :hammer_and_pick: |
 |                       receive                       |    :question:     |
-|                     Yul Blocks                      |    :question:     |
+|   Inline Yul Assembly - arithmetic (add, sub ...)   | :hammer_and_pick: |
+|  Inline Yul Assembly - (memory, calldata, storage)  |    :question:     |
 |                 user defined errors                 |    :question:     |
 |   function call options e.g x.f{gas: 10000}(arg1)   |    :question:     |
 | member access of address object e.g address.balance |    :question:     |
@@ -235,7 +244,11 @@ Run the container with the same options and arguments as the Warp binary:
 docker run --rm -v $PWD:/dapp --user $(id -u):$(id -g) warp transpile example_contracts/ERC20.sol
 ```
 
-## Testing for contributors :stethoscope:
+## Contributing
+
+Please checkout our database of open tickets [here](https://nethermind.notion.site/bb63e1485481427da72484457b4cc449?v=60e2e876b44740999a2e83fae29051db)
+
+### Testing for contributors :stethoscope:
 
 To test that your contribution doesn't break any features you can test that all previous example contracts transpile and then cairo compile by running the following:
 

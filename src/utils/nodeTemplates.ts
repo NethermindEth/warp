@@ -21,6 +21,7 @@ import {
   StructuredDocumentation,
   TupleExpression,
   TypeName,
+  UncheckedBlock,
   VariableDeclaration,
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
@@ -66,6 +67,16 @@ export function createBlock(
   documentation?: StructuredDocumentation | string,
 ): Block {
   const block = new Block(ast.reserveId(), '', statements, documentation);
+  ast.setContextRecursive(block);
+  return block;
+}
+
+export function createUncheckedBlock(
+  statements: Statement[],
+  ast: AST,
+  documentation?: StructuredDocumentation | string,
+): Block {
+  const block = new UncheckedBlock(ast.reserveId(), '', statements, documentation);
   ast.setContextRecursive(block);
   return block;
 }
@@ -244,10 +255,10 @@ export function createDefaultConstructor(node: ContractDefinition, ast: AST): Fu
     node.id,
     FunctionKind.Constructor,
     '',
-    false,
+    false, // virtual
     FunctionVisibility.Public,
     FunctionStateMutability.NonPayable,
-    true,
+    true, // isConstructor
     createParameterList([], ast),
     createParameterList([], ast),
     [],
