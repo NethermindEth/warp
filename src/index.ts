@@ -159,12 +159,14 @@ export interface SolcInterfaceGenOptions {
   cairoPath: string;
   output?: string;
   solcVersion?: string;
+  contractAddress?: string;
 }
 
 program
   .command('gen_interface <file>')
   .option('--cairo-path <cairo-path>')
   .option('--output <output>')
+  .option('--contract-address <contract-address>')
   .option('--solc-version <version>', 'Solc version to use.', '0.8.14')
   .action((file: string, options: SolcInterfaceGenOptions) => {
     generateSolInterface(file, options);

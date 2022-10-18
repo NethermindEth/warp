@@ -297,7 +297,7 @@ def processArrayReturnArguments(func_returns : Optional[CairoType]):
     )
 
 
-def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector) -> dict[str, CodeElementFunction]:
+def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector, contract: str) -> dict[str, CodeElementFunction]:
     cairoFunctionStubsDict: dict[str, CodeElementFunction] = dict()
     for func in interfaceElementCollector.functions:
         has_array, lines_added, func_arguments = processArrayArguments(func.arguments.identifiers)
@@ -307,10 +307,7 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector)
                 element_type=func.element_type,
                 identifier=ExprIdentifier(
                     name="CURRENTFUNC()"),
-                arguments=IdentifierList(identifiers=[
-                    TypedIdentifier(identifier=ExprIdentifier(
-                        name="addr"), expr_type=TypeFelt())
-                ] + func_arguments),
+                arguments=IdentifierList(identifiers=func_arguments),
                 implicit_arguments=IdentifierList(
                     identifiers=[
                         TypedIdentifier(
@@ -360,7 +357,7 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector)
                                         name = "Forwarder." + func.identifier.name
                                     ), 
                                     arguments=ArgList(
-                                        args=[ExprAssignment(identifier=None, expr=ExprIdentifier(name='addr'))] + [
+                                        args=[ExprAssignment(identifier=None, expr=ExprIdentifier(name=contract + '.__warp_usrid0___fwd_contract_address'))] + [
                                             ExprAssignment(identifier = None, expr =  ExprIdentifier(name=arg.identifier.name)) for arg in func.arguments.identifiers
                                         ],
                                         notes=[
@@ -383,7 +380,7 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector)
                                         name = "Forwarder." + func.identifier.name
                                     ), 
                                     arguments=ArgList(
-                                        args=[ExprAssignment(identifier=None, expr=ExprIdentifier(name='addr'))] + [
+                                        args=[ExprAssignment(identifier=None, expr=ExprIdentifier(name=contract + '.__warp_usrid0___fwd_contract_address'))] + [
                                             ExprAssignment(identifier = None, expr =  ExprIdentifier(name=arg.identifier.name)) for arg in func.arguments.identifiers
                                         ],
                                         notes=[
@@ -490,7 +487,7 @@ def main():
         forwarderInterface = createForwarderInterface(
             interfaceElementCollector)
 
-        abi = modify_abi_with_stubs(abi, generateFunctionStubs(interfaceElementCollector))
+        abi = modify_abi_with_stubs(abi, generateFunctionStubs(interfaceElementCollector, os.path.splitext(os.path.basename(args.output))[0] + '_forwarder'))
 
         cairo_json = {}
         cairo_json["abi"] = abi

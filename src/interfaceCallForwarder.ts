@@ -8,6 +8,7 @@ import { AST } from './ast/ast';
 
 import {
   ArrayTypeName,
+  Assignment,
   ASTContext,
   ASTNode,
   ASTNodeConstructor,
@@ -18,10 +19,16 @@ import {
   ContractKind,
   DataLocation,
   DefaultASTWriterMapping,
+  ElementaryTypeName,
+  ElementaryTypeNameExpression,
+  FunctionCall,
+  FunctionCallKind,
   FunctionDefinition,
   FunctionKind,
   FunctionStateMutability,
   FunctionVisibility,
+  Literal,
+  LiteralKind,
   Mutability,
   ParameterList,
   PragmaDirective,
@@ -38,10 +45,14 @@ import { CairoContract } from './ast/cairoNodes';
 import {
   createAddressTypeName,
   createArrayTypeName,
+  createBlock,
+  createExpressionStatement,
+  createIdentifier,
   createUint256TypeName,
-  createUintNTypeName,
 } from './utils/nodeTemplates';
 import { assert } from 'console';
+import { generateLiteralTypeString } from './utils/getTypeString';
+import { cloneASTNode } from './utils/cloning';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 const defaultSolcVersion = '0.8.14';
@@ -69,10 +80,7 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
     jsonCairoPath = options.output.slice(0, -'.sol'.length) + '.json';
   }
 
-  if (!solPath.endsWith('.sol')) {
-    logError(`Output path ${solPath} must end with .sol`);
-    return;
-  }
+  const fileName = path.basename(solPath).split('.')[0];
 
   const parameters = new Map([
     ['output', solPath],
@@ -111,28 +119,11 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
   const ast = new AST([sourceUint], options.solcVersion ?? defaultSolcVersion);
 
   addPragmaDirective(options.solcVersion ?? defaultSolcVersion, sourceUint, ast);
-  addForwarderContract(jsonCairo, sourceUint, ast);
-  addFreeFunctions(jsonCairo, sourceUint, ast);
+  addForwarderContract(jsonCairo, sourceUint, ast, fileName, options.contractAddress);
 
-  const result: string =
-    contractComments() + removeExcessNewlines(writer.write(ast.roots[0] as SourceUnit), 2);
+  const result: string = removeExcessNewlines(writer.write(ast.roots[0] as SourceUnit), 2);
 
   fs.writeFileSync(solPath, result);
-}
-
-function contractComments(): string {
-  const comments: string[] = [
-    '// SOME POINTS TO BE TAKEN CARE OF BEFORE TRANSPILING THIS CONTRACT:',
-    '// 1. Handle the conflicting imports and structs after transpiling this the contract',
-    '// 2. replace <TYPE> with appropriate solidity type , you can infer struct members from',
-    '// \t the WARP contract stubs',
-    '// 3. You must have the address of the deployed CAIRO CONTRACT you want to interact with',
-    '// 4. You can use these free functions defined in this file to interact with the cairo contract',
-    '// 5. Replace functions:[ wm_to_calldata_NUM, cd_to_memory_NUM] with appropriate function names (probably replace NUM) after transpiling this contract',
-    '// 6. Replace the data type cd_dynarray_OBJECT_TYPE with appropriate object type after transpiling this contract',
-    '\n\n',
-  ];
-  return comments.join('\n');
 }
 
 function addPragmaDirective(version: string, sourceUint: SourceUnit, ast: AST): void {
@@ -156,13 +147,23 @@ function addForwarderContract(
     imports: string[];
     structs: string[][];
     forwarder_interface: string[];
+    abi: [
+      {
+        outputs: [{ name: string; type: string }];
+        inputs: [{ name: string; type: string }];
+        name: string;
+        type: string;
+        stub: string[];
+      },
+    ];
   },
   sourceUint: SourceUnit,
   ast: AST,
+  fileName: string,
+  contract_address?: string,
 ): void {
   const id = ast.reserveId();
   const src = '';
-  const name = 'WARP';
   const contractDocs = [
     'warp-cairo',
     jsonCairo.imports.join('\n'),
@@ -175,8 +176,8 @@ function addForwarderContract(
   const contract = new CairoContract(
     id,
     src,
-    name,
-    -1,
+    fileName + '_forwarder',
+    sourceUint.id,
     ContractKind.Contract,
     false,
     true,
@@ -190,6 +191,106 @@ function addForwarderContract(
   );
   sourceUint.appendChild(contract);
   ast.registerChild(contract, sourceUint);
+  addForwarderFunctions(jsonCairo, contract, ast);
+  addAddressConstructor(contract, ast, contract_address);
+}
+
+function addAddressConstructor(contract: CairoContract, ast: AST, contract_address?: string): void {
+  const id = ast.reserveId();
+  const addr_type = createAddressTypeName(false, ast);
+  const addr_var_decl = new VariableDeclaration(
+    ast.reserveId(),
+    '',
+    false,
+    false,
+    '__fwd_contract_address',
+    contract.id,
+    true,
+    DataLocation.Default,
+    StateVariableVisibility.Public,
+    Mutability.Mutable,
+    'address',
+    'Keep this variable as a first variable declaration in this contract',
+    cloneASTNode(addr_type, ast),
+    undefined,
+    contract_address
+      ? new FunctionCall(
+          ast.reserveId(),
+          '',
+          'address',
+          FunctionCallKind.TypeConversion,
+          new ElementaryTypeNameExpression(
+            ast.reserveId(),
+            '',
+            'type(address)',
+            new ElementaryTypeName(ast.reserveId(), '', 'address', 'address'),
+          ),
+          [
+            new Literal(
+              ast.reserveId(),
+              '',
+              generateLiteralTypeString(contract_address),
+              LiteralKind.Number,
+              contract_address,
+              contract_address,
+            ),
+          ],
+        )
+      : undefined,
+  );
+  contract.appendChild(addr_var_decl);
+  ast.registerChild(addr_var_decl, contract);
+  const addr_var_param_decl = new VariableDeclaration(
+    ast.reserveId(),
+    '',
+    false,
+    false,
+    'cairo_contract_address',
+    id,
+    false,
+    DataLocation.Default,
+    StateVariableVisibility.Internal,
+    Mutability.Mutable,
+    addr_type.typeString,
+    undefined,
+    addr_type,
+    undefined,
+  );
+  const constructor = new FunctionDefinition(
+    id,
+    '',
+    contract.id,
+    FunctionKind.Constructor,
+    '',
+    false,
+    FunctionVisibility.Public,
+    FunctionStateMutability.NonPayable,
+    true,
+    new ParameterList(ast.reserveId(), '', [addr_var_param_decl]),
+    new ParameterList(ast.reserveId(), '', []),
+    [],
+    undefined,
+  );
+  contract.appendChild(constructor);
+  ast.registerChild(constructor, contract);
+  const constructor_body = createBlock(
+    [
+      createExpressionStatement(
+        ast,
+        new Assignment(
+          ast.reserveId(),
+          '',
+          'address',
+          '=',
+          createIdentifier(addr_var_decl, ast),
+          createIdentifier(addr_var_param_decl, ast),
+        ),
+      ),
+    ],
+    ast,
+  );
+  constructor.vBody = constructor_body;
+  ast.registerChild(constructor_body, constructor);
 }
 
 function getParametersFromStringRepresentation(
@@ -257,7 +358,7 @@ function getParametersFromStringRepresentation(
   return parameters;
 }
 
-function addFreeFunctions(
+function addForwarderFunctions(
   jsonCairo: {
     abi: [
       {
@@ -269,7 +370,7 @@ function addFreeFunctions(
       },
     ];
   },
-  sourceUnit: SourceUnit,
+  contract: CairoContract,
   ast: AST,
 ): void {
   const struct_names = jsonCairo.abi
@@ -298,11 +399,11 @@ function addFreeFunctions(
       new FunctionDefinition(
         id,
         '',
-        sourceUnit.id,
-        FunctionKind.Free,
+        contract.id,
+        FunctionKind.Function,
         element.name,
         false,
-        FunctionVisibility.Internal,
+        FunctionVisibility.Public,
         FunctionStateMutability.NonPayable,
         false, // is constructor
         new ParameterList(ast.reserveId(), '', inputParameters), // parameters
@@ -315,7 +416,7 @@ function addFreeFunctions(
     );
   });
   functions.forEach((f: FunctionDefinition) => {
-    sourceUnit.appendChild(f);
+    contract.appendChild(f);
     ast.setContextRecursive(f);
   });
 }
@@ -379,12 +480,11 @@ function getSolTypeName(cairoTypeString: string, ast: AST, struct_names: string[
     const baseTypeName: TypeName = getSolTypeName(cairoTypeString.slice(0, -1), ast, struct_names);
     return createArrayTypeName(baseTypeName, ast);
   }
-  if (cairoTypeString === 'felt') {
-    return createUintNTypeName(248, ast);
-  }
-  if (cairoTypeString === 'Uint256') {
+
+  if (cairoTypeString === 'Uint256' || cairoTypeString === 'felt') {
     return createUint256TypeName(ast);
   }
+
   if (struct_names.includes(cairoTypeString)) {
     // TODO: replace this with a proper struct type
     // after creation of struct dependency ordering
