@@ -311,7 +311,7 @@ function getParametersFromStringRepresentation(
               (param_name === '_var_calldata' || param_name === '_var_retdata'
                 ? '_size'
                 : '_len') &&
-          parameters[parameters.length - 1].typeString === 'uint248',
+          parameters[parameters.length - 1].typeString === 'uint256',
         'Array parameters must be preceded by a size parameter',
       );
       parameters.pop();
