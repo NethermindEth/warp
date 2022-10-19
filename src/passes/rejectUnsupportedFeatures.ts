@@ -136,6 +136,15 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       if (!(node.parent instanceof MemberAccess && node.parent.memberName === 'sender')) {
         this.addUnsupported(`msg object not supported outside of 'msg.sender'`, node);
       }
+    } else if (node.name === 'block' && node.vIdentifierType === ExternalReferenceType.Builtin) {
+      if (
+        node.parent instanceof MemberAccess &&
+        ['coinbase', 'chainid', 'gaslimit', 'basefee', 'difficulty'].includes(
+          (<MemberAccess>node.parent).memberName,
+        )
+      ) {
+        this.addUnsupported(`block.${(<MemberAccess>node.parent).memberName} not supported`, node);
+      }
     }
   }
 

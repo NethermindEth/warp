@@ -172,6 +172,7 @@ filters.forEach((filter) => {
     );
   } catch (e) {
     console.log(e);
+    throw e;
   }
 });
 

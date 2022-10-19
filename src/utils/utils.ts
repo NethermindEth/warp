@@ -65,6 +65,7 @@ import {
 } from './nodeTemplates';
 import { isDynamicArray, isDynamicCallDataArray, safeGetNodeType } from './nodeTypeProcessing';
 import { Class } from './typeConstructs';
+import { TranspilationOptions } from '..';
 
 const uint128 = BigInt('0x100000000000000000000000000000000');
 
@@ -149,9 +150,10 @@ export function unitValue(unit?: EtherUnit | TimeUnit): number {
   }
 }
 
-export function runSanityCheck(ast: AST, printResult: boolean, passName: string): boolean {
+export function runSanityCheck(ast: AST, options: TranspilationOptions, passName: string): boolean {
+  const printResult = options.checkTrees ?? false;
   if (printResult) console.log(`Running sanity check after ${passName}`);
-  if (isSane(ast)) {
+  if (isSane(ast, options.dev)) {
     if (printResult) console.log('AST passed sanity check');
     return true;
   }
