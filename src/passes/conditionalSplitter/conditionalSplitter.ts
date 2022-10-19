@@ -1,25 +1,13 @@
-import assert from 'assert';
 import {
   Assignment,
   Conditional,
-  DataLocation,
   ExpressionStatement,
   FunctionCall,
   FunctionDefinition,
   FunctionKind,
   FunctionVisibility,
-  Mutability,
-  StateVariableVisibility,
-  VariableDeclaration,
   VariableDeclarationStatement,
-  generalizeType,
   TupleExpression,
-  Block,
-  TupleType,
-  TypeNode,
-  IntLiteralType,
-  StringLiteralType,
-  Expression,
   Return,
   ASTNode,
 } from 'solc-typed-ast';
@@ -33,21 +21,8 @@ import {
   PRE_SPLIT_EXPRESSION_PREFIX,
   TUPLE_VALUE_PREFIX,
 } from '../../utils/nameModifiers';
-import {
-  createBlock,
-  createEmptyTuple,
-  createExpressionStatement,
-  createIdentifier,
-  createVariableDeclarationStatement,
-} from '../../utils/nodeTemplates';
-import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { notNull } from '../../utils/typeConstructs';
-import {
-  counterGenerator,
-  getContainingFunction,
-  toSingleExpression,
-  typeNameFromTypeNode,
-} from '../../utils/utils';
+import { createIdentifier } from '../../utils/nodeTemplates';
+import { counterGenerator, getContainingFunction, toSingleExpression } from '../../utils/utils';
 import { ExpressionSplitter } from '../expressionSplitter';
 import {
   addStatementsToCallFunction,
@@ -58,7 +33,13 @@ import {
   getParams,
   getReturns,
   getStatementsForVoidConditionals,
-} from './conditionalFunctionaliser';
+} from './utils/conditionalFunctionaliser';
+import {
+  splitFunctionCallWithoutReturn,
+  splitFunctionCallWithReturn,
+  splitReturnTuple,
+  splitTupleAssignment,
+} from './utils/splitter';
 
 function* expressionGenerator(prefix: string): Generator<string, string, unknown> {
   const count = counterGenerator();
@@ -129,11 +110,9 @@ function* expressionGenerator(prefix: string): Generator<string, string, unknown
     which is not correct since `y` needs to be assigned first
     
     As the splitting of expressions can not happen before nor after handling conditionals,
-    they have to be handled together.
-
-    Because is needed to handle together conditionals and other expression splitting this pass
-    inherit from ExpressionSplitter. The visitAssignment function is the same for both passes, 
-    but visitFunctionCall have a different strategy to compute the data location of the variable 
+    they have to be handled together. In order to do so, this pass inherits from 
+    ExpressionSplitter pass. The `visitAssignment` method is the same for both passes. However,
+    `visitFunctionCall` has a different strategy to compute the data location of the variable 
     that will store the call, so its definition is overwritten.
 
     3. TUPLE ASSINGMENT SPLITTING:
@@ -176,7 +155,7 @@ export class ConditionalSplitter extends ExpressionSplitter {
       node.vExpression instanceof Assignment &&
       node.vExpression.vLeftHandSide instanceof TupleExpression
     ) {
-      visitNode = this.splitTupleAssignment(node.vExpression, ast);
+      visitNode = splitTupleAssignment(node.vExpression, this.eGenTuple, ast);
       ast.replaceNode(node, visitNode);
     }
 
@@ -195,9 +174,9 @@ export class ConditionalSplitter extends ExpressionSplitter {
 
     const returnTypes = node.vReferencedDeclaration.vReturnParameters.vParameters;
     if (returnTypes.length === 0) {
-      this.splitFunctionCallWithoutReturn(node, ast);
+      splitFunctionCallWithoutReturn(node, ast);
     } else if (returnTypes.length === 1) {
-      this.splitFunctionCallWithReturn(node, returnTypes[0], ast);
+      splitFunctionCallWithReturn(node, returnTypes[0], this.eGen, ast);
     } else {
       throw new TranspileFailedError(
         `ConditionalSplitter expects functions to have at most 1 return argument. ${printNode(
@@ -281,163 +260,8 @@ export class ConditionalSplitter extends ExpressionSplitter {
   visitReturn(node: Return, ast: AST): void {
     let nodeToVisit: ASTNode = node;
     if (node.vFunctionReturnParameters.vParameters.length > 1) {
-      nodeToVisit = this.splitReturnTuple(node, ast);
+      nodeToVisit = splitReturnTuple(node, ast);
     }
     this.commonVisit(nodeToVisit, ast);
-  }
-
-  splitTupleAssignment(node: Assignment, ast: AST): Block {
-    const [lhs, rhs] = [node.vLeftHandSide, node.vRightHandSide];
-    assert(
-      lhs instanceof TupleExpression,
-      `Split tuple assignment was called on non-tuple assignment ${node.type} # ${node.id}`,
-    );
-    const rhsType = safeGetNodeType(rhs, ast.compilerVersion);
-    assert(
-      rhsType instanceof TupleType,
-      `Expected rhs of tuple assignment to be tuple type ${printNode(node)}`,
-    );
-
-    const block = createBlock([], ast);
-
-    const tempVars = new Map<Expression, VariableDeclaration>(
-      lhs.vOriginalComponents.filter(notNull).map((child, index) => {
-        const lhsElementType = safeGetNodeType(child, ast.compilerVersion);
-        const rhsElementType = rhsType.elements[index];
-
-        // We need to calculate a type and location for the temporary variable
-        // By default we can use the rhs value, unless it is a literal
-        let typeNode: TypeNode;
-        let location: DataLocation | undefined;
-        if (rhsElementType instanceof IntLiteralType) {
-          [typeNode, location] = generalizeType(lhsElementType);
-        } else if (rhsElementType instanceof StringLiteralType) {
-          typeNode = generalizeType(lhsElementType)[0];
-          location = DataLocation.Memory;
-        } else {
-          [typeNode, location] = generalizeType(rhsElementType);
-        }
-        const typeName = typeNameFromTypeNode(typeNode, ast);
-        const decl = new VariableDeclaration(
-          ast.reserveId(),
-          node.src,
-          true, // constant
-          false, // indexed
-          this.eGenTuple.next().value,
-          block.id,
-          false, // stateVariable
-          location ?? DataLocation.Default,
-          StateVariableVisibility.Default,
-          Mutability.Constant,
-          typeNode.pp(),
-          undefined,
-          typeName,
-        );
-        ast.setContextRecursive(decl);
-        return [child, decl];
-      }),
-    );
-
-    const tempTupleDeclaration = new VariableDeclarationStatement(
-      ast.reserveId(),
-      node.src,
-      lhs.vOriginalComponents.map((n) => (n === null ? null : tempVars.get(n)?.id ?? null)),
-      [...tempVars.values()],
-      node.vRightHandSide,
-    );
-
-    const assignments = [...tempVars.entries()]
-      .filter(([_, tempVar]) => tempVar.storageLocation !== DataLocation.CallData)
-      .map(
-        ([target, tempVar]) =>
-          new ExpressionStatement(
-            ast.reserveId(),
-            node.src,
-            new Assignment(
-              ast.reserveId(),
-              node.src,
-              target.typeString,
-              '=',
-              target,
-              createIdentifier(tempVar, ast, undefined, node),
-            ),
-          ),
-      )
-      .reverse();
-
-    block.appendChild(tempTupleDeclaration);
-    assignments.forEach((n) => block.appendChild(n));
-    ast.setContextRecursive(block);
-    return block;
-  }
-
-  splitFunctionCallWithoutReturn(node: FunctionCall, ast: AST): void {
-    // If returns nothing then the function can be called in a previous statement and
-    // replace this call with an empty tuple
-    const parent = node.parent;
-    assert(parent !== undefined, `${printNode(node)} ${node.vFunctionName} has no parent`);
-    ast.replaceNode(node, createEmptyTuple(ast));
-    ast.insertStatementBefore(parent, createExpressionStatement(ast, node));
-  }
-
-  splitFunctionCallWithReturn(node: FunctionCall, returnType: VariableDeclaration, ast: AST): void {
-    assert(
-      returnType.vType !== undefined,
-      'Return types should not be undefined since solidity 0.5.0',
-    );
-    const location =
-      generalizeType(safeGetNodeType(node, ast.compilerVersion))[1] ?? DataLocation.Default;
-    const replacementVariable = new VariableDeclaration(
-      ast.reserveId(),
-      node.src,
-      true, // constant
-      false, // indexed
-      this.eGen.next().value,
-      ast.getContainingScope(node),
-      false, // stateVariable
-      location,
-      StateVariableVisibility.Private,
-      Mutability.Constant,
-      returnType.typeString,
-      undefined, // documentation
-      cloneASTNode(returnType.vType, ast),
-    );
-    const declaration = createVariableDeclarationStatement(
-      [replacementVariable],
-      cloneASTNode(node, ast),
-      ast,
-    );
-    const temp_var = declaration.vDeclarations[0];
-
-    // a = f() + 5
-    // ~>
-    // __warp_se = f()
-    // a = __warp_se + 5
-    ast.insertStatementBefore(node, declaration);
-    ast.replaceNode(node, createIdentifier(temp_var, ast));
-  }
-
-  splitReturnTuple(node: Return, ast: AST): VariableDeclarationStatement {
-    const returnExpression = node.vExpression;
-    assert(
-      returnExpression !== undefined,
-      `Tuple return ${printNode(node)} has undefined value. Expects ${
-        node.vFunctionReturnParameters.vParameters.length
-      } parameters`,
-    );
-    const vars = node.vFunctionReturnParameters.vParameters.map((v) => cloneASTNode(v, ast));
-    const replaceStatement = createVariableDeclarationStatement(vars, returnExpression, ast);
-    ast.insertStatementBefore(node, replaceStatement);
-
-    node.vExpression = new TupleExpression(
-      ast.reserveId(),
-      '',
-      returnExpression.typeString,
-      false, // isInlineArray
-      vars.map((v) => createIdentifier(v, ast, undefined, node)),
-    );
-    ast.registerChild(node.vExpression, node);
-
-    return replaceStatement;
   }
 }

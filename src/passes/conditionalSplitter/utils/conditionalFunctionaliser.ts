@@ -20,21 +20,21 @@ import {
   TypeNode,
   VariableDeclaration,
 } from 'solc-typed-ast';
-import { AST } from '../../ast/ast';
-import { printNode } from '../../utils/astPrinter';
-import { cloneASTNode } from '../../utils/cloning';
-import { getDefaultValue } from '../../utils/defaultValueNodes';
-import { collectUnboundVariables, createOuterCall } from '../../utils/functionGeneration';
-import { CONDITIONAL_RETURN_VARIABLE } from '../../utils/nameModifiers';
+import { AST } from '../../../ast/ast';
+import { printNode } from '../../../utils/astPrinter';
+import { cloneASTNode } from '../../../utils/cloning';
+import { getDefaultValue } from '../../../utils/defaultValueNodes';
+import { collectUnboundVariables, createOuterCall } from '../../../utils/functionGeneration';
+import { CONDITIONAL_RETURN_VARIABLE } from '../../../utils/nameModifiers';
 import {
   createBlock,
   createIdentifier,
   createParameterList,
   createReturn,
   createVariableDeclarationStatement,
-} from '../../utils/nodeTemplates';
-import { safeGetNodeType, safeGetNodeTypeInCtx } from '../../utils/nodeTypeProcessing';
-import { toSingleExpression, typeNameFromTypeNode } from '../../utils/utils';
+} from '../../../utils/nodeTemplates';
+import { safeGetNodeType, safeGetNodeTypeInCtx } from '../../../utils/nodeTypeProcessing';
+import { toSingleExpression, typeNameFromTypeNode } from '../../../utils/utils';
 
 // The returns should be both the values returned by the conditional itself,
 // as well as the variables that got captured, as they could have been modified
@@ -114,7 +114,7 @@ export function getInputs(
 }
 
 // The parameters should be the same as the inputs
-// However this must also create new variable declarations for
+// However this must also create new variable declarations to
 // use in the new function, and rebind internal identifiers
 // to these new variables
 export function getParams(
@@ -211,7 +211,8 @@ export function getNodeVariables(node: Conditional) {
 // There might be two different cases where conditionals return void:
 // - they are the expression of a return statement
 // - they are the expression of an expressionStatement
-// TODO - Check if there are any other cases where the conditional might be void
+// There might be nested conditionals as well, but the pass goes through
+// the outtermost first and transform it, so it falls in the previous cases
 export function getStatementsForVoidConditionals(
   node: Conditional,
   variables: VariableDeclaration[],
@@ -223,6 +224,9 @@ export function getStatementsForVoidConditionals(
   assert(parent !== undefined, `Expected parent for ${printNode(node)} was not found`);
   const outerCall = createOuterCall(node, variables, funcToCall, ast);
 
+  // In both cases it must be checked that the conditional is a direct child of the `parent`
+  // node, otherwise it means that this conditional, that doesn't return a value, is inside
+  // another expression, which breaks the two cases mentioned previously.
   if (parent instanceof Return) {
     assert(parent.vExpression === node, `Expected conditional to be the returned expression`);
     ast.insertStatementBefore(parent, outerCall);
