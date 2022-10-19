@@ -111,8 +111,6 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
           ...decodings,
           `// Param ${index} decoding:`,
           this.generateDecodingCode(type, 'mem_index', `result${index}`, 'mem_index'),
-          `let in_range${index} = is_le_felt(mem_index, max_index_length);`,
-          `in_range${index} = 1;`,
         ],
       ],
       [new Array<{ name: string; type: string }>(), new Array<string>()],
