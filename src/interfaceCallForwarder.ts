@@ -191,8 +191,8 @@ function addForwarderContract(
   );
   sourceUint.appendChild(contract);
   ast.registerChild(contract, sourceUint);
-  addForwarderFunctions(jsonCairo, contract, ast);
   addAddressConstructor(contract, ast, contract_address);
+  addForwarderFunctions(jsonCairo, contract, ast);
 }
 
 function addAddressConstructor(contract: CairoContract, ast: AST, contract_address?: string): void {
@@ -210,7 +210,7 @@ function addAddressConstructor(contract: CairoContract, ast: AST, contract_addre
     StateVariableVisibility.Public,
     Mutability.Mutable,
     'address',
-    'Keep this variable as a first variable declaration in this contract',
+    'Keep this variable as a first state variable declaration in this contract',
     cloneASTNode(addr_type, ast),
     undefined,
     contract_address
@@ -298,27 +298,8 @@ function getParametersFromStringRepresentation(
   scope: number,
   ast: AST,
   struct_names: string[],
-  return_param = false,
 ): VariableDeclaration[] {
-  const parameters: VariableDeclaration[] = return_param
-    ? []
-    : [
-        new VariableDeclaration(
-          ast.reserveId(),
-          '',
-          false,
-          false,
-          'contract_address',
-          scope,
-          false,
-          DataLocation.Default,
-          StateVariableVisibility.Internal,
-          Mutability.Mutable,
-          'address',
-          undefined,
-          createAddressTypeName(false, ast),
-        ),
-      ];
+  const parameters: VariableDeclaration[] = [];
   params.forEach((param: { name: string; type: string }) => {
     const solTypeName: TypeName = getSolTypeName(param.type, ast, struct_names);
     const param_name = '_var_' + param.name;
@@ -393,7 +374,6 @@ function addForwarderFunctions(
       id,
       ast,
       struct_names,
-      true,
     );
     functions.push(
       new FunctionDefinition(
@@ -403,7 +383,7 @@ function addForwarderFunctions(
         FunctionKind.Function,
         element.name,
         false,
-        FunctionVisibility.Public,
+        FunctionVisibility.Internal,
         FunctionStateMutability.NonPayable,
         false, // is constructor
         new ParameterList(ast.reserveId(), '', inputParameters), // parameters

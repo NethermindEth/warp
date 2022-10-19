@@ -57,7 +57,7 @@ def functionCallableCheck(callableDecorators, decorators: list[ExprIdentifier]):
 
 
 class InterfaceElementsCollector(Visitor):
-    def __init__(self, abi_functions: list[str], abi_structs:list[str]):
+    def __init__(self, abi_functions: list[str], abi_structs: list[str]):
         super().__init__()
         self.functions: list[CodeElementFunction] = list()
         self.structs: list[CodeElementFunction] = list()
@@ -84,13 +84,14 @@ class InterfaceElementsCollector(Visitor):
             self.structs.append(visited_elm)
 
         return visited_elm
-    
-    def getUsableImportItems(self, elm:CodeElementImport):
-        import_items = list(filter(lambda x: x.orig_identifier.name in self.abi_structs, elm.import_items))
-        #remove items which original identifier name is Uint256
-        import_items = list(filter(lambda x: x.orig_identifier.name != "Uint256", import_items))
-        return import_items
 
+    def getUsableImportItems(self, elm: CodeElementImport):
+        import_items = list(
+            filter(lambda x: x.orig_identifier.name in self.abi_structs, elm.import_items))
+        # remove items which original identifier name is Uint256
+        import_items = list(
+            filter(lambda x: x.orig_identifier.name != "Uint256", import_items))
+        return import_items
 
     def visit_CodeElementImport(self, elm: CodeElementImport):
         usableImportItems = self.getUsableImportItems(elm)
@@ -123,6 +124,7 @@ def createForwarderInterface(interfaceElementCollector: InterfaceElementsCollect
         decorators=[ExprIdentifier(name="contract_interface")],
     )
 
+
 def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description='Produce a solidity interface for given cairo file')
@@ -132,12 +134,14 @@ def get_parser() -> argparse.ArgumentParser:
     cairo_compile_add_common_args(parser)
     return parser
 
-def arrayLengthName(name:str):
+
+def arrayLengthName(name: str):
     if name == "calldata":
         return "calldata_size"
     elif name == "retdata":
         return "retdata_size"
     return f"{name}_len"
+
 
 def processArrayArguments(args: list[TypedIdentifier]):
     modifiedArgs: list[TypedIdentifier] = list()
@@ -146,8 +150,8 @@ def processArrayArguments(args: list[TypedIdentifier]):
     for arg in args:
         if isinstance(arg.expr_type, TypePointer):
             assert (
-                len(modifiedArgs) >0 and
-                modifiedArgs[-1].name == arrayLengthName(arg.name) and 
+                len(modifiedArgs) > 0 and
+                modifiedArgs[-1].name == arrayLengthName(arg.name) and
                 isinstance(modifiedArgs[-1].expr_type, TypeFelt)
             ), "Array type argument must be preceded by a length argument"
             hasArrayArguments = True
@@ -164,19 +168,22 @@ def processArrayArguments(args: list[TypedIdentifier]):
                         unpacking_list=IdentifierList(
                             identifiers=[
                                 TypedIdentifier(
-                                    identifier=ExprIdentifier(name=arg.name+"_cd"),
-                                    expr_type= None,
+                                    identifier=ExprIdentifier(
+                                        name=arg.name+"_cd"),
+                                    expr_type=None,
                                 )
                             ],
                             notes=[Notes([])]*2,
                         ),
                         rvalue=RvalueFuncCall(
-                            func_ident=ExprIdentifier(name="wm_to_calldata_NUM"),
+                            func_ident=ExprIdentifier(
+                                name="wm_to_calldata_NUM"),
                             arguments=ArgList(
                                 [
                                     ExprAssignment(
-                                        identifier=None, 
-                                        expr=ExprIdentifier(name = arg.name+"_mem")
+                                        identifier=None,
+                                        expr=ExprIdentifier(
+                                            name=arg.name+"_mem")
                                     ),
                                 ],
                                 notes=[Notes([])]*2,
@@ -188,19 +195,20 @@ def processArrayArguments(args: list[TypedIdentifier]):
                     comment=None,
                 ),
                 CommentedCodeElement(
-                    code_elm = CodeElementReference(
+                    code_elm=CodeElementReference(
                         typed_identifier=TypedIdentifier(
-                            identifier=ExprIdentifier(name=arrayLengthName(arg.name)),
+                            identifier=ExprIdentifier(
+                                name=arrayLengthName(arg.name)),
                             expr_type=None,
-                        ), 
+                        ),
                         expr=ExprIdentifier(
                             name=arg.name + "_cd" + ".len"
                         )
                     ),
                     comment=None
-                ), 
+                ),
                 CommentedCodeElement(
-                    code_elm = CodeElementReference(
+                    code_elm=CodeElementReference(
                         typed_identifier=TypedIdentifier(
                             identifier=ExprIdentifier(name=arg.name),
                             expr_type=None,
@@ -216,7 +224,8 @@ def processArrayArguments(args: list[TypedIdentifier]):
             modifiedArgs.append(arg)
     return hasArrayArguments, lines_added, modifiedArgs
 
-def processArrayReturnArguments(func_returns : Optional[CairoType]):
+
+def processArrayReturnArguments(func_returns: Optional[CairoType]):
     if func_returns is None:
         return False, False, [], None
     if not isinstance(func_returns, TypeTuple):
@@ -227,8 +236,8 @@ def processArrayReturnArguments(func_returns : Optional[CairoType]):
     for member in func_returns.members:
         if isinstance(member.typ, TypePointer):
             assert (
-                len(tuplesMembers) >0 and
-                tuplesMembers[-1].name == arrayLengthName(member.name) and 
+                len(tuplesMembers) > 0 and
+                tuplesMembers[-1].name == arrayLengthName(member.name) and
                 isinstance(tuplesMembers[-1].typ, TypeFelt)
             ), "Array type argument must be preceded by a length argument"
             hasArrayReturnArguments = True
@@ -245,8 +254,9 @@ def processArrayReturnArguments(func_returns : Optional[CairoType]):
                         unpacking_list=IdentifierList(
                             identifiers=[
                                 TypedIdentifier(
-                                    identifier=ExprIdentifier(name=member.name+"_mem"),
-                                    expr_type= None,
+                                    identifier=ExprIdentifier(
+                                        name=member.name+"_mem"),
+                                    expr_type=None,
                                 )
                             ],
                             notes=[Notes([])]*2,
@@ -256,19 +266,22 @@ def processArrayReturnArguments(func_returns : Optional[CairoType]):
                             arguments=ArgList(
                                 [
                                     ExprAssignment(
-                                        identifier=None, 
+                                        identifier=None,
                                         expr=ExprFuncCall(
-                                            rvalue = RvalueFuncCall(
-                                                func_ident= ExprIdentifier(name='cd_dynarray_OBJECT_TYPE'),
+                                            rvalue=RvalueFuncCall(
+                                                func_ident=ExprIdentifier(
+                                                    name='cd_dynarray_OBJECT_TYPE'),
                                                 arguments=ArgList(
                                                     args=[
                                                         ExprAssignment(
                                                             identifier=None,
-                                                            expr = ExprIdentifier(name=arrayLengthName(member.name)),
+                                                            expr=ExprIdentifier(
+                                                                name=arrayLengthName(member.name)),
                                                         ),
                                                         ExprAssignment(
                                                             identifier=None,
-                                                            expr = ExprIdentifier(name=member.name)
+                                                            expr=ExprIdentifier(
+                                                                name=member.name)
                                                         ),
                                                     ],
                                                     notes=[Notes([])]*3,
@@ -293,15 +306,17 @@ def processArrayReturnArguments(func_returns : Optional[CairoType]):
     return hasArrayReturnArguments, True, lines_added, TypeTuple(
         members=tuplesMembers,
         notes=[Notes([])]*(len(tuplesMembers)+1),
-        has_trailing_comma= len(tuplesMembers) == 1
+        has_trailing_comma=len(tuplesMembers) == 1
     )
 
 
-def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector, contract: str) -> dict[str, CodeElementFunction]:
+def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector) -> dict[str, CodeElementFunction]:
     cairoFunctionStubsDict: dict[str, CodeElementFunction] = dict()
     for func in interfaceElementCollector.functions:
-        has_array, lines_added, func_arguments = processArrayArguments(func.arguments.identifiers)
-        has_return_array, return_modification, lines_added_return, func_returns = processArrayReturnArguments(func.returns)
+        has_array, lines_added, func_arguments = processArrayArguments(
+            func.arguments.identifiers)
+        has_return_array, return_modification, lines_added_return, func_returns = processArrayReturnArguments(
+            func.returns)
         cairoFunctionStubsDict[func.identifier.name] = (
             CodeElementFunction(
                 element_type=func.element_type,
@@ -315,13 +330,14 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector,
                             expr_type=TypePointer(pointee=TypeFelt()),
                             modifier=None
                         )
-                    ] + ([
+                    ] + [
                         TypedIdentifier(
                             identifier=ExprIdentifier(name='pedersen_ptr'),
-                            expr_type=TypePointer(pointee=TypeIdentifier(name=ScopedName(path=('HashBuiltin',)))), 
+                            expr_type=TypePointer(pointee=TypeIdentifier(
+                                name=ScopedName(path=('HashBuiltin',)))),
                             modifier=None
                         )
-                    ] if (has_array or has_return_array) else []) + 
+                    ] +
                     [
                         TypedIdentifier(
                             identifier=ExprIdentifier(name='range_check_ptr'),
@@ -331,7 +347,8 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector,
                     ] + ([
                         TypedIdentifier(
                             identifier=ExprIdentifier(name='warp_memory'),
-                            expr_type=TypePointer(pointee=TypeIdentifier(name=ScopedName(path=('DictAccess',)))), 
+                            expr_type=TypePointer(pointee=TypeIdentifier(
+                                name=ScopedName(path=('DictAccess',)))),
                             modifier=None
                         )
                     ] if has_return_array else []),
@@ -342,23 +359,45 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector,
                         CommentedCodeElement(
                             code_elm=CodeElementAllocLocals(),
                             comment=None
+                        ), 
+                        CommentedCodeElement(
+                            code_elm = CodeElementUnpackBinding(
+                                unpacking_list=IdentifierList(
+                                    identifiers=[
+                                        TypedIdentifier(identifier = ExprIdentifier(name='__contract_address'), expr_type = TypeFelt()),
+                                    ],
+                                    notes=[Notes([])]*2,
+                                ), 
+                                rvalue = RvalueFuncCall(
+                                    func_ident = ExprIdentifier(name='WARP_STORAGE.read'),
+                                    arguments = ArgList(
+                                        args =[ExprAssignment(identifier=None, expr=ExprIdentifier(name='__warp_usrid_00___fwd_contract_address'))], 
+                                        notes=[Notes([])]*2,
+                                        has_trailing_comma=False,
+                                    ),
+                                    implicit_arguments=None,
+                                ),
+                            ), 
+                            comment=None,
                         )
-                        ] + lines_added + [
+                    ]
+                     + lines_added + [
                         CommentedCodeElement(
                             code_elm=CodeElementUnpackBinding(
                                 unpacking_list=IdentifierList(
-                                    identifiers= [
+                                    identifiers=[
                                         TypedIdentifier(identifier=ExprIdentifier(member.name), expr_type=member.typ) for member in func.returns.members
                                     ] if func.returns is not None else [],
-                                    notes = [Notes()]*(len(func.returns.members) + 1) if func.returns is not None else [Notes()],
+                                    notes=[Notes()]*(len(func.returns.members) +
+                                                     1) if func.returns is not None else [Notes()],
                                 ),
-                                rvalue = RvalueFuncCall(
+                                rvalue=RvalueFuncCall(
                                     func_ident=ExprIdentifier(
-                                        name = "Forwarder." + func.identifier.name
-                                    ), 
+                                        name="Forwarder." + func.identifier.name
+                                    ),
                                     arguments=ArgList(
-                                        args=[ExprAssignment(identifier=None, expr=ExprIdentifier(name=contract + '.__warp_usrid0___fwd_contract_address'))] + [
-                                            ExprAssignment(identifier = None, expr =  ExprIdentifier(name=arg.identifier.name)) for arg in func.arguments.identifiers
+                                        args=[ExprAssignment(identifier=None, expr=ExprIdentifier(name='__contract_address'))] + [
+                                            ExprAssignment(identifier=None, expr=ExprIdentifier(name=arg.identifier.name)) for arg in func.arguments.identifiers
                                         ],
                                         notes=[
                                             Notes() for _ in func.arguments.identifiers] + [Notes()]*2,
@@ -366,22 +405,22 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector,
                                     ),
                                     implicit_arguments=None
                                 )
-                            ), 
+                            ),
                             comment=None
                         ) if return_modification else CommentedCodeElement(
                             code_elm=CodeElementReturnValueReference(
                                 TypedIdentifier(
-                                    identifier=ExprIdentifier(name="val"), 
+                                    identifier=ExprIdentifier(name="val"),
                                     expr_type=None,
                                     modifier=None
-                                ), 
-                                func_call = RvalueFuncCall(
+                                ),
+                                func_call=RvalueFuncCall(
                                     func_ident=ExprIdentifier(
-                                        name = "Forwarder." + func.identifier.name
-                                    ), 
+                                        name="Forwarder." + func.identifier.name
+                                    ),
                                     arguments=ArgList(
-                                        args=[ExprAssignment(identifier=None, expr=ExprIdentifier(name=contract + '.__warp_usrid0___fwd_contract_address'))] + [
-                                            ExprAssignment(identifier = None, expr =  ExprIdentifier(name=arg.identifier.name)) for arg in func.arguments.identifiers
+                                        args=[ExprAssignment(identifier=None, expr=ExprIdentifier(name='__contract_address'))] + [
+                                            ExprAssignment(identifier=None, expr=ExprIdentifier(name=arg.identifier.name)) for arg in func.arguments.identifiers
                                         ],
                                         notes=[
                                             Notes() for _ in func.arguments.identifiers] + [Notes()]*2,
@@ -389,19 +428,21 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector,
                                     ),
                                     implicit_arguments=None
                                 )
-                            ), 
+                            ),
                             comment=None
                         ),
-                        ] + lines_added_return + [ 
+                    ] + lines_added_return + [
                         CommentedCodeElement(
                             code_elm=CodeElementReturn(
-                                expr = ExprTuple(
+                                expr=ExprTuple(
                                     members=ArgList(
-                                        args = [
-                                            ExprAssignment(identifier=None, expr = ExprIdentifier(name = member.name)) for member in func_returns.members 
-                                        ], 
-                                        notes = [Notes()]*(len(func_returns.members) + 1),
-                                        has_trailing_comma= len(func_returns.members) == 1,
+                                        args=[
+                                            ExprAssignment(identifier=None, expr=ExprIdentifier(name=member.name)) for member in func_returns.members
+                                        ],
+                                        notes=[Notes()] *
+                                        (len(func_returns.members) + 1),
+                                        has_trailing_comma=len(
+                                            func_returns.members) == 1,
                                     ),
                                 ),
                             ),
@@ -455,7 +496,8 @@ def get_cairo_abi(args: argparse.Namespace):
 def modify_abi_with_stubs(abi: AbiType, cairoFunctionStubsDict: dict[str, CodeElementFunction]):
     for entry in abi:
         if entry['type'] == 'function':
-            entry['stub'] = cairoFunctionStubsDict[entry['name']].format(get_max_line_length()).split('\n')
+            entry['stub'] = cairoFunctionStubsDict[entry['name']].format(
+                get_max_line_length()).split('\n')
     return abi
 
 
@@ -469,15 +511,14 @@ def main():
 
         if args.output is None:
             args.output = codes[0][1].replace('.cairo', '.json')
-        else :
+        else:
             args.output = args.output.name.replace('.sol', '.json')
 
-
         interfaceElementCollector = InterfaceElementsCollector(
-            [entry["name"] for entry in abi if entry["type"] == "function"], 
+            [entry["name"] for entry in abi if entry["type"] == "function"],
             [entry["name"] for entry in abi if entry["type"] == "struct"]
         )
-        
+
         for code, filename in codes:
             parsed_file: CairoFile = parse_file(code, filename=filename)
             cairoModule: CairoModule = CairoModule(
@@ -487,14 +528,19 @@ def main():
         forwarderInterface = createForwarderInterface(
             interfaceElementCollector)
 
-        abi = modify_abi_with_stubs(abi, generateFunctionStubs(interfaceElementCollector, os.path.splitext(os.path.basename(args.output))[0] + '_forwarder'))
+        abi = modify_abi_with_stubs(
+            abi, generateFunctionStubs(interfaceElementCollector))
 
         cairo_json = {}
         cairo_json["abi"] = abi
-        cairo_json["forwarder_interface"] = forwarderInterface.format(get_max_line_length()).split('\n')
-        cairo_json["imports"] = [import_elm.format(get_max_line_length()) for import_elm in interfaceElementCollector.imports]
-        cairo_json["structs"] = [struct_elm.format(get_max_line_length()).split('\n') for struct_elm in interfaceElementCollector.structs]
-        cairo_json["functions"] = [func.format(get_max_line_length()).split('\n') for func in interfaceElementCollector.functions]
+        cairo_json["forwarder_interface"] = forwarderInterface.format(
+            get_max_line_length()).split('\n')
+        cairo_json["imports"] = [import_elm.format(
+            get_max_line_length()) for import_elm in interfaceElementCollector.imports]
+        cairo_json["structs"] = [struct_elm.format(get_max_line_length()).split(
+            '\n') for struct_elm in interfaceElementCollector.structs]
+        cairo_json["functions"] = [func.format(get_max_line_length()).split(
+            '\n') for func in interfaceElementCollector.functions]
 
         import json
         with open(args.output, "w") as f:

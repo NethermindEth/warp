@@ -12,7 +12,7 @@ const interfaceFile = `${path.resolve(__dirname, '..')}/interface_call_forwarder
 const interfaceTranspiledCairoFile = `${path.resolve(__dirname, '../..')}/warp_output${path.resolve(
   __dirname,
   '..',
-)}/interface__call__forwarder/contract__WC__WARP.cairo`;
+)}/interface__call__forwarder/contract__WC__contract_forwarder.cairo`;
 const contractJsonPath = `${path.resolve(__dirname, '..')}/interface_call_forwarder/contract.json`;
 const transpiledInterfaceJsonPath = `${path.resolve(
   __dirname,
@@ -36,14 +36,13 @@ describe('Interface solidity file should transpile', function () {
     const interfaceFileContent = readFileSync(interfaceFile, 'utf-8');
 
     const newInterfaceFileContent = interfaceFileContent.replace(
-      [`contract WARP {`, `    // Write your logic here`, `}`].join('\n'),
+      [`    // Write your logic here`, `}`].join('\n'),
       [
-        `contract WARP {`,
-        `   function add(address cairo_contract, uint256 a, uint256 b) public returns (uint256) {`,
-        `       return add_771602f7(cairo_contract, a, b);`,
+        `   function add(uint256 a, uint256 b) public returns (uint256) {`,
+        `       return add_771602f7(a, b);`,
         `   }`,
-        `   function sub(address cairo_contract, uint256 a, uint256 b) public returns (uint256) {`,
-        `       return sub_b67d77c5(cairo_contract, a, b);`,
+        `   function sub(uint256 a, uint256 b) public returns (uint256) {`,
+        `       return sub_b67d77c5(a, b);`,
         `   }`,
         `}`,
       ].join('\n'),
@@ -80,46 +79,56 @@ describe('Interaction between two cairo contracts', function () {
 
   it('interface contract should deploy', async function () {
     const deployContractResult: DeployResponse | null = await deploy(contractJsonPath, []);
-    const deployInterfaceContractResult: DeployResponse | null = await deploy(
-      transpiledInterfaceJsonPath,
-      [],
-    );
     expect(deployContractResult === null, 'Contract Deploy request failed').to.be.false;
     expect(deployContractResult.threw, 'Contract Deploy request failed').to.be.false;
+    expect(deployContractResult.contract_address, 'Contract Deploy request failed').to.not.be.null;
+    contractAddress = deployContractResult.contract_address;
+    if (contractAddress === null) this.skip();
+    const deployInterfaceContractResult: DeployResponse | null = await deploy(
+      transpiledInterfaceJsonPath,
+      [BigInt(contractAddress).toString()],
+    );
     expect(deployInterfaceContractResult === null, 'Interface Contract Deploy request failed').to.be
       .false;
     expect(deployInterfaceContractResult.threw, 'Interface Contract Deploy request failed').to.be
       .false;
-    expect(deployContractResult.contract_address, 'Contract Deploy request failed').to.not.be.null;
     expect(
       deployInterfaceContractResult.contract_address,
       'Interface Contract Deploy request failed',
     ).to.not.be.null;
-    contractAddress = deployContractResult.contract_address;
     interfaceContractAddress = deployInterfaceContractResult.contract_address;
   }).timeout(TIME_LIMIT);
   it('interaction should succeed', async function () {
     if (contractAddress === null || interfaceContractAddress === null) this.skip();
-    const response_add = await invoke(interfaceContractAddress, 'add_5101e128', [
+    const cairo_contract_address = await invoke(
+      interfaceContractAddress,
+      '__fwd_contract_address_5f4aa1ae',
+      [],
+    );
+    expect(cairo_contract_address.threw, 'Failed to get cairo contract address').to.be.false;
+    expect(cairo_contract_address.return_data, 'Failed to get cairo contract address').to.not.be
+      .null;
+    expect(cairo_contract_address.return_data, `Should match ${contractAddress}`).to.deep.equal([
       BigInt(contractAddress).toString(),
+    ]);
+    const response_add = await invoke(interfaceContractAddress, 'add_771602f7', [
       '1',
       '0',
       '2',
       '0',
     ]);
-    const response_sub = await invoke(interfaceContractAddress, 'sub_dff59cfe', [
-      BigInt(contractAddress).toString(),
-      '2',
-      '0',
-      '1',
-      '0',
-    ]);
-    expect(response_add.threw, 'add_5101e128 threw').to.be.false;
-    expect(response_sub.threw, 'sub_dff59cfe threw').to.be.false;
-    expect(response_add.return_data, 'add_5101e128 return value should match [3, 0]').to.deep.equal(
+    expect(response_add.threw, 'add_771602f7 threw').to.be.false;
+    expect(response_add.return_data, 'add_771602f7 return value should match [3, 0]').to.deep.equal(
       ['3', '0'],
     );
-    expect(response_sub.return_data, 'sub_dff59cfe return value should match [1, 0]').to.deep.equal(
+    const response_sub = await invoke(interfaceContractAddress, 'sub_b67d77c5', [
+      '2',
+      '0',
+      '1',
+      '0',
+    ]);
+    expect(response_sub.threw, 'sub_b67d77c5 threw').to.be.false;
+    expect(response_sub.return_data, 'sub_b67d77c5 return value should match [1, 0]').to.deep.equal(
       ['1', '0'],
     );
   }).timeout(TIME_LIMIT);

@@ -394,11 +394,8 @@ function writeContractInterface(node: ContractDefinition, writer: ASTWriter): Sr
   const functions = node.vFunctions.map((v) =>
     writer
       .write(v)
-      .split('\n')
-      .filter((line) => line.trim().startsWith('func '))
-      .flatMap((line) => [line, '}', ''])
-      .map((l) => INDENT + l)
-      .join('\n'),
+      // remove all content between any two pairing curly braces
+      .replace(/\{[^}]*\}/g, '{\n}'),
   );
   // Handle the workaround of genContractInterface function of externalContractInterfaceInserter.ts
   // Remove `@interface` to get the actual contract interface name
