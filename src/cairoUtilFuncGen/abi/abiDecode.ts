@@ -147,7 +147,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
   public getOrCreateDecoding(type: TypeNode): string {
     const unexpectedType = () => {
-      throw new TranspileFailedError(`Encoding of ${printTypeNode(type)} is not valid`);
+      throw new TranspileFailedError(`Decoding of ${printTypeNode(type)} is not valid`);
     };
 
     return delegateBasedOnType<string>(
