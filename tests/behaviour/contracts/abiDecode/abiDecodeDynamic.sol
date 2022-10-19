@@ -17,5 +17,14 @@ contract WARP {
         assert(v.length == 2);
         return (v[0], v[1]);
     }
+
+    function decodeBytes(bytes memory data) public pure returns (bytes memory) {
+        bytes memory v = abi.decode(data, (bytes));
+        return v;
+    }
+
+    function decodeMix(bytes memory data) public pure returns (uint8[] memory, uint8[2] memory, string memory) {
+        return abi.decode(data, (uint8[], uint8[2], string));
+    }
 }
 

@@ -111,7 +111,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
         [
           ...decodings,
           `// Param ${index} decoding:`,
-          this.generateDecodingCode(type, 'mem_index', `result${index}`, '0'),
+          this.generateDecodingCode(type, 'mem_index', `result${index}`, 'mem_index'),
           `let in_range${index} = is_le_felt(mem_index, max_index_length);`,
           `in_range${index} = 1;`,
         ],
@@ -155,7 +155,10 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     return delegateBasedOnType<string>(
       type,
-      (type) => this.createDynamicArrayDecoding(type),
+      (type) =>
+        type instanceof ArrayType
+          ? this.createDynamicArrayDecoding(type)
+          : this.createStringBytesDecoding(),
       (type) => this.createStaticArrayDecoding(type),
       (type, definition) => this.createStructDecoding(type, definition),
       unexpectedType,
@@ -207,7 +210,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
         this.requireImport('warplib.dynamic_arrays_util', 'byte_array_to_felt_value');
         initInstructions = [
           `let (param_offset) = byte_array_to_felt_value(mem_index, mem_index + 32, mem_ptr, 0);`,
-          `let mem_offset = mem_index + param_offset - ${relativeIndexVar};`,
+          `let mem_offset = ${sub('mem_index + param_offset', relativeIndexVar)};`,
         ];
         typeIndex = 'mem_offset';
       }
@@ -356,17 +359,13 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     return name;
   }
 
-  private createDynamicArrayDecoding(type: ArrayType | StringType | BytesType): string {
+  private createDynamicArrayDecoding(type: ArrayType): string {
     const key = 'dynamic' + type.pp();
     const existing = this.auxiliarGeneratedFunctions.get(key);
     if (existing !== undefined) return existing.name;
 
     const elementT = getElementType(type);
-    const elemenTWidth = CairoType.fromSol(
-      elementT,
-      this.ast,
-      TypeConversionContext.CallDataRef,
-    ).width;
+    const elemenTWidth = CairoType.fromSol(elementT, this.ast, TypeConversionContext.Ref).width;
 
     const decodingCode = this.generateDecodingCode(
       elementT,
@@ -469,9 +468,19 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     return name;
   }
 
+  private createStringBytesDecoding(): string {
+    const funcName = 'memory_dyn_array_copy';
+    this.requireImport('warplib.dynamic_arrays_util', funcName);
+    return funcName;
+  }
+
   private createValueTypeDecoding(byteSize: number | bigint): string {
     const funcName = byteSize === 32 ? 'byte_array_to_uint256_value' : 'byte_array_to_felt_value';
     this.requireImport('warplib.dynamic_arrays_util', funcName);
     return funcName;
   }
+}
+
+function sub(cairoExpression: string, substractor: string) {
+  return substractor === '0' ? cairoExpression : `${cairoExpression} - ${substractor}`;
 }
