@@ -9,7 +9,6 @@ import {
   generalizeType,
   PointerType,
   SourceUnit,
-  StringType,
   StructDefinition,
   TupleType,
   TypeNameType,
@@ -205,12 +204,12 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       //    the current location (i.e. [mem_index, mem_index + 32]). After reading the
       //    actual location, the decoding process starts from there.
       let initInstructions: string[] = [];
-      let typeIndex: string = 'mem_index';
+      let typeIndex = 'mem_index';
       if (isDynamicallySized(type, this.ast.compilerVersion)) {
         this.requireImport('warplib.dynamic_arrays_util', 'byte_array_to_felt_value');
         initInstructions = [
           `let (param_offset) = byte_array_to_felt_value(mem_index, mem_index + 32, mem_ptr, 0);`,
-          `let mem_offset = ${sub('mem_index + param_offset', relativeIndexVar)};`,
+          `let mem_offset = ${calcOffset('mem_index', 'param_offset', relativeIndexVar)};`,
         ];
         typeIndex = 'mem_offset';
       }
@@ -423,22 +422,20 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     const existing = this.auxiliarGeneratedFunctions.get(key);
     if (existing !== undefined) return existing.name;
 
-    let acc = 0;
+    let indexWalked = 0;
+    let structWriteLocation = 0;
     const instructions = definition.vMembers.map((member, index) => {
       const type = generalizeType(safeGetNodeType(member, this.ast.compilerVersion))[0];
-      const elemWidth = CairoType.fromSol(
-        type,
-        this.ast,
-        TypeConversionContext.MemoryAllocation,
-      ).width;
+      const elemWidth = CairoType.fromSol(type, this.ast, TypeConversionContext.Ref).width;
       const decodingCode = this.generateDecodingCode(
         type,
         'mem_index',
         `member${index}`,
-        mul('mem_index', index),
+        `${indexWalked}`,
       );
-      acc += index * elemWidth;
-      const getMemLocCode = `let mem_to_write_loc = ${add('struct_ptr', acc)};`;
+      indexWalked += Number(getByteSize(type, this.ast.compilerVersion));
+      structWriteLocation += index * elemWidth;
+      const getMemLocCode = `let mem_to_write_loc = ${add('struct_ptr', structWriteLocation)};`;
       const writeMemLocCode = `${this.memoryWrite.getOrCreate(
         type,
       )}(mem_to_write_loc, member${index});`;
@@ -481,6 +478,9 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
   }
 }
 
-function sub(cairoExpression: string, substractor: string) {
-  return substractor === '0' ? cairoExpression : `${cairoExpression} - ${substractor}`;
+function calcOffset(indexLocation: string, offsetLocation: string, substractor: string) {
+  if (indexLocation === substractor) return offsetLocation;
+  if (offsetLocation === substractor) return indexLocation;
+  if (substractor === '0') return `${indexLocation} + ${offsetLocation}`;
+  return `${indexLocation} + ${offsetLocation} - ${substractor}`;
 }
