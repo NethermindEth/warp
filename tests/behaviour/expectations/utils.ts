@@ -70,7 +70,5 @@ export function toCairoUint256(val: number | bigint): [string, string] {
   val = BigInt(val);
   const low = val & ((1n << 128n) - 1n);
   const high = val >> 128n;
-  const x: [string, string] = [low.toString(), high.toString()];
-  console.log(x);
-  return x;
+  return [low.toString(), high.toString()];
 }
