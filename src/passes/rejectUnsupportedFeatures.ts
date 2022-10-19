@@ -1,4 +1,3 @@
-import assert from 'assert';
 import fs from 'fs';
 import {
   AddressType,
@@ -10,7 +9,6 @@ import {
   ContractKind,
   DataLocation,
   ErrorDefinition,
-  Expression,
   ExpressionStatement,
   ExternalReferenceType,
   FunctionCall,
@@ -36,7 +34,7 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { printNode, printTypeNode } from '../utils/astPrinter';
+import { printNode } from '../utils/astPrinter';
 import { WillNotSupportError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { isDynamicArray, safeGetNodeType } from '../utils/nodeTypeProcessing';
