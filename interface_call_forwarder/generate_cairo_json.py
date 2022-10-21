@@ -107,6 +107,9 @@ class InterfaceElementsCollector(Visitor):
 
 
 def createForwarderInterface(interfaceElementCollector: InterfaceElementsCollector):
+    """
+        Returns a cairo Namespace ("Forwarder") with contract interface decorator
+    """
     return CodeElementFunction(
         element_type="namespace",
         identifier=ExprIdentifier(name="Forwarder"),
@@ -144,9 +147,28 @@ def arrayLengthName(name: str):
 
 
 def processArrayArguments(args: list[TypedIdentifier]):
+
+    """
+        Return a list of arguments with array arguments generated for the cairo function call in fn stub
+        e.g 
+            For a Cairo function if it accepts an array arugment
+            ex. f(a_len: felt, a:felt*) -> felt
+            Then, it's corresponding stub should accept a memory argument 
+            for the above example it would be `a_mem: felt`
+
+        [Args]:
+            list of [(a_len: felt, a:felt*), ...]
+        [Returns]:
+            1. If there is an array arugment : hasArrayArguments <-> (boolean)
+            2. Cairo Lines to be added to the function stub for arg conversion : lines_added <-> (list[CodeElement])
+                e.g let (a_len, a) = mem2calldata(a_mem).len, mem2calldata(a_mem).ptr
+            3. list of [a_mem, ...] : modifiedArgs <-> (list[TypedIdentifier])
+    """
+
     modifiedArgs: list[TypedIdentifier] = list()
     lines_added: list[CommentedCodeElement] = list()
     hasArrayArguments = False
+
     for arg in args:
         if isinstance(arg.expr_type, TypePointer):
             assert (
@@ -154,6 +176,7 @@ def processArrayArguments(args: list[TypedIdentifier]):
                 modifiedArgs[-1].name == arrayLengthName(arg.name) and
                 isinstance(modifiedArgs[-1].expr_type, TypeFelt)
             ), "Array type argument must be preceded by a length argument"
+
             hasArrayArguments = True
             modifiedArgs.pop()
             modifiedArgs.append(
@@ -162,6 +185,7 @@ def processArrayArguments(args: list[TypedIdentifier]):
                     expr_type=TypeFelt(),
                 )
             )
+            
             lines_added.extend([
                 CommentedCodeElement(
                     code_elm=CodeElementUnpackBinding(
@@ -226,6 +250,27 @@ def processArrayArguments(args: list[TypedIdentifier]):
 
 
 def processArrayReturnArguments(func_returns: Optional[CairoType]):
+
+    """
+        Return a list of arguments with memory argument corresponding to array return arguments
+        generated for the cairo function call in fn stub
+        e.g
+            For a Cairo function if it returns an array arugment
+            ex. f(a_len: felt, a:felt*) -> felt*
+            Then, a_len and a should be read from a_mem
+            and the return value should be a_mem
+
+        [Args]:
+            Cairo function return type : func_returns <-> (Optional[CairoType])
+        [Returns]:
+            1. If there is an array arugment : hasArrayReturnArguments <-> (boolean)
+            2. If modification has been made to the return type : modifiedReturnType <-> (boolean)
+            3. Cairo Lines to be added to the function stub for arg conversion : lines_added <-> (list[CodeElement])
+                e.g let (a_len, a) = mem2calldata(a_mem).len, mem2calldata(a_mem).ptr
+            4. Cairo function return type : modifiedReturns <-> (Optional[TypeTuple])
+
+    """
+
     if func_returns is None:
         return False, False, [], None
     if not isinstance(func_returns, TypeTuple):
@@ -311,7 +356,15 @@ def processArrayReturnArguments(func_returns: Optional[CairoType]):
 
 
 def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector) -> dict[str, CodeElementFunction]:
+
+    """
+    Generates function stubs for all functions in the interfaceElementCollector
+        :param interfaceElementCollector: The interface element collector
+        :return: A dictionary of function stubs 
+    """
+
     cairoFunctionStubsDict: dict[str, CodeElementFunction] = dict()
+
     for func in interfaceElementCollector.functions:
         has_array, lines_added, func_arguments = processArrayArguments(
             func.arguments.identifiers)
@@ -502,18 +555,31 @@ def modify_abi_with_stubs(abi: AbiType, cairoFunctionStubsDict: dict[str, CodeEl
 
 
 def main():
-
+    """
+    This function generates JSON respresentation for a given Cairo contract.
+    JSON contains the following fields:
+    - name: contract name
+    - modified_abi: list of functions and their signatures including stubs
+    - forwarder_interface: Cairo interface for the Forwarder contract
+    - imports: list of imports
+    - structs: list of structs
+    - functions: list of functions
+    """
     try:
         args = get_parser().parse_args()
+
+        # Read code lines from file =>  (file_key : file_data_lines, ...)
         codes = get_codes(args.files)
 
         abi = get_cairo_abi(args=args)
 
         if args.output is None:
+            # If output file name is not specified, use the first cairo file name
             args.output = codes[0][1].replace('.cairo', '.json')
         else:
             args.output = args.output.name.replace('.sol', '.json')
 
+        # Filter functions and structs which are in abi
         interfaceElementCollector = InterfaceElementsCollector(
             [entry["name"] for entry in abi if entry["type"] == "function"],
             [entry["name"] for entry in abi if entry["type"] == "struct"]
@@ -523,11 +589,14 @@ def main():
             parsed_file: CairoFile = parse_file(code, filename=filename)
             cairoModule: CairoModule = CairoModule(
                 cairo_file=parsed_file, module_name=filename)
+
+            # collect functions , imports and structs
             interfaceElementCollector.visit(cairoModule)
 
         forwarderInterface = createForwarderInterface(
             interfaceElementCollector)
 
+        # Modify abi with function stubs which can be used to call the contract interface functions
         abi = modify_abi_with_stubs(
             abi, generateFunctionStubs(interfaceElementCollector))
 
