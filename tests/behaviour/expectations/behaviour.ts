@@ -1,5 +1,5 @@
 import { Dir, Expect, File } from './types';
-import { getByte32Array, flatten, getByteXArray } from './utils';
+import { getByte32Array, flatten, getByteXArray, toCairoUint256 } from './utils';
 
 export const expectations = flatten(
   new Dir('tests', [
@@ -3038,16 +3038,24 @@ export const expectations = flatten(
             ),
             Expect.Simple('addition256safe', ['20', '1', '5', '2'], ['25', '3']),
             Expect.Simple('addition256unsafe', ['20', '1', '5', '2'], ['25', '3']),
-            Expect.Simple('addition8signedsafe', ['3', '20'], ['23']),
-            Expect.Simple('addition8signedsafe', ['100', '90'], null, 'overflow'),
+            Expect.Simple('addition8signedsafe', ['3', '20'], ['23'], 'pos + pos'),
+            Expect.Simple('addition8signedsafe', ['100', '90'], null, 'pos + pos overflow'),
+            Expect.Simple('addition8signedsafe', ['255', '254'], ['253'], 'neg + neg'),
+            Expect.Simple('addition8signedsafe', ['128', '128'], null, 'neg + neg overflow'),
             Expect.Simple('addition8signedunsafe', ['3', '20'], ['23']),
             Expect.Simple('addition8signedunsafe', ['100', '90'], ['190'], 'overflow'),
-            Expect.Simple('addition120signedsafe', ['6', '8'], ['14']),
+            Expect.Simple('addition120signedsafe', ['6', '8'], ['14'], 'pos + pos'),
             Expect.Simple(
               'addition120signedsafe',
               ['400000000000000000000000000000000000', '450000000000000000000000000000000000'],
               null,
-              'overflow',
+              'pos + pos overflow',
+            ),
+            Expect.Simple(
+              'addition120signedsafe',
+              [`${2n ** 120n / 2n}`, `${2n ** 120n - 1n}`],
+              null,
+              'neg + neg overflow',
             ),
             Expect.Simple('addition120signedunsafe', ['6', '8'], ['14']),
             Expect.Simple(
@@ -3066,6 +3074,18 @@ export const expectations = flatten(
                 '0',
               ],
               ['0', '0'],
+            ),
+            Expect.Simple(
+              'addition256signedsafe',
+              [...toCairoUint256(2n ** 255n), ...toCairoUint256(2n ** 255n)],
+              null,
+              'neg + neg overflow',
+            ),
+            Expect.Simple(
+              'addition256signedsafe',
+              [...toCairoUint256(2n ** 255n - 1n), ...toCairoUint256(2n ** 255n - 1n)],
+              null,
+              'pos + pos overflow',
             ),
             Expect.Simple('addition256signedunsafe', ['20', '1', '5', '2'], ['25', '3']),
           ]),
