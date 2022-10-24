@@ -25,6 +25,7 @@ import {
   getByteSize,
   getElementType,
   getPackedByteSize,
+  isAddressType,
   isDynamicallySized,
   isDynamicArray,
   isReferenceType,
@@ -183,7 +184,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     );
 
     // address types get special treatment due to different byte size in ethereum and starknet
-    if (type instanceof AddressType) {
+    if (isAddressType(type)) {
       const funcName = this.createValueTypeDecoding(31);
       return [
         `let (${decodeResult} : felt) = ${funcName}(mem_index, mem_index + 32, mem_ptr, 0);`,

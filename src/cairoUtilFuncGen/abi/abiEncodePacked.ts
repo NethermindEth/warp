@@ -10,7 +10,12 @@ import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { TranspileFailedError } from '../../utils/errors';
-import { getElementType, getPackedByteSize, isDynamicArray } from '../../utils/nodeTypeProcessing';
+import {
+  getElementType,
+  getPackedByteSize,
+  isAddressType,
+  isDynamicArray,
+} from '../../utils/nodeTypeProcessing';
 import { uint256 } from '../../warplib/utils';
 import { delegateBasedOnType, mul } from '../base';
 import { MemoryReadGen } from '../memory/memoryRead';
@@ -94,7 +99,7 @@ export class AbiEncodePacked extends AbiBase {
   private generateEncodingCode(type: TypeNode, newIndexVar: string, varToEncode: string): string {
     // Cairo address are 251 bits in size but solidity is 160.
     // It was decided to store them fully before just a part
-    if (type instanceof AddressType) {
+    if (isAddressType(type)) {
       this.requireImport('warplib.maths.utils', 'felt_to_uint256');
       this.requireImport('warplib.dynamic_arrays_util', 'fixed_bytes256_to_felt_dynamic_array');
       return [
