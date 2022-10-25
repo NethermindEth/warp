@@ -131,15 +131,16 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
       `  let max_index_length: felt = ${indexLength};`,
       `  let mem_index: felt = 0;`,
       ...decodings,
+      `  assert max_index_length - mem_index = 0;`,
       ` return (${returnValues});`,
       `}`,
     ].join('\n');
 
-    this.requireImport('starkware.cairo.common.uint256', 'Uint256');
-    this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt');
-    this.requireImport('warplib.memory', 'wm_dyn_array_length');
-    this.requireImport('warplib.memory', 'wm_read_id');
-    this.requireImport('warplib.maths.utils', 'narrow_safe');
+    // this.requireImport('starkware.cairo.common.uint256', 'Uint256');
+    // this.requireImport('starkware.cairo.common.math_cmp', 'is_le_felt');
+    // this.requireImport('warplib.memory', 'wm_dyn_array_length');
+    // this.requireImport('warplib.memory', 'wm_read_id');
+    // this.requireImport('warplib.maths.utils', 'narrow_safe');
 
     const cairoFunc = { name: funcName, code: code };
     this.generatedFunctions.set(key, cairoFunc);

@@ -16,6 +16,7 @@ import {
   getByteSize,
   getElementType,
   getPackedByteSize,
+  isAddressType,
   isDynamicallySized,
   isDynamicArray,
   isStruct,
@@ -174,7 +175,7 @@ export class AbiEncode extends AbiBase {
     const instructions: string[] = [];
     // packed size of addresses is 32 bytes, but they are treated as felts,
     // so they should be converted to Uint256 accordingly
-    if (size < 32 || type instanceof AddressType) {
+    if (size < 32 || isAddressType(type)) {
       this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
       instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode});`);
       varToEncode = `${varToEncode}256`;
