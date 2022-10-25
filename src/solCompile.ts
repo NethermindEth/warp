@@ -55,7 +55,7 @@ type SolcInput = {
     optimizer?: any;
     outputSelection: {
       '*': {
-        '*': ['ast'];
+        '*': ['abi'];
         '': ['ast'];
       };
     };
@@ -73,7 +73,7 @@ function formatInput(fileName: string): SolcInput {
     settings: {
       outputSelection: {
         '*': {
-          '*': ['ast'],
+          '*': ['abi'],
           '': ['ast'],
         },
       },
@@ -109,6 +109,7 @@ function cliCompile(
       result: JSON.parse(solcOutput),
       compilerVersion: fullVersionFromMajor(nethersolcVersion),
     };
+    console.log(JSON.stringify(data, null, 2));
     return data;
   } catch (e) {
     throw e;
