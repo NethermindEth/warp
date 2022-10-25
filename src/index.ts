@@ -73,7 +73,6 @@ program
   .option('--until <pass>', 'Stops transpilation after the specified pass')
   .option('--no-warnings')
   .action((files: string[], options: CliOptions) => {
-    console.log(options);
     // We do the extra work here to make sure all the errors are printed out
     // for all files which are invalid.
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
