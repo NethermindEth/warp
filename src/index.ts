@@ -42,6 +42,7 @@ export type OutputOptions = {
   compileCairo?: boolean;
   compileErrors?: boolean;
   outputDir: string;
+  formatCairo: boolean;
   result: boolean;
 };
 
@@ -58,6 +59,9 @@ program
   .option('--compile-cairo')
   .option('--no-compile-errors')
   .option('--check-trees')
+  // for development mode
+  .option('--dev', 'Run AST sanity checks on every pass instead of the final AST only', false)
+  .option('--no-format-cairo', "Don't format cairo output")
   .option('--highlight <ids...>')
   .option('--order <passOrder>')
   .option('-o, --output-dir <path>', 'Output directory for transpiled Cairo files.', 'warp_output')
@@ -66,11 +70,10 @@ program
   .option('--no-result')
   .option('--no-stubs')
   .option('--no-strict')
-  // Stops transpilation after the specified pass
-  .option('--until <pass>')
+  .option('--until <pass>', 'Stops transpilation after the specified pass')
   .option('--no-warnings')
-  .option('--dev', 'Run AST sanity checks on every pass instead of the final AST only', false) // for development mode
   .action((files: string[], options: CliOptions) => {
+    console.log(options);
     // We do the extra work here to make sure all the errors are printed out
     // for all files which are invalid.
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
