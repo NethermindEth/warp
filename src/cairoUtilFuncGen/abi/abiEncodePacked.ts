@@ -1,11 +1,4 @@
-import {
-  AddressType,
-  ArrayType,
-  BytesType,
-  SourceUnit,
-  StringType,
-  TypeNode,
-} from 'solc-typed-ast';
+import { ArrayType, BytesType, SourceUnit, StringType, TypeNode } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';

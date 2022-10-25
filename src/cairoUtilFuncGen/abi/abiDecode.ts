@@ -1,6 +1,5 @@
 import assert from 'assert';
 import {
-  AddressType,
   ArrayType,
   BytesType,
   DataLocation,
