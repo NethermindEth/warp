@@ -913,7 +913,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/internal_library_function_pointer.sol', // WILL NOT SUPPORT function objects
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_delegatecall_guard_view_staticcall.sol', // WILL NOT SUPPORT use of call
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_address_homestead.sol', // WILL NOT SUPPORT delegate call
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_address_via_module.sol', // Weird
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_address_via_module.sol', // Bad syntax when compiling with Solc
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_address.sol', // WILL NOT SUPPORT Member of address
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_function_selectors.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/libraries/library_delegatecall_guard_view_not_needed.sol', // WILL NOT SUPPORT yul
