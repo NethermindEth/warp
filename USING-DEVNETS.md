@@ -1,4 +1,5 @@
 Here are some useful env variables to have set if you are targeting a local StarkNet devnet
+> **_NOTE:_**  `GATEWAY_URL` and `FEEDER_GATEWAY_URL` don't work (Cairo 0.10.0, 0.10.1) and therefore have to be passed via command line arguments.
 
 ```
 export STARKNET_NETWORK=alpha-goerli
@@ -8,6 +9,7 @@ export GATEWAY_URL=http://localhost:5050
 export FEEDER_GATEWAY_URL=http://localhost:5050
 export STARKNET_ACCOUNT_DIR=~/.starknet_accounts_devnet
 ```
+
 
 It's a good idea to then launch the devnet with the following
 
