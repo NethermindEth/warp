@@ -54,7 +54,8 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/bytesXAccess', 'Success'],
     ['example_contracts/c2c', 'Success'],
     // Uses conditionals explicitly
-    ['example_contracts/conditional', 'WillNotSupport'],
+    ['example_contracts/conditional', 'Success'],
+    ['example_contracts/conditional_simple', 'Success'],
     ['example_contracts/contract_to_contract', 'Success'],
     ['example_contracts/calldatacopy', 'WillNotSupport'],
     ['example_contracts/calldataCrossContractCalls', 'Success'],
@@ -73,6 +74,9 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/errorHandling/require', 'Success'],
     ['example_contracts/errorHandling/revert', 'Success'],
     ['example_contracts/events', 'Success'],
+    ['example_contracts/expressionSplitter/assign_simple', 'Success'],
+    ['example_contracts/expressionSplitter/func_call_simple', 'Success'],
+    ['example_contracts/expressionSplitter/tuple_assign', 'Success'],
     ['example_contracts/external_function', 'Success'],
     ['example_contracts/fallbackWithoutArgs', 'Success'],
     ['example_contracts/fallbackWithArgs', 'WillNotSupport'],
@@ -292,7 +296,7 @@ function runSolFileTest(
 ): void {
   console.log(`Warping ${file}`);
   try {
-    transpile(compileSolFile(file, false), { strict: true }).forEach(([file, cairo]) =>
+    transpile(compileSolFile(file, false), { strict: true, dev: true }).forEach(([file, cairo]) =>
       outputFileSync(`${file.slice(0, -4)}.cairo`, cairo),
     );
     results.set(manglePath(removeExtension(file)), 'Success');

@@ -25,7 +25,7 @@ export type CompilationOptions = {
 
 export type TranspilationOptions = {
   checkTrees?: boolean;
-  dev?: boolean;
+  dev: boolean;
   order?: string;
   printTrees?: boolean;
   strict?: boolean;
@@ -42,6 +42,7 @@ export type OutputOptions = {
   compileCairo?: boolean;
   compileErrors?: boolean;
   outputDir: string;
+  formatCairo: boolean;
   result: boolean;
 };
 
@@ -58,6 +59,9 @@ program
   .option('--compile-cairo')
   .option('--no-compile-errors')
   .option('--check-trees')
+  // for development mode
+  .option('--dev', 'Run AST sanity checks on every pass instead of the final AST only', false)
+  .option('--no-format-cairo', "Don't format cairo output")
   .option('--highlight <ids...>')
   .option('--order <passOrder>')
   .option('-o, --output-dir <path>', 'Output directory for transpiled Cairo files.', 'warp_output')
@@ -66,22 +70,38 @@ program
   .option('--no-result')
   .option('--no-stubs')
   .option('--no-strict')
-  // Stops transpilation after the specified pass
-  .option('--until <pass>')
+  .option('--until <pass>', 'Stops transpilation after the specified pass')
   .option('--no-warnings')
-  .option('--dev') // for development mode
   .action((files: string[], options: CliOptions) => {
     // We do the extra work here to make sure all the errors are printed out
     // for all files which are invalid.
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
     const cairoSuffix = '.cairo';
     const contractToHashMap = new Map<string, string>();
-    files.forEach((file) => {
+
+    const solcASTs = files.map((file) => ({
+      file: file,
+      ast: compileSolFile(file, options.warnings),
+    }));
+    // Every AST which is a subtree of another AST doesn't get picked
+    const roots = solcASTs.filter(({ ast }) => {
+      const files = ast.roots.map((sourceUnit) => sourceUnit.absolutePath);
+      //returns true if no other ast contains this one
+      return !solcASTs.some(({ ast: otherAST }) => {
+        if (otherAST === ast) return false;
+        const otherFiles = new Set<string>(
+          otherAST.roots.map((sourceUnit) => sourceUnit.absolutePath),
+        );
+        return files.every((f) => otherFiles.has(f));
+      });
+    });
+
+    roots.forEach(({ file, ast }) => {
       if (files.length > 1) {
         console.log(`Compiling ${file}`);
       }
       try {
-        transpile(compileSolFile(file, options.warnings), options)
+        transpile(ast, options)
           .map(([name, cairo, abi]) => {
             outputResult(name, cairo, options, cairoSuffix, abi);
             return createCairoFileName(name, cairoSuffix);
