@@ -1,5 +1,7 @@
 Here are some useful env variables to have set if you are targeting a local StarkNet devnet
 
+> **_NOTE:_** `GATEWAY_URL` and `FEEDER_GATEWAY_URL` don't work (Cairo 0.10.0, 0.10.1) and therefore have to be passed via command line arguments.
+
 ```
 export STARKNET_NETWORK=alpha-goerli
 export STARKNET_WALLET=starkware.starknet.wallets.open_zeppelin.OpenZeppelinAccount
