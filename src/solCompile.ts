@@ -99,21 +99,16 @@ function cliCompile(
     allowedPaths = `--allow-paths ${currentDirectory}`;
   }
 
-  const solcOutput = execSync(`${solcCommand} --standard-json ${allowedPaths}`, {
-    input: JSON.stringify(input),
-    maxBuffer: MAX_BUFFER_SIZE,
-    stdio: ['pipe', 'pipe', 'ignore'],
-  }).toString();
-  try {
-    const data = {
-      result: JSON.parse(solcOutput),
-      compilerVersion: fullVersionFromMajor(nethersolcVersion),
-    };
-    console.log(JSON.stringify(data, null, 2));
-    return data;
-  } catch (e) {
-    throw e;
-  }
+  return {
+    result: JSON.parse(
+      execSync(`${solcCommand} --standard-json ${allowedPaths}`, {
+        input: JSON.stringify(input),
+        maxBuffer: MAX_BUFFER_SIZE,
+        stdio: ['pipe', 'pipe', 'ignore'],
+      }).toString(),
+    ),
+    compilerVersion: fullVersionFromMajor(nethersolcVersion),
+  };
 }
 
 function matchCompilerVersion(version: string): [string, string, string] {
