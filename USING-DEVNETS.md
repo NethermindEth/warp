@@ -1,7 +1,7 @@
 To use starknet devnet you have to export evironment variables first:
 
 ```bash
-source development.env
+set -o allexport; source development.env; set +o allexport
 ```
 
 It's a good idea to then launch the devnet with the following
