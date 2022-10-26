@@ -44,15 +44,13 @@ function getSolFileVersion(file: string): string {
 }
 
 type SolcInput = {
-  language: 'Solidity' | 'Yul';
+  language: 'Solidity';
   sources: {
     [fileName: string]: {
-      keccak256?: string;
       urls: string[];
     };
   };
   settings?: {
-    optimizer?: any;
     outputSelection: {
       '*': {
         '*': ['abi'];
