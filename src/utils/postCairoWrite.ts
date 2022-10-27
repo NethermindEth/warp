@@ -6,91 +6,94 @@ import { compileCairo } from '../starknetCli';
 import { CLIError } from './errors';
 import { callClassHashScript } from './utils';
 
-export const HASH_SIZE = 16;
+export const HASH_SIZE = 8;
 export const HASH_OPTION = 'sha256';
 
 /**
   Is used post transpilation to insert the class hash for any contract that can deploy another.
   During transpilation 0 is placed where the class hash would be. Now that all the needed files are
   transpiled then we can calculate the class hashes of each and insert them into the file.
-  @param cairoFilePath: The path to the cairo File being processed.
-  @param pathPrefix: The prefix proceeding the the path to the file
+  @param contractPath: The path to the cairo File being processed.
+  @param outputDir: Directory where the path is getting stored
   @param contractHashToClassHash: A mapping that holds the contract path with out the pathPrefix and maps
   it to the contracts class hash.
   @returns cairoFilePath: The path to the cairo File that was processed.
  */
 export function postProcessCairoFile(
-  cairoFilePath: string,
-  pathPrefix: string,
+  contractPath: string,
+  outputDir: string,
   debugInfo: boolean,
   contractHashToClassHash: Map<string, string>,
 ): string {
-  const fullPath = path.join(pathPrefix, cairoFilePath);
   // Creates a dependency graph for the file
-  const dependencyGraph = getDependencyGraph(fullPath, pathPrefix);
+  const dependencyGraph = getDependencyGraph(contractPath, outputDir);
   // Gets the files that are dependant on the hash.
-  const filesToHash = dependencyGraph.get(fullPath);
+  // const fullPath = path.join(outputDir, contractPath);
+  const filesToHash = dependencyGraph.get(contractPath);
   // If the file has nothing to hash then we can leave.
   if (filesToHash === undefined || filesToHash.length === 0) {
-    return cairoFilePath;
+    return contractPath;
   }
   // If the file does have dependencies then we need to make sure that the dependencies of
   // those files have been calculated and inserted.
-  filesToHash?.forEach((file) => {
-    hashDependacies(file, pathPrefix, debugInfo, dependencyGraph, contractHashToClassHash);
+  filesToHash.forEach((file) => {
+    hashDependacies(file, outputDir, debugInfo, dependencyGraph, contractHashToClassHash);
   });
-  setDeclaredAddresses(fullPath, contractHashToClassHash);
-  return cairoFilePath;
+  setDeclaredAddresses(path.join(outputDir, contractPath), contractHashToClassHash);
+  return contractPath;
 }
 
 function hashDependacies(
-  filePath: string,
-  pathPrefix: string,
+  contractPath: string,
+  outputDir: string,
   debugInfo: boolean,
   dependencyGraph: Map<string, string[]>,
   contractHashToClassHash: Map<string, string>,
 ): void {
-  const filesToHash = dependencyGraph.get(filePath);
-  // If the file has no dependencies to hash then we hash the compiled file and add it to the contractHahsToClassHash.
-  if (filesToHash === undefined || filesToHash?.length === 0) {
-    addClassHash(filePath, pathPrefix, debugInfo, contractHashToClassHash);
-    return;
-  } else {
-    filesToHash
-      ?.map((file) => {
-        hashDependacies(file, pathPrefix, debugInfo, dependencyGraph, contractHashToClassHash);
-        return file;
-      })
-      .forEach((file) => {
-        setDeclaredAddresses(file, contractHashToClassHash);
-      });
-    addClassHash(filePath, pathPrefix, debugInfo, contractHashToClassHash);
+  const filesToHash = dependencyGraph.get(contractPath);
+  // Base case: If the file has no dependencies to hash then we hash the compiled file
+  // and add it to the contractHashToClassHash map
+  if (filesToHash === undefined || filesToHash.length === 0) {
+    addClassHash(contractPath, outputDir, debugInfo, contractHashToClassHash);
     return;
   }
+
+  filesToHash
+    .map((file) => {
+      hashDependacies(file, outputDir, debugInfo, dependencyGraph, contractHashToClassHash);
+      return file;
+    })
+    .forEach((file) => {
+      setDeclaredAddresses(path.join(outputDir, file), contractHashToClassHash);
+    });
+  addClassHash(contractPath, outputDir, debugInfo, contractHashToClassHash);
 }
 
+/**
+ * Hashes the contract at `contractPath` and stores it in `contractHashToClassHash`
+ */
 function addClassHash(
-  filePath: string,
-  pathPrefix: string,
+  contractPath: string,
+  outputDir: string,
   debugInfo: boolean,
   contractHashToClassHash: Map<string, string>,
 ): void {
-  const fileLocationHash = hashFilename(reducePath(filePath, pathPrefix));
-  let classHash = contractHashToClassHash.get(fileLocationHash);
+  const fileUniqueId = hashFilename(path.resolve(contractPath));
+  let classHash = contractHashToClassHash.get(fileUniqueId);
   if (classHash === undefined) {
-    classHash = computeClassHash(filePath, '', debugInfo);
-    contractHashToClassHash.set(fileLocationHash, classHash);
+    classHash = computeClassHash(contractPath, outputDir, debugInfo);
+    contractHashToClassHash.set(fileUniqueId, classHash);
   }
 }
 
-function computeClassHash(filePath: string, pathPrefix: string, debugInfo: boolean): string {
+function computeClassHash(contractPath: string, outputDir: string, debugInfo: boolean): string {
   const { success, resultPath } = compileCairo(
-    path.join(pathPrefix, filePath),
+    path.join(outputDir, contractPath),
     path.resolve(__dirname, '..', '..'),
     { debugInfo },
   );
   if (!success) {
-    throw new CLIError(`Compilation of cairo file ${filePath} failed`);
+    throw new CLIError(`Compilation of cairo file ${contractPath} failed`);
   } else {
     assert(resultPath !== undefined && success);
     const classHash = callClassHashScript(resultPath);
@@ -101,42 +104,9 @@ function computeClassHash(filePath: string, pathPrefix: string, debugInfo: boole
  *  Read a cairo file and for each constant of the form `const name = value`
  *  if `name` is of the form   `<contractName>_<contractNameHash>` then it corresponds
  *  to a placeholder waiting to be filled with the corresponding contract class hash
- *  @param cairoFilePath location of cairo file
+ *  @param fileLoc location of cairo file
  *  @param declarationAddresses mapping of: (placeholder hash) => (starknet class hash)
  */
-export function replaceHashPlaceHolder(
-  cairoFilePath: string,
-  declarationAddresses: Map<string, string>,
-): void {
-  const originalCairoCode = readFileSync(cairoFilePath, 'utf8');
-  const splitCairoCode = originalCairoCode.split('\n');
-
-  let update = false;
-  const newCairoCode = splitCairoCode.map((codeLine) => {
-    const [constant, fullName, equal, ...other] = codeLine.split(new RegExp('[ ]+'));
-    if (constant !== 'const') return codeLine;
-
-    assert(other.length === 1, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
-
-    const name = fullName.slice(0, -HASH_SIZE - 1);
-    const hash = fullName.slice(-HASH_SIZE);
-
-    const declaredAddress = declarationAddresses.get(hash);
-    assert(
-      declaredAddress !== undefined,
-      `Cannot find declared address for ${name} with hash ${hash}`,
-    );
-
-    // Flag that there are changes that need to be rewritten
-    update = true;
-    const newLine = [constant, fullName, equal, declaredAddress].join(' ') + ';';
-    return newLine;
-  });
-
-  if (!update) return;
-  writeFileSync(cairoFilePath, newCairoCode.join('\n'));
-}
-
 export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<string, string>) {
   const plainCairoCode = readFileSync(fileLoc, 'utf8');
   const cairoCode = plainCairoCode.split('\n');
@@ -208,7 +178,7 @@ export function getDependencyGraph(root: string, pathPrefix: string): Map<string
  * @returns list of locations
  */
 function extractContractsToDeclared(fileLoc: string, pathPrefix: string): string[] {
-  const plainCairoCode = readFileSync(fileLoc, 'utf8');
+  const plainCairoCode = readFileSync(path.join(pathPrefix, fileLoc), 'utf8');
   const cairoCode = plainCairoCode.split('\n');
 
   const contractsToDeclare = cairoCode
@@ -218,7 +188,7 @@ function extractContractsToDeclared(fileLoc: string, pathPrefix: string): string
 
       assert(other.length === 0, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
 
-      return path.join(pathPrefix, location);
+      return location;
     })
     .filter((val) => val !== '');
   return contractsToDeclare;
@@ -232,33 +202,4 @@ function extractContractsToDeclared(fileLoc: string, pathPrefix: string): string
  */
 export function hashFilename(filename: string): string {
   return createHash(HASH_OPTION).update(filename).digest('hex').slice(0, HASH_SIZE);
-}
-
-/**
- * Utility function to remove a prefix from a path
- *
- * Example:
- * full path = A/B/C/D
- * ignore path = A/B
- * reduced path = C/D
- * @param fullPath path to reduce
- * @param ignorePath prefix to remove
- * @returns reduced path
- */
-export function reducePath(fullPath: string, ignorePath: string) {
-  const pathSplitter = new RegExp('/+|\\\\+');
-
-  const ignore = ignorePath.split(pathSplitter);
-  const full = fullPath.split(pathSplitter);
-
-  assert(
-    ignore.length < full.length,
-    `Path to ignore should be lesser than actual path. Ignore path size is ${ignore.length} and actual path size is ${full.length}`,
-  );
-  let ignoreTill = 0;
-  for (const i in ignore) {
-    if (ignore[i] !== full[i]) break;
-    ignoreTill += 1;
-  }
-  return path.join(...full.slice(ignoreTill));
 }
