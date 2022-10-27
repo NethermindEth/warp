@@ -102,7 +102,7 @@ function computeClassHash(contractPath: string, outputDir: string, debugInfo: bo
 }
 /**
  *  Read a cairo file and for each constant of the form `const name = value`
- *  if `name` is of the form   `<contractName>_<contractNameHash>` then it corresponds
+ *  if `name` is of the form   `<contractName>_<contractId>` then it corresponds
  *  to a placeholder waiting to be filled with the corresponding contract class hash
  *  @param fileLoc location of cairo file
  *  @param declarationAddresses mapping of: (placeholder hash) => (starknet class hash)
@@ -114,17 +114,18 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
   let update = false;
   const newCairoCode = cairoCode.map((codeLine) => {
     const [constant, fullName, equal, ...other] = codeLine.split(new RegExp('[ ]+'));
+    if (constant === '//' && fullName === '@declare') return '';
     if (constant !== 'const') return codeLine;
 
     assert(other.length === 1, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
 
     const name = fullName.slice(0, -HASH_SIZE - 1);
-    const hash = fullName.slice(-HASH_SIZE);
+    const uniqueId = fullName.slice(-HASH_SIZE);
 
-    const declaredAddress = declarationAddresses.get(hash);
+    const declaredAddress = declarationAddresses.get(uniqueId);
     assert(
       declaredAddress !== undefined,
-      `Cannot find declared address for ${name} with hash ${hash}`,
+      `Cannot find declared address for ${name} with hash ${uniqueId}`,
     );
 
     // Flag that there are changes that need to be rewritten

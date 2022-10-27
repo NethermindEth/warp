@@ -102,7 +102,6 @@ program
         transpile(ast, options)
           .map(([name, cairo, abi]) => {
             outputResult(name, cairo, options, cairoSuffix, abi);
-            console.log('transpiling result', name, options);
             return createCairoFileName(name, cairoSuffix);
           })
           .map((file) =>
