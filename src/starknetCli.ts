@@ -12,7 +12,7 @@ import {
 import { encodeInputs } from './passes';
 import { CLIError, logError } from './utils/errors';
 import { callClassHashScript } from './utils/utils';
-import { decode, decodeOutputs } from './outputDecoder';
+import { decodeOutputs } from './transcode/decode';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
@@ -220,8 +220,7 @@ export async function runStarknetCallOrInvoke(
     const decodedOutput = decodeOutputs(
       filePath,
       options.function,
-      // TODO: transform output from command(Buffer) to string[]
-      //warpOutput.toString(),
+      warpOutput.toString().split(' '),
     );
     console.log('Outputs decoded to solidity ABI:', (await decodedOutput).toString());
   } catch {
