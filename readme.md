@@ -5,6 +5,37 @@
 Warp brings Solidity to StarkNet, making it possible to transpile Ethereum
 smart contracts to StarkNet Cairo Contracts.
 
+## Quickstart
+
+Docker compose provides a ready to use environment featuring warp and devnet.
+
+### Build and run containers
+
+```bash
+docker-compose up
+```
+
+### Transpile
+
+```bash
+docker-compose exec warp warp transpile example_contracts/ERC20.sol
+```
+
+Alternatively for warp developers:
+
+```bash
+docker-compose exec warp npx ts-node src transpile example_contracts/ERC20.sol
+```
+
+It's best to copy the contract/repo to the warp directory so it is available in container via volume. Use contract's paths relative to warp root. For example, assuming you've copied your project to `warp/projects/myproject` you can replace `example_contracts/ERC20.sol` with `projects/myproject/mycontract.sol` in the above commands.
+
+### Deploy to devnet
+
+```bash
+docker-compose exec warp starknet-compile warp_output/example__contracts/ERC20__WC__WARP.cairo --out erc20.json --abi erc20.abi.json
+docker-compose exec warp starknet deploy --no_wallet --contract erc20.json --gateway_url http://devnet:5050
+```
+
 ## Documentation 📖
 
 You can read the documentation [here](https://nethermindeth.github.io/warp/).
@@ -111,11 +142,10 @@ Then run the pip command above again.
 4. Compile the project:
 
 ```bash
-yarn tsc
 yarn warplib
 ```
 
-5. Test the installation worked by transpiling an example ERC20 contract:
+1. Test the installation worked by transpiling an example ERC20 contract:
 
 ```bash
 bin/warp transpile example_contracts/ERC20.sol
