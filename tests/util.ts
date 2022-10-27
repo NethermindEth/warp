@@ -3,7 +3,7 @@ import * as path from 'path';
 import assert from 'assert';
 import { exec } from 'child_process';
 import { expect } from 'chai';
-import { hashFilename, reducePath } from '../src/utils/postCairoWrite';
+import { hashFilename } from '../src/utils/postCairoWrite';
 import { declare } from './testnetInterface';
 import { AsyncTest } from './behaviour/expectations/types';
 
@@ -142,14 +142,14 @@ export async function compileCluster(
   const declared = new Map<string, string>();
   for (const fileToDeclare of dependencies) {
     const declareHash = await compileDependencyGraph(fileToDeclare, graph, declared);
-    const fileLocationHash = hashFilename(reducePath(fileToDeclare, 'warp_output'));
+    const fileLocationHash = hashFilename(fileToDeclare);
     declared.set(fileLocationHash, declareHash);
   }
   return starknetCompile(root, test.asyncTest.compiled);
 }
 
 // This is recursively compiling and declaring the needed files for the test.
-export async function compileDependencyGraph(
+async function compileDependencyGraph(
   root: string,
   graph: Map<string, string[]>,
   declared: Map<string, string>,
@@ -163,7 +163,7 @@ export async function compileDependencyGraph(
   if (dependencies !== undefined) {
     for (const fileToDeclare of dependencies) {
       const declaredHash = await compileDependencyGraph(fileToDeclare, graph, declared);
-      const fileLocationHash = hashFilename(reducePath(fileToDeclare, 'warp_output'));
+      const fileLocationHash = hashFilename(fileToDeclare);
       declared.set(fileLocationHash, declaredHash);
     }
   }
