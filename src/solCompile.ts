@@ -17,14 +17,18 @@ import { error } from './utils/formatting';
 // size to the largest possible
 const MAX_BUFFER_SIZE = Number.MAX_SAFE_INTEGER;
 
-export function compileSolFile(file: string, printWarnings: boolean): AST {
+export function compileSolFile(
+  file: string,
+  printWarnings: boolean,
+  includePaths: string[] | undefined = undefined,
+): AST {
   const requiredSolcVersion = getSolFileVersion(file);
   const [, majorVersion] = matchCompilerVersion(requiredSolcVersion);
   if (majorVersion != '7' && majorVersion != '8') {
     throw new TranspileFailedError(`Unsupported version of solidity source ${requiredSolcVersion}`);
   }
 
-  const solcOutput = cliCompile(formatInput(file), requiredSolcVersion);
+  const solcOutput = cliCompile(formatInput(file), requiredSolcVersion, includePaths);
   printErrors(solcOutput.result, printWarnings, solcOutput.compilerVersion);
   const reader = new ASTReader();
   const sourceUnits = reader.read(solcOutput.result);
@@ -82,6 +86,7 @@ function formatInput(fileName: string): SolcInput {
 function cliCompile(
   input: SolcInput,
   solcVersion: string,
+  includePaths: string[] | undefined = undefined,
 ): { result: unknown; compilerVersion: string } {
   // Determine compiler version to use
   const nethersolcVersion: SupportedSolcVersions = solcVersion.startsWith('0.7.') ? `7` : `8`;
@@ -97,13 +102,19 @@ function cliCompile(
     allowedPaths = `--allow-paths ${currentDirectory}`;
   }
 
+  const includePathOptions =
+    includePaths === undefined ? '' : `--include-path ${includePaths.join(' --include-path ')}`;
+
   return {
     result: JSON.parse(
-      execSync(`${solcCommand} --standard-json ${allowedPaths}`, {
-        input: JSON.stringify(input),
-        maxBuffer: MAX_BUFFER_SIZE,
-        stdio: ['pipe', 'pipe', 'ignore'],
-      }).toString(),
+      execSync(
+        `${solcCommand} --standard-json ${allowedPaths} ${includePathOptions} --base-path .`,
+        {
+          input: JSON.stringify(input),
+          maxBuffer: MAX_BUFFER_SIZE,
+          stdio: ['pipe', 'pipe', 'ignore'],
+        },
+      ).toString(),
     ),
     compilerVersion: fullVersionFromMajor(nethersolcVersion),
   };

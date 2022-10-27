@@ -31,6 +31,7 @@ export type TranspilationOptions = {
   strict?: boolean;
   warnings?: boolean;
   until?: string;
+  includePaths?: string[];
 };
 
 export type PrintOptions = {
@@ -56,6 +57,7 @@ const program = new Command();
 program
   .command('transpile <files...>')
   .option('--compile-cairo')
+  .option('--include-paths <paths...>')
   .option('--no-compile-errors')
   .option('--check-trees')
   .option('--highlight <ids...>')
@@ -79,7 +81,7 @@ program
 
     const solcASTs = files.map((file) => ({
       file: file,
-      ast: compileSolFile(file, options.warnings),
+      ast: compileSolFile(file, options.warnings, options.includePaths),
     }));
     // Every AST which is a subtree of another AST doesn't get picked
     const roots = solcASTs.filter(({ ast }) => {
@@ -143,12 +145,15 @@ program
   .option('--no-strict')
   .option('--until <pass>')
   .option('--no-warnings')
+  .option('--include-paths <paths...>')
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
     try {
-      transform(compileSolFile(file, options.warnings), options).map(([name, solidity, _]) => {
-        outputResult(name, solidity, options, '_warp.sol');
-      });
+      transform(compileSolFile(file, options.warnings, options.includePaths), options).map(
+        ([name, solidity, _]) => {
+          outputResult(name, solidity, options, '_warp.sol');
+        },
+      );
     } catch (e) {
       handleTranspilationError(e);
     }
