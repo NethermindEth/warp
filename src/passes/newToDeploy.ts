@@ -33,12 +33,10 @@ import {
 } from '../utils/nodeTemplates';
 import { cloneASTNode } from '../utils/cloning';
 import { hashFilename } from '../utils/postCairoWrite';
-import { CONTRACT_INFIX } from '../utils/nameModifiers';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { getParameterTypes } from '../utils/nodeTypeProcessing';
 import { getContainingSourceUnit } from '../utils/utils';
-import { manglePath } from './filePathMangler';
 
 /** Pass that takes all expressions of the form:
  *
