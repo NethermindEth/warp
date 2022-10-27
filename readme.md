@@ -32,8 +32,8 @@ It's best to copy the contract/repo to the warp directory so it is available in 
 ### Deploy to devnet
 
 ```bash
-docker-compose exec warp starknet-compile warp_output/example__contracts/ERC20__WC__WARP.cairo --out erc20.json --abi erc20.abi.json
-docker-compose exec warp starknet deploy --no_wallet --contract erc20.json --gateway_url http://devnet:5050
+docker-compose exec warp warp compile warp_output/example__contracts/ERC20__WC__WARP.cairo
+docker-compose exec warp starknet deploy --no_wallet --contract warp_output/example__contracts/ERC20__WC__WARP_compiled.json --gateway_url http://devnet:5050
 ```
 
 ## Documentation 📖
