@@ -145,7 +145,7 @@ Then run the pip command above again.
 yarn warplib
 ```
 
-1. Test the installation worked by transpiling an example ERC20 contract:
+5. Test the installation worked by transpiling an example ERC20 contract:
 
 ```bash
 bin/warp transpile example_contracts/ERC20.sol
