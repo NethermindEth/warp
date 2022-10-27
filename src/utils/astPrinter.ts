@@ -118,6 +118,16 @@ export const DefaultASTPrinter = new ASTPrinter()
     print: implicits,
   })
   .lookFor({
+    prop: 'kind',
+    nodeType: 'FunctionDefinition',
+    print: functionKind,
+  })
+  .lookFor({
+    prop: 'kind',
+    nodeType: 'CairoFunctionDefinition',
+    print: functionKind,
+  })
+  .lookFor({
     prop: 'linearizedBaseContracts',
     print: linearizedBaseContracts,
   })
@@ -187,6 +197,10 @@ function context(x: unknown): string {
 function implicits(x: unknown): string {
   if (!(x instanceof Set)) throw new Error('Implicits not a set');
   return `${[...x.values()]}`;
+}
+
+function functionKind(x: unknown): string {
+  return `${x}`;
 }
 
 function linearizedBaseContracts(x: unknown): string {

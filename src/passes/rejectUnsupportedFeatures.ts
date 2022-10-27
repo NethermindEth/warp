@@ -4,7 +4,6 @@ import {
   ArrayType,
   ASTNode,
   BytesType,
-  Conditional,
   ContractDefinition,
   ContractKind,
   DataLocation,
@@ -102,9 +101,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   visitErrorDefinition(node: ErrorDefinition, _ast: AST): void {
     this.addUnsupported('User defined Errors are not supported', node);
   }
-  visitConditional(node: Conditional, _ast: AST): void {
-    this.addUnsupported('Conditional expressions (ternary operator, node) are not supported', node);
-  }
   visitFunctionCallOptions(node: FunctionCallOptions, ast: AST): void {
     // Allow options only when passing salt values for contract creation
     if (
@@ -139,6 +135,15 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     if (node.name === 'msg' && node.vIdentifierType === ExternalReferenceType.Builtin) {
       if (!(node.parent instanceof MemberAccess && node.parent.memberName === 'sender')) {
         this.addUnsupported(`msg object not supported outside of 'msg.sender'`, node);
+      }
+    } else if (node.name === 'block' && node.vIdentifierType === ExternalReferenceType.Builtin) {
+      if (
+        node.parent instanceof MemberAccess &&
+        ['coinbase', 'chainid', 'gaslimit', 'basefee', 'difficulty'].includes(
+          (<MemberAccess>node.parent).memberName,
+        )
+      ) {
+        this.addUnsupported(`block.${(<MemberAccess>node.parent).memberName} not supported`, node);
       }
     }
   }
@@ -177,7 +182,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     const unsupportedMath = ['sha256', 'ripemd160'];
-    const unsupportedAbi = ['decode', 'encodeCall'];
+    const unsupportedAbi = ['encodeCall'];
     const unsupportedMisc = ['blockhash', 'selfdestruct', 'gasleft'];
     const funcName = node.vFunctionName;
     if (

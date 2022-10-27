@@ -1,11 +1,45 @@
 import { Dir, Expect, File } from './types';
-import { getByte32Array, flatten, getByteXArray } from './utils';
+import { getByte32Array, flatten, getByteXArray, toCairoUint256 } from './utils';
 
 export const expectations = flatten(
   new Dir('tests', [
     new Dir('behaviour', [
       new Dir('contracts', [
         new Dir('abiEncode', [
+          File.Simple('abiDecodeValue', [
+            Expect.Simple('decodeAsInt24', getByte32Array(148), ['148']),
+            Expect.Simple('decodeAsUint256', getByte32Array(0), ['0', '0'], 'Zero uint256'),
+            Expect.Simple('decodeAsUint256', getByte32Array(148), ['148', '0'], 'Small uint256'),
+            Expect.Simple(
+              'decodeAsUint256',
+              getByte32Array(2n ** 128n - 1n),
+              [`${2n ** 128n - 1n}`, '0'],
+              'Highest number in Uint256.low',
+            ),
+            Expect.Simple(
+              'decodeAsUint256',
+              getByte32Array(BigInt(2) ** BigInt(128)),
+              ['0', '1'],
+              'Lowest number in Uint256.high',
+            ),
+            Expect.Simple(
+              'decodeAsUint256',
+              getByte32Array(BigInt(2) ** BigInt(256) - BigInt(1)),
+              [`${2n ** 128n - 1n}`, `${2n ** 128n - 1n}`],
+              'Highest number in Uint256.high and Uint256.low',
+            ),
+            Expect.Simple(
+              'decodeAsAddress',
+              getByte32Array(2n ** 180n),
+              [`${2n ** 180n}`],
+              'Using an address bigger than 160 bits',
+            ),
+            Expect.Simple('decodeAsAddressAndUint256', getByte32Array(1040, 1500), [
+              '1040',
+              '1500',
+              '0',
+            ]),
+          ]),
           File.Simple('abiEncodeDynamic', [
             Expect.Simple('simpleDynamic', [], getByte32Array(32, 3, 2, 3, 5)),
             Expect.Simple(
@@ -74,6 +108,11 @@ export const expectations = flatten(
             ),
             Expect.Simple('booleans', ['1', '1'], ['2', '1', '1']),
             Expect.Simple('enums', ['3', '2'], ['2', '3', '2']),
+            Expect.Simple(
+              'addressArray',
+              ['2', '3', `${2n ** 180n}`, '2', '5', '7'],
+              getByte32Array(2, 3, 2n ** 180n, 5, 7),
+            ),
             Expect.Simple(
               'bArray',
               ['3', '2', '3', '5', '4', '7', '11', '13', '17'],
@@ -502,6 +541,24 @@ export const expectations = flatten(
             Expect.Simple('f', ['50', '0', '0'], ['0', '0']),
             Expect.Simple('f', ['10', '0', '1'], ['1', '0']),
             Expect.Simple('f', ['4', '0', '1'], ['5', '0']),
+          ]),
+          File.Simple('conditionals', [
+            Expect.Simple('returnStr', ['1'], ['4', '87', '65', '82', '80']),
+            Expect.Simple('updateVar', ['1'], ['20', '0', '46', '0']),
+            Expect.Simple('updateVar', ['0'], ['15', '0', '50', '0']),
+          ]),
+          File.Simple('useValues', [
+            Expect.Simple('useValues', ['1'], ['3', '4']),
+            Expect.Simple('useValues', ['0'], ['1', '2']),
+          ]),
+          File.Simple('voidReturn', [
+            Expect.Simple('x', [], ['0', '0']),
+            Expect.Simple('voidReturn', [], []),
+            Expect.Simple('x', [], ['5', '0']),
+            Expect.Simple('voidReturn', [], []),
+            Expect.Simple('x', [], ['10', '0']),
+            Expect.Simple('voidReturn', [], []),
+            Expect.Simple('x', [], ['0', '0']),
           ]),
           new File(
             'nested_and_or',
@@ -2037,6 +2094,14 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('expressions', [
+          File.Simple('assign_split', [
+            Expect.Simple('plusEqual', [], ['60', '0']),
+            Expect.Simple('starEqual', [], ['20', '0']),
+            Expect.Simple('equal', [], ['4', '0']),
+            Expect.Simple('plusEqualTotal', ['10', '0'], ['75', '0']),
+            Expect.Simple('starEqualTotal', ['5', '0'], ['30', '0']),
+            Expect.Simple('equalTotal', ['10', '0'], ['16', '0']),
+          ]),
           File.Simple('assignments_as_rvalues', [
             Expect.Simple('addingLocalAssignments', ['5', '11'], ['16']),
             Expect.Simple('addingStorageAssignments', ['5', '11'], ['16', '0']),
@@ -2096,6 +2161,12 @@ export const expectations = flatten(
             Expect.Simple('shiftRight', [], ['1']),
             Expect.Simple('bitwiseNegate', [], ['253']),
             Expect.Simple('toInteger', [], ['3']),
+          ]),
+          File.Simple('short_circuit', [
+            Expect.Simple('and_sc', [], ['56', '0']),
+            Expect.Simple('and_no_sc', [], ['1', '0']),
+            Expect.Simple('or_sc', [], ['56', '0']),
+            Expect.Simple('or_no_sc', [], ['15', '0']),
           ]),
           File.Simple('tupleEdgeCases', [Expect.Simple('f', ['0', '0'], ['0', '0'])]),
           File.Simple('tupleOfInlineArrays', [Expect.Simple('g', [], ['21'])]),
@@ -2805,6 +2876,12 @@ export const expectations = flatten(
               ],
             ),
             new File(
+              'inheritedModifiedFunction',
+              'B',
+              [],
+              [Expect.Simple('f', ['20', '0'], ['20', '0'])],
+            ),
+            new File(
               'modifierInheritance',
               'D',
               [],
@@ -2961,16 +3038,24 @@ export const expectations = flatten(
             ),
             Expect.Simple('addition256safe', ['20', '1', '5', '2'], ['25', '3']),
             Expect.Simple('addition256unsafe', ['20', '1', '5', '2'], ['25', '3']),
-            Expect.Simple('addition8signedsafe', ['3', '20'], ['23']),
-            Expect.Simple('addition8signedsafe', ['100', '90'], null, 'overflow'),
+            Expect.Simple('addition8signedsafe', ['3', '20'], ['23'], 'pos + pos'),
+            Expect.Simple('addition8signedsafe', ['100', '90'], null, 'pos + pos overflow'),
+            Expect.Simple('addition8signedsafe', ['255', '254'], ['253'], 'neg + neg'),
+            Expect.Simple('addition8signedsafe', ['128', '128'], null, 'neg + neg overflow'),
             Expect.Simple('addition8signedunsafe', ['3', '20'], ['23']),
             Expect.Simple('addition8signedunsafe', ['100', '90'], ['190'], 'overflow'),
-            Expect.Simple('addition120signedsafe', ['6', '8'], ['14']),
+            Expect.Simple('addition120signedsafe', ['6', '8'], ['14'], 'pos + pos'),
             Expect.Simple(
               'addition120signedsafe',
               ['400000000000000000000000000000000000', '450000000000000000000000000000000000'],
               null,
-              'overflow',
+              'pos + pos overflow',
+            ),
+            Expect.Simple(
+              'addition120signedsafe',
+              [`${2n ** 120n / 2n}`, `${2n ** 120n - 1n}`],
+              null,
+              'neg + neg overflow',
             ),
             Expect.Simple('addition120signedunsafe', ['6', '8'], ['14']),
             Expect.Simple(
@@ -2989,6 +3074,18 @@ export const expectations = flatten(
                 '0',
               ],
               ['0', '0'],
+            ),
+            Expect.Simple(
+              'addition256signedsafe',
+              [...toCairoUint256(2n ** 255n), ...toCairoUint256(2n ** 255n)],
+              null,
+              'neg + neg overflow',
+            ),
+            Expect.Simple(
+              'addition256signedsafe',
+              [...toCairoUint256(2n ** 255n - 1n), ...toCairoUint256(2n ** 255n - 1n)],
+              null,
+              'pos + pos overflow',
             ),
             Expect.Simple('addition256signedunsafe', ['20', '1', '5', '2'], ['25', '3']),
           ]),
@@ -3128,6 +3225,12 @@ export const expectations = flatten(
             Expect.Simple('multiplication8signedunsafe', ['100', '40'], ['160'], 'overflow'),
             Expect.Simple('multiplication128signedsafe', ['255', '255'], ['65025']),
             Expect.Simple('multiplication128signedunsafe', ['192', '2'], ['384']),
+            Expect.Simple(
+              'multiplication128signedunsafe',
+              // -1 * 2 = -2
+              ['340282366920938463463374607431768211455', '2'],
+              ['340282366920938463463374607431768211454'],
+            ),
             Expect.Simple(
               'multiplication256signedsafe',
               [
@@ -3337,6 +3440,12 @@ export const expectations = flatten(
           File.Simple('modifier', [
             Expect.Simple('f', ['90000', '0'], ['10000', '0']),
             Expect.Simple('f', ['110000', '0'], ['0', '0']),
+          ]),
+          File.Simple('modifierRecursive', [
+            new Expect('modifier', [
+              ['fact', ['5', '0'], ['120', '0'], '0'],
+              ['called', [], ['6', '0'], '0'],
+            ]),
           ]),
           File.Simple('modifierWithReturn', [
             Expect.Simple('returnFiveThroughModifiers', [], ['5']),
@@ -3577,6 +3686,10 @@ export const expectations = flatten(
               ],
             ),
           ]),
+        ]),
+        new Dir('preExpressionSplitter', [
+          File.Simple('assign_simple', [Expect.Simple('f', [], ['10', ''])]),
+          File.Simple('assign_simple', [Expect.Simple('g', [], ['15', ''])]),
         ]),
         new Dir('returns', [
           File.Simple('initialiseStorageReturns', [

@@ -15,12 +15,14 @@ export class LoopFunctionaliser extends ASTMapper {
   }
 
   static map(ast: AST): AST {
+    const loopFnCounter = { count: 0 };
+
     ast.roots.forEach((root) => {
       const loopToContinueFunction: Map<number, FunctionDefinition> = new Map();
 
       new ForLoopToWhile().dispatchVisit(root, ast);
       new ReturnToBreak().dispatchVisit(root, ast);
-      new WhileLoopToFunction(loopToContinueFunction).dispatchVisit(root, ast);
+      new WhileLoopToFunction(loopToContinueFunction, loopFnCounter).dispatchVisit(root, ast);
       new BreakToReturn().dispatchVisit(root, ast);
       new ContinueToLoopCall(loopToContinueFunction).dispatchVisit(root, ast);
     });

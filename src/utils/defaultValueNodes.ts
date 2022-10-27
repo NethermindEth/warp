@@ -214,7 +214,7 @@ function userDefDefault(
       ast,
     );
   throw new TranspileFailedError(
-    `Not supported operation delete on ${printNode(nodeType.definition)}`,
+    `Couldn't get a default value for user defined: ${printNode(nodeType.definition)}`,
   );
 }
 
@@ -270,10 +270,13 @@ function pointerDefault(
   ast: AST,
 ): Expression {
   if (nodeType.to instanceof ArrayType) return arrayDefault(nodeType.to, parentNode, ast);
-  else if (nodeType.to instanceof UserDefinedType) {
+  else if (nodeType.to instanceof UserDefinedType)
     return userDefDefault(nodeType.to, parentNode, ast);
-  } else {
-    throw new NotSupportedYetError(`Not supported operation delete on ${printTypeNode(nodeType)}`);
+  else if (nodeType.to instanceof StringType) return stringDefault(parentNode, ast);
+  else {
+    throw new TranspileFailedError(
+      `Couldn't get a default value for pointer: ${printTypeNode(nodeType)}`,
+    );
   }
 }
 
@@ -283,7 +286,9 @@ function getTupleTypeString(nodeType: ArrayType): string {
     if (node.to instanceof ArrayType)
       return `${getTupleTypeString(node.to)} memory[${nodeType.size}]`;
     else
-      throw new NotSupportedYetError(`Not supported operation delete on ${printTypeNode(node.to)}`);
+      throw new TranspileFailedError(
+        `Couldn't get tuple type string, is not ArrayType: ${printTypeNode(node.to)}`,
+      );
   } else {
     return nodeType.pp();
   }

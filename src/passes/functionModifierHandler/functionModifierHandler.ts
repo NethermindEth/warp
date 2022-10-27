@@ -2,15 +2,20 @@ import assert from 'assert';
 import {
   Assignment,
   ASTNode,
+  Expression,
   ExpressionStatement,
+  FunctionCall,
   FunctionDefinition,
   FunctionKind,
   FunctionVisibility,
+  Identifier,
+  MemberAccess,
   ModifierDefinition,
   VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
+import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { createCallToFunction } from '../../utils/functionGeneration';
 import {
@@ -75,9 +80,14 @@ export class FunctionModifierHandler extends ASTMapper {
 
   extractOriginalFunction(node: FunctionDefinition, ast: AST): FunctionDefinition {
     const scope = node.vScope;
+    const name = node.isConstructor ? `constructor` : `function_${node.name}`;
 
     const funcDef = cloneASTNode(node, ast);
-    const name = node.isConstructor ? `constructor` : `function_${node.name}`;
+    // When `node` gets cloned all recursive function calls inside it change their reference
+    // to the cloned function `funcDef`, but `funcDef` modifiers are going to be removed, so
+    // those function calls should instead reference the modified function which is `node`
+    updateReferencesOnRecursiveCalls(funcDef, node);
+
     funcDef.name = `${ORIGINAL_FUNCTION_PREFIX}${name}_${this.count++}`;
     funcDef.visibility = FunctionVisibility.Internal;
     funcDef.isConstructor = false;
@@ -197,4 +207,23 @@ function createAssignmentStatement(
       rhsIdentifier,
     ),
   );
+}
+function updateReferencesOnRecursiveCalls(
+  funcDef: FunctionDefinition,
+  functToCall: FunctionDefinition,
+) {
+  funcDef
+    .getChildren()
+    .filter((node): node is FunctionCall => node instanceof FunctionCall)
+    .forEach((f) => {
+      const refDeclaration = f.vReferencedDeclaration;
+      if (refDeclaration !== undefined && refDeclaration.id === funcDef.id) {
+        assert(canUpdateReference(f.vExpression), `Unexpected expression in ${printNode(f)}`);
+        f.vExpression.referencedDeclaration = functToCall.id;
+      }
+    });
+}
+
+function canUpdateReference(node: Expression): node is Identifier | MemberAccess {
+  return node instanceof Identifier || node instanceof MemberAccess;
 }
