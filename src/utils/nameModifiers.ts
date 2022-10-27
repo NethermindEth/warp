@@ -12,9 +12,6 @@ export const FREE_FILE_NAME = '__warp_free.cairo';
 
 // Used in IdentifierManglerPass and CairoStubProcessor
 export const MANGLED_WARP = '__warp_';
-export const MANGLED_INTERNAL_USER_FUNCTION = '__warp_usrfn_';
-export const MANGLED_TYPE_NAME = '__warp_usrTp_';
-export const MANGLED_LOCAL_VAR = '__warp_usrid_';
 
 // Used in StaticArrayIndexer
 export const CALLDATA_TO_MEMORY_PREFIX = 'cd_to_wm_';
