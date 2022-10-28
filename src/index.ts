@@ -21,6 +21,8 @@ import { postProcessCairoFile } from './utils/postCairoWrite';
 
 export type CompilationOptions = {
   warnings: boolean;
+  includePaths?: string[];
+  basePath?: string;
 };
 
 export type TranspilationOptions = {
@@ -31,7 +33,6 @@ export type TranspilationOptions = {
   strict?: boolean;
   warnings?: boolean;
   until?: string;
-  includePaths?: string[];
 };
 
 export type PrintOptions = {
@@ -57,7 +58,6 @@ const program = new Command();
 program
   .command('transpile <files...>')
   .option('--compile-cairo')
-  .option('--include-paths <paths...>')
   .option('--no-compile-errors')
   .option('--check-trees')
   .option('--highlight <ids...>')
@@ -72,6 +72,8 @@ program
   .option('--until <pass>')
   .option('--no-warnings')
   .option('--dev', 'Run AST sanity checks on every pass instead of the final AST only', false) // for development mode
+  .option('--include-paths <paths...>')
+  .option('--base-path <path>')
   .action((files: string[], options: CliOptions) => {
     // We do the extra work here to make sure all the errors are printed out
     // for all files which are invalid.
@@ -81,7 +83,7 @@ program
 
     const solcASTs = files.map((file) => ({
       file: file,
-      ast: compileSolFile(file, options.warnings, options.includePaths),
+      ast: compileSolFile(file, options as CompilationOptions),
     }));
     // Every AST which is a subtree of another AST doesn't get picked
     const roots = solcASTs.filter(({ ast }) => {
@@ -146,10 +148,11 @@ program
   .option('--until <pass>')
   .option('--no-warnings')
   .option('--include-paths <paths...>')
+  .option('--base-path <path>')
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
     try {
-      transform(compileSolFile(file, options.warnings, options.includePaths), options).map(
+      transform(compileSolFile(file, options as CompilationOptions), options).map(
         ([name, solidity, _]) => {
           outputResult(name, solidity, options, '_warp.sol');
         },
