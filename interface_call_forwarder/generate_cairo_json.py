@@ -159,15 +159,13 @@ def processArrayArguments(args: list[TypedIdentifier]):
         [Args]:
             list of [(a_len: felt, a:felt*), ...]
         [Returns]:
-            1. If there is an array arugment : hasArrayArguments <-> (boolean)
-            2. Cairo Lines to be added to the function stub for arg conversion : lines_added <-> (list[CodeElement])
+            1. Cairo Lines to be added to the function stub for arg conversion : lines_added <-> (list[CodeElement])
                 e.g let (a_len, a) = mem2calldata(a_mem).len, mem2calldata(a_mem).ptr
-            3. list of [a_mem, ...] : modifiedArgs <-> (list[TypedIdentifier])
+            2. list of [a_mem, ...] : modifiedArgs <-> (list[TypedIdentifier])
     """
 
     modifiedArgs: list[TypedIdentifier] = list()
     lines_added: list[CommentedCodeElement] = list()
-    hasArrayArguments = False
 
     for arg in args:
         if isinstance(arg.expr_type, TypePointer):
@@ -177,7 +175,6 @@ def processArrayArguments(args: list[TypedIdentifier]):
                 isinstance(modifiedArgs[-1].expr_type, TypeFelt)
             ), "Array type argument must be preceded by a length argument"
 
-            hasArrayArguments = True
             modifiedArgs.pop()
             modifiedArgs.append(
                 TypedIdentifier(
@@ -246,7 +243,7 @@ def processArrayArguments(args: list[TypedIdentifier]):
             ])
         else:
             modifiedArgs.append(arg)
-    return hasArrayArguments, lines_added, modifiedArgs
+    return lines_added, modifiedArgs
 
 
 def processArrayReturnArguments(func_returns: Optional[CairoType]):
@@ -263,21 +260,20 @@ def processArrayReturnArguments(func_returns: Optional[CairoType]):
         [Args]:
             Cairo function return type : func_returns <-> (Optional[CairoType])
         [Returns]:
-            1. If there is an array arugment : hasArrayReturnArguments <-> (boolean)
-            2. If modification has been made to the return type : modifiedReturnType <-> (boolean)
-            3. Cairo Lines to be added to the function stub for arg conversion : lines_added <-> (list[CodeElement])
+            1. Cairo Lines to be added to the function stub for arg conversion : lines_added <-> (list[CodeElement])
                 e.g let (a_len, a) = mem2calldata(a_mem).len, mem2calldata(a_mem).ptr
-            4. Cairo function return type : modifiedReturns <-> (Optional[TypeTuple])
+            2. Cairo function return type : modifiedReturns <-> (Optional[TypeTuple])
 
     """
 
     if func_returns is None:
-        return False, False, [], None
+        return [], None
     if not isinstance(func_returns, TypeTuple):
-        return False, False, [], func_returns
+        return [], func_returns
+
     tuplesMembers: list["TypeTuple.Item"] = list()
     lines_added: list[CommentedCodeElement] = list()
-    hasArrayReturnArguments = False
+
     for member in func_returns.members:
         if isinstance(member.typ, TypePointer):
             assert (
@@ -285,7 +281,6 @@ def processArrayReturnArguments(func_returns: Optional[CairoType]):
                 tuplesMembers[-1].name == arrayLengthName(member.name) and
                 isinstance(tuplesMembers[-1].typ, TypeFelt)
             ), "Array type argument must be preceded by a length argument"
-            hasArrayReturnArguments = True
             tuplesMembers.pop()
             tuplesMembers.append(
                 TypeTuple.Item(
@@ -348,11 +343,17 @@ def processArrayReturnArguments(func_returns: Optional[CairoType]):
             )
         else:
             tuplesMembers.append(member)
-    return hasArrayReturnArguments, True, lines_added, TypeTuple(
+    return lines_added, TypeTuple(
         members=tuplesMembers,
         notes=[Notes([])]*(len(tuplesMembers)+1),
         has_trailing_comma=len(tuplesMembers) == 1
     )
+
+
+def feltToUint256Transformation(typ : CairoType, arg_name : str = "val"): 
+    pass
+
+
 
 
 def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector) -> dict[str, CodeElementFunction]:
@@ -366,10 +367,20 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector)
     cairoFunctionStubsDict: dict[str, CodeElementFunction] = dict()
 
     for func in interfaceElementCollector.functions:
-        has_array, lines_added, func_arguments = processArrayArguments(
+        lines_added_before : list[CommentedCodeElement] = list()
+        lines_added_after : list[CommentedCodeElement] = list()
+        
+        lines_added, func_returns = feltToUint256Transformation(func.returns)
+        lines_added_after.extend(lines_added)
+
+        lines_added, func_arguments = processArrayArguments(
             func.arguments.identifiers)
-        has_return_array, return_modification, lines_added_return, func_returns = processArrayReturnArguments(
+        lines_added_before.extend(lines_added)
+
+        lines_added, func_returns = processArrayReturnArguments(
             func.returns)
+        lines_added_after.extend(lines_added)
+        
         cairoFunctionStubsDict[func.identifier.name] = (
             CodeElementFunction(
                 element_type=func.element_type,
@@ -404,7 +415,7 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector)
                                 name=ScopedName(path=('DictAccess',)))),
                             modifier=None
                         )
-                    ] if has_return_array else []),
+                    ]),
                 ),
                 returns=func_returns,
                 code_block=CodeBlock(
@@ -434,7 +445,7 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector)
                             comment=None,
                         )
                     ]
-                     + lines_added + [
+                     + lines_added_before + [
                         CommentedCodeElement(
                             code_elm=CodeElementUnpackBinding(
                                 unpacking_list=IdentifierList(
@@ -460,7 +471,7 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector)
                                 )
                             ),
                             comment=None
-                        ) if return_modification else CommentedCodeElement(
+                        ) if isinstance(func.returns, TypeTuple) else CommentedCodeElement(
                             code_elm=CodeElementReturnValueReference(
                                 TypedIdentifier(
                                     identifier=ExprIdentifier(name="val"),
@@ -484,7 +495,7 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector)
                             ),
                             comment=None
                         ),
-                    ] + lines_added_return + [
+                    ] + lines_added_after + [
                         CommentedCodeElement(
                             code_elm=CodeElementReturn(
                                 expr=ExprTuple(
@@ -500,9 +511,9 @@ def generateFunctionStubs(interfaceElementCollector: InterfaceElementsCollector)
                                 ),
                             ),
                             comment=None
-                        ) if return_modification else CommentedCodeElement(
+                        ) if isinstance(func.returns, TypeTuple) else CommentedCodeElement(
                             code_elm=CodeElementReturn(
-                                expr=ExprIdentifier(name="val"),
+                                expr=ExprIdentifier(name="val_mfd"),
                             ),
                             comment=None
                         )
