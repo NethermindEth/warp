@@ -1,14 +1,13 @@
 import { BinaryOperation, Conditional } from 'solc-typed-ast';
-import { AST } from '../../ast/ast';
-import { ASTMapper } from '../../ast/mapper';
-import { createBoolLiteral } from '../../utils/nodeTemplates';
-import { expressionHasSideEffects } from '../../utils/utils';
+import { AST } from '../ast/ast';
+import { ASTMapper } from '../ast/mapper';
+import { createBoolLiteral } from '../utils/nodeTemplates';
 
 export class ShortCircuitToConditional extends ASTMapper {
   visitBinaryOperation(node: BinaryOperation, ast: AST): void {
     this.commonVisit(node, ast);
 
-    if (node.operator == '&&' && expressionHasSideEffects(node.vRightExpression)) {
+    if (node.operator == '&&') {
       const replacementExpression = new Conditional(
         ast.reserveId(),
         node.src,
@@ -21,7 +20,7 @@ export class ShortCircuitToConditional extends ASTMapper {
       ast.replaceNode(node, replacementExpression);
     }
 
-    if (node.operator == '||' && expressionHasSideEffects(node.vRightExpression)) {
+    if (node.operator == '||') {
       const replacementExpression = new Conditional(
         ast.reserveId(),
         node.src,

@@ -5,5 +5,4 @@ export * from './msgSender';
 export * from './thisKeyword';
 export * from './ecrecover';
 export * from './MathsOperationToFunction';
-export * from './shortCircuitToConditional';
 export * from './keccak';
