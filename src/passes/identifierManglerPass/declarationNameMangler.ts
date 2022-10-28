@@ -83,6 +83,7 @@ export function checkSourceTerms(term: string, node: ASTNode) {
 }
 
 export class DeclarationNameMangler extends ASTMapper {
+  noNameCounter = 0;
   visitSourceUnit(node: SourceUnit, ast: AST): void {
     node.vStructs.forEach((s) => this.mangleStructDefinition(s));
     node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n, ast));
@@ -110,7 +111,7 @@ export class DeclarationNameMangler extends ASTMapper {
   }
 
   createNewVariableName(existingName: string): string {
-    return `${MANGLED_WARP}${existingName}`;
+    return `${MANGLED_WARP}${existingName === '' ? this.noNameCounter++ : existingName}`;
   }
 
   mangleVariableDeclaration(node: VariableDeclaration): void {
