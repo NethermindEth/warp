@@ -1,3 +1,9 @@
 ---
-title: Addresses (WIP)
+title: Addresses
 ---
+
+Addresses on Starknet are longer than on Ethereum. On Starknet they take up the whole felt space i.e 251 bits.
+This is significantly longer than the Ethereum equivalent of 160 bits.
+
+Please note that the precompile `ecrecover` should be used to recover Ethereum addresses only and not StarkNet addresses.
+This function will only return 160 bits.
