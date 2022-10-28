@@ -54,7 +54,6 @@ export const reservedTerms = new Set<string>([
 ]);
 
 const unsupportedCharacters = ['$'];
-const forbiddenPrefix = [MANGLED_WARP];
 
 export function checkSourceTerms(term: string, node: ASTNode) {
   if (reservedTerms.has(term)) {
@@ -81,16 +80,6 @@ export function checkSourceTerms(term: string, node: ASTNode) {
       )} ${term} contains unsupported character(s) "${unsupportedCharactersFound}"`,
     );
   }
-}
-
-export function checkNoPrefixMatch(name: string, node: ASTNode) {
-  forbiddenPrefix.forEach((prefix) => {
-    if (name.startsWith(prefix))
-      throw new WillNotSupportError(
-        `Names starting with ${prefix} are not allowed in the code`,
-        node,
-      );
-  });
 }
 
 export class DeclarationNameMangler extends ASTMapper {
@@ -154,29 +143,24 @@ export class DeclarationNameMangler extends ASTMapper {
   }
 
   mangleVariableDeclaration(node: VariableDeclaration): void {
-    checkNoPrefixMatch(node.name, node);
     this.nodesNameModified.push(node);
     node.name = this.createNewVariableName(node.name);
   }
 
   mangleStructDefinition(node: StructDefinition): void {
-    checkNoPrefixMatch(node.name, node);
     checkSourceTerms(node.name, node);
     node.vMembers.forEach((m) => this.mangleVariableDeclaration(m));
   }
 
   mangleFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    checkNoPrefixMatch(node.name, node);
     node.name = this.createNewFunctionName(node, ast);
   }
 
   mangleEventDefinition(node: EventDefinition): void {
-    checkNoPrefixMatch(node.name, node);
     node.name = `${node.name}_${node.canonicalSignatureHash(ABIEncoderVersion.V2)}`;
   }
 
   mangleContractDefinition(node: ContractDefinition, ast: AST): void {
-    checkNoPrefixMatch(node.name, node);
     checkSourceTerms(node.name, node);
     node.vStructs.forEach((s) => this.mangleStructDefinition(s));
     node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n, ast));
