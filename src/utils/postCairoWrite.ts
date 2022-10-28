@@ -146,12 +146,11 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
  * A file A is said to be dependant from a file B if file A needs the class hash
  * of file B.
  * @param root file to explore for dependencies
- * @param pathPrefix filepath may be different during transpilation and after transpilation. This parameter is
- * appended at the beginning to make them equal
+ * @param outputDir directory where cairo files are stored
  * @returns a map from string to list of strings, where the key is a file and the value are all the dependencies
  */
-export function getDependencyGraph(root: string, pathPrefix: string): Map<string, string[]> {
-  const filesToDeclare = extractContractsToDeclared(root, pathPrefix);
+export function getDependencyGraph(root: string, outputDir: string): Map<string, string[]> {
+  const filesToDeclare = extractContractsToDeclared(root, outputDir);
   const graph = new Map<string, string[]>([[root, filesToDeclare]]);
 
   const pending = [...filesToDeclare];
@@ -162,7 +161,7 @@ export function getDependencyGraph(root: string, pathPrefix: string): Map<string
       count++;
       continue;
     }
-    const newFilesToDeclare = extractContractsToDeclared(fileSource, pathPrefix);
+    const newFilesToDeclare = extractContractsToDeclared(fileSource, outputDir);
     graph.set(fileSource, newFilesToDeclare);
     pending.push(...newFilesToDeclare);
     count++;

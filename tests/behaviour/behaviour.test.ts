@@ -74,7 +74,7 @@ describe('Transpiled contracts are valid cairo', function () {
       if (test.encodingError !== undefined || !fs.existsSync(test.cairo)) {
         return null;
       }
-      const dependencyGraph = getDependencyGraph(test.cairo, 'warp_output');
+      const dependencyGraph = getDependencyGraph(test.cairo, '');
       return { asyncTest: test, dependencies: dependencyGraph };
     });
 
