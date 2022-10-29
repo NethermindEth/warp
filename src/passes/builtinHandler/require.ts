@@ -51,11 +51,6 @@ export class Require extends ASTMapper {
     }
 
     if (expression.vIdentifier === 'require' || expression.vIdentifier === 'assert') {
-      if (expression.vArguments.length > 1 && !(expression.vArguments[1] instanceof Literal)) {
-        throw new WillNotSupportError(
-          `Error messages must be string literals for assert, revert, and require`,
-        );
-      }
       const requireMessage =
         expression.vArguments[1] instanceof Literal ? expression.vArguments[1].value : null;
 
@@ -71,11 +66,6 @@ export class Require extends ASTMapper {
         ),
       );
     } else if (expression.vIdentifier === 'revert') {
-      if (expression.vArguments.length > 0 && !(expression.vArguments[0] instanceof Literal)) {
-        throw new WillNotSupportError(
-          `Error messages must be string literals for assert, revert, and require`,
-        );
-      }
       const revertMessage =
         expression.vArguments[0] instanceof Literal ? expression.vArguments[0].value : null;
 

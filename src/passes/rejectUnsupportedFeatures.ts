@@ -19,6 +19,7 @@ import {
   Identifier,
   IndexAccess,
   InlineAssembly,
+  Literal,
   MemberAccess,
   ParameterList,
   parseSourceLocation,
@@ -181,18 +182,38 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    const unsupportedMath = ['sha256', 'ripemd160'];
-    const unsupportedAbi = ['encodeCall'];
-    const unsupportedMisc = ['blockhash', 'selfdestruct', 'gasleft'];
+    if (
+      node.kind !== FunctionCallKind.FunctionCall ||
+      node.vFunctionCallType !== ExternalReferenceType.Builtin
+    )
+      return this.visitExpression(node, ast);
+
     const funcName = node.vFunctionName;
     if (
-      node.kind === FunctionCallKind.FunctionCall &&
-      node.vReferencedDeclaration === undefined &&
-      [...unsupportedMath, ...unsupportedAbi, ...unsupportedMisc].includes(funcName)
+      ['sha256', 'ripemd160', 'encodeCall', 'blockhash', 'selfdestruct', 'gasleft'].includes(
+        funcName,
+      )
     ) {
       this.addUnsupported(`Solidity builtin ${funcName} is not supported`, node);
+    } else if (
+      ['require', 'assert'].includes(funcName) &&
+      node.vArguments.length > 1 &&
+      !(node.vArguments[1] instanceof Literal)
+    ) {
+      this.addUnsupported(
+        `Dynamic string cannot be used as arguments for  ${funcName}`,
+        node.vArguments[1],
+      );
+    } else if (
+      funcName === 'revert' &&
+      node.vArguments.length > 0 &&
+      !(node.vArguments[0] instanceof Literal)
+    ) {
+      this.addUnsupported(
+        `Dynamic string cannot be used as arguments for  ${funcName}`,
+        node.vArguments[0],
+      );
     }
-
     this.visitExpression(node, ast);
   }
 
