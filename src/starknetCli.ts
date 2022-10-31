@@ -211,18 +211,17 @@ export async function runStarknetCallOrInvoke(
     }
     throw e;
   }
-
   try {
-    const warpOutput: string = execSync(
+    var warpOutput: string = execSync(
       `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${account} ${inputs}`,
-      { stdio: 'inherit' },
     ).toString('utf-8');
-    const decodedOutput = decodeOutputs(
-      filePath,
-      options.function,
-      warpOutput.toString().split(' '),
-    );
-    console.log('Outputs decoded to solidity ABI:', (await decodedOutput).toString());
+
+    if (!options.use_cairo_abi) {
+      warpOutput = (
+        await decodeOutputs(filePath, options.function, warpOutput.toString().split(' '))
+      ).toString();
+    }
+    console.log(warpOutput);
   } catch {
     logError(`starknet ${callOrInvoke} failed`);
   }
@@ -259,7 +258,6 @@ function declareContract(filePath: string, options: IDeclareOptions): string | u
         encoding: 'utf8',
       },
     );
-    console.log(result);
     return processDeclareCLI(result, filePath);
   } catch {
     logError('StarkNet declare failed');

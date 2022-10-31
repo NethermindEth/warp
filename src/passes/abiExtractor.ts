@@ -34,7 +34,9 @@ export class ABIExtractor extends ASTMapper {
 
   visitSourceUnit(node: SourceUnit, ast: AST): void {
     this.commonVisit(node, ast);
-    node.vFunctions.forEach((fd) => addSignature(node, ast, signatureWithReturnType(fd)));
+    node.vFunctions.forEach((fd) =>
+      addSignature(node, ast, fd.canonicalSignature(ABIEncoderVersion.V2), returnSignature(fd)),
+    );
     node.vContracts
       .flatMap((cd) => cd.vLinearizedBaseContracts)
       .forEach((cd) => {
@@ -46,17 +48,26 @@ export class ABIExtractor extends ASTMapper {
               : createDefaultConstructor(cd, ast);
           fakeConstructor.isConstructor = false;
           fakeConstructor.name = 'constructor';
-          addSignature(node, ast, signatureWithReturnType(fakeConstructor));
+          addSignature(
+            node,
+            ast,
+            fakeConstructor.canonicalSignature(ABIEncoderVersion.V2),
+            returnSignature(fakeConstructor),
+          );
         }
         cd.vFunctions.forEach((fd) => {
           if (isExternallyVisible(fd)) {
-            addSignature(node, ast, signatureWithReturnType(fd));
+            addSignature(
+              node,
+              ast,
+              fd.canonicalSignature(ABIEncoderVersion.V2),
+              returnSignature(fd),
+            );
           }
         });
         cd.vStateVariables.forEach((vd) => {
           if (vd.visibility === StateVariableVisibility.Public) {
-            // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
-            addSignature(node, ast, vd.getterCanonicalSignature('ABIEncoderV2'));
+            addSignature(node, ast, vd.getterCanonicalSignature(ABIEncoderVersion.V2));
           }
         });
       });
@@ -85,25 +96,22 @@ export class ABIExtractor extends ASTMapper {
   }
 }
 
-function addSignature(node: SourceUnit, ast: AST, signature: string) {
+function addSignature(node: SourceUnit, ast: AST, signature: string, returns: string = '') {
   const abi = ast.abi.get(node.id);
+  const signature_with_return: [string, string] = [signature, returns];
   if (abi === undefined) {
-    ast.abi.set(node.id, new Set([signature]));
+    ast.abi.set(node.id, new Set([signature_with_return]));
   } else {
-    abi.add(signature);
+    abi.add(signature_with_return);
   }
 }
 
-function signatureWithReturnType(funcDef: FunctionDefinition): string {
-  // @ts-ignore Importing the ABIEncoderVersion enum causes a dependency import error
-  const params = funcDef.canonicalSignature(ABIEncoderVersion.V2);
-
-  // @ts-ignore Importing the ABIEncoderVersion enum causes a dependency import error
+function returnSignature(funcDef: FunctionDefinition): string {
   const return_params = funcDef.vReturnParameters.vParameters
     .map((vd) => vd.canonicalSignatureType(ABIEncoderVersion.V2))
     .join(',');
 
-  return `${params}:(${return_params})`;
+  return `${return_params}`;
 }
 
 export function dumpABI(node: SourceUnit, ast: AST): string {
@@ -126,7 +134,7 @@ export async function encodeInputs(
   }
 
   const solABI = parseSolAbi(filePath);
-  const funcSignature = await selectSignature(solABI, func);
+  const [funcSignature, _] = await selectSignature(solABI, func);
   const selector = new Web3().utils.keccak256(funcSignature).substring(2, 10);
 
   const funcName = `${func}_${selector}`;
@@ -145,7 +153,7 @@ function parseInputs(input: string): Input {
     validateInput(parsedInput);
     return parsedInput;
   } catch (e: unknown) {
-    throw new CLIError('Input must be a comma seperated list of numbers, strings and lists');
+    throw new CLIError('Input must be a comma separated list of numbers, strings and lists');
   }
 }
 
@@ -162,12 +170,12 @@ function validateInput(input: unknown) {
 }
 
 export function parseSolAbi(filePath: string): string[] {
-  const re = /\/\/ Original soldity abi: (?<abi>[:\w()\][, "]*)/;
+  const re = /\/\/ Original solidity abi: (?<abi>[\w()\][, "]*)/;
   const abiString = readFileSync(filePath, 'utf-8');
   const matches = abiString.match(re);
   if (matches === null || matches.groups === undefined) {
     throw new CLIError(
-      "Couldn't find Solidity ABI in file, please include one in the form '// Original solidity abi: [func1(type1,type2):(ret_type1,ret_type2),...]",
+      "Couldn't find Solidity ABI in file, please include one in the form '// Original solidity abi: [func1(type1,type2,...)]",
     );
   }
   const solAbi = JSON.parse(matches.groups.abi);
@@ -177,7 +185,11 @@ export function parseSolAbi(filePath: string): string[] {
 
 function validateSolAbi(solABI: unknown) {
   if (solABI instanceof Array) {
-    if (!solABI.every((v) => v instanceof String || typeof v === 'string'))
+    if (
+      !solABI.every(
+        (v) => v instanceof Array && typeof v[0] === 'string' && typeof v[1] === 'string',
+      )
+    )
       throw new CLIError('Solidity abi in file is not a list of function signatures');
   } else {
     throw new CLIError('Solidity abi in file is not a list of function signatures.');
@@ -185,7 +197,7 @@ function validateSolAbi(solABI: unknown) {
 }
 
 export async function selectSignature(abi: string[], funcName: string): Promise<string> {
-  const matches = abi.filter((fs) => fs.startsWith(funcName));
+  const matches = abi.filter(([fs, _]) => fs.startsWith(funcName));
   if (!matches.length) {
     throw new CLIError(`No function in abi with name ${funcName}`);
   }

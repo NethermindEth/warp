@@ -3,7 +3,7 @@ import * as fs from 'fs-extra';
 import { OutputOptions } from '.';
 import { TranspileFailedError, logError } from './utils/errors';
 
-export const solABIPrefix = '// Original soldity abi:';
+export const solABIPrefix = '// Original solidity abi:';
 
 export function isValidSolFile(path: string, printError = true): boolean {
   if (!fs.existsSync(path)) {

@@ -18,20 +18,13 @@ export async function decodeOutputs(
 ): Promise<Result> {
   const solABI = parseSolAbi(filePath);
 
-  const funcSignature = await selectSignature(solABI, func);
-  const outputSignatures = returnSignatures(funcSignature);
+  const [_, returnSignature] = await selectSignature(solABI, func);
+  const outputSignatures = returnSignature.split(',');
 
-  const outputNodes: ParamType[] = outputSignatures.map((os) => parse(os) as ParamType);
+  const outputNodes: ParamType[] = outputSignatures.map((os) => ParamType.from(os));
   const outputs: string[] = rawOutputs ? rawOutputs : [];
 
   return decode(outputNodes, outputs);
-}
-
-function returnSignatures(funcSignature: string): string[] {
-  const outputs = funcSignature.split(':')[1];
-  const outputSignatures = outputs.split(',');
-
-  return outputSignatures;
 }
 
 type Struct = { [key: string]: SolValue };

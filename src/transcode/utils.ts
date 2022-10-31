@@ -131,12 +131,13 @@ function validateParam(param: unknown) {
 }
 
 export function parseSolAbi(filePath: string): string[] {
-  const re = /\/\/ Original solidity abi: (?<abi>[:\w()\][, "]*)/;
+  const re = /\/\/ Original solidity abi: (?<abi>[\w()\][, "]*)/;
+
   const abiString = readFileSync(filePath, 'utf-8');
   const matches = abiString.match(re);
   if (matches === null || matches.groups === undefined) {
     throw new CLIError(
-      "Couldn't find Solidity ABI in file, please include one in the form '// Original solidity abi: [func1(type1,type2):(ret_type1,ret_type2),...]",
+      "Couldn't find Solidity ABI in file, please include one in the form '// Original solidity abi: [['func1(type1,type2...)', 'ret_type1,ret_type2,...'], ...]",
     );
   }
   const solAbi = JSON.parse(matches.groups.abi);
@@ -146,7 +147,11 @@ export function parseSolAbi(filePath: string): string[] {
 
 function validateSolAbi(solABI: unknown) {
   if (solABI instanceof Array) {
-    if (!solABI.every((v) => v instanceof String || typeof v === 'string'))
+    if (
+      !solABI.every(
+        (v) => v instanceof Array && typeof v[0] === 'string' && typeof v[1] === 'string',
+      )
+    )
       throw new CLIError('Solidity abi in file is not a list of function signatures');
   } else {
     throw new CLIError('Solidity abi in file is not a list of function signatures.');
@@ -154,7 +159,7 @@ function validateSolAbi(solABI: unknown) {
 }
 
 export async function selectSignature(abi: string[], funcName: string): Promise<string> {
-  const matches = abi.filter((fs) => fs.startsWith(funcName));
+  const matches = abi.filter(([fs, _]) => fs.startsWith(funcName));
   if (!matches.length) {
     throw new CLIError(`No function in abi with name ${funcName}`);
   }
