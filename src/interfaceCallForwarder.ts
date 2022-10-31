@@ -54,7 +54,6 @@ import { assert } from 'console';
 import { generateLiteralTypeString } from './utils/getTypeString';
 import { cloneASTNode } from './utils/cloning';
 
-const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 const defaultSolcVersion = '0.8.14';
 
 export function generateSolInterface(filePath: string, options: SolcInterfaceGenOptions) {
@@ -62,46 +61,30 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
   const { success } = compileCairo(filePath, path.resolve(__dirname, '..'), {
     debugInfo: false,
   });
+
+  const resultPath = `${cairoPathRoot}_compiled.json`;
+  const abiPath = `${cairoPathRoot}_abi.json`;
+
   if (!success) {
     logError(`Compilation of contract ${filePath} failed`);
     return;
   } else {
-    const resultPath = `${cairoPathRoot}_compiled.json`;
-    const abiPath = `${cairoPathRoot}_abi.json`;
     fs.unlinkSync(resultPath);
-    fs.unlinkSync(abiPath);
   }
-  let jsonCairoPath = `${cairoPathRoot}.json`;
 
   let solPath = `${cairoPathRoot}.sol`;
+  let cairoContractPath = `${cairoPathRoot}_forwarder.cairo`;
 
   if (options.output) {
+    const filePathRoot = options.output.slice(0, -'.sol'.length);
     solPath = options.output;
-    jsonCairoPath = options.output.slice(0, -'.sol'.length) + '.json';
+    cairoContractPath = filePathRoot + '.cairo';
   }
 
-  const fileName = path.basename(solPath).split('.')[0];
+  const abi = JSON.parse(fs.readFileSync(abiPath, 'utf8'));
 
-  const parameters = new Map([
-    ['output', solPath],
-    [
-      'cairo_path',
-      path.resolve(__dirname, '..') + options.cairoPath ??
-        `:${path.resolve(__dirname, options.cairoPath)}`,
-    ],
-  ]);
-
-  execSync(
-    `${warpVenvPrefix} python3 ${path.resolve(
-      __dirname,
-      '..',
-    )}/interface_call_forwarder/generate_cairo_json.py ${filePath} ${[...parameters.entries()]
-      .map(([key, value]) => `--${key} ${value}`)
-      .join(' ')}`,
-    { stdio: 'inherit' },
-  );
-
-  const jsonCairo = JSON.parse(fs.readFileSync(jsonCairoPath, 'utf8'));
+  // generate forwarder cairo contract
+  const cairoContract: string = genCairoContract(abi, options.contractAddress);
 
   const writer = new ASTWriter(
     new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([
