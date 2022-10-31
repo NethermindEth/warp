@@ -17,9 +17,7 @@ import { error } from './utils/formatting';
 // size to the largest possible
 const MAX_BUFFER_SIZE = Number.MAX_SAFE_INTEGER;
 
-function compileSolFilesCommon(
-  files: string[],
-): { result: unknown; compilerVersion: string } {
+function compileSolFilesCommon(files: string[]): { result: unknown; compilerVersion: string } {
   const sources = files.map((file) => {
     return getSolFileVersion(file);
   });
