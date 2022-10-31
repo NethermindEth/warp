@@ -3,6 +3,9 @@ import { ParamType } from 'ethers/lib/utils';
 import { CLIError } from '../utils/errors';
 import { readFileSync } from 'fs';
 import prompts from 'prompts';
+import { AST } from '../ast/ast';
+import { FunctionDefinition, SourceUnit } from 'solc-typed-ast';
+import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 
 export type SolValue = BigNumberish | boolean | string | { [key: string]: SolValue } | SolValue[];
 export type Param = (string | number | Param)[];
@@ -156,6 +159,24 @@ function validateSolAbi(solABI: unknown) {
   } else {
     throw new CLIError('Solidity abi in file is not a list of function signatures.');
   }
+}
+
+export function addSignature(node: SourceUnit, ast: AST, signature: string, returns = '') {
+  const abi = ast.abi.get(node.id);
+  const signature_with_return: [string, string] = [signature, returns];
+  if (abi === undefined) {
+    ast.abi.set(node.id, new Set([signature_with_return]));
+  } else {
+    abi.add(signature_with_return);
+  }
+}
+
+export function returnSignature(funcDef: FunctionDefinition): string {
+  const return_params = funcDef.vReturnParameters.vParameters
+    .map((vd) => vd.canonicalSignatureType(ABIEncoderVersion.V2))
+    .join(',');
+
+  return `${return_params}`;
 }
 
 export async function selectSignature(abi: string[], funcName: string): Promise<string> {

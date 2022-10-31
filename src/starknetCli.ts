@@ -9,7 +9,7 @@ import {
   IOptionalDebugInfo,
   IDeclareOptions,
 } from './index';
-import { encodeInputs } from './passes';
+import { encodeInputs } from './transcode/encode';
 import { CLIError, logError } from './utils/errors';
 import { callClassHashScript } from './utils/utils';
 import { decodeOutputs } from './transcode/decode';
@@ -212,7 +212,7 @@ export async function runStarknetCallOrInvoke(
     throw e;
   }
   try {
-    var warpOutput: string = execSync(
+    let warpOutput: string = execSync(
       `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${account} ${inputs}`,
     ).toString('utf-8');
 
