@@ -181,9 +181,7 @@ export class NewToDeploy extends ASTMapper {
     const declaredContractFullPath = declaredContractSourceUnit.absolutePath.split(
       new RegExp('/+|\\\\+'),
     );
-    const cairoPath = declaredContractSourceUnit.absolutePath
-      .slice(0, -'.sol'.length)
-      .concat('.cairo');
+    const cairoPath = declaredContractSourceUnit.absolutePath.concat('.cairo');
 
     const fileName =
       declaredContractFullPath[declaredContractFullPath.length - 1].split(CONTRACT_INFIX)[0];
