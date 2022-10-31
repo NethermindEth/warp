@@ -101,7 +101,6 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
 
 function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
-    ['Rp', RejectPrefix],
     ['Tf', TupleFixes],
     ['Tnr', TypeNameRemover],
     ['Ru', RejectUnsupportedFeatures],
@@ -170,6 +169,9 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
 
   printPassName('Input', options);
   printAST(ast, options);
+
+  // Reject code that contains identifiers starting with certain patterns
+  ast = RejectPrefix.map(ast);
 
   const finalAst = passesInOrder.reduce((ast, mapper) => {
     const newAst = mapper.map(ast);
