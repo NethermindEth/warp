@@ -19,7 +19,7 @@ import { TranspileFailedError } from '../utils/errors';
  *   - ABI packed encoding will encode it as 32 bytes instead of the usual 20 bytes, producing
  *   a different result than solidity in all cases where an address is involved.
  */
-export class ABIEncode extends ASTMapper {
+export class ABIBuiltins extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
     const passKeys: Set<string> = new Set<string>([

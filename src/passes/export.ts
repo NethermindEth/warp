@@ -38,7 +38,7 @@ export * from './literalExpressionEvaluator/export';
 export * from './returnInserter';
 export * from './referencedLibraries';
 export * from './warnSupportedFeatures';
-export * from './abiEncode';
+export * from './abiBuiltins';
 export * from './userDefinedTypesConverter';
 export * from './filePathMangler';
 export * from './constantHandler';

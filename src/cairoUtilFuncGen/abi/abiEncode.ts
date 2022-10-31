@@ -1,6 +1,5 @@
 import assert from 'assert';
 import {
-  AddressType,
   ArrayType,
   generalizeType,
   SourceUnit,
@@ -16,6 +15,7 @@ import {
   getByteSize,
   getElementType,
   getPackedByteSize,
+  isAddressType,
   isDynamicallySized,
   isDynamicArray,
   isStruct,
@@ -24,7 +24,7 @@ import {
 import { uint256 } from '../../warplib/utils';
 import { delegateBasedOnType, mul } from '../base';
 import { MemoryReadGen } from '../memory/memoryRead';
-import { AbiBase } from './base';
+import { AbiBase, removeSizeInfo } from './base';
 
 const IMPLICITS =
   '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
@@ -174,7 +174,7 @@ export class AbiEncode extends AbiBase {
     const instructions: string[] = [];
     // packed size of addresses is 32 bytes, but they are treated as felts,
     // so they should be converted to Uint256 accordingly
-    if (size < 32 || type instanceof AddressType) {
+    if (size < 32 || isAddressType(type)) {
       this.requireImport(`warplib.maths.utils`, 'felt_to_uint256');
       instructions.push(`let (${varToEncode}256) = felt_to_uint256(${varToEncode});`);
       varToEncode = `${varToEncode}256`;
@@ -203,10 +203,10 @@ export class AbiEncode extends AbiBase {
     const name = `${this.functionName}_head_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
       `func ${name}${IMPLICITS}(`,
-      `  bytes_index : felt,`,
-      `  bytes_offset : felt,`,
-      `  bytes_array : felt*,`,
-      `  element_offset : felt,`,
+      `  bytes_index: felt,`,
+      `  bytes_offset: felt,`,
+      `  bytes_array: felt*,`,
+      `  element_offset: felt,`,
       `  mem_ptr : felt`,
       `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
       `  alloc_locals;`,
@@ -342,15 +342,7 @@ export class AbiEncode extends AbiBase {
   }
 
   private createArrayInlineEncoding(type: ArrayType) {
-    let key = 'inline ' + type.pp();
-    // Modifiy key to generate same function for diferent size (but same element type)
-    // static arrays
-    if (type.size !== undefined) {
-      const reversedKey = key.split('').reverse().join('');
-      // swapping '[<num>]' for '[]' but since string is reversed we are swapping ']<num>[' for ']['
-      const parsedKey = reversedKey.replace(/\][0-9]+\[/, '][');
-      key = parsedKey.split('').reverse().join('');
-    }
+    const key = 'inline ' + removeSizeInfo(type);
     const existing = this.auxiliarGeneratedFunctions.get(key);
     if (existing !== undefined) return existing.name;
 

@@ -26,6 +26,7 @@ import {
   RevertStatement,
   StructDefinition,
   TryStatement,
+  TypeNameType,
   TypeNode,
   UserDefinedType,
   VariableDeclaration,
@@ -88,7 +89,9 @@ export class RejectUnsupportedFeatures extends ASTMapper {
 
   visitIndexAccess(node: IndexAccess, ast: AST): void {
     if (node.vIndexExpression === undefined) {
-      this.addUnsupported(`Undefined index access not supported. Is this in abi.decode?`, node);
+      if (!(safeGetNodeType(node, ast.compilerVersion) instanceof TypeNameType)) {
+        this.addUnsupported(`Undefined index access not supported`, node);
+      }
     }
     this.visitExpression(node, ast);
   }
