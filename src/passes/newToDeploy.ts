@@ -32,7 +32,6 @@ import {
 } from '../utils/nodeTemplates';
 import { cloneASTNode } from '../utils/cloning';
 import { hashFilename } from '../utils/postCairoWrite';
-import { CONTRACT_INFIX } from '../utils/nameModifiers';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { getParameterTypes } from '../utils/nodeTypeProcessing';
@@ -183,11 +182,13 @@ export class NewToDeploy extends ASTMapper {
     );
     const cairoPath = declaredContractSourceUnit.absolutePath.concat('.cairo');
 
-    const fileName =
-      declaredContractFullPath[declaredContractFullPath.length - 1].split(CONTRACT_INFIX)[0];
+    const fileName = declaredContractFullPath[declaredContractFullPath.length - 2].slice(
+      0,
+      -'.sol'.length,
+    );
     const contractName = declaredContract.name;
 
-    const fullPath = declaredContractFullPath.slice(0, -1).join('_');
+    const fullPath = declaredContractFullPath.slice(0, -2).join('_');
     const varPrefix = `${fullPath}_${fileName}_${contractName}`;
     const hash = hashFilename(cairoPath);
 

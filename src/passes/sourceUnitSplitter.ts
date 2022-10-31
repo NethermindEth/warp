@@ -1,4 +1,3 @@
-import assert from 'assert';
 import {
   ContractDefinition,
   FunctionDefinition,
@@ -10,7 +9,7 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
-import { CONTRACT_INFIX, FREE_FILE_SUFFIX } from '../utils/nameModifiers';
+import { FREE_FILE_NAME } from '../utils/nameModifiers';
 
 type Scoped = FunctionDefinition | ContractDefinition | VariableDeclaration | StructDefinition;
 
@@ -106,7 +105,7 @@ function updateScope(nodes: readonly Scoped[], newScope: number): readonly Scope
 }
 
 export function mangleFreeFilePath(path: string): string {
-  return `${path}/${FREE_FILE_SUFFIX}`;
+  return `${path}/${FREE_FILE_NAME}`;
 }
 
 export function mangleContractFilePath(path: string, contractName: string): string {
