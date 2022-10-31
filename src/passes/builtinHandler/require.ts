@@ -10,7 +10,6 @@ import {
 import { AST } from '../../ast/ast';
 import { CairoAssert } from '../../ast/cairoNodes';
 import { ASTMapper } from '../../ast/mapper';
-import { WillNotSupportError } from '../../utils/errors';
 import { createBoolLiteral } from '../../utils/nodeTemplates';
 
 export class Require extends ASTMapper {
