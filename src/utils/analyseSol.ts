@@ -1,6 +1,6 @@
 import { PrintOptions } from '..';
 import { isValidSolFile } from '../io';
-import { compileSolFile } from '../solCompile';
+import { compileSolFiles } from '../solCompile';
 import { DefaultASTPrinter } from './astPrinter';
 
 export function analyseSol(file: string, options: PrintOptions) {
@@ -10,7 +10,7 @@ export function analyseSol(file: string, options: PrintOptions) {
 
   DefaultASTPrinter.applyOptions(options);
 
-  compileSolFile(file, true).roots.forEach((root) => {
+  compileSolFiles([file], true).roots.forEach((root) => {
     console.log(`---${root.absolutePath}---`);
     console.log(DefaultASTPrinter.print(root));
   });
