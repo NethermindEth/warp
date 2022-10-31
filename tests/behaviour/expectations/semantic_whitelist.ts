@@ -678,7 +678,7 @@ const tests: string[] = [
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/gas_and_value_basic.sol', // WILL NOT SUPPORT gas
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/gas_and_value_brace_syntax.sol', // WILL NOT SUPPORT gas
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/member_accessors.sol', // WILL NOT SUPPORT keccak
-      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/precompile_extcodesize_check.sol', WILL NOT SUPPORT  member of addresses
+      // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/precompile_extcodesize_check.sol', // WILL NOT SUPPORT  member of addresses
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/send_zero_ether.sol', // WILL NOT SUPPORT send
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/value_test.sol', // WILL NOT SUPPORT payable
       // 'tests/behaviour/solidity/test/libsolidity/semanticTests/functionCall/bare_call_no_returndatacopy.sol', // WILL NOT SUPPORT raw address call

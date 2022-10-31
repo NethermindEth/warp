@@ -337,10 +337,7 @@ export function getPackedByteSize(type: TypeNode, version: string): number | big
   if (type instanceof FixedBytesType) {
     return type.size;
   }
-  if (
-    type instanceof AddressType ||
-    (type instanceof UserDefinedType && type.definition instanceof ContractDefinition)
-  ) {
+  if (isAddressType(type)) {
     return 32;
   }
   if (

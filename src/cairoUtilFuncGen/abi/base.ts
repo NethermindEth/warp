@@ -59,10 +59,10 @@ export abstract class AbiBase extends StringIndexedFuncGenWithAuxiliar {
  *  @returns static array without length information
  */
 export function removeSizeInfo(type: ArrayType): string {
-  assert(type.size !== undefined, 'Expected an ArrayType with known type (a solc static array)');
-  const typeString = type.pp();
-  const reversedTypeString = typeString.split('').reverse().join('');
-  // swapping '[<num>]' for '[]' but since string is reversed we are swapping ']<num>[' for ']['
-  const parsedTypeStting = reversedTypeString.replace(/\][0-9]+\[/, '][');
-  return parsedTypeStting.split('').reverse().join('');
+  assert(type.size !== undefined, 'Expected an ArrayType with known size (a solc static array)');
+  const typeString = type
+    .pp()
+    .split(/(\[[0-9]*\])/)
+    .filter((s) => s !== '');
+  return [...typeString.slice(0, typeString.length - 1), '[]'].join('');
 }

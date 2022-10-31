@@ -342,7 +342,7 @@ export class AbiEncode extends AbiBase {
   }
 
   private createArrayInlineEncoding(type: ArrayType) {
-    const key = 'inline ' + (type.size !== undefined ? type.pp() : removeSizeInfo(type));
+    const key = 'inline ' + removeSizeInfo(type);
     const existing = this.auxiliarGeneratedFunctions.get(key);
     if (existing !== undefined) return existing.name;
 
