@@ -84,17 +84,21 @@ function addClassHash(
   const fileUniqueId = hashFilename(path.resolve(contractPath));
   let classHash = contractHashToClassHash.get(fileUniqueId);
   if (classHash === undefined) {
-    classHash = computeClassHash(contractPath, outputDir, debugInfo);
+    classHash = computeClassHash(path.join(outputDir, contractPath), debugInfo);
     contractHashToClassHash.set(fileUniqueId, classHash);
   }
 }
 
-function computeClassHash(contractPath: string, outputDir: string, debugInfo: boolean): string {
-  const { success, resultPath } = compileCairo(
-    path.join(outputDir, contractPath),
-    path.resolve(__dirname, '..', '..'),
-    { debugInfo },
-  );
+/**
+ * Given a cairo contract at `contractPath` returns its classhash
+ * @param contractPath path to cairo file
+ * @param debugInfo compile cairo file for debug
+ * @returns the class hash of the cairo file
+ */
+function computeClassHash(contractPath: string, debugInfo: boolean): string {
+  const { success, resultPath } = compileCairo(contractPath, path.resolve(__dirname, '..', '..'), {
+    debugInfo,
+  });
   if (!success) {
     throw new CLIError(`Compilation of cairo file ${contractPath} failed`);
   } else {

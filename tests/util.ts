@@ -125,9 +125,6 @@ export function hashToUint256(hash: string): [string, string] {
   return [low.toString(10), high.toString(10)];
 }
 
-const outputLocation = (fileLocation: string) =>
-  fileLocation.slice(0, -'.cairo'.length).concat('.json');
-
 export async function compileCluster(
   test: AsyncTestCluster,
 ): Promise<{ stdout: string; stderr: string }> {
@@ -165,10 +162,16 @@ async function compileDependencyGraph(
     }
   }
 
-  await starknetCompile(path.join(OUTPUT_DIR, root), outputLocation(root));
-  const hash = await declare(outputLocation(root));
-  assert(!hash.threw, 'Hash threw');
+  const outputRoot = path.join(OUTPUT_DIR, root);
+  const compiledRoot = compileLocation(outputRoot);
+  await starknetCompile(path.join(OUTPUT_DIR, root), compiledRoot);
+  const hash = await declare(compiledRoot);
+  assert(!hash.threw, `Error during declaration: ${hash.error_message}`);
   return hash.class_hash;
+}
+
+function compileLocation(fileLocation: string) {
+  return fileLocation.slice(0, -'.cairo'.length).concat('.json');
 }
 
 export function removeOutputDir(path: string) {
