@@ -18,7 +18,7 @@ import chalk from 'chalk';
 import { runVenvSetup } from './utils/setupVenv';
 import { runTests } from './testing';
 
-import { generateSolInterface } from './interfaceCallForwarder';
+import { generateSolInterface } from './ifc/interfaceCallForwarder';
 import { postProcessCairoFile } from './utils/postCairoWrite';
 
 export type CompilationOptions = {

@@ -1,81 +1,49 @@
-import { AbiType, AbiItemType, StructAbiItemType, FunctionAbiItemType } from './types';
+import { AbiType, AbiItemType, StructAbiItemType } from './abiTypes';
+import {
+  castStatement,
+  getStructDependencyGraph,
+  reverseCastStatement,
+  stringfyStructs,
+  transformType,
+  typeToStructMappping,
+  uint256TransformStructs,
+} from './utils';
 
-const INDENT = '    ';
+export const INDENT = '    ';
 
-export function genCairoContract(abi: AbiType, contract_address: string | undefined) {
+export function genCairoContract(abi: AbiType, contract_address: string | undefined): string {
   const langDirective: string[] = getStarknetLangDirective();
-  const structs: string[] = getStructs(abi);
+  const structs: string[] = stringfyStructs(getStructDependencyGraph(abi));
   const forwarderInterface: string[] = getForwarderInterface(abi);
-  const { interactiveFuncs, imports }: { interactiveFuncs: string[]; imports: string[] } =
-    getInteractiveFuncs(abi);
+  const [interactiveFuncs, imports, transformStructs, castFunctions] = getInteractiveFuncs(
+    abi,
+    contract_address,
+  );
+  return (
+    langDirective.join('\n') +
+    '\n\n// imports \n' +
+    imports.join('\n') +
+    '\n\n// existing structs\n' +
+    structs.join('\n') +
+    '\n\n// transformed structs \n' +
+    stringfyStructs(transformStructs).join('\n') +
+    '\n\n// forwarder interface \n' +
+    forwarderInterface.join('\n') +
+    '\n\n//cast functions for structs \n' +
+    castFunctions.join('\n') +
+    '\n\n//funtions to interact with given cairo contract\n' +
+    interactiveFuncs.join('\n')
+  );
 }
 
 function getStarknetLangDirective(): string[] {
   return ['%lang starknet'];
 }
 
-function visitStructItemNode(
-  node: StructAbiItemType,
-  visitedStructItem: Map<StructAbiItemType, boolean>,
-  typeToStruct: Map<string, StructAbiItemType>,
-  result: StructAbiItemType[],
-): void {
-  if (visitedStructItem.has(node)) {
-    return;
-  }
-  visitedStructItem.set(node, true);
-  for (let i = 0; i < node.members.length; i++) {
-    if (node.members[i].type === 'struct') {
-      const struct = typeToStruct.get(node.members[i].type);
-      if (struct !== undefined)
-        visitStructItemNode(struct, visitedStructItem, typeToStruct, result);
-    }
-  }
-  result.push(node);
-}
-
-export function getStructDependencyGraph(abi: AbiType): StructAbiItemType[] {
-  let visitedStructItem: Map<StructAbiItemType, boolean> = new Map();
-  let typeToStruct: Map<string, StructAbiItemType> = typeToStructMappping(abi);
-  let result: StructAbiItemType[] = [];
-
-  abi.forEach((item: AbiItemType) => {
-    if (item.type === 'struct') {
-      visitStructItemNode(item, visitedStructItem, typeToStruct, result);
-    }
-  });
-  return result;
-}
-
-function typeToStructMappping(abi: AbiType): Map<string, StructAbiItemType> {
-  const typeToStruct: Map<string, StructAbiItemType> = new Map();
-  abi.forEach((item: AbiItemType) => {
-    if (item.type === 'struct' && item.name !== 'Uint256') {
-      typeToStruct.set(item.name, item);
-    }
-  });
-  return typeToStruct;
-}
-
-function getStructs(abi: any): string[] {
-  const structDependency = getStructDependencyGraph(abi);
-  return structDependency
-    .filter((item: AbiItemType) => item.name !== 'Uint256')
-    .map((item: StructAbiItemType) => {
-      return [
-        `struct ${item.name} {`,
-        ...item.members.map((member: any) => {
-          return `${INDENT}${member.name}: ${member.type},`;
-        }),
-        '}',
-      ].join('\n');
-    });
-}
-
 function getForwarderInterface(abi: AbiType): string[] {
   return [
     '@contract_interface',
-    'nampspace Forwarder {',
+    'namespace Forwarder {',
     ...abi.map((item: AbiItemType) => {
       if (item.type === 'function') {
         return [
@@ -83,7 +51,9 @@ function getForwarderInterface(abi: AbiType): string[] {
           ...item.inputs.map((input: any) => {
             return `${INDENT}${INDENT}${input.name}: ${input.type},`;
           }),
-          `${INDENT}) -> (${item.outputs.map((output: any) => output.type).join(', ')}){`,
+          `${INDENT}) -> (${item.outputs
+            .map((output: any) => `${output.name}:${output.type}`)
+            .join(', ')}){`,
           `${INDENT}}`,
         ].join('\n');
       }
@@ -93,47 +63,13 @@ function getForwarderInterface(abi: AbiType): string[] {
   ];
 }
 
-function uint256TransformStructs(
-  structDependency: StructAbiItemType[],
-  typeToStruct: Map<string, StructAbiItemType>,
-): { transformedStructs: StructAbiItemType[]; transformedStructsFuncs: string[] } {
-  let transformedStructs: StructAbiItemType[] = [];
-  let transformedStructsFuncs: string[] = [];
-  structDependency.forEach((item: StructAbiItemType) => {
-    let castFunctionBody: string[] = [];
-    item.name = `${item.name}_uint256`;
-    item.members.forEach((member: { name: string; offset: number; type: string }) => {
-      if (member.type === 'felt') {
-        member.type = 'Uint256';
-        castFunctionBody.push(`${INDENT}let (${member.name}) = narrow_safe(${member.name});`);
-      } else if (typeToStruct.has(member.type)) {
-        member.type = `${member.type}_uint256`;
-        castFunctionBody.push(
-          `${INDENT}let (${member.name}) = ${member.type}_cast(${member.name});`,
-        );
-      } else {
-        throw new Error(`Calldata doesn't expect ${member.type} arguments`);
-      }
-    });
-    transformedStructs.push(item);
-    transformedStructsFuncs.push(
-      [
-        `func ${item.name}_cast(from : ${item.name}) -> (to : ${item.name}_uint256) {`,
-        ...castFunctionBody,
-        `${INDENT}return (${item.name}_uint256(${item.members.map((x) => x.name).join(',')}),);`,
-        '}',
-      ].join('\n'),
-    );
-  });
-  return { transformedStructs, transformedStructsFuncs };
-}
-
-function getInteractiveFuncs(abi: AbiType): { interactiveFuncs: string[]; imports: string[] } {
+function getInteractiveFuncs(
+  abi: AbiType,
+  contract_address: string | undefined,
+): [string[], string[], StructAbiItemType[], string[]] {
   const structDependency = getStructDependencyGraph(abi);
-  const { transformedStructs, transformedStructsFuncs } = uint256TransformStructs(
-    structDependency,
-    typeToStructMappping(abi),
-  );
+  const typeToStruct = typeToStructMappping(structDependency);
+  const [transformedStructs, transformedStructsFuncs] = uint256TransformStructs(structDependency);
 
   let imports: string[] = [
     'from starkware.cairo.common.uint256 import Uint256',
@@ -145,8 +81,68 @@ function getInteractiveFuncs(abi: AbiType): { interactiveFuncs: string[]; import
   abi.forEach((item: AbiItemType) => {
     if (item.type === 'function') {
       const decorator: string = item.stateMutability === 'view' ? '@view' : '@external';
+
+      const callToFunc = `${INDENT}let (${item.outputs.reduce(
+        (acc: string[], output: { name: string; type: string }) => {
+          if (output.type.endsWith('*')) {
+            acc.pop();
+            acc.push(`${output.name}_len`);
+          }
+          return [...acc, `${output.name}_cast_rev`];
+        },
+        [],
+      )}) = Forwarder.${item.name}(${contract_address ?? 0},${item.inputs.reduce(
+        (acc: string[], input: { name: string; type: string }) => {
+          if (input.type.endsWith('*')) {
+            acc.pop();
+            acc.push(`${input.name}_len`);
+          }
+          return [...acc, `${input.name}_cast`];
+        },
+        [],
+      )});`;
+
+      interactiveFuncs.push(
+        decorator,
+        `func _ITR_${item.name}{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(`,
+        ...item.inputs.reduce((acc: string[], input: { name: string; type: string }) => {
+          if (input.type.endsWith('*')) {
+            acc.pop();
+            acc.push(`${INDENT}${input.name}_len: felt,`);
+          }
+          acc.push(`${INDENT}${input.name}: ${transformType(input.type, typeToStruct)},`);
+          return acc;
+        }, []),
+        ') -> (',
+        ...item.outputs.reduce((acc: string[], output: { name: string; type: string }) => {
+          if (output.type.endsWith('*')) {
+            acc.pop();
+            acc.push(`${INDENT}${output.name}_len: felt,`);
+          }
+          acc.push(`${INDENT}${output.name}: ${transformType(output.type, typeToStruct)},`);
+          return acc;
+        }, []),
+        ') {',
+        `${INDENT}alloc_locals;`,
+        ...item.inputs.reduce((acc: string[], input: { name: string; type: string }) => {
+          if (input.type.endsWith('*')) {
+            acc.pop();
+          }
+          acc.push(castStatement(input.name, input.type, typeToStruct));
+          return acc;
+        }, []),
+        callToFunc,
+        ...item.outputs.reduce((acc: string[], output: { name: string; type: string }) => {
+          if (output.type.endsWith('*')) {
+            acc.pop();
+          }
+          acc.push(reverseCastStatement(output.name, output.type, typeToStruct));
+          return acc;
+        }, []),
+        `${INDENT}return (${item.outputs.map((x) => x.name).join(',')} ,);`,
+        '}',
+      );
     }
   });
-
-  return { interactiveFuncs, imports };
+  return [interactiveFuncs, imports, transformedStructs, transformedStructsFuncs];
 }
