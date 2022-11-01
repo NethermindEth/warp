@@ -6,6 +6,7 @@ import prompts from 'prompts';
 import { AST } from '../ast/ast';
 import { FunctionDefinition, SourceUnit } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
+import { divmod } from '../utils/utils';
 
 export type SolValue = BigNumberish | boolean | string | { [key: string]: SolValue } | SolValue[];
 export type Param = (string | number | Param)[];
@@ -45,12 +46,6 @@ export function getWidthInFeltsOf(type: ParamType): number {
   throw new Error('Not Supported ' + type.baseType);
 }
 
-export function divmod(x: bigint, y: bigint): [bigint, bigint] {
-  const div = BigInt(x / y);
-  const rem = BigInt(x % y);
-  return [div, rem];
-}
-
 export function isPrimitiveParam(type: ParamType): boolean {
   // because why use types in a sensible manner?
   // indexed can be false or null for primitive types
@@ -68,6 +63,7 @@ export function toUintOrFelt(value: bigint, nBits: number): bigint[] {
     return [val];
   }
 }
+
 export function bigintToTwosComplement(val: bigint, width: number): bigint {
   if (val >= 0n) {
     // Non-negative values just need to be truncated to the given bitWidth
@@ -163,11 +159,11 @@ function validateSolAbi(solABI: unknown) {
 
 export function addSignature(node: SourceUnit, ast: AST, signature: string, returns = '') {
   const abi = ast.abi.get(node.id);
-  const signature_with_return: [string, string] = [signature, returns];
+  const signatureWithReturn: [string, string] = [signature, returns];
   if (abi === undefined) {
-    ast.abi.set(node.id, new Set([signature_with_return]));
+    ast.abi.set(node.id, new Set([signatureWithReturn]));
   } else {
-    abi.add(signature_with_return);
+    abi.add(signatureWithReturn);
   }
 }
 
