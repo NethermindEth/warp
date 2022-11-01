@@ -51,7 +51,7 @@ import { getContainingSourceUnit } from '../utils/utils';
  *   Since solidity stores the bytecode of the contract to create, and cairo uses
  *   a declaration address(`class_hash`) of the contract on starknet and the latter
  *   can only be known when interacting with starknet, placeholders are used to
- *   store this hashes, nonetheless at this stage these hashes cannot be known
+ *   store these hashes, nonetheless at this stage these hashes cannot be known
  *   so they are filled post transpilation.
  *
  *   Salt in solidity is 32 bytes while in Cairo is a felt, so it'll be safely
