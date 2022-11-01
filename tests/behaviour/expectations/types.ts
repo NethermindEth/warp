@@ -3,6 +3,8 @@ import { manglePath } from '../../../src/passes/filePathMangler';
 import { mangleContractFilePath } from '../../../src/passes/sourceUnitSplitter';
 import { stringFlatten } from './utils';
 
+export const OUTPUT_DIR = 'warp_output';
+
 export class AsyncTest {
   constructor(
     public name: string,
@@ -16,10 +18,10 @@ export class AsyncTest {
     return `${this.name}.sol`;
   }
   get cairo() {
-    return `warp_output/${mangleContractFilePath(manglePath(this.name), this.contract)}.cairo`;
+    return `${OUTPUT_DIR}/${mangleContractFilePath(manglePath(this.name), this.contract)}.cairo`;
   }
   get compiled() {
-    return `warp_output/${mangleContractFilePath(manglePath(this.name), this.contract)}.json`;
+    return `${OUTPUT_DIR}/${mangleContractFilePath(manglePath(this.name), this.contract)}.json`;
   }
 
   static fromSync(test: File): AsyncTest {

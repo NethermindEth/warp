@@ -11,12 +11,15 @@ export const HASH_OPTION = 'sha256';
 
 /**
   Is used post transpilation to insert the class hash for any contract that can deploy another.
-  During transpilation 0 is placed where the class hash would be. Now that all the needed files are
-  transpiled then we can calculate the class hashes of each and insert them into the file.
+  During transpilation 0 is placed where the class hash would be because cotracts to declare
+  have not yet been fully transpiled. At this stage all contracts have been transpiled, so they
+  can be  compiled and their class hash computed. Each class hash needed is written into the
+  cairo contract
   @param contractPath: The path to the cairo File being processed.
   @param outputDir: Directory where the path is getting stored
-  @param contractHashToClassHash: A mapping that holds the contract path with out the pathPrefix and maps
-  it to the contracts class hash.
+  @param contractHashToClassHash: 
+    A mapping that holds the contract path with out the pathPrefix and maps 
+    it to the contracts class hash.
   @returns cairoFilePath: The path to the cairo File that was processed.
  */
 export function postProcessCairoFile(
@@ -104,17 +107,20 @@ function computeClassHash(contractPath: string, outputDir: string, debugInfo: bo
  *  Read a cairo file and for each constant of the form `const name = value`
  *  if `name` is of the form   `<contractName>_<contractId>` then it corresponds
  *  to a placeholder waiting to be filled with the corresponding contract class hash
- *  @param fileLoc location of cairo file
+ *  @param contractPath location of cairo file
  *  @param declarationAddresses mapping of: (placeholder hash) => (starknet class hash)
  */
-export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<string, string>) {
-  const plainCairoCode = readFileSync(fileLoc, 'utf8');
+export function setDeclaredAddresses(
+  contractPath: string,
+  declarationAddresses: Map<string, string>,
+) {
+  const plainCairoCode = readFileSync(contractPath, 'utf8');
   const cairoCode = plainCairoCode.split('\n');
 
   let update = false;
   const newCairoCode = cairoCode.map((codeLine) => {
     const [constant, fullName, equal, ...other] = codeLine.split(new RegExp('[ ]+'));
-    if (constant === '//' && fullName === '@declare') return '';
+    // if (constant === '//' && fullName === '@declare') return '';
     if (constant !== 'const') return codeLine;
 
     assert(other.length === 1, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
@@ -137,7 +143,7 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
   if (!update) return;
 
   const plainNewCairoCode = newCairoCode.join('\n');
-  writeFileSync(fileLoc, plainNewCairoCode);
+  writeFileSync(contractPath, plainNewCairoCode);
 }
 
 /**
@@ -150,7 +156,7 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
  * @returns a map from string to list of strings, where the key is a file and the value are all the dependencies
  */
 export function getDependencyGraph(root: string, outputDir: string): Map<string, string[]> {
-  const filesToDeclare = extractContractsToDeclared(root, outputDir);
+  const filesToDeclare = extractContractsToDeclare(root, outputDir);
   const graph = new Map<string, string[]>([[root, filesToDeclare]]);
 
   const pending = [...filesToDeclare];
@@ -161,7 +167,7 @@ export function getDependencyGraph(root: string, outputDir: string): Map<string,
       count++;
       continue;
     }
-    const newFilesToDeclare = extractContractsToDeclared(fileSource, outputDir);
+    const newFilesToDeclare = extractContractsToDeclare(fileSource, outputDir);
     graph.set(fileSource, newFilesToDeclare);
     pending.push(...newFilesToDeclare);
     count++;
@@ -173,12 +179,12 @@ export function getDependencyGraph(root: string, outputDir: string): Map<string,
 /**
  * Read a cairo file and parse all instructions of the form:
  * @declare `location`. All `location` are gathered and then returned
- * @param fileLoc cairo file path to read
- * @param pathPrefix filepath may be different during transpilation and after transpilation. This parameter is appended at the beggining to make them equal
+ * @param contractPath cairo file path to read
+ * @param outputDir filepath may be different during transpilation and after transpilation. This parameter is appended at the beggining to make them equal
  * @returns list of locations
  */
-function extractContractsToDeclared(fileLoc: string, pathPrefix: string): string[] {
-  const plainCairoCode = readFileSync(path.join(pathPrefix, fileLoc), 'utf8');
+function extractContractsToDeclare(contractPath: string, outputDir: string): string[] {
+  const plainCairoCode = readFileSync(path.join(outputDir, contractPath), 'utf8');
   const cairoCode = plainCairoCode.split('\n');
 
   const contractsToDeclare = cairoCode

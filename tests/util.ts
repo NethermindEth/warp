@@ -5,7 +5,7 @@ import { exec } from 'child_process';
 import { expect } from 'chai';
 import { hashFilename } from '../src/utils/postCairoWrite';
 import { declare } from './testnetInterface';
-import { AsyncTest } from './behaviour/expectations/types';
+import { AsyncTest, OUTPUT_DIR } from './behaviour/expectations/types';
 
 interface AsyncTestCluster {
   asyncTest: AsyncTest;
@@ -132,12 +132,9 @@ export async function compileCluster(
   test: AsyncTestCluster,
 ): Promise<{ stdout: string; stderr: string }> {
   const graph = test.dependencies;
-  const root = test.asyncTest.cairo;
+  const root = removeOutputDir(test.asyncTest.cairo);
   const dependencies = graph.get(root);
   assert(dependencies !== undefined);
-  if (dependencies.length === 0) {
-    return starknetCompile(root, test.asyncTest.compiled);
-  }
 
   const declared = new Map<string, string>();
   for (const fileToDeclare of dependencies) {
@@ -145,7 +142,7 @@ export async function compileCluster(
     const fileLocationHash = hashFilename(fileToDeclare);
     declared.set(fileLocationHash, declareHash);
   }
-  return starknetCompile(root, test.asyncTest.compiled);
+  return starknetCompile(path.join(OUTPUT_DIR, root), test.asyncTest.compiled);
 }
 
 // This is recursively compiling and declaring the needed files for the test.
@@ -168,8 +165,13 @@ async function compileDependencyGraph(
     }
   }
 
-  await starknetCompile(root, outputLocation(root));
+  await starknetCompile(path.join(OUTPUT_DIR, root), outputLocation(root));
   const hash = await declare(outputLocation(root));
   assert(!hash.threw, 'Hash threw');
   return hash.class_hash;
+}
+
+export function removeOutputDir(path: string) {
+  assert(path.startsWith(`${OUTPUT_DIR}/`), `Cannot remove output directory from ${path}`);
+  return path.slice(`${OUTPUT_DIR}/`.length);
 }
