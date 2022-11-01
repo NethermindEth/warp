@@ -114,7 +114,7 @@ export class NewToDeploy extends ASTMapper {
       const bytes32Salt = parent.vOptionsMap.get('salt');
       assert(bytes32Salt !== undefined);
       // Narrow salt to a felt range
-      salt = createElementaryConversionCall(createBytesNTypeName(30, ast), bytes32Salt, node, ast);
+      salt = createElementaryConversionCall(createBytesNTypeName(31, ast), bytes32Salt, node, ast);
       ast.replaceNode(bytes32Salt, salt, parent);
     } else {
       throw new TranspileFailedError(
@@ -148,7 +148,7 @@ export class NewToDeploy extends ASTMapper {
       'deploy',
       [
         ['class_hash', createAddressTypeName(false, ast)],
-        ['contract_address_salt', createBytesNTypeName(30, ast)],
+        ['contract_address_salt', createBytesNTypeName(31, ast)],
         ['constructor_calldata', createBytesTypeName(ast), DataLocation.CallData],
         ['deploy_from_zero', createBoolTypeName(ast)],
       ],
