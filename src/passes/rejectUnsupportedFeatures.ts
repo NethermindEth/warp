@@ -19,7 +19,6 @@ import {
   FunctionType,
   Identifier,
   IndexAccess,
-  InlineAssembly,
   MemberAccess,
   ParameterList,
   parseSourceLocation,
@@ -92,9 +91,6 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       this.addUnsupported(`Undefined index access not supported. Is this in abi.decode?`, node);
     }
     this.visitExpression(node, ast);
-  }
-  visitInlineAssembly(node: InlineAssembly, _ast: AST): void {
-    this.addUnsupported('Yul blocks are not supported', node);
   }
   visitRevertStatement(node: RevertStatement, _ast: AST): void {
     this.addUnsupported('Reverts with custom errors are not supported', node);

@@ -30,6 +30,7 @@ import {
   ImplicitConversionToExplicit,
   ImportDirectiveIdentifier,
   InheritanceInliner,
+  InlineAssemblyTransformer,
   LiteralExpressionEvaluator,
   LoopFunctionaliser,
   ModifierHandler,
@@ -155,6 +156,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Rim', ReplaceIdentifierContractMemberAccess],
     ['Dus', DropUnusedSourceUnits],
     ['Cs', CairoStubProcessor],
+    ['Iat', InlineAssemblyTransformer],
   ]);
 
   const passesInOrder: typeof ASTMapper[] = parsePassOrder(
