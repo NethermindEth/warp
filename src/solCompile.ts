@@ -24,10 +24,7 @@ export function compileSolFile(file: string, printWarnings: boolean): AST {
     throw new TranspileFailedError(`Unsupported version of solidity source ${requiredSolcVersion}`);
   }
 
-  let solcOutput = cliCompile(formatInput(file, true), requiredSolcVersion);
-  if (errorInSolcOutput(solcOutput.result)) {
-    solcOutput = cliCompile(formatInput(file, false), requiredSolcVersion);
-  }
+  const solcOutput = cliCompile(formatInput(file), requiredSolcVersion);
   printErrors(solcOutput.result, printWarnings, solcOutput.compilerVersion);
   const reader = new ASTReader();
   const sourceUnits = reader.read(solcOutput.result);
@@ -47,25 +44,23 @@ function getSolFileVersion(file: string): string {
 }
 
 type SolcInput = {
-  language: 'Solidity' | 'Yul';
+  language: 'Solidity';
   sources: {
     [fileName: string]: {
-      keccak256?: string;
       urls: string[];
     };
   };
   settings?: {
-    viaIR: boolean;
     outputSelection: {
       '*': {
-        '*': ['*'];
-        '': ['*'];
+        '*': ['abi'];
+        '': ['ast'];
       };
     };
   };
 };
 
-function formatInput(fileName: string, viaYul: boolean): SolcInput {
+function formatInput(fileName: string): SolcInput {
   return {
     language: 'Solidity',
     sources: {
@@ -74,11 +69,10 @@ function formatInput(fileName: string, viaYul: boolean): SolcInput {
       },
     },
     settings: {
-      viaIR: viaYul,
       outputSelection: {
         '*': {
-          '*': ['*'],
-          '': ['*'],
+          '*': ['abi'],
+          '': ['ast'],
         },
       },
     },
@@ -123,18 +117,6 @@ function matchCompilerVersion(version: string): [string, string, string] {
   }
 
   return [match[1], match[2], match[3]];
-}
-
-function errorInSolcOutput(cliOutput: unknown): boolean {
-  assert(
-    typeof cliOutput === 'object' && cliOutput !== null,
-    error(`Obtained unexpected output from solc: ${cliOutput}`),
-  );
-  const errorsAndWarnings = Object.entries(cliOutput).find(
-    ([propName]) => propName === 'errors',
-  )?.[1];
-
-  return errorsAndWarnings !== undefined;
 }
 
 function printErrors(cliOutput: unknown, printWarnings: boolean, compilerVersion: string): void {
@@ -189,10 +171,7 @@ export function compileSolFileAndExtractContracts(file: string): unknown {
     throw new TranspileFailedError(`Unsupported version of solidity source ${requiredSolcVersion}`);
   }
 
-  let solcOutput = cliCompile(formatInput(file, true), requiredSolcVersion);
-  if (errorInSolcOutput(solcOutput.result)) {
-    solcOutput = cliCompile(formatInput(file, false), requiredSolcVersion);
-  }
+  const solcOutput = cliCompile(formatInput(file), requiredSolcVersion);
   assert(typeof solcOutput.result === 'object' && solcOutput.result !== null);
   return Object.entries(solcOutput.result).filter(([name]) => name === 'contracts')[0][1][file];
 }

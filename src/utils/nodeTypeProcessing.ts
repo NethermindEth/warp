@@ -5,6 +5,7 @@ import {
   ASTNode,
   BoolType,
   BytesType,
+  ContractDefinition,
   DataLocation,
   EnumDefinition,
   Expression,
@@ -221,6 +222,13 @@ export function isMapping(type: TypeNode): boolean {
   return base instanceof MappingType;
 }
 
+export function isAddressType(type: TypeNode): boolean {
+  return (
+    type instanceof AddressType ||
+    (type instanceof UserDefinedType && type.definition instanceof ContractDefinition)
+  );
+}
+
 export function hasMapping(type: TypeNode): boolean {
   const [base] = generalizeType(type);
   if (base instanceof ArrayType) {
@@ -329,7 +337,7 @@ export function getPackedByteSize(type: TypeNode, version: string): number | big
   if (type instanceof FixedBytesType) {
     return type.size;
   }
-  if (type instanceof AddressType) {
+  if (isAddressType(type)) {
     return 32;
   }
   if (
