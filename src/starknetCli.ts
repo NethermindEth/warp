@@ -99,7 +99,7 @@ export async function runStarknetDeploy(filePath: string, options: IDeployProps)
   // such option does not exists currently when deploying, should be added
   let compileResult;
   try {
-    compileResult = await compileCairo(filePath, path.resolve(__dirname, '..'), options);
+    compileResult = compileCairo(filePath, path.resolve(__dirname, '..'), options);
   } catch (e) {
     if (e instanceof CLIError) {
       logError(e.message);
@@ -227,7 +227,7 @@ export async function runStarknetCallOrInvoke(
   }
 }
 
-function declareContract(filePath: string, options: IDeclareOptions): string | undefined {
+function declareContract(filePath: string, options: IDeclareOptions) {
   // wallet check
   if (!options.no_wallet) {
     if (options.wallet === undefined) {
@@ -252,13 +252,13 @@ function declareContract(filePath: string, options: IDeclareOptions): string | u
     : ``;
   const accountOption = options.account ? `--account ${options.account}` : '';
   try {
-    const result = execSync(
+    execSync(
       `${warpVenvPrefix} starknet declare --contract ${filePath} ${networkOption} ${walletOption} ${accountOption}`,
       {
+        stdio: 'inherit',
         encoding: 'utf8',
       },
     );
-    return processDeclareCLI(result, filePath);
   } catch {
     logError('StarkNet declare failed');
   }
