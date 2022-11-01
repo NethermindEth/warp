@@ -61,7 +61,7 @@ program
   .option('--check-trees')
   // for development mode
   .option('--dev', 'Run AST sanity checks on every pass instead of the final AST only', false)
-  .option('--no-format-cairo', "Don't format cairo output")
+  .option('--format-cairo', 'Format cairo output')
   .option('--highlight <ids...>')
   .option('--order <passOrder>')
   .option('-o, --output-dir <path>', 'Output directory for transpiled Cairo files.', 'warp_output')
