@@ -134,7 +134,7 @@ pip install -r requirements.txt
 If you are using a M1 chipped Mac and getting a `'gmp.h' file not found` error when installing Cairo run the following:
 
 ```bash
-CFLAGS=-Ibrew --prefix gmp/include LDFLAGS=-Lbrew --prefix gmp/lib pip install ecdsa fastecdsa sympy
+CFLAGS=-I`brew --prefix gmp`/include LDFLAGS=-L`brew --prefix gmp`/lib pip install ecdsa fastecdsa sympy
 ```
 
 Then run the pip command above again.
