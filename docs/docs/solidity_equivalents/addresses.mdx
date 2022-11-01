@@ -2,8 +2,11 @@
 title: Addresses
 ---
 
-Addresses on Starknet are longer than on Ethereum. On Starknet they take up the whole felt space i.e 251 bits.
-This is significantly longer than the Ethereum equivalent of 160 bits.
+Addresses on Starknet are larger than on Ethereum.
+On Starknet they take up the whole felt space (251 bits) rather than 160 bits.
 
-Please note that the precompile `ecrecover` should be used to recover Ethereum addresses only and not StarkNet addresses.
-This function will only return 160 bits.
+To support StarkNet addresses we have slightly modified the solc compiler.
+As a result, addresses in our flavour of Solidity are represented with 256 bits instead of 160 bits.
+
+It is also important to note that the `ecrecover` precompile will not work with StarkNet addresses,
+only Ethereum addresses. Hence, it will return a uint160 and not an address.
