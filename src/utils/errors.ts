@@ -43,3 +43,29 @@ export class WillNotSupportError extends TranspilationAbandonedError {}
 export class NotSupportedYetError extends TranspilationAbandonedError {}
 export class TranspileFailedError extends TranspilationAbandonedError {}
 export class PassOrderError extends TranspilationAbandonedError {}
+
+export function getErrorMessage(
+  unsupportedPerSource: Map<string, [string, ASTNode][]>,
+  initialMessage: string,
+): string {
+  let errorNum = 0;
+  const errorMsg = [...unsupportedPerSource.entries()].reduce(
+    (fullMsg, [filePath, unsopported]) => {
+      const content = fs.readFileSync(filePath, { encoding: 'utf8' });
+      const newMessage = unsopported.reduce((newMessage, [errorMsg, node]) => {
+        const errorCode = getSourceFromLocations(
+          content,
+          [parseSourceLocation(node.src)],
+          error,
+          4,
+        );
+        errorNum += 1;
+        return newMessage + `\n${error(`${errorNum}. ` + errorMsg)}:\n\n${errorCode}\n`;
+      }, `\nFile ${filePath}:\n`);
+
+      return fullMsg + newMessage;
+    },
+    error(initialMessage + '\n'),
+  );
+  return errorMsg;
+}

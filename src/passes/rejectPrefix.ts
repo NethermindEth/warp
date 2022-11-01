@@ -8,21 +8,40 @@ import {
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
-import { printNode } from '../utils/astPrinter';
-import { WillNotSupportError } from '../utils/errors';
+import { getErrorMessage, WillNotSupportError } from '../utils/errors';
 import { MANGLED_WARP } from '../utils/nameModifiers';
 
 export class RejectPrefix extends ASTMapper {
   forbiddenPrefix = [MANGLED_WARP];
+  rejectedNames: [string, ASTNode][] = [];
 
   checkNoPrefixMatch(name: string, node: ASTNode) {
     this.forbiddenPrefix.forEach((prefix) => {
       if (name.startsWith(prefix))
-        throw new WillNotSupportError(
-          `Names starting with ${prefix} are not allowed in the code: ${printNode(node)}`,
+        this.rejectedNames.push([
+          `Names starting with ${prefix} are not allowed in the code`,
           node,
-        );
+        ]);
     });
+  }
+
+  static map(ast: AST): AST {
+    const rejectedPerSource: Map<string, [string, ASTNode][]> = new Map();
+    ast.roots.forEach((sourceUnit) => {
+      const mapper = new this();
+      mapper.dispatchVisit(sourceUnit, ast);
+      if (mapper.rejectedNames.length > 0)
+        rejectedPerSource.set(sourceUnit.absolutePath, mapper.rejectedNames);
+    });
+
+    if (rejectedPerSource.size > 0)
+      throw new WillNotSupportError(
+        getErrorMessage(rejectedPerSource, `Erros detected:`),
+        undefined,
+        false,
+      );
+
+    return ast;
   }
 
   visitStructDefinition(node: StructDefinition, ast: AST) {

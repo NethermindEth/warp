@@ -1,4 +1,3 @@
-import fs from 'fs';
 import {
   AddressType,
   ArrayType,
@@ -22,7 +21,6 @@ import {
   Literal,
   MemberAccess,
   ParameterList,
-  parseSourceLocation,
   PointerType,
   RevertStatement,
   SourceUnit,
@@ -36,10 +34,9 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { WillNotSupportError } from '../utils/errors';
-import { error } from '../utils/formatting';
+import { getErrorMessage, WillNotSupportError } from '../utils/errors';
 import { isDynamicArray, safeGetNodeType } from '../utils/nodeTypeProcessing';
-import { getSourceFromLocations, isExternalCall, isExternallyVisible } from '../utils/utils';
+import { isExternalCall, isExternallyVisible } from '../utils/utils';
 
 const PATH_REGEX = /^[\w-@/\\]*$/;
 
@@ -65,24 +62,9 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     }, 0);
 
     if (unsupportedDetected > 0) {
-      let errorNum = 0;
-      const errorMsg = [...unsupportedPerSource.entries()].reduce(
-        (fullMsg, [filePath, unsopported]) => {
-          const content = fs.readFileSync(filePath, { encoding: 'utf8' });
-          const newMessage = unsopported.reduce((newMessage, [errorMsg, node]) => {
-            const errorCode = getSourceFromLocations(
-              content,
-              [parseSourceLocation(node.src)],
-              error,
-              4,
-            );
-            errorNum += 1;
-            return newMessage + `\n${error(`${errorNum}. ` + errorMsg)}:\n\n${errorCode}\n`;
-          }, `\nFile ${filePath}:\n`);
-
-          return fullMsg + newMessage;
-        },
-        error(`Detected ${unsupportedDetected} Unsupported Features:\n`),
+      const errorMsg = getErrorMessage(
+        unsupportedPerSource,
+        `Detected ${unsupportedDetected} Unsupported Features:`,
       );
       throw new WillNotSupportError(errorMsg, undefined, false);
     }
