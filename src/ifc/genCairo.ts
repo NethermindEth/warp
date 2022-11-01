@@ -104,7 +104,7 @@ function getInteractiveFuncs(
 
       interactiveFuncs.push(
         decorator,
-        `func _ITR_${item.name}{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(`,
+        `func _ITR_${item.name} {syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(`,
         ...item.inputs.reduce((acc: string[], input: { name: string; type: string }) => {
           if (input.type.endsWith('*')) {
             acc.pop();

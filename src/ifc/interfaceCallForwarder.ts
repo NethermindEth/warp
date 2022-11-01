@@ -52,6 +52,7 @@ import {
   typeToStructMappping,
   uint256TransformStructs,
 } from './utils';
+import { safeCanonicalHash } from '../export';
 
 const defaultSolcVersion = '0.8.14';
 
@@ -83,8 +84,7 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
   const abi: AbiType = JSON.parse(fs.readFileSync(abiPath, 'utf8'));
 
   // generate forwarder cairo contract
-  const cairoContract: string = genCairoContract(abi, options.contractAddress);
-  fs.writeFileSync(cairoContractPath, cairoContract);
+  let cairoContract: string = genCairoContract(abi, options.contractAddress);
 
   const writer = new ASTWriter(
     new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([...DefaultASTWriterMapping]),
@@ -98,10 +98,18 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
 
   addPragmaDirective(options.solcVersion ?? defaultSolcVersion, sourceUint, ast);
   const structDefs: Map<string, StructDefinition> = addTransformedStructs(sourceUint, ast, abi);
-  addForwarderContract(abi, sourceUint, structDefs, ast, cairoPathRoot);
+
+  const funcSignatures = addForwarderContract(abi, sourceUint, structDefs, ast, cairoPathRoot);
 
   const result: string = removeExcessNewlines(writer.write(ast.roots[0] as SourceUnit), 2);
 
+  fs.unlinkSync(abiPath);
+
+  funcSignatures.forEach((value, key) => {
+    cairoContract = cairoContract.replace(`_ITR_${key}`, `${key}_${value}`);
+  });
+
+  fs.writeFileSync(cairoContractPath, cairoContract);
   fs.writeFileSync(solPath, result);
 }
 
@@ -127,7 +135,7 @@ function addForwarderContract(
   structDefs: Map<string, StructDefinition>,
   ast: AST,
   fileName: string,
-): void {
+): Map<string, string> {
   const id = ast.reserveId();
 
   const contract = new ContractDefinition(
@@ -143,7 +151,7 @@ function addForwarderContract(
   );
   sourceUint.appendChild(contract);
   ast.registerChild(contract, sourceUint);
-  addInteractiveFunctions(
+  return addInteractiveFunctions(
     contract,
     structDefs,
     ast,
@@ -286,7 +294,7 @@ function addInteractiveFunctions(
   ast: AST,
   abi: AbiType,
   typeToStructMap: Map<string, StructAbiItemType>,
-): void {
+): Map<string, string> {
   const functionItems = getFunctionItems(abi);
   const functions: FunctionDefinition[] = [];
 
@@ -325,6 +333,7 @@ function addInteractiveFunctions(
       ),
     );
   });
+  const signatures = new Map<string, string>();
   functions.forEach((f: FunctionDefinition) => {
     contract.appendChild(f);
     ast.setContextRecursive(f);
@@ -348,5 +357,7 @@ function addInteractiveFunctions(
         param.storageLocation = DataLocation.CallData;
       }
     });
+    signatures.set(f.name, safeCanonicalHash(f, ast));
   });
+  return signatures;
 }
