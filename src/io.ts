@@ -1,7 +1,8 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { OutputOptions } from '.';
+import { OutputOptions, TranspilationOptions } from '.';
 import { TranspileFailedError, logError } from './utils/errors';
+import { execSync } from 'child_process';
 
 export const solABIPrefix = '// Original soldity abi:';
 
@@ -63,12 +64,13 @@ export function createCairoFileName(solidityPath: string, suffix: string): strin
 export function outputResult(
   solidityPath: string,
   code: string,
-  options: OutputOptions,
+  options: OutputOptions & TranspilationOptions,
   suffix: string,
   abi?: string,
 ): void {
   const codeOutput = createCairoFileName(solidityPath, suffix);
   const codeWithABI = abi ? `${code}\n\n${solABIPrefix} ${abi}` : code;
+  const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
   if (options.outputDir === undefined) {
     if (options.result) {
@@ -85,5 +87,8 @@ export function outputResult(
     }
     const fullCodeOutPath = path.join(options.outputDir, codeOutput);
     fs.outputFileSync(fullCodeOutPath, codeWithABI);
+    if (options.formatCairo || options.dev) {
+      execSync(`${warpVenvPrefix} cairo-format -i ${fullCodeOutPath}`);
+    }
   }
 }

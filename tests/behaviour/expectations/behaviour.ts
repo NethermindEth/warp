@@ -5,7 +5,85 @@ export const expectations = flatten(
   new Dir('tests', [
     new Dir('behaviour', [
       new Dir('contracts', [
-        new Dir('abiEncode', [
+        new Dir('abiDecode', [
+          File.Simple('abiDecodeDynamic', [
+            Expect.Simple('decodeSimpleDynamic', getByte32Array(32, 5, 2, 3, 7, 9, 11), [
+              '5',
+              ...['2', '0'],
+              ...['3', '0'],
+              ...['7', '0'],
+              ...['9', '0'],
+              ...['11', '0'],
+            ]),
+            Expect.Simple(
+              'decodeNestedDynamic',
+              getByte32Array(32, 2, 64, 160, 2, 2, 3, 3, 7, 9, 11),
+              ['2', '2', '3', '3', '7', '9', '11'],
+            ),
+            Expect.Simple('decodeDynamicStaticNested', getByte32Array(32, 2, 1, 2, 3, 4), [
+              '1',
+              '2',
+              '3',
+              '4',
+            ]),
+            Expect.Simple(
+              'decodeBytes',
+              getByte32Array(32, 6, BigInt('0x010102030508'.padEnd(66, '0'))),
+              ['6', '1', '1', '2', '3', '5', '8'],
+            ),
+            Expect.Simple(
+              'decodeMix',
+              getByte32Array(
+                ...[128, 7, 11, 256],
+                ...[3, 2, 3, 5],
+                ...[3, BigInt('0x0d1113'.padEnd(66, '0'))],
+              ),
+              ['3', '2', '3', '5', '7', '11', '3', '13', '17', '19'],
+            ),
+          ]),
+          File.Simple('abiDecodeStatic', [
+            Expect.Simple('decodeSimpleStatic', getByte32Array(3, 5, 7), [
+              ...['3', '0'],
+              ...['5', '0'],
+              ...['7', '0'],
+            ]),
+            Expect.Simple('decodeNestedStatic', getByte32Array(2, 3, 5, 6, 7, 8), [
+              ...['2', '0'],
+              ...['3', '0'],
+              ...['5', '0'],
+              ...['6', '0'],
+              ...['7', '0'],
+              ...['8', '0'],
+            ]),
+            Expect.Simple(
+              'decodeStaticDynamicNested',
+              getByte32Array(32, 64, 160, 2, 1, 2, 3, 3, 4, 5),
+              ['2', '1', '2', '3', '3', '4', '5'],
+            ),
+          ]),
+          File.Simple('abiDecodeStruct', [
+            Expect.Simple('decodeSimpleStruct', getByte32Array(1, 11, 111, 1111), [
+              '1',
+              '11',
+              '111',
+              '1111',
+            ]),
+            Expect.Simple(
+              'decodeSimpleStructArray',
+              getByte32Array(32, 2, 1, 2, 3, 4, 5, 6, 7, 8),
+              ['2', '1', '2', '3', '4', '5', '6', '7', '8'],
+            ),
+            Expect.Simple(
+              'decodeComplexStruct',
+              getByte32Array(32, 160, 2, 3, 5, 7, 3, 13, 17, 19),
+              ['3', '13', '17', '19', '2', '3', '5', '7'],
+            ),
+            Expect.Simple(
+              'decodeComplex2Struct',
+              getByte32Array(32, 64, 192, 3, 1, 2, 3, 2, 4, 5),
+              ['3', '1', '2', '3', '2', '4', '5'],
+            ),
+          ]),
           File.Simple('abiDecodeValue', [
             Expect.Simple('decodeAsInt24', getByte32Array(148), ['148']),
             Expect.Simple('decodeAsUint256', getByte32Array(0), ['0', '0'], 'Zero uint256'),
@@ -40,6 +118,8 @@ export const expectations = flatten(
               '0',
             ]),
           ]),
+        ]),
+        new Dir('abiEncode', [
           File.Simple('abiEncodeDynamic', [
             Expect.Simple('simpleDynamic', [], getByte32Array(32, 3, 2, 3, 5)),
             Expect.Simple(
