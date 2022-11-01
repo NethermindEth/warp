@@ -6,6 +6,7 @@ import {
   StructDefinition,
   VariableDeclaration,
 } from 'solc-typed-ast';
+import { resolve } from 'path';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
@@ -105,11 +106,11 @@ function updateScope(nodes: readonly Scoped[], newScope: number): readonly Scope
 }
 
 export function mangleFreeFilePath(path: string): string {
-  return `${path}/${FREE_FILE_NAME}`;
+  return resolve(path, FREE_FILE_NAME);
 }
 
 export function mangleContractFilePath(path: string, contractName: string): string {
-  return `${path}/${contractName}`;
+  return resolve(path, contractName);
 }
 
 function getAllSourceUnitDefinitions(sourceUnit: SourceUnit) {
