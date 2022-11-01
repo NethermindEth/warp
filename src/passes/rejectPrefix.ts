@@ -6,7 +6,11 @@ import {
   StructDefinition,
   VariableDeclaration,
 } from 'solc-typed-ast';
-import { AST, ASTMapper, MANGLED_WARP, printNode, WillNotSupportError } from '../export';
+import { AST } from '../ast/ast';
+import { ASTMapper } from '../ast/mapper';
+import { printNode } from '../utils/astPrinter';
+import { WillNotSupportError } from '../utils/errors';
+import { MANGLED_WARP } from '../utils/nameModifiers';
 
 export class RejectPrefix extends ASTMapper {
   forbiddenPrefix = [MANGLED_WARP];
