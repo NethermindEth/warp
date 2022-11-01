@@ -120,7 +120,7 @@ export function setDeclaredAddresses(
   let update = false;
   const newCairoCode = cairoCode.map((codeLine) => {
     const [constant, fullName, equal, ...other] = codeLine.split(new RegExp('[ ]+'));
-    if (constant === '//' && fullName === '@declare') return '';
+    // if (constant === '//' && fullName === '@declare') return '';
     if (constant !== 'const') return codeLine;
 
     assert(other.length === 1, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
