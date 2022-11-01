@@ -207,7 +207,7 @@ export class CairoUtilFuncGen {
 
     const abiEncode = new AbiEncode(memoryRead, ast, sourceUnit);
     this.abi = {
-      decode: new AbiDecode(memoryRead, ast, sourceUnit),
+      decode: new AbiDecode(memoryWrite, ast, sourceUnit),
       encode: abiEncode,
       encodePacked: new AbiEncodePacked(memoryRead, ast, sourceUnit),
       encodeWithSelector: new AbiEncodeWithSelector(abiEncode, ast, sourceUnit),

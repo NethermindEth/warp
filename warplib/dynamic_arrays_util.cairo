@@ -108,6 +108,18 @@ func byte_array_to_uint256_value{
     }
 }
 
+// Unsafe copy of elements from an array to the other from index to last_index
+func memory_dyn_array_copy{bitwise_ptr: BitwiseBuiltin*, range_check_ptr, warp_memory: DictAccess*}(
+    a_index: felt, a_ptr: felt, b_index: felt, b_last_index: felt, b_ptr: felt
+) {
+    if (b_index == b_last_index) {
+        return ();
+    }
+    let (elem) = dict_read{dict_ptr=warp_memory}(a_ptr + 2 + a_index);
+    dict_write{dict_ptr=warp_memory}(b_ptr + 2 + b_index, elem);
+    return memory_dyn_array_copy(a_index + 1, a_ptr, b_index + 1, b_last_index, b_ptr);
+}
+
 // ----------------------- Felt Dynamic Arrays Utils ----------------------------------
 func felt_array_to_warp_memory_array{range_check_ptr, warp_memory: DictAccess*}(
     index: felt, array: felt*, mem_index: felt, mem_ptr, max_length: felt
