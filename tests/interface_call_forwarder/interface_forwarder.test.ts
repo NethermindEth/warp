@@ -53,9 +53,9 @@ describe('Solidity & Cairo interface generation from cairo contract should succe
 });
 
 describe('Cairo Proxy contract is valid and deployable', async function () {
-  before('cairo proxy contract should compile', async function () {
+  it('cairo proxy contract should compile', async function () {
     await starknetCompile(interfaceCairoFile, transpiledInterfaceJsonPath);
-  });
+  }).timeout(TIME_LIMIT);
   it('cairo proxy contract should deploy', async function () {
     const deployContractResult: DeployResponse | null = await deploy(
       transpiledInterfaceJsonPath,
