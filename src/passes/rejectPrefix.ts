@@ -36,7 +36,7 @@ export class RejectPrefix extends ASTMapper {
 
     if (rejectedPerSource.size > 0)
       throw new WillNotSupportError(
-        getErrorMessage(rejectedPerSource, `Erros detected:`),
+        getErrorMessage(rejectedPerSource, `Identifiers with not allowed prefixes were detected:`),
         undefined,
         false,
       );
