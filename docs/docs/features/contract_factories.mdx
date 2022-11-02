@@ -9,8 +9,8 @@ The class hash is calculated offline and inserted into the transpiled Contract f
 
 Note that the contract being deployed by the contract factory will still need to be declared online by the user.
 
-Warp also supports the use of the salt option e.g `new Contract{salt: salt}()`, but please note that because of the differences
-in Ethereum and StarkNet the salt will be truncated from 32 bytes to 31 bytes.
+:warning: **Warning**: Warp also supports the use of the salt option i.e `new Contract{salt: salt}()` but because of core differences
+between Ethereum and StarkNet, the salt value will be truncated from 32 to the 31 most significant bytes.
 
 The following Solidity contract named example.sol will be used to illustrate the feature:
 
