@@ -156,7 +156,7 @@ export function getInteractiveFuncs(
           );
           return acc;
         }, []),
-        `${INDENT}return (${item.outputs.map((x) => x.name).join(',')} ,);`,
+        `${INDENT}return (${[...item.outputs.map((x) => x.name), ''].join(',')});`,
         '}',
       );
     }

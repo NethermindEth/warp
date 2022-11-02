@@ -8,7 +8,11 @@ import * as fs from 'fs';
 
 const testPath = `${path.resolve(__dirname, '..')}/interface_call_forwarder`;
 const cairoFile = `${path.resolve(__dirname, '..')}/interface_call_forwarder/contract.cairo`;
-const interfaceFile = `${path.resolve(__dirname, '..')}/interface_call_forwarder/contract.sol`;
+const interfaceSolFile = `${path.resolve(__dirname, '..')}/interface_call_forwarder/contract.sol`;
+const interfaceCairoFile = `${path.resolve(
+  __dirname,
+  '..',
+)}/interface_call_forwarder/contract_forwarder.cairo`;
 const interfaceTranspiledCairoFile = `${path.resolve(__dirname, '../..')}/warp_output${path.resolve(
   __dirname,
   '..',
@@ -21,9 +25,26 @@ const transpiledInterfaceJsonPath = `${path.resolve(
 
 const TIME_LIMIT = 10 * 60 * 1000;
 
-describe('Solidity interface generation from cairo contract should succeed', function () {
-  it('should generate interface', async function () {
-    const { stdout, stderr } = await gen_interface(cairoFile);
+let cairoContractAddress: string | undefined;
+let proxyCairoContractAddress: string | null;
+
+describe('contract.cairo should compile & deploy', function () {
+  it('contract.cairo should compile', async function () {
+    await starknetCompile(cairoFile, contractJsonPath);
+  }).timeout(TIME_LIMIT);
+  it('contract.cairo should deploy', async () => {
+    const deployContractResult: DeployResponse | null = await deploy(contractJsonPath, []);
+    expect(deployContractResult === null, 'Contract Deploy request failed').to.be.false;
+    expect(deployContractResult.threw, 'Contract Deploy request failed').to.be.false;
+    expect(deployContractResult.contract_address, 'Contract Deploy request failed').to.not.be.null;
+    if (deployContractResult.contract_address)
+      cairoContractAddress = deployContractResult.contract_address;
+  }).timeout(TIME_LIMIT);
+});
+
+describe('Solidity & Cairo interface generation from cairo contract should succeed', function () {
+  it('should generate interface files', async function () {
+    const { stdout, stderr } = await gen_interface(cairoFile, cairoContractAddress);
     expect(stdout).to.include(
       `Running starknet compile with cairoPath ${path.resolve(__dirname, '../..')}`,
     );
@@ -31,27 +52,48 @@ describe('Solidity interface generation from cairo contract should succeed', fun
   }).timeout(TIME_LIMIT);
 });
 
+describe('Cairo Proxy contract is valid and deployable', async function () {
+  before('cairo proxy contract should compile', async function () {
+    await starknetCompile(interfaceCairoFile, transpiledInterfaceJsonPath);
+  });
+  it('cairo proxy contract should deploy', async function () {
+    const deployContractResult: DeployResponse | null = await deploy(
+      transpiledInterfaceJsonPath,
+      [],
+    );
+    expect(deployContractResult === null, 'Contract Deploy request failed').to.be.false;
+    expect(deployContractResult.threw, 'Contract Deploy request failed').to.be.false;
+    expect(deployContractResult.contract_address, 'Contract Deploy request failed').to.not.be.null;
+    proxyCairoContractAddress = deployContractResult.contract_address;
+  }).timeout(TIME_LIMIT);
+});
+
 describe('Interface solidity file should transpile', function () {
   before(async function () {
-    const interfaceFileContent = readFileSync(interfaceFile, 'utf-8');
+    const interfaceSolFileContent = readFileSync(interfaceSolFile, 'utf-8');
 
-    const newInterfaceFileContent = interfaceFileContent.replace(
-      [`    // Write your logic here`, `}`].join('\n'),
+    const newInterfaceSolFileContent = interfaceSolFileContent.concat(
       [
-        `   function add(uint256 a, uint256 b) public returns (uint256) {`,
-        `       return add_771602f7(a, b);`,
-        `   }`,
-        `   function sub(uint256 a, uint256 b) public returns (uint256) {`,
-        `       return sub_b67d77c5(a, b);`,
-        `   }`,
+        '\n',
+        `contract itr{`,
+        `    address cairoContractAddress;`,
+        `    constructor(address contractAddress) {`,
+        `        cairoContractAddress = contractAddress;`,
+        `    }`,
+        `    function add(uint256 a, uint256 b) external returns (uint256 res) {`,
+        `        return Forwarder_contract(cairoContractAddress).add(a, b);`,
+        `    }`,
+        `    function sub(uint256 a, uint256 b) external returns (uint256 res) {`,
+        `        return Forwarder_contract(cairoContractAddress).sub(a, b);`,
+        `    }`,
         `}`,
       ].join('\n'),
     );
-    writeFileSync(interfaceFile, newInterfaceFileContent);
+    writeFileSync(interfaceSolFile, newInterfaceSolFileContent);
   });
 
   it('should transpile', async function () {
-    const { stdout, stderr } = await transpile(interfaceFile);
+    const { stdout, stderr } = await transpile(interfaceSolFile);
     expect(stderr, 'warp printed errors').to.include('');
     expect(stdout, 'warp printed errors').to.include('');
     expect(
@@ -61,32 +103,25 @@ describe('Interface solidity file should transpile', function () {
   }).timeout(TIME_LIMIT);
 });
 
-describe('Transpiled contract is valid', function () {
+describe('Transpiled interface solidity contract is valid', function () {
   it('interface cairo file is valid', async function () {
-    await starknetCompile(cairoFile, contractJsonPath);
     await starknetCompile(interfaceTranspiledCairoFile, transpiledInterfaceJsonPath);
   }).timeout(TIME_LIMIT);
 });
 
 describe('Interaction between two cairo contracts', function () {
   before('testnet is reachable', async function () {
-    const testnetContactable = await ensureTestnetContactable(60000);
+    const testnetContactable = await ensureTestnetContactable(TIME_LIMIT);
     expect(testnetContactable, 'Failed to ping testnet').to.be.true;
   });
 
-  let contractAddress: string | null;
   let interfaceContractAddress: string | null;
 
-  it('interface contract should deploy', async function () {
-    const deployContractResult: DeployResponse | null = await deploy(contractJsonPath, []);
-    expect(deployContractResult === null, 'Contract Deploy request failed').to.be.false;
-    expect(deployContractResult.threw, 'Contract Deploy request failed').to.be.false;
-    expect(deployContractResult.contract_address, 'Contract Deploy request failed').to.not.be.null;
-    contractAddress = deployContractResult.contract_address;
-    if (contractAddress === null) this.skip();
+  it('Transpiled interface solidity contract should deploy', async function () {
+    if (proxyCairoContractAddress === null) this.skip();
     const deployInterfaceContractResult: DeployResponse | null = await deploy(
       transpiledInterfaceJsonPath,
-      [BigInt(contractAddress).toString()],
+      [BigInt(proxyCairoContractAddress).toString()],
     );
     expect(deployInterfaceContractResult === null, 'Interface Contract Deploy request failed').to.be
       .false;
@@ -98,8 +133,9 @@ describe('Interaction between two cairo contracts', function () {
     ).to.not.be.null;
     interfaceContractAddress = deployInterfaceContractResult.contract_address;
   }).timeout(TIME_LIMIT);
+
   it('interaction should succeed', async function () {
-    if (contractAddress === null || interfaceContractAddress === null) this.skip();
+    if (interfaceContractAddress === null || proxyCairoContractAddress === null) this.skip();
     const cairo_contract_address = await invoke(
       interfaceContractAddress,
       '__fwd_contract_address_5f4aa1ae',
@@ -108,9 +144,10 @@ describe('Interaction between two cairo contracts', function () {
     expect(cairo_contract_address.threw, 'Failed to get cairo contract address').to.be.false;
     expect(cairo_contract_address.return_data, 'Failed to get cairo contract address').to.not.be
       .null;
-    expect(cairo_contract_address.return_data, `Should match ${contractAddress}`).to.deep.equal([
-      BigInt(contractAddress).toString(),
-    ]);
+    expect(
+      cairo_contract_address.return_data,
+      `Should match ${proxyCairoContractAddress}`,
+    ).to.deep.equal([BigInt(proxyCairoContractAddress).toString()]);
     const response_add = await invoke(interfaceContractAddress, 'add_771602f7', [
       '1',
       '0',

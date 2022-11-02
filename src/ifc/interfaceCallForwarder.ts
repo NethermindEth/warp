@@ -98,7 +98,13 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
   addPragmaDirective(options.solcVersion ?? defaultSolcVersion, sourceUint, ast);
   const structDefs: Map<string, StructDefinition> = addTransformedStructs(sourceUint, ast, abi);
 
-  const funcSignatures = addForwarderContract(abi, sourceUint, structDefs, ast, cairoPathRoot);
+  const funcSignatures = addForwarderContract(
+    abi,
+    sourceUint,
+    structDefs,
+    ast,
+    cairoPathRoot.split('/').pop(),
+  );
 
   const result: string = removeExcessNewlines(writer.write(ast.roots[0] as SourceUnit), 2);
 
@@ -133,14 +139,14 @@ function addForwarderContract(
   sourceUint: SourceUnit,
   structDefs: Map<string, StructDefinition>,
   ast: AST,
-  fileName: string,
+  fileName: string | undefined,
 ): Map<string, string> {
   const id = ast.reserveId();
 
   const contract = new ContractDefinition(
     id,
     '',
-    'Forwarder_' + fileName,
+    'Forwarder_' + fileName ?? 'contract',
     sourceUint.id,
     ContractKind.Interface,
     false,
