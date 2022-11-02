@@ -2,10 +2,12 @@ import {
   ASTNode,
   ContractDefinition,
   EventDefinition,
+  ForStatement,
   FunctionDefinition,
   SourceUnit,
   StructDefinition,
   VariableDeclaration,
+  VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../../ast/ast';
@@ -91,17 +93,22 @@ export class DeclarationNameMangler extends ASTMapper {
     this.commonVisit(node, ast);
   }
 
-  visitStructDefinition(_node: StructDefinition, _ast: AST): void {
-    // struct definitions should have already been mangled at this point
-    // by visitSourceUnit and mangleContractDefinition
-    return;
-  }
-
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     // state variables should have already been mangled at this point
     // by mangleContractDefinition when visiting SourceUnit nodes
     if (!node.stateVariable) this.mangleVariableDeclaration(node);
 
+    this.commonVisit(node, ast);
+  }
+
+  visitForStatement(node: ForStatement, ast: AST): void {
+    // The declarations in for loops are mangled because the loop functionalisation extracts
+    // declarations to the current scope instead of creating a new one.
+    if (node.vInitializationExpression instanceof VariableDeclarationStatement) {
+      node.vInitializationExpression.vDeclarations.forEach((declaration) => {
+        declaration.name = this.createNewVariableName(declaration.name);
+      });
+    }
     this.commonVisit(node, ast);
   }
 
@@ -115,7 +122,7 @@ export class DeclarationNameMangler extends ASTMapper {
   }
 
   mangleVariableDeclaration(node: VariableDeclaration): void {
-    node.name = this.createNewVariableName(node.name);
+    if (node.name === '') node.name = this.createNewVariableName(node.name);
   }
 
   mangleStructDefinition(node: StructDefinition): void {
