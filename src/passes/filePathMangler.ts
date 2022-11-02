@@ -4,7 +4,7 @@ import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { WillNotSupportError } from '../utils/errors';
 
-const PATH_REGEX = /^[\w-/\\]*$/;
+const PATH_REGEX = /^[\w-@/\\]*$/;
 
 export function manglePath(path: string): string {
   return path.replaceAll('_', '__').replaceAll('-', '_');

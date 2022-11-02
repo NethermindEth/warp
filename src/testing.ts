@@ -300,9 +300,11 @@ function runSolFileTest(
   console.log(`Warping ${file}`);
   const mangledPath = manglePath(file);
   try {
-    transpile(compileSolFile(file, false), { strict: true, dev: true }).forEach(([file, cairo]) => {
-      outputFileSync(`${file}.cairo`, cairo);
-    });
+    transpile(compileSolFile(file, { warnings: false }), { strict: true, dev: true }).forEach(
+      ([file, cairo]) => {
+        outputFileSync(`${file}.cairo`, cairo);
+      },
+    );
     results.set(mangledPath, 'Success');
   } catch (e) {
     if (e instanceof CompileFailedError) {

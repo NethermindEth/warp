@@ -5,6 +5,37 @@
 Warp brings Solidity to StarkNet, making it possible to transpile Ethereum
 smart contracts to StarkNet Cairo Contracts.
 
+## Quickstart
+
+Docker compose provides a ready to use environment featuring warp and devnet.
+
+### Build and run containers
+
+```bash
+docker-compose up
+```
+
+### Transpile
+
+```bash
+docker-compose exec warp warp transpile example_contracts/ERC20.sol
+```
+
+Alternatively for warp developers:
+
+```bash
+docker-compose exec warp npx ts-node src transpile example_contracts/ERC20.sol
+```
+
+It's best to copy the contract/repo to the warp directory so it is available in container via volume. Use contract's paths relative to warp root. For example, assuming you've copied your project to `warp/projects/myproject` you can replace `example_contracts/ERC20.sol` with `projects/myproject/mycontract.sol` in the above commands.
+
+### Deploy to devnet
+
+```bash
+docker-compose exec warp warp compile warp_output/example__contracts/ERC20__WC__WARP.cairo
+docker-compose exec warp starknet deploy --no_wallet --contract warp_output/example__contracts/ERC20__WC__WARP_compiled.json --gateway_url http://devnet:5050
+```
+
 ## Documentation 📖
 
 You can read the documentation [here](https://nethermindeth.github.io/warp/).
@@ -103,7 +134,7 @@ pip install -r requirements.txt
 If you are using a M1 chipped Mac and getting a `'gmp.h' file not found` error when installing Cairo run the following:
 
 ```bash
-CFLAGS=-Ibrew --prefix gmp/include LDFLAGS=-Lbrew --prefix gmp/lib pip install ecdsa fastecdsa sympy
+CFLAGS=-I`brew --prefix gmp`/include LDFLAGS=-L`brew --prefix gmp`/lib pip install ecdsa fastecdsa sympy
 ```
 
 Then run the pip command above again.
@@ -111,7 +142,6 @@ Then run the pip command above again.
 4. Compile the project:
 
 ```bash
-yarn tsc
 yarn warplib
 ```
 
