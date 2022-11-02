@@ -44,6 +44,7 @@ export type OutputOptions = {
   compileCairo?: boolean;
   compileErrors?: boolean;
   outputDir: string;
+  formatCairo: boolean;
   result: boolean;
 };
 
@@ -60,6 +61,9 @@ program
   .option('--compile-cairo')
   .option('--no-compile-errors')
   .option('--check-trees')
+  // for development mode
+  .option('--dev', 'Run AST sanity checks on every pass instead of the final AST only', false)
+  .option('--format-cairo', 'Format cairo output')
   .option('--highlight <ids...>')
   .option('--order <passOrder>')
   .option('-o, --output-dir <path>', 'Output directory for transpiled Cairo files.', 'warp_output')
@@ -68,10 +72,8 @@ program
   .option('--no-result')
   .option('--no-stubs')
   .option('--no-strict')
-  // Stops transpilation after the specified pass
-  .option('--until <pass>')
+  .option('--until <pass>', 'Stops transpilation after the specified pass')
   .option('--no-warnings')
-  .option('--dev', 'Run AST sanity checks on every pass instead of the final AST only', false) // for development mode
   .option('--include-paths <paths...>')
   .option('--base-path <path>')
   .action((files: string[], options: CliOptions) => {
