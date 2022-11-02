@@ -237,7 +237,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/variable_declarations.sol', 'Success'],
     ['example_contracts/view_function.sol', 'Success'],
     ['example_contracts/typestrings/enumArrays.sol', 'Success'],
-    //uses 'this.sol' keyword in the constructor
+    //uses 'this' keyword in the constructor
     [
       'example_contracts/this_at_constructor/external_function_call_at_construction.sol',
       'WillNotSupport',
