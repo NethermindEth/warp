@@ -9,9 +9,9 @@ import {
   IOptionalDebugInfo,
   IDeclareOptions,
 } from './index';
-import { encodeInputs } from './transcode/encode';
 import { CLIError, logError } from './utils/errors';
 import { callClassHashScript } from './utils/utils';
+import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
@@ -216,7 +216,7 @@ export async function runStarknetCallOrInvoke(
       `${warpVenvPrefix} starknet ${callOrInvoke}  --address ${options.address} --abi ${abiPath} --function ${funcName} --network ${options.network} ${wallet} ${account} ${inputs}`,
     ).toString('utf-8');
 
-    if (!options.use_cairo_abi) {
+    if (isCall && !options.use_cairo_abi) {
       warpOutput = (
         await decodeOutputs(filePath, options.function, warpOutput.toString().split(' '))
       ).toString();

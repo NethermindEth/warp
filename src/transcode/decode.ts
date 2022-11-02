@@ -150,38 +150,3 @@ export function decodeComplex(type: ParamType, outputs: IterableIterator<string>
   }
   throw Error(`Complex type not supported ${type.type}`);
 }
-
-export function getWidthOf(type: ParamType): number {
-  if (type.baseType.startsWith('uint')) {
-    const width = parseInt(type.baseType.slice(4), 10);
-    return width < 256 ? 1 : 2;
-  } else if (type.baseType.startsWith('int')) {
-    const width = parseInt(type.baseType.slice(3), 10);
-    return width < 256 ? 1 : 2;
-  } else if (type.baseType.startsWith('address')) {
-    return 1;
-  } else if (type.baseType.startsWith('bool')) {
-    return 1;
-  } else if (/byte\d*$/.test(type.baseType)) {
-    const width = parseInt(type.baseType.slice(4), 10);
-    return width * 8;
-  } else if (type.baseType.startsWith('ufixed') || type.baseType.startsWith('fixed')) {
-    throw new Error('Fixed types not supported by Warp');
-  } else if (type.baseType === 'bytes') {
-    throw new Error('Nested dynamic types are not supported by Warp');
-  } else if (type.indexed) {
-    // array
-    if (type.arrayLength === -1) {
-      throw new Error('Nested dynamics types are not supported by Warp');
-    } else {
-      // static array
-      return type.arrayLength * getWidthOf(type.arrayChildren);
-    }
-  } else if (type.components.length !== 0) {
-    // struct
-    return type.components.reduce((acc, ty) => {
-      return acc + getWidthOf(ty);
-    }, 0);
-  }
-  throw new Error('Not Supported ' + type.baseType);
-}

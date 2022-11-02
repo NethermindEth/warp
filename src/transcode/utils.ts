@@ -168,11 +168,11 @@ export function addSignature(node: SourceUnit, ast: AST, signature: string, retu
 }
 
 export function returnSignature(funcDef: FunctionDefinition): string {
-  const return_params = funcDef.vReturnParameters.vParameters
+  const returnParams = funcDef.vReturnParameters.vParameters
     .map((vd) => vd.canonicalSignatureType(ABIEncoderVersion.V2))
     .join(',');
 
-  return `${return_params}`;
+  return `${returnParams}`;
 }
 
 export async function selectSignature(abi: string[], funcName: string): Promise<string> {
