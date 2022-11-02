@@ -6,7 +6,6 @@ from warplib.maths.add import warp_add256
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
 from warplib.maths.sub import warp_sub256
 
-
 namespace A {
     // Dynamic variables - Arrays and Maps
 
@@ -14,31 +13,31 @@ namespace A {
 }
 
 @view
-func add_771602f7{syscall_ptr: felt*, range_check_ptr: felt}(
-    __warp_usrid0_a: Uint256, __warp_usrid1_b: Uint256
-) -> (__warp_usrid2_: Uint256) {
+func add{syscall_ptr: felt*, range_check_ptr: felt}(a: Uint256, b: Uint256) -> (
+    __warp_usrid2_: Uint256
+) {
     alloc_locals;
 
-    warp_external_input_check_int256(__warp_usrid1_b);
+    warp_external_input_check_int256(b);
 
-    warp_external_input_check_int256(__warp_usrid0_a);
+    warp_external_input_check_int256(a);
 
-    let (__warp_se_0) = warp_add256(__warp_usrid0_a, __warp_usrid1_b);
+    let (__warp_se_0) = warp_add256(a, b);
 
     return (__warp_se_0,);
 }
 
 @view
-func sub_b67d77c5{syscall_ptr: felt*, range_check_ptr: felt, bitwise_ptr: BitwiseBuiltin*}(
-    __warp_usrid3_a: Uint256, __warp_usrid4_b: Uint256
+func sub{syscall_ptr: felt*, range_check_ptr: felt, bitwise_ptr: BitwiseBuiltin*}(
+    a: Uint256, b: Uint256
 ) -> (__warp_usrid5_: Uint256) {
     alloc_locals;
 
-    warp_external_input_check_int256(__warp_usrid4_b);
+    warp_external_input_check_int256(b);
 
-    warp_external_input_check_int256(__warp_usrid3_a);
+    warp_external_input_check_int256(a);
 
-    let (__warp_se_1) = warp_sub256(__warp_usrid3_a, __warp_usrid4_b);
+    let (__warp_se_1) = warp_sub256(a, b);
 
     return (__warp_se_1,);
 }

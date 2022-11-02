@@ -15,10 +15,8 @@ export function genCairoContract(abi: AbiType, contract_address: string | undefi
   const langDirective: string[] = getStarknetLangDirective();
   const structs: string[] = stringfyStructs(getStructDependencyGraph(abi));
   const forwarderInterface: string[] = getForwarderInterface(abi);
-  const [interactiveFuncs, imports, transformStructs, castFunctions] = getInteractiveFuncs(
-    abi,
-    contract_address,
-  );
+  const [interactiveFuncs, imports, transformStructs, castFunctions, tupleStructs] =
+    getInteractiveFuncs(abi, contract_address);
   return (
     langDirective.join('\n') +
     '\n\n// imports \n' +
@@ -27,6 +25,8 @@ export function genCairoContract(abi: AbiType, contract_address: string | undefi
     structs.join('\n') +
     '\n\n// transformed structs \n' +
     stringfyStructs(transformStructs).join('\n') +
+    '\n\n// tuple structs \n' +
+    stringfyStructs(tupleStructs).join('\n') +
     '\n\n// forwarder interface \n' +
     forwarderInterface.join('\n') +
     '\n\n//cast functions for structs \n' +
@@ -48,11 +48,11 @@ function getForwarderInterface(abi: AbiType): string[] {
       if (item.type === 'function') {
         return [
           `${INDENT}func ${item.name}(`,
-          ...item.inputs.map((input: any) => {
+          ...item.inputs.map((input: { name: string; type: string }) => {
             return `${INDENT}${INDENT}${input.name}: ${input.type},`;
           }),
           `${INDENT}) -> (${item.outputs
-            .map((output: any) => `${output.name}:${output.type}`)
+            .map((output: { name: string; type: string }) => `${output.name}:${output.type}`)
             .join(', ')}){`,
           `${INDENT}}`,
         ].join('\n');
@@ -63,21 +63,22 @@ function getForwarderInterface(abi: AbiType): string[] {
   ];
 }
 
-function getInteractiveFuncs(
+export function getInteractiveFuncs(
   abi: AbiType,
   contract_address: string | undefined,
-): [string[], string[], StructAbiItemType[], string[]] {
+): [string[], string[], StructAbiItemType[], string[], StructAbiItemType[]] {
   const structDependency = getStructDependencyGraph(abi);
   const typeToStruct = typeToStructMappping(structDependency);
-  const [transformedStructs, transformedStructsFuncs] = uint256TransformStructs(structDependency);
+  const [transformedStructs, transformedStructsFuncs, structTuplesMap] =
+    uint256TransformStructs(structDependency);
 
-  let imports: string[] = [
+  const imports: string[] = [
     'from starkware.cairo.common.uint256 import Uint256',
     'from starkware.cairo.common.cairo_builtins import HashBuiltin',
     'from warplib.maths.utils import felt_to_uint256, narrow_safe',
   ];
 
-  let interactiveFuncs: string[] = [];
+  const interactiveFuncs: string[] = [];
   abi.forEach((item: AbiItemType) => {
     if (item.type === 'function') {
       const decorator: string = item.stateMutability === 'view' ? '@view' : '@external';
@@ -110,7 +111,11 @@ function getInteractiveFuncs(
             acc.pop();
             acc.push(`${INDENT}${input.name}_len: felt,`);
           }
-          acc.push(`${INDENT}${input.name}: ${transformType(input.type, typeToStruct)},`);
+          acc.push(
+            `${INDENT}${input.name}: ${
+              transformType(input.type, typeToStruct, structTuplesMap).type
+            },`,
+          );
           return acc;
         }, []),
         ') -> (',
@@ -119,7 +124,11 @@ function getInteractiveFuncs(
             acc.pop();
             acc.push(`${INDENT}${output.name}_len: felt,`);
           }
-          acc.push(`${INDENT}${output.name}: ${transformType(output.type, typeToStruct)},`);
+          acc.push(
+            `${INDENT}${output.name}: ${
+              transformType(output.type, typeToStruct, structTuplesMap).type
+            },`,
+          );
           return acc;
         }, []),
         ') {',
@@ -128,7 +137,7 @@ function getInteractiveFuncs(
           if (input.type.endsWith('*')) {
             acc.pop();
           }
-          acc.push(castStatement(input.name, input.type, typeToStruct));
+          acc.push(castStatement(input.name, input.type, typeToStruct, undefined, structTuplesMap));
           return acc;
         }, []),
         callToFunc,
@@ -136,7 +145,15 @@ function getInteractiveFuncs(
           if (output.type.endsWith('*')) {
             acc.pop();
           }
-          acc.push(reverseCastStatement(output.name, output.type, typeToStruct));
+          acc.push(
+            reverseCastStatement(
+              output.name,
+              output.type,
+              typeToStruct,
+              undefined,
+              structTuplesMap,
+            ),
+          );
           return acc;
         }, []),
         `${INDENT}return (${item.outputs.map((x) => x.name).join(',')} ,);`,
@@ -144,5 +161,11 @@ function getInteractiveFuncs(
       );
     }
   });
-  return [interactiveFuncs, imports, transformedStructs, transformedStructsFuncs];
+  return [
+    interactiveFuncs,
+    imports,
+    transformedStructs,
+    transformedStructsFuncs,
+    [...structTuplesMap.values()],
+  ];
 }

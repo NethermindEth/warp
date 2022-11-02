@@ -1,6 +1,6 @@
 import { AbiType, AbiItemType, StructAbiItemType } from '../abiTypes';
 import { castStatement, reverseCastStatement, transformType } from './util';
-import { INDENT } from '../genCairo';
+import { INDENT, getInteractiveFuncs } from '../genCairo';
 
 function copyStructItem(struct: StructAbiItemType): StructAbiItemType {
   return {
@@ -14,12 +14,20 @@ function copyStructItem(struct: StructAbiItemType): StructAbiItemType {
 }
 
 export function getStructsFromABI(abi: AbiType): StructAbiItemType[] {
-  let result: StructAbiItemType[] = [];
+  const result: StructAbiItemType[] = [];
   abi.forEach((item) => {
     if (item.type === 'struct' && item.name !== 'Uint256') {
       result.push(item);
     }
   });
+  return result;
+}
+
+export function getAllStructsFromABI(abi: AbiType): StructAbiItemType[] {
+  let result: StructAbiItemType[] = getStructDependencyGraph(abi);
+  const res = getInteractiveFuncs(abi, undefined);
+  result = result.concat(res[2]);
+  result = result.concat(res[4]);
   return result;
 }
 
@@ -43,9 +51,9 @@ function visitStructItemNode(
 }
 
 export function getStructDependencyGraph(abi: AbiType): StructAbiItemType[] {
-  let visitedStructItem: Map<StructAbiItemType, boolean> = new Map();
-  let typeToStruct: Map<string, StructAbiItemType> = typeToStructMappping(getStructsFromABI(abi));
-  let result: StructAbiItemType[] = [];
+  const visitedStructItem: Map<StructAbiItemType, boolean> = new Map();
+  const typeToStruct: Map<string, StructAbiItemType> = typeToStructMappping(getStructsFromABI(abi));
+  const result: StructAbiItemType[] = [];
 
   abi.forEach((item: AbiItemType) => {
     if (item.type === 'struct' && item.name !== 'Uint256') {
@@ -56,7 +64,7 @@ export function getStructDependencyGraph(abi: AbiType): StructAbiItemType[] {
 }
 
 export function typeToStructMappping(structs: StructAbiItemType[]): Map<string, StructAbiItemType> {
-  let result: Map<string, StructAbiItemType> = new Map();
+  const result: Map<string, StructAbiItemType> = new Map();
   structs.forEach((item: StructAbiItemType) => {
     result.set(item.name, item);
   });
@@ -65,24 +73,25 @@ export function typeToStructMappping(structs: StructAbiItemType[]): Map<string, 
 
 export function uint256TransformStructs(
   structDependency: StructAbiItemType[],
-): [StructAbiItemType[], string[]] {
+): [StructAbiItemType[], string[], Map<string, StructAbiItemType>] {
   const typeToStruct = typeToStructMappping(structDependency);
-  let transformedStructs: StructAbiItemType[] = [];
-  let transformedStructsFuncs: string[] = [];
+  const transformedStructs: StructAbiItemType[] = [];
+  const transformedStructsFuncs: string[] = [];
+  const structTuplesMap: Map<string, StructAbiItemType> = new Map();
 
   structDependency.forEach((itm: StructAbiItemType) => {
     const item: StructAbiItemType = copyStructItem(itm);
-    let castFunctionBody: string[] = [];
-    let castReverseFunctionBody: string[] = [];
+    const castFunctionBody: string[] = [];
+    const castReverseFunctionBody: string[] = [];
 
-    item.members.forEach((member: { name: string; offset: number; type: string }) => {
+    item.members.forEach((member: { name: string; offset?: number; type: string }) => {
       castFunctionBody.push(
         castStatement(member.name, member.type, typeToStruct, `frm.${member.name}`),
       );
       castReverseFunctionBody.push(
         reverseCastStatement(member.name, member.type, typeToStruct, `frm.${member.name}`),
       );
-      member.type = transformType(member.type, typeToStruct);
+      member.type = transformType(member.type, typeToStruct, structTuplesMap).type;
     });
 
     transformedStructs.push(item as StructAbiItemType);
@@ -104,5 +113,5 @@ export function uint256TransformStructs(
 
     item.name = `${item.name}_uint256`;
   });
-  return [transformedStructs, transformedStructsFuncs];
+  return [transformedStructs, transformedStructsFuncs, structTuplesMap];
 }

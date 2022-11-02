@@ -1,7 +1,7 @@
 export type StructAbiItemType = {
-  members: { name: string; offset: number; type: string }[];
+  members: { name: string; offset?: number; type: string }[];
   name: string;
-  size: number;
+  size?: number;
   type: 'struct';
 };
 

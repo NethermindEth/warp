@@ -45,12 +45,11 @@ import { assert } from 'console';
 import { genCairoContract } from './genCairo';
 import { AbiType, FunctionAbiItemType, StructAbiItemType } from './abiTypes';
 import {
+  getAllStructsFromABI,
   getFunctionItems,
-  getStructDependencyGraph,
   getStructsFromABI,
   transformType,
   typeToStructMappping,
-  uint256TransformStructs,
 } from './utils';
 import { safeCanonicalHash } from '../export';
 
@@ -165,9 +164,8 @@ function addTransformedStructs(
   ast: AST,
   abi: AbiType,
 ): Map<string, StructDefinition> {
-  const [transformedStructItems] = uint256TransformStructs(getStructDependencyGraph(abi));
   const transformedStructs = new Map<string, StructDefinition>();
-  transformedStructItems.forEach((item: StructAbiItemType) => {
+  getAllStructsFromABI(abi).forEach((item: StructAbiItemType) => {
     const id = ast.reserveId();
     const struct = new StructDefinition(
       id,
@@ -254,7 +252,7 @@ function getParametersCairoType(
 ): VariableDeclaration[] {
   const parameters: VariableDeclaration[] = [];
   params.forEach((param: { name: string; type: string }) => {
-    const transformedType = transformType(param.type, typeToStructMap);
+    const transformedType = transformType(param.type, typeToStructMap).type;
     const solTypeName: TypeName = getSolTypeName(transformedType, structDefs, ast);
 
     if (solTypeName instanceof ArrayTypeName && solTypeName.vLength === undefined) {
