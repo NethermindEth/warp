@@ -164,7 +164,7 @@ async function compileDependencyGraph(
 
   const outputRoot = path.join(OUTPUT_DIR, root);
   const compiledRoot = compileLocation(outputRoot);
-  await starknetCompile(path.join(OUTPUT_DIR, root), compiledRoot);
+  await starknetCompile(outputRoot, compiledRoot);
   const hash = await declare(compiledRoot);
   assert(!hash.threw, `Error during declaration: ${hash.error_message}`);
   return hash.class_hash;
