@@ -10,6 +10,7 @@ import {
   Assignment,
   Block,
   Expression,
+  ExpressionStatement,
 } from 'solc-typed-ast';
 
 class YulTransformer {
@@ -62,10 +63,25 @@ class YulTransformer {
     throw 'Only binary operations are supported';
   }
 
-  YulAssignment(node: YulNode): Assignment {
+  YulAssignment(node: YulNode): ExpressionStatement {
     const vars = node.variableNames.map((i: YulNode) => this.YulIdentifier(i));
     const value = this.run(node.value) as Expression;
-    return new Assignment(this.ast.reserveId(), node.src, 'uint256', '=', vars, value, node);
+    const assignment = new Assignment(
+      this.ast.reserveId(),
+      node.src,
+      'uint256',
+      '=',
+      vars,
+      value,
+      node,
+    );
+    return new ExpressionStatement(
+      this.ast.reserveId(),
+      node.src,
+      assignment as Expression,
+      undefined,
+      node,
+    );
   }
 }
 
