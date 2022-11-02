@@ -1,4 +1,5 @@
 import assert from 'assert';
+import path from 'path';
 import { manglePath } from '../../../src/passes/filePathMangler';
 import { mangleContractFilePath } from '../../../src/passes/sourceUnitSplitter';
 import { stringFlatten } from './utils';
@@ -18,10 +19,16 @@ export class AsyncTest {
     return `${this.name}.sol`;
   }
   get cairo() {
-    return `${OUTPUT_DIR}/${mangleContractFilePath(manglePath(this.name), this.contract)}.cairo`;
+    return path.join(
+      `${OUTPUT_DIR}`,
+      `${mangleContractFilePath(manglePath(this.name), this.contract)}.cairo`,
+    );
   }
   get compiled() {
-    return `${OUTPUT_DIR}/${mangleContractFilePath(manglePath(this.name), this.contract)}.json`;
+    return path.join(
+      `${OUTPUT_DIR}`,
+      `${mangleContractFilePath(manglePath(this.name), this.contract)}.json`,
+    );
   }
 
   static fromSync(test: File): AsyncTest {
