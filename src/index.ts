@@ -21,6 +21,8 @@ import { postProcessCairoFile } from './utils/postCairoWrite';
 
 export type CompilationOptions = {
   warnings: boolean;
+  includePaths?: string[];
+  basePath?: string;
 };
 
 export type TranspilationOptions = {
@@ -72,6 +74,8 @@ program
   .option('--no-strict')
   .option('--until <pass>', 'Stops transpilation after the specified pass')
   .option('--no-warnings')
+  .option('--include-paths <paths...>')
+  .option('--base-path <path>')
   .action((files: string[], options: CliOptions) => {
     // We do the extra work here to make sure all the errors are printed out
     // for all files which are invalid.
@@ -81,7 +85,7 @@ program
 
     const solcASTs = files.map((file) => ({
       file: file,
-      ast: compileSolFile(file, options.warnings),
+      ast: compileSolFile(file, options as CompilationOptions),
     }));
     // Every AST which is a subtree of another AST doesn't get picked
     const roots = solcASTs.filter(({ ast }) => {
@@ -145,12 +149,16 @@ program
   .option('--no-strict')
   .option('--until <pass>')
   .option('--no-warnings')
+  .option('--include-paths <paths...>')
+  .option('--base-path <path>')
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
     try {
-      transform(compileSolFile(file, options.warnings), options).map(([name, solidity, _]) => {
-        outputResult(name, solidity, options, '_warp.sol');
-      });
+      transform(compileSolFile(file, options as CompilationOptions), options).map(
+        ([name, solidity, _]) => {
+          outputResult(name, solidity, options, '_warp.sol');
+        },
+      );
     } catch (e) {
       handleTranspilationError(e);
     }
