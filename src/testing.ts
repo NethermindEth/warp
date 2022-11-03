@@ -1,7 +1,7 @@
 import path from 'path';
 import { CompileFailedError } from 'solc-typed-ast';
 import { findAllFiles, findCairoSourceFilePaths, findSolSourceFilePaths } from './io';
-import { compileSolFile } from './solCompile';
+import { compileSolFiles } from './solCompile';
 import { compileCairo } from './starknetCli';
 import { transpile } from './transpiler';
 import {
@@ -300,10 +300,8 @@ function runSolFileTest(
   console.log(`Warping ${file}`);
   const mangledPath = manglePath(file);
   try {
-    transpile(compileSolFile(file, { warnings: false }), { strict: true, dev: true }).forEach(
-      ([file, cairo]) => {
-        outputFileSync(`${file}.cairo`, cairo);
-      },
+    transpile(compileSolFiles([file], { warnings: false }), { strict: true, dev: true }).forEach(
+      ([file, cairo]) => outputFileSync(file, cairo),
     );
     results.set(mangledPath, 'Success');
   } catch (e) {

@@ -18,19 +18,35 @@ import { error } from './utils/formatting';
 // size to the largest possible
 const MAX_BUFFER_SIZE = Number.MAX_SAFE_INTEGER;
 
-export function compileSolFile(file: string, options: CompilationOptions): AST {
-  const requiredSolcVersion = getSolFileVersion(file);
-  const [, majorVersion] = matchCompilerVersion(requiredSolcVersion);
-  if (majorVersion != '7' && majorVersion != '8') {
-    throw new TranspileFailedError(`Unsupported version of solidity source ${requiredSolcVersion}`);
+function compileSolFilesCommon(files: string[]): { result: unknown; compilerVersion: string } {
+  const sources = files.map((file) => {
+    return getSolFileVersion(file);
+  });
+
+  sources.forEach((version, i) => {
+    const [, majorVersion] = matchCompilerVersion(version);
+    if (majorVersion != '7' && majorVersion != '8') {
+      throw new TranspileFailedError(
+        `Unsupported version of solidity source ${version} in file ${files[i]}`,
+      );
+    }
+  });
+
+  if (!sources.every((version) => version === sources[0])) {
+    throw new TranspileFailedError(`All solidity files should be the same major version`);
   }
 
-  const solcOutput = cliCompile(formatInput(file), requiredSolcVersion, options);
+  const solcOutput = cliCompile(formatInput(files), sources[0]);
+  return solcOutput;
+}
+
+export function compileSolFiles(files: string[], options: CompilationOptions): AST {
+  const solcOutput = compileSolFilesCommon(files);
   printErrors(solcOutput.result, options.warnings, solcOutput.compilerVersion);
   const reader = new ASTReader();
   const sourceUnits = reader.read(solcOutput.result);
 
-  return new AST(sourceUnits, requiredSolcVersion);
+  return new AST(sourceUnits, solcOutput.compilerVersion);
 }
 
 const supportedVersions = ['0.8.14', '0.7.6'];
@@ -61,14 +77,16 @@ type SolcInput = {
   };
 };
 
-function formatInput(fileName: string): SolcInput {
+function formatInput(fileNames: string[]): SolcInput {
+  const sources: { [key: string]: { urls: string[] } } = {};
+  fileNames.forEach((fileName) => {
+    sources[fileName] = {
+      urls: [fileName],
+    };
+  });
   return {
     language: 'Solidity',
-    sources: {
-      [fileName]: {
-        urls: [fileName],
-      },
-    },
+    sources,
     settings: {
       outputSelection: {
         '*': {
@@ -176,14 +194,14 @@ function printErrors(cliOutput: unknown, printWarnings: boolean, compilerVersion
 }
 
 // used for the semantic test suite
-export function compileSolFileAndExtractContracts(file: string): unknown {
+export function compileSolFilesAndExtractContracts(file: string): unknown {
   const requiredSolcVersion = getSolFileVersion(file);
   const [, majorVersion] = matchCompilerVersion(requiredSolcVersion);
   if (majorVersion != '7' && majorVersion != '8') {
     throw new TranspileFailedError(`Unsupported version of solidity source ${requiredSolcVersion}`);
   }
 
-  const solcOutput = cliCompile(formatInput(file), requiredSolcVersion);
+  const solcOutput = cliCompile(formatInput([file]), requiredSolcVersion);
   assert(typeof solcOutput.result === 'object' && solcOutput.result !== null);
   return Object.entries(solcOutput.result).filter(([name]) => name === 'contracts')[0][1][file];
 }
