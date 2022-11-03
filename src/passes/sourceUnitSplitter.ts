@@ -112,7 +112,7 @@ export function mangleFreeFilePath(path: string): string {
 export function mangleContractFilePath(
   path: string,
   contractName: string,
-  suffix: string = '.cairo',
+  suffix = '.cairo',
 ): string {
   return resolve(path, contractName + suffix);
 }
