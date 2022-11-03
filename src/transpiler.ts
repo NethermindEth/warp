@@ -101,6 +101,7 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
 
 function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
+    ['Iat', InlineAssemblyTransformer],
     ['Tf', TupleFixes],
     ['Tnr', TypeNameRemover],
     ['Ru', RejectUnsupportedFeatures],
@@ -156,7 +157,6 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Rim', ReplaceIdentifierContractMemberAccess],
     ['Dus', DropUnusedSourceUnits],
     ['Cs', CairoStubProcessor],
-    ['Iat', InlineAssemblyTransformer],
   ]);
 
   const passesInOrder: typeof ASTMapper[] = parsePassOrder(

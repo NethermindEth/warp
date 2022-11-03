@@ -1,5 +1,6 @@
 import { ASTMapper } from '../ast/mapper';
 import { AST } from '../ast/ast';
+import { createExpressionStatement, createIdentifier, createTuple } from '../utils/nodeTemplates';
 
 import {
   InlineAssembly,
@@ -11,10 +12,12 @@ import {
   Block,
   Expression,
   ExpressionStatement,
+  VariableDeclaration,
 } from 'solc-typed-ast';
+import assert from 'assert';
 
 class YulTransformer {
-  references: { [name: string]: number };
+  vars: { [name: string]: VariableDeclaration };
   ast: AST;
 
   constructor(ast: AST, externalReferences: any[], contextMap: Map<number, ASTNode>) {
@@ -23,8 +26,8 @@ class YulTransformer {
     const blockRefs: [number, ASTNode][] = [...contextMap].filter(([id, _]) =>
       blockRefIds.includes(id),
     );
-    this.references = Object.fromEntries(
-      blockRefs.map(([id, ref]) => [(ref as Identifier).name, id]),
+    this.vars = Object.fromEntries(
+      blockRefs.map(([id, ref]) => [(ref as Identifier).name, ref as VariableDeclaration]),
     );
   }
 
@@ -34,27 +37,19 @@ class YulTransformer {
   }
 
   YulIdentifier(node: YulNode): Identifier {
-    return new Identifier(
-      this.ast.reserveId(),
-      node.src,
-      'uint256',
-      node.name,
-      this.references[node.name],
-      node.raw,
-    );
+    return createIdentifier(this.vars[node.name], this.ast);
   }
 
   YulFunctionCall(node: YulNode): BinaryOperation {
     const binary_ops: { [name: string]: string } = { add: '+', mul: '*', div: '/', sub: '-' };
-    const identifier: Identifier = this.YulIdentifier(node.functionName);
-    if (Object.keys(binary_ops).includes(identifier.name)) {
+    if (Object.keys(binary_ops).includes(node.functionName.name)) {
       const leftExpr = this.run(node.arguments[0]) as Expression;
       const rightExpr = this.run(node.arguments[1]) as Expression;
       return new BinaryOperation(
         this.ast.reserveId(),
         node.src,
         'uint256',
-        binary_ops[identifier.name],
+        binary_ops[node.functionName.name],
         leftExpr,
         rightExpr,
         node,
@@ -64,24 +59,31 @@ class YulTransformer {
   }
 
   YulAssignment(node: YulNode): ExpressionStatement {
-    const vars = node.variableNames.map((i: YulNode) => this.YulIdentifier(i));
+    let vars: Expression;
     const value = this.run(node.value) as Expression;
+    if (value.typeString === 'tuple()') {
+      vars = createTuple(
+        this.ast,
+        node.variableNames.map((i: YulNode) => this.YulIdentifier(i)),
+      );
+    } else {
+      assert(
+        node.variableNames.length === 1,
+        'Type mismatch. Tried to assign non-tuple expression to multiple identifiers',
+      );
+      vars = this.YulIdentifier(node.variableNames[0]);
+    }
+
     const assignment = new Assignment(
       this.ast.reserveId(),
       node.src,
-      'uint256',
+      vars.typeString,
       '=',
       vars,
       value,
       node,
     );
-    return new ExpressionStatement(
-      this.ast.reserveId(),
-      node.src,
-      assignment as Expression,
-      undefined,
-      node,
-    );
+    return createExpressionStatement(this.ast, assignment as Expression);
   }
 }
 
@@ -93,7 +95,7 @@ export class InlineAssemblyTransformer extends ASTMapper {
       ast.setContextRecursive(astNode);
       return astNode;
     });
-    let block: Block = new Block(node.id, node.yul!.src, statements);
+    let block: Block = new Block(ast.reserveId(), node.yul!.src, statements);
 
     ast.replaceNode(node, block);
 

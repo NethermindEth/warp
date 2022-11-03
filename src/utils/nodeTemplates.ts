@@ -111,6 +111,13 @@ export function createEmptyTuple(ast: AST): TupleExpression {
   return node;
 }
 
+export function createTuple(ast: AST, nodes: Expression[]): TupleExpression {
+  const typeString = `tuple(${nodes.map((node) => node.typeString)})`;
+  const node = new TupleExpression(ast.reserveId(), '', typeString, false, nodes, nodes);
+  ast.setContextRecursive(node);
+  return node;
+}
+
 export function createExpressionStatement(ast: AST, expression: Expression): ExpressionStatement {
   const node = new ExpressionStatement(ast.reserveId(), '', expression);
   ast.setContextRecursive(node);
