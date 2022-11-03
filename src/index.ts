@@ -23,6 +23,8 @@ import { postProcessCairoFile } from './utils/postCairoWrite';
 
 export type CompilationOptions = {
   warnings: boolean;
+  includePaths?: string[];
+  basePath?: string;
 };
 
 export type TranspilationOptions = {
@@ -63,7 +65,7 @@ program
   .option('--check-trees')
   // for development mode
   .option('--dev', 'Run AST sanity checks on every pass instead of the final AST only', false)
-  .option('--no-format-cairo', "Don't format cairo output")
+  .option('--format-cairo', 'Format cairo output')
   .option('--highlight <ids...>')
   .option('--order <passOrder>')
   .option('-o, --output-dir <path>', 'Output directory for transpiled Cairo files.', 'warp_output')
@@ -74,16 +76,16 @@ program
   .option('--no-strict')
   .option('--until <pass>', 'Stops transpilation after the specified pass')
   .option('--no-warnings')
+  .option('--include-paths <paths...>')
+  .option('--base-path <path>')
   .action((files: string[], options: CliOptions) => {
     // We do the extra work here to make sure all the errors are printed out
     // for all files which are invalid.
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
-    const cairoSuffix = '.cairo';
-    const contractToHashMap = new Map<string, string>();
 
     const solcASTs = files.map((file) => ({
       file: file,
-      ast: compileSolFile(file, options.warnings),
+      ast: compileSolFile(file, options as CompilationOptions),
     }));
     // Every AST which is a subtree of another AST doesn't get picked
     const roots = solcASTs.filter(({ ast }) => {
@@ -98,6 +100,8 @@ program
       });
     });
 
+    const cairoSuffix = '.cairo';
+    const contractToHashMap = new Map<string, string>();
     roots.forEach(({ file, ast }) => {
       if (files.length > 1) {
         console.log(`Compiling ${file}`);
@@ -147,12 +151,16 @@ program
   .option('--no-strict')
   .option('--until <pass>')
   .option('--no-warnings')
+  .option('--include-paths <paths...>')
+  .option('--base-path <path>')
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
     try {
-      transform(compileSolFile(file, options.warnings), options).map(([name, solidity, _]) => {
-        outputResult(name, solidity, options, '_warp.sol');
-      });
+      transform(compileSolFile(file, options as CompilationOptions), options).map(
+        ([name, solidity, _]) => {
+          outputResult(name, solidity, options, '_warp.sol');
+        },
+      );
     } catch (e) {
       handleTranspilationError(e);
     }

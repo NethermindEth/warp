@@ -1,3 +1,4 @@
+import path from 'path';
 import {
   ContractDefinition,
   DataLocation,
@@ -32,7 +33,6 @@ import {
 } from '../utils/nodeTemplates';
 import { cloneASTNode } from '../utils/cloning';
 import { hashFilename } from '../utils/postCairoWrite';
-import { CONTRACT_INFIX } from '../utils/nameModifiers';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { getParameterTypes } from '../utils/nodeTypeProcessing';
@@ -50,8 +50,9 @@ import { getContainingSourceUnit } from '../utils/utils';
  *
  *   Since solidity stores the bytecode of the contract to create, and cairo uses
  *   a declaration address(`class_hash`) of the contract on starknet and the latter
- *   can only be known when interacting with starknet, empty placeholders are used
- *   for compiling, and then filled during deployement with the right address.
+ *   can only be known when interacting with starknet, placeholders are used to
+ *   store these hashes, nonetheless at this stage these hashes cannot be known
+ *   so they are filled post transpilation.
  *
  *   Salt in solidity is 32 bytes while in Cairo is a felt, so it'll be safely
  *   narrowed down. Notice that values bigger than a felt will result in errors
@@ -113,7 +114,7 @@ export class NewToDeploy extends ASTMapper {
       const bytes32Salt = parent.vOptionsMap.get('salt');
       assert(bytes32Salt !== undefined);
       // Narrow salt to a felt range
-      salt = createElementaryConversionCall(createBytesNTypeName(30, ast), bytes32Salt, node, ast);
+      salt = createElementaryConversionCall(createBytesNTypeName(31, ast), bytes32Salt, node, ast);
       ast.replaceNode(bytes32Salt, salt, parent);
     } else {
       throw new TranspileFailedError(
@@ -147,7 +148,7 @@ export class NewToDeploy extends ASTMapper {
       'deploy',
       [
         ['class_hash', createAddressTypeName(false, ast)],
-        ['contract_address_salt', createBytesNTypeName(30, ast)],
+        ['contract_address_salt', createBytesNTypeName(31, ast)],
         ['constructor_calldata', createBytesTypeName(ast), DataLocation.CallData],
         ['deploy_from_zero', createBoolTypeName(ast)],
       ],
@@ -173,50 +174,28 @@ export class NewToDeploy extends ASTMapper {
 
   private createPlaceHolder(
     sourceUnit: SourceUnit,
-    declaredContract: ContractDefinition,
+    contractToDeclare: ContractDefinition,
     ast: AST,
   ): VariableDeclaration {
-    const declaredContractSourceUnit = getContainingSourceUnit(declaredContract);
-
-    const declaredContractFullPath = declaredContractSourceUnit.absolutePath.split(
-      new RegExp('/+|\\\\+'),
-    );
-    const cairoPath = declaredContractSourceUnit.absolutePath
+    const contractToDeclareSourceUnit = getContainingSourceUnit(contractToDeclare);
+    const cairoContractPath = contractToDeclareSourceUnit.absolutePath
       .slice(0, -'.sol'.length)
       .concat('.cairo');
 
-    const fileName =
-      declaredContractFullPath[declaredContractFullPath.length - 1].split(CONTRACT_INFIX)[0];
-    const contractName = declaredContract.name;
-
-    const fullPath = declaredContractFullPath.slice(0, -1).join('_');
-    const varPrefix = `${fullPath}_${fileName}_${contractName}`;
-    const hash = hashFilename(cairoPath);
+    const uniqueId = hashFilename(path.resolve(cairoContractPath));
+    const placeHolderName = `${contractToDeclare.name}_class_hash_${uniqueId}`;
 
     /*
-     * The name of the place holder is important because it will be used later
-     * during deployment to set the appropriate class hash value (notice below
-     * it is being set to zero by default)
-     * The name is a combination of:
-     * - the path to the cairo file which contain the target contract to deploy
-     * - the hash of the path.
-     * The path part is unnecessary, but  it's left there for readability.
-     * The hash part is the one used for later to search for the correct file
-     * declaration. Also it used to avoid naming clashes between different placeholders.
-     */
-    const varName = `${varPrefix}_${hash}`;
-    /*
-     * The form of documentation is used later during post-linking to extract the files
+     * Documentation is used later during post-linking to extract the files
      * this source unit depends on. See src/utils/postCairoWrite.ts
      */
-    const documentation = `@declare ${cairoPath}`;
-
+    const documentation = `@declare ${cairoContractPath}`;
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
       '',
       true, // constant
       false, // indexed
-      varName,
+      placeHolderName,
       sourceUnit.id,
       false, // stateVariable
       DataLocation.Default,
