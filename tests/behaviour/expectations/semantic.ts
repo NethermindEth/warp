@@ -408,7 +408,7 @@ async function getContractAbiAndDefinition(
 
   // Get the ast itself so we can resolve the types for our type conversion
   // later
-  const ast = compileSolFiles([file], false);
+  const ast = compileSolFiles([file], { warnings: false });
   const astRoot = ast.roots[ast.roots.length - 1];
   const [contractDef] = astRoot
     .getChildrenByType(ContractDefinition, true)

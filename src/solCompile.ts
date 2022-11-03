@@ -7,6 +7,7 @@ import {
   extractSpecifiersFromSource,
   getCompilerVersionsBySpecifiers,
 } from 'solc-typed-ast';
+import { CompilationOptions } from '.';
 import { AST } from './ast/ast';
 import { SupportedSolcVersions, nethersolcPath, fullVersionFromMajor } from './nethersolc';
 import { TranspileFailedError } from './utils/errors';
@@ -39,9 +40,9 @@ function compileSolFilesCommon(files: string[]): { result: unknown; compilerVers
   return solcOutput;
 }
 
-export function compileSolFiles(files: string[], printWarnings: boolean): AST {
+export function compileSolFiles(files: string[], options: CompilationOptions): AST {
   const solcOutput = compileSolFilesCommon(files);
-  printErrors(solcOutput.result, printWarnings, solcOutput.compilerVersion);
+  printErrors(solcOutput.result, options.warnings, solcOutput.compilerVersion);
   const reader = new ASTReader();
   const sourceUnits = reader.read(solcOutput.result);
 
@@ -100,6 +101,7 @@ function formatInput(fileNames: string[]): SolcInput {
 function cliCompile(
   input: SolcInput,
   solcVersion: string,
+  options?: CompilationOptions,
 ): { result: unknown; compilerVersion: string } {
   // Determine compiler version to use
   const nethersolcVersion: SupportedSolcVersions = solcVersion.startsWith('0.7.') ? `7` : `8`;
@@ -114,10 +116,20 @@ function cliCompile(
     const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
     allowedPaths = `--allow-paths ${currentDirectory}`;
   }
+  const includePathOptions =
+    options === undefined || options.includePaths === undefined
+      ? ''
+      : `--include-path ${options.includePaths.join(' --include-path ')}`;
+  const basePathOption =
+    options === undefined || options.basePath === undefined
+      ? ''
+      : `--base-path ${options.basePath}`;
+
+  const commandOptions = `--standard-json ${allowedPaths} ${includePathOptions} ${basePathOption}`;
 
   return {
     result: JSON.parse(
-      execSync(`${solcCommand} --standard-json ${allowedPaths}`, {
+      execSync(`${solcCommand} ${commandOptions}`, {
         input: JSON.stringify(input),
         maxBuffer: MAX_BUFFER_SIZE,
         stdio: ['pipe', 'pipe', 'ignore'],

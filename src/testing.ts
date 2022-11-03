@@ -296,7 +296,7 @@ function runSolFileTest(
 ): void {
   console.log(`Warping ${file}`);
   try {
-    transpile(compileSolFiles([file], false), { strict: true, dev: true }).forEach(
+    transpile(compileSolFiles([file], { warnings: false }), { strict: true, dev: true }).forEach(
       ([file, cairo]) => outputFileSync(`${file.slice(0, -4)}.cairo`, cairo),
     );
     results.set(manglePath(removeExtension(file)), 'Success');

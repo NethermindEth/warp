@@ -10,7 +10,7 @@ export function analyseSol(file: string, options: PrintOptions) {
 
   DefaultASTPrinter.applyOptions(options);
 
-  compileSolFiles([file], true).roots.forEach((root) => {
+  compileSolFiles([file], { warnings: true }).roots.forEach((root) => {
     console.log(`---${root.absolutePath}---`);
     console.log(DefaultASTPrinter.print(root));
   });
