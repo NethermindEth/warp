@@ -91,7 +91,7 @@ export function uint256TransformStructs(
       castReverseFunctionBody.push(
         reverseCastStatement(member.name, member.type, typeToStruct, `frm.${member.name}`),
       );
-      member.type = transformType(member.type, typeToStruct, structTuplesMap).type;
+      member.type = transformType(member.type, typeToStruct, structTuplesMap);
     });
 
     transformedStructs.push(item as StructAbiItemType);

@@ -112,9 +112,7 @@ export function getInteractiveFuncs(
             acc.push(`${INDENT}${input.name}_len: felt,`);
           }
           acc.push(
-            `${INDENT}${input.name}: ${
-              transformType(input.type, typeToStruct, structTuplesMap).type
-            },`,
+            `${INDENT}${input.name}: ${transformType(input.type, typeToStruct, structTuplesMap)},`,
           );
           return acc;
         }, []),
@@ -125,9 +123,11 @@ export function getInteractiveFuncs(
             acc.push(`${INDENT}${output.name}_len: felt,`);
           }
           acc.push(
-            `${INDENT}${output.name}: ${
-              transformType(output.type, typeToStruct, structTuplesMap).type
-            },`,
+            `${INDENT}${output.name}: ${transformType(
+              output.type,
+              typeToStruct,
+              structTuplesMap,
+            )},`,
           );
           return acc;
         }, []),

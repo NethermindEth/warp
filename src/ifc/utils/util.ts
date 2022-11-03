@@ -19,38 +19,39 @@ export function transformType(
   type: string,
   typeToStruct: Map<string, StructAbiItemType>,
   structToAdd?: Map<string, StructAbiItemType>,
-): { type: string } {
+): string {
   type = type.trim();
-  if (type === 'felt') return { type: 'Uint256' };
-  if (typeToStruct.has(type)) return { type: `${type}_uint256` };
+  if (type === 'felt') return 'Uint256';
+  if (typeToStruct.has(type)) return `${type}_uint256`;
   if (type.endsWith('*')) {
-    return { type: transformType(type.slice(0, -1), typeToStruct) + '*' };
+    return transformType(type.slice(0, -1), typeToStruct) + '*';
   }
   if (type.startsWith('(') && type.endsWith(')')) {
-    const subTypes = type.slice(1, -1).split(',');
+    const subTypes = type
+      .slice(1, -1)
+      .split(',')
+      .map((x) => x.trim());
     if (subTypes.every((subType) => subType === subTypes[0])) {
-      return {
-        type: `(${type
-          .slice(1, -1)
-          .split(',')
-          .map((x) => transformType(x, typeToStruct))
-          .join(',')})`,
-      };
+      return `(${type
+        .slice(1, -1)
+        .split(',')
+        .map((x) => transformType(x, typeToStruct))
+        .join(',')})`;
     }
-    const structName = `struct_${Buffer.from(type).toString('base64')}`;
+    const structName = `struct_${Buffer.from(type).toString('hex')}`;
     if (structToAdd !== undefined) {
       structToAdd.set(type, {
         name: structName,
         type: 'struct',
         members: subTypes.map((subType, index) => ({
           name: `member_${index}`,
-          type: transformType(subType, typeToStruct, structToAdd).type,
+          type: transformType(subType, typeToStruct, structToAdd),
         })),
       });
     }
-    return { type: structName };
+    return structName;
   }
-  return { type: type };
+  return type;
 }
 
 export function castStatement(
@@ -116,10 +117,39 @@ export function reverseCastStatement(
     }
     castBody.push(
       `${INDENT}let ${name} = ${
-        addedStruct?.has(type) ? `struct_${Buffer.from(type).toString('base64')}` : ``
+        addedStruct?.has(type) ? `struct_${Buffer.from(type).toString('hex')}` : ``
       }(${subTypes.map((_, i) => `${name}_${i}`).join(',')});`,
     );
     return castBody.join('\n');
   }
   return `${INDENT}let ${name} = ${varName ?? `${name}_cast_rev`};`;
 }
+
+export function tupleParser(tuple: string): string[] {
+  tuple = tuple.slice(1, -1).trim();
+  let subTuples: string[] = [];
+  let start = 0;
+  let end = 0;
+  let count = 0;
+  for (let i = 0; i < tuple.length; i++) {
+    if (tuple[i] === '(') {
+      count++;
+    } else if (tuple[i] === ')') {
+      count--;
+    } else if (tuple[i] === ',' && count === 0) {
+      end = i;
+      subTuples.push(tuple.slice(start, end));
+      start = i + 1;
+    }
+  }
+  subTuples.forEach((subTuple) => {
+    tuple.replace(subTuple, '');
+  });
+  const remainingTuples = tuple
+    .split(',')
+    .map((x) => x.trim())
+    .filter((x) => x !== '');
+  return [...subTuples, ...remainingTuples];
+}
+
+console.log(tupleParser('(felt, (felt, felt), (felt, (felt, felt)))'));

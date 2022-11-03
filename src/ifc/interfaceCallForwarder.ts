@@ -211,7 +211,7 @@ function getSolTypeName(
   ast: AST,
 ): TypeName {
   cairoType = cairoType.trim();
-  if (cairoType === 'Uint256') {
+  if (cairoType === 'Uint256' || cairoType === 'felt') {
     return createUint256TypeName(ast);
   }
   if (cairoType.endsWith('*')) {
@@ -258,7 +258,7 @@ function getParametersCairoType(
 ): VariableDeclaration[] {
   const parameters: VariableDeclaration[] = [];
   params.forEach((param: { name: string; type: string }) => {
-    const transformedType = transformType(param.type, typeToStructMap).type;
+    const transformedType = transformType(param.type, typeToStructMap);
     const solTypeName: TypeName = getSolTypeName(transformedType, structDefs, ast);
 
     if (solTypeName instanceof ArrayTypeName && solTypeName.vLength === undefined) {

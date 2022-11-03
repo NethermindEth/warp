@@ -29,9 +29,10 @@ let cairoContractAddress: string | undefined;
 let proxyCairoContractAddress: string | null;
 
 describe('contract.cairo should compile & deploy', function () {
+  this.timeout(TIME_LIMIT);
   it('contract.cairo should compile', async function () {
     await starknetCompile(cairoFile, contractJsonPath);
-  }).timeout(TIME_LIMIT);
+  });
   it('contract.cairo should deploy', async () => {
     const deployContractResult: DeployResponse | null = await deploy(contractJsonPath, []);
     expect(deployContractResult === null, 'Contract Deploy request failed').to.be.false;
@@ -39,23 +40,25 @@ describe('contract.cairo should compile & deploy', function () {
     expect(deployContractResult.contract_address, 'Contract Deploy request failed').to.not.be.null;
     if (deployContractResult.contract_address)
       cairoContractAddress = deployContractResult.contract_address;
-  }).timeout(TIME_LIMIT);
+  });
 });
 
 describe('Solidity & Cairo interface generation from cairo contract should succeed', function () {
+  this.timeout(TIME_LIMIT);
   it('should generate interface files', async function () {
     const { stdout, stderr } = await gen_interface(cairoFile, cairoContractAddress);
     expect(stdout).to.include(
       `Running starknet compile with cairoPath ${path.resolve(__dirname, '../..')}`,
     );
     expect(stderr).to.include('');
-  }).timeout(TIME_LIMIT);
+  });
 });
 
 describe('Cairo Proxy contract is valid and deployable', async function () {
+  this.timeout(TIME_LIMIT);
   it('cairo proxy contract should compile', async function () {
     await starknetCompile(interfaceCairoFile, transpiledInterfaceJsonPath);
-  }).timeout(TIME_LIMIT);
+  });
   it('cairo proxy contract should deploy', async function () {
     const deployContractResult: DeployResponse | null = await deploy(
       transpiledInterfaceJsonPath,
@@ -65,11 +68,12 @@ describe('Cairo Proxy contract is valid and deployable', async function () {
     expect(deployContractResult.threw, 'Contract Deploy request failed').to.be.false;
     expect(deployContractResult.contract_address, 'Contract Deploy request failed').to.not.be.null;
     proxyCairoContractAddress = deployContractResult.contract_address;
-  }).timeout(TIME_LIMIT);
+  });
 });
 
 describe('Interface solidity file should transpile', function () {
-  before(async function () {
+  this.timeout(TIME_LIMIT);
+  it('Add interactive contract', async function () {
     const interfaceSolFileContent = readFileSync(interfaceSolFile, 'utf-8');
 
     const newInterfaceSolFileContent = interfaceSolFileContent.concat(
@@ -100,16 +104,18 @@ describe('Interface solidity file should transpile', function () {
       fs.existsSync(interfaceTranspiledCairoFile),
       `Transpilation failed, cannot find output file`,
     ).to.be.true;
-  }).timeout(TIME_LIMIT);
+  });
 });
 
 describe('Transpiled interface solidity contract is valid', function () {
+  this.timeout(TIME_LIMIT);
   it('interface cairo file is valid', async function () {
     await starknetCompile(interfaceTranspiledCairoFile, transpiledInterfaceJsonPath);
-  }).timeout(TIME_LIMIT);
+  });
 });
 
 describe('Interaction between two cairo contracts', function () {
+  this.timeout(TIME_LIMIT);
   before('testnet is reachable', async function () {
     const testnetContactable = await ensureTestnetContactable(TIME_LIMIT);
     expect(testnetContactable, 'Failed to ping testnet').to.be.true;
@@ -132,7 +138,7 @@ describe('Interaction between two cairo contracts', function () {
       'Interface Contract Deploy request failed',
     ).to.not.be.null;
     interfaceContractAddress = deployInterfaceContractResult.contract_address;
-  }).timeout(TIME_LIMIT);
+  });
 
   it('interaction should succeed', async function () {
     if (interfaceContractAddress === null || proxyCairoContractAddress === null) this.skip();
@@ -168,10 +174,11 @@ describe('Interaction between two cairo contracts', function () {
     expect(response_sub.return_data, 'sub_b67d77c5 return value should match [1, 0]').to.deep.equal(
       ['1', '0'],
     );
-  }).timeout(TIME_LIMIT);
+  });
 });
 
 describe('Frivoulous file deletion', function () {
+  this.timeout(TIME_LIMIT);
   it('should delete files', async function () {
     const files = fs.readdirSync(testPath);
     for (const file of files) {
