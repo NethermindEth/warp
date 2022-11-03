@@ -71,13 +71,13 @@ jobs:
           sudo apt install -y gcc-11 gcc-11-multilib g++-11 g++-11-multilib
           gcc-11 --version
 
-      # - name: Test code compilation
-      #   run: make test_compilation
+      - name: Test code compilation
+        run: make test_compilation
 
       - name: Test code execution
         run: |
           yarn testnet:benchmark &
-          yarn test:forwarder
+          make test_execution
 
       - name: Save benchmarks in artifacts
         uses: actions/upload-artifact@v3

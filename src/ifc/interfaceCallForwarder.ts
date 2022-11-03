@@ -49,6 +49,7 @@ import {
   getFunctionItems,
   getStructsFromABI,
   transformType,
+  tupleParser,
   typeToStructMappping,
 } from './utils';
 import { safeCanonicalHash } from '../export';
@@ -219,13 +220,10 @@ function getSolTypeName(
     return createArrayTypeName(baseTypeName, ast);
   }
   if (cairoType.startsWith('(') && cairoType.endsWith(')')) {
-    const subTypes: string[] = cairoType
-      .slice(1, -1)
-      .split(',')
-      .map((type) => type.trim());
+    const subTypes: string[] = tupleParser(cairoType);
     // assert all subtypes are the same string
     // Since there is no way to represent a tuple in solidity,
-    // we will represent it as an array of the same type
+    // we will represent as an array for the same types and a struct for different types
     assert(
       subTypes.every((subType) => subType === subTypes[0]),
       'Tuple types must be homogeneous',

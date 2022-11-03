@@ -27,10 +27,7 @@ export function transformType(
     return transformType(type.slice(0, -1), typeToStruct) + '*';
   }
   if (type.startsWith('(') && type.endsWith(')')) {
-    const subTypes = type
-      .slice(1, -1)
-      .split(',')
-      .map((x) => x.trim());
+    const subTypes = tupleParser(type);
     if (subTypes.every((subType) => subType === subTypes[0])) {
       return `(${type
         .slice(1, -1)
@@ -69,7 +66,7 @@ export function castStatement(
     return `${INDENT}let ${name}_cast = cast(${varName ?? name}, ${type});`;
   }
   if (type.startsWith('(') && type.endsWith(')')) {
-    const subTypes = type.slice(1, -1).split(',');
+    const subTypes = tupleParser(type);
     const castBody = [];
     for (let i = 0; i < subTypes.length; i++) {
       castBody.push(
@@ -108,7 +105,7 @@ export function reverseCastStatement(
     )});`;
   }
   if (type.startsWith('(') && type.endsWith(')')) {
-    const subTypes = type.slice(1, -1).split(',');
+    const subTypes = tupleParser(type);
     const castBody = [];
     for (let i = 0; i < subTypes.length; i++) {
       castBody.push(
@@ -126,8 +123,9 @@ export function reverseCastStatement(
 }
 
 export function tupleParser(tuple: string): string[] {
-  tuple = tuple.slice(1, -1).trim();
-  let subTuples: string[] = [];
+  if (tuple.startsWith('(') && tuple.endsWith(')')) tuple = tuple.slice(1, -1).trim();
+  tuple = tuple + ',';
+  const subTypes: string[] = [];
   let start = 0;
   let end = 0;
   let count = 0;
@@ -138,18 +136,9 @@ export function tupleParser(tuple: string): string[] {
       count--;
     } else if (tuple[i] === ',' && count === 0) {
       end = i;
-      subTuples.push(tuple.slice(start, end));
+      subTypes.push(tuple.slice(start, end));
       start = i + 1;
     }
   }
-  subTuples.forEach((subTuple) => {
-    tuple.replace(subTuple, '');
-  });
-  const remainingTuples = tuple
-    .split(',')
-    .map((x) => x.trim())
-    .filter((x) => x !== '');
-  return [...subTuples, ...remainingTuples];
+  return subTypes.map((subType) => subType.trim());
 }
-
-console.log(tupleParser('(felt, (felt, felt), (felt, (felt, felt)))'));

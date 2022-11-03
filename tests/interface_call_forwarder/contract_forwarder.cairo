@@ -45,7 +45,7 @@ func add_771602f7 {syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     alloc_locals;
     let a_cast = a;
     let b_cast = b;
-    let (res_cast_rev) = Forwarder.add(0x01f9b8e125fe7b46f48430756a4b970d24bb87474b4ef1c38ff8e41c8e874b4f,a_cast,b_cast);
+    let (res_cast_rev) = Forwarder.add(0x04de3723f70bd1d1d62d48e8900fe81a5c411ec9eddd4d49b7f7e4fdff499007,a_cast,b_cast);
     let res = res_cast_rev;
     return (res,);
 }
@@ -59,7 +59,7 @@ func sub_b67d77c5 {syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     alloc_locals;
     let a_cast = a;
     let b_cast = b;
-    let (res_cast_rev) = Forwarder.sub(0x01f9b8e125fe7b46f48430756a4b970d24bb87474b4ef1c38ff8e41c8e874b4f,a_cast,b_cast);
+    let (res_cast_rev) = Forwarder.sub(0x04de3723f70bd1d1d62d48e8900fe81a5c411ec9eddd4d49b7f7e4fdff499007,a_cast,b_cast);
     let res = res_cast_rev;
     return (res,);
 }
