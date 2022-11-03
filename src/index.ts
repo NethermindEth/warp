@@ -80,8 +80,6 @@ program
     // We do the extra work here to make sure all the errors are printed out
     // for all files which are invalid.
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
-    const cairoSuffix = '.cairo';
-    const contractToHashMap = new Map<string, string>();
 
     const solcASTs = files.map((file) => ({
       file: file,
@@ -100,6 +98,8 @@ program
       });
     });
 
+    const cairoSuffix = '.cairo';
+    const contractToHashMap = new Map<string, string>();
     roots.forEach(({ file, ast }) => {
       if (files.length > 1) {
         console.log(`Compiling ${file}`);
