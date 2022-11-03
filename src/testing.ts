@@ -1,6 +1,6 @@
 import { CompileFailedError } from 'solc-typed-ast';
 import { findAllFiles, findCairoSourceFilePaths, findSolSourceFilePaths } from './io';
-import { compileSolFile } from './solCompile';
+import { compileSolFiles } from './solCompile';
 import { compileCairo } from './starknetCli';
 import { transpile } from './transpiler';
 import {
@@ -296,7 +296,7 @@ function runSolFileTest(
 ): void {
   console.log(`Warping ${file}`);
   try {
-    transpile(compileSolFile(file, { warnings: false }), { strict: true, dev: true }).forEach(
+    transpile(compileSolFiles([file], { warnings: false }), { strict: true, dev: true }).forEach(
       ([file, cairo]) => outputFileSync(`${file.slice(0, -4)}.cairo`, cairo),
     );
     results.set(manglePath(removeExtension(file)), 'Success');

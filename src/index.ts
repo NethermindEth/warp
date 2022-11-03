@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Command } from 'commander';
 import { createCairoFileName, isValidSolFile, outputResult } from './io';
-import { compileSolFile } from './solCompile';
+import { compileSolFiles } from './solCompile';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
 import {
@@ -81,59 +81,38 @@ program
     // for all files which are invalid.
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
 
-    const solcASTs = files.map((file) => ({
-      file: file,
-      ast: compileSolFile(file, options as CompilationOptions),
-    }));
-    // Every AST which is a subtree of another AST doesn't get picked
-    const roots = solcASTs.filter(({ ast }) => {
-      const files = ast.roots.map((sourceUnit) => sourceUnit.absolutePath);
-      //returns true if no other ast contains this one
-      return !solcASTs.some(({ ast: otherAST }) => {
-        if (otherAST === ast) return false;
-        const otherFiles = new Set<string>(
-          otherAST.roots.map((sourceUnit) => sourceUnit.absolutePath),
-        );
-        return files.every((f) => otherFiles.has(f));
-      });
-    });
-
     const cairoSuffix = '.cairo';
+    const ast = compileSolFiles(files, options);
     const contractToHashMap = new Map<string, string>();
-    roots.forEach(({ file, ast }) => {
-      if (files.length > 1) {
-        console.log(`Compiling ${file}`);
-      }
-      try {
-        transpile(ast, options)
-          .map(([name, cairo, abi]) => {
-            outputResult(name, cairo, options, cairoSuffix, abi);
-            return createCairoFileName(name, cairoSuffix);
-          })
-          .map((file) =>
-            postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
-          )
-          .forEach((file: string) => {
-            if (options.compileCairo) {
-              const { success, resultPath, abiPath } = compileCairo(
-                path.join(options.outputDir, file),
-                path.resolve(__dirname, '..'),
-                options,
-              );
-              if (!success) {
-                if (resultPath) {
-                  fs.unlinkSync(resultPath);
-                }
-                if (abiPath) {
-                  fs.unlinkSync(abiPath);
-                }
+    try {
+      transpile(ast, options)
+        .map(([name, cairo, abi]) => {
+          outputResult(name, cairo, options, cairoSuffix, abi);
+          return createCairoFileName(name, cairoSuffix);
+        })
+        .map((file) =>
+          postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
+        )
+        .forEach((file: string) => {
+          if (options.compileCairo) {
+            const { success, resultPath, abiPath } = compileCairo(
+              path.join(options.outputDir, file),
+              path.resolve(__dirname, '..'),
+              options,
+            );
+            if (!success) {
+              if (resultPath) {
+                fs.unlinkSync(resultPath);
+              }
+              if (abiPath) {
+                fs.unlinkSync(abiPath);
               }
             }
-          });
-      } catch (e) {
-        handleTranspilationError(e);
-      }
-    });
+          }
+        });
+    } catch (e) {
+      handleTranspilationError(e);
+    }
   });
 
 program
@@ -154,11 +133,9 @@ program
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
     try {
-      transform(compileSolFile(file, options as CompilationOptions), options).map(
-        ([name, solidity, _]) => {
-          outputResult(name, solidity, options, '_warp.sol');
-        },
-      );
+      transform(compileSolFiles([file], options), options).map(([name, solidity, _]) => {
+        outputResult(name, solidity, options, '_warp.sol');
+      });
     } catch (e) {
       handleTranspilationError(e);
     }
