@@ -177,14 +177,14 @@ describe('Interaction between two cairo contracts', function () {
   });
 });
 
-// describe('Frivoulous file deletion', function () {
-//   this.timeout(TIME_LIMIT);
-//   it('should delete files', async function () {
-//     const files = fs.readdirSync(testPath);
-//     for (const file of files) {
-//       if (file !== 'contract.cairo' && file !== 'interface_forwarder.test.ts') {
-//         fs.unlinkSync(`${testPath}/${file}`);
-//       }
-//     }
-//   });
-// });
+describe('Frivoulous file deletion', function () {
+  this.timeout(TIME_LIMIT);
+  it('should delete files', async function () {
+    const files = fs.readdirSync(testPath);
+    for (const file of files) {
+      if (file !== 'contract.cairo' && file !== 'interface_forwarder.test.ts') {
+        fs.unlinkSync(`${testPath}/${file}`);
+      }
+    }
+  });
+});
