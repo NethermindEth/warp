@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Command } from 'commander';
-import { createCairoFileName, isValidSolFile, outputResult } from './io';
+import { replaceSuffix, isValidSolFile, outputResult } from './io';
 import { compileSolFile } from './solCompile';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
@@ -80,8 +80,6 @@ program
     // We do the extra work here to make sure all the errors are printed out
     // for all files which are invalid.
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
-    const cairoSuffix = '.cairo';
-    const contractToHashMap = new Map<string, string>();
 
     const solcASTs = files.map((file) => ({
       file: file,
@@ -100,19 +98,25 @@ program
       });
     });
 
+    const contractToHashMap = new Map<string, string>();
     roots.forEach(({ file, ast }) => {
       if (files.length > 1) {
         console.log(`Compiling ${file}`);
       }
       try {
         transpile(ast, options)
-          .map(([name, cairo, abi]) => {
-            outputResult(name, cairo, options, cairoSuffix, abi);
-            return createCairoFileName(name, cairoSuffix);
+          .map(([cairoPath, cairo, abi]) => {
+            outputResult(cairoPath, cairo, options, abi);
+            return cairoPath;
           })
-          .map((file) =>
-            postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
-          )
+          .map((file) => {
+            return postProcessCairoFile(
+              file,
+              options.outputDir,
+              options.debugInfo,
+              contractToHashMap,
+            );
+          })
           .forEach((file: string) => {
             if (options.compileCairo) {
               const { success, resultPath, abiPath } = compileCairo(
@@ -156,7 +160,7 @@ program
     try {
       transform(compileSolFile(file, options as CompilationOptions), options).map(
         ([name, solidity, _]) => {
-          outputResult(name, solidity, options, '_warp.sol');
+          outputResult(replaceSuffix(name, '_warp.sol'), solidity, options);
         },
       );
     } catch (e) {

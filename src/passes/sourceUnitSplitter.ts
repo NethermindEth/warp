@@ -109,8 +109,12 @@ export function mangleFreeFilePath(path: string): string {
   return resolve(path, FREE_FILE_NAME);
 }
 
-export function mangleContractFilePath(path: string, contractName: string): string {
-  return resolve(path, contractName);
+export function mangleContractFilePath(
+  path: string,
+  contractName: string,
+  suffix: string = '.cairo',
+): string {
+  return resolve(path, contractName + suffix);
 }
 
 function getAllSourceUnitDefinitions(sourceUnit: SourceUnit) {

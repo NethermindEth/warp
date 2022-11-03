@@ -3,9 +3,9 @@ import * as path from 'path';
 import assert from 'assert';
 import { exec } from 'child_process';
 import { expect } from 'chai';
-import { hashFilename, reducePath } from '../src/utils/postCairoWrite';
+import { hashFilename } from '../src/utils/postCairoWrite';
 import { declare } from './testnetInterface';
-import { AsyncTest } from './behaviour/expectations/types';
+import { AsyncTest, OUTPUT_DIR } from './behaviour/expectations/types';
 
 interface AsyncTestCluster {
   asyncTest: AsyncTest;
@@ -36,7 +36,7 @@ export function starknetCompile(
   jsonOutputPath: string,
 ): Promise<{ stdout: string; stderr: string }> {
   return sh(
-    `${warpVenvPrefix} starknet-compile --cairo_path warp_output ${cairoPath} --output ${jsonOutputPath}`,
+    `${warpVenvPrefix} starknet-compile --cairo_path ${OUTPUT_DIR} ${cairoPath} --output ${jsonOutputPath}`,
   );
 }
 
@@ -125,31 +125,25 @@ export function hashToUint256(hash: string): [string, string] {
   return [low.toString(10), high.toString(10)];
 }
 
-const outputLocation = (fileLocation: string) =>
-  fileLocation.slice(0, -'.cairo'.length).concat('.json');
-
 export async function compileCluster(
   test: AsyncTestCluster,
 ): Promise<{ stdout: string; stderr: string }> {
   const graph = test.dependencies;
-  const root = test.asyncTest.cairo;
+  const root = removeOutputDir(test.asyncTest.cairo);
   const dependencies = graph.get(root);
   assert(dependencies !== undefined);
-  if (dependencies.length === 0) {
-    return starknetCompile(root, test.asyncTest.compiled);
-  }
 
   const declared = new Map<string, string>();
   for (const fileToDeclare of dependencies) {
     const declareHash = await compileDependencyGraph(fileToDeclare, graph, declared);
-    const fileLocationHash = hashFilename(reducePath(fileToDeclare, 'warp_output'));
+    const fileLocationHash = hashFilename(fileToDeclare);
     declared.set(fileLocationHash, declareHash);
   }
-  return starknetCompile(root, test.asyncTest.compiled);
+  return starknetCompile(path.join(OUTPUT_DIR, root), test.asyncTest.compiled);
 }
 
 // This is recursively compiling and declaring the needed files for the test.
-export async function compileDependencyGraph(
+async function compileDependencyGraph(
   root: string,
   graph: Map<string, string[]>,
   declared: Map<string, string>,
@@ -163,13 +157,24 @@ export async function compileDependencyGraph(
   if (dependencies !== undefined) {
     for (const fileToDeclare of dependencies) {
       const declaredHash = await compileDependencyGraph(fileToDeclare, graph, declared);
-      const fileLocationHash = hashFilename(reducePath(fileToDeclare, 'warp_output'));
+      const fileLocationHash = hashFilename(fileToDeclare);
       declared.set(fileLocationHash, declaredHash);
     }
   }
 
-  await starknetCompile(root, outputLocation(root));
-  const hash = await declare(outputLocation(root));
-  assert(!hash.threw, 'Hash threw');
+  const outputRoot = path.join(OUTPUT_DIR, root);
+  const compiledRoot = compileLocation(outputRoot);
+  await starknetCompile(outputRoot, compiledRoot);
+  const hash = await declare(compiledRoot);
+  assert(!hash.threw, `Error during declaration: ${hash.error_message}`);
   return hash.class_hash;
+}
+
+function compileLocation(fileLocation: string) {
+  return fileLocation.slice(0, -'.cairo'.length).concat('.json');
+}
+
+export function removeOutputDir(path: string) {
+  assert(path.startsWith(`${OUTPUT_DIR}/`), `Cannot remove output directory from ${path}`);
+  return path.slice(`${OUTPUT_DIR}/`.length);
 }

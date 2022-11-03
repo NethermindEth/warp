@@ -54,27 +54,23 @@ function evaluateDirectory(path: string, recurse: boolean): string[] {
   });
 }
 
-export function createCairoFileName(solidityPath: string, suffix: string): string {
-  const inputFileNameRoot = solidityPath.endsWith('.sol')
-    ? solidityPath.slice(0, -'.sol'.length)
-    : solidityPath;
-  return `${inputFileNameRoot}${suffix}`;
+export function replaceSuffix(filePath: string, suffix: string): string {
+  const parsedPath = path.parse(filePath);
+  return path.join(parsedPath.dir, `${parsedPath.name}${suffix}`);
 }
 
 export function outputResult(
-  solidityPath: string,
+  outputPath: string,
   code: string,
   options: OutputOptions & TranspilationOptions,
-  suffix: string,
   abi?: string,
 ): void {
-  const codeOutput = createCairoFileName(solidityPath, suffix);
   const codeWithABI = abi ? `${code}\n\n${solABIPrefix} ${abi}` : code;
   const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
   if (options.outputDir === undefined) {
     if (options.result) {
-      console.log(`//--- ${codeOutput} ---\n${code}\n//---`);
+      console.log(`//--- ${outputPath} ---\n${code}\n//---`);
     }
   } else {
     if (fs.existsSync(options.outputDir)) {
@@ -85,7 +81,7 @@ export function outputResult(
         );
       }
     }
-    const fullCodeOutPath = path.join(options.outputDir, codeOutput);
+    const fullCodeOutPath = path.join(options.outputDir, outputPath);
     fs.outputFileSync(fullCodeOutPath, codeWithABI);
     if (options.formatCairo || options.dev) {
       execSync(`${warpVenvPrefix} cairo-format -i ${fullCodeOutPath}`);

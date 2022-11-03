@@ -1,7 +1,10 @@
 import assert from 'assert';
+import path from 'path';
 import { manglePath } from '../../../src/passes/filePathMangler';
 import { mangleContractFilePath } from '../../../src/passes/sourceUnitSplitter';
 import { stringFlatten } from './utils';
+
+export const OUTPUT_DIR = 'warp_output';
 
 export class AsyncTest {
   constructor(
@@ -16,16 +19,16 @@ export class AsyncTest {
     return `${this.name}.sol`;
   }
   get cairo() {
-    return `warp_output/${mangleContractFilePath(
-      manglePath(this.name) + '.sol',
-      this.contract,
-    )}.cairo`;
+    return path.join(
+      `${OUTPUT_DIR}`,
+      `${mangleContractFilePath(manglePath(this.name) + '.sol', this.contract)}`,
+    );
   }
   get compiled() {
-    return `warp_output/${mangleContractFilePath(
-      manglePath(this.name) + '.sol',
-      this.contract,
-    )}.json`;
+    return path.join(
+      `${OUTPUT_DIR}`,
+      `${mangleContractFilePath(manglePath(this.name) + '.sol', this.contract, '.json')}`,
+    );
   }
 
   static fromSync(test: File): AsyncTest {
