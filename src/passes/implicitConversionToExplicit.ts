@@ -491,6 +491,12 @@ function pickLargerType(
     return typeA;
   }
 
+  if (typeA instanceof AddressType && typeB instanceof AddressType) {
+    // when pp() does not match, it means an address is payable and the other is
+    // not. Stay with the non payable one
+    return typeA.payable ? typeB : typeA;
+  }
+
   // Literals always need to be cast to match the other type
   if (typeA instanceof IntLiteralType) {
     if (typeB instanceof IntLiteralType) {
