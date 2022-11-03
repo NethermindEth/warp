@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   warp:
-    build:
-      dockerfile: Dockerfile.dev
-      context: .
+    build: .
     volumes:
       - .:/usr/src/warp
     links:
