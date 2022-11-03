@@ -24,16 +24,15 @@ export function transformType(
   if (type === 'felt') return 'Uint256';
   if (typeToStruct.has(type)) return `${type}_uint256`;
   if (type.endsWith('*')) {
-    return transformType(type.slice(0, -1), typeToStruct) + '*';
+    return transformType(type.slice(0, -1), typeToStruct, structToAdd) + '*';
   }
   if (type.startsWith('(') && type.endsWith(')')) {
     const subTypes = tupleParser(type);
     if (subTypes.every((subType) => subType === subTypes[0])) {
-      return `(${type
-        .slice(1, -1)
-        .split(',')
-        .map((x) => transformType(x, typeToStruct))
+      const ret = `(${subTypes
+        .map((subType) => transformType(subType, typeToStruct, structToAdd))
         .join(',')})`;
+      return ret;
     }
     const structName = `struct_${Buffer.from(type).toString('hex')}`;
     if (structToAdd !== undefined) {
@@ -52,18 +51,17 @@ export function transformType(
 }
 
 export function castStatement(
-  name: string,
+  lvar: string,
+  rvar: string,
   type: string,
   typeToStruct: Map<string, StructAbiItemType>,
-  varName?: string,
   addedStruct?: Map<string, StructAbiItemType>,
 ): string {
   type = type.trim();
-  if (type === 'felt') return `${INDENT}let (${name}_cast) = narrow_safe(${varName ?? name});`;
-  if (typeToStruct.has(type))
-    return `${INDENT}let (${name}_cast) = ${type}_cast(${varName ?? name});`;
+  if (type === 'felt') return `${INDENT}let (${lvar}) = narrow_safe(${rvar});`;
+  if (typeToStruct.has(type)) return `${INDENT}let (${lvar}) = ${type}_cast(${rvar});`;
   if (type.endsWith('*')) {
-    return `${INDENT}let ${name}_cast = cast(${varName ?? name}, ${type});`;
+    return `${INDENT}let ${lvar} = cast(${rvar}, ${type});`;
   }
   if (type.startsWith('(') && type.endsWith(')')) {
     const subTypes = tupleParser(type);
@@ -71,55 +69,55 @@ export function castStatement(
     for (let i = 0; i < subTypes.length; i++) {
       castBody.push(
         castStatement(
-          `${name}_${i}`,
+          `${lvar}_${i}`,
+          addedStruct?.has(type) ? `${rvar}.member_${i}` : `${rvar}[${i}]`,
           subTypes[i],
           typeToStruct,
-          addedStruct?.has(type) ? `${name}.member_${i}` : `${name}[${i}]`,
+          addedStruct,
         ),
       );
     }
-    castBody.push(
-      `${INDENT}let ${name}_cast = (${subTypes.map((_, i) => `${name}_${i}_cast`).join(',')});`,
-    );
+    castBody.push(`${INDENT}let ${lvar} = (${subTypes.map((_, i) => `${lvar}_${i}`).join(',')});`);
     return castBody.join('\n');
   }
-  return `${INDENT}let ${name}_cast = ${varName ?? name};`;
+  return `${INDENT}let ${lvar} = ${rvar};`;
 }
 
 export function reverseCastStatement(
-  name: string,
+  lvar: string,
+  rvar: string,
   type: string,
   typeToStruct: Map<string, StructAbiItemType>,
-  varName?: string,
   addedStruct?: Map<string, StructAbiItemType>,
 ): string {
   type = type.trim();
-  if (type === 'felt')
-    return `${INDENT}let (${name}) = felt_to_uint256(${varName ?? `${name}_cast_rev`});`;
-  if (typeToStruct.has(type))
-    return `${INDENT}let (${name}) = ${type}_cast_reverse(${varName ?? `${name}_cast_rev`});`;
+  if (type === 'felt') return `${INDENT}let (${lvar}) = felt_to_uint256(${rvar});`;
+  if (typeToStruct.has(type)) return `${INDENT}let (${lvar}) = ${type}_cast_reverse(${rvar});`;
   if (type.endsWith('*')) {
-    return `${INDENT}let ${name} = cast(${varName ?? `${name}_cast_rev`}, ${transformType(
-      type,
-      typeToStruct,
-    )});`;
+    return `${INDENT}let ${lvar} = cast(${rvar}, ${transformType(type, typeToStruct)});`;
   }
   if (type.startsWith('(') && type.endsWith(')')) {
     const subTypes = tupleParser(type);
     const castBody = [];
     for (let i = 0; i < subTypes.length; i++) {
       castBody.push(
-        reverseCastStatement(`${name}_${i}`, subTypes[i], typeToStruct, `${name}_cast_rev[${i}]`),
+        reverseCastStatement(
+          `${lvar}_${i}`,
+          `${rvar}[${i}]`,
+          subTypes[i],
+          typeToStruct,
+          addedStruct,
+        ),
       );
     }
     castBody.push(
-      `${INDENT}let ${name} = ${
+      `${INDENT}let ${lvar} = ${
         addedStruct?.has(type) ? `struct_${Buffer.from(type).toString('hex')}` : ``
-      }(${subTypes.map((_, i) => `${name}_${i}`).join(',')});`,
+      }(${subTypes.map((_, i) => `${lvar}_${i}`).join(',')});`,
     );
     return castBody.join('\n');
   }
-  return `${INDENT}let ${name} = ${varName ?? `${name}_cast_rev`};`;
+  return `${INDENT}let ${lvar} = ${rvar};`;
 }
 
 export function tupleParser(tuple: string): string[] {

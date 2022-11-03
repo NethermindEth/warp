@@ -137,7 +137,15 @@ export function getInteractiveFuncs(
           if (input.type.endsWith('*')) {
             acc.pop();
           }
-          acc.push(castStatement(input.name, input.type, typeToStruct, undefined, structTuplesMap));
+          acc.push(
+            castStatement(
+              input.name + '_cast',
+              input.name,
+              input.type,
+              typeToStruct,
+              structTuplesMap,
+            ),
+          );
           return acc;
         }, []),
         callToFunc,
@@ -148,9 +156,9 @@ export function getInteractiveFuncs(
           acc.push(
             reverseCastStatement(
               output.name,
+              output.name + '_cast_rev',
               output.type,
               typeToStruct,
-              undefined,
               structTuplesMap,
             ),
           );

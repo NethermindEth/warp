@@ -86,10 +86,22 @@ export function uint256TransformStructs(
 
     item.members.forEach((member: { name: string; offset?: number; type: string }) => {
       castFunctionBody.push(
-        castStatement(member.name, member.type, typeToStruct, `frm.${member.name}`),
+        castStatement(
+          member.name,
+          `frm.${member.name}`,
+          member.type,
+          typeToStruct,
+          structTuplesMap,
+        ),
       );
       castReverseFunctionBody.push(
-        reverseCastStatement(member.name, member.type, typeToStruct, `frm.${member.name}`),
+        reverseCastStatement(
+          member.name,
+          `frm.${member.name}`,
+          member.type,
+          typeToStruct,
+          structTuplesMap,
+        ),
       );
       member.type = transformType(member.type, typeToStruct, structTuplesMap);
     });
