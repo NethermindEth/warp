@@ -48,7 +48,7 @@ class YulTransformer {
       return new BinaryOperation(
         this.ast.reserveId(),
         node.src,
-        'uint256',
+        leftExpr.typeString,
         binary_ops[node.functionName.name],
         leftExpr,
         rightExpr,
