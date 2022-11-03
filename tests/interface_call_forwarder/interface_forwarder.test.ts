@@ -16,7 +16,7 @@ const interfaceCairoFile = `${path.resolve(
 const interfaceTranspiledCairoFile = `${path.resolve(__dirname, '../..')}/warp_output${path.resolve(
   __dirname,
   '..',
-)}/interface__call__forwarder/contract__WC__contract_forwarder.cairo`;
+)}/interface__call__forwarder/contract__WC__itr.cairo`;
 const contractJsonPath = `${path.resolve(__dirname, '..')}/interface_call_forwarder/contract.json`;
 const transpiledInterfaceJsonPath = `${path.resolve(
   __dirname,
@@ -80,7 +80,7 @@ describe('Interface solidity file should transpile', function () {
       [
         '\n',
         `contract itr{`,
-        `    address cairoContractAddress;`,
+        `    address public cairoContractAddress;`,
         `    constructor(address contractAddress) {`,
         `        cairoContractAddress = contractAddress;`,
         `    }`,
@@ -144,7 +144,7 @@ describe('Interaction between two cairo contracts', function () {
     if (interfaceContractAddress === null || proxyCairoContractAddress === null) this.skip();
     const cairo_contract_address = await invoke(
       interfaceContractAddress,
-      '__fwd_contract_address_5f4aa1ae',
+      'cairoContractAddress_b0da831b',
       [],
     );
     expect(cairo_contract_address.threw, 'Failed to get cairo contract address').to.be.false;
@@ -177,14 +177,14 @@ describe('Interaction between two cairo contracts', function () {
   });
 });
 
-describe('Frivoulous file deletion', function () {
-  this.timeout(TIME_LIMIT);
-  it('should delete files', async function () {
-    const files = fs.readdirSync(testPath);
-    for (const file of files) {
-      if (file !== 'contract.cairo' && file !== 'interface_forwarder.test.ts') {
-        fs.unlinkSync(`${testPath}/${file}`);
-      }
-    }
-  });
-});
+// describe('Frivoulous file deletion', function () {
+//   this.timeout(TIME_LIMIT);
+//   it('should delete files', async function () {
+//     const files = fs.readdirSync(testPath);
+//     for (const file of files) {
+//       if (file !== 'contract.cairo' && file !== 'interface_forwarder.test.ts') {
+//         fs.unlinkSync(`${testPath}/${file}`);
+//       }
+//     }
+//   });
+// });
