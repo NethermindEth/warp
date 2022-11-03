@@ -6,7 +6,7 @@ import {
   StructDefinition,
   VariableDeclaration,
 } from 'solc-typed-ast';
-import { resolve } from 'path';
+import { join } from 'path';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
@@ -106,7 +106,7 @@ function updateScope(nodes: readonly Scoped[], newScope: number): readonly Scope
 }
 
 export function mangleFreeFilePath(path: string): string {
-  return resolve(path, FREE_FILE_NAME);
+  return join(path, FREE_FILE_NAME);
 }
 
 export function mangleContractFilePath(
@@ -114,7 +114,7 @@ export function mangleContractFilePath(
   contractName: string,
   suffix = '.cairo',
 ): string {
-  return resolve(path, contractName + suffix);
+  return join(path, contractName + suffix);
 }
 
 function getAllSourceUnitDefinitions(sourceUnit: SourceUnit) {
