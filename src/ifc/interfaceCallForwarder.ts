@@ -262,8 +262,7 @@ function getParametersCairoType(
     if (solTypeName instanceof ArrayTypeName && solTypeName.vLength === undefined) {
       assert(
         parameters.length > 0 &&
-          (parameters[parameters.length - 1].name === param.name + '_len' ||
-            parameters[parameters.length - 1].name === param.name + '_size') &&
+          parameters[parameters.length - 1].name === param.name + '_len' &&
           parameters[parameters.length - 1].typeString === 'uint256',
         `Array argument "${param.name}" must be preceded by a length argument named "${param.name}_len" of type felt`,
       );

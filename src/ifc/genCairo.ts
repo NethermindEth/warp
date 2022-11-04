@@ -54,7 +54,7 @@ function getForwarderInterface(abi: AbiType): string[] {
     '@contract_interface',
     'namespace Forwarder {',
     ...abi.map((item: AbiItemType) => {
-      if (item.type === 'function') {
+      if (item.type === 'function' && item.stateMutability !== undefined) {
         return [
           `${INDENT}func ${item.name}(`,
           ...item.inputs.map((input: { name: string; type: string }) => {
@@ -92,7 +92,7 @@ export function getInteractiveFuncs(
   const expInpFunctionsMap: Map<string, string> = new Map();
 
   abi.forEach((item: AbiItemType) => {
-    if (item.type === 'function') {
+    if (item.type === 'function' && item.stateMutability !== undefined) {
       const decorator: string = item.stateMutability === 'view' ? '@view' : '@external';
 
       const callToFunc = `${INDENT}let (${item.outputs.reduce(
