@@ -21,7 +21,7 @@ export async function decodeOutputs(
   const outputSignatures = returnSignature.split(',');
 
   const outputNodes: ParamType[] = outputSignatures.map((os) => ParamType.from(os));
-  const outputs: string[] = rawOutputs ? rawOutputs : [];
+  const outputs: string[] = rawOutputs ?? [];
 
   return decode(outputNodes, outputs);
 }

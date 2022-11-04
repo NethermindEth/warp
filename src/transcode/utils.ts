@@ -22,9 +22,10 @@ export function getWidthInFeltsOf(type: ParamType): number {
     return 1;
   } else if (type.baseType.startsWith('bool')) {
     return 1;
-  } else if (/byte\d*$/.test(type.baseType)) {
+  } else if (/bytes\d*$/.test(type.baseType)) {
     const width = parseInt(type.baseType.slice(4), 10);
-    return width * 8;
+    if (width === 32) return 2;
+    return 1;
   } else if (type.baseType.startsWith('ufixed') || type.baseType.startsWith('fixed')) {
     throw new Error('Fixed types not supported by Warp');
   } else if (type.baseType.startsWith('bytes')) {
@@ -47,8 +48,6 @@ export function getWidthInFeltsOf(type: ParamType): number {
 }
 
 export function isPrimitiveParam(type: ParamType): boolean {
-  // because why use types in a sensible manner?
-  // indexed can be false or null for primitive types
   return type.arrayLength === null && type.components === null;
 }
 
@@ -122,10 +121,14 @@ function validateParam(param: unknown) {
     param.map(validateParam);
     return;
   }
-  if (param instanceof String) return;
-  if (param instanceof Number) return;
-  if (typeof param === 'string') return;
-  if (typeof param === 'number') return;
+  if (
+    param instanceof String ||
+    param instanceof Number ||
+    typeof param === 'string' ||
+    typeof param === 'number'
+  )
+    return;
+
   throw new CLIError('Input invalid');
 }
 
