@@ -1,4 +1,5 @@
 import { AbiType, AbiItemType, StructAbiItemType } from './abiTypes';
+import { externalInputCheckStatement } from './extInpCheck';
 import {
   castStatement,
   getStructDependencyGraph,
@@ -15,8 +16,14 @@ export function genCairoContract(abi: AbiType, contract_address: string | undefi
   const langDirective: string[] = getStarknetLangDirective();
   const structs: string[] = stringfyStructs(getStructDependencyGraph(abi));
   const forwarderInterface: string[] = getForwarderInterface(abi);
-  const [interactiveFuncs, imports, transformStructs, castFunctions, tupleStructs] =
-    getInteractiveFuncs(abi, contract_address);
+  const [
+    interactiveFuncs,
+    imports,
+    transformStructs,
+    castFunctions,
+    expInpFunctions,
+    tupleStructs,
+  ] = getInteractiveFuncs(abi, contract_address);
   return (
     langDirective.join('\n') +
     '\n\n// imports \n' +
@@ -31,6 +38,8 @@ export function genCairoContract(abi: AbiType, contract_address: string | undefi
     forwarderInterface.join('\n') +
     '\n\n//cast functions for structs \n' +
     castFunctions.join('\n') +
+    '\n\n// external input check functions\n' +
+    expInpFunctions.join('\n') +
     '\n\n//funtions to interact with given cairo contract\n' +
     interactiveFuncs.join('\n')
   );
@@ -66,7 +75,7 @@ function getForwarderInterface(abi: AbiType): string[] {
 export function getInteractiveFuncs(
   abi: AbiType,
   contract_address: string | undefined,
-): [string[], string[], StructAbiItemType[], string[], StructAbiItemType[]] {
+): [string[], string[], StructAbiItemType[], string[], string[], StructAbiItemType[]] {
   const structDependency = getStructDependencyGraph(abi);
   const typeToStruct = typeToStructMappping(structDependency);
   const [transformedStructs, transformedStructsFuncs, structTuplesMap] =
@@ -76,9 +85,12 @@ export function getInteractiveFuncs(
     'from starkware.cairo.common.uint256 import Uint256',
     'from starkware.cairo.common.cairo_builtins import HashBuiltin',
     'from warplib.maths.utils import felt_to_uint256, narrow_safe',
+    'from warplib.maths.external_input_check_ints import warp_external_input_check_int256',
   ];
 
   const interactiveFuncs: string[] = [];
+  const expInpFunctionsMap: Map<string, string> = new Map();
+
   abi.forEach((item: AbiItemType) => {
     if (item.type === 'function') {
       const decorator: string = item.stateMutability === 'view' ? '@view' : '@external';
@@ -133,6 +145,23 @@ export function getInteractiveFuncs(
         }, []),
         ') {',
         `${INDENT}alloc_locals;`,
+        `${INDENT}// check external input`,
+        ...item.inputs.reduce((acc: string[], input: { name: string; type: string }) => {
+          if (input.type.endsWith('*')) {
+            acc.pop();
+          }
+          acc.push(
+            externalInputCheckStatement(
+              input.name,
+              transformType(input.type, typeToStruct, structTuplesMap),
+              expInpFunctionsMap,
+              typeToStructMappping(transformedStructs),
+              structTuplesMap,
+            ),
+          );
+          return acc;
+        }, []),
+        `${INDENT}// cast inputs`,
         ...item.inputs.reduce((acc: string[], input: { name: string; type: string }) => {
           if (input.type.endsWith('*')) {
             acc.pop();
@@ -148,7 +177,9 @@ export function getInteractiveFuncs(
           );
           return acc;
         }, []),
+        `${INDENT}// call cairo contract function`,
         callToFunc,
+        `${INDENT}// cast outputs`,
         ...item.outputs.reduce((acc: string[], output: { name: string; type: string }) => {
           if (output.type.endsWith('*')) {
             acc.pop();
@@ -174,6 +205,7 @@ export function getInteractiveFuncs(
     imports,
     transformedStructs,
     transformedStructsFuncs,
+    [...expInpFunctionsMap.values()],
     [...structTuplesMap.values()],
   ];
 }

@@ -1,4 +1,5 @@
 import { AbiItemType, StructAbiItemType } from '../abiTypes';
+import keccak from 'keccak';
 import { INDENT } from '../genCairo';
 
 export function stringfyStructs(structs: StructAbiItemType[]): string[] {
@@ -34,7 +35,7 @@ export function transformType(
         .join(',')})`;
       return ret;
     }
-    const structName = `struct_${Buffer.from(type).toString('hex')}`;
+    const structName = `struct_${hashType(type)}`;
     if (structToAdd !== undefined) {
       structToAdd.set(type, {
         name: structName,
@@ -111,9 +112,9 @@ export function reverseCastStatement(
       );
     }
     castBody.push(
-      `${INDENT}let ${lvar} = ${
-        addedStruct?.has(type) ? `struct_${Buffer.from(type).toString('hex')}` : ``
-      }(${subTypes.map((_, i) => `${lvar}_${i}`).join(',')});`,
+      `${INDENT}let ${lvar} = ${addedStruct?.has(type) ? `struct_${hashType(type)}` : ``}(${subTypes
+        .map((_, i) => `${lvar}_${i}`)
+        .join(',')});`,
     );
     return castBody.join('\n');
   }
@@ -139,4 +140,9 @@ export function tupleParser(tuple: string): string[] {
     }
   }
   return subTypes.map((subType) => subType.trim());
+}
+
+export function hashType(type: string) {
+  // first 4 bytes keccak256 hash of type
+  return keccak('keccak256').update(type).digest('hex').slice(0, 8);
 }
