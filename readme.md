@@ -37,9 +37,9 @@ export LDFLAGS=-L`brew --prefix gmp`/lib
 sudo apt install libz3-dev libgmp3-dev
 ```
 
-2. Have Python 3.9 installed with the virtualenv ([`venv`](https://docs.python.org/3/library/venv.html)) module in your base env.
-
-<br>
+2. Install Python3.9 with dev dependencies (`python3.9 python3.9-venv python3.9-dev`) into your base env.
+   If you do not have the dev dependencies installed the installation will fail.
+   <br>
 
 ### Warp Installation Method 1:
 
