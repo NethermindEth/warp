@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish } from 'ethers';
-import { ParamType, Result } from 'ethers/lib/utils';
+import { ParamType, Result, FunctionFragment } from 'ethers/lib/utils';
 import {
   isPrimitiveParam,
   twosComplementToBigInt,
@@ -17,10 +17,10 @@ export async function decodeOutputs(
 ): Promise<Result> {
   const solABI = parseSolAbi(filePath);
 
-  const [, returnSignature] = await selectSignature(solABI, func);
-  const outputSignatures = returnSignature.split(',');
+  const [funcSignature, returnSignature] = await selectSignature(solABI, func);
 
-  const outputNodes: ParamType[] = outputSignatures.map((os) => ParamType.from(os));
+  const outputNodes: ParamType[] =
+    FunctionFragment.fromString(`${funcSignature} returns (${returnSignature})`).outputs ?? [];
   const outputs: string[] = rawOutputs ?? [];
 
   return decode(outputNodes, outputs);
