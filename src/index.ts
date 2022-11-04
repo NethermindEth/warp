@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Command } from 'commander';
-import { createCairoFileName, isValidSolFile, outputResult } from './io';
+import { replaceSuffix, isValidSolFile, outputResult } from './io';
 import { compileSolFiles } from './solCompile';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
@@ -81,14 +81,13 @@ program
     // for all files which are invalid.
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
 
-    const cairoSuffix = '.cairo';
     const ast = compileSolFiles(files, options);
     const contractToHashMap = new Map<string, string>();
     try {
       transpile(ast, options)
         .map(([name, cairo, abi]) => {
-          outputResult(name, cairo, options, cairoSuffix, abi);
-          return createCairoFileName(name, cairoSuffix);
+          outputResult(name, cairo, options, abi);
+          return name;
         })
         .map((file) =>
           postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
@@ -134,7 +133,7 @@ program
     if (!isValidSolFile(file)) return;
     try {
       transform(compileSolFiles([file], options), options).map(([name, solidity, _]) => {
-        outputResult(name, solidity, options, '_warp.sol');
+        outputResult(replaceSuffix(name, '_warp.sol'), solidity, options);
       });
     } catch (e) {
       handleTranspilationError(e);
