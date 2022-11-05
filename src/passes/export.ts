@@ -6,7 +6,7 @@ export * from './importDirectiveIdentifier';
 export * from './builtinHandler/export';
 export * from './loopFunctionaliser/export';
 export * from './replaceIdentifierContractMemberAccess';
-export * from './ifFunctionaliser';
+export * from './ifStatementTempVarPostpender';
 export * from './identityFunctionRemover';
 export * from './ReturnVariableInitializer';
 export * from './argBoundChecker';
