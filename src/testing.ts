@@ -13,7 +13,6 @@ import { groupBy, printCompileErrors } from './utils/utils';
 import * as fs from 'fs';
 import { outputFileSync } from 'fs-extra';
 import { error } from './utils/formatting';
-import { manglePath } from './passes/filePathMangler';
 
 type ResultType =
   | 'CairoCompileFailed'
@@ -248,7 +247,7 @@ const expectedResults = new Map<string, ResultType>(
     ],
     ['example_contracts/this_at_constructor/valid_this_use_at_constructor.sol', 'Success'],
   ].map(([key, result]) => {
-    return [manglePath(key), result] as [string, ResultType];
+    return [key, result] as [string, ResultType];
   }),
 );
 
@@ -257,10 +256,12 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe = false, e
   if (force) {
     postTestCleanup();
   } else if (!preTestChecks()) return;
+  console.log('findSolSourceFilePaths');
   findSolSourceFilePaths('example_contracts', true).forEach((file) =>
     runSolFileTest(file, results, onlyResults, unsafe),
   );
-  findCairoSourceFilePaths('example__contracts', true).forEach((file) => {
+  console.log('findCairoSourceFilePaths');
+  findCairoSourceFilePaths(path.join('warp_test', 'example_contracts'), true).forEach((file) => {
     runCairoFileTest(file, results, onlyResults);
   });
   const testsWithUnexpectedResults = getTestsWithUnexpectedResults(results);
@@ -276,12 +277,12 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe = false, e
 }
 
 function preTestChecks(): boolean {
-  if (!checkNoCairo('example__contracts')) {
-    console.log('Please remove example__contracts, or run with -f to delete it');
+  if (!checkNoCairo(path.join('warp_test', 'example_contracts'))) {
+    console.log('Please remove example_contracts, or run with -f to delete it');
     return false;
   }
-  if (!checkNoJson('example__contracts')) {
-    console.log('Please remove example__contracts, or run with -f to delete it');
+  if (!checkNoJson(path.join('warp_test', 'example_contracts'))) {
+    console.log('Please remove example_contracts, or run with -f to delete it');
     return false;
   }
   if (!checkNoJson('warplib')) {
@@ -298,10 +299,10 @@ function runSolFileTest(
   unsafe: boolean,
 ): void {
   console.log(`Warping ${file}`);
-  const mangledPath = manglePath(file);
+  const mangledPath = file;
   try {
     transpile(compileSolFiles([file], { warnings: false }), { strict: true, dev: true }).forEach(
-      ([file, cairo]) => outputFileSync(file, cairo),
+      ([file, cairo]) => outputFileSync(path.join('warp_test', file), cairo),
     );
     results.set(mangledPath, 'Success');
   } catch (e) {
@@ -410,7 +411,7 @@ function checkNoJson(path: string): boolean {
 
 function postTestCleanup(): void {
   deleteJson('warplib');
-  fs.rmSync('example__contracts', { recursive: true, force: true });
+  fs.rmSync(path.join('warp_test', 'example_contracts'), { recursive: true, force: true });
 }
 
 function deleteJson(path: string): void {

@@ -6,10 +6,6 @@ import { WillNotSupportError } from '../utils/errors';
 
 const PATH_REGEX = /^[\w-@/\\]*$/;
 
-export function manglePath(path: string): string {
-  return path.replaceAll('_', '__').replaceAll('-', '_');
-}
-
 export function checkPath(path: string) {
   const pathWithoutExtension = path.substring(0, path.length - '.sol'.length);
   if (!PATH_REGEX.test(pathWithoutExtension)) {
@@ -27,7 +23,7 @@ export class FilePathMangler extends ASTMapper {
   }
 
   visitImportDirective(node: ImportDirective, _: AST): void {
-    node.absolutePath = manglePath(node.absolutePath);
+    node.absolutePath = node.absolutePath;
   }
 
   visitSourceUnit(node: SourceUnit, ast: AST): void {
