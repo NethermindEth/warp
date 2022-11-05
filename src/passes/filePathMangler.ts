@@ -1,4 +1,4 @@
-import { ImportDirective, SourceUnit } from 'solc-typed-ast';
+import { SourceUnit } from 'solc-typed-ast';
 
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';

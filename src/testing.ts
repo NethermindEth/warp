@@ -247,7 +247,7 @@ const expectedResults = new Map<string, ResultType>(
     ],
     ['example_contracts/this_at_constructor/valid_this_use_at_constructor.sol', 'Success'],
   ].map(([key, result]) => {
-    return [key, result] as [string, ResultType];
+    return [path.join('warp_test', key), result] as [string, ResultType];
   }),
 );
 
@@ -256,11 +256,9 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe = false, e
   if (force) {
     postTestCleanup();
   } else if (!preTestChecks()) return;
-  console.log('findSolSourceFilePaths');
   findSolSourceFilePaths('example_contracts', true).forEach((file) =>
     runSolFileTest(file, results, onlyResults, unsafe),
   );
-  console.log('findCairoSourceFilePaths');
   findCairoSourceFilePaths(path.join('warp_test', 'example_contracts'), true).forEach((file) => {
     runCairoFileTest(file, results, onlyResults);
   });
@@ -278,11 +276,11 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe = false, e
 
 function preTestChecks(): boolean {
   if (!checkNoCairo(path.join('warp_test', 'example_contracts'))) {
-    console.log('Please remove example_contracts, or run with -f to delete it');
+    console.log('Please remove warp_test/example_contracts, or run with -f to delete it');
     return false;
   }
   if (!checkNoJson(path.join('warp_test', 'example_contracts'))) {
-    console.log('Please remove example_contracts, or run with -f to delete it');
+    console.log('Please remove warp_test/example_contracts, or run with -f to delete it');
     return false;
   }
   if (!checkNoJson('warplib')) {
@@ -299,7 +297,7 @@ function runSolFileTest(
   unsafe: boolean,
 ): void {
   console.log(`Warping ${file}`);
-  const mangledPath = file;
+  const mangledPath = path.join('warp_test', file);
   try {
     transpile(compileSolFiles([file], { warnings: false }), { strict: true, dev: true }).forEach(
       ([file, cairo]) => outputFileSync(path.join('warp_test', file), cairo),

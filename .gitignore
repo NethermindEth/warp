@@ -135,8 +135,6 @@ solc-v0.7.6
 # output from warp
 warp_output/
 warp_test/
-warp_test/**/*.cairo
-warp_test/**/*.json
 
 #benchmark
 benchmark/*
