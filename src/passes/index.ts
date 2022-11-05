@@ -23,7 +23,7 @@ export * from './functionTypeStringMatcher';
 export * from './generateGetters';
 export * from './identifierManglerPass';
 export * from './identityFunctionRemover';
-export * from './ifFunctionaliser';
+export * from './ifStatementTempVarPostpender';
 export * from './implicitConversionToExplicit';
 export * from './importDirectiveIdentifier';
 export * from './inheritanceInliner/inheritanceInliner';

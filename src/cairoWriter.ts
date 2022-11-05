@@ -80,6 +80,7 @@ import {
   CairoFunctionDefinition,
   FunctionStubKind,
 } from './ast/cairoNodes';
+import { CairoTempVar } from './ast/cairoNodes/tempvar';
 import { getStructsAndRemappings } from './freeStructWritter';
 import { printNode } from './utils/astPrinter';
 import { CairoDynArray, CairoType, TypeConversionContext } from './utils/cairoTypeSystem';
@@ -708,6 +709,12 @@ class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   }
 }
 
+class CairoTempVarWriter extends CairoASTNodeWriter {
+  writeInner(node: CairoTempVar, _writer: ASTWriter): SrcDesc {
+    return [`tempvar ${node.name} = ${node.name};`];
+  }
+}
+
 class BlockWriter extends CairoASTNodeWriter {
   writeInner(node: Block, writer: ASTWriter): SrcDesc {
     const documentation = getDocumentation(node.documentation, writer);
@@ -1074,6 +1081,7 @@ export const CairoASTMapping = (ast: AST, throwOnUnimplemented: boolean) =>
     [CairoAssert, new CairoAssertWriter(ast, throwOnUnimplemented)],
     [CairoContract, new CairoContractWriter(ast, throwOnUnimplemented)],
     [CairoFunctionDefinition, new CairoFunctionDefinitionWriter(ast, throwOnUnimplemented)],
+    [CairoTempVar, new CairoTempVarWriter(ast, throwOnUnimplemented)],
     [Conditional, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [Continue, new NotImplementedWriter(ast, throwOnUnimplemented)],
     [DoWhileStatement, new NotImplementedWriter(ast, throwOnUnimplemented)],

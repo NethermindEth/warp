@@ -66,6 +66,7 @@ import {
 import { pp } from 'solc-typed-ast/dist/misc/index';
 import { AST } from '../ast/ast';
 import { CairoAssert } from '../ast/cairoNodes';
+import { CairoTempVar } from '../ast/cairoNodes/tempvar';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from './astPrinter';
 import { safeGetNodeType } from './nodeTypeProcessing';
@@ -669,6 +670,8 @@ export function checkSane(unit: SourceUnit, ctx: ASTContext): void {
       checkDirectChildren(node, 'vSubExpression');
     } else if (node instanceof CairoAssert) {
       checkDirectChildren(node, 'vExpression');
+    } else if (node instanceof CairoTempVar) {
+      // TODO make sure vars are live after and declared before
     } else {
       throw new Error(`Unknown ASTNode type ${node.constructor.name}`);
     }
