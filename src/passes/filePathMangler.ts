@@ -33,6 +33,5 @@ export class FilePathMangler extends ASTMapper {
   visitSourceUnit(node: SourceUnit, ast: AST): void {
     checkPath(node.absolutePath);
     this.commonVisit(node, ast);
-    node.absolutePath = manglePath(node.absolutePath);
   }
 }
