@@ -22,10 +22,6 @@ export class FilePathMangler extends ASTMapper {
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
-  visitImportDirective(node: ImportDirective, _: AST): void {
-    node.absolutePath = node.absolutePath;
-  }
-
   visitSourceUnit(node: SourceUnit, ast: AST): void {
     checkPath(node.absolutePath);
     this.commonVisit(node, ast);
