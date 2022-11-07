@@ -13,6 +13,7 @@ import {
   Expression,
   ExpressionStatement,
   VariableDeclaration,
+  UncheckedBlock,
 } from 'solc-typed-ast';
 import assert from 'assert';
 
@@ -95,7 +96,7 @@ export class InlineAssemblyTransformer extends ASTMapper {
       ast.setContextRecursive(astNode);
       return astNode;
     });
-    let block: Block = new Block(ast.reserveId(), node.yul!.src, statements);
+    let block: Block = new UncheckedBlock(ast.reserveId(), node.yul!.src, statements);
 
     ast.replaceNode(node, block);
 
