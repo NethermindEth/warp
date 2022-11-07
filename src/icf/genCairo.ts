@@ -6,7 +6,7 @@ import {
   reverseCastStatement,
   stringfyStructs,
   transformType,
-  typeToStructMappping,
+  typeToStructMapping,
   uint256TransformStructs,
 } from './utils';
 
@@ -54,7 +54,7 @@ function getForwarderInterface(abi: AbiType): string[] {
     '@contract_interface',
     'namespace Forwarder {',
     ...abi.map((item: AbiItemType) => {
-      if (item.type === 'function' && item.stateMutability !== undefined) {
+      if (item.type === 'function' && item.name !== '__default__') {
         return [
           `${INDENT}func ${item.name}(`,
           ...item.inputs.map((input: { name: string; type: string }) => {
@@ -77,7 +77,7 @@ export function getInteractiveFuncs(
   contract_address: string | undefined,
 ): [string[], string[], StructAbiItemType[], string[], string[], StructAbiItemType[]] {
   const structDependency = getStructDependencyGraph(abi);
-  const typeToStruct = typeToStructMappping(structDependency);
+  const typeToStruct = typeToStructMapping(structDependency);
   const [transformedStructs, transformedStructsFuncs, structTuplesMap] =
     uint256TransformStructs(structDependency);
 
@@ -92,7 +92,7 @@ export function getInteractiveFuncs(
   const expInpFunctionsMap: Map<string, string> = new Map();
 
   abi.forEach((item: AbiItemType) => {
-    if (item.type === 'function' && item.stateMutability !== undefined) {
+    if (item.type === 'function' && item.stateMutability !== '__default__') {
       const decorator: string = item.stateMutability === 'view' ? '@view' : '@external';
 
       const callToFunc = `${INDENT}let (${item.outputs.reduce(
@@ -155,7 +155,7 @@ export function getInteractiveFuncs(
               input.name,
               transformType(input.type, typeToStruct, structTuplesMap),
               expInpFunctionsMap,
-              typeToStructMappping(transformedStructs),
+              typeToStructMapping(transformedStructs),
               structTuplesMap,
             ),
           );

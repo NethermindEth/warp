@@ -75,6 +75,5 @@ export function externalInputCheckStatement(
     throw new Error('Heterogeneous tuples are should be wrapped in a struct');
   }
   assert(type === 'felt', `Unknown type for external Input Check: ${type}`);
-  console.log(input, type);
   return ';';
 }

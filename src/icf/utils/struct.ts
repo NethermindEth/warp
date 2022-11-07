@@ -52,7 +52,7 @@ function visitStructItemNode(
 
 export function getStructDependencyGraph(abi: AbiType): StructAbiItemType[] {
   const visitedStructItem: Map<StructAbiItemType, boolean> = new Map();
-  const typeToStruct: Map<string, StructAbiItemType> = typeToStructMappping(getStructsFromABI(abi));
+  const typeToStruct: Map<string, StructAbiItemType> = typeToStructMapping(getStructsFromABI(abi));
   const result: StructAbiItemType[] = [];
 
   abi.forEach((item: AbiItemType) => {
@@ -63,7 +63,7 @@ export function getStructDependencyGraph(abi: AbiType): StructAbiItemType[] {
   return result;
 }
 
-export function typeToStructMappping(structs: StructAbiItemType[]): Map<string, StructAbiItemType> {
+export function typeToStructMapping(structs: StructAbiItemType[]): Map<string, StructAbiItemType> {
   const result: Map<string, StructAbiItemType> = new Map();
   structs.forEach((item: StructAbiItemType) => {
     result.set(item.name, item);
@@ -74,7 +74,7 @@ export function typeToStructMappping(structs: StructAbiItemType[]): Map<string, 
 export function uint256TransformStructs(
   structDependency: StructAbiItemType[],
 ): [StructAbiItemType[], string[], Map<string, StructAbiItemType>] {
-  const typeToStruct = typeToStructMappping(structDependency);
+  const typeToStruct = typeToStructMapping(structDependency);
   const transformedStructs: StructAbiItemType[] = [];
   const transformedStructsFuncs: string[] = [];
   const structTuplesMap: Map<string, StructAbiItemType> = new Map();

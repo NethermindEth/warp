@@ -16,6 +16,13 @@ export function stringfyStructs(structs: StructAbiItemType[]): string[] {
     });
 }
 
+/**
+ *
+ * @param type
+ * @param typeToStruct
+ * @param structToAdd
+ * @returns
+ */
 export function transformType(
   type: string,
   typeToStruct: Map<string, StructAbiItemType>,
