@@ -45,7 +45,7 @@ const PATH_REGEX = /^[\w-@/\\]*$/;
 
 export function checkPath(path: string): boolean {
   const pathWithoutExtension = path.substring(0, path.length - '.sol'.length);
-  return PATH_REGEX.test(pathWithoutExtension);
+  return !PATH_REGEX.test(pathWithoutExtension);
 }
 
 export class RejectUnsupportedFeatures extends ASTMapper {
