@@ -38,7 +38,7 @@ export * from './rejectUnsupportedFeatures';
 export * from './rejectPrefix';
 export * from './replaceIdentifierContractMemberAccess';
 export * from './returnInserter';
-export * from './ReturnVariableInitializer';
+export * from './returnVariableInitializer';
 export * from './shortCircuitToConditional';
 export * from './sourceUnitSplitter';
 export * from './staticArrayIndexer';
