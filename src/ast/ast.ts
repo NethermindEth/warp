@@ -19,7 +19,6 @@ import {
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { CairoUtilFuncGen } from '../cairoUtilFuncGen';
-import { SolcOutput } from '../solCompile';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { Implicits } from '../utils/implicits';
@@ -51,7 +50,6 @@ import { CairoFunctionDefinition } from './cairoNodes';
 export class AST {
   // SourceUnit id -> CairoUtilFuncGen
   private cairoUtilFuncGen: Map<number, CairoUtilFuncGen> = new Map();
-  // TODO we can delete this stuff below
   // SourceUnit id -> function signatures
   abi: Map<number, Set<string>> = new Map();
 
@@ -61,11 +59,7 @@ export class AST {
 
   readonly tempId = -1;
 
-  constructor(
-    public roots: SourceUnit[],
-    public compilerVersion: string,
-    public solidityABI: SolcOutput['result'],
-  ) {
+  constructor(public roots: SourceUnit[], public compilerVersion: string) {
     assert(
       roots.length > 0,
       'An ast must have at least one root so that the context can be set correctly',

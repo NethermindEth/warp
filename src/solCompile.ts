@@ -18,7 +18,7 @@ import { error } from './utils/formatting';
 // size to the largest possible
 const MAX_BUFFER_SIZE = Number.MAX_SAFE_INTEGER;
 
-function compileSolFilesCommon(files: string[]): SolcOutput {
+function compileSolFilesCommon(files: string[]): { result: unknown; compilerVersion: string } {
   const sources = files.map((file) => {
     return getSolFileVersion(file);
   });
@@ -46,7 +46,7 @@ export function compileSolFiles(files: string[], options: CompilationOptions): A
   const reader = new ASTReader();
   const sourceUnits = reader.read(solcOutput.result);
 
-  return new AST(sourceUnits, solcOutput.compilerVersion, solcOutput.result);
+  return new AST(sourceUnits, solcOutput.compilerVersion);
 }
 
 const supportedVersions = ['0.8.14', '0.7.6'];
@@ -98,29 +98,11 @@ function formatInput(fileNames: string[]): SolcInput {
   };
 }
 
-export type SolcOutput = {
-  result: {
-    contracts: {
-      [path: string]: {
-        [contract: string]: {
-          abi: [{ [key: string]: string }];
-        };
-      };
-    };
-    sources: {
-      [path: string]: {
-        ast: [{ [key: string]: string }];
-      };
-    };
-  };
-  compilerVersion: string;
-};
-
 function cliCompile(
   input: SolcInput,
   solcVersion: string,
   options?: CompilationOptions,
-): SolcOutput {
+): { result: unknown; compilerVersion: string } {
   // Determine compiler version to use
   const nethersolcVersion: SupportedSolcVersions = solcVersion.startsWith('0.7.') ? `7` : `8`;
   const solcCommand = nethersolcPath(nethersolcVersion);

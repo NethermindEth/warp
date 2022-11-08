@@ -15,6 +15,7 @@ export * from './expressionSplitter';
 export * from './externalArgModifier';
 export * from './externalContractHandler';
 export * from './argBoundChecker';
+export * from './filePathMangler';
 export * from './freeFunctionInliner';
 export * from './functionModifierHandler';
 export * from './functionPruner';
