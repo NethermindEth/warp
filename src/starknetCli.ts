@@ -13,6 +13,7 @@ import { CLIError, logError } from './utils/errors';
 import { callClassHashScript } from './utils/utils';
 import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
+import { decodedOutputToString } from './transcode/utils';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
@@ -217,9 +218,12 @@ export async function runStarknetCallOrInvoke(
     ).toString('utf-8');
 
     if (isCall && !options.use_cairo_abi) {
-      warpOutput = (
-        await decodeOutputs(filePath, options.function, warpOutput.toString().split(' '))
-      ).toString();
+      let decodedOutputs = await decodeOutputs(
+        filePath,
+        options.function,
+        warpOutput.toString().split(' '),
+      );
+      warpOutput = decodedOutputToString(decodedOutputs);
     }
     console.log(warpOutput);
   } catch {
