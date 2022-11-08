@@ -171,7 +171,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
   printAST(ast, options);
 
   // Reject code that contains identifiers starting with certain patterns
-  ast = RejectPrefix.map(ast);
+  RejectPrefix.map(ast);
 
   const finalAst = passesInOrder.reduce((ast, mapper) => {
     const newAst = mapper.map(ast);
