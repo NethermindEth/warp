@@ -203,5 +203,5 @@ export function decodedOutputToString(output: Result): string {
     outputs.push(output[counter.toString()].map((val: any) => val.toString()).join(' '));
     counter += 1;
   }
-  return outputs.join(', ');
+  return outputs.join(' ');
 }
