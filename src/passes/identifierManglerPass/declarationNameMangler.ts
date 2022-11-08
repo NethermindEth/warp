@@ -120,7 +120,9 @@ export class DeclarationNameMangler extends ASTMapper {
   }
 
   mangleVariableDeclaration(node: VariableDeclaration): void {
-    if (node.name === '') node.name = this.createNewVariableName(node.name);
+    if (reservedTerms.has(node.name) || node.name === '')
+      node.name = this.createNewVariableName(node.name);
+    checkSourceTerms(node.name, node);
   }
 
   mangleStructDefinition(node: StructDefinition): void {
