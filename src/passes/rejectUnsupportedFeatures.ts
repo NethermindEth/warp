@@ -25,6 +25,7 @@ import {
   parseSourceLocation,
   PointerType,
   RevertStatement,
+  SourceUnit,
   StructDefinition,
   TryStatement,
   TypeNameType,
@@ -39,6 +40,13 @@ import { WillNotSupportError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { isDynamicArray, safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getSourceFromLocations, isExternalCall, isExternallyVisible } from '../utils/utils';
+
+const PATH_REGEX = /^[\w-@/\\]*$/;
+
+export function checkPath(path: string): boolean {
+  const pathWithoutExtension = path.substring(0, path.length - '.sol'.length);
+  return PATH_REGEX.test(pathWithoutExtension);
+}
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   unsupportedFeatures: [string, ASTNode][] = [];
@@ -96,15 +104,19 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     }
     this.visitExpression(node, ast);
   }
+
   visitInlineAssembly(node: InlineAssembly, _ast: AST): void {
     this.addUnsupported('Yul blocks are not supported', node);
   }
+
   visitRevertStatement(node: RevertStatement, _ast: AST): void {
     this.addUnsupported('Reverts with custom errors are not supported', node);
   }
+
   visitErrorDefinition(node: ErrorDefinition, _ast: AST): void {
     this.addUnsupported('User defined Errors are not supported', node);
   }
+
   visitFunctionCallOptions(node: FunctionCallOptions, ast: AST): void {
     // Allow options only when passing salt values for contract creation
     if (
@@ -121,6 +133,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       node,
     );
   }
+
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const typeNode = safeGetNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FunctionType)
@@ -242,6 +255,16 @@ export class RejectUnsupportedFeatures extends ASTMapper {
 
   visitTryStatement(node: TryStatement, _ast: AST): void {
     this.addUnsupported(`Try/Catch statements are not supported`, node);
+  }
+
+  visitSourceUnit(node: SourceUnit, ast: AST): void {
+    if (checkPath(node.absolutePath)) {
+      this.addUnsupported(
+        'File path includes unsupported characters, only _, -, /, , and alphanumeric characters are supported',
+        node,
+      );
+    }
+    this.commonVisit(node, ast);
   }
 
   // Cases not allowed:

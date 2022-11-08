@@ -40,7 +40,6 @@ export * from './referencedLibraries';
 export * from './warnSupportedFeatures';
 export * from './abiBuiltins';
 export * from './userDefinedTypesConverter';
-export * from './filePathMangler';
 export * from './constantHandler';
 export * from './inheritanceInliner/export';
 export * from './publicFunctionSplitter/export';
