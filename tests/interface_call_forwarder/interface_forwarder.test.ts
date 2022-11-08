@@ -16,7 +16,7 @@ const interfaceCairoFile = `${path.resolve(
 const interfaceTranspiledCairoFile = `${path.resolve(__dirname, '../..')}/warp_output${path.resolve(
   __dirname,
   '..',
-)}/interface__call__forwarder/contract__WC__itr.cairo`;
+)}/interface__call__forwarder/contract.sol/itr.cairo`;
 const contractJsonPath = `${path.resolve(__dirname, '..')}/interface_call_forwarder/contract.json`;
 const transpiledInterfaceJsonPath = `${path.resolve(
   __dirname,
