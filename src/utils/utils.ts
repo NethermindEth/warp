@@ -569,3 +569,7 @@ export function getContainingSourceUnit(node: ASTNode): SourceUnit {
   assert(root !== undefined, `Unable to find root source unit for ${printNode(node)}`);
   return root;
 }
+
+export function dumpABI(node: SourceUnit, ast: AST): string {
+  return JSON.stringify([...(ast.abi.get(node.id) || new Set()).keys()]);
+}

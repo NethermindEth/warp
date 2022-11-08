@@ -23,11 +23,15 @@ export async function encodeInputs(
   }
 
   const solABI = parseSolAbi(filePath);
-  const [funcSignature] = await selectSignature(solABI, func);
-  const selector = new Web3().utils.keccak256(funcSignature).substring(2, 10);
+  const funcSignature = await selectSignature(solABI, func);
+  const selector = new Web3().utils
+    .keccak256(
+      `${funcSignature['name']}(${funcSignature['inputs'].map((i: any) => i['type']).join(',')})`,
+    )
+    .substring(2, 10);
 
   const funcName = `${func}_${selector}`;
-  const inputNodes: ParamType[] = FunctionFragment.fromString(funcSignature).inputs;
+  const inputNodes: ParamType[] = FunctionFragment.fromObject(funcSignature).inputs;
   const encodedInputs = encode(inputNodes, rawInputs ?? []);
   const inputs = rawInputs ? `--inputs ${encodedInputs.join(' ')}` : '';
 

@@ -5,7 +5,6 @@ import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
 import {
   ABIBuiltins,
-  ABIExtractor,
   AnnotateImplicits,
   ArgBoundChecker,
   BuiltinHandler,
@@ -16,7 +15,6 @@ import {
   ConstantHandler,
   DeleteHandler,
   DropUnusedSourceUnits,
-  dumpABI,
   EnumConverter,
   ExpressionSplitter,
   ExternalArgModifier,
@@ -66,7 +64,7 @@ import { DefaultASTPrinter } from './utils/astPrinter';
 import { createPassMap, parsePassOrder } from './utils/cli';
 import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
-import { printCompileErrors, runSanityCheck } from './utils/utils';
+import { printCompileErrors, runSanityCheck, dumpABI } from './utils/utils';
 
 type CairoSource = [file: string, source: string, solABI: string];
 
@@ -106,7 +104,6 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Wa', WarnSupportedFeatures],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
-    ['Ae', ABIExtractor],
     ['Idi', ImportDirectiveIdentifier],
     ['L', LiteralExpressionEvaluator],
     ['Na', NamedArgsRemover],

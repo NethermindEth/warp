@@ -17,10 +17,9 @@ export async function decodeOutputs(
 ): Promise<Result> {
   const solABI = parseSolAbi(filePath);
 
-  const [funcSignature, returnSignature] = await selectSignature(solABI, func);
+  const funcSignature = await selectSignature(solABI, func);
 
-  const outputNodes: ParamType[] =
-    FunctionFragment.fromString(`${funcSignature} returns (${returnSignature})`).outputs ?? [];
+  const outputNodes: ParamType[] = FunctionFragment.fromObject(funcSignature).outputs ?? [];
   const outputs: string[] = rawOutputs ?? [];
 
   return decode(outputNodes, outputs);
