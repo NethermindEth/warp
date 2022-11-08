@@ -8,8 +8,7 @@
 export const TUPLE_FILLER_PREFIX = '__warp_tf';
 
 // Used in SourceUnitSplitter
-export const FREE_FILE_SUFFIX = '__WC_FREE';
-export const CONTRACT_INFIX = '__WC__';
+export const FREE_FILE_NAME = '__warp_free.cairo';
 
 // Used in IdentifierManglerPass and CairoStubProcessor
 export const MANGLED_INTERNAL_USER_FUNCTION = '__warp_usrfn_';

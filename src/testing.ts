@@ -1,6 +1,7 @@
+import path from 'path';
 import { CompileFailedError } from 'solc-typed-ast';
 import { findAllFiles, findCairoSourceFilePaths, findSolSourceFilePaths } from './io';
-import { compileSolFile } from './solCompile';
+import { compileSolFiles } from './solCompile';
 import { compileCairo } from './starknetCli';
 import { transpile } from './transpiler';
 import {
@@ -12,8 +13,9 @@ import { groupBy, printCompileErrors } from './utils/utils';
 import * as fs from 'fs';
 import { outputFileSync } from 'fs-extra';
 import { error } from './utils/formatting';
-import { manglePath } from './passes/filePathMangler';
-import { CONTRACT_INFIX } from './utils/nameModifiers';
+
+const WARP_TEST = 'warp_test';
+const WARP_TEST_FOLDER = path.join(WARP_TEST, 'example_contracts');
 
 type ResultType =
   | 'CairoCompileFailed'
@@ -34,218 +36,221 @@ const ResultTypeOrder = [
 
 const expectedResults = new Map<string, ResultType>(
   [
-    ['example_contracts/array_length', 'Success'],
-    ['example_contracts/ERC20', 'Success'],
-    ['example_contracts/ERC20_storage', 'Success'],
-    ['example_contracts/address/8/160_not_allowed', 'SolCompileFailed'],
-    ['example_contracts/address/8/256_address', 'Success'],
-    ['example_contracts/address/8/max_prime', 'SolCompileFailed'],
-    ['example_contracts/address/8/max_prime_explicit', 'Success'],
-    ['example_contracts/address/8/padding', 'Success'],
-    ['example_contracts/address/8/prime_field', 'Success'],
-    ['example_contracts/address/7/160_not_allowed', 'SolCompileFailed'],
-    ['example_contracts/address/7/256_address', 'Success'],
-    ['example_contracts/address/7/max_prime', 'SolCompileFailed'],
-    ['example_contracts/address/7/max_prime_explicit', 'Success'],
-    ['example_contracts/address/7/padding', 'Success'],
-    ['example_contracts/address/7/prime_field', 'Success'],
-    ['example_contracts/boolOp_noSideEffects', 'Success'],
-    ['example_contracts/boolOp_sideEffects', 'Success'],
-    ['example_contracts/bytesXAccess', 'Success'],
-    ['example_contracts/c2c', 'Success'],
+    ['example_contracts/array_length.sol', 'Success'],
+    ['example_contracts/ERC20.sol', 'Success'],
+    ['example_contracts/ERC20_storage.sol', 'Success'],
+    ['example_contracts/address/8/160_not_allowed.sol', 'SolCompileFailed'],
+    ['example_contracts/address/8/256_address.sol', 'Success'],
+    ['example_contracts/address/8/max_prime.sol', 'SolCompileFailed'],
+    ['example_contracts/address/8/max_prime_explicit.sol', 'Success'],
+    ['example_contracts/address/8/padding.sol', 'Success'],
+    ['example_contracts/address/8/prime_field.sol', 'Success'],
+    ['example_contracts/address/7/160_not_allowed.sol', 'SolCompileFailed'],
+    ['example_contracts/address/7/256_address.sol', 'Success'],
+    ['example_contracts/address/7/max_prime.sol', 'SolCompileFailed'],
+    ['example_contracts/address/7/max_prime_explicit.sol', 'Success'],
+    ['example_contracts/address/7/padding.sol', 'Success'],
+    ['example_contracts/address/7/prime_field.sol', 'Success'],
+    ['example_contracts/boolOp_noSideEffects.sol', 'Success'],
+    ['example_contracts/boolOp_sideEffects.sol', 'Success'],
+    ['example_contracts/bytesXAccess.sol', 'Success'],
+    ['example_contracts/c2c.sol', 'Success'],
     // Uses conditionals explicitly
-    ['example_contracts/conditional', 'Success'],
-    ['example_contracts/conditional_simple', 'Success'],
-    ['example_contracts/contract_to_contract', 'Success'],
-    ['example_contracts/calldatacopy', 'WillNotSupport'],
-    ['example_contracts/calldataCrossContractCalls', 'Success'],
-    ['example_contracts/calldataload', 'WillNotSupport'],
-    ['example_contracts/calldatasize', 'WillNotSupport'],
-    ['example_contracts/comments', 'Success'],
-    ['example_contracts/constructors_dyn', 'Success'],
-    ['example_contracts/constructors_nonDyn', 'Success'],
-    ['example_contracts/contracts_as_input', 'Success'],
-    ['example_contracts/dai', 'Success'],
-    ['example_contracts/delete', 'SolCompileFailed'],
-    ['example_contracts/delete_uses', 'Success'],
-    ['example_contracts/enums', 'Success'],
-    ['example_contracts/enums7', 'Success'],
-    ['example_contracts/errorHandling/assert', 'Success'],
-    ['example_contracts/errorHandling/require', 'Success'],
-    ['example_contracts/errorHandling/revert', 'Success'],
-    ['example_contracts/events', 'Success'],
-    ['example_contracts/expressionSplitter/assign_simple', 'Success'],
-    ['example_contracts/expressionSplitter/func_call_simple', 'Success'],
-    ['example_contracts/expressionSplitter/tuple_assign', 'Success'],
-    ['example_contracts/external_function', 'Success'],
-    ['example_contracts/fallbackWithoutArgs', 'Success'],
-    ['example_contracts/fallbackWithArgs', 'WillNotSupport'],
+    ['example_contracts/conditional.sol', 'Success'],
+    ['example_contracts/conditional_simple.sol', 'Success'],
+    ['example_contracts/contract_to_contract.sol', 'Success'],
+    ['example_contracts/calldatacopy.sol', 'WillNotSupport'],
+    ['example_contracts/calldataCrossContractCalls.sol', 'Success'],
+    ['example_contracts/calldataload.sol', 'WillNotSupport'],
+    ['example_contracts/calldatasize.sol', 'WillNotSupport'],
+    ['example_contracts/comments.sol', 'Success'],
+    ['example_contracts/constructors_dyn.sol', 'Success'],
+    ['example_contracts/constructors_nonDyn.sol', 'Success'],
+    ['example_contracts/contracts_as_input.sol', 'Success'],
+    ['example_contracts/dai.sol', 'Success'],
+    ['example_contracts/delete.sol', 'SolCompileFailed'],
+    ['example_contracts/delete_uses.sol', 'Success'],
+    ['example_contracts/enums.sol', 'Success'],
+    ['example_contracts/enums7.sol', 'Success'],
+    ['example_contracts/errorHandling/assert.sol', 'Success'],
+    ['example_contracts/errorHandling/require.sol', 'Success'],
+    ['example_contracts/errorHandling/revert.sol', 'Success'],
+    ['example_contracts/events.sol', 'Success'],
+    ['example_contracts/expressionSplitter/assign_simple.sol', 'Success'],
+    ['example_contracts/expressionSplitter/func_call_simple.sol', 'Success'],
+    ['example_contracts/expressionSplitter/tuple_assign.sol', 'Success'],
+    ['example_contracts/external_function.sol', 'Success'],
+    ['example_contracts/fallbackWithoutArgs.sol', 'Success'],
+    ['example_contracts/fallbackWithArgs.sol', 'WillNotSupport'],
     // Cannot import with a - in the filename
-    ['example_contracts/file-with-minus-sign-included', 'Success'],
+    ['example_contracts/file-with-minus-sign-included.sol', 'Success'],
     // Typestring for the internal function call doesn't contain a location so a read isn't generated
-    ['example_contracts/freeFunction', 'Success'],
-    ['example_contracts/freeStruct', 'Success'],
-    ['example_contracts/function_with_nested_return', 'Success'],
-    ['example_contracts/functionArgumentConversions', 'Success'],
-    ['example_contracts/functionInputs/arrayTest/arrayArrayArray', 'Success'],
-    ['example_contracts/functionInputs/arrayTest/arrayArrayBytes', 'WillNotSupport'],
-    ['example_contracts/functionInputs/arrayTest/arrayArrayDynArray', 'WillNotSupport'],
-    ['example_contracts/functionInputs/arrayTest/arrayArrayStruct', 'Success'],
-    ['example_contracts/functionInputs/arrayTest/arrayDynArrayArray', 'WillNotSupport'],
-    ['example_contracts/functionInputs/arrayTest/arrayDynArrayDynArray', 'WillNotSupport'],
-    ['example_contracts/functionInputs/arrayTest/arrayDynArrayStruct', 'WillNotSupport'],
-    ['example_contracts/functionInputs/arrayTest/arrayStructArray', 'Success'],
-    ['example_contracts/functionInputs/arrayTest/arrayStructDynArray', 'WillNotSupport'],
-    ['example_contracts/functionInputs/arrayTest/arrayStructStruct', 'Success'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayArrayArray', 'Success'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayArrayDynArray', 'WillNotSupport'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayArrayStruct', 'Success'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayDynArrayArray', 'WillNotSupport'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayDynArrayDynArray', 'WillNotSupport'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayDynArrayStruct', 'WillNotSupport'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayStructArray', 'Success'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayStructDynArray', 'WillNotSupport'],
-    ['example_contracts/functionInputs/dynArrayTest/dynArrayStructStruct', 'Success'],
-    ['example_contracts/functionInputs/structTest/structArrayArray', 'Success'],
-    ['example_contracts/functionInputs/structTest/structArrayDynArray', 'WillNotSupport'],
-    ['example_contracts/functionInputs/structTest/structArrayStruct', 'Success'],
-    ['example_contracts/functionInputs/structTest/structDynArrayArray', 'WillNotSupport'],
-    ['example_contracts/functionInputs/structTest/structDynArrayDynArray', 'WillNotSupport'],
-    ['example_contracts/functionInputs/structTest/structDynArrayStruct', 'WillNotSupport'],
-    ['example_contracts/functionInputs/structTest/structString', 'WillNotSupport'],
-    ['example_contracts/functionInputs/structTest/structStructArray', 'Success'],
-    ['example_contracts/functionInputs/structTest/structStructBytes', 'WillNotSupport'],
-    ['example_contracts/functionInputs/structTest/structStructDynArray', 'WillNotSupport'],
-    ['example_contracts/functionInputs/structTest/structStructStruct', 'Success'],
-    ['example_contracts/idManglingTest8', 'Success'],
-    ['example_contracts/idManglingTest9', 'Success'],
-    ['example_contracts/if_flattening', 'Success'],
-    ['example_contracts/implicitsFromStub', 'Success'],
-    ['example_contracts/imports/importContract', 'Success'],
-    ['example_contracts/imports/importEnum', 'Success'],
-    ['example_contracts/imports/importfrom', 'Success'],
-    ['example_contracts/imports/importInterface', 'Success'],
-    ['example_contracts/imports/importLibrary', 'Success'],
-    ['example_contracts/imports/importStruct', 'Success'],
-    ['example_contracts/index_param', 'WillNotSupport'],
-    ['example_contracts/inheritance/simple', 'Success'],
-    ['example_contracts/inheritance/super/base', 'Success'],
-    ['example_contracts/inheritance/super/derived', 'Success'],
-    ['example_contracts/inheritance/super/mid', 'Success'],
-    ['example_contracts/inheritance/variables', 'Success'],
+    ['example_contracts/freeFunction.sol', 'Success'],
+    ['example_contracts/freeStruct.sol', 'Success'],
+    ['example_contracts/function_with_nested_return.sol', 'Success'],
+    ['example_contracts/functionArgumentConversions.sol', 'Success'],
+    ['example_contracts/functionInputs/arrayTest/arrayArrayArray.sol', 'Success'],
+    ['example_contracts/functionInputs/arrayTest/arrayArrayBytes.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/arrayTest/arrayArrayDynArray.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/arrayTest/arrayArrayStruct.sol', 'Success'],
+    ['example_contracts/functionInputs/arrayTest/arrayDynArrayArray.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/arrayTest/arrayDynArrayDynArray.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/arrayTest/arrayDynArrayStruct.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/arrayTest/arrayStructArray.sol', 'Success'],
+    ['example_contracts/functionInputs/arrayTest/arrayStructDynArray.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/arrayTest/arrayStructStruct.sol', 'Success'],
+    ['example_contracts/functionInputs/dynArrayTest/dynArrayArrayArray.sol', 'Success'],
+    ['example_contracts/functionInputs/dynArrayTest/dynArrayArrayDynArray.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/dynArrayTest/dynArrayArrayStruct.sol', 'Success'],
+    ['example_contracts/functionInputs/dynArrayTest/dynArrayDynArrayArray.sol', 'WillNotSupport'],
+    [
+      'example_contracts/functionInputs/dynArrayTest/dynArrayDynArrayDynArray.sol',
+      'WillNotSupport',
+    ],
+    ['example_contracts/functionInputs/dynArrayTest/dynArrayDynArrayStruct.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/dynArrayTest/dynArrayStructArray.sol', 'Success'],
+    ['example_contracts/functionInputs/dynArrayTest/dynArrayStructDynArray.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/dynArrayTest/dynArrayStructStruct.sol', 'Success'],
+    ['example_contracts/functionInputs/structTest/structArrayArray.sol', 'Success'],
+    ['example_contracts/functionInputs/structTest/structArrayDynArray.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/structTest/structArrayStruct.sol', 'Success'],
+    ['example_contracts/functionInputs/structTest/structDynArrayArray.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/structTest/structDynArrayDynArray.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/structTest/structDynArrayStruct.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/structTest/structString.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/structTest/structStructArray.sol', 'Success'],
+    ['example_contracts/functionInputs/structTest/structStructBytes.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/structTest/structStructDynArray.sol', 'WillNotSupport'],
+    ['example_contracts/functionInputs/structTest/structStructStruct.sol', 'Success'],
+    ['example_contracts/idManglingTest8.sol', 'Success'],
+    ['example_contracts/idManglingTest9.sol', 'Success'],
+    ['example_contracts/if_flattening.sol', 'Success'],
+    ['example_contracts/implicitsFromStub.sol', 'Success'],
+    ['example_contracts/imports/importContract.sol', 'Success'],
+    ['example_contracts/imports/importEnum.sol', 'Success'],
+    ['example_contracts/imports/importfrom.sol', 'Success'],
+    ['example_contracts/imports/importInterface.sol', 'Success'],
+    ['example_contracts/imports/importLibrary.sol', 'Success'],
+    ['example_contracts/imports/importStruct.sol', 'Success'],
+    ['example_contracts/index_param.sol', 'WillNotSupport'],
+    ['example_contracts/inheritance/simple.sol', 'Success'],
+    ['example_contracts/inheritance/super/base.sol', 'Success'],
+    ['example_contracts/inheritance/super/derived.sol', 'Success'],
+    ['example_contracts/inheritance/super/mid.sol', 'Success'],
+    ['example_contracts/inheritance/variables.sol', 'Success'],
     // Requires struct imports
-    ['example_contracts/interfaces', 'Success'],
-    ['example_contracts/interfaceFromBaseContract', 'Success'],
-    ['example_contracts/invalidSolidity', 'SolCompileFailed'],
-    ['example_contracts/lib', 'Success'],
-    ['example_contracts/libraries/using_for_star', 'Success'],
-    ['example_contracts/literalOperations', 'Success'],
-    ['example_contracts/loops/for_loop_with_break', 'Success'],
-    ['example_contracts/loops/for_loop_with_continue', 'Success'],
-    ['example_contracts/loops/for_loop_with_nested_return', 'Success'],
-    ['example_contracts/rejectedTerms/contract_name$', 'WillNotSupport'],
-    ['example_contracts/rejectedTerms/reservedContract', 'WillNotSupport'],
-    ['example_contracts/rejectedTerms/contract_name_lib', 'WillNotSupport'],
-    ['example_contracts/memberAccess/balance', 'WillNotSupport'],
-    ['example_contracts/memberAccess/call', 'WillNotSupport'],
-    ['example_contracts/memberAccess/code', 'WillNotSupport'],
-    ['example_contracts/memberAccess/codehash', 'WillNotSupport'],
-    ['example_contracts/memberAccess/delegatecall', 'WillNotSupport'],
-    ['example_contracts/memberAccess/send', 'WillNotSupport'],
-    ['example_contracts/memberAccess/staticcall', 'WillNotSupport'],
-    ['example_contracts/memberAccess/transfer', 'WillNotSupport'],
-    ['example_contracts/msg', 'WillNotSupport'],
-    ['example_contracts/multiple_variables', 'Success'],
-    ['example_contracts/mutableReferences/deepDelete', 'Success'],
-    ['example_contracts/mutableReferences/memory', 'Success'],
-    ['example_contracts/mutableReferences/mutableReferences', 'Success'],
-    ['example_contracts/mutableReferences/scalarStorage', 'Success'],
-    ['example_contracts/namedArgs/constructor', 'Success'],
-    ['example_contracts/namedArgs/events_and_errors', 'Success'],
-    ['example_contracts/namedArgs/function', 'Success'],
-    ['example_contracts/nested_static_array_struct', 'Success'],
-    ['example_contracts/nested_struct_static_array', 'Success'],
-    ['example_contracts/nested_structs', 'Success'],
-    ['example_contracts/nested_tuple', 'WillNotSupport'],
-    ['example_contracts/old_code_gen_err', 'WillNotSupport'],
-    ['example_contracts/old_code_gen_err_7', 'WillNotSupport'],
-    ['example_contracts/payable_function', 'Success'],
-    ['example_contracts/pure_function', 'Success'],
-    ['example_contracts/removeUnreachableFunctions', 'Success'],
-    ['example_contracts/return_dyn_array', 'Success'],
-    ['example_contracts/return_var_capturing', 'Success'],
-    ['example_contracts/returndatasize', 'WillNotSupport'],
-    ['example_contracts/returnInserter', 'Success'],
-    ['example_contracts/simple_storage_var', 'Success'],
-    ['example_contracts/sstore_sload', 'WillNotSupport'],
-    ['example_contracts/state_variables/scalars', 'Success'],
-    ['example_contracts/state_variables/enums', 'Success'],
-    ['example_contracts/state_variables/arrays', 'Success'],
-    ['example_contracts/state_variables/arrays_init', 'Success'],
-    ['example_contracts/state_variables/mappings', 'Success'],
-    ['example_contracts/state_variables/structs', 'Success'],
-    ['example_contracts/state_variables/structs_nested', 'Success'],
-    ['example_contracts/state_variables/misc', 'Success'],
-    ['example_contracts/structs', 'Success'],
-    ['example_contracts/this_methods_call', 'Success'],
-    ['example_contracts/try_catch', 'WillNotSupport'],
-    ['example_contracts/tupleAssignment7', 'Success'],
-    ['example_contracts/tupleAssignment8', 'SolCompileFailed'],
-    ['example_contracts/typeConversion/explicitTypeConversion', 'Success'],
-    ['example_contracts/typeConversion/implicitReturnConversion', 'Success'],
-    ['example_contracts/typeConversion/implicit_type_conv', 'Success'],
-    ['example_contracts/typeConversion/shifts', 'Success'],
-    ['example_contracts/typeConversion/unusedArrayConversion', 'Success'],
-    ['example_contracts/typeMinMax', 'Success'],
-    ['example_contracts/uint256_static_array_casting', 'Success'],
-    ['example_contracts/typestrings/basicArrays', 'Success'],
-    ['example_contracts/typestrings/scalars', 'Success'],
-    ['example_contracts/typestrings/structArrays', 'Success'],
-    ['example_contracts/typestrings/structs', 'Success'],
-    ['example_contracts/units', 'Success'],
-    ['example_contracts/unsupportedFunctions/abi', `Success`],
-    ['example_contracts/unsupportedFunctions/keccak256', `Success`],
-    ['example_contracts/unsupportedFunctions/ecrecover', `Success`],
-    ['example_contracts/unsupportedFunctions/addmod', `Success`],
-    ['example_contracts/unsupportedFunctions/gasleft', `WillNotSupport`],
+    ['example_contracts/interfaces.sol', 'Success'],
+    ['example_contracts/interfaceFromBaseContract.sol', 'Success'],
+    ['example_contracts/invalidSolidity.sol', 'SolCompileFailed'],
+    ['example_contracts/lib.sol', 'Success'],
+    ['example_contracts/libraries/using_for_star.sol', 'Success'],
+    ['example_contracts/literalOperations.sol', 'Success'],
+    ['example_contracts/loops/for_loop_with_break.sol', 'Success'],
+    ['example_contracts/loops/for_loop_with_continue.sol', 'Success'],
+    ['example_contracts/loops/for_loop_with_nested_return.sol', 'Success'],
+    ['example_contracts/rejectedTerms/contract_name$.sol', 'WillNotSupport'],
+    ['example_contracts/rejectedTerms/reservedContract.sol', 'WillNotSupport'],
+    ['example_contracts/rejectedTerms/contract_name_lib.sol', 'WillNotSupport'],
+    ['example_contracts/memberAccess/balance.sol', 'WillNotSupport'],
+    ['example_contracts/memberAccess/call.sol', 'WillNotSupport'],
+    ['example_contracts/memberAccess/code.sol', 'WillNotSupport'],
+    ['example_contracts/memberAccess/codehash.sol', 'WillNotSupport'],
+    ['example_contracts/memberAccess/delegatecall.sol', 'WillNotSupport'],
+    ['example_contracts/memberAccess/send.sol', 'WillNotSupport'],
+    ['example_contracts/memberAccess/staticcall.sol', 'WillNotSupport'],
+    ['example_contracts/memberAccess/transfer.sol', 'WillNotSupport'],
+    ['example_contracts/msg.sol', 'WillNotSupport'],
+    ['example_contracts/multiple_variables.sol', 'Success'],
+    ['example_contracts/mutableReferences/deepDelete.sol', 'Success'],
+    ['example_contracts/mutableReferences/memory.sol', 'Success'],
+    ['example_contracts/mutableReferences/mutableReferences.sol', 'Success'],
+    ['example_contracts/mutableReferences/scalarStorage.sol', 'Success'],
+    ['example_contracts/namedArgs/constructor.sol', 'Success'],
+    ['example_contracts/namedArgs/events_and_errors.sol', 'Success'],
+    ['example_contracts/namedArgs/function.sol', 'Success'],
+    ['example_contracts/nested_static_array_struct.sol', 'Success'],
+    ['example_contracts/nested_struct_static_array.sol', 'Success'],
+    ['example_contracts/nested_structs.sol', 'Success'],
+    ['example_contracts/nested_tuple.sol', 'WillNotSupport'],
+    ['example_contracts/old_code_gen_err.sol', 'WillNotSupport'],
+    ['example_contracts/old_code_gen_err_7.sol', 'WillNotSupport'],
+    ['example_contracts/payable_function.sol', 'Success'],
+    ['example_contracts/pure_function.sol', 'Success'],
+    ['example_contracts/removeUnreachableFunctions.sol', 'Success'],
+    ['example_contracts/return_dyn_array.sol', 'Success'],
+    ['example_contracts/return_var_capturing.sol', 'Success'],
+    ['example_contracts/returndatasize.sol', 'WillNotSupport'],
+    ['example_contracts/returnInserter.sol', 'Success'],
+    ['example_contracts/simple_storage_var.sol', 'Success'],
+    ['example_contracts/sstore_sload.sol', 'WillNotSupport'],
+    ['example_contracts/state_variables/scalars.sol', 'Success'],
+    ['example_contracts/state_variables/enums.sol', 'Success'],
+    ['example_contracts/state_variables/arrays.sol', 'Success'],
+    ['example_contracts/state_variables/arrays_init.sol', 'Success'],
+    ['example_contracts/state_variables/mappings.sol', 'Success'],
+    ['example_contracts/state_variables/structs.sol', 'Success'],
+    ['example_contracts/state_variables/structs_nested.sol', 'Success'],
+    ['example_contracts/state_variables/misc.sol', 'Success'],
+    ['example_contracts/structs.sol', 'Success'],
+    ['example_contracts/this_methods_call.sol', 'Success'],
+    ['example_contracts/try_catch.sol', 'WillNotSupport'],
+    ['example_contracts/tupleAssignment7.sol', 'Success'],
+    ['example_contracts/tupleAssignment8.sol', 'SolCompileFailed'],
+    ['example_contracts/typeConversion/explicitTypeConversion.sol', 'Success'],
+    ['example_contracts/typeConversion/implicitReturnConversion.sol', 'Success'],
+    ['example_contracts/typeConversion/implicit_type_conv.sol', 'Success'],
+    ['example_contracts/typeConversion/shifts.sol', 'Success'],
+    ['example_contracts/typeConversion/unusedArrayConversion.sol', 'Success'],
+    ['example_contracts/typeMinMax.sol', 'Success'],
+    ['example_contracts/uint256_static_array_casting.sol', 'Success'],
+    ['example_contracts/typestrings/basicArrays.sol', 'Success'],
+    ['example_contracts/typestrings/scalars.sol', 'Success'],
+    ['example_contracts/typestrings/structArrays.sol', 'Success'],
+    ['example_contracts/typestrings/structs.sol', 'Success'],
+    ['example_contracts/units.sol', 'Success'],
+    ['example_contracts/unsupportedFunctions/abi.sol', `Success`],
+    ['example_contracts/unsupportedFunctions/keccak256.sol', `Success`],
+    ['example_contracts/unsupportedFunctions/ecrecover.sol', `Success`],
+    ['example_contracts/unsupportedFunctions/addmod.sol', `Success`],
+    ['example_contracts/unsupportedFunctions/gasleft.sol', `WillNotSupport`],
     // Supported precompiles
-    ['example_contracts/precompiles/ecrecover', 'Success'],
-    ['example_contracts/precompiles/keccak256', 'Success'],
+    ['example_contracts/precompiles/ecrecover.sol', 'Success'],
+    ['example_contracts/precompiles/keccak256.sol', 'Success'],
     // Uses bytes memory
-    ['example_contracts/unsupportedFunctions/shadowAbi', `Success`],
+    ['example_contracts/unsupportedFunctions/shadowAbi.sol', `Success`],
     // Uses bytes memory
-    ['example_contracts/unsupportedFunctions/shadowKeccak256', `Success`],
-    ['example_contracts/unsupportedFunctions/shadowEcrecover', `Success`],
+    ['example_contracts/unsupportedFunctions/shadowKeccak256.sol', `Success`],
+    ['example_contracts/unsupportedFunctions/shadowEcrecover.sol', `Success`],
     // uses modulo (%)
-    ['example_contracts/unsupportedFunctions/shadowAddmod', 'Success'],
+    ['example_contracts/unsupportedFunctions/shadowAddmod.sol', 'Success'],
     // Uses WARP_STORAGE in a free function
-    ['example_contracts/using_for/imports/user_defined', 'Success'],
+    ['example_contracts/using_for/imports/user_defined.sol', 'Success'],
     // global_directive.sol cannot resolve struct when file imported as identifier
-    ['example_contracts/using_for/imports/global_directive', 'Success'],
-    ['example_contracts/using_for/complex_libraries', 'Success'],
-    ['example_contracts/using_for/function', 'WillNotSupport'],
-    ['example_contracts/using_for/private', 'Success'],
-    ['example_contracts/using_for/library', 'Success'],
-    ['example_contracts/using_for/simple', 'Success'],
-    ['example_contracts/usingReturnValues', 'Success'],
-    ['example_contracts/userDefinedFunctionCalls', 'Success'],
-    ['example_contracts/userdefinedtypes', 'Success'],
-    ['example_contracts/userdefinedidentifier', 'Success'],
-    ['example_contracts/variable_declarations', 'Success'],
-    ['example_contracts/view_function', 'Success'],
-    ['example_contracts/typestrings/enumArrays', 'Success'],
+    ['example_contracts/using_for/imports/global_directive.sol', 'Success'],
+    ['example_contracts/using_for/complex_libraries.sol', 'Success'],
+    ['example_contracts/using_for/function.sol', 'WillNotSupport'],
+    ['example_contracts/using_for/private.sol', 'Success'],
+    ['example_contracts/using_for/library.sol', 'Success'],
+    ['example_contracts/using_for/simple.sol', 'Success'],
+    ['example_contracts/usingReturnValues.sol', 'Success'],
+    ['example_contracts/userDefinedFunctionCalls.sol', 'Success'],
+    ['example_contracts/userdefinedtypes.sol', 'Success'],
+    ['example_contracts/userdefinedidentifier.sol', 'Success'],
+    ['example_contracts/variable_declarations.sol', 'Success'],
+    ['example_contracts/view_function.sol', 'Success'],
+    ['example_contracts/typestrings/enumArrays.sol', 'Success'],
     //uses 'this' keyword in the constructor
     [
-      'example_contracts/this_at_constructor/external_function_call_at_construction',
+      'example_contracts/this_at_constructor/external_function_call_at_construction.sol',
       'WillNotSupport',
     ],
     [
-      'example_contracts/this_at_constructor/multiple_external_function_calls_at_construction',
+      'example_contracts/this_at_constructor/multiple_external_function_calls_at_construction.sol',
       'WillNotSupport',
     ],
-    ['example_contracts/this_at_constructor/valid_this_use_at_constructor', 'Success'],
+    ['example_contracts/this_at_constructor/valid_this_use_at_constructor.sol', 'Success'],
   ].map(([key, result]) => {
-    return [manglePath(key), result] as [string, ResultType];
+    return [path.join(WARP_TEST, key), result] as [string, ResultType];
   }),
 );
 
@@ -257,7 +262,7 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe = false, e
   findSolSourceFilePaths('example_contracts', true).forEach((file) =>
     runSolFileTest(file, results, onlyResults, unsafe),
   );
-  findCairoSourceFilePaths('example__contracts', true).forEach((file) => {
+  findCairoSourceFilePaths(WARP_TEST_FOLDER, true).forEach((file) => {
     runCairoFileTest(file, results, onlyResults);
   });
   const testsWithUnexpectedResults = getTestsWithUnexpectedResults(results);
@@ -273,12 +278,8 @@ export function runTests(force: boolean, onlyResults: boolean, unsafe = false, e
 }
 
 function preTestChecks(): boolean {
-  if (!checkNoCairo('example__contracts')) {
-    console.log('Please remove example__contracts, or run with -f to delete it');
-    return false;
-  }
-  if (!checkNoJson('example__contracts')) {
-    console.log('Please remove example__contracts, or run with -f to delete it');
+  if (!checkNoCairo(WARP_TEST_FOLDER) || !checkNoJson(WARP_TEST_FOLDER)) {
+    console.log('Please remove warp_test/example_contracts, or run with -f to delete it');
     return false;
   }
   if (!checkNoJson('warplib')) {
@@ -295,29 +296,30 @@ function runSolFileTest(
   unsafe: boolean,
 ): void {
   console.log(`Warping ${file}`);
+  const mangledPath = path.join(WARP_TEST, file);
   try {
-    transpile(compileSolFile(file, false), { strict: true, dev: true }).forEach(([file, cairo]) =>
-      outputFileSync(`${file.slice(0, -4)}.cairo`, cairo),
+    transpile(compileSolFiles([file], { warnings: false }), { strict: true, dev: true }).forEach(
+      ([file, cairo]) => outputFileSync(path.join(WARP_TEST, file), cairo),
     );
-    results.set(manglePath(removeExtension(file)), 'Success');
+    results.set(mangledPath, 'Success');
   } catch (e) {
     if (e instanceof CompileFailedError) {
       if (!onlyResults) printCompileErrors(e);
-      results.set(manglePath(removeExtension(file)), 'SolCompileFailed');
+      results.set(mangledPath, 'SolCompileFailed');
     } else if (e instanceof TranspilationAbandonedError) {
       if (e instanceof NotSupportedYetError) {
-        results.set(manglePath(removeExtension(file)), 'NotSupportedYet');
+        results.set(mangledPath, 'NotSupportedYet');
       } else if (e instanceof WillNotSupportError) {
-        results.set(manglePath(removeExtension(file)), 'WillNotSupport');
+        results.set(mangledPath, 'WillNotSupport');
       } else {
-        results.set(manglePath(removeExtension(file)), 'TranspilationFailed');
+        results.set(mangledPath, 'TranspilationFailed');
         if (unsafe) throw e;
       }
       if (!onlyResults) console.log(`Transpilation abandoned ${e.message}`);
     } else {
       if (!onlyResults) console.log('Transpilation failed');
       if (!onlyResults) console.log(e);
-      results.set(manglePath(removeExtension(file)), 'TranspilationFailed');
+      results.set(mangledPath, 'TranspilationFailed');
       if (unsafe) throw e;
     }
   }
@@ -331,7 +333,7 @@ function runCairoFileTest(
 ): void {
   if (!onlyResults) console.log(`Compiling ${file}`);
   if (compileCairo(file).success) {
-    results.set(removeExtension(file), 'Success');
+    results.set(file, 'Success');
   } else {
     if (throwError) {
       throw new Error(error(`Compilation of ${file} failed`));
@@ -348,9 +350,9 @@ function combineResults(results: ResultType[]): ResultType {
 
 function getTestsWithUnexpectedResults(results: Map<string, ResultType>): string[] {
   const testsWithUnexpectedResults: string[] = [];
-  const groupedResults = groupBy([...results.entries()], ([file, _]) => {
-    return file.split(CONTRACT_INFIX)[0];
-  });
+  const groupedResults = groupBy([...results.entries()], ([file, _]) =>
+    file.endsWith('.cairo') ? path.dirname(file) : file,
+  );
   [...groupedResults.entries()].forEach((e) => {
     const expected = expectedResults.get(e[0]);
     const collectiveResult = combineResults(
@@ -376,21 +378,17 @@ function printResults(results: Map<string, ResultType>, unexpectedResults: strin
   } else {
     console.log(`CI failed. ${unexpectedResults.length} test(s) had unexpected outcome(s).`);
     unexpectedResults.map((o) => {
-      console.log(`\nTest: ${o}.sol`);
+      console.log(`\nTest: ${o}`);
       console.log(`Expected outcome: ${expectedResults.get(o)}`);
       console.log(`Actual outcome:`);
       const Actual = new Map<string, ResultType>();
       results.forEach((value, key) => {
-        if (key === o || key.startsWith(`${o}${CONTRACT_INFIX}`)) {
+        if (key.startsWith(o)) {
           Actual.set(key, value);
         }
       });
       Actual.forEach((value, key) => {
-        if (key.includes(CONTRACT_INFIX)) {
-          console.log(key + '.cairo' + ' : ' + value);
-        } else {
-          console.log(key + '.sol' + ' : ' + value);
-        }
+        console.log(key + ' : ' + value);
       });
     });
     console.log('\n');
@@ -410,7 +408,7 @@ function checkNoJson(path: string): boolean {
 
 function postTestCleanup(): void {
   deleteJson('warplib');
-  fs.rmSync('example__contracts', { recursive: true, force: true });
+  fs.rmSync(WARP_TEST_FOLDER, { recursive: true, force: true });
 }
 
 function deleteJson(path: string): void {

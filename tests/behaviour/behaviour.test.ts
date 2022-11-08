@@ -7,13 +7,14 @@ import {
   batchPromises,
   processArgs,
   compileCluster,
+  removeOutputDir,
 } from '../util';
 import { deploy, ensureTestnetContactable, invoke } from '../testnetInterface';
 
 import { describe } from 'mocha';
-import { expect } from 'chai';
+import { assert, expect } from 'chai';
 import { expectations } from './expectations';
-import { AsyncTest, Expect } from './expectations/types';
+import { AsyncTest, Expect, OUTPUT_DIR } from './expectations/types';
 import { DeployResponse } from '../testnetInterface';
 import { getDependencyGraph } from '../../src/utils/postCairoWrite';
 
@@ -74,7 +75,7 @@ describe('Transpiled contracts are valid cairo', function () {
       if (test.encodingError !== undefined || !fs.existsSync(test.cairo)) {
         return null;
       }
-      const dependencyGraph = getDependencyGraph(test.cairo, 'warp_output');
+      const dependencyGraph = getDependencyGraph(removeOutputDir(test.cairo), OUTPUT_DIR);
       return { asyncTest: test, dependencies: dependencyGraph };
     });
 

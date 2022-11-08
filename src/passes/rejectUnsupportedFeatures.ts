@@ -19,13 +19,16 @@ import {
   Identifier,
   IndexAccess,
   InlineAssembly,
+  Literal,
   MemberAccess,
   ParameterList,
   parseSourceLocation,
   PointerType,
   RevertStatement,
+  SourceUnit,
   StructDefinition,
   TryStatement,
+  TypeNameType,
   TypeNode,
   UserDefinedType,
   VariableDeclaration,
@@ -37,6 +40,13 @@ import { WillNotSupportError } from '../utils/errors';
 import { error } from '../utils/formatting';
 import { isDynamicArray, safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { getSourceFromLocations, isExternalCall, isExternallyVisible } from '../utils/utils';
+
+const PATH_REGEX = /^[\w-@/\\]*$/;
+
+export function checkPath(path: string): boolean {
+  const pathWithoutExtension = path.substring(0, path.length - '.sol'.length);
+  return !PATH_REGEX.test(pathWithoutExtension);
+}
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   unsupportedFeatures: [string, ASTNode][] = [];
@@ -88,19 +98,25 @@ export class RejectUnsupportedFeatures extends ASTMapper {
 
   visitIndexAccess(node: IndexAccess, ast: AST): void {
     if (node.vIndexExpression === undefined) {
-      this.addUnsupported(`Undefined index access not supported. Is this in abi.decode?`, node);
+      if (!(safeGetNodeType(node, ast.compilerVersion) instanceof TypeNameType)) {
+        this.addUnsupported(`Undefined index access not supported`, node);
+      }
     }
     this.visitExpression(node, ast);
   }
+
   visitInlineAssembly(node: InlineAssembly, _ast: AST): void {
     this.addUnsupported('Yul blocks are not supported', node);
   }
+
   visitRevertStatement(node: RevertStatement, _ast: AST): void {
     this.addUnsupported('Reverts with custom errors are not supported', node);
   }
+
   visitErrorDefinition(node: ErrorDefinition, _ast: AST): void {
     this.addUnsupported('User defined Errors are not supported', node);
   }
+
   visitFunctionCallOptions(node: FunctionCallOptions, ast: AST): void {
     // Allow options only when passing salt values for contract creation
     if (
@@ -117,6 +133,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       node,
     );
   }
+
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const typeNode = safeGetNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FunctionType)
@@ -181,18 +198,38 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    const unsupportedMath = ['sha256', 'ripemd160'];
-    const unsupportedAbi = ['encodeCall'];
-    const unsupportedMisc = ['blockhash', 'selfdestruct', 'gasleft'];
+    if (
+      node.kind !== FunctionCallKind.FunctionCall ||
+      node.vFunctionCallType !== ExternalReferenceType.Builtin
+    )
+      return this.visitExpression(node, ast);
+
     const funcName = node.vFunctionName;
     if (
-      node.kind === FunctionCallKind.FunctionCall &&
-      node.vReferencedDeclaration === undefined &&
-      [...unsupportedMath, ...unsupportedAbi, ...unsupportedMisc].includes(funcName)
+      ['sha256', 'ripemd160', 'encodeCall', 'blockhash', 'selfdestruct', 'gasleft'].includes(
+        funcName,
+      )
     ) {
       this.addUnsupported(`Solidity builtin ${funcName} is not supported`, node);
+    } else if (
+      ['require', 'assert'].includes(funcName) &&
+      node.vArguments.length > 1 &&
+      !(node.vArguments[1] instanceof Literal)
+    ) {
+      this.addUnsupported(
+        `Dynamic string cannot be used as arguments for  ${funcName}`,
+        node.vArguments[1],
+      );
+    } else if (
+      funcName === 'revert' &&
+      node.vArguments.length > 0 &&
+      !(node.vArguments[0] instanceof Literal)
+    ) {
+      this.addUnsupported(
+        `Dynamic string cannot be used as arguments for  ${funcName}`,
+        node.vArguments[0],
+      );
     }
-
     this.visitExpression(node, ast);
   }
 
@@ -218,6 +255,16 @@ export class RejectUnsupportedFeatures extends ASTMapper {
 
   visitTryStatement(node: TryStatement, _ast: AST): void {
     this.addUnsupported(`Try/Catch statements are not supported`, node);
+  }
+
+  visitSourceUnit(node: SourceUnit, ast: AST): void {
+    if (checkPath(node.absolutePath)) {
+      this.addUnsupported(
+        'File path includes unsupported characters, only _, -, /, , and alphanumeric characters are supported',
+        node,
+      );
+    }
+    this.commonVisit(node, ast);
   }
 
   // Cases not allowed:

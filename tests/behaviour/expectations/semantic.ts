@@ -35,7 +35,7 @@ import whiteList from './semantic_whitelist';
 import whileListGenerated from './semantic_tests_generated';
 
 import { NotSupportedYetError } from '../../../src/utils/errors';
-import { compileSolFile, compileSolFileAndExtractContracts } from '../../../src/solCompile';
+import { compileSolFiles, compileSolFilesAndExtractContracts } from '../../../src/solCompile';
 import { printTypeNode } from '../../../src/utils/astPrinter';
 import { toUintOrFelt } from '../../../src/utils/utils';
 import { AsyncTest, Expect } from './types';
@@ -399,7 +399,7 @@ async function getContractAbiAndDefinition(
   lastContractName: string,
 ): Promise<[FunABI[], ContractDefinition, AST]> {
   // Get the abi of the contract for web3
-  const contracts: any = compileSolFileAndExtractContracts(file);
+  const contracts: any = compileSolFilesAndExtractContracts(file);
   const lastContract = contracts[lastContractName];
   if (lastContract === undefined) {
     throw new InvalidTestError(`Unable to find contract ${lastContractName} in file ${file}`);
@@ -408,7 +408,7 @@ async function getContractAbiAndDefinition(
 
   // Get the ast itself so we can resolve the types for our type conversion
   // later
-  const ast = compileSolFile(file, false);
+  const ast = compileSolFiles([file], { warnings: false });
   const astRoot = ast.roots[ast.roots.length - 1];
   const [contractDef] = astRoot
     .getChildrenByType(ContractDefinition, true)

@@ -4,7 +4,7 @@ import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
 import {
-  ABIEncode,
+  ABIBuiltins,
   ABIExtractor,
   AnnotateImplicits,
   ArgBoundChecker,
@@ -21,7 +21,6 @@ import {
   ExpressionSplitter,
   ExternalArgModifier,
   ExternalContractHandler,
-  FilePathMangler,
   FreeFunctionInliner,
   FunctionPruner,
   FunctionTypeStringMatcher,
@@ -105,7 +104,6 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Tnr', TypeNameRemover],
     ['Ru', RejectUnsupportedFeatures],
     ['Wa', WarnSupportedFeatures],
-    ['Fm', FilePathMangler],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
     ['Ae', ABIExtractor],
@@ -142,7 +140,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Vs', VariableDeclarationExpressionSplitter],
     ['Ntd', NewToDeploy],
     ['I', ImplicitConversionToExplicit],
-    ['Abi', ABIEncode],
+    ['Abi', ABIBuiltins],
     ['Dh', DeleteHandler],
     ['Rf', References],
     ['Abc', ArgBoundChecker],
