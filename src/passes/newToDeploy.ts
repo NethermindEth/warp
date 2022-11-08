@@ -178,9 +178,7 @@ export class NewToDeploy extends ASTMapper {
     ast: AST,
   ): VariableDeclaration {
     const contractToDeclareSourceUnit = getContainingSourceUnit(contractToDeclare);
-    const cairoContractPath = contractToDeclareSourceUnit.absolutePath
-      .slice(0, -'.sol'.length)
-      .concat('.cairo');
+    const cairoContractPath = contractToDeclareSourceUnit.absolutePath;
 
     const uniqueId = hashFilename(path.resolve(cairoContractPath));
     const placeHolderName = `${contractToDeclare.name}_class_hash_${uniqueId}`;

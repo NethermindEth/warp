@@ -21,13 +21,13 @@ export class AsyncTest {
   get cairo() {
     return path.join(
       `${OUTPUT_DIR}`,
-      `${mangleContractFilePath(manglePath(this.name), this.contract)}.cairo`,
+      `${mangleContractFilePath(manglePath(this.name) + '.sol', this.contract)}`,
     );
   }
   get compiled() {
     return path.join(
       `${OUTPUT_DIR}`,
-      `${mangleContractFilePath(manglePath(this.name), this.contract)}.json`,
+      `${mangleContractFilePath(manglePath(this.name) + '.sol', this.contract, '.json')}`,
     );
   }
 
