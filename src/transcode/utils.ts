@@ -198,7 +198,7 @@ export async function selectSignature(abi: string[], funcName: string): Promise<
 
 export function decodedOutputToString(output: Result): string {
   let counter = 0;
-  let outputs = [];
+  const outputs = [];
   while (output[counter.toString()] !== undefined) {
     outputs.push(output[counter.toString()].map((val: any) => val.toString()).join(' '));
     counter += 1;

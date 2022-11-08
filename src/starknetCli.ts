@@ -218,7 +218,7 @@ export async function runStarknetCallOrInvoke(
     ).toString('utf-8');
 
     if (isCall && !options.use_cairo_abi) {
-      let decodedOutputs = await decodeOutputs(
+      const decodedOutputs = await decodeOutputs(
         filePath,
         options.function,
         warpOutput.toString().split(' '),
