@@ -88,7 +88,7 @@ program
     try {
       transpile(ast, options)
         .map(([name, cairo, abi]) => {
-          outputResult(name, cairo, options, abi);
+          outputResult(name, cairo, options, ast, abi);
           return name;
         })
         .map((file) =>
@@ -134,8 +134,9 @@ program
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
     try {
-      transform(compileSolFiles([file], options), options).map(([name, solidity, _]) => {
-        outputResult(replaceSuffix(name, '_warp.sol'), solidity, options);
+      const ast = compileSolFiles([file], options);
+      transform(ast, options).map(([name, solidity, _]) => {
+        outputResult(replaceSuffix(name, '_warp.sol'), solidity, options, ast);
       });
     } catch (e) {
       handleTranspilationError(e);

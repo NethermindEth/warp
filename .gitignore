@@ -134,9 +134,7 @@ solc-v0.7.6
 
 # output from warp
 warp_output/
-example__contracts
-example_contracts/**/*.cairo
-example_contracts/**/*.json
+warp_test/
 
 #benchmark
 benchmark/*

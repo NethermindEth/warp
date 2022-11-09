@@ -523,9 +523,9 @@ class CairoContractWriter extends CairoASTNodeWriter {
       [
         documentation,
         ...events,
-        storageCode,
         `namespace ${node.name}{\n\n${body}\n\n}`,
         outsideNamespaceBody,
+        storageCode,
       ].join('\n\n'),
     ];
   }
