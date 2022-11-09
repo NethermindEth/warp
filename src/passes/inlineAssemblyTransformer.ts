@@ -33,6 +33,7 @@ class YulTransformer {
   }
 
   run(node: YulNode): ASTNode {
+    if (!Object.hasOwn(this, node.nodeType)) throw `${node.nodeType} is not supported`;
     const method = this[node.nodeType as keyof YulTransformer] as (node: YulNode) => ASTNode;
     return method.bind(this)(node);
   }
