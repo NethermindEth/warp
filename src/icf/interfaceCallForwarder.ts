@@ -52,7 +52,7 @@ import {
   tupleParser,
   typeToStructMapping,
 } from './utils';
-import { safeCanonicalHash } from '../export';
+import { callClassHashScript, safeCanonicalHash } from '../export';
 
 const defaultSolcVersion = '0.8.14';
 
@@ -113,15 +113,13 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
   const structDefs: Map<string, StructDefinition> = addAllStructs(sourceUint, ast, abi);
 
   // solidity interface contract
-  const funcSignatures = addForwarderContract(
+  const { contract, funcSignatures } = addForwarderContract(
     abi,
     sourceUint,
     structDefs,
     ast,
     cairoPathRoot.split('/').pop(),
   );
-
-  const result: string = removeExcessNewlines(writer.write(ast.roots[0] as SourceUnit), 2);
 
   fs.unlinkSync(abiPath);
 
@@ -132,6 +130,26 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
   });
 
   fs.writeFileSync(cairoContractPath, cairoContract);
+
+  const compileForwarder = compileCairo(cairoContractPath, path.resolve(__dirname, '..'), {
+    debugInfo: false,
+  });
+
+  if (!compileForwarder.success) {
+    logError(`Compilation of contract ${cairoContractPath} failed`);
+    return;
+  }
+
+  contract.documentation = `WARP-GENERATED\nclass_hash: ${
+    compileForwarder.resultPath ? callClassHashScript(compileForwarder.resultPath) : '0x0'
+  }`;
+
+  if (compileForwarder.success) {
+    if (compileForwarder.resultPath) fs.unlinkSync(compileForwarder.resultPath);
+    if (compileForwarder.abiPath) fs.unlinkSync(compileForwarder.abiPath);
+  }
+
+  const result: string = removeExcessNewlines(writer.write(ast.roots[0] as SourceUnit), 2);
   fs.writeFileSync(solPath, result);
 }
 
@@ -170,7 +188,7 @@ function addForwarderContract(
   structDefs: Map<string, StructDefinition>,
   ast: AST,
   fileName: string | undefined,
-): Map<string, string> {
+): { contract: ContractDefinition; funcSignatures: Map<string, string> } {
   const id = ast.reserveId();
 
   const contract = new ContractDefinition(
@@ -189,13 +207,16 @@ function addForwarderContract(
   ast.registerChild(contract, sourceUint);
 
   // add functions to the contract that will be used to interact with the given cairo contract
-  return addInteractiveFunctions(
-    contract,
-    structDefs,
-    ast,
-    abi,
-    typeToStructMapping(getStructsFromABI(abi)),
-  );
+  return {
+    contract: contract,
+    funcSignatures: addInteractiveFunctions(
+      contract,
+      structDefs,
+      ast,
+      abi,
+      typeToStructMapping(getStructsFromABI(abi)),
+    ),
+  };
 }
 
 /**

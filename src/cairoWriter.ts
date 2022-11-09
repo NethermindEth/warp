@@ -907,13 +907,25 @@ class FunctionCallWriter extends CairoASTNodeWriter {
             nodeType instanceof UserDefinedType &&
             nodeType.definition instanceof ContractDefinition
           ) {
+            let isDelegateCall = false;
             const memberName = node.vExpression.memberName;
-            const contract = writer.write(node.vExpression.vExpression);
+            let firstArg = writer.write(node.vExpression.vExpression); // could be address or class_hash
+            const docLets = getDocumentation(nodeType.definition.documentation, writer)
+              .split('\n')
+              .map((ele) => ele.slice(2).trim());
+            if (docLets[0] === 'WARP-GENERATED') {
+              // extract class hash from doclets[1] which is in the format "class_hash: 0x..."
+              const classHashTextLets = docLets[1].split(':').map((ele) => ele.trim());
+              if (classHashTextLets[0] !== 'class_hash') {
+                throw new TranspileFailedError('Class Hash not found in interface documentation');
+              }
+              isDelegateCall = true;
+              firstArg = classHashTextLets[1];
+            }
             return [
-              `${getInterfaceNameForContract(
-                nodeType.definition.name,
-                node,
-              )}.${memberName}(${contract}${args ? ', ' : ''}${args})`,
+              `${getInterfaceNameForContract(nodeType.definition.name, node)}.${
+                (isDelegateCall ? 'library_call_' : '') + memberName
+              }(${firstArg}${args ? ', ' : ''}${args})`,
             ];
           }
         } else if (
