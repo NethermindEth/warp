@@ -89,7 +89,7 @@ class YulTransformer {
       value,
       node,
     );
-    return createExpressionStatement(this.ast, assignment as Expression);
+    return createExpressionStatement(this.ast, assignment);
   }
 }
 
