@@ -16,15 +16,18 @@ import {
   UncheckedBlock,
 } from 'solc-typed-ast';
 import assert from 'assert';
+import { WillNotSupportError } from '../export';
 
 class YulTransformer {
   vars: { [name: string]: VariableDeclaration };
+  assemblyRoot: InlineAssembly;
   ast: AST;
 
-  constructor(ast: AST, externalReferences: any[], contextMap: Map<number, ASTNode>) {
+  constructor(ast: AST, assemblyRoot: InlineAssembly) {
     this.ast = ast;
-    const blockRefIds = externalReferences.map((ref) => ref.declaration);
-    const blockRefs: [number, ASTNode][] = [...contextMap].filter(([id, _]) =>
+    this.assemblyRoot = assemblyRoot;
+    const blockRefIds = assemblyRoot.externalReferences.map((ref) => ref.declaration);
+    const blockRefs: [number, ASTNode][] = [...assemblyRoot.context!.map].filter(([id, _]) =>
       blockRefIds.includes(id),
     );
     this.vars = Object.fromEntries(
@@ -33,7 +36,8 @@ class YulTransformer {
   }
 
   run(node: YulNode): ASTNode {
-    if (!Object.hasOwn(this, node.nodeType)) throw `${node.nodeType} is not supported`;
+    if (!(node.nodeType in this))
+      throw new WillNotSupportError(`${node.nodeType} is not supported`, this.assemblyRoot, false);
     const method = this[node.nodeType as keyof YulTransformer] as (node: YulNode) => ASTNode;
     return method.bind(this)(node);
   }
@@ -91,7 +95,7 @@ class YulTransformer {
 
 export class InlineAssemblyTransformer extends ASTMapper {
   visitInlineAssembly(node: InlineAssembly, ast: AST): void {
-    let transformer = new YulTransformer(ast, node.externalReferences, node.context!.map);
+    let transformer = new YulTransformer(ast, node);
     const statements = node.yul!.statements.map((yul: YulNode) => {
       let astNode = transformer.run(yul);
       ast.setContextRecursive(astNode);
