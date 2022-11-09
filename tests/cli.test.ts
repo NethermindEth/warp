@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { parse } from '../src/utils/functionSignatureParser';
+import { FunctionFragment } from 'ethers/lib/utils';
+import { encode } from '../src/transcode/encode';
 
 type Input = string[] | number[] | Input[] | (string | number | Input)[];
 
@@ -48,7 +49,7 @@ const tests: encodeTest[] = [
 describe('Solidity abi parsing and decode tests', function () {
   tests.map(([signature, input, output]) =>
     it(`parses ${signature}`, () => {
-      const result = parse(signature)(input);
+      const result = encode(FunctionFragment.fromString(signature).inputs, input);
       expect(result).to.deep.equal(output.map(BigInt));
     }),
   );
