@@ -103,7 +103,10 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
 
   const sourceUint = new SourceUnit(0, '', solPath, 0, solPath, new Map(), []);
   sourceUint.context = new ASTContext(sourceUint);
-  const ast = new AST([sourceUint], options.solcVersion ?? defaultSolcVersion);
+  const ast = new AST([sourceUint], options.solcVersion ?? defaultSolcVersion, {
+    contracts: {},
+    sources: {},
+  });
 
   addPragmaDirective(options.solcVersion ?? defaultSolcVersion, sourceUint, ast);
 

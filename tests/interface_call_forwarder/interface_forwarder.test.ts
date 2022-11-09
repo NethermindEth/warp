@@ -3,7 +3,13 @@ import { readFileSync, writeFileSync } from 'fs';
 import { describe, it } from 'mocha';
 import { gen_interface, starknetCompile, transpile } from '../util';
 import path from 'path';
-import { deploy, DeployResponse, ensureTestnetContactable, invoke } from '../testnetInterface';
+import {
+  declare,
+  deploy,
+  DeployResponse,
+  ensureTestnetContactable,
+  invoke,
+} from '../testnetInterface';
 import * as fs from 'fs';
 
 const testPath = `${path.resolve(__dirname, '..')}/interface_call_forwarder`;
@@ -16,7 +22,7 @@ const interfaceCairoFile = `${path.resolve(
 const interfaceTranspiledCairoFile = `${path.resolve(__dirname, '../..')}/warp_output${path.resolve(
   __dirname,
   '..',
-)}/interface__call__forwarder/contract.sol/itr.cairo`;
+)}/interface_call_forwarder/contract.sol/itr.cairo`;
 const contractJsonPath = `${path.resolve(__dirname, '..')}/interface_call_forwarder/contract.json`;
 const transpiledInterfaceJsonPath = `${path.resolve(
   __dirname,
@@ -60,6 +66,7 @@ describe('Cairo Proxy contract is valid and deployable', async function () {
     await starknetCompile(interfaceCairoFile, transpiledInterfaceJsonPath);
   });
   it('cairo proxy contract should deploy', async function () {
+    await declare(transpiledInterfaceJsonPath);
     const deployContractResult: DeployResponse | null = await deploy(
       transpiledInterfaceJsonPath,
       [],
