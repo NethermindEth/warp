@@ -7,7 +7,9 @@ contract WARP {
     int constant y = 10_000;
 
     function a() public pure returns (uint256) {
-        return x;
+        if(5_000 > 3_000)
+            return x;
+        return 0;
     }
 
     function b() public pure returns (int) {
