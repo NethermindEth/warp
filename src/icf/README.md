@@ -4,7 +4,7 @@ This is a feature for the WARP transpiler to enable interaction between non-warp
 
 Assume you have a cairo contract `add.cairo`.
 
-```c
+```c++
 %lang starknet
 
 @view
