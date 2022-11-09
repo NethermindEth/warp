@@ -35,7 +35,7 @@ export async function encodeInputs(
 }
 
 export function encode(types: ParamType[], inputs: SolValue[]): string[] {
-  return encodeParams(types, inputs.values());
+  return encodeParams(types, makeIterator(inputs));
 }
 
 export function encodeParams(types: ParamType[], inputs: IterableIterator<SolValue>): string[] {
@@ -65,12 +65,16 @@ function encodePrimitive(typeString: string, inputs: IterableIterator<SolValue>)
     if (typeof value === 'boolean') {
       return value ? ['1'] : ['0'];
     }
+    if (typeof value === 'string') {
+      if (value === 'true' || value === 'false') return value === 'true' ? ['1'] : ['0'];
+      if (value === '1' || value === '0') return [value];
+    }
     throw new Error(`Cannot encode ${value} as a boolean value. Expected 'true' or 'false'`);
   }
   if (typeString === 'fixed' || typeString === 'ufixed') {
     throw new Error('Fixed types not supported by Warp');
   }
-  if (/bytes\d*$/.test(typeString)) {
+  if (/bytes\d+$/.test(typeString)) {
     const nbits = parseInt(typeString.slice(5), 10) * 8;
     return encodeAsUintOrFelt(typeString, inputs, nbits);
   }
@@ -81,21 +85,30 @@ function encodePrimitive(typeString: string, inputs: IterableIterator<SolValue>)
       const bytes = value.substring(2);
       if (bytes.length % 2 !== 0) throw new Error('Bytes must have even length');
 
-      const length = bytes.length / 2;
       const cairoBytes: string[] = [];
       for (let index = 0; index < bytes.length; index += 2) {
         const byte = bytes.substring(index, index + 2);
         cairoBytes.push(`0x${byte}`);
       }
-      return [length.toString(), cairoBytes].flat();
+      return [...cairoBytes].flat();
     } else if (isBytes(value)) {
       if (value.length % 2 !== 0) throw new Error('Bytes must have even length');
 
-      const length = value.length / 2;
-      const bytes = Array.from(value).map((byte) => byte.toString());
-      return [length.toString(), ...bytes];
+      return Array.from(value).map((byte) => byte.toString());
     }
     throw new Error(`Can't encode ${value} as bytes`);
+  }
+  if (typeString === 'string') {
+    const value = safeNext(inputs);
+    if (typeof value === 'string') {
+      return [
+        value.length.toString(),
+        ...Buffer.from(value)
+          .toJSON()
+          .data.map((v) => v.toString()),
+      ];
+    }
+    throw new Error(`Can't encode ${value} as string`);
   }
   throw new Error(`Failed to encode type ${typeString}`);
 }
@@ -104,10 +117,12 @@ export function encodeComplex(type: ParamType, inputs: IterableIterator<SolValue
   const value = safeNext(inputs);
 
   if (type.baseType === 'array') {
-    if (!Array.isArray(value)) throw new Error(`Array must be of array type`);
+    if (!Array.isArray(value)) {
+      throw new Error(`Array must be of array type`);
+    }
     // array type
     const length = type.arrayLength === -1 ? [value.length.toString()] : [];
-    return [...length, ...value.flatMap((val) => encode_(type.arrayChildren, makeIterator(val)))];
+    return [...length, ...value.flatMap((val) => encode_(type.arrayChildren, makeIterator([val])))];
   } else if (type.baseType === 'tuple') {
     if (typeof value !== 'object') {
       throw new Error('Expected Object input for transcoding struct types');
