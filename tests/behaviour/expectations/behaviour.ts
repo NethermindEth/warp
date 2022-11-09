@@ -4084,6 +4084,12 @@ export const expectations = flatten(
             Expect.Simple('indexAccess', [], []),
           ]),
         ]),
+        new Dir('underscore_integers', [
+          File.Simple('underscore_integers', [
+            Expect.Simple('a', [], ['10000', '0']),
+            Expect.Simple('b', [], ['10000', '0']),
+          ]),
+        ]),
         new Dir('user_defined_value_types', [
           File.Simple('overloading', [
             Expect.Simple(
