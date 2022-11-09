@@ -84,6 +84,7 @@ export function checkSourceTerms(term: string, node: ASTNode) {
 
 export class DeclarationNameMangler extends ASTMapper {
   nameCounter = 0;
+
   visitSourceUnit(node: SourceUnit, ast: AST): void {
     node.vStructs.forEach((s) => this.mangleStructDefinition(s));
     node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n, ast));

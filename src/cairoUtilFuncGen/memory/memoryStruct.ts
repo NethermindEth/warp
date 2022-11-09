@@ -104,5 +104,5 @@ export class MemoryStructGen extends StringIndexedFuncGen {
 }
 
 function write(name: string, offset: number): string {
-  return `dict_write{dict_ptr=warp_memory}(${add('start', offset)}, ${name});`;
+  return `dict_write{dict_ptr=warp_memory}(${add('__warp_start', offset)}, ${name});`;
 }
