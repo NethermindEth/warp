@@ -101,10 +101,10 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
 
 function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
-    ['Iat', InlineAssemblyTransformer],
     ['Tf', TupleFixes],
     ['Tnr', TypeNameRemover],
     ['Ru', RejectUnsupportedFeatures],
+    ['Iat', InlineAssemblyTransformer],
     ['Wa', WarnSupportedFeatures],
     ['Fm', FilePathMangler],
     ['Ss', SourceUnitSplitter],

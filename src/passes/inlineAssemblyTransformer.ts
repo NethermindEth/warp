@@ -80,10 +80,10 @@ class YulTransformer {
   }
 
   createYulAssignment(node: YulNode): ExpressionStatement {
-    let vars: Expression;
-    const value = this.run(node.value) as Expression;
-    if (value.typeString === 'tuple()') {
-      vars = createTuple(
+    let lhs: Expression;
+    const rhs = this.run(node.value) as Expression;
+    if (rhs.typeString === 'tuple()') {
+      lhs = createTuple(
         this.ast,
         node.variableNames.map((i: YulNode) => this.createYulIdentifier(i)),
       );
@@ -92,16 +92,16 @@ class YulTransformer {
         node.variableNames.length === 1,
         'Type mismatch. Tried to assign non-tuple expression to multiple identifiers',
       );
-      vars = this.createYulIdentifier(node.variableNames[0]);
+      lhs = this.createYulIdentifier(node.variableNames[0]);
     }
 
     const assignment = new Assignment(
       this.ast.reserveId(),
       node.src,
-      vars.typeString,
+      lhs.typeString,
       '=',
-      vars,
-      value,
+      lhs,
+      rhs,
       node,
     );
     return createExpressionStatement(this.ast, assignment);
@@ -110,13 +110,13 @@ class YulTransformer {
 
 export class InlineAssemblyTransformer extends ASTMapper {
   visitInlineAssembly(node: InlineAssembly, ast: AST): void {
-    let transformer = new YulTransformer(ast, node);
+    const transformer = new YulTransformer(ast, node);
     const statements = node.yul!.statements.map((yul: YulNode) => {
-      let astNode = transformer.run(yul);
+      const astNode = transformer.run(yul);
       ast.setContextRecursive(astNode);
       return astNode;
     });
-    let block: Block = new UncheckedBlock(ast.reserveId(), node.yul!.src, statements);
+    const block: Block = new UncheckedBlock(ast.reserveId(), node.yul!.src, statements);
 
     ast.replaceNode(node, block);
 
