@@ -42,7 +42,7 @@ function compileSolFilesCommon(files: string[], options: CompilationOptions): So
 
 export function compileSolFiles(files: string[], options: CompilationOptions): AST {
   const solcOutput = compileSolFilesCommon(files, options);
-  printErrors(solcOutput.result, options.warnings, solcOutput.compilerVersion);
+  printErrors(solcOutput.result, options.warnings || false, solcOutput.compilerVersion);
   const reader = new ASTReader();
   const sourceUnits = reader.read(solcOutput.result);
 

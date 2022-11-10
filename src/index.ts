@@ -20,7 +20,7 @@ import { runTests } from './testing';
 import { postProcessCairoFile } from './utils/postCairoWrite';
 
 export type CompilationOptions = {
-  warnings: boolean;
+  warnings?: boolean;
   includePaths?: string[];
   basePath?: string;
 };
