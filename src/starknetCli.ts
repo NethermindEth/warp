@@ -213,7 +213,7 @@ export async function runStarknetCallOrInvoke(
   let funcName, inputs: string;
   try {
     [funcName, inputs] = await encodeInputs(
-      solAbiPath ?? '',
+      `${solAbiPath}`,
       options.function,
       options.use_cairo_abi,
       options.inputs,

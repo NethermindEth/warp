@@ -138,24 +138,6 @@ export function parseSolAbi(filePath: string): [] {
   return solAbi;
 }
 
-export function addSignature(node: SourceUnit, ast: AST, signature: string, returns = '') {
-  const abi = ast.abi.get(node.id);
-  const signatureWithReturn: [string, string] = [signature, returns];
-  if (abi === undefined) {
-    ast.abi.set(node.id, new Set([signatureWithReturn]));
-  } else {
-    abi.add(signatureWithReturn);
-  }
-}
-
-export function returnSignature(funcDef: FunctionDefinition): string {
-  const returnParams = funcDef.vReturnParameters.vParameters
-    .map((vd) => vd.canonicalSignatureType(ABIEncoderVersion.V2))
-    .join(',');
-
-  return `${returnParams}`;
-}
-
 export async function selectSignature(abi: [], funcName: string): Promise<any> {
   const matches = abi.filter((fs) => fs['name'] === funcName);
   if (!matches.length) {

@@ -64,9 +64,9 @@ import { DefaultASTPrinter } from './utils/astPrinter';
 import { createPassMap, parsePassOrder } from './utils/cli';
 import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
-import { printCompileErrors, runSanityCheck, dumpABI } from './utils/utils';
+import { printCompileErrors, runSanityCheck } from './utils/utils';
 
-type CairoSource = [file: string, source: string, solABI: string];
+type CairoSource = [file: string, source: string];
 
 export function transpile(ast: AST, options: TranspilationOptions & PrintOptions): CairoSource[] {
   const cairoAST = applyPasses(ast, options);
@@ -75,11 +75,7 @@ export function transpile(ast: AST, options: TranspilationOptions & PrintOptions
     new PrettyFormatter(4, 0),
     ast.compilerVersion,
   );
-  return cairoAST.roots.map((sourceUnit) => [
-    sourceUnit.absolutePath,
-    writer.write(sourceUnit),
-    dumpABI(sourceUnit, cairoAST),
-  ]);
+  return cairoAST.roots.map((sourceUnit) => [sourceUnit.absolutePath, writer.write(sourceUnit)]);
 }
 
 export function transform(ast: AST, options: TranspilationOptions & PrintOptions): CairoSource[] {
@@ -92,7 +88,6 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
   return cairoAST.roots.map((sourceUnit) => [
     sourceUnit.absolutePath,
     removeExcessNewlines(writer.write(sourceUnit), 2),
-    dumpABI(sourceUnit, cairoAST),
   ]);
 }
 

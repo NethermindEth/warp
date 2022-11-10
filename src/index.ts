@@ -85,8 +85,8 @@ program
     const contractToHashMap = new Map<string, string>();
     try {
       transpile(ast, options)
-        .map(([name, cairo, abi]) => {
-          outputResult(name, cairo, options, ast, abi);
+        .map(([name, cairo]) => {
+          outputResult(name, cairo, options, ast);
           return name;
         })
         .map((file) =>
@@ -133,7 +133,7 @@ program
     if (!isValidSolFile(file)) return;
     try {
       const ast = compileSolFiles([file], options);
-      transform(ast, options).map(([name, solidity, _]) => {
+      transform(ast, options).map(([name, solidity]) => {
         outputResult(replaceSuffix(name, '_warp.sol'), solidity, options, ast);
       });
     } catch (e) {
