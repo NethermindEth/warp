@@ -1,6 +1,6 @@
 import { ASTMapper } from '../ast/mapper';
 import { AST } from '../ast/ast';
-import { createExpressionStatement, createIdentifier, createTuple } from '../utils/nodeTemplates';
+import { createExpressionStatement, createIdentifier, createNumberLiteral, createTuple } from '../utils/nodeTemplates';
 
 import {
   InlineAssembly,
@@ -14,6 +14,7 @@ import {
   ExpressionStatement,
   VariableDeclaration,
   UncheckedBlock,
+  Literal,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { WillNotSupportError } from '../export';
@@ -41,6 +42,10 @@ class YulTransformer {
       throw new WillNotSupportError(`${node.nodeType} is not supported`, this.assemblyRoot, false);
     const method = this[methodName as keyof YulTransformer] as (node: YulNode) => ASTNode;
     return method.bind(this)(node);
+  }
+
+  createYulLiteral(node: YulNode): Literal {
+    return createNumberLiteral(node.value, this.ast);
   }
 
   createYulIdentifier(node: YulNode): Identifier {
