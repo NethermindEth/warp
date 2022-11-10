@@ -75,7 +75,11 @@ export class MemoryStructGen extends StringIndexedFuncGen {
 
     const funcName = `WM${this.generatedFunctions.size}_struct_${structType.name}`;
 
-    const argString = [...structType.members.entries()]
+    const mangledStructMembers: [string, CairoType][] = [...structType.members.entries()].map(
+      ([name, type]) => [`member_${name}`, type],
+    );
+
+    const argString = mangledStructMembers
       .map(([name, type]) => `${name}: ${type.toString()}`)
       .join(', ');
 
@@ -84,12 +88,12 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       code: [
         `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (res:felt){`,
         `    alloc_locals;`,
-        `    let (__warp_start) = wm_alloc(${uint256(structType.width)});`,
-        [...structType.members.entries()]
+        `    let (start) = wm_alloc(${uint256(structType.width)});`,
+        mangledStructMembers
           .flatMap(([name, type]) => type.serialiseMembers(name))
           .map(write)
           .join('\n'),
-        `    return (__warp_start,);`,
+        `    return (start,);`,
         `}`,
       ].join('\n'),
     });
@@ -104,5 +108,5 @@ export class MemoryStructGen extends StringIndexedFuncGen {
 }
 
 function write(name: string, offset: number): string {
-  return `dict_write{dict_ptr=warp_memory}(${add('__warp_start', offset)}, ${name});`;
+  return `dict_write{dict_ptr=warp_memory}(${add('start', offset)}, ${name});`;
 }
