@@ -36,17 +36,18 @@ class YulTransformer {
   }
 
   run(node: YulNode): ASTNode {
-    if (!(node.nodeType in this))
+    const methodName = `create${node.nodeType}`;
+    if (!(methodName in this))
       throw new WillNotSupportError(`${node.nodeType} is not supported`, this.assemblyRoot, false);
-    const method = this[node.nodeType as keyof YulTransformer] as (node: YulNode) => ASTNode;
+    const method = this[methodName as keyof YulTransformer] as (node: YulNode) => ASTNode;
     return method.bind(this)(node);
   }
 
-  YulIdentifier(node: YulNode): Identifier {
+  createYulIdentifier(node: YulNode): Identifier {
     return createIdentifier(this.vars[node.name], this.ast);
   }
 
-  YulFunctionCall(node: YulNode): BinaryOperation {
+  createYulFunctionCall(node: YulNode): BinaryOperation {
     const binary_ops: { [name: string]: string } = { add: '+', mul: '*', div: '/', sub: '-' };
     if (Object.keys(binary_ops).includes(node.functionName.name)) {
       const leftExpr = this.run(node.arguments[0]) as Expression;
@@ -64,20 +65,20 @@ class YulTransformer {
     throw 'Only binary operations are supported';
   }
 
-  YulAssignment(node: YulNode): ExpressionStatement {
+  createYulAssignment(node: YulNode): ExpressionStatement {
     let vars: Expression;
     const value = this.run(node.value) as Expression;
     if (value.typeString === 'tuple()') {
       vars = createTuple(
         this.ast,
-        node.variableNames.map((i: YulNode) => this.YulIdentifier(i)),
+        node.variableNames.map((i: YulNode) => this.createYulIdentifier(i)),
       );
     } else {
       assert(
         node.variableNames.length === 1,
         'Type mismatch. Tried to assign non-tuple expression to multiple identifiers',
       );
-      vars = this.YulIdentifier(node.variableNames[0]);
+      vars = this.createYulIdentifier(node.variableNames[0]);
     }
 
     const assignment = new Assignment(
