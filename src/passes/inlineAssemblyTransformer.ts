@@ -33,12 +33,10 @@ class YulTransformer {
     this.ast = ast;
     this.assemblyRoot = assemblyRoot;
     const blockRefIds = assemblyRoot.externalReferences.map((ref) => ref.declaration);
-    const blockRefs: [number, ASTNode][] = [...assemblyRoot.context!.map].filter(([id, _]) =>
+    const blockRefs = [...assemblyRoot.context!.map].filter(([id, _]) =>
       blockRefIds.includes(id),
-    );
-    this.vars = Object.fromEntries(
-      blockRefs.map(([id, ref]) => [(ref as Identifier).name, ref as VariableDeclaration]),
-    );
+    ) as [number, VariableDeclaration][];
+    this.vars = Object.fromEntries(blockRefs.map(([id, ref]) => [ref.name, ref]));
   }
 
   run(node: YulNode): ASTNode {
