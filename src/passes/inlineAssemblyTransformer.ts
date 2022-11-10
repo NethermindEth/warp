@@ -20,6 +20,7 @@ import {
   VariableDeclaration,
   UncheckedBlock,
   Literal,
+  Statement,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { WillNotSupportError } from '../export';
@@ -39,7 +40,7 @@ class YulTransformer {
     this.vars = new Map(blockRefs.map(([id, ref]) => [ref.name, ref]));
   }
 
-  run(node: YulNode): ASTNode {
+  run(node: YulNode): Statement {
     const methodName = `create${node.nodeType}`;
     if (!(methodName in this))
       throw new WillNotSupportError(`${node.nodeType} is not supported`, this.assemblyRoot, false);
