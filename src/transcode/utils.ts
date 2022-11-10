@@ -3,9 +3,6 @@ import { ParamType, Result } from 'ethers/lib/utils';
 import { CLIError } from '../utils/errors';
 import { readFileSync } from 'fs';
 import prompts from 'prompts';
-import { AST } from '../ast/ast';
-import { FunctionDefinition, SourceUnit } from 'solc-typed-ast';
-import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { divmod } from '../utils/utils';
 
 export type SolValue = BigNumberish | boolean | string | { [key: string]: SolValue } | SolValue[];

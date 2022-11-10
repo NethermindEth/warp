@@ -63,7 +63,6 @@ export function outputResult(
   code: string,
   options: OutputOptions & TranspilationOptions,
   ast: AST,
-  abi?: string,
 ): void {
   if (options.outputDir === undefined) {
     if (options.result) {
