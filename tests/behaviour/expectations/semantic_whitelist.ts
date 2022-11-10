@@ -776,7 +776,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/calldata_assign.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/keccak_yul_optimization.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/calldata_length_read.sol', // WILL NOT SUPPORT yul
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/inline_assembly_read_and_write_stack.sol', // WILL NOT SUPPORT yul
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/inline_assembly_read_and_write_stack.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/inline_assembly_memory_access.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/inline_assembly_for2.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/inline_assembly_recursion.sol', // WILL NOT SUPPORT yul
@@ -800,7 +800,7 @@ const tests: string[] = [
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/calldata_struct_assign.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/calldata_array_assign_static.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/external_identifier_access_shadowing.sol', // WILL NOT SUPPORT yul
-    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/shadowing_local_function_opcode.sol', // WILL NOT SUPPORT yul
+    // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/shadowing_local_function_opcode.sol',
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/basefee_berlin_function.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/inline_assembly_switch.sol', // WILL NOT SUPPORT yul
     // 'tests/behaviour/solidity/test/libsolidity/semanticTests/inlineAssembly/calldata_array_assign_dynamic.sol', // WILL NOT SUPPORT yul
