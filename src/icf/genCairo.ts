@@ -92,7 +92,7 @@ export function getInteractiveFuncs(
   const expInpFunctionsMap: Map<string, string> = new Map();
 
   abi.forEach((item: AbiItemType) => {
-    if (item.type === 'function' && item.stateMutability !== '__default__') {
+    if (item.type === 'function' && item.name !== '__default__') {
       const decorator: string = item.stateMutability === 'view' ? '@view' : '@external';
 
       const callToFunc = `${INDENT}let (${item.outputs.reduce(
