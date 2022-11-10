@@ -58,15 +58,15 @@ class YulTransformer {
   }
 
   createYulFunctionCall(node: YulNode): BinaryOperation {
-    const binary_ops: { [name: string]: string } = { add: '+', mul: '*', div: '/', sub: '-' };
-    if (Object.keys(binary_ops).includes(node.functionName.name)) {
+    const binaryOps: { [name: string]: string } = { add: '+', mul: '*', div: '/', sub: '-' };
+    if (Object.keys(binaryOps).includes(node.functionName.name)) {
       const leftExpr = this.run(node.arguments[0]) as Expression;
       const rightExpr = this.run(node.arguments[1]) as Expression;
       return new BinaryOperation(
         this.ast.reserveId(),
         node.src,
         leftExpr.typeString,
-        binary_ops[node.functionName.name],
+        binaryOps[node.functionName.name],
         leftExpr,
         rightExpr,
         node,
