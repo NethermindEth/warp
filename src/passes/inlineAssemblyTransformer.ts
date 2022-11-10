@@ -25,7 +25,7 @@ import assert from 'assert';
 import { WillNotSupportError } from '../export';
 
 class YulTransformer {
-  vars: { [name: string]: VariableDeclaration };
+  vars: Map<string, VariableDeclaration>;
   assemblyRoot: InlineAssembly;
   ast: AST;
 
@@ -36,7 +36,7 @@ class YulTransformer {
     const blockRefs = [...assemblyRoot.context!.map].filter(([id, _]) =>
       blockRefIds.includes(id),
     ) as [number, VariableDeclaration][];
-    this.vars = Object.fromEntries(blockRefs.map(([id, ref]) => [ref.name, ref]));
+    this.vars = new Map(blockRefs.map(([id, ref]) => [ref.name, ref]));
   }
 
   run(node: YulNode): ASTNode {
@@ -52,7 +52,7 @@ class YulTransformer {
   }
 
   createYulIdentifier(node: YulNode): Identifier {
-    return createIdentifier(this.vars[node.name], this.ast);
+    return createIdentifier(this.vars.get(node.name)!, this.ast);
   }
 
   createYulFunctionCall(node: YulNode): BinaryOperation {
