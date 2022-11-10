@@ -1,6 +1,11 @@
 import { ASTMapper } from '../ast/mapper';
 import { AST } from '../ast/ast';
-import { createExpressionStatement, createIdentifier, createNumberLiteral, createTuple } from '../utils/nodeTemplates';
+import {
+  createExpressionStatement,
+  createIdentifier,
+  createNumberLiteral,
+  createTuple,
+} from '../utils/nodeTemplates';
 
 import {
   InlineAssembly,
@@ -67,7 +72,11 @@ class YulTransformer {
         node,
       );
     }
-    throw 'Only binary operations are supported';
+    throw new WillNotSupportError(
+      `${node.functionName.name} is not supported`,
+      this.assemblyRoot,
+      false,
+    );
   }
 
   createYulAssignment(node: YulNode): ExpressionStatement {
