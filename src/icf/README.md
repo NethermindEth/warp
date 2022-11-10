@@ -206,6 +206,12 @@ starknet invoke \
     --inputs 12 0 13 0
 ```
 
+## Running tests
+
+For more detailed and implemented steps, you look at [interface_forwarder.test.ts](../../tests/interface_call_forwarder/interface_forwarder.test.ts) file.
+
+To execute interface call forwarder test, run `$ yarn test:forwarder`
+
 ## Contact Us :phone:
 
 If you run into any problems please raise an issue or contact us on our Nethermind discord server: https://discord.com/invite/PaCMRFdvWT
