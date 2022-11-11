@@ -51,6 +51,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/address/7/max_prime_explicit.sol', 'Success'],
     ['example_contracts/address/7/padding.sol', 'Success'],
     ['example_contracts/address/7/prime_field.sol', 'Success'],
+    ['example_contracts/addr2uint256.sol', 'Success'],
     ['example_contracts/boolOp_noSideEffects.sol', 'Success'],
     ['example_contracts/boolOp_sideEffects.sol', 'Success'],
     ['example_contracts/bytesXAccess.sol', 'Success'],
