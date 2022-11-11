@@ -1,4 +1,4 @@
-import { AbiType, AbiItemType, StructAbiItemType, FunctionAbiItemType } from './abiTypes';
+import { AbiType, AbiItemType, StructAbiItemType } from './abiTypes';
 import { externalInputCheckStatement } from './extInpCheck';
 import {
   castStatement,
