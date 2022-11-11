@@ -1,4 +1,4 @@
-import { AbiType, AbiItemType, StructAbiItemType } from './abiTypes';
+import { AbiType, AbiItemType, StructAbiItemType, FunctionAbiItemType } from './abiTypes';
 import { externalInputCheckStatement } from './extInpCheck';
 import {
   castStatement,
@@ -12,7 +12,11 @@ import {
 
 export const INDENT = '    ';
 
-export function genCairoContract(abi: AbiType, contract_address: string | undefined): string {
+export function genCairoContract(
+  abi: AbiType,
+  contract_address: string | undefined,
+  class_hash: string | undefined,
+): string {
   const langDirective: string[] = getStarknetLangDirective();
   const structs: string[] = stringfyStructs(getStructDependencyGraph(abi));
   const forwarderInterface: string[] = getForwarderInterface(abi);
@@ -23,7 +27,7 @@ export function genCairoContract(abi: AbiType, contract_address: string | undefi
     castFunctions,
     expInpFunctions,
     tupleStructs,
-  ] = getInteractiveFuncs(abi, contract_address);
+  ] = getInteractiveFuncs(abi, contract_address, class_hash);
   return (
     langDirective.join('\n') +
     '\n\n// imports \n' +
@@ -75,6 +79,7 @@ function getForwarderInterface(abi: AbiType): string[] {
 export function getInteractiveFuncs(
   abi: AbiType,
   contract_address: string | undefined,
+  class_hash: string | undefined,
 ): [string[], string[], StructAbiItemType[], string[], string[], StructAbiItemType[]] {
   const structDependency = getStructDependencyGraph(abi);
   const typeToStruct = typeToStructMapping(structDependency);
@@ -95,29 +100,31 @@ export function getInteractiveFuncs(
     if (item.type === 'function' && item.name !== '__default__') {
       const decorator: string = item.stateMutability === 'view' ? '@view' : '@external';
 
-      const callToFunc = `${INDENT}let (${item.outputs.reduce(
-        (acc: string[], output: { name: string; type: string }) => {
-          if (output.type.endsWith('*')) {
-            acc.pop();
-            acc.push(`${output.name}_len`);
-          }
-          return [...acc, `${output.name}_cast_rev`];
-        },
-        [],
-      )}) = Forwarder.${item.name}(${contract_address ?? 0},${item.inputs.reduce(
-        (acc: string[], input: { name: string; type: string }) => {
+      const callToFunc = (isDelegate: boolean) =>
+        `${INDENT}let (${item.outputs.reduce(
+          (acc: string[], output: { name: string; type: string }) => {
+            if (output.type.endsWith('*')) {
+              acc.pop();
+              acc.push(`${output.name}_len`);
+            }
+            return [...acc, `${output.name}_cast_rev`];
+          },
+          [],
+        )}) = Forwarder.${(isDelegate ? 'library_call_' : '') + item.name}(${
+          isDelegate ? class_hash ?? 0 : contract_address ?? 0
+        },${item.inputs.reduce((acc: string[], input: { name: string; type: string }) => {
           if (input.type.endsWith('*')) {
             acc.pop();
             acc.push(`${input.name}_len`);
           }
           return [...acc, `${input.name}_cast`];
-        },
-        [],
-      )});`;
+        }, [])});`;
 
-      interactiveFuncs.push(
+      const funcDef = (isDelegate: boolean) => [
         decorator,
-        `func _ITR_${item.name} {syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(`,
+        `func _ITR_${
+          (isDelegate ? '_delegate_' : '') + item.name
+        } {syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(`,
         ...item.inputs.reduce((acc: string[], input: { name: string; type: string }) => {
           if (input.type.endsWith('*')) {
             acc.pop();
@@ -178,7 +185,7 @@ export function getInteractiveFuncs(
           return acc;
         }, []),
         `${INDENT}// call cairo contract function`,
-        callToFunc,
+        callToFunc(isDelegate),
         `${INDENT}// cast outputs`,
         ...item.outputs.reduce((acc: string[], output: { name: string; type: string }) => {
           if (output.type.endsWith('*')) {
@@ -197,7 +204,9 @@ export function getInteractiveFuncs(
         }, []),
         `${INDENT}return (${[...item.outputs.map((x) => x.name), ''].join(',')});`,
         '}',
-      );
+      ];
+
+      interactiveFuncs.push(...funcDef(false), ...funcDef(true));
     }
   });
   return [

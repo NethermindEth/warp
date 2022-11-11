@@ -25,7 +25,7 @@ export function getStructsFromABI(abi: AbiType): StructAbiItemType[] {
 
 export function getAllStructsFromABI(abi: AbiType): StructAbiItemType[] {
   let result: StructAbiItemType[] = getStructDependencyGraph(abi);
-  const res = getInteractiveFuncs(abi, undefined);
+  const res = getInteractiveFuncs(abi, undefined, undefined);
   result = result.concat(res[2]);
   result = result.concat(res[5]);
   return result;

@@ -2,6 +2,18 @@
 
 This is a feature for the WARP transpiler to enable interaction between non-warped cairo contracts with a warped cairo contract _(cairo file generated after transpilation of a solidity contract)_.
 
+```text
+Usage: warp gen_interface [options] <file>
+
+Options:
+  --cairo-path <cairo-path>
+  --output <output>
+  --contract-address <contract-address>
+  --class-hash <class-hash>
+  --solc-version <version>               Solc version to use. (default: "0.8.14")
+  -h, --help                             display help for command
+```
+
 Assume you have a cairo contract `add.cairo`.
 
 ```js
@@ -20,7 +32,7 @@ The cairo contract `a.cairo` has been deployed at address `addr`. And, we want t
 Run command with appropriate cairo file name and it's address at which it has been deployed
 
 ```sh
-bin/warp gen_interface a.cairo --contract-address `${addr}`
+bin/warp gen_interface a.cairo --contract-address `${addr}` --class_hash `${cairo_contract_class_hash}`
 ```
 
 This command will generate two files in the directory where your cairo file (in this case `a.cairo`) is present.
@@ -208,7 +220,7 @@ starknet invoke \
 
 ## Running tests
 
-For more detailed and implemented steps, you can look at [interface_forwarder.test.ts](../../tests/interface_call_forwarder/interface_forwarder.test.ts) file.
+For more detailed and implemented steps, you can look at the [interface_forwarder.test.ts](../../tests/interface_call_forwarder/interface_forwarder.test.ts) file.
 
 To execute interface call forwarder test, run `$ yarn test:forwarder`
 

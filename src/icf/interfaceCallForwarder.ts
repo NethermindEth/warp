@@ -93,7 +93,7 @@ export function generateSolInterface(filePath: string, options: SolcInterfaceGen
   const abi: AbiType = JSON.parse(fs.readFileSync(abiPath, 'utf8'));
 
   // generate the cairo contract that will be used to interact with the given cairo contract
-  let cairoContract: string = genCairoContract(abi, options.contractAddress);
+  let cairoContract: string = genCairoContract(abi, options.contractAddress, options.classHash);
 
   const writer = new ASTWriter(
     new Map<ASTNodeConstructor<ASTNode>, ASTNodeWriter>([...DefaultASTWriterMapping]),
@@ -397,28 +397,28 @@ function addInteractiveFunctions(
   const functions: FunctionDefinition[] = [];
 
   functionItems.forEach((element: FunctionAbiItemType) => {
-    const id = ast.reserveId();
-    const inputParameters: VariableDeclaration[] = getParametersCairoType(
-      element.inputs,
-      id,
-      structDefs,
-      ast,
-      typeToStructMap,
-    );
-    const returnParameters: VariableDeclaration[] = getParametersCairoType(
-      element.outputs,
-      id,
-      structDefs,
-      ast,
-      typeToStructMap,
-    );
-    functions.push(
-      new FunctionDefinition(
+    const funcDef = (isDelegate: boolean) => {
+      const id = ast.reserveId();
+      const inputParameters: VariableDeclaration[] = getParametersCairoType(
+        element.inputs,
+        id,
+        structDefs,
+        ast,
+        typeToStructMap,
+      );
+      const returnParameters: VariableDeclaration[] = getParametersCairoType(
+        element.outputs,
+        id,
+        structDefs,
+        ast,
+        typeToStructMap,
+      );
+      return new FunctionDefinition(
         id,
         '',
         contract.id,
         FunctionKind.Function,
-        element.name,
+        (isDelegate ? '_delegate_' : '') + element.name,
         false,
         FunctionVisibility.External,
         FunctionStateMutability.NonPayable,
@@ -428,8 +428,10 @@ function addInteractiveFunctions(
         [], // modifiers
         undefined, // override specifier
         undefined, // body
-      ),
-    );
+      );
+    };
+
+    functions.push(funcDef(false), funcDef(true));
   });
   const signatures = new Map<string, string>();
   functions.forEach((f: FunctionDefinition) => {
