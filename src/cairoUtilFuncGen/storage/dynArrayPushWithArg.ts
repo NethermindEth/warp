@@ -167,6 +167,9 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     });
     this.requireImport('starkware.cairo.common.uint256', 'Uint256');
     this.requireImport('starkware.cairo.common.uint256', 'uint256_add');
+    this.requireImport('starkware.cairo.common.cairo_builtins', 'BitwiseBuiltin');
+    this.requireImport('starkware.cairo.common.dict_access', 'DictAccess');
+    this.requireImport('starkware.cairo.common.cairo_builtins', 'HashBuiltin');
     return funcName;
   }
 }
