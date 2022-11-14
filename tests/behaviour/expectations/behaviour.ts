@@ -749,6 +749,13 @@ export const expectations = flatten(
           ),
         ]),
         new Dir('conversions', [
+          File.Simple('addr2uint256', [
+            Expect.Simple(
+              'address2uint256',
+              ['3618502788666131106986593281521497120414687020801267626233049500247285301247'],
+              ['340282366920938463463374607431768211455', '10633823966279326983230456482242756607'],
+            ),
+          ]),
           File.Simple('signedIdentity', [
             Expect.Simple('implicit', ['210', '11', '12'], ['210', '11', '12']),
             Expect.Simple('explicit', ['200', '300', '400'], ['200', '300', '400']),
@@ -4082,6 +4089,12 @@ export const expectations = flatten(
             Expect.Simple('identifier', [], []),
             Expect.Simple('simple', [], []),
             Expect.Simple('indexAccess', [], []),
+          ]),
+        ]),
+        new Dir('underscore_integers', [
+          File.Simple('underscore_integers', [
+            Expect.Simple('a', [], ['10000', '0']),
+            Expect.Simple('b', [], ['10000', '0']),
           ]),
         ]),
         new Dir('user_defined_value_types', [

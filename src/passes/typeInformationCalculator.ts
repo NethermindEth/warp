@@ -23,7 +23,7 @@ import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 
 function calculateIntMin(type: IntType): bigint {
   if (type.signed) {
-    return 2n ** BigInt(type.nBits - 1);
+    return 1n << BigInt(type.nBits - 1);
   } else {
     return 0n;
   }
@@ -31,9 +31,9 @@ function calculateIntMin(type: IntType): bigint {
 
 function calculateIntMax(type: IntType): bigint {
   if (type.signed) {
-    return 2n ** BigInt(type.nBits - 1) - 1n;
+    return (1n << BigInt(type.nBits - 1)) - 1n;
   } else {
-    return 2n ** BigInt(type.nBits) - 1n;
+    return (1n << BigInt(type.nBits)) - 1n;
   }
 }
 
