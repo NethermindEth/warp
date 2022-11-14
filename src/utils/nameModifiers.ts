@@ -44,14 +44,17 @@ export const RETURN_VALUE_PREFIX = '__warp_rv';
 //  - Used in utils
 export const WHILE_PREFIX = '__warp_while';
 
-// Used in TupleAssignmentSplitter
-export const TUPLE_VALUE_PREFIX = '__warp_tv_';
-
 // Used in  VariableDeclarationExpressionSplitter
 export const SPLIT_VARIABLE_PREFIX = '__warp_td_';
 
 // Used in Expression Splitter
 export const SPLIT_EXPRESSION_PREFIX = '__warp_se_';
+
+// Used in Conditional Splitter
+export const PRE_SPLIT_EXPRESSION_PREFIX = '__warp_pse_';
+export const CONDITIONAL_FUNCTION_PREFIX = '__warp_conditional_';
+export const CONDITIONAL_RETURN_VARIABLE = '__warp_rc_';
+export const TUPLE_VALUE_PREFIX = '__warp_tv_';
 
 // Used in UnloadingAssignment
 export const COMPOUND_ASSIGNMENT_SUBEXPRESSION_PREFIX = '__warp_cs_';
