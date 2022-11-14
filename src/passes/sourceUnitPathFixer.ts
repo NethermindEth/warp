@@ -10,7 +10,7 @@ export class SourceUnitPathFixer extends ASTMapper {
   }
 
   visitSourceUnit(node: SourceUnit, _ast: AST): void {
-    if (fs.existsSync(node.absolutePath)) {
+    if (!fs.existsSync(node.absolutePath)) {
       for (const prefix of this.includePaths) {
         const filePath = path.join(prefix, node.absolutePath);
         if (fs.existsSync(filePath)) {
@@ -23,7 +23,7 @@ export class SourceUnitPathFixer extends ASTMapper {
 
   static map_(ast: AST, includePaths: string[]): AST {
     ast.roots.forEach((root) => {
-      const mapper = new SourceUnitPathFixer(includePaths);
+      const mapper = new this(includePaths);
       mapper.dispatchVisit(root, ast);
     });
     return ast;
