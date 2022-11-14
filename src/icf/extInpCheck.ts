@@ -1,4 +1,3 @@
-import { assert } from 'console';
 import { StructAbiItemType } from './abiTypes';
 import { INDENT } from './genCairo';
 import { hashType, tupleParser } from './utils';
@@ -74,6 +73,6 @@ export function externalInputCheckStatement(
     }
     throw new Error('Heterogeneous tuples are should be wrapped in a struct');
   }
-  assert(type === 'felt', `Unknown type for external Input Check: ${type}`);
+  if (type !== 'felt') throw new Error(`Unknown type for external Input Check: ${type}`);
   return ';';
 }
