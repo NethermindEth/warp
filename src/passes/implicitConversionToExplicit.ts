@@ -61,7 +61,10 @@ Prerequisites:
 export class ImplicitConversionToExplicit extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([]);
+    const passKeys: Set<string> = new Set<string>([
+      // Conditionals pass generates cases that need to be handled by this pass
+      'Cos',
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
@@ -486,6 +489,12 @@ function pickLargerType(
       return intTypeForLiteral(`int_const ${leftLiteralBound}`);
     }
     return typeA;
+  }
+
+  if (typeA instanceof AddressType && typeB instanceof AddressType) {
+    // when pp() does not match, it means an address is payable and the other is
+    // not. Stay with the non payable one
+    return typeA.payable ? typeB : typeA;
   }
 
   // Literals always need to be cast to match the other type

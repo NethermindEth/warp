@@ -8,13 +8,10 @@
 export const TUPLE_FILLER_PREFIX = '__warp_tf';
 
 // Used in SourceUnitSplitter
-export const FREE_FILE_SUFFIX = '__WC_FREE';
-export const CONTRACT_INFIX = '__WC__';
+export const FREE_FILE_NAME = '__warp_free.cairo';
 
 // Used in IdentifierManglerPass and CairoStubProcessor
-export const MANGLED_INTERNAL_USER_FUNCTION = '__warp_usrfn_';
-export const MANGLED_TYPE_NAME = '__warp_usrTp_';
-export const MANGLED_LOCAL_VAR = '__warp_usrid_';
+export const MANGLED_WARP = '__warp_';
 
 // Used in StaticArrayIndexer
 export const CALLDATA_TO_MEMORY_PREFIX = 'cd_to_wm_';
@@ -44,14 +41,17 @@ export const RETURN_VALUE_PREFIX = '__warp_rv';
 //  - Used in utils
 export const WHILE_PREFIX = '__warp_while';
 
-// Used in TupleAssignmentSplitter
-export const TUPLE_VALUE_PREFIX = '__warp_tv_';
-
 // Used in  VariableDeclarationExpressionSplitter
 export const SPLIT_VARIABLE_PREFIX = '__warp_td_';
 
 // Used in Expression Splitter
 export const SPLIT_EXPRESSION_PREFIX = '__warp_se_';
+
+// Used in Conditional Splitter
+export const PRE_SPLIT_EXPRESSION_PREFIX = '__warp_pse_';
+export const CONDITIONAL_FUNCTION_PREFIX = '__warp_conditional_';
+export const CONDITIONAL_RETURN_VARIABLE = '__warp_rc_';
+export const TUPLE_VALUE_PREFIX = '__warp_tv_';
 
 // Used in UnloadingAssignment
 export const COMPOUND_ASSIGNMENT_SUBEXPRESSION_PREFIX = '__warp_cs_';

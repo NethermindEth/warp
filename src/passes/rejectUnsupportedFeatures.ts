@@ -1,10 +1,8 @@
-import fs from 'fs';
 import {
   AddressType,
   ArrayType,
   ASTNode,
   BytesType,
-  Conditional,
   ContractDefinition,
   ContractKind,
   DataLocation,
@@ -19,13 +17,15 @@ import {
   FunctionType,
   Identifier,
   IndexAccess,
+  Literal,
   MemberAccess,
   ParameterList,
-  parseSourceLocation,
   PointerType,
   RevertStatement,
+  SourceUnit,
   StructDefinition,
   TryStatement,
+  TypeNameType,
   TypeNode,
   UserDefinedType,
   VariableDeclaration,
@@ -33,10 +33,16 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { WillNotSupportError } from '../utils/errors';
-import { error } from '../utils/formatting';
+import { getErrorMessage, WillNotSupportError } from '../utils/errors';
 import { isDynamicArray, safeGetNodeType } from '../utils/nodeTypeProcessing';
-import { getSourceFromLocations, isExternalCall, isExternallyVisible } from '../utils/utils';
+import { isExternalCall, isExternallyVisible } from '../utils/utils';
+
+const PATH_REGEX = /^[\w-@/\\]*$/;
+
+export function checkPath(path: string): boolean {
+  const pathWithoutExtension = path.substring(0, path.length - '.sol'.length);
+  return !PATH_REGEX.test(pathWithoutExtension);
+}
 
 export class RejectUnsupportedFeatures extends ASTMapper {
   unsupportedFeatures: [string, ASTNode][] = [];
@@ -55,24 +61,9 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     }, 0);
 
     if (unsupportedDetected > 0) {
-      let errorNum = 0;
-      const errorMsg = [...unsupportedPerSource.entries()].reduce(
-        (fullMsg, [filePath, unsopported]) => {
-          const content = fs.readFileSync(filePath, { encoding: 'utf8' });
-          const newMessage = unsopported.reduce((newMessage, [errorMsg, node]) => {
-            const errorCode = getSourceFromLocations(
-              content,
-              [parseSourceLocation(node.src)],
-              error,
-              4,
-            );
-            errorNum += 1;
-            return newMessage + `\n${error(`${errorNum}. ` + errorMsg)}:\n\n${errorCode}\n`;
-          }, `\nFile ${filePath}:\n`);
-
-          return fullMsg + newMessage;
-        },
-        error(`Detected ${unsupportedDetected} Unsupported Features:\n`),
+      const errorMsg = getErrorMessage(
+        unsupportedPerSource,
+        `Detected ${unsupportedDetected} Unsupported Features:`,
       );
       throw new WillNotSupportError(errorMsg, undefined, false);
     }
@@ -88,19 +79,21 @@ export class RejectUnsupportedFeatures extends ASTMapper {
 
   visitIndexAccess(node: IndexAccess, ast: AST): void {
     if (node.vIndexExpression === undefined) {
-      this.addUnsupported(`Undefined index access not supported. Is this in abi.decode?`, node);
+      if (!(safeGetNodeType(node, ast.compilerVersion) instanceof TypeNameType)) {
+        this.addUnsupported(`Undefined index access not supported`, node);
+      }
     }
     this.visitExpression(node, ast);
   }
+
   visitRevertStatement(node: RevertStatement, _ast: AST): void {
     this.addUnsupported('Reverts with custom errors are not supported', node);
   }
+
   visitErrorDefinition(node: ErrorDefinition, _ast: AST): void {
     this.addUnsupported('User defined Errors are not supported', node);
   }
-  visitConditional(node: Conditional, _ast: AST): void {
-    this.addUnsupported('Conditional expressions (ternary operator, node) are not supported', node);
-  }
+
   visitFunctionCallOptions(node: FunctionCallOptions, ast: AST): void {
     // Allow options only when passing salt values for contract creation
     if (
@@ -117,6 +110,7 @@ export class RejectUnsupportedFeatures extends ASTMapper {
       node,
     );
   }
+
   visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
     const typeNode = safeGetNodeType(node, ast.compilerVersion);
     if (typeNode instanceof FunctionType)
@@ -135,6 +129,15 @@ export class RejectUnsupportedFeatures extends ASTMapper {
     if (node.name === 'msg' && node.vIdentifierType === ExternalReferenceType.Builtin) {
       if (!(node.parent instanceof MemberAccess && node.parent.memberName === 'sender')) {
         this.addUnsupported(`msg object not supported outside of 'msg.sender'`, node);
+      }
+    } else if (node.name === 'block' && node.vIdentifierType === ExternalReferenceType.Builtin) {
+      if (
+        node.parent instanceof MemberAccess &&
+        ['coinbase', 'chainid', 'gaslimit', 'basefee', 'difficulty'].includes(
+          (<MemberAccess>node.parent).memberName,
+        )
+      ) {
+        this.addUnsupported(`block.${(<MemberAccess>node.parent).memberName} not supported`, node);
       }
     }
   }
@@ -172,18 +175,38 @@ export class RejectUnsupportedFeatures extends ASTMapper {
   }
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
-    const unsupportedMath = ['sha256', 'ripemd160'];
-    const unsupportedAbi = ['encodeCall'];
-    const unsupportedMisc = ['blockhash', 'selfdestruct', 'gasleft'];
+    if (
+      node.kind !== FunctionCallKind.FunctionCall ||
+      node.vFunctionCallType !== ExternalReferenceType.Builtin
+    )
+      return this.visitExpression(node, ast);
+
     const funcName = node.vFunctionName;
     if (
-      node.kind === FunctionCallKind.FunctionCall &&
-      node.vReferencedDeclaration === undefined &&
-      [...unsupportedMath, ...unsupportedAbi, ...unsupportedMisc].includes(funcName)
+      ['sha256', 'ripemd160', 'encodeCall', 'blockhash', 'selfdestruct', 'gasleft'].includes(
+        funcName,
+      )
     ) {
       this.addUnsupported(`Solidity builtin ${funcName} is not supported`, node);
+    } else if (
+      ['require', 'assert'].includes(funcName) &&
+      node.vArguments.length > 1 &&
+      !(node.vArguments[1] instanceof Literal)
+    ) {
+      this.addUnsupported(
+        `Dynamic string cannot be used as arguments for  ${funcName}`,
+        node.vArguments[1],
+      );
+    } else if (
+      funcName === 'revert' &&
+      node.vArguments.length > 0 &&
+      !(node.vArguments[0] instanceof Literal)
+    ) {
+      this.addUnsupported(
+        `Dynamic string cannot be used as arguments for  ${funcName}`,
+        node.vArguments[0],
+      );
     }
-
     this.visitExpression(node, ast);
   }
 
@@ -209,6 +232,16 @@ export class RejectUnsupportedFeatures extends ASTMapper {
 
   visitTryStatement(node: TryStatement, _ast: AST): void {
     this.addUnsupported(`Try/Catch statements are not supported`, node);
+  }
+
+  visitSourceUnit(node: SourceUnit, ast: AST): void {
+    if (checkPath(node.absolutePath)) {
+      this.addUnsupported(
+        'File path includes unsupported characters, only _, -, /, , and alphanumeric characters are supported',
+        node,
+      );
+    }
+    this.commonVisit(node, ast);
   }
 
   // Cases not allowed:

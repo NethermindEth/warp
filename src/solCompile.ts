@@ -7,6 +7,7 @@ import {
   extractSpecifiersFromSource,
   getCompilerVersionsBySpecifiers,
 } from 'solc-typed-ast';
+import { CompilationOptions } from '.';
 import { AST } from './ast/ast';
 import { SupportedSolcVersions, nethersolcPath, fullVersionFromMajor } from './nethersolc';
 import { TranspileFailedError } from './utils/errors';
@@ -17,22 +18,35 @@ import { error } from './utils/formatting';
 // size to the largest possible
 const MAX_BUFFER_SIZE = Number.MAX_SAFE_INTEGER;
 
-export function compileSolFile(file: string, printWarnings: boolean): AST {
-  const requiredSolcVersion = getSolFileVersion(file);
-  const [, majorVersion] = matchCompilerVersion(requiredSolcVersion);
-  if (majorVersion != '7' && majorVersion != '8') {
-    throw new TranspileFailedError(`Unsupported version of solidity source ${requiredSolcVersion}`);
+function compileSolFilesCommon(files: string[]): SolcOutput {
+  const sources = files.map((file) => {
+    return getSolFileVersion(file);
+  });
+
+  sources.forEach((version, i) => {
+    const [, majorVersion] = matchCompilerVersion(version);
+    if (majorVersion != '7' && majorVersion != '8') {
+      throw new TranspileFailedError(
+        `Unsupported version of solidity source ${version} in file ${files[i]}`,
+      );
+    }
+  });
+
+  if (!sources.every((version) => version === sources[0])) {
+    throw new TranspileFailedError(`All solidity files should be the same major version`);
   }
 
-  let solcOutput = cliCompile(formatInput(file, true), requiredSolcVersion);
-  if (errorInSolcOutput(solcOutput.result)) {
-    solcOutput = cliCompile(formatInput(file, false), requiredSolcVersion);
-  }
-  printErrors(solcOutput.result, printWarnings, solcOutput.compilerVersion);
+  const solcOutput = cliCompile(formatInput(files), sources[0]);
+  return solcOutput;
+}
+
+export function compileSolFiles(files: string[], options: CompilationOptions): AST {
+  const solcOutput = compileSolFilesCommon(files);
+  printErrors(solcOutput.result, options.warnings, solcOutput.compilerVersion);
   const reader = new ASTReader();
   const sourceUnits = reader.read(solcOutput.result);
 
-  return new AST(sourceUnits, requiredSolcVersion);
+  return new AST(sourceUnits, solcOutput.compilerVersion, solcOutput.result);
 }
 
 const supportedVersions = ['0.8.14', '0.7.6'];
@@ -47,48 +61,66 @@ function getSolFileVersion(file: string): string {
 }
 
 type SolcInput = {
-  language: 'Solidity' | 'Yul';
+  language: 'Solidity';
   sources: {
     [fileName: string]: {
-      keccak256?: string;
       urls: string[];
     };
   };
   settings?: {
-    viaIR: boolean;
     outputSelection: {
       '*': {
-        '*': ['*'];
-        '': ['*'];
+        '*': ['abi'];
+        '': ['ast'];
       };
     };
   };
 };
 
-function formatInput(fileName: string, viaYul: boolean): SolcInput {
+function formatInput(fileNames: string[]): SolcInput {
+  const sources: { [key: string]: { urls: string[] } } = {};
+  fileNames.forEach((fileName) => {
+    sources[fileName] = {
+      urls: [fileName],
+    };
+  });
   return {
     language: 'Solidity',
-    sources: {
-      [fileName]: {
-        urls: [fileName],
-      },
-    },
+    sources,
     settings: {
-      viaIR: viaYul,
       outputSelection: {
         '*': {
-          '*': ['*'],
-          '': ['*'],
+          '*': ['abi'],
+          '': ['ast'],
         },
       },
     },
   };
 }
 
+export type SolcOutput = {
+  result: {
+    contracts: {
+      [path: string]: {
+        [contract: string]: {
+          abi: [{ [key: string]: string }];
+        };
+      };
+    };
+    sources: {
+      [path: string]: {
+        ast: [{ [key: string]: string }];
+      };
+    };
+  };
+  compilerVersion: string;
+};
+
 function cliCompile(
   input: SolcInput,
   solcVersion: string,
-): { result: unknown; compilerVersion: string } {
+  options?: CompilationOptions,
+): SolcOutput {
   // Determine compiler version to use
   const nethersolcVersion: SupportedSolcVersions = solcVersion.startsWith('0.7.') ? `7` : `8`;
   const solcCommand = nethersolcPath(nethersolcVersion);
@@ -102,10 +134,20 @@ function cliCompile(
     const currentDirectory = execSync(`pwd`).toString().replace('\n', '');
     allowedPaths = `--allow-paths ${currentDirectory}`;
   }
+  const includePathOptions =
+    options === undefined || options.includePaths === undefined
+      ? ''
+      : `--include-path ${options.includePaths.join(' --include-path ')}`;
+  const basePathOption =
+    options === undefined || options.basePath === undefined
+      ? ''
+      : `--base-path ${options.basePath}`;
+
+  const commandOptions = `--standard-json ${allowedPaths} ${includePathOptions} ${basePathOption}`;
 
   return {
     result: JSON.parse(
-      execSync(`${solcCommand} --standard-json ${allowedPaths}`, {
+      execSync(`${solcCommand} ${commandOptions}`, {
         input: JSON.stringify(input),
         maxBuffer: MAX_BUFFER_SIZE,
         stdio: ['pipe', 'pipe', 'ignore'],
@@ -123,18 +165,6 @@ function matchCompilerVersion(version: string): [string, string, string] {
   }
 
   return [match[1], match[2], match[3]];
-}
-
-function errorInSolcOutput(cliOutput: unknown): boolean {
-  assert(
-    typeof cliOutput === 'object' && cliOutput !== null,
-    error(`Obtained unexpected output from solc: ${cliOutput}`),
-  );
-  const errorsAndWarnings = Object.entries(cliOutput).find(
-    ([propName]) => propName === 'errors',
-  )?.[1];
-
-  return errorsAndWarnings !== undefined;
 }
 
 function printErrors(cliOutput: unknown, printWarnings: boolean, compilerVersion: string): void {
@@ -182,17 +212,14 @@ function printErrors(cliOutput: unknown, printWarnings: boolean, compilerVersion
 }
 
 // used for the semantic test suite
-export function compileSolFileAndExtractContracts(file: string): unknown {
+export function compileSolFilesAndExtractContracts(file: string): unknown {
   const requiredSolcVersion = getSolFileVersion(file);
   const [, majorVersion] = matchCompilerVersion(requiredSolcVersion);
   if (majorVersion != '7' && majorVersion != '8') {
     throw new TranspileFailedError(`Unsupported version of solidity source ${requiredSolcVersion}`);
   }
 
-  let solcOutput = cliCompile(formatInput(file, true), requiredSolcVersion);
-  if (errorInSolcOutput(solcOutput.result)) {
-    solcOutput = cliCompile(formatInput(file, false), requiredSolcVersion);
-  }
+  const solcOutput = cliCompile(formatInput([file]), requiredSolcVersion);
   assert(typeof solcOutput.result === 'object' && solcOutput.result !== null);
   return Object.entries(solcOutput.result).filter(([name]) => name === 'contracts')[0][1][file];
 }

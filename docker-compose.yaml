@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  warp:
+    build: .
+    volumes:
+      - .:/usr/src/warp
+    links:
+      - devnet
+    env_file:
+      - docker.env
+    working_dir: /usr/src/warp
+    entrypoint: tail -F anything
+
+  devnet:
+    image: shardlabs/starknet-devnet:0.3.3-seed0
+    ports:
+      - '5050:5050'

@@ -1,4 +1,3 @@
-import assert from 'assert';
 import {
   ContractDefinition,
   FunctionDefinition,
@@ -7,10 +6,11 @@ import {
   StructDefinition,
   VariableDeclaration,
 } from 'solc-typed-ast';
+import { join } from 'path';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { cloneASTNode } from '../utils/cloning';
-import { CONTRACT_INFIX, FREE_FILE_SUFFIX } from '../utils/nameModifiers';
+import { FREE_FILE_NAME } from '../utils/nameModifiers';
 
 type Scoped = FunctionDefinition | ContractDefinition | VariableDeclaration | StructDefinition;
 
@@ -28,13 +28,6 @@ export class SourceUnitSplitter extends ASTMapper {
 }
 
 function splitSourceUnit(sourceUnit: SourceUnit, ast: AST): SourceUnit[] {
-  assert(sourceUnit.absolutePath.endsWith('.sol'), "Can't transform files without sol ending");
-
-  const filePathRoot = sourceUnit.absolutePath.slice(
-    0,
-    sourceUnit.absolutePath.length - '.sol'.length,
-  );
-
   const freeSourceUnitId = ast.reserveId();
   const freeSourceSignificantChildren = [
     ...sourceUnit.vEnums,
@@ -53,7 +46,7 @@ function splitSourceUnit(sourceUnit: SourceUnit, ast: AST): SourceUnit[] {
     sourceUnit.src,
     '',
     0,
-    mangleFreeFilePath(filePathRoot) + '.sol',
+    mangleFreeFilePath(sourceUnit.absolutePath),
     sourceUnit.exportedSymbols,
     freeSourceChildren,
   );
@@ -65,7 +58,7 @@ function splitSourceUnit(sourceUnit: SourceUnit, ast: AST): SourceUnit[] {
       '',
       '',
       0,
-      mangleContractFilePath(filePathRoot, contract.name) + '.sol',
+      mangleContractFilePath(sourceUnit.absolutePath, contract.name),
       sourceUnit.exportedSymbols,
       [
         ...sourceUnit.vImportDirectives.map((iD) => cloneASTNode(iD, ast)),
@@ -113,11 +106,15 @@ function updateScope(nodes: readonly Scoped[], newScope: number): readonly Scope
 }
 
 export function mangleFreeFilePath(path: string): string {
-  return `${path}${FREE_FILE_SUFFIX}`;
+  return join(path, FREE_FILE_NAME);
 }
 
-export function mangleContractFilePath(path: string, contractName: string): string {
-  return `${path}${CONTRACT_INFIX}${contractName}`;
+export function mangleContractFilePath(
+  path: string,
+  contractName: string,
+  suffix = '.cairo',
+): string {
+  return join(path, contractName + suffix);
 }
 
 function getAllSourceUnitDefinitions(sourceUnit: SourceUnit) {

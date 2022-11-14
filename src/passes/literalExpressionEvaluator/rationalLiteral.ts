@@ -146,13 +146,13 @@ export function stringToLiteralValue(value: string): RationalLiteral {
     .join('');
 
   if (tidiedValue.startsWith('0x')) {
-    return intToLiteral(value);
+    return intToLiteral(tidiedValue);
   } else if (tidiedValue.includes('e') || tidiedValue.includes('E')) {
-    return scientificNotationToLiteral(value);
+    return scientificNotationToLiteral(tidiedValue);
   } else if (tidiedValue.includes('.')) {
-    return decimalToLiteral(value);
+    return decimalToLiteral(tidiedValue);
   } else {
-    return intToLiteral(value);
+    return intToLiteral(tidiedValue);
   }
 }
 

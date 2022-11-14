@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Command } from 'commander';
-import { createCairoFileName, isValidSolFile, outputResult } from './io';
-import { compileSolFile } from './solCompile';
+import { replaceSuffix, isValidSolFile, outputResult } from './io';
+import { compileSolFiles } from './solCompile';
 import { handleTranspilationError, transform, transpile } from './transpiler';
 import { analyseSol } from './utils/analyseSol';
 import {
@@ -21,11 +21,13 @@ import { postProcessCairoFile } from './utils/postCairoWrite';
 
 export type CompilationOptions = {
   warnings: boolean;
+  includePaths?: string[];
+  basePath?: string;
 };
 
 export type TranspilationOptions = {
   checkTrees?: boolean;
-  dev?: boolean;
+  dev: boolean;
   order?: string;
   printTrees?: boolean;
   strict?: boolean;
@@ -42,6 +44,7 @@ export type OutputOptions = {
   compileCairo?: boolean;
   compileErrors?: boolean;
   outputDir: string;
+  formatCairo: boolean;
   result: boolean;
 };
 
@@ -58,6 +61,9 @@ program
   .option('--compile-cairo')
   .option('--no-compile-errors')
   .option('--check-trees')
+  // for development mode
+  .option('--dev', 'Run AST sanity checks on every pass instead of the final AST only', false)
+  .option('--format-cairo', 'Format cairo output')
   .option('--highlight <ids...>')
   .option('--order <passOrder>')
   .option('-o, --output-dir <path>', 'Output directory for transpiled Cairo files.', 'warp_output')
@@ -66,50 +72,46 @@ program
   .option('--no-result')
   .option('--no-stubs')
   .option('--no-strict')
-  // Stops transpilation after the specified pass
-  .option('--until <pass>')
+  .option('--until <pass>', 'Stops transpilation after the specified pass')
   .option('--no-warnings')
-  .option('--dev') // for development mode
+  .option('--include-paths <paths...>')
+  .option('--base-path <path>')
   .action((files: string[], options: CliOptions) => {
     // We do the extra work here to make sure all the errors are printed out
     // for all files which are invalid.
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
-    const cairoSuffix = '.cairo';
+
+    const ast = compileSolFiles(files, options);
     const contractToHashMap = new Map<string, string>();
-    files.forEach((file) => {
-      if (files.length > 1) {
-        console.log(`Compiling ${file}`);
-      }
-      try {
-        transpile(compileSolFile(file, options.warnings), options)
-          .map(([name, cairo, abi]) => {
-            outputResult(name, cairo, options, cairoSuffix, abi);
-            return createCairoFileName(name, cairoSuffix);
-          })
-          .map((file) =>
-            postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
-          )
-          .forEach((file: string) => {
-            if (options.compileCairo) {
-              const { success, resultPath, abiPath } = compileCairo(
-                path.join(options.outputDir, file),
-                path.resolve(__dirname, '..'),
-                options,
-              );
-              if (!success) {
-                if (resultPath) {
-                  fs.unlinkSync(resultPath);
-                }
-                if (abiPath) {
-                  fs.unlinkSync(abiPath);
-                }
+    try {
+      transpile(ast, options)
+        .map(([name, cairo, abi]) => {
+          outputResult(name, cairo, options, ast, abi);
+          return name;
+        })
+        .map((file) =>
+          postProcessCairoFile(file, options.outputDir, options.debugInfo, contractToHashMap),
+        )
+        .forEach((file: string) => {
+          if (options.compileCairo) {
+            const { success, resultPath, abiPath } = compileCairo(
+              path.join(options.outputDir, file),
+              path.resolve(__dirname, '..'),
+              options,
+            );
+            if (!success) {
+              if (resultPath) {
+                fs.unlinkSync(resultPath);
+              }
+              if (abiPath) {
+                fs.unlinkSync(abiPath);
               }
             }
-          });
-      } catch (e) {
-        handleTranspilationError(e);
-      }
-    });
+          }
+        });
+    } catch (e) {
+      handleTranspilationError(e);
+    }
   });
 
 program
@@ -125,11 +127,14 @@ program
   .option('--no-strict')
   .option('--until <pass>')
   .option('--no-warnings')
+  .option('--include-paths <paths...>')
+  .option('--base-path <path>')
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
     try {
-      transform(compileSolFile(file, options.warnings), options).map(([name, solidity, _]) => {
-        outputResult(name, solidity, options, '_warp.sol');
+      const ast = compileSolFiles([file], options);
+      transform(ast, options).map(([name, solidity, _]) => {
+        outputResult(replaceSuffix(name, '_warp.sol'), solidity, options, ast);
       });
     } catch (e) {
       handleTranspilationError(e);

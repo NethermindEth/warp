@@ -1,8 +1,9 @@
-import { execSync } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { OutputOptions } from '.';
+import { OutputOptions, TranspilationOptions } from '.';
 import { TranspileFailedError, logError } from './utils/errors';
+import { execSync } from 'child_process';
+import { AST } from './ast/ast';
 
 export const solABIPrefix = '// Original soldity abi:';
 
@@ -54,26 +55,23 @@ function evaluateDirectory(path: string, recurse: boolean): string[] {
   });
 }
 
-export function createCairoFileName(solidityPath: string, suffix: string): string {
-  const inputFileNameRoot = solidityPath.endsWith('.sol')
-    ? solidityPath.slice(0, -'.sol'.length)
-    : solidityPath;
-  return `${inputFileNameRoot}${suffix}`;
+export function replaceSuffix(filePath: string, suffix: string): string {
+  const parsedPath = path.parse(filePath);
+  return path.join(parsedPath.dir, `${parsedPath.name}${suffix}`);
 }
 
 export function outputResult(
-  solidityPath: string,
+  outputPath: string,
   code: string,
-  options: OutputOptions,
-  suffix: string,
+  options: OutputOptions & TranspilationOptions,
+  ast: AST,
   abi?: string,
 ): void {
-  const codeOutput = createCairoFileName(solidityPath, suffix);
   const codeWithABI = abi ? `${code}\n\n${solABIPrefix} ${abi}` : code;
 
   if (options.outputDir === undefined) {
     if (options.result) {
-      console.log(`//--- ${codeOutput} ---\n${code}\n//---`);
+      console.log(`//--- ${outputPath} ---\n${code}\n//---`);
     }
   } else {
     if (fs.existsSync(options.outputDir)) {
@@ -84,14 +82,21 @@ export function outputResult(
         );
       }
     }
-    const fullCodeOutPath = path.join(options.outputDir, codeOutput);
+    const fullCodeOutPath = path.join(options.outputDir, outputPath);
+    const abiOutPath = fullCodeOutPath.slice(0, -'.cairo'.length).concat('_sol_abi.json');
+
+    const contractName = path.basename(outputPath).slice(0, -'.cairo'.length);
+    const solFilePath = path.dirname(outputPath);
+
+    fs.outputFileSync(
+      abiOutPath,
+      JSON.stringify(ast.solidityABI.contracts[solFilePath][contractName]['abi'], null, 2),
+    );
     fs.outputFileSync(fullCodeOutPath, codeWithABI);
-    formatOutput(fullCodeOutPath);
+
+    if (options.formatCairo || options.dev) {
+      const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
+      execSync(`${warpVenvPrefix} cairo-format -i ${fullCodeOutPath}`);
+    }
   }
-}
-
-const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
-
-function formatOutput(filePath: string): void {
-  execSync(`${warpVenvPrefix} cairo-format -i ${filePath}`);
 }
