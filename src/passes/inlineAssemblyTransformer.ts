@@ -23,7 +23,7 @@ import {
   Statement,
 } from 'solc-typed-ast';
 import assert from 'assert';
-import { WillNotSupportError } from '../export';
+import { WillNotSupportError } from '../utils/errors';
 
 class YulTransformer {
   vars: Map<string, VariableDeclaration>;
@@ -40,7 +40,11 @@ class YulTransformer {
     this.vars = new Map(blockRefs.map(([id, ref]) => [ref.name, ref]));
   }
 
-  run(node: YulNode): Statement {
+  transformStatement(node: YulNode): Statement {
+    return this.transformNode(node);
+  }
+
+  transformNode(node: YulNode): ASTNode {
     const methodName = `create${node.nodeType}`;
     if (!(methodName in this))
       throw new WillNotSupportError(`${node.nodeType} is not supported`, this.assemblyRoot, false);
@@ -53,14 +57,16 @@ class YulTransformer {
   }
 
   createYulIdentifier(node: YulNode): Identifier {
-    return createIdentifier(this.vars.get(node.name)!, this.ast);
+    const variableDeclaration = this.vars.get(node.name);
+    assert(variableDeclaration != undefined, `Variable ${node.name} not found.`);
+    return createIdentifier(variableDeclaration, this.ast);
   }
 
   createYulFunctionCall(node: YulNode): BinaryOperation {
     const binaryOps: { [name: string]: string } = { add: '+', mul: '*', div: '/', sub: '-' };
-    if (Object.keys(binaryOps).includes(node.functionName.name)) {
-      const leftExpr = this.run(node.arguments[0]) as Expression;
-      const rightExpr = this.run(node.arguments[1]) as Expression;
+    if (binaryOps[node.functionName.name] != undefined) {
+      const leftExpr = this.transformNode(node.arguments[0]) as Expression;
+      const rightExpr = this.transformNode(node.arguments[1]) as Expression;
       return new BinaryOperation(
         this.ast.reserveId(),
         node.src,
@@ -80,7 +86,7 @@ class YulTransformer {
 
   createYulAssignment(node: YulNode): ExpressionStatement {
     let lhs: Expression;
-    const rhs = this.run(node.value) as Expression;
+    const rhs = this.transformNode(node.value) as Expression;
     if (rhs.typeString === 'tuple()') {
       lhs = createTuple(
         this.ast,
@@ -109,9 +115,11 @@ class YulTransformer {
 
 export class InlineAssemblyTransformer extends ASTMapper {
   visitInlineAssembly(node: InlineAssembly, ast: AST): void {
+    assert(node.yul != undefined, 'Attribute yul of the InlineAssembly node is undefined');
+
     const transformer = new YulTransformer(ast, node);
-    const statements = node.yul!.statements.map((yul: YulNode) => {
-      const astNode = transformer.run(yul);
+    const statements = node.yul.statements.map((yul: YulNode) => {
+      const astNode = transformer.transformStatement(yul);
       ast.setContextRecursive(astNode);
       return astNode;
     });
