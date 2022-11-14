@@ -1,5 +1,4 @@
 export * from './abiBuiltins';
-export * from './abiExtractor';
 export * from './annotateImplicits';
 export * from './argBoundChecker';
 export * from './builtinHandler/export';
