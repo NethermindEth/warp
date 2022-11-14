@@ -12,7 +12,6 @@ import {
   IfStatement,
   SourceUnit,
   Statement,
-  UncheckedBlock,
   VariableDeclaration,
   WhileStatement,
 } from 'solc-typed-ast';
@@ -25,7 +24,6 @@ import {
   createIdentifier,
   createParameterList,
   createReturn,
-  createUncheckedBlock,
 } from '../../utils/nodeTemplates';
 import { getContainingSourceUnit } from '../../utils/utils';
 
@@ -57,16 +55,10 @@ export function extractWhileToFunction(
   const defId = ast.reserveId();
   const defName = `${prefix}${loopFnCounter++}`;
 
-  const funcBody =
-    node.getClosestParentByType(UncheckedBlock) !== undefined
-      ? createUncheckedBlock(
-          [createStartingIf(node.vCondition, node.vBody, variables, retParams.id, ast)],
-          ast,
-        )
-      : createBlock(
-          [createStartingIf(node.vCondition, node.vBody, variables, retParams.id, ast)],
-          ast,
-        );
+  const funcBody = createBlock(
+    [createStartingIf(node.vCondition, node.vBody, variables, retParams.id, ast)],
+    ast,
+  );
 
   // Fixing references of identifiers to the new input variables
   funcBody
@@ -145,22 +137,13 @@ export function extractDoWhileToFunction(
     return param;
   });
 
-  const doBlockBody =
-    node.getClosestParentByType(UncheckedBlock) !== undefined
-      ? createUncheckedBlock(
-          [
-            cloneASTNode(node.vBody, ast),
-            createReturn(createLoopCall(doWhileFuncDef, variables, ast), doBlockRetParams.id, ast),
-          ],
-          ast,
-        )
-      : createBlock(
-          [
-            cloneASTNode(node.vBody, ast),
-            createReturn(createLoopCall(doWhileFuncDef, variables, ast), doBlockRetParams.id, ast),
-          ],
-          ast,
-        );
+  const doBlockBody = createBlock(
+    [
+      cloneASTNode(node.vBody, ast),
+      createReturn(createLoopCall(doWhileFuncDef, variables, ast), doBlockRetParams.id, ast),
+    ],
+    ast,
+  );
 
   // Fixing references of identifiers to the new input variables
   doBlockBody

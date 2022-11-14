@@ -61,10 +61,7 @@ Prerequisites:
 export class ImplicitConversionToExplicit extends ASTMapper {
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([
-      // Conditionals pass generates cases that need to be handled by this pass
-      'Cos',
-    ]);
+    const passKeys: Set<string> = new Set<string>([]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 

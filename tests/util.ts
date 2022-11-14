@@ -28,7 +28,7 @@ const warpBin = path.resolve(__dirname, '..', 'bin', 'warp');
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
 export function transpile(contractPath: string): Promise<{ stdout: string; stderr: string }> {
-  return sh(`${warpBin} transpile --dev ${contractPath}`);
+  return sh(`${warpBin} transpile ${contractPath}`);
 }
 
 export function starknetCompile(
