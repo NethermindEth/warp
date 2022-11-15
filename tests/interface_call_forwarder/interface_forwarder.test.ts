@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import { readFileSync, writeFileSync } from 'fs';
 import { describe, it } from 'mocha';
 import { gen_interface, starknetCompile, transpile } from '../util';
 import path from 'path';
