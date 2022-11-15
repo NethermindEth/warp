@@ -1,5 +1,15 @@
 import { Dir, Value, File } from './types';
 
+const capacity = (bits: number) => 2n ** BigInt(bits);
+const max_uint = (bits: number) => capacity(bits) - 1n;
+const max_int = (bits: number) => capacity(bits) / 2n - 1n;
+const min_int = (bits: number) => -(capacity(bits) / 2n);
+
+export const MIN_INT256 = min_int(256);
+export const MAX_INT256 = max_int(256);
+export const MIN_INT8 = min_int(8);
+export const MAX_INT8 = max_int(8);
+
 export function flatten(test: Dir | File): File[] {
   if (test instanceof Dir) {
     return test.tests.flatMap((subTest) => {
@@ -72,3 +82,9 @@ export function toCairoUint256(val: number | bigint): [string, string] {
   const high = val >> 128n;
   return [low.toString(), high.toString()];
 }
+
+export function toCairoInt256(val: number | bigint): [string, string] {
+  return toCairoUint256(BigInt.asUintN(256, BigInt(val)));
+}
+
+export const toCairoInt8 = (val: number | bigint) => BigInt.asUintN(8, BigInt(val)).toString();

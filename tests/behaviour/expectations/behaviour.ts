@@ -1,5 +1,16 @@
 import { Dir, Expect, File } from './types';
-import { getByte32Array, flatten, getByteXArray, toCairoUint256 } from './utils';
+import {
+  getByte32Array,
+  flatten,
+  getByteXArray,
+  toCairoUint256,
+  toCairoInt256,
+  MIN_INT256,
+  MAX_INT256,
+  toCairoInt8,
+  MIN_INT8,
+  MAX_INT8,
+} from './utils';
 
 export const expectations = flatten(
   new Dir('tests', [
@@ -281,6 +292,25 @@ export const expectations = flatten(
             Expect.Simple('assignLengthToStorageUint', ['3', '1', '2', '3'], ['3', '0']),
             Expect.Simple('assignToStorageArr', ['3', '1', '2', '3'], ['3', '0']),
             Expect.Simple('staticArrayLength', ['1', '2', '3'], ['3', '0']),
+          ]),
+        ]),
+        new Dir('assembly', [
+          File.Simple('Integers', [
+            Expect.Simple(
+              'subtractionFromZeroResultInNegativeValue',
+              [],
+              [...toCairoInt256(-1), toCairoInt8(-2)],
+            ),
+            Expect.Simple(
+              'overflowsAreUnchecked',
+              [],
+              [
+                ...toCairoInt256(MIN_INT256 + 1n),
+                ...toCairoInt256(MAX_INT256),
+                toCairoInt8(MIN_INT8),
+                toCairoInt8(MAX_INT8 - 1n),
+              ],
+            ),
           ]),
         ]),
         new Dir('assignments', [
