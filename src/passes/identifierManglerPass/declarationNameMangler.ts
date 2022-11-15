@@ -1,22 +1,20 @@
 import {
-  VariableDeclaration,
-  FunctionDefinition,
-  StructDefinition,
-  SourceUnit,
-  ContractDefinition,
   ASTNode,
+  ContractDefinition,
   EventDefinition,
+  ForStatement,
+  FunctionDefinition,
+  SourceUnit,
+  StructDefinition,
+  VariableDeclaration,
+  VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { ABIEncoderVersion } from 'solc-typed-ast/dist/types/abi';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
-import { WillNotSupportError, TranspileFailedError } from '../../utils/errors';
-import {
-  MANGLED_INTERNAL_USER_FUNCTION,
-  MANGLED_LOCAL_VAR,
-  MANGLED_TYPE_NAME,
-} from '../../utils/nameModifiers';
+import { WillNotSupportError } from '../../utils/errors';
+import { MANGLED_WARP } from '../../utils/nameModifiers';
 import { isNameless } from '../../utils/utils';
 import { safeCanonicalHash } from '../../utils/nodeTypeProcessing';
 // Terms grabbed from here
@@ -29,7 +27,6 @@ export const reservedTerms = new Set<string>([
   'alloc_locals',
   'rel',
   'func',
-  'end',
   'nondet',
   'felt',
   'codeoffset',
@@ -43,7 +40,6 @@ export const reservedTerms = new Set<string>([
   'with_attr',
   'static_assert',
   'assert',
-  'member',
   'new',
   'call',
   'abs',
@@ -87,47 +83,47 @@ export function checkSourceTerms(term: string, node: ASTNode) {
 }
 
 export class DeclarationNameMangler extends ASTMapper {
-  lastUsedId = 0;
-  // Feel free to increase this value. The greater the value the less probably to
-  // execute the code to fix Id's width, but less legible variable names would be.
-  initialIdWidth = 2;
-  nodesNameModified: ASTNode[] = [];
+  nameCounter = 0;
+
+  visitSourceUnit(node: SourceUnit, ast: AST): void {
+    node.vStructs.forEach((s) => this.mangleStructDefinition(s));
+    node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n, ast));
+    node.vContracts.forEach((n) => this.mangleContractDefinition(n, ast));
+    this.commonVisit(node, ast);
+  }
+
+  visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
+    // state variables should have already been mangled at this point
+    // by mangleContractDefinition when visiting SourceUnit nodes
+    if (!node.stateVariable) this.mangleVariableDeclaration(node);
+
+    this.commonVisit(node, ast);
+  }
+
+  visitForStatement(node: ForStatement, ast: AST): void {
+    // The declarations in for loops are mangled because the loop functionalisation extracts
+    // declarations to the current scope instead of creating a new one.
+    if (node.vInitializationExpression instanceof VariableDeclarationStatement) {
+      node.vInitializationExpression.vDeclarations.forEach((declaration) => {
+        declaration.name = this.createNewVariableName(declaration.name);
+      });
+    }
+    this.commonVisit(node, ast);
+  }
 
   // This strategy should allow checked demangling post transpilation for a more readable result
   createNewFunctionName(fd: FunctionDefinition, ast: AST): string {
     return !isNameless(fd) ? `${fd.name}_${safeCanonicalHash(fd, ast)}` : fd.name;
   }
 
-  // Return a new id formatted to achieve the minimum length
-  getFormattedId(): string {
-    return (this.lastUsedId++).toString().padStart(this.initialIdWidth, '0');
-  }
-
-  createNewTypeName(existingName: string): string {
-    return `${MANGLED_TYPE_NAME}${this.getFormattedId()}_${existingName}`;
-  }
-
   createNewVariableName(existingName: string): string {
-    return `${MANGLED_LOCAL_VAR}${this.getFormattedId()}_${existingName}`;
-  }
-
-  visitStructDefinition(_node: StructDefinition, _ast: AST): void {
-    // struct definitions should already have been mangled at this point
-    // by visitContractDefinition and visitSourceUnit
-    return;
-  }
-
-  visitVariableDeclaration(node: VariableDeclaration, ast: AST): void {
-    if (!node.stateVariable) {
-      this.mangleVariableDeclaration(node);
-    }
-
-    this.commonVisit(node, ast);
+    return `${MANGLED_WARP}${this.nameCounter++}${existingName !== '' ? `_${existingName}` : ''}`;
   }
 
   mangleVariableDeclaration(node: VariableDeclaration): void {
-    this.nodesNameModified.push(node);
-    node.name = this.createNewVariableName(node.name);
+    if (reservedTerms.has(node.name) || node.name === '')
+      node.name = this.createNewVariableName(node.name);
+    checkSourceTerms(node.name, node);
   }
 
   mangleStructDefinition(node: StructDefinition): void {
@@ -136,49 +132,18 @@ export class DeclarationNameMangler extends ASTMapper {
   }
 
   mangleFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    if (node.isConstructor) return;
     node.name = this.createNewFunctionName(node, ast);
   }
+
   mangleEventDefinition(node: EventDefinition): void {
     node.name = `${node.name}_${node.canonicalSignatureHash(ABIEncoderVersion.V2)}`;
   }
+
   mangleContractDefinition(node: ContractDefinition, ast: AST): void {
     checkSourceTerms(node.name, node);
     node.vStructs.forEach((s) => this.mangleStructDefinition(s));
     node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n, ast));
     node.vStateVariables.forEach((v) => this.mangleVariableDeclaration(v));
     node.vEvents.forEach((e) => this.mangleEventDefinition(e));
-  }
-  visitSourceUnit(node: SourceUnit, ast: AST): void {
-    node.vStructs.forEach((s) => this.mangleStructDefinition(s));
-    node.vFunctions.forEach((n) => this.mangleFunctionDefinition(n, ast));
-    node.vContracts.forEach((n) => this.mangleContractDefinition(n, ast));
-    this.commonVisit(node, ast);
-
-    // Checking if counter is greater than initialIdWidth digits. If so, names are
-    // modified to insert 0's to achieve id's fixed width.
-    const lastIdSize = this.lastUsedId.toString().length;
-    if (lastIdSize > this.initialIdWidth) {
-      this.nodesNameModified.forEach((node) => {
-        if (node instanceof FunctionDefinition) {
-          node.name = this.updateName(node.name, MANGLED_INTERNAL_USER_FUNCTION, lastIdSize);
-        } else if (node instanceof VariableDeclaration) {
-          node.name = this.updateName(node.name, MANGLED_LOCAL_VAR, lastIdSize);
-        } else {
-          throw new TranspileFailedError(`Not expected node to update name: ${node}`);
-        }
-      });
-    }
-    this.nodesNameModified = []; // Lose all references to avoid consuming unnecessary memory
-  }
-
-  // Set Id in a node name 'name' that follows the pattern 'pattern' to a fixed width
-  updateName(name: string, pattern: string, lastIdSize: number) {
-    const match = new RegExp(`${pattern}([0-9]+)`).exec(name);
-    if (match === null) {
-      throw new TranspileFailedError(`Expected ${pattern} node name: ${name}`);
-    }
-    const newName = `${pattern}${match[1].padStart(lastIdSize, '0')}`;
-    return name.replace(new RegExp(`${pattern}([0-9]+)`), newName);
   }
 }

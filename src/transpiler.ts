@@ -40,6 +40,7 @@ import {
   PublicStateVarsGetterGenerator,
   ReferencedLibraries,
   References,
+  RejectPrefix,
   RejectUnsupportedFeatures,
   ReplaceIdentifierContractMemberAccess,
   Require,
@@ -168,6 +169,9 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
 
   printPassName('Input', options);
   printAST(ast, options);
+
+  // Reject code that contains identifiers starting with certain patterns
+  RejectPrefix.map(ast);
 
   const finalAst = passesInOrder.reduce((ast, mapper) => {
     const newAst = mapper.map(ast);
