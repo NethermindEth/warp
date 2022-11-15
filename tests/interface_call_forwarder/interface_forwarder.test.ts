@@ -12,22 +12,27 @@ import {
 } from '../testnetInterface';
 import * as fs from 'fs';
 
-const testPath = `${path.resolve(__dirname, '..')}/interface_call_forwarder`;
-const cairoFile = `${path.resolve(__dirname, '..')}/interface_call_forwarder/contract.cairo`;
-const interfaceSolFile = `${path.resolve(__dirname, '..')}/interface_call_forwarder/contract.sol`;
-const interfaceCairoFile = `${path.resolve(
+const testPath = path.resolve(__dirname, '..', 'interface_call_forwarder');
+const cairoFile = path.resolve(__dirname, '..', 'interface_call_forwarder', 'contract.cairo');
+const interfaceSolFile = path.resolve(__dirname, '..', 'interface_call_forwarder', 'interact.sol');
+const interfaceCairoFile = path.resolve(
   __dirname,
   '..',
-)}/interface_call_forwarder/contract_forwarder.cairo`;
-const interfaceTranspiledCairoFile = `${path.resolve(__dirname, '../..')}/warp_output${path.resolve(
+  'interface_call_forwarder',
+  'contract_forwarder.cairo',
+);
+const interfaceTranspiledCairoFile = `${path.resolve(
+  __dirname,
+  '../..',
+  'warp_output',
+)}/${path.resolve(__dirname, '..', 'interface_call_forwarder', 'interact.sol', 'itr.cairo')}`;
+const contractJsonPath = path.resolve(__dirname, '..', 'interface_call_forwarder', 'contract.json');
+const transpiledInterfaceJsonPath = path.resolve(
   __dirname,
   '..',
-)}/interface_call_forwarder/contract.sol/itr.cairo`;
-const contractJsonPath = `${path.resolve(__dirname, '..')}/interface_call_forwarder/contract.json`;
-const transpiledInterfaceJsonPath = `${path.resolve(
-  __dirname,
-  '..',
-)}/interface_call_forwarder/interface.json`;
+  'interface_call_forwarder',
+  'interface.json',
+);
 
 const TIME_LIMIT = 10 * 60 * 1000;
 
@@ -80,36 +85,13 @@ describe('Cairo Proxy contract is valid and deployable', async function () {
 
 describe('Interface solidity file should transpile', function () {
   this.timeout(TIME_LIMIT);
-  it('Add interactive contract', async function () {
-    const interfaceSolFileContent = readFileSync(interfaceSolFile, 'utf-8');
-
-    const newInterfaceSolFileContent = interfaceSolFileContent.concat(
-      [
-        '\n',
-        `contract itr{`,
-        `    address public cairoContractAddress;`,
-        `    constructor(address contractAddress) {`,
-        `        cairoContractAddress = contractAddress;`,
-        `    }`,
-        `    function add(uint256 a, uint256 b) external returns (uint256 res) {`,
-        `        return Forwarder_contract(cairoContractAddress).add(a, b);`,
-        `    }`,
-        `    function sub(uint256 a, uint256 b) external returns (uint256 res) {`,
-        `        return Forwarder_contract(cairoContractAddress).sub(a, b);`,
-        `    }`,
-        `}`,
-      ].join('\n'),
-    );
-    writeFileSync(interfaceSolFile, newInterfaceSolFileContent);
-  });
-
-  it('should transpile', async function () {
+  it('interact contract should transpile', async function () {
     const { stdout, stderr } = await transpile(interfaceSolFile);
     expect(stderr, 'warp printed errors').to.include('');
     expect(stdout, 'warp printed errors').to.include('');
     expect(
       fs.existsSync(interfaceTranspiledCairoFile),
-      `Transpilation failed, cannot find output file`,
+      `Transpilation failed, cannot find transpiled cairo output file`,
     ).to.be.true;
   });
 });
@@ -161,6 +143,9 @@ describe('Interaction between two cairo contracts', function () {
       cairo_contract_address.return_data,
       `Should match ${proxyCairoContractAddress}`,
     ).to.deep.equal([BigInt(proxyCairoContractAddress).toString()]);
+
+    ///---------------------------------- Function call tests ----------------------------------
+    // add
     const response_add = await invoke(interfaceContractAddress, 'add_771602f7', [
       '1',
       '0',
@@ -168,19 +153,127 @@ describe('Interaction between two cairo contracts', function () {
       '0',
     ]);
     expect(response_add.threw, 'add_771602f7 threw').to.be.false;
-    expect(response_add.return_data, 'add_771602f7 return value should match [3, 0]').to.deep.equal(
-      ['3', '0'],
-    );
-    const response_sub = await invoke(interfaceContractAddress, 'sub_b67d77c5', [
-      '2',
-      '0',
-      '1',
+    expect(response_add.return_data, 'add_771602f7 return value should match').to.deep.equal([
+      '3',
       '0',
     ]);
-    expect(response_sub.threw, 'sub_b67d77c5 threw').to.be.false;
-    expect(response_sub.return_data, 'sub_b67d77c5 return value should match [1, 0]').to.deep.equal(
-      ['1', '0'],
+
+    // arrayAdd
+    const response_array_add = await invoke(interfaceContractAddress, 'arrayAdd_d85a3c39', [
+      '2',
+      '2',
+      '0',
+      '3',
+      '0',
+      '4',
+      '0',
+    ]);
+    expect(response_array_add.threw, 'arrayAdd_d85a3c39 threw').to.be.false;
+    expect(
+      response_array_add.return_data,
+      'arrayAdd_d85a3c39 return value should match',
+    ).to.deep.equal(['2', '6', '0', '7', '0']);
+
+    // staticArrayAdd
+    const response_static_array_add = await invoke(
+      interfaceContractAddress,
+      'staticArrayAdd_c20ab944',
+      ['2', '0', '3', '0', '4', '0', '67', '0', '66', '0', '65', '0'],
     );
+    expect(response_static_array_add.threw, 'staticArrayAdd_c20ab944 threw').to.be.false;
+    expect(
+      response_static_array_add.return_data,
+      'staticArrayAdd_c20ab944 return value should match',
+    ).to.deep.equal(['69', '0', '69', '0', '69', '0']);
+
+    // structAdd
+    const response_structAdd = await invoke(interfaceContractAddress, 'structAdd_8658db55', [
+      '2',
+      '0',
+      '3',
+      '0',
+      '4',
+      '0',
+      '5',
+      '0',
+      '6',
+      '0',
+      '66',
+      '0',
+    ]);
+    expect(response_structAdd.threw, 'structAdd_8658db55 threw').to.be.false;
+    expect(
+      response_structAdd.return_data,
+      'structAdd_8658db55 return value should match',
+    ).to.deep.equal(['68', '0', '69', '0', '70', '0', '71', '0', '72', '0']);
+
+    // array2DaddStatic
+    const response_array2DaddStatic = await invoke(
+      interfaceContractAddress,
+      'array2DaddStatic_f1962835',
+      [
+        '2',
+        '0',
+        '3',
+        '0',
+        '4',
+        '0',
+        '2',
+        '0',
+        '3',
+        '0',
+        '4',
+        '0',
+        '2',
+        '0',
+        '3',
+        '0',
+        '4',
+        '0',
+        '2',
+        '0',
+        '3',
+        '0',
+        '4',
+        '0',
+        '2',
+        '0',
+        '3',
+        '0',
+        '4',
+        '0',
+        '2',
+        '0',
+        '3',
+        '0',
+        '4',
+        '0',
+      ],
+    );
+    expect(response_array2DaddStatic.threw, 'array2DaddStatic_f1962835 threw').to.be.false;
+    expect(
+      response_array2DaddStatic.return_data,
+      'array2DaddStatic_f1962835 return value should match',
+    ).to.deep.equal([
+      '4',
+      '0',
+      '6',
+      '0',
+      '8',
+      '0',
+      '4',
+      '0',
+      '6',
+      '0',
+      '8',
+      '0',
+      '4',
+      '0',
+      '6',
+      '0',
+      '8',
+      '0',
+    ]);
   });
 });
 
@@ -189,7 +282,11 @@ describe('Frivoulous file deletion', function () {
   it('should delete files', async function () {
     const files = fs.readdirSync(testPath);
     for (const file of files) {
-      if (file !== 'contract.cairo' && file !== 'interface_forwarder.test.ts') {
+      if (
+        file !== 'contract.cairo' &&
+        file !== 'interface_forwarder.test.ts' &&
+        file !== 'interact.sol'
+      ) {
         fs.unlinkSync(`${testPath}/${file}`);
       }
     }

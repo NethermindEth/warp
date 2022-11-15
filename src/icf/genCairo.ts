@@ -120,12 +120,8 @@ export function getInteractiveFuncs(
           return [...acc, `${input.name}_cast`];
         }, [])});`;
 
-      const funcDef = (isDelegate: boolean) => [
-        decorator,
-        `func _ITR_${
-          (isDelegate ? '_delegate_' : '') + item.name
-        } {syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(`,
-        ...item.inputs.reduce((acc: string[], input: { name: string; type: string }) => {
+      const funcArgs = item.inputs.reduce(
+        (acc: string[], input: { name: string; type: string }) => {
           if (input.type.endsWith('*')) {
             acc.pop();
             acc.push(`${INDENT}${input.name}_len: felt,`);
@@ -134,9 +130,12 @@ export function getInteractiveFuncs(
             `${INDENT}${input.name}: ${transformType(input.type, typeToStruct, structTuplesMap)},`,
           );
           return acc;
-        }, []),
-        ') -> (',
-        ...item.outputs.reduce((acc: string[], output: { name: string; type: string }) => {
+        },
+        [],
+      );
+
+      const funcReturnArgs = item.outputs.reduce(
+        (acc: string[], output: { name: string; type: string }) => {
           if (output.type.endsWith('*')) {
             acc.pop();
             acc.push(`${INDENT}${output.name}_len: felt,`);
@@ -149,11 +148,12 @@ export function getInteractiveFuncs(
             )},`,
           );
           return acc;
-        }, []),
-        ') {',
-        `${INDENT}alloc_locals;`,
-        `${INDENT}// check external input`,
-        ...item.inputs.reduce((acc: string[], input: { name: string; type: string }) => {
+        },
+        [],
+      );
+
+      const externalInputCheckStatements = item.inputs.reduce(
+        (acc: string[], input: { name: string; type: string }) => {
           if (input.type.endsWith('*')) {
             acc.pop();
           }
@@ -167,9 +167,12 @@ export function getInteractiveFuncs(
             ),
           );
           return acc;
-        }, []),
-        `${INDENT}// cast inputs`,
-        ...item.inputs.reduce((acc: string[], input: { name: string; type: string }) => {
+        },
+        [],
+      );
+
+      const inputFeltToUint256CastStatements = item.inputs.reduce(
+        (acc: string[], input: { name: string; type: string }) => {
           if (input.type.endsWith('*')) {
             acc.pop();
           }
@@ -183,11 +186,12 @@ export function getInteractiveFuncs(
             ),
           );
           return acc;
-        }, []),
-        `${INDENT}// call cairo contract function`,
-        callToFunc(isDelegate),
-        `${INDENT}// cast outputs`,
-        ...item.outputs.reduce((acc: string[], output: { name: string; type: string }) => {
+        },
+        [],
+      );
+
+      const outputFeltToUint256CastStatements = item.outputs.reduce(
+        (acc: string[], output: { name: string; type: string }) => {
           if (output.type.endsWith('*')) {
             acc.pop();
           }
@@ -201,7 +205,28 @@ export function getInteractiveFuncs(
             ),
           );
           return acc;
-        }, []),
+        },
+        [],
+      );
+
+      const funcDef = (isDelegate: boolean) => [
+        decorator,
+        `func _ITR_${
+          (isDelegate ? '_delegate_' : '') + item.name
+        } {syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(`,
+        ...funcArgs,
+        ') -> (',
+        ...funcReturnArgs,
+        ') {',
+        `${INDENT}alloc_locals;`,
+        `${INDENT}// check external input`,
+        ...externalInputCheckStatements,
+        `${INDENT}// cast inputs`,
+        ...inputFeltToUint256CastStatements,
+        `${INDENT}// call cairo contract function`,
+        callToFunc(isDelegate),
+        `${INDENT}// cast outputs`,
+        ...outputFeltToUint256CastStatements,
         `${INDENT}return (${[...item.outputs.map((x) => x.name), ''].join(',')});`,
         '}',
       ];

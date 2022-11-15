@@ -16,13 +16,6 @@ export function stringfyStructs(structs: StructAbiItemType[]): string[] {
     });
 }
 
-/**
- *
- * @param type
- * @param typeToStruct
- * @param structToAdd
- * @returns
- */
 export function transformType(
   type: string,
   typeToStruct: Map<string, StructAbiItemType>,
@@ -32,7 +25,7 @@ export function transformType(
   if (type === 'felt') return 'Uint256';
   if (typeToStruct.has(type)) return `${type}_uint256`;
   if (type.endsWith('*')) {
-    return transformType(type.slice(0, -1), typeToStruct, structToAdd) + '*';
+    return `${transformType(type.slice(0, -1), typeToStruct, structToAdd)}*`;
   }
   if (type.startsWith('(') && type.endsWith(')')) {
     const subTypes = tupleParser(type);

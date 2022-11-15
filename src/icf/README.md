@@ -1,15 +1,15 @@
 ## Interface Call Forwarder
 
-This is a feature for the WARP transpiler to enable interaction between non-warped cairo contracts with a warped cairo contract _(cairo file generated after transpilation of a solidity contract)_.
+This is a feature for the Warp transpiler to enable interaction between non-warped cairo contracts with a warped cairo contract _(cairo file generated after transpilation of a solidity contract)_.
 
 ```text
 Usage: warp gen_interface [options] <file>
 
 Options:
-  --cairo-path <cairo-path>
-  --output <output>
-  --contract-address <contract-address>
-  --class-hash <class-hash>
+  --cairo-path <cairo-path>              Cairo libraries/modules import path
+  --output <output>                      Output path for the generation of files
+  --contract-address <contract-address>  Address at which cairo contract has been deployed
+  --class-hash <class-hash>              Class hash of the cairo contract
   --solc-version <version>               Solc version to use. (default: "0.8.14")
   -h, --help                             display help for command
 ```
@@ -223,7 +223,3 @@ starknet invoke \
 For more detailed and implemented steps, you can look at the [interface_forwarder.test.ts](../../tests/interface_call_forwarder/interface_forwarder.test.ts) file.
 
 To execute interface call forwarder test, run `$ yarn test:forwarder`
-
-## Contact Us :phone:
-
-If you run into any problems please raise an issue or contact us on our Nethermind discord server: https://discord.com/invite/PaCMRFdvWT

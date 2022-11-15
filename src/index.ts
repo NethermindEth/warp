@@ -195,10 +195,13 @@ export interface SolcInterfaceGenOptions {
 
 program
   .command('gen_interface <file>')
-  .option('--cairo-path <cairo-path>')
-  .option('--output <output>')
-  .option('--contract-address <contract-address>')
-  .option('--class-hash <class-hash>')
+  .option('--cairo-path <cairo-path>', 'Cairo libraries/modules import path')
+  .option('--output <output>', 'Output path for the generation of files')
+  .option(
+    '--contract-address <contract-address>',
+    'Address at which cairo contract has been deployed',
+  )
+  .option('--class-hash <class-hash>', 'Class hash of the cairo contract')
   .option('--solc-version <version>', 'Solc version to use.', '0.8.14')
   .action((file: string, options: SolcInterfaceGenOptions) => {
     generateSolInterface(file, options);

@@ -64,11 +64,7 @@ export function getStructDependencyGraph(abi: AbiType): StructAbiItemType[] {
 }
 
 export function typeToStructMapping(structs: StructAbiItemType[]): Map<string, StructAbiItemType> {
-  const result: Map<string, StructAbiItemType> = new Map();
-  structs.forEach((item: StructAbiItemType) => {
-    result.set(item.name, item);
-  });
-  return result;
+  return new Map(structs.map((s) => [s.name, s]));
 }
 
 export function uint256TransformStructs(
