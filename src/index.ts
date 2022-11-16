@@ -17,6 +17,8 @@ import {
 import chalk from 'chalk';
 import { runVenvSetup } from './utils/setupVenv';
 import { runTests } from './testing';
+
+import { generateSolInterface } from './icf/interfaceCallForwarder';
 import { postProcessCairoFile } from './utils/postCairoWrite';
 
 export type CompilationOptions = {
@@ -181,6 +183,28 @@ program
   .option('-d, --debug-info', 'Include debug information.', false)
   .action((file: string, options: IOptionalDebugInfo) => {
     runStarknetCompile(file, options);
+  });
+
+export interface SolcInterfaceGenOptions {
+  cairoPath: string;
+  output?: string;
+  solcVersion?: string;
+  contractAddress?: string;
+  classHash?: string;
+}
+
+program
+  .command('gen_interface <file>')
+  .option('--cairo-path <cairo-path>', 'Cairo libraries/modules import path')
+  .option('--output <output>', 'Output path for the generation of files')
+  .option(
+    '--contract-address <contract-address>',
+    'Address at which cairo contract has been deployed',
+  )
+  .option('--class-hash <class-hash>', 'Class hash of the cairo contract')
+  .option('--solc-version <version>', 'Solc version to use.', '0.8.14')
+  .action((file: string, options: SolcInterfaceGenOptions) => {
+    generateSolInterface(file, options);
   });
 
 interface IDeployProps_ {
