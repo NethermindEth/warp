@@ -13,7 +13,7 @@ import { CLIError, logError } from './utils/errors';
 import { callClassHashScript } from './utils/utils';
 import { encodeInputs } from './transcode/encode';
 import { decodeOutputs } from './transcode/decode';
-import { decodedOutputToString } from './transcode/utils';
+import { decodedOutputsToString } from './transcode/utils';
 
 const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', 'warp_venv', 'bin')}:$PATH`;
 
@@ -236,7 +236,7 @@ export async function runStarknetCallOrInvoke(
         options.function,
         warpOutput.toString().split(' '),
       );
-      warpOutput = decodedOutputToString(decodedOutputs);
+      warpOutput = decodedOutputsToString(decodedOutputs);
     }
     console.log(warpOutput);
   } catch {

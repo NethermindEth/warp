@@ -22,33 +22,7 @@ export async function decodeOutputs(
   const outputNodes: ParamType[] = FunctionFragment.fromObject(funcSignature).outputs ?? [];
   const outputs: string[] = rawOutputs ?? [];
 
-  return decode(outputNodes, outputs);
-}
-
-type Struct = { [key: string]: SolValue };
-
-export function decode(types: ParamType[], outputs: string[]): Result {
-  const decoded = decode_(types, outputs.values());
-  const namedMembers: Struct = {};
-  types.forEach((ty, i) => {
-    namedMembers[ty.name] = decoded[i];
-  });
-
-  if (types.length === 1) {
-    return decoded[0];
-  }
-
-  return { ...namedMembers, ...decoded };
-}
-
-export function decodeEvents(types: ParamType[], outputs: string[]) {
-  const decoded = decode_(types, outputs.values());
-  const namedMembers: Struct = {};
-  types.forEach((ty, i) => {
-    namedMembers[ty.name] = decoded[i];
-  });
-
-  return { ...namedMembers, ...decoded };
+  return decode_(outputNodes, outputs.values());
 }
 
 export function decode_(types: ParamType[], outputs: IterableIterator<string>): Result {
@@ -127,6 +101,8 @@ function decodeBytes(outputs: IterableIterator<string>): bigint {
 function decodeFixedBytes(outputs: IterableIterator<string>, length: number): BigNumber | number {
   return useNumberIfSafe(length < 32 ? readFelt(outputs) : readUint(outputs), length * 8);
 }
+
+type Struct = { [key: string]: SolValue };
 
 export function decodeComplex(type: ParamType, outputs: IterableIterator<string>) {
   if (type.arrayLength) {

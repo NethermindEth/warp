@@ -153,12 +153,16 @@ export async function selectSignature(abi: [], funcName: string): Promise<any> {
   return choice.func;
 }
 
-export function decodedOutputToString(output: Result): string {
-  let counter = 0;
-  const outputs = [];
-  while (output[counter.toString()] !== undefined) {
-    outputs.push(output[counter.toString()].map((val: any) => val.toString()).join(' '));
-    counter += 1;
-  }
-  return outputs.join(' ');
+export function decodedOutputsToString(outputs: Result): string {
+  return outputs.map((output) => outputToString(output)).join(', ');
+}
+
+function outputToString(output: Result): string {
+  if (Array.isArray(output)) return `[ ${output.map((o) => outputToString(o)).join(', ')} ]`;
+  else if (output.constructor == Object)
+    // is a Struct
+    return `{ ${Object.keys(output)
+      .map((key: any) => outputToString(key) + ': ' + outputToString(output[key]))
+      .join(', ')} }`;
+  else return (output as any).toString();
 }
