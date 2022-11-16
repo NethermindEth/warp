@@ -44,12 +44,12 @@ class YulTransformer {
     return this.transformNode(node);
   }
 
-  transformNode(node: YulNode): ASTNode {
+  transformNode(node: YulNode, ...args: unknown[]): ASTNode {
     const methodName = `create${node.nodeType}`;
     if (!(methodName in this))
       throw new WillNotSupportError(`${node.nodeType} is not supported`, this.assemblyRoot, false);
     const method = this[methodName as keyof YulTransformer] as (node: YulNode) => ASTNode;
-    return method.bind(this)(node);
+    return method.bind(this)(node, ...(args as []));
   }
 
   createYulLiteral(node: YulNode): Literal {
@@ -62,7 +62,7 @@ class YulTransformer {
     return createIdentifier(variableDeclaration, this.ast);
   }
 
-  createYulFunctionCall(node: YulNode): BinaryOperation {
+  createYulFunctionCall(node: YulNode, typeString: string): BinaryOperation {
     const binaryOps: { [name: string]: string } = { add: '+', mul: '*', div: '/', sub: '-' };
     if (binaryOps[node.functionName.name] != undefined) {
       const leftExpr = this.transformNode(node.arguments[0]) as Expression;
@@ -70,7 +70,7 @@ class YulTransformer {
       return new BinaryOperation(
         this.ast.reserveId(),
         node.src,
-        leftExpr.typeString,
+        typeString,
         binaryOps[node.functionName.name],
         leftExpr,
         rightExpr,
@@ -86,19 +86,15 @@ class YulTransformer {
 
   createYulAssignment(node: YulNode): ExpressionStatement {
     let lhs: Expression;
-    const rhs = this.transformNode(node.value) as Expression;
-    if (rhs.typeString === 'tuple()') {
+    if (node.variableNames.length === 1) {
+      lhs = this.createYulIdentifier(node.variableNames[0]);
+    } else {
       lhs = createTuple(
         this.ast,
         node.variableNames.map((i: YulNode) => this.createYulIdentifier(i)),
       );
-    } else {
-      assert(
-        node.variableNames.length === 1,
-        'Type mismatch. Tried to assign non-tuple expression to multiple identifiers',
-      );
-      lhs = this.createYulIdentifier(node.variableNames[0]);
     }
+    const rhs = this.transformNode(node.value, lhs.typeString) as Expression;
 
     const assignment = new Assignment(
       this.ast.reserveId(),
