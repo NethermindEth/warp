@@ -34,10 +34,11 @@ class YulTransformer {
     this.ast = ast;
     this.assemblyRoot = assemblyRoot;
     const blockRefIds = assemblyRoot.externalReferences.map((ref) => ref.declaration);
-    const blockRefs = [...assemblyRoot.context!.map].filter(([id, _]) =>
+    assert(assemblyRoot.context != undefined, `Assembly root context not found.`);
+    const blockRefs = [...assemblyRoot.context.map].filter(([id, _]) =>
       blockRefIds.includes(id),
     ) as [number, VariableDeclaration][];
-    this.vars = new Map(blockRefs.map(([id, ref]) => [ref.name, ref]));
+    this.vars = new Map(blockRefs.map(([_, ref]) => [ref.name, ref]));
   }
 
   transformStatement(node: YulNode): Statement {
@@ -123,7 +124,7 @@ export class InlineAssemblyTransformer extends ASTMapper {
       ast.setContextRecursive(astNode);
       return astNode;
     });
-    const block: Block = new UncheckedBlock(ast.reserveId(), node.yul!.src, statements);
+    const block: Block = new UncheckedBlock(ast.reserveId(), node.yul.src, statements);
 
     ast.replaceNode(node, block);
 
