@@ -44,6 +44,10 @@ class YulTransformer {
     return this.transformNode(node);
   }
 
+  transformExpr(node: YulNode, ...args: unknown[]): Expression {
+    return this.transformNode(node, ...args) as Expression;
+  }
+
   transformNode(node: YulNode, ...args: unknown[]): ASTNode {
     const methodName = `create${node.nodeType}`;
     if (!(methodName in this))
@@ -65,8 +69,8 @@ class YulTransformer {
   createYulFunctionCall(node: YulNode, typeString: string): BinaryOperation {
     const binaryOps: { [name: string]: string } = { add: '+', mul: '*', div: '/', sub: '-' };
     if (binaryOps[node.functionName.name] != undefined) {
-      const leftExpr = this.transformNode(node.arguments[0]) as Expression;
-      const rightExpr = this.transformNode(node.arguments[1]) as Expression;
+      const leftExpr = this.transformExpr(node.arguments[0]);
+      const rightExpr = this.transformExpr(node.arguments[1]);
       return new BinaryOperation(
         this.ast.reserveId(),
         node.src,
@@ -94,7 +98,7 @@ class YulTransformer {
         node.variableNames.map((i: YulNode) => this.createYulIdentifier(i)),
       );
     }
-    const rhs = this.transformNode(node.value, lhs.typeString) as Expression;
+    const rhs = this.transformExpr(node.value, lhs.typeString);
 
     const assignment = new Assignment(
       this.ast.reserveId(),
