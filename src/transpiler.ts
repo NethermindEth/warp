@@ -40,6 +40,7 @@ import {
   PublicStateVarsGetterGenerator,
   ReferencedLibraries,
   References,
+  RejectPrefix,
   RejectUnsupportedFeatures,
   ReplaceIdentifierContractMemberAccess,
   Require,
@@ -179,7 +180,10 @@ function applyPasses(
   printPassName('Input', options);
   printAST(ast, options);
 
+  // Fix absolutePath in source unit
   ast = SourceUnitPathFixer.map_(ast, options.includePaths || []);
+  // Reject code that contains identifiers starting with certain patterns
+  RejectPrefix.map(ast);
 
   const finalAst = passesInOrder.reduce((ast, mapper) => {
     const newAst = mapper.map(ast);
