@@ -92,7 +92,7 @@ interface Forwarder_a {
 
 ### Step 2.
 
-Declare and deploy generated cairo file. You can visit here for how to do it: [starknet declare&deploy cairo contracts](https://www.cairo-lang.org/docs/hello_starknet/intro.html#declare-the-contract-on-the-starknet-testnet) .
+Declare and deploy the generated cairo file. More info at : [starknet declare&deploy cairo contracts](https://www.cairo-lang.org/docs/hello_starknet/intro.html#declare-the-contract-on-the-starknet-testnet) .
 
 ### Step 3.
 
