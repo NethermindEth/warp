@@ -573,6 +573,8 @@ export function getContainingSourceUnit(node: ASTNode): SourceUnit {
 
 export const NODE_MODULES_MARKER = ['node_modules'];
 
+export const ROOT_FOLDER_MARKER = ['.git', '.hg', 'yarn.lock', 'package.json'];
+
 function markerExists(files: string[], markers: string[]) {
   return markers.some((marker) => {
     return files.some((file) => {
@@ -624,14 +626,14 @@ export function traverseChildren(
 export function defaultBasePathAndIncludePath() {
   const currentDirectory = process.cwd();
 
-  const childNodeModules = traverseChildren(currentDirectory, 4, NODE_MODULES_MARKER);
-  if (childNodeModules !== null) {
-    return [childNodeModules, 'node_modules'];
+  const parentNodeModules = traverseParent(currentDirectory, 4, NODE_MODULES_MARKER);
+  if (parentNodeModules !== null) {
+    return [currentDirectory, path.resolve(parentNodeModules, 'node_modules')];
   }
 
-  const parentNodeModules = traverseParent(currentDirectory, 3, NODE_MODULES_MARKER);
-  if (parentNodeModules !== null) {
-    return [parentNodeModules, 'node_modules'];
+  const childNodeModules = traverseChildren(currentDirectory, 4, NODE_MODULES_MARKER);
+  if (childNodeModules !== null) {
+    return [currentDirectory, path.resolve(childNodeModules, 'node_modules')];
   }
 
   return [null, null];
