@@ -573,8 +573,6 @@ export function getContainingSourceUnit(node: ASTNode): SourceUnit {
 
 export const NODE_MODULES_MARKER = ['node_modules'];
 
-export const ROOT_FOLDER_MARKER = ['.git', '.hg', 'yarn.lock', 'package.json'];
-
 function markerExists(files: string[], markers: string[]) {
   return markers.some((marker) => {
     return files.some((file) => {

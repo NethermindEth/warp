@@ -18,7 +18,7 @@ import chalk from 'chalk';
 import { runVenvSetup } from './utils/setupVenv';
 import { runTests } from './testing';
 import { postProcessCairoFile } from './utils/postCairoWrite';
-import { defaultBasePathAndIncludePath } from './export';
+import { defaultBasePathAndIncludePath } from './utils/utils';
 
 export type CompilationOptions = {
   warnings?: boolean;
@@ -83,9 +83,8 @@ program
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
 
     const [defaultBasePath, defaultIncludePath] = defaultBasePathAndIncludePath();
-    console.log(defaultBasePath, defaultIncludePath);
+
     if (defaultBasePath !== null && defaultIncludePath !== null) {
-      console.log('gixing');
       options.includePaths =
         options.includePaths === undefined
           ? [defaultIncludePath]
@@ -144,6 +143,17 @@ program
   .option('--base-path <path>')
   .action((file: string, options: CliOptions) => {
     if (!isValidSolFile(file)) return;
+
+    const [defaultBasePath, defaultIncludePath] = defaultBasePathAndIncludePath();
+
+    if (defaultBasePath !== null && defaultIncludePath !== null) {
+      options.includePaths =
+        options.includePaths === undefined
+          ? [defaultIncludePath]
+          : options.includePaths.concat(defaultIncludePath);
+      options.basePath = options.basePath || defaultBasePath;
+    }
+
     try {
       const ast = compileSolFiles([file], options);
       transform(ast, options).map(([name, solidity, _]) => {

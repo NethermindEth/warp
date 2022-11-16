@@ -143,24 +143,16 @@ function cliCompile(
 
   const commandOptions = `--standard-json ${allowedPaths} ${basePathOption} ${includePathOptions}`;
 
-  console.log({ commandOptions });
-
-  try {
-    return {
-      result: JSON.parse(
-        execSync(`${solcCommand} ${commandOptions}`, {
-          input: JSON.stringify(input),
-          maxBuffer: MAX_BUFFER_SIZE,
-          stdio: ['pipe', 'pipe', 'ignore'],
-        }).toString(),
-      ),
-      compilerVersion: fullVersionFromMajor(nethersolcVersion),
-    };
-  } catch (e) {
-    // @ts-ignore
-    console.log(e.message);
-    throw 'e';
-  }
+  return {
+    result: JSON.parse(
+      execSync(`${solcCommand} ${commandOptions}`, {
+        input: JSON.stringify(input),
+        maxBuffer: MAX_BUFFER_SIZE,
+        stdio: ['pipe', 'pipe', 'ignore'],
+      }).toString(),
+    ),
+    compilerVersion: fullVersionFromMajor(nethersolcVersion),
+  };
 }
 
 function matchCompilerVersion(version: string): [string, string, string] {
