@@ -136,7 +136,7 @@ function cliCompile(
   }
 
   const includePathOptions =
-    options?.includePaths === undefined
+    options?.includePaths === undefined || nethersolcVersion === '7'
       ? ``
       : `--include-path ${options.includePaths.join(' --include-path ')}`;
   const basePathOption = options?.basePath === undefined ? `` : `--base-path ${options.basePath}`;
