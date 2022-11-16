@@ -2,7 +2,7 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 
-contract Warp {
+contract WARP {
     function subtractionFromZeroResultInNegativeValue() public pure returns (int, int8) {
         int underflow = 0;
         int8 underflow8 = 0;
