@@ -18,6 +18,7 @@ import chalk from 'chalk';
 import { runVenvSetup } from './utils/setupVenv';
 import { runTests } from './testing';
 import { postProcessCairoFile } from './utils/postCairoWrite';
+import { defaultBasePathAndIncludePath } from './export';
 
 export type CompilationOptions = {
   warnings?: boolean;
@@ -81,8 +82,20 @@ program
     // for all files which are invalid.
     if (files.map((file) => isValidSolFile(file)).some((result) => !result)) return;
 
+    const [defaultBasePath, defaultIncludePath] = defaultBasePathAndIncludePath();
+    console.log(defaultBasePath, defaultIncludePath);
+    if (defaultBasePath !== null && defaultIncludePath !== null) {
+      console.log('gixing');
+      options.includePaths =
+        options.includePaths === undefined
+          ? [defaultIncludePath]
+          : options.includePaths.concat(defaultIncludePath);
+      options.basePath = options.basePath || defaultBasePath;
+    }
+
     const ast = compileSolFiles(files, options);
     const contractToHashMap = new Map<string, string>();
+
     try {
       transpile(ast, options)
         .map(([name, cairo, abi]) => {
