@@ -9,9 +9,11 @@ import {
   FunctionCall,
   FunctionCallKind,
   FunctionCallOptions,
+  ParameterList,
   NewExpression,
   parseSourceLocation,
   UserDefinedTypeName,
+  VariableDeclaration,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -22,6 +24,7 @@ import { getSourceFromLocations } from '../utils/utils';
 export class WarnSupportedFeatures extends ASTMapper {
   public addressesToAbiEncode: ASTNode[] = [];
   public deploySaltOptions: Expression[] = [];
+  public indexedArguments: VariableDeclaration[] = [];
 
   visitNewExpression(node: NewExpression, ast: AST): void {
     if (
@@ -34,6 +37,11 @@ export class WarnSupportedFeatures extends ASTMapper {
       this.deploySaltOptions.push(salt);
     }
 
+    this.commonVisit(node, ast);
+  }
+
+  visitParameterList(node: ParameterList, ast: AST): void {
+    this.indexedArguments.push(...node.vParameters.filter((param) => param.indexed));
     this.commonVisit(node, ast);
   }
 
@@ -54,6 +62,7 @@ export class WarnSupportedFeatures extends ASTMapper {
   static map(ast: AST): AST {
     const addresses = new Map<string, ASTNode[]>();
     const deploySalts = new Map<string, Expression[]>();
+    const indexedArgs = new Map<string, VariableDeclaration[]>();
 
     ast.roots.forEach((sourceUnit) => {
       const mapper = new this();
@@ -63,6 +72,9 @@ export class WarnSupportedFeatures extends ASTMapper {
       }
       if (mapper.deploySaltOptions.length > 0) {
         deploySalts.set(sourceUnit.absolutePath, mapper.deploySaltOptions);
+      }
+      if (mapper.indexedArguments.length > 0) {
+        indexedArgs.set(sourceUnit.absolutePath, mapper.indexedArguments);
       }
     });
 
@@ -84,6 +96,14 @@ export class WarnSupportedFeatures extends ASTMapper {
       [...deploySalts.entries()].forEach(([path, nodes]) => warn(path, nodes));
     }
 
+    if (indexedArgs.size > 0) {
+      console.log(
+        `${warning(
+          'Warning:',
+        )} Indexed parameters are not supported yet. Indexing will be ignored.`,
+      );
+      [...indexedArgs.entries()].forEach(([path, nodes]) => warn(path, nodes));
+    }
     return ast;
   }
 }

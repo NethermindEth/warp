@@ -132,7 +132,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/imports/importInterface.sol', 'Success'],
     ['example_contracts/imports/importLibrary.sol', 'Success'],
     ['example_contracts/imports/importStruct.sol', 'Success'],
-    ['example_contracts/index_param.sol', 'WillNotSupport'],
+    ['example_contracts/index_param.sol', 'Success'],
     ['example_contracts/inheritance/simple.sol', 'Success'],
     ['example_contracts/inheritance/super/base.sol', 'Success'],
     ['example_contracts/inheritance/super/derived.sol', 'Success'],
