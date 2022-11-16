@@ -9,9 +9,11 @@ import {
   FunctionCall,
   FunctionCallKind,
   FunctionCallOptions,
+  ParameterList,
   NewExpression,
   parseSourceLocation,
   UserDefinedTypeName,
+  SourceUnit,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
@@ -34,6 +36,22 @@ export class WarnSupportedFeatures extends ASTMapper {
       this.deploySaltOptions.push(salt);
     }
 
+    this.commonVisit(node, ast);
+  }
+
+  visitParameterList(node: ParameterList, ast: AST): void {
+    // any of node.vParameters has indexed flag true then throw error
+    if (node.vParameters.some((param) => param.indexed)) {
+      console.log(
+        `${warning('Warning:')} Indexed parameters are not supported yet. They will be ignored.`,
+      );
+      const path = node.getClosestParentByType(SourceUnit)?.absolutePath;
+      if (path !== undefined)
+        warn(
+          path,
+          node.vParameters.filter((param) => param.indexed),
+        );
+    }
     this.commonVisit(node, ast);
   }
 
