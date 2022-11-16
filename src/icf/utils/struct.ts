@@ -14,13 +14,9 @@ function copyStructItem(struct: StructAbiItemType): StructAbiItemType {
 }
 
 export function getStructsFromABI(abi: AbiType): StructAbiItemType[] {
-  const result: StructAbiItemType[] = [];
-  abi.forEach((item) => {
-    if (item.type === 'struct' && item.name !== 'Uint256') {
-      result.push(item);
-    }
-  });
-  return result;
+  return abi.filter(
+    (item) => item.type === 'struct' && item.name !== 'Uint256',
+  ) as StructAbiItemType[];
 }
 
 export function getAllStructsFromABI(abi: AbiType): StructAbiItemType[] {
