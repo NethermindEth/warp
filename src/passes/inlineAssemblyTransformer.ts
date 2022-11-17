@@ -23,7 +23,30 @@ import {
   Statement,
 } from 'solc-typed-ast';
 import assert from 'assert';
-import { WillNotSupportError } from '../utils/errors';
+import { getErrorMessage, WillNotSupportError } from '../utils/errors';
+
+const binaryOps: { [name: string]: string } = { add: '+', mul: '*', div: '/', sub: '-' };
+
+class YulVerifier {
+  errors: string[] = [];
+
+  verifyNode(node: YulNode) {
+    const methodName = `create${node.nodeType}`;
+    if (!(methodName in YulTransformer.prototype))
+      this.errors.push(`${node.nodeType} is not supported`);
+    const method = this[methodName as keyof YulVerifier] as (node: YulNode) => void;
+    if (method != undefined) return method.bind(this)(node);
+  }
+  createYulAssignment(node: YulNode) {
+    this.verifyNode(node.value);
+  }
+
+  createYulFunctionCall(node: YulNode) {
+    if (binaryOps[node.functionName.name] == undefined)
+      this.errors.push(`${node.functionName.name} is not supported`);
+    node.arguments.forEach((arg: YulNode) => this.verifyNode(arg));
+  }
+}
 
 class YulTransformer {
   vars: Map<string, VariableDeclaration>;
@@ -51,8 +74,6 @@ class YulTransformer {
 
   transformNode(node: YulNode, ...args: unknown[]): ASTNode {
     const methodName = `create${node.nodeType}`;
-    if (!(methodName in this))
-      throw new WillNotSupportError(`${node.nodeType} is not supported`, this.assemblyRoot, false);
     const method = this[methodName as keyof YulTransformer] as (node: YulNode) => ASTNode;
     return method.bind(this)(node, ...(args as []));
   }
@@ -68,24 +89,16 @@ class YulTransformer {
   }
 
   createYulFunctionCall(node: YulNode, typeString: string): BinaryOperation {
-    const binaryOps: { [name: string]: string } = { add: '+', mul: '*', div: '/', sub: '-' };
-    if (binaryOps[node.functionName.name] != undefined) {
-      const leftExpr = this.transformExpr(node.arguments[0]);
-      const rightExpr = this.transformExpr(node.arguments[1]);
-      return new BinaryOperation(
-        this.ast.reserveId(),
-        node.src,
-        typeString,
-        binaryOps[node.functionName.name],
-        leftExpr,
-        rightExpr,
-        node,
-      );
-    }
-    throw new WillNotSupportError(
-      `${node.functionName.name} is not supported`,
-      this.assemblyRoot,
-      false,
+    const leftExpr = this.transformExpr(node.arguments[0]);
+    const rightExpr = this.transformExpr(node.arguments[1]);
+    return new BinaryOperation(
+      this.ast.reserveId(),
+      node.src,
+      typeString,
+      binaryOps[node.functionName.name],
+      leftExpr,
+      rightExpr,
+      node,
     );
   }
 
@@ -117,6 +130,19 @@ class YulTransformer {
 export class InlineAssemblyTransformer extends ASTMapper {
   visitInlineAssembly(node: InlineAssembly, ast: AST): void {
     assert(node.yul != undefined, 'Attribute yul of the InlineAssembly node is undefined');
+    const verifier = new YulVerifier();
+    node.yul.statements.map((node: YulNode) => verifier.verifyNode(node));
+
+    if (verifier.errors.length) {
+      const unsupportedPerSource = new Map<string, [string, InlineAssembly][]>();
+      const errorsWithNode: [string, InlineAssembly][] = verifier.errors.map((msg) => [msg, node]);
+      unsupportedPerSource.set(ast.getContainingRoot(node).absolutePath, errorsWithNode);
+      const errorMsg = getErrorMessage(
+        unsupportedPerSource,
+        `Detected ${verifier.errors.length} Unsupported Features:`,
+      );
+      throw new WillNotSupportError(errorMsg, undefined, false);
+    }
 
     const transformer = new YulTransformer(ast, node);
     const statements = node.yul.statements.map((yul: YulNode) => {
