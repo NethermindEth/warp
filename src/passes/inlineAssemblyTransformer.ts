@@ -27,25 +27,21 @@ import { getErrorMessage, WillNotSupportError } from '../utils/errors';
 
 const binaryOps: { [name: string]: string } = { add: '+', mul: '*', div: '/', sub: '-' };
 
-function generateTransformerName(nodeType: string) {
-  return `transform${nodeType}`;
-}
-
 class YulVerifier {
   errors: string[] = [];
 
   verifyNode(node: YulNode) {
-    const methodName = generateTransformerName(node.nodeType);
+    const methodName = `check${node.nodeType}`;
     if (!(methodName in YulTransformer.prototype))
       this.errors.push(`${node.nodeType} is not supported`);
     const method = this[methodName as keyof YulVerifier] as (node: YulNode) => void;
     if (method !== undefined) return method.bind(this)(node);
   }
-  createYulAssignment(node: YulNode) {
+  checkYulAssignment(node: YulNode) {
     this.verifyNode(node.value);
   }
 
-  createYulFunctionCall(node: YulNode) {
+  checkYulFunctionCall(node: YulNode) {
     if (binaryOps[node.functionName.name] === undefined)
       this.errors.push(`${node.functionName.name} is not supported`);
     node.arguments.forEach((arg: YulNode) => this.verifyNode(arg));
@@ -75,7 +71,7 @@ class YulTransformer {
   }
 
   toSolidityNode(node: YulNode, ...args: unknown[]): ASTNode {
-    const methodName = generateTransformerName(node.nodeType);
+    const methodName = `transform${node.nodeType}`;
     const method = this[methodName as keyof YulTransformer] as (node: YulNode) => ASTNode;
     return method.bind(this)(node, ...(args as []));
   }
