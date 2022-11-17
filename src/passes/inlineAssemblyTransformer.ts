@@ -28,14 +28,20 @@ import { getErrorMessage, WillNotSupportError } from '../utils/errors';
 
 const binaryOps: { [name: string]: string } = { add: '+', mul: '*', div: '/', sub: '-' };
 
+function generateTransformerName(nodeType: string) {
+  return `transform${nodeType}`;
+}
+
 class YulVerifier {
   errors: string[] = [];
 
   verifyNode(node: YulNode) {
-    const methodName = `check${node.nodeType}`;
-    if (!(methodName in YulTransformer.prototype))
+    const transformerName = generateTransformerName(node.nodeType);
+    if (!(transformerName in YulTransformer.prototype))
       this.errors.push(`${node.nodeType} is not supported`);
-    const method = this[methodName as keyof YulVerifier] as (node: YulNode) => void;
+
+    const verifierName = `check${node.nodeType}`;
+    const method = this[verifierName as keyof YulVerifier] as (node: YulNode) => void;
     if (method !== undefined) return method.bind(this)(node);
   }
   checkYulAssignment(node: YulNode) {
@@ -56,9 +62,10 @@ class YulTransformer {
   constructor(ast: AST, externalReferences: any[], context: ASTContext) {
     this.ast = ast;
     const blockRefIds = externalReferences.map((ref) => ref.declaration);
-    const blockRefs = [...context.map].filter(([id, _]) =>
-      blockRefIds.includes(id),
-    ) as [number, VariableDeclaration][];
+    const blockRefs = [...context.map].filter(([id, _]) => blockRefIds.includes(id)) as [
+      number,
+      VariableDeclaration,
+    ][];
     this.vars = new Map(blockRefs.map(([_, ref]) => [ref.name, ref]));
   }
 
@@ -71,7 +78,7 @@ class YulTransformer {
   }
 
   toSolidityNode(node: YulNode, ...args: unknown[]): ASTNode {
-    const methodName = `transform${node.nodeType}`;
+    const methodName = generateTransformerName(node.nodeType);
     const method = this[methodName as keyof YulTransformer] as (node: YulNode) => ASTNode;
     return method.bind(this)(node, ...(args as []));
   }
@@ -126,7 +133,7 @@ class YulTransformer {
 }
 
 export class InlineAssemblyTransformer extends ASTMapper {
-  yul(node: InlineAssembly): YulNode{
+  yul(node: InlineAssembly): YulNode {
     assert(node.yul !== undefined, 'Attribute yul of the InlineAssembly node is undefined');
     return node.yul;
   }
@@ -135,8 +142,7 @@ export class InlineAssemblyTransformer extends ASTMapper {
     const verifier = new YulVerifier();
     this.yul(node).statements.map((yul: YulNode) => verifier.verifyNode(yul));
 
-    if (verifier.errors.length === 0)
-      return;
+    if (verifier.errors.length === 0) return;
 
     const unsupportedPerSource = new Map<string, [string, InlineAssembly][]>();
     const errorsWithNode: [string, InlineAssembly][] = verifier.errors.map((msg) => [msg, node]);
@@ -151,13 +157,13 @@ export class InlineAssemblyTransformer extends ASTMapper {
   transform(node: InlineAssembly, ast: AST): void {
     assert(node.context !== undefined, `Assembly root context not found.`);
     const transformer = new YulTransformer(ast, node.externalReferences, node.context);
+
     const statements = this.yul(node).statements.map((yul: YulNode) => {
       const astNode = transformer.toSolidityStatement(yul);
       ast.setContextRecursive(astNode);
       return astNode;
     });
-    const block: Block = new UncheckedBlock(ast.reserveId(),this.yul(node).src, statements);
-
+    const block: Block = new UncheckedBlock(ast.reserveId(), this.yul(node).src, statements);
     ast.replaceNode(node, block);
   }
 
