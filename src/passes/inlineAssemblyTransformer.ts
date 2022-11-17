@@ -133,7 +133,7 @@ export class InlineAssemblyTransformer extends ASTMapper {
     const verifier = new YulVerifier();
     node.yul.statements.map((node: YulNode) => verifier.verifyNode(node));
 
-    if (verifier.errors.length) {
+    if (verifier.errors.length > 0) {
       const unsupportedPerSource = new Map<string, [string, InlineAssembly][]>();
       const errorsWithNode: [string, InlineAssembly][] = verifier.errors.map((msg) => [msg, node]);
       unsupportedPerSource.set(ast.getContainingRoot(node).absolutePath, errorsWithNode);
