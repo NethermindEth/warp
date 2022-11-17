@@ -1,5 +1,5 @@
 import { ASTWriter, CompileFailedError, PrettyFormatter } from 'solc-typed-ast';
-import { PrintOptions, TranspilationOptions } from '.';
+import { CompilationOptions, PrintOptions, TranspilationOptions } from '.';
 import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
@@ -47,6 +47,7 @@ import {
   ReturnInserter,
   ReturnVariableInitializer,
   ShortCircuitToConditional,
+  SourceUnitPathFixer,
   SourceUnitSplitter,
   StaticArrayIndexer,
   StorageAllocator,
@@ -71,7 +72,10 @@ import { printCompileErrors, runSanityCheck } from './utils/utils';
 
 type CairoSource = [file: string, source: string, solABI: string];
 
-export function transpile(ast: AST, options: TranspilationOptions & PrintOptions): CairoSource[] {
+export function transpile(
+  ast: AST,
+  options: TranspilationOptions & PrintOptions & CompilationOptions,
+): CairoSource[] {
   const cairoAST = applyPasses(ast, options);
   const writer = new ASTWriter(
     CairoASTMapping(cairoAST, options.strict ?? false),
@@ -85,7 +89,10 @@ export function transpile(ast: AST, options: TranspilationOptions & PrintOptions
   ]);
 }
 
-export function transform(ast: AST, options: TranspilationOptions & PrintOptions): CairoSource[] {
+export function transform(
+  ast: AST,
+  options: TranspilationOptions & PrintOptions & CompilationOptions,
+): CairoSource[] {
   const cairoAST = applyPasses(ast, options);
   const writer = new ASTWriter(
     CairoToSolASTWriterMapping(!!options.stubs),
@@ -99,7 +106,10 @@ export function transform(ast: AST, options: TranspilationOptions & PrintOptions
   ]);
 }
 
-function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AST {
+function applyPasses(
+  ast: AST,
+  options: TranspilationOptions & PrintOptions & CompilationOptions,
+): AST {
   const passes: Map<string, typeof ASTMapper> = createPassMap([
     ['Tf', TupleFixes],
     ['Tnr', TypeNameRemover],
@@ -170,6 +180,8 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
   printPassName('Input', options);
   printAST(ast, options);
 
+  // Fix absolutePath in source unit
+  ast = SourceUnitPathFixer.map_(ast, options.includePaths || []);
   // Reject code that contains identifiers starting with certain patterns
   RejectPrefix.map(ast);
 

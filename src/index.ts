@@ -22,7 +22,7 @@ import { generateSolInterface } from './icf/interfaceCallForwarder';
 import { postProcessCairoFile } from './utils/postCairoWrite';
 
 export type CompilationOptions = {
-  warnings: boolean;
+  warnings?: boolean;
   includePaths?: string[];
   basePath?: string;
 };
