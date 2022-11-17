@@ -21,6 +21,7 @@ import {
   UncheckedBlock,
   Literal,
   Statement,
+  ASTContext,
 } from 'solc-typed-ast';
 import assert from 'assert';
 import { getErrorMessage, WillNotSupportError } from '../utils/errors';
@@ -52,11 +53,10 @@ class YulTransformer {
   vars: Map<string, VariableDeclaration>;
   ast: AST;
 
-  constructor(ast: AST, assemblyRoot: InlineAssembly) {
+  constructor(ast: AST, externalReferences: any[], context: ASTContext) {
     this.ast = ast;
-    const blockRefIds = assemblyRoot.externalReferences.map((ref) => ref.declaration);
-    assert(assemblyRoot.context !== undefined, `Assembly root context not found.`);
-    const blockRefs = [...assemblyRoot.context.map].filter(([id, _]) =>
+    const blockRefIds = externalReferences.map((ref) => ref.declaration);
+    const blockRefs = [...context.map].filter(([id, _]) =>
       blockRefIds.includes(id),
     ) as [number, VariableDeclaration][];
     this.vars = new Map(blockRefs.map(([_, ref]) => [ref.name, ref]));
@@ -126,31 +126,44 @@ class YulTransformer {
 }
 
 export class InlineAssemblyTransformer extends ASTMapper {
-  visitInlineAssembly(node: InlineAssembly, ast: AST): void {
+  yul(node: InlineAssembly): YulNode{
     assert(node.yul !== undefined, 'Attribute yul of the InlineAssembly node is undefined');
+    return node.yul;
+  }
+
+  verify(node: InlineAssembly, ast: AST): void {
     const verifier = new YulVerifier();
-    node.yul.statements.map((node: YulNode) => verifier.verifyNode(node));
+    this.yul(node).statements.map((yul: YulNode) => verifier.verifyNode(yul));
 
-    if (verifier.errors.length > 0) {
-      const unsupportedPerSource = new Map<string, [string, InlineAssembly][]>();
-      const errorsWithNode: [string, InlineAssembly][] = verifier.errors.map((msg) => [msg, node]);
-      unsupportedPerSource.set(ast.getContainingRoot(node).absolutePath, errorsWithNode);
-      const errorMsg = getErrorMessage(
-        unsupportedPerSource,
-        `Detected ${verifier.errors.length} Unsupported Features:`,
-      );
-      throw new WillNotSupportError(errorMsg, undefined, false);
-    }
+    if (verifier.errors.length === 0)
+      return;
 
-    const transformer = new YulTransformer(ast, node);
-    const statements = node.yul.statements.map((yul: YulNode) => {
+    const unsupportedPerSource = new Map<string, [string, InlineAssembly][]>();
+    const errorsWithNode: [string, InlineAssembly][] = verifier.errors.map((msg) => [msg, node]);
+    unsupportedPerSource.set(ast.getContainingRoot(node).absolutePath, errorsWithNode);
+    const errorMsg = getErrorMessage(
+      unsupportedPerSource,
+      `Detected ${verifier.errors.length} Unsupported Features:`,
+    );
+    throw new WillNotSupportError(errorMsg, undefined, false);
+  }
+
+  transform(node: InlineAssembly, ast: AST): void {
+    assert(node.context !== undefined, `Assembly root context not found.`);
+    const transformer = new YulTransformer(ast, node.externalReferences, node.context);
+    const statements = this.yul(node).statements.map((yul: YulNode) => {
       const astNode = transformer.toSolidityStatement(yul);
       ast.setContextRecursive(astNode);
       return astNode;
     });
-    const block: Block = new UncheckedBlock(ast.reserveId(), node.yul.src, statements);
+    const block: Block = new UncheckedBlock(ast.reserveId(),this.yul(node).src, statements);
 
     ast.replaceNode(node, block);
+  }
+
+  visitInlineAssembly(node: InlineAssembly, ast: AST): void {
+    this.verify(node, ast);
+    this.transform(node, ast);
 
     return this.visitStatement(node, ast);
   }
