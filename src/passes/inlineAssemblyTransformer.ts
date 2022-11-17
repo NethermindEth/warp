@@ -35,14 +35,14 @@ class YulVerifier {
     if (!(methodName in YulTransformer.prototype))
       this.errors.push(`${node.nodeType} is not supported`);
     const method = this[methodName as keyof YulVerifier] as (node: YulNode) => void;
-    if (method != undefined) return method.bind(this)(node);
+    if (method !== undefined) return method.bind(this)(node);
   }
   createYulAssignment(node: YulNode) {
     this.verifyNode(node.value);
   }
 
   createYulFunctionCall(node: YulNode) {
-    if (binaryOps[node.functionName.name] == undefined)
+    if (binaryOps[node.functionName.name] === undefined)
       this.errors.push(`${node.functionName.name} is not supported`);
     node.arguments.forEach((arg: YulNode) => this.verifyNode(arg));
   }
@@ -57,7 +57,7 @@ class YulTransformer {
     this.ast = ast;
     this.assemblyRoot = assemblyRoot;
     const blockRefIds = assemblyRoot.externalReferences.map((ref) => ref.declaration);
-    assert(assemblyRoot.context != undefined, `Assembly root context not found.`);
+    assert(assemblyRoot.context !== undefined, `Assembly root context not found.`);
     const blockRefs = [...assemblyRoot.context.map].filter(([id, _]) =>
       blockRefIds.includes(id),
     ) as [number, VariableDeclaration][];
@@ -84,7 +84,7 @@ class YulTransformer {
 
   createYulIdentifier(node: YulNode): Identifier {
     const variableDeclaration = this.vars.get(node.name);
-    assert(variableDeclaration != undefined, `Variable ${node.name} not found.`);
+    assert(variableDeclaration !== undefined, `Variable ${node.name} not found.`);
     return createIdentifier(variableDeclaration, this.ast);
   }
 
@@ -129,7 +129,7 @@ class YulTransformer {
 
 export class InlineAssemblyTransformer extends ASTMapper {
   visitInlineAssembly(node: InlineAssembly, ast: AST): void {
-    assert(node.yul != undefined, 'Attribute yul of the InlineAssembly node is undefined');
+    assert(node.yul !== undefined, 'Attribute yul of the InlineAssembly node is undefined');
     const verifier = new YulVerifier();
     node.yul.statements.map((node: YulNode) => verifier.verifyNode(node));
 
