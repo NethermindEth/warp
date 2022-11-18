@@ -18,7 +18,7 @@ import { error } from './utils/formatting';
 // size to the largest possible
 const MAX_BUFFER_SIZE = Number.MAX_SAFE_INTEGER;
 
-function compileSolFilesCommon(files: string[]): SolcOutput {
+function compileSolFilesCommon(files: string[], options: CompilationOptions): SolcOutput {
   const sources = files.map((file) => {
     return getSolFileVersion(file);
   });
@@ -36,13 +36,13 @@ function compileSolFilesCommon(files: string[]): SolcOutput {
     throw new TranspileFailedError(`All solidity files should be the same major version`);
   }
 
-  const solcOutput = cliCompile(formatInput(files), sources[0]);
+  const solcOutput = cliCompile(formatInput(files), sources[0], options);
   return solcOutput;
 }
 
 export function compileSolFiles(files: string[], options: CompilationOptions): AST {
-  const solcOutput = compileSolFilesCommon(files);
-  printErrors(solcOutput.result, options.warnings, solcOutput.compilerVersion);
+  const solcOutput = compileSolFilesCommon(files, options);
+  printErrors(solcOutput.result, options.warnings || false, solcOutput.compilerVersion);
   const reader = new ASTReader();
   const sourceUnits = reader.read(solcOutput.result);
 
