@@ -7,3 +7,4 @@ export * from './utils/export';
 export * from './storage/export';
 export * from './abi/export';
 export * from './enumInputCheck';
+export * from './event';
