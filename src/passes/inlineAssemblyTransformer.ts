@@ -94,8 +94,8 @@ class YulTransformer {
   }
 
   transformYulFunctionCall(node: YulNode, typeString: string): BinaryOperation {
-    const leftExpr = this.toSolidityExpr(node.arguments[0]);
-    const rightExpr = this.toSolidityExpr(node.arguments[1]);
+    const leftExpr = this.toSolidityExpr(node.arguments[0], typeString);
+    const rightExpr = this.toSolidityExpr(node.arguments[1], typeString);
     return new BinaryOperation(
       this.ast.reserveId(),
       node.src,
